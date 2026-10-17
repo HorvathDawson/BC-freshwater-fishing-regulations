@@ -1,5 +1,40 @@
 # regs v20 (round 18, owner review of v19) — in place on regs-v11.html
 
+- **Phase 2 — the quota as FOLDERS (rows 16 `group.tree`; page v36 @ 728ea2eb re-snapped, 134 states; oracle 18 groups,
+  3,100 baskets).** The card draws `group.tree` and none of the bucket fields (no buckets, count / size boxes, between
+  lines or tags). Each tier is a line of its own on the left, in a wash with a 4 px bar (ink; a water's own rule in the
+  accent; count / size tiers smaller), its number big inside the data's words ("**2** a day from this stream", "This
+  river’s rule: up to **4** a day", "**1** over 50 cm / 20 in a day — a second may be a hatchery steelhead") and its Book
+  page at the end; what it holds is indented beneath it on a 2 px guide line, in the data's order. An own tier says why it
+  applies here and what it replaces under its line (Glenn Creek: "Its row covers its tributaries, so it applies here ·
+  Replaces Region 4’s …"). A kind is the data's sentence ("Up to **2** may be brook, brown or cutthroat trout"), then its
+  size as a boxed chip in the detail's own words carrying cm AND inches ("30 cm / 12 in or longer", "25–33 cm / 10–13 in",
+  "over 50 cm / 20 in"), with the detail's other words beside it ("hatchery"). Each `also_counts` is a short line under
+  the kind (persona: it carries the real over-50 limit and read as skippable grey, so it is ink, bold, on its own bar),
+  then the duties, presence and one picture strip. A kind keeping none: its sentence in the release colour, no chip. The
+  group's top now reads `group.header`: its first part with the number big; the total is the tree's root line, which
+  carries the ⓘ, so the header doesn't repeat it. The tag is `header.tag` (drawn in capitals, rem-sized so it scales at
+  200%). snap.mjs adds every tier's and `also_counts`' `by` to `ruleKey`.
+- Checks (fail-before on the checkpoint page: scratchpad r18p2-check-before.txt): `tree-folders` (10 states: every tier
+  its words / number / bar / indented guide line / children in order, every kind once with its sentence, number, a size
+  chip of the detail's words holding every cm and inch of `sizes`, prominent, its also lines, one picture strip; no bucket
+  field drawn, no tags), `own-tier-why-here`. `card-is-the-caps` (internal, never drawn) walks the tree. Every kind's
+  number is the table's most, and under a size tier min(kind, tier) over its size. Every count / share / own / total
+  tier's number is a cap's take over all the kept fish it holds, and every size tier's a cap's take over its fish at its
+  size. `presence-in-section`, `card-picture-per-species`, `bull-trout-row` read the tree's kinds. `no-bare-zero` and
+  `no-quota-table` accept the tree where the buckets stood. `card-cap-once` lets size chips repeat.
+  `group-head-compact` reads `header`. Retired with the bucket display: bucket-number-big, bucket-note-once,
+  kind-row-one-line, buckets-own-first-sizes-whole, every-cap-once, bucket-replaces, zero-kind-no-size,
+  nested-count-group, bucket-between-big, kind-number-always, size-cap-line, within-shared-no-twice. Full suite 58/58.
+- Persona (haiku, phone-height screens): "Vedder today, how many brook trout and what size?" → 2 a day, shared with
+  brown and cutthroat, hatchery, 30 cm / 12 in or longer (right). "Bella Coola May 1, 30 cm bull trout?" → 1, both parts
+  (right). Fixed: the cross-tier line (above). Left for WORDING (data words): "1 between them" names no antecedent;
+  "Hatchery only — release wild trout and char." first read as "release the brook trout"; the root total and the share
+  read as two competing numbers until the folders are followed; the 30 cm minimum in the own tier's "Replaces …" line
+  read as possibly the brook trout's.
+- Screens 135-145 (tree: Vedder Oct 10 / May 15, Bella Coola May 1 both parts, Glenn, Bennett, Ape, Kootenay LWA, dark,
+  200%); every screen re-shot.
+
 - **5 A real phone.** The frame is 390 x 844 INSIDE (an iPhone 14's points; the 1.5 px edge is now an outline, so it
   takes nothing), with a 47 px status bar, the app's own four tabs at the bottom (TabBar.tsx: Map · Search · Conditions ·
   Spots, Riffle's icons; Search marked, the water came from Search; each a toast) and a 34 px home indicator. The

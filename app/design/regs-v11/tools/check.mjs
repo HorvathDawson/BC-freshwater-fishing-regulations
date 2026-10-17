@@ -16,6 +16,7 @@
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
 //   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
 //   (round 18) phone-real-height, header-compact, group-head-compact (place-in-header: the action now beside the label);
+//   phase 2 (group.tree): tree-folders, own-tier-why-here; card-is-the-caps walks the tree; the bucket-display checks retired;
 //   ONLY=18 runs just these
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
@@ -262,9 +263,10 @@ for (const [name, hash] of CARDS) await page(hash, async b => {
         // every lifting rule's page once (answers rows v9: each[] parts; older shape: the lift itself)
         const want = new Set((l.each && l.each.length ? l.each : [l]).flatMap(e => (SNAP.ruleInfo[(st.ruleKey || {})[e.by]]?.book || []).map(b => b[0])));
         return el ? [(norm(el.textContent).match(/Book p\\.\\d+/g) || []).length, Math.max(1, want.size)] : [-1, 1]; });
-      const kinds = (g.buckets || []).flatMap(bk => bk.kinds).map(k => { const row = [...art.querySelectorAll('.krow')].find(e => e.textContent.includes(k.name));
+      const TK = g => [].concat(g?.tree || []).flatMap(function f(t) { return t.node === 'kind' ? [t] : (t.children || []).flatMap(f); });   /* round 18: the tree's kinds */
+      const kinds = TK(g).map(k => { const row = [...art.querySelectorAll('.krow.kt')].find(e => e.dataset.kind === k.name);
         return [k.name, k.species.length, row ? row.querySelectorAll('img, svg').length : -1]; });
-      const lines = [...art.querySelectorAll('p:not(.ktags), li')].map(e => norm(e.textContent)).filter(Boolean);   /* round 17: a row's shares / within tags repeat by design */
+      const lines = [...art.querySelectorAll('p:not(.ktags):not(.kmeta), li')].map(e => norm(e.textContent)).filter(Boolean);   /* round 18: a size chip ("any size") repeats by design; round 17: a row's shares / within tags repeat by design */
       const dup = lines.filter((t, i) => lines.indexOf(t) !== i);
       out.push({head: g.headline.n, num, total: g.total, totalLine: !!g.total_line, lifts, kinds, dup});
     }); return out; })())`));
@@ -284,45 +286,8 @@ check('card-picture-per-species', card.pics.length > 0 && !badP.length, `${badP.
 const badO = card.once.filter(([, dup, total]) => dup.length || total);
 check('card-cap-once', !badO.length, `${badO.length} groups: e.g. ${JSON.stringify(badO[0])} [water, repeated lines, big number = the total line's cap]`);
 
-// round 11 (owner 2): each bucket's shared number is big and obvious (the data's `cap`, found in its title), its scope
-// (the title after " — ") a smaller line; the bucket's size note (rows 10 `notes[].says`) said once, under the title,
-// before its kinds; each kind row reads on one line — name, detail, number — with its notes BEFORE its pictures
-const BK = {big: [], note: [], line: []};
-for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iron', 'w=iron&d=720'], ['bella coola may', 'w=bellacoola&d=501&p=0'], ['bennett', 'w=x35p&d=1010']])) await page(hash, async b => {
-  const r = JSON.parse(await b.evaluate(`${SZH} JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {missing: true};
-    const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {big: [], note: [], line: []};
-    document.querySelectorAll('#keep article.row.ledger').forEach(art => {
-      const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
-      const secs = [...art.querySelectorAll('section.bkt')];
-      (g.buckets || []).forEach((bk, i) => { const el = secs[i];
-        if (bk.title && bk.cap != null && new RegExp('\\\\b' + bk.cap + '\\\\b').test(bk.title)) {
-          const n = el?.querySelector('.bkn'), sc = el?.querySelector('.bks'), scope = bk.title.split(' — ')[1] || '';
-          const fs = e => e ? parseFloat(getComputedStyle(e).fontSize) : 0;
-          out.big.push([bk.title, !!n && norm(n.textContent) === String(bk.cap) && fs(n) >= 24 && (!scope || (!!sc && norm(sc.textContent).includes(scope) && fs(sc) < fs(n)))]); }
-        /* round 17 (owner): a size cap is a compact line ([data-sgroup]) placed with the rows it covers: once, naming them,
-           before the first row it covers (szShown / szFirst below) */
-        (bk.sizes || []).forEach((z, j) => { const ne = el?.querySelectorAll('[data-sgroup]')[j], k1 = szFirst(el, z);
-          out.note.push([z.says, szShown(ne, z) && art.querySelectorAll('[data-sgroup]').length === (g.buckets || []).reduce((t, b) => t + (b.sizes || []).length, 0) && (!k1 || !!(ne.compareDocumentPosition(k1) & Node.DOCUMENT_POSITION_FOLLOWING))]); });
-        (bk.notes || []).forEach(nt => { const all = norm(art.textContent).split(norm(nt.says)).length - 1, ne = el ? [...el.querySelectorAll('[data-bnote], [data-sgroup]')].find(e => norm(e.textContent).includes(norm(nt.says))) : null;
-          const k1 = el?.querySelector('.krow'); out.note.push([nt.says, all === 1 && !!ne && (!k1 || !!(ne.compareDocumentPosition(k1) & Node.DOCUMENT_POSITION_FOLLOWING))]); });
-      });
-      art.querySelectorAll('.krow.k28').forEach(k => { const nm = k.querySelector('.nm'), kn = k.querySelector('.kn'), dt = k.querySelector('.kdet');
-        const top = e => e.getClientRects()[0]?.top ?? 0, pics = k.querySelector('.kpics'), notes = [...k.querySelectorAll('.s2, .duty, [data-knote]')];
-        const nr = nm.getClientRects(), lastTop = nr[nr.length - 1]?.top ?? 0;
-        // the detail follows the name on its line, unless the name's last line has no room left for the detail's first word
-        const room = () => { const kl = nm.parentElement.getBoundingClientRect(), w0 = document.createElement('span'); w0.className = dt.className;
-          w0.textContent = dt.textContent.trim().split(' ')[0]; w0.style.whiteSpace = 'nowrap'; nm.parentElement.append(w0); const ww = w0.getBoundingClientRect().width; w0.remove();
-          return kl.right - nr[nr.length - 1].right >= ww + 6; };
-        const ok = (!kn || Math.abs(top(kn) - top(nm)) < 10) && (!dt || Math.abs(top(dt) - lastTop) < 6 || !room()) && (!pics || notes.every(e => e.getBoundingClientRect().bottom <= pics.getBoundingClientRect().top + 1));
-        out.line.push([norm(nm.textContent), ok]); });
-    }); return out; })())`));
-  if (r.missing) { BK.big.push([name, 'missing', false]); return; }
-  for (const k of ['big', 'note', 'line']) BK[k].push(...r[k].map(x => [name, ...x]));
-});
-const bb = BK.big.filter(x => !x[2]), bn = BK.note.filter(x => !x[2]), bl = BK.line.filter(x => !x[2]);
-check('bucket-number-big', BK.big.length > 0 && !bb.length, `${bb.length} of ${BK.big.length} bucket titles: e.g. ${JSON.stringify(bb[0])} [water, title, big number + smaller scope]`);
-check('bucket-note-once', BK.note.length > 0 && !bn.length, `${bn.length} of ${BK.note.length} bucket notes: e.g. ${JSON.stringify(bn[0])} [water, note, once under the title before the kinds]`);
-check('kind-row-one-line', BK.line.length > 0 && !bl.length, `${bl.length} of ${BK.line.length} kind rows: e.g. ${JSON.stringify(bl[0])} [water, kind, name·detail·number on one line, notes before pictures]`);
+// round 11 bucket-number-big / bucket-note-once / kind-row-one-line retired in round 18 (owner 1, 7): the card is the tree
+// (group.tree); its numbers, sentences and sizes are tree-folders' (round 18 phase 2)
 
 // round 11 (A3): a lift another water's row carries here (display `inherited`) is a visible line on the Keep side, by the
 // strip (before the quota tables), with the lifting rule's book page; none where the data has none
@@ -465,9 +430,9 @@ for (const [name, hash] of CARDS2) await page(hash, async b => {
 const wb = W2.filter(x => x.missing || x.fe || x.g.some(g => g.ask || (g.want ? g.lists !== 1 : g.lists) || !g.el || !g.lines.every(Boolean)));
 check('one-worked-list', W2.some(x => x.g && x.g.some(g => g.lines.length > 3)) && !wb.length, wb.map(x => `${x.name}: ${x.missing ? 'not in the snapshot' : `${x.fe ? '"Fished elsewhere today?" still shown; ' : ''}${JSON.stringify(x.g.map(g => [g.lists, g.ask, g.el, g.lines]))}`}`).join('; '));
 const ob = W2.filter(x => !x.missing && x.g.some(g => !g.order.every(Boolean) || (g.whys.includes('rule') && g.first !== 'rule') || !g.sizes.every(Boolean)));
-check('buckets-own-first-sizes-whole', !ob.length && W2.some(x => x.name === 'vedder' && x.g[0]?.first === 'rule'), ob.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => [g.whys, g.order, g.sizes]))}`).join('; '));
+// buckets-own-first-sizes-whole: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
 const nb = W2.filter(x => !x.missing && x.g.some(g => !g.notes.every(Boolean)));
-check('every-cap-once', !nb.length && W2.some(x => x.g && x.g.some(g => g.caps >= 3)), nb.map(x => `${x.name}: ${JSON.stringify(x.g.map(g => g.notes))}`).join('; ') || 'no group with several caps checked');
+// every-cap-once: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
 // gear 8: the sentence as the data says it (no em dash)
 // round 16 (5): the sentence is labelled lines now (gear-lines); no em dash in them
 const gd = Object.entries(gear).filter(([, r]) => !r.shown || /—/.test(r.shown));
@@ -539,12 +504,12 @@ for (const [name, hash] of CARDS2) await page(hash, async b => {
 const lf = C13.filter(x => x.missing || x.lift);
 check('no-lift-box', !lf.length, lf.map(x => `${x.name}: ${x.missing ? 'not in the snapshot' : x.lift + ' lift box(es)'}`).join('; '));
 const rp = C13.filter(x => !x.missing && x.rep.some(r => r.shown !== r.says.replace(/\.?$/, '.') || !r.underTitle || !r.once));
-check('bucket-replaces', C13.some(x => x.rep && x.rep.length) && !rp.length, rp.map(x => `${x.name}: ${JSON.stringify(x.rep)}`).join('; ') || 'no bucket with replaces checked');
+// bucket-replaces: retired in round 18 (the card is group.tree; the bucket display is gone) -> own-tier-why-here
 const nkb = C13.filter(x => !x.missing && x.nk.some(n => !n.row || n.cls !== n.status || n.mark !== (n.status === 'closed' ? '✕' : '') || !n.whose || !n.book));
 check('not-kept-said', C13.some(x => x.nk && x.nk.some(n => n.status === 'closed')) && C13.some(x => x.nk && x.nk.some(n => n.status === 'release')) && !nkb.length,
   nkb.map(x => `${x.name}: ${JSON.stringify(x.nk)}`).join('; ') || 'no closed AND release line checked');
 const zb = C13.filter(x => !x.missing && x.zero.some(z => /\bcm\b/.test(z.det) || z.det !== z.want));
-check('zero-kind-no-size', C13.some(x => x.zero && x.zero.length) && !zb.length, zb.map(x => `${x.name}: ${JSON.stringify(x.zero)}`).join('; ') || 'no 0-quota kind checked');
+// zero-kind-no-size: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders (no size chip on a fish kept none)
 // gear 9: the sentence names no hook when nothing restricts it (the data's words, never "any hook")
 const ah = Object.entries(gear).filter(([, r]) => /any hook/i.test(r.shown || ''));
 check('gear-no-any-hook', !ah.length, ah.map(([w, r]) => `${w}: ${JSON.stringify(r.shown)}`).join('; '));
@@ -598,7 +563,7 @@ for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}`, async b => {
     return {at: location.hash, out}; })())`)));
 });
 const nb14 = N14.filter(x => !x.out.length || x.out.some(o => !o.el || !o.first || !o.shown || !o.kinds || !o.before || !o.once));
-check('nested-count-group', NGW.length >= 2 && !nb14.length, nb14.map(x => JSON.stringify(x)).join('; ') || `states checked: ${JSON.stringify(NGW)}`);
+// nested-count-group: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
 
 // (4, rows 13) the steelhead presence line sits INSIDE the steelhead's own section, once: its kind row, its not-kept line,
 // or its own row (a sheet when that row is under Other fish); no card-level steelhead note but known_no_rules
@@ -612,12 +577,14 @@ const P14 = [];
 for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}`, async b => {
   P14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), K = document.getElementById('keep'), out = [];
     const arts = [...K.querySelectorAll('article.row.ledger')].filter(a => !a.closest('details'));
+    const TK = g => [].concat(g?.tree || []).flatMap(function f(t) { return t.node === 'kind' ? [t] : (t.children || []).flatMap(f); });
     const artOf = i => arts.find(a => a.dataset.row === 'r' + i);
     let placed = 0;
     st.rows.forEach((r, i) => { const g = r.group, art = artOf(i);
-      (g?.buckets || []).forEach(bk => [...bk.kinds, ...(bk.groups || []).flatMap(s => s.kinds)].forEach(k => { if (!k.presence) return; placed++;
-        const row = [...(art?.querySelectorAll('.krow') || [])].find(e => norm(e.querySelector('.nm')?.textContent) === norm(k.name));
-        out.push({where: 'kind ' + k.name, ok: !!row && norm(row.textContent).includes(norm(k.presence.says))}); }));
+      // round 18: the kinds are the tree's (group.tree), each row .kt[data-kind]
+      TK(g).forEach(k => { if (!k.presence) return; placed++;
+        const row = [...(art?.querySelectorAll('.krow.kt') || [])].find(e => e.dataset.kind === k.name);
+        out.push({where: 'kind ' + k.name, ok: !!row && norm(row.textContent).includes(norm(k.presence.says))}); });
       (g?.not_kept || []).forEach(x => { if (!x.presence) return; placed++;
         const row = [...(art?.querySelectorAll('[data-notkept]') || [])].find(e => norm(e.textContent).includes(norm(x.says)));
         out.push({where: 'not_kept ' + x.says, ok: !!row && norm(row.textContent).includes(norm(x.presence.says))}); });
@@ -629,7 +596,7 @@ for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}
           out.push({where: 'kind of another row ' + i, ok: norm(e.textContent).includes(norm(r.presence.says))}); }
         else { const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
           out.push({where: 'sheet row ' + i, ok: !!o && norm(new DOMParser().parseFromString(o[1].html, 'text/html').body.textContent).includes(norm(r.presence.says))}); } } });
-    const words = [...new Set([...st.rows.flatMap(r => [r.presence, ...(r.group?.not_kept || []).map(x => x.presence), ...(r.group?.buckets || []).flatMap(bk => [...bk.kinds, ...(bk.groups || []).flatMap(s => s.kinds)].map(k => k.presence))]).filter(Boolean).map(p => norm(p.says))])];
+    const words = [...new Set([...st.rows.flatMap(r => [r.presence, ...(r.group?.not_kept || []).map(x => x.presence), ...TK(r.group).map(k => k.presence)]).filter(Boolean).map(p => norm(p.says))])];
     const said = words.reduce((n, w) => n + norm(K.textContent).split(w).length - 1, 0);
     return {at: location.hash, steelLine: st.steelLine, placed, said, out}; })())`)));
 });
@@ -671,7 +638,7 @@ const Z15 = [];
 for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 'w=ape&d=501', 'w=vedder&d=1010']) await page(hash, async b => {
   Z15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
     const own = e => norm([...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(''));
-    const bare = [...document.querySelectorAll('#keep .kn, #keep .num, #keep .bkn, #keep .qgn')].filter(e => own(e) === '0')
+    const bare = [...document.querySelectorAll('#keep .kn, #keep .num, #keep .bkn, #keep .qgn, #keep .tn')].filter(e => own(e) === '0')
       .map(e => norm(e.closest('.krow, .rhead')?.textContent).slice(0, 70));
     const w = document.querySelector('#keep .worked'), prev = w?.previousElementSibling;
     // persona (round 15): a kind's number that only repeats its bucket's shared number (2+ kinds) is not drawn; the
@@ -683,7 +650,7 @@ for (const hash of ['w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=1010', 
       (g.buckets || []).forEach((bk, i) => { const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0]; if (!n || bk.kinds.length + (bk.groups || []).length < 2) return;
         /* round 17 (owner): a kind's own number is ALWAYS drawn now (kind-number-always), so no repeat is hidden */ }); });
     // round 16 (2): "How it adds up" now closes its group (worked-last), so the order is no longer held here
-    return {at: location.hash, bare, rep, order: true, aboveWorked: prev && !prev.matches('section.bkt') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
+    return {at: location.hash, bare, rep, order: true, aboveWorked: prev && !prev.matches('section.bkt, .qtree') ? [...prev.querySelectorAll('.kn, .num')].map(own).filter(t => /^\\d+$/.test(t)) : []}; })())`)));
 });
 const zb15 = Z15.filter(x => x.bare.length || x.aboveWorked.length || x.rep.length || !x.order);
 check('no-bare-zero', Z15.length === 5 && !zb15.length, zb15.map(x => JSON.stringify(x)).join('; '));
@@ -748,7 +715,7 @@ for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedde
 });
 // round 17 (owner): size-group-box retired — the size cap is a compact line without pictures now (size-cap-line)
 const bb15 = S15.filter(x => x.bw.some(z => !z.el || !z.big || !z.words || !z.once));
-check('bucket-between-big', S15.some(x => x.bw.length) && !bb15.length, bb15.map(x => JSON.stringify(x)).join('; ') || 'no between checked');
+// bucket-between-big: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
 
 // (2) the Under 16 tab shows, OPEN and outside every fold, what each residency's under-16 angler needs (the frame's
 // `under_16`): one item per residency, its label and its words, the tab's own residency marked; the 16-or-older tab does not
@@ -881,7 +848,7 @@ const QSRC = ['data-qtable', 'data-qform', 'qtHtml', 'Check my catch', 'qAccepts
 const NQ = [];
 for (const hash of R17) await page(hash + '&qt=1&bk=CT:30:h:-', async b => NQ.push(JSON.parse(await b.evaluate(`JSON.stringify({at: location.hash,
   table: document.querySelectorAll('#keep [data-qtable], #keep table, #keep [data-qform], #keep select').length,
-  buckets: document.querySelectorAll('#keep section.bkt').length, qt: 'qt' in S || 'bk' in S})`))));
+  buckets: document.querySelectorAll('#keep section.bkt, #keep .qtree').length, qt: 'qt' in S || 'bk' in S})`))));
 const nq = NQ.filter(x => x.table || !x.buckets || x.qt);
 check('no-quota-table', !QSRC.length && NQ.length === R17.length && !nq.length, `page source has ${JSON.stringify(QSRC)}; ${nq.map(x => JSON.stringify(x)).join('; ')}`);
 
@@ -913,17 +880,21 @@ for (const hash of R17) await page(hash, async b => K17.push(JSON.parse(await b.
     }); });
   return out; })())`))));
 const kb17 = K17.filter(x => x.num.length), sb17 = K17.filter(x => x.sz.length || x.tag.length), wb17 = K17.filter(x => x.within.length || x.twice.length);
-check('kind-number-always', K17.length === R17.length && !kb17.length, kb17.map(x => `${x.at}: ${JSON.stringify(x.num)}`).join('; '));
-check('size-cap-line', K17.some(x => x.at.includes('bellacoola')) && !sb17.length, sb17.map(x => `${x.at}: ${JSON.stringify({sz: x.sz, tag: x.tag})}`).join('; '));
-check('within-shared-no-twice', !wb17.length, wb17.map(x => `${x.at}: ${JSON.stringify({within: x.within, twice: x.twice})}`).join('; '));
-// the owner's own question, read straight off one row: a 30 cm bull trout on the Bella Coola on May 1 (both parts)
+// kind-number-always: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
+// size-cap-line: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
+// within-shared-no-twice: retired in round 18 (the card is group.tree; the bucket display is gone) -> tree-folders
+// the owner's own question, read straight off one row: a 30 cm bull trout on the Bella Coola on May 1 (both parts).
+// round 18: off the tree — the Dolly Varden/bull trout kind's sentence with its number, a size chip in cm and inches whose
+// lower bound a 30 cm fish passes, its cross-tier line, inside its tier (the folder it shares)
 const BT17 = [];
 for (const p of [0, 1]) await page(`w=bellacoola&d=501&p=${p}`, async b => BT17.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
-  const r = document.querySelector('#keep .krow[data-sp="DV"]');
-  return {p: ${p}, name: norm(r?.querySelector('.nm')?.textContent), det: norm(r?.querySelector('.kdet')?.textContent), n: norm(r?.querySelector('.kn')?.textContent),
-    within: norm(r?.querySelector('[data-within]')?.textContent), shares: norm(r?.querySelector('[data-shares]')?.textContent),
-    box: !!document.querySelector('#keep [data-qgroup]'), between: norm(document.querySelector('#keep [data-between]')?.textContent)}; })())`))));
-const bt17 = BT17.filter(x => x.name !== 'Dolly Varden/bull trout' || x.det !== '25 cm or longer' || x.n !== '1' || x.within !== 'within the river’s 2' || x.shares !== 'shares the 1 over 50 cm' || !x.box || x.between !== 'Up to 2 a day between them');
+  const TK = g => [].concat(g?.tree || []).flatMap(function f(t) { return t.node === 'kind' ? [t] : (t.children || []).flatMap(f); });
+  const k = ST().rows.flatMap(r => TK(r.group)).find(k => k.species.join(' ') === 'DV'), r = document.querySelector('#keep .krow.kt[data-sp="DV"]');
+  const tier = r?.closest('section.tnode'), chip = norm(r?.querySelector('[data-size]')?.textContent), lo = k?.sizes.cm[0]?.[0], loIn = k?.sizes.in[0]?.[0];
+  return {p: ${p}, k: !!k, says: norm(r?.querySelector('.ks')?.textContent) === norm(k?.says), n: norm(r?.querySelector('.ks .kn')?.textContent), want: String(k?.n),
+    chip, sized: lo != null && lo <= 30 && (k.sizes.cm[0][1] == null || k.sizes.cm[0][1] >= 30) && chip.includes(lo + ' cm') && chip.includes(loIn + ' in'),
+    also: (k?.also_counts || []).length === r?.querySelectorAll('[data-also]').length, tier: norm(tier?.querySelector(':scope > .tier .tn')?.textContent)}; })())`))));
+const bt17 = BT17.filter(x => !x.k || !x.says || x.n !== x.want || x.n !== '1' || !x.sized || !x.also || !x.tier);
 check('bull-trout-row', BT17.length === 2 && !bt17.length, JSON.stringify(bt17));
 
 // (2) INTERNAL TEST, never drawn: every number the card shows agrees with the data's own table and cap system (rows 15
@@ -945,26 +916,32 @@ for (const hash of R17) await page(hash, async b => {
       const most = c => O?.cells.find(x => x.sp === c.sp && x.i === c.i)?.most;
       const spOf = ids => new Set(ids.map(x => ck[x]?.species));
       const capOver = (n, test) => (g.caps || []).some(c => c.take === n && test(c));
-      const secs = [...art.querySelectorAll('section.bkt')];
-      (g.buckets || []).forEach((bk, i) => { const sec = secs[i];
-        const all = [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds];
-        all.forEach(k => { const r = [...(sec?.querySelectorAll('.krow[data-sp]') || [])].find(e => e.dataset.sp === k.species.join(' ') && norm(e.querySelector('.nm')?.textContent) === norm(k.name));
-          const shown = norm(r?.querySelector('.kn')?.textContent), cs = k.species.flatMap(cellsOf), keep = cs.filter(c => c.n !== 0);
-          if (k.n === 0) { if (shown || keep.length) bad.push(k.name + ': keeps none, cells ' + JSON.stringify(keep.map(c => [c.sp, c.says, c.n]))); return; }
+      // round 18 phase 2: the card is the tree (group.tree); walk it with its drawing. A kind's number = the most of any of
+      // its fish's table cells; a kind under a size tier keeps min(its number, the tier's) over the tier's size; a count /
+      // share / own / total tier's number = a cap's take over all the kept fish it holds; a size tier's = a cap's take over
+      // fish at / over its size naming every fish the tier names
+      const keptUnder = t => t.node === 'kind' ? (t.n !== 0 ? t.species : []) : (t.children || []).flatMap(keptUnder);
+      const walk = (t, el, sizes) => {
+        if (t.node === 'kind') { const k = t, shown = norm(el?.querySelector('.ks .kn')?.textContent), cs = k.species.flatMap(cellsOf), keep = cs.filter(c => c.n !== 0);
+          if (!el) { bad.push(k.says + ': not drawn'); return; }
+          if (k.n === 0) { if (shown || keep.length) bad.push(k.says + ': keeps none, cells ' + JSON.stringify(keep.map(c => [c.sp, c.says, c.n]))); return; }
+          if (k.n == null) return;
           nums++;
           const mx = keep.some(c => c.n == null) ? null : Math.max(...keep.map(c => c.n));
-          if (shown !== String(mx)) bad.push(k.name + ': shows ' + shown + ', table most ' + mx);
-          keep.forEach(c => { if (most(c) !== undefined && most(c) !== c.n) bad.push(k.name + ' ' + c.sp + ' ' + c.says + ': table ' + c.n + ', most_here ' + most(c)); });
-          (bk.sizes || []).filter(z => k.species.some(s => z.species.includes(s))).forEach(z => keep.filter(c => (c.from || 0) >= z.over_cm && z.species.includes(c.sp)).forEach(c => {
-            if (c.n !== Math.min(+shown, z.n)) bad.push(k.name + ' ' + c.sp + ' ' + c.says + ': ' + c.n + ' vs min(' + shown + ', ' + z.n + ')'); })); });
-        (bk.groups || []).forEach((sg, j) => { const el = sec?.querySelectorAll('[data-qgroup]')[j], n = +norm(el?.querySelector('.qgn')?.textContent); nums++;
-          const want = new Set(sg.kinds.flatMap(k => k.species));
-          if (n !== sg.n || !capOver(n, c => { const s = spOf(c.kinds.here); return s.size === want.size && [...want].every(x => s.has(x)); })) bad.push(sg.says + ': shows ' + n + ', no cap of that take over exactly its fish'); });
-        (bk.sizes || []).forEach((z, j) => { const el = sec?.querySelectorAll('[data-sgroup]')[j], n = +norm(el?.querySelector('.qgn')?.textContent); nums++;
-          if (n !== z.n || !capOver(n, c => c.kinds.here.length && c.kinds.here.every(x => (ck[x]?.from || 0) >= z.over_cm) && z.species.every(x => spOf(c.kinds.here).has(x)))) bad.push(z.says + ': shows ' + n + ', no cap of that take over its fish at its size'); });
-        const bn = [...(sec?.querySelectorAll('.bkn') || [])].map(e => +norm(e.textContent));
-        bn.forEach(n => { nums++; const want = new Set(all.filter(k => k.n !== 0).flatMap(k => k.species));
-          if (!capOver(n, c => [...want].every(x => spOf(c.kinds.here).has(x)))) bad.push((bk.title || 'bucket') + ': shows ' + n + ', no cap of that take over all its kept fish'); }); }); });
+          if (shown !== String(mx)) bad.push(k.says + ': shows ' + shown + ', table most ' + mx);
+          keep.forEach(c => { if (most(c) !== undefined && most(c) !== c.n) bad.push(k.says + ' ' + c.sp + ' ' + c.says + ': table ' + c.n + ', most_here ' + most(c)); });
+          sizes.forEach(z => keep.filter(c => (c.from || 0) >= z.over_cm && (z.species || []).includes(c.sp)).forEach(c => {
+            if (c.n !== Math.min(+shown, z.n)) bad.push(k.says + ' ' + c.sp + ' ' + c.says + ': ' + c.n + ' vs min(' + shown + ', ' + z.n + ')'); }));
+          return; }
+        if (!el) { bad.push(t.says + ': tier not drawn'); return; }
+        const n = +norm(el.querySelector(':scope > .tier .tn')?.textContent), kids = [...(el.querySelector(':scope > .tch')?.children || [])];
+        if (t.n != null) { nums++;
+          if (n !== t.n) bad.push(t.says + ': shows ' + n);
+          if (t.tier === 'size') { if (!capOver(n, c => c.kinds.here.length && c.kinds.here.every(x => (ck[x]?.from || 0) >= t.over_cm) && (t.species || []).every(x => spOf(c.kinds.here).has(x)))) bad.push(t.says + ': no cap of that take over its fish at its size'); }
+          else { const want = new Set(keptUnder(t)); if (!capOver(n, c => [...want].every(x => spOf(c.kinds.here).has(x)))) bad.push(t.says + ': no cap of that take over all its kept fish'); } }
+        (t.children || []).forEach((c, i) => walk(c, kids[i], t.tier === 'size' ? [...sizes, t] : sizes)); };
+      const tops = [...(art.querySelector(':scope > .qtree')?.children || [])];
+      [].concat(g.tree || []).forEach((t, i) => walk(t, tops[i], [])); });
     return {at: location.hash, id: sid(), nums, bad}; })())`)));
 });
 const cc17 = CC17.filter(x => x.bad.length || !x.nums);
@@ -1034,17 +1011,68 @@ async function round18(){
         if (h.n != null) { if (norm(big?.textContent) !== String(h.n)) bad.push('number ' + norm(big?.textContent));
           if (norm(unit?.textContent) !== h.unit) bad.push('unit ' + norm(unit?.textContent));
           const bn = R(big), un = R(unit); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); }
-        (h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
+        (g.header ? [] : h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
         if (g.origin) { const og = blk.querySelector('[data-origin]'), cut = g.origin.indexOf(' — ');
           const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
-          if (said.replace(/ — /, ' ') !== g.origin.replace(/ — /, ' ') && said !== g.origin) bad.push('origin ' + said);
-          if (cut > 0 && norm(og?.querySelector('.gtag')?.textContent) !== g.origin.slice(0, cut)) bad.push('tag ' + norm(og?.querySelector('.gtag')?.textContent));
+          if (said.toLowerCase() !== g.origin.replace(/ — /, ' ').toLowerCase() && said !== g.origin) bad.push('origin ' + said);
+          // phase 2 (rows 16): the tag is the data's header.tag ("hatchery only", drawn in capitals), else the words before " — "
+          const tagW = g.header?.tag || (cut > 0 ? g.origin.slice(0, cut) : '');
+          if (tagW && norm(og?.querySelector('.gtag')?.textContent).toLowerCase() !== tagW.toLowerCase()) bad.push('tag ' + norm(og?.querySelector('.gtag')?.textContent));
           if (art.querySelector('[data-howtell]') && !og?.querySelector('[data-howtell]')) bad.push('How to tell outside the block'); }
-        if (g.total_line && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');
+        if (g.total_line && !g.tree && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');   // with a tree its root line says the total
+        if (g.header && h.n != null && !norm(blk.querySelector('.num')?.textContent).startsWith(norm(g.header.says.split(' · ')[0]))) bad.push('header ' + norm(blk.querySelector('.num')?.textContent));
         if (art.querySelector(':scope > .gorigin, :scope > .gtotal, :scope > .rhead')) bad.push('a head line outside the block');
         out.push({t: norm(blk.querySelector('.rtitle')?.textContent), h: Math.round(R(blk).height), bad}); });
       return {hash: location.hash.slice(8), out}; })())`)));
   });
   const ghb = GH.filter(x => !x.out.length || x.out.some(g => g.bad.length) || (x.hash === 'w=vedder&d=1010' && x.out[0].h > 145));
   check('group-head-compact', GH.length === 6 && !ghb.length, ghb.map(x => `${x.hash}: ${JSON.stringify(x.out)}`).join('; '));
+
+  // ---------- round 18 phase 2 (rows 16 `group.tree`) ----------
+  // (1) the quota is FOLDERS: the page draws `group.tree` and nothing of the bucket fields — every tier a line of its own
+  // (its words, its number big, a left bar and wash: not a kind row), what it holds indented beneath it on a guide line in
+  // the data's order, every kind exactly once; no tags anywhere
+  // (2, 7) each kind is the data's sentence (`says`, its number `n` bold), its size a chip of the detail's own words holding
+  // every cm AND inch the data's `sizes` give, the detail's other words beside it, each `also_counts` a short line under it,
+  // one picture strip; (8) an own tier says why it applies here and what it replaces (Glenn Creek: the tributary walk)
+  const TR = [];
+  const TRS = ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=ape&d=501', 'w=klwa&d=1010', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=hamill&d=615', 'w=chilliwack&d=1010&p=1'];
+  for (const hash of TRS) await page(hash, async b => {
+    TR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let tiers = 0, kinds = 0, own = [];
+      const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+      const kind = (k, el, at) => { if (!el?.matches('.krow.kt[data-sp]')) return bad.push(at + ': kind ' + k.says + ' not drawn here'); kinds++;
+        if (el.dataset.sp !== k.species.join(' ')) bad.push(k.says + ': species ' + el.dataset.sp);
+        if (norm(el.querySelector('.ks')?.textContent) !== norm(k.says)) bad.push(k.says + ': sentence ' + norm(el.querySelector('.ks')?.textContent));
+        const kn = norm(el.querySelector('.ks .kn')?.textContent); if (k.n ? kn !== String(k.n) : kn) bad.push(k.says + ': number ' + kn);
+        const chip = el.querySelector('[data-size]'), ct = norm(chip?.textContent), nums = [...new Set([...k.sizes.cm.flat(), ...k.sizes.in.flat()].filter(x => x))];
+        if (k.n !== 0) { if (!chip) bad.push(k.says + ': no size chip');
+          else { if (!norm(k.detail).includes(ct)) bad.push(k.says + ': chip not the detail\\'s words: ' + ct);
+            const cmN = k.sizes.cm.flat().filter(x => x), inN = k.sizes.in.flat().filter(x => x);
+            if (cmN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^/]*cm').test(ct)) || inN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^/]*in\\\\b').test(ct.split('/').slice(1).join('/') || '')) || (cmN.length && !/ cm\\b/.test(ct)) || (inN.length && !/ in\\b/.test(ct))) bad.push(k.says + ': chip ' + ct + ' vs sizes ' + JSON.stringify(k.sizes));
+            const cs = getComputedStyle(chip); if (cs.borderTopStyle === 'none' || +cs.fontWeight < 700) bad.push(k.says + ': chip not prominent'); } }
+        else if (chip) bad.push(k.says + ': a size chip on a fish kept none');
+        const ac = [...el.querySelectorAll('[data-also]')].map(e => norm(e.textContent)), want = (k.also_counts || []).map(a => norm(cap1(a.says)));
+        if (JSON.stringify(ac) !== JSON.stringify(want)) bad.push(k.says + ': also ' + JSON.stringify(ac) + ' vs ' + JSON.stringify(want));
+        if (el.querySelectorAll('.kpics').length !== 1) bad.push(k.says + ': ' + el.querySelectorAll('.kpics').length + ' picture strips'); };
+      const tier = (t, el, at) => { if (!el?.matches('section.tnode')) return bad.push(at + ': tier ' + t.says + ' not drawn here'); tiers++;
+        const tl = el.querySelector(':scope > .tier > .tl'), cl = tl.cloneNode(true); cl.querySelectorAll('.tbk, .gl, .glk').forEach(x => x.remove());
+        if (norm(cl.textContent) !== norm(t.says)) bad.push('tier ' + t.says + ': drawn ' + norm(cl.textContent));
+        if (t.n != null && norm(tl.querySelector('.tn')?.textContent) !== String(t.n)) bad.push('tier ' + t.says + ': number ' + norm(tl.querySelector('.tn')?.textContent));
+        const ts = getComputedStyle(tl); if (parseFloat(ts.borderLeftWidth) < 3) bad.push('tier ' + t.says + ': not styled as a tier line');
+        const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
+        if (t.children.length && (!ch || R(ch).left < R(tl).left + 6 || getComputedStyle(ch).borderLeftStyle === 'none')) bad.push('tier ' + t.says + ': children not indented on a guide line');
+        if (kids.length !== t.children.length) bad.push('tier ' + t.says + ': ' + kids.length + ' drawn children of ' + t.children.length);
+        if (t.tier === 'own') own.push({says: t.says, sub: norm(el.querySelector(':scope > .tier .tsub')?.textContent), why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
+        t.children.forEach((c, i) => (c.node === 'tier' ? tier : kind)(c, kids[i], t.says)); };
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline || !g.tree) return;
+        const q = art.querySelector(':scope > .qtree'), tops = q ? [...q.children] : [];
+        [].concat(g.tree).forEach((t, i) => tier(t, tops[i], 'root'));
+        if (art.querySelector('section.bkt, [data-qgroup], [data-sgroup], [data-between]')) bad.push('bucket fields drawn'); });
+      const tags = document.querySelectorAll('#keep .ktag, #keep .ktags').length; if (tags) bad.push(tags + ' tags');
+      return {hash: location.hash.slice(8), tiers, kinds, own, bad}; })())`)));
+  });
+  const trb = TR.filter(x => x.bad.length || !x.tiers || !x.kinds);
+  check('tree-folders', TR.length === TRS.length && !trb.length, trb.map(x => `${x.hash}: ${x.tiers} tiers ${x.kinds} kinds; ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+  const ow = TR.flatMap(x => x.own.map(o => ({...o, hash: x.hash}))), owb = ow.filter(o => !o.book || (o.why && !o.sub.toLowerCase().includes(o.why.toLowerCase())) || (o.repl && !o.sub.includes(o.repl)));
+  check('own-tier-why-here', ow.some(o => o.hash.includes('glenn') && o.why) && !owb.length, JSON.stringify(owb.slice(0, 3)));
 }

@@ -163,6 +163,18 @@ const SCREENS = [
   ['132-header-chilliwack-part2-map-full-label', 'w=chilliwack&d=1010&p=1&map=1'],
   ['133-card-vedder-oct10-group-head', `${V}&at=.g28`],
   ['134-card-vedder-may15-group-head', 'w=vedder&d=515&at=.g28'],
+  // round 18 phase 2: the quota as folders (group.tree) — tier lines, kinds as sentences, sizes as cm + in chips
+  ['135-tree-vedder-oct10', `${V}&at=.qtree`],
+  ['136-tree-vedder-oct10-share', `${V}&at=%5Bdata-tnode%3D%22share%22%5D`],
+  ['137-tree-vedder-may15', 'w=vedder&d=515&at=.qtree'],
+  ['138-tree-bella-coola-may1-side-channels', 'w=bellacoola&d=501&p=0&at=.qtree'],
+  ['139-tree-bella-coola-may1-mainstem-count', 'w=bellacoola&d=501&p=1&at=%5Bdata-tnode%3D%22count%22%5D'],
+  ['140-tree-glenn-jun15-why-here', 'w=glenn&d=615&at=.qtree'],
+  ['141-tree-bennett-lake', 'w=x35p&d=1010&at=.qtree'],
+  ['142-tree-ape-may1', 'w=ape&d=501&at=.qtree'],
+  ['143-tree-kootenay-lwa', 'w=klwa&d=1010&at=.qtree'],
+  ['144-dark-tree-vedder', `${V}&theme=dark&at=.qtree`],
+  ['145-text-200-tree-vedder', `${V}&ts=2&at=.qtree`],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

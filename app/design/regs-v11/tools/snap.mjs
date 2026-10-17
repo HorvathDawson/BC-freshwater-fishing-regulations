@@ -110,7 +110,9 @@ function extract(SPECS, YR) {
           (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
           (g.buckets || []).forEach(b => { bys.add(b.by); (b.groups || []).forEach(s => bys.add(s.by)); (b.sizes || []).forEach(z => bys.add(z.by)); });   // rows 13: nested count groups; rows 14: size groups
           (g.not_kept || []).forEach(x => bys.add(x.by));
-          (g.caps || []).forEach(c => bys.add(c.by)); });   // rows 15: every cap's rule (its Book page, whose)   // round 13 S: whose rule closes / releases a fish of the row
+          (g.caps || []).forEach(c => bys.add(c.by));
+          // rows 16 (ROUND18): the tree's tiers and every kind's also_counts cite their rule
+          const walk = t => { if (t.by) bys.add(t.by); (t.also_counts || []).forEach(a => a.by && bys.add(a.by)); (t.children || []).forEach(walk); }; if (g.tree) walk(g.tree); });   // rows 15: every cap's rule (its Book page, whose)   // round 13 S: whose rule closes / releases a fish of the row
         // rows 14 (ROUND15 3): each weekday part's rules and each restatement's rule
         MODEL.rows.forEach(({ raw: r }) => { (r.week?.parts || []).forEach(p => (p.rules || []).forEach(x => bys.add(x))); (r.restates || []).forEach(x => { bys.add(x.r); bys.add(x.of); }); });   // rows 15: the winner a restatement folds into
         st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];

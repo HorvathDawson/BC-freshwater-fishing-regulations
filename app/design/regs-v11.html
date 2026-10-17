@@ -461,9 +461,31 @@ button.hplace:active .pl{color:var(--accent)}
 .ghd .num .ghu{font:700 var(--t3)/1.2 Archivo,sans-serif;color:var(--ink)}
 .ghd .num .also{flex-basis:100%;max-width:none;margin-top:2px;text-align:left;font:600 var(--t4)/1.3 Archivo,sans-serif}
 .g28 .ghd .gorigin{display:flex;flex-wrap:wrap;align-items:center;gap:0 6px;margin:4px 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}
-.ghd .gtag{display:inline-block;padding:2px 5px;border:1.5px solid var(--ink);font:800 11px/1.2 Archivo,sans-serif;letter-spacing:.4px;text-transform:uppercase}
+.ghd .gtag{display:inline-block;padding:2px 5px;border:1.5px solid var(--ink);font:800 .69rem/1.2 Archivo,sans-serif;letter-spacing:.4px;text-transform:uppercase}
 .ghd .gorigin .linkbtn{min-height:32px;font-size:var(--t4)}
 .ghd .gtotal{margin:0;font-size:var(--t4);line-height:1.35}
+/* round 18 phase 2 (owner 1, 2, 7): the quota as folders — tier lines on the left, what they hold indented on a guide line */
+.ghd .num .ghr{flex-basis:100%;font:600 var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}
+.qtree{margin-top:4px}
+.tnode{margin:8px 0 0}
+.tier .tl{margin:0;padding:5px 10px 5px 8px;background:var(--wash);border-left:4px solid var(--ink);font:700 var(--t3)/1.3 Archivo,sans-serif}
+.tier .tn{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);margin:0 1px}
+.tier[data-tier="own"] .tl{border-left-color:var(--accent)}
+.tier[data-tier="size"] .tl,.tier[data-tier="count"] .tl{font-size:var(--t4);background:none;border-left-width:3px;padding-top:3px;padding-bottom:3px}
+.tier[data-tier="size"] .tn,.tier[data-tier="count"] .tn{font-size:var(--t2)}
+.tier .tsub{margin:3px 0 0 12px;font-size:var(--t4);line-height:1.35;color:var(--sub)}
+.tbk{margin-left:4px;font:600 var(--t4) Archivo,sans-serif;white-space:nowrap}.tbk .book{min-height:0;padding:12px 0;margin:-12px 0}
+.tch{margin:2px 0 0 10px;padding-left:12px;border-left:2px solid var(--line2)}
+.tch > .tnode{margin-top:6px}
+.krow.kt{min-height:0;padding:8px 0}.tch > .krow.kt:first-child{border-top:0}
+.kt .ks{margin:0;font:600 var(--t3)/1.35 Archivo,sans-serif}
+.kt .kn{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);min-width:0;margin:0;text-align:left}
+.kt.kzero .ks{color:var(--restricted)}
+.kmeta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:5px 0 0}
+.szc{display:inline-block;padding:2px 8px;border:1.5px solid var(--ink);font:800 var(--t3)/1.3 Archivo,sans-serif;white-space:normal}
+.kq{font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+/* persona (round 18): the cross-tier line carries the real over-50 cm limit and read as skippable grey: ink, bold, its own bar */
+.kac{margin:6px 0 0;padding:3px 8px;border-left:3px solid var(--ink);background:var(--wash);font:700 var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
 /* round 18 (owner 6): the header fits a phone — name and date on one line, the part's label ONE line with "View on map ›"
    beside it, slim tabs (Chilliwack part 2, Oct 10: 179 -> ~110 px) */
 .r1{min-height:44px;padding-top:0}
@@ -844,10 +866,15 @@ function buildKeep(){
     const head = art.querySelector('.rhead .rtitle')?.outerHTML || '';
     const also = (h.also || []).map(x => `<small class="also">or ${esc(x.says)}</small>`).join('');
     // round 18 (owner 4): the number and its unit read as one line ("2 a day from this stream"), the data's `also` under it
-    const num = h.n != null ? `<div class="num"><b class="ghn">${h.n}</b> <span class="ghu">${esc(h.unit)}</span>${also}</div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
     const gor = art.querySelector('.gorigin'), lis = [...art.querySelectorAll('ul.glifts > li')];
     const keyIn = el => el?.querySelector('[data-rule]')?.dataset.rule || '';
     const glOf = el => [...(el?.querySelectorAll('.gl') || [])].map(x => x.dataset.gl);
+    // round 18 phase 2 (rows 16, `group.header`): ONE line — the headline and the region's total ("2 a day from this stream ·
+    // 4 across Region 2, lakes included"), its first number big; the tree below says what each number holds
+    const hd = g.header?.says || '', hcut = hd.indexOf(' · '), hlead = hcut < 0 ? hd : hd.slice(0, hcut), hrest = hcut < 0 ? '' : hd.slice(hcut + 3);
+    const hm = h.n != null ? hlead.match(new RegExp(`^(.*?)\\b${h.n}\\b(.*)$`)) : null;
+    const num = hm ? `<div class="num">${hm[1].trim() ? `<span class="ghu">${esc(hm[1].trim())}</span> ` : ''}<b class="ghn">${h.n}</b> <span class="ghu">${esc(hm[2].trim())}</span>${hrest && !g.tree ? `<span class="ghr" data-hrest>${esc(cap1(hrest))} ${tips(glOf(lis[lis.length - 1]))}</span>` : ''}</div>`
+      : h.n != null ? `<div class="num"><b class="ghn">${h.n}</b> <span class="ghu">${esc(h.unit)}</span>${also}</div>` : `<div class="num nolimit"><small>${esc(h.says)}</small></div>`;
     const vb = [...art.querySelectorAll('section.bucket')];
     // round 13 (D, rows 12): the lift box is gone; a water's own-rule bucket says what it replaces (`buckets[].replaces`),
     // under its title. `g.lifts` stay in the data for proof only; page v36's glifts list now holds the total line alone.
@@ -935,13 +962,37 @@ function buildKeep(){
     // round 18 (owner 4): the origin as a tag — the data's words before " — " ("Hatchery only") — then the rest of its words
     // and page v36's How to tell beside it, on one line where it fits
     const ocut = (g.origin || '').indexOf(' — '), obtn = gor ? [...gor.querySelectorAll('button')].map(x => x.outerHTML).join(' ') : '';
-    const orig = !g.origin ? '' : ocut > 0 ? `<p class="gorigin" data-origin><span class="gtag">${esc(g.origin.slice(0, ocut))}</span> <span>${esc(g.origin.slice(ocut + 3))}</span> ${obtn}</p>`
+    const otag = g.header?.tag || (ocut > 0 ? g.origin.slice(0, ocut) : '');   // rows 16: the data's short tag ("hatchery only")
+    const orig = !g.origin ? '' : ocut > 0 ? `<p class="gorigin" data-origin><span class="gtag">${esc(otag)}</span> <span>${esc(g.origin.slice(ocut + 3))}</span> ${obtn}</p>`
       : `<p class="gorigin" data-origin><span>${esc(g.origin)}</span> ${obtn}</p>`;
     // round 17 (owner): the quota table and the catch checker are gone; the bucket card is THE display (the data's
     // group.table / cap_kinds / caps prove its numbers in check.mjs only, card-is-the-caps — never drawn)
     // round 18 (owner 4): the group's top is ONE compact block — name · scope, the number with its unit, the origin tag with
     // How to tell, the total line — instead of a title beside a narrow number column and three loose lines under it
-    art.innerHTML = `<div class="ghd"><div class="rhead">${head}${num}</div>${orig}${total}</div>${buckets}${nk}${worked}${quiet}${more}`;
+    // round 18 phase 2 (owner 1, 2, 7; rows 16 `group.tree`): the quota as FOLDERS. Each tier is a line of its own on the
+    // left (its number big in its words: "**2** a day from this stream", "This river’s rule: up to **4** a day"), what it
+    // holds indented beneath it on a guide line; a kind is the data's sentence ("Up to **2** may be brook, brown or
+    // cutthroat trout") with its size as a chip in cm AND inches (the detail's own size words: "30 cm / 12 in or longer")
+    // and the detail's other words beside it ("hatchery"), a cap from another tier as a short line under it
+    // (`also_counts`), its duties, presence and one picture strip. No tags. An own tier says whose rule, why it applies
+    // here and what it replaces, with its Book page. The bucket fields are not drawn.
+    const nbsp = t => esc(t).replace(/(\d) (cm|in)\b/g, '$1&nbsp;$2');
+    const boldN = (t, n, cls) => n == null ? nbsp(t) : nbsp(t).replace(new RegExp(`\\b${n}\\b`), m => `<b class="${cls}">${m}</b>`);
+    const sizeOf = d => { const sz = [], q = [];
+      (d || '').split(', ').filter(Boolean).forEach(x => { const m = x.match(/^(.*?)((?:or )?(?:over |under |up to )?\d[\d–]* cm\b.*)$/);
+        if (m) { if (m[1].trim()) q.push(m[1].trim()); sz.push(m[2]); } else if (/^any (size|length)$/.test(x)) sz.push(x); else q.push(x); });
+      const real = sz.filter(x => !/^any /.test(x)); return {size: (real.length ? real : sz).join(', '), q}; };
+    const kt = k => { const {size, q} = sizeOf(k.detail), zero = k.n === 0;
+      return `<div class="krow k28 kt${zero ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"><div class="kb"><p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}</p>`
+        + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
+        + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
+        + (k.duties?.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : '') + presP(presOf(k)) + pics(k.species) + '</div></div>'; };
+    const qtip = tips(glOf(lis[lis.length - 1]));   // the total's ⓘ (daily quota) on the tree's root line
+    const tierH = (t, root) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' ? [t.why_here ? cap1(t.why_here) : '', t.replaces || ''].filter(Boolean).join(' · ') : '';
+      return `<div class="tier" data-tier="${t.tier}"><p class="tl">${boldN(t.says, t.n, 'tn')}${root && qtip ? ' ' + qtip : ''}${key ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
+    const tnode = (t, i, a, root) => t.node === 'tier' ? `<section class="tnode" data-tnode="${t.tier}">${tierH(t, root)}<div class="tch">${(t.children || []).map(tnode).join('')}</div></section>` : kt(t);
+    const tree = g.tree ? `<div class="qtree" data-tree>${[].concat(g.tree).map(t => tnode(t, 0, 0, true)).join('')}</div>` : buckets;
+    art.innerHTML = `<div class="ghd"><div class="rhead">${head}${num}</div>${orig}${g.header ? '' : total}</div>${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
