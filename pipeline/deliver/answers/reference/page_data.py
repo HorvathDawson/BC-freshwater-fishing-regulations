@@ -53,7 +53,8 @@ CALENDAR_JS = HERE / "calendar.generated.js"
 #: Bella Coola River, Coquitlam River.
 EXTRA_WATERS = ["gnis:3062", "gnis:10030", "wbk:328961703", "wbk:329504244", "gnis:2349", "gnis:10307",
                 "wbk:329177886", "wbk:328961756", "gnis:11611", "gnis:19986",
-                "gnis:10549"]  # Ape Creek: a Bella Coola tributary (ROUND13 B)
+                "gnis:10549",  # Ape Creek: a Bella Coola tributary (ROUND13 B)
+                "gnis:10457", "gnis:36155"]  # Glenn Creek (Trout Lake trib) + Hamill Creek (Duncan trib): T14
 
 RULE_KEEP = convert.RULE_KEEP
 LIC_KEEP = convert.LIC_KEEP
