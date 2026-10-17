@@ -521,11 +521,179 @@ def check_group(P, g: dict) -> List[str]:
                              f"the rules allow {got}")
     if g.get("caps") is not None:
         probs += check_caps(P, g)
+    if g.get("tree") is not None:
+        probs += check_tree(P, g)
     seen: Dict[str, str] = {}
     for s in g.get("states") or []:
         if s["r"] in seen:
             probs.append(f"{where}: the cap {s['r']} is stated twice ({seen[s['r']]}; {s['line']})")
         seen[s["r"]] = s["line"]
+    return probs
+
+
+def _numbers(text: str, strip: Sequence[str] = ()) -> List[float]:
+    """The numbers a sentence states (a water's or region's name taken out first: "Region 2")."""
+    import re
+    for s in strip:
+        if s:
+            text = text.replace(s, " ")
+    text = re.sub(r"\b(Region|Zone|MUs?|Management Unit)\s+[0-9A-Z][-0-9A-Z]*", " ", text)
+    return [float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)]
+
+
+def check_tree(P, g: dict) -> List[str]:
+    """ROUND18 1 — the card's TREE (`group.tree`, `tree.py`) against the engine, never against the buckets it was
+    read from:
+      * every kind of the group sits in the tree exactly once, under tiers only;
+      * the total tier states the group's total (proved by `check_group`) and names its pool; every other tier's
+        number is the most of the kinds under it together, here; a size tier's is the most of its cap's kinds
+        over its size (each nested cap too), every kind under it is kept only over that size, and its `extra`
+        (RULINGS Q16) — after its number, exactly that many more of the extra kinds over the size;
+      * every kind's number is the most of it alone (each species too), its `sizes` exactly the lengths it may
+        be kept at here (each range holds a keepable length, each keepable length is in a range);
+      * each `also_counts`: a size cap — at most its number of the kind over its size, and none after the cap's
+        number of the other kinds it names over the size (where that many may be kept); a count — at most its
+        number of the kind and the other kinds together;
+      * every number in a tier's `says`, a kind's `says` / `sentence` and the header is one those fields prove
+        (or a size in inches)."""
+    from pipeline.deliver.answers import common
+    from pipeline.deliver.answers.tree import walk
+    probs: List[str] = []
+    where = f"total {g['pool']} tree"
+    tree = g.get("tree")
+    if not tree:
+        return [f"{where}: no tree"]
+    E = Engine(P, g["pool"])
+    names = [P.by_key[r].x.get("entry_name") for r in {g["pool"], *(s["r"] for s in g["subcaps"])}
+             if r in P.by_key]
+    seen: List[str] = []
+
+    def kinds_under(t: dict) -> List[str]:
+        return [S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]]
+
+    def most(fish, claim) -> int:
+        return E.most(fish, cap=CAP if claim is None else int(claim) + 1)
+
+    def eq(got, claim) -> bool:
+        return got >= CAP if claim is None else got == claim
+
+    def size_words(cms) -> set:
+        out = set()
+        for v in cms:
+            if v is not None:
+                out |= {float(v), float(common.inches(v))}
+        return out
+
+    def words_ok(text: str, allowed: set, what: str, also: Sequence[str] = ()) -> None:
+        bad = [x for x in _numbers(text, [*also, *names]) if x not in allowed]
+        if bad:
+            probs.append(f"{where}: {what} {text!r} states {bad}, which nothing proves here")
+
+    if len(tree) != 1 or tree[0]["node"] != "tier" or tree[0]["tier"] != "total":
+        probs.append(f"{where}: the tree is one total tier")
+    for x, parent in walk(tree):
+        if x["node"] == "kind":
+            if parent is None:
+                probs.append(f"{where}: kind {x['species']} sits outside every tier")
+            seen += x["species"]
+            ok_n = eq(most(E.fish(x["species"]), x["n"]), x["n"])
+            if not ok_n or any(not eq(most(E.fish([S]), x["n"]), x["n"]) for S in x["species"]):
+                probs.append(f"{where}: kind {x['species']} says {x['n']}, which is not the most of it alone here")
+            rng = [(a or 0, INF if b is None else b) for a, b in x["sizes"]["cm"]]
+            if [[common.inches(a), None if b == INF else common.inches(b)] for a, b in rng] != \
+                    [list(v) for v in x["sizes"]["in"]]:
+                probs.append(f"{where}: kind {x['species']} sizes in inches are not its cm")
+            for S in x["species"]:
+                Ls = sorted({f[2] for f in E.fish([S])})
+                if any(not any(a <= L <= b for a, b in rng) for L in Ls) or \
+                        any(not any(a <= L <= b for L in Ls) for a, b in rng):
+                    probs.append(f"{where}: kind {x['species']} sizes {x['sizes']['cm']} are not the lengths {S} "
+                                 f"may be kept at here")
+            allowed = {float(v) for v in (x["n"], parent["n"] if parent else None) if v is not None}
+            allowed |= size_words([v for r in x["sizes"]["cm"] for v in r])
+            if parent is not None and parent.get("over_cm") is not None:
+                allowed |= size_words([parent["over_cm"]])
+            for ac in x["also_counts"]:
+                cm = ac["over_cm"] or 0
+                others = [S for S in ac["species"] if S not in x["species"]]
+                mine = [S for S in x["species"] if S in ac["species"]]
+                allowed |= {float(ac["n"])} | size_words([cm] if cm else []) | \
+                    {float(t["n"]) for t in ac["then"]} | size_words([t["over_cm"] for t in ac["then"]])
+                kn = min([INF if x["n"] is None else x["n"]]
+                         + [a["n"] for a in x["also_counts"] if a is not ac and a["over_cm"] and cm
+                            and a["over_cm"] <= cm and (a["over_cm"], a["n"]) < (cm, ac["n"])])
+                if cm:
+                    over = [f for f in E.fish(mine) if f[2] > cm]
+                    got = most(over, ac["n"])
+                    if got > ac["n"] or (kn > ac["n"] and got != ac["n"]):
+                        probs.append(f"{where}: kind {x['species']} says {ac['n']} over {cm} cm, {got} may be "
+                                     f"kept over it")
+                    if others and ac["n"] > 1 and \
+                            most([f for f in E.fish(mine + others) if f[2] > cm],
+                                 ac["n"]) > ac["n"]:
+                        probs.append(f"{where}: kind {x['species']} says {ac['n']} over {cm} cm with {others}, but "
+                                     f"more may be kept over it together")
+                    for t in ac["then"]:
+                        if most([f for f in over if f[2] > t["over_cm"]], t["n"]) > t["n"]:
+                            probs.append(f"{where}: kind {x['species']} also counts toward {t['n']} over "
+                                         f"{t['over_cm']} cm, but more may be kept over it")
+                    base: List[Fish] = []
+                    for f in [f for f in E.fish(others) if f[2] > cm]:
+                        while len(base) < ac["n"] and E.can_keep(base, f):
+                            base.append(f)
+                    if others and ac["n"] == 1 and (len(base) < 1 or E.most(over, base, cap=1) > 0):
+                        probs.append(f"{where}: kind {x['species']} says none over {cm} cm after one of "
+                                     f"{others} over it, which the rules do not hold")
+                else:
+                    if most(E.fish(mine + others), ac["n"]) > ac["n"]:
+                        probs.append(f"{where}: kind {x['species']} also counts toward {ac['n']} with {others}, "
+                                     f"but more may be kept together")
+            for key in ("says", "sentence"):
+                words_ok(x[key], allowed, f"kind {x['species']} {key}")
+            continue
+        under = kinds_under(x)
+        allowed = {float(x["n"])} if x["n"] is not None else set()
+        if x["tier"] == "total":
+            if x["n"] != _claim(g["total"]) or x["by"] != g["pool"]:
+                probs.append(f"{where}: the total tier says {x['n']} by {x['by']}, the group's total is "
+                             f"{g['total']} by {g['pool']}")
+        elif x["tier"] == "size":
+            cm = x["over_cm"]
+            allowed |= size_words([cm] + [t["over_cm"] for t in x["then"]]) | {float(t["n"]) for t in x["then"]}
+            extra = x.get("extra")
+            capped = [S for S in dict.fromkeys(x["species"] + under) if not extra or S not in extra["species"]]
+            over = [f for f in E.fish(capped) if f[2] > cm]
+            if not eq(most(over, x["n"]), x["n"]):
+                probs.append(f"{where}: size tier {x['says']!r} says {x['n']}, its kinds keep "
+                             f"{most(over, x['n'])} over {cm} cm")
+            for t in x["then"]:
+                if not eq(most([f for f in over if f[2] > t["over_cm"]], t["n"]), t["n"]):
+                    probs.append(f"{where}: size tier {x['says']!r} says {t['n']} over {t['over_cm']} cm (nested)")
+            if any(f[2] <= cm for f in E.fish(under)):
+                probs.append(f"{where}: size tier {x['says']!r} holds a kind that may be kept at {cm} cm or less")
+            if extra:
+                allowed.add(float(extra["n"]))
+                base = []
+                for f in over:
+                    while len(base) < x["n"] and E.can_keep(base, f):
+                        base.append(f)
+                aside = [f for f in E.fish(extra["species"]) if f[2] > cm]
+                if len(base) < x["n"] or E.most(aside, base, cap=int(extra["n"]) + 1) != extra["n"] \
+                        or not eq(most(over + aside, x["n"] + extra["n"]), x["n"] + extra["n"]):
+                    probs.append(f"{where}: size tier {x['says']!r} says {extra['n']} more may be "
+                                 f"{extra['species']}, which the rules do not allow")
+        elif not eq(most(E.fish(under), x["n"]), x["n"]):
+            probs.append(f"{where}: {x['tier']} tier {x['says']!r} says {x['n']}, its kinds together keep "
+                         f"{most(E.fish(under), x['n'])} here")
+        words_ok(x["says"], allowed, f"{x['tier']} tier", [x.get("whose") or "",
+                                                          (P.by_key[x["by"]].x.get("entry_name") or "")
+                                                          if x["by"] in P.by_key else ""])
+    if sorted(seen) != sorted(g["kinds"]):
+        probs.append(f"{where}: the tree holds {sorted(seen)}, the group's kinds are {sorted(g['kinds'])}")
+    h = g.get("header") or {}
+    head = g.get("headline") or {}
+    words_ok(h.get("says") or "", {float(v) for v in (head.get("n"), _claim(g["total"])) if v is not None},
+             "header")
     return probs
 
 
@@ -724,6 +892,9 @@ def _unref(v, ids):
                     for b in g["buckets"]]
     g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]
+    if g.get("tree") is not None:
+        from pipeline.deliver.answers.tree import map_rules
+        g["tree"] = map_rules(g["tree"], r)
     if g.get("caps") is not None:
         g["caps"] = [{**c, "by": r(c["by"])} for c in g["caps"]]
     return g

@@ -418,6 +418,27 @@ def the_name(name: str) -> str:
     return f"the {name}" if last in _THE_NOUNS else name
 
 
+def inches(cm) -> int:
+    """ROUND18 2 (owner): a length in WHOLE INCHES, the nearest (half up) — 30 cm → 12 in, 50 → 20, 25 → 10,
+    33 → 13, 60 → 24, 90 → 35. The cm is the book's; the inches only help an angler read it."""
+    import math
+    return int(math.floor(float(cm) / 2.54 + 0.5))
+
+
+def _cm(v) -> str:
+    return str(int(v)) if float(v).is_integer() else str(v)
+
+
+def cm_in(cm) -> str:
+    """ROUND18 2: a size in cm AND inches, "50 cm / 20 in"."""
+    return f"{_cm(cm)} cm / {inches(cm)} in"
+
+
+def range_cm_in(a, b) -> str:
+    """ROUND18 2: a range in cm AND inches, "25–33 cm / 10–13 in"."""
+    return f"{_cm(a)}–{_cm(b)} cm / {inches(a)}–{inches(b)} in"
+
+
 def join(names: Sequence[str], conj: str = " and ") -> str:
     names = list(names)
     if len(names) < 2:

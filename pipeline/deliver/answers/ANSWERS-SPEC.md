@@ -98,6 +98,40 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND18 (2026-10-17) — rows 16: the card as a tree, sizes in inches, the Q16 tier, a compact header, why an inherited rule applies
+
+Owner review of v19 (ROUND18 1-4, 7, 8; items 1, 5, 6 are the page's); RULINGS P29-P33. `pipeline/deliver/answers/tree.py`.
+
+- **`rows[].group.tree`** — ONE tier {node "tier", id "t1", tier "total", n, says, by, children}. Tiers: `total`
+  ("4 a day across Region 2, lakes included"; a water's own total "This lake’s rule: up to 4 a day"), `own` (a water's
+  own rule's bucket: says "This river’s rule: up to 4 a day", `whose`, `replaces` with inches, `why_here` "its row
+  covers its tributaries, so it applies here" where the rule reached this water by the tributary walk, `line`), `share`
+  ("2 a day from this stream"), `count` ("1 between them"), `size` (`over_cm`, `species` its cap names, `then`, `extra`
+  {n, species}: RULINGS Q16 as one tier, "1 over 50 cm / 20 in — a second may be a hatchery steelhead"). An own tier
+  sits under the share where it holds share kinds to fewer, else under the total; a size tier sits in the tier holding
+  every kind its cap names (the total where it spans tiers) and holds the kinds wholly over its size, only where it
+  limits them below that tier's number (or lets a steelhead past it).
+- Kinds {node "kind", species, name, n, says "Up to 2 may be brook, brown or cutthroat trout", detail "hatchery, 30 cm
+  / 12 in or longer", sizes {cm, in}, also_counts, duties, sentence, presence?}: each EXACTLY ONCE under the tightest
+  tier. `also_counts` [{tier | null, by | null, n, over_cm (0: a count), then, species, says}] says every cap no tier of
+  the kind holds that still binds it: a size cap "only 1 over 50 cm / 20 in, if you haven’t already kept a Dolly
+  Varden/bull trout or lake trout over 50 cm" (n 1), "…, counting any … over 30 cm" (n > 1), "none over 50 cm / 20 in
+  if you’ve already kept a …" (binding only through the other kinds), "only 1 cutthroat trout over 50 cm / 20 in"
+  (holding some of the row's fish); a count "no more than 3 counting any lake trout you keep". A larger size cap is
+  said after a smaller one with the kind held to the smaller number. `sentence` = "Of the {tier}: {says} ({detail}) —
+  {also_counts joined by "; "}".
+- **`rows[].group.header`** {says, tag}: the headline and the zone total in one line ("2 a day from this stream · 4
+  across Region 2, lakes included"; "5 a day" where the headline is the total), `tag` "hatchery only" / "wild only".
+- Sizes in cm AND whole inches (`common.inches`: the nearest, half up; 30 → 12, 50 → 20, 25 → 10, 33 → 13, 60 → 24,
+  90 → 35): the tree, the lift lines and the headline's `also` ("hatchery rainbow trout 50 cm / 20 in or less"), the
+  kept-elsewhere lines ("Kept trout or char over 50 cm / 20 in elsewhere today?"). The bucket fields keep cm only.
+- **The gate** (`card_check.check_tree`): every kind once; the total tier = the group's total; every other tier's n =
+  the most of its kinds together here; a size tier's n = the most of its cap's kinds over the size (each `then`), its
+  kinds kept only over the size, its `extra` exactly that many steelhead more; every kind's n alone (each species) and
+  its `sizes` exactly the lengths it may be kept at; every `also_counts` (its number over its size exactly where the
+  kind keeps more; none after one of the other kinds for n 1; the kinds together for a count); every number in the
+  tree's sentences and the header is one of those proved.
+
 ## ROUND16 (2026-10-16) — rows 15, licence 6, display 12: the quota table and cap system, whose limit, rule titles, under 16 by the book, nearer-row cautions and restatements
 
 Owner review of v17 (ROUND16 1-4) and the owner's answers to r15_questions Q1/Q2; RULINGS P25-P28, T15, Li11.

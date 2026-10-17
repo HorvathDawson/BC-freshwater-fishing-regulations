@@ -2,6 +2,7 @@
 // The answers/2 frames (pipeline/deliver/answers/model.py), from their JSON Schema.
 
 export type Accompanied = { "holding": string; "who": Record<string, unknown> };
+export type AlsoCounts = { "tier": null | string; "by": null | number; "n": number; "over_cm": number; "then": readonly (TreeThen)[]; "species": readonly (string)[]; "says": string };
 export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean };
 export type BaitPick = { "element": "worms" | "roe" | "invertebrate" | "fin_fish"; "ok": boolean; "by": [number, number] | null; "why"?: null | string; "carry_kg"?: null | number; "also_allowed"?: null | readonly (Circumstance)[] };
 export type Bucket = { "title": null | string; "cap": null | number; "by": number; "why": "share" | "rule" | "total"; "kinds": readonly (CardKind)[]; "groups": readonly (SubGroup)[]; "notes": readonly (BucketNote)[]; "replaces": Replaces | null; "sizes"?: readonly (SizeGroup)[]; "between"?: null | string };
@@ -53,8 +54,9 @@ export type GearAnswer = { "summary": GearSummary; "counts": Record<string, Coun
 export type GearSummary = { "says": string; "parts": readonly (SummaryPart)[]; "terms": readonly (string)[]; "cites": readonly (number)[]; "changes": readonly (SummaryChange)[] };
 export type GlossaryTerm = { "id": string; "term": string; "says": string; "example"?: null | string; "pages": readonly (number)[]; "quote": string; "source": string };
 export type Group = { "members": readonly (string)[]; "facts": readonly (FAlso | FBare | FCap | FCaution | FExc | FOrigin | FOrigin2 | FOuterCap | FOuterSize | FRel | FTnote | FXref)[] };
-export type GroupTotal = { "pool": number; "total": "unlimited" | number; "kinds": readonly (string)[]; "subcaps": readonly (Subcap)[]; "headline": Headline; "origin": null | string; "lifts": readonly (CardLift)[]; "total_line": null | string; "buckets": readonly (Bucket)[]; "not_kept": readonly (NotKept)[]; "worked": readonly (Worked)[]; "states": readonly (CardState)[]; "table": CardTable; "cap_kinds": readonly (CapKind)[]; "caps": readonly (Cap)[] };
+export type GroupTotal = { "pool": number; "total": "unlimited" | number; "kinds": readonly (string)[]; "subcaps": readonly (Subcap)[]; "headline": Headline; "origin": null | string; "lifts": readonly (CardLift)[]; "total_line": null | string; "buckets": readonly (Bucket)[]; "not_kept": readonly (NotKept)[]; "worked": readonly (Worked)[]; "states": readonly (CardState)[]; "table": CardTable; "cap_kinds": readonly (CapKind)[]; "caps": readonly (Cap)[]; "tree": readonly (TreeTier)[]; "header": Header };
 export type HeadAlso = { "n": null | number; "says": string };
+export type Header = { "says": string; "tag": null | string };
 export type Headline = { "n": null | number; "unit": string; "says": string; "also"?: readonly (HeadAlso)[] };
 export type Holds = { "holds": readonly (number)[]; "designations": readonly (number)[]; "stamp_period": boolean; "contested": boolean; "considered": readonly (number)[]; "wrong_water": readonly (number)[]; "waived": readonly (number)[]; "not_yet_mapped": readonly (number)[]; "displaced": Record<string, readonly (number)[]>; "also_printed": Record<string, readonly (number)[]> };
 export type InheritedLift = { "says": string; "by": number; "lifts": readonly (number)[]; "caution"?: null | string };
@@ -110,6 +112,11 @@ export type TidalHolds = { "tidal": TidalState };
 export type TidalProfile = { "tidal": true };
 export type TidalState = { "tidal": true; "note": string; "see": readonly (string)[]; "licence": string };
 export type TidalStatus = { "status": "tidal"; "tidal": true; "note": string; "see": readonly (string)[]; "licence": string };
+export type TreeExtra = { "n": number; "species": readonly (string)[] };
+export type TreeKind = { "node": "kind"; "species": readonly (string)[]; "name": string; "n": null | number; "says": string; "detail": string; "sizes": TreeSizes; "also_counts": readonly (AlsoCounts)[]; "duties": readonly (string)[]; "sentence": string; "presence"?: Presence | null };
+export type TreeSizes = { "cm": readonly ([number, null | number])[]; "in": readonly ([number, null | number])[] };
+export type TreeThen = { "n": number; "over_cm": number };
+export type TreeTier = { "node": "tier"; "id": string; "tier": "total" | "own" | "share" | "count" | "size"; "n": null | number; "says": string; "by": number; "children": readonly (TreeKind | TreeTier)[]; "whose"?: null | string; "why_here"?: null | string; "replaces"?: null | string; "line"?: null | string; "over_cm"?: null | number; "species"?: null | readonly (string)[]; "then"?: null | readonly (TreeThen)[]; "extra"?: TreeExtra | null };
 export type UnderSixteen = { "residency": "resident" | "non_resident" | "non_resident_alien"; "label": string; "none_needed": boolean; "with_adult": WithAdult | null; "buy": readonly (BuyDoc)[]; "own_limit": boolean; "says": string };
 export type Vessel = { "active": readonly (number)[]; "timed": readonly (number)[] };
 export type WaterFacts = { "parts": readonly (PartFacts | null)[]; "picker": Picker; "unresolved_licensing": readonly (number)[] };

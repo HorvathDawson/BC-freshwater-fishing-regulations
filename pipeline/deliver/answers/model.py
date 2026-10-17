@@ -729,6 +729,103 @@ class Cap(Model):
         return self
 
 
+class TreeThen(Model):
+    """A size cap nested in another (ROUND18 1): at most `n` over `over_cm`."""
+    n: Count
+    over_cm: Cm
+
+
+class TreeExtra(Model):
+    """RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept —
+    "1 over 50 cm / 20 in — a second may be a hatchery steelhead"."""
+    n: Positive
+    species: Tuple[Fish, ...] = Field(min_length=1)
+
+
+class TreeSizes(Model):
+    """ROUND18 2: the lengths a kind may be kept at here, [from, to | None] each, in cm and in whole inches
+    (the nearest; the cm is the book's)."""
+    cm: Tuple[Tuple[Cm, Optional[Cm]], ...]
+    in_: Tuple[Tuple[StrictInt, Optional[StrictInt]], ...] = Field(alias="in")
+
+
+class AlsoCounts(Model):
+    """ROUND18 1/7: a cap a kind's tier does not hold that still binds it, said on the kind — a size cap
+    (`over_cm` > 0: "only 1 over 50 cm / 20 in, if you haven’t already kept a Dolly Varden/bull trout or lake trout
+    over 50 cm") or a count (`over_cm` 0: "no more than 3 counting any lake trout you keep"); `tier` the size tier
+    it is (None: no tier holds it), `by` its rule (None: a count the card states as a note), `species` every kind it
+    counts, `then` its nested caps. Gate-proved."""
+    tier: Optional[StrictStr]
+    by: Optional[RuleIx]
+    n: Count
+    over_cm: Cm
+    then: Tuple[TreeThen, ...]
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)
+
+
+class TreeKind(Model):
+    """ROUND18 1/7: one kind in the card's tree — `says` "Up to 2 may be brook, brown or cutthroat trout", `detail`
+    its origin and sizes in cm and inches ("hatchery, 30 cm / 12 in or longer"), `sizes`, `also_counts`, `duties`,
+    `sentence` the whole line ("Of the 2 a day: up to 2 may be … (…) — only 1 over 50 cm / 20 in, …"); `presence`
+    the steelhead presence line. Every number gate-proved."""
+    node: Literal["kind"]
+    species: Tuple[Fish, ...] = Field(min_length=1)
+    name: StrictStr = Field(min_length=1)
+    n: Optional[Count]
+    says: StrictStr = Field(min_length=1)
+    detail: StrictStr
+    sizes: TreeSizes
+    also_counts: Tuple[AlsoCounts, ...]
+    duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
+    sentence: StrictStr = Field(min_length=1)
+    presence: Optional[Presence] = None
+
+
+class TreeTier(Model):
+    """ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits — `tier` total ("4 a day across
+    Region 2, lakes included"), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
+    `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
+    this water by the tributary walk — and `line`), share ("2 a day from this stream"), count ("1 between them") or
+    size ("1 over 50 cm / 20 in — a second may be a hatchery steelhead": `over_cm`, `species` the kinds its cap
+    names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
+    node: Literal["tier"]
+    id: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
+    tier: Literal["total", "own", "share", "count", "size"]
+    n: Optional[Count]
+    says: StrictStr = Field(min_length=1)
+    by: RuleIx
+    children: Tuple[Annotated[Union["TreeTier", TreeKind], Field(discriminator="node")], ...]
+    whose: Optional[StrictStr] = None
+    why_here: Optional[StrictStr] = None
+    replaces: Optional[StrictStr] = None
+    line: Optional[StrictStr] = None
+    over_cm: Optional[Cm] = None
+    species: Optional[Tuple[Fish, ...]] = None
+    then: Optional[Tuple[TreeThen, ...]] = None
+    extra: Optional[TreeExtra] = None
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.tier == "own" and self.whose is None or self.whose is not None and self.tier not in ("own", "total"):
+            raise ValueError("a water's own-rule tier (or a water's own total) says whose rule it is")
+        if (self.tier == "size") != (self.over_cm is not None):
+            raise ValueError("a size tier, and only it, has a size")
+        if self.extra is not None and self.tier != "size":
+            raise ValueError("only a size tier lets extra kinds past its number")
+        return self
+
+
+TreeTier.model_rebuild()
+
+
+class Header(Model):
+    """ROUND18 4: the group's compact header — `says` the headline and the region's total in one line ("2 a day from
+    this stream · 4 across Region 2, lakes included"), `tag` the origin ("hatchery only") or None."""
+    says: StrictStr = Field(min_length=1)
+    tag: Optional[StrictStr]
+
+
 class GroupTotal(Model):
     """One total on today's card and its sub-caps (answers 2.5, rows F14) — the DECISION (`pool`,
     `total`, `kinds`, `subcaps`) — and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact
@@ -749,6 +846,8 @@ class GroupTotal(Model):
     table: CardTable                                  # ROUND16 1: species × size, gate-proved
     cap_kinds: Tuple[CapKind, ...]                    # ROUND16 1: the basket's vocabulary
     caps: Tuple[Cap, ...]                             # ROUND16 1: legal iff every cap holds
+    tree: Tuple[TreeTier, ...] = Field(min_length=1, max_length=1)   # ROUND18 1: the card as folders
+    header: Header                                    # ROUND18 4: one compact line
 
     @model_validator(mode="after")
     def _caps_name_kinds(self):
@@ -778,6 +877,24 @@ class GroupTotal(Model):
         rs = [x.r for x in self.states]
         if len(rs) != len(set(rs)):
             raise ValueError("a cap is stated once on the card")
+        # ROUND18 1: every kind exactly once in the tree, under tiers; tier ids unique; a kind's tier refs resolve
+        got, ids, refs = [], [], []
+
+        def go(t):
+            ids.append(t.id)
+            for x in t.children:
+                if isinstance(x, TreeTier):
+                    go(x)
+                else:
+                    got.extend(x.species)
+                    refs.extend(a.tier for a in x.also_counts if a.tier is not None)
+        go(self.tree[0])
+        if self.tree[0].tier != "total":
+            raise ValueError("the tree is one total tier")
+        if sorted(got) != sorted(self.kinds):
+            raise ValueError("every kind of the total sits in the tree exactly once")
+        if len(ids) != len(set(ids)) or not set(refs) <= set(ids):
+            raise ValueError("tier ids are unique and every reference names one")
         return self
 
 

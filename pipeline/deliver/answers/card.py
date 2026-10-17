@@ -72,14 +72,19 @@ def _names(codes: Sequence[str], conj: str = " and ") -> str:
     return common.join([common.lc(common.sp_name(c)) for c in codes], conj)
 
 
-def _size_words(lo: float, hi: float) -> str:
+def _cm(v, inch: bool = False) -> str:
+    """A size: "50 cm", or with `inch` (ROUND18 2) "50 cm / 20 in"."""
+    return common.cm_in(v) if inch else f"{_js(v)} cm"
+
+
+def _size_words(lo: float, hi: float, inch: bool = False) -> str:
     if not lo and hi == INF:
         return "any size"
     if not lo:
-        return f"{_js(hi)} cm or less"
+        return f"{_cm(hi, inch)} or less"
     if hi == INF:
-        return f"{_js(lo)} cm or longer"
-    return f"{_js(lo)}–{_js(hi)} cm"
+        return f"{_cm(lo, inch)} or longer"
+    return common.range_cm_in(lo, hi) if inch else f"{_js(lo)}–{_js(hi)} cm"
 
 
 def _lifted_ends(P, model: dict, S: str) -> Tuple[bool, bool]:
@@ -101,11 +106,9 @@ def _lifted_ends(P, model: dict, S: str) -> Tuple[bool, bool]:
     return lo, hi
 
 
-def _detail_words(P, model: dict, S: str, lo: float, hi: float) -> str:
-    """A kind row's size (ROUND12 1/3): what is kept AND where a usual limit is lifted — the Vedder's
-    hatchery rainbow "any length, 50 cm or less" (p.22 "of any length 50 cm or less": Region 2's 30 cm
-    minimum is lifted); a slot as its ranges, "60 cm or less, or 90 cm or longer" (Bennett Lake's lake
-    trout, none between 60 and 90 cm); every other range exactly as `_size_words`."""
+def size_segments(P, model: dict, S: str, lo: float, hi: float) -> List[Tuple[float, float]]:
+    """The ranges a kind is kept in here (ROUND18 2, the kind's `sizes`): its keep range less every slot its
+    answer releases inside it ("60 cm or less, or 90 cm or longer")."""
     from pipeline.deliver.answers.rows import main_res
     R_ = model["R"].get(S) or {}
     m = main_res(R_.get("H"), R_.get("W"))
@@ -117,14 +120,23 @@ def _detail_words(P, model: dict, S: str, lo: float, hi: float) -> str:
             segs.append((at, a))
         at = max(at, b)
     segs.append((at, hi))
+    return segs
+
+
+def _detail_words(P, model: dict, S: str, lo: float, hi: float, inch: bool = False) -> str:
+    """A kind row's size (ROUND12 1/3): what is kept AND where a usual limit is lifted — the Vedder's
+    hatchery rainbow "any length, 50 cm or less" (p.22 "of any length 50 cm or less": Region 2's 30 cm
+    minimum is lifted); a slot as its ranges, "60 cm or less, or 90 cm or longer" (Bennett Lake's lake
+    trout, none between 60 and 90 cm); every other range exactly as `_size_words`."""
+    segs = size_segments(P, model, S, lo, hi)
     if len(segs) == 1:
         lifted_lo, lifted_hi = _lifted_ends(P, model, S)
         a, b = segs[0]
         if lifted_lo and not a:
-            return "any length" if b == INF else f"any length, {_js(b)} cm or less"
+            return "any length" if b == INF else f"any length, {_cm(b, inch)} or less"
         if lifted_hi and b == INF and a:
-            return f"{_js(a)} cm or longer, any length"
-    return ", or ".join(_size_words(a, b) for a, b in segs)
+            return f"{_cm(a, inch)} or longer, any length"
+    return ", or ".join(_size_words(a, b, inch) for a, b in segs)
 
 
 def _speaks_for(P, model: dict, r, S: str) -> bool:
@@ -382,7 +394,7 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
 _CAP_ORDER = ("share", "count", "over", "min", "max")
 
 
-def _cap_name(r) -> Optional[Tuple[str, str]]:
+def _cap_name(r, inch: bool = False) -> Optional[Tuple[str, str]]:
     """(its order, its name) of a cap a water's rule lifts (ROUND13 D), from the rule's own number and
     bands: the share "2-from-streams limit", a count "1-a-day limit", a size clause "1-over-50-cm
     limit", a floor "30 cm minimum size", a ceiling "50 cm maximum size"; None for anything else (a
@@ -394,16 +406,17 @@ def _cap_name(r) -> Optional[Tuple[str, str]]:
         return ("share", f"{_js(take)}-from-{w}s limit") if w else ("count", f"{_js(take)}-a-day limit")
     for a, b, t in _bands(r):
         if t and a and b == INF:
-            return "over", f"{_js(t)}-over-{_js(a)}-cm limit"
+            # ROUND18 2: with inches, "limit of 1 over 50 cm / 20 in"
+            return "over", (f"limit of {_js(t)} over {_cm(a, True)}" if inch else f"{_js(t)}-over-{_js(a)}-cm limit")
     for a, b, t in _bands(r):
         if t == 0 and not a and b != INF:
-            return "min", f"{_js(b)} cm minimum size"
+            return "min", f"{_cm(b, inch)} minimum size"
         if t == 0 and a and b == INF:
-            return "max", f"{_js(a)} cm maximum size"
+            return "max", f"{_cm(a, inch)} maximum size"
     return None
 
 
-def _replaces(P, model: dict, ks: Sequence[str], lifters: set) -> Optional[dict]:
+def _replaces(P, model: dict, ks: Sequence[str], lifters: set, inch: bool = False) -> Optional[dict]:
     """A water's own-rule bucket's statement of what it replaces (ROUND13 D, owner: the lift box goes;
     the bucket says it): {says, rules} — every cap the reader says the bucket's lifting rules (`lifters`)
     LIFT for its kinds (a kept origin), each named by its owner (`_cap_name`), for the fish it is lifted
@@ -438,8 +451,10 @@ def _replaces(P, model: dict, ks: Sequence[str], lifters: set) -> Optional[dict]
         owners: Dict[str, List[str]] = {}
         for k in ks_:
             x = P.by_key[k].x
-            owners.setdefault(x.get("entry_name") or "the region", []).append(_cap_name(P.by_key[k])[1])
-        whose = common.join([f"{'its' if o in said else o + '’s'} {common.join(ns, ' and ')}"
+            owners.setdefault(x.get("entry_name") or "the region", []).append(_cap_name(P.by_key[k], inch)[1])
+        # ROUND18 2: "Region 4’s 2-from-streams limit and the limit of 1 over 50 cm / 20 in"
+        whose = common.join([f"{'its' if o in said else o + '’s'} "
+                             f"{common.join([('the ' + n if i and n.startswith('limit of') else n) for i, n in enumerate(ns)], ' and ')}"
                              for o, ns in owners.items()], " and ")
         said |= set(owners)
         for_ = "these fish" if fs == every else _names([S for S in ks if S in fs])
@@ -703,6 +718,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         rest["title"] = f"The rest of the {_js(total)} a day"
 
     rows_by: Dict[tuple, dict] = {}
+    side: Dict[int, dict] = {}            # ROUND18 2: each kind row's words with inches and its ranges (the tree)
+    st_cm = None
     for S in kinds:
         n, said_by, lo, hi = info[S]["n"], info[S]["said_by"], info[S]["lo"], info[S]["hi"]
         b = where_of[S]
@@ -711,15 +728,22 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         o = _kept_origins(model, S)
         ow = o[0] if len(o) == 1 else ""
         if S == "ST" and P.steelhead_water:
+            from pipeline.deliver.bundle import read as RD
+            st_cm = st_cm or RD._steelhead_min_cm()
             name, detail = "Steelhead", " ".join(x for x in (ow, "rainbow trout over 50 cm") if x)
+            detail_in = " ".join(x for x in (ow, f"rainbow trout over {common.cm_in(st_cm)}") if x)
+            segs = [(st_cm, INF)]
         else:
             name = None
             detail = ", ".join(x for x in (ow, _detail_words(P, model, S, lo, hi)) if x)
+            detail_in = ", ".join(x for x in (ow, _detail_words(P, model, S, lo, hi, inch=True)) if x)
+            segs = size_segments(P, model, S, lo, hi)
         if n == 0:
             # ROUND13 Z (owner): a kind keeping none here says no size — every band of it releases (the
             # Bella Coola's cutthroat on Oct 10: "none under 25 cm and all cutthroat trout catch and
             # release" is "catch and release", never "25 cm or longer")
-            detail = "catch and release"
+            detail = detail_in = "catch and release"
+            segs = []
         # ROUND11 A1: a size cap is never on a kind row — the bucket's note says it once (below)
         notes: List[str] = []
         if b["why"] == "rule" and not unlimited:
@@ -737,6 +761,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                  "notes": notes, "duties": duties}
             rows_by[key] = k
             b["kinds"].append(k)
+            side[id(k)] = {"detail": detail_in, "segs": segs, "origins": o}
         k["species"].append(S)
     for b in buckets:
         for k in b["kinds"]:
@@ -820,6 +845,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     sysm = CP.system(P, grp["pool"], book_order(list(dict.fromkeys(
         kinds + [S for x in not_kept for S in x["species"]]))))
     table = {**sysm["table"], "steelhead_cm": sysm["steelhead_cm"]}
+    # ROUND18 1/2/3/4/7/8 (owner): the card as a TREE of tiers holding the kinds, and its compact header
+    from pipeline.deliver.answers import tree as TR
+    tree, header = TR.tree_of(P, model, TR.Ctx(
+        grp=grp, buckets=buckets, info=info, side=side, share=share, unlimited=unlimited, head=head,
+        origin_one=(os_.pop()[0] if one_origin else None), lifting=[b for b in lift_bucket.values() if b in buckets],
+        what=what))
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
-            "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"]}
+            "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header}

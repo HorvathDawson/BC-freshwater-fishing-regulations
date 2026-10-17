@@ -2713,6 +2713,82 @@
   },
   "rows": {
    "$defs": {
+    "AlsoCounts": {
+     "additionalProperties": false,
+     "description": "ROUND18 1/7: a cap a kind's tier does not hold that still binds it, said on the kind \u2014 a size cap\n(`over_cm` > 0: \"only 1 over 50 cm / 20 in, if you haven\u2019t already kept a Dolly Varden/bull trout or lake trout\nover 50 cm\") or a count (`over_cm` 0: \"no more than 3 counting any lake trout you keep\"); `tier` the size tier\nit is (None: no tier holds it), `by` its rule (None: a count the card states as a note), `species` every kind it\ncounts, `then` its nested caps. Gate-proved.",
+     "properties": {
+      "by": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "By"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      },
+      "then": {
+       "items": {
+        "$ref": "#/$defs/TreeThen"
+       },
+       "title": "Then",
+       "type": "array"
+      },
+      "tier": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tier"
+      }
+     },
+     "required": [
+      "tier",
+      "by",
+      "n",
+      "over_cm",
+      "then",
+      "species",
+      "says"
+     ],
+     "title": "AlsoCounts",
+     "type": "object"
+    },
     "Badge": {
      "additionalProperties": false,
      "properties": {
@@ -5070,6 +5146,9 @@
        "title": "Caps",
        "type": "array"
       },
+      "header": {
+       "$ref": "#/$defs/Header"
+      },
       "headline": {
        "$ref": "#/$defs/Headline"
       },
@@ -5152,6 +5231,15 @@
        ],
        "title": "Total Line"
       },
+      "tree": {
+       "items": {
+        "$ref": "#/$defs/TreeTier"
+       },
+       "maxItems": 1,
+       "minItems": 1,
+       "title": "Tree",
+       "type": "array"
+      },
       "worked": {
        "items": {
         "$ref": "#/$defs/Worked"
@@ -5175,7 +5263,9 @@
       "states",
       "table",
       "cap_kinds",
-      "caps"
+      "caps",
+      "tree",
+      "header"
      ],
      "title": "GroupTotal",
      "type": "object"
@@ -5207,6 +5297,34 @@
       "says"
      ],
      "title": "HeadAlso",
+     "type": "object"
+    },
+    "Header": {
+     "additionalProperties": false,
+     "description": "ROUND18 4: the group's compact header \u2014 `says` the headline and the region's total in one line (\"2 a day from\nthis stream \u00b7 4 across Region 2, lakes included\"), `tag` the origin (\"hatchery only\") or None.",
+     "properties": {
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "tag": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tag"
+      }
+     },
+     "required": [
+      "says",
+      "tag"
+     ],
+     "title": "Header",
      "type": "object"
     },
     "Headline": {
@@ -7014,6 +7132,407 @@
       "as"
      ],
      "title": "TableCell",
+     "type": "object"
+    },
+    "TreeExtra": {
+     "additionalProperties": false,
+     "description": "RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept \u2014\n\"1 over 50 cm / 20 in \u2014 a second may be a hatchery steelhead\".",
+     "properties": {
+      "n": {
+       "exclusiveMinimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "n",
+      "species"
+     ],
+     "title": "TreeExtra",
+     "type": "object"
+    },
+    "TreeKind": {
+     "additionalProperties": false,
+     "description": "ROUND18 1/7: one kind in the card's tree \u2014 `says` \"Up to 2 may be brook, brown or cutthroat trout\", `detail`\nits origin and sizes in cm and inches (\"hatchery, 30 cm / 12 in or longer\"), `sizes`, `also_counts`, `duties`,\n`sentence` the whole line (\"Of the 2 a day: up to 2 may be \u2026 (\u2026) \u2014 only 1 over 50 cm / 20 in, \u2026\"); `presence`\nthe steelhead presence line. Every number gate-proved.",
+     "properties": {
+      "also_counts": {
+       "items": {
+        "$ref": "#/$defs/AlsoCounts"
+       },
+       "title": "Also Counts",
+       "type": "array"
+      },
+      "detail": {
+       "title": "Detail",
+       "type": "string"
+      },
+      "duties": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Duties",
+       "type": "array"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "node": {
+       "const": "kind",
+       "title": "Node",
+       "type": "string"
+      },
+      "presence": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Presence"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "sentence": {
+       "minLength": 1,
+       "title": "Sentence",
+       "type": "string"
+      },
+      "sizes": {
+       "$ref": "#/$defs/TreeSizes"
+      },
+      "species": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Species",
+       "type": "array"
+      }
+     },
+     "required": [
+      "node",
+      "species",
+      "name",
+      "n",
+      "says",
+      "detail",
+      "sizes",
+      "also_counts",
+      "duties",
+      "sentence"
+     ],
+     "title": "TreeKind",
+     "type": "object"
+    },
+    "TreeSizes": {
+     "additionalProperties": false,
+     "description": "ROUND18 2: the lengths a kind may be kept at here, [from, to | None] each, in cm and in whole inches\n(the nearest; the cm is the book's).",
+     "properties": {
+      "cm": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "anyOf": [
+           {
+            "type": "integer"
+           },
+           {
+            "type": "number"
+           }
+          ]
+         },
+         {
+          "anyOf": [
+           {
+            "type": "integer"
+           },
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         }
+        ],
+        "type": "array"
+       },
+       "title": "Cm",
+       "type": "array"
+      },
+      "in": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "type": "integer"
+         },
+         {
+          "anyOf": [
+           {
+            "type": "integer"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         }
+        ],
+        "type": "array"
+       },
+       "title": "In",
+       "type": "array"
+      }
+     },
+     "required": [
+      "cm",
+      "in"
+     ],
+     "title": "TreeSizes",
+     "type": "object"
+    },
+    "TreeThen": {
+     "additionalProperties": false,
+     "description": "A size cap nested in another (ROUND18 1): at most `n` over `over_cm`.",
+     "properties": {
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Over Cm"
+      }
+     },
+     "required": [
+      "n",
+      "over_cm"
+     ],
+     "title": "TreeThen",
+     "type": "object"
+    },
+    "TreeTier": {
+     "additionalProperties": false,
+     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day across\nRegion 2, lakes included\"), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream\"), count (\"1 between them\") or\nsize (\"1 over 50 cm / 20 in \u2014 a second may be a hatchery steelhead\": `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "children": {
+       "items": {
+        "discriminator": {
+         "mapping": {
+          "kind": "#/$defs/TreeKind",
+          "tier": "#/$defs/TreeTier"
+         },
+         "propertyName": "node"
+        },
+        "oneOf": [
+         {
+          "$ref": "#/$defs/TreeTier"
+         },
+         {
+          "$ref": "#/$defs/TreeKind"
+         }
+        ]
+       },
+       "title": "Children",
+       "type": "array"
+      },
+      "extra": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/TreeExtra"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
+      "id": {
+       "pattern": "^t[0-9]+$",
+       "title": "Id",
+       "type": "string"
+      },
+      "line": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Line"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "node": {
+       "const": "tier",
+       "title": "Node",
+       "type": "string"
+      },
+      "over_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Over Cm"
+      },
+      "replaces": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Replaces"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "species": {
+       "anyOf": [
+        {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Species"
+      },
+      "then": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/TreeThen"
+         },
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Then"
+      },
+      "tier": {
+       "enum": [
+        "total",
+        "own",
+        "share",
+        "count",
+        "size"
+       ],
+       "title": "Tier",
+       "type": "string"
+      },
+      "whose": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Whose"
+      },
+      "why_here": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Why Here"
+      }
+     },
+     "required": [
+      "node",
+      "id",
+      "tier",
+      "n",
+      "says",
+      "by",
+      "children"
+     ],
+     "title": "TreeTier",
      "type": "object"
     },
     "Week": {

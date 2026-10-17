@@ -74,7 +74,7 @@ def test_vedder_mouth_oct_10_card(built):
     assert _text(row) == [
         "2 a day from this stream",
         "Hatchery only — release wild trout and char.",
-        "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule "
+        "On this river, hatchery rainbow trout 50 cm / 20 in or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
         "No more than 4 trout and char a day across Region 2, lakes included.",
         # ROUND12 2: the river's own bucket first
@@ -96,7 +96,7 @@ def test_vedder_mouth_oct_10_card(built):
         "Keep 2 rainbows here → no more trout and char from any other stream today; up to 2 more from here or from "
         "lakes.",
         "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
-        "Kept trout or char over 50 cm elsewhere today? → It counts here too: at most 2 over 50 cm a day in all — "
+        "Kept trout or char over 50 cm / 20 in elsewhere today? → It counts here too: at most 2 over 50 cm / 20 in a day in all — "
         "only 1 of them may be anything other than a hatchery steelhead."]
     assert row["elsewhere"]["ask"] == []
 

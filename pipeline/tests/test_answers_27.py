@@ -4,7 +4,7 @@
       "no more than 1 over 50 cm, not counting steelhead" is ONE item stating Q16: "Over 50 cm: at
       most 2 — only 1 of them may be anything other than a hatchery steelhead". A lift out of the
       stream share names WHOSE rule it is and WHAT it allows: "On this river: up to 4 hatchery
-      rainbow trout 50 cm or less — the 2-from-streams limit doesn’t apply to them" (Vedder r9,
+      rainbow trout 50 cm / 20 in or less — the 2-from-streams limit doesn’t apply to them" (Vedder r9,
       p.22). Where a rainbow over 50 cm is a steelhead (p.80) the first "steelhead" is defined
       inline: "steelhead (rainbow trout over 50 cm)". Generic: pinned on the Vedder, a Region 4
       stream (the Duncan, its own ✱ row's lifts, and Lardeau Creek, which inherits them) and a lake.
@@ -93,7 +93,7 @@ def _kinds(g):
 def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     g = _trout(built, VEDDER, ("mouth",))
     assert g["headline"]["says"] == "2 a day from this stream"
-    assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this "
+    assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm / 20 in or less: up to 4 a day — this "
                          "river’s rule replaces Region 2’s 2-from-streams limit for them."]
     k = _kinds(g)
     # ROUND11 A1: the share's over-50 cap is its bucket's note, said once; no size note on a row

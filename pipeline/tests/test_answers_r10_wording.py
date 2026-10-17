@@ -32,17 +32,17 @@ def test_w1_one_lift_line_per_water_naming_each_kind_with_its_number():
     g = _g(F.TWO)
     assert [L["says"] for L in g["lifts"]] == [
         "On this river, its own rule replaces Region 2’s 2-from-streams limit for hatchery rainbow "
-        "trout 50 cm or less (up to 4 a day) and hatchery cutthroat trout (up to 3 a day)."]
+        "trout 50 cm / 20 in or less (up to 4 a day) and hatchery cutthroat trout (up to 3 a day)."]
     L = g["lifts"][0]
     assert (L["by"], L["kinds"], L["n"]) == (F.LIFT, ["RB", "CT"], 4)
     assert L["each"] == [
-        {"kinds": ["RB"], "n": 4, "by": F.LIFT, "fish": "hatchery rainbow trout 50 cm or less"},
+        {"kinds": ["RB"], "n": 4, "by": F.LIFT, "fish": "hatchery rainbow trout 50 cm / 20 in or less"},
         {"kinds": ["CT"], "n": 3, "by": F.LIFT2, "fish": "hatchery cutthroat trout"}]
 
 
 def test_w1_the_headline_lists_every_lifted_number_above_it_highest_first():
     assert _g(F.TWO)["headline"]["also"] == [
-        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm or less"},
+        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm / 20 in or less"},
         {"n": 3, "says": "3 if they’re hatchery cutthroat trout"}]
 
 
@@ -62,6 +62,7 @@ def test_w1_the_worked_count_follows_the_main_lift_and_the_gate_proves_the_card(
 
 
 def CC_ix(g, r):
+    from pipeline.deliver.answers.tree import map_rules
     """The group with every rule id an index again (what the answers ship)."""
     return {**g, "pool": r(g["pool"]),
             "subcaps": [{**s, "r": r(s["r"]), "lifted": [{**L, "by": r(L["by"])} for L in s["lifted"]]}
@@ -75,17 +76,18 @@ def CC_ix(g, r):
             "not_kept": [{**x, "by": r(x["by"])} for x in g["not_kept"]],
             "worked": [{**w, "share": None if w["share"] is None else r(w["share"])} for w in g["worked"]],
             "states": [{**x, "r": r(x["r"])} for x in g["states"]],
-            "caps": [{**c, "by": r(c["by"])} for c in g["caps"]]}
+            "caps": [{**c, "by": r(c["by"])} for c in g["caps"]],
+            "tree": map_rules(g["tree"], r)}
 
 
 def test_w1_one_lift_reads_exactly_as_before():
     g = _g(F.VEDDER)
     assert [L["says"] for L in g["lifts"]] == [
-        "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule "
+        "On this river, hatchery rainbow trout 50 cm / 20 in or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them."]
     assert g["lifts"][0]["each"] == [{"kinds": ["RB"], "n": 4, "by": F.LIFT,
-                                      "fish": "hatchery rainbow trout 50 cm or less"}]
-    assert g["headline"]["also"] == [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm or less"}]
+                                      "fish": "hatchery rainbow trout 50 cm / 20 in or less"}]
+    assert g["headline"]["also"] == [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm / 20 in or less"}]
 
 
 # W2 --------------------------------------------------------------------------------------------

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "15",
+            "version": "16",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -334,7 +334,27 @@ SPEC = {
                     "row's identical statement no nearer the stream than the winner's — shown once, credited to the "
                     "nearer row: \"Zone B also prints this: “All from Williston Lake and its tributaries”.\" A "
                     "decided answer's winner may be a size release (F13: a take-0 band releasing the fish's whole "
-                    "range, status release)",
+                    "range, status release). Version 16 (ROUND18): every group carries `tree` — the card as FOLDERS, "
+                    "draw it so: ONE tier {node \"tier\", id \"t1\", tier, n, says, by, children} of tier \"total\" "
+                    "(\"4 a day across Region 2, lakes included\"), holding tiers \"own\" (a water's own rule: says "
+                    "\"This river’s rule: up to 4 a day\", `whose`, `replaces` \"Replaces Region 2’s 2-from-streams "
+                    "limit and 30 cm / 12 in minimum size for these fish\", `why_here` \"its row covers its "
+                    "tributaries, so it applies here\" where the tributary walk brought the rule, else null, `line` all "
+                    "three in one line), \"share\" (\"2 a day from this stream\"), \"count\" (\"1 between them\") and "
+                    "\"size\" (`over_cm`, `species` the kinds its cap names, `then` [{n, over_cm}] nested caps, `extra` "
+                    "{n, species} | null — RULINGS Q16 as ONE tier: \"1 over 50 cm / 20 in — a second may be a hatchery "
+                    "steelhead\"), and kinds {node \"kind\", species, name, n, says \"Up to 2 may be brook, brown or "
+                    "cutthroat trout\", detail \"hatchery, 30 cm / 12 in or longer\", sizes {cm [[from, to|null]], in "
+                    "[[from, to|null]]}, also_counts [{tier (a size tier's id) | null, by | null, n, over_cm (0: a count), "
+                    "then, species, says \"only 1 over 50 cm / 20 in, if you haven’t already kept a Dolly Varden/bull "
+                    "trout or lake trout over 50 cm\"}], duties, sentence \"Of the 2 a day: up to 2 may be … (…) — "
+                    "…\", presence?}. Each kind sits EXACTLY ONCE, under the tightest tier holding it; a cap no tier "
+                    "holds is said on the kinds it binds. `header` {says \"2 a day from this stream · 4 across Region 2, "
+                    "lakes included\", tag \"hatchery only\" | null} is the group's top in one line. Sizes are said in "
+                    "cm AND whole inches (the nearest; the cm is the book's) in the tree, the lift lines, the "
+                    "headline's `also` and the kept-elsewhere lines; the bucket fields keep cm only and stay for now. "
+                    "The card gate proves every tier's and kind's number, each kind's sizes, every `also_counts`, the "
+                    "Q16 `extra` and every number in the tree's sentences and the header",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

@@ -134,7 +134,7 @@ def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
     row, _o, _P = _card(F.VEDDER)
     w = row["group"]["worked"]
     assert [x["q"] for x in w] == ["Keep 4 rainbows here", "Keep 3 rainbows here", "Keep 2 rainbows here",
-                                   "Kept 1 at a lake?", "Kept trout or char over 50 cm elsewhere today?"]
+                                   "Kept 1 at a lake?", "Kept trout or char over 50 cm / 20 in elsewhere today?"]
     assert row["elsewhere"]["ask"] == []
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
     lake, over = w[3], w[4]
@@ -149,8 +149,8 @@ def test_w4_no_lift_the_elsewhere_lines_are_the_list():
     assert [(x["q"], x["a"]) for x in w] == [
         ("Kept 2 on another stream?", "None more here"),
         ("Kept 1 at a lake?", "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."),
-        ("Kept trout or char over 50 cm elsewhere today?",
-         "It counts here too: at most 2 over 50 cm a day in all — only 1 of them may be anything other "
+        ("Kept trout or char over 50 cm / 20 in elsewhere today?",
+         "It counts here too: at most 2 over 50 cm / 20 in a day in all — only 1 of them may be anything other "
          "than a hatchery steelhead.")]
     assert [x["here"] for x in w] == [0, 2, 1]
     assert row["elsewhere"]["ask"] == []

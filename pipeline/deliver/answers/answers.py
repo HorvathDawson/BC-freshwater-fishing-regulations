@@ -249,7 +249,12 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND16 1/2/Q2: rows 15 (`group.table` / `group.cap_kinds` / `group.caps`: the species × size table
         # and the exact cap system, gate-proved; a water's own limit says whose, its number and what counts;
         # `restates` folds another row's identical statement no nearer than the winner's)
-        Section("rows", 15, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND18 1/2/3/4/7/8: rows 16 (`group.tree`: the card as nested tiers — total, a water's own rule (with
+        # `why_here` where the tributary walk brought it), the share, a count, a size cap (RULINGS Q16 as one tier:
+        # "1 over 50 cm / 20 in — a second may be a hatchery steelhead") — each kind once as a sentence with its
+        # `also_counts`, gate-proved; `group.header` one compact line + an origin tag; sizes in cm AND inches in
+        # the tree, the lift lines, the headline's numbers and the kept-elsewhere lines)
+        Section("rows", 16, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

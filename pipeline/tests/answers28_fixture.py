@@ -81,6 +81,8 @@ WAHLEACH, SLOT, COUNT, NESTED = "wahleach_lake", "slot_lake", "count_stream", "n
 BELLA, FRASER = "bella_coola", "fraser_mission"
 BELLA_MAY, VEDDER_MAY, BELLA_TRIB, LWA = "bella_coola_may", "vedder_may", "bella_coola_trib", "lwa_lake"
 BELLA_MAY_ST, SHUT = "bella_coola_may_steelhead_closed", "shut_stream"
+#: ROUND18 8: the Vedder with its own row reached BY THE TRIBUTARY WALK (a tributary of a ✱ row: Glenn Creek's shape)
+VEDDER_TRIB = "vedder_tributary"
 BELLA_R5 = "r2:bella_coola_river@2-3::bella_coola_river.r5"
 BELLA_R6 = "r2:bella_coola_river@2-3::bella_coola_river.r6"
 VEDDER_R6 = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r6"
@@ -110,7 +112,8 @@ WATERS = {VEDDER: (1, "stream", True, True, "known"),
           BELLA_TRIB: (14, "stream", True, True, "known"),
           LWA: (15, "lake", False, True, None),
           BELLA_MAY_ST: (16, "stream", True, True, "known"),
-          SHUT: (17, "stream", True, True, "known")}
+          SHUT: (17, "stream", True, True, "known"),
+          VEDDER_TRIB: (18, "stream", True, True, "known")}
 
 
 #: set id -> the water's (set id, kind, steelhead water, steelhead rules here, presence)
@@ -145,6 +148,7 @@ def _load() -> _B:
             3: [(e, r, "reach") for e, r in every
                 if (e, r) != lift and got[(e, r)].get("water") != "stream"]}
     sets[5] = sorted(sets[3] + [(*dv, "reach")])
+    sets[18] = [(e, r, "trib" if e == _VEDDER_E else "reach") for e, r in every]
     for set_id, ks in _R12_SETS.items():
         base = sets[2] if WATERS_BY_SET[set_id][1] == "stream" else sets[3]
         sets[set_id] = sorted(base + [(e, r, _VIA.get(set_id, "reach")) for e, r in ks])

@@ -1557,14 +1557,15 @@ def _names_short(codes: Sequence[str]) -> str:
 
 
 def _range_words(a, b) -> str:
-    """A keep range in the book's words (bounds of a keep band are inclusive: "50 cm or less")."""
+    """A keep range in the book's words (bounds of a keep band are inclusive: "50 cm or less"), in cm AND inches
+    (ROUND18 2: "50 cm / 20 in or less", "over 50 cm / 20 in", "20–30 cm / 8–12 in")."""
     if not a and (b is None or b == INF):
         return ""
     if not a:
-        return f"{_js(b)} cm or less"
+        return f"{common.cm_in(b)} or less"
     if b is None or b == INF:
-        return f"over {_js(a)} cm"
-    return f"{_js(a)}–{_js(b)} cm"
+        return f"over {common.cm_in(a)}"
+    return common.range_cm_in(a, b)
 
 
 def _keep_range(r: R) -> Tuple[float, float]:
@@ -1961,6 +1962,11 @@ def place_presence(rows: List[dict], line: Optional[str]) -> None:
             for k in list(b["kinds"]) + [k for s in b.get("groups") or [] for k in s["kinds"]]:
                 if "ST" in k["species"]:
                     k["presence"] = note
+                    # ROUND18 1: the same kind's node in the card's tree carries it too
+                    from pipeline.deliver.answers.tree import walk
+                    for x, _t in walk(g.get("tree") or []):
+                        if x["node"] == "kind" and "ST" in x["species"]:
+                            x["presence"] = note
                     return
         for x in g.get("not_kept") or []:
             if "ST" in x["species"]:
@@ -2184,6 +2190,8 @@ def refs(out: dict, ix) -> dict:
             l["rules"] = [ix(r) for r in l["rules"]]
         return l
 
+    from pipeline.deliver.answers.tree import map_rules
+
     def row(r):
         o = {**r, "pool": None if r["pool"] is None else ix(r["pool"]),
              "win": None if r["win"] is None else ix(r["win"]),
@@ -2216,7 +2224,8 @@ def refs(out: dict, ix) -> dict:
                           "worked": [{**w, "share": None if w["share"] is None else ix(w["share"])}
                                      for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]],
-                          "caps": [{**c, "by": ix(c["by"])} for c in g["caps"]]}
+                          "caps": [{**c, "by": ix(c["by"])} for c in g["caps"]],
+                          "tree": map_rules(g["tree"], ix)}
         return o
     return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
             "rows": [row(r) for r in out["rows"]]}

@@ -190,6 +190,13 @@ def test_the_group_model_requires_the_card():
             "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size"}] for S in ("CT", "RB")},
                       "cells": {S: [{"n": 4, "why": None, "origin": None, "by_origin": None, "as": None}]
                                 for S in ("CT", "RB")}, "steelhead_cm": None},
+            # ROUND18 1/4: the tree and the header
+            "tree": [{"node": "tier", "id": "t1", "tier": "total", "n": 4, "says": "4 a day", "by": 1,
+                      "children": [{"node": "kind", "species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
+                                    "n": 4, "says": "Up to 4 may be cutthroat or rainbow trout", "detail": "any size",
+                                    "sizes": {"cm": [[0, None]], "in": [[0, None]]}, "also_counts": [],
+                                    "duties": [], "sentence": "Of the 4 a day: up to 4 may be cutthroat or rainbow trout (any size)"}]}],
+            "header": {"says": "4 a day", "tag": None},
             "cap_kinds": [], "caps": []}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
     for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
