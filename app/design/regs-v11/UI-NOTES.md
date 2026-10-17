@@ -14,35 +14,53 @@
   line above (the round 15 persona trip it was moved up for). Its words ("This river's own limit. …") are the data's;
   making them specific is DATA's (round 16 item 2). Check `worked-last`; `no-bare-zero` no longer holds the old order.
   Screen 107.
-- **1 PROTOTYPE: the quota table + Check my catch** (`#qt=1`; a basket `#bk=CT:30:h,RB:40:e`, last tried fish `#qm=…`).
-  Ready for DATA's per-group `table` {bands, cells} + `caps` [{take, kinds, scope, by, says}]: everything is drawn from a
-  model of that shape (`qtModel`), so only the adapter changes when it lands.
-  - **Table first.** Rows = each fish of the group (picture + name, the picture opens its sheet); columns = size bands
-    from the rules' own cut points (Bella Coola May 1: under 25 · 25–33 · 33–50 · over 50 cm); each cell the number you
-    may keep of that fish at that size, alone, big in the open colour; "release" (restricted colour, lighter) where none.
-    A fish nobody may keep is one cell across the bands: the data's words ("✕ no fishing for them", "release every
-    one"), then whose rule and its Book page, small (provenance light).
-  - **Shared limits** below, under "Shared limits": every cap over two or more fish, once, in the data's words, then
-    whose rule · Book page ("Cutthroat trout or rainbow trout: 1 between them / This river's rule · Book p.43"; the
-    region's total line). A one-fish cap is only its cells.
-  - **Check my catch**: fish ▾, length (cm), Here | Elsewhere today, "Add this fish". The table re-reads as "Still yours
-    today": each cell = the most more of that fish at that size that keeps every cap holding (a small search over the
-    count). A fish that can't be kept is not added; the reason in plain words: "Release it. Cutthroat trout or rainbow
-    trout: 1 between them, and you have kept 1." / "Rainbow trout here: 25–50 cm." / the closure's words and whose rule.
-    A fish kept elsewhere is always added ("Counted. Fish kept elsewhere today count here too"); the basket lists each
-    fish with ✕ to take it off.
-  - **Provisional adapter (today's data, to be replaced):** a species' sizes from its kind's size words; caps from the
-    bucket / nested group / size group / subcap numbers and the region total, every cap counting fish kept elsewhere (the
-    data's `elsewhere.says` on these waters); origin (hatchery / wild) is ignored. Known gaps it shows: Vedder's hatchery
-    rainbow over 50 cm (counted as steelhead) reads "release"; a group's shared not-kept rule is repeated on each of its
-    fish's rows (Ape Creek char). The data's `table` / `caps` close both.
-  - Check `table-mock` (Bella Coola May 1: a row per fish with a picture, steelhead closed, each shared limit once; after
-    a 30 cm cutthroat kept here no rainbow is keepable and a 25–33 cm brook trout still is; adding a 30 cm rainbow says
-    why in the group's words). Screens 108-113 (Bella Coola May 1 table / limits / after a cutthroat / a release reason;
-    Vedder Oct 10; Ape Creek May 1).
-  - After DATA delivers: the table becomes each group's primary display (replacing buckets / size boxes once the persona
-    reads it better), `caps` evaluated as given (scope here | day | …), checks against the data's cells and scripted
-    baskets (Bella Coola May 1, Vedder Oct 10, Bennett).
+- **1 The quota table is each group's display** (rows 15 `group.table` / `cap_kinds` / `caps`, page v36 @ b934dc8b,
+  re-snapped, 134 states; the round 15 buckets stay at `#qt=0` for comparison and for the older checks).
+  - **Table.** Rows = the table's fish (picture, name, the kind's notes / duties / steelhead presence small under it);
+    columns = the union of every row's cut points; a row's band spans the columns it covers and, when it spans 2+, says
+    its band small under the number (persona: a number centred over columns hid its band). Cell = the data's `n` big,
+    "no limit" for null, else its `why` word (released / closed / too small / too big / protected size); "hatchery
+    only" small on a cell whose `origin` says so (persona: with the mark left to the origin line, Vedder's cutthroat 2
+    read as wild fish), `by_origin` as "hatchery N · wild M". On a steelhead water the rainbow row stops at
+    `steelhead_cm` and the steelhead row starts there: the other span reads "over 50 cm is a steelhead" / "under 50 cm
+    is a rainbow trout" (`as`), neighbouring `as` bands one span.
+  - **Shared limits** under it: every cap that keeps some (take > 0) over two or more fish, once, the data's `says`,
+    then whose rule (the rule's level: "This water’s rule", "Region 5 rule") · Book page. Then the water's own-limit
+    sentence (`elsewhere.says`).
+  - **Check my catch**: fish ▾, length, Wild | Hatchery (only where origin changes a fish someone may keep), "Where is
+    this fish?" Here | Kept on another stream today | Kept on a lake today. "Can I keep it?" evaluates the data's caps
+    as given: a basket {here, stream, lake: {kind: count}} is legal iff every cap's count ≤ take, an `if_kept_here` cap
+    only once the basket keeps one of its here kinds; fish kept elsewhere first, then here; a rainbow at / over the
+    steelhead size is the steelhead's kind. Kept: "✓ You can keep it", the table re-reads as "Still yours here" (each
+    cell = the most more of its kinds that keeps the basket legal: a small search, bounded by each kind's smallest cap);
+    "none left" where a cap is spent. Not keepable: not added; "Release it." + the failing cap's words (a take-0 cap
+    first) + "You have N toward it already." + whose · Book page. A length exactly on a cut point is read as the longer
+    band and says so (the data's bands carry no inclusive / exclusive end; a question for DATA).
+  - **Proof** (`tools/oracle.mjs`, run after snap.mjs → `oracle.json`): seeded random baskets (150 per group) plus each
+    cap at its take and one past it, for Bella Coola May 1 (both parts), Vedder Oct 10 and Bennett Lake (11 groups,
+    1,906 baskets), judged by `pipeline.deliver.answers.caps.accepts`, and every cell's `most_here`. Checks
+    `table-is-the-data` (every cell = the data's n / why, `as` spans; Bella Coola ×2, Vedder, Bennett, Ape Creek),
+    `checker-is-the-caps` (the page agrees with accepts on every basket and with most_here on every cell),
+    `check-my-catch` (Bella Coola: a 30 cm bull trout is 1; after a 30 cm cutthroat no rainbow, in the cap's words, but a
+    30 cm brook trout; a 55 cm brown kept on another stream leaves no fish over 50 cm here; Vedder: a wild 35 cm cutthroat
+    released, a hatchery one kept; each shared limit once with its Book page). The round 9-15 bucket checks read #qt=0.
+  - Persona (haiku): "how many 30 cm bull trout on the Bella Coola May 1?" → 1 (DV row, 25–50 cm); "kept one 55 cm brown
+    trout — what else?" → one more trout or char 25–50 cm, none over 50. Fixed from its trips: band words in spanning
+    cells, per-cell "hatchery only", "is a steelhead" wording, place toggle labelled. Left for DATA: Vedder's "Up to 2
+    hatchery trout and char a day from Region 2 streams" excludes rainbow under 50 cm but says "trout and char" (read as
+    contradicting rainbow 4); "No wild steelhead may be kept in B.C.." (double stop); the shared CT/RB "1" still reads as
+    two 1s in the table until the shared line is read.
+  - Screens 108-116 (Bella Coola May 1 side channels / limits / after a cutthroat / a release reason / mainstem / after a
+    55 cm brown; Vedder Oct 10; Ape Creek May 1; Bennett Lake).
+- **3 Rule titles** (display 12 `rules[].title`, snap: `ruleInfo.title`): a sources sheet's rule is headed by its effect
+  ("Keep up to 2 trout and char a day (none under 25 cm), Apr 1–May 31"), the book's words under it as the quote. Check
+  `rule-titles`. Screen 117.
+- **Q1 Caution** (`inherited[].caution`): under the inherited line, small. Glenn Creek May 1 snapshotted (pill). Check
+  `inherited-caution`. Screen 118.
+- **Q2 Restatement** (`rows[].restates` from another row): one ladder line, the winner's, with the data's note under it
+  ("Zone B also prints this: …"); snap adds `of` to `ruleKey`. Check `restates-one-line` (Schooler Creek grayling).
+  Screen 119.
+- **4 Under 16** (licence 6): the data's book words render as given (`u16-by-residency`). Screen 120.
 
 # regs v17 (round 15) — in place on regs-v11.html
 

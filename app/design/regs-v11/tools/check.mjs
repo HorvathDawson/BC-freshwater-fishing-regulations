@@ -15,7 +15,7 @@
 //   (round 14) licence-u16-you-need, nested-count-group, presence-in-section, week-in-words, not-kept-merged
 //   (round 15) no-bare-zero, licence-says-residency, week-sheet-one-story; phase 2: size-group-box, bucket-between-big,
 //   u16-by-residency, week-parts-decided; follow-up: closed-card-once, nearer-row-tribs-front
-//   (round 16) gear-lines, worked-last, table-mock (gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
+//   (round 16) gear-lines, worked-last; phase 2: table-is-the-data, checker-is-the-caps, check-my-catch, rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
 //   no longer holds How it adds up before the not-kept lines)
 //   (round 12) sheet-book-words, bait-ways-compact, dated-rows, howtell-has-hatchery,
 //   release-group-pictures (and place-in-header: no kind, the bare label on a full-width line of its own); phase 2 (rows 11,
@@ -51,6 +51,9 @@ const THEME = n => JSON.parse(fs.readFileSync(path.join(APP, 'packages/map/style
 const results = [];
 const check = (name, ok, why) => { results.push([name, ok, why]); console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : `  — ${why}`}`); };
 
+// round 16 phase 2: the table is each group's display; the checks of the round 9-15 bucket layout read it at #qt=0, where
+// the page still draws it for comparison (table-is-the-data, checker-is-the-caps, check-my-catch hold the table)
+const QT0 = '&qt=0';
 async function page(hash, fn) {
   const b = await open(`${pathToFileURL(PAGE).href}#shot=1&${hash}`, { offline: true });
   try { await new Promise(r => setTimeout(r, 400)); return await fn(b); } finally { await b.close(); }
@@ -239,7 +242,7 @@ await page('w=vedder&d=1010&scroll=600', async b => {
 const CARDS = [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=1010'], ['cow part 2', 'w=cowichan&d=1010&p=1'],
   ['chilliwack', 'w=chilliwack&d=1010&p=0'], ['wilkes', 'w=wilkes&d=1010']];
 const card = {headline: [], book: [], pics: [], once: []};
-for (const [name, hash] of CARDS) await page(hash, async b => {
+for (const [name, hash] of CARDS) await page(hash + QT0, async b => {
   const r = JSON.parse(await b.evaluate(`JSON.stringify((() => {
     const out = []; if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return [{missing: true}];
     const st = SNAP.states[sid()], norm = t => t.replace(/\\s+/g, ' ').trim();
@@ -276,7 +279,7 @@ check('card-cap-once', !badO.length, `${badO.length} groups: e.g. ${JSON.stringi
 // (the title after " — ") a smaller line; the bucket's size note (rows 10 `notes[].says`) said once, under the title,
 // before its kinds; each kind row reads on one line — name, detail, number — with its notes BEFORE its pictures
 const BK = {big: [], note: [], line: []};
-for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iron', 'w=iron&d=720']])) await page(hash, async b => {
+for (const [name, hash] of CARDS.concat([['vedder may', 'w=vedder&d=515'], ['iron', 'w=iron&d=720']])) await page(hash + QT0, async b => {
   const r = JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {big: [], note: [], line: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => {
@@ -429,7 +432,7 @@ check('release-group-pictures', !rgb.length, rgb.map(x => `${x.hash}: ${JSON.str
 const W2 = [];
 const CARDS2 = CARDS.concat([['vedder may', 'w=vedder&d=515'], ['morley', 'w=x12p&d=1010'], ['atlin', 'w=x3p&d=1010'], ['iron', 'w=iron&d=720'],
   ['wahleach', 'w=x34p&d=1010'], ['bennett', 'w=x35p&d=1010'], ['bella coola', 'w=bellacoola&d=1010&p=1'], ['bella coola may', 'w=bellacoola&d=501&p=1'], ['ape', 'w=ape&d=1010'], ['ape may', 'w=ape&d=501'], ['fraser', 'w=x15p&d=1010&p=0']]);
-for (const [name, hash] of CARDS2) await page(hash, async b => {
+for (const [name, hash] of CARDS2) await page(hash + QT0, async b => {
   W2.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = {name: ${JSON.stringify(name)}, fe: /fished elsewhere today/i.test(document.getElementById('keep').textContent), g: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const raw = st.rows[+(art.dataset.row || 'r0').slice(1)] || {}, g = raw.group; if (!g || !g.headline) return;
@@ -506,7 +509,7 @@ check('bella-coola-front', !B13.missing && [1010, 501].every(d => B13.days.inclu
 
 // ---------- round 13 phase 2 (rows 12, gear 9, display 9) ----------
 const C13 = [];
-for (const [name, hash] of CARDS2) await page(hash, async b => {
+for (const [name, hash] of CARDS2) await page(hash + QT0, async b => {
   C13.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {name: ${JSON.stringify(name)}, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), cap = t => t ? t[0].toUpperCase() + t.slice(1) : t, out = {name: ${JSON.stringify(name)}, lift: document.querySelectorAll('#keep .lift, #keep .glifts .lift').length, rep: [], nk: [], zero: []};
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
@@ -569,7 +572,7 @@ const NG = await page('w=vedder&d=1010', async b => JSON.parse(await b.evaluate(
   Object.entries(x.snap).flatMap(([d, ids]) => [].concat(ids).map((i, p) => [w, d, p, i]))).filter(([, , , i]) => (SNAP.states[i]?.rows || []).some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).length))))`)));
 const NGW = [...NG.filter(x => x[0] === 'bellacoola' && x[1] === '501'), ...NG.filter(x => x[0] !== 'bellacoola').slice(0, 1)];
 const N14 = [];
-for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}`, async b => {
+for (const [w, d, p] of NGW) await page(`w=${w}&d=${d}&p=${p}` + QT0, async b => {
   N14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
       const secs = [...art.querySelectorAll('section.bkt')];
@@ -594,7 +597,7 @@ const morePres = await page('w=vedder&d=1010', async b => JSON.parse(await b.eva
   return [pick(s => s.rows.some(r => (r.group?.buckets || []).some(bk => (bk.groups || []).some(g => g.kinds.some(k => k.presence))))),
     pick(s => s.rows.some(r => r.presence && !r.group?.headline && r.kind !== 'closed')), pick(s => s.steelLine === 'known_no_rules')].filter(Boolean); })())`)));
 const P14 = [];
-for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}`, async b => {
+for (const [w, d, p] of [...PRES, ...morePres]) await page(`w=${w}&d=${d}&p=${p}` + QT0, async b => {
   P14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), K = document.getElementById('keep'), out = [];
     const arts = [...K.querySelectorAll('article.row.ledger')].filter(a => !a.closest('details'));
     const artOf = i => arts.find(a => a.dataset.row === 'r' + i);
@@ -640,7 +643,7 @@ check('week-in-words', W14.length === 2 && !wb14.length, wb14.map(x => JSON.stri
 // (6, rows 13) not-kept lines: one per status and deciding row, in the data's order and words (Vedder May 15 "Rainbow trout
 // and cutthroat trout: release every one"; Ape Creek's char named with its members)
 const K14 = [];
-for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=${d}`, async b => {
+for (const [w, d] of [['vedder', '515'], ['ape', '1010']]) await page(`w=${w}&d=${d}` + QT0, async b => {
   K14.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !(g.not_kept || []).length) return;
       out.push({want: g.not_kept.map(x => norm(x.says)), shown: [...art.querySelectorAll('[data-notkept] .nm')].map(e => norm(e.textContent))}); });
@@ -715,7 +718,7 @@ check('week-sheet-one-story', K15.length === 2 && !kb15.length, kb15.map(x => JS
 // with its number big, its rule's book page, a picture of every fish it binds; no size note left as a bare line
 // (5) an own-rule bucket's shared cap (`buckets[].between`) is said big under its title, once
 const S15 = [];
-for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=ape&d=501']) await page(hash, async b => {
+for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=vedder&d=515', 'w=ape&d=501']) await page(hash + QT0, async b => {
   S15.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), sz = [], bw = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
       const secs = [...art.querySelectorAll('section.bkt')];
@@ -821,7 +824,7 @@ check('gear-lines', G16.length === 5 && G16.some(x => x.shown?.[0]?.k === 'mode'
 // (2) "How it adds up" closes its group: no bucket, kind row, count box or not-kept line of the group after it (Ape Creek
 // May 1: it sat between the trout and the steelhead / char lines)
 const A16 = [];
-for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d=1010', 'w=bellacoola&d=501&p=0']) await page(hash, async b => {
+for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d=1010', 'w=bellacoola&d=501&p=0']) await page(hash + QT0, async b => {
   A16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const out = [];
     document.querySelectorAll('#keep article.row.ledger').forEach(art => { const wk = art.querySelector(':scope > .worked'); if (!wk) return;
       const later = [...art.querySelectorAll('section.bkt, .krow, .nkt, .qgrp')].filter(e => !wk.contains(e) && !!(wk.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING));
@@ -831,28 +834,91 @@ for (const hash of ['w=ape&d=501', 'w=ape&d=1010', 'w=vedder&d=515', 'w=vedder&d
 const ab16 = A16.filter(x => x.out.some(o => o.later.length));
 check('worked-last', A16.length === 5 && A16.some(x => x.out.some(o => o.nk)) && !ab16.length, ab16.map(x => JSON.stringify(x)).join('; ') || 'no group with How it adds up AND not-kept lines checked');
 
-// (1, prototype) the quota table + "Check my catch" mock (#qt=1, today's data through a provisional adapter until the data
-// carries table + caps): Bella Coola May 1 — a row per fish of the group (picture + name), the steelhead row closed; every
-// shared limit once; after a 30 cm cutthroat kept here, no rainbow is keepable (1 between them) and one more brook trout
-// 25–33 cm is (2 between them); adding a 30 cm rainbow then says why not, in the group's own words
-const Q16 = await page('w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h', async b => JSON.parse(await b.evaluate(`(async () => {
-  const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => (st.rows[+a.dataset.row.slice(1)] || {}).group?.headline);
-  const g = st.rows[+art.dataset.row.slice(1)].group, tb = art.querySelector('[data-qtable]');
-  const want = [...new Set([...g.buckets.flatMap(bk => [...bk.kinds, ...(bk.groups || []).flatMap(x => x.kinds)].flatMap(k => k.species)), ...g.not_kept.flatMap(x => x.species)])];
-  const rows = tb ? [...tb.querySelectorAll('[data-qsp]')] : [], row = c => rows.find(r => r.dataset.qsp === c);
-  const cells = c => [...(row(c)?.querySelectorAll('[data-qcell]') || [])].map(e => ({band: e.dataset.qcell, t: norm(e.textContent)}));
-  const capT = [...art.querySelectorAll('[data-qcap]')].map(e => norm(e.textContent));
-  const caps = [...g.buckets.flatMap(bk => [...(bk.groups || []), ...(bk.sizes || [])].map(x => x.says)), ...g.buckets.map(bk => bk.between).filter(Boolean)];
-  const rb = cells('RB'), eb = cells('EB'), st2 = row('ST');
-  const sel = art.querySelector('[data-qform] select'), cm = art.querySelector('[data-qform] input[type=number]');
-  let res = null; if (sel && cm) { sel.value = 'RB'; cm.value = '30'; art.querySelector('[data-qadd]').click(); await new Promise(r => setTimeout(r, 200));
-    const a2 = [...document.querySelectorAll('#keep [data-qres]')][0]; res = a2 ? {no: a2.classList.contains('no'), t: norm(a2.textContent)} : null; }
-  return JSON.stringify({table: !!tb, want, rows: rows.map(r => r.dataset.qsp), pics: rows.filter(r => r.querySelector('img')).length,
-    rbKeep: rb.filter(c => /^\\d+$/.test(c.t) && +c.t > 0).length, ebOne: eb.some(c => c.t === '1'), stClosed: !!st2 && /✕|no fishing/i.test(norm(st2.textContent)),
-    caps: caps.map(c => capT.filter(t => t.includes(norm(c))).length), res}); })()`)));
-const q16ok = Q16.table && Q16.want.every(c => Q16.rows.includes(c)) && Q16.pics === Q16.rows.length && Q16.rbKeep === 0 && Q16.ebOne && Q16.stClosed
-  && Q16.caps.length && Q16.caps.every(n => n === 1) && Q16.res?.no && /1 between them/.test(Q16.res.t);
-check('table-mock', q16ok, JSON.stringify(Q16));
+// ---------- round 16 phase 2 (rows 15: group.table, cap_kinds, caps) ----------
+// (1) the table is each group's display and says what the data says: a row per table species, every band's cell its
+// number (data-qn) or its `why` word, a steelhead-water rainbow / steelhead band that is the other fish (`as`) drawn as
+// that fish's span; the page's own cell search over the cap system gives the same numbers as the data (and as the
+// pipeline's most_here, oracle.json)
+const ORACLE = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'oracle.json'), 'utf8'));
+const TB16 = [];
+for (const hash of ['w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010', 'w=x35p&d=1010', 'w=ape&d=501']) await page(hash, async b => {
+  TB16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), out = [];
+    document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline || !g.table) return;
+      const tb = art.querySelector('[data-qtable]'), bad = [];
+      for (const [sp, bands] of Object.entries(g.table.bands)) { const row = tb?.querySelector('[data-qsp="' + sp + '"]'); if (!row) { bad.push(sp + ': no row'); continue; }
+        bands.forEach((bd, i) => { const c = g.table.cells[sp][i], td = row.querySelector('[data-qcell="' + (bd.from || 0) + '"]');
+          if (c.as && c.as !== sp && g.table.bands[c.as]) { if (!row.querySelector('[data-qas="' + c.as + '"]')) bad.push(sp + ' ' + bd.says + ': not drawn as ' + c.as); return; }
+          if (!td) { bad.push(sp + ' ' + bd.says + ': no cell'); return; }
+          if (String(td.dataset.qn) !== (c.n == null ? '' : String(c.n))) bad.push(sp + ' ' + bd.says + ': ' + td.dataset.qn + ' vs ' + c.n);
+          if (c.n === 0 && !td.textContent.includes(c.why)) bad.push(sp + ' ' + bd.says + ': no "' + c.why + '"'); }); }
+      out.push({rows: tb ? tb.querySelectorAll('[data-qsp]').length : 0, want: Object.keys(g.table.bands).length, buckets: art.querySelectorAll('section.bkt').length, bad}); });
+    return {at: location.hash, out}; })())`)));
+});
+const tb16 = TB16.filter(x => !x.out.length || x.out.some(o => o.rows !== o.want || o.buckets || o.bad.length));
+check('table-is-the-data', TB16.length === 5 && !tb16.length, tb16.map(x => JSON.stringify(x)).join('; '));
+// (1) the page's checker IS the data's cap system: on every oracle basket (seeded random + each cap at its take and one
+// past it; Bella Coola May 1 both parts, Vedder Oct 10, Bennett Lake) it accepts exactly what caps.accepts accepts, and
+// its most-alone search equals caps.most_here for every table cell
+const CK16 = [];
+for (const [sid_, hash] of [['bc0_501', 'w=bellacoola&d=501&p=0'], ['bc1_501', 'w=bellacoola&d=501&p=1'], ['vedder_1010', 'w=vedder&d=1010'], ['x35p_1010', 'w=x35p&d=1010']]) await page(hash, async b => {
+  const gs = ORACLE.groups.filter(x => x.id === sid_);
+  CK16.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = SNAP.states[${JSON.stringify(sid_)}], gs = ${JSON.stringify(gs)};
+    return {id: ${JSON.stringify(sid_)}, n: gs.length, baskets: gs.reduce((t, x) => t + x.baskets.length, 0),
+      wrong: gs.flatMap(x => x.baskets.filter(o => qAccepts(st.rows[x.ri].group.caps, o.b) !== o.ok).map(o => ({ri: x.ri, ...o}))).slice(0, 5),
+      cells: gs.flatMap(x => x.cells.filter(c => { const m = qMore(st.rows[x.ri].group.caps, {}, c.ids); return m !== c.most; }).map(c => ({ri: x.ri, sp: c.sp, i: c.i, most: c.most, page: qMore(st.rows[x.ri].group.caps, {}, c.ids)}))).slice(0, 5)}; })())`)));
+});
+const ck16 = CK16.filter(x => !x.n || x.wrong.length || x.cells.length);
+check('checker-is-the-caps', CK16.length === 4 && CK16.every(x => x.baskets > 100) && !ck16.length, ck16.map(x => JSON.stringify(x)).join('; '));
+// (1) Check my catch, as an angler uses it: Bella Coola May 1 — a 30 cm bull trout is 1 here; after a 30 cm cutthroat kept
+// here no rainbow is keepable (the cap's own words) and a 30 cm brook trout is; a 55 cm brown trout kept on another
+// stream leaves no trout or char over 50 cm here. Vedder Oct 10 — a wild 35 cm cutthroat is released, a hatchery one kept.
+// Every shared limit (a cap over two or more fish that keeps some) is said once, with its Book page.
+const UI16 = [];
+const flow = async (hash, steps) => page(hash, async b => JSON.parse(await b.evaluate(`(async () => { const out = [], wait = () => new Promise(r => setTimeout(r, 120));
+  const dv = document.querySelector('#keep [data-qform]')?.closest('article').querySelector('[data-qsp="DV"] [data-qcell="25"]')?.dataset.qn ?? '';
+  const form = () => document.querySelector('#keep [data-qform]'), click = sel => { form().querySelector(sel).click(); };
+  for (const [code, cm, place, origin] of ${JSON.stringify(steps)}) {
+    click('[data-qw="' + place + '"]'); await wait(); if (origin && form().querySelector('[data-qo]')) { click('[data-qo="' + origin + '"]'); await wait(); }
+    form().querySelector('select').value = code; form().querySelector('input').value = cm; click('[data-qadd]'); await wait();
+    const r = document.querySelector('#keep [data-qres]'); out.push({code, cm, place, origin, no: !!r && r.classList.contains('no'), t: (r?.textContent || '').replace(/\\s+/g, ' ').trim()}); }
+  const art = form().closest('article'), st = ST(), g = st.rows[+art.dataset.row.slice(1)].group, norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+  const caps = [...new Set(g.caps.filter(c => c.take && new Set([...c.kinds.here, ...c.kinds.stream, ...c.kinds.lake].map(k => k.split('.')[0])).size > 1).map(c => c.says))];
+  const lines = [...art.querySelectorAll('[data-qcap]')].map(e => norm(e.textContent));
+  return JSON.stringify({at: location.hash, out, caps: caps.map(c => ({c, n: lines.filter(l => l.includes(norm(c))).length, book: lines.some(l => l.includes(norm(c)) && /p\\.\\d+/.test(l))})),
+    dv}); })()`)));
+UI16.push(await flow('w=bellacoola&d=501&p=0', [['CT', 30, 'h'], ['RB', 30, 'h'], ['EB', 30, 'h']]));
+UI16.push(await flow('w=bellacoola&d=501&p=1', [['GB', 55, 's'], ['GB', 55, 'h'], ['LT', 30, 'h']]));
+UI16.push(await flow('w=vedder&d=1010', [['CT', 35, 'h', 'w'], ['CT', 35, 'h', 'h']]));
+const want16 = [[false, true, false], [false, true, false], [true, false]];
+const ui16 = UI16.filter((x, i) => x.out.map(o => o.no).join() !== want16[i].join() || x.caps.some(c => c.n !== 1 || !c.book) || !x.caps.length);
+check('check-my-catch', UI16.length === 3 && UI16[0].dv === '1' && /1 cutthroat trout or rainbow trout/i.test(UI16[0].out[1].t) && !ui16.length,
+  UI16.map(x => JSON.stringify(x)).join('; '));
+
+// (3, display 12) a rule listed in a sources sheet is headed by its effect in words (`rules[].title`, "Release all
+// steelhead"), its book words under it as the quote — never the raw list item ("ALL STEELHEAD") as the heading
+const RT16 = await page('w=bellacoola&d=501&p=0&sheet=' + encodeURIComponent('src:bc0_501|r0'), async b => JSON.parse(await b.evaluate(`JSON.stringify((() => {
+  const rows = [...document.querySelectorAll('#sheet [data-srow]')], norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+  const keyOf = r => r.dataset.key;
+  return {n: rows.length, bad: rows.filter(r => { const k = keyOf(r), t = k && SNAP.ruleInfo[k]?.title; return t && norm(r.querySelector('[data-rtitle]')?.textContent) !== norm(t); }).map(r => norm(r.textContent).slice(0, 60)),
+    titled: rows.filter(r => r.querySelector('[data-rtitle]')).length, raw: rows.filter(r => /^ALL STEELHEAD/.test(norm(r.querySelector('span')?.textContent))).length}; })())`)));
+check('rule-titles', RT16.n > 3 && RT16.titled > 3 && !RT16.bad.length && !RT16.raw, JSON.stringify(RT16));
+// (Q1, display 12) a lift the stream inherits from a farther row says the nearer row's silence under it (Glenn Creek May 1)
+const IC16 = await page('w=glenn&d=501', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim();
+  const want = (st?.inherited || []).filter(x => x.caution), shown = [...document.querySelectorAll('#keep [data-caution]')];
+  return {want: want.length, ok: want.every(x => shown.some(e => norm(e.textContent) === norm(x.caution) && e.previousElementSibling?.matches('[data-inherited]')))}; })())`)));
+check('inherited-caution', IC16.want > 0 && IC16.ok, JSON.stringify(IC16));
+// (Q2, rows 15) another row's identical statement is folded into the winner's ladder line as the data's note, once
+// (Schooler Creek's Arctic grayling: "Zone B also prints this: …"), and is not a ladder line of its own
+const RS16 = await page('w=x41p&d=1010', async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { const st = ST(), norm = t => (t || '').replace(/\\s+/g, ' ').trim(), out = [];
+  st.rows.forEach((r, i) => { if (!r.restates?.length || r.week) return;
+    const o = Object.entries(OTHERS_).find(([id, v]) => id.startsWith(sid() + '|') && new RegExp('data-row="r' + i + '"').test(v.html));
+    const art = document.querySelector('#keep article.row[data-row="r' + i + '"]:not(details.others article)');
+    const body = o ? new DOMParser().parseFromString(sheetHtml('other:' + o[0]), 'text/html').body : art;
+    r.restates.forEach(x => { const notes = [...(body?.querySelectorAll('[data-restates]') || [])].filter(e => norm(e.textContent) === norm(x.says));
+      const rk = st.ruleKey?.[x.r], own = rk ? [...(body?.querySelectorAll('.ladder2 li.won .pline') || [])].filter(e => e.dataset.rule === rk).length : 0;
+      out.push({row: i, notes: notes.length, inWon: !!notes[0]?.closest('li.won'), own}); }); });
+  return {out}; })())`)));
+check('restates-one-line', RS16.out.length > 0 && RS16.out.every(x => x.notes === 1 && x.inWon && !x.own), JSON.stringify(RS16));
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

@@ -479,7 +479,15 @@ button.hplace:active .pl{color:var(--accent)}
 .qtab th.qn b{display:block;font:700 var(--t4)/1.2 Archivo,sans-serif;color:var(--ink)}
 .qtab td{text-align:center;padding:6px 2px}
 .qtab td.qk b{font:800 var(--t1)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open)}
-.qtab td.qr{color:var(--restricted);font-weight:500}
+.qtab td.qr{color:var(--restricted);font-weight:500}.qtab td.q-closed{color:var(--closed);font-weight:700}.qtab td.q-full{color:var(--sub)}
+.qtab td.qas{color:var(--faint)}.qtab td.qk small{display:block;font-size:.7rem;font-weight:600;color:var(--sub);margin-top:1px}
+.qtab td.qk b.qnl{font:700 var(--t4) Archivo,sans-serif;color:var(--open)}
+.qtab th.qn .qnote{display:block;margin-top:2px;font-size:.7rem;color:var(--sub);font-weight:400}
+.inhc{margin:2px 0 0;font-size:var(--t4);color:var(--sub)}
+.srow .stt{display:block;font-weight:700}.srow .sq{display:block;margin-top:1px;font-size:var(--t4);color:var(--sub)}
+.rnote{margin:2px 0 4px 10px;font-size:var(--t4);color:var(--sub)}
+.qlab{margin:8px 0 2px;font-size:var(--t4);color:var(--sub)}.qtab td.qk small.qband{color:var(--faint);font-weight:500}
+.qels{margin:10px 0 0;font-size:var(--t4);color:var(--sub)}.qres small{display:block;margin-top:3px;color:var(--sub)}
 .qtab tr.qclosed td{color:var(--closed);font-weight:700;text-align:left}.qtab tr.qrel td{color:var(--restricted);font-weight:600;text-align:left}
 .qcaps{list-style:none;margin:8px 0 0;padding:0}
 .qcaph{margin-top:12px}
@@ -665,7 +673,7 @@ WATERS.bellacoola.name = SNAP.states[WATERS.bellacoola.snap[1010][0]]?.name;
 { const one = (pre, md) => { const ps = PARTS(pre, md); return ps.length ? ps : `${pre}_${md}`; };
   WATERS.ape = {snap:{1010:one('ape', 1010), 501:one('ape', 501)}, map:null}; WATERS.ape.name = SNAP.states[[].concat(WATERS.ape.snap[1010])[0]]?.name;
   // round 15 follow-up: Glenn Creek (a Trout Lake tributary) and Hamill Creek (a Duncan River tributary), Oct 10 and Jun 15
-  for (const w of ['glenn', 'hamill']) { WATERS[w] = {snap:{1010:one(w, 1010), 615:one(w, 615)}, map:null}; WATERS[w].name = SNAP.states[[].concat(WATERS[w].snap[1010])[0]]?.name; } }
+  for (const w of ['glenn', 'hamill']) { WATERS[w] = {snap:{1010:one(w, 1010), 615:one(w, 615), ...(Object.keys(SNAP.states).some(k => k.startsWith(w) && k.endsWith('_501')) ? {501:one(w, 501)} : {})}, map:null}; WATERS[w].name = SNAP.states[[].concat(WATERS[w].snap[1010])[0]]?.name; } }
 // every other water page v36 offers (snap.mjs '*'): one day each, every part, no water map
 // round 11: Iron River (a Quinsam tributary, Jul 20 and Oct 10: the inherited summer opening)
 for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*)_(\d+)$/); if (!m) continue;
@@ -673,7 +681,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {qt:0, bk:'', qm:'', qw:'h', qs:'', qc:30, w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
+const S = {qt:1, bk:'', qm:'', qok:'', qw:'h', qo:'w', qs:'', qc:30, w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -761,89 +769,110 @@ function speciesRow(codes){
   if (!cs.length) return '';
   return `<div class="spg" role="list" aria-label="What they look like">${cs.map(c => `<button role="listitem" data-open="sp:${c}"><span class="im"><img src="../apps/mobile/assets/fish/${FISHPIC(c)[0].file}" alt="" loading="lazy"></span><span>${esc(SNAP.fish[c].name)}</span></button>`).join('')}</div>`;
 }
-/* ---------- round 16 (owner 1, PROTOTYPE): the quota TABLE and "Check my catch" (#qt=1; a basket in #bk=CT:30:h,…) ----------
-   Drawn from a model in the shape the data will carry per group — a table (size bands, a number per species × band) and
-   caps [{take, kinds, scope, by, says}] where a basket is legal iff every cap holds — so only qtModel changes when that
-   arrives. Until then qtModel is a PROVISIONAL adapter over today's group fields: a species' sizes from its kind's size
-   words, the cut points from those and the caps' over_cm, the caps from the bucket / group / size / subcap / total numbers,
-   every cap counting fish kept elsewhere today (the data's elsewhere.says on the waters shot). Every word drawn is the data's. */
-const QT_OPEN = 1e9;
-function qtRanges(detail){ const d = (detail || '').replace(/ /g, ' '), out = [];
-  for (const part of d.split(/,\s*or\s+|\s+or\s+(?=\d)/)) { let m;
-    if ((m = part.match(/(\d+)\s*[–-]\s*(\d+)\s*cm/))) out.push([+m[1], +m[2]]);
-    else if ((m = part.match(/(\d+)\s*cm or longer/))) out.push([+m[1], QT_OPEN]);
-    else if ((m = part.match(/(\d+)\s*cm or less/))) out.push([0, +m[1]]);
-    else if ((m = part.match(/over (\d+)\s*cm/))) out.push([+m[1] + 0.01, QT_OPEN]); }
-  return out.length ? out : [[0, QT_OPEN]]; }
-function qtModel(st, g){
-  const sp = new Map(), kinds = g.buckets.flatMap(bk => [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds]);
-  kinds.forEach(k => k.species.forEach(c => sp.has(c) || sp.set(c, {code: c, detail: k.detail, status: k.n === 0 ? 'release' : 'keep', ranges: k.n === 0 ? [] : qtRanges(k.detail)})));
-  (g.not_kept || []).forEach(x => x.species.forEach(c => sp.has(c) || sp.set(c, {code: c, status: x.status, says: x.says, whose: x.whose, by: x.by, ranges: []})));
-  const caps = [], add = (take, of, o = {}) => { of = [...new Set(of)].filter(c => sp.has(c)); if (!take || !of.length) return;
-    const key = [take, [...of].sort().join(','), o.over ?? '', o.under ?? ''].join('|'), had = caps.find(c => c.key === key);
-    if (had) { if (!had.says && o.says) Object.assign(had, {says: o.says, by: o.by, whose: o.whose}); return; }
-    caps.push({key, take, kinds: of, over: o.over ?? null, under: o.under ?? null, scope: 'day', says: o.says || '', by: o.by ?? null, whose: o.whose || ''}); };
-  g.buckets.forEach(bk => { const ks = [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds], all = ks.flatMap(k => k.species), whose = bk.why === 'rule' ? bk.title : '';
-    (bk.groups || []).forEach(x => add(x.n, x.kinds.flatMap(k => k.species), {says: x.says, by: x.by, whose}));
-    (bk.sizes || []).forEach(z => add(z.n, z.species, {over: z.over_cm, says: z.says, by: z.by, whose}));
-    const n = bk.cap ?? +((bk.between || '').match(/\d+/) || [])[0];
-    if (n && new Set(all).size > 1) add(n, all, {says: bk.between || bk.title || '', by: bk.by, whose: bk.between ? whose : ''});
-    ks.forEach(k => k.n && add(k.n, k.species)); });
-  (g.subcaps || []).forEach(c => add(c.take, c.of, {over: c.over_cm, under: c.under_cm}));
-  if (g.total) add(g.total, [...sp.values()].filter(x => x.status === 'keep').map(x => x.code), {says: g.total_line || ''});
-  const cuts = [...new Set([...[...sp.values()].flatMap(x => x.ranges.flat()), ...caps.flatMap(c => [c.over, c.under])]
-    .filter(v => v != null && v > 0 && v < QT_OPEN).map(v => Math.round(v)))].sort((a, b) => a - b);
-  const bands = cuts.length ? [{lo: 0, hi: cuts[0], label: `under ${cuts[0]}`}, ...cuts.slice(1).map((c, i) => ({lo: cuts[i], hi: c, label: `${cuts[i]}–${c}`})), {lo: cuts[cuts.length - 1], hi: QT_OPEN, label: `over ${cuts[cuts.length - 1]}`}]
-    : [{lo: 0, hi: QT_OPEN, label: 'any size'}];
-  bands.forEach(b => { b.at = b.hi >= QT_OPEN ? b.lo + 1 : (b.lo + b.hi) / 2; });
-  return {sp, caps, bands, rows: [...sp.values()]}; }
-const qtKeepable = (M, f) => { const x = M.sp.get(f.code); return !!x && x.status === 'keep' && x.ranges.some(([lo, hi]) => f.cm >= lo && f.cm <= hi); };
-const qtCount = (c, basket) => basket.filter(f => c.kinds.includes(f.code) && (c.over == null || f.cm > c.over) && (c.under == null || f.cm < c.under) && (f.where === 'h' || c.scope === 'day')).length;
-const qtLegal = (M, basket) => M.caps.every(c => qtCount(c, basket) <= c.take);
-// a cell: how many more of that fish, at that size, keep every cap holding (a small search over the count)
-const qtMore = (M, basket, code, cm) => { if (!qtKeepable(M, {code, cm})) return 0; const f = {code, cm, where: 'h'}; let m = 0;
-  while (m < 99 && qtLegal(M, [...basket, ...Array(m + 1).fill(f)])) m++; return m; };
-const qtBasket = () => (S.bk || '').split(',').filter(Boolean).map(t => { const [code, cm, where] = t.split(':'); return {code, cm: +cm, where: where === 'e' ? 'e' : 'h'}; });
-function qtWhy(M, basket, f){ const x = M.sp.get(f.code), nm = fishName(f.code);
-  if (!x) return '';
-  if (x.status === 'closed') return `${x.says}. ${cap1_(x.whose)}.`;
-  if (x.status === 'release') return `${nm}: ${x.detail}.`;
-  if (!qtKeepable(M, f)) return `${nm} here: ${x.detail}.`;
-  const c = M.caps.find(c => qtCount(c, [...basket, f]) > c.take); if (!c) return '';
-  const had = qtCount(c, basket);
-  return c.says ? `${c.says.replace(/\.$/, '')}, and you have kept ${had}.` : `${nm}: ${c.take}, and you have kept ${had}.`; }
-const cap1_ = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+/* ---------- round 16 (owner 1): the quota TABLE and "Check my catch" ----------
+   The data's per-group table (rows 15 `group.table` {bands, cells, steelhead_cm}) is the group's display: rows the fish,
+   columns the size bands (the union of every row's cut points; a row's band spans the columns it covers), each cell the
+   number of that fish at that size you may keep here alone, or the data's word for none (released, closed, too small,
+   too big, protected size); "hatchery only" / per origin small. On a steelhead water a rainbow over steelhead_cm IS a
+   steelhead (`as`): the rainbow row stops there and the steelhead row starts there, each saying so in the other's span.
+   "Check my catch" evaluates the data's cap system as given (`cap_kinds`, `caps`): a basket {here|stream|lake: {kind:
+   count}} is legal iff every cap's count <= take, an if_kept_here cap holding only once the basket keeps one of its here
+   kinds; a cell's remaining = the most more of its kinds kept here that keeps the basket legal (a small search).
+   #qt=0 draws the round 15 buckets instead (comparison). Basket in the hash: bk=SP:cm:place(h|s|l):origin(h|w|-),… */
+const QPL = {h: 'here', s: 'stream', l: 'lake'};
+const qAccepts = (caps, bk) => caps.every(c => { const n = ['here', 'stream', 'lake'].reduce((t, p) => t + c.kinds[p].reduce((u, k) => u + (bk[p]?.[k] || 0), 0), 0);
+  if (c.if_kept_here && !c.kinds.here.some(k => bk.here?.[k])) return true; return n <= c.take; });
+const qFailing = (caps, bk) => caps.filter(c => !qAccepts([c], bk));
+const qAdd = (bk, p, k, n = 1) => ({...bk, [p]: {...(bk[p] || {}), [k]: ((bk[p] || {})[k] || 0) + n}});
+// the most more fish of the kinds `ids` kept here, the basket staying legal (null: no cap holds them)
+function qMore(caps, bk, ids){
+  const zero = new Set(caps.filter(c => !c.take).flatMap(c => c.kinds.here)), free = ids.filter(k => !zero.has(k));
+  if (!free.length) return 0;
+  if (free.some(k => !caps.some(c => c.take && c.kinds.here.includes(k)))) return null;
+  const ub = Object.fromEntries(free.map(k => [k, Math.min(...caps.filter(c => c.take && c.kinds.here.includes(k)).map(c => c.take))]));
+  let best = 0;
+  const go = (i, cur, got) => { if (!qAccepts(caps, cur)) return; if (got > best) best = got; if (i === free.length) return;
+    if (got + free.slice(i).reduce((t, k) => t + ub[k], 0) <= best) return;
+    for (let x = ub[free[i]]; x >= 0; x--) go(i + 1, x ? qAdd(cur, 'here', free[i], x) : cur, got + x); };
+  go(0, bk, 0); return best; }
+const qBasket = () => (S.bk || '').split(',').filter(Boolean).map(t => { const [code, cm, place, origin] = t.split(':'); return {code, cm: +cm, place: QPL[place] ? place : 'h', origin: origin === 'h' || origin === 'w' ? origin : ''}; });
+const qEnc = fs => fs.map(f => `${f.code}:${f.cm}:${f.place}:${f.origin || '-'}`).join(',');
+// hatchery / wild is asked only where it changes a fish someone may keep (a closed steelhead's split never asks)
+const qSplit = g => { const keep = new Set(Object.entries(g.table?.cells || {}).flatMap(([sp, cs]) => cs.filter(c => c.n !== 0).map(c => c.as || sp)));
+  return (g.cap_kinds || []).some(k => k.origin && keep.has(k.species)); };
+// a fish -> its kind: on a steelhead water a rainbow over the steelhead size is a steelhead (and the other way)
+function qKind(g, f){ const st = g.table?.steelhead_cm, has = sp => (g.cap_kinds || []).some(k => k.species === sp);
+  let sp = f.code; if (st != null && has('RB') && has('ST')) { if (sp === 'RB' && f.cm >= st) sp = 'ST'; else if (sp === 'ST' && f.cm < st) sp = 'RB'; }
+  const o = f.origin === 'h' ? 'hatchery' : f.origin === 'w' ? 'wild' : null;
+  return (g.cap_kinds || []).find(k => k.species === sp && f.cm >= (k.from || 0) && (k.to == null || f.cm < k.to) && (!k.origin || !o || k.origin === o)) || null; }
+const qBk = (g, fs) => fs.reduce((bk, f) => { const k = qKind(g, f); return k ? qAdd(bk, QPL[f.place], k.id) : bk; }, {});
+// basket order: fish kept elsewhere first, then here (the data's reading)
+const qOrder = fs => [...fs.filter(f => f.place !== 'h'), ...fs.filter(f => f.place === 'h')];
+function qWhy(st, g, fs, f){ const k = qKind(g, f), nm = fishName(f.code);
+  if (!k) return {no: `${nm}: not one of this group’s fish at ${f.cm} cm.`};
+  const bk = qBk(g, fs), after = qAdd(bk, 'here', k.id), bad = qFailing(g.caps, after);
+  if (!bad.length) return null;
+  const c = bad.find(c => !c.take) || bad[0], key = st.ruleKey?.[c.by], had = ['here', 'stream', 'lake'].reduce((t, p) => t + c.kinds[p].reduce((u, x) => u + (bk[p]?.[x] || 0), 0), 0);
+  return {no: c.take ? `${c.says} You have ${had} toward it already.` : c.says, key}; }
+const whoseOf = key => (SNAP.rules[key]?.sub || '').split(' · ')[0];
 let QT_ = {};
-function qtHtml(st, ri, g){
-  const M = qtModel(st, g), basket = qtBasket(), here = basket.filter(f => f.where === 'h'); QT_[ri] = M;
-  const head = `<tr><th scope="col" class="qf">${basket.length ? 'Still yours today' : 'Fish'}</th>${M.bands.map(b => `<th scope="col">${esc(b.label)}<small> cm</small></th>`).join('')}</tr>`;
-  const name = c => `<th scope="row" class="qn">${fishBtn(c, 'th')}<b>${esc(fishName(c))}</b></th>`;
-  const body = M.rows.map(x => { const n = M.bands.length;
-    // a fish nobody may keep here: one cell across the bands, the data's words, then whose rule and its Book page, small
-    const whose = x => { const key = st.ruleKey?.[x.by]; return x.whose || key ? `<small>${esc(cap1_(x.whose || ''))}${x.whose && key ? ' · ' : ''}${key ? bookLinks(key) : ''}</small>` : ''; };
-    if (x.status === 'closed') return `<tr data-qsp="${x.code}" class="qclosed">${name(x.code)}<td colspan="${n}" data-qcell="all"><b>✕</b> ${esc(x.says.replace(/^[^:]*:\s*/, ''))}${whose(x)}</td></tr>`;
-    if (x.status === 'release') return `<tr data-qsp="${x.code}" class="qrel">${name(x.code)}<td colspan="${n}" data-qcell="all">${esc(x.detail || x.says.replace(/^[^:]*:\s*/, ''))}${whose(x)}</td></tr>`;
-    return `<tr data-qsp="${x.code}">${name(x.code)}${M.bands.map((b, i) => { const m = qtMore(M, basket, x.code, b.at);
-      return m ? `<td data-qcell="${i}" class="qk"><b>${m}</b></td>` : `<td data-qcell="${i}" class="qr">${qtKeepable(M, {code: x.code, cm: b.at}) ? 'full' : 'release'}</td>`; }).join('')}</tr>`; }).join('');
-  const caps = M.caps.filter(c => c.says && c.kinds.length > 1).map(c => { const key = st.ruleKey?.[c.by];
-    return `<li data-qcap><b>${esc(c.says)}</b>${c.whose || key ? `<span>${esc(c.whose)}${c.whose && key ? ' · ' : ''}${key ? bookLinks(key) : ''}</span>` : ''}</li>`; }).join('');
-  const keepers = M.rows;
-  const last = S.qm ? (() => { const [code, cm, where] = S.qm.split(':'), f = {code, cm: +cm, where}; const why = where === 'h' ? qtWhy(M, basket, f) : '';
-    return `<p class="qres ${why ? 'no' : 'ok'}" data-qres role="status">${why ? `<b>Release it.</b> ${esc(why)}` : where === 'h' ? `<b>✓ You can keep it.</b> The table shows what is left.` : `<b>Counted.</b> Fish kept elsewhere today count here too; the table shows what is left.`}</p>`; })() : '';
-  const list = basket.length ? `<ul class="qbask">${basket.map((f, i) => `<li><span>${esc(fishName(f.code))} · ${f.cm} cm · ${f.where === 'h' ? 'here' : 'elsewhere today'}</span><button type="button" data-qdel="${i}" aria-label="Take it off">✕</button></li>`).join('')}</ul>` : '';
-  const form = `<div class="qform" data-qform data-qrow="${ri}"><p class="bkh">Check my catch</p>
-    <div class="qin"><select aria-label="Which fish">${keepers.map(x => `<option value="${x.code}"${S.qs === x.code ? ' selected' : ''}>${esc(fishName(x.code))}</option>`).join('')}</select>
+function qtHtml(st, ri, g, raw){
+  const T = g.table, fs = qOrder(qBasket()), bk = qBk(g, fs), OPEN = 1e9; QT_[ri] = {st, g};
+  // the reader's rows: a steelhead water's rainbow stops at the steelhead size, the steelhead starts there
+  // neighbouring cells that are the other fish (`as`) are one span: "under 50 cm: rainbow trout"
+  const bw = (a, b) => b >= OPEN ? (a ? `over ${a} cm` : 'any size') : !a ? `under ${b} cm` : `${a}–${b} cm`;
+  const isAs = (sp, c) => c.as && c.as !== sp && T.bands[c.as];
+  const rows = Object.keys(T.bands).map(sp => ({sp, cells: T.bands[sp].map((b, i) => ({...b, ...T.cells[sp][i], to: b.to ?? OPEN}))
+    .reduce((out, c) => { const l = out[out.length - 1]; if (l && isAs(sp, l) && isAs(sp, c) && l.as === c.as) { l.to = c.to; l.says = bw(l.from || 0, c.to); } else out.push({...c}); return out; }, [])}));
+  // the group's origin line already says "Hatchery only": a cell repeats it only when the cells differ
+  const keepO = new Set(rows.flatMap(r => r.cells.filter(c => c.n !== 0 && !isAs(r.sp, c)).map(c => c.origin || '-')));
+  const sayO = true;   // persona (round 16): with the mark left to the origin line, Vedder's cutthroat "2" read as wild fish too
+  const cuts = [...new Set(rows.flatMap(r => r.cells.flatMap(c => [c.from || 0, c.to])))].filter(v => v > 0 && v < OPEN).sort((a, b) => a - b);
+  const cols = [0, ...cuts].map((lo, i) => ({lo, hi: i < cuts.length ? cuts[i] : OPEN}));
+  const colLab = c => c.hi >= OPEN ? (c.lo ? `over ${c.lo}` : 'any size') : !c.lo ? `under ${c.hi}` : `${c.lo}–${c.hi}`;
+  const head = `<tr><th scope="col" class="qf">${fs.length ? 'Still yours here' : 'Fish'}</th>${cols.map(c => `<th scope="col">${esc(colLab(c))}${c.hi < OPEN || c.lo ? '<small> cm</small>' : ''}</th>`).join('')}</tr>`;
+  const kindsOf = (sp, c) => (g.cap_kinds || []).filter(k => k.species === (c.as || sp) && (k.from || 0) < c.to && (k.to == null || k.to > (c.from || 0)));
+  const noteOf = sp => { const ks = (g.buckets || []).flatMap(bk => [...(bk.groups || []).flatMap(x => x.kinds), ...bk.kinds]).filter(k => k.species.includes(sp));
+    const ns = [...new Set(ks.flatMap(k => [...k.notes, ...k.duties]))], pr = [...ks.map(k => k.presence), ...(g.not_kept || []).filter(x => x.species.includes(sp)).map(x => x.presence)].find(Boolean);
+    return ns.map(n => `<small class="qnote">${esc(cap1_(n))}</small>`).join('') + (pr ? `<small class="qnote" data-presence>${esc(pr.says)} ${tip('steelhead')}</small>` : ''); };
+  const cell = (sp, c) => { const span = cols.filter(x => x.lo >= (c.from || 0) && x.hi <= c.to).length;
+    if (isAs(sp, c)) return `<td colspan="${span}" class="qas" data-qcell="${c.from || 0}" data-qas="${c.as}"><small>${esc(c.says)} is a ${esc(fishName(c.as).toLowerCase())}</small></td>`;
+    if (c.n === 0) return `<td colspan="${span}" class="qr q-${c.why === 'closed' ? 'closed' : 'rel'}" data-qcell="${c.from || 0}" data-qn="0">${esc(c.why)}</td>`;
+    const ids = kindsOf(sp, c).filter(k => !c.origin || !k.origin || k.origin === c.origin).map(k => k.id);
+    const left = fs.length ? qMore(g.caps, bk, ids) : c.n;
+    const mark = c.origin && sayO ? `<small>${esc(c.origin)} only</small>` : c.by_origin ? `<small>${Object.entries(c.by_origin).map(([o, n]) => `${esc(o)} ${n ?? 'no limit'}`).join(' · ')}</small>` : '';
+    if (left === 0) return `<td colspan="${span}" class="qr q-full" data-qcell="${c.from || 0}" data-qn="0">none left</td>`;
+    const band = span > 1 ? `<small class="qband">${esc(c.says)}</small>` : '';   // persona: a number centred over 2+ columns hid its band
+    return `<td colspan="${span}" class="qk" data-qcell="${c.from || 0}" data-qn="${left ?? ''}">${left == null ? '<b class="qnl">no limit</b>' : `<b>${left}</b>`}${band}${mark}</td>`; };
+  const body = rows.map(r => `<tr data-qsp="${r.sp}"><th scope="row" class="qn">${fishBtn(r.sp, 'th')}<b>${esc(fishName(r.sp))}</b>${noteOf(r.sp)}</th>${r.cells.map(c => cell(r.sp, c)).join('')}</tr>`).join('');
+  // the shared limits: every cap over two or more fish that keeps some, once, in the data's words, whose rule · Book page
+  const seen = new Set(), caps = g.caps.filter(c => c.take && new Set([...c.kinds.here, ...c.kinds.stream, ...c.kinds.lake].map(k => k.split('.')[0])).size > 1 && !seen.has(c.says) && seen.add(c.says))
+    .map(c => { const key = st.ruleKey?.[c.by]; return `<li data-qcap><b>${esc(c.says)}</b>${key ? `<span>${esc(whoseOf(key))} · ${bookLinks(key)}</span>` : ''}</li>`; }).join('');
+  const els = raw.elsewhere?.says ? `<p class="qels" data-qels>${esc(raw.elsewhere.says)}</p>` : '';
+  const sel = (g.cap_kinds || []).length ? Object.keys(T.bands) : [];
+  const last = S.qm ? (() => { const [code, cm, place, origin] = S.qm.split(':'), f = {code, cm: +cm, place, origin: origin === '-' ? '' : origin};
+    if (place !== 'h') { const bad = qFailing(g.caps, bk); return `<p class="qres ${bad.length ? 'no' : 'ok'}" data-qres role="status"><b>${bad.length ? 'Over a limit.' : 'Counted.'}</b> ${bad.length ? esc(bad[0].says) : 'It counts toward the limits above that count fish kept elsewhere today; the table shows what is left here.'}</p>`; }
+    const why = S.qok === '1' ? null : qWhy(st, g, fs.filter((x, i) => i < fs.length), f);
+    // a length exactly on a cut point: the data's bands carry no inclusive / exclusive end, so it is read as the longer band and said
+    const edge = (g.cap_kinds || []).some(k => k.from === f.cm) ? `<small class="qedge">${f.cm}\u00a0cm is exactly on a size line in the rules; this reads it as the longer size.</small>` : '';
+    return `<p class="qres ${why ? 'no' : 'ok'}" data-qres role="status">${why ? `<b>Release it.</b> ${esc(why.no)}${why.key ? ` <small>${esc(whoseOf(why.key))} · ${bookLinks(why.key)}</small>` : ''}` : `<b>✓ You can keep it.</b> The table shows what is left.`}${edge}</p>`; })() : '';
+  const list = fs.length ? `<ul class="qbask">${qBasket().map((f, i) => `<li><span>${esc(fishName(f.code))} · ${f.cm} cm${f.origin ? ' · ' + (f.origin === 'h' ? 'hatchery' : 'wild') : ''} · ${f.place === 'h' ? 'kept here' : f.place === 's' ? 'kept on another stream' : 'kept on a lake'}</span><button type="button" data-qdel="${i}" aria-label="Take it off">✕</button></li>`).join('')}</ul>` : '';
+  const form = !sel.length ? '' : `<div class="qform" data-qform data-qrow="${ri}"><p class="bkh">Check my catch</p>
+    <div class="qin"><select data-qsel aria-label="Which fish">${sel.map(c => `<option value="${c}"${S.qs === c ? ' selected' : ''}>${esc(fishName(c))}</option>`).join('')}</select>
     <label class="qcm"><input type="number" inputmode="numeric" min="1" max="200" value="${+S.qc || 30}" aria-label="Length in cm"> cm</label></div>
-    <div class="segm qwhere" role="group" aria-label="Where you kept it"><button type="button" aria-pressed="${S.qw !== 'e'}" data-qw="h">Here</button><button type="button" aria-pressed="${S.qw === 'e'}" data-qw="e">Elsewhere today</button></div>
-    <button type="button" class="qadd" data-qadd>Add this fish</button>${last}${list}</div>`;
-  return `<section class="qt" data-qtable aria-label="What you can keep, by size"><table class="qtab"><thead>${head}</thead><tbody>${body}</tbody></table>${caps ? `<p class="bkh qcaph">Shared limits</p><ul class="qcaps">${caps}</ul>` : ''}</section>${form}`; }
-document.addEventListener('click', e => { const t = e.target.closest('[data-qadd],[data-qdel],[data-qw]'); if (!t) return;
-  const box = t.closest('[data-qform]'), M = QT_[box?.dataset.qrow], basket = qtBasket(), enc = b => b.map(f => `${f.code}:${f.cm}:${f.where}`).join(',');
+    ${qSplit(g) ? `<div class="segm qorig" role="group" aria-label="Hatchery or wild"><button type="button" aria-pressed="${S.qo !== 'h'}" data-qo="w">Wild</button><button type="button" aria-pressed="${S.qo === 'h'}" data-qo="h">Hatchery (fin clipped)</button></div>` : ''}
+    <p class="qlab">Where is this fish?</p><div class="segm qwhere" role="group" aria-label="Where you kept it"><button type="button" aria-pressed="${!S.qw || S.qw === 'h'}" data-qw="h">Here</button><button type="button" aria-pressed="${S.qw === 's'}" data-qw="s">Kept on another stream today</button><button type="button" aria-pressed="${S.qw === 'l'}" data-qw="l">Kept on a lake today</button></div>
+    <button type="button" class="qadd" data-qadd>${S.qw && S.qw !== 'h' ? 'Add a fish I kept today' : 'Can I keep it?'}</button>${last}${list}</div>`;
+  return `<section class="qt" data-qtable aria-label="What you can keep, by size"><table class="qtab"><thead>${head}</thead><tbody>${body}</tbody></table>${caps ? `<p class="bkh qcaph">Shared limits</p><ul class="qcaps">${caps}</ul>` : ''}${els}</section>${form}`; }
+const cap1_ = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+document.addEventListener('click', e => { const t = e.target.closest('[data-qadd],[data-qdel],[data-qw],[data-qo]'); if (!t) return;
+  const box = t.closest('[data-qform]'), basket = qBasket();
   if (t.dataset.qw) return go({qw: t.dataset.qw}, true);
-  if (t.dataset.qdel != null) { basket.splice(+t.dataset.qdel, 1); return go({bk: enc(basket), qm: ''}, true); }
-  const f = {code: box.querySelector('select').value, cm: +box.querySelector('input').value || 0, where: S.qw === 'e' ? 'e' : 'h'};
-  const ok = f.where === 'e' || !qtWhy(M, basket, f);
-  go({bk: ok ? enc([...basket, f]) : enc(basket), qm: `${f.code}:${f.cm}:${f.where}`, qs: f.code, qc: f.cm}, true); });
+  if (t.dataset.qo) return go({qo: t.dataset.qo}, true);
+  if (t.dataset.qdel != null) { basket.splice(+t.dataset.qdel, 1); return go({bk: qEnc(basket), qm: '', qok: ''}, true); }
+  const {st, g} = QT_[box.dataset.qrow], f = {code: box.querySelector('select').value, cm: +box.querySelector('input').value || 0, place: S.qw && S.qw !== 'h' ? S.qw : 'h', origin: qSplit(g) ? (S.qo === 'h' ? 'h' : 'w') : ''};
+  const ok = f.place !== 'h' || !qWhy(st, g, qOrder(basket), f);
+  go({bk: qEnc(ok ? [...basket, f] : basket), qm: `${f.code}:${f.cm}:${f.place}:${f.origin || '-'}`, qok: ok && f.place === 'h' ? '1' : '', qs: f.code, qc: f.cm}, true); });
 function buildKeep(){
   const st = ST(), doc = new DOMParser().parseFromString(`<div id="root">${st.cardHTML}</div>`, 'text/html'), root = doc.getElementById('root');
   // the strip: the data's per-day flags (answers 2.6)
@@ -858,7 +887,7 @@ function buildKeep(){
   // strip, in the data's words, with the lifting rule's book page; v36's own block (labelled in its words) is replaced
   const inhs = st.inherited || [], inhBlocks = [...root.querySelectorAll('.caveats')].filter(c => inhs.some(x => c.textContent.includes(x.says)));
   const inhLabel = (inhBlocks[0]?.querySelector('.lbl')?.textContent || '').trim(); inhBlocks.forEach(c => c.remove());
-  if (inhs.length) { const html = `<div class="inh">${inhLabel ? `<span class="ltag">${esc(inhLabel)}</span>` : ''}${inhs.map(x => `<p data-inherited>${esc(x.says)} ${x.by ? bookLinks(x.by) : ''}</p>`).join('')}</div>`;
+  if (inhs.length) { const html = `<div class="inh">${inhLabel ? `<span class="ltag">${esc(inhLabel)}</span>` : ''}${inhs.map(x => `<p data-inherited>${esc(x.says)} ${x.by ? bookLinks(x.by) : ''}</p>${x.caution ? `<p class="inhc" data-caution>${esc(x.caution)}</p>` : ''}`).join('')}</div>`;   // display 12 (Q1): the nearer row's silence, under the line
     const ws = root.querySelector('.wstrip'); if (ws) ws.insertAdjacentHTML('afterend', html); else root.insertAdjacentHTML('afterbegin', html); }
   const cav = root.querySelector('.caveats'); let nofish = null;
   if (cav) { nofish = doc.createElement('section');
@@ -896,6 +925,12 @@ function buildKeep(){
   // round 14 (rows 13, item 5): a row whose fish answer by weekday says the window in words (`rows[].week`, page v36's
   // .sum.week); the day's one-word verdict ("✓ Release every one here.") beside it is dropped, so Monday never reads as the rule
   root.querySelectorAll('article.row[data-row]').forEach(art => { if (st.rows[+art.dataset.row.slice(1)]?.week) art.querySelectorAll('.lres').forEach(e => e.remove()); });
+  // round 16 (rows 15, Q2): a rule that only restates the winner — another row's identical statement, no nearer the stream
+  // — is ONE ladder line: the winner's, with the data's note under it ("Zone B also prints this: “…”"). A weekday row
+  // draws its restatements in its status sheet (week-parts-decided), so not here.
+  root.querySelectorAll('article.row[data-row]').forEach(art => { const r = st.rows[+art.dataset.row.slice(1)]; if (!r?.restates?.length || r.week) return;
+    r.restates.forEach(x => { const win = st.ruleKey?.[x.of], li = win && art.querySelector(`.ladder2 li.won .pline[data-rule="${CSS.escape(win)}"]`)?.closest('li');
+      if (li) li.insertAdjacentHTML('beforeend', `<p class="rnote" data-restates>${esc(x.says)}</p>`); }); });
   root.querySelectorAll('article.row.ledger').forEach(art => {
     const ri = +(art.dataset.row || 'r0').slice(1), raw = st.rows[ri] || {}, g = raw.group;
     if (!g || !g.headline) return;
@@ -969,8 +1004,8 @@ function buildKeep(){
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
     const orig = g.origin && gor ? `<p class="gorigin">${gor.innerHTML}</p>` : g.origin ? `<p class="gorigin">${esc(g.origin)}</p>` : '';
-    // round 16 (1, prototype): #qt=1 draws the group as the quota table + Check my catch instead of its buckets
-    art.innerHTML = +S.qt ? `<div class="rhead">${head}${num}</div>${orig}${qtHtml(st, ri, g)}${quiet}${more}`
+    // round 16 (1, rows 15): the group's table + Check my catch is its display (#qt=0: the round 15 buckets, for comparison)
+    art.innerHTML = +S.qt && g.table ? `<div class="rhead">${head}${num}</div>${orig}${qtHtml(st, ri, g, raw)}${quiet}${more}`
       : `<div class="rhead">${head}${num}</div>${orig}${total}${buckets}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
@@ -1240,10 +1275,10 @@ function scopeLines(html){ // each rule: where it applies and its page in the bo
 function groupedSources(html){
   const doc = new DOMParser().parseFromString(`<div id="r">${html}</div>`, 'text/html'), r = doc.getElementById('r'); let out = '', cur = null, buf = [];
   const flush = () => { if (!buf.length) return; const by = {}; buf.forEach(x => (by[x.where] = by[x.where] || []).push(x));
-    out += Object.entries(by).map(([w, xs]) => `<p class="lvh">${esc(w)}</p>${xs.map(x => `<div class="srow"><span>${esc(x.q)}</span><div class="srm"><small>${esc(x.role)}</small>${x.key ? bookLinks(x.key) : ''}</div></div>`).join('')}`).join(''); buf = []; };
+    out += Object.entries(by).map(([w, xs]) => `<p class="lvh">${esc(w)}</p>${xs.map(x => `<div class="srow" data-srow data-key="${esc(x.key)}"><span>${x.t ? `<b class="stt" data-rtitle>${esc(x.t)}</b><q class="sq">${esc(x.q)}</q>` : esc(x.q)}</span><div class="srm"><small>${esc(x.role)}</small>${x.key ? bookLinks(x.key) : ''}</div></div>`).join('')}`).join(''); buf = []; };
   [...r.children].forEach(el => {
     if (el.classList.contains('lbl')) { flush(); out += `<div class="lbl">${esc(el.textContent)}</div>`; }
-    else if (el.classList.contains('sc')) buf.push({where: el.querySelector('.muted')?.textContent.trim() || '', q: (el.querySelector('.scq')?.textContent || '').trim().replace(/^[“"]|[”"]$/g, ''), role: el.querySelector('.scrole')?.textContent.trim() || '', key: el.dataset.rule || ''});
+    else if (el.classList.contains('sc')) buf.push({where: el.querySelector('.muted')?.textContent.trim() || '', t: SNAP.ruleInfo[el.dataset.rule || '']?.title || '', q: (el.querySelector('.scq')?.textContent || '').trim().replace(/^[“"]|[”"]$/g, ''), role: el.querySelector('.scrole')?.textContent.trim() || '', key: el.dataset.rule || ''});
     else { flush(); el.querySelectorAll('.badge,.fraw').forEach(x => x.remove()); out += el.outerHTML; }
   }); flush(); return out;
 }
@@ -1479,6 +1514,8 @@ function poster(){
       .concat(Array.isArray(WATERS.ape.snap[d]) ? [] : [[`ape|${d}`, `${WATERS.ape.name} · ${fmt(+d)}`]])))
     // round 15 follow-up: the two nearer-row tributaries on Jun 15, named by the snapshot's own water names
     .concat(['glenn', 'hamill'].filter(w => WATERS[w]?.snap[615] && !Array.isArray(WATERS[w].snap[615])).map(w => [`${w}|615`, `${WATERS[w].name} · ${fmt(615)}`]))
+    // round 16 (display 12): Glenn Creek on May 1, where the nearer row's caution shows
+    .concat(['glenn'].filter(w => WATERS[w]?.snap[501] && !Array.isArray(WATERS[w].snap[501])).map(w => [`${w}|501`, `${WATERS[w].name} · ${fmt(501)}`]))
     .map(([k,t]) => `<button class="pill ${`${S.w}|${S.d}${k.split('|').length > 2 ? '|'+S.p : ''}`===k?'on':''}" data-cw="${k}">${esc(t)}</button>`).join('')
     + `<select id="c-all" aria-label="Every water" class="pill"><option value="">Every water (Oct 10)…</option>${Object.entries(WATERS).filter(([, w]) => w.name)
       .sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, w]) => `<option value="${k}|1010"${S.w === k ? ' selected' : ''}>${esc(w.name)}</option>`).join('')}</select>`;

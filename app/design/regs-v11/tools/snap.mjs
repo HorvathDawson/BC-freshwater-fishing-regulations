@@ -36,6 +36,9 @@ const SPECS = [
   // Creek (Trout Lake's rule for its tributaries) and Hamill Creek (the Duncan River's)
   ['glenn{v}_1010', 'Glenn Creek', 1010], ['glenn{v}_615', 'Glenn Creek', 615],
   ['hamill{v}_1010', 'Hamill Creek', 1010], ['hamill{v}_615', 'Hamill Creek', 615],
+  // round 16 (display 12, Q1): Glenn Creek on May 1, inside the Duncan River's exemption that Trout Lake's nearer row is
+  // silent on (the frame's `inherited[].caution`)
+  ['glenn{v}_501', 'Glenn Creek', 501],
   // every other water page v36 offers (owner 2026-10-15: "the same creeks as the old one"), each part, on the
   // prototype's today: ids x<page index>p<part>_<md>, or x<page index>p_<md> for a water with no part picker
   ['*', null, 1010],
@@ -52,7 +55,7 @@ function extract(SPECS, YR) {
     d.querySelectorAll('[data-fish]').forEach(e => codes.add(e.dataset.fish));
     return [...d.querySelectorAll('[data-rule]')].map(e => e.dataset.rule).filter(Boolean); };
   const takeRules = keys => keys.forEach(k => { if (out.rules[k]) return; openRule(k); out.rules[k] = sheet();
-    const i = DRULES[RIX[k]] || {}; out.ruleInfo[k] = { book: i.book ?? null, applies: i.applies ?? null, applies_trib: i.applies_trib ?? null }; });
+    const i = DRULES[RIX[k]] || {}; out.ruleInfo[k] = { book: i.book ?? null, applies: i.applies ?? null, applies_trib: i.applies_trib ?? null, title: i.title ?? null }; });   // display 12: the rule's effect in words
   const shortOf = (water, pi) => { const p = DWATERS[water.id]?.parts?.[pi] || {}; const o = {};
     for (const [k, v] of Object.entries(p)) if (/short/i.test(k)) o[k] = v; return o; };
   const runsOf = () => { const runs = [];
@@ -99,16 +102,17 @@ function extract(SPECS, YR) {
       // display 8 (ROUND11 A3): a lift another water's row carries here (the frame's `inherited`): its words and the
       // rule key behind its `by` (the lifting row's rule, whose book page the prototype cites)
       { const f = frameIx(PLACE, 'display', segOf(PLACE, md)), fr = f == null ? null : SEC.display.frames[f];
-        st.inherited = (fr?.inherited || []).map(x => ({ says: x.says, by: D.rid[x.by] || null }));
+        st.inherited = (fr?.inherited || []).map(x => ({ says: x.says, by: D.rid[x.by] || null, caution: x.caution ?? null }));   // display 12: the nearer row's caution
         takeRules(st.inherited.map(x => x.by).filter(Boolean)); }
       // the rule key behind every `by` the quota card names (lifts, each part of a combined lift, buckets): page v36's
       // display index -> key (D.rid), so the prototype cites every lifting rule's book page
       { const bys = new Set(); MODEL.rows.forEach(({ raw: r }) => { const g = r.group; if (!g) return;
           (g.lifts || []).forEach(l => { bys.add(l.by); (l.each || []).forEach(e => bys.add(e.by)); });
           (g.buckets || []).forEach(b => { bys.add(b.by); (b.groups || []).forEach(s => bys.add(s.by)); (b.sizes || []).forEach(z => bys.add(z.by)); });   // rows 13: nested count groups; rows 14: size groups
-          (g.not_kept || []).forEach(x => bys.add(x.by)); });   // round 13 S: whose rule closes / releases a fish of the row
+          (g.not_kept || []).forEach(x => bys.add(x.by));
+          (g.caps || []).forEach(c => bys.add(c.by)); });   // rows 15: every cap's rule (its Book page, whose)   // round 13 S: whose rule closes / releases a fish of the row
         // rows 14 (ROUND15 3): each weekday part's rules and each restatement's rule
-        MODEL.rows.forEach(({ raw: r }) => { (r.week?.parts || []).forEach(p => (p.rules || []).forEach(x => bys.add(x))); (r.restates || []).forEach(x => bys.add(x.r)); });
+        MODEL.rows.forEach(({ raw: r }) => { (r.week?.parts || []).forEach(p => (p.rules || []).forEach(x => bys.add(x))); (r.restates || []).forEach(x => { bys.add(x.r); bys.add(x.of); }); });   // rows 15: the winner a restatement folds into
         st.ruleKey = {}; for (const b of bys) if (b != null && D.rid[b]) st.ruleKey[b] = D.rid[b];
         takeRules(Object.values(st.ruleKey)); }
       (MODEL.rows || []).forEach(r => [...(r.raw?.members || []), ...(r.raw?.group?.kinds || [])].forEach(c => codes.add(c)));

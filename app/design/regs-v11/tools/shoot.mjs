@@ -135,18 +135,25 @@ const SCREENS = [
   ['101-card-glenn-creek-jun15-not-kept', 'w=glenn&d=615&at=.nkt'],
   ['102-card-hamill-creek-jun15', 'w=hamill&d=615&at=.g28'],
   ['103-keep-vedder-jun15-closed-once', 'w=vedder&d=615'],
-  // round 16: the gear sentence as labelled lines (5); How it adds up closes its group (2); the quota table + Check my
-  // catch PROTOTYPE (#qt=1, today's data through the provisional adapter; 1)
+  // round 16: the gear sentence as labelled lines (5); How it adds up closes its group (2, the #qt=0 bucket view); the
+  // quota table + Check my catch, the data's table / cap_kinds / caps (1); rule titles, cautions, restatements (3, Q1, Q2)
   ['104-gear-vedder-lines', `${V}&sec=gear`],
   ['105-gear-vedder-may15-fly-only-lines', 'w=vedder&d=515&sec=gear'],
   ['106-gear-kootenay-main-body-lines', 'w=klmb&d=1010&sec=gear'],
-  ['107-card-ape-creek-may1-adds-up-last', 'w=ape&d=501&at=.nkt'],
-  ['108-table-bella-coola-may1', 'w=bellacoola&d=501&p=0&qt=1&at=.g28'],
-  ['109-table-bella-coola-may1-limits', 'w=bellacoola&d=501&p=0&qt=1&at=.qcaps'],
-  ['110-table-bella-coola-may1-after-cutthroat', 'w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h&at=.g28'],
-  ['111-table-bella-coola-may1-check-release', 'w=bellacoola&d=501&p=0&qt=1&bk=CT:30:h&qm=RB:30:h&at=.qform'],
-  ['112-table-vedder-oct10', `${V}&qt=1&at=.g28`],
-  ['113-table-ape-creek-may1', 'w=ape&d=501&qt=1&at=.g28'],
+  ['107-card-ape-creek-may1-adds-up-last', 'w=ape&d=501&qt=0&at=.nkt'],
+  ['108-table-bella-coola-may1', 'w=bellacoola&d=501&p=0&at=.g28'],
+  ['109-table-bella-coola-may1-limits', 'w=bellacoola&d=501&p=0&at=.qcaps'],
+  ['110-table-bella-coola-may1-after-cutthroat', 'w=bellacoola&d=501&p=0&bk=CT:30:h:-&at=.g28'],
+  ['111-table-bella-coola-may1-check-release', 'w=bellacoola&d=501&p=0&bk=CT:30:h:-&qm=RB:30:h:-&qs=RB&at=.qform'],
+  ['112-table-vedder-oct10', `${V}&at=.g28`],
+  ['113-table-ape-creek-may1', 'w=ape&d=501&at=.g28'],
+  ['114-table-bella-coola-may1-mainstem', 'w=bellacoola&d=501&p=1&at=.g28'],
+  ['115-table-bella-coola-may1-after-brown-55', 'w=bellacoola&d=501&p=1&bk=GB:55:h:-&qm=GB:55:h:-&qok=1&qs=GB&qc=55&at=.g28'],
+  ['116-table-bennett-lake', 'w=x35p&d=1010&at=.g28'],
+  ['117-sheet-bella-coola-sources-titles', `w=bellacoola&d=501&p=0&sheet=${encodeURIComponent('src:bc0_501|r0')}`],
+  ['118-keep-glenn-may1-caution', 'w=glenn&d=501'],
+  ['119-sheet-schooler-grayling-restates', `w=x41p&d=1010&sheet=${encodeURIComponent('other:x41p_1010|o3')}`],
+  ['120-licence-vedder-u16-book-words', `${V}&age=u16&at=%23g-licence`],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {
