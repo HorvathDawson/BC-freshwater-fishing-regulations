@@ -939,12 +939,16 @@ function cardBlock(row, id){
   const kind = k => `<div class="krow"><span class="kpics">${k.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(k.name)}</b>${k.detail ? ` <span class="kdet">(${esc(k.detail)})</span>` : ''}${k.notes.length + k.duties.length ? `<p class="s2">${[...k.notes, ...k.duties].map(t => esc(cap(t))).join(' · ')}</p>` : ''}${presHtml(k.presence)}</div><b class="kn">${k.n == null ? '∞' : k.n}</b></div>`;
   // ROUND14 3 (rows 13): a count over some of the bucket's kinds is a nested group, said before the size notes
   const subs = b => (b.groups || []).map(s => `<section class="bucket sub" style="margin-left:14px;padding-left:8px;border-left:2px solid #c9c9c9"><div class="lbl">${esc(s.says)} · ${bookOf(s.by)}</div>${s.kinds.map(kind).join('')}</section>`).join('');
-  // ROUND11 A1: a size cap the bucket's kinds share is its note, said once (rows 10 `buckets[].notes`)
+  // ROUND15 1 (rows 14): a size cap is a boxed group naming the kinds it binds (`buckets[].sizes`); `notes` keep only
+  // a count spanning buckets
+  const sizes = b => (b.sizes || []).map(z => `<section class="bucket sub size" style="margin-left:14px;padding-left:8px;border-left:2px dashed #c9c9c9"><div class="lbl">${esc(z.says)} · ${bookOf(z.by)}</div><span class="kpics">${z.species.map(pic).join('')}</span></section>`).join('');
   const bnotes = b => (b.notes || []).map(n => `<p class="s2"><b>${esc(n.says)}.</b></p>`).join('');
+  // ROUND15 5 (rows 14): an own-rule bucket says its shared cap (`buckets[].between`)
+  const betw = b => b.between ? `<p class="s2"><b>${esc(b.between)}</b></p>` : '';
   const repl = b => b.replaces ? `<p class="s2">${esc(b.replaces.says)}.</p>` : '';
-  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${repl(b)}${subs(b)}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
+  const buckets = g.buckets.map(b => `<section class="bucket">${b.title ? `<div class="lbl">${esc(b.title)}${b.why === 'rule' ? ' · ' + bookOf(b.by) : ''}</div>` : ''}${betw(b)}${repl(b)}${subs(b)}${sizes(b)}${bnotes(b)}${b.kinds.map(kind).join('')}</section>`).join('');
   // ROUND13 S (rows 12): every fish of the row nobody may keep here, said with whose rule and its Book page
-  const nk = (g.not_kept || []).length ? `<section class="bucket notkept">${g.not_kept.map(x => `<div class="krow"><span class="kpics">${x.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(x.says)}</b><p class="s2">${esc(cap(x.whose))} ${bookOf(x.by)}</p>${presHtml(x.presence)}</div><b class="kn">${x.status === 'closed' ? '✕' : '0'}</b></div>`).join('')}</section>` : '';
+  const nk = (g.not_kept || []).length ? `<section class="bucket notkept">${g.not_kept.map(x => `<div class="krow"><span class="kpics">${x.species.map(pic).join('')}</span><div class="ktext"><b class="nm">${esc(x.says)}</b><p class="s2">${esc(cap(x.whose))} ${bookOf(x.by)}</p>${presHtml(x.presence)}</div>${x.status === 'closed' ? '<b class="kn">✕</b>' : ''}</div>`).join('')}</section>` : '';
   // ROUND12 4 (rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list, `group.worked` (the
   // keep-N count, then the kept-elsewhere examples it does not repeat) — no dropdown; `elsewhere.ask` is folded
   const worked = g.worked.length ? `<ul class="exs worked">${g.worked.map(w => `<li><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <strong>${esc(w.a)}</strong></li>`).join('')}</ul>` : '';
@@ -969,7 +973,13 @@ function steelPresence(){ const l = MODEL.line; return l == null ? '' : STEEL_LI
 const presHtml = p => p ? `<p class="gquiet">${esc(p.says)} ${gi('steelhead')}</p>` : '';
 const noRulesLine = row => MODEL.line === 'known_no_rules' && row.allMembers.includes('RB') ? steelPresence() : '';
 // ROUND14 5 (rows 13): a weekday window in words (`rows[].week`), the same on every day of the week
-const weekHtml = row => row.raw?.week ? `<p class="sum week">${esc(row.raw.week.says)}.</p>` : '';
+// ROUND15 3 (rows 14): the weekday split's status, each day-part with its rule and Book page (`week.parts`, `today`
+// marked), and a same-row restatement as a note (`restates`)
+const weekHtml = row => { const w = row.raw?.week, rs = row.raw?.restates || [];
+  const notes = rs.map(x => `<p class="s2">${esc(x.says)} ${bookOf(x.r)}</p>`).join('');
+  if (!w) return notes;
+  const parts = (w.parts || []).map(p => `<li${p.today ? ' class="today"' : ''}><b>${esc(p.days)}</b> ${esc(p.says)}${p.today ? ' <em>(today)</em>' : ''} ${p.rules.map(bookOf).join(' ')}</li>`).join('');
+  return `<p class="sum week"><b>${esc(w.status || '')}</b><br>${esc(w.says)}.</p>${parts ? `<ul class="plain small">${parts}</ul>` : ''}${notes}`; };
 // "Only 2 at 30–50 cm. Only 1 over 50 cm." reads as 3: a cap that runs on to the top is "of those"
 function capLines(q, topN){
   const out = [], used = new Set();
@@ -1252,7 +1262,7 @@ function actTxt(d){
 }
 // the angler profile's index: mixed radix over profile_dims (answers licence static)
 const profileIx = who => SEC.licence.profiles.indexOf(SEC.licence.profile_dims.map(([d]) => who[d]).join('/'));
-function licAt(w, md){ const f = frameIx(w, 'licence', segOf(w, md)); if (f == null) return null; const [h, d] = SEC.licence.frames[f]; return { holds:SEC.licence.holds[h], profiles:SEC.licence.documents[d].map(i => SEC.licence.answers[i]) }; }
+function licAt(w, md){ const f = frameIx(w, 'licence', segOf(w, md)); if (f == null) return null; const [h, d, u] = SEC.licence.frames[f]; return { holds:SEC.licence.holds[h], profiles:SEC.licence.documents[d].map(i => SEC.licence.answers[i]), under16: u == null ? null : SEC.licence.under_16[u] }; }
 const priceTxt = p => [p.year != null ? `$${p.year.toFixed(2)} a year` : '', ...(p.day || []).map(x => `$${x.toFixed(2)} a day`), ...(p.eight_days || []).map(x => `$${x.toFixed(2)} for 8 days`)].filter(Boolean).join(' · ');
 function pathHtml(p){
   const bits = [];
@@ -1288,6 +1298,11 @@ function licParts(){
   if (H.tidal) return { tidal:H.tidal, buy:[], none:false, body: profileHtml() + `<div class="classbox"><b>Tidal water</b><span>${esc(H.tidal.licence || H.tidal.note || '')}</span></div>` };
   if (!P) return { missing:true, buy:[], none:false, body: profileHtml() + missing('the answer for this angler profile') };
   let h = profileHtml();
+  // ROUND15 2 (licence 5): whose answer this is (`profile_labels`), and on the Under 16 tab what every residency's
+  // under-16 angler needs (`under_16`), each labelled
+  const plab = (SEC.licence.profile_labels || [])[pix];
+  if (plab) h += `<p class="muted small">Showing the answer for: <b>${esc(plab)}</b></p>`;
+  if (state.who.age === 'under_16' && F.under16) h += `<div class="needs u16"><div class="lbl">Under 16, by where you live</div><ul>${F.under16.map(x => `<li${x.residency === state.who.residency ? ' class="mine"' : ''}><b>${esc(x.label)}</b><span>${esc(x.says)}</span></li>`).join('')}</ul></div>`;
   const des = (H.designations || []).map(LX);
   const stampDates = des.filter(d => d.f.steelhead_stamp_during).map(d => whenDates(d.f.steelhead_stamp_during.when).map(([a, b]) => rangeTxt(a, b)).join(', '))[0] || '';
   if (des.length) h += des.map(d => `<div class="classbox"><b>${esc(d.period?.says || `Class ${d.f.classified} Classified Water`)} ${gi('classified_waters')}</b><span>Licence unit: ${esc(d.f.unit_name || d.f.unit)}${d.f.steelhead_stamp_during ? `. Steelhead Stamp needed ${esc(whenDates(d.f.steelhead_stamp_during.when).map(([a, b]) => rangeTxt(a, b)).join(', '))}, whatever you fish for${H.stamp_period ? ' (in force today)' : ''}; at any other time only to fish for steelhead` : ''}${d.stamp_waiver ? '. ' + d.stamp_waiver.says.replace(/\.$/, '') : d.f.steelhead_stamp_waived ? '. Steelhead Stamp not needed here unless you fish for steelhead' : ''}.</span> <button class="srcbtn inline" type="button" data-lic="${esc(d.key)}">Source</button></div>`).join('');
