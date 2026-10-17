@@ -12,6 +12,18 @@
        "title": "By",
        "type": "integer"
       },
+      "caution": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Caution"
+      },
       "lifts": {
        "items": {
         "minimum": 0,
@@ -447,6 +459,11 @@
        "default": null,
        "title": "Subsets"
       },
+      "title": {
+       "minLength": 1,
+       "title": "Title",
+       "type": "string"
+      },
       "unless_opened": {
        "anyOf": [
         {
@@ -474,6 +491,7 @@
      },
      "required": [
       "kind",
+      "title",
       "book",
       "applies"
      ],
@@ -3543,6 +3561,147 @@
      "title": "CSubcap",
      "type": "object"
     },
+    "Cap": {
+     "additionalProperties": false,
+     "description": "ROUND16 1: one constraint of the group's CAP SYSTEM \u2014 a basket is legal iff for every cap the fish of\nits `kinds` (kept at each place) number at most `take`; `if_kept_here`: the cap holds only once the\nbasket keeps one of its `here` kinds (a water's own number counting fish kept elsewhere, rows F9). A\ntake-0 cap: none of those kinds may be kept. `by` the rule, `scope` and `says` its words.",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "if_kept_here": {
+       "title": "If Kept Here",
+       "type": "boolean"
+      },
+      "kinds": {
+       "$ref": "#/$defs/CapPlaces"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "scope": {
+       "minLength": 1,
+       "title": "Scope",
+       "type": "string"
+      },
+      "take": {
+       "minimum": 0,
+       "title": "Take",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "take",
+      "kinds",
+      "scope",
+      "by",
+      "says",
+      "if_kept_here"
+     ],
+     "title": "Cap",
+     "type": "object"
+    },
+    "CapKind": {
+     "additionalProperties": false,
+     "description": "ROUND16 1: one kind of fish a basket counts \u2014 a species, a size band (`to` None: no top), an origin\nwhere the rules tell hatchery from wild (None: either). `id` \"<species>.<band>[.h|.w]\".",
+     "properties": {
+      "from": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "From"
+      },
+      "id": {
+       "pattern": "^[A-Z_]+\\.[0-9]+(\\.[hw])?$",
+       "title": "Id",
+       "type": "string"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
+      "species": {
+       "title": "Species",
+       "type": "string"
+      },
+      "to": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "To"
+      }
+     },
+     "required": [
+      "id",
+      "species",
+      "from",
+      "to",
+      "origin"
+     ],
+     "title": "CapKind",
+     "type": "object"
+    },
+    "CapPlaces": {
+     "additionalProperties": false,
+     "description": "The kinds a cap counts, by where they were kept today: here, another stream, another lake.",
+     "properties": {
+      "here": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Here",
+       "type": "array"
+      },
+      "lake": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Lake",
+       "type": "array"
+      },
+      "stream": {
+       "items": {
+        "type": "string"
+       },
+       "title": "Stream",
+       "type": "array"
+      }
+     },
+     "required": [
+      "here",
+      "stream",
+      "lake"
+     ],
+     "title": "CapPlaces",
+     "type": "object"
+    },
     "CardKind": {
      "additionalProperties": false,
      "description": "One kind row: its species (one picture each, P5), name, origin/size, number, notes (what the\nrow's own cap counts toward \u2014 never a size cap, ROUND11 A1), duties (a year, record it, stop\nafter); `presence` (ROUND14 4) the steelhead presence line on the steelhead kind row.",
@@ -3732,6 +3891,53 @@
       "line"
      ],
      "title": "CardState",
+     "type": "object"
+    },
+    "CardTable": {
+     "additionalProperties": false,
+     "description": "ROUND16 1: the species \u00d7 size table of a group \u2014 `bands` and `cells` per species, parallel;\n`steelhead_cm` the length over which a rainbow is a steelhead here (None: no such water).",
+     "properties": {
+      "bands": {
+       "additionalProperties": {
+        "items": {
+         "$ref": "#/$defs/TableBand"
+        },
+        "type": "array"
+       },
+       "title": "Bands",
+       "type": "object"
+      },
+      "cells": {
+       "additionalProperties": {
+        "items": {
+         "$ref": "#/$defs/TableCell"
+        },
+        "type": "array"
+       },
+       "title": "Cells",
+       "type": "object"
+      },
+      "steelhead_cm": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Steelhead Cm"
+      }
+     },
+     "required": [
+      "bands",
+      "cells",
+      "steelhead_cm"
+     ],
+     "title": "CardTable",
      "type": "object"
     },
     "Decided": {
@@ -4850,6 +5056,20 @@
        "title": "Buckets",
        "type": "array"
       },
+      "cap_kinds": {
+       "items": {
+        "$ref": "#/$defs/CapKind"
+       },
+       "title": "Cap Kinds",
+       "type": "array"
+      },
+      "caps": {
+       "items": {
+        "$ref": "#/$defs/Cap"
+       },
+       "title": "Caps",
+       "type": "array"
+      },
       "headline": {
        "$ref": "#/$defs/Headline"
       },
@@ -4905,6 +5125,9 @@
        "title": "Subcaps",
        "type": "array"
       },
+      "table": {
+       "$ref": "#/$defs/CardTable"
+      },
       "total": {
        "anyOf": [
         {
@@ -4949,7 +5172,10 @@
       "buckets",
       "not_kept",
       "worked",
-      "states"
+      "states",
+      "table",
+      "cap_kinds",
+      "caps"
      ],
      "title": "GroupTotal",
      "type": "object"
@@ -5940,7 +6166,7 @@
     },
     "Restated": {
      "additionalProperties": false,
-     "description": "ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) \u2014 one\nladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota.",
+     "description": "ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) \u2014 one\nladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota. ROUND16 Q2:\nalso another row's identical statement, farther from the stream than the winner's (shown once, credited\nto the nearer row): \"Zone B also prints this: \u201cAll from Williston Lake and its tributaries\u201d.\".",
      "properties": {
       "of": {
        "minimum": 0,
@@ -6646,6 +6872,148 @@
       "by"
      ],
      "title": "SubcapLift",
+     "type": "object"
+    },
+    "TableBand": {
+     "additionalProperties": false,
+     "description": "ROUND16 1: one size band of a species' table row \u2014 from the rules' own cut points, merged where nothing\nkept here changes (\"under 25 cm\", \"25\u201333 cm\", \"over 33 cm\"); `to` None: no top.",
+     "properties": {
+      "from": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "From"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "to": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "To"
+      }
+     },
+     "required": [
+      "from",
+      "to",
+      "says"
+     ],
+     "title": "TableBand",
+     "type": "object"
+    },
+    "TableCell": {
+     "additionalProperties": false,
+     "description": "ROUND16 1: the most of that fish alone at that size here today (None: no limit) \u2014 gate-proved\nagainst the engine; `why` when it is 0; `origin` when only one origin may be kept; `by_origin` when\nboth may, in different numbers; `as` \"ST\" where a rainbow that size IS a steelhead (p.80; its number\nis the steelhead's), \"RB\" for a steelhead under it.",
+     "properties": {
+      "as": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "As"
+      },
+      "by_origin": {
+       "anyOf": [
+        {
+         "additionalProperties": {
+          "anyOf": [
+           {
+            "minimum": 0,
+            "type": "integer"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         },
+         "propertyNames": {
+          "enum": [
+           "hatchery",
+           "wild"
+          ]
+         },
+         "type": "object"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "By Origin"
+      },
+      "n": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "N"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
+      "why": {
+       "anyOf": [
+        {
+         "enum": [
+          "released",
+          "closed",
+          "too small",
+          "too big",
+          "protected size"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Why"
+      }
+     },
+     "required": [
+      "n",
+      "why",
+      "origin",
+      "by_origin",
+      "as"
+     ],
+     "title": "TableCell",
      "type": "object"
     },
     "Week": {

@@ -185,7 +185,12 @@ def test_the_group_model_requires_the_card():
             "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                          "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                     "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                         "groups": [], "notes": [], "replaces": None}]}}
+                         "groups": [], "notes": [], "replaces": None}],
+            # ROUND16 1: the table and cap system (empty systems are valid shapes)
+            "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size"}] for S in ("CT", "RB")},
+                      "cells": {S: [{"n": 4, "why": None, "origin": None, "by_origin": None, "as": None}]
+                                for S in ("CT", "RB")}, "steelhead_cm": None},
+            "cap_kinds": [], "caps": []}}
     M.GroupTotal.model_validate_json(json.dumps(ok))
     for bad in ({k: v for k, v in ok.items() if k != "buckets"}, {**ok, "says": "Up to 4."},
                 {**ok, "states": ok["states"] * 2}):

@@ -25,7 +25,7 @@ the pair up (`read._nearer_of`); it never walks the graph.
 from __future__ import annotations
 
 import sqlite3
-from typing import Dict, Iterable, Mapping, Set, Tuple
+from typing import Dict, Iterable, List, Mapping, Set, Tuple
 
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
 
@@ -166,3 +166,41 @@ def prove(db: sqlite3.Connection) -> None:
     if stored != compute_trib_nearer(db):
         raise SystemExit("trib_nearer: the stored pairs are not what item_down, entry.matched and the "
                          "rule sets give — rebuild the bundle")
+
+
+def _lifts_of(x: dict) -> Set[str]:
+    return {f"{e['entry_id']}::{e['rule_id']}" for e in x.get("exempts") or []}
+
+
+def silent_nearer(bound: Iterable[Tuple[str, str, str]], rules: Mapping[Tuple[str, str], dict],
+                  nearer: Iterable[Tuple[str, str]], lifter: str) -> List[Tuple[str, str]]:
+    """OWNER RULING Q1 (2026-10-16, RULINGS T15): a farther ✱ row's printed EXEMPTION reaches every one of
+    its tributaries — kept — and where a NEARER water row binding the same section prints no such exemption,
+    that is said (a gotcha), never decided. For the walked lifting rule `lifter` ("entry::rule") on a rule set
+    `bound` [(entry, rule, via)]: [(entry, how)] — each water row of the set that is nearer the stream than
+    the lifter's row (`how` "nearer_row": it reaches the stream by the walk too and its water drains into the
+    lifter's, `trib_nearer`; "own_row": the stream's own row) and has no rule here lifting any rule the
+    lifter lifts. Sorted; empty when every nearer row prints the exemption too (the Lardeau's tributaries)."""
+    from pipeline.deliver.bundle import read
+    a, _sep, _r = lifter.partition("::")
+    x = rules[tuple(lifter.split("::", 1))]
+    lifted = _lifts_of(x)
+    pairs = set(nearer)
+    by_entry: Dict[str, List[Tuple[str, str]]] = {}
+    for e, r, via in bound:
+        by_entry.setdefault(e, []).append((r, via))
+    out = []
+    for e, rs in sorted(by_entry.items()):
+        if e == a or not e.startswith("r"):
+            continue
+        y = rules[(e, rs[0][0])]
+        if read.source_of(y).rank != 0:                  # a water's own row, not an area row
+            continue
+        vias = {v for _r, v in rs}
+        how = "own_row" if "reach" in vias else "nearer_row" if (e, a) in pairs else None
+        if how is None:
+            continue
+        if any(_lifts_of(rules[(e, r)]) & lifted for r, _v in rs):
+            continue
+        out.append((e, how))
+    return out

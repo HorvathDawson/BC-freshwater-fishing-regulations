@@ -90,6 +90,9 @@ class Engine:
         self._zone = {id(r) for r in self.zone}
         self._state: Dict[Tuple[str, str, str], str] = {}
         self._bands_of: Dict[int, list] = {}
+        self._needs: Dict[Fish, Optional[frozenset]] = {}
+        self._incs: Dict[Fish, frozenset] = {}
+        self._clip: Dict[tuple, int] = {}
 
     # -- what a rule is to a fish ------------------------------------------------------------------
     def kind_of_place(self, place: str) -> str:
@@ -176,6 +179,57 @@ class Engine:
 
     def legal(self, seq: Sequence[Fish]) -> bool:
         return all(self.can_keep(seq[:i], f) for i, f in enumerate(seq))
+
+    # -- the compiled fish (ROUND16 1): a basket read through the counters, as `most` searches them -------
+    def _need(self, f: Fish):
+        """The counters (rule, band, mode) a fish needs below their take, or None (never kept)."""
+        if f in self._needs:
+            return self._needs[f]
+        mode = "here" if f[3] == "here" else "away"
+        need = set()
+        for ri, r in enumerate(self.rules):
+            if not self.checks(r, f):
+                continue
+            hit = self._band(r, f[2])
+            if hit is None:
+                continue
+            bi, take = hit
+            if r.k == "gate" or take == 0:
+                need = None
+                break
+            if take is None:
+                continue
+            self._clip[(ri, bi, mode)] = int(math.floor(take))
+            need.add((ri, bi, mode))
+        self._needs[f] = None if need is None else frozenset(need)
+        return self._needs[f]
+
+    def _inc(self, g: Fish) -> frozenset:
+        """The counters a kept fish moves: for a fish asked here, and for one asked elsewhere."""
+        got = self._incs.get(g)
+        if got is None:
+            out = set()
+            for mode, f in (("here", ("", "", 0.0, "here")), ("away", ("", "", 0.0, "stream"))):
+                for ri, r in enumerate(self.rules):
+                    if self.counts(r, g, f):
+                        hit = self._band(r, g[2])
+                        if hit is not None:
+                            out.add((ri, hit[0], mode))
+            got = self._incs[g] = frozenset(out)
+        return got
+
+    def accepts(self, seq: Sequence[Fish]) -> bool:
+        """`legal`, read through the counters (the solver's compiled fish): each fish needs every counter
+        it is checked by below its take, and moves the counters that count it. Equal to `legal` (the
+        no-data tests hold them so); fast enough for the cap-system proof's random baskets."""
+        state: Dict[tuple, int] = {}
+        for f in seq:
+            need = self._need(f)
+            if need is None or any(state.get(c, 0) >= self._clip[c] for c in need):
+                return False
+            for c in self._inc(f):
+                state[c] = state.get(c, 0) + 1
+        return True
 
     # -- the fish to try ---------------------------------------------------------------------------
     def lengths(self) -> List[float]:
@@ -465,11 +519,130 @@ def check_group(P, g: dict) -> List[str]:
             if not ok:
                 probs.append(f"{where}: worked count {w['kept']}: says {w[key]} more ({key}), "
                              f"the rules allow {got}")
+    if g.get("caps") is not None:
+        probs += check_caps(P, g)
     seen: Dict[str, str] = {}
     for s in g.get("states") or []:
         if s["r"] in seen:
             probs.append(f"{where}: the cap {s['r']} is stated twice ({seen[s['r']]}; {s['line']})")
         seen[s["r"]] = s["line"]
+    return probs
+
+
+#: ROUND16 1: random baskets per group the cap-system proof keeps (and two per cap at its edge)
+BASKETS = 48
+SEED = 20261016
+
+
+def check_caps(P, g: dict, baskets: int = BASKETS) -> List[str]:
+    """ROUND16 1 — the group's TABLE and CAP SYSTEM against the engine, never this module's reading of them:
+      * every table cell = the engine's most of that fish alone at that size here (each origin where the
+        cell names one), a cell of 0 says why, the bands cover every length once;
+      * the caps accept EXACTLY the baskets the engine accepts — seeded random baskets of the kinds kept
+        here, on another stream and on another lake today (an origin-free kind as either origin, at a random
+        length inside its band), and for each cap a basket filling it to its take and one past it. The
+        engine keeps the fish kept elsewhere first (the table answers what may still be kept HERE). Each cap
+        is tried at its edge three ways: its kinds kept here only, and twice anywhere it counts."""
+    import random
+    from pipeline.deliver.answers import caps as CP
+    probs: List[str] = []
+    where = f"total {g['pool']} caps"
+    E = Engine(P, g["pool"])
+    table, kinds, caps = g["table"], g["cap_kinds"], g["caps"]
+    Ls = E.lengths()
+    for S, bands in table["bands"].items():
+        at = 0
+        for bd, cell in zip(bands, table["cells"][S]):
+            a, b = bd["from"] or 0, INF if bd["to"] is None else bd["to"]
+            if a != at:
+                probs.append(f"{where}: {S}'s bands leave a gap or overlap at {at} cm")
+            at = b
+            T = cell.get("as") or S
+
+            def most(origins=("hatchery", "wild"), claim=None):
+                cands = [f for f in E.fish([T], origins=origins) if a < f[2] < b]
+                return E.most(cands, cap=CAP if claim is None else int(claim) + 1)
+            got = most(claim=cell["n"])
+            if (got < CAP if cell["n"] is None else got != cell["n"]):
+                probs.append(f"{where}: {S} {bd['says']} says {cell['n']}, alone {got} may be kept here")
+            if cell["n"] == 0 and not cell.get("why"):
+                probs.append(f"{where}: {S} {bd['says']} keeps none and says no why")
+            if cell.get("origin"):
+                other = "wild" if cell["origin"] == "hatchery" else "hatchery"
+                if most((other,), 0) or not most((cell["origin"],), 0):
+                    probs.append(f"{where}: {S} {bd['says']} says {cell['origin']} only")
+            for o, n in (cell.get("by_origin") or {}).items():
+                got = most((o,), n)
+                if (got < CAP if n is None else got != n):
+                    probs.append(f"{where}: {S} {bd['says']} says {n} {o}, alone {got}")
+        if at != INF:
+            probs.append(f"{where}: {S}'s bands stop at {at} cm")
+    rng = random.Random(f"{SEED}:{g['pool']}:{len(kinds)}")
+    by_id = {k["id"]: k for k in kinds}
+
+    def fish_of(kid: str, place: str) -> Fish:
+        k = by_id[kid]
+        a, b = k["from"] or 0, INF if k["to"] is None else k["to"]
+        inside = [L for L in Ls if a < L < b] or [CP.rep(E, k, place)[2]]
+        return (k["species"], k["origin"] or rng.choice(("hatchery", "wild")), rng.choice(inside), place)
+
+    def run(basket: Dict[str, Dict[str, int]]) -> None:
+        seq = [fish_of(k, p) for p in ("stream", "lake", "here") for k, n in sorted(basket.get(p, {}).items())
+               for _ in range(n)]
+        a, b = CP.accepts(caps, basket), E.accepts(seq)
+        if a != b:
+            probs.append(f"{where}: the caps {'accept' if a else 'refuse'} the basket {basket}, the engine "
+                         f"{'accepts' if b else 'refuses'} it")
+    ids = [k["id"] for k in kinds]
+    if not ids:
+        return probs
+    # most kinds keep none somewhere (wild fish on a stream, a size band): draw mostly from the kind and place
+    # pairs where one fish alone may be kept, so the baskets reach the counting caps
+    alone = [(p, k) for p in PLACES for k in ids if E.accepts([fish_of(k, p)])] or \
+        [(p, k) for p in PLACES for k in ids]
+    for _ in range(baskets):
+        bk: Dict[str, Dict[str, int]] = {}
+        for _j in range(rng.randint(1, 5)):
+            p, k = rng.choice(alone) if rng.random() < 0.9 else (rng.choice(PLACES), rng.choice(ids))
+            bk.setdefault(p, {})[k] = bk.get(p, {}).get(k, 0) + 1
+        run(bk)
+    # the engine's own edges, never read from the caps: each rule band with a take, at its take and one past
+    # it, drawn from the kinds it checks here and the kinds it counts (a missing cap is found here)
+    for ri, r in enumerate(E.rules):
+        bands_ = {}
+        for p in PLACES:
+            for k in ids:
+                f = CP.rep(E, by_id[k], p)
+                hit = E._band(r, f[2])
+                if hit is None or hit[1] is None or r.k == "gate" or hit[1] == 0:
+                    continue
+                if E.checks(r, f) or E.counts(r, f, ("", "", 0.0, "here")) or E.counts(r, f, ("", "", 0.0, "stream")):
+                    bands_.setdefault((hit[0], int(math.floor(hit[1]))), []).append((p, k, E.checks(r, f)))
+        for (bi, t), slots in bands_.items():
+            checked = [(p, k) for p, k, c in slots if c]
+            if not checked:
+                continue
+            for n in (t, t + 1):
+                for _rep in range(2):
+                    bk = {}
+                    p, k = rng.choice(checked)
+                    bk.setdefault(p, {})[k] = 1
+                    for _j in range(n - 1):
+                        p, k, _c = rng.choice(slots)
+                        bk.setdefault(p, {})[k] = bk.get(p, {}).get(k, 0) + 1
+                    run(bk)
+    for c in caps:
+        every = [(p, k) for p in PLACES for k in c["kinds"][p]]
+        here = [("here", k) for k in c["kinds"]["here"]]
+        for slots, n in ((s_, n) for s_ in (here, every, every) if s_ for n in (c["take"], c["take"] + 1)):
+            bk = {}
+            for _j in range(n):
+                p, k = rng.choice(slots)
+                bk.setdefault(p, {})[k] = bk.get(p, {}).get(k, 0) + 1
+            if c["if_kept_here"] and c["kinds"]["here"] and not any(bk.get("here", {}).values()):
+                k = rng.choice(c["kinds"]["here"])
+                bk.setdefault("here", {})[k] = bk.get("here", {}).get(k, 0) + 1
+            run(bk)
     return probs
 
 
@@ -551,6 +724,8 @@ def _unref(v, ids):
                     for b in g["buckets"]]
     g["worked"] = [{**w, "share": None if w.get("share") is None else r(w["share"])} for w in g["worked"]]
     g["states"] = [{**x, "r": r(x["r"])} for x in g["states"]]
+    if g.get("caps") is not None:
+        g["caps"] = [{**c, "by": r(c["by"])} for c in g["caps"]]
     return g
 
 

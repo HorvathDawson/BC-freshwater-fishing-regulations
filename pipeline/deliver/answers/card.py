@@ -815,5 +815,11 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                        "origin": x["origin"], "share": None, "here": x["here"], "other": None,
                        "away": None, "at": x["at"], "over_cm": x["over_cm"], "most": x["most"],
                        "of": x["of"]})
+    # ROUND16 1 (owner): the species × size table and the exact cap system a client checks a basket with
+    from pipeline.deliver.answers import caps as CP
+    sysm = CP.system(P, grp["pool"], book_order(list(dict.fromkeys(
+        kinds + [S for x in not_kept for S in x["species"]]))))
+    table = {**sysm["table"], "steelhead_cm": sysm["steelhead_cm"]}
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
-            "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states}
+            "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
+            "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"]}

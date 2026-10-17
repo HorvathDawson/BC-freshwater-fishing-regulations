@@ -4861,6 +4861,7 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
         "entries": combine,
     }
     g["gotchas"]["star_carries_exemptions"] = star_carries_exemptions(d, bundle)
+    g["gotchas"]["farther_exemption_nearer_silent"] = farther_exemption_nearer_silent(bundle)
     g["gotchas"]["excepted_rivers_creeks_stay_closed"] = {
         "says": "A row closing its tributaries 'EXCEPT' some named rivers excepts those rivers' "
                 "OWN channels only: a creek flowing into an excepted river is still a tributary of "
@@ -6150,6 +6151,49 @@ def star_carries_exemptions(d: dict, bundle=None) -> dict:
                   "reach binds them on the tributaries (`walks`), so an answer there carries them",
         "rules": lifts,
         "walks": {i: i in walked for i in lifts} if bundle is not None else {},
+    }
+
+
+def farther_exemption_nearer_silent(bundle) -> dict:
+    """OWNER RULING Q1 (2026-10-16, RULINGS T15): a farther ✱ row's printed exemption reaches ALL its
+    tributaries — kept — including streams a NEARER water row binds (a nearer ✱ row's walk, or the stream's own
+    row) that prints no such exemption; the owner is unsure, so it is SAID, on those waters. GENERATED from the
+    bundle's rule sets (`nearer.silent_nearer`, the one predicate the answers' `display.inherited_caution`
+    asks): per walked lifting rule, the silent nearer rows and the waters where both bind."""
+    from pipeline.deliver.answers import common as AC
+    from pipeline.deliver.bundle import nearer as NR, read as RD
+    B = AC.load(str(bundle))
+    pairs = RD._nearer_of(B.path)
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    try:
+        items: dict = {}
+        for set_id, item in db.execute(
+                "SELECT DISTINCT s.set_id, i.item_id FROM section_ruleset s JOIN item_section x ON x.sid = s.sid "
+                "JOIN item i ON i.ord = x.ord"):
+            items.setdefault(set_id, set()).add(item)
+    finally:
+        db.close()
+    got: dict = {}
+    for set_id, bound in sorted(B.sets.items()):
+        for e, r, via in bound:
+            if via != "trib" or not B.rules[(e, r)].get("exempts"):
+                continue
+            for row, how in NR.silent_nearer(bound, B.rules, pairs, f"{e}::{r}"):
+                x = got.setdefault(f"{e}::{r}", {"silent": {}, "items": set()})
+                x["silent"][row] = how
+                x["items"] |= items.get(set_id, set())
+    return {
+        "says": "A row marked ✱ carries an exemption it prints (a closure lifted, a release lifted, a size "
+                "limit lifted) to ALL its tributaries — also to streams a NEARER row covers that prints no such "
+                "exemption: a river's spring-closure exemption reaches the tributaries of a lake on that river "
+                "though the lake's own ✱ row prints none (owner ruling 2026-10-16: kept, and said on those "
+                "waters; `rules` lists every case). Show each answer's "
+                "`inherited[].caution` beside the inherited line; it names both rows.",
+        "key_on": "rules listed here (a walked lifting rule) × `silent` (each nearer water row printing no "
+                  "such exemption: nearer_row — its walk reaches the stream and its water drains into the "
+                  "lifter's; own_row — the stream's own row) × `items` (the waters both bind)",
+        "rules": {k: {"silent": dict(sorted(v["silent"].items())), "items": sorted(v["items"])}
+                  for k, v in sorted(got.items())},
     }
 
 

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "14",
+            "version": "15",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -310,8 +310,31 @@ SPEC = {
                     "\"Saturday and Sunday\", weekdays, status, n, says \"keep up to 5\", rules, today}] — how it was "
                     "decided per day-part, `today` the frame's own moment; a tributaries-only rule reached by the walk "
                     "is \"the Bella Coola River’s rule for its tributaries\"; no presence line on a wholly closed "
-                    "water; no \"the\" before a lake's name. A decided answer's winner may be a size release (F13: a take-0 "
-                    "band releasing the fish's whole range, status release)",
+                    "water; no \"the\" before a lake's name. Version 15 (ROUND16 1/2/Q2): every group carries `table` {bands "
+                    "{species: [{from, to|null, says}]}, cells {species: [{n (null: no limit), why (released | closed | "
+                    "too small | too big | protected size, when n is 0), origin (only this origin may be kept), "
+                    "by_origin {hatchery, wild} | null, as (\"ST\": a rainbow that size IS a steelhead, its number the "
+                    "steelhead's; \"RB\" the other way)}]}, steelhead_cm} — per species the size bands from the "
+                    "rules' own cut points (merged where nothing kept here changes), each cell the most of that fish "
+                    "alone here today — and the CAP SYSTEM: `cap_kinds` [{id \"RB.1\" | \"RB.1.h\", species, from, "
+                    "to|null, origin|null}] (a basket's vocabulary: size bands every rule's cut points draw, split by "
+                    "origin only where a rule tells them apart; a rainbow over `steelhead_cm` on a steelhead water is "
+                    "a steelhead kind) and `caps` [{take, kinds {here, stream, lake}, scope, by, says, if_kept_here}]: "
+                    "a basket — counts per kind kept here, on another stream, on another lake of the region today — "
+                    "is LEGAL IFF for every cap the basket's fish of its kinds (each place's list) number at most "
+                    "`take`; `if_kept_here`: the cap holds only once the basket keeps one of its `here` kinds (a "
+                    "water's own number counting fish kept elsewhere, rows F9); a take-0 cap: none of those kinds may "
+                    "be kept. The basket is read as \"what may I still keep HERE after what I kept elsewhere\" (the "
+                    "fish kept elsewhere first). The card gate proves every cell against the engine and that the caps "
+                    "accept exactly the baskets the engine accepts (seeded random baskets with fish kept elsewhere, "
+                    "every rule band at its take and one past it). The other card fields stay for now. A water's own "
+                    "limit (`elsewhere.says`, ROUND16 2) says whose it is, its number and which fish count: \"The "
+                    "Bella Coola River’s rule: 1 a day here. Brown trout, cutthroat trout or rainbow trout you kept "
+                    "anywhere else today count toward that 1.\" `rows[].restates` (ROUND16 Q2) also holds ANOTHER "
+                    "row's identical statement no nearer the stream than the winner's — shown once, credited to the "
+                    "nearer row: \"Zone B also prints this: “All from Williston Lake and its tributaries”.\" A "
+                    "decided answer's winner may be a size release (F13: a take-0 band releasing the fish's whole "
+                    "range, status release)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -358,7 +381,7 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "5",
+            "version": "6",
             "at": "[[frame index per segment] per key]",
             "frames": "[[holds, documents, under_16?]] — indexes into `holds`, `documents` and `under_16` "
                       "(absent on tidal water)",
@@ -367,7 +390,11 @@ SPEC = {
                         "angler needs here, per residency (not guided, no status), read off the profiles' "
                         "answers: fish with a licensed adult (`counts`: what they keep counts toward the "
                         "adult's limit) or buy `buy` (`own_limit`: and keep a limit of their own); `says` the "
-                        "sentence (\"No licence needed.\")",
+                        "sentence. Version 6 (ROUND16 4): the book's p.6 said exactly — a B.C. resident \"No licence or "
+                        "stamp needed, and you don’t have to fish with a licence holder. You keep your own limit.\" "
+                        "(`own_limit` true); a non-resident \"Fish with someone 16 or older who holds the licences and "
+                        "stamps this fishing needs: what you keep counts toward their limit. Or buy your own … and any "
+                        "supplementary licences and stamps you need, and keep your own limit.\"",
             "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
                      "only) | {holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
                      "designations, stamp_period, contested, considered}] — licensing refs: the "
@@ -405,7 +432,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "11",
+            "version": "12",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -431,9 +458,16 @@ SPEC = {
                       "the summer stream closure (MUs 1-1 to 1-6) covers its tributaries.\" — `by` "
                       "the lifting rule (cite its Book page; its `rules[].applies_trib`), `lifts` "
                       "the rules it lifts today; show it on the KEEP side; absent where none (a "
-                      "quota lift the card's `lifts` already names is not repeated)",
-            "rules": "[{kind, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
-                     "the export's `rules`: the page's 15-step kind (`caught`: a duty for a fish "
+                      "quota lift the card's `lifts` already names is not repeated). Version 12 (ROUND16 Q1, RULINGS "
+                      "T15): `inherited[].caution` where a NEARER water row binding this stream prints no such "
+                      "exemption — the lift still holds; show the caution under the line: \"Trout Lake’s tributaries’ "
+                      "row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because "
+                      "its row covers all its tributaries.\" (null elsewhere)",
+            "rules": "[{kind, title, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
+                     "the export's `rules`: `title` (version 12, ROUND16 3) every rule's effect in words, "
+                     "generated from its fields (\"Release all steelhead\", \"Release lake trout, Oct 1–Nov 30\", "
+                     "\"Release Dolly Varden/bull trout from streams, Aug 1–Oct 31\"; gear, boats and notices take their "
+                     "label) — the heading of a rule anywhere it is listed, its verbatim the quote under it; the page's 15-step kind (`caught`: a duty for a fish "
                      "caught some way, Q38), a gate that closes, size bands [[from_cm, to_cm|null, "
                      "take|null]], the plain sentence (null: the page uses the label; every "
                      "possession line carries the possession quota's exception, `display.POSSESSION_HOME`, Q15), `unless_opened` "

@@ -94,15 +94,19 @@ def test_2_the_under_16_summary_per_residency():
         answers[ix[(res, "under_16")]] = _ans(False, paths=youth)
     got = LI.under_16_summary(answers, {"basic_licence": "basic angling licence"})
     assert [x["residency"] for x in got] == ["resident", "non_resident", "non_resident_alien"]
+    # ROUND16 4: the book's p.6 said exactly (test_answers_r16_wording.py::test_4_*)
     assert got[0] == {"residency": "resident", "label": "B.C. resident", "none_needed": True,
-                      "with_adult": None, "buy": [], "own_limit": False, "says": "No licence needed."}
+                      "with_adult": None, "buy": [], "own_limit": True,
+                      "says": "No licence or stamp needed, and you don’t have to fish with a licence holder. "
+                              "You keep your own limit."}
     nr = got[1]
     assert nr["label"] == "Canadian, other province" and not nr["none_needed"]
     assert nr["with_adult"] == {"who": "16 or older", "counts": True}
     assert nr["buy"] == [{"doc": "basic_licence", "name": "Basic angling licence", "prices": basic}]
-    assert nr["says"] == ("Fish with a licensed adult (16 or older): what you keep counts toward their limit. "
-                          "Or buy your own basic angling licence ($62.87 a year · $22.86 a day · $41.15 for "
-                          "8 days) and keep your own limit.")
+    assert nr["says"] == ("Fish with someone 16 or older who holds the licences and stamps this fishing needs: "
+                          "what you keep counts toward their limit. Or buy your own basic angling licence "
+                          "($62.87 a year · $22.86 a day · $41.15 for 8 days) and any supplementary licences "
+                          "and stamps you need, and keep your own limit.")
 
 
 def test_2_every_profile_and_residency_is_labelled():

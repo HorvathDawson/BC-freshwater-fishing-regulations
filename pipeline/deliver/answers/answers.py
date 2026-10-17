@@ -246,7 +246,10 @@ def _sections() -> Tuple[Section, ...]:
         # restatement as a note, one ladder line; `week.status` / `week.parts` [{days, when, weekdays, status,
         # n, says, rules, today}]; a tributaries-only rule "…’s rule for its tributaries"; no presence on a
         # wholly closed water; each kept kind says its origin; "None more here"; no "the" before a lake)
-        Section("rows", 14, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND16 1/2/Q2: rows 15 (`group.table` / `group.cap_kinds` / `group.caps`: the species × size table
+        # and the exact cap system, gate-proved; a water's own limit says whose, its number and what counts;
+        # `restates` folds another row's identical statement no nearer than the winner's)
+        Section("rows", 15, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -257,7 +260,9 @@ def _sections() -> Tuple[Section, ...]:
         Section("gear", 9, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
-        Section("licence", 5, licence.section_scope, prepare=licence.section_prepare,
+        # ROUND16 4: licence 6 (the under-16 answers say the book's p.6: a resident needs nothing, fishes alone and
+        # keeps their own limit; a non-resident's companion holds the licences and stamps the fishing needs)
+        Section("licence", 6, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
         # answers 2.6: rows 7 (F15 the group's lead sentence + `items`), display 5 (`strip` per
         # segment from the rows and gear frames there; `rules[].book` / `applies`; statics
@@ -271,7 +276,9 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND13 P: display 9 (`rules[].applies` names the book by its title)
         # ROUND14 1: display 10 (static `reasons` gains `nearer_row`: the nearer ✱ row's words, T14)
         # ROUND15 8: display 11 (an inherited lift's owner takes "the" only before a river, channel or arm)
-        Section("display", 11, display.section_scope, prepare=display.section_prepare,
+        # ROUND16 3/Q1: display 12 (`rules[].title` every rule's effect in words; `inherited[].caution` where a
+        # nearer row prints no such exemption, RULINGS T15)
+        Section("display", 12, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

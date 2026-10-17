@@ -74,7 +74,8 @@ def CC_ix(g, r):
                          {**b["replaces"], "rules": [r(k) for k in b["replaces"]["rules"]]}} for b in g["buckets"]],
             "not_kept": [{**x, "by": r(x["by"])} for x in g["not_kept"]],
             "worked": [{**w, "share": None if w["share"] is None else r(w["share"])} for w in g["worked"]],
-            "states": [{**x, "r": r(x["r"])} for x in g["states"]]}
+            "states": [{**x, "r": r(x["r"])} for x in g["states"]],
+            "caps": [{**c, "by": r(c["by"])} for c in g["caps"]]}
 
 
 def test_w1_one_lift_reads_exactly_as_before():

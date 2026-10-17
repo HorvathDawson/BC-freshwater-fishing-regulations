@@ -172,7 +172,12 @@ def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
               "buckets": [{"title": None, "cap": 4, "by": 1, "why": "total",
                            "kinds": [{"species": ["CT", "RB"], "name": "Cutthroat and rainbow trout",
                                       "detail": "any size", "n": 4, "notes": [], "duties": []}],
-                           "groups": [], "notes": [], "replaces": None}]},
+                           "groups": [], "notes": [], "replaces": None}],
+              # ROUND16 1: the table and cap system (empty systems are valid shapes)
+              "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size"}] for S in ("CT", "RB")},
+                        "cells": {S: [{"n": 4, "why": None, "origin": None, "by_origin": None, "as": None}]
+                                  for S in ("CT", "RB")}, "steelhead_cm": None},
+              "cap_kinds": [], "caps": []},
           "subcaps": [{"r": 2, "take": 2, "water": "stream", "over_cm": None, "under_cm": None,
                        "of": ["CT"], "lifted": [{"members": ["RB"], "by": 3}]}]}
     M.GroupTotal.model_validate_json(json.dumps(ok))

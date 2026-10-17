@@ -74,9 +74,12 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     none_needed, with_adult {who, counts} | null (fish with a licensed adult; `counts`: what they keep counts
     toward the adult's limit), buy [{doc, name, prices}] (the documents to buy: the under-16's own, else
     what the 16-or-older angler of the same residency buys to fish here, when the record lets the youth fish
-    as one), own_limit (buying gives the youth a limit of their own), says}] — "Fish with a licensed adult (16
-    or older): what you keep counts toward their limit. Or buy your own basic angling licence ($62.87 a year ·
-    …) and keep your own limit."; B.C. residents "No licence needed."."""
+    as one), own_limit (the youth keeps a limit of their own: needing nothing and no companion, or by buying),
+    says}] — ROUND16 4, the book's p.6 said exactly: "Fish with someone 16 or older who holds the licences and
+    stamps this fishing needs: what you keep counts toward their limit. Or buy your own basic angling licence
+    ($62.87 a year · …) and any supplementary licences and stamps you need, and keep your own limit."; B.C.
+    residents "No licence or stamp needed, and you don’t have to fish with a licence holder. You keep your own
+    limit."."""
     P = profiles()
     ix = {(p["residency"], p["age"]): i for i, p in enumerate(P)
           if p["guidance"] == "non_guided" and p["status"] == "none"}
@@ -99,19 +102,24 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
         src = own or ((adult.get("documents") or []) if as_ is not None else [])
         buy = [{"doc": b["doc"], "name": common_cap(nm(b["doc"])), "prices": b.get("prices") or {}}
                for b in src if b.get("base")]
-        own_limit = bool(as_ is not None and as_.get("quota") == "own" and not own)
         none = bool(a.get("none_needed")) and not buy and with_adult is None
+        # ROUND16 4 (owner, the book p.6): an under-16 who needs nothing and no companion keeps their OWN limit
+        # ("You do not need to be accompanied by a licence holder. You are entitled to your own quota of
+        # fish." — B.C. residents); one who may fish as a 16-or-older angler keeps their own by buying
+        own_limit = none or bool(as_ is not None and as_.get("quota") == "own" and not own)
         parts = []
         if none:
-            parts.append("No licence needed.")
+            parts.append("No licence or stamp needed, and you don’t have to fish with a licence holder. "
+                         "You keep your own limit.")
         if with_adult is not None:
-            parts.append(f"Fish with a licensed adult ({with_adult['who']})"
-                         + (": what you keep counts toward their limit." if with_adult["counts"] else "."))
+            parts.append(f"Fish with someone {with_adult['who']} who holds the licences and stamps this fishing "
+                         f"needs" + (": what you keep counts toward their limit." if with_adult["counts"] else "."))
         if buy:
             docs = " + ".join(f"{nm(b['doc'])} ({_price_words(b['prices'])})" if b["prices"] else nm(b["doc"])
                               for b in buy)
             if with_adult is not None:
-                parts.append(f"Or buy your own {docs}" + (" and keep your own limit." if own_limit else "."))
+                parts.append(f"Or buy your own {docs} and any supplementary licences and stamps you need"
+                             + (", and keep your own limit." if own_limit else "."))
             else:
                 parts.append(f"Buy {docs}.")
         out.append({"residency": res, "label": RESIDENCY_LABELS[res], "none_needed": none,

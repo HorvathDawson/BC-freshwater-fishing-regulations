@@ -98,6 +98,48 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND16 (2026-10-16) — rows 15, licence 6, display 12: the quota table and cap system, whose limit, rule titles, under 16 by the book, nearer-row cautions and restatements
+
+Owner review of v17 (ROUND16 1-4) and the owner's answers to r15_questions Q1/Q2; RULINGS P25-P28, T15, Li11.
+
+- **`rows[].group.table`** {bands {species: [{from, to|null, says}]}, cells {species: [{n|null (no limit), why
+  (released | closed | too small | too big | protected size; exactly when n is 0), origin (only this origin may be
+  kept), by_origin {hatchery, wild} | null, as ("ST" a rainbow that size is a steelhead, its number the steelhead's;
+  "RB" the other way)}]}, steelhead_cm} — rows: the group's kinds then the fish its row holds that nobody may keep
+  here, book order. Bands come from the cut points of every rule covering the fish, merged where nothing kept HERE
+  changes, and neighbouring bands keeping none for the same reason merged ("under 30 cm: too small").
+- **`rows[].group.cap_kinds`** [{id, species, from, to|null, origin|null}] and **`rows[].group.caps`** [{take, kinds
+  {here, stream, lake}, scope, by, says, if_kept_here}]: a basket {place: {kind id: count}} is LEGAL IFF every cap
+  holds — the basket's fish of the cap's kinds number at most `take`; an `if_kept_here` cap holds only once the
+  basket keeps one of its `here` kinds (a water's own number counts fish kept elsewhere, but never stops a fish kept
+  elsewhere). Kinds are the size bands every rule's cut points draw (finer than the table's: they also tell fish
+  kept elsewhere apart), split by origin only where a rule tells hatchery from wild; a kind a take-0 cap holds is
+  left out of every other cap, and a cap another implies is dropped. The basket is read as "what may I still keep
+  HERE after what I kept elsewhere today" (fish kept elsewhere first — RULINGS Q23b makes the order matter across
+  waters). `by` the rule (cite its Book page), `scope` "here" | "here, counting fish kept elsewhere today" | "a day
+  across Region 5" | "a day from Region 2 streams", `says` one sentence. The table's cells are read off the caps.
+- **The gate** (`card_check.check_caps`): every cell = the engine's most of that fish alone at that size here (each
+  origin a cell names), and the caps accept EXACTLY the baskets the engine accepts (`Engine.accepts`: the counter
+  solver's compiled fish, equal to `legal` on random rule systems) — seeded random baskets with fish kept here, on
+  another stream and on another lake (an origin-free kind as either origin, at a random length inside its band),
+  each engine rule band at its take and one past it, and each cap at its take and one past it. Live: 15,862 groups.
+- **2**: a water's own limit (`elsewhere.says`): "The Bella Coola River’s rule: 1 a day here. Brown trout, cutthroat
+  trout or rainbow trout you kept anywhere else today count toward that 1." (Ape Creek).
+- **3 (display 12)**: `rules[].title` — every rule's effect in words from its fields ("Release all steelhead",
+  "Release lake trout, Oct 1–Nov 30"); rules with no generated form (gear, boats, notices, lifts) take their label,
+  dates with an en dash. Show it as the heading wherever a rule is listed; the verbatim is the quote under it.
+- **4 (licence 6)**: the under-16 summary says the book's p.6: B.C. resident "No licence or stamp needed, and you
+  don’t have to fish with a licence holder. You keep your own limit." (`own_limit` true); non-resident "Fish with
+  someone 16 or older who holds the licences and stamps this fishing needs: what you keep counts toward their limit.
+  Or buy your own basic angling licence (…) and any supplementary licences and stamps you need, and keep your own
+  limit."
+- **Q1 (display 12)**: `inherited[].caution` (RULINGS T15): where a nearer water row binding the stream prints no
+  such exemption — "Trout Lake’s tributaries’ row, nearer this stream, prints no such exemption; the Duncan River’s
+  is applied here because its row covers all its tributaries." — and the export guide's gotcha
+  `farther_exemption_nearer_silent` {says, key_on, rules {lift: {silent {entry: nearer_row | own_row}, items}}}.
+- **Q2 (rows 15)**: `rows[].restates` also folds ANOTHER row's identical statement no nearer the stream than the
+  winner's: "Zone B also prints this: “All from Williston Lake and its tributaries”."
+
 ## ROUND15 (2026-10-16) — rows 14, licence 5, display 11: size groups, shared caps, weekday parts, under 16
 
 Owner review of v16 (ROUND15 1-8); RULINGS P19-P24; owner questions in handoff/PLAN/r15_questions.md.

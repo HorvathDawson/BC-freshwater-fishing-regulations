@@ -333,6 +333,100 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     return wrap(", ".join(bits))
 
 
+_DASHED = re.compile(r"\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d+)-"
+                     r"((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d+|\d+)\b")
+
+
+def title(x: dict) -> str:
+    """ROUND16 3 (owner): EVERY rule's title, its effect in words, generated from its fields — never the raw
+    list item the book prints under a region table ("ALL STEELHEAD" is "Release all steelhead"; "Lake trout,
+    Oct 1-Nov 30" is "Release lake trout, Oct 1–Nov 30"; "Bull trout (Dolly Varden) from streams, Aug 1-Oct
+    31" is "Release Dolly Varden/bull trout from streams, Aug 1–Oct 31"). The verbatim stays the rule's own
+    words. A rule whose effect has no generated form (gear, boats, notices, lifts) takes its `label` — the
+    ingest's effect words — dates with an en dash, cut to a title's length."""
+    got = _title(x)
+    if got is None:
+        got = _DASHED.sub(lambda m: f"{m.group(1)}–{m.group(2)}", clean(x.get("label") or x.get("verbatim") or ""))
+        got = cut_words(got, 110)
+    return cap(got) if got else "Rule"
+
+
+def _title(x: dict) -> Optional[str]:
+    t = x.get("type")
+    if t == "stop_fishing_after_quota":
+        o = f"{x['origin']} " if _js(x.get("origin")) else ""
+        return f"Stop fishing after your daily limit of {o}{written_name(x, ' and ')}"
+    if t == "retention_limit" and kind_of(x) == "caught":
+        return caught_sentence(x).rstrip(".")
+    if t != "retention_limit" or kind_of(x) in ("exempt", "standing", "while"):
+        return None
+    sp = list(x.get("species") or [])
+
+    def fish(conj: str) -> str:
+        w = re.sub(r"^all ", "", written_name(x, conj))
+        if conj == " or ":
+            w = re.sub(r"^trout and char", "trout or char", w)
+        ex = [s for s in (x.get("species_except") or []) if not (s == "CHAR" and w == "trout")]
+        return w + (f" (not {join([lc(sp_name(e)) for e in ex], ' or ')})" if ex else "")
+    whole = bool(re.search(r"game fish|^fish", written_name(x)))
+    water = x.get("water")
+    frm = f" from {water}s" if water else (" in tributaries" if _js(x.get("tributaries_only")) else "")
+    when = x.get("when") or {}
+    dates = ", ".join(range_txt(a, b) for a, b in when_dates(when))
+    days = when.get("weekdays") or []
+    tail = (f", {dates}" if dates else "")
+    if days:
+        from pipeline.deliver.answers.rows import weekdays_short
+        tail += f", {weekdays_short(days)}"
+    org = f"{x['origin']} " if _js(x.get("origin")) else ""
+    ln = x.get("lengths") or []
+    take = x.get("take")
+    mn = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is None and r.get("take") is None), None)
+    floor = next((r for r in ln if r.get("max_cm") is not None and r.get("min_cm") is None and _is(r.get("take"), 0)), None)
+    ceil = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is None and _is(r.get("take"), 0)), None)
+    slot = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is not None and _is(r.get("take"), 0)), None)
+    if closure_grade(x) is not None:
+        where = f" in {water}s" if water else (" in tributaries" if _js(x.get("tributaries_only")) else "")
+        return ("No fishing" if whole or not sp else f"No fishing for {fish(' and ')}") + where + tail
+    if _js(x.get("per_daily")):
+        n = _num(x["per_daily"])
+        times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
+        return f"Possession: {times}the daily quota" + ("" if whole else f" of {fish(' and ')}")
+    if _js(x.get("record_retention")):
+        over = f" over {_num(mn['min_cm'])} cm" if mn else ""
+        return f"Record each {org}{fish(' or ')}{over} on your licence"
+    if _js(x.get("unlimited")):
+        return f"No daily limit on {org}{fish(' and ')}{frm}{tail}"
+    if _is(take, 0) and not ln:
+        every = "all " if not dates and not days and not org and not water else ""
+        return f"Release {every}{org}{fish(' and ')}{frm}{tail}"
+    if take is None and floor and floor.get("closed") and len(ln) == 1:
+        return f"Release {org}{fish(' and ')} {_num(floor['max_cm'])} cm or less{frm}{tail}"
+    sizes = []
+    if floor:
+        sizes.append(f"none under {_num(floor['max_cm'])} cm")
+    if ceil:
+        sizes.append(f"none over {_num(ceil['min_cm'])} cm")
+    if slot:
+        sizes.append(f"none {_num(slot['min_cm'])}–{_num(slot['max_cm'])} cm")
+    sz = (" (" + ", ".join(sizes) + ")") if sizes else ""
+    k = kind_of(x)
+    if k == "annual" and _gt0(take):
+        over = f" over {_num(mn['min_cm'])} cm" if mn else ""
+        return f"Up to {_num(take)} {org}{fish(' and ')}{over} a licence year{tail}"
+    if k == "possession_cap" and _gt0(take):
+        return f"Up to {_num(take)} {org}{fish(' and ')} in possession{tail}"
+    if _gt0(take) and mn and not floor:
+        return f"At most {_num(take)} {org}{fish(' or ')} over {_num(mn['min_cm'])} cm a day{frm}{tail}"
+    if _gt0(take):
+        conj = " or " if _is(take, 1) else " and "
+        verb = "At most" if k == "subcap" else "Keep up to"
+        return f"{verb} {_num(take)} {org}{fish(conj)} a day{frm}{sz}{tail}"
+    if take is None and sizes:
+        return f"No {org}{fish(' or ')} " + " or ".join(s_.replace("none ", "") for s_ in sizes) + f"{frm}{tail}"
+    return None
+
+
 #: answers 2.8 (D2, owner 2026-10-12): the heading the fishway / fish-facility buffers ("No fishing within
 #: 23 m downstream of … any fishway", "within 100 m of any government fish facility", p.9) show under —
 #: on the KEEP side, beside the open/closed strip, never at the bottom of the gear page
@@ -354,7 +448,7 @@ def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
     facts. `rules` (the bundle's, by (entry, rule)) lets a closure find its proviso (`unless_opened`);
     `where` the heading a place rule shows under on the Keep side (answers 2.8, D2)."""
     k = kind_of(x)
-    out: dict = {"kind": k}
+    out: dict = {"kind": k, "title": title(x)}
     if where_of(x) == "cant_fish":
         out["where"] = CANT_FISH_TITLE
     if is_closure_gate(x, k):
@@ -1045,7 +1139,7 @@ def section_prepare(scope, ctx):
         unless = unless_opened_here({st.rule_ids[r]: fs for r, fs in closing.items()}, words, sup)
         if unless:
             v["unless_opened"] = sorted(ctx.rule_index[r] for r in unless)
-        got = inherited_here(ctx, k, rd.ix, walked)
+        got = inherited_here(ctx, k, rd.ix, walked, ctx.B.sets[scope.set_id])
         if got:
             v["inherited"] = got
         by_reading.append(v)
@@ -1061,11 +1155,13 @@ def section_prepare(scope, ctx):
     return [ix[r] for r in slots(st, k)], values
 
 
-def inherited_here(ctx, k: int, reading: int, walked: set) -> List[dict]:
+def inherited_here(ctx, k: int, reading: int, walked: set, bound=None) -> List[dict]:
     """ROUND11 A3: the lifts the tributary walk carries here that THIS reading relies on — every rule
     the stored verdicts (origin none, every fish asked) say a walked rule `lifted` — each said by
-    `inherited_line`: [{says, by, lifts}] (rules by export index), in export order. A quota lifted
-    (a T3a lift) is left to the card, which names it."""
+    `inherited_line`: [{says, by, lifts, caution}] (rules by export index), in export order. A quota lifted
+    (a T3a lift) is left to the card, which names it. ROUND16 Q1 (owner, RULINGS T15): `caution` where a
+    NEARER water row binding this stream prints no such exemption (`nearer.silent_nearer`) — the lift still
+    holds; the caution names both rows (`inherited_caution`), else None."""
     if not walked:
         return []
     from pipeline.deliver import types as TY
@@ -1083,8 +1179,40 @@ def inherited_here(ctx, k: int, reading: int, walked: set) -> List[dict]:
     for L in sorted(got, key=ix.__getitem__):
         ts = sorted(got[L], key=ix.__getitem__)
         out.append({"says": inherited_line(L, ts, {"rules": ctx.by_id}), "by": ix[L],
-                    "lifts": [ix[t] for t in ts]})
+                    "lifts": [ix[t] for t in ts],
+                    "caution": inherited_caution(ctx.B, bound, L) if bound is not None else None})
     return out
+
+
+def inherited_caution(B, bound, lifter: str) -> Optional[str]:
+    """ROUND16 Q1 (owner 2026-10-16, RULINGS T15): a farther ✱ row's exemption is applied on every one of its
+    tributaries, the streams of a nearer row printing none included — and said: "Trout Lake’s row, nearer this
+    stream, prints no such exemption; the Duncan River’s is applied here because its row covers all its
+    tributaries." (Glenn Creek); the stream's own row: "Wilkie Creek’s own row prints no such exemption; …".
+    None where every nearer row prints it too."""
+    from pipeline.deliver.answers.common import the_name
+    from pipeline.deliver.bundle import nearer as NR, read
+    silent = NR.silent_nearer(bound, B.rules, read._nearer_of(B.path), lifter)
+    if not silent:
+        return None
+    names = {e: x.get("entry_name") or e for (e, _r), x in B.rules.items()}
+
+    def nm(e: str) -> str:
+        n = re.sub(r"^the ", "", names.get(e) or e, flags=re.I)
+        if n.isupper():                                  # "WHITETAIL LAKE'S INLET & OUTLET STREAMS"
+            n = " ".join(w[:1].upper() + w[1:] for w in n.lower().split())
+        return the_name(n)
+
+    def poss(n: str) -> str:
+        return f"{n}’" if n.endswith("s") else f"{n}’s"
+    owner = nm(lifter.split("::", 1)[0])
+    rows = [f"{poss(nm(e))} {'own ' if how == 'own_row' else ''}row" for e, how in silent]
+    near = join(rows)
+    if all(h == "own_row" for _e, h in silent):
+        first = f"{cap(near)} prints no such exemption"
+    else:
+        first = f"{cap(near)}, nearer this stream, print{'s' if len(rows) == 1 else ''} no such exemption"
+    return f"{first}; {poss(owner)} is applied here because its row covers all its tributaries."
 
 
 # --------------------------------------------------------------------------------------------

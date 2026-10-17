@@ -128,7 +128,7 @@ def test_a_zone_release_conditioned_on_how_the_fish_was_caught_leaves_its_tables
 def test_the_answers_say_it_in_plain_words():
     assert X.plain(R3) == WORDS
     assert X.kind_of(R3) == "caught"
-    assert X.rule_facts(R3) == {"kind": "caught", "plain": WORDS}
+    assert X.rule_facts(R3) == {"kind": "caught", "title": WORDS.rstrip("."), "plain": WORDS}   # ROUND16 3
     with pytest.raises(Exception, match="not a release"):
         X.caught_sentence({**R3, "take": 2})
 

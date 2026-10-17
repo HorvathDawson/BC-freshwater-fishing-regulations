@@ -453,8 +453,33 @@ def restated_words(r: R) -> str:
     return common.cap(w.rstrip(".")) + "."
 
 
+def same_statement(p: R, win: R) -> bool:
+    """ROUND16 Q2: `p` states exactly what the winner states (same fish, number, days, sizes, origin, water)."""
+    return p.key != win.key and all(json.dumps(p.f.get(k), sort_keys=True) == json.dumps(win.f.get(k), sort_keys=True)
+                                    for k in _SAME_FIELDS)
+
+
+def nearer_than(P: "Part", a: R, b: R) -> bool:
+    """ROUND16 Q2 (owner, the T14 principle — closest wins): `a`'s row is nearer this stream than `b`'s — a's
+    water drains into b's (`trib_nearer`); else a sits higher on the ladder (`rank`); else, on one rung, a
+    water's own row beside a zone table's line naming the water (Williston Lake — Zone B's row beside Zone B's
+    "all from Williston Lake and its tributaries")."""
+    from pipeline.deliver.bundle import read
+    path = getattr(P.B, "path", None)
+    pairs = read._nearer_of(path) if path else frozenset()
+    if (a.entry_id, b.entry_id) in pairs or (b.entry_id, a.entry_id) in pairs:
+        return (a.entry_id, b.entry_id) in pairs
+    if a.rank != b.rank:
+        return a.rank < b.rank
+    return a.entry_id.startswith("r") and b.entry_id.startswith("z")
+
+
 def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
-    """ROUND15 3: the rules of a row's winners' own rows that restate them, as notes [{r, of, says}]."""
+    """ROUND15 3: the rules of a row's winners' own rows that restate them, as notes [{r, of, says}].
+    ROUND16 Q2 (owner 2026-10-16): so is ANOTHER row's identical statement, no nearer the stream than the
+    winner's — shown ONCE, credited to the nearer row, its words a note: Williston Lake — Zone B's
+    "Arctic grayling catch and release" with Zone B's table line for "Williston Lake and its tributaries"
+    beside it ("Zone B also prints this: “…”"). Never one NEARER than the winner (`nearer_than`)."""
     out: List[dict] = []
     for S in row["allMembers"]:
         for v in (model["R"].get(S) or {}).values():
@@ -462,9 +487,17 @@ def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
                 continue
             for k, x in v["roles"].items():
                 r = P.by_key.get(k)
-                if x["role"] == "agrees" and r is not None and r.k == "pool" and restates(r, v["win"]) \
-                        and not any(o["r"] == k for o in out):
+                if x["role"] != "agrees" or r is None or any(o["r"] == k for o in out):
+                    continue
+                if r.k == "pool" and restates(r, v["win"]):
                     out.append({"r": k, "of": v["win"].key, "says": restated_words(r)})
+                elif r.entry_id != v["win"].entry_id and (r.entry_id.startswith("r") or r.via == "trib") \
+                        and same_statement(r, v["win"]) and not nearer_than(P, r, v["win"]):
+                    # a water's row, or a table's line reaching the stream by the walk ("Williston Lake and
+                    # its tributaries") — two region tables' identical lines are RU-8's, not this
+                    who = common.the_name(re.sub(r"^the ", "", r.x.get("entry_name") or "", flags=re.I)) or "Another row"
+                    out.append({"r": k, "of": v["win"].key,
+                                "says": f"{common.cap(who)} also prints this: “{restated_words(r).rstrip('.')}”."})
     return out
 
 
@@ -1507,6 +1540,22 @@ def _names(codes: Sequence[str], conj: str = " or ") -> str:
     return common.join([common.lc(common.sp_name(c)) for c in codes], conj)
 
 
+def _names_short(codes: Sequence[str]) -> str:
+    """ROUND16 2: the fish named shortly — a closed group by its name, one missing a member or two as the
+    group "other than" them ("trout and char other than steelhead"), else each fish."""
+    g = common.group_for(codes)
+    if g:
+        return common.lc(g)
+    s = set(codes)
+    for name, members in common._closed_groups():
+        rest = sorted(members - s)
+        if len(s) >= 3 and s < members and len(rest) <= 2:
+            from pipeline.deliver.answers.card import book_order
+            return (f"{common.lc(common.sp_name(name))} other than "
+                    f"{common.join([common.lc(common.sp_name(x)) for x in book_order(rest)], ' or ')}")
+    return common.join([common.lc(common.sp_name(c)) for c in codes], " or ")
+
+
 def _range_words(a, b) -> str:
     """A keep range in the book's words (bounds of a keep band are inclusive: "50 cm or less")."""
     if not a and (b is None or b == INF):
@@ -1729,8 +1778,20 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             lines = [_line(f"Kept {k} elsewhere today?", a, model, (grp or {}).get("kinds") or row["members"],
                            k, "elsewhere", None if sh is not None else n - k, kind="tally")]
     else:
-        says = (f"This {'river' if P.kind == 'stream' else 'lake'}’s own limit. Fish you kept "
-                f"elsewhere today count toward it too.")
+        # ROUND16 2 (owner): SPECIFIC — whose limit, its number, and which fish kept elsewhere today count
+        # toward it (the row's kinds: Ape Creek's char released on Oct 10 are not among them): "The Bella
+        # Coola River’s rule: 1 a day here. Brown trout, cutthroat trout or rainbow trout you kept anywhere
+        # else today count toward that 1." (was "This river’s own limit. Fish you kept elsewhere today count
+        # toward it too." on a creek the river's rule reached by the walk)
+        from pipeline.deliver.answers.card import _whose
+        whose = common.cap(_whose(P, pool)[1])
+        fish = _names_short(row["members"])
+        if n is None:
+            says = f"{whose}: no daily limit here."
+        else:
+            that = "that 1" if n == 1 else f"those {_js(n)}"
+            says = (f"{whose}: {_js(n)} a day here. {common.cap(fish)} you kept anywhere else today count "
+                    f"toward {that}.")
         if sc["apart"]:
             says += " These fish are counted apart from the region’s total: they don’t use it up."
         if T is not pool:
@@ -2154,7 +2215,8 @@ def refs(out: dict, ix) -> dict:
                                        for x in g["not_kept"]],
                           "worked": [{**w, "share": None if w["share"] is None else ix(w["share"])}
                                      for w in g["worked"]],
-                          "states": [{**x, "r": ix(x["r"])} for x in g["states"]]}
+                          "states": [{**x, "r": ix(x["r"])} for x in g["states"]],
+                          "caps": [{**c, "by": ix(c["by"])} for c in g["caps"]]}
         return o
     return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
             "rows": [row(r) for r in out["rows"]]}

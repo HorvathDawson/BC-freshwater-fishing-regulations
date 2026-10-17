@@ -144,7 +144,7 @@ def test_plain_says_place_origin_size_and_dates():
         "In streams, release every hatchery trout and char, May 1–Oct 31."
     shut = {"type": "retention_limit", "species": ["ALL_GAME_FISH"], "take": 0, "may_target": 0}
     assert X.plain(shut) == "No fishing."
-    assert X.rule_facts(shut) == {"kind": "gate", "closure": True, "plain": "No fishing."}
+    assert X.rule_facts(shut) == {"kind": "gate", "title": "No fishing", "closure": True, "plain": "No fishing."}
     assert "closure" not in X.rule_facts(dict(shut, may_target=1))
 
 
@@ -216,7 +216,7 @@ def test_a_bundle_rule_and_the_exports_rule_say_the_same(live):
     bad = []
     for i, (k, x) in enumerate(doc["rules"].items()):
         flat = {**(x.get("fields") or {}), "type": x["type"], "family": x["family"],
-                "dimension": x.get("dimension")}
+                "dimension": x.get("dimension"), "label": x.get("label"), "verbatim": x.get("verbatim")}
         # the bundle side also knows a closure's proviso (Z12, its sibling rules) and the subsets
         # the ladders ask for (G3, the rows' frames): neither is a field of the rule itself
         mine = {f: v for f, v in facts[i].items() if f not in ("unless_opened", "subsets")}

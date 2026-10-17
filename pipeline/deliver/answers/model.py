@@ -639,6 +639,96 @@ class CardState(Model):
     line: StrictStr = Field(min_length=1)
 
 
+class TableBand(Model):
+    """ROUND16 1: one size band of a species' table row — from the rules' own cut points, merged where nothing
+    kept here changes ("under 25 cm", "25–33 cm", "over 33 cm"); `to` None: no top."""
+    from_: Cm = Field(alias="from")
+    to: Optional[Cm]
+    says: StrictStr = Field(min_length=1)
+
+
+WhyLit = Literal["released", "closed", "too small", "too big", "protected size"]
+
+
+class TableCell(Model):
+    """ROUND16 1: the most of that fish alone at that size here today (None: no limit) — gate-proved
+    against the engine; `why` when it is 0; `origin` when only one origin may be kept; `by_origin` when
+    both may, in different numbers; `as` "ST" where a rainbow that size IS a steelhead (p.80; its number
+    is the steelhead's), "RB" for a steelhead under it."""
+    n: Optional[Count]
+    why: Optional[WhyLit]
+    origin: Optional[OriginLit]
+    by_origin: Optional[Dict[OriginLit, Optional[Count]]]
+    as_: Optional[Fish] = Field(alias="as")
+
+    @model_validator(mode="after")
+    def _why_when_none(self):
+        if (self.n == 0) != (self.why is not None):
+            raise ValueError("a cell says why exactly when it keeps none")
+        if self.origin is not None and self.by_origin is not None:
+            raise ValueError("a cell names one origin or both, not both ways")
+        return self
+
+
+class CardTable(Model):
+    """ROUND16 1: the species × size table of a group — `bands` and `cells` per species, parallel;
+    `steelhead_cm` the length over which a rainbow is a steelhead here (None: no such water)."""
+    bands: Dict[Fish, Tuple[TableBand, ...]]
+    cells: Dict[Fish, Tuple[TableCell, ...]]
+    steelhead_cm: Optional[Cm]
+
+    @model_validator(mode="after")
+    def _parallel(self):
+        if set(self.bands) != set(self.cells) or any(len(self.bands[S]) != len(self.cells[S])
+                                                     for S in self.bands):
+            raise ValueError("every table band has its cell")
+        for S, bs in self.bands.items():
+            at = 0
+            for b in bs:
+                if b.from_ != at:
+                    raise ValueError(f"{S}'s bands cover every length once")
+                at = b.to
+            if at is not None:
+                raise ValueError(f"{S}'s last band has no top")
+        return self
+
+
+class CapKind(Model):
+    """ROUND16 1: one kind of fish a basket counts — a species, a size band (`to` None: no top), an origin
+    where the rules tell hatchery from wild (None: either). `id` "<species>.<band>[.h|.w]"."""
+    id: Annotated[StrictStr, Field(pattern=r"^[A-Z_]+\.[0-9]+(\.[hw])?$")]
+    species: Fish
+    from_: Cm = Field(alias="from")
+    to: Optional[Cm]
+    origin: Optional[OriginLit]
+
+
+class CapPlaces(Model):
+    """The kinds a cap counts, by where they were kept today: here, another stream, another lake."""
+    here: Tuple[StrictStr, ...]
+    stream: Tuple[StrictStr, ...]
+    lake: Tuple[StrictStr, ...]
+
+
+class Cap(Model):
+    """ROUND16 1: one constraint of the group's CAP SYSTEM — a basket is legal iff for every cap the fish of
+    its `kinds` (kept at each place) number at most `take`; `if_kept_here`: the cap holds only once the
+    basket keeps one of its `here` kinds (a water's own number counting fish kept elsewhere, rows F9). A
+    take-0 cap: none of those kinds may be kept. `by` the rule, `scope` and `says` its words."""
+    take: Count
+    kinds: CapPlaces
+    scope: StrictStr = Field(min_length=1)
+    by: RuleIx
+    says: StrictStr = Field(min_length=1)
+    if_kept_here: StrictBool
+
+    @model_validator(mode="after")
+    def _conditional(self):
+        if self.if_kept_here and not (self.kinds.here and (self.kinds.stream or self.kinds.lake)):
+            raise ValueError("only a cap counting fish kept elsewhere toward one kept here is conditional")
+        return self
+
+
 class GroupTotal(Model):
     """One total on today's card and its sub-caps (answers 2.5, rows F14) — the DECISION (`pool`,
     `total`, `kinds`, `subcaps`) — and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact
@@ -656,6 +746,20 @@ class GroupTotal(Model):
     not_kept: Tuple[NotKept, ...]
     worked: Tuple[Worked, ...]
     states: Tuple[CardState, ...]
+    table: CardTable                                  # ROUND16 1: species × size, gate-proved
+    cap_kinds: Tuple[CapKind, ...]                    # ROUND16 1: the basket's vocabulary
+    caps: Tuple[Cap, ...]                             # ROUND16 1: legal iff every cap holds
+
+    @model_validator(mode="after")
+    def _caps_name_kinds(self):
+        ids = {k.id for k in self.cap_kinds}
+        if len(ids) != len(self.cap_kinds):
+            raise ValueError("two cap kinds share an id")
+        if any(k not in ids for c in self.caps for k in (*c.kinds.here, *c.kinds.stream, *c.kinds.lake)):
+            raise ValueError("a cap counts only the group's cap kinds")
+        if not set(self.kinds) <= set(self.table.bands):
+            raise ValueError("every kind of the group has its table row")
+        return self
 
     @model_validator(mode="after")
     def _shares(self):
@@ -720,7 +824,9 @@ class WeekPart(Model):
 
 class Restated(Model):
     """ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) — one
-    ladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota."""
+    ladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota. ROUND16 Q2:
+    also another row's identical statement, farther from the stream than the winner's (shown once, credited
+    to the nearer row): "Zone B also prints this: “All from Williston Lake and its tributaries”."."""
     r: RuleIx
     of: RuleIx
     says: StrictStr = Field(min_length=1)
@@ -1076,6 +1182,10 @@ class InheritedLift(Model):
     says: StrictStr = Field(min_length=1)
     by: RuleIx
     lifts: Tuple[RuleIx, ...] = Field(min_length=1)
+    #: ROUND16 Q1 (RULINGS T15): a nearer row binding this stream prints no such exemption — said, naming
+    #: both rows ("Trout Lake’s row, nearer this stream, prints no such exemption; the Duncan River’s is
+    #: applied here because its row covers all its tributaries."), else None
+    caution: Optional[StrictStr] = None
 
 
 class StatusFrame(Model):
@@ -1153,6 +1263,9 @@ class SubsetSay(Model):
 
 class RuleFacts(Model):
     kind: _enum(T.DisplayKind, "DisplayKind")
+    #: ROUND16 3: every rule's title, its effect in words ("Release all steelhead", "Release lake trout,
+    #: Oct 1–Nov 30") — never the raw list item; the verbatim stays the rule's own words
+    title: StrictStr = Field(min_length=1)
     closure: Optional[Literal[True]] = None          # set <=> a gate that closes
     bands: Optional[Tuple[Tuple[Cm, Optional[Cm], Optional[Count]], ...]] = None
     plain: Optional[StrictStr] = None                # None: the page shows the label
