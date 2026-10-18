@@ -200,7 +200,7 @@ def test_display_closing_is_the_closed_predicate(shipped):
     from pipeline.deliver.types import GAME_FISH
     wire, _ = shipped
     sec = wire["sections"]["display"]
-    assert sec["version"] == 13                     # ROUND19 2/5 sizes in cm (in); ROUND16 3/Q1 title, caution; ROUND15 8 the_name; ROUND14 1 reason nearer_row; ROUND13 P book title; ROUND11 A3 `inherited` (2.8 `where`; 2.7 `short`; 2.6 `strip`)
+    assert sec["version"] == 14                     # UR1 G record duty "Write each"; ROUND19 2/5 sizes in cm (in); ROUND16 3/Q1 title, caution; ROUND15 8 the_name; ROUND14 1 reason nearer_row; ROUND13 P book title; ROUND11 A3 `inherited` (2.8 `where`; 2.7 `short`; 2.6 `strip`)
     for f in sec["frames"]:
         if f.get("status") == "tidal":
             continue

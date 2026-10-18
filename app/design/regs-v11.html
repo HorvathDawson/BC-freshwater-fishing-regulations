@@ -732,9 +732,10 @@ const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
 const ST = () => SNAP.states[sid()];
 const SYNOPSIS_PDF = 'https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf';
-const bookLinks = key => { const i = SNAP.ruleInfo[key]; if (!i || !i.book) return ''; return i.book.map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
+// user round 1 (C, panel: "Book p.21 — what book?"): every page link says "Rule book"
+const bookLinks = key => { const i = SNAP.ruleInfo[key]; if (!i || !i.book) return ''; return i.book.map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Rule book p.${pr} ↗</a>`).join(' '); };
 const booksOnce = keys => { const pages = new Map(); keys.forEach(k => (SNAP.ruleInfo[k]?.book || []).forEach(([pr, pdf]) => pages.has(pr) || pages.set(pr, pdf)));
-  return [...pages].map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Book p.${pr} ↗</a>`).join(' '); };
+  return [...pages].map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Rule book p.${pr} ↗</a>`).join(' '); };
 /* round 12 (owner 3): a PRINTED page the data names, as a link to that page of the book's PDF (SNAP.pdfPages: the one
    printed -> PDF map, pipeline.common.synopsis_pages); a page the map lacks is plain text */
 const pageLink = pr => { const pdf = (SNAP.pdfPages || {})[pr]; return pdf ? `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">p.${pr} ↗</a>` : `<span>p.${pr}</span>`; };
@@ -742,7 +743,7 @@ const pageLink = pr => { const pdf = (SNAP.pdfPages || {})[pr]; return pdf ? `<a
 function glossBody(id){ const g = SNAP.gloss[id]; if (!g) return ''; const t = g.term; if (!t) return g.body;
   return `<p class="glsays">${esc(t.says)}</p>${t.example ? `<p class="glex"><b>For example:</b> ${esc(t.example)}</p>` : ''}`
     + (t.quote ? `<details class="bookw"><summary>In the book’s words</summary><blockquote class="exact">${esc(t.quote)}</blockquote></details>` : '')
-    + (t.pages.length ? `<p class="glpages">Book ${t.pages.map(pageLink).join(' ')}</p>` : ''); }
+    + (t.pages.length ? `<p class="glpages">Rule book ${t.pages.map(pageLink).join(' ')}</p>` : ''); }
 const appliesOf = key => { const i = SNAP.ruleInfo[key]; return i ? [i.applies, i.applies_trib].filter(Boolean) : []; };
 /* the strip from the data's per-day flags (answers 2.6): closed 1, release 2, fly-only 4, flies-only 8, bait ban 16.
    Legend words are the data's own (display.strip[].label). */
@@ -1103,7 +1104,7 @@ function sourcesLine(id, keys, words){
   const books = [...pages].sort((a, b) => a[0] - b[0]).map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">p.${pr} ↗</a>`);
   const who = [...new Set(words)].filter(Boolean);
   if (!who.length && !books.length) return '';
-  return `<p class="gsources"><button class="srcs" type="button" data-open="${id.startsWith('lic') ? 'licsrc' : 'srcs'}:${id}">Sources</button><span class="who">${who.map(esc).join(' · ')}</span>${books.length ? `<span class="bks">Book ${books.join(' ')}</span>` : ''}</p>`; }
+  return `<p class="gsources"><button class="srcs" type="button" data-open="${id.startsWith('lic') ? 'licsrc' : 'srcs'}:${id}">Sources</button><span class="who">${who.map(esc).join(' · ')}</span>${books.length ? `<span class="bks">Rule book ${books.join(' ')}</span>` : ''}</p>`; }
 /* a pane's chips: their rule keys, and the word each stands for (a chip reading "Region" names its region from the rule) */
 function takeChips(root, sel){ const keys = [], words = [];
   root.querySelectorAll(sel).forEach(b => { const k = b.dataset.rule; if (k) keys.push(k);

@@ -1,3 +1,28 @@
+# regs v22 (user round 1, six-angler panel on v21) — in place on regs-v11.html
+
+- **Data: rows 18 / gear 10 / display 14** (page v36 @ e17579ef re-snapped, 134 states; oracle regenerated). These render
+  as the data's words, with no layout change:
+  - totals "4 a day per angler across Region 2, lakes included";
+  - the Vedder share "… (part of the 4) — your hatchery rainbow trout don’t use these 2";
+  - the size box "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead";
+  - "1 cutthroat or rainbow trout in all";
+  - "Steelhead: no fishing for them, not even catch and release — release any you hook by accident";
+  - "Write each one on your licence right away";
+  - Weight on the line "Up to 1 kg (2.2 lb)";
+  - Kootenay Lake main body Lines "1 line from shore; any number from a boat".
+- **C: every page link reads "Rule book p.N ↗"**, and the page labels before bare links read "Rule book p.13 p.80". The panel
+  asked "Book p.21: what book?". This is one label change in `bookLinks` / `booksOnce`, plus `glpages` and `bks`.
+- **E: How to tell.** The sheet always sat over the current water. Screen 59 had been shot over Iron River, Jul 20, so the
+  panel saw "Iron River" while asking about the Vedder. It is now shot over the Vedder, Oct 10.
+- **Checks** (ONLY=ur1):
+  - `rule-book-label`, `ur1-tier-words`, `ur1-plain-words` fail before (scratchpad ur1/check-before-final.txt, 3 of 4 FAIL).
+  - `howtell-current-water` passed before too: the render was right.
+  - `card-one-book-per-lift`, `inherited-line` and the book count now read "Rule book p.N".
+- **Screens**: every screen re-shot. New full-length shots (`tools/tall.mjs`, the page's `tall` mode, header on top):
+  ur1-vedder-oct10-cards, ur1-chilliwack-part2-oct10-cards, ur1-bella-coola-may1-mainstem-cards,
+  ur1-kootenay-lwa-oct10-cards, ur1-vedder-licence-16-plus, ur1-vedder-licence-under-16,
+  ur1-vedder-licence-outside-canada-open.
+
 # regs v21 (round 19, owner review of v20) — in place on regs-v11.html
 
 - **Phase 2: rows 17 / display 13** (page v36 @ b073389b re-snapped, 134 states; oracle regenerated, 18 groups / 3,100

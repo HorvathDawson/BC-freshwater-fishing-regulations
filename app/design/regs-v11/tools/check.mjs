@@ -21,6 +21,12 @@
 //   (round 19) header-label-two-lines (header-compact: the label two lines, the action on the name's row; ≤ 120 px); phase 2
 //   (rows 17): size-tier-box, size-note-on-kind, origin-no-tag (tree-folders: chips "50 cm (20 in)", a size tier's box in
 //   place of its guide line; group-head-compact: no tag when header.tag is null); ONLY=19
+//   (user round 1, UR1; ONLY=ur1) rule-book-label: every book link and page label reads "Rule book p.N" (C);
+//   ur1-tier-words: the tree's tier lines are the data's words whole, the total "per angler", a lifted water's share naming
+//   the fish that don't use it, a size tier "of the fish in this box", a count tier "… in all" (A, B, D); ur1-plain-words:
+//   the species closure says not even catch and release (F), the record duty "Write each one … right away", the weight
+//   "kg (… lb)", Kootenay Lake main body's lines "from shore … from a boat" (G); howtell-current-water: the How to tell
+//   sheet sits over the CURRENT water's header and date (E: screen 59 had been shot over Iron River)
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -75,6 +81,7 @@ const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
 // ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '19') { await round19(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '18') { await round18(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 
@@ -159,7 +166,7 @@ for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=10
     const chips = box ? [...box.querySelectorAll('[data-change]')].map(e => norm(e.textContent)) : [];
     const ref = g.querySelector('details[data-reference]');
     return {sm: !!sm, says: sm?.says || null, kind: st.kind, shown: say ? norm(say.textContent) : null, times: sm ? (norm(g.textContent).split(norm(sm.says)).length - 1) : 0,
-      pages: pages.size, books: box ? (norm(box.querySelector('.gbooks')?.textContent).match(/Book p\\.\\d+/g) || []).length : 0,
+      pages: pages.size, books: box ? (norm(box.querySelector('.gbooks')?.textContent).match(/Rule book p\\.\\d+/g) || []).length : 0,
       changes: (sm?.changes || []).map(c => [c.when, c.says]), chips,
       lines: box ? box.querySelectorAll('[data-gline]').length : 0,
       terms: (sm?.terms || []), tips: box ? [...box.querySelectorAll('[data-gl]')].flatMap(e => e.dataset.gl.split(',')) : [],
@@ -266,7 +273,7 @@ for (const [name, hash] of CARDS) await page(hash, async b => {
       const lifts = (g.lifts || []).map(l => { const el = [...art.querySelectorAll('p, li, div')].reverse().find(e => norm(e.textContent).includes(norm(l.says).slice(0, 40)));
         // every lifting rule's page once (answers rows v9: each[] parts; older shape: the lift itself)
         const want = new Set((l.each && l.each.length ? l.each : [l]).flatMap(e => (SNAP.ruleInfo[(st.ruleKey || {})[e.by]]?.book || []).map(b => b[0])));
-        return el ? [(norm(el.textContent).match(/Book p\\.\\d+/g) || []).length, Math.max(1, want.size)] : [-1, 1]; });
+        return el ? [(norm(el.textContent).match(/Rule book p\\.\\d+/g) || []).length, Math.max(1, want.size)] : [-1, 1]; });
       const TK = g => [].concat(g?.tree || []).flatMap(function f(t) { return t.node === 'kind' ? [t] : (t.children || []).flatMap(f); });   /* round 18: the tree's kinds */
       const kinds = TK(g).map(k => { const row = [...art.querySelectorAll('.krow.kt')].find(e => e.dataset.kind === k.name);
         return [k.name, k.species.length, row ? row.querySelectorAll('img, svg').length : -1]; });
@@ -300,7 +307,7 @@ for (const hash of ['w=iron&d=720', 'w=iron&d=1010', 'w=vedder&d=1010']) await p
   inh.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { if (!WATERS[S.w] || !WATERS[S.w].snap[S.d]) return {hash: location.hash, missing: true};
     const st = SNAP.states[sid()], norm = t => (t || '').replace(/\\s+/g, ' ').trim(), keep = document.getElementById('keep'), first = keep.querySelector('article.row.ledger');
     const els = [...keep.querySelectorAll('[data-inherited]')];
-    return {hash: location.hash, want: (st.inherited || []).map(x => [x.says, (SNAP.ruleInfo[x.by]?.book || []).map(b => 'Book p.' + b[0])]),
+    return {hash: location.hash, want: (st.inherited || []).map(x => [x.says, (SNAP.ruleInfo[x.by]?.book || []).map(b => 'Rule book p.' + b[0])]),
       got: els.map(e => [norm(e.textContent), !first || !!(e.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING), e.getBoundingClientRect().height > 0])}; })())`)));
 });
 const ibd = inh.filter(x => x.missing || x.want.length !== x.got.length || x.want.some(([says, bks], i) => !(x.got[i][0].includes(says) && bks.every(k => x.got[i][0].includes(k)) && x.got[i][1] && x.got[i][2])));
@@ -953,6 +960,7 @@ check('card-is-the-caps', CC17.length === R17.length && !cc17.length, cc17.map(x
 
 await round18();
 await round19();
+await roundUr1();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1153,4 +1161,70 @@ async function round19(){
   check('size-tier-box', SB.length === SBS.length && SB.filter(x => x.boxes).length >= 6 && !sbb.length, sbb.map(x => `${x.hash}: ${x.boxes} boxes; ${x.bad.slice(0, 4).join(' | ')}`).join('; '));
   check('size-note-on-kind', SB.reduce((a, x) => a + x.notes, 0) >= 3 && !sbb.some(x => x.bad.some(y => /size note/.test(y))), sbb.map(x => x.bad.filter(y => /size note/.test(y)).join(' | ')).join('; '));
   check('origin-no-tag', SB.some(x => x.origins) && !sbb.some(x => x.bad.some(y => /origin|tag/.test(y))), sbb.map(x => x.bad.filter(y => /origin|tag/.test(y)).join(' | ')).join('; '));
+}
+
+// ---------- user round 1 (UR1, six-angler panel on v21) ----------
+async function roundUr1(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // C: "Book p.21" — what book? Every book link, and every page label before bare "p.N" links, says "Rule book"
+  const RB = [];
+  for (const hash of ['w=vedder&d=1010', 'w=vedder&d=1010&sec=gear', 'w=bellacoola&d=501&p=1', 'w=vedder&d=1010&sheet=hatch', 'w=glenn&d=615']) await page(hash, async b => {
+    RB.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [];
+      const links = [...document.querySelectorAll('a.book')];
+      links.forEach(a => { const t = norm(a.textContent);
+        if (/^p\\.\\d+/.test(t)) { const lab = norm(a.parentElement.firstChild?.textContent || a.parentElement.textContent);
+          if (!/^Rule book\\b/.test(lab)) bad.push('bare ' + t + ' under ' + JSON.stringify(lab.slice(0, 30))); }
+        else if (!/^Rule book p\\.\\d+ ↗$/.test(t)) bad.push(JSON.stringify(t)); });
+      const stray = [...document.querySelectorAll('body *')].filter(e => !e.children.length && !e.closest('script,style') && /(^|[^e] )Book p\\.\\d|^Book\\b/.test(norm(e.textContent))).map(e => norm(e.textContent).slice(0, 40));
+      return {hash: location.hash.slice(8), n: links.length, bad: bad.concat(stray.map(x => 'stray ' + JSON.stringify(x)))}; })())`)));
+  });
+  const rbb = RB.filter(x => x.bad.length);
+  check('rule-book-label', RB.filter(x => x.n).length >= 4 && !rbb.length, rbb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; '));
+
+  // A, B, D: each tier line shows the data's words whole; the words a panel misread are the data's new ones
+  const TW = [];
+  for (const hash of ['w=vedder&d=1010', 'w=bellacoola&d=501&p=1', 'w=chilliwack&d=1010&p=1', 'w=klwa&d=1010']) await page(hash, async b => {
+    TW.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], seen = {total: 0, share: 0, lifted: 0, size: 0, count: 0};
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
+        const lifted = (g.lifts || []).length > 0;
+        const walk = t => { if (t.node !== 'tier') return; const el = art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
+          const shown = norm([...(el?.childNodes || [])].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('button') || n.matches('.gl')))).map(n => n.textContent).join(' '));
+          if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
+          if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
+          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/ — your .+ don’t use these \\d+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
+          if (t.tier === 'size') { seen.size++; if (!/^(Only \\d+|None) of the fish in this box may be over /.test(t.says)) bad.push('size: ' + t.says); }
+          if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all$/.test(t.says)) bad.push('count: ' + t.says); }
+          (t.children || []).forEach(walk); };
+        [].concat(g.tree).forEach(walk);
+        if (g.header && / across /.test(g.header.says) && !/ per angler across /.test(g.header.says)) bad.push('header: ' + g.header.says); });
+      return {hash: location.hash.slice(8), seen, bad}; })())`)));
+  });
+  const twb = TW.filter(x => x.bad.length), sum = k => TW.reduce((a, x) => a + x.seen[k], 0);
+  check('ur1-tier-words', !twb.length && sum('total') >= 3 && sum('lifted') >= 1 && sum('size') >= 3 && sum('count') >= 1,
+    twb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; ') || `seen ${JSON.stringify(TW.map(x => x.seen))}`);
+
+  // F, G: the plain words on the page
+  const PW = {};
+  for (const [k, hash] of [['bella', 'w=bellacoola&d=1010&p=1'], ['vedder', 'w=vedder&d=1010'], ['gear', 'w=vedder&d=1010&sec=gear'], ['klmb', 'w=klmb&d=1010&sec=gear']]) await page(hash, async b => {
+    PW[k] = JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm}
+      return {closed: [...document.querySelectorAll('[data-notkept="closed"] .nm')].map(e => norm(e.textContent)),
+        duty: [...document.querySelectorAll('#keep .duty')].map(e => norm(e.textContent)),
+        gear: norm(document.getElementById('gear')?.textContent)}; })())`));
+  });
+  const pwb = [];
+  if (!PW.bella.closed.length || !PW.bella.closed.every(t => /no fishing for them, not even catch and release — release any you hook by accident$/.test(t))) pwb.push('Bella Coola closure ' + JSON.stringify(PW.bella.closed));
+  if (!PW.vedder.duty.some(t => /Write each one on your licence right away/.test(t)) || PW.vedder.duty.some(t => /Record each/i.test(t))) pwb.push('Vedder duties ' + JSON.stringify(PW.vedder.duty));
+  if (!/up to 1 kg \(2\.2 lb\)/i.test(PW.gear.gear)) pwb.push('Vedder gear: no "1 kg (2.2 lb)"');
+  if (!/1 line from shore; any number from a boat/.test(PW.klmb.gear) || /no limit while in a boat/.test(PW.klmb.gear)) pwb.push('Kootenay main body lines: ' + JSON.stringify((PW.klmb.gear.match(/.{0,30}boat.{0,30}/g) || []).slice(0, 3)));
+  check('ur1-plain-words', !pwb.length, pwb.join('; '));
+
+  // E: the How to tell sheet opens over the water and day the page is on (the header behind it is the current one)
+  const HT = [];
+  for (const hash of ['w=vedder&d=1010&sheet=hatch', 'w=bellacoola&d=501&p=1&sheet=hatch', 'w=chilliwack&d=1010&p=1&sheet=hatch']) await page(hash, async b => {
+    HT.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), h = document.getElementById('hdr');
+      return {hash: location.hash.slice(8), open: !!document.querySelector('.shead h2') && /Hatchery or wild/.test(document.querySelector('.shead h2').textContent),
+        name: norm(h?.querySelector('.ttl b')?.textContent), want: st.name, date: norm(h?.textContent).includes(fmt(S.d))}; })())`)));
+  });
+  const htb = HT.filter(x => !x.open || x.name !== x.want || !x.date);
+  check('howtell-current-water', HT.length === 3 && !htb.length, htb.map(x => JSON.stringify(x)).join('; '));
 }
