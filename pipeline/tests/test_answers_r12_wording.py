@@ -175,10 +175,10 @@ def test_w5_gear_sentences_have_no_em_dash():
     kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
     cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
     # ROUND13 G/P: no "any hook", "weight on the line" (test_answers_r13_wording.py)
-    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg."
-    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg."
-    assert kootenay == ("1 line (no limit while in a boat) with one hook, lure or fly. "
-                        "Weight on the line up to 1 kg.")
+    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
+    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb)."
+    assert kootenay == ("1 line from shore; any number from a boat, each with one hook, lure or fly. "
+                        "Weight on the line up to 1 kg (2.2 lb).")              # UR1 G
     assert cowichan == ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, sinker or "
                         "attracting device.")
     assert not any("—" in s for s in (vedder, okanagan, kootenay, cowichan))

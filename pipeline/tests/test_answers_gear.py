@@ -393,7 +393,7 @@ def test_line_counts_kootenay_boat_unlimited_shore_province_other_lakes_two_alon
     assert also.get(("in_boat",), [""])[0].endswith("kootenay_lake_main_body.r1")
     assert ("alone_in_boat",) not in also, "the row's boat clause replaces the province's 2"
     # ROUND10 W4: said plainly, and the boat rule cited for its Book page
-    assert lines["says"] == "1 line (rod); no limit while in a boat"
+    assert lines["says"] == "1 line (rod) from shore; no limit from a boat"
     assert lines["cites"][0] == province and lines["cites"][1].endswith("kootenay_lake_main_body.r1")
     k = _key_of(B, "wbk:329563838")                                       # Kamloops Lake
     a = _answer(B, k, month_day(200), lawful)

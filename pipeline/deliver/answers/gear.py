@@ -248,12 +248,25 @@ def _held_words(e: dict) -> str:
     return " ".join(words)
 
 
+def _from_a_boat(held: Sequence[dict]) -> bool:
+    """UR1 G (user panel: "1 line (no limit while in a boat)" read as a contradiction): every circumstance is simply
+    being in a boat, so the main count is the one from shore."""
+    return bool(held) and all(e["circ"] == ["in_boat"] and not e["targeting_codes"] and not e["note"] for e in held)
+
+
+def lb_of(kg) -> str:
+    """UR1 G: a weight in kg with pounds in brackets, "1 kg (2.2 lb)"."""
+    return f"{kg} kg ({round(float(kg) * 2.20462, 1):g} lb)"
+
+
 def lines_says(main: dict, held: Sequence[dict]) -> str:
     """The Lines row in plain words, from the clauses that decide it (ROUND10 W4, design v12 "lines
     in a boat and out of a boat"): a stream "1 line (rod)" (ROUND11 A2: no ", in a boat too" where
     the boat changes nothing); a lake "1 line (rod); 2 while alone in a boat"; Kootenay Lake's main
     body "1 line (rod); no limit while in a boat"."""
     out = _lines_n(main["c"], True)
+    if _from_a_boat(held):                   # UR1 G: Kootenay Lake's main body "1 line (rod) from shore; no limit from a boat"
+        return out + " from shore" + "".join(f"; {_lines_n(e['c'], False)} from a boat" for e in held)
     for e in held:
         out += f"; {_lines_n(e['c'], False)} {_held_words(e)}"
     return out
@@ -302,10 +315,12 @@ def summary_sentence(parts: Dict[str, str]) -> str:
     hook = parts.get("hook")
     if hook == HOOK_WORDS[NO_HOOK_RESTRICTION]:
         hook = None
+    # UR1 G: lines said from shore and from a boat take "each with" their hook
+    w_ = ", each with " if "; " in body else " with "
     if hook:
-        body += (" with " if body else "") + hook
+        body += (w_ if body else "") + hook
     if parts.get("attach"):
-        body += f" ({parts['attach']})" if hook else (" with " if body else "") + parts["attach"]
+        body += f" ({parts['attach']})" if hook else (w_ if body else "") + parts["attach"]
     body = body.strip()
     out = (f"{parts['mode']}: {body}" if parts.get("mode") else body[:1].upper() + body[1:]) + "."
     if parts.get("weight"):
@@ -340,7 +355,13 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
         else:
             n = int(n) if float(n).is_integer() else n
             says = f"{n} line" if n == 1 else f"{n} lines"
-        if held:
+        if _from_a_boat(held) and not (c.get("unlimited") or n is None):
+            # UR1 G: "1 line from shore; any number from a boat"
+            says += " from shore" + "".join(
+                "; " + ("any number" if e["c"].get("unlimited") or e["c"].get("max") is None
+                        else _lines_n(e["c"], False) + (" line" if e["c"]["max"] == 1 else " lines")) + " from a boat"
+                for e in held)
+        elif held:
             says += " (" + "; ".join(f"{_lines_n(e['c'], False)} {_held_words(e)}" for e in held) + ")"
         add("lines", says, [L] + list(held))
     pts, barb = top("points_per_hook"), elems.get("barb:barbed")
@@ -365,7 +386,7 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
         if W is not None and W["c"].get("max") is not None:
             n = W["c"]["max"]
             n = int(n) if float(n).is_integer() else n
-            add("weight", f"weight on the line up to {n} kg", [W])
+            add("weight", f"weight on the line up to {lb_of(n)}", [W])          # UR1 G: "1 kg (2.2 lb)"
     return out
 
 

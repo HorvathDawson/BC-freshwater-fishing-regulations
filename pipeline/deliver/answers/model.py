@@ -580,7 +580,8 @@ class Bucket(Model):
 
 class NotKept(Model):
     """ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule —
-    "Steelhead: no fishing for them" (`status` closed), "Dolly Varden/bull trout: release every one"
+    "Steelhead: no fishing for them, not even catch and release — release any you hook by accident" (`status` closed,
+    UR1 F: the p.4 legend), "Dolly Varden/bull trout: release every one"
     (release); `by` the deciding rule (its Book page), `whose` "this river’s rule". Gate-proved.
     ROUND14 6: one line per status and deciding row, fish in the book's order ("Rainbow trout and
     cutthroat trout: release every one"), a group named with its members; `rules` every deciding rule
@@ -748,7 +749,7 @@ class TreeThen(Model):
 
 class TreeExtra(Model):
     """RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be
-    kept — "Only 1 of these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead"; `by` the cap letting
+    kept — "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead" (UR1 B); `by` the cap letting
     them past (Region 2's "2 over 50 cm" with steelhead). The extra kinds sit INSIDE the tier."""
     n: Positive
     species: Tuple[Fish, ...] = Field(min_length=1)
@@ -806,12 +807,13 @@ class TreeKind(Model):
 
 
 class TreeTier(Model):
-    """ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits — `tier` total ("4 a day across
-    Region 2, lakes included"), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
+    """ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits — `tier` total ("4 a day per angler
+    across Region 2, lakes included", UR1 A), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
     `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
-    this water by the tributary walk — and `line`), share ("2 a day from this stream (part of the 4)"), count ("1 between
-    cutthroat and rainbow trout") or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of these may be over 50 cm
-    (20 in) — or 2, if one is a hatchery steelhead": `over_cm`, `species` the kinds its cap
+    this water by the tributary walk — and `line`), share ("2 a day from this stream (part of the 4) — your hatchery
+    rainbow trout don’t use these 2", UR1 A: the fish a water's own rule lifts out of it), count ("1 cutthroat or
+    rainbow trout in all", UR1 D) or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of the fish in this box may
+    be over 50 cm (20 in) — 2 if one is a hatchery steelhead", UR1 B: `over_cm`, `species` the kinds its cap
     names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
     node: Literal["tier"]
     id: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
@@ -845,7 +847,7 @@ TreeTier.model_rebuild()
 
 class Header(Model):
     """ROUND18 4: the group's compact header — `says` the headline and the region's total in one line ("2 a day from
-    this stream · part of 4 a day across Region 2, lakes included"), `tag` None since ROUND19 1 (the kinds' names carry
+    this stream · part of 4 a day per angler across Region 2, lakes included"), `tag` None since ROUND19 1 (the kinds' names carry
     the origin)."""
     says: StrictStr = Field(min_length=1)
     tag: Optional[StrictStr]

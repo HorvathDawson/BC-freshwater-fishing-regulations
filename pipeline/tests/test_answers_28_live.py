@@ -76,7 +76,7 @@ def test_vedder_mouth_oct_10_card(built):
         "Keep hatchery fish only — wild trout and char go back.",
         "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
-        "No more than 4 trout and char a day across Region 2, lakes included.",
+        "No more than 4 trout and char a day per angler across Region 2, lakes included.",
         # ROUND12 2: the river's own bucket first
         "This river’s rule",
         "RB 4: counts toward the 4 a day",
@@ -85,7 +85,7 @@ def test_vedder_mouth_oct_10_card(built):
         "between them",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
-        "ST 2: 10 a year · stop fishing for the day after 2 · record each one on your licence"]
+        "ST 2: 10 a year · stop fishing for the day after 2 · write each one on your licence right away"]
     # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
     assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
         == "hatchery, any length, 50 cm or less"

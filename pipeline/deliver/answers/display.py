@@ -290,7 +290,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return wrap(f"Possession: {times}the daily quota{of} ({POSSESSION_HOME})")
     over = f" over {cm_in(mn['min_cm'])}" if mn else ""
     if _js(x.get("record_retention")):
-        return wrap(f"Record each {org}{sp}{over} on your licence right away")
+        return wrap(f"Write each {org}{sp}{over} on your licence right away")      # UR1 G
     if _js(x.get("unlimited")):
         return wrap(f"No daily limit for {sp}")
     if _is(take, 0):
@@ -394,7 +394,7 @@ def _title(x: dict) -> Optional[str]:
         return f"Possession: {times}the daily quota" + ("" if whole else f" of {fish(' and ')}")
     if _js(x.get("record_retention")):
         over = f" over {cm_in(mn['min_cm'])}" if mn else ""
-        return f"Record each {org}{fish(' or ')}{over} on your licence"
+        return f"Write each {org}{fish(' or ')}{over} on your licence right away"     # UR1 G
     if _js(x.get("unlimited")):
         return f"No daily limit on {org}{fish(' and ')}{frm}{tail}"
     if _is(take, 0) and not ln:

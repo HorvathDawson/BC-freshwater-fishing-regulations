@@ -9,7 +9,7 @@
      these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead"). The gate proves the placement.
   5  The boundary standard: "X or less" / "X or longer" hold X, "under X" / "over X" do not; a fish exactly at a cut
      belongs to the band whose words include it (table bands and cap kinds carry `from_in` / `to_in`).
-  6  "1 between cutthroat and rainbow trout"; "Keep hatchery fish only — wild trout and char go back."; replaces
+  6  "1 cutthroat or rainbow trout in all"; "Keep hatchery fish only — wild trout and char go back."; replaces
      names the fish ("for hatchery rainbow trout"); the nesting in the words ("2 a day from this stream (part of the
      4)").
 """
@@ -56,7 +56,7 @@ def test_2_lift_and_kept_elsewhere_lines_say_inches_in_brackets():
 # 1, 3, 6: the Vedder ---------------------------------------------------------------------------
 def test_3_the_vedder_tree():
     g, _o, _P = _g(F.VEDDER)
-    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day across Region 2, lakes included",
+    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included",
                            "tag": None}
     assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
     (total,) = g["tree"]
@@ -66,9 +66,10 @@ def test_3_the_vedder_tree():
     (rb,) = own["children"]
     assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == "2 a day from this stream (part of the 4)"
+    assert share["says"] == ("2 a day from this stream (part of the 4) — your hatchery rainbow trout don’t use these "
+                             "2")                                                     # UR1 A
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
-    assert size["says"] == "Only 1 of these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead"
+    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
     trout, dv, st = size["children"]
     assert trout["sentence"] == ("Of the 2 a day: up to 2 may be hatchery brook, brown or cutthroat trout, 30 cm (12 in) "
@@ -87,18 +88,18 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
     (own,) = g["tree"][0]["children"]
     assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
     size, count = own["children"]
-    assert size["says"] == "Only 1 of these may be over 50 cm (20 in)"
+    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
-    assert count["says"] == "1 between cutthroat and rainbow trout"     # ≤33 and ≤50 cm: never over 50
+    assert count["says"] == "1 cutthroat or rainbow trout in all"     # ≤33 and ≤50 cm: never over 50
     assert [k["sentence"] for k in count["children"]] == [
-        "Of the 1 between cutthroat and rainbow trout: up to 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
-        "Of the 1 between cutthroat and rainbow trout: up to 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]
+        "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
+        "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]
 
 
 def test_3_a_size_tier_spanning_tiers_wraps_them():
     g, _o, _P = _g(F.CLAKE)             # Chilliwack Lake's own Dolly Varden rule under Region 2's 1 over 50 cm
     (size,) = g["tree"][0]["children"]
-    assert size["says"] == "Only 1 of these may be over 50 cm (20 in)"
+    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
     assert [x.get("tier") or x["species"] for x in size["children"]] == ["own", ["EB", "GB", "CT", "RB"], ["LT"]]
 
 

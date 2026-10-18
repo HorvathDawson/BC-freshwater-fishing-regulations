@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "17",
+            "version": "18",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -375,14 +375,22 @@ SPEC = {
                     "a fish exactly at a cut belongs to the band whose words include it (\"X or less\" / \"X or "
                     "longer\" hold X, \"under X\" / \"over X\" do not). The gate proves every size tier's placement "
                     "(each kind under it may pass its size; its caps bind no kind outside it) and that each cut "
-                    "belongs to exactly one band",
+                    "belongs to exactly one band. Version 18 (UR1, user panel round 1): totals say \"per angler\" "
+                    "(\"4 a day per angler across Region 2, lakes included\", the header and `total_line` too); a share "
+                    "tier on a water whose own rule lifts kinds out of it names them (\"2 a day from this stream (part "
+                    "of the 4) — your hatchery rainbow trout don’t use these 2\"); a size tier says \"Only 1 of the fish "
+                    "in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead\" (draw it as a box); a "
+                    "count tier \"1 cutthroat or rainbow trout in all\" (a kind's sentence \"Of the 1 cutthroat or "
+                    "rainbow trout in all: …\"); a species closure \"Steelhead: no fishing for them, not even catch and "
+                    "release — release any you hook by accident\" (p.4 legend); the record duty \"write each one on "
+                    "your licence right away\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "9",
+            "version": "10",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
@@ -392,7 +400,10 @@ SPEC = {
                       "line with a single barbless hook (one hook, lure or fly). Weight up to 1 kg.\" — version 9, "
                       "ROUND13 G/P: no hook named when nothing restricts it (\"1 line (2 while alone in a boat) "
                       "with one hook, lure or fly.\"; the `hook` part stays in `parts`), \"weight on the line up "
-                      "to 1 kg\" — made from the count, hook, "
+                      "to 1 kg\" — version 10, UR1 G: the weight in kg and lb (\"weight on the line up to 1 kg "
+                      "(2.2 lb)\"); where the only circumstance is being in a boat, the lines part \"1 line from "
+                      "shore; any number from a boat\" (the sentence then \"…, each with one hook, lure or fly.\") "
+                      "and the Lines row \"1 line (rod) from shore; no limit from a boat\" — made from the count, hook, "
                       "barb, lure and weight answers; `terms` glossary ids for the ⓘ; `changes` the "
                       "other days of the year at this moment that read differently, in calendar "
                       "order: {when: \"May 1–31\", says: \"fly fishing only\"}), "
@@ -473,7 +484,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "13",
+            "version": "14",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -505,7 +516,8 @@ SPEC = {
                       "row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because "
                       "its row covers all its tributaries.\" (null elsewhere). Version 13 (ROUND19 2/5): rule titles "
                       "and sentences say sizes \"30 cm (12 in)\"; a slot \"none over 60 cm (24 in), under 90 cm (35 in)\" "
-                      "(the boundary standard, RULINGS P37)",
+                      "(the boundary standard, RULINGS P37). Version 14 (UR1 G): a record duty reads \"Write each "
+                      "hatchery steelhead on your licence right away\" (title and sentence)",
             "rules": "[{kind, title, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: `title` (version 12, ROUND16 3) every rule's effect in words, "
                      "generated from its fields (\"Release all steelhead\", \"Release lake trout, Oct 1–Nov 30\", "

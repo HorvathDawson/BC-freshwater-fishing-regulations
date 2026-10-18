@@ -6,7 +6,8 @@ inside. This module re-reads the card `card.card_of` has already worded and the 
 count groups, size groups and notes) as that tree; it decides nothing new.
 
   tier   {node: "tier", id, tier, n, says, by, children, …}
-         total  the group's total ("4 a day across Region 2, lakes included"; a water's own total by whose it is)
+         total  the group's total ("4 a day per angler across Region 2, lakes included", UR1 A; a water's own total by
+                whose it is)
          own    a water's own rule's bucket ("This river’s rule: up to 4 a day"), with `whose`, `replaces`
                 ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery rainbow
                 trout" — ROUND19 6: the fish by name), `why_here` when the rule reached this water by the
@@ -14,13 +15,14 @@ count groups, size groups and notes) as that tree; it decides nothing new.
                 three in one line); under the share where it holds share kinds to a smaller number, else under the
                 total
          share  the stream (lake) share ("2 a day from this stream (part of the 4)" — ROUND19 6: the nesting in
-                the words, wherever a tier holds fewer than the count tier around it)
-         count  a count over some of a tier's kinds, naming them ("1 between cutthroat and rainbow trout", ROUND19 6)
+                the words, wherever a tier holds fewer than the count tier around it; UR1 A: "— your hatchery rainbow
+                trout don’t use these 2", the fish a water's own rule lifts out of it)
+         count  a count over some of a tier's kinds, naming them ("1 cutthroat or rainbow trout in all", UR1 D)
          size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
                 size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
-                a kind that can never pass the size stays outside ("Only 1 of these may be over 50 cm (20 in)").
-                RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead INSIDE: "Only 1 of
-                these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead" (`extra` {n, species, by}),
+                a kind that can never pass the size stays outside ("Only 1 of the fish in this box may be over 50 cm
+                (20 in)", UR1 B). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
+                INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}),
                 and the steelhead's `size_note` says it counts toward the 1 ("it counts toward the 1 over 50 cm
                 (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"). A cap on one kind
                 row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (Region 2's
@@ -32,7 +34,7 @@ count groups, size groups and notes) as that tree; it decides nothing new.
          longer"), `also_counts` every cap no tier around it holds that still binds it, in words, and `sentence` the
          whole line, "of" the nearest COUNT tier around it (a size tier is no count): "Of the 2 a day: up to 2 may
          be hatchery brook, brown or cutthroat trout, 30 cm (12 in) or longer".
-  header {says, tag}: "2 a day from this stream · part of 4 a day across Region 2, lakes included"; `tag` None
+  header {says, tag}: "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included"; `tag` None
          (ROUND19 1: the kinds' names carry the origin).
 
 Sizes are said in cm with the inches in brackets, "50 cm (20 in)" (`common.cm_in`, ROUND19 2). Every number and
@@ -94,16 +96,21 @@ def kind_names(species: Sequence[str], steelhead: bool = False, conj: str = " or
 
 
 def _count_names(t: dict) -> str:
-    """ROUND19 6 (owner: "1 between them" must say who): the fish a count tier holds, "cutthroat and rainbow trout"."""
+    """ROUND19 6 (owner: "1 between them" must say who): the fish a count tier holds; UR1 D (user panel: "between"
+    read as each): "cutthroat or rainbow trout", said "1 cutthroat or rainbow trout in all"."""
     sp = list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]))
-    return kind_names(sp, conj=" and ")
+    return kind_names(sp, conj=" or ")
+
+
+def _count_says(t: dict) -> str:
+    return f"{_js(t['n'])} {_count_names(t)} in all"
 
 
 def _short(t: dict) -> str:
     """What a kind's sentence says it is "of" (its nearest COUNT tier): "the 2 a day", "the 1 between cutthroat and
     rainbow trout"."""
     if t["tier"] == "count":
-        return f"{_js(t['n'])} between {_count_names(t)}"
+        return _count_says(t)
     return "no daily limit" if t["n"] is None else f"{_js(t['n'])} a day"
 
 
@@ -182,7 +189,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     if c.unlimited:
         root = tier("total", None, c.head["says"], grp["pool"])
     elif zone:
-        root = tier("total", total, f"{_js(total)} a day across {scope}"
+        # UR1 A (user panel: "per angler or per group?"): the total is each angler's
+        root = tier("total", total, f"{_js(total)} a day per angler across {scope}"
                     + (f", {other} included" if said_total else ""), grp["pool"])
     else:
         # a water's (an area's) own total: whose it is, and why it applies here where the walk brought it
@@ -210,6 +218,11 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             kn["_hi"] = max((b_ for _a, b_ in segs), default=0)
             kn["_origins"] = os_
             kn["_origin"] = os_[0] if len(os_) == 1 and k["n"] != 0 else None
+
+    # UR1 A: the fish a water's own rule lifts out of the share, by name ("hatchery rainbow trout")
+    lifted_names = list(dict.fromkeys(kind_names(node_of[id(k)]["species"], k["name"] == "Steelhead",
+                                                 origin=node_of[id(k)]["_origin"])
+                                      for b in c.lifting for k in kind_rows(b) if k["n"] != 0))
 
     def can_pass(kn: dict, cm) -> bool:
         """The kind may be kept over the size here (ROUND19 3: a size tier holds exactly these)."""
@@ -342,8 +355,9 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         cn = count_of(parents(), box)["n"]
         if extra is None and cn is not None and sz["n"] >= cn:
             continue
+        # UR1 B (user panel: "which these?"): the fish in the tier's box (the page draws a size tier as a box)
         n_w = "None" if not sz["n"] else f"Only {_js(sz['n'])}"
-        says = f"{n_w} of these may be over {common.cm_in(cm)}"
+        says = f"{n_w} of the fish in this box may be over {common.cm_in(cm)}"
         for th in sz.get("then") or []:
             says += f", and {'none' if not th['n'] else 'only ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
         who = f"{st['_origin']} steelhead" if st is not None and st["_origin"] else "steelhead"
@@ -353,7 +367,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if not n0:
                 says += f" — except {_js(e)} {who}"
             else:
-                says += f" — or {_js(n0 + e)}, if " + (f"one is a {who}" if e == 1 else f"{_js(e)} are {who}")
+                says += f" — {_js(n0 + e)} if " + (f"one is a {who}" if e == 1 else f"{_js(e)} are {who}")
             extra["by"] = ex_by
         st_ = tier("size", sz["n"], says, sz["by"], over_cm=_num(cm), species=list(sz["species"]),
                    then=[{"n": th["n"], "over_cm": th["over_cm"]} for th in sz.get("then") or []], extra=extra)
@@ -424,9 +438,13 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             up = count_of(par, p)
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
                 t["says"] += f" (part of the {_js(up['n'])})"
+    # UR1 A (user panel: do the 4 hatchery rainbows count toward the 2?): the share says the fish a water's own rule
+    # lifts out of it don't use it
+    if share_t is not None and lifted_names and share_t["n"] is not None:
+        share_t["says"] += f" — your {common.join(lifted_names, ' and ')} don’t use these {_js(share_t['n'])}"
     for t, p in walk([root]):
         if t["node"] == "tier" and t["tier"] == "count":
-            t["says"] = f"{_js(t['n'])} between {_count_names(t)}"
+            t["says"] = _count_says(t)
     for x, p in walk([root]):
         if x["node"] != "kind":
             continue
@@ -444,7 +462,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
 
     head = c.head["says"]
     if said_total and zone:
-        head += f" · part of {_js(total)} a day across {scope}, {other} included"
+        head += f" · part of {_js(total)} a day per angler across {scope}, {other} included"
     # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
     header = {"says": head, "tag": None}
     return [root], header

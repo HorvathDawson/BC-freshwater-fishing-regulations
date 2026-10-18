@@ -90,6 +90,9 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
             # ROUND19 2 (owner): every size reads "50 cm (20 in)" — the page said cm only
             from pipeline.deliver.answers.common import cm_in
             want = dict(want, plain=re.sub(r"(\d+(?:\.\d+)?) cm\b", lambda m: cm_in(float(m[1])), want["plain"]))
+        if want["plain"]:
+            # UR1 G (user panel): "Write each … on your licence right away" — the page said "Record each"
+            want = dict(want, plain=want["plain"].replace("Record each", "Write each").replace("record each", "write each"))
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]

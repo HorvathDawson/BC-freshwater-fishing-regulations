@@ -258,7 +258,11 @@ def _sections() -> Tuple[Section, ...]:
         # `size_note`, the tier "Only 1 of these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead";
         # the origin in the fish's names; sizes "50 cm (20 in)"; table bands and cap kinds `from_in`/`to_in` (the
         # boundary standard); "1 between cutthroat and rainbow trout"; "(part of the 4)"; replaces names the fish)
-        Section("rows", 17, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # UR1 A/B/D/F/G (user panel round 1): rows 18 (totals "per angler"; the share names the lifted fish that don't
+        # use it; a size tier "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery
+        # steelhead"; a count tier "1 cutthroat or rainbow trout in all"; a species closure "no fishing for them, not
+        # even catch and release — release any you hook by accident"; duty "write each one on your licence right away")
+        Section("rows", 18, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -266,7 +270,9 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND12 5: gear 8 (`summary.says` with no em dash: "1 line with a single barbless hook (one
         # hook, lure or fly). Weight up to 1 kg."; the weight part "weight up to 1 kg")
         # ROUND13 G/P: gear 9 (no hook named without a hook restriction; "weight on the line up to 1 kg")
-        Section("gear", 9, gear.section_scope, prepare=gear.section_prepare,
+        # UR1 G: gear 10 (weight "1 kg (2.2 lb)"; a boat lifting the line count "1 line from shore; any number from a
+        # boat", the Lines row "1 line (rod) from shore; no limit from a boat")
+        Section("gear", 10, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
         # ROUND16 4: licence 6 (the under-16 answers say the book's p.6: a resident needs nothing, fishes alone and
@@ -289,7 +295,8 @@ def _sections() -> Tuple[Section, ...]:
         # nearer row prints no such exemption, RULINGS T15)
         # ROUND19 2/5: display 13 (rule titles and sentences say sizes "50 cm (20 in)"; a slot "none over 60 cm
         # (24 in), under 90 cm (35 in)")
-        Section("display", 13, display.section_scope, prepare=display.section_prepare,
+        # UR1 G: display 14 (a record duty "Write each … on your licence right away")
+        Section("display", 14, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

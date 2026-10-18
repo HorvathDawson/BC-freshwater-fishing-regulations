@@ -4,7 +4,7 @@
      ("none under 25 cm and all cutthroat trout catch and release") is "catch and release", never
      "25 cm or longer"; a kind keeping some keeps its size words.
   S  a species the card's row holds but nobody may keep is SAID on the card (`group.not_kept`), whose rule
-     with it (the page cites its Book page): "Steelhead: no fishing for them" (Bella Coola r13, undated;
+     with it (the page cites its Book page): "Steelhead: no fishing for them, not even catch and release — release any you hook by accident" (Bella Coola r13, undated;
      the Fraser above Mission's r5, Aug 15-Dec 31 — not on Jul 15). The gate proves none may be kept.
   G  `gear.summary.says` names no hook when there is no hook restriction ("any hook" is gone); "a single
      barbless hook" stays. P: the weight is "weight on the line".
@@ -62,14 +62,14 @@ def test_z_a_kind_keeping_some_keeps_its_size_words():
 # S ---------------------------------------------------------------------------------------------
 def test_s_an_undated_species_closure_is_said_on_the_card():
     g, _o, _P = _group(F.BELLA)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them",
+    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
                               "by": F.BELLA_ST, "rules": [F.BELLA_ST], "whose": "this river’s rule",
                               "presence": KNOWN}]                                   # ROUND14 4/6
 
 
 def test_s_a_dated_species_closure_is_said_on_its_dates_only():
     g, _o, _P = _group(F.FRASER)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them",
+    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
                               "by": F.FRASER_ST, "rules": [F.FRASER_ST], "whose": "this river’s rule",
                               "presence": KNOWN}]                                   # ROUND14 4/6
     g, _o, _P = _group(F.FRASER, JUL15)
@@ -94,10 +94,10 @@ def test_g_no_hook_clause_without_a_hook_restriction():
     okanagan = R11._rules("lake")["summary"]["says"]
     kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
     cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
-    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg."
-    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg."
-    assert kootenay == ("1 line (no limit while in a boat) with one hook, lure or fly. "
-                        "Weight on the line up to 1 kg.")
+    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
+    assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb)."
+    assert kootenay == ("1 line from shore; any number from a boat, each with one hook, lure or fly. "
+                        "Weight on the line up to 1 kg (2.2 lb).")              # UR1 G
     assert cowichan == ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, sinker or "
                         "attracting device.")
     assert not any("any hook" in s for s in (vedder, okanagan, kootenay, cowichan))

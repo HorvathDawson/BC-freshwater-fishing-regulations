@@ -136,7 +136,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     # answers 2.8: the card is water-first (headline, lifts, total line; test_answers_28_card.py)
     assert g["headline"]["says"] == "2 a day from this stream"
     assert [L["says"] for L in g["lifts"]] == [VEDDER_LIFT]
-    assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
+    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
     # ROUND12 4: the examples are the card's one list; the stream-tally one is the worked keep-N count
     # read backwards, so the lifted water drops it

@@ -69,7 +69,7 @@ def test_a_lift_is_said_positively_naming_whose_rule_with_its_book_page():
         "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them."]
     assert g["lifts"][0]["by"] == F.LIFT                      # the page cites its Book p.22 from it
-    assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
+    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     assert not any("doesn’t apply" in t or "don’t count" in t for t in _card_text(g, None))
     assert _g(F.STREAM)["lifts"] == [] and _g(F.LAKE)["lifts"] == []
 

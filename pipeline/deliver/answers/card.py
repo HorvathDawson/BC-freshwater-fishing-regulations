@@ -232,7 +232,7 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
         if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
             w = f"{_js(r.f['take'])} a year"
         elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            w = "record each one on your licence"
+            w = "write each one on your licence right away"          # UR1 G (user panel: plain words)
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
             w = f"stop fishing for the day after {_js(n)}"
         else:
@@ -521,7 +521,10 @@ def _not_kept(P, model: dict, row: dict, kinds: Sequence[str]) -> List[dict]:
             x["rules"].append(m["win"].key)
     for x in out.values():
         name = "Steelhead" if x["species"] == ["ST"] and P.steelhead_water else _named_with_members(x["species"])
-        x["says"] = f"{name}: " + ("no fishing for them" if x["status"] == "closed" else "release every one")
+        # UR1 F (user panel: may I catch and release?): the book's p.4 legend — "you may not deliberately fish for the
+        # species named even if your intention is to release … If you accidentally catch [one], you must release it"
+        x["says"] = f"{name}: " + ("no fishing for them, not even catch and release — release any you hook by accident"
+                                   if x["status"] == "closed" else "release every one")
     return [{"species": x["species"], "status": x["status"], "says": x["says"], "by": x["by"],
              "rules": x["rules"], "whose": x["whose"]} for x in out.values()]
 
@@ -662,7 +665,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         wk = share["water"] if share is not None else ("stream" if P.kind == "stream" else "lake")
         other = "lakes" if wk == "stream" else "streams"
         scope = T.x.get("entry_name") or "the region"
-        total_line = f"No more than {_js(total)} {what} a day across {scope}, {other} included."
+        total_line = f"No more than {_js(total)} {what} a day per angler across {scope}, {other} included."   # UR1 A
         states.append({"r": grp["pool"], "line": "total"})
 
     # -- buckets and kind rows -------------------------------------------------------------------

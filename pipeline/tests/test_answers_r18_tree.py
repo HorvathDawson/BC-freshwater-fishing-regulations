@@ -48,7 +48,7 @@ def test_2_sizes_in_cm_and_inches():
 def test_1_the_vedder_tree():
     g, _o, _P = _tree(F.VEDDER)
     (total,) = g["tree"]
-    assert (total["tier"], total["n"], total["says"]) == ("total", 4, "4 a day across Region 2, lakes included")
+    assert (total["tier"], total["n"], total["says"]) == ("total", 4, "4 a day per angler across Region 2, lakes included")
     own, share = total["children"]
     assert (own["tier"], own["n"], own["says"]) == ("own", 4, "This river’s rule: up to 4 a day")
     assert own["why_here"] is None
@@ -59,7 +59,7 @@ def test_1_the_vedder_tree():
     trout, _dv, st = size["children"]
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert st["duties"] == ["10 a year", "stop fishing for the day after 2", "record each one on your licence"]
+    assert st["duties"] == ["10 a year", "stop fishing for the day after 2", "write each one on your licence right away"]
     assert st["presence"]["line"] == "known_with_rules"
 
 
@@ -85,7 +85,7 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
 def test_4_a_compact_header():
     g, _o, _P = _tree(F.VEDDER)
     # ROUND19 1/6: the nesting in the words; the kinds' names carry the origin, the tag does not
-    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day across Region 2, lakes included",
+    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included",
                            "tag": None}
     g, _o, _P = _tree(F.LAKE)
     assert g["header"]["says"] == "4 a day"
@@ -131,7 +131,7 @@ def test_the_gate_refuses_a_wrong_tree():
     def sizes(g):
         g["tree"][0]["children"][0]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
     def header(g):
-        g["header"]["says"] = g["header"]["says"].replace("4 a day across", "5 a day across")
+        g["header"]["says"] = g["header"]["says"].replace("4 a day per angler across", "5 a day per angler across")
     def over_count(g):                                             # a kind past the count tier around it
         g["tree"][0]["children"][1]["n"] = 1
     for fn in (tier_n, size_extra, twice, words, sizes, header, over_count):

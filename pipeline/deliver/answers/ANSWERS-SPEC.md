@@ -98,6 +98,26 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## UR1 (2026-10-17) — rows 18, gear 10, display 14: user panel round 1, small wording fixes
+
+Six angler personas read v21 screenshots (USER-ROUNDS round 1); only wording changed, no shape.
+
+- **A** a total says whose it is: "4 a day per angler across Region 2, lakes included" (the tree's total tier, the
+  header's "· part of 4 a day per angler across …", `total_line`). On a water whose own rule lifts kinds out of the
+  stream (lake) share, the share tier names them: "2 a day from this stream (part of the 4) — your hatchery rainbow
+  trout don’t use these 2" (the lifting buckets' kept kinds, by name and origin).
+- **B** a size tier: "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
+  ("None of the fish in this box …"; "— except N <steelhead>" at 0). The page draws a size tier as a box.
+- **D** a count tier: "1 cutthroat or rainbow trout in all"; its kinds' sentences "Of the 1 cutthroat or rainbow trout
+  in all: …".
+- **F** a species closure (`not_kept`, status closed) says the p.4 legend's "No fishing for": "Steelhead: no fishing for
+  them, not even catch and release — release any you hook by accident".
+- **G** the record duty "write each one on your licence right away" (kind `duties`; display titles and sentences
+  "Write each hatchery steelhead on your licence right away"); weight "weight on the line up to 1 kg (2.2 lb)"
+  (`gear.lb_of`); where every circumstance of the line count is simply being in a boat, the lines part reads "1 line from
+  shore; any number from a boat" (the sentence "…, each with one hook, lure or fly.") and the Lines row "1 line (rod)
+  from shore; no limit from a boat" (Kootenay Lake's main body). "While alone in a boat" is unchanged.
+
 ## ROUND19 (2026-10-17) — rows 17, display 13: a size tier holds what it caps, the origin with the fish, "50 cm (20 in)", the boundary standard, tiers that say their nesting
 
 Owner review of v20 (ROUND19 1, 2, 3, 5, 6; item 4 is the page's); RULINGS P34-P38 (P31's placement and P30's

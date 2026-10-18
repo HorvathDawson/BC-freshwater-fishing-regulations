@@ -177,4 +177,4 @@ def test_w4_a_lake_says_two_while_alone_in_a_boat():
 
 def test_w4_kootenay_lake_cites_its_boat_rule():
     L = _lines("lake", kootenay=True)
-    assert (L["says"], L["cites"]) == ("1 line (rod); no limit while in a boat", [PROVINCE, KOOTENAY])
+    assert (L["says"], L["cites"]) == ("1 line (rod) from shore; no limit from a boat", [PROVINCE, KOOTENAY])

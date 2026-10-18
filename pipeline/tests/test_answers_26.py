@@ -175,7 +175,7 @@ def test_the_group_lead_says_the_total_and_the_stream_share_of_it_all(built):
     rows = at(built, VEDDER, "mouth", (10, 10), "rows")["rows"]
     g = next(r["group"] for r in rows if r.get("group") and r["group"]["total"] == 4)
     assert g["headline"]["says"] == "2 a day from this stream"
-    assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
+    assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     M.GroupTotal.model_validate_json(json.dumps(g))
 
 

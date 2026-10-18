@@ -135,7 +135,7 @@ def test_6_same_status_same_row_is_one_line_in_the_books_order():
 def test_6_a_group_is_said_with_its_members():
     g, _o, _P = _group(F.BELLA_TRIB, OCT10)
     assert [(x["species"], x["says"]) for x in g["not_kept"]] == [
-        (["ST"], "Steelhead: no fishing for them"),
+        (["ST"], "Steelhead: no fishing for them, not even catch and release — release any you hook by accident"),
         (["DV", "LT", "EB"], "Char (Dolly Varden/bull trout, lake trout and brook trout): release every one")]
 
 
