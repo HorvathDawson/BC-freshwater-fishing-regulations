@@ -175,6 +175,13 @@ const SCREENS = [
   ['143-tree-kootenay-lwa', 'w=klwa&d=1010&at=.qtree'],
   ['144-dark-tree-vedder', `${V}&theme=dark&at=.qtree`],
   ['145-text-200-tree-vedder', `${V}&ts=2&at=.qtree`],
+  // round 19 (owner 4): the label two lines at a fixed height (full label when it fits, else the short one), the map /
+  // parts action a compact button on the name's row
+  ['146-header-chilliwack-part2-two-lines', 'w=chilliwack&d=1010&p=1'],
+  ['147-header-chilliwack-part1-full-label', 'w=chilliwack&d=1010&p=0'],
+  ['148-header-kootenay-lwa-whole-water', 'w=klwa&d=1010'],
+  ['149-header-west-road-long-name', 'w=x27p&d=1010'],
+  ['150-header-text-200-chilliwack-part2', 'w=chilliwack&d=1010&p=1&ts=2'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

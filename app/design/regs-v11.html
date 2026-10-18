@@ -496,6 +496,21 @@ button.hplace:active .pl{color:var(--accent)}
 .hdr .r2{padding-top:0}.segm[role=tablist] button{min-height:34px}
 .orow .plong{display:block;margin-top:2px;font-size:var(--t4);color:var(--sub);line-height:1.3}
 .ts2 .hplace{flex-wrap:wrap}
+/* round 19 (owner 4): the header keeps ONE fixed size, but the part's label gets TWO lines of its own at a fixed height
+   (the full label when it fits, else the data's short label, clamped only if longer still) and the full width: the map /
+   parts action moves to the name's row as a compact 44 px button; the date stacks its day over its date to make room */
+.r1{height:3rem;min-height:0;padding:0 8px 0 4px;gap:8px}
+.ttl b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.15}
+.hdate{flex:0 0 auto;padding:0 6px}.hdate .hd2{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+.hdate .hd2 b{font-weight:800}.hdate .hd2 span{font-weight:600;color:var(--sub)}
+.r1 .hdate > span.hd2:last-child::after{content:none}.hdate .hd2 b::after{content:" ▾";font-size:10px}
+/* 200% text: the header is static (scrolls away), so the name's row and the label grow; the map button keeps its icon */
+.ts2 .r1{height:auto;min-height:52px}.ts2 .hgo > span{display:none}.ts2 .ttl b{overflow-wrap:anywhere}
+.ts2 .hplace .pl{-webkit-line-clamp:unset;height:auto}
+.hgo{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:44px;min-height:44px;padding:0 4px;color:var(--accent);font:700 var(--t4)/1.1 Archivo,sans-serif}
+.hgo svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.hplace{display:block;padding:0 12px 6px 56px;margin-top:-2px;min-height:0}
+.hplace .pl{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;width:100%;height:2.6em;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
 /* v13 (round 11, owner 2): the bucket's number big; one-line kind rows; the bucket's size note */
 .bkhd{padding:8px 0 2px;border-top:1px solid var(--line2)}
 /* persona (round 11): the kinds under a shared number read as belonging to it — one rail down the bucket */
@@ -778,19 +793,26 @@ function shortLabel(){ const st = ST(), o = st.parts.find(x => x.v === st.part),
   const g = WATERS[S.w].map && WM.waters[WATERS[S.w].map];
   if (g) { const p = g.parts[curPart()]; return uncut(p.short) || p.name; }
   return ''; }
-function placeRow(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], lbl = shortLabel() === st.name ? '' : shortLabel();   // a whole water: its name is the title already
-  const many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1, full = hereLabel() || lbl;
-  // round 18 (owner 6): the label and the action share ONE line (the whole line is the button); a whole water with nowhere
-  // to go: no line at all
-  const inner = lbl ? `<span class="pl" data-place title="${esc(full)}">${esc(lbl)}</span>` : '';
-  if (hasMap) return `<button class="hplace" type="button" data-map="1" aria-label="Where these rules apply: ${esc(full || st.name)}. View on map">${inner}<span class="pgo">View on map ›</span></button>`;
-  if (many) return `<button class="hplace" type="button" data-open="parts" aria-label="Where these rules apply: ${esc(full || st.name)}. Other parts">${inner}<span class="pgo">Other parts ›</span></button>`;
-  return inner ? `<div class="hplace">${inner}</div>` : ''; }
+/* round 19 (owner 4): the label is TWO lines at a fixed height with the header's full width — the full label (the map's
+   title words) when it fits in two lines, else the data's short label, clamped only if longer still (fitLabel picks after
+   layout); a whole water keeps the empty slot so the header is one size everywhere. The action is a compact button on the
+   name's row */
+function placeRow(){ const st = ST(), lbl = shortLabel() === st.name ? '' : shortLabel(), full = hereLabel() || lbl;
+  return `<div class="hplace">${lbl ? `<span class="pl" data-place data-full="${esc(full)}" data-short="${esc(lbl)}" title="${esc(full)}">${esc(lbl)}</span>` : '<span class="pl" aria-hidden="true"></span>'}</div>`; }
+function placeGo(){ const st = ST(), w = WATERS[S.w], hasMap = w.map && WM.waters[w.map], many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
+  const full = hereLabel() || (shortLabel() === st.name ? '' : shortLabel());
+  if (hasMap) return `<button class="hgo pgo" type="button" data-map="1" aria-label="View on map: where these rules apply${full ? ', ' + esc(full) : ''}"><svg viewBox="0 0 23 23" aria-hidden="true"><path d="M2.5 5.5 8 3l7 2.5 5.5-2.5v15L15 20.5 8 18l-5.5 2.5Z"/><path d="M8 3v15"/><path d="M15 5.5v15"/></svg><span>Map</span></button>`;
+  if (many) return `<button class="hgo pgo" type="button" data-open="parts" aria-label="Other parts${full ? ' — now ' + esc(full) : ''}"><svg viewBox="0 0 23 23" aria-hidden="true"><path d="M4 6h15M4 11.5h15M4 17h15"/></svg><span>Parts</span></button>`;
+  return ''; }
+function fitLabel(){ const pl = document.querySelector('#hdr [data-place]'); if (!pl) return;
+  const fits = t => { pl.textContent = t; pl.style.webkitLineClamp = 'unset'; pl.style.height = 'auto'; const lh = parseFloat(getComputedStyle(pl).lineHeight);
+    const ok = pl.getBoundingClientRect().height <= lh * 2 + 1; pl.style.webkitLineClamp = ''; pl.style.height = ''; return ok; };
+  if (!fits(pl.dataset.full)) pl.textContent = pl.dataset.short; }
 function hdr(){
   const st = ST(), k = statusOf(st), col = k === 'closed' ? '--closed' : k === 'open' ? '--open' : '--faint';
   return `<div class="hdr" id="hdr"><div class="r1"><button class="back" aria-label="Back to search" data-toast="Back to the app’s Search">‹</button>
       <div class="ttl"><b>${esc(st.name)}</b></div>
-      <button class="pill hdate" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span>${S.d === 1010 ? 'Today' : wday(S.d)} · ${fmt(S.d)}</span></button></div>
+      <button class="pill hdate" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span class="hd2"><b>${S.d === 1010 ? 'Today' : wday(S.d)}</b><span>${fmt(S.d)}</span></span></button>${placeGo()}</div>
     ${placeRow()}
     <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div></div>
     </div>`;
@@ -1241,7 +1263,7 @@ function render(keep){
   if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}|${S.br}|${S.bj}`, keepVB = MV.vb;
     if (!keepVB) mapOpened(); else { setVB(keepVB); if (MV.key !== key) ease(targetBox()); } MV.key = key; }
   else { MV.vb = null; MV.key = null; }
-  sc.scrollTop = keep ? prev : S.scroll; mini();
+  fitLabel(); sc.scrollTop = keep ? prev : S.scroll; mini();
   poster();
 }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
@@ -1446,7 +1468,7 @@ function mapOpened(){ MV.vb = null; setVB(targetBox()); }
   document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
   document.addEventListener('wheel', e => { if (!e.target.closest('#mcanvas') || !MV.vb) return; e.preventDefault();
     const [cx, cy] = at(e); zoom(Math.exp(e.deltaY * 0.0015), cx, cy); }, {passive: false});
-  addEventListener('resize', () => { if (+S.map) setVB(targetBox()); });
+  addEventListener('resize', () => { fitLabel(); if (+S.map) setVB(targetBox()); }); document.fonts?.ready.then(fitLabel);
 })();
 /* swipe back from the left edge closes the water map */
 (() => { let x0 = null; $('wmap').addEventListener('pointerdown', e => { if (e.clientX - $('wmap').getBoundingClientRect().left < 24) x0 = e.clientX; });

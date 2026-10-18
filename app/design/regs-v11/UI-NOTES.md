@@ -1,3 +1,20 @@
+# regs v21 (round 19, owner review of v20) — in place on regs-v11.html
+
+- **4 Header: the label gets two lines (checkpoint).** The header keeps ONE fixed size (117.5 px on every state, Chilliwack
+  part 2 to Kootenay LWA; 103 before, the second line costs ~15 px) but the part's label is no longer cut to "…": it has TWO
+  lines at a fixed height and the header's full width under the name. It is the FULL label (the map's title words, "From the
+  Vedder Crossing Bridge up to the Tamihi Rapids Bridge") when that fits in two lines, else the data's short label ("Tamihi
+  Rapids Bridge → 100 m below the Slesse Creek confluence", Chilliwack part 2), clamped only if longer still (`fitLabel`
+  measures after layout, on font load and resize). A whole water keeps the empty slot so the size never changes. "View on
+  map ›" left the label's line: a compact 44 px Map button (the app's Map tab icon over "Map"; "Parts" with no map) at the
+  right end of the name's row, its aria-label "View on map: where these rules apply, <full label>". The date stacks its day
+  over its date ("Today ▾ / Oct 10") to make room; a long name wraps to two lines inside the row (West Road (Blackwater)
+  River). At 200% text the header is static, so the row and label grow and the button is its icon. Check
+  `header-label-two-lines` (10 states: label = full if a clone measures ≤ 2 lines, else short; not overflowing; a 2-line
+  box; one header height; the action ≥ 44 px on the name's row, off the label's line; the label ≥ header width − 72 px);
+  `header-compact`, `place-in-header`, `header-one-shape` read the new places. Fail-before: scratchpad
+  r19-4-check-before.txt. Screens 146-150. Full suite 59/59.
+
 # regs v20 (round 18, owner review of v19) — in place on regs-v11.html
 
 - **Phase 2 — the quota as FOLDERS (rows 16 `group.tree`; page v36 @ 728ea2eb re-snapped, 134 states; oracle 18 groups,

@@ -18,6 +18,7 @@
 //   (round 18) phone-real-height, header-compact, group-head-compact (place-in-header: the action now beside the label);
 //   phase 2 (group.tree): tree-folders, own-tier-why-here; card-is-the-caps walks the tree; the bucket-display checks retired;
 //   ONLY=18 runs just these
+//   (round 19) header-label-two-lines (header-compact: the label two lines, the action on the name's row; ≤ 120 px); ONLY=19
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -72,6 +73,7 @@ const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
 // ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+if (process.env.ONLY === '19') { await round19(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '18') { await round18(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 
 // 2–4. on the Vedder, Oct 10, with the Line & hooks topic showing (v10 opens it with kit=line; v11 shows everything)
@@ -195,17 +197,17 @@ await page('w=vedder&d=1010', async b => {
         : hasMap ? [uncut(WM.waters[w.map].parts[curPart()].short), WM.waters[w.map].parts[curPart()].name].filter(Boolean) : [];
       const act = hasMap ? hdr.querySelector('[data-map]') : many ? hdr.querySelector('[data-open="parts"]') : null;
       const r = place?.getBoundingClientRect(), hr = hdr.getBoundingClientRect();
-      // round 12: the label is a line of its own under the name; round 18 (owner 6): ONE line, the action beside it on that
-      // line (header-compact) — measured before the map opens, which re-renders the header
+      // round 12: the label is a line of its own under the name; round 19 (owner 4): the action OFF the label's line, on the
+      // name's row at its right end (header-label-two-lines) — measured before the map opens, which re-renders the header
       const own = !txt || (() => { const a = hdr.querySelector('.pgo') || act, w = hdr.querySelector('.ttl b').getBoundingClientRect(), ar = a?.getBoundingClientRect();
-        return Math.abs(r.left - w.left) < 2 && (!ar || (ar.top < r.bottom && ar.bottom > r.top && hr.right - ar.right < 20)); })();
+        return Math.abs(r.left - w.left) < 2 && (!ar || (!(ar.top < r.bottom && ar.bottom > r.top) && ar.top < w.bottom && ar.bottom > w.top && hr.right - ar.right < 20)); })();
       let title = ''; if (hasMap && act) { act.click(); await new Promise(r => setTimeout(r, 300)); title = norm(document.querySelector('#wmap .mh')?.textContent); }
       return JSON.stringify({hash: location.hash.slice(8), kind: st.kind, name: norm(hdr.querySelector('.ttl b')?.textContent) === st.name, txt, labels,
         // round 12 (owner 1 + 4): no kind ("stream ·"): the place is the part's label itself, nothing for a whole water
         label: txt ? labels.includes(txt) : !labels.length || labels.includes(st.name), lead: txt !== st.kind && !txt.startsWith(st.kind + ' · '),
         own,
         count: /\\b\\d+ sections?\\b/.test(norm(hdr.textContent)), visible: !!r && r.height > 0 && r.top >= hr.top && r.bottom <= hr.bottom,
-        act: hasMap ? !!act && /view on map/i.test(act.textContent) && /where these rules apply/i.test(title) : many ? !!act && /other parts/i.test(act.textContent) : true,
+        act: hasMap ? !!act && /view on map/i.test(act.getAttribute('aria-label') || act.textContent) && /where these rules apply/i.test(title) : many ? !!act && /other parts/i.test(act.getAttribute('aria-label') || act.textContent) : true,
         date: !!hdr.querySelector('[data-open="date"]'), mapbtn: document.querySelectorAll('.mapbtn').length,
         row: [...document.querySelectorAll('#sc > .where, [data-map], [data-open="parts"]')].filter(e => !document.getElementById('hdr').contains(e) && !document.getElementById('wmap').contains(e) && !document.getElementById('sheet').contains(e) && !e.closest('.poster')).length,
         strip: document.getElementById('sc').querySelectorAll('.parts, [data-part]').length}); })()`)));
@@ -444,7 +446,7 @@ check('gear-sentence-plain', !gd.length, gd.map(([w, r]) => `${w}: ${JSON.string
 const H13 = [];
 for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=0', 'w=x14p&d=1010&p=1', 'w=cowichan&d=1010&p=1']) await page(hash, async b => {
   H13.push(JSON.parse(await b.evaluate(`(async () => { const sc = document.getElementById('sc'), raf = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const look = () => { const h = document.getElementById('hdr'), go = [...h.querySelectorAll('.pgo')].find(e => /View on map/.test(e.textContent));
+    const look = () => { const h = document.getElementById('hdr'), go = [...h.querySelectorAll('.pgo')].find(e => /View on map/.test(e.getAttribute('aria-label') || e.textContent));
       const tl = h.querySelector('[role=tablist]');
       return {h: Math.round(h.getBoundingClientRect().height), cls: h.className, text: h.textContent.replace(/\\s+/g, ' ').trim(),
         map: !!(go && go.offsetHeight > 0 && getComputedStyle(go).display !== 'none'), tabs: tl ? Math.round(tl.getBoundingClientRect().height) : -1}; };
@@ -948,6 +950,7 @@ const cc17 = CC17.filter(x => x.bad.length || !x.nums);
 check('card-is-the-caps', CC17.length === R17.length && !cc17.length, cc17.map(x => `${x.at}: ${x.nums} numbers; ${x.bad.slice(0, 6).join(' | ')}`).join('; '));
 
 await round18();
+await round19();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -986,8 +989,10 @@ async function round18(){
       const pl = hdr.querySelector('[data-place]'), pr = R(pl), act = hdr.querySelector('.pgo'), ar = R(act), lh = pl ? parseFloat(getComputedStyle(pl).lineHeight) : 0;
       const txt = norm(pl?.textContent), tl = R(hdr.querySelector('[role=tablist]'));
       const res = {hash: location.hash.slice(8), h: Math.round(R(hdr).height), dateInline: !!nm && !!dt && dt.top < nm.bottom && dt.bottom > nm.top,
-        txt, want, oneLine: !txt || (pr.height <= lh * 1.5 && getComputedStyle(pl).whiteSpace === 'nowrap'), label: !want || want === st.name ? !txt : txt === want,
-        actInline: !txt || (!!ar && ar.top < pr.bottom && ar.bottom > pr.top), tabs: tl ? Math.round(tl.height) : -1};
+        // round 19 (owner 4): the label TWO lines at a fixed height, the full label or the short one (which, header-label-two-
+        // lines); the action on the name's row
+        txt, want, oneLine: !txt || pr.height <= lh * 2.5, label: !want || want === st.name ? !txt : (txt === want || txt === long),
+        actInline: !ar || (ar.top < nm.bottom && ar.bottom > nm.top), tabs: tl ? Math.round(tl.height) : -1};
       let full = '';
       if (txt && txt !== long) { const go = hdr.querySelector('[data-map]') || hdr.querySelector('[data-open="parts"]'); go?.click(); await new Promise(r => setTimeout(r, 350));
         full = norm((document.querySelector('#wmap.on .mh') || document.querySelector('#sheet'))?.textContent); }
@@ -1075,4 +1080,36 @@ async function round18(){
   check('tree-folders', TR.length === TRS.length && !trb.length, trb.map(x => `${x.hash}: ${x.tiers} tiers ${x.kinds} kinds; ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
   const ow = TR.flatMap(x => x.own.map(o => ({...o, hash: x.hash}))), owb = ow.filter(o => !o.book || (o.why && !o.sub.toLowerCase().includes(o.why.toLowerCase())) || (o.repl && !o.sub.includes(o.repl)));
   check('own-tier-why-here', ow.some(o => o.hash.includes('glenn') && o.why) && !owb.length, JSON.stringify(owb.slice(0, 3)));
+}
+
+// ---------- round 19 ----------
+async function round19(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (4) the header keeps ONE fixed size but the part's label is never cut to "…" when it can be read: two lines at a fixed
+  // height, the FULL label (the map's title words) when it fits in two lines, else the data's short label, clamped only if
+  // longer still; the map / parts action is OFF the label's line (on the name's row), a 44 px target, so the label has the
+  // header's full width. Measured independently: a clone of the label's box, unclamped, at the same width and font
+  const HL = [];
+  for (const hash of ['w=chilliwack&d=1010&p=1', 'w=chilliwack&d=1010&p=0', 'w=vedder&d=1010', 'w=cowichan&d=1010&p=1', 'w=x14p&d=1010&p=1', 'w=klwa&d=1010', 'w=bellacoola&d=501&p=0', 'w=x19p&d=1010&p=4', 'w=ape&d=501', 'w=x27p&d=1010']) await page(hash, async b => {
+    HL.push(JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const hdr = document.getElementById('hdr'), st = ST(), w = WATERS[S.w], hasMap = !!(w.map && WM.waters[w.map]), many = Array.isArray(w.snap[S.d]) && w.snap[S.d].length > 1;
+      const o = st.parts.find(x => x.v === st.part), uncut = x => x && !/…/.test(x) ? x : '', mp = hasMap ? WM.waters[w.map].parts[curPart()] : null;
+      const long = o ? (st.sub.includes(o.t.replace(/ · \\d+ sections?$/, '')) ? o.t.replace(/ · \\d+ sections?$/, '') : (uncut(o.short) || o.t.replace(/ · \\d+ sections?$/, ''))) : mp ? (uncut(mp.short) || mp.name) : '';
+      const short = o ? (uncut(o.short) || o.t.replace(/ · \\d+ sections?$/, '')) : mp ? (uncut(mp.short) || mp.name) : '';
+      const pl = hdr.querySelector('[data-place]'), txt = norm(pl?.textContent), R = e => e?.getBoundingClientRect();
+      const lines = t => { if (!pl) return 0; const c = document.createElement('div'), cs = getComputedStyle(pl);
+        c.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;white-space:normal;overflow:visible;display:block;width:' + pl.clientWidth + 'px;font:' + cs.font + ';letter-spacing:' + cs.letterSpacing + ';line-height:' + cs.lineHeight;
+        c.textContent = t; document.body.append(c); const n = Math.round(c.getBoundingClientRect().height / parseFloat(cs.lineHeight)); c.remove(); return n; };
+      const want = !short || short === st.name ? '' : lines(long) <= 2 ? long : short;
+      const act = hasMap ? hdr.querySelector('[data-map]') : many ? hdr.querySelector('[data-open="parts"]') : null, ar = R(act), pr = R(pl), nm = R(hdr.querySelector('.ttl b'));
+      const lh = pl ? parseFloat(getComputedStyle(pl).lineHeight) : 0;
+      return JSON.stringify({hash: location.hash.slice(8), h: Math.round(R(hdr).height * 2) / 2, txt, want, longLines: lines(long), shortLines: lines(short),
+        cut: !!pl && pl.scrollHeight > pl.clientHeight + 1 && lines(txt) <= 2, twoLineBox: !pl || Math.abs(pr.height - 2 * lh) < 2,
+        act: !hasMap && !many ? 'none' : !act ? 'missing' : (ar.width < 44 || ar.height < 44) ? 'small ' + Math.round(ar.width) + 'x' + Math.round(ar.height)
+          : pl && ar.top < pr.bottom && ar.bottom > pr.top ? 'on the label line' : !(ar.top < nm.bottom && ar.bottom > nm.top) ? 'not on the name row' : 'ok',
+        width: !pl || pr.width >= R(hdr).width - 56 - 16 - 2}); })()`)));
+  });
+  const hs = new Set(HL.map(x => x.h)), hlb = HL.filter(x => x.txt !== x.want || x.cut || !x.twoLineBox || !/^(ok|none)$/.test(x.act) || !x.width);
+  check('header-label-two-lines', HL.length === 10 && hs.size === 1 && !hlb.length && HL[0].hash.startsWith('w=chilliwack') && !!HL[0].txt,
+    (hs.size > 1 ? `header heights ${JSON.stringify(HL.map(x => [x.hash, x.h]))}; ` : '') + hlb.map(x => JSON.stringify(x)).join('; '));
 }
