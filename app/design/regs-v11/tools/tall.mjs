@@ -1,6 +1,8 @@
 // Full-length screens (user round 1): the WHOLE quota cards or the whole licence answer in one tall image, with the
 // header (water, part, date) on top, so a panel reads whole cards instead of a phone-height cut.
-//   node app/design/regs-v11/tools/tall.mjs [name-filter]   -> app/design/regs-v11/screens/ur1-*.png
+//   node app/design/regs-v11/tools/tall.mjs [name-filter]   -> app/design/regs-v11/screens/ur1-*.png, ur2-*.png
+// User round 2 adds `keep` (the WHOLE Keep tab: every card, the other fish and the where-you-can't-fish note) and `sheet`
+// (the header, then the open sheet laid out at its full height, nothing cut off).
 // The page's own `tall` mode lets the phone frame grow to its content; the image is clipped from the top of the page to
 // the bottom of the last card (`cards`) or, for `licence`, the header followed by the licence section alone.
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -18,6 +20,11 @@ const TALL = [
   ['ur1-vedder-licence-16-plus', V, 'licence'],
   ['ur1-vedder-licence-under-16', `${V}&age=u16`, 'licence'],
   ['ur1-vedder-licence-outside-canada-open', `${V}&open=${encodeURIComponent('[data-res="non_resident_alien"]')}`, 'licence'],
+  // user round 2: the panel read cut-off shots and the Vedder's licence for the Kootenay
+  ['ur2-kootenay-lwa-oct12-cards', 'w=klwa&d=1012', 'cards'],
+  ['ur2-kootenay-licence-other-province-open', `w=klwa&d=1010&open=${encodeURIComponent('[data-res="non_resident"]')}`, 'licence'],
+  ['ur2-vedder-keep-full', V, 'keep'],
+  ['ur2-kootenay-kokanee-sheet-full', `w=klwa&d=1010&sheet=${encodeURIComponent('other:klwa_1010|o0')}`, 'sheet'],
 ];
 const only = process.argv[2];
 for (const [name, hash, what] of TALL) {
@@ -33,6 +40,17 @@ for (const [name, hash, what] of TALL) {
         const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative'; sec.parentNode.insertBefore(h, sec);
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         return {top: R(h).top, bottom: R(sec).bottom + 12}; }
+      if (${JSON.stringify(what)} === 'keep') { const k = document.getElementById('keep'); return k ? {top: 0, bottom: R(k).bottom + 12} : null; }
+      if (${JSON.stringify(what)} === 'sheet') {
+        const sh = document.querySelector('#sheet.on'), hdr = document.getElementById('hdr'), sc = document.getElementById('sc');
+        if (!sh || !hdr || !sc) return null;
+        const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative';
+        document.querySelectorAll('#scrim, #sc').forEach(e => e.style.display = 'none');
+        sh.style.cssText = 'position:relative;max-height:none;transform:none;transition:none';
+        sh.querySelector('.sbody')?.style.setProperty('overflow', 'visible');
+        sh.parentNode.insertBefore(h, sh);
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        return {top: R(h).top, bottom: R(sh).bottom + 4}; }
       const cards = [...document.querySelectorAll('#keep article.row.ledger')];
       if (!cards.length) return null;
       const nf = document.querySelector('#keep .olist');            // the other fish under the cards, when there are any

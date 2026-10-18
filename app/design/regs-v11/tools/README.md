@@ -4,4 +4,4 @@ From the repo root:
 - The cap system's own answers for check.mjs's internal test card-is-the-caps (after every snap; needs .venv; never drawn): `node app/design/regs-v11/tools/oracle.mjs` -> `app/design/regs-v11/oracle.json`
 - Re-shoot the screens: `node app/design/regs-v11/tools/shoot.mjs [name-filter]`
 - Check the page (also in app CI): `node app/design/regs-v11/tools/check.mjs [page.html]`
-- Full-length screens (whole cards / the whole licence answer, header on top): `node app/design/regs-v11/tools/tall.mjs [name-filter]` -> `screens/ur1-*.png`
+- Full-length screens (whole cards / the whole licence answer, header on top): `node app/design/regs-v11/tools/tall.mjs [name-filter]` -> `screens/ur1-*.png`, `screens/ur2-*.png` (modes: cards, licence, keep, sheet)

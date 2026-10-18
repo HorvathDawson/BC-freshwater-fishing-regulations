@@ -981,10 +981,11 @@ function buildKeep(){
     // sat between the trout and the steelhead / char lines, before the end of the section). It opens on a full rule of its
     // own so it reads as the group's sum, not as a note on the line above it (the round 15 persona trip, Vedder May 15)
     // round 12 (answers rows 11): "How it adds up" and "Fished elsewhere today?" are ONE list after the buckets — the data's
-    // elsewhere.says, then every group.worked line once: a keep-here line "Keep 3 rainbows here → …", the kept-elsewhere
+    // elsewhere.says, then every group.worked line once: a keep-here line "If you keep 3 hatchery rainbow trout: …" (UR2 2:
+    // the data's words joined by a colon, no arrow), the kept-elsewhere
     // lines as questions with their answers. No dropdown, no sheet.
     const els = raw.elsewhere?.says || '', wk = g.worked || [];
-    const worked = els || wk.length ? `<section class="worked" aria-label="How it adds up"><p class="bkh">How it adds up</p>${els ? `<p class="wsays">${esc(els)}</p>` : ''}${wk.length ? `<ul>${wk.map(w => `<li class="${w.at === 'here' ? 'wh' : 'wq'}"><span>${esc(w.q)}${w.at === 'here' ? ' →' : ''}</span> <b>${esc(w.a)}</b></li>`).join('')}</ul>` : ''}</section>` : '';
+    const worked = els || wk.length ? `<section class="worked" aria-label="How it adds up"><p class="bkh">How it adds up</p>${els ? `<p class="wsays">${esc(els)}</p>` : ''}${wk.length ? `<ul>${wk.map(w => `<li class="${w.at === 'here' ? 'wh' : 'wq'}"><span>${esc(w.q)}${w.at === 'here' ? ':' : ''}</span> <b>${esc(w.a)}</b></li>`).join('')}</ul>` : ''}</section>` : '';
     const fe = '';
     // only the card-level line page v36 keeps (known_no_rules, about rainbow trout); a presence line is drawn in its section
     const quiet = art.querySelector('.gblock > .gquiet')?.outerHTML || '', more = art.querySelector('.linkrow')?.outerHTML || '';
@@ -1186,9 +1187,15 @@ const namesBoat = key => (gearJSON(key)?.gear || []).some(g => /boat/.test(JSON.
 function yesNo(ok, no){ const solo = !ok.length || !no.length;   // persona: a lone column flowed in two — each item carries its own mark
   const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh"><i>${k === 'ok' ? '✓' : '✕'}</i>${h}</p><ul>${xs.map(([n, sm]) => `<li>${solo ? `<i>${k === 'ok' ? '✓' : '✕'}</i>` : ''}<b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
   return `<div class="yn">${col('ok', 'Allowed', ok)}${col('no', 'Not allowed', no)}</div>`; }
+function closedUntil(st){ const days = [], t = dayIx(S.d);
+  (st.runs || []).forEach(([f, n]) => { for (let j = 0; j < n; j++) days.push(f); });
+  for (let j = 1; j < days.length; j++) { const i = (t + j) % days.length; if (days[i] != null && !(days[i] & 1)) { const D = dayDate(i); return `No fishing here until ${MON[D.getMonth()]} ${D.getDate()}.`; } }
+  return 'No fishing here on any day of the year.'; }
 function buildGear(){
   const st = ST(), id = sid();
-  if (!st.kitTiles) return `<p class="foot">No gear may go in the water and no licence is needed while fishing is closed.</p>`;
+  // UR2 6 (user panel: "no licence is needed while fishing is closed" read as "no licence needed"): a closed day says when
+  // fishing opens, from the data's strip (the first day after this one not closed); the licence is said only in its section
+  if (!st.kitTiles) return `<p class="foot">${esc(closedUntil(st))}</p>`;
   learnChipWords(st);
   const secs = [], cells = [], keys = [], words = [];
   // the strip's bait-ban runs (bit 16) on the Bait cell, in the data's words
@@ -1230,6 +1237,13 @@ function buildGear(){
     // round 12 (owner 3): the same items as two columns, ✓ allowed | ✕ not (the column says "allowed" / "banned", so a
     // note that only repeats it is dropped; the rest of the note stays under its item)
     const note2 = x => x.s.replace(/^(allowed|banned|bait ban)(\s*·\s*)?/, '');
+    // UR2 7 (user panel: "roe is still OK" under Not allowed read as roe banned): an allowance a banned item's note
+    // carries ("<x> is still OK") goes to the allowed item it names, said there ("still OK — not part of the ban", one line:
+    // bait-ways-compact holds the cell to v13's height)
+    items.filter(x => !x.ok).forEach(x => { const m = note2(x).match(/^(.*?)(?:\s*·\s*)?\b(\w+) is still OK$/i); if (!m) return;
+      const to = items.find(y => y.ok && new RegExp('^' + m[2], 'i').test(y.n.replace(/<[^>]+>/g, '')));
+      if (!to) return;
+      x.s = m[1]; to.s = [to.s, 'still OK — not part of the ban'].filter(Boolean).join(' · '); });
     cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${dateds(16)}</div>`); }
   // ways to fish: what's allowed (with the data's conditions), then what is not — as it was
   if (st.panes.ways) { const r = parse(st.panes.ways);

@@ -1,3 +1,23 @@
+# regs v23 (user round 2, six-angler panel on v22) — in place on regs-v11.html
+
+- **Data: rows 19** (page v36 @ b9306de1 re-snapped, 134 states; oracle regenerated). Rendered as the data's words:
+  - headline "2 a day per angler from this stream" (a lake "4 a day per angler") (1);
+  - "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout" (3);
+  - "Up to 2 may be hatchery steelhead only — wild steelhead go back"; the presence line "Steelhead are known to be in this
+    water, so a rainbow trout over 50 cm (20 in) counts as a steelhead." (4);
+  - "After you keep 2, stop fishing for the day" (5).
+- **2: How it adds up.** A keep-here line is the data's two halves joined by a colon, with no arrow: "If you keep 3 hatchery
+  rainbow trout: 1 more fish of any kind, from here or from a lake." (`one-worked-list` now looks for the colon.)
+- **6: a closed day.** The gear note reads "No fishing here until Jul 1." The date is the first day after this one that
+  the data's strip (`st.runs`) does not mark closed (`closedUntil`). The licence sentence is gone from that spot.
+- **7: Bait.** An allowance carried by a banned item ("roe is still OK" under Fish or fish parts) moves to the allowed item
+  it names, as "still OK — not part of the ban". It is kept to one line so `bait-ways-compact` still fits v13's height.
+- **Checks** (ONLY=ur2): `ur2-headline-per-angler`, `ur2-worked-plain`, `ur2-kind-words`, `ur2-closed-until` and
+  `ur2-bait-allowed-note` all fail before (scratchpad ur2/check-before.txt, 5 of 5). Full suite 71/71.
+- **Screens**: every screen and every ur1-* tall shot re-shot. New tall modes are `keep` (the whole Keep tab) and `sheet`
+  (header + the open sheet at full height). New shots: ur2-kootenay-lwa-oct12-cards (Monday),
+  ur2-kootenay-licence-other-province-open, ur2-vedder-keep-full, ur2-kootenay-kokanee-sheet-full.
+
 # regs v22 (user round 1, six-angler panel on v21) — in place on regs-v11.html
 
 - **Data: rows 18 / gear 10 / display 14** (page v36 @ e17579ef re-snapped, 134 states; oracle regenerated). These render

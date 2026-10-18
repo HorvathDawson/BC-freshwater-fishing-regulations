@@ -27,6 +27,12 @@
 //   the species closure says not even catch and release (F), the record duty "Write each one … right away", the weight
 //   "kg (… lb)", Kootenay Lake main body's lines "from shore … from a boat" (G); howtell-current-water: the How to tell
 //   sheet sits over the CURRENT water's header and date (E: screen 59 had been shot over Iron River)
+//   (user round 2, UR2; ONLY=ur2) ur2-headline-per-angler: the card's big number line says "per angler" (1);
+//   ur2-worked-plain: the keep-here lines read "If you keep 3 hatchery rainbow trout: 1 more fish of any kind, …", no
+//   arrow (2); ur2-kind-words: "Only 1 of the 2 may be …", "hatchery steelhead only — wild steelhead go back", the
+//   presence line "…, so a rainbow trout over 50 cm (20 in) counts as a steelhead.", "After you keep 2, stop fishing for
+//   the day" (3, 4, 5); ur2-closed-until: a closed day's gear note "No fishing here until Jul 1." with no licence words
+//   (6); ur2-bait-allowed-note: an allowance ("roe is still OK") sits on the Allowed side, never under a banned item (7)
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -81,6 +87,7 @@ const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
 // ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '19') { await round19(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '18') { await round18(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -429,7 +436,7 @@ for (const [name, hash] of CARDS2) await page(hash, async b => {
       const secs = [...art.querySelectorAll('section.bkt')];
       out.g.push({lists: lists.length, want: !!(el || worked.length), ask: (raw.elsewhere?.ask || []).length,
         el: !el || (wt.includes(norm(el)) && at.split(norm(el)).length === 2),
-        lines: worked.map(w => wt.includes(norm(w.q)) && wt.includes(norm(w.a)) && at.split(norm(w.a)).length === 2 && (w.at !== 'here') === !wt.includes(norm(w.q) + ' →')),
+        lines: worked.map(w => wt.includes(norm(w.q)) && wt.includes(norm(w.a)) && at.split(norm(w.a)).length === 2 && (w.at !== 'here') === !wt.includes(norm(w.q) + ':')),
         order: (g.buckets || []).map((bk, i) => !!secs[i] && bk.kinds.every(k => norm(secs[i].textContent).includes(norm(k.name)))),
         sizes: (g.buckets || []).flatMap((bk, i) => bk.kinds.map(k => !k.detail || [...(secs[i]?.querySelectorAll('.krow') || [])].some(r => norm(r.textContent).includes(norm(k.name)) && norm(r.querySelector('.kdet')?.textContent) === norm(k.detail)))),
         caps: (g.buckets || []).reduce((t, bk) => t + (bk.notes || []).length + (bk.sizes || []).length + (bk.groups || []).length + (bk.between ? 1 : 0), 0),
@@ -961,6 +968,7 @@ check('card-is-the-caps', CC17.length === R17.length && !cc17.length, cc17.map(x
 await round18();
 await round19();
 await roundUr1();
+await roundUr2();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1227,4 +1235,41 @@ async function roundUr1(){
   });
   const htb = HT.filter(x => !x.open || x.name !== x.want || !x.date);
   check('howtell-current-water', HT.length === 3 && !htb.length, htb.map(x => JSON.stringify(x)).join('; '));
+}
+
+// ---------- user round 2 (UR2, six-angler panel on v22) ----------
+async function roundUr2(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  const K = {};
+  for (const [k, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=1010'], ['chw', 'w=chilliwack&d=1010&p=1'], ['shut', 'w=vedder&d=615'],
+                           ['gear', 'w=vedder&d=1010&sec=gear']]) await page(hash, async b => {
+    K[k] = JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm}
+      const arts = [...document.querySelectorAll('#keep article.row.ledger')].filter(a => a.querySelector('.qtree'));
+      const kind = sp => norm(document.querySelector('#keep .krow.kt[data-sp~="' + sp + '"] .ks')?.textContent);
+      const ys = document.querySelector('#gear [data-k="bait"] [data-col="ok"]'), ns = document.querySelector('#gear [data-k="bait"] [data-col="no"]');
+      return {heads: arts.map(a => norm(a.querySelector('.rhead .num')?.textContent)),
+        worked: [...document.querySelectorAll('#keep .worked li.wh')].map(e => norm(e.textContent)),
+        dv: kind('DV'), st: kind('ST'),
+        pres: [...document.querySelectorAll('#keep [data-presence]')].map(e => norm(e.textContent)),
+        duty: [...document.querySelectorAll('#keep .duty')].map(e => norm(e.textContent)),
+        foot: norm(document.querySelector('#gear .foot')?.textContent),
+        gear: norm(document.getElementById('gear')?.textContent),
+        ok: ys ? [...ys.querySelectorAll('li')].map(e => norm(e.textContent)) : [], no: ns ? [...ns.querySelectorAll('li')].map(e => norm(e.textContent)) : []}; })())`));
+  });
+  const hb = ['vedder', 'klwa', 'chw'].flatMap(k => !K[k].heads.length ? [k + ': no card'] : K[k].heads.filter(t => !/\b\d+ a day per angler\b/.test(t)).map(t => k + ': ' + JSON.stringify(t)));
+  check('ur2-headline-per-angler', !hb.length, hb.join('; '));
+  const W = K.vedder.worked, want = [/^If you keep 4 hatchery rainbow trout: that’s your trout and char for the day, everywhere\.$/,
+    /^If you keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a lake\.$/,
+    /^If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more from here or from lakes\.$/];
+  check('ur2-worked-plain', W.length === 3 && W.every((t, i) => want[i].test(t)), JSON.stringify(W));
+  const kb = [];
+  if (!/^Only 1 of the 2 may be hatchery Dolly Varden\/bull trout or lake trout/.test(K.vedder.dv)) kb.push('Vedder DV ' + JSON.stringify(K.vedder.dv));
+  if (!/^Only 1 of the \d+ may be Dolly Varden\/bull trout/.test(K.klwa.dv)) kb.push('LWA DV ' + JSON.stringify(K.klwa.dv));
+  if (!/^Up to 2 may be hatchery steelhead only — wild steelhead go back$/.test(K.vedder.st)) kb.push('Vedder ST ' + JSON.stringify(K.vedder.st));
+  if (!K.vedder.pres.some(t => /^Steelhead are known to be in this water, so a rainbow trout over 50 cm \(20 in\) counts as a steelhead\./.test(t))) kb.push('presence ' + JSON.stringify(K.vedder.pres));
+  if (!K.vedder.duty.some(t => /After you keep 2, stop fishing for the day/.test(t)) || K.vedder.duty.some(t => /for the day after/.test(t))) kb.push('duty ' + JSON.stringify(K.vedder.duty));
+  check('ur2-kind-words', !kb.length, kb.join('; '));
+  check('ur2-closed-until', K.shut.foot === 'No fishing here until Jul 1.' && !/licence/i.test(K.shut.gear.replace(/^Gear & licence · for this water (today|on \w+ \d+)/, '')), JSON.stringify(K.shut.foot) + ' / ' + JSON.stringify(K.shut.gear.slice(0, 120)));
+  const roe = K.gear.ok.find(t => /^Roe/.test(t)) || '';
+  check('ur2-bait-allowed-note', K.gear.no.length > 0 && !K.gear.no.some(t => /still OK/i.test(t)) && /still OK/.test(roe), `ok ${JSON.stringify(K.gear.ok)} / no ${JSON.stringify(K.gear.no)}`);
 }
