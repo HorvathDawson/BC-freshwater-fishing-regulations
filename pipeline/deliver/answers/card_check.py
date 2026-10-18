@@ -549,6 +549,10 @@ def check_tree(P, g: dict) -> List[str]:
         number is the most of the kinds under it together, here; a size tier's is the most of its cap's kinds
         over its size (each nested cap too), every kind under it is kept only over that size, and its `extra`
         (RULINGS Q16) — after its number, exactly that many more of the extra kinds over the size;
+      * ROUND19 3 — THE PLACEMENT of every size tier: each kind under it may be kept over its size here; each
+        of its caps (`by`, and the `extra`'s `by`) binds no kind OUTSIDE it over the size (the reader's verdict:
+        the rule checks such a fish with a number); a kind sits under no tier holding fewer (its nearest COUNT
+        tier — a size tier limits only what is over its size); a `size_note` names a size tier around its kind;
       * every kind's number is the most of it alone (each species too), its `sizes` exactly the lengths it may
         be kept at here (each range holds a keepable length, each keepable length is in a range);
       * each `also_counts`: a size cap — at most its number of the kind over its size, and none after the cap's
@@ -591,16 +595,99 @@ def check_tree(P, g: dict) -> List[str]:
 
     if len(tree) != 1 or tree[0]["node"] != "tier" or tree[0]["tier"] != "total":
         probs.append(f"{where}: the tree is one total tier")
+    par = {id(n): p for n, p in walk(tree) if p is not None}
+
+    def above(n: dict) -> List[dict]:
+        out = []
+        while id(n) in par:
+            n = par[id(n)]
+            out.append(n)
+        return out
+
+    def counting(n: dict) -> Optional[dict]:
+        """The nearest tier above `n` that counts (a size tier limits only what is over its size)."""
+        return next((t for t in above(n) if t["tier"] != "size"), None)
+
+    # ROUND19 3: every size tier's placement
+    for t, _p in walk(tree):
+        if t["node"] != "tier" or t["tier"] != "size":
+            continue
+        cm = t["over_cm"]
+        inside = {id(y) for y, _q in walk(t["children"])}
+        for y, _q in walk(t["children"]):
+            if y["node"] == "kind" and any(not [f for f in E.fish([S]) if f[2] > cm] for S in y["species"]):
+                probs.append(f"{where}: size tier {t['says']!r} holds {y['species']}, which cannot be kept over "
+                             f"{cm} cm here")
+        caps_ = [P.by_key[k] for k in (t["by"], (t.get("extra") or {}).get("by")) if k in P.by_key]
+        for y, _q in walk(tree):
+            if y["node"] != "kind" or id(y) in inside:
+                continue
+            for S in y["species"]:
+                if any(E.checks(r, f) and ((E._band(r, f[2]) or (0, None))[1] or 0) > 0
+                       for r in caps_ for f in E.fish([S]) if f[2] > cm):
+                    probs.append(f"{where}: size tier {t['says']!r} caps {S} over {cm} cm, but {S} sits outside it")
+    # ROUND19 3: a size cap said on the kinds (no tier) over more than one kind row must be one no tier can hold — the
+    # rows it binds include part of a row, or the tightest tier around them holds, beside them, a kind that cannot be
+    # kept over the size
+    def passes(y: dict, cm) -> bool:
+        return any(f[2] > cm for f in E.fish(y["species"]))
+    kinds_all = [y for y, _q in walk(tree) if y["node"] == "kind"]
+    said: set = set()
+    for y in kinds_all:
+        for ac in y["also_counts"]:
+            cm = ac["over_cm"]
+            if not cm or ac["tier"] is not None or (ac["by"], cm) in said:
+                continue
+            said.add((ac["by"], cm))
+            rows = [z for z in kinds_all if set(z["species"]) & set(ac["species"]) and passes(z, cm)]
+            if len(rows) < 2 or any(not set(z["species"]) <= set(ac["species"]) for z in rows):
+                continue
+            chains = [above(z)[::-1] for z in rows]
+            box = None
+            for level in zip(*chains):
+                if any(t is not level[0] for t in level):
+                    break
+                box = level[0]
+            ids = {id(z) for z in rows}
+            spoilt = False
+            for z in box["children"]:
+                if z["node"] == "tier":
+                    under = [q for q, _r in walk(z["children"]) if q["node"] == "kind"]
+                    if any(id(q) in ids for q in under) and not all(id(q) in ids for q in under):
+                        spoilt = True
+            if not spoilt:
+                probs.append(f"{where}: the cap {ac['by']} over {cm} cm is said on the kinds {[z['species'] for z in rows]}, "
+                             f"but a size tier could hold them")
+    # every size cap the card states (a bucket's size group) is in the tree — a size tier, or said on a kind — unless
+    # a cap the tree says implies it (no larger size or number, every fish of it), or it binds one kind row whose own
+    # number (proved below) is no more than its number: then it says nothing more
+    said_caps = [(t["by"], t["over_cm"], t["n"], set(t["species"])) for t, _q in walk(tree)
+                 if t["node"] == "tier" and t["tier"] == "size"] + \
+        [(ac["by"], ac["over_cm"], ac["n"], set(ac["species"])) for y in kinds_all for ac in y["also_counts"]
+         if ac["over_cm"]]
+    for b in g.get("buckets") or []:
+        for sz in b.get("sizes") or []:
+            if any(k == sz["by"] for k, *_x in said_caps):
+                continue
+            if any(cm <= sz["over_cm"] and n <= sz["n"] and set(sz["species"]) <= sp for _k, cm, n, sp in said_caps):
+                continue
+            rows = [z for z in kinds_all if set(z["species"]) & set(sz["species"]) and passes(z, sz["over_cm"])]
+            if len(rows) == 1 and rows[0]["n"] is not None and rows[0]["n"] <= sz["n"]:
+                continue
+            probs.append(f"{where}: the size cap {sz['says']!r} is in no size tier and on no kind")
     for x, parent in walk(tree):
         if x["node"] == "kind":
-            if parent is None:
+            up = counting(x)
+            if parent is None or up is None:
                 probs.append(f"{where}: kind {x['species']} sits outside every tier")
-            # ROUND18 fix: a kind never keeps more than the tier it sits in ("Of the 1 …: up to 2" contradicts itself);
-            # a kind a size tier's `extra` lets past sits in the parent tier, never under the size tier
-            elif parent["n"] is not None and (x["n"] is None or x["n"] > parent["n"]) or \
-                    set(x["species"]) & set((parent.get("extra") or {}).get("species") or []):
-                probs.append(f"{where}: kind {x['species']} says {x['n']} under the tier {parent['says']!r} "
-                             f"({parent['n']})")
+            # ROUND18 fix: a kind never keeps more than the count tier it sits in ("Of the 1 …: up to 2" contradicts
+            # itself)
+            elif up["n"] is not None and (x["n"] is None or x["n"] > up["n"]):
+                probs.append(f"{where}: kind {x['species']} says {x['n']} under the tier {up['says']!r} "
+                             f"({up['n']})")
+            if x.get("size_note") and x["size_note"]["tier"] not in {t["id"] for t in above(x)}:
+                probs.append(f"{where}: kind {x['species']}'s size note names {x['size_note']['tier']}, no size "
+                             f"tier around it")
             seen += x["species"]
             ok_n = eq(most(E.fish(x["species"]), x["n"]), x["n"])
             if not ok_n or any(not eq(most(E.fish([S]), x["n"]), x["n"]) for S in x["species"]):
@@ -615,10 +702,13 @@ def check_tree(P, g: dict) -> List[str]:
                         any(not any(a <= L <= b for L in Ls) for a, b in rng):
                     probs.append(f"{where}: kind {x['species']} sizes {x['sizes']['cm']} are not the lengths {S} "
                                  f"may be kept at here")
-            allowed = {float(v) for v in (x["n"], parent["n"] if parent else None) if v is not None}
+            allowed = {float(v) for v in (x["n"], up["n"] if up else None) if v is not None}
             allowed |= size_words([v for r in x["sizes"]["cm"] for v in r])
-            if parent is not None and parent.get("over_cm") is not None:
-                allowed |= size_words([parent["over_cm"]])
+            for t in above(x):
+                if t["tier"] == "size":
+                    ex = (t.get("extra") or {}).get("n") or 0
+                    allowed |= size_words([t["over_cm"]] + [h["over_cm"] for h in t["then"]]) | \
+                        {float(t["n"]), float(t["n"] + ex)} | {float(h["n"]) for h in t["then"]}
             for ac in x["also_counts"]:
                 cm = ac["over_cm"] or 0
                 others = [S for S in ac["species"] if S not in x["species"]]
@@ -659,6 +749,9 @@ def check_tree(P, g: dict) -> List[str]:
             continue
         under = kinds_under(x)
         allowed = {float(x["n"])} if x["n"] is not None else set()
+        up = counting(x)
+        if up is not None and up["n"] is not None:
+            allowed.add(float(up["n"]))                    # ROUND19 6: "(part of the 4)"
         if x["tier"] == "total":
             if x["n"] != _claim(g["total"]) or x["by"] != g["pool"]:
                 probs.append(f"{where}: the total tier says {x['n']} by {x['by']}, the group's total is "
@@ -675,10 +768,8 @@ def check_tree(P, g: dict) -> List[str]:
             for t in x["then"]:
                 if not eq(most([f for f in over if f[2] > t["over_cm"]], t["n"]), t["n"]):
                     probs.append(f"{where}: size tier {x['says']!r} says {t['n']} over {t['over_cm']} cm (nested)")
-            if any(f[2] <= cm for f in E.fish(under)):
-                probs.append(f"{where}: size tier {x['says']!r} holds a kind that may be kept at {cm} cm or less")
             if extra:
-                allowed.add(float(extra["n"]))
+                allowed |= {float(extra["n"]), float(x["n"] + extra["n"])}
                 base = []
                 for f in over:
                     while len(base) < x["n"] and E.can_keep(base, f):
@@ -724,13 +815,20 @@ def check_caps(P, g: dict, baskets: int = BASKETS) -> List[str]:
     E = Engine(P, g["pool"])
     table, kinds, caps = g["table"], g["cap_kinds"], g["caps"]
     Ls = E.lengths()
+    from pipeline.deliver.answers import common
     for S, bands in table["bands"].items():
-        at = 0
+        at, held = 0, None
         for bd, cell in zip(bands, table["cells"][S]):
             a, b = bd["from"] or 0, INF if bd["to"] is None else bd["to"]
             if a != at:
                 probs.append(f"{where}: {S}'s bands leave a gap or overlap at {at} cm")
-            at = b
+            # ROUND19 5, THE BOUNDARY STANDARD: the cut belongs to exactly one of the bands meeting at it, and each
+            # band's words say the ends it holds ("X or less" / "X or longer" hold X; "under X" / "over X" do not)
+            if held is not None and held == bd["from_in"]:
+                probs.append(f"{where}: {S}'s cut at {at} cm belongs to {'both' if held else 'neither'} of its bands")
+            if bd["says"] != common.band_words(a, b, bd["from_in"], bd["to_in"]):
+                probs.append(f"{where}: {S} band {bd['says']!r} does not say the ends it holds")
+            at, held = b, bd["to_in"]
             T = cell.get("as") or S
 
             def most(origins=("hatchery", "wild"), claim=None):

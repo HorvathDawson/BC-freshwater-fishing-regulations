@@ -1,4 +1,4 @@
-"""THE CARD AS A TREE (ROUND18, owner review of v19, 2026-10-17) — `group.tree` and `group.header`.
+"""THE CARD AS A TREE (ROUND18, owner review of v19; ROUND19, review of v20) — `group.tree` and `group.header`.
 
 The owner reads a quota card as FOLDERS: tier lines on the left, each holding what it limits — the region's
 total, then a water's own rule or the stream share, then a count over some kinds or a size cap, and the kinds
@@ -8,26 +8,35 @@ count groups, size groups and notes) as that tree; it decides nothing new.
   tier   {node: "tier", id, tier, n, says, by, children, …}
          total  the group's total ("4 a day across Region 2, lakes included"; a water's own total by whose it is)
          own    a water's own rule's bucket ("This river’s rule: up to 4 a day"), with `whose`, `replaces`
-                ("Replaces Region 2’s 2-from-streams limit and 30 cm / 12 in minimum size for these fish"),
-                `why_here` when the rule reached this water by the TRIBUTARY WALK ("its row covers its
-                tributaries, so it applies here", ROUND18 8) and `line` (all three in one line); under the
-                share where it holds share kinds to a smaller number, else under the total
-         share  the stream (lake) share ("2 a day from this stream")
-         count  a count over some of a tier's kinds ("1 between them")
-         size   a size cap holding the kinds wholly over its size ("1 over 50 cm / 20 in"); RULINGS Q16's pair
-                (1 over 50 cm, 2 with a steelhead) is ONE tier: "1 over 50 cm / 20 in a day — a second may be a
-                hatchery steelhead" (`extra` {n, species}); a cap with no kind wholly over its size is no
-                tier, only the kinds' `also_counts`
-  kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, duties, sentence}: each
-         kind EXACTLY ONCE, under the tightest tier holding it; `says` "Up to 2 may be brook, brown or
-         cutthroat trout", `detail` its origin and sizes ("hatchery, 30 cm / 12 in or longer"), `also_counts`
-         every cap the tier does not hold that still binds it, in words — "only 1 over 50 cm / 20 in, if you
-         haven’t already kept a Dolly Varden/bull trout or lake trout over 50 cm" — and `sentence` the whole
-         line: "Of the 2 a day: up to 2 may be … (…) — only 1 over 50 cm / 20 in, …".
-  header {says, tag}: "2 a day from this stream · 4 across Region 2, lakes included", tag "hatchery only".
+                ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery rainbow
+                trout" — ROUND19 6: the fish by name), `why_here` when the rule reached this water by the
+                TRIBUTARY WALK ("its row covers its tributaries, so it applies here", ROUND18 8) and `line` (all
+                three in one line); under the share where it holds share kinds to a smaller number, else under the
+                total
+         share  the stream (lake) share ("2 a day from this stream (part of the 4)" — ROUND19 6: the nesting in
+                the words, wherever a tier holds fewer than the count tier around it)
+         count  a count over some of a tier's kinds, naming them ("1 between cutthroat and rainbow trout", ROUND19 6)
+         size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
+                size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
+                a kind that can never pass the size stays outside ("Only 1 of these may be over 50 cm (20 in)").
+                RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead INSIDE: "Only 1 of
+                these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead" (`extra` {n, species, by}),
+                and the steelhead's `size_note` says it counts toward the 1 ("it counts toward the 1 over 50 cm
+                (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"). A cap on one kind
+                row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (Region 2's
+                Bella Coola count over a cutthroat that may and a rainbow that may not) is no tier: the kinds'
+                `also_counts` say it
+  kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, size_note, duties, sentence}:
+         each kind EXACTLY ONCE; `says` "Up to 2 may be hatchery brook, brown or cutthroat trout" (ROUND19 1: the
+         origin with the fish where it keeps one, never again in the detail), `detail` its sizes ("30 cm (12 in) or
+         longer"), `also_counts` every cap no tier around it holds that still binds it, in words, and `sentence` the
+         whole line, "of" the nearest COUNT tier around it (a size tier is no count): "Of the 2 a day: up to 2 may
+         be hatchery brook, brown or cutthroat trout, 30 cm (12 in) or longer".
+  header {says, tag}: "2 a day from this stream · part of 4 a day across Region 2, lakes included"; `tag` None
+         (ROUND19 1: the kinds' names carry the origin).
 
-Sizes are said in cm AND inches, the inch the nearest whole one (`common.inches`). Every number is proved by
-the card gate (`card_check.check_tree`).
+Sizes are said in cm with the inches in brackets, "50 cm (20 in)" (`common.cm_in`, ROUND19 2). Every number and
+the placement of every kind are proved by the card gate (`card_check.check_tree`).
 """
 from __future__ import annotations
 
@@ -66,32 +75,40 @@ def _num(v):
     return int(v) if float(v).is_integer() else v
 
 
-def kind_names(species: Sequence[str], steelhead: bool = False, conj: str = " or ") -> str:
+def kind_names(species: Sequence[str], steelhead: bool = False, conj: str = " or ", origin: Optional[str] = None
+               ) -> str:
     """A kind row's fish in a sentence: a closed group by its name ("whitefish"); fish that are all "<x> trout"
     share the noun ("brook, brown or cutthroat trout"); else each named ("Dolly Varden/bull trout or lake
-    trout"); the steelhead "steelhead"."""
+    trout"); the steelhead "steelhead"; ROUND19 1: `origin` before them where the kind keeps only one ("hatchery
+    brook, brown or cutthroat trout")."""
+    pre = f"{origin} " if origin else ""
     if steelhead:
-        return "steelhead"
+        return pre + "steelhead"
     g = common.group_for(species)
     if g:
-        return common.lc(g)
+        return pre + common.lc(g)
     names = [common.lc(common.sp_name(c)) for c in species]
     if len(names) > 1 and all(n.endswith(" trout") and "/" not in n and len(n.split()) == 2 for n in names):
-        return common.join([n[:-len(" trout")] for n in names], conj) + " trout"
-    return common.join(names, conj)
+        return pre + common.join([n[:-len(" trout")] for n in names], conj) + " trout"
+    return pre + common.join(names, conj)
+
+
+def _count_names(t: dict) -> str:
+    """ROUND19 6 (owner: "1 between them" must say who): the fish a count tier holds, "cutthroat and rainbow trout"."""
+    sp = list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]))
+    return kind_names(sp, conj=" and ")
 
 
 def _short(t: dict) -> str:
-    """What a kind's sentence says it is "of": "the 2 a day", "the 1 between them", "the 1 over 50 cm / 20 in"."""
+    """What a kind's sentence says it is "of" (its nearest COUNT tier): "the 2 a day", "the 1 between cutthroat and
+    rainbow trout"."""
     if t["tier"] == "count":
-        return f"{_js(t['n'])} between them"
-    if t["tier"] == "size":
-        return f"{'none' if not t['n'] else _js(t['n'])} over {common.cm_in(t['over_cm'])}"
+        return f"{_js(t['n'])} between {_count_names(t)}"
     return "no daily limit" if t["n"] is None else f"{_js(t['n'])} a day"
 
 
 def _kind_says(k: dict, parent_n) -> str:
-    names = kind_names(k["species"], k["name"] == "Steelhead")
+    names = kind_names(k["species"], k["name"] == "Steelhead", origin=k.get("_origin"))
     if k["n"] == 0:
         return f"No {names} may be kept"
     if k["n"] is None:
@@ -102,8 +119,8 @@ def _kind_says(k: dict, parent_n) -> str:
 
 
 def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[str] = None) -> Optional[str]:
-    """A size cap a kind's tier does not hold, said on the kind (ROUND18 7); `some` names the fish of the kind row
-    it holds where it holds only some of them ("only 1 cutthroat trout over 50 cm / 20 in")."""
+    """A size cap no tier around a kind holds, said on the kind (ROUND18 7); `some` names the fish of the kind row
+    it holds where it holds only some of them ("only 1 cutthroat trout over 50 cm (20 in)")."""
     over = f"{some} over {common.cm_in(cm)}" if some else f"over {common.cm_in(cm)}"
     nw = "none" if not n else f"only {_js(n)}"
     o = kind_names(others) if others else ""
@@ -112,12 +129,12 @@ def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[st
         for t in then:
             s += f", and {'none' if not t['n'] else 'only ' + _js(t['n'])} over {common.cm_in(t['over_cm'])}"
         if others and n:
-            s += (f", if you haven’t already kept a {o} over {_js(cm)} cm" if n == 1
-                  else f", counting any {o} over {_js(cm)} cm")
+            s += (f", if you haven’t already kept a {o} over {common.cm_in(cm)}" if n == 1
+                  else f", counting any {o} over {common.cm_in(cm)}")
         return s
     if others and n:
-        return (f"none {over} if you’ve already kept a {o} over {_js(cm)} cm" if n == 1
-                else f"no more than {_js(n)} {over}, counting any {o} over {_js(cm)} cm")
+        return (f"none {over} if you’ve already kept a {o} over {common.cm_in(cm)}" if n == 1
+                else f"no more than {_js(n)} {over}, counting any {o} over {common.cm_in(cm)}")
     return None
 
 
@@ -189,11 +206,14 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if k.get("presence"):
                 kn["presence"] = k["presence"]
             node_of[id(k)] = kn
-            kn["_lo"] = min((a for a, _b in segs), default=None)
-            kn["_origins"] = list(sd.get("origins") or [])
+            os_ = list(sd.get("origins") or [])
+            kn["_hi"] = max((b_ for _a, b_ in segs), default=0)
+            kn["_origins"] = os_
+            kn["_origin"] = os_[0] if len(os_) == 1 and k["n"] != 0 else None
 
-    def wholly_over(kn: dict, cm) -> bool:
-        return kn["n"] != 0 and kn["_lo"] is not None and kn["_lo"] >= cm
+    def can_pass(kn: dict, cm) -> bool:
+        """The kind may be kept over the size here (ROUND19 3: a size tier holds exactly these)."""
+        return kn["n"] != 0 and kn["_hi"] > cm
 
     # -- a tier per bucket ---------------------------------------------------------------------------------
     share_t = None
@@ -246,65 +266,133 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         share_t["children"][:0] = under_share
     root["children"][:0] = under_total + ([share_t] if share_t is not None else [])
 
-    # -- size caps: a tier holding the kinds wholly over its size, in the tier holding every kind it names (the
-    # total where it spans tiers), when it limits them below that tier's number; its other kinds say it
-    for b in c.buckets:
-        for sz in b.get("sizes") or []:
-            cm = sz["over_cm"]
-            holders = [x for x in c.buckets if any(set(k["species"]) & set(sz["species"]) for k in kind_rows(x))]
-            t = tier_of[id(holders[0])] if len(holders) == 1 else root
-            content = t["children"]
-            kids = [x for x in content if x["node"] == "kind" and set(x["species"]) <= set(sz["species"])
-                    and wholly_over(x, cm)]
-            extra = None
-            if sz["not_counting"] == ["ST"]:
-                st = next((x for x in content if x["node"] == "kind" and x["species"] == ["ST"]
-                           and wholly_over(x, cm)), None)
-                if st is not None:
-                    takes = [s["take"] for s in grp["subcaps"] if s["over_cm"] == cm
-                             and set(sz["species"]) | {"ST"} <= set(s["of"])]
-                    room = min(takes + [INF if t["n"] is None else t["n"], INF if st["n"] is None else st["n"]])
-                    if room != INF and room - sz["n"] >= 1:
-                        # the steelhead it lets past stays in the parent tier: "of the 1 … up to 2" contradicts itself
-                        extra = {"n": _num(room - sz["n"]), "species": ["ST"]}
-            if not kids or (extra is None and t["n"] is not None and sz["n"] >= t["n"]):
-                continue
-            says = f"{'None' if not sz['n'] else _js(sz['n'])} over {common.cm_in(cm)}"
-            for th in sz.get("then") or []:
-                says += f", and {'none' if not th['n'] else _js(th['n'])} over {common.cm_in(th['over_cm'])}"
-            says += " a day"
-            if extra is not None:
-                # RULINGS Q16 (Region 1/2): "no more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)"
-                os_ = st["_origins"]
-                who = f"{os_[0]} steelhead" if len(os_) == 1 else "steelhead"
-                if extra["n"] == 1:
-                    lead = "a second" if sz["n"] == 1 else ("one" if not sz["n"] else "one more")
-                    says += f" — {lead} may be a {who}"
-                else:
-                    says += f" — {_js(extra['n'])} more may be {who}"
-            st_ = tier("size", sz["n"], says, sz["by"], over_cm=_num(cm), species=list(sz["species"]),
-                       then=[{"n": th["n"], "over_cm": th["over_cm"]} for th in sz.get("then") or []], extra=extra)
-            for x in kids:
-                content.remove(x)
-                st_["children"].append(x)
-                placed_in[id(x)] = st_
-            content.append(st_)
-            sz["_tier"] = st_["id"]
+    # -- size caps (ROUND19 3, owner): a tier HOLDING every kind row its cap binds (each that may be kept over its
+    # size), in the tightest tier holding them all — wrapping whole tiers where they span tiers, never a kind that
+    # cannot pass the size. RULINGS Q16's steelhead (`not_counting` ST, let past the number) sits inside, the tier
+    # saying how many more it lets past. A cap on one kind row, on part of a row, or that no tier can hold so, is
+    # said on its kinds (below).
+    def parents() -> Dict[int, dict]:
+        return {id(n): p for n, p in walk([root]) if p is not None}
+
+    def chain(par: Dict[int, dict], n: dict) -> List[dict]:
+        out = []
+        while id(n) in par:
+            n = par[id(n)]
+            out.append(n)
+        return out[::-1]
+
+    def count_of(par: Dict[int, dict], t: dict) -> dict:
+        """The nearest tier at or above `t` that counts (a size tier limits only what is over its size)."""
+        while t["tier"] == "size":
+            t = par[id(t)]
+        return t
+
+    every_kind = [node_of[id(k)] for b in c.buckets for k in kind_rows(b)]
+
+    def bound(sz) -> List[dict]:
+        sp = set(sz["species"])
+        return [kn for kn in every_kind if set(kn["species"]) & sp and can_pass(kn, sz["over_cm"])]
+
+    def holding(kids: List[dict]) -> Optional[Tuple[dict, List[dict]]]:
+        """(the tier to nest in, its children the size tier takes), or None where no tier holds exactly them."""
+        par = parents()
+        chains = [chain(par, k) for k in kids]
+        box = None
+        for level in zip(*chains):
+            if any(t is not level[0] for t in level):
+                break
+            box = level[0]
+        ids = {id(k) for k in kids}
+        taken = []
+        for x in box["children"]:
+            if id(x) in ids:
+                taken.append(x)
+            elif x["node"] == "tier":
+                under = [y for y, _p in walk(x["children"]) if y["node"] == "kind"]
+                if any(id(y) in ids for y in under):
+                    if not all(id(y) in ids for y in under):
+                        return None
+                    taken.append(x)
+        return box, taken
+
+    sizes_all = [sz for b in c.buckets for sz in b.get("sizes") or []]
+    for sz in sorted(sizes_all, key=lambda z: (-len(bound(z)), z["over_cm"], z["n"])):
+        cm = sz["over_cm"]
+        kids = bound(sz)
+        if not kids or any(not set(kn["species"]) <= set(sz["species"]) for kn in kids):
+            continue                               # part of a kind row: said on the row
+        st, extra, ex_by = None, None, None
+        if sz["not_counting"] == ["ST"]:
+            st = next((kn for kn in every_kind if kn["species"] == ["ST"] and can_pass(kn, cm)), None)
+        got = holding(kids + ([st] if st is not None else []))
+        if st is not None and got is not None:
+            box = count_of(parents(), got[0])
+            subs = [s for s in grp["subcaps"] if s["over_cm"] == cm and set(sz["species"]) | {"ST"} <= set(s["of"])]
+            room = min([s["take"] for s in subs] + [INF if box["n"] is None else box["n"],
+                                                     INF if st["n"] is None else st["n"]])
+            if room != INF and room - sz["n"] >= 1:
+                extra = {"n": _num(room - sz["n"]), "species": ["ST"]}
+                ex_by = min(subs, key=lambda s: s["take"])["r"] if subs else None
+        if extra is None:
+            st = None
+            got = holding(kids)
+        if got is None or (len(kids) < 2 and st is None):
+            continue
+        box, taken = got
+        cn = count_of(parents(), box)["n"]
+        if extra is None and cn is not None and sz["n"] >= cn:
+            continue
+        n_w = "None" if not sz["n"] else f"Only {_js(sz['n'])}"
+        says = f"{n_w} of these may be over {common.cm_in(cm)}"
+        for th in sz.get("then") or []:
+            says += f", and {'none' if not th['n'] else 'only ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
+        who = f"{st['_origin']} steelhead" if st is not None and st["_origin"] else "steelhead"
+        if extra is not None:
+            # RULINGS Q16 (Region 1/2): "no more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)"
+            e, n0 = extra["n"], sz["n"]
+            if not n0:
+                says += f" — except {_js(e)} {who}"
+            else:
+                says += f" — or {_js(n0 + e)}, if " + (f"one is a {who}" if e == 1 else f"{_js(e)} are {who}")
+            extra["by"] = ex_by
+        st_ = tier("size", sz["n"], says, sz["by"], over_cm=_num(cm), species=list(sz["species"]),
+                   then=[{"n": th["n"], "over_cm": th["over_cm"]} for th in sz.get("then") or []], extra=extra)
+        at = min(box["children"].index(x) for x in taken)
+        for x in taken:
+            box["children"].remove(x)
+        st_["children"] = taken
+        box["children"].insert(at, st_)
+        if extra is not None:
+            e, n0, w = extra["n"], sz["n"], common.cm_in(cm)
+            st["size_note"] = {"tier": st_["id"], "says": (
+                f"it counts toward the 1 over {w}, but once you keep one, a second fish over {w} may be kept"
+                if (n0, e) == (1, 1) else
+                f"only {who} may be over {w}, up to {_js(e)}" if not n0 else
+                f"it counts toward the {_js(n0)} over {w}, but with {who} up to {_js(n0 + e)} fish over {w} may be kept")}
+        sz["_tier"] = st_["id"]
+    par = parents()
+    above: Dict[int, List[dict]] = {id(kn): chain(par, kn) for kn in every_kind}
 
     # -- caps a kind's tier does not hold, said on the kind -------------------------------------------------
     every = [(id(k), node_of[id(k)]) for b in c.buckets for k in kind_rows(b)]
     # smaller sizes first; a kind already held to fewer over a smaller size says a larger cap only through the
     # other kinds it counts (Region 2's 2 over 50 cm with a steelhead beside its 1 over 50 cm)
-    for sz in sorted((sz for b in c.buckets for sz in b.get("sizes") or []), key=lambda z: (z["over_cm"], z["n"])):
+    # (at one size and number, the cap over more kinds first: a narrower one it implies then says nothing)
+    for sz in sorted((sz for b in c.buckets for sz in b.get("sizes") or []),
+                     key=lambda z: (z["over_cm"], z["n"], -len(z["species"]))):
         cm = sz["over_cm"]
         for _i, kn in every:
             mine = [S for S in kn["species"] if S in sz["species"]]
-            if not mine or placed_in.get(id(kn), {}).get("id") == sz.get("_tier"):
+            if not mine or any(t["id"] == sz.get("_tier") for t in above[id(kn)]):
                 continue
             others = [S for S in book_order(sz["species"]) if S not in kn["species"]]
             then = [th for th in sz.get("then") or [] if set(kn["species"]) <= set(th["species"])]
+            # a size tier around it at no larger size holds it to its number (and its extra, a steelhead)
             held = min([INF if kn["n"] is None else kn["n"]]
-                       + [a["n"] for a in kn["also_counts"] if a["over_cm"] and a["over_cm"] <= cm])
+                       + [a["n"] for a in kn["also_counts"] if a["over_cm"] and a["over_cm"] <= cm
+                          and set(kn["species"]) <= set(a["species"])]
+                       + [t["n"] + (((t.get("extra") or {}).get("n") or 0) if kn["species"] == ["ST"] else 0)
+                          for t in above[id(kn)] if t["tier"] == "size" and t["over_cm"] <= cm])
             some = kind_names(mine) if set(mine) != set(kn["species"]) else None
             says = _size_also(held, sz["n"], cm, others, then, some)
             if says is None:
@@ -329,26 +417,36 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             sz.pop("_tier", None)
 
     # -- the sentences --------------------------------------------------------------------------------------
-    def word(t: dict) -> None:
-        for x in t["children"]:
-            if x["node"] == "tier":
-                word(x)
-                continue
-            x.pop("_lo", None)
-            x.pop("_origins", None)
-            x["says"] = _kind_says(x, t["n"])
-            s = f"Of the {_short(t)}: {common.lc(x['says'])}"
-            if x["detail"]:
-                s += f" ({x['detail']})"
-            if x["also_counts"]:
-                s += " — " + "; ".join(a["says"] for a in x["also_counts"])
-            x["sentence"] = s
-    word(root)
+    # ROUND19 6 (owner: the region's total and the stream share read as competing): a tier holding fewer than the
+    # count tier around it says it is part of it ("2 a day from this stream (part of the 4)")
+    for t, p in walk([root]):
+        if t["node"] == "tier" and t["tier"] in ("own", "share") and p is not None:
+            up = count_of(par, p)
+            if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
+                t["says"] += f" (part of the {_js(up['n'])})"
+    for t, p in walk([root]):
+        if t["node"] == "tier" and t["tier"] == "count":
+            t["says"] = f"{_js(t['n'])} between {_count_names(t)}"
+    for x, p in walk([root]):
+        if x["node"] != "kind":
+            continue
+        up = count_of(par, p)
+        x["says"] = _kind_says(x, up["n"])
+        for k_ in ("_hi", "_origins", "_origin"):
+            x.pop(k_, None)
+        s = f"Of the {_short(up)}: {common.lc(x['says'])}"
+        if x["detail"]:
+            s += f", {x['detail']}"
+        notes = [a["says"] for a in x["also_counts"]] + ([x["size_note"]["says"]] if x.get("size_note") else [])
+        if notes:
+            s += " — " + "; ".join(notes)
+        x["sentence"] = s
 
     head = c.head["says"]
     if said_total and zone:
-        head += f" · {_js(total)} across {scope}, {other} included"
-    header = {"says": head, "tag": f"{c.origin_one} only" if c.origin_one else None}
+        head += f" · part of {_js(total)} a day across {scope}, {other} included"
+    # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
+    header = {"says": head, "tag": None}
     return [root], header
 
 
@@ -368,7 +466,11 @@ def map_rules(nodes: Sequence[dict], f) -> List[dict]:
     out = []
     for n in nodes:
         if n["node"] == "tier":
-            out.append({**n, "by": None if n["by"] is None else f(n["by"]), "children": map_rules(n["children"], f)})
+            ex = n.get("extra")
+            if ex is not None:
+                ex = {**ex, "by": None if ex.get("by") is None else f(ex["by"])}
+            out.append({**n, "by": None if n["by"] is None else f(n["by"]), "children": map_rules(n["children"], f),
+                        **({"extra": ex} if "extra" in n else {})})
         else:
             out.append({**n, "also_counts": [{**a, "by": None if a["by"] is None else f(a["by"])}
                                              for a in n["also_counts"]]})

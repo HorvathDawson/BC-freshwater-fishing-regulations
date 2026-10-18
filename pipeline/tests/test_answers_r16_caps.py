@@ -34,12 +34,13 @@ def _cells(g, S):
 def test_a_group_carries_the_table_from_the_rules_own_cut_points():
     g, _o, _P = _group(F.BELLA_MAY_ST, MAY1)
     # the Bella Coola's own rows on a Region 2 stream: none under 25 (and Region 2's 30), cutthroat none over 33
-    assert _cells(g, "CT") == [("under 30 cm", 0, "too small"), ("30–33 cm", 1, "hatchery"),
-                               ("over 33 cm", 0, "too big")]
-    assert _cells(g, "DV") == [("under 60 cm", 0, "too small"), ("over 60 cm", 1, "hatchery")]
+    # ROUND19 2/5: in cm (inches), each band's words saying the ends it holds (a 60 cm Dolly Varden is legal)
+    assert _cells(g, "CT") == [("under 30 cm (12 in)", 0, "too small"), ("30–33 cm (12–13 in)", 1, "hatchery"),
+                               ("over 33 cm (13 in)", 0, "too big")]
+    assert _cells(g, "DV") == [("under 60 cm (24 in)", 0, "too small"), ("60 cm (24 in) or longer", 1, "hatchery")]
     # a rainbow over 50 cm on a steelhead water is a steelhead: closed here
     rb = g["table"]["cells"]["RB"][-1]
-    assert (g["table"]["bands"]["RB"][-1]["says"], rb["n"], rb["as"], rb["why"]) == ("over 50 cm", 0, "ST", "closed")
+    assert (g["table"]["bands"]["RB"][-1]["says"], rb["n"], rb["as"], rb["why"]) == ("over 50 cm (20 in)", 0, "ST", "closed")
     assert g["table"]["steelhead_cm"] == 50
     assert "ST" in g["table"]["bands"]                       # a fish nobody may keep has its row too
 
@@ -49,7 +50,7 @@ def test_the_caps_are_exact_on_the_bella_coola_shape():
     caps = g["caps"]
     own = next(c for c in caps if c["by"] == F.BELLA_R5 and c["take"] == 2)
     assert own["if_kept_here"] and own["kinds"]["stream"]     # the river's 2 counts fish kept elsewhere
-    assert own["says"] == "Up to 2 trout and char over 25 cm here, counting fish kept elsewhere today."
+    assert own["says"] == "Up to 2 trout and char 25 cm (10 in) or longer here, counting fish kept elsewhere today."
     ct, rb = "CT.2.h", "RB.2.h"
     assert {ct, rb} <= set(next(c for c in caps if c["by"] == F.BELLA_R6)["kinds"]["here"])
     assert CP.accepts(caps, {"here": {ct: 1}}) and not CP.accepts(caps, {"here": {ct: 1, rb: 1}})
@@ -75,7 +76,7 @@ def test_the_gate_refuses_a_wrong_cell_a_wrong_take_and_a_missing_cap():
     assert CC.check_caps(P, g) == []
     bad = copy.deepcopy(g)
     bad["table"]["cells"]["CT"][1]["n"] = 2
-    assert any("CT 30–33 cm says 2" in p for p in CC.check_caps(P, bad))
+    assert any("CT 30–33 cm (12–13 in) says 2" in p for p in CC.check_caps(P, bad))
     bad = copy.deepcopy(g)
     next(c for c in bad["caps"] if c["by"] == F.BELLA_R6)["take"] = 2
     assert any("the caps accept" in p for p in CC.check_caps(P, bad))

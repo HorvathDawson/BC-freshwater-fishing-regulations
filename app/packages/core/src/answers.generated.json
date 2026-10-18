@@ -2715,7 +2715,7 @@
    "$defs": {
     "AlsoCounts": {
      "additionalProperties": false,
-     "description": "ROUND18 1/7: a cap a kind's tier does not hold that still binds it, said on the kind \u2014 a size cap\n(`over_cm` > 0: \"only 1 over 50 cm / 20 in, if you haven\u2019t already kept a Dolly Varden/bull trout or lake trout\nover 50 cm\") or a count (`over_cm` 0: \"no more than 3 counting any lake trout you keep\"); `tier` the size tier\nit is (None: no tier holds it), `by` its rule (None: a count the card states as a note), `species` every kind it\ncounts, `then` its nested caps. Gate-proved.",
+     "description": "ROUND18 1/7: a cap a kind's tier does not hold that still binds it, said on the kind \u2014 a size cap\n(`over_cm` > 0: \"only 1 over 50 cm (20 in), if you haven\u2019t already kept a Dolly Varden/bull trout or lake trout\nover 50 cm\") or a count (`over_cm` 0: \"no more than 3 counting any lake trout you keep\"); `tier` the size tier\nit is (None: no tier holds it), `by` its rule (None: a count the card states as a note), `species` every kind it\ncounts, `then` its nested caps. Gate-proved.",
      "properties": {
       "by": {
        "anyOf": [
@@ -3695,6 +3695,10 @@
        ],
        "title": "From"
       },
+      "from_in": {
+       "title": "From In",
+       "type": "boolean"
+      },
       "id": {
        "pattern": "^[A-Z_]+\\.[0-9]+(\\.[hw])?$",
        "title": "Id",
@@ -3732,6 +3736,10 @@
         }
        ],
        "title": "To"
+      },
+      "to_in": {
+       "title": "To In",
+       "type": "boolean"
       }
      },
      "required": [
@@ -3739,7 +3747,9 @@
       "species",
       "from",
       "to",
-      "origin"
+      "origin",
+      "from_in",
+      "to_in"
      ],
      "title": "CapKind",
      "type": "object"
@@ -5301,7 +5311,7 @@
     },
     "Header": {
      "additionalProperties": false,
-     "description": "ROUND18 4: the group's compact header \u2014 `says` the headline and the region's total in one line (\"2 a day from\nthis stream \u00b7 4 across Region 2, lakes included\"), `tag` the origin (\"hatchery only\") or None.",
+     "description": "ROUND18 4: the group's compact header \u2014 `says` the headline and the region's total in one line (\"2 a day from\nthis stream \u00b7 part of 4 a day across Region 2, lakes included\"), `tag` None since ROUND19 1 (the kinds' names carry\nthe origin).",
      "properties": {
       "says": {
        "minLength": 1,
@@ -6258,7 +6268,7 @@
     },
     "Replaces": {
      "additionalProperties": false,
-     "description": "ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts \u2014 `says` names each\ncap of the region the bucket's lifting rules lift for its kinds (\"Replaces Region 2\u2019s 2-from-streams\nlimit and 30 cm minimum size for these fish\"), `rules` those caps in the order said.",
+     "description": "ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts \u2014 `says` names each\ncap of the region the bucket's lifting rules lift for its kinds (\"Replaces Region 2\u2019s 2-from-streams\nlimit and 30 cm minimum size for hatchery rainbow trout\" \u2014 ROUND19 6: the fish by name), `rules` those caps in the\norder said.",
      "properties": {
       "rules": {
        "items": {
@@ -6808,6 +6818,28 @@
      "title": "SizeGroup",
      "type": "object"
     },
+    "SizeNote": {
+     "additionalProperties": false,
+     "description": "ROUND19 3: how a kind a size tier lets past its number counts toward it \u2014 the steelhead's \"it counts toward\nthe 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept\"; `tier` the size\ntier around it.",
+     "properties": {
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "tier": {
+       "pattern": "^t[0-9]+$",
+       "title": "Tier",
+       "type": "string"
+      }
+     },
+     "required": [
+      "tier",
+      "says"
+     ],
+     "title": "SizeNote",
+     "type": "object"
+    },
     "SizeThen": {
      "additionalProperties": false,
      "description": "A size cap nested in a size group (ROUND15 1): at most `n` of `species` over `over_cm` (gate-proved).",
@@ -6994,7 +7026,7 @@
     },
     "TableBand": {
      "additionalProperties": false,
-     "description": "ROUND16 1: one size band of a species' table row \u2014 from the rules' own cut points, merged where nothing\nkept here changes (\"under 25 cm\", \"25\u201333 cm\", \"over 33 cm\"); `to` None: no top.",
+     "description": "ROUND16 1: one size band of a species' table row \u2014 from the rules' own cut points, merged where nothing\nkept here changes (\"under 25 cm (10 in)\", \"25\u201333 cm (10\u201313 in)\", \"over 33 cm (13 in)\"); `to` None: no top.\nROUND19 5 (RULINGS P37, the boundary standard): `from_in` / `to_in` whether the band holds its ends \u2014 a fish\nexactly at a cut belongs to the band whose words include it (\"X or less\" / \"X or longer\" include X, \"under X\" /\n\"over X\" exclude it).",
      "properties": {
       "from": {
        "anyOf": [
@@ -7006,6 +7038,10 @@
         }
        ],
        "title": "From"
+      },
+      "from_in": {
+       "title": "From In",
+       "type": "boolean"
       },
       "says": {
        "minLength": 1,
@@ -7025,12 +7061,18 @@
         }
        ],
        "title": "To"
+      },
+      "to_in": {
+       "title": "To In",
+       "type": "boolean"
       }
      },
      "required": [
       "from",
       "to",
-      "says"
+      "says",
+      "from_in",
+      "to_in"
      ],
      "title": "TableBand",
      "type": "object"
@@ -7136,8 +7178,21 @@
     },
     "TreeExtra": {
      "additionalProperties": false,
-     "description": "RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept \u2014\n\"1 over 50 cm / 20 in a day \u2014 a second may be a hatchery steelhead\".",
+     "description": "RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be\nkept \u2014 \"Only 1 of these may be over 50 cm (20 in) \u2014 or 2, if one is a hatchery steelhead\"; `by` the cap letting\nthem past (Region 2's \"2 over 50 cm\" with steelhead). The extra kinds sit INSIDE the tier.",
      "properties": {
+      "by": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "By"
+      },
       "n": {
        "exclusiveMinimum": 0,
        "title": "N",
@@ -7161,7 +7216,7 @@
     },
     "TreeKind": {
      "additionalProperties": false,
-     "description": "ROUND18 1/7: one kind in the card's tree \u2014 `says` \"Up to 2 may be brook, brown or cutthroat trout\", `detail`\nits origin and sizes in cm and inches (\"hatchery, 30 cm / 12 in or longer\"), `sizes`, `also_counts`, `duties`,\n`sentence` the whole line (\"Of the 2 a day: up to 2 may be \u2026 (\u2026) \u2014 only 1 over 50 cm / 20 in, \u2026\"); `presence`\nthe steelhead presence line. Every number gate-proved.",
+     "description": "ROUND18 1/7: one kind in the card's tree \u2014 `says` \"Up to 2 may be brook, brown or cutthroat trout\", `detail`\nits sizes in cm (inches) (\"30 cm (12 in) or longer\"; ROUND19 1: `says` names the origin with the fish, \"Up to 2\nmay be hatchery brook, brown or cutthroat trout\"), `sizes`, `also_counts`, `duties`, `sentence` the whole line,\n\"of\" its nearest count tier (\"Of the 2 a day: up to 2 may be \u2026, 30 cm (12 in) or longer \u2014 \u2026\"); `presence`\nthe steelhead presence line. Every number gate-proved.",
      "properties": {
       "also_counts": {
        "items": {
@@ -7224,6 +7279,17 @@
        "minLength": 1,
        "title": "Sentence",
        "type": "string"
+      },
+      "size_note": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/SizeNote"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "sizes": {
        "$ref": "#/$defs/TreeSizes"
@@ -7352,7 +7418,7 @@
     },
     "TreeTier": {
      "additionalProperties": false,
-     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day across\nRegion 2, lakes included\"), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream\"), count (\"1 between them\") or\nsize (\"1 over 50 cm / 20 in a day \u2014 a second may be a hatchery steelhead\": `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
+     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day across\nRegion 2, lakes included\"), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream (part of the 4)\"), count (\"1 between\ncutthroat and rainbow trout\") or size (ROUND19 3: HOLDING every kind it caps, \"Only 1 of these may be over 50 cm\n(20 in) \u2014 or 2, if one is a hatchery steelhead\": `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
      "properties": {
       "by": {
        "minimum": 0,

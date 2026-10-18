@@ -55,8 +55,8 @@ def test_3_every_rule_title_states_its_effect():
     assert [D.title(x) for x in (st, lt, dv, floor, pool, over)] == [
         "Release all steelhead", "Release lake trout, Oct 1–Nov 30",
         "Release Dolly Varden/bull trout from streams, Aug 1–Oct 31",
-        "No Dolly Varden/bull trout or lake trout under 60 cm", "At most 2 trout and char a day from streams",
-        "At most 1 trout or char over 50 cm a day"]
+        "No Dolly Varden/bull trout or lake trout under 60 cm (24 in)", "At most 2 trout and char a day from streams",
+        "At most 1 trout or char over 50 cm (20 in) a day"]     # ROUND19 2: sizes in cm (inches)
     # a rule with no generated form takes its label, dates with an en dash; the facts always carry a title
     gear = {"entry": "z1:x", "rule": "x.r2", "type": "bait_restriction", "family": "gear_and_method",
             "label": "Bait ban, Apr 1-Oct 31", "verbatim": "bait ban"}

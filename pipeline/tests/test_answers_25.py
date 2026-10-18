@@ -113,7 +113,7 @@ def silence(rule, fish, origins=("none", "hatchery", "wild")):
 
 # answers 2.8 (ROUND9 A1): the lift said positively, with whose rule it is (the 2.6 lead sentence and
 # the 2.7 items are gone — they restated the kind rows)
-VEDDER_LIFT = ("On this river, hatchery rainbow trout 50 cm / 20 in or less: up to 4 a day — this river’s rule "
+VEDDER_LIFT = ("On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
                "replaces Region 2’s 2-from-streams limit for them.")
 
 
@@ -174,7 +174,7 @@ def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
                                       "detail": "any size", "n": 4, "notes": [], "duties": []}],
                            "groups": [], "notes": [], "replaces": None}],
               # ROUND16 1: the table and cap system (empty systems are valid shapes)
-              "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size"}] for S in ("CT", "RB")},
+              "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size", "from_in": True, "to_in": False}] for S in ("CT", "RB")},
                         "cells": {S: [{"n": 4, "why": None, "origin": None, "by_origin": None, "as": None}]
                                   for S in ("CT", "RB")}, "steelhead_cm": None},
               # ROUND18 1/4: the tree and the header

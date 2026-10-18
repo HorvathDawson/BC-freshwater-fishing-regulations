@@ -430,13 +430,35 @@ def _cm(v) -> str:
 
 
 def cm_in(cm) -> str:
-    """ROUND18 2: a size in cm AND inches, "50 cm / 20 in"."""
-    return f"{_cm(cm)} cm / {inches(cm)} in"
+    """ROUND19 2 (owner: "over 50 cm / 20 in, if you haven't…" read like "20 in a day"): a size in cm with its
+    inches in brackets, "50 cm (20 in)" — everywhere a size is said."""
+    return f"{_cm(cm)} cm ({inches(cm)} in)"
 
 
 def range_cm_in(a, b) -> str:
-    """ROUND18 2: a range in cm AND inches, "25–33 cm / 10–13 in"."""
-    return f"{_cm(a)}–{_cm(b)} cm / {inches(a)}–{inches(b)} in"
+    """ROUND19 2: a range in cm with its inches in brackets, "25–33 cm (10–13 in)"."""
+    return f"{_cm(a)}–{_cm(b)} cm ({inches(a)}–{inches(b)} in)"
+
+
+def band_words(a, b, from_in: bool = True, to_in: bool = True) -> str:
+    """ROUND19 5 (owner, RULINGS P37): THE BOUNDARY STANDARD — a band of lengths in words that say which end it
+    holds: "X or less" / "X or longer" include X; "under X" / "over X" exclude X; a fish exactly at a cut belongs
+    to the band whose words include it. [a, b] with `to` None (or inf) for no top; `from_in` / `to_in` whether the
+    band holds its ends. "under 30 cm (12 in)", "30–50 cm (12–20 in)" (both ends), "over 50 cm (20 in)",
+    "60 cm (24 in) or longer", "over 60 cm (24 in), under 90 cm (35 in)"."""
+    import math
+    top = b is None or b == math.inf
+    if not a and top:
+        return "any size"
+    if not a:
+        return f"{cm_in(b)} or less" if to_in else f"under {cm_in(b)}"
+    if top:
+        return f"{cm_in(a)} or longer" if from_in else f"over {cm_in(a)}"
+    if from_in and to_in:
+        return range_cm_in(a, b)
+    lo = cm_in(a) if from_in else f"over {cm_in(a)}"
+    hi = f"up to {cm_in(b)}" if to_in else f"under {cm_in(b)}"
+    return f"{lo}, {hi}" if not from_in else f"{lo} to {hi}"
 
 
 def join(names: Sequence[str], conj: str = " and ") -> str:

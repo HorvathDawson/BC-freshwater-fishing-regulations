@@ -39,8 +39,8 @@ import math
 import re
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, cap, clean, join, lc, range_txt,
-                                             sp_name, when_dates)
+from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, band_words, cap, clean, cm_in, join, lc,
+                                             range_txt, sp_name, when_dates)
 from pipeline.deliver.bundle.rules import closure_grade
 
 INF = float("inf")
@@ -288,7 +288,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
         of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
         return wrap(f"Possession: {times}the daily quota{of} ({POSSESSION_HOME})")
-    over = f" over {_num(mn['min_cm'])} cm" if mn else ""
+    over = f" over {cm_in(mn['min_cm'])}" if mn else ""
     if _js(x.get("record_retention")):
         return wrap(f"Record each {org}{sp}{over} on your licence right away")
     if _js(x.get("unlimited")):
@@ -298,7 +298,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if take is None and floor and floor.get("closed") and len(ln) == 1:
         # the book's "catch and release (X cm or less)" (Q13: X itself released) — never "keep
         # only X cm or longer" (answers 2.5: Vedder r6, now the decided winner, rows F13)
-        return wrap(f"Release every {org}{sp} {_num(floor['max_cm'])} cm or less")
+        return wrap(f"Release every {org}{sp} {cm_in(floor['max_cm'])} or less")
     if x.get("period") == "annual":
         return wrap(f"Keep up to {_num(take)} {sp}{over} a licence year"
                     f"{', all kinds together' if len(species) > 1 else ''}")
@@ -306,7 +306,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     per = " in possession" if kind_of(x) == "possession_cap" else " a day"
     if take is not None and mn and not floor:
         who = re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")
-        return wrap(f"Only {_num(take)} {org}{who} over {_num(mn['min_cm'])} cm{per}{ex_txt}")
+        return wrap(f"Only {_num(take)} {org}{who} over {cm_in(mn['min_cm'])}{per}{ex_txt}")
     sp += ex_txt
     bits = []
     if take is not None:
@@ -319,13 +319,13 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         bits.append(f"{'Have no more than' if per != ' a day' else 'Keep up to'} {_num(take)} {fish}{per}"
                     f"{', all kinds together' if many and _gt0(take) and take > 1 else ''}")
     else:
-        longer = f" {_num(floor['max_cm'])} cm or longer" if floor else ""
+        longer = f" {cm_in(floor['max_cm'])} or longer" if floor else ""
         bits.append(f"Keep only {sp}{longer}")
     if floor and take is not None:
-        bits.append("over 50 cm" if species == ["ST"] and _is(floor["max_cm"], 50)
-                    else f"{_num(floor['max_cm'])} cm or longer")
+        bits.append(f"over {cm_in(50)}" if species == ["ST"] and _is(floor["max_cm"], 50)
+                    else f"{cm_in(floor['max_cm'])} or longer")
     if ceil:
-        bits.append(f"none over {_num(ceil['min_cm'])} cm")
+        bits.append(f"none over {cm_in(ceil['min_cm'])}")
     if _js(x.get("origin")):
         bits.append(f"{x['origin']} only")
     if len(bits) == 1 and take is None and not floor:
@@ -393,7 +393,7 @@ def _title(x: dict) -> Optional[str]:
         times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
         return f"Possession: {times}the daily quota" + ("" if whole else f" of {fish(' and ')}")
     if _js(x.get("record_retention")):
-        over = f" over {_num(mn['min_cm'])} cm" if mn else ""
+        over = f" over {cm_in(mn['min_cm'])}" if mn else ""
         return f"Record each {org}{fish(' or ')}{over} on your licence"
     if _js(x.get("unlimited")):
         return f"No daily limit on {org}{fish(' and ')}{frm}{tail}"
@@ -401,23 +401,24 @@ def _title(x: dict) -> Optional[str]:
         every = "all " if not dates and not days and not org and not water else ""
         return f"Release {every}{org}{fish(' and ')}{frm}{tail}"
     if take is None and floor and floor.get("closed") and len(ln) == 1:
-        return f"Release {org}{fish(' and ')} {_num(floor['max_cm'])} cm or less{frm}{tail}"
+        return f"Release {org}{fish(' and ')} {cm_in(floor['max_cm'])} or less{frm}{tail}"
     sizes = []
     if floor:
-        sizes.append(f"none under {_num(floor['max_cm'])} cm")
+        sizes.append(f"none under {cm_in(floor['max_cm'])}")
     if ceil:
-        sizes.append(f"none over {_num(ceil['min_cm'])} cm")
+        sizes.append(f"none over {cm_in(ceil['min_cm'])}")
     if slot:
-        sizes.append(f"none {_num(slot['min_cm'])}–{_num(slot['max_cm'])} cm")
+        # ROUND19 2/5: in cm (inches), and a slot keeps its bounds (the boundary standard, RULINGS P37)
+        sizes.append(f"none {band_words(slot['min_cm'], slot['max_cm'], False, False)}")
     sz = (" (" + ", ".join(sizes) + ")") if sizes else ""
     k = kind_of(x)
     if k == "annual" and _gt0(take):
-        over = f" over {_num(mn['min_cm'])} cm" if mn else ""
+        over = f" over {cm_in(mn['min_cm'])}" if mn else ""
         return f"Up to {_num(take)} {org}{fish(' and ')}{over} a licence year{tail}"
     if k == "possession_cap" and _gt0(take):
         return f"Up to {_num(take)} {org}{fish(' and ')} in possession{tail}"
     if _gt0(take) and mn and not floor:
-        return f"At most {_num(take)} {org}{fish(' or ')} over {_num(mn['min_cm'])} cm a day{frm}{tail}"
+        return f"At most {_num(take)} {org}{fish(' or ')} over {cm_in(mn['min_cm'])} a day{frm}{tail}"
     if _gt0(take):
         conj = " or " if _is(take, 1) else " and "
         verb = "At most" if k == "subcap" else "Keep up to"

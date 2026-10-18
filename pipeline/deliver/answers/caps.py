@@ -27,6 +27,14 @@ Which order fish are kept in matters across waters (RULINGS Q23b); the basket is
 what may still be kept HERE after everything kept elsewhere today, i.e. the fish kept elsewhere first. Within
 one place the order never matters (a rule checking a fish there counts exactly the fish it checks there).
 
+THE BOUNDARY STANDARD (ROUND19 5, RULINGS P37): every band (a table band, a cap kind) says which of its ends it
+holds — `from_in` / `to_in` — and its words say the same ("X or less" / "X or longer" include X, "under X" / "over X"
+exclude X, `common.band_words`): a fish exactly at a cut belongs to the band whose words include it. Which side a
+cut falls to is read off the rule that draws it (`cut_sides`): a band that keeps none gives its bound to the
+keeping side (the book's exact bound is legal, `catalogue.EXACT_BOUND_IS_LEGAL`; its "X cm or more / or less" keeps
+the bound inside, `closed`); a size clause's "over X" leaves X below; a quota's keep band holds its bounds; the
+steelhead size leaves X a rainbow (p.80: OVER 50 cm). A release band's word decides before any other.
+
 THE GATE (`card_check.check_caps`) proves every cell equals the engine's most alone, and that the caps accept
 EXACTLY the baskets the engine accepts (`Engine.accepts`, the counter-state solver's compiled fish), on
 seeded random baskets with fish kept elsewhere — never trusting this module's own reading.
@@ -125,6 +133,52 @@ def _merge(E, S: str, here_only: bool) -> List[Tuple[float, float, bool]]:
         [(a, b, split, red) for a, b, split, (red, *_s) in out]
 
 
+def rule_sides(r) -> List[Tuple[float, str, int]]:
+    """ROUND19 5: the cuts one rule draws, each with the side a fish exactly at it falls to ("below" / "above") and
+    its weight (0: a band keeping none decides; 1: any other band) — see the module docstring."""
+    out: List[Tuple[float, str, int]] = []
+    for L in (r.x.get("lengths") or []):
+        mn, mx, t = L.get("min_cm"), L.get("max_cm"), L.get("take")
+        if t == 0:
+            inside = bool(L.get("closed"))
+            if mn is not None:
+                out.append((float(mn), "above" if inside else "below", 0))
+            if mx is not None:
+                out.append((float(mx), "below" if inside else "above", 0))
+        elif mn is not None and mx is None:
+            # a quota's keep floor holds its bound ("30 cm or longer"); a clause's "over X" does not
+            out.append((float(mn), "above" if r.k == "pool" else "below", 1))
+        else:
+            if mn is not None:
+                out.append((float(mn), "above", 1))
+            if mx is not None:
+                out.append((float(mx), "below", 1))
+    return out
+
+
+def cut_sides(E, S: str) -> Dict[float, str]:
+    """ROUND19 5: per cut point of a species' bands, the side a fish exactly at it falls to: the rules' own words,
+    a release band's first (`rule_sides`), then the first rule's; the steelhead size leaves the cut a rainbow."""
+    got: Dict[float, Tuple[int, int, str]] = {}
+    for i, r in enumerate(E.rules):
+        if S not in r.species or S in r.except_:
+            continue
+        for x, side, w in rule_sides(r):
+            if x not in got or (w, i) < got[x][:2]:
+                got[x] = (w, i, side)
+    if E.P.steelhead_water and S in ("RB", "ST"):
+        x = float(E.st_cm)
+        if x not in got or got[x][0] > 0:
+            got[x] = (1, -1, "below")
+    return {x: v[2] for x, v in got.items()}
+
+
+def edges(sides: Dict[float, str], a: float, b: float) -> Tuple[bool, bool]:
+    """(from_in, to_in) of the band [a, b] under the boundary standard (no top: `to_in` False; from 0: True)."""
+    return (not a or sides.get(float(a), "below") == "above",
+            b is not None and b != INF and sides.get(float(b), "below") == "below")
+
+
 def _kid(S: str, i: int, o: Optional[str]) -> str:
     return f"{S}.{i}" + ("" if o is None else "." + o[0])
 
@@ -136,9 +190,12 @@ def system(P, total: str, species: Sequence[str]) -> dict:
     E = Engine(P, total)
     kinds: List[dict] = []
     for S in species:
+        sides = cut_sides(E, S)
         for i, (a, b, split) in enumerate(_merge(E, S, here_only=False)):
+            fi, ti = edges(sides, a, b)
             for o in (_ORIGINS if split else (None,)):
-                kinds.append({"id": _kid(S, i, o), "species": S, "from": _js(a), "to": _js(b), "origin": o})
+                kinds.append({"id": _kid(S, i, o), "species": S, "from": _js(a), "to": _js(b), "origin": o,
+                              "from_in": fi, "to_in": ti})
     caps = _caps(E, kinds)
     table = _table(E, species, kinds, caps)
     return {"kinds": kinds, "caps": caps, "steelhead_cm": _js(E.st_cm) if P.steelhead_water else None,
@@ -285,9 +342,12 @@ def _said(E, c: dict, kinds: List[dict]) -> dict:
     rng = c.get("range") or _union(ids)
     size = ""
     if rng is not None and rng != (0, INF):
+        # ROUND19 2/5: in cm (inches), its ends by the boundary standard, read off the rule's own words
         a, b = rng
-        size = f" over {common_num(a)} cm" if b == INF else f" under {common_num(b)} cm" if not a \
-            else f" {common_num(a)}–{common_num(b)} cm"
+        sides: Dict[float, str] = {}
+        for x, side, w in sorted(rule_sides(r), key=lambda t: t[2]):
+            sides.setdefault(x, side)
+        size = " " + common.band_words(a, b, *edges(sides, a, b))
     origins = {k["origin"] for k in ids}
     org = f"{next(iter(origins))} " if len(origins) == 1 and None not in origins else ""
     if c["take"] == 0:
@@ -370,6 +430,7 @@ def _table(E, species: Sequence[str], kinds: List[dict], caps: List[dict]) -> di
     cells: Dict[str, List[dict]] = {}
     for S in species:
         bands[S], cells[S] = [], []
+        sides = cut_sides(E, S)
         for a, b, _split, red in _merge(E, S, here_only=True):
             T = red or S
             mine = [k for k in kinds if k["species"] == T and (k["from"] or 0) < b
@@ -377,10 +438,15 @@ def _table(E, species: Sequence[str], kinds: List[dict], caps: List[dict]) -> di
             cell = _cell(E, mine, caps)
             cell["as"] = red
             if cells[S] and cells[S][-1] == cell and cell["n"] == 0:
-                bands[S][-1]["to"] = _js(b)
-                bands[S][-1]["says"] = _band_words(bands[S][-1]["from"] or 0, b)
+                bd = bands[S][-1]
+                bd["to"] = _js(b)
+                bd["to_in"] = edges(sides, a, b)[1]
+                bd["says"] = common.band_words(bd["from"] or 0, b, bd["from_in"], bd["to_in"])
                 continue
-            bands[S].append({"from": _js(a), "to": _js(b), "says": _band_words(a, b)})
+            fi, ti = edges(sides, a, b)
+            # ROUND19 2/5: in cm (inches), the ends it holds by the boundary standard
+            bands[S].append({"from": _js(a), "to": _js(b), "says": common.band_words(a, b, fi, ti),
+                             "from_in": fi, "to_in": ti})
             cells[S].append(cell)
     return {"bands": bands, "cells": cells}
 
@@ -397,13 +463,3 @@ def _cell(E, mine: List[dict], caps: List[dict]) -> dict:
     elif per["hatchery"] != per["wild"]:
         cell["by_origin"] = per
     return cell
-
-
-def _band_words(a: float, b: float) -> str:
-    if not a and b == INF:
-        return "any size"
-    if not a:
-        return f"under {common_num(b)} cm"
-    if b == INF:
-        return f"over {common_num(a)} cm"
-    return f"{common_num(a)}–{common_num(b)} cm"

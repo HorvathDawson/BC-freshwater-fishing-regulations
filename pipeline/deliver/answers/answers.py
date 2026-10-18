@@ -254,7 +254,11 @@ def _sections() -> Tuple[Section, ...]:
         # "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead") — each kind once as a sentence with its
         # `also_counts`, gate-proved; `group.header` one compact line + an origin tag; sizes in cm AND inches in
         # the tree, the lift lines, the headline's numbers and the kept-elsewhere lines)
-        Section("rows", 16, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND19 1/2/3/5/6: rows 17 (a size tier HOLDS every kind it caps — the steelhead Q16 lets past inside, its
+        # `size_note`, the tier "Only 1 of these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead";
+        # the origin in the fish's names; sizes "50 cm (20 in)"; table bands and cap kinds `from_in`/`to_in` (the
+        # boundary standard); "1 between cutthroat and rainbow trout"; "(part of the 4)"; replaces names the fish)
+        Section("rows", 17, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -283,7 +287,9 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND15 8: display 11 (an inherited lift's owner takes "the" only before a river, channel or arm)
         # ROUND16 3/Q1: display 12 (`rules[].title` every rule's effect in words; `inherited[].caution` where a
         # nearer row prints no such exemption, RULINGS T15)
-        Section("display", 12, display.section_scope, prepare=display.section_prepare,
+        # ROUND19 2/5: display 13 (rule titles and sentences say sizes "50 cm (20 in)"; a slot "none over 60 cm
+        # (24 in), under 90 cm (35 in)")
+        Section("display", 13, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

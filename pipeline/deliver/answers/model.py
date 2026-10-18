@@ -545,7 +545,8 @@ class SizeGroup(Model):
 class Replaces(Model):
     """ROUND13 D: what a water's own-rule bucket replaces, generated from its lifts — `says` names each
     cap of the region the bucket's lifting rules lift for its kinds ("Replaces Region 2’s 2-from-streams
-    limit and 30 cm minimum size for these fish"), `rules` those caps in the order said."""
+    limit and 30 cm minimum size for hatchery rainbow trout" — ROUND19 6: the fish by name), `rules` those caps in the
+    order said."""
     says: StrictStr = Field(min_length=1)
     rules: Tuple[RuleIx, ...] = Field(min_length=1)
 
@@ -641,10 +642,15 @@ class CardState(Model):
 
 class TableBand(Model):
     """ROUND16 1: one size band of a species' table row — from the rules' own cut points, merged where nothing
-    kept here changes ("under 25 cm", "25–33 cm", "over 33 cm"); `to` None: no top."""
+    kept here changes ("under 25 cm (10 in)", "25–33 cm (10–13 in)", "over 33 cm (13 in)"); `to` None: no top.
+    ROUND19 5 (RULINGS P37, the boundary standard): `from_in` / `to_in` whether the band holds its ends — a fish
+    exactly at a cut belongs to the band whose words include it ("X or less" / "X or longer" include X, "under X" /
+    "over X" exclude it)."""
     from_: Cm = Field(alias="from")
     to: Optional[Cm]
     says: StrictStr = Field(min_length=1)
+    from_in: StrictBool
+    to_in: StrictBool
 
 
 WhyLit = Literal["released", "closed", "too small", "too big", "protected size"]
@@ -683,12 +689,15 @@ class CardTable(Model):
                                                      for S in self.bands):
             raise ValueError("every table band has its cell")
         for S, bs in self.bands.items():
-            at = 0
+            at, held = 0, None
             for b in bs:
                 if b.from_ != at:
                     raise ValueError(f"{S}'s bands cover every length once")
-                at = b.to
-            if at is not None:
+                # ROUND19 5: a cut belongs to exactly one of the two bands meeting at it
+                if held is not None and held == b.from_in:
+                    raise ValueError(f"{S}'s cut at {at} cm belongs to exactly one band")
+                at, held = b.to, b.to_in
+            if at is not None or held:
                 raise ValueError(f"{S}'s last band has no top")
         return self
 
@@ -701,6 +710,8 @@ class CapKind(Model):
     from_: Cm = Field(alias="from")
     to: Optional[Cm]
     origin: Optional[OriginLit]
+    from_in: StrictBool          # ROUND19 5: the band holds its ends (the boundary standard, RULINGS P37)
+    to_in: StrictBool
 
 
 class CapPlaces(Model):
@@ -736,10 +747,20 @@ class TreeThen(Model):
 
 
 class TreeExtra(Model):
-    """RULINGS Q16 on a size tier (ROUND18 3): after its number, `n` more of `species` over the size may be kept —
-    "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead"."""
+    """RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be
+    kept — "Only 1 of these may be over 50 cm (20 in) — or 2, if one is a hatchery steelhead"; `by` the cap letting
+    them past (Region 2's "2 over 50 cm" with steelhead). The extra kinds sit INSIDE the tier."""
     n: Positive
     species: Tuple[Fish, ...] = Field(min_length=1)
+    by: Optional[RuleIx] = None
+
+
+class SizeNote(Model):
+    """ROUND19 3: how a kind a size tier lets past its number counts toward it — the steelhead's "it counts toward
+    the 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"; `tier` the size
+    tier around it."""
+    tier: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
+    says: StrictStr = Field(min_length=1)
 
 
 class TreeSizes(Model):
@@ -751,7 +772,7 @@ class TreeSizes(Model):
 
 class AlsoCounts(Model):
     """ROUND18 1/7: a cap a kind's tier does not hold that still binds it, said on the kind — a size cap
-    (`over_cm` > 0: "only 1 over 50 cm / 20 in, if you haven’t already kept a Dolly Varden/bull trout or lake trout
+    (`over_cm` > 0: "only 1 over 50 cm (20 in), if you haven’t already kept a Dolly Varden/bull trout or lake trout
     over 50 cm") or a count (`over_cm` 0: "no more than 3 counting any lake trout you keep"); `tier` the size tier
     it is (None: no tier holds it), `by` its rule (None: a count the card states as a note), `species` every kind it
     counts, `then` its nested caps. Gate-proved."""
@@ -766,8 +787,9 @@ class AlsoCounts(Model):
 
 class TreeKind(Model):
     """ROUND18 1/7: one kind in the card's tree — `says` "Up to 2 may be brook, brown or cutthroat trout", `detail`
-    its origin and sizes in cm and inches ("hatchery, 30 cm / 12 in or longer"), `sizes`, `also_counts`, `duties`,
-    `sentence` the whole line ("Of the 2 a day: up to 2 may be … (…) — only 1 over 50 cm / 20 in, …"); `presence`
+    its sizes in cm (inches) ("30 cm (12 in) or longer"; ROUND19 1: `says` names the origin with the fish, "Up to 2
+    may be hatchery brook, brown or cutthroat trout"), `sizes`, `also_counts`, `duties`, `sentence` the whole line,
+    "of" its nearest count tier ("Of the 2 a day: up to 2 may be …, 30 cm (12 in) or longer — …"); `presence`
     the steelhead presence line. Every number gate-proved."""
     node: Literal["kind"]
     species: Tuple[Fish, ...] = Field(min_length=1)
@@ -780,14 +802,16 @@ class TreeKind(Model):
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
     sentence: StrictStr = Field(min_length=1)
     presence: Optional[Presence] = None
+    size_note: Optional[SizeNote] = None
 
 
 class TreeTier(Model):
     """ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits — `tier` total ("4 a day across
     Region 2, lakes included"), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
     `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
-    this water by the tributary walk — and `line`), share ("2 a day from this stream"), count ("1 between them") or
-    size ("1 over 50 cm / 20 in a day — a second may be a hatchery steelhead": `over_cm`, `species` the kinds its cap
+    this water by the tributary walk — and `line`), share ("2 a day from this stream (part of the 4)"), count ("1 between
+    cutthroat and rainbow trout") or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of these may be over 50 cm
+    (20 in) — or 2, if one is a hatchery steelhead": `over_cm`, `species` the kinds its cap
     names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
     node: Literal["tier"]
     id: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
@@ -821,7 +845,8 @@ TreeTier.model_rebuild()
 
 class Header(Model):
     """ROUND18 4: the group's compact header — `says` the headline and the region's total in one line ("2 a day from
-    this stream · 4 across Region 2, lakes included"), `tag` the origin ("hatchery only") or None."""
+    this stream · part of 4 a day across Region 2, lakes included"), `tag` None since ROUND19 1 (the kinds' names carry
+    the origin)."""
     says: StrictStr = Field(min_length=1)
     tag: Optional[StrictStr]
 

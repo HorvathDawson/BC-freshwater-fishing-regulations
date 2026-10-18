@@ -86,6 +86,10 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
             of = "" if re.search(r"game fish|^fish", m[3]) else f" for {m[3]}"
             want = dict(want, plain=f"{m[1]}Possession: {times}the daily quota{of} "
                                     f"({X.POSSESSION_HOME}){m[4] or ''}.")
+        if want["plain"]:
+            # ROUND19 2 (owner): every size reads "50 cm (20 in)" — the page said cm only
+            from pipeline.deliver.answers.common import cm_in
+            want = dict(want, plain=re.sub(r"(\d+(?:\.\d+)?) cm\b", lambda m: cm_in(float(m[1])), want["plain"]))
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]
@@ -139,7 +143,7 @@ def test_plain_says_place_origin_size_and_dates():
          "origin": "hatchery", "lengths": [{"max_cm": 30, "take": 0}],
          "when": {"dates": [{"from_month": 5, "from_day": 1, "to_month": 10, "to_day": 31}]}}
     assert X.plain(x) == ("In streams, keep up to 2 trout and char a day, all kinds together, "
-                          "30 cm or longer, hatchery only, May 1–Oct 31.")
+                          "30 cm (12 in) or longer, hatchery only, May 1–Oct 31.")
     assert X.plain(dict(x, take=0)) == \
         "In streams, release every hatchery trout and char, May 1–Oct 31."
     shut = {"type": "retention_limit", "species": ["ALL_GAME_FISH"], "take": 0, "may_target": 0}

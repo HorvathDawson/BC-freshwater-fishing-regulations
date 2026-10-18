@@ -98,6 +98,56 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND19 (2026-10-17) — rows 17, display 13: a size tier holds what it caps, the origin with the fish, "50 cm (20 in)", the boundary standard, tiers that say their nesting
+
+Owner review of v20 (ROUND19 1, 2, 3, 5, 6; item 4 is the page's); RULINGS P34-P38 (P31's placement and P30's
+"50 cm / 20 in" superseded).
+
+- **Sizes** (P34) read "50 cm (20 in)" everywhere: the tree, the header, `also_counts`, sentences, details, the lift lines
+  and the headline's `also`, the kept-elsewhere lines, `table.bands[].says`, `caps[].says` and the display section's rule
+  titles and sentences (`display.title` / `plain`). `common.cm_in`, `common.range_cm_in` ("25–33 cm (10–13 in)").
+- **The origin with the fish** (P35): a kind keeping one origin says it in its name — `says` "Up to 2 may be hatchery
+  brook, brown or cutthroat trout", "Up to 2 may be hatchery steelhead" — and its `detail` is its sizes only ("30 cm
+  (12 in) or longer"; a steelhead "rainbow trout over 50 cm (20 in)"). `header.tag` is null (the names carry it). The
+  card's `origin` says what to keep first: "Keep hatchery fish only — wild trout and char go back."
+- **A size tier HOLDS every kind it caps** (P36): each kind row that may be kept over its size, nested in the tightest
+  tier holding them all; where they span tiers it wraps those tiers whole (Chilliwack Lake: Region 2's 1 over 50 cm
+  wraps the lake's own Dolly Varden tier, the trout and the lake trout). A kind that can never pass the size stays
+  outside (the Vedder's hatchery rainbow, 50 cm or less; the Bella Coola's count tier of cutthroat ≤33 and rainbow
+  ≤50). `says` "Only 1 of these may be over 50 cm (20 in)" (n 0: "None of these may be over …"; nested caps ", and only 1
+  over 50 cm (20 in)"). RULINGS Q16: the steelhead the region's "2 over 50 cm" lets past sits INSIDE — "… — or 2, if one
+  is a hatchery steelhead" (`extra` {n, species ["ST"], by the 2-over cap}), and the steelhead kind carries `size_note`
+  {tier, says "it counts toward the 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be
+  kept"}. A cap on ONE kind row (Bennett Lake's lake trout "only 1 over 90 cm"), on part of a row (Glenn Creek's "only 1
+  cutthroat trout over 50 cm"), or that no tier can hold without a kind that cannot pass it (a count tier holding a
+  cutthroat that may pass 50 cm and a rainbow that may not) stays on the kinds' `also_counts`, as in ROUND18. The kinds
+  under a size tier say no also_counts line for it. A kind's sentence is "of" its nearest COUNT tier ("Of the 2 a day:
+  up to 2 may be hatchery brook, brown or cutthroat trout, 30 cm (12 in) or longer"); a kind is never above that tier's
+  number (a size tier limits only what is over its size). The detail follows a comma.
+- **The boundary standard** (P37): "X or less" / "X or longer" include X; "under X" / "over X" exclude X; a fish exactly
+  at a cut belongs to the band whose words include it. `table.bands[]` and `cap_kinds[]` carry `from_in` / `to_in`
+  (whether the band holds its ends; each cut belongs to exactly one of the two bands meeting at it, `model.CardTable`
+  refuses otherwise). The side is the rule's own (`caps.rule_sides`): a take-0 band's bound goes to the keeping side
+  (Q13, `catalogue.EXACT_BOUND_IS_LEGAL`; `closed` keeps it inside), a clause's "over X" leaves X below, a quota's keep
+  band holds its bounds, the steelhead size leaves 50 cm a rainbow; a take-0 band decides first. Words by
+  `common.band_words`: "under 30 cm (12 in)", "30–50 cm (12–20 in)", "over 50 cm (20 in)", "60 cm (24 in) or longer",
+  a slot "over 60 cm (24 in), under 90 cm (35 in)". The card's own keep ranges ("30 cm (12 in) or longer", "50 cm (20 in)
+  or less", "30–50 cm") already hold their bounds (a keep band is inclusive). Measuring is never that precise; the
+  standard only makes every band's words agree with which band holds the cut.
+- **Nesting and names in the words** (P38): a count tier "1 between cutthroat and rainbow trout" (its kinds' fish, in
+  their order); an own or share tier holding fewer than the count tier around it "2 a day from this stream (part of the
+  4)", "This river’s rule: up to 2 a day (part of the 4)"; the header "2 a day from this stream · part of 4 a day across
+  Region 2, lakes included"; an own tier's `replaces` names the fish, with their origin where they keep one: "Replaces
+  Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery rainbow trout" (also the bucket's
+  `replaces`, in cm).
+- **The gate** (`card_check.check_tree`, `check_caps`) adds: THE PLACEMENT of every size tier — each kind under it may be
+  kept over its size; its caps (`by`, `extra.by`) check no kind OUTSIDE it over the size with a number (the reader's
+  verdicts); every size cap a bucket states is a tier or on a kind; a size cap said on the kinds over two or more rows
+  must be one no tier can hold (part of a row, or the tightest tier around them holds a kind that cannot pass the size
+  beside them); a kind's number is no more than its nearest count tier's; a `size_note` names a size tier around its
+  kind; numbers in words may include the tier's n + extra and "(part of the N)". Each table band's words say the ends it
+  holds and each cut belongs to exactly one band.
+
 ## ROUND18 (2026-10-17) — rows 16: the card as a tree, sizes in inches, the Q16 tier, a compact header, why an inherited rule applies
 
 Owner review of v19 (ROUND18 1-4, 7, 8; items 1, 5, 6 are the page's); RULINGS P29-P33. `pipeline/deliver/answers/tree.py`.

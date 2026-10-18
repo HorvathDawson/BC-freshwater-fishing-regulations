@@ -42,7 +42,7 @@ PARK_WORDS = "Closed unless opened by Parks Canada — a national park fishing p
      "Possession: the daily quota for kokanee (fish at home don’t count)."),
     ({"type": "retention_limit", "species": ["LT"], "period": "possession", "take": 1,
       "lengths": [{"min_cm": 60}]},
-     "Only 1 lake trout over 60 cm in possession (fish at home don’t count)."),
+     "Only 1 lake trout over 60 cm (24 in) in possession (fish at home don’t count)."),
     ({"type": "retention_limit", "species": ["GR"], "period": "possession", "take": 1},
      "Have no more than 1 Arctic grayling in possession (fish at home don’t count)."),
 ])

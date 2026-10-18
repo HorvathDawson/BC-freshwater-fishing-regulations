@@ -38,40 +38,27 @@ def _tree(water, md=OCT10):
 
 # 2 ---------------------------------------------------------------------------------------------
 def test_2_sizes_in_cm_and_inches():
+    # ROUND19 2: the inches in brackets, "50 cm (20 in)"
     assert [common.cm_in(c) for c in (30, 50, 25, 33, 60, 90)] == [
-        "30 cm / 12 in", "50 cm / 20 in", "25 cm / 10 in", "33 cm / 13 in", "60 cm / 24 in", "90 cm / 35 in"]
-    assert common.range_cm_in(25, 33) == "25–33 cm / 10–13 in"
+        "30 cm (12 in)", "50 cm (20 in)", "25 cm (10 in)", "33 cm (13 in)", "60 cm (24 in)", "90 cm (35 in)"]
+    assert common.range_cm_in(25, 33) == "25–33 cm (10–13 in)"
 
 
-# 1, 3, 7 -------------------------------------------------------------------------------------------
+# 1, 3, 7 (ROUND19 3 moved the size tier's kinds: test_answers_r19_tree.py pins the whole Vedder tree) ----------
 def test_1_the_vedder_tree():
     g, _o, _P = _tree(F.VEDDER)
     (total,) = g["tree"]
     assert (total["tier"], total["n"], total["says"]) == ("total", 4, "4 a day across Region 2, lakes included")
     own, share = total["children"]
     assert (own["tier"], own["n"], own["says"]) == ("own", 4, "This river’s rule: up to 4 a day")
-    assert own["replaces"] == "Replaces Region 2’s 2-from-streams limit and 30 cm / 12 in minimum size for these fish"
     assert own["why_here"] is None
     (rb,) = own["children"]
-    assert rb["sentence"] == "Of the 4 a day: up to 4 may be rainbow trout (hatchery, any length, 50 cm / 20 in or less)"
     assert rb["sizes"] == {"cm": [[0, 50]], "in": [[0, 20]]}
-    assert (share["tier"], share["n"], share["says"]) == ("share", 2, "2 a day from this stream")
-    trout, st, size = share["children"]
-    assert trout["sentence"] == ("Of the 2 a day: up to 2 may be brook, brown or cutthroat trout (hatchery, "
-                                 "30 cm / 12 in or longer) — only 1 over 50 cm / 20 in, if you haven’t already "
-                                 "kept a Dolly Varden/bull trout or lake trout over 50 cm")
+    assert (share["tier"], share["n"]) == ("share", 2)
+    (size,) = share["children"]
+    trout, _dv, st = size["children"]
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
-    (ac,) = trout["also_counts"]
-    assert (ac["tier"], ac["n"], ac["over_cm"]) == (size["id"], 1, 50)
-    # 3: the Q16 pair is ONE size tier holding only the kinds it truly caps; the steelhead it lets past sits in
-    # the share ("of the 1 … up to 2" would contradict itself)
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert size["says"] == "1 over 50 cm / 20 in a day — a second may be a hatchery steelhead"
-    assert size["extra"] == {"n": 1, "species": ["ST"]}
-    (dv,) = size["children"]
-    assert dv["sentence"] == ("Of the 1 over 50 cm / 20 in: up to 1 may be Dolly Varden/bull trout or lake trout "
-                              "(hatchery, 60 cm / 24 in or longer)")
-    assert st["sentence"] == "Of the 2 a day: up to 2 may be steelhead (hatchery rainbow trout over 50 cm / 20 in)"
     assert st["duties"] == ["10 a year", "stop fishing for the day after 2", "record each one on your licence"]
     assert st["presence"]["line"] == "known_with_rules"
 
@@ -88,24 +75,18 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
     g, _o, _P = _tree(F.BELLA_MAY_ST, MAY1)        # the river's row on a Region 2 stream (hatchery, 30 cm floor)
     (total,) = g["tree"]
     (own,) = total["children"]
-    assert own["says"] == "This river’s rule: up to 2 a day"
-    trout, count, size = own["children"]
-    assert trout["sentence"] == ("Of the 2 a day: up to 2 may be brook or brown trout (hatchery, 30 cm / 12 in or "
-                                 "longer) — only 1 over 50 cm / 20 in, if you haven’t already kept a Dolly "
-                                 "Varden/bull trout or lake trout over 50 cm")
-    assert (count["tier"], count["n"], count["says"]) == ("count", 1, "1 between them")
-    assert [k["sentence"] for k in count["children"]] == [
-        "Of the 1 between them: up to 1 may be cutthroat trout (hatchery, 30–33 cm / 12–13 in)",
-        "Of the 1 between them: up to 1 may be rainbow trout (hatchery, 30–50 cm / 12–20 in)"]
+    size, count = own["children"]
+    assert (count["tier"], count["n"]) == ("count", 1)
     # no steelhead may be kept (closed): the size tier is the plain "1 over 50 cm"
-    assert (size["tier"], size["says"], size["extra"]) == ("size", "1 over 50 cm / 20 in a day", None)
+    assert (size["tier"], size["n"], size["extra"]) == ("size", 1, None)
 
 
 # 4 ---------------------------------------------------------------------------------------------
 def test_4_a_compact_header():
     g, _o, _P = _tree(F.VEDDER)
-    assert g["header"] == {"says": "2 a day from this stream · 4 across Region 2, lakes included",
-                           "tag": "hatchery only"}
+    # ROUND19 1/6: the nesting in the words; the kinds' names carry the origin, the tag does not
+    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day across Region 2, lakes included",
+                           "tag": None}
     g, _o, _P = _tree(F.LAKE)
     assert g["header"]["says"] == "4 a day"
 
@@ -116,7 +97,8 @@ def test_8_a_rule_reached_by_the_tributary_walk_says_why_it_applies_here():
     own = g["tree"][0]["children"][0]
     assert own["why_here"] == "its row covers its tributaries, so it applies here"
     assert own["line"] == ("The Chilliwack River’s rule (its row covers its tributaries, so it applies here) · "
-                           "Replaces Region 2’s 2-from-streams limit and 30 cm / 12 in minimum size for these fish")
+                           "Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
+                           "rainbow trout")
 
 
 # the gate ----------------------------------------------------------------------------------------
@@ -139,25 +121,26 @@ def test_the_gate_refuses_a_wrong_tree():
     def tier_n(g):
         g["tree"][0]["children"][1]["n"] = 3                       # the share tier
     def size_extra(g):
-        g["tree"][0]["children"][1]["children"][2]["extra"]["n"] = 2
-    def also(g):
-        g["tree"][0]["children"][1]["children"][0]["also_counts"][0]["n"] = 2
+        g["tree"][0]["children"][1]["children"][0]["extra"]["n"] = 2
     def twice(g):
-        share = g["tree"][0]["children"][1]
-        share["children"].append(copy.deepcopy(share["children"][0]))
+        size = g["tree"][0]["children"][1]["children"][0]
+        size["children"].append(copy.deepcopy(size["children"][0]))
     def words(g):
-        k = g["tree"][0]["children"][1]["children"][0]
+        k = g["tree"][0]["children"][1]["children"][0]["children"][0]
         k["sentence"] = k["sentence"].replace("up to 2", "up to 3")
     def sizes(g):
         g["tree"][0]["children"][0]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
     def header(g):
-        g["header"]["says"] = g["header"]["says"].replace("4 across", "5 across")
-    def over_tier(g):                                              # the steelhead back under the size tier
-        share = g["tree"][0]["children"][1]
-        st = share["children"].pop(1)
-        share["children"][1]["children"].append(st)
-    for fn in (tier_n, size_extra, also, twice, words, sizes, header, over_tier):
+        g["header"]["says"] = g["header"]["says"].replace("4 a day across", "5 a day across")
+    def over_count(g):                                             # a kind past the count tier around it
+        g["tree"][0]["children"][1]["n"] = 1
+    for fn in (tier_n, size_extra, twice, words, sizes, header, over_count):
         assert _mutated(fn), fn.__name__
+    # also_counts proved where a cap is said on the kinds (no tier can hold it: a count beside a kind that cannot
+    # pass the size)
+    def also(g):
+        next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["also_counts"])["also_counts"][0]["n"] = 2
+    assert _mutated(also, F.COUNT)
 
 
 def test_8_a_waters_own_total_reached_by_the_walk_says_why_too():

@@ -109,7 +109,7 @@ def test_d_the_own_rule_bucket_says_what_it_replaces():
     own, share = g["buckets"]
     assert own["title"] == "This river’s rule"
     assert own["replaces"] == {
-        "says": "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for these fish",
+        "says": "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for hatchery rainbow trout",
         "rules": [F.SHARE, "z2:trout_char_quota::trout_char_quota.r8"]}
     assert share["replaces"] is None
 
@@ -118,8 +118,9 @@ def test_d_each_lifted_cap_for_the_fish_it_is_lifted_for():
     """The Vedder with a second lifting rule (hatchery cutthroat 3, lifting the share only)."""
     g, _o, _P = _group(F.TWO)
     own = g["buckets"][0]
-    assert own["replaces"]["says"] == ("Replaces Region 2’s 2-from-streams limit for these fish, and its "
-                                       "30 cm minimum size for rainbow trout")
+    # ROUND19 6: the fish by name, with their origin, never "these fish"
+    assert own["replaces"]["says"] == ("Replaces Region 2’s 2-from-streams limit for hatchery cutthroat trout and "
+                                       "rainbow trout, and its 30 cm minimum size for hatchery rainbow trout")
 
 
 # P ---------------------------------------------------------------------------------------------

@@ -5,7 +5,8 @@ out of them) is said as the angler reads a water:
 
   headline    the number from THIS water with no lift: on a Region 2 stream "2 a day from this stream"
               (the stream share holding every kind), on a lake the total ("4 a day");
-  origin      "Hatchery only — release wild trout and char." where every kind keeps only one origin;
+  origin      "Keep hatchery fish only — wild trout and char go back." where every kind keeps only one origin
+              (ROUND19 6);
   lifts       each water's rule lifting kinds out of the share, said positively with whose rule it is:
               "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule
               replaces Region 2’s 2-from-streams limit for them." (`by`: the page cites its Book page);
@@ -27,7 +28,8 @@ out of them) is said as the angler reads a water:
               stays a note; an own-rule bucket says its shared cap (ROUND15 5, `between`);
   replaces    (ROUND13 D) on a water's own-rule bucket, what its lifts replace, generated from them —
               each lifted cap of the region named: "Replaces Region 2’s 2-from-streams limit and 30 cm
-              minimum size for these fish" (the page's lift box is gone; `lifts` stay for proof);
+              minimum size for hatchery rainbow trout" (ROUND19 6: the fish by name; the page's lift box is gone;
+              `lifts` stay for proof);
   not_kept    (ROUND13 S) every fish the card's row holds that nobody may keep here, with whose rule:
               "Steelhead: no fishing for them" (Bella Coola r13), "Dolly Varden/bull trout: release every
               one" — so "not listed" never stands for a closure (the gate proves none may be kept);
@@ -73,7 +75,7 @@ def _names(codes: Sequence[str], conj: str = " and ") -> str:
 
 
 def _cm(v, inch: bool = False) -> str:
-    """A size: "50 cm", or with `inch` (ROUND18 2) "50 cm / 20 in"."""
+    """A size: "50 cm", or with `inch` (ROUND19 2) "50 cm (20 in)"."""
     return common.cm_in(v) if inch else f"{_js(v)} cm"
 
 
@@ -406,7 +408,7 @@ def _cap_name(r, inch: bool = False) -> Optional[Tuple[str, str]]:
         return ("share", f"{_js(take)}-from-{w}s limit") if w else ("count", f"{_js(take)}-a-day limit")
     for a, b, t in _bands(r):
         if t and a and b == INF:
-            # ROUND18 2: with inches, "limit of 1 over 50 cm / 20 in"
+            # ROUND18 2: with inches, "limit of 1 over 50 cm (20 in)"
             return "over", (f"limit of {_js(t)} over {_cm(a, True)}" if inch else f"{_js(t)}-over-{_js(a)}-cm limit")
     for a, b, t in _bands(r):
         if t == 0 and not a and b != INF:
@@ -420,8 +422,8 @@ def _replaces(P, model: dict, ks: Sequence[str], lifters: set, inch: bool = Fals
     """A water's own-rule bucket's statement of what it replaces (ROUND13 D, owner: the lift box goes;
     the bucket says it): {says, rules} — every cap the reader says the bucket's lifting rules (`lifters`)
     LIFT for its kinds (a kept origin), each named by its owner (`_cap_name`), for the fish it is lifted
-    for: the Vedder's "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for these fish";
-    the Duncan's "Replaces Region 4’s 2-from-streams limit for these fish, and its 1-over-50-cm limit for
+    for, by name (ROUND19 6): the Vedder's "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for
+    hatchery rainbow trout"; the Duncan's "Replaces Region 4’s 2-from-streams limit for …, and its 1-over-50-cm limit for
     rainbow trout". None when no cap is lifted."""
     got: Dict[str, List[str]] = {}
     for S in ks:
@@ -452,12 +454,16 @@ def _replaces(P, model: dict, ks: Sequence[str], lifters: set, inch: bool = Fals
         for k in ks_:
             x = P.by_key[k].x
             owners.setdefault(x.get("entry_name") or "the region", []).append(_cap_name(P.by_key[k], inch)[1])
-        # ROUND18 2: "Region 4’s 2-from-streams limit and the limit of 1 over 50 cm / 20 in"
+        # ROUND18 2: "Region 4’s 2-from-streams limit and the limit of 1 over 50 cm (20 in)"
         whose = common.join([f"{'its' if o in said else o + '’s'} "
                              f"{common.join([('the ' + n if i and n.startswith('limit of') else n) for i, n in enumerate(ns)], ' and ')}"
                              for o, ns in owners.items()], " and ")
         said |= set(owners)
-        for_ = "these fish" if fs == every else _names([S for S in ks if S in fs])
+        # ROUND19 6 (owner: "… minimum size for these fish" read as the brook trout's): the fish it is replaced for,
+        # by name, with their origin where they keep only one ("for hatchery rainbow trout")
+        mine = [S for S in ks if S in fs]
+        org = {tuple(_kept_origins(model, S)) for S in mine}
+        for_ = (f"{org.pop()[0]} " if len(org) == 1 and len(next(iter(org))) == 1 else "") + _names(mine)
         parts.append(f"{whose} for {for_}")
     return {"says": "Replaces " + ", and ".join(parts),
             "rules": [k for _fs, ks_ in sets for k in ks_]}
@@ -606,10 +612,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # -- origin ----------------------------------------------------------------------------------
     os_ = {tuple(_kept_origins(model, S)) for S in kinds}
     origin = None
+    # ROUND19 6 (owner: "Hatchery only — release wild trout and char" read as releasing the listed fish): what to
+    # keep first, then what goes back
     if os_ == {("hatchery",)}:
-        origin = f"Hatchery only — release wild {what}."
+        origin = f"Keep hatchery fish only — wild {what} go back."
     elif os_ == {("wild",)}:
-        origin = f"Wild only — release hatchery {what}."
+        origin = f"Keep wild fish only — hatchery {what} go back."
     one_origin = origin is not None
 
     # -- lifts out of the share, and the total under it ------------------------------------------
@@ -731,12 +739,13 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             from pipeline.deliver.bundle import read as RD
             st_cm = st_cm or RD._steelhead_min_cm()
             name, detail = "Steelhead", " ".join(x for x in (ow, "rainbow trout over 50 cm") if x)
-            detail_in = " ".join(x for x in (ow, f"rainbow trout over {common.cm_in(st_cm)}") if x)
+            # ROUND19 1: the tree names the origin with the fish ("hatchery steelhead"), never in the detail
+            detail_in = f"rainbow trout over {common.cm_in(st_cm)}"
             segs = [(st_cm, INF)]
         else:
             name = None
             detail = ", ".join(x for x in (ow, _detail_words(P, model, S, lo, hi)) if x)
-            detail_in = ", ".join(x for x in (ow, _detail_words(P, model, S, lo, hi, inch=True)) if x)
+            detail_in = _detail_words(P, model, S, lo, hi, inch=True)
             segs = size_segments(P, model, S, lo, hi)
         if n == 0:
             # ROUND13 Z (owner): a kind keeping none here says no size — every band of it releases (the

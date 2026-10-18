@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "16",
+            "version": "17",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -354,7 +354,28 @@ SPEC = {
                     "cm AND whole inches (the nearest; the cm is the book's) in the tree, the lift lines, the "
                     "headline's `also` and the kept-elsewhere lines; the bucket fields keep cm only and stay for now. "
                     "The card gate proves every tier's and kind's number, each kind's sizes, every `also_counts`, the "
-                    "Q16 `extra` and every number in the tree's sentences and the header",
+                    "Q16 `extra` and every number in the tree's sentences and the header. Version 17 (ROUND19): sizes "
+                    "read \"50 cm (20 in)\" everywhere (tree, header, also_counts, sentences, details, lift lines, "
+                    "kept-elsewhere lines, table bands, cap sentences). A kind keeping one origin says it with the fish "
+                    "(says \"Up to 2 may be hatchery brook, brown or cutthroat trout\", detail \"30 cm (12 in) or "
+                    "longer\"; `header.tag` null — the names carry it; the card `origin` \"Keep hatchery fish only — "
+                    "wild trout and char go back.\"). A size tier HOLDS every kind row its cap binds (each that may be "
+                    "kept over its size), nested in the tightest tier holding them all (wrapping whole tiers where they "
+                    "span tiers); a kind that can never pass the size stays outside; says \"Only 1 of these may be over "
+                    "50 cm (20 in)\"; RULINGS Q16's steelhead sits INSIDE: \"… — or 2, if one is a hatchery steelhead\" "
+                    "(`extra` {n, species, by}) and the steelhead kind's `size_note` {tier, says \"it counts toward the "
+                    "1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept\"}; a kind's "
+                    "sentence is \"of\" its nearest COUNT tier (a size tier is no count); a cap on one kind row, part "
+                    "of a row, or that no tier can hold without a kind that cannot pass it stays on the kinds' "
+                    "`also_counts`. A count tier names its fish (\"1 between cutthroat and rainbow trout\"); an own or "
+                    "share tier holding fewer than the count tier around it says \"(part of the 4)\"; the header "
+                    "\"2 a day from this stream · part of 4 a day across Region 2, lakes included\"; `replaces` names "
+                    "the fish (\"… minimum size for hatchery rainbow trout\"). THE BOUNDARY STANDARD (RULINGS P37): "
+                    "`table.bands[]` and `cap_kinds[]` carry `from_in` / `to_in` — whether the band holds its ends; "
+                    "a fish exactly at a cut belongs to the band whose words include it (\"X or less\" / \"X or "
+                    "longer\" hold X, \"under X\" / \"over X\" do not). The gate proves every size tier's placement "
+                    "(each kind under it may pass its size; its caps bind no kind outside it) and that each cut "
+                    "belongs to exactly one band",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -452,7 +473,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "12",
+            "version": "13",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -482,7 +503,9 @@ SPEC = {
                       "T15): `inherited[].caution` where a NEARER water row binding this stream prints no such "
                       "exemption — the lift still holds; show the caution under the line: \"Trout Lake’s tributaries’ "
                       "row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because "
-                      "its row covers all its tributaries.\" (null elsewhere)",
+                      "its row covers all its tributaries.\" (null elsewhere). Version 13 (ROUND19 2/5): rule titles "
+                      "and sentences say sizes \"30 cm (12 in)\"; a slot \"none over 60 cm (24 in), under 90 cm (35 in)\" "
+                      "(the boundary standard, RULINGS P37)",
             "rules": "[{kind, title, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: `title` (version 12, ROUND16 3) every rule's effect in words, "
                      "generated from its fields (\"Release all steelhead\", \"Release lake trout, Oct 1–Nov 30\", "

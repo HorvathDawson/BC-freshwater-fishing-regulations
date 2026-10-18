@@ -187,7 +187,7 @@ def test_the_group_model_requires_the_card():
                                     "detail": "any size", "n": 4, "notes": [], "duties": []}],
                          "groups": [], "notes": [], "replaces": None}],
             # ROUND16 1: the table and cap system (empty systems are valid shapes)
-            "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size"}] for S in ("CT", "RB")},
+            "table": {"bands": {S: [{"from": 0, "to": None, "says": "any size", "from_in": True, "to_in": False}] for S in ("CT", "RB")},
                       "cells": {S: [{"n": 4, "why": None, "origin": None, "by_origin": None, "as": None}]
                                 for S in ("CT", "RB")}, "steelhead_cm": None},
             # ROUND18 1/4: the tree and the header

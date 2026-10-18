@@ -1558,7 +1558,7 @@ def _names_short(codes: Sequence[str]) -> str:
 
 def _range_words(a, b) -> str:
     """A keep range in the book's words (bounds of a keep band are inclusive: "50 cm or less"), in cm AND inches
-    (ROUND18 2: "50 cm / 20 in or less", "over 50 cm / 20 in", "20–30 cm / 8–12 in")."""
+    (ROUND19 2: "50 cm (20 in) or less", "over 50 cm (20 in)", "20–30 cm (8–12 in)")."""
     if not a and (b is None or b == INF):
         return ""
     if not a:

@@ -57,7 +57,7 @@ def test_the_headline_is_this_waters_number_without_a_lift():
     assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day from this stream",
                                          "says": "2 a day from this stream",
                                          "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm "
-                                                                   "/ 20 in or less"}]}
+                                                                   "(20 in) or less"}]}
     assert _g(F.STREAM)["headline"]["n"] == 2
     assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day", "says": "4 a day"}
 
@@ -66,7 +66,7 @@ def test_the_headline_is_this_waters_number_without_a_lift():
 def test_a_lift_is_said_positively_naming_whose_rule_with_its_book_page():
     g = _g(F.VEDDER)
     assert [L["says"] for L in g["lifts"]] == [
-        "On this river, hatchery rainbow trout 50 cm / 20 in or less: up to 4 a day — this river’s rule "
+        "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them."]
     assert g["lifts"][0]["by"] == F.LIFT                      # the page cites its Book p.22 from it
     assert g["total_line"] == "No more than 4 trout and char a day across Region 2, lakes included."
@@ -133,8 +133,8 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
         # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
         {"kept": 1, "q": "Kept 1 at a lake?",
          "a": "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."},
-        {"kept": 1, "q": "Kept trout or char over 50 cm / 20 in elsewhere today?",
-         "a": "It counts here too: at most 2 over 50 cm / 20 in a day in all — only 1 of them may be anything other "
+        {"kept": 1, "q": "Kept trout or char over 50 cm (20 in) elsewhere today?",
+         "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other "
               "than a hatchery steelhead."}]
     assert [w["at"] for w in _g(F.STREAM)["worked"]] == ["stream", "lake", "elsewhere"]
     assert [w["at"] for w in _g(F.LAKE)["worked"]] == ["elsewhere", "elsewhere"]
@@ -159,7 +159,7 @@ def test_q23b_lifted_fish_count_toward_the_stream_tally_on_other_streams_only():
     assert [w[0]["q"], w[0]["a"], w[0]["here"]] == ["Kept 2 on another stream?", "None more here", 0]
     # the Q16 cross-water case is in the list, not on the card
     assert [x["a"] for x in _g(F.VEDDER)["worked"]][-1] == (
-        "It counts here too: at most 2 over 50 cm / 20 in a day in all — only 1 of them may be anything other "
+        "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other "
         "than a hatchery steelhead.")
 
 
@@ -212,5 +212,5 @@ def test_check_card_fails_when_the_tally_breaks():
 def test_the_headline_says_the_lifted_number_beside_it():
     """Round 9 persona: a bare "2" next to a 4-rainbow lift read as the whole limit."""
     assert _g(F.VEDDER)["headline"].get("also") == [
-        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm / 20 in or less"}]
+        {"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"}]
     assert not _g(F.STREAM)["headline"].get("also") and not _g(F.LAKE)["headline"].get("also")
