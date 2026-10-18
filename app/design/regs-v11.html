@@ -478,6 +478,12 @@ button.hplace:active .pl{color:var(--accent)}
 .tch{margin:2px 0 0 10px;padding-left:12px;border-left:2px solid var(--line2)}
 .tch > .tnode{margin-top:6px}
 .krow.kt{min-height:0;padding:8px 0}.tch > .krow.kt:first-child{border-top:0}
+/* round 19 (owner 3): a size tier HOLDS every kind it caps — a box: its line as the box's head, its kinds (and whole tiers)
+   inside it; the steelhead's size note on its own row, in the accent's bar, inside the box it names */
+.tnode[data-tnode="size"]{border:2px solid var(--ink);padding:0 10px 2px;margin-top:10px}
+.tnode[data-tnode="size"] > .tier .tl{margin:0 -10px;padding:6px 10px;border-left:0;background:var(--wash);border-bottom:1.5px solid var(--ink);font-weight:800}
+.tnode[data-tnode="size"] > .tch{margin:0;padding-left:0;border-left:0}
+.ksn{margin:6px 0 0;padding:3px 8px;border-left:3px solid var(--accent);font:600 var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
 .kt .ks{margin:0;font:600 var(--t3)/1.35 Archivo,sans-serif}
 .kt .kn{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);min-width:0;margin:0;text-align:left}
 .kt.kzero .ks{color:var(--restricted)}
@@ -985,7 +991,8 @@ function buildKeep(){
     // and page v36's How to tell beside it, on one line where it fits
     const ocut = (g.origin || '').indexOf(' — '), obtn = gor ? [...gor.querySelectorAll('button')].map(x => x.outerHTML).join(' ') : '';
     const otag = g.header?.tag || (ocut > 0 ? g.origin.slice(0, ocut) : '');   // rows 16: the data's short tag ("hatchery only")
-    const orig = !g.origin ? '' : ocut > 0 ? `<p class="gorigin" data-origin><span class="gtag">${esc(otag)}</span> <span>${esc(g.origin.slice(ocut + 3))}</span> ${obtn}</p>`
+    // round 19 (owner 1): the fish names carry the origin and header.tag is null: the origin line is the data's words whole
+    const orig = !g.origin ? '' : g.header && !g.header.tag ? `<p class="gorigin" data-origin><span>${esc(g.origin)}</span> ${obtn}</p>` : ocut > 0 ? `<p class="gorigin" data-origin><span class="gtag">${esc(otag)}</span> <span>${esc(g.origin.slice(ocut + 3))}</span> ${obtn}</p>`
       : `<p class="gorigin" data-origin><span>${esc(g.origin)}</span> ${obtn}</p>`;
     // round 17 (owner): the quota table and the catch checker are gone; the bucket card is THE display (the data's
     // group.table / cap_kinds / caps prove its numbers in check.mjs only, card-is-the-caps — never drawn)
@@ -1007,12 +1014,13 @@ function buildKeep(){
     const kt = k => { const {size, q} = sizeOf(k.detail), zero = k.n === 0;
       return `<div class="krow k28 kt${zero ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"><div class="kb"><p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}</p>`
         + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
+        + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
         + (k.duties?.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : '') + presP(presOf(k)) + pics(k.species) + '</div></div>'; };
     const qtip = tips(glOf(lis[lis.length - 1]));   // the total's ⓘ (daily quota) on the tree's root line
     const tierH = (t, root) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' ? [t.why_here ? cap1(t.why_here) : '', t.replaces || ''].filter(Boolean).join(' · ') : '';
       return `<div class="tier" data-tier="${t.tier}"><p class="tl">${boldN(t.says, t.n, 'tn')}${root && qtip ? ' ' + qtip : ''}${key ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
-    const tnode = (t, i, a, root) => t.node === 'tier' ? `<section class="tnode" data-tnode="${t.tier}">${tierH(t, root)}<div class="tch">${(t.children || []).map(tnode).join('')}</div></section>` : kt(t);
+    const tnode = (t, i, a, root) => t.node === 'tier' ? `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root)}<div class="tch">${(t.children || []).map(tnode).join('')}</div></section>` : kt(t);
     const tree = g.tree ? `<div class="qtree" data-tree>${[].concat(g.tree).map(t => tnode(t, 0, 0, true)).join('')}</div>` : buckets;
     art.innerHTML = `<div class="ghd"><div class="rhead">${head}${num}</div>${orig}${g.header ? '' : total}</div>${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');

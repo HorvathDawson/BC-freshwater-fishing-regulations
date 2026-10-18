@@ -1,5 +1,35 @@
 # regs v21 (round 19, owner review of v20) — in place on regs-v11.html
 
+- **Phase 2: rows 17 / display 13** (page v36 @ b073389b re-snapped, 134 states; oracle regenerated, 18 groups / 3,100
+  baskets).
+  - **A size tier is a BOX** (owner 3). It holds every kind it caps, and whole tiers when the data wraps them. It has a 2 px
+    ink border, and its line is the box's head (wash, ink rule under it, "Only **1** of these may be over 50 cm (20 in) — or
+    2, if one is a hatchery steelhead", Book page). Its kinds sit inside with no guide line. Other tiers keep the folder
+    look.
+  - **The steelhead sits inside the box**, and its `size_note` is a line on its own row in the accent's bar ("It counts
+    toward the 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"). No cross-tier
+    line is left on the Vedder / Chilliwack cards.
+  - **Origin: no tag** (owner 1). header.tag is null because the fish names carry "hatchery", so the origin line is the
+    data's words whole ("Keep hatchery fish only — wild trout and char go back.") with How to tell.
+  - **Sizes**: the chips read "50 cm (20 in)" (owner 2).
+  - **Checks**:
+    - New: `size-tier-box` (8 states: a box on all four sides, marked with its tier id, every child inset inside it, its line
+      inside it), `size-note-on-kind` (the note's words on the kind's row, inside the box of the tier it names), and
+      `origin-no-tag`.
+    - Updated: `tree-folders` now reads "cm (in)" chips and takes a size tier's box in place of its guide line;
+      `group-head-compact` expects no tag when header.tag is null.
+    - `card-is-the-caps` passed unchanged (a kind above its size tier's number: min(kind, tier) over the size).
+    - Fail-before: scratchpad r19p2-check-before.txt (3 of 5 FAIL). Full suite 62/62.
+  - **Persona (haiku)**, both right:
+    - "Vedder today: keep a hatchery steelhead, still a 55 cm cutthroat?" → yes, if hatchery (2 over 50 cm, only 1
+      non-steelhead).
+    - "Chilliwack Tamihi→Slesse, bull trout?" → 1, hatchery, 60 cm (24 in) or longer, shared with lake trout.
+    - Fixed: the box border was too light to show that the bull trout row is held by the head line (now 2 px with an ink
+      rule under the head).
+    - Left for WORDING: "these" in the size line read as possibly the whole Region 2 total; whether the steelhead counts
+      toward "2 a day from this stream" is not said; "(part of the 4)" with "lakes included" made one reader ask whether
+      this is a stream or a lake rule; "How it adds up"'s "at most 2 over 50 cm" took a re-read against "Only 1".
+  - **Screens**: 151-153 added, every screen re-shot.
 - **4 Header: the label gets two lines (checkpoint).** The header keeps ONE fixed size (117.5 px on every state, Chilliwack
   part 2 to Kootenay LWA; 103 before, the second line costs ~15 px) but the part's label is no longer cut to "…": it has TWO
   lines at a fixed height and the header's full width under the name. It is the FULL label (the map's title words, "From the

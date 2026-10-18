@@ -182,6 +182,11 @@ const SCREENS = [
   ['148-header-kootenay-lwa-whole-water', 'w=klwa&d=1010'],
   ['149-header-west-road-long-name', 'w=x27p&d=1010'],
   ['150-header-text-200-chilliwack-part2', 'w=chilliwack&d=1010&p=1&ts=2'],
+  // round 19 phase 2 (rows 17): a size tier is a box holding every kind it caps, the steelhead inside with its size note;
+  // the origin in the fish names, no tag; "50 cm (20 in)"
+  ['151-tree-chilliwack-part2-oct10', 'w=chilliwack&d=1010&p=1&at=.qtree'],
+  ['152-tree-vedder-oct10-size-box', `${V}&at=%5Bdata-tnode%3D%22size%22%5D`],
+  ['153-tree-chilliwack-part2-size-box', 'w=chilliwack&d=1010&p=1&at=%5Bdata-tnode%3D%22size%22%5D'],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

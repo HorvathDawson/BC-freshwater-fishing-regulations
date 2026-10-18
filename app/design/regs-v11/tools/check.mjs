@@ -18,7 +18,9 @@
 //   (round 18) phone-real-height, header-compact, group-head-compact (place-in-header: the action now beside the label);
 //   phase 2 (group.tree): tree-folders, own-tier-why-here; card-is-the-caps walks the tree; the bucket-display checks retired;
 //   ONLY=18 runs just these
-//   (round 19) header-label-two-lines (header-compact: the label two lines, the action on the name's row; ≤ 120 px); ONLY=19
+//   (round 19) header-label-two-lines (header-compact: the label two lines, the action on the name's row; ≤ 120 px); phase 2
+//   (rows 17): size-tier-box, size-note-on-kind, origin-no-tag (tree-folders: chips "50 cm (20 in)", a size tier's box in
+//   place of its guide line; group-head-compact: no tag when header.tag is null); ONLY=19
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -1021,7 +1023,8 @@ async function round18(){
           const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
           if (said.toLowerCase() !== g.origin.replace(/ — /, ' ').toLowerCase() && said !== g.origin) bad.push('origin ' + said);
           // phase 2 (rows 16): the tag is the data's header.tag ("hatchery only", drawn in capitals), else the words before " — "
-          const tagW = g.header?.tag || (cut > 0 ? g.origin.slice(0, cut) : '');
+          // round 19 (owner 1): header.tag is null (the fish names carry the origin): no tag, the words whole (origin-no-tag)
+          const tagW = g.header ? (g.header.tag || '') : (cut > 0 ? g.origin.slice(0, cut) : '');
           if (tagW && norm(og?.querySelector('.gtag')?.textContent).toLowerCase() !== tagW.toLowerCase()) bad.push('tag ' + norm(og?.querySelector('.gtag')?.textContent));
           if (art.querySelector('[data-howtell]') && !og?.querySelector('[data-howtell]')) bad.push('How to tell outside the block'); }
         if (g.total_line && !g.tree && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');   // with a tree its root line says the total
@@ -1053,7 +1056,9 @@ async function round18(){
         if (k.n !== 0) { if (!chip) bad.push(k.says + ': no size chip');
           else { if (!norm(k.detail).includes(ct)) bad.push(k.says + ': chip not the detail\\'s words: ' + ct);
             const cmN = k.sizes.cm.flat().filter(x => x), inN = k.sizes.in.flat().filter(x => x);
-            if (cmN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^/]*cm').test(ct)) || inN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^/]*in\\\\b').test(ct.split('/').slice(1).join('/') || '')) || (cmN.length && !/ cm\\b/.test(ct)) || (inN.length && !/ in\\b/.test(ct))) bad.push(k.says + ': chip ' + ct + ' vs sizes ' + JSON.stringify(k.sizes));
+            // round 19 (owner 2): "50 cm (20 in)" — every cm before its "cm", every inch inside the brackets
+            const inT = (ct.match(/\\(([^)]*)\\)/g) || []).join(' ');
+            if (cmN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^(]*cm').test(ct)) || inN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^)]*in\\\\b').test(inT)) || (cmN.length && !/ cm\\b/.test(ct)) || (inN.length && !/ in\\b/.test(ct))) bad.push(k.says + ': chip ' + ct + ' vs sizes ' + JSON.stringify(k.sizes));
             const cs = getComputedStyle(chip); if (cs.borderTopStyle === 'none' || +cs.fontWeight < 700) bad.push(k.says + ': chip not prominent'); } }
         else if (chip) bad.push(k.says + ': a size chip on a fish kept none');
         const ac = [...el.querySelectorAll('[data-also]')].map(e => norm(e.textContent)), want = (k.also_counts || []).map(a => norm(cap1(a.says)));
@@ -1063,9 +1068,10 @@ async function round18(){
         const tl = el.querySelector(':scope > .tier > .tl'), cl = tl.cloneNode(true); cl.querySelectorAll('.tbk, .gl, .glk').forEach(x => x.remove());
         if (norm(cl.textContent) !== norm(t.says)) bad.push('tier ' + t.says + ': drawn ' + norm(cl.textContent));
         if (t.n != null && norm(tl.querySelector('.tn')?.textContent) !== String(t.n)) bad.push('tier ' + t.says + ': number ' + norm(tl.querySelector('.tn')?.textContent));
-        const ts = getComputedStyle(tl); if (parseFloat(ts.borderLeftWidth) < 3) bad.push('tier ' + t.says + ': not styled as a tier line');
+        const ts = getComputedStyle(tl); if (t.tier !== 'size' && parseFloat(ts.borderLeftWidth) < 3) bad.push('tier ' + t.says + ': not styled as a tier line');
         const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
-        if (t.children.length && (!ch || R(ch).left < R(tl).left + 6 || getComputedStyle(ch).borderLeftStyle === 'none')) bad.push('tier ' + t.says + ': children not indented on a guide line');
+        // round 19 (owner 3): a size tier is a box holding its kinds (size-tier-box); every other tier a guide line
+        if (t.children.length && (!ch || (t.tier === 'size' ? R(ch).left < R(el).left + 4 : (R(ch).left < R(tl).left + 6 || getComputedStyle(ch).borderLeftStyle === 'none')))) bad.push('tier ' + t.says + ': children not indented' + (t.tier === 'size' ? ' inside its box' : ' on a guide line'));
         if (kids.length !== t.children.length) bad.push('tier ' + t.says + ': ' + kids.length + ' drawn children of ' + t.children.length);
         if (t.tier === 'own') own.push({says: t.says, sub: norm(el.querySelector(':scope > .tier .tsub')?.textContent), why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
         t.children.forEach((c, i) => (c.node === 'tier' ? tier : kind)(c, kids[i], t.says)); };
@@ -1112,4 +1118,39 @@ async function round19(){
   const hs = new Set(HL.map(x => x.h)), hlb = HL.filter(x => x.txt !== x.want || x.cut || !x.twoLineBox || !/^(ok|none)$/.test(x.act) || !x.width);
   check('header-label-two-lines', HL.length === 10 && hs.size === 1 && !hlb.length && HL[0].hash.startsWith('w=chilliwack') && !!HL[0].txt,
     (hs.size > 1 ? `header heights ${JSON.stringify(HL.map(x => [x.hash, x.h]))}; ` : '') + hlb.map(x => JSON.stringify(x)).join('; '));
+
+  // phase 2 (rows 17, display 13). (3) a size tier HOLDS every kind it caps, so it is drawn as a BOX that encloses its line
+  // and everything it holds (kinds and whole tiers), inset inside it, nothing of it outside; the steelhead's `size_note`
+  // ("it counts toward the 1 over 50 cm (20 in), but once you keep one, …") is drawn on the steelhead's own row, inside the
+  // box of the tier it names. (1) the origin is in the fish names and header.tag is null: no tag drawn, the origin line is
+  // the data's words whole
+  const SB = [], SBS = ['w=vedder&d=1010', 'w=vedder&d=515', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=klwa&d=1010'];
+  for (const hash of SBS) await page(hash, async b => {
+    SB.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let boxes = 0, notes = 0, origins = 0;
+      const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
+        const tops = [...(art.querySelector(':scope > .qtree')?.children || [])], ids = {};
+        const walk = (t, el, inSize) => { if (t.node !== 'tier') { if (t.size_note) { notes++;
+              const sn = el?.querySelector('[data-size-note]'), box = el?.closest('section.tnode[data-tnode="size"]');
+              if (norm(sn?.textContent) !== norm(cap1(t.size_note.says))) bad.push(t.says + ': size note ' + JSON.stringify(norm(sn?.textContent)));
+              if (!box || box.dataset.tid !== t.size_note.tier) bad.push(t.says + ': size note not inside the box of ' + t.size_note.tier); }
+            return; }
+          if (t.tier === 'size') { boxes++; const cs = getComputedStyle(el), r = R(el);
+            if (el.dataset.tid !== t.id) bad.push(t.says + ': box not marked ' + t.id);
+            if (['Top', 'Right', 'Bottom', 'Left'].some(sd => cs['border' + sd + 'Style'] === 'none' || parseFloat(cs['border' + sd + 'Width']) < 1)) bad.push(t.says + ': not a box (borders ' + cs.borderStyle + ' ' + cs.borderWidth + ')');
+            const kids = [...(el.querySelector(':scope > .tch')?.children || [])];
+            if (kids.length !== t.children.length) bad.push(t.says + ': ' + kids.length + ' drawn of ' + t.children.length);
+            kids.forEach(k => { const q = R(k); if (q.left < r.left + 4 || q.right > r.right - 4 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the box'); });
+            const tl = R(el.querySelector(':scope > .tier .tl')); if (tl.top < r.top || tl.left < r.left || tl.right > r.right + 0.5) bad.push(t.says + ': its line not inside the box'); }
+          const kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walk(c, kids[i])); };
+        [].concat(g.tree).forEach((t, i) => walk(t, tops[i]));
+        if (g.origin) { origins++; const og = art.querySelector('[data-origin]'), said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
+          if (g.header && g.header.tag == null && said !== norm(g.origin)) bad.push('origin drawn ' + JSON.stringify(said) + ' vs ' + JSON.stringify(g.origin)); }
+        if (g.header && g.header.tag == null && art.querySelector('.gtag')) bad.push('a tag drawn though header.tag is null'); });
+      return {hash: location.hash.slice(8), boxes, notes, origins, bad}; })())`)));
+  });
+  const sbb = SB.filter(x => x.bad.length);
+  check('size-tier-box', SB.length === SBS.length && SB.filter(x => x.boxes).length >= 6 && !sbb.length, sbb.map(x => `${x.hash}: ${x.boxes} boxes; ${x.bad.slice(0, 4).join(' | ')}`).join('; '));
+  check('size-note-on-kind', SB.reduce((a, x) => a + x.notes, 0) >= 3 && !sbb.some(x => x.bad.some(y => /size note/.test(y))), sbb.map(x => x.bad.filter(y => /size note/.test(y)).join(' | ')).join('; '));
+  check('origin-no-tag', SB.some(x => x.origins) && !sbb.some(x => x.bad.some(y => /origin|tag/.test(y))), sbb.map(x => x.bad.filter(y => /origin|tag/.test(y)).join(' | ')).join('; '));
 }
