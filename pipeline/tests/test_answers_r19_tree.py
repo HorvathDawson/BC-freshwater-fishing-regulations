@@ -66,8 +66,8 @@ def test_3_the_vedder_tree():
     (rb,) = own["children"]
     assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == ("2 a day from this stream (part of the 4) — your hatchery rainbow trout don’t use these "
-                             "2")                                                     # UR1 A
+    assert share["says"] == ("2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, "
+                             "not these 2")                                           # UR1 A, UR3 4
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
     assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
@@ -90,7 +90,7 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
     size, count = own["children"]
     assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
-    assert count["says"] == "1 cutthroat or rainbow trout in all"     # ≤33 and ≤50 cm: never over 50
+    assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"     # UR3 3; ≤33 and ≤50 cm: never over 50
     assert [k["sentence"] for k in count["children"]] == [
         "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
         "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]

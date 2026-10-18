@@ -614,7 +614,8 @@ function inheritedHtml(){
 }
 function whereHtml(ctx){
   const by = new Map(); ctx.standing.filter(r => r.dr?.where).forEach(r => { if (!by.has(r.dr.where)) by.set(r.dr.where, []); by.get(r.dr.where).push(r); });
-  return [...by].map(([t, rs]) => `<div class="caveats top where"><div class="lbl">${esc(t)}</div><ul>${rs.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}">No fishing: ${esc(lc(clean(r.verbatim).replace(/\.$/, '')))}</button></li>`).join('')}</ul></div>`).join('');
+  // UR3 2 (display 15): the answers' sentence (display.rules[].plain: the book's words, distances in feet too)
+  return [...by].map(([t, rs]) => `<div class="caveats top where"><div class="lbl">${esc(t)}</div><ul>${rs.map(r => `<li><button class="factbtn" type="button" data-rule="${esc(r.key)}">${r.dr.plain ? esc(r.dr.plain.replace(/^No fishing /, 'No fishing: ').replace(/\.$/, '')) : `No fishing: ${esc(lc(clean(r.verbatim).replace(/\.$/, '')))}`}</button></li>`).join('')}</ul></div>`).join('');
 }
 function standingHtml(ctx){
   const s = ctx.standing.filter(r => !r.dr?.where);

@@ -40,7 +40,7 @@ import re
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, band_words, cap, clean, cm_in, join, lc,
-                                             range_txt, sp_name, when_dates)
+                                             m_ft, range_txt, sp_name, when_dates)
 from pipeline.deliver.bundle.rules import closure_grade
 
 INF = float("inf")
@@ -444,6 +444,17 @@ def where_of(x: dict) -> Optional[str]:
     return None
 
 
+def cant_fish_words(x: dict) -> Optional[str]:
+    """UR3 2 (user panel: "how far is 23 m?"): a no-fishing place rule's sentence, the book's words with every distance
+    in metres said in feet too — "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway,
+    canal, obstacle or leap." (`common.m_ft`). None where the rule has no words."""
+    w = clean(x.get("verbatim") or "").strip().rstrip(".")
+    if not w:
+        return None
+    w = re.sub(r"\b(\d+(?:\.\d+)?) ?m\b(?! \()", lambda m: m_ft(m.group(1)), w)
+    return f"No fishing {lc(w)}."
+
+
 def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
     """{kind, closure?, bands?, plain?, unless_opened?, where?} for one rule — the per-rule display
     facts. `rules` (the bundle's, by (entry, rule)) lets a closure find its proviso (`unless_opened`);
@@ -461,6 +472,8 @@ def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
     if b:
         out["bands"] = b
     p = plain(x)
+    if out.get("where") == CANT_FISH_TITLE:
+        p = cant_fish_words(x)
     if p is not None:
         out["plain"] = p
     return out

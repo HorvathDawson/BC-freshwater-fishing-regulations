@@ -425,6 +425,14 @@ def inches(cm) -> int:
     return int(math.floor(float(cm) / 2.54 + 0.5))
 
 
+def m_ft(m) -> str:
+    """UR3 2 (user panel: "how far is 23 m?"): a distance in metres with its feet in brackets, the nearest 5 ft (half
+    up) — 23 m → "23 m (75 ft)", 100 → "100 m (330 ft)". The metres are the book's; the feet only help an angler."""
+    import math
+    ft = int(math.floor(float(m) * 3.28084 / 5 + 0.5)) * 5
+    return f"{_cm(m)} m ({ft:,} ft)"
+
+
 def _cm(v) -> str:
     return str(int(v)) if float(v).is_integer() else str(v)
 

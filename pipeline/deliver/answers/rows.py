@@ -445,9 +445,53 @@ def restates(p: R, win: R) -> bool:
                 for k in _SAME_FIELDS)
 
 
+_COMBINED = re.compile(r"(?i)\bcombined daily quota for (?P<fish>[a-z ]+?) from (?P<a>.+?) and (?P<b>.+?) "
+                       r"cannot exceed (?P<n>\d+)\b")
+
+
+def _two_places(a: str, b: str) -> str:
+    """"the Lower West Arm" + "the Upper West Arm" -> "the Lower and Upper West Arms" (their shared last words said
+    once, plural); else "A and B"."""
+    A, B = a.split(), b.split()
+    k = 0
+    while k < min(len(A), len(B)) - 1 and A[-1 - k] == B[-1 - k]:
+        k += 1
+    if not k:
+        return f"{a} and {b}"
+    lead = A[0] if A[0].lower() == "the" and B[0].lower() == "the" else ""
+    a0, b0 = A[1 if lead else 0:len(A) - k], B[1 if lead else 0:len(B) - k]
+    if not a0 or not b0:
+        return f"{a} and {b}"
+    tail = A[len(A) - k:]
+    tail[-1] += "s"
+    return " ".join(([lead] if lead else []) + a0 + ["and"] + b0 + tail)
+
+
+def combined_words(r: R) -> Optional[str]:
+    """UR3 6 (user panel: "the combined daily quota … (when open to kokanee harvest) … cannot exceed 5" read as legal
+    text): a quota two waters share, in plain words — "Kokanee from the Lower and Upper West Arms together: no more than
+    5 a day." The fish and the number are the rule's own fields (`species`, `take`); the two places the book's words,
+    this water's first (its entry's name). None unless the book's sentence is that shape and agrees with the fields."""
+    w = re.sub(r"\s+", " ", r.f.get("verbatim") or "")
+    m = _COMBINED.search(w)
+    sp, take = list(r.f.get("species") or []), r.f.get("take")
+    if not m or len(sp) != 1 or take is None or float(take) != float(m.group("n")) \
+            or common.sp_name(sp[0]).lower() != m.group("fish").strip().lower():
+        return None
+    a, b = (re.sub(r"\s*\([^)]*\)", "", m.group(g)).strip() for g in ("a", "b"))
+    here = (r.x.get("entry_name") or "").lower()
+    if re.sub(r"^the ", "", b.lower()) in here and re.sub(r"^the ", "", a.lower()) not in here:
+        a, b = b, a
+    return f"{common.sp_name(sp[0])} from {_two_places(a, b)} together: no more than {_js(take)} a day."
+
+
 def restated_words(r: R) -> str:
     """The book's words of a restating rule, as a note: "NOTE: the combined daily quota … cannot exceed 5" ->
-    "The combined daily quota … cannot exceed 5." (whitespace folded, the "NOTE:" lead dropped)."""
+    "The combined daily quota … cannot exceed 5." (whitespace folded, the "NOTE:" lead dropped); a quota two waters
+    share in plain words (`combined_words`, UR3 6)."""
+    got = combined_words(r)
+    if got is not None:
+        return got
     w = re.sub(r"\s+", " ", r.f.get("verbatim") or r.f.get("label") or "").strip()
     w = re.sub(r"(?i)^note:\s*", "", w)
     return common.cap(w.rstrip(".")) + "."

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "19",
+            "version": "20",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -390,7 +390,11 @@ SPEC = {
                     "may be …\"; a steelhead kind keeping hatchery fish only \"Up to 2 may be hatchery steelhead only — "
                     "wild steelhead go back\"; where a rainbow over 50 cm is a steelhead the presence line \"Steelhead "
                     "are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead.\" "
-                    "(p.80); the stop duty \"after you keep 2, stop fishing for the day\"",
+                    "(p.80); the stop duty \"after you keep 2, stop fishing for the day\". Version 20 (UR3, user panel "
+                    "round 3): a count tier inside a water's own tier or the share says \"(part of the 2)\"; the share "
+                    "\"2 a day per angler from this stream\", a lifted one \"— your hatchery rainbow trout count toward "
+                    "the 4, not these 2\"; a quota two waters share (`restates`) \"Kokanee from the Lower and Upper West "
+                    "Arms together: no more than 5 a day.\" (the fish and number the rule's fields)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -491,7 +495,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "14",
+            "version": "15",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -524,7 +528,9 @@ SPEC = {
                       "its row covers all its tributaries.\" (null elsewhere). Version 13 (ROUND19 2/5): rule titles "
                       "and sentences say sizes \"30 cm (12 in)\"; a slot \"none over 60 cm (24 in), under 90 cm (35 in)\" "
                       "(the boundary standard, RULINGS P37). Version 14 (UR1 G): a record duty reads \"Write each "
-                      "hatchery steelhead on your licence right away\" (title and sentence)",
+                      "hatchery steelhead on your licence right away\" (title and sentence). Version 15 (UR3 2): a "
+                      "no-fishing place rule's `plain` is the book's words with every distance in feet too, \"No "
+                      "fishing within 23 m (75 ft) downstream of …\" (the nearest 5 ft)",
             "rules": "[{kind, title, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: `title` (version 12, ROUND16 3) every rule's effect in words, "
                      "generated from its fields (\"Release all steelhead\", \"Release lake trout, Oct 1–Nov 30\", "

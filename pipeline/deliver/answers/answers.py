@@ -266,7 +266,11 @@ def _sections() -> Tuple[Section, ...]:
         # keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a lake."; "Only 1 of the 2 may be
         # …"; "hatchery steelhead only — wild steelhead go back"; the presence line "…, so a rainbow trout over 50 cm
         # (20 in) counts as a steelhead."; "after you keep 2, stop fishing for the day")
-        Section("rows", 19, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # UR3 3/4/6 (user panel round 3): rows 20 (a count tier inside a water's own tier or the share "(part of the
+        # 2)"; the share "2 a day per angler from this stream", a lifted one "— your hatchery rainbow trout count toward
+        # the 4, not these 2"; a quota two waters share "Kokanee from the Lower and Upper West Arms together: no more
+        # than 5 a day.")
+        Section("rows", 20, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -300,7 +304,8 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND19 2/5: display 13 (rule titles and sentences say sizes "50 cm (20 in)"; a slot "none over 60 cm
         # (24 in), under 90 cm (35 in)")
         # UR1 G: display 14 (a record duty "Write each … on your licence right away")
-        Section("display", 14, display.section_scope, prepare=display.section_prepare,
+        # UR3 2: display 15 (`rules[].plain` of a no-fishing place rule says feet too, "within 23 m (75 ft) …")
+        Section("display", 15, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

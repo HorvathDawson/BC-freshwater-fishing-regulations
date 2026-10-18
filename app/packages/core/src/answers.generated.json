@@ -6294,7 +6294,7 @@
     },
     "Restated": {
      "additionalProperties": false,
-     "description": "ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) \u2014 one\nladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota. ROUND16 Q2:\nalso another row's identical statement, farther from the stream than the winner's (shown once, credited\nto the nearer row): \"Zone B also prints this: \u201cAll from Williston Lake and its tributaries\u201d.\".",
+     "description": "ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) \u2014 one\nladder line; its book words the note (`says`) \u2014 a quota two waters share in plain words (UR3 6): \"Kokanee from\nthe Lower and Upper West Arms together: no more than 5 a day.\". ROUND16 Q2:\nalso another row's identical statement, farther from the stream than the winner's (shown once, credited\nto the nearer row): \"Zone B also prints this: \u201cAll from Williston Lake and its tributaries\u201d.\".",
      "properties": {
       "of": {
        "minimum": 0,
@@ -7418,7 +7418,7 @@
     },
     "TreeTier": {
      "additionalProperties": false,
-     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day per angler\nacross Region 2, lakes included\", UR1 A), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day from this stream (part of the 4) \u2014 your hatchery\nrainbow trout don\u2019t use these 2\", UR1 A: the fish a water's own rule lifts out of it), count (\"1 cutthroat or\nrainbow trout in all\", UR1 D) or size (ROUND19 3: HOLDING every kind it caps, \"Only 1 of the fish in this box may\nbe over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\", UR1 B: `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
+     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day per angler\nacross Region 2, lakes included\", UR1 A), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day per angler from this stream (part of the 4)\"; UR3 4,\nwhere a water's own rule lifts fish out of it: \"\u2014 your hatchery rainbow trout count toward the 4, not these 2\"),\ncount (\"1 cutthroat or rainbow trout in all\", UR1 D; UR3 3, inside an own tier or the share: \"(part of the 2)\") or size (ROUND19 3: HOLDING every kind it caps, \"Only 1 of the fish in this box may\nbe over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\", UR1 B: `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
      "properties": {
       "by": {
        "minimum": 0,

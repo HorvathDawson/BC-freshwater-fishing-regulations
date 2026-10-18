@@ -814,9 +814,9 @@ class TreeTier(Model):
     """ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits — `tier` total ("4 a day per angler
     across Region 2, lakes included", UR1 A), own (a water's own rule: "This river’s rule: up to 4 a day", with `whose`,
     `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
-    this water by the tributary walk — and `line`), share ("2 a day from this stream (part of the 4) — your hatchery
-    rainbow trout don’t use these 2", UR1 A: the fish a water's own rule lifts out of it), count ("1 cutthroat or
-    rainbow trout in all", UR1 D) or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of the fish in this box may
+    this water by the tributary walk — and `line`), share ("2 a day per angler from this stream (part of the 4)"; UR3 4,
+    where a water's own rule lifts fish out of it: "— your hatchery rainbow trout count toward the 4, not these 2"),
+    count ("1 cutthroat or rainbow trout in all", UR1 D; UR3 3, inside an own tier or the share: "(part of the 2)") or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of the fish in this box may
     be over 50 cm (20 in) — 2 if one is a hatchery steelhead", UR1 B: `over_cm`, `species` the kinds its cap
     names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
     node: Literal["tier"]
@@ -972,7 +972,8 @@ class WeekPart(Model):
 
 class Restated(Model):
     """ROUND15 3: a rule of the row restating its winner `of` (same fish, number, days and sizes) — one
-    ladder line; its book words the note (`says`): the Lower West Arm's combined kokanee quota. ROUND16 Q2:
+    ladder line; its book words the note (`says`) — a quota two waters share in plain words (UR3 6): "Kokanee from
+    the Lower and Upper West Arms together: no more than 5 a day.". ROUND16 Q2:
     also another row's identical statement, farther from the stream than the winner's (shown once, credited
     to the nearer row): "Zone B also prints this: “All from Williston Lake and its tributaries”."."""
     r: RuleIx
@@ -1416,7 +1417,8 @@ class RuleFacts(Model):
     title: StrictStr = Field(min_length=1)
     closure: Optional[Literal[True]] = None          # set <=> a gate that closes
     bands: Optional[Tuple[Tuple[Cm, Optional[Cm], Optional[Count]], ...]] = None
-    plain: Optional[StrictStr] = None                # None: the page shows the label
+    plain: Optional[StrictStr] = None                # None: the page shows the label (UR3 2: a no-fishing place
+    #                                                  rule's book words, distances in feet too: "23 m (75 ft)")
     #: Z12/Q41: a closure printed "unless opened", in the user's accepted words
     unless_opened: Optional[StrictStr] = None
     #: answers 2.8 (D2): the heading a standing no-fishing place rule shows under on the KEEP side,

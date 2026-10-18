@@ -254,7 +254,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                      line=whose + (f" ({why_here})" if why_here else "") + (f" · {rep}" if rep else ""))
             own_ts.append((t, b))
         elif b["why"] == "share":
-            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day from this {c.share['water']}", b["by"])
+            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from this {c.share['water']}", b["by"])
         else:
             t = root
         content: List[dict] = []
@@ -439,18 +439,31 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # -- the sentences --------------------------------------------------------------------------------------
     # ROUND19 6 (owner: the region's total and the stream share read as competing): a tier holding fewer than the
     # count tier around it says it is part of it ("2 a day from this stream (part of the 4)")
+    # UR1 A (user panel: do the 4 hatchery rainbows count toward the 2?): the share says the fish a water's own rule
+    # lifts out of it don't use it; UR3 4 (user panel: then where do they go?): where it is part of a count tier, they
+    # count toward that one instead ("— your hatchery rainbow trout count toward the 4, not these 2")
+    lifted = common.join(lifted_names, " and ") if share_t is not None and lifted_names and share_t["n"] is not None \
+        else None
     for t, p in walk([root]):
         if t["node"] == "tier" and t["tier"] in ("own", "share") and p is not None:
             up = count_of(par, p)
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
-                t["says"] += f" (part of the {_js(up['n'])})"
-    # UR1 A (user panel: do the 4 hatchery rainbows count toward the 2?): the share says the fish a water's own rule
-    # lifts out of it don't use it
-    if share_t is not None and lifted_names and share_t["n"] is not None:
-        share_t["says"] += f" — your {common.join(lifted_names, ' and ')} don’t use these {_js(share_t['n'])}"
+                if t is share_t and lifted:
+                    t["says"] += f" — your {lifted} count toward the {_js(up['n'])}, not these {_js(t['n'])}"
+                    lifted = None
+                else:
+                    t["says"] += f" (part of the {_js(up['n'])})"
+    if lifted:
+        share_t["says"] += f" — your {lifted} don’t use these {_js(share_t['n'])}"
+    # UR3 3 (user panel: is the 1 inside the 2 or extra?): a count tier inside a water's own tier or the share says it
+    # is part of it ("1 cutthroat or rainbow trout in all (part of the 2)")
     for t, p in walk([root]):
         if t["node"] == "tier" and t["tier"] == "count":
             t["says"] = _count_says(t)
+            up = count_of(par, p) if p is not None else None
+            if up is not None and up["tier"] in ("own", "share") and up["n"] is not None and t["n"] is not None \
+                    and t["n"] < up["n"]:
+                t["says"] += f" (part of the {_js(up['n'])})"
     for x, p in walk([root]):
         if x["node"] != "kind":
             continue

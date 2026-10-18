@@ -98,6 +98,27 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## UR3 (2026-10-18) — rows 20, display 15: user panel round 3, small wording fixes
+
+Six angler personas read v23 screenshots (USER-ROUNDS round 3); only wording changed, no shape.
+
+2. A no-fishing place rule (`display.where_of`: the fishway and fish-facility buffers) carries `rules[].plain`: the
+   book's words with every distance in feet too, the nearest 5 ft — "No fishing within 23 m (75 ft) downstream of the
+   lower entrance to any fishway, canal, obstacle or leap." (`common.m_ft`, `display.cant_fish_words`).
+3. A count tier inside a water's own tier or the stream share says it is part of it: "1 cutthroat or rainbow trout in
+   all (part of the 2)" (its kinds' sentences keep "Of the 1 cutthroat or rainbow trout in all: …").
+4. The share says "per angler" like the headline ("2 a day per angler from this stream (part of the 4)"); where a
+   water's own rule lifts fish out of it, those fish count toward the tier around it instead: "— your hatchery rainbow
+   trout count toward the 4, not these 2" (no "(part of the 4)" beside it; where no count tier holds it, the UR1 words
+   "don’t use these 2" stay).
+6. A restating rule (`rows[].restates`) whose book words are a quota two waters share — "the combined daily quota for
+   F from A and B cannot exceed N" — in plain words: "Kokanee from the Lower and Upper West Arms together: no more than
+   5 a day." The fish and the number are the rule's own fields (`species`, `take`; the words must agree, else the book's
+   words stand), the places the book's (parentheses dropped, this water's first, shared last words said once).
+
+Fixes 1 (How to tell on a hatchery-only steelhead kind row) and 5 (the licence dropdowns "If you’re not a B.C.
+resident · …") are the page's (regs-v11).
+
 ## UR2 (2026-10-17) — rows 19: user panel round 2, small wording fixes
 
 Six angler personas read v22 screenshots (USER-ROUNDS round 2); only wording changed, no shape.

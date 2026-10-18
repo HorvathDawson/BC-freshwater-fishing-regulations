@@ -128,9 +128,7 @@ def test_3_a_restating_rule_is_one_line_and_a_note():
     ko = _ko(sat)
     assert not [x for x in ko["everyone"] if x["r"] == F.LWA_R5]
     assert ko["restates"] == [{"r": F.LWA_R5, "of": F.LWA_R3,
-                               "says": "The combined daily quota for kokanee from the Upper West Arm (when open "
-                                       "to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) "
-                                       "cannot exceed 5."}]
+                               "says": "Kokanee from the Lower and Upper West Arms together: no more than 5 a day."}]   # UR3 6
     roles = {k: (role, by) for k, role, by in sat["fish"]["KO"]["hatchery"]["roles"]}
     assert roles[F.LWA_R5] == ("agrees", F.LWA_R3)
 

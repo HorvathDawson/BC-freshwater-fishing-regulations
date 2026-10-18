@@ -45,7 +45,8 @@ def test_a_the_total_and_header_say_per_angler():
 def test_a_the_share_says_the_lifted_fish_do_not_use_it():
     g, _o, _P = _g(F.VEDDER)
     _own, share = g["tree"][0]["children"]
-    assert share["says"] == "2 a day from this stream (part of the 4) — your hatchery rainbow trout don’t use these 2"
+    assert share["says"] == ("2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, "
+                             "not these 2")                                                          # UR3 4
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
     assert "don’t use" not in share["says"]
@@ -66,7 +67,7 @@ def test_d_a_count_tier_says_how_many_in_all():
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
     (own,) = g["tree"][0]["children"]
     count = own["children"][1]
-    assert count["says"] == "1 cutthroat or rainbow trout in all"
+    assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"           # UR3 3
     assert count["children"][0]["sentence"] == ("Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery "
                                                 "cutthroat trout, 30–33 cm (12–13 in)")
 
