@@ -98,6 +98,27 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## UR2 (2026-10-17) — rows 19: user panel round 2, small wording fixes
+
+Six angler personas read v22 screenshots (USER-ROUNDS round 2); only wording changed, no shape.
+
+1. The headline's unit says whose number it is: "2 a day per angler from this stream" (a lake "4 a day per angler"; the
+   header leads with it).
+2. The worked lines: "If you keep 3 hatchery rainbow trout" / "1 more fish of any kind, from here or from a lake." ("If
+   you keep 2 …: none from other streams today — up to 2 more from here or from lakes."), the fish named by the lifting
+   rule's origin (none where it keeps any). The gate now also holds every number in a keep-here line's words to the
+   counts it proves (`kept`, `here`, `other`, `away`).
+3. A kind held to fewer than its count tier says of how many: "Only 1 of the 2 may be hatchery Dolly Varden/bull trout
+   or lake trout" (its `sentence` keeps "Of the 2 a day: only 1 may be …").
+4. A steelhead kind keeping hatchery fish only: "Up to 2 may be hatchery steelhead only — wild steelhead go back". Where
+   a rainbow over 50 cm is a steelhead (`steelhead_water`) the presence line says so, in the p.80 definition's terms
+   ("a rainbow trout longer than 50 cm in waters where anadromous rainbow trout are found"): "Steelhead are known to be
+   in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead." (`rows.presence_words`).
+5. The stop duty: "after you keep 2, stop fishing for the day".
+
+Fixes 6 (a closed day's gear note "No fishing here until Jul 1.") and 7 (a bait allowance moves to the Allowed column)
+are the page's (regs-v11).
+
 ## UR1 (2026-10-17) — rows 18, gear 10, display 14: user panel round 1, small wording fixes
 
 Six angler personas read v21 screenshots (USER-ROUNDS round 1); only wording changed, no shape.

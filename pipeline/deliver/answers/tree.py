@@ -114,15 +114,21 @@ def _short(t: dict) -> str:
     return "no daily limit" if t["n"] is None else f"{_js(t['n'])} a day"
 
 
-def _kind_says(k: dict, parent_n) -> str:
+def _kind_says(k: dict, parent_n, plain: bool = False) -> str:
+    """A kind's line. UR2 3 (user panel: "Only 1 may be Dolly Varden" — inside the 2 or extra?): a kind held to fewer
+    than its count tier says of how many, "Only 1 of the 2 may be …"; UR2 4 (wild steelhead release unsaid on the
+    Vedder): a steelhead kind keeping hatchery fish only, "Up to 2 may be hatchery steelhead only — wild steelhead go
+    back". `plain`: the bare line the kind's `sentence` reads after "Of the 2 a day: ", which says the count itself."""
     names = kind_names(k["species"], k["name"] == "Steelhead", origin=k.get("_origin"))
+    wild_back = not plain and k["name"] == "Steelhead" and k.get("_origin") == "hatchery"
     if k["n"] == 0:
         return f"No {names} may be kept"
     if k["n"] is None:
         return f"Any number may be {names}"
     if parent_n is not None and k["n"] < parent_n:
-        return f"Only {_js(k['n'])} may be {names}"
-    return f"Up to {_js(k['n'])} may be {names}"
+        of = "" if plain else f" of the {_js(parent_n)}"
+        return f"Only {_js(k['n'])}{of} may be {names}" + (" — wild steelhead go back" if wild_back else "")
+    return f"Up to {_js(k['n'])} may be {names}" + (" only — wild steelhead go back" if wild_back else "")
 
 
 def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[str] = None) -> Optional[str]:
@@ -450,9 +456,10 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             continue
         up = count_of(par, p)
         x["says"] = _kind_says(x, up["n"])
+        bare = _kind_says(x, up["n"], plain=True)
         for k_ in ("_hi", "_origins", "_origin"):
             x.pop(k_, None)
-        s = f"Of the {_short(up)}: {common.lc(x['says'])}"
+        s = f"Of the {_short(up)}: {common.lc(bare)}"
         if x["detail"]:
             s += f", {x['detail']}"
         notes = [a["says"] for a in x["also_counts"]] + ([x["size_note"]["says"]] if x.get("size_note") else [])

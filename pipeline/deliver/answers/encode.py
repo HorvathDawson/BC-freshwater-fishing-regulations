@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "18",
+            "version": "19",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -383,7 +383,14 @@ SPEC = {
                     "count tier \"1 cutthroat or rainbow trout in all\" (a kind's sentence \"Of the 1 cutthroat or "
                     "rainbow trout in all: …\"); a species closure \"Steelhead: no fishing for them, not even catch and "
                     "release — release any you hook by accident\" (p.4 legend); the record duty \"write each one on "
-                    "your licence right away\"",
+                    "your licence right away\". Version 19 (UR2, user panel round 2): the headline's unit says "
+                    "\"per angler\" (\"2 a day per angler from this stream\", a lake \"4 a day per angler\"); the worked "
+                    "lines read \"If you keep 3 hatchery rainbow trout\" / \"1 more fish of any kind, from here or from "
+                    "a lake.\" (every number gate-proved); a kind held to fewer than its count tier \"Only 1 of the 2 "
+                    "may be …\"; a steelhead kind keeping hatchery fish only \"Up to 2 may be hatchery steelhead only — "
+                    "wild steelhead go back\"; where a rainbow over 50 cm is a steelhead the presence line \"Steelhead "
+                    "are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead.\" "
+                    "(p.80); the stop duty \"after you keep 2, stop fishing for the day\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

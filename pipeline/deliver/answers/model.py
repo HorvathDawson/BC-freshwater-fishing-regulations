@@ -413,7 +413,8 @@ class Subcap(Model):
 
 class Headline(Model):
     """The card's big number (answers 2.8, A1): this water's number with no lift — on a Region 2
-    stream the stream share ("2 a day from this stream"), on a lake the total ("4 a day")."""
+    stream the stream share ("2 a day per angler from this stream", UR2 1), on a lake the total ("4 a day per
+    angler")."""
     n: Optional[Count]                                # None: no daily limit
     unit: StrictStr = Field(min_length=1)
     says: StrictStr = Field(min_length=1)
@@ -460,7 +461,8 @@ class CardLift(Model):
 class Presence(Model):
     """ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,
     a not-kept steelhead line, or the steelhead's own row) — `line` the frame's `steelhead_line` code,
-    `says` its words ("Steelhead are known to be in this water.")."""
+    `says` its words ("Steelhead are known to be in this water."; UR2 4, where a rainbow over 50 cm is a steelhead:
+    "Steelhead are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead.")."""
     line: Literal["possible_with_rules", "known_with_rules"]
     says: StrictStr = Field(min_length=1)
 
@@ -606,7 +608,7 @@ class NotKept(Model):
 class Worked(Model):
     """One line of the card's ONE list (RULINGS Q23b; ROUND12 4 folds the kept-elsewhere examples in):
     after keeping `kept` of `species` (`origin`; the gate takes the first kind and origin that may be
-    kept so) at `at` — "here" (a lifted kind past `share`: "Keep 3 rainbows here"), on another "stream"
+    kept so) at `at` — "here" (a lifted kind past `share`: "If you keep 3 hatchery rainbow trout", UR2 2), on another "stream"
     / "lake" of the region ("Kept some at a lake?") or "elsewhere" (either), fish over
     `over_cm` when set — `here` more here, `other` more on another water of this kind, `away` more on
     the other kind (None: not claimed), counting the kinds `of` (None: every kind of the card) and only
@@ -789,7 +791,9 @@ class AlsoCounts(Model):
 class TreeKind(Model):
     """ROUND18 1/7: one kind in the card's tree — `says` "Up to 2 may be brook, brown or cutthroat trout", `detail`
     its sizes in cm (inches) ("30 cm (12 in) or longer"; ROUND19 1: `says` names the origin with the fish, "Up to 2
-    may be hatchery brook, brown or cutthroat trout"), `sizes`, `also_counts`, `duties`, `sentence` the whole line,
+    may be hatchery brook, brown or cutthroat trout"; UR2 3/4: a kind held to fewer than its count tier "Only 1 of the 2
+    may be …", a steelhead kind keeping hatchery fish only "… hatchery steelhead only — wild steelhead go back"),
+    `sizes`, `also_counts`, `duties` (UR2 5: "after you keep 2, stop fishing for the day"), `sentence` the whole line,
     "of" its nearest count tier ("Of the 2 a day: up to 2 may be …, 30 cm (12 in) or longer — …"); `presence`
     the steelhead presence line. Every number gate-proved."""
     node: Literal["kind"]

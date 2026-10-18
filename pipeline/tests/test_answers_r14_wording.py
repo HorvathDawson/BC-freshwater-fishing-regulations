@@ -25,7 +25,7 @@ from pipeline.tests import answers28_fixture as F
 OCT10, MAY1, MAY15 = (10, 10), (5, 1), (5, 15)
 SAT = K.Moment(K.weekday_mask(["Saturday", "Sunday"]))
 WEEK = K.Moment(K.weekday_mask(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]))
-KNOWN = {"line": "known_with_rules", "says": "Steelhead are known to be in this water."}
+KNOWN = {"line": "known_with_rules", "says": "Steelhead are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead."}
 
 
 def _group(water, md=OCT10):

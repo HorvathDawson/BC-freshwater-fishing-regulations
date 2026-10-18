@@ -519,6 +519,12 @@ def check_group(P, g: dict) -> List[str]:
             if not ok:
                 probs.append(f"{where}: worked count {w['kept']}: says {w[key]} more ({key}), "
                              f"the rules allow {got}")
+        # UR2 2: every number the line's words state ("If you keep 3 hatchery rainbow trout: 1 more fish of any
+        # kind, …") is one the counts above prove — how many kept, and how many more here / elsewhere
+        said = {float(v) for v in (w["kept"], w["here"], w["other"], w["away"]) if v is not None}
+        bad = [x for x in _numbers(f"{w['q']}: {w['a']}") if x not in said]
+        if bad:
+            probs.append(f"{where}: worked line {w['q']!r}: {w['a']!r} states {bad}, which nothing proves here")
     if g.get("caps") is not None:
         probs += check_caps(P, g)
     if g.get("tree") is not None:

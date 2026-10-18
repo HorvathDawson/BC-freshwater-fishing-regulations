@@ -1936,7 +1936,7 @@ def produce(P: Part) -> dict:
     # ROUND15 7 (owner): where the whole water is closed to all fishing (every row closed: the Vedder on Jun
     # 15) there is no steelhead section to read, and no presence line is needed
     if not all(o["kind"] == "closed" for o in rows if o["all_members"]):
-        place_presence(rows, line)
+        place_presence(rows, line, P.steelhead_water)
     return {"spp": model["spp"], "fish": fish, "rows": rows, "steelhead_line": line}
 
 
@@ -1945,7 +1945,21 @@ PRESENCE_WORDS = {"possible_with_rules": "Steelhead rules apply here; steelhead 
                   "known_with_rules": "Steelhead are known to be in this water."}
 
 
-def place_presence(rows: List[dict], line: Optional[str]) -> None:
+def presence_words(line: str, anadromous: bool) -> str:
+    """The presence line's words. UR2 4 (user panel: "Steelhead are known …" beside a harvest limit read as a warning
+    with no point): where a big rainbow IS a steelhead (`steelhead_water`: known, a stream, steelhead rules apply —
+    AGENTS 54) the line says what follows from it, in the book's p.80 definition ("steelhead: a rainbow trout longer
+    than 50 cm in waters where anadromous rainbow trout are found"): "Steelhead are known to be in this water, so a
+    rainbow trout over 50 cm (20 in) counts as a steelhead." Elsewhere (a lake whose own row prints steelhead) the
+    words as they were."""
+    if line == "known_with_rules" and anadromous:
+        from pipeline.deliver.bundle import read
+        return (f"Steelhead are known to be in this water, so a rainbow trout over "
+                f"{common.cm_in(read._steelhead_min_cm())} counts as a steelhead.")
+    return PRESENCE_WORDS[line]
+
+
+def place_presence(rows: List[dict], line: Optional[str], anadromous: bool = False) -> None:
     """ROUND14 4 (owner): where steelhead are known (or steelhead rules apply), the presence line
     (`presence` {line, says}) sits IN THE STEELHEAD SECTION, exactly once: the card's steelhead kind row
     (kept), its not-kept steelhead line (closed or released), else the row holding steelhead (a release
@@ -1953,7 +1967,7 @@ def place_presence(rows: List[dict], line: Optional[str]) -> None:
     note without the section. `known_no_rules` is about rainbow trout and stays the frame's own."""
     if line not in PRESENCE_WORDS:
         return
-    note = {"line": line, "says": PRESENCE_WORDS[line]}
+    note = {"line": line, "says": presence_words(line, anadromous)}
     for r in rows:
         if "ST" not in (r.get("all_members") or []):
             continue

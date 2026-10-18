@@ -56,7 +56,7 @@ def test_2_lift_and_kept_elsewhere_lines_say_inches_in_brackets():
 # 1, 3, 6: the Vedder ---------------------------------------------------------------------------
 def test_3_the_vedder_tree():
     g, _o, _P = _g(F.VEDDER)
-    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included",
+    assert g["header"] == {"says": "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included",
                            "tag": None}
     assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
     (total,) = g["tree"]

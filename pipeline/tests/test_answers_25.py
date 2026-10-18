@@ -134,7 +134,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     assert share["take"] == 2 and share["water"] == "stream" and "RB" not in share["of"]
     assert [(L["members"], rid(built, L["by"])) for L in share["lifted"]] == [(["RB"], f"{VR}.r9")]
     # answers 2.8: the card is water-first (headline, lifts, total line; test_answers_28_card.py)
-    assert g["headline"]["says"] == "2 a day from this stream"
+    assert g["headline"]["says"] == "2 a day per angler from this stream"
     assert [L["says"] for L in g["lifts"]] == [VEDDER_LIFT]
     assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
@@ -151,7 +151,7 @@ def test_f14_vedder_trout_and_char_total_is_4_with_the_stream_share_lifted_for_h
     m = row_of(built, card(built, VEDDER, MOUTH, md, speak(f"{Z2}.r4", "RB", "hatchery")), f"{Z2}.r1")
     assert not subcap(built, m["group"], f"{Z2}.r4")["lifted"]
     assert m["group"]["worked"][0]["a"] == "None more here"
-    assert m["group"]["headline"]["says"] == "2 a day from this stream"
+    assert m["group"]["headline"]["says"] == "2 a day per angler from this stream"
     assert m["group"]["lifts"] == [] and not [w for w in m["group"]["worked"] if w["at"] == "here"]
 
 

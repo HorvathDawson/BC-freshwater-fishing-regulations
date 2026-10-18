@@ -72,7 +72,7 @@ def test_the_card_gate_proves_the_pinned_waters():
 def test_vedder_mouth_oct_10_card(built):
     row = _trout(built, VEDDER, ("mouth",))
     assert _text(row) == [
-        "2 a day from this stream",
+        "2 a day per angler from this stream",
         "Keep hatchery fish only — wild trout and char go back.",
         "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
@@ -85,16 +85,15 @@ def test_vedder_mouth_oct_10_card(built):
         "between them",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
-        "ST 2: 10 a year · stop fishing for the day after 2 · write each one on your licence right away"]
+        "ST 2: 10 a year · after you keep 2, stop fishing for the day · write each one on your licence right away"]
     # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
     assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
         == "hatchery, any length, 50 cm or less"
     # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
-        "Keep 4 rainbows here → that’s your trout and char for the day, everywhere.",
-        "Keep 3 rainbows here → 1 more: any kind from here, or one from a lake.",
-        "Keep 2 rainbows here → no more trout and char from any other stream today; up to 2 more from here or from "
-        "lakes.",
+        "If you keep 4 hatchery rainbow trout → that’s your trout and char for the day, everywhere.",
+        "If you keep 3 hatchery rainbow trout → 1 more fish of any kind, from here or from a lake.",
+        "If you keep 2 hatchery rainbow trout → none from other streams today — up to 2 more from here or from lakes.",
         "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
         "Kept trout or char over 50 cm (20 in) elsewhere today? → It counts here too: at most 2 over 50 cm (20 in) a day in all — "
         "only 1 of them may be anything other than a hatchery steelhead."]
@@ -105,7 +104,7 @@ def test_vedder_mouth_oct_10_card(built):
 def test_duncan_and_lardeau_cards(built):
     d = _text(_trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river")))
     # ROUND10 W1: the row's two lifts are ONE line, each kind with its number, highest first
-    assert d[:2] == ["2 a day from this stream",
+    assert d[:2] == ["2 a day per angler from this stream",
                      "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow "
                      "trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
     lc = _text(_trout(built, LARDEAU_CREEK))
@@ -116,12 +115,12 @@ def test_duncan_and_lardeau_cards(built):
 @pytest.mark.needs_bundle
 def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     k = _text(_trout(built, KOOTENAY_MAIN))
-    assert k[0] == "5 a day" and not any("rule replaces" in t for t in k)
+    assert k[0] == "5 a day per angler" and not any("rule replaces" in t for t in k)
     lake = _text(_trout(built, R2_LAKE))
-    assert lake[0] == "4 a day" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
+    assert lake[0] == "4 a day per angler" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
                                      "trout or brook trout: only 1 over 50 cm between them") in lake
     stream = _trout(built, R2_STREAM)
-    assert stream["group"]["headline"]["says"] == "2 a day from this stream"
+    assert stream["group"]["headline"]["says"] == "2 a day per angler from this stream"
     assert stream["group"]["lifts"] == [] and not [w for w in stream["group"]["worked"] if w["at"] == "here"]
     # ROUND12 4: the examples are the card's one list
     assert stream["elsewhere"]["ask"] == []

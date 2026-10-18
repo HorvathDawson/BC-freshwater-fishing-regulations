@@ -54,12 +54,12 @@ def _card_text(g, row):
 
 # 1 ---------------------------------------------------------------------------------------------
 def test_the_headline_is_this_waters_number_without_a_lift():
-    assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day from this stream",
-                                         "says": "2 a day from this stream",
+    assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day per angler from this stream",
+                                         "says": "2 a day per angler from this stream",
                                          "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm "
                                                                    "(20 in) or less"}]}
     assert _g(F.STREAM)["headline"]["n"] == 2
-    assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day", "says": "4 a day"}
+    assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day per angler", "says": "4 a day per angler"}
 
 
 # 2 ---------------------------------------------------------------------------------------------
@@ -126,10 +126,10 @@ def test_every_kind_row_lists_each_of_its_species_for_its_own_picture():
 def test_q23b_the_worked_count_on_a_lifted_stream():
     g = _g(F.VEDDER)
     assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
-        {"kept": 4, "q": "Keep 4 rainbows here", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 3, "q": "Keep 3 rainbows here", "a": "1 more: any kind from here, or one from a lake."},
-        {"kept": 2, "q": "Keep 2 rainbows here", "a": "no more trout and char from any other stream today; up to 2 more "
-                                                      "from here or from lakes."},
+        {"kept": 4, "q": "If you keep 4 hatchery rainbow trout", "a": "that’s your trout and char for the day, everywhere."},
+        {"kept": 3, "q": "If you keep 3 hatchery rainbow trout", "a": "1 more fish of any kind, from here or from a lake."},
+        {"kept": 2, "q": "If you keep 2 hatchery rainbow trout", "a": "none from other streams today — up to 2 more "
+                                                                      "from here or from lakes."},
         # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
         {"kept": 1, "q": "Kept 1 at a lake?",
          "a": "Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams."},

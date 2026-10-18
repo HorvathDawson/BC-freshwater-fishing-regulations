@@ -262,7 +262,11 @@ def _sections() -> Tuple[Section, ...]:
         # use it; a size tier "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery
         # steelhead"; a count tier "1 cutthroat or rainbow trout in all"; a species closure "no fishing for them, not
         # even catch and release — release any you hook by accident"; duty "write each one on your licence right away")
-        Section("rows", 18, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # UR2 1-5 (user panel round 2): rows 19 (headline "2 a day per angler from this stream"; worked lines "If you
+        # keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a lake."; "Only 1 of the 2 may be
+        # …"; "hatchery steelhead only — wild steelhead go back"; the presence line "…, so a rainbow trout over 50 cm
+        # (20 in) counts as a steelhead."; "after you keep 2, stop fishing for the day")
+        Section("rows", 19, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

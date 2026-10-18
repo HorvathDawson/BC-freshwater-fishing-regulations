@@ -56,10 +56,6 @@ INF = math.inf
 _WATER_NOUNS = {"river": "river", "rivers": "river", "creek": "creek", "creeks": "creek",
                 "slough": "slough", "lake": "lake", "lakes": "lake", "reservoir": "reservoir",
                 "channel": "channel", "brook": "brook", "pond": "pond"}
-#: a short plural for the worked count ("Keep 3 rainbows here")
-SHORT_PLURAL = {"RB": "rainbows", "CT": "cutthroat", "EB": "brook trout", "GB": "brown trout",
-                "DV": "Dolly Varden", "BT": "bull trout", "LT": "lake trout", "ST": "steelhead",
-                "KO": "kokanee"}
 
 
 def _js(v):
@@ -234,7 +230,7 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
         elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
             w = "write each one on your licence right away"          # UR1 G (user panel: plain words)
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
-            w = f"stop fishing for the day after {_js(n)}"
+            w = f"after you keep {_js(n)}, stop fishing for the day"        # UR2 5 (user panel: plain words)
         else:
             continue
         if w not in out:
@@ -603,7 +599,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     else:
         base = share["take"] if share is not None else total
         n_head = capacity(kinds, base)
-        unit = f"a day from this {share['water']}" if share is not None else "a day"
+        # UR2 1 (user panel: the big "2 a day from this stream" read as the party's limit): whose number it is
+        unit = f"a day per angler from this {share['water']}" if share is not None else "a day per angler"
         head = {"n": n_head, "unit": unit, "says": f"{_js(n_head)} {unit}"}
         inners = {info[S]["inner"].key for S in kinds if info[S]["inner"] is not None}
         if n_head == base:
@@ -812,7 +809,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         main = max(parts, key=lambda L: (L["n"] or 0))
         q = main["n"] or 0
         S0 = main["kinds"][0]
-        plural = SHORT_PLURAL.get(S0) or _names(main["kinds"])
+        # UR2 2 (user panel: "Keep 3 rainbows here → 1 more: any kind …" confused three of six): the fish by origin and
+        # name, "If you keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a lake."
+        from pipeline.deliver.answers.tree import kind_names
+        said_origin = P.by_key[main["by"]].f.get("origin")           # the lifting rule's own (None: any origin)
+        m_origin = said_origin or "hatchery"
+        plural = kind_names(main["kinds"], main["kinds"] == ["ST"], origin=said_origin)
         other_kind = "lake" if share["water"] == "stream" else "stream"
         for k in range(q, share["take"] - 1, -1):
             if k <= 0:
@@ -825,14 +827,14 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
             elif k == share["take"]:
-                a = (f"no more {what} from any other {share['water']} today; up to {_js(left)} more "
+                a = (f"none from other {share['water']}s today — up to {_js(left)} more "
                      f"from here or from {other_kind}s.")
             elif left == 1:
-                a = f"1 more: any kind from here, or one from a {other_kind}."
+                a = f"1 more fish of any kind, from here or from a {other_kind}."
             else:
-                a = f"{_js(left)} more: any kind from here, or from {other_kind}s."
-            worked.append({"kept": k, "q": f"Keep {k} {plural} here", "a": a, "species": [S0],
-                           "origin": P.by_key[main["by"]].f.get("origin") or "hatchery",
+                a = f"{_js(left)} more fish of any kind, from here or from {other_kind}s."
+            worked.append({"kept": k, "q": f"If you keep {k} {plural}", "a": a, "species": [S0],
+                           "origin": m_origin,
                            "share": share["r"], "here": here, "other": 0, "away": left,
                            "at": "here", "over_cm": None, "most": "exactly", "of": None})
     # ROUND12 4 (owner): ONE list — the keep-N lines, then the kept-elsewhere examples they do not

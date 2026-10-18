@@ -59,7 +59,7 @@ def test_1_the_vedder_tree():
     trout, _dv, st = size["children"]
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert st["duties"] == ["10 a year", "stop fishing for the day after 2", "write each one on your licence right away"]
+    assert st["duties"] == ["10 a year", "after you keep 2, stop fishing for the day", "write each one on your licence right away"]
     assert st["presence"]["line"] == "known_with_rules"
 
 
@@ -85,10 +85,10 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
 def test_4_a_compact_header():
     g, _o, _P = _tree(F.VEDDER)
     # ROUND19 1/6: the nesting in the words; the kinds' names carry the origin, the tag does not
-    assert g["header"] == {"says": "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included",
+    assert g["header"] == {"says": "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included",
                            "tag": None}
     g, _o, _P = _tree(F.LAKE)
-    assert g["header"]["says"] == "4 a day"
+    assert g["header"]["says"] == "4 a day per angler"
 
 
 # 8 ---------------------------------------------------------------------------------------------

@@ -38,7 +38,7 @@ def test_a_the_total_and_header_say_per_angler():
     g, _o, _P = _g(F.VEDDER)
     (total,) = g["tree"]
     assert total["says"] == "4 a day per angler across Region 2, lakes included"
-    assert g["header"]["says"] == "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included"
+    assert g["header"]["says"] == "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included"
     assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
 
 

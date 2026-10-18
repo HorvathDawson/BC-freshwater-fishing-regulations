@@ -92,7 +92,7 @@ def _kinds(g):
 @pytest.mark.needs_bundle
 def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     g = _trout(built, VEDDER, ("mouth",))
-    assert g["headline"]["says"] == "2 a day from this stream"
+    assert g["headline"]["says"] == "2 a day per angler from this stream"
     assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this "
                          "river’s rule replaces Region 2’s 2-from-streams limit for them."]
     k = _kinds(g)
@@ -136,7 +136,7 @@ def test_an_inherited_lift_names_the_row_it_comes_from(built):
 @pytest.mark.needs_bundle
 def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
     g = _trout(built, CHILLIWACK_LAKE, 0)
-    assert g["headline"]["says"] == "4 a day" and g["lifts"] == [] and g["total_line"] is None
+    assert g["headline"]["says"] == "4 a day per angler" and g["lifts"] == [] and g["total_line"] is None
     k = _kinds(g)
     # round 9 gate: the lake's own "Dolly Varden 1 (none under 60 cm)" is the cap its Dolly Varden
     # draw from (P4), a bucket of its own; ROUND11 A1: the 1 over 50 cm they all share spans both
