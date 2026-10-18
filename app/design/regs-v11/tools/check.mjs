@@ -33,6 +33,12 @@
 //   presence line "…, so a rainbow trout over 50 cm (20 in) counts as a steelhead.", "After you keep 2, stop fishing for
 //   the day" (3, 4, 5); ur2-closed-until: a closed day's gear note "No fishing here until Jul 1." with no licence words
 //   (6); ur2-bait-allowed-note: an allowance ("roe is still OK") sits on the Allowed side, never under a banned item (7)
+//   (user round 3, UR3; ONLY=ur3) ur3-howtell-steelhead: a hatchery-only steelhead kind row carries "How to tell ›",
+//   which opens the How to tell sheet (1); ur3-buffer-feet: the no-fishing buffers "23 m (75 ft)", "100 m (330 ft)" (2);
+//   ur3-count-part-of: a count tier in an own tier "… in all (part of the 2)" (3); ur3-lifted-share: "2 a day per angler
+//   from this stream — your hatchery rainbow trout count toward the 4, not these 2" (4); ur3-licence-not-resident: the
+//   licence dropdowns "If you’re not a B.C. resident · …" (5); ur3-combined-plain: the Kootenay LWA kokanee note
+//   "Kokanee from the Lower and Upper West Arms together: no more than 5 a day." (6)
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -87,6 +93,7 @@ const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
 // ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '19') { await round19(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -472,6 +479,31 @@ for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=0', 'w=x14p&d=1010
 const hb13 = H13.filter(x => x.scrolled < 300 || x.a.h !== x.z.h || x.a.cls !== x.z.cls || x.a.text !== x.z.text || (x.hasMap && !(x.a.map && x.z.map)) || x.a.tabs > 40 || x.a.tabs < 0);
 check('header-one-shape', H13.some(x => x.hasMap) && !hb13.length, hb13.map(x => `${x.hash}: top ${JSON.stringify(x.a)} vs scrolled ${JSON.stringify(x.z)}`).join('; '));
 
+// ---------- user round 3 (UR3, six-angler panel on v23) ----------
+async function roundUr3(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  const K = {};
+  for (const [k, hash] of [['vedder', 'w=vedder&d=1010'], ['bella', 'w=bellacoola&d=501&p=1'], ['lic', 'w=vedder&d=1010&at=%23g-licence'],
+                           ['ko', `w=klwa&d=1010&sheet=${encodeURIComponent('other:klwa_1010|o0')}`]]) await page(hash, async b => {
+    K[k] = JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm}
+      const tl = t => [...document.querySelectorAll('#keep section.tnode[data-tnode="' + t + '"] > .tier .tl')].map(e => norm([...e.childNodes].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('.gl')))).map(n => n.textContent).join(' ')).replace(/ ⓘ$/, ''));
+      const st = document.querySelector('#keep .krow.kt[data-sp~="ST"] .ks');
+      return {stks: norm(st?.textContent), stbtn: !!st?.querySelector('button[data-howtell]'),
+        nofish: [...document.querySelectorAll('#keep .nofish li')].map(e => norm(e.textContent)),
+        share: tl('share'), count: tl('count'),
+        res: [...document.querySelectorAll('#g-licence details[data-res] > summary')].map(e => norm(e.textContent)),
+        rest: [...document.querySelectorAll('#sheet [data-restates]')].map(e => norm(e.textContent))}; })())`));
+    if (k === 'vedder' && K[k].stbtn) K[k].opens = await b.evaluate(`(async () => {
+      document.querySelector('#keep .krow.kt[data-sp~="ST"] .ks button[data-howtell]').click(); await new Promise(r => setTimeout(r, 300));
+      return /Hatchery or wild/.test(document.querySelector('.shead h2')?.textContent || ''); })()`);
+  });
+  check('ur3-howtell-steelhead', K.vedder.stbtn && K.vedder.opens === true && /^Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›$/.test(K.vedder.stks), JSON.stringify([K.vedder.stks, K.vedder.opens]));
+  check('ur3-buffer-feet', K.vedder.nofish.length === 2 && /within 23 m \(75 ft\) downstream/.test(K.vedder.nofish[0]) && /100 m \(330 ft\) radius/.test(K.vedder.nofish[1]), JSON.stringify(K.vedder.nofish));
+  check('ur3-count-part-of', K.bella.count.includes('1 cutthroat or rainbow trout in all (part of the 2)'), JSON.stringify(K.bella.count));
+  check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === '2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, not these 2', JSON.stringify(K.vedder.share));
+  check('ur3-licence-not-resident', K.lic.res.length === 2 && K.lic.res.every(t => /^If you’re not a B\.C\. resident · \S/.test(t)) && /· Canadian, other province$/.test(K.lic.res[0]) && /· From outside Canada$/.test(K.lic.res[1]), JSON.stringify(K.lic.res));
+  check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
+}
 // (L) Licence: each tab shows only the default angler's (B.C. resident) answer; every other residency is a "Rules for
 // other anglers" dropdown of its own, carrying that residency's 16-or-older AND under-16 answers (the snapshot's own words)
 const L13 = [];
@@ -481,7 +513,7 @@ for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%2
     const outside = L.cloneNode(true); outside.querySelectorAll('details').forEach(d => d.remove()); const out = norm(outside.textContent);
     const res = [['non_resident', 'u16_non', 'adult_non'], ['non_resident_alien', 'u16_alien', 'adult_alien']].map(([r, u, a]) => {
       const d = L.querySelector('details[data-res="' + r + '"]'), t = norm(d?.textContent);
-      return {r, fold: !!d, closed: d ? !d.open : null, named: d ? /Rules for other anglers/.test(d.querySelector('summary')?.textContent || '') : false,
+      return {r, fold: !!d, closed: d ? !d.open : null, named: d ? /^If you’re not a B\.C\. resident · /.test(d.querySelector('summary')?.textContent || '') : false,
         u16: !!st.licence[u] && !!box(st.licence[u]) && t.includes(box(st.licence[u])), adult: !!st.licence[a] && !!box(st.licence[a]) && t.includes(box(st.licence[a])),
         leak: !!st.licence[u] && !!box(st.licence[u]) && box(st.licence[u]) !== box(st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}]) && out.includes(box(st.licence[u])) }; });
     const mine = box(st.licence[${JSON.stringify(age === 'u16' ? 'u16_res' : 'adult')}]);
@@ -909,7 +941,7 @@ for (const p of [0, 1]) await page(`w=bellacoola&d=501&p=${p}`, async b => BT17.
   const TK = g => [].concat(g?.tree || []).flatMap(function f(t) { return t.node === 'kind' ? [t] : (t.children || []).flatMap(f); });
   const k = ST().rows.flatMap(r => TK(r.group)).find(k => k.species.join(' ') === 'DV'), r = document.querySelector('#keep .krow.kt[data-sp="DV"]');
   const tier = r?.closest('section.tnode'), chip = norm(r?.querySelector('[data-size]')?.textContent), lo = k?.sizes.cm[0]?.[0], loIn = k?.sizes.in[0]?.[0];
-  return {p: ${p}, k: !!k, says: norm(r?.querySelector('.ks')?.textContent) === norm(k?.says), n: norm(r?.querySelector('.ks .kn')?.textContent), want: String(k?.n),
+  return {p: ${p}, k: !!k, says: norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(r?.querySelector('.ks'))) === norm(k?.says), n: norm(r?.querySelector('.ks .kn')?.textContent), want: String(k?.n),
     chip, sized: lo != null && lo <= 30 && (k.sizes.cm[0][1] == null || k.sizes.cm[0][1] >= 30) && chip.includes(lo + ' cm') && chip.includes(loIn + ' in'),
     also: (k?.also_counts || []).length === r?.querySelectorAll('[data-also]').length, tier: norm(tier?.querySelector(':scope > .tier .tn')?.textContent)}; })())`))));
 const bt17 = BT17.filter(x => !x.k || !x.says || x.n !== x.want || x.n !== '1' || !x.sized || !x.also || !x.tier);
@@ -969,6 +1001,7 @@ await round18();
 await round19();
 await roundUr1();
 await roundUr2();
+await roundUr3();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1066,7 +1099,7 @@ async function round18(){
       const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
       const kind = (k, el, at) => { if (!el?.matches('.krow.kt[data-sp]')) return bad.push(at + ': kind ' + k.says + ' not drawn here'); kinds++;
         if (el.dataset.sp !== k.species.join(' ')) bad.push(k.says + ': species ' + el.dataset.sp);
-        if (norm(el.querySelector('.ks')?.textContent) !== norm(k.says)) bad.push(k.says + ': sentence ' + norm(el.querySelector('.ks')?.textContent));
+        if (norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(el.querySelector('.ks'))) !== norm(k.says)) bad.push(k.says + ': sentence ' + norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(el.querySelector('.ks'))));
         const kn = norm(el.querySelector('.ks .kn')?.textContent); if (k.n ? kn !== String(k.n) : kn) bad.push(k.says + ': number ' + kn);
         const chip = el.querySelector('[data-size]'), ct = norm(chip?.textContent), nums = [...new Set([...k.sizes.cm.flat(), ...k.sizes.in.flat()].filter(x => x))];
         if (k.n !== 0) { if (!chip) bad.push(k.says + ': no size chip');
@@ -1199,9 +1232,9 @@ async function roundUr1(){
           const shown = norm([...(el?.childNodes || [])].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('button') || n.matches('.gl')))).map(n => n.textContent).join(' '));
           if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
-          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/ — your .+ don’t use these \\d+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
+          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/ — your .+ (don’t use these \\d+|count toward the \\d+, not these \\d+)$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
           if (t.tier === 'size') { seen.size++; if (!/^(Only \\d+|None) of the fish in this box may be over /.test(t.says)) bad.push('size: ' + t.says); }
-          if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all$/.test(t.says)) bad.push('count: ' + t.says); }
+          if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all( \\(part of the \\d+\\))?$/.test(t.says)) bad.push('count: ' + t.says); }
           (t.children || []).forEach(walk); };
         [].concat(g.tree).forEach(walk);
         if (g.header && / across /.test(g.header.says) && !/ per angler across /.test(g.header.says)) bad.push('header: ' + g.header.says); });
@@ -1245,7 +1278,7 @@ async function roundUr2(){
                            ['gear', 'w=vedder&d=1010&sec=gear']]) await page(hash, async b => {
     K[k] = JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm}
       const arts = [...document.querySelectorAll('#keep article.row.ledger')].filter(a => a.querySelector('.qtree'));
-      const kind = sp => norm(document.querySelector('#keep .krow.kt[data-sp~="' + sp + '"] .ks')?.textContent);
+      const kind = sp => norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(document.querySelector('#keep .krow.kt[data-sp~="' + sp + '"] .ks')));  // UR3 1: the How to tell button aside
       const ys = document.querySelector('#gear [data-k="bait"] [data-col="ok"]'), ns = document.querySelector('#gear [data-k="bait"] [data-col="no"]');
       return {heads: arts.map(a => norm(a.querySelector('.rhead .num')?.textContent)),
         worked: [...document.querySelectorAll('#keep .worked li.wh')].map(e => norm(e.textContent)),

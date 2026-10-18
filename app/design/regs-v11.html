@@ -1014,7 +1014,9 @@ function buildKeep(){
         if (m) { if (m[1].trim()) q.push(m[1].trim()); sz.push(m[2]); } else if (/^any (size|length)$/.test(x)) sz.push(x); else q.push(x); });
       const real = sz.filter(x => !/^any /.test(x)); return {size: (real.length ? real : sz).join(', '), q}; };
     const kt = k => { const {size, q} = sizeOf(k.detail), zero = k.n === 0;
-      return `<div class="krow k28 kt${zero ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"><div class="kb"><p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}</p>`
+      // user round 3 (1): a steelhead row keeping hatchery fish only (the data's words) carries page v36's How to tell
+      const ht = k.species.includes('ST') && /\bhatchery steelhead only\b/.test(k.says) ? ' <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button>' : '';
+      return `<div class="krow k28 kt${zero ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"><div class="kb"><p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}${ht}</p>`
         + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
         + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
@@ -1124,8 +1126,6 @@ function licence(st, id){
   const LF = Object.fromEntries(Object.entries(st.licence).map(([k, h]) => [k, lift(h)])), LH = Object.fromEntries(Object.entries(LF).map(([k, x]) => [k, x.html]));
   const prof = parse(LH.adult), optText = (axis, v) => (prof.querySelector(`#who-${axis} option[value="${v}"]`)?.textContent || '').trim();
   const isOthers = d => /other anglers\s*\(\d+\)\s*$/i.test(d.querySelector('summary')?.textContent || '');   // "… (7)": not the guiding fold
-  const othersName = (() => { for (const h of Object.values(LH)) { const d = [...parse(h).querySelectorAll('details.lostlist')].find(isOthers);
-    if (d) return d.querySelector('summary').textContent.replace(/\s*\(\d+\)\s*$/, '').trim(); } return ''; })();
   const one = (h, bare) => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
     const words = [...r.querySelectorAll('.lhead .src')].map(e => e.textContent.trim());
     // its first fold ("Where each one comes from") is the section's sources: it moves to the Sources sheet
@@ -1152,7 +1152,8 @@ function licence(st, id){
   if (u16) others.forEach(o => o.got.reverse());   // round 14: the tab's own age first in each dropdown
   const fr = [[optText('residency', 'resident'), mine]].concat(others.flatMap(o => o.got.map(([t, x]) => [`${o.name} · ${t}`, x]))).filter(([, x]) => x.from);
   LICSRC[`lic|${id}|${u16 ? 'u16' : 'adult'}`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.from.b}`).join('')} : null;
-  const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">${esc(othersName)} · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
+  // user round 3 (5): page v36's fold name ("Rules for other anglers") read as guiding; each dropdown says whose it is
+  const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">If you’re not a B.C. resident · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
   // round 15 (8): the open answer says whose it is — the page's own residency and age names, a label right above it
   const lab = st.licLabel?.[u16 ? 'u16_res' : 'adult'], forWho = `<p class="resfor" data-for-res>${esc(lab || `${optText('residency', 'resident')} · ${ages[u16 ? 1 : 0][1]}`)}</p>`;
   const sum = u16 && LF.u16_res?.u16 ? `<div class="needs u16sum" data-u16sum>${LF.u16_res.u16.innerHTML}</div>` : '';

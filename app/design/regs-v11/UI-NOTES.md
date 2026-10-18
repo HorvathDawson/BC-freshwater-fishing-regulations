@@ -1,3 +1,20 @@
+# regs v24 (user round 3, six-angler panel on v23) — in place on regs-v11.html
+
+- **Data: rows 20 / display 15** (page v36 re-snapped; oracle regenerated). Rendered as the data's words:
+  - the no-fishing buffers "within 23 m (75 ft) downstream …", "within a 100 m (330 ft) radius …" (2: page v36 prints the
+    answers' `display.rules[].plain` for a Where-you-can't-fish rule);
+  - a count tier inside a water's own tier "1 cutthroat or rainbow trout in all (part of the 2)" (3);
+  - the Vedder share "2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, not these 2" (4);
+  - the Kootenay LWA kokanee note "Kokanee from the Lower and Upper West Arms together: no more than 5 a day." (6).
+- **1: How to tell on the steelhead row.** A kind row whose data words say "hatchery steelhead only" carries page v36's
+  "How to tell ›" right after them; it opens the existing How to tell sheet.
+- **5: licence dropdowns.** Each other-residency dropdown reads "If you’re not a B.C. resident · Canadian, other province"
+  / "· From outside Canada" (page v36's fold name "Rules for other anglers" read as guiding; the structure is unchanged).
+- **Checks** (ONLY=ur3): `ur3-howtell-steelhead`, `ur3-buffer-feet`, `ur3-count-part-of`, `ur3-lifted-share`,
+  `ur3-licence-not-resident`, `ur3-combined-plain` all fail before (scratchpad ur3/check-before.txt, 6 of 6).
+  `ur1-tier-words` and `licence-others-in-dropdowns` read the new words.
+- **Screens**: every screen and every ur1-*/ur2-* tall shot re-shot.
+
 # regs v23 (user round 2, six-angler panel on v22) — in place on regs-v11.html
 
 - **Data: rows 19** (page v36 @ b9306de1 re-snapped, 134 states; oracle regenerated). Rendered as the data's words:
