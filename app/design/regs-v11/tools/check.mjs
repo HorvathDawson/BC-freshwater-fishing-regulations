@@ -46,6 +46,13 @@
 //   these 2" (2); r20-big-numbers: a size box's and a count tier's number as big as the header's, the box's second number
 //   ("— 2 if one is a hatchery steelhead") big too (3). tree-folders, size-tier-box, ur1-tier-words, group-head-compact,
 //   card-headline and card-cap-once read the root from the header; ur3-lifted-share reads the new words
+//   (round 20b, owner: fewer words, real visuals, split tabs; ONLY=20b) r20b-three-tabs: What you can keep · Gear · Licence
+//   on one row, each its own section (#gear: Gear & methods + Reference; #licence: the licence alone), each tab lands on
+//   its section and reads pressed, sec=licence lands there, no words of the old combined tab, no dead [data-sec]/[data-jump];
+//   r20b-number-once: a number never twice on a tier and its only kind (rows 22 `folded`: the own tier names the fish, the
+//   kind row draws no sentence); r20b-book-once: a Rule book page once per branch; r20b-worked-ends: the keep-N lines are the
+//   two ends (Vedder 4 and 2); r20b-howtell-inline: a kind's sentence with "How to tell ›" keeps one line spacing.
+//   own-tier-why-here no longer wants "Replaces …" in the sub-line (C2)
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -106,6 +113,7 @@ const TOPS = `var topsOf = (g, art) => { const q = art.querySelector(':scope > .
   return root && g.header && g.header.tier === root.id ? {hdr: art.querySelector(':scope > .ghd [data-root-tier]'), root, nodes: root.children || [], els} : {hdr: null, root: null, nodes: [].concat(g.tree || []), els}; };
 var hdrWords = el => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove()); return (c.textContent || '').replace(/\\s+/g, ' ').replace(/ ⓘ$/, '').trim(); };`;
 if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -185,7 +193,8 @@ check('pictures-whole', !pic.overlap.length && !pic.crop.length && !pic.dead.len
 const gear = {};
 for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=1010'], ['klmb', 'w=klmb&d=1010'], ['vedder may', 'w=vedder&d=515'], ['cow part 2', 'w=cowichan&d=1010&p=1']]) await page(hash, async b => {
   gear[name] = JSON.parse(await b.evaluate(`JSON.stringify((() => {
-    const g = document.getElementById('gear'), secs = [...g.querySelectorAll('.gpart')], st = SNAP.states[sid()], sm = st.summary;
+    // round 20b: the licence is its own section after #gear (the tab split), so the order is read across the whole scroller
+    const g = document.getElementById('gear'), secs = [...document.querySelectorAll('#sc .gpart')], st = SNAP.states[sid()], sm = st.summary;
     const norm = t => (t || '').replace(/\\s+/g, ' ').trim();
     // round 16 (5): the sentence is drawn as labelled lines ([data-gline], gear-lines checks them); the box's lines are the shown text
     const box = g.querySelector('[data-summary]'), say = box?.querySelector('.glines');
@@ -200,7 +209,8 @@ for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=10
       icons: g.querySelectorAll('svg.gi, .gi').length, bait: !!g.querySelector('[data-k="bait"]'), ways: !!g.querySelector('[data-k="methods"]'),
       secs: secs.map(s => s.id), last: secs.length ? secs[secs.length - 1].id : null,
       always: secs.filter(s => /^always$/i.test(norm(s.querySelector('h3')?.textContent))).length,
-      ref: ref ? {open: ref.open, after: !!secs.length && !!(secs[secs.length - 1].compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING), n: ref.querySelectorAll('[data-rule], .factbtn').length} : null,
+      // round 20b: the Reference fold closes the GEAR tab (after that tab's last section); the licence is its own tab after it
+      ref: ref ? {open: ref.open, after: (gs => !!gs.length && !!(gs[gs.length - 1].compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING))([...g.querySelectorAll('.gpart')]), n: ref.querySelectorAll('[data-rule], .factbtn').length} : null,
       hasAlways: !!(st.panes && st.panes.always)}; })())`));
 });
 const sbad = Object.entries(gear).filter(([, r]) => !(r.sm && r.shown && r.lines && r.books === r.pages
@@ -519,6 +529,84 @@ async function roundUr3(){
   check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
   check('ur3-licence-not-resident', K.lic.res.length === 2 && K.lic.res.every(t => /^If you’re not a B\.C\. resident · \S/.test(t)) && /· Canadian, other province$/.test(K.lic.res[0]) && /· From outside Canada$/.test(K.lic.res[1]), JSON.stringify(K.lic.res));
   check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
+}
+// ---------- round 20b (owner: fewer words, real visuals; split gear and licence tabs) ----------
+async function round20b(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // three tabs: What you can keep · Gear · Licence on ONE row at 390 px; each tab is its own section (#keep, #gear holding
+  // Gear & methods + the Reference fold, #licence holding the licence answer alone); each tab button lands on its section
+  // and reads pressed; sec=licence lands there; no words of the old combined tab; no dead link (every [data-sec] names a
+  // section that exists, every [data-jump] target exists)
+  const TB = [];
+  for (const hash of ['w=vedder&d=1010', 'w=klwa&d=1010', 'w=vedder&d=1010&sec=licence', 'w=klwa&d=1010&sec=gear']) await page(hash, async b => {
+    TB.push(JSON.parse(await b.evaluate(`(async () => { ${norm} const bad = [], R = e => e.getBoundingClientRect();
+      const tabs = [...document.querySelectorAll('#hdr .segm[role=tablist] button')], names = tabs.map(t => norm(t.textContent));
+      if (JSON.stringify(names) !== '["What you can keep","Gear","Licence"]') bad.push('tabs ' + JSON.stringify(names));
+      if (new Set(tabs.map(t => Math.round(R(t).top))).size !== 1) bad.push('tabs not on one row');
+      if (tabs.some(t => R(t).right > R(document.getElementById('hdr')).right + 0.5)) bad.push('a tab off the right edge');
+      const keep = document.getElementById('keep'), gear = document.getElementById('gear'), lic = document.getElementById('licence');
+      if (!keep || !gear || !lic) bad.push('sections ' + [!!keep, !!gear, !!lic].join(' '));
+      if (lic && gear && gear.contains(lic)) bad.push('#licence inside #gear');
+      if (gear && (gear.querySelector('#g-licence') || !gear.querySelector('#g-gear'))) bad.push('#gear holds ' + (gear.querySelector('#g-licence') ? 'the licence' : 'no gear'));
+      if (lic && (!lic.querySelector('#g-licence') || lic.querySelector('#g-gear, #g-always'))) bad.push('#licence holds other sections');
+      if (gear && !gear.querySelector('#g-always')) bad.push('the Reference fold left the gear tab');
+      const body = norm(document.getElementById('sc').textContent); if (/Gear & licence|Gear &amp; licence/.test(body)) bad.push('old combined tab named');
+      document.querySelectorAll('[data-sec]').forEach(e => { if (!document.getElementById(e.dataset.sec)) bad.push('dead data-sec ' + e.dataset.sec); });
+      document.querySelectorAll('[data-jump]').forEach(e => { if (!document.getElementById(e.dataset.jump)) bad.push('dead data-jump ' + e.dataset.jump); });
+      const pressed = () => tabs.find(t => t.getAttribute('aria-pressed') === 'true')?.dataset.sec;
+      const landed = pressed(), sc = document.getElementById('sc'), hh = document.getElementById('hdr').offsetHeight;
+      const want = /sec=licence/.test(location.hash) ? 'licence' : /sec=gear/.test(location.hash) ? 'gear' : 'keep';
+      if (landed !== want) bad.push('hash sec=' + want + ' landed on ' + landed);
+      const clicks = {};
+      for (const sec of ['gear', 'licence', 'keep']) { const tb = tabs.find(t => t.dataset.sec === sec); if (!tb) { bad.push('no tab ' + sec); continue; } tb.click(); await new Promise(r => setTimeout(r, 1000));
+        const el = document.getElementById(sec), off = sec === 'keep' ? sc.scrollTop : Math.round(el.offsetTop - sc.scrollTop - hh); clicks[sec] = [pressed(), off];
+        if (pressed() !== sec) bad.push('click ' + sec + ' pressed ' + pressed()); if (sec !== 'keep' && Math.abs(off + 2) > 3 && !(sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2)) bad.push('click ' + sec + ' lands ' + off + 'px off'); }
+      return JSON.stringify({hash: location.hash.slice(8), names, landed, clicks, bad}); })()`)));
+  });
+  const tbb = TB.filter(x => x.bad.length);
+  check('r20b-three-tabs', TB.length === 4 && !tbb.length, tbb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+
+  // the card, fewer words: (C1) a number never appears twice in a row on a tier and its only kind — an own tier whose
+  // only child is one kind at its number names the fish and the kind row draws no sentence (its size chip and pictures
+  // stay); (book) a Rule book page is shown once per branch (never on a tier when a line above it already shows it);
+  // (C4) the keep-N lines are the two ends; (b) a kind's sentence keeps one line spacing with "How to tell ›" inside it
+  const WC = [], WCS = ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=glenn&d=615', 'w=x35p&d=1010', 'w=bellacoola&d=1010&p=1', 'w=klwa&d=1010', 'w=ape&d=501'];
+  for (const hash of WCS) await page(hash, async b => {
+    WC.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${TOPS} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let folded = 0, twice = 0, books = 0, workedHere = [], tight = [];
+      const pagesOf = key => (SNAP.ruleInfo[key]?.book || []).map(b => b[0]);
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
+        const T = topsOf(g, art); if (!T.root) return;
+        // (C1) every tier with exactly one kind child
+        art.querySelectorAll('section.tnode').forEach(sec => { const kids = [...(sec.querySelector(':scope > .tch')?.children || [])], tn = norm(sec.querySelector(':scope > .tier .tn')?.textContent);
+          if (kids.length === 1 && kids[0].matches('.krow.kt')) { const kn = norm(kids[0].querySelector('.ks .kn')?.textContent);
+            if (kn && kn === tn) { twice++; bad.push('C1 ' + hdrWords(sec.querySelector(':scope > .tier .tl')).slice(0, 50) + ': its only kind repeats ' + kn); } } });
+        const walkK = (t, el) => { if (t.node === 'kind') { if (t.folded) { folded++; if (el?.querySelector('.ks')) bad.push('C1 ' + t.says + ': folded but a sentence drawn'); if (t.n && !el?.querySelector('[data-size]')) bad.push('C1 ' + t.says + ': folded, no size chip'); if (!el?.querySelector('.kpics')) bad.push('C1 ' + t.says + ': folded, no pictures'); }
+            else if (!el?.querySelector('.ks')) bad.push('C1 ' + t.says + ': no sentence'); return; }
+          const kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walkK(c, kids[i])); };
+        T.nodes.forEach((t, i) => walkK(t, T.els[i]));
+        // (book) a page once per branch: walk tiers with the pages shown above (the header's root pages first)
+        const seen0 = new Set(pagesOf(st.ruleKey?.[T.root.by]));
+        if (T.hdr && !T.hdr.querySelector('a.book') && seen0.size) bad.push('BOOK header shows no Rule book page');
+        const walkB = (t, el, seen) => { if (t.node !== 'tier') return; const key = st.ruleKey?.[t.by], mine = key ? pagesOf(key) : [], shown = [...(el?.querySelectorAll(':scope > .tier .tbk a.book') || [])].map(a => norm(a.textContent));
+          const fresh = mine.filter(p => !seen.has(p));
+          if (shown.length) { books++; if (!fresh.length) bad.push('BOOK ' + t.says.slice(0, 40) + ': repeats a page shown above (' + shown.join(', ') + ')'); }
+          else if (fresh.length) bad.push('BOOK ' + t.says.slice(0, 40) + ': its page p.' + fresh.join('/') + ' shown nowhere above');
+          const below = new Set([...seen, ...mine]), kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walkB(c, kids[i], below)); };
+        T.nodes.forEach((t, i) => walkB(t, T.els[i], seen0));
+        // (C4) the keep-N lines drawn are the data's, and the data has at most two
+        const here = (g.worked || []).filter(w => w.at === 'here'), li = [...art.querySelectorAll('.worked li.wh')].map(e => norm(e.textContent));
+        if (here.length) { workedHere.push(here.map(w => w.kept)); if (here.length > 2) bad.push('C4 worked keep-N lines ' + here.length); if (li.length !== here.length) bad.push('C4 drawn keep-N lines ' + li.length + ' of ' + here.length); }
+        // (b) a sentence with How to tell inside keeps one line spacing
+        art.querySelectorAll('.krow.kt .ks').forEach(ks => { const btn = ks.querySelector('button'); if (!btn) return; const lh = parseFloat(getComputedStyle(ks).lineHeight), lines = Math.round(R(ks).height / lh);
+          tight.push([Math.round(R(ks).height), Math.round(lh * lines)]); if (R(ks).height > lh * lines + 3 || R(btn).height > lh * 1.4) bad.push('B uneven lines: ' + norm(ks.textContent).slice(0, 40) + ' ' + Math.round(R(ks).height) + 'px for ' + lines + ' lines; button ' + Math.round(R(btn).height) + 'px'); }); });
+      return {hash: location.hash.slice(8), folded, twice, books, workedHere, tight, bad}; })())`)));
+  });
+  const wcb = WC.filter(x => x.bad.length), sum = k => WC.reduce((a, x) => a + x[k], 0);
+  check('r20b-number-once', WC.length === WCS.length && sum('folded') >= 3 && !WC.some(x => x.bad.some(y => /^C1 /.test(y))), WC.flatMap(x => x.bad.filter(y => /^C1 /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 5).join('; ') || `folded ${sum('folded')}`);
+  check('r20b-book-once', sum('books') >= 2 && !WC.some(x => x.bad.some(y => /^BOOK /.test(y))), WC.flatMap(x => x.bad.filter(y => /^BOOK /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 5).join('; ') || `books ${sum('books')}`);
+  const v = WC.find(x => x.hash === 'w=vedder&d=1010');
+  check('r20b-worked-ends', JSON.stringify(v?.workedHere) === '[[4,2]]' && !WC.some(x => x.bad.some(y => /^C4 /.test(y))), `vedder ${JSON.stringify(v?.workedHere)}; ` + WC.flatMap(x => x.bad.filter(y => /^C4 /.test(y))).join('; '));
+  check('r20b-howtell-inline', WC.some(x => x.tight.length) && !WC.some(x => x.bad.some(y => /^B /.test(y))), WC.flatMap(x => x.bad.filter(y => /^B /.test(y)).map(y => x.hash + ': ' + y)).join('; ') || `measured ${JSON.stringify(WC.flatMap(x => x.tight))}`);
 }
 // ---------- round 20 (owner review of v24) ----------
 async function round20(){
@@ -1033,7 +1121,9 @@ for (const hash of R17) await page(hash, async b => {
       // fish at / over its size naming every fish the tier names
       const keptUnder = t => t.node === 'kind' ? (t.n !== 0 ? t.species : []) : (t.children || []).flatMap(keptUnder);
       const walk = (t, el, sizes) => {
-        if (t.node === 'kind') { const k = t, shown = norm(el?.querySelector('.ks .kn')?.textContent), cs = k.species.flatMap(cellsOf), keep = cs.filter(c => c.n !== 0);
+        if (t.node === 'kind') { const k = t, cs = k.species.flatMap(cellsOf), keep = cs.filter(c => c.n !== 0);
+          // round 20b (C1): a folded kind draws no sentence — its number is its tier's line
+          const shown = k.folded ? norm(el?.closest('section.tnode')?.querySelector(':scope > .tier .tn')?.textContent) : norm(el?.querySelector('.ks .kn')?.textContent);
           if (!el) { bad.push(k.says + ': not drawn'); return; }
           if (k.n === 0) { if (shown || keep.length) bad.push(k.says + ': keeps none, cells ' + JSON.stringify(keep.map(c => [c.sp, c.says, c.n]))); return; }
           if (k.n == null) return;
@@ -1067,6 +1157,7 @@ await roundUr1();
 await roundUr2();
 await roundUr3();
 await round20();
+await round20b();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1173,8 +1264,13 @@ async function round18(){
       const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
       const kind = (k, el, at) => { if (!el?.matches('.krow.kt[data-sp]')) return bad.push(at + ': kind ' + k.says + ' not drawn here'); kinds++;
         if (el.dataset.sp !== k.species.join(' ')) bad.push(k.says + ': species ' + el.dataset.sp);
+        // round 20b (C1, rows 22 folded): the only kind of a tier at its number draws no sentence — the tier line names it
+        // and carries the number once
+        if (k.folded) { if (el.querySelector('.ks')) bad.push(k.says + ': folded but a sentence drawn');
+          const tn = norm(el.closest('section.tnode')?.querySelector(':scope > .tier .tn')?.textContent); if (tn !== String(k.n)) bad.push(k.says + ': folded, tier number ' + tn); }
+        else {
         if (norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(el.querySelector('.ks'))) !== norm(k.says)) bad.push(k.says + ': sentence ' + norm((e => { if (!e) return ''; const c = e.cloneNode(true); c.querySelectorAll('button').forEach(b => b.remove()); return c.textContent; })(el.querySelector('.ks'))));
-        const kn = norm(el.querySelector('.ks .kn')?.textContent); if (k.n ? kn !== String(k.n) : kn) bad.push(k.says + ': number ' + kn);
+        const kn = norm(el.querySelector('.ks .kn')?.textContent); if (k.n ? kn !== String(k.n) : kn) bad.push(k.says + ': number ' + kn); }
         const chip = el.querySelector('[data-size]'), ct = norm(chip?.textContent), nums = [...new Set([...k.sizes.cm.flat(), ...k.sizes.in.flat()].filter(x => x))];
         if (k.n !== 0) { if (!chip) bad.push(k.says + ': no size chip');
           else { if (!norm(k.detail).includes(ct)) bad.push(k.says + ': chip not the detail\\'s words: ' + ct);
@@ -1212,7 +1308,8 @@ async function round18(){
   });
   const trb = TR.filter(x => x.bad.length || !x.tiers || !x.kinds);
   check('tree-folders', TR.length === TRS.length && !trb.length, trb.map(x => `${x.hash}: ${x.tiers} tiers ${x.kinds} kinds; ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
-  const ow = TR.flatMap(x => x.own.map(o => ({...o, hash: x.hash}))), owb = ow.filter(o => !o.book || (o.why && !o.sub.toLowerCase().includes(o.why.toLowerCase())) || (o.repl && !o.sub.includes(o.repl)));
+  // round 20b (C2): the sub-line is why the rule applies here; what it replaced is no longer drawn (`replaces` stays data)
+  const ow = TR.flatMap(x => x.own.map(o => ({...o, hash: x.hash}))), owb = ow.filter(o => (o.why && !o.sub.toLowerCase().includes(o.why.toLowerCase())) || (o.repl && o.sub.includes(o.repl)));
   check('own-tier-why-here', ow.some(o => o.hash.includes('glenn') && o.why) && !owb.length, JSON.stringify(owb.slice(0, 3)));
 }
 
@@ -1372,10 +1469,10 @@ async function roundUr2(){
   });
   const hb = ['vedder', 'klwa', 'chw'].flatMap(k => !K[k].heads.length ? [k + ': no card'] : K[k].heads.filter(t => !/\b\d+ a day per angler\b/.test(t)).map(t => k + ': ' + JSON.stringify(t)));
   check('ur2-headline-per-angler', !hb.length, hb.join('; '));
+  // round 20b (C4): the keep-N lines are the two ends of the range
   const W = K.vedder.worked, want = [/^If you keep 4 hatchery rainbow trout: that’s your trout and char for the day, everywhere\.$/,
-    /^If you keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a lake\.$/,
     /^If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more from here or from lakes\.$/];
-  check('ur2-worked-plain', W.length === 3 && W.every((t, i) => want[i].test(t)), JSON.stringify(W));
+  check('ur2-worked-plain', W.length === 2 && W.every((t, i) => want[i].test(t)), JSON.stringify(W));
   const kb = [];
   if (!/^Only 1 of the 2 may be hatchery Dolly Varden\/bull trout or lake trout/.test(K.vedder.dv)) kb.push('Vedder DV ' + JSON.stringify(K.vedder.dv));
   if (!/^Only 1 of the \d+ may be Dolly Varden\/bull trout/.test(K.klwa.dv)) kb.push('LWA DV ' + JSON.stringify(K.klwa.dv));

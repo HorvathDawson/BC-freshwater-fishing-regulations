@@ -30,6 +30,15 @@ const TALL = [
   ['r20-bella-coola-oct10-mainstem-cards', 'w=bellacoola&d=1010&p=1', 'cards'],
   ['r20-bennett-lake-cards', 'w=x35p&d=1010', 'cards'],
   ['r20-ape-creek-may1-cards', 'w=ape&d=501', 'cards'],
+  // round 20b (owner: real visuals, the whole card): Glenn Creek (the Duncan's rule by the walk), the Vedder closed in June,
+  // and the whole Gear & licence tab (`tab` mode: the header, then every section of the tab at full height)
+  ['r20b-glenn-creek-jun15-cards', 'w=glenn&d=615', 'cards'],
+  ['r20b-vedder-jun15-keep', 'w=vedder&d=615', 'keep'],       // a closed day has no card: the whole Keep tab
+  ['r20b-vedder-oct10-gear-tab', `${V}&sec=gear`, 'tab'],
+  ['r20b-kootenay-lwa-oct10-gear-tab', 'w=klwa&d=1010&sec=gear', 'tab'],
+  // round 20b (owner: split gear and licence tabs): the Licence tab on its own
+  ['r20b-vedder-oct10-licence-tab', `${V}&sec=licence`, 'tab'],
+  ['r20b-kootenay-lwa-oct10-licence-tab', 'w=klwa&d=1010&sec=licence', 'tab'],
 ];
 const only = process.argv[2];
 for (const [name, hash, what] of TALL) {
@@ -46,6 +55,13 @@ for (const [name, hash, what] of TALL) {
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         return {top: R(h).top, bottom: R(sec).bottom + 12}; }
       if (${JSON.stringify(what)} === 'keep') { const k = document.getElementById('keep'); return k ? {top: 0, bottom: R(k).bottom + 12} : null; }
+      if (${JSON.stringify(what)} === 'tab') {   // round 20b: a whole tab (the page is one scroll: its section), header on top
+        const id = /sec=licence/.test(location.hash) ? 'licence' : 'gear', sec = document.getElementById(id), hdr = document.getElementById('hdr');
+        if (!sec || !hdr) return null;
+        const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative'; sec.parentNode.insertBefore(h, sec);
+        h.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === id));   // the tall frame never scrolls: mark the tab shown
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        return {top: R(h).top, bottom: R(sec).bottom + 12}; }
       if (${JSON.stringify(what)} === 'sheet') {
         const sh = document.querySelector('#sheet.on'), hdr = document.getElementById('hdr'), sc = document.getElementById('sc');
         if (!sh || !hdr || !sc) return null;

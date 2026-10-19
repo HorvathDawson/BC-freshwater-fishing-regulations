@@ -8,7 +8,7 @@
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
      `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
-     Hash: #w=vedder&d=1010&p=0&sec=keep|gear&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector>&open=<details selector> -->
+     Hash: #w=vedder&d=1010&p=0&sec=keep|gear|licence&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector>&open=<details selector> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
@@ -335,8 +335,8 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .nofish .factbtn{display:inline;min-height:0;text-align:left;color:inherit}
 .nofish .cite{display:inline}.nofish .cite .book{display:inline-block;min-height:0;margin:0 0 0 6px;padding:12px 0;margin-block:-12px}
 /* B gear & licence: one page — at a glance, then 1–5 */
-#gear .gpart{padding:16px 0 8px;border-top:1.5px solid var(--ink)}
-#gear .gpart > h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:800 var(--t2) "Bricolage Grotesque",Archivo,sans-serif}
+:is(#gear,#licence) .gpart{padding:16px 0 8px;border-top:1.5px solid var(--ink)}
+:is(#gear,#licence) .gpart > h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:800 var(--t2) "Bricolage Grotesque",Archivo,sans-serif}
 .gn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.6em;width:1.6em;height:1.6em;border:1.5px solid var(--ink);font:800 var(--t4) Archivo,sans-serif}
 .glance{margin:0 0 14px;border-top:1px solid var(--line2)}
 .glance button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 0;border-bottom:1px solid var(--line2)}
@@ -358,21 +358,21 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .gsources .srcs{min-height:44px;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;text-decoration:underline;text-underline-offset:2px}
 .gsources .bks{display:inline-flex;flex-wrap:wrap;align-items:center;gap:0 8px}
 .gsources .book{min-height:44px}
-#gear .needs{margin-top:10px}
-#gear .needs li > b{font-size:var(--t3)}
-#gear .gpart details{border-top:1px solid var(--line)}
-#gear .gpart details > summary{min-height:48px;display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
-#gear .gpart details > summary::-webkit-details-marker{display:none}
-#gear .gpart details > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
-#gear .gpart details[open] > summary::after{transform:rotate(-135deg)}
-#gear .gpart .afold > summary{font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
-#gear .gpart .afold > summary em{margin-left:auto;font:600 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
-#gear .gpart .afold > summary::after{margin-left:10px}
+:is(#gear,#licence) .needs{margin-top:10px}
+:is(#gear,#licence) .needs li > b{font-size:var(--t3)}
+:is(#gear,#licence) .gpart details{border-top:1px solid var(--line)}
+:is(#gear,#licence) .gpart details > summary{min-height:48px;display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
+:is(#gear,#licence) .gpart details > summary::-webkit-details-marker{display:none}
+:is(#gear,#licence) .gpart details > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+:is(#gear,#licence) .gpart details[open] > summary::after{transform:rotate(-135deg)}
+:is(#gear,#licence) .gpart .afold > summary{font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
+:is(#gear,#licence) .gpart .afold > summary em{margin-left:auto;font:600 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
+:is(#gear,#licence) .gpart .afold > summary::after{margin-left:10px}
 .afold ul{list-style:none;margin:0 0 8px;padding:0}
 .afold .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
 .afold .hh{margin:10px 0 0}
-#gear .lostlist .lreq{padding:6px 0}
-#gear .u16h{margin:14px 0 2px}
+:is(#gear,#licence) .lostlist .lreq{padding:6px 0}
+:is(#gear,#licence) .u16h{margin:14px 0 2px}
 /* C water map: canvas between a header and a bottom bar; the app's status tokens (--st-*, from watermap.js) */
 .mback{flex:0 0 auto;min-height:44px;padding:0 12px 0 8px;border:1.5px solid var(--ink);color:var(--ink);font:800 var(--t4) Archivo,sans-serif}
 .wmap .mh .ttl b{white-space:normal}
@@ -401,7 +401,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .mstep button{min-height:52px;border:1.5px solid var(--ink);text-align:center;font:800 var(--t3) Archivo,sans-serif}
 .mstep button:disabled{border-style:dashed;color:var(--sub);font-weight:600;cursor:default}
 .mgo{display:block;width:100%;min-height:52px;margin-top:8px;background:var(--accent);color:var(--on-accent);text-align:center;font:800 var(--t3) Archivo,sans-serif}
-#gear .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
+:is(#gear,#licence) .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
 .ts2 .gdl > div{grid-template-columns:minmax(0,1fr);gap:2px}
 .ts2 .mlegend{max-width:80%}.ts2 .mk span{max-width:240px}
 /* v12 (round 10) 5: where these rules apply, right under the header */
@@ -495,6 +495,14 @@ button.hplace:active .pl{color:var(--accent)}
 .tnode[data-tnode="size"] > .tch{margin:0;padding-left:0;border-left:0}
 .ksn{margin:6px 0 0;padding:3px 8px;border-left:3px solid var(--accent);font:600 var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
 .kt .ks{margin:0;font:600 var(--t3)/1.35 Archivo,sans-serif}
+/* round 20b (owner b): the "How to tell ›" inside a kind's sentence is an inline link, not a 44 px button — the row's lines
+   keep one spacing (the big number was blamed; the button's min-height was the cause) */
+.kt .ks .linkbtn{min-height:0;display:inline;padding:0;font:inherit;color:var(--accent)}
+/* the number inside a sentence stays big (the t1 `.k28 .kn` rule below wins by order) but its inline box no longer grows
+   the first line to 30 px while the next lines are 20 px: a short line box, the glyph overflowing it (it is always the
+   first token of the first line, so nothing above it is touched) */
+.kt .ks .kn{line-height:.7;vertical-align:-1px;margin-top:0}
+.kfold .kmeta{margin-top:0}
 .kt .kn{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;color:var(--open);min-width:0;margin:0;text-align:left}
 .kt.kzero .ks{color:var(--restricted)}
 .kmeta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:5px 0 0}
@@ -553,7 +561,7 @@ button.hplace:active .pl{color:var(--accent)}
 .rnote{margin:2px 0 4px 10px;font-size:var(--t4);color:var(--sub)}
 /* round 16 (owner 5): the gear sentence as labelled lines — label in a fixed column, the value big; a fly-only mode first */
 .gmode{margin:0 0 8px;padding:6px 0 6px 10px;border-left:3px solid var(--restricted);font:800 var(--t2)/1.3 "Bricolage Grotesque",Archivo,sans-serif;color:var(--restricted)}
-.glines,#gear .glines{list-style:none;margin:0;padding:0}
+.glines,:is(#gear,#licence) .glines{list-style:none;margin:0;padding:0}
 .gline{display:grid;grid-template-columns:7.4em minmax(0,1fr);gap:0 8px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}
 .gline:first-child{border-top:0;padding-top:2px}
 .gline .glab{font:700 var(--t4)/1.3 Archivo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
@@ -564,15 +572,15 @@ button.hplace:active .pl{color:var(--accent)}
 .gchip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1.5px solid var(--restricted);font:600 var(--t4)/1.3 Archivo,sans-serif}
 .gchip b{color:var(--restricted)}
 .gbooks{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:0 12px}.gbooks .book{min-height:0;padding:12px 0;margin:-10px 0}
-#gear .gref{margin:0;border-top:1.5px solid var(--ink);padding:0 0 8px}
-#gear .gref > summary{min-height:56px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 0;list-style:none;cursor:pointer;font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
-#gear .gref > summary .lab{flex-basis:100%}
-#gear .gref > summary em{font:500 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
-#gear .gref > summary::-webkit-details-marker{display:none}
-#gear .gref > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;align-self:center;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
-#gear .gref[open] > summary::after{transform:rotate(-135deg)}
-#gear .gref ul{list-style:none;margin:0 0 6px;padding:0}#gear .gref .hh{margin:10px 0 0}
-#gear .gref .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
+:is(#gear,#licence) .gref{margin:0;border-top:1.5px solid var(--ink);padding:0 0 8px}
+:is(#gear,#licence) .gref > summary{min-height:56px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 0;list-style:none;cursor:pointer;font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
+:is(#gear,#licence) .gref > summary .lab{flex-basis:100%}
+:is(#gear,#licence) .gref > summary em{font:500 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
+:is(#gear,#licence) .gref > summary::-webkit-details-marker{display:none}
+:is(#gear,#licence) .gref > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;align-self:center;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+:is(#gear,#licence) .gref[open] > summary::after{transform:rotate(-135deg)}
+:is(#gear,#licence) .gref ul{list-style:none;margin:0 0 6px;padding:0}:is(#gear,#licence) .gref .hh{margin:10px 0 0}
+:is(#gear,#licence) .gref .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
 /* v13 (round 11, owner 6): braid review */
 .blist{display:flex;flex-direction:column;margin-top:8px;max-height:520px;overflow:auto;border-top:1px solid var(--line2)}
 .brow{flex:0 0 auto;display:flex;flex-direction:column;gap:1px;padding:8px 4px;border-bottom:1px solid var(--line2);min-height:44px}
@@ -831,7 +839,7 @@ function hdr(){
       <div class="ttl"><b>${esc(st.name)}</b></div>
       <button class="pill hdate" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span class="hd2"><b>${S.d === 1010 ? 'Today' : wday(S.d)}</b><span>${fmt(S.d)}</span></span></button>${placeGo()}</div>
     ${placeRow()}
-    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear &amp; licence</button></div></div>
+    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear</button><button aria-pressed="${S.sec==='licence'}" data-sec="licence">Licence</button></div></div>
     </div>`;
 }
 /* ---------- transform v36's card fragment into v10's layout ---------- */
@@ -1026,7 +1034,9 @@ function buildKeep(){
     const kt = k => { const {size, q} = sizeOf(k.detail), zero = k.n === 0;
       // user round 3 (1): a steelhead row keeping hatchery fish only (the data's words) carries page v36's How to tell
       const ht = k.species.includes('ST') && /\bhatchery steelhead only\b/.test(k.says) ? ' <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button>' : '';
-      return `<div class="krow k28 kt${zero ? ' kzero' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"><div class="kb"><p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}${ht}</p>`
+      // round 20b (owner C1; rows 22 `folded`): the only kind of an own tier at the tier's number — the tier line names it
+      // ("This river’s rule: up to 4 hatchery rainbow trout a day"), so the row draws no sentence: the number appears once
+      return `<div class="krow k28 kt${zero ? ' kzero' : ''}${k.folded ? ' kfold' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"${k.folded ? ' data-folded="1"' : ''}><div class="kb">${k.folded ? '' : `<p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}${ht}</p>`}`
         + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
         + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
@@ -1036,9 +1046,16 @@ function buildKeep(){
     // ("— 2 if one is a hatchery steelhead") is big too
     const tierWords = t => { let w = boldN(t.says, t.n, 'tn'); const cut = t.tier === 'size' && t.extra ? w.indexOf(' — ') : -1;
       return cut < 0 ? w : w.slice(0, cut) + w.slice(cut).replace(/\b\d+\b/, m => `<b class="tn tn2">${m}</b>`); };
-    const tierH = (t, root) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' ? [t.why_here ? cap1(t.why_here) : '', t.replaces || ''].filter(Boolean).join(' · ') : '';
-      return `<div class="tier" data-tier="${t.tier}"><p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
-    const tnode = (t, i, a, root) => t.node === 'tier' ? `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root)}<div class="tch">${(t.children || []).map(tnode).join('')}</div></section>` : kt(t);
+    // round 20b (owner C2; rows 22): an own tier's sub-line is why it applies here (the data's `line` no longer says what it
+    // replaced). Round 20b (owner: "Rule book" links bunched): a tier whose pages are ALL already shown on a line above it
+    // (the header's root line, or a tier it sits in) draws no Rule book link of its own — a page once per branch
+    const pagesOf = key => new Set((SNAP.ruleInfo[key]?.book || []).map(b => b[0]));
+    const tierH = (t, root, seen = new Set()) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' && t.why_here ? cap1(t.why_here) : '';
+      const pg = key ? pagesOf(key) : new Set(), fresh = [...pg].some(p => !seen.has(p));
+      return `<div class="tier" data-tier="${t.tier}"><p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
+    const tnode = (t, i, a, root, seen = new Set()) => { if (t.node !== 'tier') return kt(t);
+      const key = st.ruleKey?.[t.by], below = new Set([...seen, ...(key ? pagesOf(key) : [])]);
+      return `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root, seen)}<div class="tch">${(t.children || []).map(c => tnode(c, 0, 0, false, below)).join('')}</div></section>`; };
     // round 20 (owner 1; rows 21 `group.header.tier`): the group's top and the tree's first tier are ONE block — the header
     // IS the root tier: its line (the number big in its words, the ⓘ, its Rule book page; a total the tributary walk brought
     // says why under it) stands where the headline stood, and the root's children are the top of the tree, one level less
@@ -1047,7 +1064,8 @@ function buildKeep(){
       const words = m ? `${m[1].trim() ? `<span class="ghu">${nbsp(m[1].trim())}</span> ` : ''}<b class="ghn">${hdrRoot.n}</b> <span class="ghu">${nbsp(m[2].trim())}</span>` : `<small>${nbsp(hdrRoot.says)}</small>`;
       return `<div class="num${m ? '' : ' nolimit'}" data-root-tier="${esc(hdrRoot.id)}">${words}${qtip ? ' ' + qtip : ''}${key ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}${hdrRoot.why_here ? `<span class="ghr" data-why-here>${esc(cap1(hdrRoot.why_here))}</span>` : ''}</div>`; })();
     const tops = hdrRoot ? (hdrRoot.children || []) : [].concat(g.tree || []);
-    const tree = g.tree ? `<div class="qtree" data-tree${hdrRoot ? ` data-root="${esc(hdrRoot.id)}"` : ''}>${tops.map(t => tnode(t, 0, 0, !hdrRoot)).join('')}</div>` : buckets;
+    const rootPages = hdrRoot && st.ruleKey?.[hdrRoot.by] ? pagesOf(st.ruleKey[hdrRoot.by]) : new Set();   // round 20b: pages the header shows
+    const tree = g.tree ? `<div class="qtree" data-tree${hdrRoot ? ` data-root="${esc(hdrRoot.id)}"` : ''}>${tops.map(t => tnode(t, 0, 0, !hdrRoot, rootPages)).join('')}</div>` : buckets;
     art.innerHTML = `<div class="ghd"><div class="rhead">${head}${rootLine || num}</div>${orig}${g.header ? '' : total}</div>${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
@@ -1302,7 +1320,15 @@ function buildGear(){
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   const sc = $('sc'), prev = sc.scrollTop;
-  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear"><div class="sech"><span class="lab" style="margin-left:0">Gear &amp; licence · for this water ${S.d === 1010 ? 'today' : 'on ' + fmt(S.d)}</span></div>${buildGear()}</section><div style="height:24px"></div>`;
+  // round 20b (owner: "split gear and license tabs"): the bar reads What you can keep · Gear · Licence. The page stays ONE
+  // scroll (round 13: the header keeps one shape); each tab is its own section and scroll target: #gear holds Gear &
+  // methods and the Reference fold, #licence holds the Licence answer (#g-licence) alone. buildGear's HTML is cut at
+  // the licence part and the reference fold; nothing in it changes.
+  const gh = buildGear(), when = S.d === 1010 ? 'today' : 'on ' + fmt(S.d), iL = gh.indexOf('<section class="gpart gtopic" id="g-licence"'), iR = gh.indexOf('<details class="gref"');
+  const gearHtml = gh.slice(0, iL < 0 ? gh.length : iL) + (iR >= 0 ? gh.slice(iR) : ''), licHtml = iL < 0 ? '' : gh.slice(iL, iR >= 0 ? iR : gh.length);
+  const secLab = (name) => `<div class="sech"><span class="lab" style="margin-left:0">${name} · for this water ${when}</span></div>`;
+  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear">${secLab('Gear')}${gearHtml}</section>`
+    + (licHtml ? `<section class="sec" id="licence">${secLab('Licence')}${licHtml}</section>` : '') + `<div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
   $('wmap').innerHTML = +S.map ? mapHtml() : ''; $('wmap').classList.toggle('on', !!+S.map);
@@ -1313,10 +1339,13 @@ function render(keep){
   poster();
 }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
-  const g = $('gear'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
+  const g = $('gear'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
+  // round 20b: three tabs on one scroll — the tab in view is the LAST section whose top has reached the header (the
+  // licence at the very end counts as reached when the page is scrolled to its end)
   if (g) { const atEnd = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2 && sc.scrollTop > 0;
-    const inGear = g.offsetTop - sc.scrollTop <= hh + 12 || atEnd;
-    document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.sec === 'gear') === inGear)); } }
+    const reached = el => !!el && el.offsetTop - sc.scrollTop <= hh + 12;
+    const sec = (l && (reached(l) || atEnd)) ? 'licence' : (reached(g) || (!l && atEnd)) ? 'gear' : 'keep';
+    document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === sec)); } }
 $('sc').addEventListener('scroll', mini, {passive:true});
 
 /* ---------- sheets: one sheet component ---------- */
@@ -1544,7 +1573,7 @@ document.addEventListener('click', e => {
   if (d.rule) return go({sheet:'rule:' + d.rule}, true);
   if (d.howtell) return go({sheet:'hatch'}, true);
   if (d.fish) return go({sheet:'sp:' + d.fish}, true);
-  if (d.sec) { const el = d.sec === 'gear' ? $('gear') : $('keep'); $('sc').scrollTo({top: d.sec === 'gear' ? el.offsetTop - $('hdr').offsetHeight + 2 : 0, behavior:'smooth'});
+  if (d.sec) { const el = $(d.sec) || $('keep'); $('sc').scrollTo({top: d.sec === 'keep' ? 0 : el.offsetTop - $('hdr').offsetHeight + 2, behavior:'smooth'});   // round 20b: keep · gear · licence
     document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === d.sec)); return; }
   if (d.acc) { const sc = $('sc'), y0 = t.getBoundingClientRect().top; go({kit: S.kit === d.acc ? '' : d.acc}, true);
     const t2 = document.querySelector(`[data-acc="${d.acc}"]`); if (t2) { sc.scrollTop += t2.getBoundingClientRect().top - y0; t2.focus({preventScroll:true}); } mini(); return; }
@@ -1583,7 +1612,7 @@ function poster(){
   if (h.get('shot')) document.documentElement.classList.add('shot'); if (h.get('tall')) document.documentElement.classList.add('tall');
   for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
   const sec = S.sec; render();
-  if (sec === 'gear' && !S.scroll && !S.at) requestAnimationFrame(() => { $('sc').scrollTop = $('gear').offsetTop - $('hdr').offsetHeight + 2; mini(); });
+  if ((sec === 'gear' || sec === 'licence') && !S.scroll && !S.at) requestAnimationFrame(() => { const el = $(sec) || $('gear'); $('sc').scrollTop = el.offsetTop - $('hdr').offsetHeight + 2; mini(); });   // round 20b: three tabs
   if (S.open) document.querySelectorAll(S.open).forEach(d => { d.open = true; });   // round 13: a screen of a fold opened
   if (S.at) requestAnimationFrame(() => { const el = document.querySelector(S.at), sc = $('sc'); if (el) { sc.scrollTop += el.getBoundingClientRect().top - sc.getBoundingClientRect().top - $('hdr').offsetHeight - 4; mini(); } });
 })();

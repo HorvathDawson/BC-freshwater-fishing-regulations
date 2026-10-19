@@ -1,3 +1,40 @@
+# regs v26 (round 20b, owner: fewer words, real visuals, split tabs) — in place on regs-v11.html
+
+- **Data: rows 22** (page v36 re-snapped; oracle regenerated). Four cuts, all words or order (ANSWERS-SPEC ROUND20b):
+  C1 a tier whose only child is one kind row at its number names the fish and folds the kind (`folded`): "This river’s
+  rule: up to **4** hatchery rainbow trout a day", "The Duncan River’s rule: up to **5** rainbow trout a day", "Only **2** of
+  the 5 may be brook, brown, cutthroat or lake trout from this stream", "This lake’s rule: up to **2** lake trout a day (part
+  of the 5)" — the kind row keeps its size chip, notes, duties and pictures and draws no sentence (the number once); C2 an
+  own tier's sub-line is why it applies here, never "Replaces …" (the panel read it against the share's "not counting
+  hatchery rainbow trout" as two limits); C3 under the header's total the SHARE comes first ("4 … / Only 2 of the 4 …", the
+  owner's 2 as the next line), the water's own tier after; C4 How it adds up keeps the two ends of the keep-N range ("If
+  you keep 4 …", "If you keep 2 …").
+- **Page.** A Rule book page is shown once per branch: a tier whose pages are all on a line above it (the header's root
+  line or a tier it sits in) draws no link (Vedder: p.21 once in the header, p.22 on the river's own tier). The "How to
+  tell ›" inside a kind's sentence is an inline link (its 44 px button height made the second line taller), and the kind's
+  big number keeps a short line box, so every line of the sentence has one spacing.
+- **Tabs: What you can keep · Gear · Licence** (owner). Still ONE scroll (round 13: the header keeps one shape): `#gear`
+  holds Gear & methods and the Reference fold, `#licence` the licence answer alone; each tab button scrolls to its section
+  and the tab in view is the last section whose top reached the header; `sec=keep|gear|licence` in the hash; the two
+  sections' labels "Gear · for this water today" / "Licence · for this water today"; every `#gear …` style is scoped
+  `:is(#gear,#licence) …`. Nothing else moved: the licence dropdowns, "Write each one on your licence" (a kind's duty on the
+  card) and the closed-day gear note sit where they did, each now under its own tab.
+- **Checks** (ONLY=20b; all 5 fail before on the committed page: scratchpad r20b/check-before-headpage.txt): `r20b-three-tabs`
+  (three tabs on one row at 390 px, each its own section, each lands pressed, `sec=licence` lands, no words of the old tab, no
+  dead `[data-sec]`/`[data-jump]`), `r20b-number-once` (a number never twice on a tier and its only kind; folded kinds draw
+  chip + pictures, no sentence), `r20b-book-once`, `r20b-worked-ends` (Vedder 4 and 2), `r20b-howtell-inline` (one line
+  spacing). `own-tier-why-here` no longer wants "Replaces"; `tree-folders` and `card-is-the-caps` read a folded kind's number
+  off its tier line; `ur2-worked-plain` wants the two ends; `licence-last` reads the sections across the whole scroller and
+  `always-as-reference` wants the Reference fold after the Gear tab's last section (it closes that tab). New tools:
+  `tools/words.mjs` (rendered word counts per state) and tall.mjs modes `tab` (a whole tab, the tab shown marked) and the
+  r20b-* shots (Glenn Creek Jun 15, Vedder Jun 15 keep, the Gear and Licence tabs on the Vedder and the Kootenay LWA).
+- **Words on the cards** (`tools/words.mjs`, the ledger cards' rendered text; before → after): Vedder Oct 10 415 → 367,
+  Glenn Creek Jun 15 289 → 217, Chilliwack part 2 331 → 323, Bella Coola May 1 mainstem 262 → 254, Bennett Lake 200 → 191;
+  Bella Coola Oct 10 173, Kootenay LWA 105, Ape Creek 192 unchanged (no lifted tier, no middle keep-N line).
+- **Comprehension gate**: handoff/PLAN/r20b_comprehension.md — 20 questions keyed from the data; a fresh opus reader on the
+  BEFORE screens 20/20, on the AFTER screens (see the file).
+- **Screens**: every screen and every tall shot re-shot.
+
 # regs v25 (round 20, owner review of v24) — in place on regs-v11.html
 
 - **Data: rows 21** (page v36 re-snapped; oracle regenerated). `group.header` IS the tree's root tier (`header.tier` names
