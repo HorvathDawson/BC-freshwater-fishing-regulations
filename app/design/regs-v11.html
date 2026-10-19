@@ -790,6 +790,33 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 .lopen .muted.small{font-size:var(--t4);color:var(--sub)}
 .tier .tkick{display:block;margin:0;padding:var(--s2) 0 0 13px;border-left:3px solid var(--ink);border-top:1px solid var(--line2);font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
 .tier .tkick + .tl{border-top:0;padding-top:2px}
+/* ---------- round 20f (owner: thumbnails in one place; the tier headers without the left bar; small items) ---------- */
+/* 1 the pictures in one place: under the title + chip, before any note; a caption may run wider than its 80 px picture */
+.kp{width:auto;min-width:80px;max-width:132px}.kp img{width:80px!important}.kcap{white-space:normal;text-wrap:balance}
+.kpics + .ksn,.kpics + .kac,.kpics + .duty,.kpics + .kpres{margin-top:var(--s1)}
+/* 4 the gear tab's row labels in sentence case (a .gline .glab rule outranked round 20c's) */
+.gline .glab{text-transform:none;letter-spacing:0;color:var(--sub)}
+/* 2 the tier headers: three ways to divide a section without the left bar. (a) a plain header on a hairline with the big number
+   as the anchor; (b) the number in a tinted chip; (c) spacing and a display-face heading. hdr=a|b|c in the hash compares them;
+   the pick is the default below. The size band keeps its tint in all three; the share's kicker follows. */
+.tier .tl,.tnode[data-tnode="size"] > .tier .tl,.tnode[data-tnode="count"] > .tier .tl{border-left:0;padding-left:0}
+.tier .tkick{border-left:0;padding-left:0}
+.tier .tsub{margin-left:0}
+.krow.kt{padding-left:0}
+/* THE PICK (the single-frame reader ranked c > a > b: only c's heading outranks the rows it governs; a and b set the header
+   smaller than its rows, inverting the hierarchy; b's chips broke the sentence): c is the default — space and a display-face
+   heading, the size band and the group band closing sections. a and b stay behind hdr=a|b for the owner to compare. */
+.tier .tl{border-top:0;padding-top:var(--s4);padding-bottom:var(--s2);font:var(--w-num) var(--t2)/1.25 "Bricolage Grotesque",Archivo,sans-serif}
+.tnode[data-tnode="size"] > .tier .tl,.tnode[data-tnode="count"] > .tier .tl{font-size:var(--t3);font-weight:var(--w-num);font-family:"Bricolage Grotesque",Archivo,sans-serif;line-height:1.25}
+.tnode[data-tnode="size"] > .tier .tl{padding-top:var(--s3)}
+.tnode{margin-top:var(--s2)}
+.tnode[data-tnode="own"] > .tier .tl .tn{color:var(--accent)}
+html[data-hdr="a"] .tier .tl,html[data-hdr="b"] .tier .tl{border-top:1px solid var(--line2);padding-top:var(--s3);font:var(--w-head) var(--t3)/1.3 Archivo,sans-serif}
+html[data-hdr="a"] .tnode[data-tnode="size"] > .tier .tl,html[data-hdr="b"] .tnode[data-tnode="size"] > .tier .tl,html[data-hdr="a"] .tnode[data-tnode="count"] > .tier .tl,html[data-hdr="b"] .tnode[data-tnode="count"] > .tier .tl{font-size:var(--t4);font-weight:var(--w-head);font-family:Archivo,sans-serif}
+html[data-hdr="a"] .tnode[data-tnode="size"] > .tier .tl,html[data-hdr="b"] .tnode[data-tnode="size"] > .tier .tl{border-top:0}
+html[data-hdr="a"] .tnode,html[data-hdr="b"] .tnode{margin-top:0}
+html[data-hdr="b"] .tier .tl .tn{background:var(--tint);padding:0 6px;margin:0 2px 0 5px;line-height:1}
+html[data-hdr="b"] .tnode[data-tnode="size"] > .tier .tl .tn{background:var(--card)}
 </style>
 </head>
 <body>
@@ -843,7 +870,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:'', hdr:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -1152,9 +1179,11 @@ function buildKeep(){
       // ("This river’s rule: up to 4 hatchery rainbow trout a day"), so the row draws no sentence: the number appears once
       return `<div class="krow k28 kt${zero ? ' kzero' : ''}${k.folded ? ' kfold' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"${k.folded ? ' data-folded="1"' : ''}><div class="kb">${k.folded ? '' : `<p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}${ht}</p>`}`
         + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
+        // round 20f (owner 1): the pictures in ONE place on every row — right under the title and its size chip, before any note
+        + pics(k.species)
         + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
-        + (k.duties?.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : '') + presP(presOf(k)) + pics(k.species) + '</div></div>'; };
+        + (k.duties?.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : '') + presP(presOf(k)) + '</div></div>'; };
     const qtip = tips(glOf(lis[lis.length - 1]));   // the total's ⓘ (daily quota) on the tree's root line
     // round 20 (owner 3): a size box's numbers are as big as every other tier's; the second number its `extra` lets past
     // ("— 2 if one is a hatchery steelhead") is big too
@@ -1185,7 +1214,9 @@ function buildKeep(){
     // round 20c (owner: a reader must know what they are looking at in every screenful): the group's name and its total line
     // are ONE pinned block (`.ghd.gpin`, position:sticky under the header while inside the group); the origin line is the
     // block under it and scrolls away. A top-level tier line and a size box's head pin under the group block (CSS, pinTops()).
-    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig || rootBook || (g.header ? '' : total) ? `<div class="ghd gsub">${orig}${rootBook}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
+    // round 20f (owner 4): the root's Rule book page sits on the origin's own line, not under it
+    const orig2 = orig ? orig.replace(/<\/p>$/, ` ${rootBook}</p>`) : (rootBook ? `<p class="gorigin">${rootBook}</p>` : '');
+    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig2 || (g.header ? '' : total) ? `<div class="ghd gsub">${orig2}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1443,6 +1474,7 @@ const WAYS = (ok, no) => yesNo(ok.map(x => [x.n, x.s]), no.map(t => [esc(t), '']
 /* ---------- render ---------- */
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
+  if (S.hdr) de.dataset.hdr = S.hdr; else delete de.dataset.hdr;   // round 20f (owner 2): the tier-header style to compare, hdr=a|b|c
   const sc = $('sc'), prev = sc.scrollTop;
   // round 20b (owner: "split gear and license tabs") / round 20e (owner 1: Gear and Methods apart): the bar reads What you can
   // keep · Gear · Methods · Licence. The page stays ONE scroll (round 13: the header keeps one shape); each tab is its own
@@ -1478,9 +1510,9 @@ addEventListener('resize', () => { pinTops(); pinUpdate(); }); if (document.font
 const lc1w = t => t ? t[0].toLowerCase() + t.slice(1) : t;
 function shortOf(t){ const n = t.n, says = t.says || '';
   if (t.tier === 'total') { if (n == null) return says; const m = says.match(/ across (.+?)(?:, (?:lakes|streams) included)?$/); return m ? `${n} a day across ${m[1]}` : t.whose ? `${t.whose}: ${n} a day` : `${n} a day`; }
-  if (t.tier === 'share') { const w = (says.match(/from this (stream|lake)/) || [])[1] || 'stream'; return /^Only /.test(says) ? `${n} of them from this ${w}` : `${n} a day from this ${w}`; }
+  if (t.tier === 'share') { const w = (says.match(/from (this stream|this lake|streams|lakes)/) || [])[1] || 'streams'; return /^Only /.test(says) ? `${n} of them from ${w}` : `${n} a day from ${w}`; }   // rows 23: "from streams" where the share is the region's
   if (t.tier === 'own') { const k = (t.children || []).find(c => c.node === 'kind' && c.folded), names = k ? (k.says.match(/ may be (.+?)(?: only —.*)?$/) || [])[1] || '' : '', whose = lc1w(t.whose || '');
-    return t.replaces ? `plus up to ${n}${names ? ' ' + names : ''} under ${whose}` : `${n} of them${names ? ' ' + names : ''} under ${whose}`; }
+    return t.replaces ? `plus up to ${n}${names ? ' ' + names : ''} under ${whose}` : `${n} of them${names ? ` (${names})` : ''} under ${whose}`; }   // round 20f 4: "2 of them (lake trout) under this lake’s rule"
   if (t.tier === 'count') return `of those, ${says.replace(/ \(part of the \d+\)$/, '')}`;
   if (t.tier === 'size') { const cut = says.indexOf(' — '), tail = cut > 0 ? says.slice(cut + 3) : ''; return `of those, ${n == null ? '' : n + ' '}over ${t.over_cm} cm${tail ? ` (${tail})` : ''}`; }
   return says; }
@@ -1493,7 +1525,9 @@ function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstEleme
     if (root && pin && R(pin).top < y) { lines.push({cls: 'g', t: `${name} · ${shortOf(root)}`});
       const byId = {}; (function walk(ns){ ns.forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children || []); } }); })(root.children || []);
       [...art.querySelectorAll('section.tnode')].forEach(tn => { const r = R(tn), t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
-        if (t && tl && r.top < y && r.bottom > y + LH && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
+        // round 20f (the 20e reader: a line outlived its section over the next section's rows): a tier's line goes once less
+        // than about a row (110 px) of its section is left under the bar
+        if (t && tl && r.top < y && r.bottom > y + LH + 110 && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
   const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}</p>`).join('');   // the tier's number big, once
   if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; } }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view

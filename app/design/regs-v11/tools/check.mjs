@@ -54,6 +54,10 @@
 //   the data's words), no dropdown or fold, all six pairs show their own answer; r20e-region-vs-stream: a row's streams tag
 //   heads the share, not the region's total; the pin bar says the same; r20e-ways-columns: Ways to fish in Bait's two columns
 //   (✓ Allowed | ✕ Not allowed). r20b-three-tabs retired (r20e-four-tabs)
+//   (round 20f, owner: thumbnails in one place, tier headers without the left bar, "from streams"; ONLY=20f) r20f-pictures-first:
+//   every kind row's picture strip right after the title + chip, before any note, no caption over two lines, no picture under
+//   80 px; r20f-headers: no left bar on a tier header or kicker, headers and rows on the card's text edge, the size band tinted;
+//   r20f-region-words (rows 23): the Vedder share "Only 2 of the 4 may be from streams…", the pin "↳ 2 of them from streams"
 //   (round 20d, owner: stacked pinned headers instead of nesting, clearer grouping; in the 20c block, ONLY=20c)
 //   r20d-pinned-stack: the pin bar under the header carries the chain of sections the reader is inside, one short line each
 //   ("Trout and char · 4 a day across Region 2" / "↳ 2 of them from this stream" / "↳ of those, 1 over 50 cm (…)"), ≤ 90 px,
@@ -134,6 +138,7 @@ if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => 
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20f') { await round20f(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -559,7 +564,7 @@ async function roundUr3(){
   check('ur3-buffer-feet', K.vedder.nofish.length === 2 && /within 23 m \(75 ft\) downstream/.test(K.vedder.nofish[0]) && /100 m \(330 ft\) radius/.test(K.vedder.nofish[1]), JSON.stringify(K.vedder.nofish));
   check('ur3-count-part-of', K.bella.count.includes('1 cutthroat or rainbow trout in all (part of the 2)'), JSON.stringify(K.bella.count));
   // round 20 (owner 2): the UR3 words read as 4 + 2; the share now sits inside the total, the lifted fish not counted in it
-  check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
+  check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from streams, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
   // round 20e (owner 5): ur3-licence-not-resident retired — no dropdowns; the residency choice is named by the data's own options (r20e-licence-selectors)
   check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
 }
@@ -730,7 +735,7 @@ async function round20e(){
           const sc = document.getElementById('sc'), kr = [...(sec?.querySelectorAll('.krow') || [])].pop(), hh = document.getElementById('hdr').offsetHeight; if (kr) { sc.scrollTop += R(kr).top - R(sc).top - hh - 70; await new Promise(z => setTimeout(z, 120)); pinUpdate();
             const pl = [...document.querySelectorAll('#pins .pl')].map(p => norm(p.textContent)), across = (root.says.match(/ across (.+?)(?:,|$)/) || [])[1];
             if (!pl[0] || !pl[0].includes('across ' + across)) bad.push('pin group line ' + JSON.stringify(pl[0]) + ' does not say across ' + across);
-            if (!pl[1] || !/from this (stream|lake)/.test(pl[1])) bad.push('pin share line ' + JSON.stringify(pl[1])); sc.scrollTop = 0; } } }
+            if (!pl[1] || !/from (this stream|this lake|streams|lakes)/.test(pl[1])) bad.push('pin share line ' + JSON.stringify(pl[1])); sc.scrollTop = 0; } } }
       return JSON.stringify({hash: location.hash.slice(8), shares, bad}); })()`)));
   });
   const rsb = RS.filter(x => x.bad.length);
@@ -738,6 +743,36 @@ async function round20e(){
 }
 
 // ---------- round 20c (owner: a format audit; context in every screenful) ----------
+// ---------- round 20f (owner: thumbnails in one place; tier headers without the left bar; "from streams") ----------
+async function round20f(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  const RF = [];
+  for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=1', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=klwa&d=1012']) await page(hash, async b => {
+    RF.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], R = e => e.getBoundingClientRect(), cs = e => getComputedStyle(e); let rows = 0, heads = 0, caps = 0;
+      document.querySelectorAll('#keep .krow.kt').forEach(row => { rows++; const kids = [...row.querySelector('.kb').children], i = kids.findIndex(e => e.classList.contains('kpics'));
+        if (i < 0) { bad.push('PIC no pictures: ' + norm(row.textContent).slice(0, 40)); return; }
+        kids.slice(0, i).forEach(e => { if (!e.matches('.ks, .kmeta')) bad.push('PIC ' + e.className + ' before the pictures: ' + norm(row.textContent).slice(0, 40)); });
+        kids.slice(i + 1).forEach(e => { if (e.matches('.ks, .kmeta')) bad.push('PIC ' + e.className + ' after the pictures'); });
+        row.querySelectorAll('.kcap').forEach(c => { caps++; const lh = parseFloat(cs(c).lineHeight); if (R(c).height > lh * 2.6) bad.push('PIC a caption of ' + Math.round(R(c).height / lh) + ' lines: ' + norm(c.textContent)); });
+        row.querySelectorAll('.kp img').forEach(im => { if (Math.round(R(im).width) < 80) bad.push('PIC a picture shrunk to ' + Math.round(R(im).width) + 'px'); }); });
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin'); if (!pin) return;
+        const edge = Math.round(R(pin).left + parseFloat(cs(pin).paddingLeft));
+        art.querySelectorAll('.tier .tl, .tier .tkick').forEach(h => { heads++; if (parseFloat(cs(h).borderLeftWidth) > 0 && cs(h).borderLeftStyle !== 'none') bad.push('HDR a left bar on ' + norm(h.textContent).slice(0, 40));
+          if (Math.abs(Math.round(R(h).left + parseFloat(cs(h).paddingLeft)) - edge) > 1) bad.push('HDR header off the text edge: ' + norm(h.textContent).slice(0, 40)); });
+        art.querySelectorAll('.krow.kt').forEach(r => { if (Math.abs(Math.round(R(r).left + parseFloat(cs(r).paddingLeft)) - edge) > 1) bad.push('HDR row off the text edge'); });
+        art.querySelectorAll('section.tnode[data-tnode="size"]').forEach(t => { if (/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs(t).backgroundColor)) bad.push('HDR the size band lost its tint'); }); });
+      return {hash: location.hash.slice(8), rows, heads, caps, bad}; })())`)));
+  });
+  const rfb = RF.filter(x => x.bad.length);
+  check('r20f-pictures-first', RF.reduce((a, x) => a + x.rows, 0) >= 12 && !rfb.some(x => x.bad.some(y => /^PIC /.test(y))), rfb.flatMap(x => x.bad.filter(y => /^PIC /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 6).join('; '));
+  check('r20f-headers', RF.reduce((a, x) => a + x.heads, 0) >= 10 && !rfb.some(x => x.bad.some(y => /^HDR /.test(y))), rfb.flatMap(x => x.bad.filter(y => /^HDR /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 6).join('; '));
+  const RW = await (async () => { const b = await open(`${pathToFileURL(PAGE).href}#shot=1&w=vedder&d=1010`, { width: 440, height: 900, offline: true });
+    try { await new Promise(r => setTimeout(r, 500)); return JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; const sc = document.getElementById('sc'), R = e => e.getBoundingClientRect();
+      const line = norm([...document.querySelectorAll('#keep section.tnode[data-tnode="share"] > .tier .tl')].map(e => { const c = e.cloneNode(true); c.querySelectorAll('.tbk, .gl').forEach(x => x.remove()); return c.textContent; }).join(' | '));
+      const row = document.querySelector('#keep .krow.kt[data-sp~="DV"]'); sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 400));
+      return JSON.stringify({line, pin: [...document.querySelectorAll('#pins .pl')].map(e => norm(e.textContent))}); })()`)); } finally { await b.close(); } })();
+  check('r20f-region-words', /^Only 2 of the 4 may be from streams/.test(RW.line) && !/this stream/.test(RW.line) && RW.pin.some(t => t === '↳ 2 of them from streams'), JSON.stringify(RW));
+}
 async function round20c(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
   // round 20d (owner: stacked pinned headers instead of nesting): the pin bar under the header carries the chain of sections
@@ -930,7 +965,7 @@ async function round20(){
   check('r20-header-is-total', R20.length === R20S.length && !hb.length && v?.out[0]?.hdr === '4 a day per angler across Region 2, lakes included' && !!ape?.out[0]?.why && /^This river’s rule: up to \d+ a day per angler$/.test(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr || ''),
     hb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; ') || `vedder header ${JSON.stringify(v?.out[0]?.hdr)}; ape why ${JSON.stringify(ape?.out[0]?.why)}; bella ${JSON.stringify(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr)}`);
   const stale = R20.flatMap(x => x.out.flatMap(o => o.share)).filter(t => /count toward the \d+, not these|don’t use these|\(part of the \d+\)$/.test(t));
-  check('r20-share-inside-total', JSON.stringify(v?.out[0]?.share) === '["Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"]' && JSON.stringify(c?.out[0]?.share) === '["Only 2 of the 4 may be from this stream"]' && !stale.length,
+  check('r20-share-inside-total', JSON.stringify(v?.out[0]?.share) === '["Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"]' && JSON.stringify(c?.out[0]?.share) === '["Only 2 of the 4 may be from streams"]' && !stale.length,
     `vedder ${JSON.stringify(v?.out[0]?.share)}; chilliwack ${JSON.stringify(c?.out[0]?.share)}; stale ${JSON.stringify(stale)}`);
   const small = R20.flatMap(x => x.out.flatMap(o => o.nums.filter(([, px]) => o.big && px < o.big - 0.5).map(n => `${x.hash}: ${n[0]} ${n[2]} at ${n[1]}px (header ${o.big}px)`)));
   const seconds = R20.flatMap(x => x.out.flatMap(o => o.sizes.map(s => ({...s, big: o.big, hash: x.hash})))), sb = seconds.filter(s => s.second !== String(s.n + s.extra) || s.secondPx < s.big - 0.5);
@@ -1446,6 +1481,7 @@ await round20();
 await round20b();
 await round20c();
 await round20e();
+await round20f();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1523,7 +1559,7 @@ async function round18(){
           const bn = R(big), un = R(unit); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); }
         (g.header ? [] : h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
         if (g.origin) { const og = og0, cut = g.origin.indexOf(' — ');
-          const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
+          const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button, .tbk, a.book'))).map(n => n.textContent).join(' '));
           if (said.toLowerCase() !== g.origin.replace(/ — /, ' ').toLowerCase() && said !== g.origin) bad.push('origin ' + said);
           // phase 2 (rows 16): the tag is the data's header.tag ("hatchery only", drawn in capitals), else the words before " — "
           // round 19 (owner 1): header.tag is null (the fish names carry the origin): no tag, the words whole (origin-no-tag)
@@ -1579,7 +1615,7 @@ async function round18(){
         const tl = el.querySelector(':scope > .tier > .tl'), cl = tl.cloneNode(true); cl.querySelectorAll('.tbk, .gl, .glk').forEach(x => x.remove());
         if (norm(cl.textContent) !== norm(t.says)) bad.push('tier ' + t.says + ': drawn ' + norm(cl.textContent));
         if (t.n != null && norm(tl.querySelector('.tn')?.textContent) !== String(t.n)) bad.push('tier ' + t.says + ': number ' + norm(tl.querySelector('.tn')?.textContent));
-        const ts = getComputedStyle(tl); if (t.tier !== 'size' && parseFloat(ts.borderLeftWidth) < 3) bad.push('tier ' + t.says + ': not styled as a tier line');
+        const ts = getComputedStyle(tl); if (!(+ts.fontWeight >= 700 && (/Bricolage/.test(ts.fontFamily) || ts.borderTopStyle !== 'none' || parseFloat(ts.borderLeftWidth) >= 3))) bad.push('tier ' + t.says + ': not styled as a tier line');   /* round 20f: a header is bold in the display face (c), on a hairline (a, b) or barred (before); round 20f: the Rule book page sits on the origin line, read past it */
         const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
         // round 19 (owner 3): a size tier is a box holding its kinds (size-tier-box); every other tier a guide line
         // round 20d: FLAT — the children sit on the section's own edge, no guide line (round 18's rail retired)
@@ -1663,7 +1699,7 @@ async function round19(){
             const tl = R(el.querySelector(':scope > .tier .tl')); if (tl.top < r.top || tl.left < r.left || tl.right > r.right + 0.5) bad.push(t.says + ': its line not inside the box'); }
           const kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walk(c, kids[i])); };
         T.nodes.forEach((t, i) => walk(t, T.els[i]));
-        if (g.origin) { origins++; const og = art.querySelector('[data-origin]'), said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
+        if (g.origin) { origins++; const og = art.querySelector('[data-origin]'), said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button, .tbk, a.book'))).map(n => n.textContent).join(' '));
           if (g.header && g.header.tag == null && said !== norm(g.origin)) bad.push('origin drawn ' + JSON.stringify(said) + ' vs ' + JSON.stringify(g.origin)); }
         if (g.header && g.header.tag == null && art.querySelector('.gtag')) bad.push('a tag drawn though header.tag is null'); });
       return {hash: location.hash.slice(8), boxes, notes, origins, bad}; })())`)));
@@ -1704,7 +1740,7 @@ async function roundUr1(){
           if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
           // round 20 (owner 2): the lifted fish are named as not counted in the share, which sits inside the total
-          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/^Only \\d+ of the \\d+ may be from this (stream|lake), not counting .+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
+          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/^Only \\d+ of the \\d+ may be from (this stream|this lake|streams|lakes), not counting .+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
           if (t.tier === 'size') { seen.size++; if (!/^(Only \\d+|None) of the fish in this box may be over /.test(t.says)) bad.push('size: ' + t.says); }
           if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all( \\(part of the \\d+\\))?$/.test(t.says)) bad.push('count: ' + t.says); }
           (t.children || []).forEach(walk); };

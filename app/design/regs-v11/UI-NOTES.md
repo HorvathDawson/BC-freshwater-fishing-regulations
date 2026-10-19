@@ -1,3 +1,29 @@
+# regs v30 (round 20f, owner: thumbnails in one place, tier headers without the left bar, "from streams", small items) — in place on regs-v11.html
+
+Report: handoff/PLAN/r20f_report.md (before/after pairs, the header alternatives with screens, the reader scores).
+- **Data: rows 23** (page v36 re-snapped; oracle regenerated; ANSWERS-SPEC ROUND20f). A share that is the REGION'S (a zone or
+  province rule — the Region 2 streams' combined 2) says "from streams" / "from lakes": the share line "Only 2 of the 4 may be
+  from streams, not counting hatchery rainbow trout", the headline "2 a day per angler from streams"; a share a water's own row
+  sets keeps "from this stream" (`tree.share_place`, `share_region_wide`). The pin bar follows: "↳ 2 of them from streams".
+- **1 Thumbnails in one place.** Every kind row draws its picture strip right under the title and its size chip, BEFORE any
+  note (the steelhead's size note, "10 a year · …", the presence line); the pictures keep their 80 px size. A caption may run
+  wider than its picture (a tile is 80–132 px), so "Coastal cutthroat trout ›" is two lines, not three.
+- **2 The tier headers without the left bar** (owner: "the left box outline with tab indent for headers" felt weird). Three
+  styles were drawn and shot (scratchpad r20f/frames-a|b|c, the Bella Coola, Glenn and Vedder row frames): (a) a plain header on
+  a hairline above it with the big number as the anchor; (b) the same with the number in a tinted chip; (c) no hairline, more
+  space and a display-face heading. Headers, their kickers and the rows now share the card's text edge (no 3 px bar, no 13 px
+  step); the size band keeps its tint; a water's own rule's number is in the accent. `hdr=a|b|c` in the hash shows the others.
+  THE PICK and why: see r20f_report.md.
+- **4 Small items**: the gear tab's row labels (Lines · Hooks · Weight on the line) in sentence case (`.gline .glab` outranked
+  round 20c's rule); the group head's "Rule book p.N ↗" sits on the origin's own line after "How to tell ›"; Bennett's pinned
+  own line reads "↳ 2 of them (lake trout) under this lake’s rule"; a pinned tier line now goes once less than about a row
+  (110 px) of its section is left under the bar (the 20e reader saw a line outlive its section over the next section's rows).
+- **Checks** (ONLY=20f; all three fail on regs v29 — scratchpad r20f/check-before.txt): `r20f-pictures-first` (the strip right
+  after the title + chip, before every note; no caption over two lines; no picture under 80 px), `r20f-headers` (no left bar on
+  a header or kicker, one text edge, the band tinted), `r20f-region-words` (the share line and the pin say "from streams").
+  `ur1-tier-words`, `ur3-lifted-share`, `r20-share-inside-total`, `r20e-region-vs-stream` read the new words.
+- **Readers**: the r20e 34-question set, fresh opus, PNGs only — BEFORE (v29) 34/34, AFTER: see r20f_report.md.
+
 # regs v29 (round 20e, owner: Gear / Methods split, dated notes, sources per item, ways in columns, licence choices, region vs stream) — in place on regs-v11.html
 
 UI only (no data change): handoff/PLAN/r20e_comprehension.md has the reader gate; handoff/PLAN/r20e_progress.md the handoff.
