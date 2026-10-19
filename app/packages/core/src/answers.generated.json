@@ -5311,7 +5311,7 @@
     },
     "Header": {
      "additionalProperties": false,
-     "description": "ROUND18 4: the group's compact header \u2014 `says` the headline and the region's total in one line (\"2 a day from\nthis stream \u00b7 part of 4 a day per angler across Region 2, lakes included\"), `tag` None since ROUND19 1 (the kinds' names carry\nthe origin).",
+     "description": "ROUND18 4: the group's compact header. ROUND20 1 (owner: the group's top and the first tier are ONE block): the\nheader IS the tree's root tier \u2014 `says` its line (\"4 a day per angler across Region 2, lakes included\"; a water's\nown total \"This river\u2019s rule: up to 1 a day per angler\"), `tier` its id (the page draws the root's children at the\ntop of the tree; the gate holds `says` to the root's words); `tag` None since ROUND19 1 (the kinds' names carry\nthe origin).",
      "properties": {
       "says": {
        "minLength": 1,
@@ -5328,6 +5328,18 @@
         }
        ],
        "title": "Tag"
+      },
+      "tier": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Tier"
       }
      },
      "required": [

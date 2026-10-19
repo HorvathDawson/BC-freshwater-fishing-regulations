@@ -38,15 +38,14 @@ def test_a_the_total_and_header_say_per_angler():
     g, _o, _P = _g(F.VEDDER)
     (total,) = g["tree"]
     assert total["says"] == "4 a day per angler across Region 2, lakes included"
-    assert g["header"]["says"] == "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included"
+    assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
     assert g["total_line"] == "No more than 4 trout and char a day per angler across Region 2, lakes included."
 
 
 def test_a_the_share_says_the_lifted_fish_do_not_use_it():
     g, _o, _P = _g(F.VEDDER)
     _own, share = g["tree"][0]["children"]
-    assert share["says"] == ("2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, "
-                             "not these 2")                                                          # UR3 4
+    assert share["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"   # ROUND20 2
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
     assert "don’t use" not in share["says"]

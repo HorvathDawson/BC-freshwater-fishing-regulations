@@ -544,3 +544,9 @@ def range_txt(a: int, b: int) -> str:
 
 def clean(s) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\*+", "", str(s or ""))).strip()
+
+
+def full_stop(text: str) -> str:
+    """A sentence ends in exactly ONE full stop (ROUND20: `caps.py` appended "." to a sentence that may already end
+    in "B.C." — "No wild steelhead may be kept in B.C..", 48 live occurrences)."""
+    return text if text.endswith(".") else text + "."

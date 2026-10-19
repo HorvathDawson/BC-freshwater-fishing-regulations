@@ -40,8 +40,7 @@ def _kind(g, sp):
 def test_1_the_headline_says_per_angler():
     g, _o, _P = _g(F.VEDDER)
     assert g["headline"]["says"] == "2 a day per angler from this stream"
-    assert g["header"]["says"] == ("2 a day per angler from this stream · part of 4 a day per angler across Region 2, "
-                                   "lakes included")
+    assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
     g, _o, _P = _g(F.LWA)
     assert g["headline"]["says"] == "4 a day per angler"
 

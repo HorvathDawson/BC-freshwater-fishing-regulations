@@ -270,7 +270,10 @@ def _sections() -> Tuple[Section, ...]:
         # 2)"; the share "2 a day per angler from this stream", a lifted one "— your hatchery rainbow trout count toward
         # the 4, not these 2"; a quota two waters share "Kokanee from the Lower and Upper West Arms together: no more
         # than 5 a day.")
-        Section("rows", 20, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND20 1/2 (owner review of v24): rows 21 (`group.header` IS the tree's root tier — `tier` its id, `says` its
+        # line; a water's own total says "per angler"; the share "Only 2 of the 4 may be from this stream", lifted
+        # ", not counting hatchery rainbow trout")
+        Section("rows", 21, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

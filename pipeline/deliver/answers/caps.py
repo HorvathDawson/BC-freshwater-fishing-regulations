@@ -354,7 +354,8 @@ def _said(E, c: dict, kinds: List[dict]) -> dict:
         says = f"No {org}{fish}{size} may be kept{where}"
     else:
         says = f"Up to {c['take']} {org}{fish}{size} {scope}"
-    return {"take": c["take"], "kinds": ks, "scope": scope, "by": c["by"], "says": says + ".",
+    # ROUND20: one full stop — "… may be kept in B.C." already ends in one ("in B.C.." before, 48 live occurrences)
+    return {"take": c["take"], "kinds": ks, "scope": scope, "by": c["by"], "says": common.full_stop(says),
             "if_kept_here": c["if_kept_here"]}
 
 

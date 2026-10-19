@@ -56,8 +56,8 @@ def test_2_lift_and_kept_elsewhere_lines_say_inches_in_brackets():
 # 1, 3, 6: the Vedder ---------------------------------------------------------------------------
 def test_3_the_vedder_tree():
     g, _o, _P = _g(F.VEDDER)
-    assert g["header"] == {"says": "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included",
-                           "tag": None}
+    # ROUND20 1: the header IS the root tier
+    assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
     assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
     (total,) = g["tree"]
     own, share = total["children"]
@@ -66,8 +66,7 @@ def test_3_the_vedder_tree():
     (rb,) = own["children"]
     assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == ("2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, "
-                             "not these 2")                                           # UR1 A, UR3 4
+    assert share["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"   # ROUND20 2
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
     assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])

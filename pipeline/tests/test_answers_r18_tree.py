@@ -85,10 +85,10 @@ def test_1_the_bella_coola_may_tree_nests_the_count_and_says_the_size_cap_on_its
 def test_4_a_compact_header():
     g, _o, _P = _tree(F.VEDDER)
     # ROUND19 1/6: the nesting in the words; the kinds' names carry the origin, the tag does not
-    assert g["header"] == {"says": "2 a day per angler from this stream · part of 4 a day per angler across Region 2, lakes included",
-                           "tag": None}
+    # ROUND20 1: the header IS the root tier (its words, named by `tier`)
+    assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
     g, _o, _P = _tree(F.LAKE)
-    assert g["header"]["says"] == "4 a day per angler"
+    assert g["header"]["says"] == "4 a day per angler across Region 2"
 
 
 # 8 ---------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ def test_the_gate_refuses_a_wrong_tree():
 def test_8_a_waters_own_total_reached_by_the_walk_says_why_too():
     g, _o, _P = _tree(F.BELLA_TRIB)                # Ape Creek's shape: the Bella Coola River's row by the walk
     (total,) = g["tree"]
-    assert total["says"] == "The Bella Coola River’s rule: up to 1 a day"
+    assert total["says"] == "The Bella Coola River’s rule: up to 1 a day per angler"      # ROUND20 1: per angler
     assert total["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
     out, P = F.card(F.BELLA_TRIB, OCT10)
     assert CC.check_card(P, out) == []

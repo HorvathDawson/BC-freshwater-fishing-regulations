@@ -14,9 +14,9 @@ count groups, size groups and notes) as that tree; it decides nothing new.
                 TRIBUTARY WALK ("its row covers its tributaries, so it applies here", ROUND18 8) and `line` (all
                 three in one line); under the share where it holds share kinds to a smaller number, else under the
                 total
-         share  the stream (lake) share ("2 a day from this stream (part of the 4)" — ROUND19 6: the nesting in
-                the words, wherever a tier holds fewer than the count tier around it; UR1 A: "— your hatchery rainbow
-                trout don’t use these 2", the fish a water's own rule lifts out of it)
+         share  the stream (lake) share, said INSIDE the count tier around it ("Only 2 of the 4 may be from this
+                stream" — ROUND20 2, owner: the UR3 "— your hatchery rainbow trout count toward the 4, not these 2"
+                read as 4 + 2; the fish a water's own rule lifts out of it ", not counting hatchery rainbow trout")
          count  a count over some of a tier's kinds, naming them ("1 cutthroat or rainbow trout in all", UR1 D)
          size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
                 size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
@@ -34,8 +34,10 @@ count groups, size groups and notes) as that tree; it decides nothing new.
          longer"), `also_counts` every cap no tier around it holds that still binds it, in words, and `sentence` the
          whole line, "of" the nearest COUNT tier around it (a size tier is no count): "Of the 2 a day: up to 2 may
          be hatchery brook, brown or cutthroat trout, 30 cm (12 in) or longer".
-  header {says, tag}: "2 a day from this stream · part of 4 a day per angler across Region 2, lakes included"; `tag` None
-         (ROUND19 1: the kinds' names carry the origin).
+  header {says, tier, tag}: ROUND20 1 (owner: the group's top and the first tier are ONE block) — the header IS the
+         root tier: `says` its line ("4 a day per angler across Region 2, lakes included"; a water's own total "This
+         river’s rule: up to 1 a day per angler"), `tier` its id; the page draws the root's children at the top of
+         the tree. `tag` None (ROUND19 1: the kinds' names carry the origin).
 
 Sizes are said in cm with the inches in brackets, "50 cm (20 in)" (`common.cm_in`, ROUND19 2). Every number and
 the placement of every kind are proved by the card gate (`card_check.check_tree`).
@@ -203,8 +205,9 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         from pipeline.deliver.answers.card import _whose
         whose = common.cap(_whose(P, T)[1])
         why = _why_here(T)
-        root = tier("total", total, f"{whose}: up to {_js(total)} a day", grp["pool"], whose=whose, why_here=why,
-                    line=whose + (f" ({why})" if why else ""))
+        # ROUND20 1: the root is the card's header, so it says "per angler" like a zone total
+        root = tier("total", total, f"{whose}: up to {_js(total)} a day per angler", grp["pool"], whose=whose,
+                    why_here=why, line=whose + (f" ({why})" if why else ""))
 
     # -- the kinds ---------------------------------------------------------------------------------------
     node_of: Dict[int, dict] = {}
@@ -442,19 +445,24 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # UR1 A (user panel: do the 4 hatchery rainbows count toward the 2?): the share says the fish a water's own rule
     # lifts out of it don't use it; UR3 4 (user panel: then where do they go?): where it is part of a count tier, they
     # count toward that one instead ("— your hatchery rainbow trout count toward the 4, not these 2")
+    # ROUND20 2 (owner: "— your hatchery rainbow trout count toward the 4, not these 2" read as 4 + 2): the share
+    # says it sits INSIDE the total, in the kinds' own shape — "Only 2 of the 4 may be from this stream", the lifted
+    # fish ", not counting hatchery rainbow trout" (they are in the 4, and only the OTHER fish are held to the 2)
     lifted = common.join(lifted_names, " and ") if share_t is not None and lifted_names and share_t["n"] is not None \
         else None
     for t, p in walk([root]):
         if t["node"] == "tier" and t["tier"] in ("own", "share") and p is not None:
             up = count_of(par, p)
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
-                if t is share_t and lifted:
-                    t["says"] += f" — your {lifted} count toward the {_js(up['n'])}, not these {_js(t['n'])}"
-                    lifted = None
+                if t is share_t:
+                    t["says"] = f"Only {_js(t['n'])} of the {_js(up['n'])} may be from this {c.share['water']}"
+                    if lifted:
+                        t["says"] += f", not counting {lifted}"
+                        lifted = None
                 else:
                     t["says"] += f" (part of the {_js(up['n'])})"
     if lifted:
-        share_t["says"] += f" — your {lifted} don’t use these {_js(share_t['n'])}"
+        share_t["says"] += f", not counting {lifted}"
     # UR3 3 (user panel: is the 1 inside the 2 or extra?): a count tier inside a water's own tier or the share says it
     # is part of it ("1 cutthroat or rainbow trout in all (part of the 2)")
     for t, p in walk([root]):
@@ -480,11 +488,10 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             s += " — " + "; ".join(notes)
         x["sentence"] = s
 
-    head = c.head["says"]
-    if said_total and zone:
-        head += f" · part of {_js(total)} a day per angler across {scope}, {other} included"
+    # ROUND20 1 (owner: the group's top and the first tier are ONE block): the header IS the root tier — its words,
+    # named by `tier`; the page draws the root's line as the header and the root's children at the top of the tree.
     # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
-    header = {"says": head, "tag": None}
+    header = {"says": root["says"], "tier": root["id"], "tag": None}
     return [root], header
 
 

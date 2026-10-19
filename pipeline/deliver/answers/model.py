@@ -850,10 +850,13 @@ TreeTier.model_rebuild()
 
 
 class Header(Model):
-    """ROUND18 4: the group's compact header — `says` the headline and the region's total in one line ("2 a day from
-    this stream · part of 4 a day per angler across Region 2, lakes included"), `tag` None since ROUND19 1 (the kinds' names carry
+    """ROUND18 4: the group's compact header. ROUND20 1 (owner: the group's top and the first tier are ONE block): the
+    header IS the tree's root tier — `says` its line ("4 a day per angler across Region 2, lakes included"; a water's
+    own total "This river’s rule: up to 1 a day per angler"), `tier` its id (the page draws the root's children at the
+    top of the tree; the gate holds `says` to the root's words); `tag` None since ROUND19 1 (the kinds' names carry
     the origin)."""
     says: StrictStr = Field(min_length=1)
+    tier: Optional[StrictStr] = None
     tag: Optional[StrictStr]
 
 

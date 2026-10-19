@@ -797,6 +797,13 @@ def check_tree(P, g: dict) -> List[str]:
     head = g.get("headline") or {}
     words_ok(h.get("says") or "", {float(v) for v in (head.get("n"), _claim(g["total"])) if v is not None},
              "header")
+    # ROUND20 1: the header IS the root tier — it names the root and says its words, nothing else
+    root = g["tree"][0] if g.get("tree") else None
+    if root is not None and h.get("tier") is not None:
+        if h["tier"] != root["id"]:
+            probs.append(f"{where}: the header names tier {h['tier']!r}, the tree's root is {root['id']!r}")
+        elif h.get("says") != root["says"]:
+            probs.append(f"{where}: the header says {h.get('says')!r}, its tier {root['says']!r}")
     return probs
 
 

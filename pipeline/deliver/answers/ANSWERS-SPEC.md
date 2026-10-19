@@ -98,6 +98,24 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20 (2026-10-18) — rows 21: the header IS the total tier, the share inside the total
+
+Owner review of v24 (ROUND20 1, 2; item 3 is the page's). Only `group.header` and two tier lines changed, no shape.
+
+1. **The header and the first tier are ONE block.** `rows[].group.header` {says, tier, tag}: `tier` names the tree's
+   root (`"t1"`) and `says` is the root's line — "4 a day per angler across Region 2, lakes included"; a water's own
+   total "This river’s rule: up to 1 a day per angler" (the root now says "per angler" like a zone total, since it is
+   the card's big line). The page draws the root's line as the group's header (its number big, the ⓘ, its Rule book
+   page, a walked total's `why_here` under it) and the root's children at the top of the tree: one tier level less.
+   `headline` and `total_line` stay in the data for proof; a page with a tree draws neither. The gate (`check_tree`)
+   refuses a header naming any tier but the root, or saying other words than the root's.
+2. **The share sits INSIDE the total.** The UR3 "2 a day per angler from this stream — your hatchery rainbow trout
+   count toward the 4, not these 2" read as 4 + 2. A share tier held under a count tier now says it in the kinds' own
+   shape: "Only 2 of the 4 may be from this stream"; where a water's own rule lifts fish out of it, ", not counting
+   hatchery rainbow trout" (they are in the 4; only the OTHER stream fish are held to the 2). A share no count tier
+   holds keeps "2 a day per angler from this stream" (", not counting …" when lifted). An own tier under the total
+   keeps "(part of the 5)"; a count tier "(part of the 2)".
+
 ## UR3 (2026-10-18) — rows 20, display 15: user panel round 3, small wording fixes
 
 Six angler personas read v23 screenshots (USER-ROUNDS round 3); only wording changed, no shape.

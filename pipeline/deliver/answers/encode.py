@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "20",
+            "version": "21",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -394,7 +394,13 @@ SPEC = {
                     "round 3): a count tier inside a water's own tier or the share says \"(part of the 2)\"; the share "
                     "\"2 a day per angler from this stream\", a lifted one \"— your hatchery rainbow trout count toward "
                     "the 4, not these 2\"; a quota two waters share (`restates`) \"Kokanee from the Lower and Upper West "
-                    "Arms together: no more than 5 a day.\" (the fish and number the rule's fields)",
+                    "Arms together: no more than 5 a day.\" (the fish and number the rule's fields). Version 21 "
+                    "(ROUND20, owner review of v24): `header` IS the tree's root tier — `tier` its id (\"t1\"), `says` "
+                    "its line (\"4 a day per angler across Region 2, lakes included\"; a water's own total \"This "
+                    "river’s rule: up to 1 a day per angler\"): draw the root's line as the group's header block and "
+                    "the root's children at the top of the tree, one level less; the share tier says it sits inside "
+                    "the total, \"Only 2 of the 4 may be from this stream\", a lifted one \", not counting hatchery "
+                    "rainbow trout\" (the UR3 words read as 4 + 2)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
