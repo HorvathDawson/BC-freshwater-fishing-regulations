@@ -1,3 +1,31 @@
+# regs v27 (round 20c, owner: a format audit, "the style feels off", context in every screenful) — in place on regs-v11.html
+
+Audit and numbers: handoff/PLAN/r20c_style_audit.md (17 issues: 12 SMALL done, 4 BIG logged, 1 verified). No data change.
+- **Context in every screenful** (owner). The group's name + total line is its own block (`.ghd.gpin`) and PINS under the header
+  while the reader is inside the group; a top-level tier line (the share, or the river's own rule) pins under it; a size box's
+  head pins under the tier it sits in. `position:sticky` with measured offsets (`pinTops()` → `--hdr-h`, `--pin1`, `--pin2`, after
+  render, on resize and on fonts). The origin line is the block under the pinned one (`.ghd.gsub`) and scrolls away. Tall shots
+  never scroll, so nothing pins in them; the frames (`tools/frames.mjs`) show it.
+- **Tokens** (one rule per thing at the end of the CSS): weights `--w-body/--w-emph/--w-head/--w-num` (400/600/700/800; the 500s
+  and the one 900 are gone), spacing `--s1..--s4` (4/8/12/16) on the card; every inline numeral shares one line box (26 px figures
+  no longer make their line taller); ALL-CAPS only on the section kickers (`.lab`, `.scope`, `.bkh`, the no-fishing note's h3) —
+  row and column labels on gear and licence read in sentence case, `--sub`; ONE link style (accent, 700, no underline; ↗ the
+  book's PDF, › opens here); 44 px hit areas for the inline How to tell, the Source chip and every book link (a pseudo-element,
+  no line moves); the size box 1.5 px with a 1 px head rule and its head words at meta size (two lines while pinned); size chips
+  tinted blocks, not borders inside the box's border; the kinds' rail 28 px in (36 before); the header's total line and every
+  tier line `text-wrap: balance`; the "Gear · for this water today" / "Licence · …" kickers are gone (the tab names the tab).
+- **Checks** (ONLY=20c; both fail on regs v26 — scratchpad r20c/check-before.txt): `r20c-pinned-context` (scrolled deep into the
+  Vedder's over-50 box, Chilliwack's, Bennett's top-level box and Glenn's own tier at phone size: the group block sits under the
+  header, the tier line under it, the box head under that, the row below; a section too short to pin shows its line in view),
+  `r20c-style-tokens` (Keep tab: ≤ 4 sizes beside the strip's axis, ≤ 4 weights, one link colour, no underline, caps only on
+  kickers, every hit area ≥ 32 px). `group-head-compact` reads the two header blocks; `tree-folders` takes a tinted chip.
+- **Readers**: the r20b 21-question set on the restyled tall screens 21/21; the new screenful gate (one mid-scroll frame per
+  question) 0.5/4 → 4/4.
+- **Tools**: `tools/audit.mjs` (every tab + the four sheets, light and dark, five waters), `tools/frames.mjs` (390×844
+  screenfuls with 90 px overlap), `tools/census.mjs` (computed-style census: sizes, weights, families, colours, link marks,
+  caps, borders, left edges, small targets). tall.mjs marks the tab shown in `tab` and `licence` modes.
+- **Screens**: every screen and tall shot re-shot.
+
 # regs v26 (round 20b, owner: fewer words, real visuals, split tabs) — in place on regs-v11.html
 
 - **Data: rows 22** (page v36 re-snapped; oracle regenerated). Four cuts, all words or order (ANSWERS-SPEC ROUND20b):

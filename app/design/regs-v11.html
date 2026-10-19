@@ -691,6 +691,43 @@ details.bookw blockquote{margin:0 0 10px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kp img{filter:brightness(.82)}}
 :root[data-theme="dark"] .kp img{filter:brightness(.82)}
 .num .also{display:block;max-width:12em;margin-top:4px;color:var(--accent,inherit);font-weight:600;line-height:1.25;text-align:right}
+/* ---------- round 20c (owner: "an overall format audit … the style feels off"; handoff/PLAN/r20c_style_audit.md) ----------
+   One rule per thing, as tokens, after everything above so it wins by order. Numbers in the audit file. */
+:root{--w-body:400;--w-emph:600;--w-head:700;--w-num:800;--s1:4px;--s2:8px;--s3:12px;--s4:16px}
+/* #3 four weights on the page: the 500s become 600, the 900 800 */
+.smonths,.gtopic .price,.needs li > .price,.owk,:is(#gear,#licence) .gref > summary em,.wyn p{font-weight:var(--w-emph)}
+/* #4 every inline numeral shares ONE line box: a 26 px figure never makes its line taller than its neighbours */
+.tier .tn,.ghd .num .ghn,.kt .ks .kn{line-height:.7;vertical-align:-1px;margin:0 1px}
+/* #1 context in every screenful (owner): the group's name + total line pin under the header while the reader is inside the
+   group; a top-level tier line pins under that; a size box's head pins under the tier it sits in. Offsets are measured
+   (pinTops: --hdr-h, --pin1, --pin2). In tall shots nothing scrolls, so nothing pins. */
+.ghd.gpin{position:sticky;top:var(--hdr-h,0px);z-index:2;background:var(--card);padding-bottom:var(--s1);border-bottom:1px solid var(--line2)}
+.ghd.gsub{padding:var(--s1) 0 var(--s2)}
+.qtree > .tnode > .tier{position:sticky;top:calc(var(--hdr-h,0px) + var(--pin1,0px));z-index:1;background:var(--card)}
+.qtree > .tnode > .tch .tnode[data-tnode="size"] > .tier{position:sticky;top:calc(var(--hdr-h,0px) + var(--pin1,0px) + var(--pin2,0px));z-index:1;background:var(--card)}
+.tall .ghd.gpin,.tall .tier{position:static}
+/* #2 / #13 lighter boxes: the size box 1.5 px with a 1 px head rule; a size chip is a tinted block, not a border inside a border */
+.tnode[data-tnode="size"]{border-width:1.5px}
+.tnode[data-tnode="size"] > .tier .tl{border-bottom-width:1px;font-size:var(--t4)}   /* the head's words at meta size, its numbers still --t1: two lines while pinned, not three */
+.szc{border:0;background:var(--tint);padding:3px 8px}
+/* #7 ALL-CAPS only for section kickers (.lab, .scope, .bkh); row and column labels read in sentence case */
+.glab,.gxl,.hh,.dlab,.gday,.gtopic .lbl,.sbody .lbl,.foot .lbl,.caveats .lbl,.sblock > .lbl,.u16h,.resfor,.ladder2 .lvl,.ktile .kl,.done{text-transform:none;letter-spacing:0}
+.glab,.gxl,.hh,.dlab,.gday,.gtopic .lbl,.sbody .lbl,.foot .lbl,.caveats .lbl,.sblock > .lbl,.u16h,.resfor,.ladder2 .lvl,.ktile .kl{color:var(--sub)}
+/* #6 one link style: the accent, bold, no underline — ↗ marks a page of the book's PDF, › something that opens here */
+a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk,.foot a{color:var(--accent);font-weight:var(--w-head);text-decoration:none}
+.srcbtn{background:var(--tint);text-decoration:none;position:relative}
+/* #9 44 px hit areas without moving a line: the inline How to tell and the Source chip reach out with a pseudo-element */
+.kt .ks .linkbtn,.book{position:relative}
+.kt .ks .linkbtn::before,.srcbtn::before,.book::before{content:"";position:absolute;left:-4px;right:-4px;top:-12px;bottom:-12px}
+/* #10 wraps: the header's total line and every tier line balance their lines (no one-word second line) */
+.ghd .num[data-root-tier],.tier .tl{text-wrap:balance}
+/* #11 one spacing scale on the card */
+.qtree{margin-top:var(--s1)}.tnode{margin-top:var(--s2)}.tch > .tnode{margin-top:var(--s2)}.tnode[data-tnode="size"]{margin-top:var(--s3)}
+.krow.kt{padding:var(--s2) 0}.kmeta{margin-top:var(--s1)}.kac,.ksn{margin-top:var(--s2)}.worked{margin-top:var(--s4);padding-top:var(--s2)}.tier .tsub{margin-top:var(--s1)}
+/* #3 (cont.) the weekday note's 12 px was a fifth size: it is meta, --t4 */
+.owk{font-size:var(--t4)}
+/* #12 the indent rail: 28 px in from the tier line (36 before) */
+.tch{margin-left:var(--s2);padding-left:10px}
 </style>
 </head>
 <body>
@@ -1066,7 +1103,10 @@ function buildKeep(){
     const tops = hdrRoot ? (hdrRoot.children || []) : [].concat(g.tree || []);
     const rootPages = hdrRoot && st.ruleKey?.[hdrRoot.by] ? pagesOf(st.ruleKey[hdrRoot.by]) : new Set();   // round 20b: pages the header shows
     const tree = g.tree ? `<div class="qtree" data-tree${hdrRoot ? ` data-root="${esc(hdrRoot.id)}"` : ''}>${tops.map(t => tnode(t, 0, 0, !hdrRoot, rootPages)).join('')}</div>` : buckets;
-    art.innerHTML = `<div class="ghd"><div class="rhead">${head}${rootLine || num}</div>${orig}${g.header ? '' : total}</div>${tree}${nk}${worked}${quiet}${more}`;
+    // round 20c (owner: a reader must know what they are looking at in every screenful): the group's name and its total line
+    // are ONE pinned block (`.ghd.gpin`, position:sticky under the header while inside the group); the origin line is the
+    // block under it and scrolls away. A top-level tier line and a size box's head pin under the group block (CSS, pinTops()).
+    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig || (g.header ? '' : total) ? `<div class="ghd gsub">${orig}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1326,7 +1366,8 @@ function render(keep){
   // the licence part and the reference fold; nothing in it changes.
   const gh = buildGear(), when = S.d === 1010 ? 'today' : 'on ' + fmt(S.d), iL = gh.indexOf('<section class="gpart gtopic" id="g-licence"'), iR = gh.indexOf('<details class="gref"');
   const gearHtml = gh.slice(0, iL < 0 ? gh.length : iL) + (iR >= 0 ? gh.slice(iR) : ''), licHtml = iL < 0 ? '' : gh.slice(iL, iR >= 0 ? iR : gh.length);
-  const secLab = (name) => `<div class="sech"><span class="lab" style="margin-left:0">${name} · for this water ${when}</span></div>`;
+  // round 20c (audit #8): no "Gear · for this water today" kicker over "Gear & methods" — the tab names the tab, the header the date
+  const secLab = (name) => '';
   sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear">${secLab('Gear')}${gearHtml}</section>`
     + (licHtml ? `<section class="sec" id="licence">${secLab('Licence')}${licHtml}</section>` : '') + `<div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
@@ -1335,9 +1376,18 @@ function render(keep){
   if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}|${S.br}|${S.bj}`, keepVB = MV.vb;
     if (!keepVB) mapOpened(); else { setVB(keepVB); if (MV.key !== key) ease(targetBox()); } MV.key = key; }
   else { MV.vb = null; MV.key = null; }
-  fitLabel(); sc.scrollTop = keep ? prev : S.scroll; mini();
+  fitLabel(); pinTops(); sc.scrollTop = keep ? prev : S.scroll; mini();
   poster();
 }
+// round 20c (owner: context in every screenful): the offsets the pinned lines sit at — the header's height, each group's
+// pinned block (name + total line) and each top-level tier line — measured after layout, as CSS variables. At 200% text the
+// header is static, so the pins sit at the top of the scroller.
+function pinTops(){ const de = document.documentElement, hh = de.classList.contains('ts2') ? 0 : ($('hdr')?.offsetHeight || 0);
+  de.style.setProperty('--hdr-h', hh + 'px');
+  document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin');
+    art.style.setProperty('--pin1', (pin ? pin.offsetHeight : 0) + 'px');
+    art.querySelectorAll(':scope > .qtree > .tnode').forEach(tn => { const t = tn.querySelector(':scope > .tier'); tn.style.setProperty('--pin2', (t ? t.offsetHeight : 0) + 'px'); }); }); }
+addEventListener('resize', pinTops); if (document.fonts) document.fonts.ready.then(pinTops);
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
   // round 20b: three tabs on one scroll — the tab in view is the LAST section whose top has reached the header (the

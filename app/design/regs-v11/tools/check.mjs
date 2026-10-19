@@ -46,6 +46,11 @@
 //   these 2" (2); r20-big-numbers: a size box's and a count tier's number as big as the header's, the box's second number
 //   ("— 2 if one is a hatchery steelhead") big too (3). tree-folders, size-tier-box, ur1-tier-words, group-head-compact,
 //   card-headline and card-cap-once read the root from the header; ur3-lifted-share reads the new words
+//   (round 20c, owner: a format audit, context in every screenful; ONLY=20c) r20c-pinned-context: scrolled deep into a group
+//   at phone size, the group's name + total line sit under the header, a top-level tier line under it, a size box's head under
+//   that, the row below (position:sticky, measured offsets); r20c-style-tokens: on the Keep tab at most 4 font sizes beside the
+//   strip's axis, 4 weights, one link colour, no underlined link, ALL-CAPS only on the section kickers, every hit area ≥ 32 px.
+//   group-head-compact reads the two header blocks (.ghd.gpin + .ghd.gsub); tree-folders takes a tinted chip as prominent
 //   (round 20b, owner: fewer words, real visuals, split tabs; ONLY=20b) r20b-three-tabs: What you can keep · Gear · Licence
 //   on one row, each its own section (#gear: Gear & methods + Reference; #licence: the licence alone), each tab lands on
 //   its section and reads pressed, sec=licence lands there, no words of the old combined tab, no dead [data-sec]/[data-jump];
@@ -114,6 +119,7 @@ const TOPS = `var topsOf = (g, art) => { const q = art.querySelector(':scope > .
 var hdrWords = el => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove()); return (c.textContent || '').replace(/\\s+/g, ' ').replace(/ ⓘ$/, '').trim(); };`;
 if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -529,6 +535,52 @@ async function roundUr3(){
   check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
   check('ur3-licence-not-resident', K.lic.res.length === 2 && K.lic.res.every(t => /^If you’re not a B\.C\. resident · \S/.test(t)) && /· Canadian, other province$/.test(K.lic.res[0]) && /· From outside Canada$/.test(K.lic.res[1]), JSON.stringify(K.lic.res));
   check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
+}
+// ---------- round 20c (owner: a format audit; context in every screenful) ----------
+async function round20c(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // pinned context: scrolled to a row deep inside the Vedder's over-50 box (the bull trout row), the group's name + total line
+  // sits right under the header, the share tier line right under it, the box's head right under that, and the row is in view
+  // below them — all of it read off the rendered page at phone size (no tall mode). Bennett: a top-level size box pins under
+  // the group block. Fails before: nothing pinned, the group block scrolled off.
+  const PC = [];
+  for (const [hash, sp] of [['w=vedder&d=1010', 'DV'], ['w=chilliwack&d=1010&p=1', 'ST'], ['w=x35p&d=1010', 'DV'], ['w=glenn&d=615', 'RB']]) {
+    const b = await open(`${pathToFileURL(PAGE).href}#shot=1&${hash}`, { width: 440, height: 900, offline: true });
+    try { await new Promise(r => setTimeout(r, 500));
+      PC.push(JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; const sc = document.getElementById('sc'), hdr = document.getElementById('hdr'), R = e => e.getBoundingClientRect(), bad = [];
+        const row = document.querySelector('#keep .krow.kt[data-sp~="${sp}"]'); if (!row) return JSON.stringify({hash: location.hash.slice(8), bad: ['no row for ${sp}']});
+        // scroll so the row's top sits at 60 % of the scroller — deep in its group
+        sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 300));
+        const art = row.closest('article.row.ledger'), pin = art.querySelector(':scope > .ghd.gpin'), top = R(hdr).bottom, scr = R(sc);
+        const vis = e => !!e && R(e).bottom > scr.top && R(e).top < scr.bottom;
+        if (!pin) bad.push('no pinned group block'); else { if (Math.abs(R(pin).top - top) > 1.5) bad.push('group block at ' + Math.round(R(pin).top - top) + 'px under the header'); if (!norm(pin.textContent).match(/\\d+ a day per angler|no daily limit/i)) bad.push('group block without the total: ' + norm(pin.textContent).slice(0, 60)); }
+        let y = pin ? R(pin).bottom : top, pinnedH = pin ? R(pin).height : 0; const chain = [];
+        for (let el = row.parentElement; el && el !== art; el = el.parentElement) if (el.matches('section.tnode')) chain.unshift(el);
+        chain.forEach((tn, i) => { const t = tn.querySelector(':scope > .tier'), topLevel = tn.parentElement.classList.contains('qtree');
+          // pinned at y, or — when its section is too short to pin — in view between the line above and the row
+          if (topLevel || tn.dataset.tnode === 'size') { const pinnedHere = t && Math.abs(R(t).top - y) <= 1.5, ok = t && (pinnedHere || (R(t).top >= y - 1.5 && R(t).bottom <= R(row).top + 1));
+            if (!ok) bad.push((tn.dataset.tnode) + ' tier line at ' + (t ? Math.round(R(t).top - y) : 'none') + 'px under the line above'); if (t) { y = R(t).bottom; if (pinnedHere) pinnedH += R(t).height; } } });
+        if (!vis(row) || R(row).top < y - 1) bad.push('the row is not visible below the pinned lines');
+        return JSON.stringify({hash: location.hash.slice(8), pinned: Math.round(pinnedH), chain: chain.map(c => c.dataset.tnode), bad}); })()`)));
+    } finally { await b.close(); } }
+  const pcb = PC.filter(x => x.bad.length);
+  check('r20c-pinned-context', PC.length === 4 && !pcb.length && PC.every(x => x.pinned > 40 && x.pinned < 260), pcb.map(x => `${x.hash}: ${x.bad.join(' | ')}`).join('; ') || `pinned ${JSON.stringify(PC.map(x => [x.hash, x.pinned, x.chain]))}`);
+
+  // style tokens: on the Keep tab at most four font sizes beside the strip's 10 px month axis, at most four weights, one link
+  // colour, no underlined link, ALL-CAPS only on .lab / .scope / .bkh, every button or link reaching 32 px (its hit area)
+  const ST20 = [];
+  for (const hash of ['w=vedder&d=1010', 'w=x35p&d=1010', 'w=klwa&d=1012', 'w=glenn&d=615']) await page(hash, async b => {
+    ST20.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const keep = document.getElementById('keep'), R = e => e.getBoundingClientRect(), vis = e => { const r = R(e); return r.width > 0 && r.height > 0; };
+      const els = [...keep.querySelectorAll('*')].filter(e => vis(e) && !e.closest('.sbar, .smonths, .slegend, svg') && [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
+      const sizes = new Set(els.map(e => parseFloat(getComputedStyle(e).fontSize).toFixed(1))), weights = new Set(els.map(e => getComputedStyle(e).fontWeight));
+      const links = [...keep.querySelectorAll('a, button.linkbtn, .golink, .linkrow, .book')].filter(vis), lc = new Set(links.map(e => getComputedStyle(e).color)), ul = links.filter(e => getComputedStyle(e).textDecorationLine.includes('underline')).length;
+      const caps = els.filter(e => getComputedStyle(e).textTransform === 'uppercase' && !e.matches('.lab, .scope, .bkh, .nkt .lab, .nofish h3')).map(e => e.className || e.tagName);   // the section kickers
+      const hit = e => { const r = R(e); const ps = getComputedStyle(e, '::before'); if (ps.position === 'absolute' && ps.content !== 'none') { const t = parseFloat(ps.top) || 0, bt = parseFloat(ps.bottom) || 0; return r.height - t - bt; } return r.height; };
+      const small = [...keep.querySelectorAll('a, button, summary')].filter(vis).filter(e => hit(e) < 32).map(e => (e.className || e.tagName) + ' ' + Math.round(hit(e)));
+      return {hash: location.hash.slice(8), sizes: [...sizes].sort(), weights: [...weights].sort(), linkColours: lc.size, underlined: ul, caps, small}; })())`)));
+  });
+  const stb = ST20.filter(x => x.sizes.length > 4 || x.weights.length > 4 || x.linkColours > 1 || x.underlined || x.caps.length || x.small.length);
+  check('r20c-style-tokens', ST20.length === 4 && !stb.length, stb.map(x => `${x.hash}: ${x.sizes.length} sizes ${JSON.stringify(x.sizes)}, ${x.weights.length} weights ${JSON.stringify(x.weights)}, ${x.linkColours} link colours, ${x.underlined} underlined, caps ${JSON.stringify(x.caps.slice(0, 4))}, small ${JSON.stringify(x.small.slice(0, 4))}`).join('; '));
 }
 // ---------- round 20b (owner: fewer words, real visuals; split gear and licence tabs) ----------
 async function round20b(){
@@ -1158,6 +1210,7 @@ await roundUr2();
 await roundUr3();
 await round20();
 await round20b();
+await round20c();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1216,8 +1269,11 @@ async function round18(){
   for (const hash of ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=ape&d=501', 'w=klwa&d=1010', 'w=x35p&d=1010']) await page(hash, async b => {
     GH.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), out = [];
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
+        // round 20c (pinned context): the group's top is TWO blocks — .ghd.gpin (name + the total line, pinned while inside
+        // the group) and .ghd.gsub (the origin line) — so the name and number are read from the first, the origin from either
         const blk = art.querySelector(':scope > .ghd'), h = g.headline, R = e => e?.getBoundingClientRect(), bad = [];
         if (!blk) { out.push({bad: ['no .ghd block']}); return; }
+        const blks = [...art.querySelectorAll(':scope > .ghd')], og0 = blks.map(b => b.querySelector('[data-origin]')).find(Boolean);
         const num = blk.querySelector('.num'), big = num?.querySelector('.ghn'), unit = num?.querySelector('.ghu');
         if (!blk.querySelector('.rtitle')) bad.push('no name');
         // round 20 (owner 1): the header is the tree's root tier — its number big in its words, the words whole on the line
@@ -1231,7 +1287,7 @@ async function round18(){
           if (norm(unit?.textContent) !== h.unit) bad.push('unit ' + norm(unit?.textContent));
           const bn = R(big), un = R(unit); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); }
         (g.header ? [] : h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
-        if (g.origin) { const og = blk.querySelector('[data-origin]'), cut = g.origin.indexOf(' — ');
+        if (g.origin) { const og = og0, cut = g.origin.indexOf(' — ');
           const said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
           if (said.toLowerCase() !== g.origin.replace(/ — /, ' ').toLowerCase() && said !== g.origin) bad.push('origin ' + said);
           // phase 2 (rows 16): the tag is the data's header.tag ("hatchery only", drawn in capitals), else the words before " — "
@@ -1241,7 +1297,7 @@ async function round18(){
           if (art.querySelector('[data-howtell]') && !og?.querySelector('[data-howtell]')) bad.push('How to tell outside the block'); }
         if (g.total_line && !g.tree && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');   // with a tree its root line says the total
         if (g.header && h.n != null && !norm(blk.querySelector('.num')?.textContent).startsWith(norm(g.header.says.split(' · ')[0]))) bad.push('header ' + norm(blk.querySelector('.num')?.textContent));
-        if (art.querySelector(':scope > .gorigin, :scope > .gtotal, :scope > .rhead')) bad.push('a head line outside the block');
+        if (art.querySelector(':scope > .gorigin, :scope > .gtotal, :scope > .rhead') || blks.length > 2) bad.push('a head line outside the block');
         out.push({t: norm(blk.querySelector('.rtitle')?.textContent), h: Math.round(R(blk).height), bad}); });
       return {hash: location.hash.slice(8), out}; })())`)));
   });
@@ -1278,7 +1334,8 @@ async function round18(){
             // round 19 (owner 2): "50 cm (20 in)" — every cm before its "cm", every inch inside the brackets
             const inT = (ct.match(/\\(([^)]*)\\)/g) || []).join(' ');
             if (cmN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^(]*cm').test(ct)) || inN.some(x => !new RegExp('\\\\b' + x + '\\\\b[^)]*in\\\\b').test(inT)) || (cmN.length && !/ cm\\b/.test(ct)) || (inN.length && !/ in\\b/.test(ct))) bad.push(k.says + ': chip ' + ct + ' vs sizes ' + JSON.stringify(k.sizes));
-            const cs = getComputedStyle(chip); if (cs.borderTopStyle === 'none' || +cs.fontWeight < 700) bad.push(k.says + ': chip not prominent'); } }
+            // round 20c (audit #2): a chip is a tinted block (no border inside the box's border) — prominent = tinted or bordered, bold
+            const cs = getComputedStyle(chip); if ((cs.borderTopStyle === 'none' && /rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) || +cs.fontWeight < 700) bad.push(k.says + ': chip not prominent'); } }
         else if (chip) bad.push(k.says + ': a size chip on a fish kept none');
         const ac = [...el.querySelectorAll('[data-also]')].map(e => norm(e.textContent)), want = (k.also_counts || []).map(a => norm(cap1(a.says)));
         if (JSON.stringify(ac) !== JSON.stringify(want)) bad.push(k.says + ': also ' + JSON.stringify(ac) + ' vs ' + JSON.stringify(want));

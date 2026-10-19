@@ -52,6 +52,7 @@ for (const [name, hash, what] of TALL) {
         const sec = document.getElementById('g-licence'), hdr = document.getElementById('hdr');
         if (!sec || !hdr) return null;
         const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative'; sec.parentNode.insertBefore(h, sec);
+        h.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === 'licence'));   // round 20c: the tab shown
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         return {top: R(h).top, bottom: R(sec).bottom + 12}; }
       if (${JSON.stringify(what)} === 'keep') { const k = document.getElementById('keep'); return k ? {top: 0, bottom: R(k).bottom + 12} : null; }
