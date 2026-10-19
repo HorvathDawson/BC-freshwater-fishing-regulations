@@ -15,7 +15,7 @@ const WATERS = [['vedder-oct10', 'w=vedder&d=1010'], ['bella-coola-may1', 'w=bel
 const SHEETS = [['howtell', 'sheet=hatch'], ['fish-rainbow', `sheet=${encodeURIComponent('sp:RB')}`], ['date', 'sheet=date']];
 const shots = [];
 for (const [w, h] of WATERS) {
-  shots.push([`${w}-keep`, h, 'keep'], [`${w}-gear`, `${h}&sec=gear`, 'tab'], [`${w}-licence`, `${h}&sec=licence`, 'tab']);
+  shots.push([`${w}-keep`, h, 'keep'], [`${w}-gear`, `${h}&sec=gear`, 'tab'], [`${w}-methods`, `${h}&sec=methods`, 'tab'], [`${w}-licence`, `${h}&sec=licence`, 'tab']);
   for (const [s, sh] of SHEETS) shots.push([`${w}-sheet-${s}`, `${h}&${sh}`, 'sheet']);
 }
 shots.push(['kootenay-lwa-oct12-sheet-kokanee', `w=klwa&d=1012&sheet=${encodeURIComponent('other:klwa_1012|o0')}`, 'sheet']);
@@ -28,7 +28,7 @@ for (const theme of ['light', 'dark']) for (const [name, hash, what] of shots) {
       const R = e => { const r = e.getBoundingClientRect(); return {top: r.top + scrollY, bottom: r.bottom + scrollY}; };
       const hdr = document.getElementById('hdr');
       if (${JSON.stringify(what)} === 'keep') { const k = document.getElementById('keep'); return k ? {top: 0, bottom: R(k).bottom + 12} : null; }
-      if (${JSON.stringify(what)} === 'tab') { const id = /sec=licence/.test(location.hash) ? 'licence' : 'gear', sec = document.getElementById(id); if (!sec || !hdr) return null;
+      if (${JSON.stringify(what)} === 'tab') { const id = (location.hash.match(/sec=(gear|methods|licence)/) || [])[1] || 'gear', sec = document.getElementById(id); if (!sec || !hdr) return null;
         const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative'; sec.parentNode.insertBefore(h, sec);
         h.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === id));
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); return {top: R(h).top, bottom: R(sec).bottom + 12}; }

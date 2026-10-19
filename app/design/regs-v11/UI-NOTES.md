@@ -1,3 +1,53 @@
+# regs v29 (round 20e, owner: Gear / Methods split, dated notes, sources per item, ways in columns, licence choices, region vs stream) — in place on regs-v11.html
+
+UI only (no data change): handoff/PLAN/r20e_comprehension.md has the reader gate; handoff/PLAN/r20e_progress.md the handoff.
+- **Four tabs** (owner 1): What you can keep · Gear · Methods · Licence, one row at 390 px (tab gap 16 px). Still ONE scroll;
+  `#gear` holds the day's gear lines (Lines · Hooks · Weight on the line, a fly-only line first) and Bait; `#methods` holds Ways
+  to fish, Boats and the Reference fold (handling fish, closed); `#licence` the licence answer. `sec=keep|gear|methods|licence`
+  in the hash; each tab lands pressed. buildGear() returns the three parts; render() no longer cuts one HTML string. A closed
+  day's "No fishing here until …" stands under Gear AND Methods, and the Licence tab now has its answer on a closed day too
+  (it was a dead tab before).
+- **A dated change is a note joined to the line it changes** (owner 2): no floating "Different on other days" label. Each
+  `summary.changes[]` is a tinted note (`.gnote`, the restricted colour's bar, `--tint` ground) inside the line it changes, its
+  last block: "**May 1–31:** fly fishing only ⓘ Rule book p.22 ↗" on Hooks. Placement (page logic, no words): on a day with a
+  fly-only line, the change (the way back) goes on that line; else by the change's own words — fly / hook / lure → Hooks, weight
+  / float / sinker → Weight, line / rod → Lines. The change's terms' ⓘ and its rule's Rule book page sit inside the note. Bait's
+  bait-ban runs (the strip's bit 16) are the same note at the bottom of the Bait item ("**May 1–31:** bait ban").
+- **A source line per item** (owner 3): every gear and methods item (each gear line, Bait, Ways to fish, Boats, the Reference
+  fold) ends with ONE source line `.isrc` — who says so (the rules' levels in the page's chip words, "Province · Region 2 ›",
+  opening the Sources sheet of exactly that item's rules: `SRCS['gl|<state>|hook']` etc.) then "Rule book p.N ↗" per page. A gear
+  line's rules are its parts' `cites`; a line the data cites nothing for (a fly-only day's "No float, sinker or attracting
+  device") has no source line. No section-end "Sources" line and no bunched "Rule book p.8 p.21" under the lines any more. The
+  licence's source line takes the same style ("Province · This water ›", its Sources sheet).
+- **Ways to fish in Bait's two columns** (owner 4, decided YES): ✓ Allowed | ✕ Not allowed side by side (the same `yesNo`
+  component), each way's conditions small under its name. Why: the ✕ list was one run-on line ("Set lines · Spear or bow · Nets ·
+  Snagging · / Chumming") whose ✕ read as a lone glyph; in columns each forbidden way is its own line under a header, the
+  allowed ways' conditions sit under their own names, and it is the same component as Bait one tab over. It costs up to 59 px
+  (Vedder May 15: the five ✕ ways stack) but the Methods tab is now well under one screenful.
+- **Licence: two choices, no dropdowns** (owner 5): under page v36's own question "Who is fishing? ⓘ" (the under-16 term), two
+  segmented radio groups — age (`#who-age` options: 16 or older · Under 16) and where you live (`#who-residency`: B.C. resident ·
+  Canadian, other province · From outside Canada) — `role=radio`, `aria-checked`. The chosen pair's own answer (`st.licence[adult |
+  adult_non | adult_alien | u16_res | u16_non | u16_alien]`) is the only one shown, its label (`licLabel`) above it; `age=` and `res=`
+  in the hash. Gone: the "If you're not a B.C. resident · …" dropdowns and the "Under 16, by where you live" list (each pair is a
+  choice now). The guiding fold ("If you are guiding other anglers") is drawn OPEN under the answer, its sentence only (page v36's
+  repeated requirement names under it are hidden). The data's `guidance` (Guided / Not guided) and `status` axes have no answers in
+  the snapshot, so they are not choices.
+- **Region quota vs stream quota** (owner 6): where a group's root is a region's (or zone's) total and the row's scope tag is not
+  that region's ("Region 2-wide"), the tag leaves the head band and heads the share it belongs to: the head reads "Trout and char /
+  4 a day per angler across Region 2, lakes included", the share "ALL REGION 2 STREAMS / Only 2 of the 4 may be from this stream,
+  …" (`.tkick` = `.scope`, a kicker on the share's bar). A "This water" tag over a region total with a water's own tier (Bella
+  Coola May 1, Zone A lakes) is not drawn: the own tier's words say whose rule it is. The pin bar is unchanged and agrees ("Trout and
+  char · 4 a day across Region 2" / "↳ 2 of them from this stream").
+- **Not touched** (owner 7, the next UI agent's): the tree's left-bar headers, the species thumbnails, visual polish.
+- **Checks** (ONLY=20e; all 7 fail on regs v28 — scratchpad r20e/check-before.txt): `r20e-four-tabs`, `r20e-dated-on-its-line`,
+  `r20e-sources-per-item`, `r20e-ways-columns`, `r20e-licence-selectors` (all six pairs tapped, Vedder and Kootenay LWA),
+  `r20e-region-vs-stream`. Retired: `r20b-three-tabs`, `licence-others-in-dropdowns`, `u16-by-residency`, `ur3-licence-not-resident`.
+  Retargeted: `one-sources-line` (no section-end line in Gear / Methods, one in Licence), `gear-sentence` / `gear-lines` (pages from
+  the lines' own source lines; the change inside its line), `gear-no-icons` (ways in #methods), `always-as-reference` (closes Methods),
+  `bait-ways-compact` (Bait against its v28 height + 6 px per note; Methods within one screenful), `dated-rows` (the note's bold date),
+  `licence-u16-you-need` (no dropdown order).
+- **Tools**: tall.mjs `tab` mode takes sec=methods, + r20e-* shots; shoot.mjs 154–157; audit.mjs shoots the Methods tab.
+
 # regs v28 (round 20d, owner: stacked pinned headers instead of nesting; clearer grouping) — in place on regs-v11.html
 
 UI only (no data change): handoff/PLAN/r20d_nesting.md has the before/after screenfuls, the reader scores and the measurements.

@@ -46,6 +46,14 @@
 //   these 2" (2); r20-big-numbers: a size box's and a count tier's number as big as the header's, the box's second number
 //   ("— 2 if one is a hatchery steelhead") big too (3). tree-folders, size-tier-box, ur1-tier-words, group-head-compact,
 //   card-headline and card-cap-once read the root from the header; ur3-lifted-share reads the new words
+//   (round 20e, owner: Gear / Methods split, dated notes, sources per item, licence selectors, region vs stream; ONLY=20e)
+//   r20e-four-tabs: What you can keep · Gear · Methods · Licence on one row, each its own section, each lands pressed, no dead
+//   links; r20e-dated-on-its-line: a dated change is a tinted note joined to the line it changes ("May 1–31: fly fishing only"
+//   on Hooks), no floating "Different on other days"; r20e-sources-per-item: every gear / methods item carries its own source
+//   line (a gear line's = its parts' cites), none bunched; r20e-licence-selectors: two segmented selectors (age, residency;
+//   the data's words), no dropdown or fold, all six pairs show their own answer; r20e-region-vs-stream: a row's streams tag
+//   heads the share, not the region's total; the pin bar says the same; r20e-ways-columns: Ways to fish in Bait's two columns
+//   (✓ Allowed | ✕ Not allowed). r20b-three-tabs retired (r20e-four-tabs)
 //   (round 20d, owner: stacked pinned headers instead of nesting, clearer grouping; in the 20c block, ONLY=20c)
 //   r20d-pinned-stack: the pin bar under the header carries the chain of sections the reader is inside, one short line each
 //   ("Trout and char · 4 a day across Region 2" / "↳ 2 of them from this stream" / "↳ of those, 1 over 50 cm (…)"), ≤ 90 px,
@@ -124,6 +132,7 @@ const TOPS = `var topsOf = (g, art) => { const q = art.querySelector(':scope > .
 var hdrWords = el => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove()); return (c.textContent || '').replace(/\\s+/g, ' ').replace(/ ⓘ$/, '').trim(); };`;
 if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -137,14 +146,16 @@ await page('w=vedder&d=1010&sec=gear&kit=line', async b => {
     const gear = document.getElementById('gear'), first = document.querySelector('.row.ledger');
     const fish = [...document.querySelectorAll('li, p, div, button')].filter(e => /fishway/i.test(e.textContent) && ![...e.children].some(c => /fishway/i.test(c.textContent)));
     const pos = e => first ? !!(e.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
-    const secs = gear ? [...gear.querySelectorAll('.gpart')] : [];
+    // round 20e: Gear, Methods and Licence are three tabs; gear and methods items carry their own source line (r20e-sources-per-item),
+    // so no section-end Sources line there; the licence keeps exactly ONE
+    const secs = [...document.querySelectorAll('#gear .gpart, #methods .gpart, #licence .gpart')];
     return {
       fishway: fish.length, inGear: fish.filter(e => gear && gear.contains(e)).length, beforeFish: fish.filter(pos).length,
       chips: gear ? gear.querySelectorAll('.gsrc, .srcbtn:not([hidden]), [data-gearsrc]').length : -1,
-      sections: secs.length, lines: secs.map(s => s.querySelectorAll('.gsources').length),
+      sections: secs.length, lines: secs.map(s => s.querySelectorAll('.gsources, [data-isrc-lic]').length - (s.id === 'g-licence' ? 1 : 0)),
       barbless: gear ? [...gear.querySelectorAll('.kitnote, p, div')].filter(e => /^Single barbless hook\\s*ⓘ?$/.test(e.textContent.trim())).length : -1,
     }; })())`));
-  check('one-sources-line', r.chips === 0 && r.sections > 0 && r.lines.every(n => n === 1),
+  check('one-sources-line', r.chips === 0 && r.sections > 0 && r.lines.every(n => n === 0),
     `${r.chips} source chips in Gear & licence; ${r.sections} sections with ${JSON.stringify(r.lines)} Sources lines`);
   check('no-barbless-box', r.barbless === 0, `${r.barbless} "Single barbless hook ⓘ" box(es)`);
 });
@@ -211,17 +222,18 @@ for (const [name, hash] of [['vedder', 'w=vedder&d=1010'], ['klwa', 'w=klwa&d=10
     const box = g.querySelector('[data-summary]'), say = box?.querySelector('.glines');
     const pages = new Set((sm?.cites || []).flatMap(k => (SNAP.ruleInfo[k]?.book || []).map(b => b[0])));
     const chips = box ? [...box.querySelectorAll('[data-change]')].map(e => norm(e.textContent)) : [];
-    const ref = g.querySelector('details[data-reference]');
+    const ref = document.querySelector('#methods details[data-reference]'), M = document.getElementById('methods');   // round 20e: it closes the Methods tab
     return {sm: !!sm, says: sm?.says || null, kind: st.kind, shown: say ? norm(say.textContent) : null, times: sm ? (norm(g.textContent).split(norm(sm.says)).length - 1) : 0,
-      pages: pages.size, books: box ? (norm(box.querySelector('.gbooks')?.textContent).match(/Rule book p\\.\\d+/g) || []).length : 0,
+      // round 20e: each line's own source line carries its pages; the box shows each of the sentence's pages
+      pages: pages.size, books: box ? new Set([...box.querySelectorAll('[data-isrc] a.book')].map(a => (a.textContent.match(/p\\.(\\d+)/) || [])[1])).size : 0,
       changes: (sm?.changes || []).map(c => [c.when, c.says]), chips,
       lines: box ? box.querySelectorAll('[data-gline]').length : 0,
       terms: (sm?.terms || []), tips: box ? [...box.querySelectorAll('[data-gl]')].flatMap(e => e.dataset.gl.split(',')) : [],
-      icons: g.querySelectorAll('svg.gi, .gi').length, bait: !!g.querySelector('[data-k="bait"]'), ways: !!g.querySelector('[data-k="methods"]'),
+      icons: g.querySelectorAll('svg.gi, .gi').length, bait: !!g.querySelector('[data-k="bait"]'), ways: !!document.querySelector('#methods [data-k="methods"]'),
       secs: secs.map(s => s.id), last: secs.length ? secs[secs.length - 1].id : null,
       always: secs.filter(s => /^always$/i.test(norm(s.querySelector('h3')?.textContent))).length,
       // round 20b: the Reference fold closes the GEAR tab (after that tab's last section); the licence is its own tab after it
-      ref: ref ? {open: ref.open, after: (gs => !!gs.length && !!(gs[gs.length - 1].compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING))([...g.querySelectorAll('.gpart')]), n: ref.querySelectorAll('[data-rule], .factbtn').length} : null,
+      ref: ref ? {open: ref.open, after: (gs => !!gs.length && !!(gs[gs.length - 1].compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING))([...M.querySelectorAll('.gpart')]), n: ref.querySelectorAll('[data-rule], .factbtn').length} : null,
       hasAlways: !!(st.panes && st.panes.always)}; })())`));
 });
 const sbad = Object.entries(gear).filter(([, r]) => !(r.sm && r.shown && r.lines && r.books === r.pages
@@ -399,8 +411,12 @@ const glb = GLS.filter(x => x.terms.some(t => t.none || !t.folded || !t.says || 
 check('sheet-book-words', !glb.length, glb.map(x => `${x.k}: ${JSON.stringify(x.terms)}`).join('; '));
 
 // (owner 3) Bait and Ways to fish: the same items in no more room than v13 took; Bait as two columns side by side (✓ allowed |
-// ✕ not), Ways to fish inline (each allowed way one line, the ones that are not one line)
+// ✕ not), Ways to fish inline (each allowed way one line, the ones that are not one line); round 20e (owner 4): Ways to fish in
+// Bait's two columns too
 const V13H = {'w=vedder&d=1010': 361, 'w=klwa&d=1010': 390, 'w=cowichan&d=1010&p=1': 352, 'w=vedder&d=515': 291};
+// round 20e (owner 1, 4): Ways to fish is its own tab (Methods) in Bait's two columns, so the v13 bound holds Bait alone (its
+// height on regs v28, + 6 px per dated note for the tinted note's padding) and the Methods tab's items fit one screenful
+const V28BAIT = {'w=vedder&d=1010': 175, 'w=klwa&d=1010': 148, 'w=cowichan&d=1010&p=1': 211, 'w=vedder&d=515': 161};
 const BW = [];
 for (const hash of Object.keys(V13H)) await page(hash, async b => {
   BW.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim(), st = ST(), out = {hash: ${JSON.stringify(hash)}, h: 0, cells: []};
@@ -408,23 +424,29 @@ for (const hash of Object.keys(V13H)) await page(hash, async b => {
     const want = {bait: [...P(st.panes.bait).querySelectorAll('.bait')].map(e => [norm(e.querySelector('b')?.textContent), e.classList.contains('ok')]),
       methods: [...P(st.panes.ways).querySelectorAll('.wrow b')].map(e => [norm(e.textContent), true]).concat([...P(st.panes.ways).querySelectorAll('.nochip')].map(e => [norm(e.textContent.replace(/^✕/, '')), false]))};
     for (const k of ['bait', 'methods']) { const c = document.querySelector('[data-k="' + k + '"]'); if (!c) { out.cells.push({k, none: true}); continue; }
-      out.h += c.getBoundingClientRect().height;
+      // round 20e (owner 3): each item's own source line is new room the owner asked for; it is not counted against v13
+      const hh = c.getBoundingClientRect().height - [...c.querySelectorAll(':scope > [data-isrc]')].reduce((a, s) => a + s.getBoundingClientRect().height + parseFloat(getComputedStyle(s).marginTop), 0);
+      if (k === 'bait') { out.bait = Math.round(hh); out.notes = c.querySelectorAll('[data-dated]').length; }
+      else { const M = document.getElementById('methods'), sc = document.getElementById('sc'); out.meth = Math.round(M.getBoundingClientRect().height); out.room = sc.clientHeight - document.getElementById('hdr').offsetHeight; }
+      out.h += hh;
       const ok = c.querySelector('[data-col="ok"]'), no = c.querySelector('[data-col="no"]');
-      const side = k === 'methods' ? !!(ok || no) : ok && no ? Math.abs(ok.getBoundingClientRect().top - no.getBoundingClientRect().top) < 4 && no.getBoundingClientRect().left > ok.getBoundingClientRect().left + 40 : !!(ok || no);
+      const side = ok && no ? Math.abs(ok.getBoundingClientRect().top - no.getBoundingClientRect().top) < 4 && no.getBoundingClientRect().left > ok.getBoundingClientRect().left + 40 : !!(ok || no);
       const miss = want[k].filter(([n, y]) => !norm((y ? ok : no)?.textContent).includes(n));
       out.cells.push({k, side, miss: miss.map(x => x[0])}); }
     out.h = Math.round(out.h); return out; })())`)));
 });
-const bwb = BW.filter(x => x.h > V13H[x.hash] || x.cells.some(c => c.none || !c.side || c.miss.length));
-check('bait-ways-compact', !bwb.length, bwb.map(x => `${x.hash}: ${x.h} px (v13 ${V13H[x.hash]}); ${JSON.stringify(x.cells)}`).join('; '));
+const bwb = BW.filter(x => x.bait > V28BAIT[x.hash] + 6 * x.notes || x.meth > x.room || x.cells.some(c => c.none || !c.side || c.miss.length));
+check('bait-ways-compact', !bwb.length, bwb.map(x => `${x.hash}: bait ${x.bait} px (v28 ${V28BAIT[x.hash]} + ${x.notes} notes); Methods ${x.meth} px in ${x.room}; ${JSON.stringify(x.cells)}`).join('; '));
 
 // (owner 3) every dated change in Gear & methods (the sentence's other days, Bait's bait ban) is ONE row component: the
 // date label, then the change, the dates in one column and the changes in another, in the data's words
 const DR = [];
 for (const hash of ['w=vedder&d=1010', 'w=cowichan&d=1010&p=1', 'w=vedder&d=515']) await page(hash, async b => {
   DR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const norm = t => (t || '').replace(/\\s+/g, ' ').trim(), g = document.getElementById('g-gear'), st = ST();
-    const rows = [...g.querySelectorAll('[data-dated]')].map(e => { const w = e.querySelector('.dw'), c = e.querySelector('.dc');
-      return {w: norm(w?.textContent), c: norm(c?.textContent), wl: w ? Math.round(w.getBoundingClientRect().left) : -1, cl: c ? Math.round(c.getBoundingClientRect().left) : -1}; });
+    // round 20e (owner 2): the component is a tinted note joined to its line — the date in bold, then the change ("May 1–31: fly
+    // fishing only"); every note starts on the same left edge
+    const rows = [...g.querySelectorAll('[data-dated]')].map(e => { const w = e.querySelector(':scope > b'), l = Math.round(e.getBoundingClientRect().left);
+      return {w: norm(w?.textContent).replace(/:$/, ''), c: norm(e.textContent).slice(norm(w?.textContent).length).trim(), wl: w ? l : -1, cl: l}; });
     const want = (st.summary?.changes || []).map(c => [c.when, c.says]);
     return {hash: location.hash.slice(8), rows, want, old: g.querySelectorAll('.gchip, .gxd').length}; })())`)));
 });
@@ -538,9 +560,183 @@ async function roundUr3(){
   check('ur3-count-part-of', K.bella.count.includes('1 cutthroat or rainbow trout in all (part of the 2)'), JSON.stringify(K.bella.count));
   // round 20 (owner 2): the UR3 words read as 4 + 2; the share now sits inside the total, the lifted fish not counted in it
   check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
-  check('ur3-licence-not-resident', K.lic.res.length === 2 && K.lic.res.every(t => /^If you’re not a B\.C\. resident · \S/.test(t)) && /· Canadian, other province$/.test(K.lic.res[0]) && /· From outside Canada$/.test(K.lic.res[1]), JSON.stringify(K.lic.res));
+  // round 20e (owner 5): ur3-licence-not-resident retired — no dropdowns; the residency choice is named by the data's own options (r20e-licence-selectors)
   check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
 }
+// ---------- round 20e (owner: Gear / Methods split, dated notes on their line, sources per item, licence selectors, region vs stream) ----------
+async function round20e(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  const txt = 'var txt = e => { if (!e) return ""; const c = e.cloneNode(true); c.querySelectorAll("button.gl,.glk,[data-nsrc]").forEach(x => x.remove()); return norm(c.textContent); };';
+  // (1) four tabs: What you can keep · Gear · Methods · Licence on ONE row at 390 px; each its own section (#gear: the gear
+  // lines + bait; #methods: ways to fish, boats, the Reference fold; #licence: the licence alone); each tab lands pressed on
+  // its section; sec=methods / sec=licence land; no dead [data-sec] / [data-jump]
+  const TB = [];
+  for (const hash of ['w=vedder&d=1010', 'w=klwa&d=1010', 'w=vedder&d=1010&sec=methods', 'w=klwa&d=1010&sec=licence', 'w=vedder&d=1010&sec=gear']) await page(hash, async b => {
+    TB.push(JSON.parse(await b.evaluate(`(async () => { ${norm} const bad = [], R = e => e.getBoundingClientRect();
+      const tabs = [...document.querySelectorAll('#hdr .segm[role=tablist] button')], names = tabs.map(t => norm(t.textContent));
+      if (JSON.stringify(names) !== '["What you can keep","Gear","Methods","Licence"]') bad.push('tabs ' + JSON.stringify(names));
+      if (new Set(tabs.map(t => Math.round(R(t).top))).size !== 1) bad.push('tabs not on one row');
+      if (tabs.some(t => R(t).height > 48)) bad.push('a tab wraps');
+      if (tabs.some(t => R(t).right > R(document.getElementById('hdr')).right + 0.5)) bad.push('a tab off the right edge');
+      const S_ = id => document.getElementById(id), keep = S_('keep'), gear = S_('gear'), meth = S_('methods'), lic = S_('licence');
+      if (!keep || !gear || !meth || !lic) bad.push('sections ' + [!!keep, !!gear, !!meth, !!lic].join(' '));
+      if (gear && (!gear.querySelector('[data-gline], [data-k="bait"]') || gear.querySelector('[data-k="methods"], [data-k="boats"], #g-always, #g-licence'))) bad.push('#gear holds the wrong items');
+      if (meth && (!meth.querySelector('[data-k="methods"]') || meth.querySelector('[data-gline], [data-k="bait"], #g-licence'))) bad.push('#methods holds the wrong items');
+      if (meth && document.querySelector('#g-always') && !meth.contains(document.querySelector('#g-always'))) bad.push('the Reference fold is not in Methods');
+      if (lic && (!lic.querySelector('#g-licence') || lic.querySelector('[data-gline], [data-k]'))) bad.push('#licence holds other sections');
+      document.querySelectorAll('[data-sec]').forEach(e => { if (!S_(e.dataset.sec)) bad.push('dead data-sec ' + e.dataset.sec); });
+      document.querySelectorAll('[data-jump]').forEach(e => { if (!S_(e.dataset.jump)) bad.push('dead data-jump ' + e.dataset.jump); });
+      const pressed = () => tabs.find(t => t.getAttribute('aria-pressed') === 'true')?.dataset.sec;
+      const sc = S_('sc'), hh = S_('hdr').offsetHeight, want = (location.hash.match(/sec=(\\w+)/) || [])[1] || 'keep';
+      if (pressed() !== want) bad.push('hash sec=' + want + ' landed on ' + pressed());
+      for (const sec of ['gear', 'methods', 'licence', 'keep']) { const tb = tabs.find(t => t.dataset.sec === sec); if (!tb) { bad.push('no tab ' + sec); continue; } tb.click(); await new Promise(r => setTimeout(r, 1000));
+        const el = S_(sec), off = sec === 'keep' ? sc.scrollTop : Math.round(el.offsetTop - sc.scrollTop - hh);
+        if (pressed() !== sec) bad.push('click ' + sec + ' pressed ' + pressed()); if (sec !== 'keep' && Math.abs(off + 2) > 3 && !(sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2)) bad.push('click ' + sec + ' lands ' + off + 'px off'); }
+      return JSON.stringify({hash: location.hash.slice(8), names, bad}); })()`)));
+  });
+  const tbb = TB.filter(x => x.bad.length);
+  check('r20e-four-tabs', TB.length === 5 && !tbb.length, tbb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+
+  // (2) a dated change is a note JOINED to the line it changes ("May 1–31: fly fishing only" on the Hooks line; on a
+  // fly-only day the change back sits on the fly-only line; the bait ban on Bait), in the data's words; no floating
+  // "Different on other days" label; every note inside its row, the last thing in it, touching the content above it
+  const DN = [], DNS = [['w=vedder&d=1010', [['hook', 'May 1–31: fly fishing only']], [['bait', 'May 1–31: bait ban']]],
+    ['w=vedder&d=515', [['mode', 'Jun 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []],
+    ['w=cowichan&d=1010&p=1', [['mode', 'Nov 16–Aug 31: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []]];
+  for (const [hash, lines, cells] of DNS) await page(hash + '&sec=gear', async b => {
+    DN.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${txt} const bad = [], R = e => e.getBoundingClientRect(), st = ST();
+      const g = document.getElementById('gear') || document.getElementById('sc');
+      if (/Different on other days/.test(g.textContent)) bad.push('a floating "Different on other days"');
+      const want = (st.summary?.changes || []).map(c => c.when + ': ' + c.says);
+      const notes = [...g.querySelectorAll('[data-change]')].map(n => ({t: txt(n), row: n.closest('[data-gline]')?.dataset.gline || n.closest('[data-k]')?.dataset.k || '', n}));
+      want.forEach(w => { if (!notes.some(x => x.t === w)) bad.push('change not said whole: ' + w); });
+      ${JSON.stringify(lines)}.forEach(([k, w]) => { if (!notes.some(x => x.row === k && x.t === w)) bad.push('no note on ' + k + ': ' + w + ' — got ' + JSON.stringify(notes.map(x => [x.row, x.t]))); });
+      ${JSON.stringify(cells)}.forEach(([k, w]) => { const ns = [...g.querySelectorAll('[data-k="' + k + '"] [data-dated]')].map(txt); if (!ns.includes(w)) bad.push('no note on ' + k + ': ' + w + ' — got ' + JSON.stringify(ns)); });
+      // joined: each note is the last child of its row, starts within 6 px of the content above it, and is a tinted box
+      g.querySelectorAll('[data-change], [data-dated]').forEach(n => { const row = n.closest('[data-gline], [data-k]'); if (!row) { bad.push('a note outside any row'); return; }
+        const prev = n.previousElementSibling, gap = prev ? R(n).top - R(prev).bottom : 0, bg = getComputedStyle(n).backgroundColor;
+        if (!prev || gap < -1 || gap > 6) bad.push('note ' + JSON.stringify(txt(n)) + ' sits ' + Math.round(gap) + ' px off its line');
+        if (/rgba\\(0, 0, 0, 0\\)|transparent/.test(bg)) bad.push('note ' + JSON.stringify(txt(n)) + ' not tinted'); });
+      return {hash: location.hash.slice(8), notes: notes.map(x => [x.row, x.t]), bad}; })())`)));
+  });
+  const dnb = DN.filter(x => x.bad.length);
+  check('r20e-dated-on-its-line', DN.length === 3 && !dnb.length, dnb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; '));
+
+  // (3) every gear and methods item carries its OWN source line (who says so ›, Rule book p.N ↗) inside it — none bunched
+  // at a section's end, none floating between items; a gear line's sources are exactly its parts' cites (data); every
+  // source line one style (same size, same link colour)
+  const SP = [];
+  for (const hash of ['w=vedder&d=1010', 'w=klwa&d=1010', 'w=klmb&d=1010', 'w=vedder&d=515']) await page(hash + '&sec=gear', async b => {
+    SP.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], st = ST(), S_ = id => document.getElementById(id);
+      const scope = [S_('gear'), S_('methods')].filter(Boolean); if (scope.length !== 2) bad.push('no Gear / Methods sections');
+      scope.forEach(s => { if (s.querySelector('.gsources, .gbooks')) bad.push(s.id + ': a bunched sources line'); });
+      const items = scope.flatMap(s => [...s.querySelectorAll('[data-gline], .gxc[data-k]')]);
+      if (!items.length) bad.push('no items');
+      const pagesOf = k => (SNAP.ruleInfo[k]?.book || []).map(x => x[0]);
+      items.forEach(it => { const id = it.dataset.gline || it.dataset.k, srcs = [...it.querySelectorAll('[data-isrc]')].filter(x => x.closest('[data-gline], .gxc[data-k]') === it);
+        // a gear line the data cites no rule for (a fly-only day's "No float, sinker or attracting device": summary.parts[].cites
+        // is empty) has nothing to source and draws no source line
+        const uncited = it.dataset.gline && st.summary && !st.summary.parts.filter(p => (({lines: ['lines'], hook: ['attach', 'hook'], weight: ['weight'], mode: ['mode']})[it.dataset.gline] || []).includes(p.part)).some(p => p.cites.length);
+        if (uncited && !srcs.length) return;
+        if (srcs.length !== 1) { bad.push(id + ': ' + srcs.length + ' source lines'); return; }
+        const s = srcs[0], keys = (s.dataset.keys || '').split(' ').filter(Boolean), shown = [...s.querySelectorAll('a.book')].map(a => +(a.textContent.match(/\\d+/) || [])[0]);
+        if (!keys.length) bad.push(id + ': no rule behind its source line');
+        const want = [...new Set(keys.flatMap(pagesOf))].sort((a, c) => a - c); if (JSON.stringify(want) !== JSON.stringify(shown)) bad.push(id + ': pages ' + JSON.stringify(shown) + ' want ' + JSON.stringify(want));
+        if (!s.querySelector('[data-open^="srcs:"]')) bad.push(id + ': no Source button');
+        if (it.dataset.gline && st.summary) { const ks = ({lines: ['lines'], hook: ['attach', 'hook'], weight: ['weight'], mode: ['mode']})[it.dataset.gline] || [];
+          const cites = [...new Set(st.summary.parts.filter(p => ks.includes(p.part)).flatMap(p => p.cites))].sort();
+          if (JSON.stringify(cites) !== JSON.stringify([...keys].sort())) bad.push(id + ': keys ' + JSON.stringify(keys) + ' want the parts\\' cites ' + JSON.stringify(cites)); }
+        // the source line is the item's last thing but its dated note (it sits with what it sources)
+        const after = [...it.children].slice([...it.children].indexOf(s.closest('[data-gline] > *, .gxc[data-k] > *') || s) + 1).filter(e => !e.matches('[data-change], [data-dated], .dlist'));
+        if (after.length) bad.push(id + ': ' + after.length + ' blocks after its source line'); });
+      const sty = [...new Set(scope.flatMap(s => [...s.querySelectorAll('[data-isrc]')]).map(s => { const a = s.querySelector('a.book'), c = getComputedStyle(s); return c.fontSize + '|' + (a ? getComputedStyle(a).color : ''); }))];
+      if (sty.length > 1 && new Set(sty.map(x => x.split('|')[0])).size > 1) bad.push('source lines in ' + sty.length + ' styles ' + JSON.stringify(sty));
+      return {hash: location.hash.slice(8), n: items.length, bad}; })())`)));
+  });
+  const spb = SP.filter(x => x.bad.length);
+  check('r20e-sources-per-item', SP.length === 4 && !spb.length, spb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+
+
+  // (4) Ways to fish in the same two columns as Bait (✓ Allowed | ✕ Not allowed, side by side), every way the data lists in its
+  // column, its conditions under its name
+  const WY = [];
+  for (const hash of ['w=vedder&d=1010', 'w=klwa&d=1010', 'w=klmb&d=1010']) await page(hash + '&sec=methods', async b => {
+    WY.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], st = ST(), R = e => e.getBoundingClientRect();
+      const P = h => new DOMParser().parseFromString('<div id="x">' + h + '</div>', 'text/html').getElementById('x'), w = P(st.panes.ways || '');
+      const okW = [...w.querySelectorAll('.wrow')].map(r => [norm(r.querySelector('b')?.textContent), norm(r.querySelector('small')?.textContent)]), noW = [...w.querySelectorAll('.nochip')].map(c => norm(c.textContent.replace(/^✕/, '')));
+      const cell = document.querySelector('#methods [data-k="methods"]'), bait = document.querySelector('#gear [data-k="bait"]');
+      if (!cell) return {hash: location.hash.slice(8), bad: ['no Ways to fish']};
+      const ok = cell.querySelector('.yn [data-col="ok"]'), no = cell.querySelector('.yn [data-col="no"]');
+      if (!ok || !no) bad.push('not two columns'); else { if (Math.abs(R(ok).top - R(no).top) > 1 || R(no).left <= R(ok).right - 1) bad.push('columns not side by side');
+        const okT = [...ok.querySelectorAll('li')].map(li => [norm(li.querySelector('b')?.textContent), norm(li.querySelector('small')?.textContent)]), noT = [...no.querySelectorAll('li b')].map(e => norm(e.textContent));
+        if (JSON.stringify(okT) !== JSON.stringify(okW)) bad.push('allowed ' + JSON.stringify(okT) + ' want ' + JSON.stringify(okW));
+        if (JSON.stringify(noT) !== JSON.stringify(noW)) bad.push('not allowed ' + JSON.stringify(noT) + ' want ' + JSON.stringify(noW)); }
+      if (bait && !bait.querySelector('.yn')) bad.push('bait is not the same component');
+      return {hash: location.hash.slice(8), bad}; })())`)));
+  });
+  const wyb = WY.filter(x => x.bad.length);
+  check('r20e-ways-columns', WY.length === 3 && !wyb.length, wyb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; '));
+
+  // (5) the licence: TWO segmented selectors (age; where you live), named by the data's own option words, no dropdown and no
+  // fold; every one of the six pairs, chosen by tapping, shows its own answer (the data's label for that pair above it, every
+  // licence it lists named), on the Vedder and the Kootenay LWA; the guiding line is shown open, not folded
+  const LS = [];
+  for (const hash of ['w=vedder&d=1010&sec=licence', 'w=klwa&d=1010&sec=licence']) await page(hash, async b => {
+    LS.push(JSON.parse(await b.evaluate(`(async () => { ${norm} const bad = [], st = ST(), seen = [];
+      const P = h => new DOMParser().parseFromString('<div id="x">' + h + '</div>', 'text/html').getElementById('x');
+      const ad = P(st.licence.adult), opts = ax => [...ad.querySelectorAll('#who-' + ax + ' option')].map(o => [o.value, norm(o.textContent)]);
+      const AGE = opts('age'), RES = opts('residency');
+      const L = () => document.getElementById('licence');
+      if (!L()) return JSON.stringify({hash: location.hash.slice(8), bad: ['no #licence']});
+      if (L().querySelector('select, details')) bad.push('a dropdown or fold in the licence: ' + L().querySelectorAll('select, details').length);
+      const seg = ax => [...L().querySelectorAll('.segm[data-axis="' + ax + '"] button')];
+      if (JSON.stringify(seg('age').map(x => norm(x.textContent))) !== JSON.stringify(AGE.map(x => x[1]))) bad.push('age choices ' + JSON.stringify(seg('age').map(x => norm(x.textContent))) + ' want ' + JSON.stringify(AGE.map(x => x[1])));
+      if (JSON.stringify(seg('res').map(x => norm(x.textContent))) !== JSON.stringify(RES.map(x => x[1]))) bad.push('residency choices ' + JSON.stringify(seg('res').map(x => norm(x.textContent))) + ' want ' + JSON.stringify(RES.map(x => x[1])));
+      const KEY = {'16_plus': {resident: 'adult', non_resident: 'adult_non', non_resident_alien: 'adult_alien'}, under_16: {resident: 'u16_res', non_resident: 'u16_non', non_resident_alien: 'u16_alien'}};
+      for (const [av, an] of AGE) for (const [rv, rn] of RES) {
+        const a = seg('age').find(x => norm(x.textContent) === an), r = seg('res').find(x => norm(x.textContent) === rn); if (!a || !r) { bad.push('no button for ' + an + ' / ' + rn); continue; }
+        a.click(); await new Promise(z => setTimeout(z, 150)); seg('res').find(x => norm(x.textContent) === rn).click(); await new Promise(z => setTimeout(z, 150));
+        const key = KEY[av]?.[rv], h = st.licence[key]; if (!h) { bad.push('no data for ' + key); continue; }
+        const pa = seg('age').filter(x => x.getAttribute('aria-pressed') === 'true' || x.getAttribute('aria-checked') === 'true').map(x => norm(x.textContent)), pr = seg('res').filter(x => x.getAttribute('aria-pressed') === 'true' || x.getAttribute('aria-checked') === 'true').map(x => norm(x.textContent));
+        if (JSON.stringify(pa) !== JSON.stringify([an]) || JSON.stringify(pr) !== JSON.stringify([rn])) bad.push(key + ': pressed ' + JSON.stringify([pa, pr]));
+        const lab = norm(L().querySelector('[data-for-res]')?.textContent); if (lab !== st.licLabel[key]) bad.push(key + ': label ' + JSON.stringify(lab) + ' want ' + JSON.stringify(st.licLabel[key]));
+        const body = norm(L().textContent).replace(/ⓘ/g, ''), names = [...P(h).querySelectorAll('.needs li > b, .classbox b')].map(e => norm(e.textContent.replace(/ⓘ/g, '')));
+        names.forEach(nm => { if (!body.includes(nm)) bad.push(key + ': missing ' + JSON.stringify(nm)); });
+        if (L().querySelector('select, details')) bad.push(key + ': a dropdown or fold');
+        seen.push([key, lab, names.length]); }
+      const guide = [...ad.querySelectorAll('details.lostlist summary')].map(s => norm(s.textContent)).find(t => /guiding/i.test(t));
+      if (guide && !norm(L().textContent).includes(guide)) bad.push('the guiding line is gone: ' + guide);
+      return JSON.stringify({hash: location.hash.slice(8), seen, bad}); })()`)));
+  });
+  const lsb = LS.filter(x => x.bad.length || x.seen.length !== 6);
+  check('r20e-licence-selectors', LS.length === 2 && !lsb.length, lsb.map(x => `${x.hash}: ${x.seen.length} pairs; ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+
+  // (6) the region quota and the stream quota read apart: where a group's total is a region's (or zone's) and the row's scope
+  // tag names its streams ("All Region 2 streams") the tag is NOT on the head band with the total — it heads the share
+  // ("Only 2 of the 4 may be from this stream") — and a "This water" tag never sits over a region's total; the pin bar
+  // says the same (group line: the total across the region; the share line: from this stream)
+  const RS = [];
+  for (const hash of ['w=vedder&d=1010', 'w=glenn&d=615', 'w=anderson&d=1010', 'w=bellacoola&d=501&p=1', 'w=vedder&d=515']) await page(hash, async b => {
+    RS.push(JSON.parse(await b.evaluate(`(async () => { ${norm} const bad = [], st = ST(), R = e => e.getBoundingClientRect(); let shares = 0;
+      const tags = {}; for (const m of st.cardHTML.matchAll(/data-row="r(\\d+)"><div class="rhead"><span class="rtitle">[^<]*<span class="scope[^"]*">([^<]*)</g)) tags['r' + m[1]] = m[2];
+      for (const art of document.querySelectorAll('#keep article.row.ledger')) { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) continue;
+        const root = [].concat(g.tree)[0], tag = tags[art.dataset.row] || ''; if (root.tier !== 'total' || root.whose || !/ across /.test(root.says) || !tag || /-wide$/.test(tag)) continue;
+        const head = art.querySelector(':scope > .ghd.gpin'), headT = norm(head?.textContent);
+        if (headT.toLowerCase().includes(tag.toLowerCase())) bad.push(art.dataset.row + ': the tag ' + JSON.stringify(tag) + ' sits on the region total');
+        const share = (root.children || []).find(c => c.node === 'tier' && c.tier === 'share');
+        if (share) { shares++; const sec = art.querySelector('section.tnode[data-tid="' + share.id + '"]'), k = sec?.querySelector(':scope > .tier [data-scope-tag]');
+          if (!k || norm(k.textContent).toLowerCase() !== tag.toLowerCase()) bad.push(art.dataset.row + ': the share has no ' + JSON.stringify(tag) + ' tag (' + JSON.stringify(norm(k?.textContent)) + ')');
+          // the pin bar while inside the share: the group line names the region, the share line this stream
+          const sc = document.getElementById('sc'), kr = [...(sec?.querySelectorAll('.krow') || [])].pop(), hh = document.getElementById('hdr').offsetHeight; if (kr) { sc.scrollTop += R(kr).top - R(sc).top - hh - 70; await new Promise(z => setTimeout(z, 120)); pinUpdate();
+            const pl = [...document.querySelectorAll('#pins .pl')].map(p => norm(p.textContent)), across = (root.says.match(/ across (.+?)(?:,|$)/) || [])[1];
+            if (!pl[0] || !pl[0].includes('across ' + across)) bad.push('pin group line ' + JSON.stringify(pl[0]) + ' does not say across ' + across);
+            if (!pl[1] || !/from this (stream|lake)/.test(pl[1])) bad.push('pin share line ' + JSON.stringify(pl[1])); sc.scrollTop = 0; } } }
+      return JSON.stringify({hash: location.hash.slice(8), shares, bad}); })()`)));
+  });
+  const rsb = RS.filter(x => x.bad.length);
+  check('r20e-region-vs-stream', RS.length === 5 && RS.filter(x => x.shares).length >= 3 && !rsb.length, rsb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; ') || 'shares ' + RS.map(x => x.shares).join(','));
+}
+
 // ---------- round 20c (owner: a format audit; context in every screenful) ----------
 async function round20c(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
@@ -652,7 +848,7 @@ async function round20b(){
       return JSON.stringify({hash: location.hash.slice(8), names, landed, clicks, bad}); })()`)));
   });
   const tbb = TB.filter(x => x.bad.length);
-  check('r20b-three-tabs', TB.length === 4 && !tbb.length, tbb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; '));
+  // round 20e (owner 1): r20b-three-tabs retired — four tabs (r20e-four-tabs)
 
   // the card, fewer words: (C1) a number never appears twice in a row on a tier and its only kind — an own tier whose
   // only child is one kind at its number names the fish and the kind row draws no sentence (its size chip and pictures
@@ -757,7 +953,7 @@ for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%2
     return {age: ${JSON.stringify(age)}, blocks: outside.querySelectorAll('.u16h').length, mine: !!mine && out.includes(mine), res}; })())`)));
 });
 const lb13 = L13.filter(x => x.blocks > 0 || !x.mine || x.res.some(r => !r.fold || !r.closed || !r.named || !r.u16 || !r.adult || r.leak));
-check('licence-others-in-dropdowns', !lb13.length, lb13.map(x => JSON.stringify(x)).join('; '));
+// round 20e (owner 5): retired — no dropdowns; every residency × age is a choice of its own (r20e-licence-selectors)
 
 // (B) Bella Coola front and centre: snapshotted on Oct 10 AND May 1 (every part the page offers), the May 1 mainstem card
 // is not Oct 10's (the Apr 1–May 31 exception), and the side panel's quick pills open both days
@@ -826,7 +1022,7 @@ for (const [w, d] of [['vedder', '1010'], ...(CLW ? [[CLW[0], CLW[1]]] : [])]) f
       answer, items, order, want: [...ad.querySelectorAll('#who-age option')].find(o => o.value === (S.age === 'u16' ? 'under_16' : '16_plus'))?.textContent.trim()}; })())`)));
 });
 const lb14 = L14.filter(x => x.lists !== 1 || !x.label || x.shownLabel !== x.label || !x.visible || !x.answer.length || x.answer.join('|') !== x.items.join('|')
-  || !x.order.length || x.order.some(o => o !== x.want));
+  );   // round 20e: the other residencies' dropdown order is gone (they are choices: r20e-licence-selectors)
 check('licence-u16-you-need', L14.length === 4 && !lb14.length, lb14.map(x => JSON.stringify(x)).join('; ') || `checked ${L14.length} of 4 (classified water: ${JSON.stringify(CLW)})`);
 
 // (3, rows 13) a count over SOME of a bucket's kinds is a nested group (`buckets[].groups`): drawn inside its bucket,
@@ -1017,7 +1213,7 @@ for (const age of ['adult', 'u16']) await page(`w=vedder&d=1010&age=${age}&at=%2
 const ub15 = U15.filter(x => !x.want.length || x.inFold || (x.age === 'u16' ? (x.boxes !== 1 || !x.visible || x.items.length !== x.want.length
   || x.want.some((w, i) => !x.items[i] || !x.items[i].t.includes(norm0(w.label)) || !x.items[i].t.includes(norm0(w.says)) || x.items[i].mine !== w.mine)) : x.boxes));
 function norm0(t) { return (t || '').replace(/\s+/g, ' ').trim(); }
-check('u16-by-residency', U15.length === 2 && !ub15.length, ub15.map(x => JSON.stringify(x)).join('; '));
+// round 20e (owner 5): retired — the per-residency under-16 list is the residency choice now (r20e-licence-selectors)
 
 // (3) the weekday sheet: the status box says the data's weekday status; "How this was decided" lists EVERY day-part with its
 // days, its words and its rules' book pages (today's marked), then each restatement note once; the Other fish line
@@ -1078,12 +1274,14 @@ for (const hash of ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0
       modeFirst: !sm.parts.some(p => p.part === 'mode') || shown[0]?.k === 'mode',
       each: sm.parts.filter(p => say.includes(norm(p.says))).map(p => ({p: p.part, n: txt.split(stem(p.says)).length - 1, onLine: shown.some(s => s.val.includes(stem(p.says)))})),
       labels: shown.filter(s => s.k !== 'mode').every(s => s.lab), dropped: sm.parts.filter(p => !say.includes(norm(p.says)) && txt.includes(norm(p.says))).map(p => p.part),
-      books: books.length, bookN: (books[0]?.textContent.match(/p\\.\\d+/g) || []).length, pages: pages.size,
-      booksAfter: after(lines[lines.length - 1], books[0]), changesAfter: !ch || after(books[0], ch),
+      // round 20e (owner 3): no bunched Book line — each line's own source line (inside it) carries its pages, every page of
+      // the sentence shown; a dated change sits inside the line it changes (r20e-dated-on-its-line)
+      books: books.length, bookN: new Set([...box.querySelectorAll('[data-gline] > [data-isrc] a.book')].map(a => (a.textContent.match(/p\\.(\\d+)/) || [])[1])).size, pages: pages.size,
+      booksAfter: lines.every(l => !!l.querySelector(':scope > [data-isrc]') || !sm.parts.some(p => p.cites.length && (({lines: ['lines'], hook: ['attach', 'hook'], weight: ['weight'], mode: ['mode']})[l.dataset.gline] || []).includes(p.part))), changesAfter: !ch || !!ch.closest('[data-gline]'),
       terms: (sm.terms || []).every(t => [...box.querySelectorAll('[data-gl]')].some(e => e.dataset.gl.split(',').includes(t)))}; })())`)));
 });
 const gb16 = G16.filter(x => !x.box || !x.sm || x.sentence || !x.modeFirst || !x.each.length || x.each.some(e => e.n !== 1 || !e.onLine) || !x.labels || x.dropped.length
-  || x.books !== 1 || x.bookN !== x.pages || !x.booksAfter || !x.changesAfter || !x.terms);
+  || x.books !== 0 || x.bookN !== x.pages || !x.booksAfter || !x.changesAfter || !x.terms);
 check('gear-lines', G16.length === 5 && G16.some(x => x.shown?.[0]?.k === 'mode') && !gb16.length, gb16.map(x => JSON.stringify(x)).join('; '));
 
 // (2) "How it adds up" closes its group: no bucket, kind row, count box or not-kept line of the group after it (Ape Creek
@@ -1247,6 +1445,7 @@ await roundUr3();
 await round20();
 await round20b();
 await round20c();
+await round20e();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);

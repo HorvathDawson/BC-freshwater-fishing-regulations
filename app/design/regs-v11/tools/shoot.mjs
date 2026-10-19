@@ -21,7 +21,7 @@ const SCREENS = [
   ['08-gear-vedder-u16', `${V}&age=u16&at=%23g-licence`],
   ['09-gear-vedder-may15', 'w=vedder&d=515&sec=gear'],
   ['10-gear-kootenay-main-body', 'w=klmb&d=1010&sec=gear'],
-  ['11-sheet-gear-sources', `${V}&sec=gear&sheet=srcs:line|vedder_1010`],
+  ['11-sheet-gear-sources', `${V}&sec=gear&sheet=srcs:gl|vedder_1010|hook`],
   ['12-gear-cowichan-closed', 'w=cowichan&d=1010&p=0&sec=gear'],
   // C: the water map ("Where these rules apply")
   ['13-map-vedder-open', `${V}&scroll=600&map=1`],
@@ -92,7 +92,7 @@ const SCREENS = [
   ['69-header-vedder-top', V],
   ['70-header-vedder-scrolled', `${V}&scroll=900`],
   ['71-licence-vedder-u16-you-need', `${V}&age=u16&at=%23g-licence`],
-  ['72-licence-vedder-other-anglers-open', `${V}&age=u16&open=%5Bdata-res%3D%22non_resident%22%5D&at=%5Bdata-res%3D%22non_resident%22%5D`],
+  ['72-licence-vedder-other-anglers-open', `${V}&age=u16&res=non_resident&sec=licence`],
   ['73-card-bella-coola-may1', 'w=bellacoola&d=501&p=1&at=.g28'],
   ['74-card-bella-coola-side-channels-may1', 'w=bellacoola&d=501&p=0&at=.g28'],
   ['75-panel-bella-coola-pills', 'w=bellacoola&d=501&p=1', 'desk'],
@@ -187,6 +187,12 @@ const SCREENS = [
   ['151-tree-chilliwack-part2-oct10', 'w=chilliwack&d=1010&p=1&at=.qtree'],
   ['152-tree-vedder-oct10-size-box', `${V}&at=%5Bdata-tnode%3D%22size%22%5D`],
   ['153-tree-chilliwack-part2-size-box', 'w=chilliwack&d=1010&p=1&at=%5Bdata-tnode%3D%22size%22%5D'],
+  // round 20e (owner: Gear and Methods apart; the dated note on its line; a source line per item; two licence choices; the
+  // streams tag on the share)
+  ['154-methods-vedder', `${V}&sec=methods`],
+  ['155-methods-kootenay-lwa', 'w=klwa&d=1010&sec=methods'],
+  ['156-licence-kootenay-u16-outside-canada', 'w=klwa&d=1010&sec=licence&age=u16&res=non_resident_alien'],
+  ['157-keep-vedder-region-vs-stream', `${V}&at=%5Bdata-tnode%3D%22share%22%5D`],
 ];
 const only = process.argv[2];
 for (const [name, hash, desk] of SCREENS) {

@@ -19,10 +19,10 @@ const TALL = [
   ['ur1-kootenay-lwa-oct10-cards', 'w=klwa&d=1010', 'cards'],
   ['ur1-vedder-licence-16-plus', V, 'licence'],
   ['ur1-vedder-licence-under-16', `${V}&age=u16`, 'licence'],
-  ['ur1-vedder-licence-outside-canada-open', `${V}&open=${encodeURIComponent('[data-res="non_resident_alien"]')}`, 'licence'],
+  ['ur1-vedder-licence-outside-canada-open', `${V}&res=non_resident_alien`, 'licence'],   // round 20e: the residency choice (no fold)
   // user round 2: the panel read cut-off shots and the Vedder's licence for the Kootenay
   ['ur2-kootenay-lwa-oct12-cards', 'w=klwa&d=1012', 'cards'],
-  ['ur2-kootenay-licence-other-province-open', `w=klwa&d=1010&open=${encodeURIComponent('[data-res="non_resident"]')}`, 'licence'],
+  ['ur2-kootenay-licence-other-province-open', 'w=klwa&d=1010&res=non_resident', 'licence'],   // round 20e: the residency choice
   ['ur2-vedder-keep-full', V, 'keep'],
   ['ur2-kootenay-kokanee-sheet-full', `w=klwa&d=1010&sheet=${encodeURIComponent('other:klwa_1010|o0')}`, 'sheet'],
   // round 20 (owner review of v24): the header IS the total tier — a water's own total as the header (Bella Coola Oct 10),
@@ -39,6 +39,13 @@ const TALL = [
   // round 20b (owner: split gear and licence tabs): the Licence tab on its own
   ['r20b-vedder-oct10-licence-tab', `${V}&sec=licence`, 'tab'],
   ['r20b-kootenay-lwa-oct10-licence-tab', 'w=klwa&d=1010&sec=licence', 'tab'],
+  // round 20e (owner: Gear and Methods apart; dated notes on their line; sources per item; the licence's two choices)
+  ['r20e-vedder-oct10-methods-tab', `${V}&sec=methods`, 'tab'],
+  ['r20e-kootenay-lwa-oct10-methods-tab', 'w=klwa&d=1010&sec=methods', 'tab'],
+  ['r20e-vedder-may15-gear-tab', 'w=vedder&d=515&sec=gear', 'tab'],
+  ['r20e-kootenay-lwa-licence-under16-outside-canada', 'w=klwa&d=1010&sec=licence&age=u16&res=non_resident_alien', 'tab'],
+  ['r20e-vedder-licence-under16-other-province', `${V}&sec=licence&age=u16&res=non_resident`, 'tab'],
+  ['r20e-kootenay-lwa-licence-16plus-outside-canada', 'w=klwa&d=1010&sec=licence&res=non_resident_alien', 'tab'],
 ];
 const only = process.argv[2];
 for (const [name, hash, what] of TALL) {
@@ -57,7 +64,7 @@ for (const [name, hash, what] of TALL) {
         return {top: R(h).top, bottom: R(sec).bottom + 12}; }
       if (${JSON.stringify(what)} === 'keep') { const k = document.getElementById('keep'); return k ? {top: 0, bottom: R(k).bottom + 12} : null; }
       if (${JSON.stringify(what)} === 'tab') {   // round 20b: a whole tab (the page is one scroll: its section), header on top
-        const id = /sec=licence/.test(location.hash) ? 'licence' : 'gear', sec = document.getElementById(id), hdr = document.getElementById('hdr');
+        const id = (location.hash.match(/sec=(gear|methods|licence)/) || [])[1] || 'gear', sec = document.getElementById(id), hdr = document.getElementById('hdr');
         if (!sec || !hdr) return null;
         const h = hdr.cloneNode(true); h.removeAttribute('id'); h.style.position = 'relative'; sec.parentNode.insertBefore(h, sec);
         h.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === id));   // the tall frame never scrolls: mark the tab shown

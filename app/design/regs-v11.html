@@ -335,8 +335,8 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .nofish .factbtn{display:inline;min-height:0;text-align:left;color:inherit}
 .nofish .cite{display:inline}.nofish .cite .book{display:inline-block;min-height:0;margin:0 0 0 6px;padding:12px 0;margin-block:-12px}
 /* B gear & licence: one page — at a glance, then 1–5 */
-:is(#gear,#licence) .gpart{padding:16px 0 8px;border-top:1.5px solid var(--ink)}
-:is(#gear,#licence) .gpart > h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:800 var(--t2) "Bricolage Grotesque",Archivo,sans-serif}
+:is(#gear,#methods,#licence) .gpart{padding:16px 0 8px;border-top:1.5px solid var(--ink)}
+:is(#gear,#methods,#licence) .gpart > h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:800 var(--t2) "Bricolage Grotesque",Archivo,sans-serif}
 .gn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 1.6em;width:1.6em;height:1.6em;border:1.5px solid var(--ink);font:800 var(--t4) Archivo,sans-serif}
 .glance{margin:0 0 14px;border-top:1px solid var(--line2)}
 .glance button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 0;border-bottom:1px solid var(--line2)}
@@ -358,21 +358,21 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .gsources .srcs{min-height:44px;color:var(--accent);font:700 var(--t4) Archivo,sans-serif;text-decoration:underline;text-underline-offset:2px}
 .gsources .bks{display:inline-flex;flex-wrap:wrap;align-items:center;gap:0 8px}
 .gsources .book{min-height:44px}
-:is(#gear,#licence) .needs{margin-top:10px}
-:is(#gear,#licence) .needs li > b{font-size:var(--t3)}
-:is(#gear,#licence) .gpart details{border-top:1px solid var(--line)}
-:is(#gear,#licence) .gpart details > summary{min-height:48px;display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
-:is(#gear,#licence) .gpart details > summary::-webkit-details-marker{display:none}
-:is(#gear,#licence) .gpart details > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
-:is(#gear,#licence) .gpart details[open] > summary::after{transform:rotate(-135deg)}
-:is(#gear,#licence) .gpart .afold > summary{font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
-:is(#gear,#licence) .gpart .afold > summary em{margin-left:auto;font:600 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
-:is(#gear,#licence) .gpart .afold > summary::after{margin-left:10px}
+:is(#gear,#methods,#licence) .needs{margin-top:10px}
+:is(#gear,#methods,#licence) .needs li > b{font-size:var(--t3)}
+:is(#gear,#methods,#licence) .gpart details{border-top:1px solid var(--line)}
+:is(#gear,#methods,#licence) .gpart details > summary{min-height:48px;display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;font:700 var(--t4) Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
+:is(#gear,#methods,#licence) .gpart details > summary::-webkit-details-marker{display:none}
+:is(#gear,#methods,#licence) .gpart details > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+:is(#gear,#methods,#licence) .gpart details[open] > summary::after{transform:rotate(-135deg)}
+:is(#gear,#methods,#licence) .gpart .afold > summary{font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
+:is(#gear,#methods,#licence) .gpart .afold > summary em{margin-left:auto;font:600 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
+:is(#gear,#methods,#licence) .gpart .afold > summary::after{margin-left:10px}
 .afold ul{list-style:none;margin:0 0 8px;padding:0}
 .afold .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
 .afold .hh{margin:10px 0 0}
-:is(#gear,#licence) .lostlist .lreq{padding:6px 0}
-:is(#gear,#licence) .u16h{margin:14px 0 2px}
+:is(#gear,#methods,#licence) .lostlist .lreq{padding:6px 0}
+:is(#gear,#methods,#licence) .u16h{margin:14px 0 2px}
 /* C water map: canvas between a header and a bottom bar; the app's status tokens (--st-*, from watermap.js) */
 .mback{flex:0 0 auto;min-height:44px;padding:0 12px 0 8px;border:1.5px solid var(--ink);color:var(--ink);font:800 var(--t4) Archivo,sans-serif}
 .wmap .mh .ttl b{white-space:normal}
@@ -401,7 +401,7 @@ div.orow{gap:10px;padding:0}.orow .obtn{flex:1;min-width:0;display:flex;gap:10px
 .mstep button{min-height:52px;border:1.5px solid var(--ink);text-align:center;font:800 var(--t3) Archivo,sans-serif}
 .mstep button:disabled{border-style:dashed;color:var(--sub);font-weight:600;cursor:default}
 .mgo{display:block;width:100%;min-height:52px;margin-top:8px;background:var(--accent);color:var(--on-accent);text-align:center;font:800 var(--t3) Archivo,sans-serif}
-:is(#gear,#licence) .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
+:is(#gear,#methods,#licence) .pricenote{margin:8px 0;font-size:var(--t4);color:var(--sub)}
 .ts2 .gdl > div{grid-template-columns:minmax(0,1fr);gap:2px}
 .ts2 .mlegend{max-width:80%}.ts2 .mk span{max-width:240px}
 /* v12 (round 10) 5: where these rules apply, right under the header */
@@ -561,7 +561,7 @@ button.hplace:active .pl{color:var(--accent)}
 .rnote{margin:2px 0 4px 10px;font-size:var(--t4);color:var(--sub)}
 /* round 16 (owner 5): the gear sentence as labelled lines — label in a fixed column, the value big; a fly-only mode first */
 .gmode{margin:0 0 8px;padding:6px 0 6px 10px;border-left:3px solid var(--restricted);font:800 var(--t2)/1.3 "Bricolage Grotesque",Archivo,sans-serif;color:var(--restricted)}
-.glines,:is(#gear,#licence) .glines{list-style:none;margin:0;padding:0}
+.glines,:is(#gear,#methods,#licence) .glines{list-style:none;margin:0;padding:0}
 .gline{display:grid;grid-template-columns:7.4em minmax(0,1fr);gap:0 8px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}
 .gline:first-child{border-top:0;padding-top:2px}
 .gline .glab{font:700 var(--t4)/1.3 Archivo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
@@ -572,15 +572,15 @@ button.hplace:active .pl{color:var(--accent)}
 .gchip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1.5px solid var(--restricted);font:600 var(--t4)/1.3 Archivo,sans-serif}
 .gchip b{color:var(--restricted)}
 .gbooks{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:0 12px}.gbooks .book{min-height:0;padding:12px 0;margin:-10px 0}
-:is(#gear,#licence) .gref{margin:0;border-top:1.5px solid var(--ink);padding:0 0 8px}
-:is(#gear,#licence) .gref > summary{min-height:56px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 0;list-style:none;cursor:pointer;font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
-:is(#gear,#licence) .gref > summary .lab{flex-basis:100%}
-:is(#gear,#licence) .gref > summary em{font:500 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
-:is(#gear,#licence) .gref > summary::-webkit-details-marker{display:none}
-:is(#gear,#licence) .gref > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;align-self:center;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
-:is(#gear,#licence) .gref[open] > summary::after{transform:rotate(-135deg)}
-:is(#gear,#licence) .gref ul{list-style:none;margin:0 0 6px;padding:0}:is(#gear,#licence) .gref .hh{margin:10px 0 0}
-:is(#gear,#licence) .gref .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
+:is(#gear,#methods,#licence) .gref{margin:0;border-top:1.5px solid var(--ink);padding:0 0 8px}
+:is(#gear,#methods,#licence) .gref > summary{min-height:56px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:10px 0;list-style:none;cursor:pointer;font:700 var(--t3) Archivo,sans-serif;letter-spacing:0;text-transform:none;color:var(--ink)}
+:is(#gear,#methods,#licence) .gref > summary .lab{flex-basis:100%}
+:is(#gear,#methods,#licence) .gref > summary em{font:500 var(--t4) Archivo,sans-serif;font-style:normal;color:var(--sub)}
+:is(#gear,#methods,#licence) .gref > summary::-webkit-details-marker{display:none}
+:is(#gear,#methods,#licence) .gref > summary::after{content:"";width:8px;height:8px;margin-left:auto;margin-right:4px;align-self:center;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .15s}
+:is(#gear,#methods,#licence) .gref[open] > summary::after{transform:rotate(-135deg)}
+:is(#gear,#methods,#licence) .gref ul{list-style:none;margin:0 0 6px;padding:0}:is(#gear,#methods,#licence) .gref .hh{margin:10px 0 0}
+:is(#gear,#methods,#licence) .gref .factbtn{display:block;width:100%;min-height:44px;padding:8px 0;border-top:1px solid var(--line);text-align:left}
 /* v13 (round 11, owner 6): braid review */
 .blist{display:flex;flex-direction:column;margin-top:8px;max-height:520px;overflow:auto;border-top:1px solid var(--line2)}
 .brow{flex:0 0 auto;display:flex;flex-direction:column;gap:1px;padding:8px 4px;border-bottom:1px solid var(--line2);min-height:44px}
@@ -695,7 +695,7 @@ details.bookw blockquote{margin:0 0 10px}
    One rule per thing, as tokens, after everything above so it wins by order. Numbers in the audit file. */
 :root{--w-body:400;--w-emph:600;--w-head:700;--w-num:800;--s1:4px;--s2:8px;--s3:12px;--s4:16px}
 /* #3 four weights on the page: the 500s become 600, the 900 800 */
-.smonths,.gtopic .price,.needs li > .price,.owk,:is(#gear,#licence) .gref > summary em,.wyn p{font-weight:var(--w-emph)}
+.smonths,.gtopic .price,.needs li > .price,.owk,:is(#gear,#methods,#licence) .gref > summary em,.wyn p{font-weight:var(--w-emph)}
 /* #4 every inline numeral shares ONE line box: a 26 px figure never makes its line taller than its neighbours */
 .tier .tn,.ghd .num .ghn,.kt .ks .kn{line-height:.7;vertical-align:-1px;margin:0 1px}
 /* #1 context in every screenful (owner): the group's name + total line pin under the header while the reader is inside the
@@ -761,6 +761,35 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 .tall #pins{display:none}
 .posrow{margin:var(--s2) 16px 0;border-top:1.5px solid var(--ink)}.posrow .obtn{width:100%;padding:9px 0}
 .kcap{text-wrap:balance}
+/* ---------- round 20e (owner: Gear / Methods split, dated notes on their line, sources per item, licence selectors) ----------
+   Four tabs on one row at 390 px; a dated change a tinted note joined to the bottom of the line it changes; every gear and
+   methods item ends with its own source line (who says so ›, Rule book p.N ↗) in one style; the licence's two segmented
+   choices (age, where you live); a row's streams tag heads the share it belongs to, never the region's total. */
+.segm[role=tablist]{gap:16px}
+.isrc{grid-column:2;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;margin:4px 0 0;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif}
+.isrc .srcs{color:var(--accent);font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;text-decoration:none;position:relative;padding:0}
+.isrc .srcs::before{content:"";position:absolute;left:-4px;right:-4px;top:-12px;bottom:-12px}
+.gxc > .isrc,.gmodew > .isrc{margin-top:var(--s2)}
+.gnote{grid-column:1 / -1;margin:4px 0 0;padding:6px 10px;background:var(--tint);border-left:3px solid var(--restricted);font:var(--w-emph) var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
+.gnote > b{font-weight:var(--w-head);color:var(--restricted);font-variant-numeric:tabular-nums}
+.gnote em{font-style:normal;font-weight:var(--w-head);color:var(--restricted)}
+.gnote .gnsrc{white-space:nowrap}
+.isrc .book,.gnote .book{display:inline;min-height:0;padding:0;margin:0}
+.gnote + .gnote{margin-top:2px}
+.gmodew{margin:0 0 8px}.gmodew > .gmode{margin:0}
+.ts2 .isrc{grid-column:1}
+.lchoose{margin:0 0 var(--s3)}
+.lchoose > .lab{margin:0 0 6px}
+.segm.lsel{display:flex;margin:0 0 8px}
+.segm.lsel button{min-height:44px;padding:4px 6px;line-height:1.2}
+.segm button[aria-checked="true"]{background:var(--ink);color:var(--card)}
+.lopen{margin-top:var(--s3);padding-top:var(--s2);border-top:1px solid var(--line)}
+.lopen > .lab{margin:0 0 4px}
+.lopen .lhead{display:block;width:100%;padding:2px 0;text-align:left;font:var(--w-body) var(--t3)/1.35 Archivo,sans-serif;color:var(--ink)}
+.lopen .lpath,.lopen .lor{display:none}   /* the requirement's names restate its sentence (page v36 draws both); the sentence is enough */
+.lopen .muted.small{font-size:var(--t4);color:var(--sub)}
+.tier .tkick{display:block;margin:0;padding:var(--s2) 0 0 13px;border-left:3px solid var(--ink);border-top:1px solid var(--line2);font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
+.tier .tkick + .tl{border-top:0;padding-top:2px}
 </style>
 </head>
 <body>
@@ -814,7 +843,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -909,7 +938,7 @@ function hdr(){
       <div class="ttl"><b>${esc(st.name)}</b></div>
       <button class="pill hdate" data-open="date" aria-label="Change date, now ${fmt(S.d)}"><span class="dot" style="background:var(${col})"></span><span class="hd2"><b>${S.d === 1010 ? 'Today' : wday(S.d)}</b><span>${fmt(S.d)}</span></span></button>${placeGo()}</div>
     ${placeRow()}
-    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear</button><button aria-pressed="${S.sec==='licence'}" data-sec="licence">Licence</button></div></div>
+    <div class="r2"><div class="segm" role="tablist" aria-label="Section"><button aria-pressed="${S.sec==='keep'}" data-sec="keep">What you can keep</button><button aria-pressed="${S.sec==='gear'}" data-sec="gear">Gear</button><button aria-pressed="${S.sec==='methods'}" data-sec="methods">Methods</button><button aria-pressed="${S.sec==='licence'}" data-sec="licence">Licence</button></div></div>
     </div>`;
 }
 /* ---------- transform v36's card fragment into v10's layout ---------- */
@@ -986,6 +1015,15 @@ function buildKeep(){
     const ri = +(art.dataset.row || 'r0').slice(1), raw = st.rows[ri] || {}, g = raw.group;
     if (!g || !g.headline) return;
     const h = g.headline, cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+    // round 20e (owner 6: "ALL REGION 2 STREAMS / 4 a day … across Region 2, lakes included" reads wrong): the row's scope tag is
+    // the STREAM row's ("All Region 2 streams") while the header's total is the region's. Where the root is a region's (or
+    // zone's) total and the tag is not that region's ("Region 2-wide"), the tag leaves the head band: it heads the share it
+    // belongs to ("ALL REGION 2 STREAMS / Only 2 of the 4 may be from this stream"); over a water's own tier ("This water")
+    // the tier's own words already say whose rule it is, so it is not drawn again
+    const rt0 = g.tree ? [].concat(g.tree)[0] : null, tagEl = art.querySelector('.rhead .rtitle .scope'), tag = (tagEl?.textContent || '').trim();
+    const moveTag = !!(rt0 && rt0.tier === 'total' && !rt0.whose && / across /.test(rt0.says || '') && tag && !/-wide$/.test(tag));
+    const tagShare = moveTag ? (rt0.children || []).find(c => c.node === 'tier' && c.tier === 'share') : null;
+    if (moveTag) tagEl.remove();
     const head = art.querySelector('.rhead .rtitle')?.outerHTML || '';
     const also = (h.also || []).map(x => `<small class="also">or ${esc(x.says)}</small>`).join('');
     // round 18 (owner 4): the number and its unit read as one line ("2 a day from this stream"), the data's `also` under it
@@ -1128,7 +1166,7 @@ function buildKeep(){
     const pagesOf = key => new Set((SNAP.ruleInfo[key]?.book || []).map(b => b[0]));
     const tierH = (t, root, seen = new Set()) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' && t.why_here ? cap1(t.why_here) : '';
       const pg = key ? pagesOf(key) : new Set(), fresh = [...pg].some(p => !seen.has(p));
-      return `<div class="tier" data-tier="${t.tier}"><p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
+      return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
     const tnode = (t, i, a, root, seen = new Set()) => { if (t.node !== 'tier') return kt(t);
       const key = st.ruleKey?.[t.by], below = new Set([...seen, ...(key ? pagesOf(key) : [])]);
       return `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root, seen)}<div class="tch">${(t.children || []).map(c => tnode(c, 0, 0, false, below)).join('')}</div></section>`; };
@@ -1214,7 +1252,6 @@ function dated(st, bits){ const out = []; let i = 0; const t = dayIx(S.d);
   return out; }
 // what holds on the page's day, then (below the list, so it never reads as the list's heading) the days that differ
 const dayLine = () => `<p class="gday">${S.d === 1010 ? 'Today' : wday(S.d)}, ${fmt(S.d)}</p>`;
-const datedRows = xs => !xs.length ? '' : `<div class="gdates"><p class="lab">Different on other days</p>${xs.map(x => `<p class="gdate${x.now ? ' now' : ''}"><b>${x.when}</b> ${x.words}${x.now ? ' <em>· in force today</em>' : ''}</p>`).join('')}</div>`;
 /* who says so: the rule's level (its sheet's "Region 2 rule · …"); where the page's chip says "Province" for a level, that word */
 const levelOf = k => (SNAP.rules[k]?.sub || '').split(' rule · ')[0];
 let CHIPWORD = {};
@@ -1222,41 +1259,30 @@ function learnChipWords(st){ CHIPWORD = {};
   Object.values(st.panes || {}).forEach(h => parse(h).querySelectorAll('.gsrc[data-rule]').forEach(b => { const t = b.textContent.trim();
     if (t !== 'Region') CHIPWORD[levelOf(b.dataset.rule)] = t; })); }
 const wordOf_ = k => CHIPWORD[levelOf(k)] || levelOf(k);
-function sourcesLine(id, keys, words){
-  keys = [...new Set(keys)].filter(k => SNAP.rules[k]); SRCS[id] = keys;
-  const pages = new Map(); keys.forEach(k => (SNAP.ruleInfo[k]?.book || []).forEach(([pr, pdf]) => pages.set(pr, pdf)));
-  const books = [...pages].sort((a, b) => a[0] - b[0]).map(([pr, pdf]) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">p.${pr} ↗</a>`);
-  const who = [...new Set(words)].filter(Boolean);
-  if (!who.length && !books.length) return '';
-  return `<p class="gsources"><button class="srcs" type="button" data-open="${id.startsWith('lic') ? 'licsrc' : 'srcs'}:${id}">Sources</button><span class="who">${who.map(esc).join(' · ')}</span>${books.length ? `<span class="bks">Rule book ${books.join(' ')}</span>` : ''}</p>`; }
-/* a pane's chips: their rule keys, and the word each stands for (a chip reading "Region" names its region from the rule) */
-function takeChips(root, sel){ const keys = [], words = [];
-  root.querySelectorAll(sel).forEach(b => { const k = b.dataset.rule; if (k) keys.push(k);
-    const t = b.textContent.trim(); words.push(t === 'Region' && k ? levelOf(k) : t); b.remove(); });  // "Region" names its region
-  return {keys, words}; }
 function licence(st, id){
-  // round 13 (owner L): each tab shows ONLY the default angler's answer (B.C. resident; the page's own default); every other
-  // residency is a "Rules for other anglers" dropdown of its own (the page's fold name), carrying that residency's 16-or-older
-  // AND under-16 answers. The page's own "Rules for other anglers (N)" fold is replaced by these: its lines are those answers'.
-  // round 15 (licence 5, item 2): page v36 now puts, above each answer, whose answer it is ("Showing the answer for: …") and,
-  // under 16, what every residency's under-16 angler needs ("Under 16, by where you live"). Both come out of each answer:
-  // whose it is is this section's own label (`profile_labels`), and the per-residency list is drawn once, OPEN, on the
-  // Under 16 tab (its own words; the tab's residency marked) — the dropdowns keep each residency's full detail
+  // round 20e (owner 5: "replace the dropdowns with two selectors"): the licence answers by TWO segmented choices — age and
+  // where you live — named by page v36's own "Who is fishing?" options (`#who-age`, `#who-residency`); the answer for the
+  // chosen pair (page v36's own answer for it, `st.licence[adult|adult_non|adult_alien|u16_res|u16_non|u16_alien]`) is the
+  // only one shown, with its label (`licLabel`) above it. No dropdown, no fold: the "Rules for other anglers (N)" fold is
+  // these answers' (each pair is chosen), the "Under 16, by where you live" list is the residency choice, and the guiding
+  // fold ("If you are guiding other anglers") is drawn open under the answer, in its own words. The "Where each one comes
+  // from" fold is the section's sources and moves to its Sources sheet (as before).
   const lift = h => { const r = parse(h || ''); r.querySelectorAll('p.muted.small').forEach(p => { if (p.querySelector('b') && /:\s*$/.test(p.firstChild?.textContent || '')) p.remove(); });
-    const u = r.querySelector('.needs.u16'); u?.remove(); return {html: r.innerHTML, u16: u}; };
-  const LF = Object.fromEntries(Object.entries(st.licence).map(([k, h]) => [k, lift(h)])), LH = Object.fromEntries(Object.entries(LF).map(([k, x]) => [k, x.html]));
-  const prof = parse(LH.adult), optText = (axis, v) => (prof.querySelector(`#who-${axis} option[value="${v}"]`)?.textContent || '').trim();
+    r.querySelector('.needs.u16')?.remove(); return r.innerHTML; };
+  const LH = Object.fromEntries(Object.entries(st.licence).map(([k, h]) => [k, lift(h)]));
+  const prof = parse(st.licence.adult || ''), opts = ax => [...prof.querySelectorAll(`#who-${ax} option`)].map(o => [o.value, o.textContent.trim()]);
   const isOthers = d => /other anglers\s*\(\d+\)\s*$/i.test(d.querySelector('summary')?.textContent || '');   // "… (7)": not the guiding fold
-  const one = (h, bare) => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
+  const one = h => { const r = parse(h); r.querySelectorAll('.khead,.profile,[data-licsrc]').forEach(e => e.remove());
     const words = [...r.querySelectorAll('.lhead .src')].map(e => e.textContent.trim());
     // its first fold ("Where each one comes from") is the section's sources: it moves to the Sources sheet
     const f = r.querySelector('details.lostlist'); let from = null;
     if (f) { const sm = f.querySelector('summary'); from = {t: sm ? sm.textContent.trim() : '', b: ''}; sm?.remove(); from.b = f.innerHTML; f.remove(); }
     r.querySelectorAll('.lhead .src').forEach(e => e.remove());
-    r.querySelectorAll('details.lostlist').forEach(d => { if (bare || isOthers(d)) d.remove(); });   // a dropdown's answer: no folds of its own
-    const names = [...r.querySelectorAll('.needs li > b')].map(b => b.textContent.replace(/ⓘ/g, '').trim());
-    const head = names[0] || (r.querySelector('b')?.textContent || '').trim();
-    return {html: r.innerHTML.replace(/ open=""/g, ''), words, names, head, from}; };
+    r.querySelectorAll('details.lostlist').forEach(d => { if (isOthers(d)) { d.remove(); return; }
+      // any other fold (guiding) is drawn open: its summary a small heading, its lines under it
+      const sm = d.querySelector('summary'), t = sm ? sm.textContent.trim() : ''; sm?.remove();
+      d.outerHTML = `<div class="lostlist lopen" data-lopen><p class="lab">${esc(t)}</p>${d.innerHTML}</div>`; });
+    return {html: r.innerHTML.replace(/ open=""/g, ''), words, from}; };
   // round 14 (owner 2): an answer the page gives as a box ("No licence needed to fish here", under 16) is the same "You
   // need" list as 16 or older, in the page's own label and words; a box both ages share (a classified water) stays a box
   const asNeeds = h => { const r = parse(h); if (r.querySelector('.needs')) return h;
@@ -1266,22 +1292,20 @@ function licence(st, id){
     if (!label || !own.length) return h;
     own[0].insertAdjacentHTML('beforebegin', `<div class="needs"><div class="lbl">${esc(label)}</div><ul>${own.map(e => `<li>${e.innerHTML}</li>`).join('')}</ul></div>`);
     own.forEach(e => e.remove()); return r.innerHTML; };
-  const u16 = S.age === 'u16', mine = one(asNeeds(LH[u16 ? 'u16_res' : 'adult']));
-  const ages = [['adult', optText('age', '16_plus')], ['u16', optText('age', 'under_16')]];
-  const others = [['non_resident', 'adult_non', 'u16_non'], ['non_resident_alien', 'adult_alien', 'u16_alien']].filter(([, a, u]) => LH[a] || LH[u])
-    .map(([res, a, u]) => ({res, name: optText('residency', res), got: [[ages[0][1], LH[a] ? one(LH[a], true) : null], [ages[1][1], LH[u] ? one(LH[u], true) : null]].filter(([, x]) => x)}));
-  if (u16) others.forEach(o => o.got.reverse());   // round 14: the tab's own age first in each dropdown
-  const fr = [[optText('residency', 'resident'), mine]].concat(others.flatMap(o => o.got.map(([t, x]) => [`${o.name} · ${t}`, x]))).filter(([, x]) => x.from);
-  LICSRC[`lic|${id}|${u16 ? 'u16' : 'adult'}`] = fr.length ? {t: fr[0][1].from.t, b: fr.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.from.b}`).join('')} : null;
-  // user round 3 (5): page v36's fold name ("Rules for other anglers") read as guiding; each dropdown says whose it is
-  const folds = others.map(o => `<details class="lostlist others" data-res="${o.res}"><summary class="lbl">If you’re not a B.C. resident · ${esc(o.name)}</summary>${o.got.map(([t, x]) => `<p class="u16h">${esc(t)}</p>${x.html}`).join('')}</details>`).join('');
-  // round 15 (8): the open answer says whose it is — the page's own residency and age names, a label right above it
-  const lab = st.licLabel?.[u16 ? 'u16_res' : 'adult'], forWho = `<p class="resfor" data-for-res>${esc(lab || `${optText('residency', 'resident')} · ${ages[u16 ? 1 : 0][1]}`)}</p>`;
-  const sum = u16 && LF.u16_res?.u16 ? `<div class="needs u16sum" data-u16sum>${LF.u16_res.u16.innerHTML}</div>` : '';
-  // the summary sits right under the answer, before the answer's own folds (guiding)
-  const cut = mine.html.indexOf('<details'), body = sum ? (cut < 0 ? mine.html + sum : mine.html.slice(0, cut) + sum + mine.html.slice(cut)) : mine.html;
-  return {html: forWho + body + folds, words: [...mine.words, ...others.flatMap(o => o.got.flatMap(([, x]) => x.words))].filter((w, i, all) => all.indexOf(w) === i), names: mine.names, head: mine.head, keyed: u16 ? 'u16' : 'adult'};
+  const AGE = opts('age'), RES = opts('residency').filter(([v]) => LH[KEYOF(S.age, v)]);
+  const res = RES.some(([v]) => v === S.res) ? S.res : (RES[0] || [])[0], key = KEYOF(S.age, res);
+  const mine = one(asNeeds(LH[key] || LH.adult));
+  LICSRC[`lic|${id}|${key}`] = mine.from ? {t: mine.from.t, b: mine.from.b} : null;
+  // the choices: page v36's own question ("Who is fishing?") once, then age (its ⓘ, the data's under-16 term) and residency
+  const ask = (prof.querySelector('.profile > .lbl')?.firstChild?.textContent || '').trim();
+  const seg = (axis, xs, on, attr) => `<div class="segm lsel" role="radiogroup" data-axis="${axis}" aria-label="${esc(ask || axis)}">${xs.map(([v, t]) => `<button type="button" role="radio" aria-checked="${v === on}" ${attr(v)}>${esc(t)}</button>`).join('')}</div>`;
+  const ageOn = S.age === 'u16' ? 'under_16' : '16_plus';
+  const sel = `<div class="lchoose" data-lchoose>${ask ? `<p class="lab">${esc(ask)}${SNAP.gloss.under_16 ? ' ' + tip('under_16') : ''}</p>` : ''}${seg('age', AGE, ageOn, v => `data-age="${v === 'under_16' ? 'u16' : 'adult'}"`)}${seg('res', RES, res, v => `data-res="${esc(v)}"`)}</div>`;
+  const forWho = `<p class="resfor" data-for-res>${esc(st.licLabel?.[key] || '')}</p>`;
+  return {html: sel + forWho + mine.html, words: mine.words.filter((w, i, all) => all.indexOf(w) === i), keyed: key};
 }
+// the answer key for an age (the page's adult | u16) and a residency (page v36's option values)
+function KEYOF(age, res){ const u = age === 'u16'; return res === 'non_resident' ? (u ? 'u16_non' : 'adult_non') : res === 'non_resident_alien' ? (u ? 'u16_alien' : 'adult_alien') : (u ? 'u16_res' : 'adult'); }
 /* v12 (round 10, owner 3): Gear & licence is three sections: 1 Gear & methods, ONE compact "what's allowed" block (gear
    first: lines, hooks, points, barbs, lures, weight, bait; then methods and boats), with the strip's dated changes on the
    cell they change; 2 Always; 3 Licence, its own section, last. Every value is the snapshot's (v36's panes); each
@@ -1313,104 +1337,119 @@ function closedUntil(st){ const days = [], t = dayIx(S.d);
   (st.runs || []).forEach(([f, n]) => { for (let j = 0; j < n; j++) days.push(f); });
   for (let j = 1; j < days.length; j++) { const i = (t + j) % days.length; if (days[i] != null && !(days[i] & 1)) { const D = dayDate(i); return `No fishing here until ${MON[D.getMonth()]} ${D.getDate()}.`; } }
   return 'No fishing here on any day of the year.'; }
+/* round 20e (owner 3: "sources need cleanup"): every gear and methods item carries its OWN source line, the last line of the
+   item — who says so (the rules' levels, the page's chip words: "Province · Region 2"), which opens the Sources sheet of
+   exactly those rules, then their Rule book pages — one style everywhere; nothing bunched at a section's end */
+function itemSrc(iid, keys){ keys = [...new Set(keys)].filter(k => SNAP.rules[k]); if (!keys.length) return ''; SRCS[iid] = keys;
+  const pages = new Map(); keys.forEach(k => (SNAP.ruleInfo[k]?.book || []).forEach(([pr, pdf]) => pages.has(pr) || pages.set(pr, pdf)));
+  const books = [...pages].sort((a, b) => a[0] - b[0]).map(([pr, pdf], i) => `<a class="book" href="${SYNOPSIS_PDF}#page=${pdf}" target="_blank" rel="noopener">Rule book p.${pr} ↗</a>`);   // UR1 C: every page link says "Rule book"
+  const who = [...new Set(keys.map(wordOf_))].filter(Boolean);
+  return `<p class="isrc" data-isrc data-keys="${esc(keys.join(' '))}"><button class="srcs" type="button" data-open="srcs:${esc(iid)}" aria-label="Sources: ${esc(who.join(', ') || 'rules')}">${esc(who.join(' · ') || 'Sources')} ›</button>${books.join('')}</p>`; }
+/* round 20e (owner 2: "Different on other days" floated under a gear line): a dated change is a tinted note JOINED to the
+   line it changes, in the data's words — "May 1–31: fly fishing only" — with its own ⓘ and Rule book page */
+const gnote = (when, says, now, extra = '', attr = 'data-dated') => `<p class="gnote${now ? ' now' : ''}" ${attr}><b>${esc(when)}:</b> ${esc(says)}${now ? ' <em>· in force today</em>' : ''}${extra}</p>`;
 function buildGear(){
   const st = ST(), id = sid();
+  // round 20e (owner 1): Gear and Methods are two tabs. #gear: the day's gear lines and Bait; #methods: Ways to fish, Boats
+  // and the Reference fold (handling fish, closed); #licence: the licence answer, last
+  const sect = (k, h, body) => `<section class="gpart gtopic" id="g-${k}" aria-labelledby="gh-${k}"><h3 id="gh-${k}">${h}</h3>${body}</section>`;
+  const L = st.licence ? licence(st, id) : null;
+  // round 20e (owner 3): the licence's source line in the same style as every gear item's (who says so ›, its Sources sheet)
+  const licWho = L ? L.words.filter(Boolean) : [], licId = `lic|${id}|${L?.keyed}`;
+  const licSrc = L && (licWho.length || LICSRC[licId]) ? `<p class="isrc" data-isrc-lic><button class="srcs" type="button" data-open="licsrc:${esc(licId)}" aria-label="Sources: ${esc(licWho.join(', '))}">${esc(licWho.join(' · ') || 'Sources')} ›</button></p>` : '';
+  const lic = L ? sect('licence', 'Licence', L.html + licSrc) : '';
   // UR2 6 (user panel: "no licence is needed while fishing is closed" read as "no licence needed"): a closed day says when
-  // fishing opens, from the data's strip (the first day after this one not closed); the licence is said only in its section
-  if (!st.kitTiles) return `<p class="foot">${esc(closedUntil(st))}</p>`;
+  // fishing opens, from the data's strip (the first day after this one not closed); the licence is said only in its tab
+  if (!st.kitTiles) { const f = `<p class="foot">${esc(closedUntil(st))}</p>`; return {gear: f, methods: f, licence: lic}; }
   learnChipWords(st);
-  const secs = [], cells = [], keys = [], words = [];
-  // the strip's bait-ban runs (bit 16) on the Bait cell, in the data's words
-  // round 12 (owner 3): every dated change is ONE row component — the date label in its own column, then the change in the
-  // data's words — the same under the gear sentence and on Bait, so the dates and the changes line up down the section
-  const drow = (when, says, now) => `<li class="drow${now ? ' now' : ''}" data-dated><span class="dw">${esc(when)}</span><span class="dc">${esc(says)}${now ? ' <em>· in force today</em>' : ''}</span></li>`;
-  const dateds = bits => { const xs = dated(st, bits); return xs.length ? `<ul class="dlist">${xs.map(x => drow(x.when, x.words, x.now)).join('')}</ul>` : ''; };
-  // v13 (round 11, owner 3): the day's terminal gear is the data's ONE sentence (gear 7 `summary.says`), an ⓘ for its
-  // glossary terms, one book link per page of the rules it cites, and the other days whose sentence differs as dated
-  // chips (`summary.changes`). No icons. The Line & hooks rows' rules still feed the section's one Sources line.
-  if (st.panes.line) { const r = parse(st.panes.line);
-    r.querySelectorAll('.grow').forEach(g => { const c = takeChips(g, '.gsrc'); keys.push(...c.keys); words.push(...c.words); }); }
+  const gearCells = [], wayCells = [];
+  const tipFor = ts => { const gl = ts.filter(t => SNAP.gloss[t]); return !gl.length ? '' : ' ' + `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`; };
+  const pagesSpan = keys => { const b = booksOnce([...new Set(keys)]); return b ? ` <span class="gnsrc" data-nsrc>${b}</span>` : ''; };
+  // v13 (round 11, owner 3) / round 16 (owner 5): the day's terminal gear is the data's ONE sentence (gear 7 `summary`), drawn
+  // as short labelled lines from its own parts (`summary.parts`): a fly-only mode first, then Lines · Hooks · Weight on the
+  // line, each value big; a part the sentence leaves out is not drawn; each part's ⓘ on its line
   const sm = st.summary;
   let sentence = '';
-  if (sm) { const ck = [...sm.cites, ...sm.changes.flatMap(c => c.cites)]; keys.push(...ck); words.push(...ck.map(wordOf_));
-    const tipFor = ts => { const gl = ts.filter(t => SNAP.gloss[t]); return !gl.length ? '' : ' ' + `<button class="gl" type="button" data-gl="${gl.join(',')}" aria-label="What ${gl.length > 1 ? 'these words mean' : 'does ' + esc(SNAP.gloss[gl[0]].title) + ' mean'}?">ⓘ</button>`; };
-    // round 16 (owner 5): the sentence was busy ("1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the
-    // line up to 1 kg. Book p.8"). It is drawn as short labelled lines from its own parts (gear `summary.parts`): a fly-only
-    // mode first, on its own, then Lines · Hooks · Weight on the line, each value big; a part the sentence leaves out (no
-    // hook restriction: "any hook") is not drawn. A value repeating its label ("weight on the line …") drops it; a leading
-    // "a" goes. Each part's ⓘ sits on its line; the book pages once, under the lines; the dated changes after them.
+  if (sm) {
     const say = sm.says.toLowerCase(), cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
     const parts = (sm.parts || []).filter(p => say.includes(p.says.toLowerCase())), of = k => parts.filter(p => k.includes(p.part));
     const val = (p, lab) => { let t = p.says.replace(/^(a|an)\s+/i, ''); if (lab && t.toLowerCase().startsWith(lab.toLowerCase() + ' ')) t = t.slice(lab.length + 1); return cap1(t); };
     const GLAB = [['lines', 'Lines', ['lines']], ['hook', 'Hooks', ['attach', 'hook']], ['weight', 'Weight on the line', ['weight']]];
-    const used = new Set();
-    const mode = of(['mode']).map(p => { p.terms.forEach(t => used.add(t)); return `<p class="gmode" data-gline="mode"><b class="gval">${esc(p.says)}</b>${tipFor(p.terms)}</p>`; }).join('');
-    const rows = GLAB.map(([k, lab, ks]) => { const ps = ks.flatMap(x => of([x])); if (!ps.length) return '';
-      return `<li class="gline" data-gline="${k}"><span class="glab">${esc(lab)}</span><span class="gval">${ps.map(p => { p.terms.forEach(t => used.add(t)); return `<b>${esc(val(p, lab))}</b>${tipFor(p.terms)}`; }).join('<br>')}</span></li>`; }).join('');
-    const rest = sm.terms.filter(t => !used.has(t));
-    sentence = `<div class="gsum" data-summary>${mode}<ul class="glines">${rows}</ul><p class="gbooks">${booksOnce(sm.cites)}</p>`
-      + (sm.changes.length ? `<p class="dlab">Different on other days${tipFor(rest)}</p><ul class="dlist">${sm.changes.map(c => drow(c.when, c.says).replace('data-dated', 'data-dated data-change')).join('')}</ul>` : rest.length ? `<p class="gbooks">${tipFor(rest)}</p>` : '')
-      + `</div>`; }
-  // bait: the ✓/✕ list, as it was
+    const used = new Set(), hasMode = of(['mode']).length > 0;
+    // round 20e (owner 2): each dated change goes to the line it changes — the fly-only line when the day has one (the change
+    // is the way back), else the line its words are about (fly, hook or lure: Hooks; weight, float or sinker: Weight; a line
+    // or rod: Lines); its terms' ⓘ and its rule's Rule book page inside the note
+    const rowOf = c => hasMode ? 'mode' : /\bfly\b|\bflies\b|hook|lure/i.test(c.says) ? 'hook' : /weight|sinker|float/i.test(c.says) ? 'weight' : /\blines?\b|\brods?\b/i.test(c.says) ? 'lines' : 'hook';
+    const drawnRows = new Set([...(hasMode ? ['mode'] : []), ...GLAB.filter(([, , ks]) => ks.some(x => of([x]).length)).map(([k]) => k)]);
+    const changeAt = {}; sm.changes.forEach(c => { let k = rowOf(c); if (!drawnRows.has(k)) k = [...drawnRows].pop(); (changeAt[k] = changeAt[k] || []).push(c); });
+        const notesFor = k => (changeAt[k] || []).map(c => gnote(c.when, c.says, false, pagesSpan(c.cites), 'data-dated data-change'));
+    const blocks = [];
+    of(['mode']).forEach(p => { p.terms.forEach(t => used.add(t));
+      blocks.push({k: 'mode', open: `<div class="gmodew" data-gline="mode"><p class="gmode"><b class="gval">${esc(p.says)}</b>${tipFor(p.terms)}</p>`, src: itemSrc(`gl|${id}|mode`, p.cites), close: '</div>'}); });
+    GLAB.forEach(([k, lab, ks]) => { const ps = ks.flatMap(x => of([x])); if (!ps.length) return;
+      blocks.push({k, open: `<li class="gline" data-gline="${k}"><span class="glab">${esc(lab)}</span><span class="gval">${ps.map(p => { p.terms.forEach(t => used.add(t)); return `<b>${esc(val(p, lab))}</b>${tipFor(p.terms)}`; }).join('<br>')}</span>`,
+        src: itemSrc(`gl|${id}|${k}`, ps.flatMap(p => p.cites)), close: '</li>'}); });
+    // the terms no line used (the changes' own words: "fly fishing") ⓘ on the first note, else on the last line's value
+    const rest = sm.terms.filter(t => !used.has(t)); let restDone = !rest.length;
+    const html = blocks.map(bk => { let notes = notesFor(bk.k);
+      if (!restDone && notes.length) { notes[0] = notes[0].replace(/(<span class="gnsrc"|<\/p>$)/, m => tipFor(rest) + ' ' + m); restDone = true; }
+      return bk.open + bk.src + notes.join('') + bk.close; });
+    if (!restDone && html.length) html[html.length - 1] = html[html.length - 1].replace(/<\/span><p class="isrc"/, tipFor(rest) + '</span><p class="isrc"');
+    const mode = html.filter((_, i) => blocks[i].k === 'mode').join(''), rows = html.filter((_, i) => blocks[i].k !== 'mode').join('');
+    sentence = `<div class="gsum" data-summary>${mode}<ul class="glines">${rows}</ul></div>`; }
+  // bait: the ✓/✕ columns, as they were; the strip's bait-ban runs (bit 16) a note joined to the bottom of the cell
   if (st.panes.bait) { const r = parse(st.panes.bait); r.querySelectorAll('.khead,[data-gearsrc]').forEach(e => e.remove());
-    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
     const items = [...r.querySelectorAll('.bait')].map(b => ({ok: b.classList.contains('ok'), n: b.querySelector('b')?.innerHTML || '', s: b.querySelector('span')?.innerHTML || ''}));
     const note = [...r.querySelectorAll('p')].map(p => p.innerHTML);
-    // round 12 (owner 3): the same items as two columns, ✓ allowed | ✕ not (the column says "allowed" / "banned", so a
-    // note that only repeats it is dropped; the rest of the note stays under its item)
+    // round 12 (owner 3): two columns, ✓ allowed | ✕ not (the column says "allowed" / "banned", so a note that only repeats it
+    // is dropped; the rest of the note stays under its item)
     const note2 = x => x.s.replace(/^(allowed|banned|bait ban)(\s*·\s*)?/, '');
-    // UR2 7 (user panel: "roe is still OK" under Not allowed read as roe banned): an allowance a banned item's note
-    // carries ("<x> is still OK") goes to the allowed item it names, said there ("still OK — not part of the ban", one line:
-    // bait-ways-compact holds the cell to v13's height)
+    // UR2 7: an allowance a banned item's note carries ("<x> is still OK") goes to the allowed item it names
     items.filter(x => !x.ok).forEach(x => { const m = note2(x).match(/^(.*?)(?:\s*·\s*)?\b(\w+) is still OK$/i); if (!m) return;
       const to = items.find(y => y.ok && new RegExp('^' + m[2], 'i').test(y.n.replace(/<[^>]+>/g, '')));
       if (!to) return;
       x.s = m[1]; to.s = [to.s, 'still OK — not part of the ban'].filter(Boolean).join(' · '); });
-    cells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${dateds(16)}</div>`); }
-  // ways to fish: what's allowed (with the data's conditions), then what is not — as it was
+    const bans = dated(st, 16).map(x => gnote(x.when, x.words, x.now)).join('');
+    gearCells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${itemSrc(`bait|${id}`, ks)}${bans}</div>`); }
+  // ways to fish: what's allowed (with the data's conditions), then what is not
   if (st.panes.ways) { const r = parse(st.panes.ways);
-    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
     const ok = [...r.querySelectorAll('.wrow')].map(w => ({n: w.querySelector('b')?.innerHTML || '', s: w.querySelector('small')?.innerHTML || ''}));
     const no = [...r.querySelectorAll('.nochip')].map(c => c.textContent.replace(/^✕/, '').trim());
-    // round 12 (owner 3): ways inline — each allowed way one line, its conditions running on after its name; the ways
-    // that are not allowed one line of their own
-    cells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p><div class="wyn">${ok.length ? `<ul data-col="ok">${ok.map(x => `<li><i>✓</i><b>${x.n}</b>${x.s ? ` <small>${x.s}</small>` : ''}</li>`).join('')}</ul>` : ''}${no.length ? `<p data-col="no"><i>✕</i>${no.map(t => `<span>${esc(t)}</span>`).join('<span class="sep"> · </span>')}</p>` : ''}</div></div>`); }
+    wayCells.push(`<div class="gxc wide" data-k="methods" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Ways to fish')}</p>${WAYS(ok, no)}${itemSrc(`ways|${id}`, ks)}</div>`); }
   // boats: the data's boat rules for this water, when it has any
   if (st.panes.boats) { const r = parse(st.panes.boats);
-    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean); keys.push(...ks); words.push(...ks.map(wordOf_));
+    const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
     r.querySelectorAll('.src').forEach(e => e.remove());
-    cells.push(`<div class="gxc wide" data-k="boats" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Boats')}</p><ul class="gxi plain">${[...r.querySelectorAll('.factbtn')].map(b => `<li><span>${b.innerHTML}</span></li>`).join('')}</ul></div>`); }
-  secs.push({k: 'gear', h: 'Gear & methods', body: dayLine() + sentence + `<div class="gx" role="list" aria-label="Bait and ways to fish">${cells.join('')}</div>` + sourcesLine(`line|${id}`, keys, words)});
-  // Licence: its own section, the last one
-  const L = licence(st, id), u16 = S.age === 'u16';
-  secs.push({k: 'licence', h: 'Licence', body: `<div class="segm who" role="group" aria-label="Who is fishing"><button aria-pressed="${!u16}" data-age="adult">16 or older</button><button aria-pressed="${u16}" data-age="u16">Under 16</button></div>${L.html}`
-      + sourcesLine(`lic|${id}|${L.keyed}`, [], L.words)});
-  // v13 (round 11, owner 3: "Always" felt out of place, its rules matter): the province-wide handling rules are a closed
-  // REFERENCE fold after Licence, named by the data's own tile ("Handling fish · 21 rules that apply everywhere")
+    wayCells.push(`<div class="gxc wide" data-k="boats" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Boats')}</p><ul class="gxi plain">${[...r.querySelectorAll('.factbtn')].map(b => `<li><span>${b.innerHTML}</span></li>`).join('')}</ul>${itemSrc(`boats|${id}`, ks)}</div>`); }
+  const gear = sect('gear', 'Gear', dayLine() + sentence + (gearCells.length ? `<div class="gx" role="list" aria-label="Bait">${gearCells.join('')}</div>` : ''));
+  // v13 (round 11, owner 3): the province-wide handling rules are a closed REFERENCE fold, named by the data's own tile
+  // ("Handling fish · 21 rules that apply everywhere"); round 20e: it closes the Methods tab
   let ref = '';
   if (st.panes.always) { const r = parse(st.panes.always), tile = parse(st.kitTiles).querySelector('[data-kit="always"]');
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
     ref = `<details class="gref" id="g-always" data-reference><summary><span class="lab">Reference</span><b>${esc(tile?.querySelector('.kv')?.textContent || '')}</b><em>${esc(tile?.querySelector('.ks')?.textContent || '')}</em></summary>`
       + [...r.querySelectorAll('.hcard')].map(c => `<p class="hh">${esc(c.querySelector('.hh')?.textContent || '')}</p>${c.querySelector('ul').outerHTML}`).join('')
-      + sourcesLine(`always|${id}`, ks, ks.map(wordOf_)) + `</details>`; }
-  // no per-line book cites here: each section's one Sources line carries its pages
-  return combineTips(secs.map(x => `<section class="gpart gtopic" id="g-${x.k}" aria-labelledby="gh-${x.k}"><h3 id="gh-${x.k}">${x.h}</h3>${x.body}</section>`).join('') + ref);
+      + itemSrc(`always|${id}`, ks) + `</details>`; }
+  const methods = (wayCells.length ? sect('methods', 'Methods', `<div class="gx" role="list" aria-label="Ways to fish">${wayCells.join('')}</div>`) : '') + ref;
+  return {gear: combineTips(gear), methods: combineTips(methods), licence: combineTips(lic)};
 }
+/* ways to fish, round 20e (owner 4: "columns like the bait section?"): the same two columns as Bait — ✓ Allowed | ✕ Not
+   allowed — each way its name, its conditions (the data's) small under it. Before, the allowed ways ran their conditions on
+   after the name and the ways not allowed were one ✕ run of names. */
+const WAYS = (ok, no) => yesNo(ok.map(x => [x.n, x.s]), no.map(t => [esc(t), '']));
 
 /* ---------- render ---------- */
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   const sc = $('sc'), prev = sc.scrollTop;
-  // round 20b (owner: "split gear and license tabs"): the bar reads What you can keep · Gear · Licence. The page stays ONE
-  // scroll (round 13: the header keeps one shape); each tab is its own section and scroll target: #gear holds Gear &
-  // methods and the Reference fold, #licence holds the Licence answer (#g-licence) alone. buildGear's HTML is cut at
-  // the licence part and the reference fold; nothing in it changes.
-  const gh = buildGear(), when = S.d === 1010 ? 'today' : 'on ' + fmt(S.d), iL = gh.indexOf('<section class="gpart gtopic" id="g-licence"'), iR = gh.indexOf('<details class="gref"');
-  const gearHtml = gh.slice(0, iL < 0 ? gh.length : iL) + (iR >= 0 ? gh.slice(iR) : ''), licHtml = iL < 0 ? '' : gh.slice(iL, iR >= 0 ? iR : gh.length);
-  // round 20c (audit #8): no "Gear · for this water today" kicker over "Gear & methods" — the tab names the tab, the header the date
-  const secLab = (name) => '';
-  sc.innerHTML = hdr() + `<div id="pins" aria-hidden="true"><div class="pinbar" hidden></div></div><div id="keep">${buildKeep()}</div><section class="sec" id="gear">${secLab('Gear')}${gearHtml}</section>`
-    + (licHtml ? `<section class="sec" id="licence">${secLab('Licence')}${licHtml}</section>` : '') + `<div style="height:24px"></div>`;
+  // round 20b (owner: "split gear and license tabs") / round 20e (owner 1: Gear and Methods apart): the bar reads What you can
+  // keep · Gear · Methods · Licence. The page stays ONE scroll (round 13: the header keeps one shape); each tab is its own
+  // section and scroll target: #gear (the gear lines, Bait), #methods (Ways to fish, Boats, the Reference fold), #licence
+  const G = buildGear();
+  sc.innerHTML = hdr() + `<div id="pins" aria-hidden="true"><div class="pinbar" hidden></div></div><div id="keep">${buildKeep()}</div><section class="sec" id="gear">${G.gear}</section>`
+    + `<section class="sec" id="methods">${G.methods}</section>` + (G.licence ? `<section class="sec" id="licence">${G.licence}</section>` : '') + `<div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
   $('wmap').innerHTML = +S.map ? mapHtml() : ''; $('wmap').classList.toggle('on', !!+S.map);
@@ -1458,12 +1497,13 @@ function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstEleme
   const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}</p>`).join('');   // the tier's number big, once
   if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; } }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
-  const g = $('gear'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
+  const g = $('gear'), m = $('methods'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
   // round 20b: three tabs on one scroll — the tab in view is the LAST section whose top has reached the header (the
   // licence at the very end counts as reached when the page is scrolled to its end)
   if (g) { const atEnd = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2 && sc.scrollTop > 0;
     const reached = el => !!el && el.offsetTop - sc.scrollTop <= hh + 12;
-    const sec = (l && (reached(l) || atEnd)) ? 'licence' : (reached(g) || (!l && atEnd)) ? 'gear' : 'keep';
+    // round 20e: four tabs; the licence at the very end counts as reached when the page is scrolled to its end
+    const sec = (l && (reached(l) || atEnd)) ? 'licence' : (m && m.offsetHeight && (reached(m) || (!l && atEnd))) ? 'methods' : reached(g) ? 'gear' : 'keep';
     document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === sec)); } }
 $('sc').addEventListener('scroll', () => { mini(); pinUpdate(); }, {passive:true});
 
@@ -1675,7 +1715,7 @@ function mapOpened(){ MV.vb = null; setVB(targetBox()); }
 function go(o, keep){ Object.assign(S, o); if (!keep && !('scroll' in o)) S.scroll = 0; render(keep); }
 function toast(t){ $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('on'), 1800); }
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-braid],[data-step],[data-mgo],[data-mk],[data-mwhole],[data-open],[data-close],[data-sec],[data-map],[data-unmap],[data-part],[data-day],[data-age],[data-jump],[data-acc],[data-gl],[data-src],[data-rule],[data-howtell],[data-fish],[data-tab],[data-toast],[data-cw],[data-ct],[data-md]');
+  const t = e.target.closest('[data-braid],[data-step],[data-mgo],[data-mk],[data-mwhole],[data-open],[data-close],[data-sec],[data-map],[data-unmap],[data-part],[data-day],[data-age],[data-res],[data-jump],[data-acc],[data-gl],[data-src],[data-rule],[data-howtell],[data-fish],[data-tab],[data-toast],[data-cw],[data-ct],[data-md]');
   if (!t) { if (e.target === $('scrim')) go({sheet:''}, true); return; }
   const d = t.dataset;
   if (d.braid != null) { if (!d.braid) return; const [bi, ri] = d.braid.split('|').map(Number); return go({map:1, br:bi, bj:ri, mp:-1, mk:-1, mw:0, sheet:''}, true); }
@@ -1705,6 +1745,7 @@ document.addEventListener('click', e => {
   if (d.day) return go({d:+d.day, p:0, sheet:''});
   if (d.md) return toast('This prototype holds only the snapshot’s days');
   if (d.age) return go({age:d.age}, true);
+  if (d.res) return go({res:d.res}, true);   // round 20e (owner 5): the licence's residency choice
   if (d.tab) return d.tab === 'cond' ? toast('Conditions: the app’s existing water conditions') : null;
   if (d.toast) return toast(d.toast);
   if (d.cw) { const [w, dd, p] = d.cw.split('|'); return go({w, d:+dd, p:+(p||0), sheet:'', map:0, br:-1}); }
@@ -1733,7 +1774,7 @@ function poster(){
   if (h.get('shot')) document.documentElement.classList.add('shot'); if (h.get('tall')) document.documentElement.classList.add('tall');
   for (const [k,v] of h) if (k in S) S[k] = ['d','p','map','mp','mk','mw','br','bj','ts','scroll'].includes(k) ? +v : v;
   const sec = S.sec; render();
-  if ((sec === 'gear' || sec === 'licence') && !S.scroll && !S.at) requestAnimationFrame(() => { const el = $(sec) || $('gear'); $('sc').scrollTop = el.offsetTop - $('hdr').offsetHeight + 2; mini(); });   // round 20b: three tabs
+  if (['gear', 'methods', 'licence'].includes(sec) && !S.scroll && !S.at) requestAnimationFrame(() => { const el = $(sec) || $('gear'); $('sc').scrollTop = el.offsetTop - $('hdr').offsetHeight + 2; mini(); });   // round 20b: three tabs
   if (S.open) document.querySelectorAll(S.open).forEach(d => { d.open = true; });   // round 13: a screen of a fold opened
   if (S.at) requestAnimationFrame(() => { const el = document.querySelector(S.at), sc = $('sc'); if (el) { sc.scrollTop += el.getBoundingClientRect().top - sc.getBoundingClientRect().top - $('hdr').offsetHeight - 4; mini(); } });
 })();
