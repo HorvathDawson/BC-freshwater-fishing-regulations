@@ -1,3 +1,29 @@
+# regs v25 (round 20, owner review of v24) — in place on regs-v11.html
+
+- **Data: rows 21** (page v36 re-snapped; oracle regenerated). `group.header` IS the tree's root tier (`header.tier` names
+  it, `header.says` is its line); the share tier "Only 2 of the 4 may be from this stream", lifted ", not counting hatchery
+  rainbow trout"; a water's own total says "per angler"; a cap sentence ends in ONE full stop ("… in B.C." was "… in B.C..").
+- **1 One header block.** The group's top and the first tier are one block: name · scope, then the ROOT TIER'S LINE where the
+  headline stood — its number big inside its words, flowing as one sentence ("**4** a day per angler across Region 2, lakes
+  included ⓘ Rule book p.21"; "This river’s rule: up to **1** a day per angler"), a walked total's "Its row covers its
+  tributaries, so it applies here" under it (Ape Creek: that line was never drawn before) — then the origin line. No total
+  tier is drawn; the root's children (own tier, share tier, or the kinds) are the top of the tree, flush left: one tier
+  level less. The headline's "2 a day per angler from this stream" is no longer repeated above the tree; the share tier
+  says it. Vedder Oct 10 header → tree, before: "2 a day per angler from this stream" / "4 a day per angler across Region 2,
+  lakes included" / "This river’s rule: up to 4 a day" / "2 a day per angler from this stream — your hatchery rainbow trout
+  count toward the 4, not these 2"; after: "4 a day per angler across Region 2, lakes included" / "This river’s rule: up to
+  4 a day" / "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout".
+- **2 Everything inside the one total.** The data's share words (above) — "Only 2 of the 4" cannot read as 4 + 2; the
+  lifted fish are named as not counted in the 2 (they are in the 4).
+- **3 Big numbers in the size box.** A size box's and a count tier's number are the same size as every other tier's
+  (`--t1`), the box's second number ("— **2** if one is a hatchery steelhead") big too (`.tn2`), and the box's head words a
+  step larger (`--t3`).
+- **Checks** (ONLY=20): `r20-header-is-total`, `r20-share-inside-total`, `r20-big-numbers` all fail before (scratchpad
+  r20/check-before.txt, 3 of 3). `tree-folders`, `size-tier-box`, `ur1-tier-words`, `group-head-compact`, `card-headline`
+  and `card-cap-once` read the root from the header (`TOPS` helper); `ur3-lifted-share` reads the new words.
+- **Screens**: every screen and every ur1-*/ur2-* tall shot re-shot; new tall shots r20-bella-coola-oct10-mainstem-cards
+  (a water's own total as the header), r20-bennett-lake-cards, r20-ape-creek-may1-cards (the why line).
+
 # regs v24 (user round 3, six-angler panel on v23) — in place on regs-v11.html
 
 - **Data: rows 20 / display 15** (page v36 re-snapped; oracle regenerated). Rendered as the data's words:

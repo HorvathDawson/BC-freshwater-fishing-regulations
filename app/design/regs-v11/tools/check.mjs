@@ -39,6 +39,13 @@
 //   from this stream — your hatchery rainbow trout count toward the 4, not these 2" (4); ur3-licence-not-resident: the
 //   licence dropdowns "If you’re not a B.C. resident · …" (5); ur3-combined-plain: the Kootenay LWA kokanee note
 //   "Kokanee from the Lower and Upper West Arms together: no more than 5 a day." (6)
+//   (round 20, owner review of v24; ONLY=20) r20-header-is-total: the group's header IS the tree's root tier (rows 21
+//   `header.tier`): the root's words with its number big, the ⓘ and its Rule book page in the header block, no total tier
+//   drawn, the root's children at the top of the tree with no indent (1); r20-share-inside-total: the share says "Only 2
+//   of the 4 may be from this stream", lifted ", not counting hatchery rainbow trout", never "count toward the 4, not
+//   these 2" (2); r20-big-numbers: a size box's and a count tier's number as big as the header's, the box's second number
+//   ("— 2 if one is a hatchery steelhead") big too (3). tree-folders, size-tier-box, ur1-tier-words, group-head-compact,
+//   card-headline and card-cap-once read the root from the header; ur3-lifted-share reads the new words
 //   (round 17) no-quota-table, kind-number-always, size-cap-line, within-shared-no-twice, bull-trout-row, card-is-the-caps
 //   (internal test over group.table / caps / oracle.json; table-is-the-data, checker-is-the-caps, check-my-catch and size-group-box retired)
 //   (round 16) gear-lines, worked-last; phase 2: (retired in round 17) rule-titles, inherited-caution, restates-one-line (table-mock retired; gear-sentence / gear-sentence-plain now read the labelled lines; no-bare-zero
@@ -93,6 +100,12 @@ const src = fs.readFileSync(PAGE, 'utf8');
 const hand = (src.match(/data-src="design"/g) || []).length, pend = (src.match(/pending/gi) || []).length;
 check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pending" in ${path.basename(PAGE)}`);
 // ONLY=18: just the round 18 block (iterating on it); the full suite runs everything once
+// round 20 (rows 21 `group.header.tier`): the tree's root tier is drawn in the group's header block, its children are the
+// top of `.qtree`; before, the root was the first `.qtree` child. Every tree check walks from here.
+const TOPS = `var topsOf = (g, art) => { const q = art.querySelector(':scope > .qtree'), els = q ? [...q.children] : [], root = [].concat(g.tree || [])[0];
+  return root && g.header && g.header.tier === root.id ? {hdr: art.querySelector(':scope > .ghd [data-root-tier]'), root, nodes: root.children || [], els} : {hdr: null, root: null, nodes: [].concat(g.tree || []), els}; };
+var hdrWords = el => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove()); return (c.textContent || '').replace(/\\s+/g, ' ').replace(/ ⓘ$/, '').trim(); };`;
+if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur2') { await roundUr2(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur1') { await roundUr1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -283,7 +296,9 @@ for (const [name, hash] of CARDS) await page(hash, async b => {
     const st = SNAP.states[sid()], norm = t => t.replace(/\\s+/g, ' ').trim();
     document.querySelectorAll('#keep article.row.ledger').forEach(art => {
       const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline) return;
-      const num = (art.querySelector('.rhead .num')?.firstChild?.textContent || '').trim();
+      // round 20 (owner 1): the header is the tree's root tier, so the big number is the root's (the total), read from .ghn
+      const rootN = art.querySelector('.rhead .num[data-root-tier]') ? [].concat(g.tree)[0].n : null;
+      const num = (art.querySelector('.rhead .num .ghn')?.textContent || art.querySelector('.rhead .num')?.firstChild?.textContent || '').trim();
       const lifts = (g.lifts || []).map(l => { const el = [...art.querySelectorAll('p, li, div')].reverse().find(e => norm(e.textContent).includes(norm(l.says).slice(0, 40)));
         // every lifting rule's page once (answers rows v9: each[] parts; older shape: the lift itself)
         const want = new Set((l.each && l.each.length ? l.each : [l]).flatMap(e => (SNAP.ruleInfo[(st.ruleKey || {})[e.by]]?.book || []).map(b => b[0])));
@@ -293,14 +308,14 @@ for (const [name, hash] of CARDS) await page(hash, async b => {
         return [k.name, k.species.length, row ? row.querySelectorAll('img, svg').length : -1]; });
       const lines = [...art.querySelectorAll('p:not(.ktags):not(.kmeta), li')].map(e => norm(e.textContent)).filter(Boolean);   /* round 18: a size chip ("any size") repeats by design; round 17: a row's shares / within tags repeat by design */
       const dup = lines.filter((t, i) => lines.indexOf(t) !== i);
-      out.push({head: g.headline.n, num, total: g.total, totalLine: !!g.total_line, lifts, kinds, dup});
+      out.push({head: rootN != null ? rootN : g.headline.n, hdrRoot: rootN != null, num, total: g.total, totalLine: !!g.total_line, lifts, kinds, dup});
     }); return out; })())`));
   for (const g of r) {
     if (g.missing) { card.headline.push([name, 'a state', 'not on this page']); continue; }
     if (g.head != null) card.headline.push([name, g.head, g.num]);
     g.lifts.forEach(n => card.book.push([name, n]));
     g.kinds.forEach(([k, want, got]) => card.pics.push([name, k, want, got]));
-    card.once.push([name, g.dup, g.totalLine && g.total != null && g.head !== g.total && +g.num === g.total]);
+    card.once.push([name, g.dup, !g.hdrRoot && g.totalLine && g.total != null && g.head !== g.total && +g.num === g.total]);   // round 20: with the root as header, the big number IS the total
   }
 });
 const badH = card.headline.filter(([, n, num]) => String(n) !== num);
@@ -500,9 +515,55 @@ async function roundUr3(){
   check('ur3-howtell-steelhead', K.vedder.stbtn && K.vedder.opens === true && /^Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›$/.test(K.vedder.stks), JSON.stringify([K.vedder.stks, K.vedder.opens]));
   check('ur3-buffer-feet', K.vedder.nofish.length === 2 && /within 23 m \(75 ft\) downstream/.test(K.vedder.nofish[0]) && /100 m \(330 ft\) radius/.test(K.vedder.nofish[1]), JSON.stringify(K.vedder.nofish));
   check('ur3-count-part-of', K.bella.count.includes('1 cutthroat or rainbow trout in all (part of the 2)'), JSON.stringify(K.bella.count));
-  check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === '2 a day per angler from this stream — your hatchery rainbow trout count toward the 4, not these 2', JSON.stringify(K.vedder.share));
+  // round 20 (owner 2): the UR3 words read as 4 + 2; the share now sits inside the total, the lifted fish not counted in it
+  check('ur3-lifted-share', K.vedder.share.length === 1 && K.vedder.share[0] === 'Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout', JSON.stringify(K.vedder.share));
   check('ur3-licence-not-resident', K.lic.res.length === 2 && K.lic.res.every(t => /^If you’re not a B\.C\. resident · \S/.test(t)) && /· Canadian, other province$/.test(K.lic.res[0]) && /· From outside Canada$/.test(K.lic.res[1]), JSON.stringify(K.lic.res));
   check('ur3-combined-plain', K.ko.rest.some(t => /^Kokanee from the Lower and Upper West Arms together: no more than 5 a day\./.test(t)) && !K.ko.rest.some(t => /combined daily quota/i.test(t)), JSON.stringify(K.ko.rest));
+}
+// ---------- round 20 (owner review of v24) ----------
+async function round20(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (1) the group's header and the tree's first tier are ONE block: the header block carries the root tier's words whole
+  // with its number big, the ⓘ and its Rule book page; no total tier is drawn; the root's children are the top of the tree,
+  // flush with it (no guide line, no indent). A total the tributary walk brought (Ape Creek) says why under it.
+  // (2) the share sits inside the total: "Only 2 of the 4 may be from this stream", lifted ", not counting hatchery rainbow
+  // trout"; nowhere "count toward the 4, not these 2" / "don’t use these 2".
+  // (3) every tier's number is as big as the header's (a size box's, a count tier's), and the box's second number too.
+  const R20 = [], R20S = ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=1', 'w=bellacoola&d=1010&p=1', 'w=x35p&d=1010', 'w=klwa&d=1010', 'w=ape&d=501'];
+  for (const hash of R20S) await page(hash, async b => {
+    R20.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${TOPS} const st = ST(), bad = [], out = [], R = e => e.getBoundingClientRect();
+      const tl = (art, t) => [...art.querySelectorAll('section.tnode[data-tnode="' + t + '"] > .tier .tl')].map(e => hdrWords(e));
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
+        const T = topsOf(g, art), o = {root: T.root ? T.root.says : null, hdr: hdrWords(T.hdr), why: norm(T.hdr?.querySelector('[data-why-here]')?.textContent), share: tl(art, 'share'), sizes: [], big: 0, nums: []};
+        if (!T.root) { bad.push('header.tier does not name the root'); out.push(o); return; }
+        if (!T.hdr) bad.push('no root line in the header block');
+        else { if (o.hdr !== norm(T.root.says)) bad.push('header ' + JSON.stringify(o.hdr) + ' vs ' + JSON.stringify(T.root.says));
+          const big = T.hdr.querySelector('.ghn'); if (T.root.n != null && norm(big?.textContent) !== String(T.root.n)) bad.push('header number ' + norm(big?.textContent));
+          if (st.ruleKey?.[T.root.by] && !T.hdr.querySelector('a.book')) bad.push('no Rule book page on the header line');
+          if (T.root.why_here && !o.why) bad.push('why_here not drawn');
+          o.big = big ? parseFloat(getComputedStyle(big).fontSize) : 0; }
+        if (art.querySelector('section.tnode[data-tnode="total"]')) bad.push('a total tier drawn');
+        if (T.els.length !== T.nodes.length) bad.push(T.els.length + ' top nodes of ' + T.nodes.length);
+        const q = art.querySelector(':scope > .qtree'); if (q && T.els.length && Math.abs(R(T.els[0]).left - R(q).left) > 1) bad.push('top nodes indented');
+        o.nums = [...art.querySelectorAll('.tier .tn')].map(e => [e.closest('.tier').dataset.tier, parseFloat(getComputedStyle(e).fontSize), norm(e.textContent)]);
+        const walk = t => { if (t.node !== 'tier') return; if (t.tier === 'size' && t.extra) { const el = art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
+            o.sizes.push({says: t.says, n: t.n, extra: t.extra.n, second: norm(el?.querySelector('.tn2')?.textContent), secondPx: el?.querySelector('.tn2') ? parseFloat(getComputedStyle(el.querySelector('.tn2')).fontSize) : 0}); }
+          (t.children || []).forEach(walk); };
+        T.nodes.forEach(walk);
+        out.push(o); });
+      return {hash: location.hash.slice(8), out, bad}; })())`)));
+  });
+  const v = R20.find(x => x.hash === 'w=vedder&d=1010'), c = R20.find(x => x.hash.startsWith('w=chilliwack')), ape = R20.find(x => x.hash.startsWith('w=ape'));
+  const hb = R20.filter(x => !x.out.length || x.bad.length);
+  check('r20-header-is-total', R20.length === R20S.length && !hb.length && v?.out[0]?.hdr === '4 a day per angler across Region 2, lakes included' && !!ape?.out[0]?.why && /^This river’s rule: up to \d+ a day per angler$/.test(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr || ''),
+    hb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; ') || `vedder header ${JSON.stringify(v?.out[0]?.hdr)}; ape why ${JSON.stringify(ape?.out[0]?.why)}; bella ${JSON.stringify(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr)}`);
+  const stale = R20.flatMap(x => x.out.flatMap(o => o.share)).filter(t => /count toward the \d+, not these|don’t use these|\(part of the \d+\)$/.test(t));
+  check('r20-share-inside-total', JSON.stringify(v?.out[0]?.share) === '["Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"]' && JSON.stringify(c?.out[0]?.share) === '["Only 2 of the 4 may be from this stream"]' && !stale.length,
+    `vedder ${JSON.stringify(v?.out[0]?.share)}; chilliwack ${JSON.stringify(c?.out[0]?.share)}; stale ${JSON.stringify(stale)}`);
+  const small = R20.flatMap(x => x.out.flatMap(o => o.nums.filter(([, px]) => o.big && px < o.big - 0.5).map(n => `${x.hash}: ${n[0]} ${n[2]} at ${n[1]}px (header ${o.big}px)`)));
+  const seconds = R20.flatMap(x => x.out.flatMap(o => o.sizes.map(s => ({...s, big: o.big, hash: x.hash})))), sb = seconds.filter(s => s.second !== String(s.n + s.extra) || s.secondPx < s.big - 0.5);
+  check('r20-big-numbers', R20.some(x => x.out.some(o => o.nums.some(n => n[0] === 'size'))) && R20.some(x => x.out.some(o => o.nums.some(n => n[0] === 'count'))) && seconds.length >= 2 && !small.length && !sb.length,
+    small.slice(0, 4).concat(sb.map(s => `${s.hash}: second number ${JSON.stringify(s.second)} at ${s.secondPx}px for ${s.says}`)).join('; ') || `no size/count tier or second number seen`);
 }
 // (L) Licence: each tab shows only the default angler's (B.C. resident) answer; every other residency is a "Rules for
 // other anglers" dropdown of its own, carrying that residency's 16-or-older AND under-16 answers (the snapshot's own words)
@@ -984,14 +1045,17 @@ for (const hash of R17) await page(hash, async b => {
             if (c.n !== Math.min(+shown, z.n)) bad.push(k.says + ' ' + c.sp + ' ' + c.says + ': ' + c.n + ' vs min(' + shown + ', ' + z.n + ')'); }));
           return; }
         if (!el) { bad.push(t.says + ': tier not drawn'); return; }
-        const n = +norm(el.querySelector(':scope > .tier .tn')?.textContent), kids = [...(el.querySelector(':scope > .tch')?.children || [])];
+        // round 20: the root tier is the header block's line (its number .ghn), its children the top of .qtree
+        const atHdr = el.matches('[data-root-tier]'), n = +norm(el.querySelector(atHdr ? '.ghn' : ':scope > .tier .tn')?.textContent);
+        const kids = [...((atHdr ? art.querySelector(':scope > .qtree') : el.querySelector(':scope > .tch'))?.children || [])];
         if (t.n != null) { nums++;
           if (n !== t.n) bad.push(t.says + ': shows ' + n);
           if (t.tier === 'size') { if (!capOver(n, c => c.kinds.here.length && c.kinds.here.every(x => (ck[x]?.from || 0) >= t.over_cm) && (t.species || []).every(x => spOf(c.kinds.here).has(x)))) bad.push(t.says + ': no cap of that take over its fish at its size'); }
           else { const want = new Set(keptUnder(t)); if (!capOver(n, c => [...want].every(x => spOf(c.kinds.here).has(x)))) bad.push(t.says + ': no cap of that take over all its kept fish'); } }
         (t.children || []).forEach((c, i) => walk(c, kids[i], t.tier === 'size' ? [...sizes, t] : sizes)); };
-      const tops = [...(art.querySelector(':scope > .qtree')?.children || [])];
-      [].concat(g.tree || []).forEach((t, i) => walk(t, tops[i], [])); });
+      const tops = [...(art.querySelector(':scope > .qtree')?.children || [])], root = [].concat(g.tree || [])[0];
+      const hdr = root && g.header && g.header.tier === root.id ? art.querySelector(':scope > .ghd [data-root-tier]') : null;
+      [].concat(g.tree || []).forEach((t, i) => walk(t, i === 0 && hdr ? hdr : tops[i], [])); });
     return {at: location.hash, id: sid(), nums, bad}; })())`)));
 });
 const cc17 = CC17.filter(x => x.bad.length || !x.nums);
@@ -1002,6 +1066,7 @@ await round19();
 await roundUr1();
 await roundUr2();
 await roundUr3();
+await round20();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1064,7 +1129,14 @@ async function round18(){
         if (!blk) { out.push({bad: ['no .ghd block']}); return; }
         const num = blk.querySelector('.num'), big = num?.querySelector('.ghn'), unit = num?.querySelector('.ghu');
         if (!blk.querySelector('.rtitle')) bad.push('no name');
-        if (h.n != null) { if (norm(big?.textContent) !== String(h.n)) bad.push('number ' + norm(big?.textContent));
+        // round 20 (owner 1): the header is the tree's root tier — its number big in its words, the words whole on the line
+        const root = [].concat(g.tree || [])[0], hdrRoot = root && g.header && g.header.tier === root.id ? root : null;
+        if (hdrRoot) { if (!num?.matches('[data-root-tier]')) bad.push('header not the root tier');
+          if (hdrRoot.n != null) { if (norm(big?.textContent) !== String(hdrRoot.n)) bad.push('number ' + norm(big?.textContent));
+            const c = num.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove());
+            if (norm(c.textContent).replace(/ ⓘ$/, '') !== norm(hdrRoot.says)) bad.push('root words ' + norm(c.textContent));
+            const bn = R(big), un = R([...num.querySelectorAll('.ghu')].pop()); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); } }
+        else if (h.n != null) { if (norm(big?.textContent) !== String(h.n)) bad.push('number ' + norm(big?.textContent));
           if (norm(unit?.textContent) !== h.unit) bad.push('unit ' + norm(unit?.textContent));
           const bn = R(big), un = R(unit); if (!bn || !un || un.top >= bn.bottom || un.bottom <= bn.top) bad.push('unit not on the number line'); }
         (g.header ? [] : h.also || []).forEach(x => { if (![...blk.querySelectorAll('.also')].some(e => norm(e.textContent) === 'or ' + x.says)) bad.push('also ' + x.says); });
@@ -1082,7 +1154,9 @@ async function round18(){
         out.push({t: norm(blk.querySelector('.rtitle')?.textContent), h: Math.round(R(blk).height), bad}); });
       return {hash: location.hash.slice(8), out}; })())`)));
   });
-  const ghb = GH.filter(x => !x.out.length || x.out.some(g => g.bad.length) || (x.hash === 'w=vedder&d=1010' && x.out[0].h > 145));
+  // round 20 (owner 1): the block now carries the root tier's line (two lines on the Vedder: 148 px; a whole tier level left
+  // the tree below it), so the bound is 150 px — still two thirds of the 218 px before round 18
+  const ghb = GH.filter(x => !x.out.length || x.out.some(g => g.bad.length) || (x.hash === 'w=vedder&d=1010' && x.out[0].h > 150));
   check('group-head-compact', GH.length === 6 && !ghb.length, ghb.map(x => `${x.hash}: ${JSON.stringify(x.out)}`).join('; '));
 
   // ---------- round 18 phase 2 (rows 16 `group.tree`) ----------
@@ -1095,7 +1169,7 @@ async function round18(){
   const TR = [];
   const TRS = ['w=vedder&d=1010', 'w=vedder&d=515', 'w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=ape&d=501', 'w=klwa&d=1010', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=hamill&d=615', 'w=chilliwack&d=1010&p=1'];
   for (const hash of TRS) await page(hash, async b => {
-    TR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let tiers = 0, kinds = 0, own = [];
+    TR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${TOPS} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let tiers = 0, kinds = 0, own = [];
       const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
       const kind = (k, el, at) => { if (!el?.matches('.krow.kt[data-sp]')) return bad.push(at + ': kind ' + k.says + ' not drawn here'); kinds++;
         if (el.dataset.sp !== k.species.join(' ')) bad.push(k.says + ': species ' + el.dataset.sp);
@@ -1125,8 +1199,13 @@ async function round18(){
         if (t.tier === 'own') own.push({says: t.says, sub: norm(el.querySelector(':scope > .tier .tsub')?.textContent), why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
         t.children.forEach((c, i) => (c.node === 'tier' ? tier : kind)(c, kids[i], t.says)); };
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline || !g.tree) return;
-        const q = art.querySelector(':scope > .qtree'), tops = q ? [...q.children] : [];
-        [].concat(g.tree).forEach((t, i) => tier(t, tops[i], 'root'));
+        // round 20 (owner 1): the root tier is the header block's line; its children are the top of the tree
+        const T = topsOf(g, art);
+        if (T.root) { tiers++; if (!T.hdr) bad.push('root ' + T.root.says + ' not in the header');
+          else { if (hdrWords(T.hdr) !== norm(T.root.says)) bad.push('root drawn ' + hdrWords(T.hdr));
+            if (T.root.n != null && norm(T.hdr.querySelector('.ghn')?.textContent) !== String(T.root.n)) bad.push('root number ' + norm(T.hdr.querySelector('.ghn')?.textContent)); }
+          if (T.els.length !== T.nodes.length) bad.push('root: ' + T.els.length + ' drawn children of ' + T.nodes.length); }
+        T.nodes.forEach((t, i) => (t.node === 'tier' ? tier : kind)(t, T.els[i], 'root'));
         if (art.querySelector('section.bkt, [data-qgroup], [data-sgroup], [data-between]')) bad.push('bucket fields drawn'); });
       const tags = document.querySelectorAll('#keep .ktag, #keep .ktags').length; if (tags) bad.push(tags + ' tags');
       return {hash: location.hash.slice(8), tiers, kinds, own, bad}; })())`)));
@@ -1175,10 +1254,10 @@ async function round19(){
   // the data's words whole
   const SB = [], SBS = ['w=vedder&d=1010', 'w=vedder&d=515', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=0', 'w=bellacoola&d=501&p=1', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=klwa&d=1010'];
   for (const hash of SBS) await page(hash, async b => {
-    SB.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let boxes = 0, notes = 0, origins = 0;
+    SB.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${TOPS} const st = ST(), bad = [], R = e => e.getBoundingClientRect(); let boxes = 0, notes = 0, origins = 0;
       const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
-        const tops = [...(art.querySelector(':scope > .qtree')?.children || [])], ids = {};
+        const T = topsOf(g, art), ids = {};   // round 20: the root is the header's line, its children the top of the tree
         const walk = (t, el, inSize) => { if (t.node !== 'tier') { if (t.size_note) { notes++;
               const sn = el?.querySelector('[data-size-note]'), box = el?.closest('section.tnode[data-tnode="size"]');
               if (norm(sn?.textContent) !== norm(cap1(t.size_note.says))) bad.push(t.says + ': size note ' + JSON.stringify(norm(sn?.textContent)));
@@ -1192,7 +1271,7 @@ async function round19(){
             kids.forEach(k => { const q = R(k); if (q.left < r.left + 4 || q.right > r.right - 4 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the box'); });
             const tl = R(el.querySelector(':scope > .tier .tl')); if (tl.top < r.top || tl.left < r.left || tl.right > r.right + 0.5) bad.push(t.says + ': its line not inside the box'); }
           const kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walk(c, kids[i])); };
-        [].concat(g.tree).forEach((t, i) => walk(t, tops[i]));
+        T.nodes.forEach((t, i) => walk(t, T.els[i]));
         if (g.origin) { origins++; const og = art.querySelector('[data-origin]'), said = norm([...(og?.childNodes || [])].filter(n => !(n.nodeType === 1 && n.matches('button'))).map(n => n.textContent).join(' '));
           if (g.header && g.header.tag == null && said !== norm(g.origin)) bad.push('origin drawn ' + JSON.stringify(said) + ' vs ' + JSON.stringify(g.origin)); }
         if (g.header && g.header.tag == null && art.querySelector('.gtag')) bad.push('a tag drawn though header.tag is null'); });
@@ -1225,14 +1304,16 @@ async function roundUr1(){
   // A, B, D: each tier line shows the data's words whole; the words a panel misread are the data's new ones
   const TW = [];
   for (const hash of ['w=vedder&d=1010', 'w=bellacoola&d=501&p=1', 'w=chilliwack&d=1010&p=1', 'w=klwa&d=1010']) await page(hash, async b => {
-    TW.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], seen = {total: 0, share: 0, lifted: 0, size: 0, count: 0};
+    TW.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${TOPS} const st = ST(), bad = [], seen = {total: 0, share: 0, lifted: 0, size: 0, count: 0};
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return;
-        const lifted = (g.lifts || []).length > 0;
-        const walk = t => { if (t.node !== 'tier') return; const el = art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
-          const shown = norm([...(el?.childNodes || [])].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('button') || n.matches('.gl')))).map(n => n.textContent).join(' '));
+        const lifted = (g.lifts || []).length > 0, T = topsOf(g, art);
+        // round 20: the root tier is the header block's line (header.tier names it)
+        const walk = t => { if (t.node !== 'tier') return; const el = T.root === t ? T.hdr : art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
+          const shown = norm([...(el?.childNodes || [])].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('button') || n.matches('.gl') || n.matches('.ghr')))).map(n => n.textContent).join(' '));
           if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
-          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/ — your .+ (don’t use these \\d+|count toward the \\d+, not these \\d+)$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
+          // round 20 (owner 2): the lifted fish are named as not counted in the share, which sits inside the total
+          if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/^Only \\d+ of the \\d+ may be from this (stream|lake), not counting .+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
           if (t.tier === 'size') { seen.size++; if (!/^(Only \\d+|None) of the fish in this box may be over /.test(t.says)) bad.push('size: ' + t.says); }
           if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all( \\(part of the \\d+\\))?$/.test(t.says)) bad.push('count: ' + t.says); }
           (t.children || []).forEach(walk); };

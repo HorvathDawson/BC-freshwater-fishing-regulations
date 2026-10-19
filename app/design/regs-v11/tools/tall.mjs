@@ -25,6 +25,11 @@ const TALL = [
   ['ur2-kootenay-licence-other-province-open', `w=klwa&d=1010&open=${encodeURIComponent('[data-res="non_resident"]')}`, 'licence'],
   ['ur2-vedder-keep-full', V, 'keep'],
   ['ur2-kootenay-kokanee-sheet-full', `w=klwa&d=1010&sheet=${encodeURIComponent('other:klwa_1010|o0')}`, 'sheet'],
+  // round 20 (owner review of v24): the header IS the total tier — a water's own total as the header (Bella Coola Oct 10),
+  // a zone total over an own tier and a size box (Bennett Lake), a walked total saying why under the header (Ape Creek)
+  ['r20-bella-coola-oct10-mainstem-cards', 'w=bellacoola&d=1010&p=1', 'cards'],
+  ['r20-bennett-lake-cards', 'w=x35p&d=1010', 'cards'],
+  ['r20-ape-creek-may1-cards', 'w=ape&d=501', 'cards'],
 ];
 const only = process.argv[2];
 for (const [name, hash, what] of TALL) {
