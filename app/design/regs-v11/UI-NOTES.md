@@ -1,3 +1,38 @@
+# regs v28 (round 20d, owner: stacked pinned headers instead of nesting; clearer grouping) — in place on regs-v11.html
+
+UI only (no data change): handoff/PLAN/r20d_nesting.md has the before/after screenfuls, the reader scores and the measurements.
+- **FLAT instead of nested.** The tree still comes from the data (`group.tree`), but it is DRAWN as a flat list: every tier is
+  a section HEADER (its full data words, a 3 px bar at the card's edge, accent for a water's own rule) and the rows after it
+  sit on the header's text edge — no rails, no indent per level, no box in a box. A size section is a tinted BAND (its data
+  words say "this box"): a surface, never a border inside a border; its chips take the card colour. A GROUP starts with a
+  full-bleed tinted head band (name · scope, then the total on ONE line: the figure at --t2, the words at --t4, the ⓘ
+  inline) and the origin line + the root's Rule book page in the block under it; groups end with air.
+- **The pin bar.** Under the header, `#pins` (sticky, zero height, an overlay) carries the chain of sections the reader is
+  inside — the group's line first, then one "↳ …" line per tier whose header has slid under the bar — each ONE line, built
+  by `shortOf()` from the tier's own fields (n, its `says`, `whose`, `over_cm`, `extra`, the folded kind's fish names) and
+  the page's connecting words, which are structural like the tab names and listed here: "↳", " · ", "a day across", "of
+  them", "from this stream/lake" (the data's), "of those", "over … cm", "plus up to … under", "… of them … under". So:
+  "Trout and char · 4 a day across Region 2" / "↳ 2 of them from this stream" / "↳ of those, 1 over 50 cm (2 if one is a
+  hatchery steelhead)" / "↳ plus up to 4 hatchery rainbow trout under this river’s rule"; a water's own total "Trout and
+  char · This lake’s rule: 2 a day"; a count tier "↳ of those, 1 cutthroat or rainbow trout in all". Every level that limits
+  the count stays pinned while the reader is inside it (owner: never unpin "2 of the 4"); a line appears once its in-place
+  header's top has slid under the bar and goes when its section ends; at How it adds up only the group line remains; in
+  Other fish the bar is hidden. The stack is 26 px a line (≤ 90 px measured bound). Round 20c's sticky headers are retired.
+- **Possession covers every fish** (owner): the "ⓘ Possession: twice the daily quota (…) Source" footnote under Other fish
+  is a card-level row in the list's style after Other fish and before Where you can't fish — "Possession · twice the daily
+  quota ›" — whose sheet holds the sentence, the term's words (`SNAP.gloss`) and the Source / Rule book links (data words).
+- **Side items**: the fish names under the pictures `text-wrap: balance` (pictures unchanged).
+- **Checks** (in the 20c block, ONLY=20c; all three fail on regs v27 — scratchpad r20d/check-before.txt): `r20d-pinned-stack`
+  (six waters scrolled to a row: the bar under the header, the group line first with the root's number, "↳" lines for exactly
+  the sections containing the pin line whose header passed, each one line and uncut, the stack ≤ 90 px, the row below; only
+  the group line at How it adds up; no bar in Other fish), `r20d-flat` (no bordered section, no rail, one text edge for
+  headers and rows, a size section a tinted band), `r20d-compact-head` (the head ≤ 66 px with the total on one line).
+  `size-tier-box` now wants the band; `tree-folders` wants no indent; the root's Rule book page is found in the head blocks.
+  `r20c-pinned-context` retired.
+- **Readers**: screenful gate (one mid-scroll frame per question, 7 questions incl. "from this stream, 2 or 4?" on the
+  steelhead/over-50 frame) 7/7 (before 6/6 on the six shared); the full-card 21-question set: see r20d_nesting.md.
+- **Screens**: every screen and tall shot re-shot; before/after screenful pairs under screens/r20d/.
+
 # regs v27 (round 20c, owner: a format audit, "the style feels off", context in every screenful) — in place on regs-v11.html
 
 Audit and numbers: handoff/PLAN/r20c_style_audit.md (17 issues: 12 SMALL done, 4 BIG logged, 1 verified). No data change.

@@ -46,7 +46,12 @@
 //   these 2" (2); r20-big-numbers: a size box's and a count tier's number as big as the header's, the box's second number
 //   ("— 2 if one is a hatchery steelhead") big too (3). tree-folders, size-tier-box, ur1-tier-words, group-head-compact,
 //   card-headline and card-cap-once read the root from the header; ur3-lifted-share reads the new words
-//   (round 20c, owner: a format audit, context in every screenful; ONLY=20c) r20c-pinned-context: scrolled deep into a group
+//   (round 20d, owner: stacked pinned headers instead of nesting, clearer grouping; in the 20c block, ONLY=20c)
+//   r20d-pinned-stack: the pin bar under the header carries the chain of sections the reader is inside, one short line each
+//   ("Trout and char · 4 a day across Region 2" / "↳ 2 of them from this stream" / "↳ of those, 1 over 50 cm (…)"), ≤ 90 px,
+//   the row below; r20d-flat: no bordered section, no rail, one text edge for headers and rows, a size section a tinted band;
+//   r20d-compact-head: the group head two lines, the total on one. size-tier-box takes the band; tree-folders wants no indent
+//   (round 20c, owner: a format audit, context in every screenful; ONLY=20c) r20c-pinned-context (retired in 20d): scrolled deep into a group
 //   at phone size, the group's name + total line sit under the header, a top-level tier line under it, a size box's head under
 //   that, the row below (position:sticky, measured offsets); r20c-style-tokens: on the Keep tab at most 4 font sizes beside the
 //   strip's axis, 4 weights, one link colour, no underlined link, ALL-CAPS only on the section kickers, every hit area ≥ 32 px.
@@ -539,32 +544,63 @@ async function roundUr3(){
 // ---------- round 20c (owner: a format audit; context in every screenful) ----------
 async function round20c(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
-  // pinned context: scrolled to a row deep inside the Vedder's over-50 box (the bull trout row), the group's name + total line
-  // sits right under the header, the share tier line right under it, the box's head right under that, and the row is in view
-  // below them — all of it read off the rendered page at phone size (no tall mode). Bennett: a top-level size box pins under
-  // the group block. Fails before: nothing pinned, the group block scrolled off.
+  // round 20d (owner: stacked pinned headers instead of nesting): the pin bar under the header carries the chain of sections
+  // the reader is inside — the group's line first ("Trout and char · 4 a day across Region 2"), then one "↳ …" line per tier
+  // whose header has slid under the bar — each ONE line, the stack ≤ 90 px at 390, the row in view below it; at How it adds up
+  // only the group line remains; inside Other fish the bar is hidden. Fails before: no bar (round 20c pinned the full headers).
   const PC = [];
-  for (const [hash, sp] of [['w=vedder&d=1010', 'DV'], ['w=chilliwack&d=1010&p=1', 'ST'], ['w=x35p&d=1010', 'DV'], ['w=glenn&d=615', 'RB']]) {
+  for (const [hash, sp] of [['w=vedder&d=1010', 'DV'], ['w=chilliwack&d=1010&p=1', 'ST'], ['w=bellacoola&d=501&p=1', 'CT'], ['w=x35p&d=1010', 'DV'], ['w=glenn&d=615', 'RB'], ['w=klwa&d=1012', 'DV']]) {
     const b = await open(`${pathToFileURL(PAGE).href}#shot=1&${hash}`, { width: 440, height: 900, offline: true });
     try { await new Promise(r => setTimeout(r, 500));
-      PC.push(JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; const sc = document.getElementById('sc'), hdr = document.getElementById('hdr'), R = e => e.getBoundingClientRect(), bad = [];
+      PC.push(JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; const sc = document.getElementById('sc'), hdr = document.getElementById('hdr'), R = e => e.getBoundingClientRect(), bad = [], st = ST();
         const row = document.querySelector('#keep .krow.kt[data-sp~="${sp}"]'); if (!row) return JSON.stringify({hash: location.hash.slice(8), bad: ['no row for ${sp}']});
-        // scroll so the row's top sits at 60 % of the scroller — deep in its group
-        sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 300));
-        const art = row.closest('article.row.ledger'), pin = art.querySelector(':scope > .ghd.gpin'), top = R(hdr).bottom, scr = R(sc);
-        const vis = e => !!e && R(e).bottom > scr.top && R(e).top < scr.bottom;
-        if (!pin) bad.push('no pinned group block'); else { if (Math.abs(R(pin).top - top) > 1.5) bad.push('group block at ' + Math.round(R(pin).top - top) + 'px under the header'); if (!norm(pin.textContent).match(/\\d+ a day per angler|no daily limit/i)) bad.push('group block without the total: ' + norm(pin.textContent).slice(0, 60)); }
-        let y = pin ? R(pin).bottom : top, pinnedH = pin ? R(pin).height : 0; const chain = [];
-        for (let el = row.parentElement; el && el !== art; el = el.parentElement) if (el.matches('section.tnode')) chain.unshift(el);
-        chain.forEach((tn, i) => { const t = tn.querySelector(':scope > .tier'), topLevel = tn.parentElement.classList.contains('qtree');
-          // pinned at y, or — when its section is too short to pin — in view between the line above and the row
-          if (topLevel || tn.dataset.tnode === 'size') { const pinnedHere = t && Math.abs(R(t).top - y) <= 1.5, ok = t && (pinnedHere || (R(t).top >= y - 1.5 && R(t).bottom <= R(row).top + 1));
-            if (!ok) bad.push((tn.dataset.tnode) + ' tier line at ' + (t ? Math.round(R(t).top - y) : 'none') + 'px under the line above'); if (t) { y = R(t).bottom; if (pinnedHere) pinnedH += R(t).height; } } });
-        if (!vis(row) || R(row).top < y - 1) bad.push('the row is not visible below the pinned lines');
-        return JSON.stringify({hash: location.hash.slice(8), pinned: Math.round(pinnedH), chain: chain.map(c => c.dataset.tnode), bad}); })()`)));
+        const settle = () => new Promise(r => setTimeout(r, 350)), bar = () => document.querySelector('#pins .pinbar'), lines = () => bar() && !bar().hidden ? [...bar().querySelectorAll('.pl')] : [];
+        sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await settle();
+        const top = R(hdr).bottom, art = row.closest('article.row.ledger'), g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, root = [].concat(g.tree)[0], name = norm(art.querySelector('.rtitle')?.firstChild?.textContent);
+        const L = lines(), y = top, chain = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn); return r.top < y && r.bottom > y + 26 && R(tn.querySelector(':scope > .tier')).top < y + 26 * (1 + 0); });
+        if (!L.length) bad.push('no pinned lines'); else {
+          if (Math.abs(R(bar()).top - top) > 1.5) bad.push('bar at ' + Math.round(R(bar()).top - top) + 'px under the header');
+          if (!norm(L[0].textContent).startsWith(name + ' · ') || !new RegExp('(^|[^0-9])' + root.n + '([^0-9]|$)').test(norm(L[0].textContent))) bad.push('group line ' + JSON.stringify(norm(L[0].textContent)));
+          L.slice(1).forEach(l => { if (!/^↳ /.test(norm(l.textContent))) bad.push('a deeper line without ↳: ' + norm(l.textContent)); });
+          L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * 1.6) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
+          if (R(bar()).height > 90) bad.push('stack ' + Math.round(R(bar()).height) + 'px');
+          // every section containing the pin line whose header has slid under the bar has a line, in order; no other line
+          const want = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn), tl = tn.querySelector(':scope > .tier'); return r.top < y && r.bottom > y + 26 && tl && R(tl).top < R(bar()).bottom; }).map(tn => tn.dataset.tid);
+          if (L.length - 1 !== want.length) bad.push('lines ' + (L.length - 1) + ' for sections ' + JSON.stringify(want));
+          if (R(row).top < R(bar()).bottom - 1) bad.push('the row is under the bar'); }
+        const res = {hash: location.hash.slice(8), stack: bar() && !bar().hidden ? Math.round(R(bar()).height) : 0, lines: L.map(l => norm(l.textContent))};
+        // at How it adds up: the group line only; in Other fish: nothing
+        const wk = art.querySelector('.worked'); if (wk) { sc.scrollTop = sc.scrollTop + R(wk).top - R(sc).top - top + R(sc).top + 40; await settle(); const L2 = lines(); res.atWorked = L2.map(l => norm(l.textContent)); if (L2.length !== 1) bad.push('at How it adds up: ' + L2.length + ' lines'); }
+        const ol = document.querySelector('#keep .olist'); if (ol) { sc.scrollTop = sc.scrollTop + R(ol).top - R(sc).top - top + R(sc).top + 40; await settle(); if (lines().length) bad.push('a bar inside Other fish: ' + lines().map(l => norm(l.textContent)).join(' / ')); }
+        return JSON.stringify({...res, bad}); })()`)));
     } finally { await b.close(); } }
   const pcb = PC.filter(x => x.bad.length);
-  check('r20c-pinned-context', PC.length === 4 && !pcb.length && PC.every(x => x.pinned > 40 && x.pinned < 260), pcb.map(x => `${x.hash}: ${x.bad.join(' | ')}`).join('; ') || `pinned ${JSON.stringify(PC.map(x => [x.hash, x.pinned, x.chain]))}`);
+  check('r20d-pinned-stack', PC.length === 6 && !pcb.length && PC.some(x => x.lines.length >= 3) && PC.every(x => x.stack <= 90), pcb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; ') || `stacks ${JSON.stringify(PC.map(x => [x.hash, x.stack, x.lines]))}`);
+
+  // round 20d: FLAT — no bordered section, one indent level (every row and every section header's text on one edge, the
+  // group head on the card's edge), no rail; a size section is a tinted band without a border. The group head is two lines:
+  // the name line and ONE line for the total at phone width.
+  const FL = [];
+  for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=1', 'w=x35p&d=1010', 'w=glenn&d=615', 'w=klwa&d=1012']) await page(hash, async b => {
+    FL.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], R = e => e.getBoundingClientRect(), cs = e => getComputedStyle(e); let bands = 0, heads = 0;
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin'); if (!pin) return; heads++;
+        const num = pin.querySelector('.num'), lh = num ? parseFloat(cs(num).lineHeight) : 0;
+        if (R(pin).height > 66) bad.push('group head ' + Math.round(R(pin).height) + 'px');
+        if (num && R(num).height > lh * 1.6) bad.push('the total line wraps: ' + norm(num.textContent).slice(0, 50));
+        if (/rgba\(0, 0, 0, 0\)|transparent/.test(cs(pin).backgroundColor)) bad.push('group head without its band');
+        const edge = Math.round(R(pin).left + parseFloat(cs(pin).paddingLeft));
+        art.querySelectorAll('section.tnode').forEach(tn => { const c = cs(tn); if (['Top', 'Right', 'Bottom', 'Left'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0)) bad.push('a bordered section: ' + tn.dataset.tnode);
+          const ch = tn.querySelector(':scope > .tch'); if (ch && (parseFloat(cs(ch).paddingLeft) > 0 || parseFloat(cs(ch).marginLeft) > 0 || cs(ch).borderLeftStyle !== 'none')) bad.push('a rail under ' + tn.dataset.tnode);
+          if (tn.dataset.tnode === 'size') { bands++; if (/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor)) bad.push('the size section is not a band'); } });
+        const tls = [...art.querySelectorAll('.tier .tl')].map(e => Math.round(R(e).left + parseFloat(cs(e).borderLeftWidth) + parseFloat(cs(e).paddingLeft)));
+        const rows = [...art.querySelectorAll('.krow.kt')].map(e => Math.round(R(e).left + parseFloat(cs(e).paddingLeft)));
+        const edges = new Set([...tls, ...rows]); if (edges.size > 1) bad.push('text edges ' + JSON.stringify([...edges]));
+        if (rows.length && [...edges][0] - edge > 40) bad.push('rows ' + ([...edges][0] - edge) + 'px in'); });
+      return {hash: location.hash.slice(8), heads, bands, bad}; })())`)));
+  });
+  const flb = FL.filter(x => x.bad.length);
+  check('r20d-flat', FL.length === 6 && FL.reduce((a, x) => a + x.bands, 0) >= 4 && !flb.some(x => x.bad.some(y => /section|rail|edges|px in|band/.test(y))), flb.flatMap(x => x.bad.filter(y => /section|rail|edges|px in|band/.test(y)).map(y => x.hash + ': ' + y)).slice(0, 6).join('; '));
+  check('r20d-compact-head', FL.reduce((a, x) => a + x.heads, 0) >= 6 && !flb.some(x => x.bad.some(y => /group head|total line/.test(y))), flb.flatMap(x => x.bad.filter(y => /group head|total line/.test(y)).map(y => x.hash + ': ' + y)).join('; '));
 
   // style tokens: on the Keep tab at most four font sizes beside the strip's 10 px month axis, at most four weights, one link
   // colour, no underlined link, ALL-CAPS only on .lab / .scope / .bkh, every button or link reaching 32 px (its hit area)
@@ -638,7 +674,7 @@ async function round20b(){
         T.nodes.forEach((t, i) => walkK(t, T.els[i]));
         // (book) a page once per branch: walk tiers with the pages shown above (the header's root pages first)
         const seen0 = new Set(pagesOf(st.ruleKey?.[T.root.by]));
-        if (T.hdr && !T.hdr.querySelector('a.book') && seen0.size) bad.push('BOOK header shows no Rule book page');
+        if (T.hdr && !art.querySelector(':scope > .ghd a.book') && seen0.size) bad.push('BOOK header shows no Rule book page');
         const walkB = (t, el, seen) => { if (t.node !== 'tier') return; const key = st.ruleKey?.[t.by], mine = key ? pagesOf(key) : [], shown = [...(el?.querySelectorAll(':scope > .tier .tbk a.book') || [])].map(a => norm(a.textContent));
           const fresh = mine.filter(p => !seen.has(p));
           if (shown.length) { books++; if (!fresh.length) bad.push('BOOK ' + t.says.slice(0, 40) + ': repeats a page shown above (' + shown.join(', ') + ')'); }
@@ -679,7 +715,7 @@ async function round20(){
         if (!T.hdr) bad.push('no root line in the header block');
         else { if (o.hdr !== norm(T.root.says)) bad.push('header ' + JSON.stringify(o.hdr) + ' vs ' + JSON.stringify(T.root.says));
           const big = T.hdr.querySelector('.ghn'); if (T.root.n != null && norm(big?.textContent) !== String(T.root.n)) bad.push('header number ' + norm(big?.textContent));
-          if (st.ruleKey?.[T.root.by] && !T.hdr.querySelector('a.book')) bad.push('no Rule book page on the header line');
+          if (st.ruleKey?.[T.root.by] && !art.querySelector(':scope > .ghd a.book')) bad.push('no Rule book page in the group head');   // round 20d: in the block under the head
           if (T.root.why_here && !o.why) bad.push('why_here not drawn');
           o.big = big ? parseFloat(getComputedStyle(big).fontSize) : 0; }
         if (art.querySelector('section.tnode[data-tnode="total"]')) bad.push('a total tier drawn');
@@ -1347,7 +1383,8 @@ async function round18(){
         const ts = getComputedStyle(tl); if (t.tier !== 'size' && parseFloat(ts.borderLeftWidth) < 3) bad.push('tier ' + t.says + ': not styled as a tier line');
         const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
         // round 19 (owner 3): a size tier is a box holding its kinds (size-tier-box); every other tier a guide line
-        if (t.children.length && (!ch || (t.tier === 'size' ? R(ch).left < R(el).left + 4 : (R(ch).left < R(tl).left + 6 || getComputedStyle(ch).borderLeftStyle === 'none')))) bad.push('tier ' + t.says + ': children not indented' + (t.tier === 'size' ? ' inside its box' : ' on a guide line'));
+        // round 20d: FLAT — the children sit on the section's own edge, no guide line (round 18's rail retired)
+        if (t.children.length && (!ch || Math.abs(R(ch).left - (R(el).left + parseFloat(getComputedStyle(el).paddingLeft))) > 1 || getComputedStyle(ch).borderLeftStyle !== 'none')) bad.push('tier ' + t.says + ': children indented or railed');   // a size band bleeds and pads back: its content edge
         if (kids.length !== t.children.length) bad.push('tier ' + t.says + ': ' + kids.length + ' drawn children of ' + t.children.length);
         if (t.tier === 'own') own.push({says: t.says, sub: norm(el.querySelector(':scope > .tier .tsub')?.textContent), why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
         t.children.forEach((c, i) => (c.node === 'tier' ? tier : kind)(c, kids[i], t.says)); };
@@ -1419,10 +1456,11 @@ async function round19(){
             return; }
           if (t.tier === 'size') { boxes++; const cs = getComputedStyle(el), r = R(el);
             if (el.dataset.tid !== t.id) bad.push(t.says + ': box not marked ' + t.id);
-            if (['Top', 'Right', 'Bottom', 'Left'].some(sd => cs['border' + sd + 'Style'] === 'none' || parseFloat(cs['border' + sd + 'Width']) < 1)) bad.push(t.says + ': not a box (borders ' + cs.borderStyle + ' ' + cs.borderWidth + ')');
+            // round 20d: the size section is a tinted BAND (a surface), never a border inside a border
+            if (['Top', 'Right', 'Bottom', 'Left'].some(sd => cs['border' + sd + 'Style'] !== 'none' && parseFloat(cs['border' + sd + 'Width']) > 0) || /rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) bad.push(t.says + ': not a band (borders ' + cs.borderStyle + ', background ' + cs.backgroundColor + ')');
             const kids = [...(el.querySelector(':scope > .tch')?.children || [])];
             if (kids.length !== t.children.length) bad.push(t.says + ': ' + kids.length + ' drawn of ' + t.children.length);
-            kids.forEach(k => { const q = R(k); if (q.left < r.left + 4 || q.right > r.right - 4 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the box'); });
+            kids.forEach(k => { const q = R(k); if (q.left < r.left - 0.5 || q.right > r.right + 0.5 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the band'); });
             const tl = R(el.querySelector(':scope > .tier .tl')); if (tl.top < r.top || tl.left < r.left || tl.right > r.right + 0.5) bad.push(t.says + ': its line not inside the box'); }
           const kids = [...(el?.querySelector(':scope > .tch')?.children || [])]; t.children.forEach((c, i) => walk(c, kids[i])); };
         T.nodes.forEach((t, i) => walk(t, T.els[i]));

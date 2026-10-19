@@ -701,11 +701,7 @@ details.bookw blockquote{margin:0 0 10px}
 /* #1 context in every screenful (owner): the group's name + total line pin under the header while the reader is inside the
    group; a top-level tier line pins under that; a size box's head pins under the tier it sits in. Offsets are measured
    (pinTops: --hdr-h, --pin1, --pin2). In tall shots nothing scrolls, so nothing pins. */
-.ghd.gpin{position:sticky;top:var(--hdr-h,0px);z-index:2;background:var(--card);padding-bottom:var(--s1);border-bottom:1px solid var(--line2)}
 .ghd.gsub{padding:var(--s1) 0 var(--s2)}
-.qtree > .tnode > .tier{position:sticky;top:calc(var(--hdr-h,0px) + var(--pin1,0px));z-index:1;background:var(--card)}
-.qtree > .tnode > .tch .tnode[data-tnode="size"] > .tier{position:sticky;top:calc(var(--hdr-h,0px) + var(--pin1,0px) + var(--pin2,0px));z-index:1;background:var(--card)}
-.tall .ghd.gpin,.tall .tier{position:static}
 /* #2 / #13 lighter boxes: the size box 1.5 px with a 1 px head rule; a size chip is a tinted block, not a border inside a border */
 .tnode[data-tnode="size"]{border-width:1.5px}
 .tnode[data-tnode="size"] > .tier .tl{border-bottom-width:1px;font-size:var(--t4)}   /* the head's words at meta size, its numbers still --t1: two lines while pinned, not three */
@@ -728,6 +724,43 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 .owk{font-size:var(--t4)}
 /* #12 the indent rail: 28 px in from the tier line (36 before) */
 .tch{margin-left:var(--s2);padding-left:10px}
+/* ---------- round 20d (owner: stacked pinned headers instead of nesting; clearer grouping) ----------
+   FLAT: a section is a header line and the rows after it, every row on the headers' text edge; no rails, no box in a box. A
+   size section is a tinted BAND (its data words say "this box"): a surface, never a border inside a border. A GROUP starts
+   with a full-bleed tinted head band (name · scope, the total line) and ends with air. The pin bar under the header carries
+   the chain of sections the reader is inside, one short line each (pinUpdate). */
+.tch{margin:0;padding:0;border:0}.tch > .tnode{margin-top:0}.tnode{margin-top:0}
+.tnode[data-tnode="size"]{border:0;padding:0;margin:0}
+.tier .tl{margin:0;padding:var(--s2) 0 var(--s2) 10px;background:none;border-left:3px solid var(--ink);border-top:1px solid var(--line2);border-bottom:0;font:var(--w-head) var(--t3)/1.3 Archivo,sans-serif;text-wrap:pretty}
+.tnode[data-tnode="size"] > .tier .tl,.tnode[data-tnode="count"] > .tier .tl{font-size:var(--t4);border-bottom:0;border-left:3px solid var(--ink);margin:0;padding:var(--s2) 0 var(--s2) 10px;font-weight:var(--w-head)}
+.tnode[data-tnode="own"] > .tier .tl{border-left-color:var(--accent)}
+.tier{background:none}
+.tier .tsub{margin-left:13px}
+.krow.kt{padding-left:13px}
+.tnode[data-tnode="size"]{background:var(--tint);margin:var(--s2) -16px 0;padding:0 16px var(--s2)}
+.tnode[data-tnode="size"] > .tier .tl{border-top:0}
+.tnode[data-tnode="size"] .krow.kt{border-top-color:var(--line2)}
+.tnode[data-tnode="size"] .szc{background:var(--card)}
+.row.ledger{padding:0 16px var(--s3);border-top:0;margin-top:var(--s3)}
+.ghd.gpin{position:static;margin:0 -16px;padding:var(--s2) 16px var(--s2);background:var(--wash);border-top:1.5px solid var(--ink);border-bottom:0}
+.ghd.gpin .rhead{gap:0}.ghd.gpin .num{margin:0}.ghd.gpin .rtitle{line-height:1.2}
+.g28 .ghd.gpin .rhead .num[data-root-tier]{font-size:var(--t4);line-height:1.6}   /* the block's own 26 px headline size made a 34 px line box; the figure is 17 px, the words 12.5 px */
+.ghd.gpin .num .gl{min-height:0;height:auto;padding:0 2px;position:relative;vertical-align:-1px}.ghd.gpin .num .gl::before{content:"";position:absolute;left:-8px;right:-8px;top:-12px;bottom:-12px}   /* the ⓘ no longer inflates the total line */
+.ghd.gsub{padding:var(--s2) 0 var(--s1)}
+.ghd .num[data-root-tier] .ghn{font-size:var(--t2);line-height:1;vertical-align:-1px}
+.ghd .num[data-root-tier] .ghu{font-size:var(--t4)}
+.ghd .num[data-root-tier]{text-wrap:pretty}
+.g28 .ghd .rhead{gap:0}
+.gbk{display:inline-block;margin-left:0}
+#pins{position:sticky;top:var(--hdr-h,0px);z-index:2;height:0}
+#pins .pinbar{position:absolute;left:0;right:0;top:0;background:var(--wash);border-bottom:1.5px solid var(--ink)}
+#pins .pl{margin:0;padding:3px 16px;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pins .pl.g{font-size:var(--t3)}
+#pins .pl + .pl{padding-left:26px}
+#pins .pl b{font-weight:var(--w-num);color:var(--open)}
+.tall #pins{display:none}
+.posrow{margin:var(--s2) 16px 0;border-top:1.5px solid var(--ink)}.posrow .obtn{width:100%;padding:9px 0}
+.kcap{text-wrap:balance}
 </style>
 </head>
 <body>
@@ -906,6 +939,12 @@ function buildKeep(){
     nofish.className = 'nofish'; nofish.setAttribute('aria-labelledby', 'nofish-h');
     nofish.innerHTML = `<h3 id="nofish-h">Where you can’t fish ${(sc => sc && !/^where you can.t fish$/i.test(sc.trim()) ? `<span class="scope">${esc(sc)}</span>` : '')(cav.querySelector('.lbl')?.textContent || '')}</h3><ul>${[...cav.querySelectorAll('li')].map(li => `<li>${li.innerHTML}</li>`).join('')}</ul>`;
     cav.remove(); }
+  // round 20d (owner): possession covers EVERY fish — a card-level row in the list's style after the groups, not a footnote
+  // under Other fish; its sentence, the term's words and its Source open in a sheet (data words only)
+  root.querySelectorAll('.foot').forEach(f => { const txt = (f.textContent || '').replace(/\s+/g, ' ').trim(), m = txt.match(/^ⓘ?\s*(Possession)\s*:\s*([^(.]+?)\s*(?:\((.*?)\))?\.?\s*Source\s*$/); if (!m) return;
+    const rule = f.querySelector('[data-rule]')?.dataset.rule || '', gl = f.querySelector('.gl')?.dataset.gl || '', id = `${sid()}|pos`;
+    POS_[id] = {says: txt.replace(/^ⓘ?\s*/, '').replace(/\s*Source\s*$/, ''), rule, gl};
+    f.outerHTML = `<section class="posrow" aria-label="Possession"><button class="orow obtn" type="button" data-open="pos:${esc(id)}"><span class="on">${esc(m[1])}</span><b class="k-keep">${esc(m[2])}</b>${CHEV}</button></section>`; });
   // B4: an ⓘ the page puts before its term ("ⓘ Possession: …") goes right after the term
   root.querySelectorAll('.gl').forEach(b => { const n = b.nextSibling; const m = n && n.nodeType === 3 && n.textContent.match(/^(\s*)([^:.]{1,40})(:[\s\S]*)$/);
     if (m) { n.textContent = m[3]; b.before(doc.createTextNode(m[1] + m[2])); } });
@@ -1099,14 +1138,16 @@ function buildKeep(){
     const rootT = g.tree ? [].concat(g.tree)[0] : null, hdrRoot = rootT && g.header?.tier === rootT.id ? rootT : null;
     const rootLine = !hdrRoot ? '' : (() => { const key = st.ruleKey?.[hdrRoot.by], m = hdrRoot.n != null ? hdrRoot.says.match(new RegExp(`^(.*?)\\b${hdrRoot.n}\\b(.*)$`)) : null;
       const words = m ? `${m[1].trim() ? `<span class="ghu">${nbsp(m[1].trim())}</span> ` : ''}<b class="ghn">${hdrRoot.n}</b> <span class="ghu">${nbsp(m[2].trim())}</span>` : `<small>${nbsp(hdrRoot.says)}</small>`;
-      return `<div class="num${m ? '' : ' nolimit'}" data-root-tier="${esc(hdrRoot.id)}">${words}${qtip ? ' ' + qtip : ''}${key ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}${hdrRoot.why_here ? `<span class="ghr" data-why-here>${esc(cap1(hdrRoot.why_here))}</span>` : ''}</div>`; })();
+      return `<div class="num${m ? '' : ' nolimit'}" data-root-tier="${esc(hdrRoot.id)}">${words}${qtip ? ' ' + qtip : ''}${hdrRoot.why_here ? `<span class="ghr" data-why-here>${esc(cap1(hdrRoot.why_here))}</span>` : ''}</div>`; })();
+    // round 20d (owner 1): the root's Rule book page sits in the block under the head (the total line stays one line)
+    const rootBook = hdrRoot && st.ruleKey?.[hdrRoot.by] ? `<span class="tbk gbk">${bookLinks(st.ruleKey[hdrRoot.by])}</span>` : '';
     const tops = hdrRoot ? (hdrRoot.children || []) : [].concat(g.tree || []);
     const rootPages = hdrRoot && st.ruleKey?.[hdrRoot.by] ? pagesOf(st.ruleKey[hdrRoot.by]) : new Set();   // round 20b: pages the header shows
     const tree = g.tree ? `<div class="qtree" data-tree${hdrRoot ? ` data-root="${esc(hdrRoot.id)}"` : ''}>${tops.map(t => tnode(t, 0, 0, !hdrRoot, rootPages)).join('')}</div>` : buckets;
     // round 20c (owner: a reader must know what they are looking at in every screenful): the group's name and its total line
     // are ONE pinned block (`.ghd.gpin`, position:sticky under the header while inside the group); the origin line is the
     // block under it and scrolls away. A top-level tier line and a size box's head pin under the group block (CSS, pinTops()).
-    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig || (g.header ? '' : total) ? `<div class="ghd gsub">${orig}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
+    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig || rootBook || (g.header ? '' : total) ? `<div class="ghd gsub">${orig}${rootBook}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
@@ -1126,7 +1167,7 @@ function buildKeep(){
   if (nofish) root.append(nofish);
   return citeBooks(combineTips(root.innerHTML.replace(/ open=""/g, '')));
 }
-const KINDS = {}, OTHERS_ = {};
+const KINDS = {}, OTHERS_ = {}, POS_ = {};
 // round 15 (3): a row's sheet reads as ONE explanation. A rule line that only repeats the line above it in the same step of
 // "How this was decided" is drawn once. A row that answers by weekday (`rows[].week`) opens with one status block: the
 // weekday (no date: the window is said by weekday), its status (page v36's number or pill), the data's weekday sentence, then each day-part the data lists (`week`'s
@@ -1368,7 +1409,7 @@ function render(keep){
   const gearHtml = gh.slice(0, iL < 0 ? gh.length : iL) + (iR >= 0 ? gh.slice(iR) : ''), licHtml = iL < 0 ? '' : gh.slice(iL, iR >= 0 ? iR : gh.length);
   // round 20c (audit #8): no "Gear · for this water today" kicker over "Gear & methods" — the tab names the tab, the header the date
   const secLab = (name) => '';
-  sc.innerHTML = hdr() + `<div id="keep">${buildKeep()}</div><section class="sec" id="gear">${secLab('Gear')}${gearHtml}</section>`
+  sc.innerHTML = hdr() + `<div id="pins" aria-hidden="true"><div class="pinbar" hidden></div></div><div id="keep">${buildKeep()}</div><section class="sec" id="gear">${secLab('Gear')}${gearHtml}</section>`
     + (licHtml ? `<section class="sec" id="licence">${secLab('Licence')}${licHtml}</section>` : '') + `<div style="height:24px"></div>`;
   // no bottom tabs (owner, round 9: a different menu from the app's main menu)
   const sh = S.sheet ? sheetHtml(S.sheet) : ''; $('sheet').innerHTML = sh; $('sheet').classList.toggle('on', !!sh); $('scrim').classList.toggle('on', !!sh);
@@ -1376,7 +1417,7 @@ function render(keep){
   if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}|${S.br}|${S.bj}`, keepVB = MV.vb;
     if (!keepVB) mapOpened(); else { setVB(keepVB); if (MV.key !== key) ease(targetBox()); } MV.key = key; }
   else { MV.vb = null; MV.key = null; }
-  fitLabel(); pinTops(); sc.scrollTop = keep ? prev : S.scroll; mini();
+  fitLabel(); pinTops(); sc.scrollTop = keep ? prev : S.scroll; mini(); pinUpdate();
   poster();
 }
 // round 20c (owner: context in every screenful): the offsets the pinned lines sit at — the header's height, each group's
@@ -1387,7 +1428,35 @@ function pinTops(){ const de = document.documentElement, hh = de.classList.conta
   document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin');
     art.style.setProperty('--pin1', (pin ? pin.offsetHeight : 0) + 'px');
     art.querySelectorAll(':scope > .qtree > .tnode').forEach(tn => { const t = tn.querySelector(':scope > .tier'); tn.style.setProperty('--pin2', (t ? t.offsetHeight : 0) + 'px'); }); }); }
-addEventListener('resize', pinTops); if (document.fonts) document.fonts.ready.then(pinTops);
+addEventListener('resize', () => { pinTops(); pinUpdate(); }); if (document.fonts) document.fonts.ready.then(() => { pinTops(); pinUpdate(); });
+// round 20d (owner: "stacked sticky headers instead of nesting", reading top to bottom as ONE thought): the pin bar under the
+// header shows the chain of sections the reader is inside — the group, then every tier whose header has scrolled off — each
+// ONE short line built from the tier's own fields (n, its words, the fish names) joined by the page's connecting words
+// ("↳", "of them", "of those", "plus up to … under", listed in UI-NOTES): "Trout and char · 4 a day across Region 2" /
+// "↳ 2 of them from this stream" / "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)". Every level that limits the
+// count stays pinned while the reader is inside it (owner: never unpin "2 of the 4"). The full header still stands where
+// the section starts; the bar only shows a line once that header has passed under it.
+const lc1w = t => t ? t[0].toLowerCase() + t.slice(1) : t;
+function shortOf(t){ const n = t.n, says = t.says || '';
+  if (t.tier === 'total') { if (n == null) return says; const m = says.match(/ across (.+?)(?:, (?:lakes|streams) included)?$/); return m ? `${n} a day across ${m[1]}` : t.whose ? `${t.whose}: ${n} a day` : `${n} a day`; }
+  if (t.tier === 'share') { const w = (says.match(/from this (stream|lake)/) || [])[1] || 'stream'; return /^Only /.test(says) ? `${n} of them from this ${w}` : `${n} a day from this ${w}`; }
+  if (t.tier === 'own') { const k = (t.children || []).find(c => c.node === 'kind' && c.folded), names = k ? (k.says.match(/ may be (.+?)(?: only —.*)?$/) || [])[1] || '' : '', whose = lc1w(t.whose || '');
+    return t.replaces ? `plus up to ${n}${names ? ' ' + names : ''} under ${whose}` : `${n} of them${names ? ' ' + names : ''} under ${whose}`; }
+  if (t.tier === 'count') return `of those, ${says.replace(/ \(part of the \d+\)$/, '')}`;
+  if (t.tier === 'size') { const cut = says.indexOf(' — '), tail = cut > 0 ? says.slice(cut + 3) : ''; return `of those, ${n == null ? '' : n + ' '}over ${t.over_cm} cm${tail ? ` (${tail})` : ''}`; }
+  return says; }
+let PIN_LAST = '';
+function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstElementChild; if (!bar || !sc) return;
+  const hh = document.documentElement.classList.contains('ts2') ? 0 : ($('hdr')?.offsetHeight || 0), y = sc.getBoundingClientRect().top + hh, LH = 26, R = e => e.getBoundingClientRect(), st = ST(), lines = [];
+  const art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => { const r = R(a); return r.top < y && r.bottom > y + LH; });
+  if (art) { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, root = g && g.tree ? [].concat(g.tree)[0] : null, pin = art.querySelector(':scope > .ghd.gpin');
+    const name = (art.querySelector('.rtitle')?.firstChild?.textContent || '').trim();
+    if (root && pin && R(pin).top < y) { lines.push({cls: 'g', t: `${name} · ${shortOf(root)}`});
+      const byId = {}; (function walk(ns){ ns.forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children || []); } }); })(root.children || []);
+      [...art.querySelectorAll('section.tnode')].forEach(tn => { const r = R(tn), t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
+        if (t && tl && r.top < y && r.bottom > y + LH && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
+  const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}</p>`).join('');   // the tier's number big, once
+  if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; } }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
   // round 20b: three tabs on one scroll — the tab in view is the LAST section whose top has reached the header (the
@@ -1396,7 +1465,7 @@ function mini(){ const h = $('hdr');   // round 13 (owner H): the header no long
     const reached = el => !!el && el.offsetTop - sc.scrollTop <= hh + 12;
     const sec = (l && (reached(l) || atEnd)) ? 'licence' : (reached(g) || (!l && atEnd)) ? 'gear' : 'keep';
     document.querySelectorAll('.segm[role=tablist] button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sec === sec)); } }
-$('sc').addEventListener('scroll', mini, {passive:true});
+$('sc').addEventListener('scroll', () => { mini(); pinUpdate(); }, {passive:true});
 
 /* ---------- sheets: one sheet component ---------- */
 const head = (t, sub) => `<div class="shead"><div class="grab"></div><div class="r"><h2>${t}</h2><button class="done" data-close>Done</button></div>${sub ? `<p>${sub}</p>` : ''}</div>`;
@@ -1430,6 +1499,8 @@ function sheetHtml(k){
     return head(esc(x.t || 'Sources'), '') + `<div class="sbody gtopic">${x.b}</div>`; }
   if (k.startsWith('kind:')) { const x = KINDS[k.slice(5)]; if (!x) return '';
     return head(esc(x.title), '') + `<div class="sbody"><div class="krow" style="border:0;padding-top:4px"><span class="kb">${x.head.replace(/<b class="nm">[\s\S]*?<\/b>/, '')}</span></div><div class="lbl">How this was decided</div>${scopeLines(x.dec.replace(/<div class="lbl">How this was decided<\/div>/,''))}</div>`; }
+  if (k.startsWith('pos:')) { const o = POS_[k.slice(4)]; if (!o) return ''; const t = SNAP.gloss?.[o.gl], key = o.rule && st.ruleKey ? (Object.entries(st.ruleKey).find(([, v]) => v === o.rule) || [])[0] : null;
+    return head('Possession', '') + `<div class="sbody"><p class="glsays" data-possession>${esc(o.says)}</p>${t ? `<div class="lab">${esc(t.title)}</div>${t.body || ''}` : ''}<p class="srm">${o.rule ? `<button class="srcbtn" type="button" data-rule="${esc(o.rule)}">Source</button> ` : ''}${bookLinks(o.rule)}</p></div>`; }
   if (k.startsWith('other:')) { const o = OTHERS_[k.slice(6)]; if (!o) return ''; const x = weekSheet(o.html);
     const ph = o.codes.filter(c => FISHPIC(c).length), phRow = ph.length ? `<span class="kpics">${ph.map(c => fishBtn(c)).join('')}</span>` : '';
     const t = (o.html.match(/<span class="rtitle">([^<]+)/) || [])[1] || 'Other fish';
