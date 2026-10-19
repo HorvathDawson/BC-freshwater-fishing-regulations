@@ -98,6 +98,16 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20f (2026-10-19) — rows 23: a region's share says "from streams"
+
+Owner (round 20f 3; the 20e reader read "ALL REGION 2 STREAMS" + "from this stream" both ways). The share tier and the
+headline's unit say where the share holds: a share that is the REGION'S — a zone or province rule, the Region 2 streams'
+combined 2 (`tree.share_region_wide`: the share rule's `badge_of` is region or bc) — says "from streams" ("from lakes"):
+"Only 2 of the 4 may be from streams, not counting hatchery rainbow trout", "2 a day per angler from streams"; a share a
+water's own row sets keeps "from this stream". One place for the phrase (`tree.share_place`); the fold keeps it ("Only 2 of
+the 5 may be brook, brown, cutthroat or lake trout from streams"); the worked lines are unchanged ("none from other streams
+today"). `test_answers_r20f_streams.py`.
+
 ## ROUND20b (2026-10-18) — rows 22: fewer words on the card, nothing missing
 
 Owner: "as simple as possible, fewer words without missing anything"; a fresh reader answers the same 20 questions from the

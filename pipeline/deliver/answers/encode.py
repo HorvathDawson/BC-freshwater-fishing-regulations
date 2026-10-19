@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "22",
+            "version": "23",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -406,7 +406,10 @@ SPEC = {
                     "— draw its size, notes and pictures under the line and no sentence, so the number appears once; an "
                     "own tier's `line` is whose rule and why it applies here (no \"Replaces …\"; `replaces` stays a "
                     "field); under the total the share tier comes before a water's own tiers; the worked keep-N lines "
-                    "are the two ends of the range only (\"If you keep 4 …\", \"If you keep 2 …\")",
+                    "are the two ends of the range only (\"If you keep 4 …\", \"If you keep 2 …\"). Version 23 (ROUND20f 3): a share "
+                    "that is the REGION'S (a zone or province rule — the Region 2 streams' combined 2) says \"from streams\" / "
+                    "\"from lakes\" (\"Only 2 of the 4 may be from streams\", the headline \"2 a day per angler from streams\"); a "
+                    "share a water's own row sets keeps \"from this stream\" (`tree.share_place`)",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

@@ -166,6 +166,20 @@ def _count_also(kn, n, mine: List[str], others: List[str], some: bool = False) -
     return None
 
 
+def share_place(water: str, region_wide: bool) -> str:
+    """ROUND20f 3 (owner; a reader took "ALL REGION 2 STREAMS" + "from this stream" both ways): where the share is the
+    REGION'S — a zone or province rule, the Region 2 streams' combined 2 — it says "from streams" ("from lakes"); a share
+    a water's own row sets keeps "from this stream". The one place the phrase comes from (the share tier, its fold, the
+    headline's unit)."""
+    return f"{water}s" if region_wide else f"this {water}"
+
+
+def share_region_wide(P, share: Optional[dict]) -> bool:
+    """The share's rule is a region's or the province's (never a water's or an area's own row)."""
+    from pipeline.deliver.answers.rows import badge_of
+    return share is not None and badge_of(P.by_key[share["r"]]) in ("region", "bc")
+
+
 def fold_words(says: str, tier: str, n, names: str) -> str:
     """ROUND20b C1 (owner: "This river’s rule: up to 4 a day" over "Up to 4 may be hatchery rainbow trout" says 4
     twice): a tier whose ONLY child is one kind row at its number names the fish itself, and the kind is folded into it.
@@ -179,9 +193,9 @@ def fold_words(says: str, tier: str, n, names: str) -> str:
         head, _sep, tail = says.partition(" a day")
         return f"{head} {names} a day{tail}"
     base = says.split(", not counting ")[0]
-    if base.startswith("Only ") and " may be from this " in base:
-        return base.replace(" may be from this ", f" may be {names} from this ", 1)
-    return base.replace(f"{_js(n)} a day per angler from this ", f"{_js(n)} {names} a day per angler from this ", 1)
+    if base.startswith("Only ") and " may be from " in base:
+        return base.replace(" may be from ", f" may be {names} from ", 1)
+    return base.replace(f"{_js(n)} a day per angler from ", f"{_js(n)} {names} a day per angler from ", 1)
 
 
 def _why_here(L) -> Optional[str]:
@@ -278,7 +292,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                      line=whose + (f" ({why_here})" if why_here else ""))
             own_ts.append((t, b))
         elif b["why"] == "share":
-            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from this {c.share['water']}", b["by"])
+            # ROUND20f 3: a region's share says "from streams"; a water's own share "from this stream"
+            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from {share_place(c.share['water'], share_region_wide(P, c.share))}", b["by"])
         else:
             t = root
         content: List[dict] = []
@@ -477,7 +492,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             up = count_of(par, p)
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
                 if t is share_t:
-                    t["says"] = f"Only {_js(t['n'])} of the {_js(up['n'])} may be from this {c.share['water']}"
+                    t["says"] = f"Only {_js(t['n'])} of the {_js(up['n'])} may be from {share_place(c.share['water'], share_region_wide(P, c.share))}"
                     if lifted:
                         t["says"] += f", not counting {lifted}"
                         lifted = None

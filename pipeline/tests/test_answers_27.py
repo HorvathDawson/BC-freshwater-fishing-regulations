@@ -92,7 +92,7 @@ def _kinds(g):
 @pytest.mark.needs_bundle
 def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
     g = _trout(built, VEDDER, ("mouth",))
-    assert g["headline"]["says"] == "2 a day per angler from this stream"
+    assert g["headline"]["says"] == "2 a day per angler from streams"
     assert _lifts(g) == ["On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this "
                          "river’s rule replaces Region 2’s 2-from-streams limit for them."]
     k = _kinds(g)

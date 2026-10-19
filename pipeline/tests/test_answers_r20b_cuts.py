@@ -60,7 +60,7 @@ def test_c1_the_fold_words_for_an_own_and_a_share_tier():
     # the fixture's share (the Vedder) holds a size tier, not one kind: nothing folds
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"
+    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
     assert all(not k.get("folded") for k in share["children"] if k["node"] == "kind")
 
 

@@ -54,8 +54,8 @@ def _card_text(g, row):
 
 # 1 ---------------------------------------------------------------------------------------------
 def test_the_headline_is_this_waters_number_without_a_lift():
-    assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day per angler from this stream",
-                                         "says": "2 a day per angler from this stream",
+    assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day per angler from streams",
+                                         "says": "2 a day per angler from streams",
                                          "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm "
                                                                    "(20 in) or less"}]}
     assert _g(F.STREAM)["headline"]["n"] == 2

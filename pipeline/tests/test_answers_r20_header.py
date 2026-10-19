@@ -3,7 +3,7 @@
   1  the group's header and the tree's first tier are ONE block: `group.header` carries `tier` (the tree root's id) and
      its `says` is the root's line ("4 a day per angler across Region 2, lakes included"); a water's own total says
      "per angler" like a zone's ("This river’s rule: up to 1 a day per angler"), since it is now the card's big line.
-  2  the stream share says it sits INSIDE the one total, never beside it: "Only 2 of the 4 may be from this stream";
+  2  the stream share says it sits INSIDE the one total, never beside it: "Only 2 of the 4 may be from streams";
      where a water's own rule lifts fish out of it, ", not counting hatchery rainbow trout" (the UR3 "— your hatchery
      rainbow trout count toward the 4, not these 2" read as 4 + 2).
   The gate: the header names the root tier and says its words; a header saying anything else is refused.
@@ -65,14 +65,14 @@ def test_1_a_waters_own_total_says_per_angler():
 def test_2_the_lifted_share_sits_inside_the_total():
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"
+    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
     assert not any("count toward" in t["says"] or "don’t use" in t["says"] for t in _tiers(g))
 
 
 def test_2_a_plain_share_says_of_the_total():
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from this stream"
+    assert share["says"] == "Only 2 of the 4 may be from streams"
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)        # the own tier under the total keeps "(part of the 4)"
     (own,) = [t for t in _tiers(g) if t["tier"] == "own"]
     assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"

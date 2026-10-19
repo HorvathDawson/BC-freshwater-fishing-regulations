@@ -600,7 +600,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         base = share["take"] if share is not None else total
         n_head = capacity(kinds, base)
         # UR2 1 (user panel: the big "2 a day from this stream" read as the party's limit): whose number it is
-        unit = f"a day per angler from this {share['water']}" if share is not None else "a day per angler"
+        from pipeline.deliver.answers.tree import share_place, share_region_wide
+        unit = (f"a day per angler from {share_place(share['water'], share_region_wide(P, share))}" if share is not None
+                else "a day per angler")   # ROUND20f 3: a region's share "from streams"
         head = {"n": n_head, "unit": unit, "says": f"{_js(n_head)} {unit}"}
         inners = {info[S]["inner"].key for S in kinds if info[S]["inner"] is not None}
         if n_head == base:

@@ -276,7 +276,8 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND20b C1-C4 (owner: fewer words): rows 22 (a single-kind own tier names the fish and folds the kind — `folded`;
         # the own tier line drops "Replaces …"; the share before a water's own tiers; the worked keep-N lines say the two
         # ends of the range only)
-        Section("rows", 22, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND20f 3: rows 23 (a region's share says "from streams"; a water's own share keeps "from this stream")
+        Section("rows", 23, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

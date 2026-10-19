@@ -1,6 +1,6 @@
 """USER ROUND 2 (six-angler panel on v22, 2026-10-17) — small wording fixes, no data, CI's no-data tier.
 
-  1  the headline's unit says whose number it is: "2 a day per angler from this stream" (a lake "4 a day per angler")
+  1  the headline's unit says whose number it is: "2 a day per angler from streams" (a lake "4 a day per angler")
   2  the worked lines in plain words: "If you keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a
      lake." / "If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more from here or from
      lakes."; the gate proves every number they state
@@ -39,7 +39,7 @@ def _kind(g, sp):
 # 1 ---------------------------------------------------------------------------------------------
 def test_1_the_headline_says_per_angler():
     g, _o, _P = _g(F.VEDDER)
-    assert g["headline"]["says"] == "2 a day per angler from this stream"
+    assert g["headline"]["says"] == "2 a day per angler from streams"
     assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
     g, _o, _P = _g(F.LWA)
     assert g["headline"]["says"] == "4 a day per angler"

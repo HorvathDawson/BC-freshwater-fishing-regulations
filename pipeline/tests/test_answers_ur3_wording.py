@@ -62,7 +62,7 @@ def test_3_a_count_tier_in_an_own_tier_says_part_of_it():
 def test_4_the_lifted_share_says_the_fish_count_toward_the_total():
     # ROUND20 2 (owner: the UR3 words read as 4 + 2): the share sits inside the total, the lifted fish not counted in it
     (sh,) = [t for t in _tiers(F.VEDDER, OCT10) if t["tier"] == "share"]
-    assert sh["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"
+    assert sh["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
 
 
 # 6 ---------------------------------------------------------------------------------------------

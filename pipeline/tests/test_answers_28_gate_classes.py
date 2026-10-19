@@ -175,7 +175,7 @@ def test_e_a_waters_own_pool_under_the_total_is_its_bucket_and_the_headline():
     assert g["total_line"] == "No more than 5 trout and char a day per angler across Region 5, streams included."
     out, _P = card("dean", JUL15)
     g = group(out, Z5)
-    assert g["headline"]["says"] == "1 a day per angler from this stream"
+    assert g["headline"]["says"] == "1 a day per angler from streams"
     assert [b["cap"] for b in g["buckets"]] == [1]
 
 
