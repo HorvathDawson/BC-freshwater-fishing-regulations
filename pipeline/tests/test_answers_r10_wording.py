@@ -51,7 +51,6 @@ def test_w1_the_worked_count_follows_the_main_lift_and_the_gate_proves_the_card(
     g = F.trout_group(out)
     assert [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"] == [
         ("If you keep 4 hatchery rainbow trout", "that’s your trout and char for the day, everywhere."),
-        ("If you keep 3 hatchery rainbow trout", "1 more fish of any kind, from here or from a lake."),
         ("If you keep 2 hatchery rainbow trout", "none from other streams today — up to 2 more "
                                                  "from here or from lakes.")]
     assert CC.check_card(P, out) == []

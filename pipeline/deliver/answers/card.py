@@ -816,9 +816,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         m_origin = said_origin or "hatchery"
         plural = kind_names(main["kinds"], main["kinds"] == ["ST"], origin=said_origin)
         other_kind = "lake" if share["water"] == "stream" else "stream"
-        for k in range(q, share["take"] - 1, -1):
-            if k <= 0:
-                break
+        # ROUND20b C4 (owner: fewer words): the two ends of the range only — all the lifted fish ("that’s your day"),
+        # and as many as the share ("none from other streams — up to N more from here or from lakes"); the lines
+        # between are arithmetic the reader does not need
+        for k in sorted({q, share["take"]}, reverse=True):
+            if k <= 0 or k < share["take"]:
+                continue
             left = total - k
             # RULINGS Q23b (refined 2026-10-12): on its own water the lifted kind does not use the share
             # for the other kinds — here: the lifted kinds' rest, and the share's own number

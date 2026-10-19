@@ -60,7 +60,7 @@ def test_3_the_vedder_tree():
     assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
     assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
     (total,) = g["tree"]
-    own, share = total["children"]
+    share, own = total["children"]                               # ROUND20b C3: the share first
     assert own["replaces"] == ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
                                "rainbow trout")
     (rb,) = own["children"]
@@ -142,19 +142,19 @@ def _mutated(fn, water=F.VEDDER, md=OCT10):
 
 def test_the_gate_refuses_a_wrong_placement_or_band():
     def bound_outside(g):                        # brook/brown/cutthroat out of the over-50 tier
-        share = g["tree"][0]["children"][1]
+        share = g["tree"][0]["children"][0]
         share["children"].append(share["children"][0]["children"].pop(0))
     def never_over_inside(g):                    # the rainbow (50 cm or less) into the over-50 tier
-        own, share = g["tree"][0]["children"]
+        share, own = g["tree"][0]["children"]
         share["children"][0]["children"].append(own["children"].pop(0))
     def steelhead_outside(g):                    # Q16's steelhead out of the tier that lets it past
-        share = g["tree"][0]["children"][1]
+        share = g["tree"][0]["children"][0]
         share["children"].append(share["children"][0]["children"].pop(2))
     def no_tier(g):                              # the size tier dropped, its kinds left in the share
-        share = g["tree"][0]["children"][1]
+        share = g["tree"][0]["children"][0]
         share["children"] = share["children"][0]["children"]
     def extra(g):
-        g["tree"][0]["children"][1]["children"][0]["extra"]["n"] = 2
+        g["tree"][0]["children"][0]["children"][0]["extra"]["n"] = 2
     def band_cut(g):                             # the cut at 50 cm held by both bands
         g["table"]["bands"]["CT"][2]["from_in"] = True
     def band_words(g):

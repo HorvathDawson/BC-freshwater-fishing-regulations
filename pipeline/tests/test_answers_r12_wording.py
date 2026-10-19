@@ -133,12 +133,11 @@ def test_w3_the_gate_fails_a_wrong_nested_or_count_note():
 def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
     row, _o, _P = _card(F.VEDDER)
     w = row["group"]["worked"]
-    assert [x["q"] for x in w] == ["If you keep 4 hatchery rainbow trout", "If you keep 3 hatchery rainbow trout",
-                                   "If you keep 2 hatchery rainbow trout",
+    assert [x["q"] for x in w] == ["If you keep 4 hatchery rainbow trout", "If you keep 2 hatchery rainbow trout",   # ROUND20b C4: the ends
                                    "Kept 1 at a lake?", "Kept trout or char over 50 cm (20 in) elsewhere today?"]
     assert row["elsewhere"]["ask"] == []
     assert row["elsewhere"]["says"] == "Shared with every Region 2 stream you fish today."
-    lake, over = w[3], w[4]
+    lake, over = w[2], w[3]                      # ROUND20b C4: two keep-N lines
     assert (lake["kept"], lake["at"], lake["here"], lake["most"]) == (1, "lake", 3, "exactly")
     assert (over["kept"], over["at"], over["over_cm"], over["here"], over["most"]) == \
         (1, "elsewhere", 50, 1, "at_most")
@@ -165,7 +164,7 @@ def test_w4_the_gate_fails_a_wrong_line():
     row, out, P = _card(F.VEDDER)
     bad = copy.deepcopy(out)
     g = next(r for r in bad["rows"] if r.get("group") is not None and r["group"]["pool"] == F.TOTAL)["group"]
-    g["worked"][3]["here"] = 2
+    g["worked"][2]["here"] = 2
     assert any("worked" in p for p in CC.check_card(P, bad))
 
 

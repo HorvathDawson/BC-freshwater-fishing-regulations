@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "21",
+            "version": "22",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -400,7 +400,13 @@ SPEC = {
                     "river’s rule: up to 1 a day per angler\"): draw the root's line as the group's header block and "
                     "the root's children at the top of the tree, one level less; the share tier says it sits inside "
                     "the total, \"Only 2 of the 4 may be from this stream\", a lifted one \", not counting hatchery "
-                    "rainbow trout\" (the UR3 words read as 4 + 2)",
+                    "rainbow trout\" (the UR3 words read as 4 + 2). Version 22 (ROUND20b, owner: fewer words without missing "
+                    "anything): an own tier whose only child is one kind row at its number names the fish itself "
+                    "(\"This river’s rule: up to 4 hatchery rainbow trout a day\") and the kind carries `folded: true` "
+                    "— draw its size, notes and pictures under the line and no sentence, so the number appears once; an "
+                    "own tier's `line` is whose rule and why it applies here (no \"Replaces …\"; `replaces` stays a "
+                    "field); under the total the share tier comes before a water's own tiers; the worked keep-N lines "
+                    "are the two ends of the range only (\"If you keep 4 …\", \"If you keep 2 …\")",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

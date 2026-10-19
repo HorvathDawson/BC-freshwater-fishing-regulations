@@ -7249,6 +7249,11 @@
        "title": "Duties",
        "type": "array"
       },
+      "folded": {
+       "default": false,
+       "title": "Folded",
+       "type": "boolean"
+      },
       "n": {
        "anyOf": [
         {

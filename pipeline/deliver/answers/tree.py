@@ -166,6 +166,24 @@ def _count_also(kn, n, mine: List[str], others: List[str], some: bool = False) -
     return None
 
 
+def fold_words(says: str, tier: str, n, names: str) -> str:
+    """ROUND20b C1 (owner: "This river’s rule: up to 4 a day" over "Up to 4 may be hatchery rainbow trout" says 4
+    twice): a tier whose ONLY child is one kind row at its number names the fish itself, and the kind is folded into it.
+      own    "This river’s rule: up to 4 a day (part of the 5)" -> "This river’s rule: up to 4 hatchery rainbow trout a
+             day (part of the 5)"
+      share  "Only 2 of the 5 may be from this stream, not counting rainbow trout" -> "Only 2 of the 5 may be brook,
+             brown, cutthroat or lake trout from this stream" (the fish named, nothing else is in the 2, so the lifted
+             fish need no mention); the fallback "2 a day per angler from this stream" -> "2 brook, … a day per angler
+             from this stream"."""
+    if tier == "own":
+        head, _sep, tail = says.partition(" a day")
+        return f"{head} {names} a day{tail}"
+    base = says.split(", not counting ")[0]
+    if base.startswith("Only ") and " may be from this " in base:
+        return base.replace(" may be from this ", f" may be {names} from this ", 1)
+    return base.replace(f"{_js(n)} a day per angler from this ", f"{_js(n)} {names} a day per angler from this ", 1)
+
+
 def _why_here(L) -> Optional[str]:
     """ROUND18 8 (owner): why a water's rule applies on this water where the TRIBUTARY WALK brought it."""
     if L is None or L.via != "trib":
@@ -252,9 +270,12 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                 got = _replaces(P, model, [S for k in kind_rows(b) for S in k["species"]], lifters, inch=True)
                 rep = got["says"] if got else None
             whose = b["title"]
+            # ROUND20b C2 (owner: fewer words; the panel read "Replaces Region 2’s 2-from-streams limit" against the
+            # share's "not counting hatchery rainbow trout" as two different limits): the line is whose rule and why it
+            # applies here; what it replaced stays in `replaces` (history, not a rule in force)
             t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None else f"up to {_js(b['cap'])} a day"),
                      b["by"], whose=whose, why_here=why_here, replaces=rep,
-                     line=whose + (f" ({why_here})" if why_here else "") + (f" · {rep}" if rep else ""))
+                     line=whose + (f" ({why_here})" if why_here else ""))
             own_ts.append((t, b))
         elif b["why"] == "share":
             t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from this {c.share['water']}", b["by"])
@@ -286,7 +307,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             under_total.append(t)
     if share_t is not None:
         share_t["children"][:0] = under_share
-    root["children"][:0] = under_total + ([share_t] if share_t is not None else [])
+    # ROUND20b C3 (owner: after the header's 4, the 2 reads as the next line): the share before a water's own tiers
+    root["children"][:0] = ([share_t] if share_t is not None else []) + under_total
 
     # -- size caps (ROUND19 3, owner): a tier HOLDING every kind row its cap binds (each that may be kept over its
     # size), in the tightest tier holding them all — wrapping whole tiers where they span tiers, never a kind that
@@ -472,12 +494,15 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if up is not None and up["tier"] in ("own", "share") and up["n"] is not None and t["n"] is not None \
                     and t["n"] < up["n"]:
                 t["says"] += f" (part of the {_js(up['n'])})"
+    kind_origin: Dict[int, Optional[str]] = {}
     for x, p in walk([root]):
         if x["node"] != "kind":
             continue
         up = count_of(par, p)
         x["says"] = _kind_says(x, up["n"])
         bare = _kind_says(x, up["n"], plain=True)
+        kind_origin[id(x)] = x.get("_origin")
+        x["folded"] = False
         for k_ in ("_hi", "_origins", "_origin"):
             x.pop(k_, None)
         s = f"Of the {_short(up)}: {common.lc(bare)}"
@@ -487,6 +512,19 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if notes:
             s += " — " + "; ".join(notes)
         x["sentence"] = s
+    # ROUND20b C1 (owner: "This river’s rule: up to 4 a day" over "Up to 4 may be hatchery rainbow trout" says 4 twice):
+    # an own tier whose ONLY child is one kind row at the tier's number names the fish itself — "This river’s rule: up to
+    # 4 hatchery rainbow trout a day" — and the kind is FOLDED into it (`folded`: the page draws its size, notes and
+    # pictures under the line, no sentence; `says` and `sentence` stay for the gate)
+    # (the share too — Glenn Creek's "Only 2 of the 5 may be from this stream" over "Up to 2 may be brook, brown,
+    # cutthroat or lake trout" — so a number is never said twice in a row on a tier and its only kind)
+    for t, _p in walk([root]):
+        if t["node"] == "tier" and t["tier"] in ("own", "share") and t["n"] is not None and len(t["children"]) == 1 \
+                and t["children"][0]["node"] == "kind" and t["children"][0]["n"] == t["n"]:
+            k = t["children"][0]
+            names = kind_names(k["species"], k["name"] == "Steelhead", origin=kind_origin.get(id(k)))
+            t["says"] = fold_words(t["says"], t["tier"], t["n"], names)
+            k["folded"] = True
 
     # ROUND20 1 (owner: the group's top and the first tier are ONE block): the header IS the root tier — its words,
     # named by `tier`; the page draws the root's line as the header and the root's children at the top of the tree.

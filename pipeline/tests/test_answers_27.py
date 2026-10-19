@@ -123,7 +123,7 @@ def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
     assert [b["title"] for b in g["buckets"]] == ["This river’s rule",
                                                    "Up to 2 a day between them — all Region 4 streams combined"]
     assert g["headline"]["also"] == [{"n": 5, "says": "5 if they’re rainbow trout"}]
-    assert [w["kept"] for w in g["worked"] if w["at"] == "here"] == [5, 4, 3, 2]
+    assert [w["kept"] for w in g["worked"] if w["at"] == "here"] == [5, 2]                 # ROUND20b C4: the ends of the range
 
 
 @pytest.mark.needs_bundle

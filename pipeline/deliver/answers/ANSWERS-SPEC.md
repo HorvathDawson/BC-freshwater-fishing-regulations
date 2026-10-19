@@ -98,6 +98,25 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20b (2026-10-18) — rows 22: fewer words on the card, nothing missing
+
+Owner: "as simple as possible, fewer words without missing anything"; a fresh reader answers the same 20 questions from the
+screens before and after (handoff/PLAN/r20b_comprehension.md). Four data cuts, each a wording or order change, no shape:
+
+- **C1 A single-kind own tier names the fish and folds the kind** (the panel: "This river’s rule: up to 4 a day" over "Up to
+  4 may be hatchery rainbow trout" said 4 twice). An own tier whose ONLY child is one kind row at the tier's number says
+  "This river’s rule: up to 4 hatchery rainbow trout a day" ("The Duncan River’s rule: up to 5 rainbow trout a day"; "This
+  lake’s rule: up to 2 lake trout a day (part of the 5)"), and the kind carries `folded: true`: the page draws its size,
+  notes, duties and pictures under the line and no sentence. The kind's `says` and `sentence` stay for the gate.
+- **C2 The own tier's `line` is whose rule and why it applies here** — "This river’s rule", "The Bella Coola River’s rule
+  (its row covers its tributaries, so it applies here)" — never "Replaces …" (the panel read "Replaces Region 2’s
+  2-from-streams limit" against the share's "not counting hatchery rainbow trout" as two different limits; the replaced
+  rule is history, not a rule in force). `replaces` stays a field.
+- **C3 Under the total, the share comes before a water's own tiers** (owner: after the header's 4, the 2 is the next line).
+- **C4 The worked keep-here lines are the two ends of the range** — "If you keep 4 hatchery rainbow trout: that’s your trout
+  and char for the day, everywhere." and "If you keep 2 …: none from other streams today — up to 2 more from here or from
+  lakes." — the lines between were arithmetic. The kept-elsewhere lines are unchanged.
+
 ## ROUND20 (2026-10-18) — rows 21: the header IS the total tier, the share inside the total
 
 Owner review of v24 (ROUND20 1, 2; item 3 is the page's). Only `group.header` and two tier lines changed, no shape.

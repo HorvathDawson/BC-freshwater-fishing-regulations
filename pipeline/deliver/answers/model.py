@@ -808,6 +808,9 @@ class TreeKind(Model):
     sentence: StrictStr = Field(min_length=1)
     presence: Optional[Presence] = None
     size_note: Optional[SizeNote] = None
+    #: ROUND20b C1: the kind is the ONLY row of an own tier at the tier's number — the tier line names the fish ("This
+    #: river’s rule: up to 4 hatchery rainbow trout a day") and the page draws no sentence under it, the number once
+    folded: StrictBool = False
 
 
 class TreeTier(Model):

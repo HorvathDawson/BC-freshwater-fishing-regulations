@@ -51,7 +51,6 @@ def test_2_the_worked_lines_are_plain():
     here = [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"]
     assert here == [
         ("If you keep 4 hatchery rainbow trout", "that’s your trout and char for the day, everywhere."),
-        ("If you keep 3 hatchery rainbow trout", "1 more fish of any kind, from here or from a lake."),
         ("If you keep 2 hatchery rainbow trout", "none from other streams today — up to 2 more from here or from lakes."),
     ]
 
@@ -59,9 +58,9 @@ def test_2_the_worked_lines_are_plain():
 def test_2_the_gate_proves_the_numbers_a_worked_line_states():
     g, _o, P = _g(F.VEDDER)
     assert CC.check_group(P, g) == []
-    w = next(w for w in g["worked"] if w["at"] == "here" and w["kept"] == 3)
-    w["a"] = "2 more fish of any kind, from here or from a lake."
-    assert any("worked line" in p and "[2.0]" in p for p in CC.check_group(P, g))
+    w = next(w for w in g["worked"] if w["at"] == "here" and w["kept"] == 2)       # ROUND20b C4: the ends only
+    w["a"] = "none from other streams today — up to 3 more from here or from lakes."
+    assert any("worked line" in p and "[3.0]" in p for p in CC.check_group(P, g))
 
 
 # 3 ---------------------------------------------------------------------------------------------

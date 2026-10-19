@@ -49,8 +49,8 @@ def test_1_the_vedder_tree():
     g, _o, _P = _tree(F.VEDDER)
     (total,) = g["tree"]
     assert (total["tier"], total["n"], total["says"]) == ("total", 4, "4 a day per angler across Region 2, lakes included")
-    own, share = total["children"]
-    assert (own["tier"], own["n"], own["says"]) == ("own", 4, "This river’s rule: up to 4 a day")
+    share, own = total["children"]                               # ROUND20b C3: the share first
+    assert (own["tier"], own["n"], own["says"]) == ("own", 4, "This river’s rule: up to 4 hatchery rainbow trout a day")   # C1
     assert own["why_here"] is None
     (rb,) = own["children"]
     assert rb["sizes"] == {"cm": [[0, 50]], "in": [[0, 20]]}
@@ -94,11 +94,10 @@ def test_4_a_compact_header():
 # 8 ---------------------------------------------------------------------------------------------
 def test_8_a_rule_reached_by_the_tributary_walk_says_why_it_applies_here():
     g, _o, _P = _tree(F.VEDDER_TRIB)
-    own = g["tree"][0]["children"][0]
+    own = g["tree"][0]["children"][1]                            # ROUND20b C3: after the share
     assert own["why_here"] == "its row covers its tributaries, so it applies here"
-    assert own["line"] == ("The Chilliwack River’s rule (its row covers its tributaries, so it applies here) · "
-                           "Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
-                           "rainbow trout")
+    assert own["line"] == "The Chilliwack River’s rule (its row covers its tributaries, so it applies here)"   # ROUND20b C2
+    assert own["replaces"].startswith("Replaces Region 2’s 2-from-streams limit")
 
 
 # the gate ----------------------------------------------------------------------------------------
@@ -119,21 +118,21 @@ def _mutated(fn, water=F.VEDDER, md=OCT10):
 
 def test_the_gate_refuses_a_wrong_tree():
     def tier_n(g):
-        g["tree"][0]["children"][1]["n"] = 3                       # the share tier
+        g["tree"][0]["children"][0]["n"] = 3                       # the share tier (ROUND20b C3: first)
     def size_extra(g):
-        g["tree"][0]["children"][1]["children"][0]["extra"]["n"] = 2
+        g["tree"][0]["children"][0]["children"][0]["extra"]["n"] = 2
     def twice(g):
-        size = g["tree"][0]["children"][1]["children"][0]
+        size = g["tree"][0]["children"][0]["children"][0]
         size["children"].append(copy.deepcopy(size["children"][0]))
     def words(g):
-        k = g["tree"][0]["children"][1]["children"][0]["children"][0]
+        k = g["tree"][0]["children"][0]["children"][0]["children"][0]
         k["sentence"] = k["sentence"].replace("up to 2", "up to 3")
     def sizes(g):
-        g["tree"][0]["children"][0]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
+        g["tree"][0]["children"][1]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
     def header(g):
         g["header"]["says"] = g["header"]["says"].replace("4 a day per angler across", "5 a day per angler across")
     def over_count(g):                                             # a kind past the count tier around it
-        g["tree"][0]["children"][1]["n"] = 1
+        g["tree"][0]["children"][0]["n"] = 1
     for fn in (tier_n, size_extra, twice, words, sizes, header, over_count):
         assert _mutated(fn), fn.__name__
     # also_counts proved where a cap is said on the kinds (no tier can hold it: a count beside a kind that cannot

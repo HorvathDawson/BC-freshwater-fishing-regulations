@@ -44,7 +44,7 @@ def test_a_the_total_and_header_say_per_angler():
 
 def test_a_the_share_says_the_lifted_fish_do_not_use_it():
     g, _o, _P = _g(F.VEDDER)
-    _own, share = g["tree"][0]["children"]
+    share, _own = g["tree"][0]["children"]                       # ROUND20b C3: the share first
     assert share["says"] == "Only 2 of the 4 may be from this stream, not counting hatchery rainbow trout"   # ROUND20 2
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
@@ -54,7 +54,7 @@ def test_a_the_share_says_the_lifted_fish_do_not_use_it():
 # B ---------------------------------------------------------------------------------------------
 def test_b_a_size_tier_says_the_fish_in_its_box():
     g, _o, _P = _g(F.VEDDER)
-    (size,) = g["tree"][0]["children"][1]["children"]
+    (size,) = g["tree"][0]["children"][0]["children"]
     assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
     (own,) = g["tree"][0]["children"]

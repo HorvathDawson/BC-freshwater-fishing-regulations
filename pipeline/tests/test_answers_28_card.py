@@ -127,7 +127,6 @@ def test_q23b_the_worked_count_on_a_lifted_stream():
     g = _g(F.VEDDER)
     assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
         {"kept": 4, "q": "If you keep 4 hatchery rainbow trout", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 3, "q": "If you keep 3 hatchery rainbow trout", "a": "1 more fish of any kind, from here or from a lake."},
         {"kept": 2, "q": "If you keep 2 hatchery rainbow trout", "a": "none from other streams today — up to 2 more "
                                                                       "from here or from lakes."},
         # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
@@ -204,7 +203,7 @@ def test_check_card_fails_when_the_tally_breaks():
     out, P = F.card(F.VEDDER, OCT10)
     bad = copy.deepcopy(out)
     g = F.trout_group(bad)
-    g["worked"][2]["other"] = 2                          # "Keep 2 rainbows here"
+    g["worked"][1]["other"] = 2                          # "Keep 2 rainbows here" (ROUND20b C4: the ends only)
     probs = CC.check_card(P, bad)
     assert any("worked" in p for p in probs), probs
 
