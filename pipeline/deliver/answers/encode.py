@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "23",
+            "version": "24",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -409,7 +409,13 @@ SPEC = {
                     "are the two ends of the range only (\"If you keep 4 …\", \"If you keep 2 …\"). Version 23 (ROUND20f 3): a share "
                     "that is the REGION'S (a zone or province rule — the Region 2 streams' combined 2) says \"from streams\" / "
                     "\"from lakes\" (\"Only 2 of the 4 may be from streams\", the headline \"2 a day per angler from streams\"); a "
-                    "share a water's own row sets keeps \"from this stream\" (`tree.share_place`)",
+                    "share a water's own row sets keeps \"from this stream\" (`tree.share_place`). Version 24 (ROUND20g): "
+                    "where the one-origin rule holds on the share's water only (Region 2's \"Wild trout/char from streams\", "
+                    "p.21) the SHARE tier carries `origin` (\"From streams, keep hatchery fish only — wild trout and char go "
+                    "back.\") and the group's `origin` is null — draw it under the share's line; the steelhead kind has no "
+                    "`size_note` (the size tier's \"— 2 if one is a hatchery steelhead\" says it once); duties \"stop fishing here "
+                    "after 2 a day\", \"record each on your licence right away\"; the presence line \"A rainbow trout over 50 "
+                    "cm (20 in) here counts as a steelhead.\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -510,7 +516,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "15",
+            "version": "16",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "

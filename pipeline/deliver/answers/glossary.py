@@ -24,7 +24,8 @@ from typing import Callable, Dict, List, Optional
 from pipeline.deliver.answers.common import AnswersError
 
 #: 2 (ROUND11 A2): `fly_fishing`, `artificial_fly` — the gear sentence's terms
-VERSION = 2
+#: 3 (ROUND20g 3): the possession quota in one short line and one short example (the book's words stay in `quote`)
+VERSION = 3
 
 
 # --------------------------------------------------------------------------------------------
@@ -179,17 +180,15 @@ def t_possession(B: Book, D: Data) -> dict:
     k = _one(ks, "possession multiplier")
     totals = _trout_totals(D)
     n = _one(totals.values(), "trout/char total")
-    words = {2: "two", 3: "three"}.get(k, str(k))
+    # ROUND20g 3 (owner: one plain line and one short example; the book's definition, verbatim, is `quote`)
     return _term(
         "possession_quota", "Possession quota",
-        f"How many fish you may have at any one time — in your camp, cooler, vehicle or on the trip "
-        f"home: {words} days' quota, unless a table says otherwise. Fish at the place you normally "
-        f"live (your ordinary residence) don't count toward it.",
+        f"The fish you have with you at any time — in camp, a cooler or a vehicle: {k} days' quota. "
+        f"Fish at home don't count.",
         sorted({80} | {p for e in ("z1:possession_quota",) for p in D.pages(e)}),
         f"possession quota: {B.define('possession quota')}",
         "definitions p.80; every region-wide 'Possession quotas = N daily quotas' rule",
-        example=f"With a daily quota of {n} trout you may hold {n * k}: two days' fish at camp is "
-                f"fine, a third day's is not.")
+        example=f"With a daily quota of {n} trout you may have {n * k}: {k} days' fish, not {k + 1}.")
 
 
 def t_release(B: Book, D: Data) -> dict:

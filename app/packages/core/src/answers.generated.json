@@ -6164,7 +6164,7 @@
     },
     "Presence": {
      "additionalProperties": false,
-     "description": "ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,\na not-kept steelhead line, or the steelhead's own row) \u2014 `line` the frame's `steelhead_line` code,\n`says` its words (\"Steelhead are known to be in this water.\"; UR2 4, where a rainbow over 50 cm is a steelhead:\n\"Steelhead are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead.\").",
+     "description": "ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,\na not-kept steelhead line, or the steelhead's own row) \u2014 `line` the frame's `steelhead_line` code,\n`says` its words (\"Steelhead are known to be in this water.\"; UR2 4, where a rainbow over 50 cm is a steelhead:\n\"A rainbow trout over 50 cm (20 in) here counts as a steelhead.\", ROUND20g 2).",
      "properties": {
       "line": {
        "enum": [
@@ -6830,28 +6830,6 @@
      "title": "SizeGroup",
      "type": "object"
     },
-    "SizeNote": {
-     "additionalProperties": false,
-     "description": "ROUND19 3: how a kind a size tier lets past its number counts toward it \u2014 the steelhead's \"it counts toward\nthe 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept\"; `tier` the size\ntier around it.",
-     "properties": {
-      "says": {
-       "minLength": 1,
-       "title": "Says",
-       "type": "string"
-      },
-      "tier": {
-       "pattern": "^t[0-9]+$",
-       "title": "Tier",
-       "type": "string"
-      }
-     },
-     "required": [
-      "tier",
-      "says"
-     ],
-     "title": "SizeNote",
-     "type": "object"
-    },
     "SizeThen": {
      "additionalProperties": false,
      "description": "A size cap nested in a size group (ROUND15 1): at most `n` of `species` over `over_cm` (gate-proved).",
@@ -7228,7 +7206,7 @@
     },
     "TreeKind": {
      "additionalProperties": false,
-     "description": "ROUND18 1/7: one kind in the card's tree \u2014 `says` \"Up to 2 may be brook, brown or cutthroat trout\", `detail`\nits sizes in cm (inches) (\"30 cm (12 in) or longer\"; ROUND19 1: `says` names the origin with the fish, \"Up to 2\nmay be hatchery brook, brown or cutthroat trout\"; UR2 3/4: a kind held to fewer than its count tier \"Only 1 of the 2\nmay be \u2026\", a steelhead kind keeping hatchery fish only \"\u2026 hatchery steelhead only \u2014 wild steelhead go back\"),\n`sizes`, `also_counts`, `duties` (UR2 5: \"after you keep 2, stop fishing for the day\"), `sentence` the whole line,\n\"of\" its nearest count tier (\"Of the 2 a day: up to 2 may be \u2026, 30 cm (12 in) or longer \u2014 \u2026\"); `presence`\nthe steelhead presence line. Every number gate-proved.",
+     "description": "ROUND18 1/7: one kind in the card's tree \u2014 `says` \"Up to 2 may be brook, brown or cutthroat trout\", `detail`\nits sizes in cm (inches) (\"30 cm (12 in) or longer\"; ROUND19 1: `says` names the origin with the fish, \"Up to 2\nmay be hatchery brook, brown or cutthroat trout\"; UR2 3/4: a kind held to fewer than its count tier \"Only 1 of the 2\nmay be \u2026\", a steelhead kind keeping hatchery fish only \"\u2026 hatchery steelhead only \u2014 wild steelhead go back\"),\n`sizes`, `also_counts`, `duties` (ROUND20g 2: \"stop fishing here after 2 a day\"), `sentence` the whole line,\n\"of\" its nearest count tier (\"Of the 2 a day: up to 2 may be \u2026, 30 cm (12 in) or longer \u2014 \u2026\"); `presence`\nthe steelhead presence line. Every number gate-proved.",
      "properties": {
       "also_counts": {
        "items": {
@@ -7296,17 +7274,6 @@
        "minLength": 1,
        "title": "Sentence",
        "type": "string"
-      },
-      "size_note": {
-       "anyOf": [
-        {
-         "$ref": "#/$defs/SizeNote"
-        },
-        {
-         "type": "null"
-        }
-       ],
-       "default": null
       },
       "sizes": {
        "$ref": "#/$defs/TreeSizes"
@@ -7507,6 +7474,18 @@
        "const": "tier",
        "title": "Node",
        "type": "string"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Origin"
       },
       "over_cm": {
        "anyOf": [

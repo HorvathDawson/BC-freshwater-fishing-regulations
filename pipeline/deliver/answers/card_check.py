@@ -558,7 +558,7 @@ def check_tree(P, g: dict) -> List[str]:
       * ROUND19 3 — THE PLACEMENT of every size tier: each kind under it may be kept over its size here; each
         of its caps (`by`, and the `extra`'s `by`) binds no kind OUTSIDE it over the size (the reader's verdict:
         the rule checks such a fish with a number); a kind sits under no tier holding fewer (its nearest COUNT
-        tier — a size tier limits only what is over its size); a `size_note` names a size tier around its kind;
+        tier — a size tier limits only what is over its size);
       * every kind's number is the most of it alone (each species too), its `sizes` exactly the lengths it may
         be kept at here (each range holds a keepable length, each keepable length is in a range);
       * each `also_counts`: a size cap — at most its number of the kind over its size, and none after the cap's
@@ -691,9 +691,6 @@ def check_tree(P, g: dict) -> List[str]:
             elif up["n"] is not None and (x["n"] is None or x["n"] > up["n"]):
                 probs.append(f"{where}: kind {x['species']} says {x['n']} under the tier {up['says']!r} "
                              f"({up['n']})")
-            if x.get("size_note") and x["size_note"]["tier"] not in {t["id"] for t in above(x)}:
-                probs.append(f"{where}: kind {x['species']}'s size note names {x['size_note']['tier']}, no size "
-                             f"tier around it")
             seen += x["species"]
             ok_n = eq(most(E.fish(x["species"]), x["n"]), x["n"])
             if not ok_n or any(not eq(most(E.fish([S]), x["n"]), x["n"]) for S in x["species"]):

@@ -74,18 +74,18 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
             possession += 1
             assert want["kind"] == "annual"
             want = dict(want, kind="possession_cap", plain=want["plain"] and (want["plain"].replace(
-                " a day", " in possession").replace("Keep up to", "Have no more than")[:-1]
-                + f" ({X.POSSESSION_HOME})."))
+                " a day", " in possession").replace("Keep up to", "Have no more than")
+                + f" {X._home()}"))   # ROUND20g 3: the exception its own sentence
         if x.get("per_daily") and want["plain"]:
             # user ruling Q15/Q39 (answers 2.3): the possession quota says its exception, in the
             # answers' one wording — the page said "Don’t carry more than N days’ worth of …"
             m = re.match(r"^(.*?)Don’t carry more than (\d+) days’ worth of (.+?)(, [^,]*)?\.$",
                          want["plain"])
             assert m, want["plain"]
-            times = {"1": "", "2": "twice ", "3": "three times "}.get(m[2], f"{m[2]} times ")
+            # ROUND20g 3 (owner): "Possession: 2 days’ quota." and the exception its own sentence
+            times = "the daily quota" if m[2] == "1" else f"{m[2]} days’ quota"
             of = "" if re.search(r"game fish|^fish", m[3]) else f" for {m[3]}"
-            want = dict(want, plain=f"{m[1]}Possession: {times}the daily quota{of} "
-                                    f"({X.POSSESSION_HOME}){m[4] or ''}.")
+            want = dict(want, plain=f"{m[1]}Possession: {times}{of}{m[4] or ''}. {X._home()}")
         if want["plain"]:
             # ROUND19 2 (owner): every size reads "50 cm (20 in)" — the page said cm only
             from pipeline.deliver.answers.common import cm_in

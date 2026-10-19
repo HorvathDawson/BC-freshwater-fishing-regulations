@@ -98,6 +98,36 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20g (2026-10-19) — rows 24, display 16, glossary 3: the origin rule where its scope is, fewer steelhead words, the possession line
+
+Owner (round 20g 1–3).
+
+1. **The origin rule sits on the tier whose scope it shares.** Region 2's table (printed p.21) says "Trout/char: 4 … 2 from
+   streams (must be hatchery)" and "And you must release: • Wild trout/char from streams • All wild steelhead • Hatchery
+   trout/char under 30 cm from streams" ("NOTE: There is no general minimum size limit for trout in lakes"); the rule row
+   `z2:trout_char_quota.r6` is `daily@origin=wild&water=stream`. Wild trout may be kept in Region 2 LAKES, so "Keep hatchery
+   fish only — wild trout and char go back" is the stream share's, not the 4's. `card.origin_place`: where every kind's other
+   origin is sent back by rules holding on the share's water only (their `water`) and the total counts every water, the
+   SHARE tier carries `origin` — "From streams, keep hatchery fish only — wild trout and char go back." (the place from
+   `tree.share_place`: "streams" for a region's or the province's rule, "this stream" for a water's) — and `group.origin` is
+   null. The group keeps `origin` where the rule holds wherever its total does (the Bella Coola's own 1 a day: the river's
+   total, the river's release). `TreeTier.origin` only on a share tier (model validator).
+2. **The steelhead row says it once.** The size tier's "— 2 if one is a hatchery steelhead" (RULINGS Q16) is the one place
+   the over-50 exception is said; the steelhead kind's `size_note` ("it counts toward the 1 over 50 cm (20 in), but once you
+   keep one, a second fish over 50 cm (20 in) may be kept") is gone (model field removed). Duties "stop fishing here after 2 a day"
+   (was "after you keep 2, stop fishing for the day") and "record each on your licence right away" (was "write each one on
+   your licence right away"); the presence line where a big rainbow is a steelhead "A rainbow trout over 50 cm (20 in) here
+   counts as a steelhead." (was "Steelhead are known to be in this water, so a rainbow trout …"; the ⓘ beside it explains).
+3. **The possession line (display 16, glossary 3).** `rules[].plain` of a possession quota: "Possession: 2 days’ quota. Fish
+   at home don’t count." ("the daily quota" for 1; a possession limit with a number "Only 1 lake trout over 60 cm (24 in) in
+   possession. Fish at home don’t count.") — the exception is its own sentence (`display._home`, one source,
+   `POSSESSION_HOME`). The glossary term `possession_quota`: `says` "The fish you have with you at any time — in camp, a
+   cooler or a vehicle: 2 days' quota. Fish at home don't count.", `example` "With a daily quota of 5 trout you may have 10:
+   2 days' fish, not 3." (the multiplier and the commonest trout total from the rules); `quote` the book's p.80 definition
+   VERBATIM, unchanged — a page shows it in a COLLAPSIBLE "In the rule book's words" fold.
+
+`test_answers_r20g.py`.
+
 ## ROUND20f (2026-10-19) — rows 23: a region's share says "from streams"
 
 Owner (round 20f 3; the 20e reader read "ALL REGION 2 STREAMS" + "from this stream" both ways). The share tier and the

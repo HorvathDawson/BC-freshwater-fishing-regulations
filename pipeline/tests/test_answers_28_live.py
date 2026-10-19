@@ -73,7 +73,7 @@ def test_vedder_mouth_oct_10_card(built):
     row = _trout(built, VEDDER, ("mouth",))
     assert _text(row) == [
         "2 a day per angler from streams",
-        "Keep hatchery fish only — wild trout and char go back.",
+        # ROUND20g 1: the origin is the stream share's (its tier says it), not the group's
         "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
         "No more than 4 trout and char a day per angler across Region 2, lakes included.",
@@ -85,7 +85,9 @@ def test_vedder_mouth_oct_10_card(built):
         "between them",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
-        "ST 2: 10 a year · after you keep 2, stop fishing for the day · write each one on your licence right away"]
+        "ST 2: 10 a year · stop fishing here after 2 a day · record each on your licence right away"]   # ROUND20g 2
+    share = next(t for t in row["group"]["tree"][0]["children"] if t["tier"] == "share")
+    assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
     assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
         == "hatchery, any length, 50 cm or less"

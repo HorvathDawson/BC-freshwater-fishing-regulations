@@ -462,7 +462,7 @@ class Presence(Model):
     """ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,
     a not-kept steelhead line, or the steelhead's own row) — `line` the frame's `steelhead_line` code,
     `says` its words ("Steelhead are known to be in this water."; UR2 4, where a rainbow over 50 cm is a steelhead:
-    "Steelhead are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead.")."""
+    "A rainbow trout over 50 cm (20 in) here counts as a steelhead.", ROUND20g 2)."""
     line: Literal["possible_with_rules", "known_with_rules"]
     says: StrictStr = Field(min_length=1)
 
@@ -758,14 +758,6 @@ class TreeExtra(Model):
     by: Optional[RuleIx] = None
 
 
-class SizeNote(Model):
-    """ROUND19 3: how a kind a size tier lets past its number counts toward it — the steelhead's "it counts toward
-    the 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"; `tier` the size
-    tier around it."""
-    tier: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
-    says: StrictStr = Field(min_length=1)
-
-
 class TreeSizes(Model):
     """ROUND18 2: the lengths a kind may be kept at here, [from, to | None] each, in cm and in whole inches
     (the nearest; the cm is the book's)."""
@@ -793,7 +785,7 @@ class TreeKind(Model):
     its sizes in cm (inches) ("30 cm (12 in) or longer"; ROUND19 1: `says` names the origin with the fish, "Up to 2
     may be hatchery brook, brown or cutthroat trout"; UR2 3/4: a kind held to fewer than its count tier "Only 1 of the 2
     may be …", a steelhead kind keeping hatchery fish only "… hatchery steelhead only — wild steelhead go back"),
-    `sizes`, `also_counts`, `duties` (UR2 5: "after you keep 2, stop fishing for the day"), `sentence` the whole line,
+    `sizes`, `also_counts`, `duties` (ROUND20g 2: "stop fishing here after 2 a day"), `sentence` the whole line,
     "of" its nearest count tier ("Of the 2 a day: up to 2 may be …, 30 cm (12 in) or longer — …"); `presence`
     the steelhead presence line. Every number gate-proved."""
     node: Literal["kind"]
@@ -807,7 +799,6 @@ class TreeKind(Model):
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
     sentence: StrictStr = Field(min_length=1)
     presence: Optional[Presence] = None
-    size_note: Optional[SizeNote] = None
     #: ROUND20b C1: the kind is the ONLY row of an own tier at the tier's number — the tier line names the fish ("This
     #: river’s rule: up to 4 hatchery rainbow trout a day") and the page draws no sentence under it, the number once
     folded: StrictBool = False
@@ -837,6 +828,9 @@ class TreeTier(Model):
     species: Optional[Tuple[Fish, ...]] = None
     then: Optional[Tuple[TreeThen, ...]] = None
     extra: Optional[TreeExtra] = None
+    #: ROUND20g 1 (owner): the one-origin rule said on the share's tier where it holds on the share's water only ("From
+    #: streams, keep hatchery fish only — wild trout and char go back.", Region 2 p.21); the group's `origin` is then None
+    origin: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _shape(self):
@@ -846,6 +840,8 @@ class TreeTier(Model):
             raise ValueError("a size tier, and only it, has a size")
         if self.extra is not None and self.tier != "size":
             raise ValueError("only a size tier lets extra kinds past its number")
+        if self.origin is not None and self.tier != "share":
+            raise ValueError("only the share's tier says an origin (the group says one that holds where its total does)")
         return self
 
 

@@ -81,8 +81,7 @@ def test_4_hatchery_steelhead_only_and_wild_go_back():
 
 def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():
     g, _o, _P = _g(F.VEDDER)
-    assert _kind(g, "ST")["presence"]["says"] == ("Steelhead are known to be in this water, so a rainbow trout over "
-                                                  "50 cm (20 in) counts as a steelhead.")
+    assert _kind(g, "ST")["presence"]["says"] == "A rainbow trout over 50 cm (20 in) here counts as a steelhead."   # ROUND20g 2
     # where a big rainbow is not a steelhead (a lake whose own row prints steelhead), the line stays as it was
     assert RW.presence_words("known_with_rules", False) == "Steelhead are known to be in this water."
     assert RW.presence_words("possible_with_rules", True) == ("Steelhead rules apply here; steelhead may not be "
@@ -93,7 +92,7 @@ def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():
 def test_5_after_you_keep_2_stop_fishing_for_the_day():
     g, _o, _P = _g(F.VEDDER)
     duties = _kind(g, "ST")["duties"]
-    assert "after you keep 2, stop fishing for the day" in duties
+    assert "stop fishing here after 2 a day" in duties   # ROUND20g 2
     assert not any("stop fishing for the day after" in d for d in duties)
 
 

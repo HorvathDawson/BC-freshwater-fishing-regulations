@@ -265,12 +265,12 @@ def test_j_terms_are_generated_from_the_data():
     from pipeline.tools.export_codec import expand
     m = expand(data, guide)
     base = {t["id"]: t for t in G.build(m)["terms"]}
-    assert "two days' quota" in base["possession_quota"]["says"]
+    assert "2 days' quota" in base["possession_quota"]["says"]   # ROUND20g 3
     for r in m["rules"].values():
         if r["fields"].get("per_daily"):
             r["fields"]["per_daily"] = 3
     mut = {t["id"]: t for t in G.build(m)["terms"]}
-    assert "three days' quota" in mut["possession_quota"]["says"]
+    assert "3 days' quota" in mut["possession_quota"]["says"]
     assert mut["possession_quota"]["example"] != base["possession_quota"]["example"]
 
 

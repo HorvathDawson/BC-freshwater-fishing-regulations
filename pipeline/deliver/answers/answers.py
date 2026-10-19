@@ -277,7 +277,10 @@ def _sections() -> Tuple[Section, ...]:
         # the own tier line drops "Replaces …"; the share before a water's own tiers; the worked keep-N lines say the two
         # ends of the range only)
         # ROUND20f 3: rows 23 (a region's share says "from streams"; a water's own share keeps "from this stream")
-        Section("rows", 23, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND20g 1/2: rows 24 (the origin rule on the share's tier where it holds on the share's water only, "From
+        # streams, keep hatchery fish only — …"; no steelhead `size_note`; "stop fishing here after 2 a day", "record each on
+        # your licence right away"; "A rainbow trout over 50 cm (20 in) here counts as a steelhead.")
+        Section("rows", 24, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -312,7 +315,9 @@ def _sections() -> Tuple[Section, ...]:
         # (24 in), under 90 cm (35 in)")
         # UR1 G: display 14 (a record duty "Write each … on your licence right away")
         # UR3 2: display 15 (`rules[].plain` of a no-fishing place rule says feet too, "within 23 m (75 ft) …")
-        Section("display", 15, display.section_scope, prepare=display.section_prepare,
+        # ROUND20g 3: display 16 (a possession rule's `plain` "Possession: 2 days’ quota." with the home exception as its
+        # own sentence)
+        Section("display", 16, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

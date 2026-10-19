@@ -252,9 +252,9 @@ def test_a_possession_limit_is_not_a_day_or_a_year():
     assert kind_of(dict(x, period="annual")) == "annual"
     assert kind_of(dict(x, take=0)) == "duty"
     # Q15 (answers 2.3): a possession limit says its exception
-    assert plain(x) == "Have no more than 1 lake trout in possession (fish at home don’t count)."
+    assert plain(x) == "Have no more than 1 lake trout in possession. Fish at home don’t count."
     y = dict(x, take=1, lengths=[{"min_cm": 50}])
-    assert plain(y) == "Only 1 lake trout over 50 cm (20 in) in possession (fish at home don’t count)."
+    assert plain(y) == "Only 1 lake trout over 50 cm (20 in) in possession. Fish at home don’t count."
     # MUTATION: the same rule as a daily limit reads as one
     assert plain(dict(x, period="daily")) == "Keep up to 1 lake trout a day."
 

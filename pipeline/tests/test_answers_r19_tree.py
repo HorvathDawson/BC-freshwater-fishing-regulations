@@ -58,7 +58,7 @@ def test_3_the_vedder_tree():
     g, _o, _P = _g(F.VEDDER)
     # ROUND20 1: the header IS the root tier
     assert g["header"] == {"says": "4 a day per angler across Region 2, lakes included", "tier": "t1", "tag": None}
-    assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
+    assert g["origin"] is None                                   # ROUND20g 1: the share's tier says it
     (total,) = g["tree"]
     share, own = total["children"]                               # ROUND20b C3: the share first
     assert own["replaces"] == ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
@@ -67,6 +67,7 @@ def test_3_the_vedder_tree():
     assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
     assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"   # ROUND20 2
+    assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
     assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
@@ -76,10 +77,9 @@ def test_3_the_vedder_tree():
     assert trout["also_counts"] == []     # the grouping says the cross-kind over-50 line
     assert dv["sentence"] == ("Of the 2 a day: only 1 may be hatchery Dolly Varden/bull trout or lake trout, 60 cm "
                               "(24 in) or longer")
-    assert st["sentence"] == ("Of the 2 a day: up to 2 may be hatchery steelhead, rainbow trout over 50 cm (20 in) — it "
-                              "counts toward the 1 over 50 cm (20 in), but once you keep one, a second fish over 50 cm "
-                              "(20 in) may be kept")
-    assert st["size_note"]["tier"] == size["id"]
+    # ROUND20g 2: the size tier's "— 2 if one is a hatchery steelhead" says it once; no size note on the kind
+    assert st["sentence"] == "Of the 2 a day: up to 2 may be hatchery steelhead, rainbow trout over 50 cm (20 in)"
+    assert "size_note" not in st
 
 
 def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names_its_fish():

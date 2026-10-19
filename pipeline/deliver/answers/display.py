@@ -175,6 +175,12 @@ def written_name(x: dict, conj: str = " and ") -> str:
 #: of EVERY possession quota). Every possession line the answers say carries it (`plain`).
 POSSESSION_HOME = "fish at home don’t count"
 
+
+def _home() -> str:
+    """ROUND20g 3 (owner): the exception said as its own sentence after the possession line ("Possession: 2 days’ quota.
+    Fish at home don’t count.")."""
+    return f"{POSSESSION_HOME[:1].upper()}{POSSESSION_HOME[1:]}."
+
 #: A CLOSURE PRINTED "UNLESS OPENED" (user ruling Z12/Q41, 2026-10-07): a full closure carrying an
 #: advisory proviso (`condition_of`) that names who may open it, said in the user's accepted
 #: words, by the kind of area the closure holds in. A closure with a proviso and no words here is
@@ -226,7 +232,7 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     Q15/Q39: "fish at home don’t count" is part of every possession quota)."""
     got = _plain(x, names)
     if got is not None and kind_of(x) == "possession_cap":
-        got = f"{got[:-1]} ({POSSESSION_HOME})."
+        got = f"{got} {_home()}"     # ROUND20g 3: its own sentence
     return got
 
 
@@ -283,11 +289,12 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if closure_grade(x) is not None:                # the page's `may_target === false`
         return wrap("No fishing" if re.search(r"game fish|^fish", sp) else f"No fishing for {sp}")
     if _js(x.get("per_daily")):
-        # THE POSSESSION QUOTA (Q15): "twice the daily quota", and fish at home don't count
+        # THE POSSESSION QUOTA (Q15), ROUND20g 3 (owner: plain words): "2 days’ quota", and fish at home don't count
+        # (`plain` adds that sentence)
         n = _num(x["per_daily"])
-        times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
+        times = "the daily quota" if n == 1 else f"{n} days’ quota"
         of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
-        return wrap(f"Possession: {times}the daily quota{of} ({POSSESSION_HOME})")
+        return f"{wrap(f'Possession: {times}{of}')} {_home()}"
     over = f" over {cm_in(mn['min_cm'])}" if mn else ""
     if _js(x.get("record_retention")):
         return wrap(f"Write each {org}{sp}{over} on your licence right away")      # UR1 G

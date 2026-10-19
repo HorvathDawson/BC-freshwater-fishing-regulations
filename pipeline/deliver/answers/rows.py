@@ -1998,8 +1998,8 @@ def presence_words(line: str, anadromous: bool) -> str:
     words as they were."""
     if line == "known_with_rules" and anadromous:
         from pipeline.deliver.bundle import read
-        return (f"Steelhead are known to be in this water, so a rainbow trout over "
-                f"{common.cm_in(read._steelhead_min_cm())} counts as a steelhead.")
+        # ROUND20g 2 (owner: fewer words; the ⓘ beside it says why — steelhead are known here)
+        return f"A rainbow trout over {common.cm_in(read._steelhead_min_cm())} here counts as a steelhead."
     return PRESENCE_WORDS[line]
 
 

@@ -32,7 +32,7 @@ from pipeline.tests import answers28_fixture as F
 from pipeline.tests import test_answers_r11_wording as R11
 
 OCT10, JUL15 = (10, 10), (7, 15)
-KNOWN = {"line": "known_with_rules", "says": "Steelhead are known to be in this water, so a rainbow trout over 50 cm (20 in) counts as a steelhead."}
+KNOWN = {"line": "known_with_rules", "says": "A rainbow trout over 50 cm (20 in) here counts as a steelhead."}
 
 
 def _group(water, md=OCT10):

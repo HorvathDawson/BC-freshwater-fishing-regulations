@@ -17,18 +17,19 @@ count groups, size groups and notes) as that tree; it decides nothing new.
          share  the stream (lake) share, said INSIDE the count tier around it ("Only 2 of the 4 may be from this
                 stream" — ROUND20 2, owner: the UR3 "— your hatchery rainbow trout count toward the 4, not these 2"
                 read as 4 + 2; the fish a water's own rule lifts out of it ", not counting hatchery rainbow trout")
+                — ROUND20g 1: its `origin` where the one-origin rule holds on the share's water only ("From streams, keep
+                hatchery fish only — wild trout and char go back.", Region 2 p.21; the group's `origin` is then None)
          count  a count over some of a tier's kinds, naming them ("1 cutthroat or rainbow trout in all", UR1 D)
          size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
                 size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
                 a kind that can never pass the size stays outside ("Only 1 of the fish in this box may be over 50 cm
                 (20 in)", UR1 B). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
-                INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}),
-                and the steelhead's `size_note` says it counts toward the 1 ("it counts toward the 1 over 50 cm
-                (20 in), but once you keep one, a second fish over 50 cm (20 in) may be kept"). A cap on one kind
+                INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}; ROUND20g 2: said once, the
+                steelhead's own `size_note` is gone). A cap on one kind
                 row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (Region 2's
                 Bella Coola count over a cutthroat that may and a rainbow that may not) is no tier: the kinds'
                 `also_counts` say it
-  kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, size_note, duties, sentence}:
+  kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, duties, sentence}:
          each kind EXACTLY ONCE; `says` "Up to 2 may be hatchery brook, brown or cutthroat trout" (ROUND19 1: the
          origin with the fish where it keeps one, never again in the detail), `detail` its sizes ("30 cm (12 in) or
          longer"), `also_counts` every cap no tier around it holds that still binds it, in words, and `sentence` the
@@ -66,6 +67,9 @@ class Ctx:
     origin_one: Optional[str]
     lifting: List[dict]
     what: str
+    #: ROUND20g 1: the origin rule said on the share's tier ("From streams, keep hatchery fish only — …"), where it holds
+    #: on the share's kind of water only (`card.origin_place`)
+    share_origin: Optional[str] = None
 
 
 def _js(v) -> str:
@@ -294,6 +298,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         elif b["why"] == "share":
             # ROUND20f 3: a region's share says "from streams"; a water's own share "from this stream"
             t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from {share_place(c.share['water'], share_region_wide(P, c.share))}", b["by"])
+            if c.share_origin is not None:
+                t["origin"] = c.share_origin           # ROUND20g 1: the origin rule where its scope is
         else:
             t = root
         content: List[dict] = []
@@ -422,13 +428,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             box["children"].remove(x)
         st_["children"] = taken
         box["children"].insert(at, st_)
-        if extra is not None:
-            e, n0, w = extra["n"], sz["n"], common.cm_in(cm)
-            st["size_note"] = {"tier": st_["id"], "says": (
-                f"it counts toward the 1 over {w}, but once you keep one, a second fish over {w} may be kept"
-                if (n0, e) == (1, 1) else
-                f"only {who} may be over {w}, up to {_js(e)}" if not n0 else
-                f"it counts toward the {_js(n0)} over {w}, but with {who} up to {_js(n0 + e)} fish over {w} may be kept")}
+        # ROUND20g 2 (owner): the steelhead's own note ("it counts toward the 1 over 50 cm (20 in), but once you keep one,
+        # a second …") said the band head's "— 2 if one is a hatchery steelhead" again; the band head says it once
         sz["_tier"] = st_["id"]
     par = parents()
     above: Dict[int, List[dict]] = {id(kn): chain(par, kn) for kn in every_kind}
@@ -523,7 +524,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         s = f"Of the {_short(up)}: {common.lc(bare)}"
         if x["detail"]:
             s += f", {x['detail']}"
-        notes = [a["says"] for a in x["also_counts"]] + ([x["size_note"]["says"]] if x.get("size_note") else [])
+        notes = [a["says"] for a in x["also_counts"]]
         if notes:
             s += " — " + "; ".join(notes)
         x["sentence"] = s

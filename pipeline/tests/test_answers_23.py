@@ -37,14 +37,14 @@ PARK_WORDS = "Closed unless opened by Parks Canada — a national park fishing p
 
 @pytest.mark.parametrize("x, want", [
     ({"type": "retention_limit", "species": ["ALL_GAME_FISH"], "period": "possession",
-      "per_daily": 2}, "Possession: twice the daily quota (fish at home don’t count)."),
+      "per_daily": 2}, "Possession: 2 days’ quota. Fish at home don’t count."),
     ({"type": "retention_limit", "species": ["KO"], "period": "possession", "per_daily": 1},
-     "Possession: the daily quota for kokanee (fish at home don’t count)."),
+     "Possession: the daily quota for kokanee. Fish at home don’t count."),
     ({"type": "retention_limit", "species": ["LT"], "period": "possession", "take": 1,
       "lengths": [{"min_cm": 60}]},
-     "Only 1 lake trout over 60 cm (24 in) in possession (fish at home don’t count)."),
+     "Only 1 lake trout over 60 cm (24 in) in possession. Fish at home don’t count."),
     ({"type": "retention_limit", "species": ["GR"], "period": "possession", "take": 1},
-     "Have no more than 1 Arctic grayling in possession (fish at home don’t count)."),
+     "Have no more than 1 Arctic grayling in possession. Fish at home don’t count."),
 ])
 def test_every_possession_line_says_fish_at_home_dont_count(x, want):
     assert X.plain(x) == want
@@ -201,7 +201,7 @@ def test_built_every_possession_sentence_says_fish_at_home_dont_count():
     poss = [r for r in wire["sections"]["display"]["rules"]
             if r["kind"] in ("possession", "possession_cap") and r.get("plain")]
     assert len(poss) > 20
-    assert all(X.POSSESSION_HOME in r["plain"] for r in poss)
+    assert all(r["plain"].endswith(X._home()) for r in poss)          # ROUND20g 3: its own sentence
 
 
 @pytest.mark.needs_bundle

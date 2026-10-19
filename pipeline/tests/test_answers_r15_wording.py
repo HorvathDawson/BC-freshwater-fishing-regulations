@@ -202,7 +202,10 @@ def test_8_no_the_before_a_lake():
 
 def test_8_each_kept_kind_says_hatchery_on_a_hatchery_only_card():
     g, _o, _P = _group(F.VEDDER_MAY, MAY15)
-    assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
+    # ROUND20g 1: Region 2's wild release holds on streams only — the stream share's tier says it
+    assert g["origin"] is None
+    assert [t["origin"] for t in g["tree"][0]["children"] if t.get("origin")] == \
+        ["From streams, keep hatchery fish only — wild trout and char go back."]
     details = [k["detail"] for b in g["buckets"] for k in b["kinds"]]
     assert details and all(d.startswith("hatchery") for d in details), details
 

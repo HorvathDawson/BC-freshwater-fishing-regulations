@@ -82,7 +82,7 @@ def test_f_a_species_closure_says_not_even_to_release():
 def test_g_write_each_one_on_your_licence_right_away():
     g, _o, _P = _g(F.VEDDER)
     st = next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["species"] == ["ST"])
-    assert "write each one on your licence right away" in st["duties"]
+    assert "record each on your licence right away" in st["duties"]   # ROUND20g 2
     x = {"type": "retention_limit", "species": ["ST"], "record_retention": True, "origin": "hatchery"}
     assert D.plain(x) == "Write each hatchery steelhead on your licence right away."
     assert D.title(x) == "Write each hatchery steelhead on your licence right away"

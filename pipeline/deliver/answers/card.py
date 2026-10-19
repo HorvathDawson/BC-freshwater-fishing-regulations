@@ -6,7 +6,8 @@ out of them) is said as the angler reads a water:
   headline    the number from THIS water with no lift: on a Region 2 stream "2 a day from this stream"
               (the stream share holding every kind), on a lake the total ("4 a day");
   origin      "Keep hatchery fish only — wild trout and char go back." where every kind keeps only one origin
-              (ROUND19 6);
+              (ROUND19 6) — None where that rule holds on the share's water only (ROUND20g 1, Region 2's "Wild
+              trout/char from streams", p.21): the share's tier says it (`tree` share `origin`, `origin_place`);
   lifts       each water's rule lifting kinds out of the share, said positively with whose rule it is:
               "On this river, hatchery rainbow trout 50 cm or less: up to 4 a day — this river’s rule
               replaces Region 2’s 2-from-streams limit for them." (`by`: the page cites its Book page);
@@ -183,6 +184,25 @@ def _kept_origins(model: dict, S: str) -> List[str]:
             if R_.get(k) and _keepish(R_[k]["status"])]
 
 
+def origin_place(P, model: dict, kinds: Sequence[str], keep: str, T, share: Optional[dict]) -> Optional[str]:
+    """ROUND20g 1 (owner): where the card's one-origin rule holds — "streams" ("this stream") when every kind's other
+    origin is sent back by rules holding on the SHARE's kind of water only (Region 2's "Wild trout/char from streams",
+    p.21: `water` stream) while the total (`T`) counts every water; None where it holds wherever the total does (the
+    origin stays the group's)."""
+    from pipeline.deliver.answers.rows import badge_of
+    from pipeline.deliver.answers.tree import share_place
+    if share is None:
+        return None
+    other = "W" if keep == "hatchery" else "H"
+    wins = [((model["R"].get(S) or {}).get(other) or {}).get("win") for S in kinds]
+    if not wins or any(w is None for w in wins):
+        return None
+    waters = {w.f.get("water") for w in wins}
+    if len(waters) != 1 or share["water"] not in waters or T.f.get("water") == share["water"]:
+        return None
+    return share_place(share["water"], all(badge_of(w) in ("region", "bc") for w in wins))
+
+
 def _items_of(rows_out: List[dict], home: int, S: str) -> List[dict]:
     """Every row item holding `S`, the group's own row first."""
     order = [rows_out[home]] + [r for i, r in enumerate(rows_out) if i != home]
@@ -228,9 +248,9 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
         if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
             w = f"{_js(r.f['take'])} a year"
         elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            w = "write each one on your licence right away"          # UR1 G (user panel: plain words)
+            w = "record each on your licence right away"          # UR1 G; ROUND20g 2 (owner: fewer words)
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
-            w = f"after you keep {_js(n)}, stop fishing for the day"        # UR2 5 (user panel: plain words)
+            w = f"stop fishing here after {_js(n)} a day"   # UR2 5; ROUND20g 2 (owner: fewer words; "here": the book's "stop fishing that water")
         else:
             continue
         if w not in out:
@@ -621,6 +641,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     elif os_ == {("wild",)}:
         origin = f"Keep wild fish only — hatchery {what} go back."
     one_origin = origin is not None
+    # ROUND20g 1 (owner; Region 2's "And you must release: Wild trout/char from streams", p.21): where the rules sending
+    # the other origin back hold on one kind of water and the total counts the other kind too, the origin is the SHARE's
+    # (said on its tier, "From streams, keep hatchery fish only — …"), never the group's
+    share_origin = None
+    if one_origin and (got := origin_place(P, model, kinds, next(iter(os_))[0], T, share)) is not None:
+        share_origin, origin = f"From {got}, {origin[0].lower()}{origin[1:]}", None
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
@@ -869,7 +895,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     tree, header = TR.tree_of(P, model, TR.Ctx(
         grp=grp, buckets=buckets, info=info, side=side, share=share, unlimited=unlimited, head=head,
         origin_one=(os_.pop()[0] if one_origin else None), lifting=[b for b in lift_bucket.values() if b in buckets],
-        what=what))
+        what=what, share_origin=share_origin))
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
             "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header}
