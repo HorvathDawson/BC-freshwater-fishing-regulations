@@ -17,6 +17,7 @@ export * from "./section";
 export * from "./regulations";
 export * from "./status";
 export * from "./statusIndex";
+export * from "./paint";
 export * from "./search";
 export * from "./near";
 
