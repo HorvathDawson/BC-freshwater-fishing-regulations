@@ -4,8 +4,8 @@
     .venv/bin/python -m pipeline.atlas.build --bbox 1282000 476000 1305000 508000 --out data/generated/atlas/chehalis
     .venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/full   # whole province (heavy)
 
-Produces (under --out): blk_chains.pkl, graph.pkl, graph.gpkg (streams / confluences /
-anchors layers for QGIS), and summary.txt.
+Produces (under --out): graph.pkl, graph.gpkg (streams / confluences / anchors layers for QGIS), and
+summary.txt. The blue-line chains are built and used in memory only (P21: their 2.57 GB pickle had no reader).
 """
 
 from __future__ import annotations
@@ -987,7 +987,6 @@ def main() -> None:
         with (out / "waterbody_polys.pkl").open("wb") as _fh:
             _pk.dump({f"lake:{w}": pl for w, pl in wb_polys.items()}, _fh, protocol=5)
         print(f"  wrote waterbody_polys.pkl ({len(wb_polys):,} outlines)")
-    write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
     write_artifact(geoms, str(out / "geometries.pkl"))
 

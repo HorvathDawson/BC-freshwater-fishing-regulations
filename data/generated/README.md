@@ -15,7 +15,7 @@ construction.
 
 | path | written by | holds |
 |---|---|---|
-| `atlas/<name>/` | `pipeline.atlas.build --out` | `graph.pkl`, `registry.json`, `blk_chains.pkl`, `geometries.pkl`, `item_points.json`, `splits.resolved.json` |
+| `atlas/<name>/` | `pipeline.atlas.build --out` | `graph.pkl`, `registry.json`, `geometries.pkl`, `item_points.json`, `splits.resolved.json` |
 | `reaches/<name>/` | `pipeline.atlas.reach.cli --out` | rule → sections tables |
 | `bundle/` | `pipeline.deliver.bundle` | `bundle.sqlite` (what ships) |
 | `tiles/` | `pipeline.deliver.tiles` | `atlas.pmtiles` + per-layer geojsonseq |

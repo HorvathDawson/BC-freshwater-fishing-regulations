@@ -384,3 +384,11 @@ def test_gate_4_goes_red_on_a_planted_js_table(path, planted):
 
 def test_pending_is_empty_at_the_end():
     assert READER_PENDING == {} and PARTS_PENDING == {}
+
+
+def test_the_atlas_build_writes_no_blk_chains_pickle():
+    """P21 (owner Q17): `blk_chains.pkl` (2.57 GB per full build) had no reader; the chains live in memory during the
+    build only. Nothing may write it again."""
+    from pipeline.common.curated import REPO_ROOT
+    src = (REPO_ROOT / "pipeline" / "atlas" / "build.py").read_text()
+    assert "blk_chains.pkl" not in src

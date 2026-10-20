@@ -18,7 +18,7 @@ generated:
 
   atlas:
     # Graph builds from pipeline/atlas/build.py (--out): one subdirectory per region
-    # (adams, kootenay, …) plus full/. Holds graph.pkl, registry.json, blk_chains,
+    # (adams, kootenay, …) plus full/. Holds graph.pkl, registry.json,
     # geometries, item_points.json, splits.resolved.json.
     builds: "data/generated/atlas"
     # Which build under `builds` the review app SERVES, and the one its rebuild button

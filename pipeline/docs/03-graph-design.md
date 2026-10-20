@@ -9,7 +9,8 @@ confluence measure). Tributaries of a node = its **ancestors**. This is built an
 ## Output artifacts
 
 1. **`blk_chains`** — every blue line merged into one ordered chain (route measures,
-   under-lake runs, `(name, source)` tuples, distinct `edge_types`).
+   under-lake runs, `(name, source)` tuples, distinct `edge_types`). Built and used in memory only; it is not written
+   (P21, 2026-10-20: the 2.57 GB pickle had no reader).
 2. **`stream graph`** — `StreamNode`s (a **stream piece** = a BLK cut at its lake-runs; or a
    **lake** node, one per `wbk`) + `FlowEdge`s (`from_node` flows into `to_node` at
    `at_measure`, `kind` ∈ confluence/lake_in/lake_out), with `up_adj` (incoming = tributaries)

@@ -231,7 +231,7 @@ def test_two_builds_of_identical_inputs_are_identical():
 
     from pipeline.common.io.serialize import read_artifact
     for f in ("registry.json", "section_handles.txt", "region_home.json", "splits.resolved.json",
-              "geometries.pkl", "blk_chains.pkl", "waterbody_polys.pkl", "item_points.json",
+              "geometries.pkl", "waterbody_polys.pkl", "item_points.json",
               "merge_report.json"):
         a = hashlib.sha256((_atlas() / f).read_bytes()).hexdigest()
         b = hashlib.sha256((Path(twin) / f).read_bytes()).hexdigest()
