@@ -8,7 +8,7 @@
  */
 import { Text, View } from "react-native";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
-import type { Horizon } from "@app/ui";
+import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
 import { useWaterName } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -36,7 +36,7 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
    */
   onRegulations?: (section: SectionId) => void;
   /** The live index, for the donor panel — see ConditionsPanel. */
-  feed?: { index(): Promise<any> };
+  feed?: PanelFeed;
   /** Data credits for the foot of the screen — see ConditionsPanel. */
   credits?: readonly string[];
   /** Kept in step with the map's forecast horizon — see ConditionsPanel. */

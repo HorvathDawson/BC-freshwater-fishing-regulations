@@ -5,21 +5,32 @@
  * one of them is not a screen (`captureSpot` freezes an answer into a saved spot), so it
  * cannot live behind a hook.
  */
-import { useMemo } from "react";
-import { answerFrom, reading, type BasinMember, type Horizon, type Panel,
-         type PanelAnswer, type Quantity, type RegsSource, type SectionId,
+import { useMemo, useState } from "react";
+import { answerFrom, reading, type BasinMember, type DonorRow, type Horizon, type Panel,
+         type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
 // The field combines its gauges with the SAME probit transform the reaches use — see
 // `basinStanding`. A second averaging rule here is how a catchment and the river inside it
 // start disagreeing for reasons that are only arithmetic.
 import { basinStanding, type BasinVote } from "@app/core";
+import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel,
+         donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
+         estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
+         HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
+         readingAgeLine, readingHeading, readingStandingLine, regulatedNote, SAME_PLACE_M,
+         shortRecordNote, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
+         type Standing } from "@app/core";
 import { useAsync } from "./async";
+import { useConditions, useGaugeTrace, useStationReading } from "./hooks";
 
 /** Re-exported so a screen has one import for the whole subject. */
 export { answerFrom, HORIZONS } from "@app/data";
 export type { DonorRow, Horizon, PanelAnswer, Quantity } from "@app/data";
 
 type Index = Parameters<typeof answerFrom>[1];
+
+/** The live feed as the panel hooks read it: one call for the day's index. */
+export type PanelFeed = { index(): Promise<Index> };
 
 /*
  * PANELS ARE READ ONCE PER SECTION, EVER.
@@ -293,4 +304,264 @@ export function usePanelRoutes(source: RegsSource, section: SectionId | null,
     return { ...panel, routesReady: true,
              rows: panel.rows.map((r) => ({ ...r, route: by.get(r.station) })) };
   }, [routes, panel]);
+}
+
+/* ============================================================ CONDITIONS VIEW ====
+ *
+ * P12a: what `DonorPanel` and `ConditionsPanel` draw, finished. The sentences are core's
+ * (`conditions.ts`, pinned whole); the CHOICES — which station leads, which notes appear,
+ * which day the range is for — are made here, so the components only draw.
+ */
+
+/** One donor row, every line finished. */
+export interface DonorRowVM {
+  station: string;
+  name: string | null;
+  /** Not reporting: drawn in the quiet tone, contributes nothing. */
+  quiet: boolean;
+  /** The row's chart is the one showing. */
+  on: boolean;
+  /** The weight bar's width, never below 1% so a real share stays visible. */
+  bar: `${number}%`;
+  weightLine: string;
+  reads: string;
+  facts: string;
+  /** Why it counts what it counts; null for a quiet gauge, which counts nothing. */
+  because: string | null;
+  /** The row's screen-reader name. */
+  label: string;
+}
+
+/** A pin or key entry: `row` is the donor's index, null for "you are here". */
+export interface DonorPinVM { lat: number; lon: number; row: number | null; title: string }
+export interface DonorKeyVM { row: number | null; label: string }
+
+export interface DonorMapVM {
+  camera: { lon: number; lat: number; zoom: number };
+  /** Remounts the map only when the frame genuinely changes (a map reads its camera once). */
+  key: string;
+  pins: readonly DonorPinVM[];
+  keys: readonly DonorKeyVM[];
+  unplaced: string | null;
+  /** The reaches between here and the gauges, unioned. */
+  chain: readonly SectionKey[];
+}
+
+export interface HorizonChipVM { day: Horizon; chip: string; label: string; on: boolean }
+
+export type DonorVM =
+  | { ok: false; heading: string; reason: string }
+  | {
+      ok: true;
+      heading: string;
+      headline: string;
+      /** "by then", drawn quieter after the headline, on a forecast; null for now. */
+      headlineSuffix: string | null;
+      sentence: string;
+      range: string;
+      horizons: readonly HorizonChipVM[];
+      /** Null until the routes are in, or when no donor can be placed. */
+      map: DonorMapVM | null;
+      tapToChart: string;
+      listLabel: string;
+      rows: readonly DonorRowVM[];
+      shortRecord: string | null;
+      regulated: string | null;
+      disagree: string | null;
+      explainer: string;
+    };
+
+export interface DonorViewOptions {
+  /** The CHOSEN day: today on a live sheet, the visit on a saved spot. Never the clock. */
+  day: Date;
+  horizon: Horizon;
+  /** Where the reader is, for "you are here". */
+  from: { lat: number; lon: number } | null;
+  /** The route map's measured size; the camera fits each axis to its own dimension. */
+  size: { width: number; height: number };
+  selected: StationId | null;
+  /** Rows are controls (the caller has a chart to steer). */
+  pickable: boolean;
+}
+
+/** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
+export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
+  const { answer, rows } = value;
+  if (!answer.ok)
+    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why) };
+  const e = answer.value;
+
+  const placed = rows.filter((r) => r.route?.lat != null && r.route?.lon != null);
+  const camera = panelCamera(placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })),
+                             o.from, o.size);
+  // A gauge AT the tap absorbs "you are here" — two pins on one pixel read as one lost.
+  const from = o.from;
+  const atSpot = from
+    ? placed.find((r) => metresApart(from, { lat: r.route!.lat!, lon: r.route!.lon! })
+                         <= SAME_PLACE_M)
+    : undefined;
+  const showFrom = from && !atSpot ? from : null;
+  const here = CONDITIONS_WORDS.youAreHere;
+  const map: DonorMapVM | null = value.routesReady && camera ? {
+    camera,
+    key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
+    pins: [
+      ...(showFrom ? [{ lat: showFrom.lat, lon: showFrom.lon, row: null, title: here }] : []),
+      ...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon!, row: rows.indexOf(r),
+                              title: donorPinTitle(r, r === atSpot) })),
+    ],
+    keys: [
+      ...(showFrom ? [{ row: null, label: here }] : []),
+      ...placed.map((r) => ({ row: rows.indexOf(r), label: donorKeyLabel(r, r === atSpot) })),
+    ],
+    unplaced: unplacedNote(rows.length - placed.length),
+    chain: [...new Set(rows.flatMap((r) => r.route?.path ?? []))],
+  } : null;
+
+  return {
+    ok: true,
+    heading: HORIZON_LABELS[o.horizon].heading,
+    headline: estimateHeadline(e),
+    headlineSuffix: o.horizon > 0 ? CONDITIONS_WORDS.byThen : null,
+    sentence: estimateSentence(e, o.horizon),
+    range: estimateRange(e, o.day, o.horizon, value.areaKm2),
+    horizons: HORIZONS.map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip,
+                                     label: horizonChipLabel(d, d === o.horizon),
+                                     on: d === o.horizon })),
+    map,
+    tapToChart: CONDITIONS_WORDS.tapToChart,
+    listLabel: CONDITIONS_WORDS.donorList,
+    rows: rows.map((r: DonorRow): DonorRowVM => {
+      const on = o.selected != null && r.station === o.selected;
+      return {
+        station: r.station, name: r.route?.name ?? null, quiet: r.percentile === null, on,
+        bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
+        weightLine: donorWeightLine(r), reads: donorReads(r), facts: donorFacts(r),
+        because: r.percentile === null ? null : donorBecause(r),
+        label: donorRowLabel(r, o.pickable, on),
+      };
+    }),
+    shortRecord: shortRecordNote(rows),
+    regulated: regulatedNote(rows),
+    disagree: disagreeNote(e),
+    explainer: CONDITIONS_WORDS.explainer,
+  };
+}
+
+/** `donorView`, memoised for a component. */
+export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
+  const { day, horizon, from, size, selected, pickable } = o;
+  const t = day.getTime();
+  const lat = from?.lat;
+  const lon = from?.lon;
+  const { width, height } = size;
+  return useMemo(
+    () => donorView(value, { day: new Date(t), horizon,
+                             from: lat != null && lon != null ? { lat, lon } : null,
+                             size: { width, height }, selected, pickable }),
+    [value, t, horizon, lat, lon, width, height, selected, pickable]);
+}
+
+/** The lead station's own reading, finished. */
+export interface ReadingVM {
+  heading: string;
+  figure: number;
+  unit: string;
+  /** Which quantity `figure` is. */
+  quantity: Parameter;
+  /** The stage beside a discharge, where the station has both. */
+  stage: string | null;
+  standing: string;
+  age: string;
+}
+
+export interface ConditionsVM {
+  /** The matched gauge is still being looked up. */
+  loading: boolean;
+  /** The day everything is for — the caller's, or today when it chose none. */
+  day: Date;
+  /** The donor answer with its routes, for `DonorPanel`. */
+  panel: PanelAnswer;
+  /** The reaches between here and every donor. */
+  chain: readonly SectionKey[];
+  /** Each of those reaches coloured by its own percentile, for the route map. */
+  routeData: { stream: Record<string, { standing: number }>;
+               lake: Record<string, { standing: number }> };
+  /** The station the chart and the reading are about. */
+  lead: StationId | null;
+  select: (station: StationId) => void;
+  /** Null when no gauge may speak for this water; draw `noGauge` instead. */
+  reading: ReadingVM | null;
+  noGauge: string;
+  /** The single-station trace, only where the panel could not answer. */
+  trace: GaugeTrace | null;
+}
+
+/**
+ * WHAT THE WATER IS DOING, finished for the conditions panel.
+ *
+ * `day` is the chosen day (null: today, read once per mount); `horizon` is how far past it.
+ * `opts` carries the live feed and the quantity the map is painting, so the sheet answers
+ * the same question the colour does.
+ */
+export function useConditionsView(
+  source: RegsSource, section: SectionId | null, day: Date | null, horizon: Horizon,
+  opts: { feed: PanelFeed | undefined; quantity: Quantity },
+): ConditionsVM {
+  const { feed, quantity } = opts;
+  const conditions = useConditions(source, section);
+  const traced = useGaugeTrace(source, section);
+  const panel = usePanelRoutes(source, section,
+                               usePanel(source, feed, section, quantity, horizon));
+  const chain = useMemo<readonly SectionKey[]>(
+    () => [...new Set(panel.rows.flatMap((r) => r.route?.path ?? []))], [panel.rows]);
+  const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
+                                      horizon);
+  const routeData = useMemo(() => {
+    const values = Object.fromEntries(
+      [...standings].map(([sec, p]) => [sec, { standing: p * 100 }]));
+    // `standing` is keyed by SECTION, and a lake section is a section.
+    return { stream: values, lake: values };
+  }, [standings]);
+
+  const matched = conditions.state === "ready" ? conditions.value : null;
+  /*
+   * THE CHART FOLLOWS THE PANEL: the picked donor, else the heaviest reporting one (rows
+   * are in weight order), else any donor, else the one station matched to this reach.
+   */
+  const [picked, select] = useState<StationId | null>(null);
+  const lead: StationId | null = picked
+    ?? panel.rows.find((r) => r.percentile !== null)?.station
+    ?? panel.rows[0]?.station
+    ?? matched?.station
+    ?? null;
+  const got = useStationReading(source, lead);
+  const live = got.state === "ready" ? got.value : null;
+  const name = panel.rows.find((r) => r.station === lead)?.route?.name
+    ?? (lead === matched?.station ? matched?.stationName : null)
+    ?? lead ?? "";
+  const c = lead === matched?.station && !live?.fetchedAt ? matched : live;
+
+  const today = useMemo(() => day ?? new Date(), [day]);
+  let reading: ReadingVM | null = null;
+  if (c && (c.discharge != null || c.level != null)) {
+    const shown: Parameter = c.discharge != null ? "discharge" : "level";
+    reading = {
+      heading: readingHeading(name),
+      figure: (c.discharge ?? c.level)!,
+      unit: CONDITIONS_WORDS.unit[shown],
+      quantity: shown,
+      stage: c.discharge != null && c.level != null ? stageLine(c.level) : null,
+      standing: readingStandingLine(c.percentile, c.standing as Standing | null),
+      age: readingAgeLine(freshness(c.fetchedAt, Date.now()), c.observedAt),
+    };
+  }
+
+  return {
+    loading: conditions.state === "loading",
+    day: today, panel, chain, routeData, lead, select, reading,
+    noGauge: noGaugeSentence(),
+    trace: !panel.answer.ok && traced.state === "ready" && traced.value.station
+      ? traced.value : null,
+  };
 }

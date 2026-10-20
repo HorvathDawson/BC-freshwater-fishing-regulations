@@ -61,14 +61,11 @@ export interface PanelAnswer {
 }
 
 /**
- * How far ahead the map and the sheet are looking. 0 is now.
- *
- * The values are the days the publisher ranks a forecast for — see HORIZONS in
- * `pipeline/gauges/feed/publish.py`. Beyond about five the model's own bounds are wide
- * enough that the answer is "normal for the season" whatever it says, which the
- * climatology already gives you without a forecast.
+ * How far ahead the map and the sheet are looking. 0 is now. DEFINED IN CORE beside the
+ * words for each day (`HORIZON_LABELS`), so the list and its labels are one table.
  */
-export type Horizon = 0 | 1 | 3 | 5;
+export { HORIZONS, type Horizon } from "@app/core";
+import type { Horizon } from "@app/core";
 
 /**
  * What the map or the sheet is asking about — ONE physical quantity, province-wide.
@@ -89,7 +86,6 @@ export type Horizon = 0 | 1 | 3 | 5;
  * grey under Level. Grey means "no reading of the thing you asked about", which is true.
  */
 export type Quantity = "discharge" | "level";
-export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5];
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
 

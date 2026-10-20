@@ -21,6 +21,7 @@ export * from "./paint";
 export * from "./search";
 export * from "./near";
 export * from "./day";
+export * from "./conditions";
 
 export type Freshness =
   | { state: "live"; ageMs: number }
