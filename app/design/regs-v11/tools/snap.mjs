@@ -151,7 +151,8 @@ function extract(SPECS, YR) {
     out.gloss[g] = { ...sheet(), term: { says: t.says ?? null, example: t.example ?? null, quote: t.quote ?? null, pages: [...(t.pages || [])] } }; }
   // every fish the page names (v12: any species with a photo opens its picture sheet, not only FISHART's): its name, and
   // FISHART's look-for notes where it has them
-  for (const c of codes) out.fish[c] = FISHART.has(c) ? { name: FISHART.SPECIES[c].name || spName(c), tips: FISHART.SPECIES[c].tips } : { name: spName(c), tips: [] };
+  // round UR5 (audit H2): the name is always the export's (spName), never the art table's
+  for (const c of codes) out.fish[c] = { name: spName(c), tips: FISHART.has(c) ? FISHART.SPECIES[c].tips : [] };
   $('scrim').hidden = true;
   return out;
 }

@@ -1336,71 +1336,71 @@ const FISHART = (() => {
     // numbered marks
     const marks = (opts.marks === false ? [] : (c.marks || [])).map(([f, yf], i) => { const [mx2, my2] = B.at(f, yf); return `<g><circle cx="${mx2}" cy="${my2}" r="8.5" fill="#0e5a73" stroke="#fff" stroke-width="2"/><text x="${mx2}" y="${my2 + 3.6}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`; });
     const adiMark = opts.adiMark && c.adipose ? (() => { const [ax, ay] = B.at(c.adipose[0] + 0.025, -0.62); return `<circle cx="${ax}" cy="${ay}" r="13" fill="none" stroke="#0e8fb3" stroke-width="2.2"/><path d="M${ax} ${ay - 13} L${ax} ${ay - 28}" stroke="#0e8fb3" stroke-width="1.6"/>`; })() : '';
-    return `<svg viewBox="0 0 ${VB_W} ${VB_H}" class="fishsvg" role="img" aria-label="${c.name}${opts.clipped ? ', adipose fin clipped' : ''}"><defs>${grad}</defs>
+    return `<svg viewBox="0 0 ${VB_W} ${VB_H}" class="fishsvg" role="img" aria-label="${spName(key)}${opts.clipped ? ', adipose fin clipped' : ''}"><defs>${grad}</defs>
       <ellipse cx="${(B.x0 + B.xp) / 2 + 20}" cy="${CY + B.h * 1.25 + 10}" rx="${B.L * 0.5}" ry="5" fill="#000" opacity=".07"/>${F.join('')}${bodyShapes.join('')}<g clip-path="url(#${id}c)">${P.join('')}<path d="${B.d}" fill="url(#${id}s)"/></g>${ADI.join('')}${D.join('')}${adiMark}${marks.join('')}</svg>`;
   }
 
   /* per species: shape, colours, pattern, and marks (anchor points for the numbered tips, in body fractions) */
   const SPECIES = {
-    RB:{ name:'Rainbow trout', h:30, back:'#4e6b52', side:'#c3cbc0', belly2:'#e6e4dc', band:'#e0708a', bandO:.5, adipose:[0.8], fork:.3, seed:11,
+    RB:{ h:30, back:'#4e6b52', side:'#c3cbc0', belly2:'#e6e4dc', band:'#e0708a', bandO:.5, adipose:[0.8], fork:.3, seed:11,
       patterns:[{ t:'spots', n:95, x:[.08, 1], y:[-1, -0.05], r:1.5, c:'#1a1a1a' }, { t:'spots', n:22, x:[.55, 1], y:[0, .5], r:1.2, c:'#1a1a1a' }],
       tips:['Pink or red band along the side','Small black spots, mostly above the middle of the side','Rows of black spots on the tail'], marks:[[0.45, 0.05], [0.4, -0.6], [1.12, -0.35]] },
-    ST:{ name:'Steelhead', h:31, back:'#526e7a', side:'#d5dcdf', belly2:'#eef0ef', band:'#e0808f', bandO:.18, adipose:[0.8], fork:.3, seed:13, xp:322,
+    ST:{ h:31, back:'#526e7a', side:'#d5dcdf', belly2:'#eef0ef', band:'#e0808f', bandO:.18, adipose:[0.8], fork:.3, seed:13, xp:322,
       patterns:[{ t:'spots', n:55, x:[.1, 1], y:[-1, -0.3], r:1.3, c:'#1a1a1a' }],
-      tips:['A rainbow trout that went to sea: bright silver, 50 cm or longer','Faint spots, mostly on the back and tail','Hatchery steelhead are missing this small fin (the adipose fin)'], marks:[[0.5, 0.2], [0.35, -0.7], [0.83, -0.72]] },
-    CT:{ name:'Cutthroat trout', h:29, back:'#5d6537', side:'#c8b683', belly2:'#e2d7b3', adipose:[0.8], fork:.25, slash:true, mouth:.14, seed:17,
+      tips:['A rainbow trout that went to sea: bright silver','Faint spots, mostly on the back and tail','Hatchery steelhead are missing this small fin (the adipose fin)'], marks:[[0.5, 0.2], [0.35, -0.7], [0.83, -0.72]] },
+    CT:{ h:29, back:'#5d6537', side:'#c8b683', belly2:'#e2d7b3', adipose:[0.8], fork:.25, slash:true, mouth:.14, seed:17,
       patterns:[{ t:'spots', n:150, x:[.06, 1], y:[-1, .8], r:1.35, c:'#1c1c14' }],
       tips:['Red or orange slash under the lower jaw (may be faint)','Large mouth, reaching well past the eye','Black spots all over, more toward the tail'], marks:[[0.075, 0.62], [0.14, 0.15], [0.78, 0.35]] },
-    GB:{ name:'Brown trout', h:30, back:'#5c4526', side:'#c7985a', belly2:'#e8cf8e', bellyC:'#f3e2b2', adipose:[0.8], adiC:'#c7743a', fork:.08, tailC:'#7a6038', seed:19,
+    GB:{ h:30, back:'#5c4526', side:'#c7985a', belly2:'#e8cf8e', bellyC:'#f3e2b2', adipose:[0.8], adiC:'#c7743a', fork:.08, tailC:'#7a6038', seed:19,
       patterns:[{ t:'halo', n:60, x:[.08, .95], y:[-.95, .45], r:1.9, c:'#1b140c', c2:'#c4362b', mix:.3, h:'#efe0c0' }],
       tips:['Black and red spots, many with pale halos','Tail with few or no spots','Orange-rimmed adipose fin'], marks:[[0.5, -0.2], [1.12, 0], [0.83, -0.72]] },
-    KO:{ name:'Kokanee', h:28, back:'#2d5b86', side:'#cfd8df', belly2:'#eef1f3', adipose:[0.8], fork:.5, anal:[0.64, 0.8, 0.5], seed:23,
+    KO:{ h:28, back:'#2d5b86', side:'#cfd8df', belly2:'#eef1f3', adipose:[0.8], fork:.5, anal:[0.64, 0.8, 0.5], seed:23,
       patterns:[], tips:['No black spots on the sides','Dark blue back, bright silver sides','Long fin under the tail end (13 or more rays)'], marks:[[0.45, 0.2], [0.35, -0.75], [0.72, 1.05]] },
-    DV:{ name:'Dolly Varden/bull trout', h:27, back:'#4d5a4c', side:'#8f9a87', belly2:'#c9cbbf', adipose:[0.8], fork:.15, whiteEdge:true, lowFin:'#b3695b', seed:29,
+    DV:{ h:27, back:'#4d5a4c', side:'#8f9a87', belly2:'#c9cbbf', adipose:[0.8], fork:.15, whiteEdge:true, lowFin:'#b3695b', seed:29,
       patterns:[{ t:'spots', n:70, x:[.1, 1], y:[-0.9, .6], r:1.8, c:'#f1d7cc', o:.85 }, { t:'spots', n:18, x:[.2, .95], y:[-.2, .5], r:1.4, c:'#e57a74', o:.8 }],
       tips:['Pale pink or cream spots, smaller than the pupil','No worm-like markings on the back fin','White front edges on the lower fins','Bull trout: big, broad, flat head'], marks:[[0.5, -0.4], [0.5, -1.35], [0.5, 1.3], [0.09, -0.55]] },
-    LT:{ name:'Lake trout', h:30, back:'#46544d', side:'#7f8c84', belly2:'#c6ccc4', adipose:[0.8], fork:.62, tailLen:62, seed:31,
+    LT:{ h:30, back:'#46544d', side:'#7f8c84', belly2:'#c6ccc4', adipose:[0.8], fork:.62, tailLen:62, seed:31,
       patterns:[{ t:'spots', n:170, x:[.06, 1], y:[-1, .7], r:1.9, c:'#e6e3cf', o:.85 }],
       tips:['Pale spots all over a dark body, no red','Worm-like light markings on the back and back fin','Deeply forked tail'], marks:[[0.45, 0.3], [0.4, -0.75], [1.14, -0.5]] },
-    EB:{ name:'Brook trout', h:30, back:'#3f4a28', side:'#7c7f47', belly2:'#c98548', bellyC:'#e4974f', adipose:[0.8], fork:.05, whiteEdge:true, lowFin:'#d9683a', tailC:'#5d6034', seed:37,
+    EB:{ h:30, back:'#3f4a28', side:'#7c7f47', belly2:'#c98548', bellyC:'#e4974f', adipose:[0.8], fork:.05, whiteEdge:true, lowFin:'#d9683a', tailC:'#5d6034', seed:37,
       patterns:[{ t:'worms', n:70, x:[.08, .95], y:[-1, -0.45], c:'#c9c083' }, { t:'spots', n:40, x:[.15, .95], y:[-.4, .5], r:2, c:'#e8d27a' }, { t:'halo', n:14, x:[.2, .9], y:[-.25, .45], r:1.6, c:'#d8372c', h:'#5c86c9' }],
       tips:['Worm-like markings on the back and back fin','Red spots with blue halos','Orange lower fins with white front edges'], marks:[[0.3, -0.8], [0.55, 0.15], [0.5, 1.3]] },
-    GR:{ name:'Arctic grayling', h:26, back:'#4f566b', side:'#a7acb8', belly2:'#dcdde2', adipose:[0.82], fork:.45, sail:true, dorsal:[0.3, 0.6, 1], sailC:'#5a4b6f', sailSpot:'#58a3c9', seed:41,
+    GR:{ h:26, back:'#4f566b', side:'#a7acb8', belly2:'#dcdde2', adipose:[0.82], fork:.45, sail:true, dorsal:[0.3, 0.6, 1], sailC:'#5a4b6f', sailSpot:'#58a3c9', seed:41,
       patterns:[{ t:'spots', n:14, x:[.18, .4], y:[-.5, .2], r:1.6, c:'#1f1f25' }],
       tips:['Very tall, sail-like back fin with blue-purple spots','A few black spots near the head','Small mouth'], marks:[[0.45, -2.1], [0.3, -0.1], [0.06, 0.25]] },
-    LW:{ name:'Whitefish', h:27, back:'#5f6448', side:'#c9ccc2', belly2:'#e9eae4', adipose:[0.8], fork:.5, mouth:.05, snout:.25, seed:43,
+    LW:{ h:27, back:'#5f6448', side:'#c9ccc2', belly2:'#e9eae4', adipose:[0.8], fork:.5, mouth:.05, snout:.25, seed:43,
       patterns:[{ t:'scales', c:'#3f4636' }],
       tips:['Large scales, silver sides','Small mouth under a blunt snout','Has an adipose fin; no spots'], marks:[[0.5, 0.1], [0.04, 0.3], [0.83, -0.72]] },
-    WSG:{ name:'White sturgeon', h:20, back:'#6d7479', side:'#b2b8bb', belly2:'#dde0e1', dorsal:[0.8, 0.88, 0.7], anal:[0.8, 0.87, 0.5], tailShape:'shark', tailLen:60, x0:18, xp:322, snout:.1,
+    WSG:{ h:20, back:'#6d7479', side:'#b2b8bb', belly2:'#dde0e1', dorsal:[0.8, 0.88, 0.7], anal:[0.8, 0.87, 0.5], tailShape:'shark', tailLen:60, x0:18, xp:322, snout:.1,
       top:[[0, 0.1], [0.07, -0.55], [0.25, -0.95], [0.5, -1], [0.75, -0.75], [0.9, -0.45]], bot:[[0.9, 0.45], [0.7, 0.7], [0.45, 0.9], [0.2, 0.8], [0.05, 0.45]], barbel:[[0.05, 0.45, 9], [0.07, 0.5, 9]], eyeR:.12, eye:[0.09, -0.3], mouth:.1, mouthY:.62, seed:47,
       patterns:[{ t:'scutes' }], tips:['Rows of bony plates, no scales','Barbels under a pointed snout','Upper lobe of the tail much longer'], marks:[[0.4, -1.05], [0.06, 1.15], [1.2, -1.5]] },
-    BB:{ name:'Burbot', h:18, back:'#5d4a2f', side:'#9a8057', belly2:'#cdbb95', dorsal:[0.48, 0.97, 0.35], dorsal2:[0.28, 0.42, 0.9], anal:[0.5, 0.97, 0.3], tailShape:'round', tailLen:34, adipose:false, x0:22, xp:338,
+    BB:{ h:18, back:'#5d4a2f', side:'#9a8057', belly2:'#cdbb95', dorsal:[0.48, 0.97, 0.35], dorsal2:[0.28, 0.42, 0.9], anal:[0.5, 0.97, 0.3], tailShape:'round', tailLen:34, adipose:false, x0:22, xp:338,
       top:[[0, 0.15], [0.05, -0.6], [0.18, -0.95], [0.45, -1], [0.75, -0.85], [0.92, -0.55]], bot:[[0.92, 0.55], [0.72, 0.85], [0.42, 1], [0.18, 0.95], [0.05, 0.6]], barbel:[[0.06, 0.55, 11]], seed:53,
       patterns:[{ t:'blotch', n:60, x:[.05, 1], y:[-1, .8], r:4, c:'#3a2c18', o:.5 }],
       tips:['One barbel under the chin','Two back fins, the second very long','Long, eel-like mottled body'], marks:[[0.06, 1.5], [0.7, -1.6], [0.6, 0.2]] },
-    NP:{ name:'Northern pike', h:21, back:'#3f5130', side:'#78875a', belly2:'#d9dcc4', dorsal:[0.8, 0.9, 0.9], anal:[0.8, 0.9, 0.7], fork:.35, snout:0.02, mouth:.13, mouthY:.1, x0:16, xp:326, lowFin:'#8a7a4a', finO:.9,
+    NP:{ h:21, back:'#3f5130', side:'#78875a', belly2:'#d9dcc4', dorsal:[0.8, 0.9, 0.9], anal:[0.8, 0.9, 0.7], fork:.35, snout:0.02, mouth:.13, mouthY:.1, x0:16, xp:326, lowFin:'#8a7a4a', finO:.9,
       top:[[0, 0.02], [0.08, -0.35], [0.2, -0.75], [0.45, -0.95], [0.7, -0.95], [0.9, -0.6]], bot:[[0.9, 0.6], [0.7, 0.9], [0.45, 0.95], [0.2, 0.75], [0.07, 0.3]], eye:[0.11, -0.35], seed:59,
       patterns:[{ t:'blotch', n:80, x:[.15, 1], y:[-.9, .7], r:3.2, c:'#e7e6b8', o:.75 }],
       tips:['Long, flat, duck-bill snout','Back fin set far back, near the tail','Rows of pale bean-shaped spots'], marks:[[0.04, -0.2], [0.85, -1.9], [0.5, 0.2]] },
-    WP:{ name:'Walleye', h:26, back:'#5f5a2e', side:'#b8a55f', belly2:'#e2d9b0', spiny:[0.3, 0.5, 0.9], spinyC:'#6b6337', dorsal:[0.55, 0.74, 0.7], anal:[0.68, 0.8, 0.5], fork:.4, eyeR:.2, eyeC:'#e8e2c4', mouth:.14, seed:61, tailC:'#8a8154',
+    WP:{ h:26, back:'#5f5a2e', side:'#b8a55f', belly2:'#e2d9b0', spiny:[0.3, 0.5, 0.9], spinyC:'#6b6337', dorsal:[0.55, 0.74, 0.7], anal:[0.68, 0.8, 0.5], fork:.4, eyeR:.2, eyeC:'#e8e2c4', mouth:.14, seed:61, tailC:'#8a8154',
       patterns:[{ t:'bars', n:5, x:[.3, .85], c:'#3a3417', w:9, o:.45, down:.1 }],
       tips:['Big, glassy eye','Spiny front back fin','White tip on the lower tail lobe','Sharp, fang-like teeth'], marks:[[0.075, -0.6], [0.4, -2.1], [1.18, 0.9], [0.12, 0.45]] },
-    YP:{ name:'Yellow perch', h:30, back:'#4c5a23', side:'#d6c24a', belly2:'#efe5a8', spiny:[0.28, 0.5, 0.9], spinyC:'#7b7a3a', dorsal:[0.55, 0.72, 0.7], anal:[0.68, 0.79, 0.5], fork:.35, lowFin:'#e78a2e', finO:.95, seed:67,
+    YP:{ h:30, back:'#4c5a23', side:'#d6c24a', belly2:'#efe5a8', spiny:[0.28, 0.5, 0.9], spinyC:'#7b7a3a', dorsal:[0.55, 0.72, 0.7], anal:[0.68, 0.79, 0.5], fork:.35, lowFin:'#e78a2e', finO:.95, seed:67,
       patterns:[{ t:'bars', n:7, x:[.22, .9], c:'#2e3312', w:8, o:.6, down:.6 }],
       tips:['Six to nine dark bars down the sides','Orange lower fins','Spiny front back fin; no fang-like teeth'], marks:[[0.5, 0.1], [0.45, 1.3], [0.38, -2.1]] },
-    BCB:{ name:'Black crappie', h:44, back:'#43533f', side:'#b9c0ad', belly2:'#e2e4d8', dorsal:[0.4, 0.7, 0.6], anal:[0.45, 0.75, 0.5], fork:.2, tailH:40, ph:12, mouth:.12, mouthY:-.05, snout:-0.1,
+    BCB:{ h:44, back:'#43533f', side:'#b9c0ad', belly2:'#e2e4d8', dorsal:[0.4, 0.7, 0.6], anal:[0.45, 0.75, 0.5], fork:.2, tailH:40, ph:12, mouth:.12, mouthY:-.05, snout:-0.1,
       top:[[0, -0.1], [0.08, -0.55], [0.25, -0.95], [0.45, -1], [0.66, -0.8], [0.86, -0.42]], bot:[[0.86, 0.42], [0.66, 0.85], [0.42, 1], [0.2, 0.85], [0.06, 0.4]], x0:60, xp:300, seed:71,
       patterns:[{ t:'blotch', n:120, x:[.05, 1], y:[-1, 1], r:2.6, c:'#1d2419', o:.7 }],
       tips:['Deep, flat body covered in black speckles','Large, rounded back and bottom fins','Mouth reaches the front of the eye'], marks:[[0.5, 0.2], [0.55, -1.5], [0.12, -0.05]] },
-    SMB:{ name:'Smallmouth bass', h:31, back:'#4a4226', side:'#9c8650', belly2:'#dccf9f', spiny:[0.3, 0.52, 0.65], spinyC:'#5f5634', dorsal:[0.52, 0.75, 0.65], anal:[0.66, 0.8, 0.5], fork:.2, eyeC:'#c9432e', mouth:.12, seed:73,
+    SMB:{ h:31, back:'#4a4226', side:'#9c8650', belly2:'#dccf9f', spiny:[0.3, 0.52, 0.65], spinyC:'#5f5634', dorsal:[0.52, 0.75, 0.65], anal:[0.66, 0.8, 0.5], fork:.2, eyeC:'#c9432e', mouth:.12, seed:73,
       patterns:[{ t:'bars', n:9, x:[.25, .9], c:'#2c2612', w:6, o:.5, down:.5 }],
       tips:['Bronze-brown with faint vertical bars','Jaw reaches about the middle of the eye','Red or orange eye'], marks:[[0.55, 0.15], [0.12, 0.3], [0.075, -0.55]] },
-    LMB:{ name:'Largemouth bass', h:31, back:'#3e5226', side:'#9fb07a', belly2:'#e2e6cd', spiny:[0.3, 0.48, 0.6], spinyC:'#4d5d31', dorsal:[0.53, 0.75, 0.65], anal:[0.66, 0.8, 0.5], fork:.2, mouth:.17, seed:79,
+    LMB:{ h:31, back:'#3e5226', side:'#9fb07a', belly2:'#e2e6cd', spiny:[0.3, 0.48, 0.6], spinyC:'#4d5d31', dorsal:[0.53, 0.75, 0.65], anal:[0.66, 0.8, 0.5], fork:.2, mouth:.17, seed:79,
       patterns:[{ t:'stripe', c:'#1f2a12', w:9, o:.7, dash:'12 5' }],
       tips:['Dark stripe along the side','Jaw reaches past the back of the eye','Front and back fins almost separate'], marks:[[0.6, 0.02], [0.17, 0.3], [0.5, -1.5]] },
-    GE:{ name:'Goldeye', h:32, back:'#5a6b76', side:'#d9dee0', belly2:'#f0f1ef', dorsal:[0.62, 0.72, 0.6], anal:[0.55, 0.8, 0.45], fork:.55, eyeC:'#e8b93a', eyeR:.2, seed:83,
+    GE:{ h:32, back:'#5a6b76', side:'#d9dee0', belly2:'#f0f1ef', dorsal:[0.62, 0.72, 0.6], anal:[0.55, 0.8, 0.45], fork:.55, eyeC:'#e8b93a', eyeR:.2, seed:83,
       patterns:[], tips:['Large golden eye','Deep, flat silver body','Back fin set behind the middle'], marks:[[0.075, -0.6], [0.4, 0.2], [0.67, -1.6]] },
-    IN:{ name:'Inconnu', h:28, back:'#5b6a6a', side:'#d0d6d4', belly2:'#eef0ee', adipose:[0.8], fork:.5, mouth:.12, mouthY:.05, snout:.25, seed:89,
+    IN:{ h:28, back:'#5b6a6a', side:'#d0d6d4', belly2:'#eef0ee', adipose:[0.8], fork:.5, mouth:.12, mouthY:.05, snout:.25, seed:89,
       patterns:[{ t:'scales', c:'#3d4a4a' }], tips:['Large mouth with a jutting lower jaw','Big silver scales','Has an adipose fin'], marks:[[0.06, 0.35], [0.5, 0.1], [0.83, -0.72]] },
   };
   SPECIES.MW = { ...SPECIES.LW, name:'Mountain whitefish', h:24, snout:.3, seed:97 };
@@ -1437,7 +1437,8 @@ function waterStrip0(w, md){
   // "Open, except some parts": a retention rule of an undrawn part in force today (answers ladder not_yet_mapped)
   const partShut = openNow && ctx.inpart.some(r => r.now && r.family === 'retention');
   return `<div class="wstrip"><div class="wsline"><span class="wsstat ${openNow ? 'open' : 'closed'}">${openNow ? (partShut ? 'Open, except some parts' : 'Open') : 'Closed'}</span><span class="muted small">${md === TODAY ? 'today' : 'on ' + fmtMd(md)}${momentsOf(w) && daySegs(w, md).length > 1 ? ` (${weekdayOf(md).slice(0, 3)})` : ''}</span>${(() => { if (!openNow){ const n = nextOpen(w, md); return n ? `<span class="wsoon open">Opens ${fmtMd(n)}</span>` : ''; } const i = DAYS.indexOf(md); for (let k = 1; k <= 21; k++){ const d = DAYS[(i + k) % 365]; if (isClosedAt(w, d)) return `<span class="wsoon">Closed from ${fmtMd(d)}</span>`; }
-      const tr = (MODEL && w === PLACE) ? MODEL.rows.find(r => !r.pool && ['closed','release'].includes(r.kind) && r.members.some(S => ['RB','CT','EB','GB','LT','DV'].includes(S))) : null;
+      const TR = ['RB','CT','GB'], troutKept = !!MODEL && MODEL.rows.some(r => r.kind === 'keep' && r.members.some(S => TR.includes(S)));   // round UR5: never a char row read as trout, never beside a trout keep row
+      const tr = (MODEL && w === PLACE && !troutKept) ? MODEL.rows.find(r => !r.pool && ['closed','release'].includes(r.kind) && r.members.some(S => TR.includes(S))) : null;
       if (tr){ const ru = runOf(strip(w, tr.members), md); return `<span class="wsoon">Trout ${tr.kind === 'closed' ? 'closed' : 'release only'}${ru.all ? ' all year' : ` until ${fmtMd(ru.until)}`}</span>`; }
       return ''; })()}</div>
     ${segBar(segs, md, 'big', fmtMd(md))}${MONTHS_ROW}${has.size > 1 ? `<div class="slegend"><span><i class="s-keep"></i>open</span><span><i class="s-closed"></i>closed: no fishing for any game fish</span></div>` : ''}</div>`;

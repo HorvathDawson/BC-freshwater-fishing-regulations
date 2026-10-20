@@ -1,3 +1,18 @@
+# regs v34 (round UR5, the fifth user panel + the coordinator's audit H1/H2) — in place on regs-v11.html
+
+Panel: ~/.claude/projects/…/handoff/PLAN/USER-ROUNDS.md "Round UR5" (8 fresh personas, six waters new to the panels, 30/33).
+- **Year window** (Tom: "until what date may trout be kept?" — not shown): the group rebuild dropped the data's `.strip` block; its
+  label and line ("Through the year · You can keep them until Oct 31. Then release only from Nov 1.") now head the tree (`.gyear`,
+  data words only).
+- **Trout badge** (Shane: "'Trout release only until Jul 3' on an October date … I'd let a legal hatchery fish go"): page v36's strip
+  badge took the first release row holding ANY trout/char code — the char row on the Cowichan and the Iron. It now needs a trout code
+  (RB/CT/GB) and no trout keep row today (page_v36.js `waterStrip0`; page v36 regenerated, data blocks unchanged).
+- **"Keep 10any size"**: `.sl .n + .segs` keeps a 6 px gap on every keep line (only `.krow` had it).
+- **Steelhead size definition in ink** (`.kpres`: "A rainbow trout over 50 cm here counts as a steelhead"; Gail in glare, Fiona).
+- **Audit H1**: the steelhead look-for tip drops "50 cm or longer" (the book: longer than 50 cm; the card says the water's size).
+  **H2**: every fish name in the snapshot is the export's (`spName`), the art table carries none ("Lake whitefish", not "Whitefish").
+- tools: frames.mjs `STATES_JSON`, audit.mjs `WATERS_JSON` shoot a panel's own waters.
+
 # regs v33 (round 20i, owner: the UR4 user panel's page-side fixes) — in place on regs-v11.html
 
 Report: handoff/PLAN/r20i_report.md. Data: rows 26, gear 12, glossary 5 (commit 9fc6d7b1; handoff/PLAN/r20i_data.md; re-snapped,

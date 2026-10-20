@@ -862,7 +862,12 @@ html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-s
 /* round 20i (UR4): the duty line full weight; "release" bold; the other-fish size hint; the All-year line; scroll margins under the pin stack */
 .k28 .duty{font:var(--w-head) var(--t3)/1.35 Archivo,sans-serif;color:var(--ink);margin-top:var(--s2)}.k28 .duty .linkbtn{min-height:32px;font-size:var(--t4);vertical-align:baseline}
 .k-release{font-weight:var(--w-head)}
-.orow .okeep{white-space:nowrap}.orow .osz{font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub);margin-left:6px;white-space:nowrap}
+.orow .okeep{white-space:nowrap}
+/* round UR5: the group's year window (one ink line, its label as the kicker); a keep line's number never touches its words
+   ("Keep 10any size"); a steelhead's size definition is a rule, in ink (it washed out in sun) */
+.gyear{margin:var(--s1) 0 var(--s2);font:600 var(--t3)/1.35 Archivo,sans-serif;color:var(--ink)}.gyear .gyl{display:block}
+.sl .n + .segs{margin-left:6px}
+.kpres{color:var(--ink);font-weight:600}.orow .osz{font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub);margin-left:6px;white-space:nowrap}
 .szc[data-size-rule]{font-weight:var(--w-head)}
 #sc{scroll-padding-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}#keep .tier,#keep .ghd.gpin,#keep .krow.kt,#keep .worked,#keep .olist{scroll-margin-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}
 .needs ul.needs-only{margin-top:0}.needs .lbl[data-only-if-head]{margin-top:var(--s3)}
@@ -1298,7 +1303,10 @@ function buildKeep(){
     // round 20f (owner 4): the root's Rule book page sits on the origin's own line, not under it
     const tierOrg = !g.origin && JSON.stringify(g.tree || []).includes('"origin":"');   // round 20g: the origin sits on a tier, with the root's page
     const orig2 = orig ? orig.replace(/<\/p>$/, ` ${rootBook}</p>`) : (rootBook && !tierOrg ? `<p class="gorigin">${rootBook}</p>` : '');
-    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig2 || (g.header ? '' : total) ? `<div class="ghd gsub">${orig2}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
+    // round UR5 (Tom T4 "until what date may trout be kept?"): the group's year window, in the data's words ("You can keep them until
+    // Oct 31. Then release only from Nov 1."), was lost in this rebuild; it heads the tree as one line
+    const yw = art.querySelector('.strip .swin'), ywl = yw ? `<p class="gyear" data-year-window><span class="gyl lab">${esc(art.querySelector('.strip > .lbl')?.textContent || '')}</span> ${esc(yw.textContent.trim())}</p>` : '';
+    art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig2 || (g.header ? '' : total) ? `<div class="ghd gsub">${orig2}${g.header ? '' : total}</div>` : ''}${ywl}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet

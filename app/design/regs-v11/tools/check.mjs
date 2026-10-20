@@ -159,6 +159,7 @@ if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => 
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === 'ur5') { await roundUr5(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20i') { await round20i(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20h') { await round20h(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20g') { await round20g(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -1720,6 +1721,7 @@ await round20f();
 await round20g();
 await round20h();
 await round20i();
+await roundUr5();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -2057,4 +2059,52 @@ async function roundUr2(){
   check('ur2-closed-until', K.shut.foot === 'No fishing here until Jul 1.' && !/licence/i.test(K.shut.gear.replace(/^Gear & licence · for this water (today|on \w+ \d+)/, '')), JSON.stringify(K.shut.foot) + ' / ' + JSON.stringify(K.shut.gear.slice(0, 120)));
   const roe = K.gear.ok.find(t => /^Roe/.test(t)) || '';
   check('ur2-bait-allowed-note', K.gear.no.length > 0 && !K.gear.no.some(t => /still OK/i.test(t)) && /ban excepts it|still OK/.test(roe),   /* gear 11: the roe row names the ban that excepts it */ `ok ${JSON.stringify(K.gear.ok)} / no ${JSON.stringify(K.gear.no)}`);
+}
+
+// ---------- round UR5 (user panel 5 + the coordinator's audit H1/H2) ----------
+async function roundUr5(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  const TROUT = ['RB', 'CT', 'GB', 'ST'];
+  // (1) the "Trout release only / Trout closed" badge only where no keep row holds trout today — Cowichan's said "Trout release
+  // only until Jul 3" on Oct 10 (the CHAR row's strip) while its card keeps 2 hatchery trout (Shane S2 conf 2)
+  const BADGE = [];
+  for (const hash of ['w=cowichan&d=1010&p=1', 'w=cowichan&d=1010&p=2', 'w=iron&d=1010', 'w=iron&d=720', 'w=vedder&d=515']) await page(hash, async b => {
+    BADGE.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), soon = norm(document.querySelector('#keep .wstrip .wsoon')?.textContent);
+      const keeps = (st.rows || []).some(r => r.kind === 'keep' && r.members.some(m => ${JSON.stringify(TROUT)}.includes(m)));
+      return {hash: location.hash, soon, keeps, bad: keeps && /^Trout (release only|closed)/.test(soon)}; })())`)));
+  });
+  check('ur5-trout-badge', BADGE.length === 5 && BADGE.filter(x => x.keeps).length >= 3 && !BADGE.some(x => x.bad), BADGE.filter(x => x.bad).map(x => `${x.hash}: "${x.soon}" with a trout keep row`).join('; ') || 'states ' + BADGE.length);
+  // (2) the data's "Through the year" window line (a group's `.strip .swin`) is on the page (Tom T4: Hamill keeps until Oct 31)
+  const YEAR = [];
+  for (const hash of ['w=hamill&d=615', 'w=hamill&d=1010', 'w=glenn&d=615']) await page(hash, async b => {
+    YEAR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), d = new DOMParser().parseFromString('<div>' + st.cardHTML + '</div>', 'text/html');
+      const want = [...d.querySelectorAll('article.row .strip .swin')].map(e => norm(e.textContent)).filter(Boolean), have = norm(document.getElementById('keep')?.textContent);
+      return {hash: location.hash, want: want.length, miss: want.filter(w => !have.includes(w))}; })())`)));
+  });
+  check('ur5-year-window', YEAR.some(x => x.want) && YEAR.every(x => !x.miss.length), YEAR.filter(x => x.miss.length).map(x => x.hash + ': ' + x.miss.join(' / ')).join('; ') || 'no window in the data');
+  // (3) a keep line's number never touches its words ("Keep 10any size", Linh, Doug)
+  const GAP = [];
+  for (const hash of ['w=klmb&d=1010', 'w=vedder&d=1010']) await page(hash, async b => {
+    GAP.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const bad = []; let n = 0; document.querySelectorAll('#keep .sl .n').forEach(e => { const nx = e.nextElementSibling; if (!nx || !nx.matches('.segs')) return; n++;
+      const g = nx.getBoundingClientRect().left - e.getBoundingClientRect().right; if (g < 3) bad.push(e.textContent + '|' + nx.textContent.slice(0, 20) + ' gap ' + g.toFixed(1)); }); return {n, bad}; })())`)));
+  });
+  check('ur5-keep-gap', GAP.some(x => x.n) && GAP.every(x => !x.bad.length), GAP.flatMap(x => x.bad).join('; ') || 'no keep line');
+  // (4) "A rainbow trout over 50 cm here counts as a steelhead" is a rule: ink, not the quiet grey (Gail in glare, Fiona)
+  const INK = [];
+  for (const theme of ['', '&theme=dark']) await page('w=cowichan&d=1010&p=1' + theme, async b => {
+    INK.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const e = document.createElement('i'); e.style.color = 'var(--ink)'; document.body.appendChild(e); const ink = getComputedStyle(e).color; e.remove();
+      const q = [...document.querySelectorAll('#keep .kpres, #keep .gquiet')].filter(x => x.querySelector('[data-gl="steelhead"]') && /counts as a steelhead/.test(x.textContent)); return {n: q.length, bad: q.filter(x => getComputedStyle(x).color !== ink).map(x => getComputedStyle(x).color)}; })())`)));
+  });
+  check('ur5-steelhead-definition-ink', INK.every(x => x.n) && INK.every(x => !x.bad.length), INK.map(x => x.n + ' notes, ' + x.bad.join(',')).join('; '));
+  // (H1) the steelhead look-for tip never says "50 cm or longer" (the book: longer than 50 cm; exactly 50 cm is a rainbow)
+  // (H2) every fish name the snapshot carries is the export's species name (Lake whitefish, not the art table's "Whitefish")
+  const ref = fs.readFileSync(path.join(APP, '../pipeline/deliver/answers/reference/page_v36.html'), 'utf8');
+  const D = JSON.parse(ref.match(/<script type="application\/json" id="data">([\s\S]*?)<\/script>/)[1].replace(/<\\\//g, '</'));
+  const ex = {...(D.species?.fish || {})};
+  let fish = {};
+  await page('w=vedder&d=1010', async b => { fish = JSON.parse(await b.evaluate('JSON.stringify(SNAP.fish)')); });
+  const tips = (fish.ST?.tips || []).join(' | ');
+  check('h1-steelhead-tip', !!fish.ST && !/50 cm[^|]*or longer|or longer[^|]*50 cm/.test(tips), tips);
+  const wrong = Object.entries(fish).filter(([c, f]) => ex[c]?.name && f.name !== ex[c].name).map(([c, f]) => `${c}: "${f.name}" vs "${ex[c].name}"`);
+  check('h2-fish-names', Object.keys(fish).length > 5 && Object.keys(ex).length > 5 && !wrong.length, wrong.join('; '));
 }
