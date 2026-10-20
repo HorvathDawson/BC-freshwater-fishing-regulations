@@ -26,17 +26,16 @@ export function bookBits(inp: RegsInputs): readonly (number | null)[];   // 365:
 
 // gear.ts
 export interface GearCtx {
-  readonly pid: string;                       // the page id used inside sheet keys: golden state id in tests ("vedder_1010"), app: see Notes
   readonly day: Day; readonly weekday: Weekday; readonly today: boolean;
-  readonly rules: ReadonlyMap<number, RuleView>;
+  readonly rules: RuleIndex;                  // T06/T09 (contracts §3)
   readonly glossary: ReadonlySet<string>;     // statics.glossary.terms ids (tipFor drops a term the glossary lacks)
   readonly chips: ChipWords;                  // learnChipWords(gear) — computed once per page
 }
 export type ChipWords = ReadonlyMap<string, string>;            // level word -> chip word, e.g. "B.C." -> "Province"
 export function levelWord(r: RuleView): string;                 // page v36 levelTag minus " rule": "B.C." | "Region 2" | "Named area" | "Downstream" | "Federal or park" | "This water’s"
-export function learnChipWords(g: GearAnswer, rules: ReadonlyMap<number, RuleView>): ChipWords;
+export function learnChipWords(g: GearAnswer, rules: RuleIndex): ChipWords;
 export function whoWord(r: RuleView, chips: ChipWords): string; // chips.get(levelWord(r)) ?? levelWord(r)
-export function sourceLine(open: `srcs:${string}`, rixs: readonly number[], ctx: GearCtx): SourceLineVM | null;
+export function sourceLine(open: SheetKey /* srcs:… app form, no state id */, rixs: readonly number[], ctx: GearCtx): SourceLineVM | null;
 export function dayLine(ctx: Pick<GearCtx, "day" | "weekday" | "today">): string;   // "Today, Oct 10" | "Fri, May 15"
 export function closedUntil(bits365: readonly (number | null)[], today365: number): string;
 export function changeVM(when: string, says: string, inForce: boolean): ChangeVM;
@@ -87,7 +86,7 @@ export const GEAR = {
   - `rowOf(change)`: mode drawn → "mode"; `/\bfly\b|\bflies\b|hook|lure/i` → hook; `/weight|sinker|float/i` → weight;
     `/\blines?\b|\brods?\b/i` → lines; else hook; a row not drawn → the LAST drawn row. Every summary change is
     `changeVM(c.when, c.says, false)` — summary changes are never in force (chip always "Next"; golden 3/3).
-  - each block's source: `sourceLine(\`srcs:gl|${pid}|${k}\`, [...partCites, ...changeCitesRoutedHere])`.
+  - each block's source: `sourceLine(\`srcs:gl|${k}\`, [...partCites, ...changeCitesRoutedHere])`.
   - terms: `tip(ts) = ts.filter(t => ctx.glossary.has(t))`; `rest = summary.terms` minus every part's terms (before the
     glossary filter); `tip(rest)` is appended to the LAST block's terms **only if that block has a source line and no
     changes** (the prototype's `</span><p class="isrc"` splice matches nothing otherwise) — vedder_1010 Weight gets
@@ -104,7 +103,7 @@ export const GEAR = {
 
 **Where the tests live** (tests.md §1.2): core may not import `@app/data` or `node:fs`, so every golden-driven case below
 is in `app/conformance/src/regs/gear.parity.test.ts` over T12's harness — `for await (const {id, g, page} of cases("gear"))`,
-`requestOf(id)` (today Oct 10, `pid` = the golden id), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
+`requestOf(id)` (today Oct 10, keys compared via `goldenKeyOf(key, id)`), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
 when `provinceStore()` is null. ``gear.test.ts`` keeps only unit cases over small hand-built `GearAnswer`/`LicenceValue` literals
 (cases marked *unit* below).
 Cases 1–6 and 8–9 are parity; 7 too (it reads golden sheets); *unit*: `levelWord` over hand RuleViews of ranks 4/3(`z2:`)/2/1/−1/0, `closedUntil` over a hand 365 array, `changeVM`, the rest-terms splice, `rowOf` routing.
@@ -116,7 +115,7 @@ Cases 1–6 and 8–9 are parity; 7 too (it reads golden sheets); *unit*: `level
    x17p1 — the Weight line of the 8 "Fly fishing only" states), 3 lines with a change (vedder_1010, x16p3, x17p4 Hooks) and 3 modes with a change (vedder_515, cow1_1010, cow3_1010).
 2. `vedder_1010` Hooks: `values` `["One hook, lure or fly","Single barbless hook, no trebles"]`, `terms` `["single_barbless_hook"]`,
    change `{chip:"Next", when:"May 1–31", says:"fly fishing only", inForce:false}`,
-   `src.who` `"Province · Region 2 · This water’s ›"`, `open` `"srcs:gl|vedder_1010|hook"`, pages printed `[8, 21, 22]` pdf `[10, 23, 24]`;
+   `src.who` `"Province · Region 2 · This water’s ›"`, `open` `"srcs:gl|hook"` (golden `"srcs:gl|vedder_1010|hook"` = `goldenKeyOf(open, "vedder_1010")`), pages printed `[8, 21, 22]` pdf `[10, 23, 24]`;
    Lines `["1 line"]` src `"Province ›"`; Weight `["Up to 1 kg (2.2 lb)"]` terms `["fly_fishing"]` (the rest term); `day` `"Today, Oct 10"`.
 3. `vedder_515`: `day` `"Fri, May 15"`; mode `{value:"Fly fishing only", terms:["fly_fishing"]}`, change plain
    `"Jul 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)"`, src `"This water’s · Province ›"`;
@@ -145,8 +144,8 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/gear conforma
 - **Golden is v33** (`meta.sha 04765ab5`); a v32 golden reads "Single barbless hook" — re-run `sync.mjs` if `meta.version` ≠ v33.
 - **365 vs 366**: `inp.year.displayByDay` is indexed by the leap calendar (366, `dayOfYear`); the prototype's dated
   changes and `closedUntil` run over the book's 365 days (2026). Use T13's book-day helpers here or golden "Jan 1–Feb 28" shifts by a day after February.
-- `pid`: golden keys embed the prototype state id (`srcs:gl|vedder_1010|hook`). App: `pid = \`${itemId}~${partIx}~${mmdd}\``
-  (no `|`, which separates the key's fields). Tests pass the golden id.
+- Sheet keys carry no state id (contracts §1, §6 #1): `srcs:gl|hook`. Golden keys embed it (`srcs:gl|vedder_1010|hook`); tests
+  map with `goldenKeyOf(key, id)` / `appKeyOf(goldenKey, id)` (T36 `sheetKey.ts`). No `pid` in `GearCtx`.
 - CONTRACT CHANGE: applied to contracts.md (§2 `buildRegsPage` opts `pid?`, §2.3 `GearVM.day`, `SourceLineVM`; keys carry no pid, §6 #1).
 - `ChangeVM.when` has no colon; golden `when` has it ("May 1–31:"). `plain(change)` = `${when}: ${says}` + (inForce ? " · in force today" : "").
 - More than one `mode` part never occurs in the v33 data; take the first and assert in a test (`parts.filter(mode).length ≤ 1` on all 107).

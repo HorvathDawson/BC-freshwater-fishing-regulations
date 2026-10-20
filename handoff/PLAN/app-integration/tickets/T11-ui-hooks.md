@@ -19,7 +19,7 @@ page always answer for the same date.
 ## Signatures
 ```ts
 // app/packages/ui/src/regs.ts
-import type { Day, Weekday, Who, RegsTarget, RegsInputs } from "@app/core";
+import { buildRegsPage, type Day, type Weekday, type Who, type RegsTarget, type RegsInputs, type RegsPage } from "@app/core";
 import type { Db, RegsSource, BundleInfo, ItemId, SectionId } from "@app/data";
 import { openRegsStore, loadRegsInputs, targetFor, RegsStoreError, type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
@@ -48,6 +48,10 @@ export function useRegsTarget(store: RegsStore | null, item: ItemId | null, sect
 export function useRegulations(store: RegsStore | null, target: RegsTarget | null, mapDay: Date | null): Async<RegsInputs | null>;
 //   key: `regs:${targetKey(target)}:${isoDay(mapDay ?? new Date())}` where targetKey = `part:${item}:${partIx}` | `section:${handle}`;
 //   enabled: !!store && !!target
+
+/** The page for those inputs: useMemo(() => inputs && buildRegsPage(inputs, { today, who }), [inputs, who, today.month, today.day]).
+ *  A `who` change rebuilds from the same inputs (no reload). Every screen uses this; nobody calls buildRegsPage in a component. */
+export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day): RegsPage | null;
 
 /** Shell mapDay (Date | null) → the core day: local calendar date, its Weekday, its year (names every weekday of the strip). */
 export function regsDay(mapDay: Date | null, now?: Date): { day: Day; weekday: Weekday; calendarYear: number; today: Day; isToday: boolean };
@@ -101,9 +105,7 @@ pnpm -C app exec vitest run --project render packages/ui/src/regs.render
 ```
 
 ## Notes
-- **CONTRACT CHANGE** (facts.md #10, contracts): `useRegulations(store, target, mapDay: Date | null)` — not `useRegsStore(bundleDb)`
-  (facts #16/#17: Shell has no `Db`); the store comes from a URL prop + an injected opener (`openRegsDb` prop added by this ticket to
-  Shell and WaterScreen, beside T01's `regsUrl`/`day`/`onDay`/`section`).
+- CONTRACT CHANGE: applied to contracts.md (§2.8 hooks incl. `useRegsPage`, screen props; §6 #8). The store comes from a URL prop + an injected opener (`openRegsDb`), not a `Db` (facts #16/#17).
 - `useAsync` with `enabled=false` returns the LOADING sentinel forever — the water screen must check `regsUrl && openRegsDb` itself to
   draw "no regulations data configured" rather than a spinner (T23).
 - The web opener downloads the whole 14 MB store through sql.js (`loadBundle`), the same path as the province bundle; native reads it

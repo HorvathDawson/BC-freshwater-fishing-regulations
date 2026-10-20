@@ -150,7 +150,7 @@ pnpm -C app exec vitest run --project logic packages/data/src/regs/store package
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** `BundleInfo.ruleIdsSha256: string | null` (facts.md #18). `loadStatusIndex` is unchanged.
+- CONTRACT CHANGE: applied to contracts.md (§3 data layer `BundleInfo.ruleIdsSha256`; header `versions.ts`). `loadStatusIndex` is unchanged.
 - The regs node helper lives in `bundle/drivers/node.ts` because `layers.json` lets ONLY `packages/data/src/bundle/drivers` name
   `node:sqlite`/`node:fs`; `@app/data/regs/node` is an alias for that same file (no second driver). The store is generic SQLite, so
   no new driver is needed on any platform: web/native open it with `loadBundle(REGS)` (T11).

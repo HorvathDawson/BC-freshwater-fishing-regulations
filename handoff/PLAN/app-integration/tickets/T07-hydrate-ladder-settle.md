@@ -129,8 +129,7 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/ladder packag
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** `RegsInputs.year` carries `ladderBySeg` and `displayBySeg` (every segment of the key, by `s`) besides
-  `displayByDay` — `settle.inpart` walks every segment's ladder (page :170). T09 loads them (nseg ≤ 27, mean 4.0).
+- CONTRACT CHANGE: applied to contracts.md (§3 `RegsYear.ladderBySeg`/`displayBySeg`). T09 loads them (nseg ≤ 27, mean 4.0).
 - page v36 `settle` is called with the page's md and `segOf(w, md)` (weekday of YEAR, inside=false); the app passes the tap's `s`
   from T05 `segmentIndex` with the selected date's own year. Golden states use 2026.
 - `lifted` keeps only the LAST `by` per rix (Map.set over fish order) — page behaviour; do not "fix".

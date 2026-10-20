@@ -140,12 +140,7 @@ pnpm -C app exec vitest run --project logic packages/data/src/regs/inputs
 ```
 
 ## Notes
-- **CONTRACT CHANGE** (contracts.md §3 `RegsInputs`): adds `calendarYear`, `s`, `cell`, `item.{ord, sections, partSections,
-  steelhead}`, `year.{cells, ladderBySeg, rowsBySeg, displayBySeg}` (coordinator: T13 needs `rowsBySeg`), `ruleset`,
-  `mergedParts` (T14), `rules: RuleIndex` (was `ReadonlyMap<number, RuleView>` — `get` never misses, it returns T06's `noRule`);
-  removes `item.sub` (the header subtitle "stream · 5 sections" / "stream · 1 section · From the CNR Mile 66 Trestle up to …" is
-  composed by T16 from `kind`, `sections`/`partSections` and the part label — it is words, not data); frames use `DisplayFrame`.
-  `loadRegsInputs` takes a 5th parameter `calendarYear`.
+- CONTRACT CHANGE: applied to contracts.md (§3 `RegsInputs`, `RegsYear`, `loadRegsInputs`, `targetFor`; `item.sub` removal §6 #7).
 - `displayByDay` entries are shared frame objects (≤ nseg distinct) — 366 references, not 366 copies.
 - page v36 decides an outside-B.C. part by `pl.k == null`; the store says the same with `part.akey IS NULL` (157 of 20,461 parts).
 - The section → part choice is not in the data (two parts of one item may share an akey). Decision recorded here, not guessed:

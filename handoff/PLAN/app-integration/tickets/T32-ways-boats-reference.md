@@ -22,9 +22,9 @@ export interface WayChip { readonly method: string; readonly allow: boolean; rea
 export function countTxt(slot: string, c: GearClause | null): string;          // page v36 countTxt L1175–1186
 export function tgtTxt(codes: readonly string[], species: SpeciesWords): string; // page v36 tgtTxt L1172 (GROUPWORD, else lcNames(expand([c])))
 export function wayChips(g: GearAnswer, ctx: GearCtx & { species: SpeciesWords; exportConduct: Record<string, string> }): readonly WayChip[];
-export function waysVM(chips: readonly WayChip[], pid: string, ctx: GearCtx): MethodsVM["ways"];
-export function boatsVM(g: GearAnswer, pid: string, ctx: GearCtx): MethodsVM["boats"];     // null when vessel.active+timed is empty
-export function referenceVM(g: GearAnswer, pid: string, ctx: GearCtx & { statics: Statics }): MethodsVM["reference"];  // null when 0 rules
+export function waysVM(chips: readonly WayChip[], ctx: GearCtx): MethodsVM["ways"];
+export function boatsVM(g: GearAnswer, ctx: GearCtx): MethodsVM["boats"];     // null when vessel.active+timed is empty
+export function referenceVM(g: GearAnswer, ctx: GearCtx & { statics: Statics }): MethodsVM["reference"];  // null when 0 rules
 export function buildMethods(inp: RegsInputs, ctx: GearCtx): MethodsVM;
 export type GearClause = { slot?: string; max?: number; min?: number; unlimited?: boolean; must_be?: readonly string[]; members?: readonly string[]; unless?: readonly unknown[] };
 // clauseOf([rix, i]) = ctx.rules.get(rix)?.export.fields.gear?.[i] ?? null   (page v36 clauseOf L1173)
@@ -65,10 +65,10 @@ export const METHODS = {
   - `countTxt`: verbatim switch (points_per_hook, hook_gap_mm `/10 cm`, weight/bait `kg`, light `/1000 m of the hook`, default `${pre}${n}`).
 - prototype buildGear ways 1555–1560 + `WAYS` 1573 → `waysVM()`: ✓ name = `ELEM[m] + (NOT_GAME_TEST.test(info) ? NOT_GAME : "")`,
   note = info; ✕ name = `cap(lc(ELEM[m]))` (= ELEM[m] for every ELEM value), note "". `yesNo(ok, no)`.
-  Source keys = the ✓ ways' `by[0]` in order, THEN the ✕ ways' (DOM order of `[data-rule]`), `open` `srcs:ways|${pid}`.
+  Source keys = the ✓ ways' `by[0]` in order, THEN the ✕ ways' (DOM order of `[data-rule]`), `open` `"srcs:ways"`.
   The `set_line` ⓘ on an allowed "Set lines" is outside `<b>` — not in the item (parity).
 - boats: page v36 L1255–1257 + prototype 1561–1565 → `boatsVM()`: rules `[...vessel.active, ...vessel.timed]`; item =
-  `clean(export.label)`; source keys = same rules, `open` `srcs:boats|${pid}`; label "Boats".
+  `clean(export.label)`; source keys = same rules, `open` `"srcs:boats"`; label "Boats".
 - reference: page v36 L1246–1253 (`MOMENT_HEAD`, `PHRASE`, caught card, `alwaysN`) + `renderKit` always tile L1404
   (`{v:"Handling fish", s:\`${alwaysN} rules that apply everywhere\`}`) + prototype 1566–1570 → `referenceVM()`:
   - `n = Σ conduct[m].length + caught.length`; 0 → null.
@@ -77,7 +77,7 @@ export const METHODS = {
     acts.map(([a]) => PHRASE[a] ?? statics.conductMeans[a] ?? statics.exportConduct[a] ?? a)}` where `PHRASE` =
     `static gear.moments` entries `[m, [[act, short, long]…]]` → act → `short` (the 2nd element).
   - `{label:"Reference", title:"Handling fish", sub: RULES_EVERYWHERE(n), groups, src}`; src keys = caught rixs then each
-    act's `rs[0]`, `open` `srcs:always|${pid}`. Folded by default (`open:false` is the RN component's initial state).
+    act's `rs[0]`, `open` `"srcs:always"`. Folded by default (`open:false` is the RN component's initial state).
 - closed day: `{closed: closedUntil(...), ways:null, boats:null, reference:null}` (prototype `!st.kitTiles` branch).
 
 ## Reads
@@ -89,7 +89,7 @@ export const METHODS = {
 
 **Where the tests live** (tests.md §1.2): core may not import `@app/data` or `node:fs`, so every golden-driven case below
 is in `app/conformance/src/regs/methods.parity.test.ts` over T12's harness — `for await (const {id, g, page} of cases("methods"))`,
-`requestOf(id)` (today Oct 10, `pid` = the golden id), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
+`requestOf(id)` (today Oct 10, keys compared via `goldenKeyOf(key, id)`), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
 when `provinceStore()` is null. ``methods.test.ts`` keeps only unit cases over small hand-built `GearAnswer`/`LicenceValue` literals
 (cases marked *unit* below).
 Cases 1–6 are parity; 7 is *unit*, plus `wayChips` over a hand `Way` with `not_for:["ALL_GAME_FISH","SALMON","PROTECTED_SPECIES"]` + `for:["BB"]` → name suffix and note.
@@ -102,14 +102,14 @@ Cases 1–6 are parity; 7 is *unit*, plus `wayChips` over a hand `Way` with `not
 2. `bc1_501` ways ✓ `["Angling (rod and line)", "Spear or bow — not for trout or other game fish", "Crayfish traps"]` with notes
    `"with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook"`,
    `"not for game fish, salmon or protected species · burbot allowed"`, `"release anything in the trap that isn’t a crayfish"`;
-   ✕ `["Set lines","Nets","Snagging","Chumming"]`; src `"Province ›"` `srcs:ways|bc1_501` p.8.
+   ✕ `["Set lines","Nets","Snagging","Chumming"]`; src `"Province ›"` `srcs:ways` (golden `srcs:ways|bc1_501`) p.8.
    Boats `["No powered boats — between the Goat Creek confluence and the Talchako River confluence"]`, src `"This water’s ›"` p.43→49.
 3. `klmb_1010` ✓ `Ice fishing` note `"lines: 1 · hook, lure or fly per line: 1 · Remove your ice hut before breakup · Warn others of your ice hole"`;
    ✕ includes `"Spear or bow"`.
 4. a fly-only state (`vedder_515`): ✓ `Angling (rod and line)` note `"fly fishing only: nothing but the fly on the line, no float, sinker or attractor"`.
 5. Reference items: `"When you catch a fish"` → `["Any fish snagged — even by accident — must be released."]`;
    `"When you release a fish"` → `["Gently, back in the water","Without harming it"]`; `"Never"` → 6 items starting
-   `"Sell, buy or trade your catch"`; src `srcs:always|<id>` pages `[8, 10]`.
+   `"Sell, buy or trade your catch"`; src `srcs:always` (golden `srcs:always|<id>`) pages `[8, 10]`.
 6. `vedder_615`: `{closed:"No fishing here until Jul 1.", ways:null, boats:null, reference:null}`.
 7. `countTxt` units: `("points_per_hook",{max:1})` → `"Single point only (no trebles)"`; `("weight_per_line_kg",{max:1})` → `"up to 1 kg"`;
    `("light_to_hook_mm",{max:1000})` → `"within 1 m of the hook"`; `("lines_per_angler",{unlimited:true})` → `"no limit"`.

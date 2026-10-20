@@ -52,7 +52,7 @@ export interface When { dates?: readonly { from_month: number; from_day: number;
   weekdays?: readonly string[]; hours?: { start: ClockTime; end: ClockTime } | null }
 
 // rules.ts — replaces RULES, RIX, D.rid, DRULES, NORULE, RX, and makePlace.R's per-part rank (:73–91, :122–125)
-export interface RuleView {                       // inputs.ts (widened; CONTRACT CHANGE)
+export interface RuleView {                       // inputs.ts (widened; contracts.md §3)
   readonly rix: number; readonly key: RuleKey;    // `${entry_id}::${rule_id}`
   readonly export: ExportRule; readonly facts: RuleFacts | null;
   readonly f: Readonly<Record<string, unknown>>;  // = export.fields (page `r.f`)
@@ -179,10 +179,7 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/names package
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** `RuleView` gains `f, kind, baseRank, via, rank, species, speciesExcept, wins, tcond, part, notes, missing`
-  (contracts.md §3 had `{rix, key, facts, export}`). `via`/`rank` make a RuleView PER PART — `RegsInputs.rules` is built for the
-  target part (T09), never shared across parts.
-- `Statics.exportSpecies: SpeciesBook` (was `unknown`).
+- CONTRACT CHANGE: applied to contracts.md (§3 `RuleView`, `RuleIndex`, `Statics.exportSpecies: SpeciesBook`). A RuleView is PER PART.
 - page v36's `D.rules` is the slice page_data.py cut (726 rules); the store has 3,406. rix are the same numbers (page_data.py :323,
   `rid = {str(rix[k]): k}`; rule 529 compared field-by-field — identical `rule.j`).
 - `describe()`'s `w.replace(/^all game fish$/,…)` matches the WHOLE written name only — "all game fish" inside a longer list is left alone.

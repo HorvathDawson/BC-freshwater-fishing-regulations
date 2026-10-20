@@ -67,7 +67,7 @@ export const YESNO = { OK: "Allowed", NO: "Not allowed", OK_MARK: "✓", NO_MARK
   `changeVM(GEAR.ALL_YEAR, firstNo.s.replace(/^(allowed|banned)\s*·\s*/, "").trim(), true)` → plain "All year: bait ban · in force today".
 - layout 1547–1550 → `BaitVM`: `label` "Bait"; `notes` = `g.bait_ban ? [[text BAN_NOTE, term bait_ban (if in glossary)]] : []`;
   `dated` = all-year ?? dated runs; `list` = `yesNo(ok.map(x => [x.name, note2(x.s)]), no.map(x => [x.name, note2(x.s)]))`;
-  `src` = `sourceLine(\`srcs:bait|${pid}\`, items.filter(x => x.rix != null).map(x => x.rix), ctx)`.
+  `src` = `sourceLine("srcs:bait", items.filter(x => x.rix != null).map(x => x.rix), ctx)`.
 
 ## Reads
 `inp.frames.gear.bait[]{element, ok, by, why, carry_kg, excepted_from{element, by}}`, `.bait_ban`; `inp.frames.display.status`;
@@ -77,7 +77,7 @@ export const YESNO = { OK: "Allowed", NO: "Not allowed", OK_MARK: "✓", NO_MARK
 
 **Where the tests live** (tests.md §1.2): core may not import `@app/data` or `node:fs`, so every golden-driven case below
 is in `app/conformance/src/regs/bait.parity.test.ts` over T12's harness — `for await (const {id, g, page} of cases("gear"))`,
-`requestOf(id)` (today Oct 10, `pid` = the golden id), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
+`requestOf(id)` (today Oct 10, keys compared via `goldenKeyOf(key, id)`), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
 when `provinceStore()` is null. ``bait.test.ts`` keeps only unit cases over small hand-built `GearAnswer`/`LicenceValue` literals
 (cases marked *unit* below).
 Cases 1–6 are parity; 7–8 are *unit*, plus `datedBans`/`allYearBan` over hand 365 arrays (a Feb run reads "Jan 1–Feb 28").
@@ -87,7 +87,7 @@ Cases 1–6 are parity; 7–8 are *unit*, plus `datedBans`/`allYearBan` over han
    Tallies: 107 with bait (27 closed → null), 67 with the ban note, 68 with a dated line (67 "Now"), 20 "All year".
 2. `vedder_1010`: `dated` `[{chip:"Next", plain:"May 1–31: bait ban"}]`; list ✓ `Worms` (note null), ✓ `Roe (fish eggs)` note
    `"the fish or fish parts ban excepts it"`, ✓ `Water insects and crayfish` note `"on streams"`; ✕ `Fish or fish parts` (null);
-   src `{who:"Province ›", open:"srcs:bait|vedder_1010", pages:[8→10]}`; notes `[]`.
+   src `{who:"Province ›", open:"srcs:bait" (golden "srcs:bait|vedder_1010"), pages:[8→10]}`; notes `[]`.
 3. `vedder_515`: notes `["No natural bait of any kind while the ban runs. ⓘ"]`, dated `{chip:"Now", plain:"May 1–31: bait ban · in force today"}`,
    only a ✕ column (Worms, Roe (fish eggs), Water insects and crayfish, Fish or fish parts), src `"This water’s ›"` p.22.
 4. `glenn_501`: dated `[{chip:"Now", when:"All year", plain:"All year: bait ban · in force today"}]`, src `"Downstream ›"` p.36→38.

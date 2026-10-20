@@ -36,22 +36,16 @@ export type RegsTarget = { kind: "part"; item: string; partIx: number } | { kind
 export type Tab = "keep" | "gear" | "methods" | "licence";
 export interface RegsPage { readonly version: "regs-v33"; /* …rest exactly as contracts.md §2… */ }
 export function buildRegsPage(inp: RegsInputs, opts: { today: Day; who: Who; tot?: "a" | "b"; pid?: string }): RegsPage; // T21
-// pid: the page id embedded in sheet keys (golden keys use the state id; the app's default is `${item}~${partIx}~${mmdd}`) — T30–T36
+// pid: test-harness page id only; sheet keys carry no state id (contracts.md §1 / §6 #1)
 // …HeaderVM, KeepVM, KeepBlock, StripVM, InheritedVM, BannerVM, GroupVM, GroupHeadVM, OriginVM, TreeNodeVM, TierVM, KindVM,
 //    ReleaseRowVM, FishPicVM, NotKeptVM, PlainRowVM, OtherFishRowVM, WhereNotVM, GearVM, GearLineVM, ChangeVM, SourceLineVM,
 //    BaitVM, YesNoVM, MethodsVM, LicenceVM, LicenceBlockVM, SheetVM, SheetBlock, LadderStepVM — verbatim from contracts.md §2.
 
 // regs/line.ts  (contracts.md §1)
 export type RuleKey = string;   // `${entry_id}::${rule_id}`
-export type SheetKey =
-  | `rule:${RuleKey}` | `gl:${string}` | `sp:${string}` | "hatch" | "parts"
-  | `srcs:${string}` | `licsrc:${string}` | `other:${string}` | `pos:${string}` | `src:${string}`;
-export type Run =
-  | { t: "text"; s: string }
-  | { t: "num"; s: string; size: "big" | "big2" | "inline" }
-  | { t: "term"; ids: readonly string[] }
-  | { t: "book"; printed: number; pdf: number }
-  | { t: "link"; s: string; open: SheetKey | { day: Day } };
+// SheetKey (app forms, no state id; ProfileKey, parseSheetKey/appKeyOf/goldenKeyOf/profileKeyOf) and Run (book with
+// `pdf: number | null; bare?: true`; link open = SheetKey | {day} | {tab}) — copy VERBATIM from contracts.md §1 (the final,
+// consolidated types; T18/T36 amended them). Do not re-type them here.
 export type Line = readonly Run[];
 export function text(s: string): Run;                                  // { t: "text", s }
 export function plain(l: Line | null | undefined): string;            // runs concatenated AS IS, then /\s+/g → " ", trim
@@ -158,11 +152,9 @@ grep -rn "regulationsFor\|WaterRegulations\|RegulationRecord" app/packages app/a
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** `RegsPage.version` is `"regs-v33"` (target bumped to 04765ab5 by the coordinator); `Weekday` is the
-  generated `calendar.generated.ts` type re-exported, not a second literal union.
-- **CONTRACT CHANGE:** `buildRegsPage` opts gain `pid?: string` (coordinator, for T30–T36 sheet keys).
-- **CONTRACT CHANGE:** `inputs.ts` gains `CellIds`, `VerdictWire`, `LadderFrameWire` (T04 wire types live in core so data and core
-  share them) and `RegsInputs.year`/`mergedParts` as defined in T09. `contracts.md` §3 `LadderFrame` = `LadderFrameWire`.
+- CONTRACT CHANGE: applied to contracts.md (§2 `version`, `Weekday` re-export).
+- CONTRACT CHANGE: applied to contracts.md (§2 opts `pid?` — test harness only; keys carry no state id, §6 #1).
+- CONTRACT CHANGE: applied to contracts.md (§3 `CellIds`, `VerdictWire`, `LadderFrameWire`, `RegsYear`, `MergedPart`; §1 `text`/`plainAll`/`squash`; header: `regulations.ts`).
 - Do NOT export `answers.generated` from `core/src/index.ts` wholesale (it has a `Place` that would collide); `inputs.ts` imports
   the generated types it needs and re-exports only those: `RowsValue, Row, Decided, FishAnswer, GearAnswer, GearValue, StatusFrame,
   LicenceValue, ProfileAnswer, Holds, TidalHolds, UnderSixteen, RuleFacts, PartFacts, Picker, Choice, Moment, MomentHours,

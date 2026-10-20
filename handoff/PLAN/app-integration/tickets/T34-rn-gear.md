@@ -63,7 +63,7 @@ export function BaitList(p: { vm: BaitVM; palette: Palette; onOpen: Open }): JSX
    the Hooks changes line reads `"Next May 1–31: fly fishing only"` (chip + text) and has no link inside
    (`within(change).queryByRole("link")` null); the Hooks source button `getByRole("button", {name: vm.src.aria})` (aria is not in the golden; T30 builds it as "Sources: " + words joined ", ")
    with text `"Province · Region 2 · This water’s ›"`; three links `"Rule book p.8 ↗"`, `"Rule book p.21 ↗"`, `"Rule book p.22 ↗"`.
-2. Pressing that source button calls `onOpen("srcs:gl|vedder_1010|hook")`; pressing `"Rule book p.21 ↗"` calls a mocked
+2. Pressing that source button calls `onOpen("srcs:gl|hook")`; pressing `"Rule book p.21 ↗"` calls a mocked
    `openBook` with `23`; `bookUrl(23, "web")` = `SYNOPSIS_PDF + "#page=23"`, `bookUrl(23, "ios")` = `SYNOPSIS_PDF`.
 3. Bait: ✓ rows `Worms`, `Roe (fish eggs)` + `"the fish or fish parts ban excepts it"`, `Water insects and crayfish` + `"on streams"`;
    ✕ `Fish or fish parts`; dated `"Next May 1–31: bait ban"`; source `"Province ›"`.

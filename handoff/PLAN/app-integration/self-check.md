@@ -43,7 +43,7 @@ Verdict: implementable; the data-side mapping is already proved, so a T13 failur
 | `FaceBar({palette, face, onFace, onBack, backLabel})` | facts.md B (read `Faces.tsx`) | ✓ — FaceBar drawn without `onBack` (the regs header has the ‹) |
 | `MapDay({palette, day: Date\|null, onDay})` reusable in a `DaySheet` | facts.md B | ✓ (not exported from the ui-native index — DaySheet imports `../MapDay` relatively, inside the package) |
 | `TabBar` stays under the water screen (D1 a) | Shell :675 | ✓ no shell change needed for navigation |
-| `useRegulations(store, target, day, who)` signature | must equal T11 | checked after T11 landed — see below |
+| `useRegulations(store, target, day, who)` returning a page | T11 defines `useRegulations(store, target, mapDay): Async<RegsInputs \| null>` | **✗ → fixed**: T11 gained `useRegsPage(inputs, who, today)`; T23 now chains `useRegsStore → useRegsTarget → useRegulations → useRegsPage` (T35 too) |
 
 Verdict: implementable after the two fixes.
 
@@ -53,4 +53,10 @@ Verdict: implementable after the two fixes.
   `layers.json` has no `conformance` entry, so the harness may import `@app/data/regs/node`). T12 builds it; T13–T21, T30–T36
   consume `cases()`, `inputs()`, `inputsOf()`, `requestOf()`, `eqPlain()`; render tests mount VM fixtures from `writeVmFixtures`.
 - `pinChain`: `port/pinreplay.mjs` replays every golden pin transition on 134/134 states — T28 transcribes it.
-- Contract: every ticket's CONTRACT CHANGE note was applied to contracts.md (marked `// (TNN)`), conflicts listed in contracts.md §6.
+- Contract: every ticket's CONTRACT CHANGE note was applied to contracts.md (marked `// (TNN)`), 10 conflicts resolved in
+  contracts.md §6 (sheet keys without a state id + `goldenKeyOf`; T15b's CaveatVM over T42's TimedVM; `pos:pos`; `size.rule`;
+  Line-typed ladder lines; numeric `leadN`; `item.sub` composed by T16; hook signatures; `RuleIndex`; `DisplayFrame`).
+- Hydration oracle: `port/hydrate.mjs` (page v36's own `describe`/`settle`/`buildModel` in node) reproduces taps.json's segment
+  index on 134/134 — T06–T08 cite its output.
+- Ticket quotes: `node app/design/regs-v11/port/quotes.mjs` → 436 / 645 quoted runs found verbatim in the goldens; the rest are
+  word constants with no golden state, code, error messages and elided excerpts (checked per agent).

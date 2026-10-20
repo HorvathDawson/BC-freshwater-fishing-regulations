@@ -1,6 +1,6 @@
 # T23 — RN: `RegsScreen` in `WaterScreen`, `RegsHeader`, the one scroll
 
-Phase 1 · Depends on T11 (`useRegsStore`, `useRegulations`, `useAnglerProfile`), T16 (`HeaderVM`), T21 (`buildRegsPage` Keep
+Phase 1 · Depends on T11 (`useRegsStore`, `useRegsTarget`, `useRegulations`, `useRegsPage`, `regsDay`, `useAnglerProfile`), T16 (`HeaderVM`), T21 (`buildRegsPage` Keep
 slice), T22 (tokens) · Blocks T24–T27, T29, T34, T35, T37 · Decisions D1 (a), D2 (a), D7 (a), D11 (a) · Size 1 day
 
 Target **regs v33 @ 04765ab5**. Line refs: `app/design/regs-v11.html` @ 04765ab5 (CSS 1–880, script from 892).
@@ -24,7 +24,7 @@ that holds the four tab sections (Keep drawn by T24–T27; Gear/Methods/Licence 
 - modify `app/packages/ui-native/src/WaterScreen.test.tsx` — case 1 now asserts the header (below) instead of "Regulations are
   coming"; cases 2–3 unchanged
 - modify `app/packages/ui-native/src/Shell.tsx` — pass the day and the map action (exact edits below)
-- modify `app/apps/mobile/src/App.tsx` — pass `fish` (the image map from T20) and the `regs` URL (T01) to `Shell`
+- modify `app/apps/mobile/src/App.tsx` — pass `fish` (the image map from T20) to `Shell` (the `regs` URL is T01's, `openRegsDb` T11's)
 - keep `app/packages/ui-native/src/RegulationsPlaceholder.tsx` (still the fallback when the regs store is absent/failed — see
   Notes); it is no longer the normal path
 
@@ -77,26 +77,32 @@ export function DaySheet(p: { open: boolean; onClose: () => void; palette: Palet
 export function WaterScreen(p: {
   source: RegsSource; item: ItemId; palette: Palette; onBack?: () => void;
   onConditions?: (section: SectionId) => void;
-  regs?: string | null;            // T01: the regs store URL; null/absent → RegulationsPlaceholder (store not served)
-  day?: Date | null; onDay?: (d: Date | null) => void;
+  regsUrl?: string;                // T01: the regs store URL; absent → RegulationsPlaceholder (store not served)
+  openRegsDb?: RegsOpenDb;         // T11: the injected opener
+  day?: Date | null; onDay?: (d: Date | null) => void; section?: SectionId | null;   // T01
   onMap?: () => void;
   fish?: FishImages;
 }): JSX.Element;
 ```
-WaterScreen body when `useWater` is ready (hooks from T11; names as T11 defines them):
+WaterScreen body when `useWater` is ready (hooks exactly as T11 defines them; contracts.md §2.8):
 ```tsx
-const store = useRegsStore(regs ?? null);                       // Async<RegsStore> | idle when null
-const who = useAnglerProfile();                                  // D8 (a)
-const [partIx, setPartIx] = useState(0);
-const page = useRegulations(store, { kind: "part", item, partIx }, day ?? null, who);  // Async<RegsPage>; null day = today
-// ready → <RegsScreen page={page.value} … onConditions={() => first && onConditions?.(first)} onPart={setPartIx} />
-// loading → FishSpinner (as today); failed or no regs URL → the old ScrollView with RegulationsPlaceholder (unchanged words)
+const storeA = useRegsStore(source, regsUrl, openRegsDb);       // Async<RegsStore | null>
+const targetA = useRegsTarget(storeA.value, item, section ?? null);   // Async<RegsTarget | null> (T09 targetFor: the tapped part)
+const [picked, setPartIx] = useState<number | null>(null);      // a Parts-sheet choice overrides the tapped part
+const target = picked == null ? targetA.value : { kind: "part" as const, item, partIx: picked };
+const inputs = useRegulations(storeA.value, target, day ?? null);   // Async<RegsInputs | null>; null day = today
+const [who] = useAnglerProfile();                                // D8 (a)
+const { today } = regsDay(day ?? null);
+const page = useRegsPage(inputs.value, who, today);              // RegsPage | null — buildRegsPage in T11's useMemo, never here
+// page → <RegsScreen page={page} … onConditions={() => first && onConditions?.(first)} onPart={setPartIx} />
+// any of the three Async loading → FishSpinner (as today); failed, or !(regsUrl && openRegsDb) → the old ScrollView with RegulationsPlaceholder (unchanged words)
 ```
 
 ### Shell.tsx edits (exact)
-- props: add `regs?: string | null; fish?: FishImages;` to `Shell`'s destructuring and type (beside `feed`).
+- props: add `fish?: FishImages;` to `Shell`'s destructuring and type (beside `feed`). `regs`, `openRegsDb` and the water mount's
+  `regsUrl`/`openRegsDb`/`day`/`onDay`/`section` are already passed by T01/T11.
 - the water mount (:423): add
-  `regs={regs} fish={fish} day={mapDay} onDay={setMapDay}`
+  `fish={fish}`
   `onMap={() => { const id = item; setItem(null); setPicked(id); setTab("map"); }}` — the same "frame it on the map" path
   search uses (`setPicked(id); setTab("map")`, :450), minus re-opening the page.
 - nothing else: `TabBar` stays under the water screen (D1 a, :675); the Map tab's `MapDay` (:663) reads the same `mapDay`, so a day
@@ -194,7 +200,7 @@ ONE ScrollView: no nested vertical scroll anywhere in the page (the fish strip w
     `onDay(<yesterday's Date>)`.
 
 `WaterScreen.test.tsx` case 1 (fixture source, no `regs` prop) keeps passing unchanged — no regs URL → the placeholder path; add a
-case with `regs` set and a stub `useRegulations` (vi.mock `@app/ui` → ready page from vm-fixtures) asserting the heading
+case with `regsUrl` + `openRegsDb` set and stubs `useRegsStore`/`useRegsTarget`/`useRegulations` ready and `useRegsPage` (vi.mock `@app/ui` → the vm-fixtures page) asserting the heading
 "Vedder River" and no "Regulations are coming".
 
 ## Acceptance
@@ -217,4 +223,4 @@ pnpm -C app dev:web   # open Vedder: header 48 + place 36 + tabs 37 ≈ 121 px u
 - `RegulationsPlaceholder` remains for "no regs store served" (`regs` null — the fixture bundle, CI) and "store refused"
   (`failed`, e.g. digest mismatch) — the honest "check the synopsis" sentence, never a blank.
 - `useRegulations` must key on the day's calendar date, not the `Date` object (a new `Date()` each render would refetch forever)
-  — T11's concern; this ticket passes `day` (null for today) straight through.
+  — T11's concern; this ticket passes `day` (null for today) straight through, and `today` comes from T11 `regsDay`.

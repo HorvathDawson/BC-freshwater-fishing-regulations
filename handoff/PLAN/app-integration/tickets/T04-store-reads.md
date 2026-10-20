@@ -177,11 +177,8 @@ pnpm -C app exec vitest run --project logic packages/data/src/regs/reads
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** core `inputs.ts` gets `export type DisplayFrame = StatusFrame | TidalStatus` (answers.generated): a tidal key's
-  display frame is `{status:"tidal", tidal, note, see, licence}`, not a `StatusFrame`; every `StatusFrame` in contracts.md §3 is `DisplayFrame`.
-- **CONTRACT CHANGE:** `ItemRow`, `PartRow`, `PlaceRow`, `RulesetRow`, `StoredRule` are new data-layer types; `LadderFrameWire`
-  (core) replaces contracts.md's untyped `LadderFrame`. RegsInputs.frames.ladder is the wire form (verdict ids resolved) — core
-  decides states, not data.
+- CONTRACT CHANGE: applied to contracts.md (§3 `DisplayFrame`).
+- CONTRACT CHANGE: applied to contracts.md (§3 `LadderFrameWire`, data-layer row types).
 - `rules()` loads every rule rather than "the rules a frame cites": frames cite rix in dozens of places (decided `win`/`narrow`/
   `lines[].r|outer`/`roles`/`lift_notes`, row `pool`/`win`/`everyone`/`groups`/`conds`/`wins`, gear `by`/`cites`, display
   `closing`/`unless_opened`/`inherited.by`, ladder verdict lists), and a missed one turns into page v36's NORULE stand-in on screen.

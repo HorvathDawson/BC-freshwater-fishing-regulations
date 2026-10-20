@@ -573,7 +573,7 @@ Line numbers: `regs-v11.html` @ 04765ab5 (v33) and `page_v36.js` (unchanged sinc
    `licsrc:lic|${pid}|…`); T36 says app keys carry no state id. Golden keys embed the state id either way, so both can match
    it; T36 wins because `appKeyOf`/`goldenKeyOf` already bridge them and a `RegsPage` is one state. Presenters emit
    app-form keys (`srcs:gl|hook`, `srcs:bait`, `licsrc:u16_res`), and parity tests compare `goldenKeyOf(vm.open, id)`
-   to the golden key. `opts.pid` stays optional for the test harness only; T30's `${itemId}~${partIx}~${mmdd}` app pid is dropped.
+   to the golden key. `opts.pid` stays optional for the test harness only; T30's `${itemId}~${partIx}~${mmdd}` app pid is dropped. T30–T35 bodies are updated to match.
 2. **Timed caveats: `TimedVM` (T42) or `CaveatVM{kind:"timed"}` (T15b)** — the golden has a single `div.caveats.top`
    (x15p2_1010) and no per-block field. T15b already models it, with its siblings (`details.inpart.hot`, angler, side) as
    `{ caveat: n }`, so T42's `"timed"` KeepBlock, `KeepVM.timed` and `TimedVM` are not added. T42 adds only `"outside"` and
@@ -586,7 +586,7 @@ Line numbers: `regs-v11.html` @ 04765ab5 (v33) and `page_v36.js` (unchanged sinc
 6. **`head.leadN`** — golden stores the string `"2"`; T29 needs a number for `PinAnchor.headlineN`. The VM carries `number | null`,
    and parity compares `String(leadN)`.
 7. **`item.sub` (T16) removed by T09** — T16's "sub names it" test read `inp.item.sub`; T09 drops the field (the subtitle is
-   words). T16 composes it from `item.kind`, `item.sections`/`partSections` and the part label, and then tests `includes(long)`.
+   words). T16 composes it from `item.kind`, `item.sections`/`partSections` and the part label, and then tests `includes(long)` (T16 updated).
 8. **Hooks: `useRegulations(store, target, day, who)` → `Async<RegsPage>` (T23/T35) vs T11's `useRegulations(store, target, mapDay)` →
    `Async<RegsInputs | null>`** — T11 wins: data loading stays separate from presenting. T11 gains
    `useRegsPage(inputs, who, today)`, a `useMemo` over `buildRegsPage`, and T23/T35 call it. A `who` change rebuilds the page from the same

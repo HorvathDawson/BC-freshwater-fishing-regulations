@@ -147,8 +147,7 @@ REGS_PARITY=fixture pnpm -C app exec vitest run --project logic conformance/src/
   written against the old convention (T13 `strip.test.ts`, T14 `banner.test.ts` "golden through testing/golden.ts; skipIf no province
   store") move their parity cases to `conformance/src/regs/strip.parity.test.ts` etc. and use `cases()`; `it.skipIf(!hasProvinceRegs())`
   becomes "cases() yields nothing" (the fixture fallback makes it run in CI).
-- **CONTRACT CHANGE:** `@app/core` gains the subpath export `./regs/testing` (types + eq only, no I/O). It is not re-exported from the core
-  index, so app bundles never include it.
+- CONTRACT CHANGE: applied to contracts.md (header: `@app/core/regs/testing` subpath, not re-exported from the core index).
 - golden.json is 8.8 MB: read once per test FILE (vitest isolates modules per file); never `JSON.parse` it per case. One store per file too
   (module memo in `provinceStore`), closed in a file-level `afterAll`.
 - The fixture fallback is why T10 keeps the province `store_digest` in the fixture's meta: the stale-store check compares that digest with

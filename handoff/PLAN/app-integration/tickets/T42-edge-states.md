@@ -19,11 +19,11 @@ The five states the common path does not cover read right, in core and on screen
    sheet tells the weekday story (T36) — this ticket owns the Keep-side pieces and the end-to-end check.
 
 ## Files
-- create `app/packages/core/src/regs/edge.ts` — `edgeKind(inp)`, `tidalKeep(inp)`, `outsideKeep()`, `timedCaveat(inp, ctx)`
+- create `app/packages/core/src/regs/edge.ts` — `edgeKind(inp)`, `tidalKeep(inp)`, `outsideKeep()` (the timed caveat is T15b's `timedOf` → `CaveatVM{kind:"timed"}`; this ticket only verifies it end to end)
 - create `app/packages/core/src/regs/edge.test.ts` (A), `app/conformance/src/regs/edge.parity.test.ts` (B),
-  `app/packages/ui-native/src/regs/Edges.test.tsx` (C), `app/packages/ui-native/src/regs/TimedCaveat.tsx`
+  `app/packages/ui-native/src/regs/Edges.test.tsx` (C) — the timed block is drawn by T27's caveat block (no `TimedCaveat.tsx`)
 - modify `app/packages/core/src/regs/page.ts` (T21): branch on `edgeKind` before building groups; `app/packages/core/src/regs/model.ts` (contract changes)
-- modify `app/packages/core/src/regs/words.ts`: `OUTSIDE_BC`, `TIMED_HEAD`, `UNNAMED_*` only if the store does not carry them (it carries `place.names[kind]` — use that)
+- modify `app/packages/core/src/regs/words.ts`: `OUTSIDE_BC`, `UNNAMED_*` (the timed title is T15b's `TIMED_TITLE`) only if the store does not carry them (it carries `place.names[kind]` — use that)
 
 ## Signatures
 ```ts
@@ -32,7 +32,7 @@ export type Edge = "normal" | "unnamed" | "tidal" | "outside";
 export function edgeKind(inp: RegsInputs): Edge;      // key == null → outside; key.tidal || frames.display.status === "tidal" → tidal; target.kind === "section" → unnamed (still built normally)
 export function tidalKeep(inp: RegsInputs): KeepVM;   // order ["banner"], banner {big:["Tidal water"], paras:[<tidal note>], chain:[], reopen:null}
 export function outsideKeep(): KeepVM;                // order ["outside"]
-export function timedCaveat(inp: RegsInputs, day: Day, weekday: Weekday): TimedVM | null;
+// timed: T15b `timedOf(inp, s, settledAtSeg): CaveatVM | null` (kind "timed"), placed by T21 as KeepBlock { caveat: n } — no TimedVM
 ```
 CONTRACT CHANGE: applied to contracts.md (§2.2 `KeepBlock "outside"`, `KeepVM.outside`; timed stays T15b `CaveatVM`, no `TimedVM` — §6 #2).
 
@@ -57,11 +57,11 @@ CONTRACT CHANGE: applied to contracts.md (§2.2 `KeepBlock "outside"`, `KeepVM.o
 **A — `edge.test.ts`** (hand inputs):
 1. `outside` — `key: null` → `page.status === "outside"`, `keep.order` `["outside"]`, `keep.outside === "This part of the water is outside B.C.: no B.C. rules apply."`, `licence === null`, gear/methods `closed === null && lines.length === 0`.
 2. `unnamed header` — target `{kind:"section", handle:1178240}` with taps.json `unnamed` row `{akey:2191, place:12, name:"Unnamed stream · Region 5"}` → `header.name === "Unnamed stream · Region 5"`, `header.place === null`, `header.action === null`, tabs still 4 (D11).
-3. `timed caveat words` — a two-moment fixture (all-week, `hours {start: sunset+60, end: sunrise−60, in:false}` and the `in:true` moment closed) → `timed.head === "⚠ At certain times"`, `items[0].title === "No fishing for any game fish"`, `items[0].where === "60 min after sunset–60 min before sunrise"`.
+3. `timed caveat words` — a two-moment fixture (all-week, `hours {start: sunset+60, end: sunrise−60, in:false}` and the `in:true` moment closed) → `keep.caveats[0].kind === "timed"`, `.title === "⚠ At certain times"`, `plain(items[0].what) === "No fishing for any game fish"`, `items[0].where === "60 min after sunset–60 min before sunrise"`.
 4. `weekday row` — klwa_1010 rows fixture: the Kokanee Other-fish row `week === "Weekends: keep 5 · Weekdays: release"`; `segmentIndex` picks the Saturday moment on 2026-10-10 and the Monday moment on 2026-10-12 (`taps.states.klwa_1010.s` vs `klwa_1012.s`).
 **B — `edge.parity.test.ts`** (store present):
 5. `tidal x31p_1010` — `plain(keep)` lines equal golden `["Tidal water", "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required."]`; `header.dot === "faint"`, `header.place === null`, `header.action === null`; gear `closed === "No fishing here on any day of the year."` (golden — see Notes); methods the same.
-6. `hours x15p2_1010` — `keep.order[1] === "timed"`; lines after the strip are golden `["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise Rule book p.23 ↗", "Trout and char", …]`; header action `{kind:"parts", label:"Parts", aria:"Other parts — now 2 stretches"}`.
+6. `hours x15p2_1010` — `keep.order[1]` deep-equals `{ caveat: 0 }` and `keep.caveats[0].kind === "timed"`; lines after the strip are golden `["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise Rule book p.23 ↗", "Trout and char", …]`; header action `{kind:"parts", label:"Parts", aria:"Other parts — now 2 stretches"}`.
 7. `every moment state` — for the 12 golden states whose tap has moments (klwa_1010, klwa_1012, x15p2_1010, x15p7_1010, x17p3/4/5/7_1010, x19p4/6/7_1010, x32p0_1010) the whole Keep tab equals golden (these are the states the common-path parity skipped until this ticket, if T21 excluded them).
 **C — `Edges.test.tsx`**:
 8. outside → one `Text` with the outside line, no tablist sections below Keep content, no Licence section.
@@ -83,7 +83,7 @@ pnpm -C app check
   `exclusions.ts` for the gear/methods blocks with reason "D20: prototype closedUntil on tidal". File against the prototype.
 - No golden state covers outside B.C. or an unnamed section (taps.json `unnamed` has 20 handles, no states): their tests
   are literal-driven; T41's walk adds one unnamed handle via the deep link `?section=<handle>`.
-- D10 (b) would draw each moment as its own card; the `TimedVM` stays and gains nothing — only `KeepTab` changes.
+- D10 (b) would draw each moment as its own card; the `CaveatVM{kind:"timed"}` stays and gains nothing — only `KeepTab` changes.
 - The caveat colour: the prototype's `.caveats` has a `--restricted` left rule and `--sub` label (CSS 113–117, 827) — the
   rule is a status colour on a non-status element; T39's palette gate treats `testID="kicker:timed"`'s border as status
   (it marks "restricted at certain times") — document it in T39's allow-list if the gate flags it.

@@ -135,8 +135,7 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/card conforma
 ```
 
 ## Notes
-- **CONTRACT CHANGE:** contracts.md §3 `CardModel` is defined here (it was named only). `RegsInputs.year.rowsBySeg` (coordinator,
-  T13) is `readonly (RowsValue | null)[]` indexed by `s` — the joined wire value; `rowsAt` hydrates it.
+- CONTRACT CHANGE: applied to contracts.md (§3 `CardModel` pointer, `RegsYear.rowsBySeg`). `CardModel` is defined in this ticket.
 - `Infinity` is a legal `daily`: keep it in core (page compares `daily === Infinity`); presenters print "no limit" from `kind`,
   never from the number. Do not JSON-serialise a `CardModel` (Infinity → null) — the parity test maps it explicitly.
 - `roles` is keyed by rule KEY not rix (page :201) because the sheets look rules up by key.

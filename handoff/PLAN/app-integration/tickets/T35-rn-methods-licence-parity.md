@@ -45,16 +45,16 @@ export function LicenceAnswer(p: { blocks: readonly LicenceBlockVM[]; palette: P
   rows; then the price note), `paper` (lead + bold strong + tail), `nymbox`, `muted`, `lostlist lopen` (small heading, then
   each card: "For every angler:" small, label, paths separated by "or").
 - `LicenceTab`: heading "Licence", WhoSelector, LicenceAnswer, `SourceLine` with `pages={false}` (licence `src` has no pages;
-  it opens `licsrc:lic|<pid>|<key>`).
+  it opens `licsrc:<profileKey>`, e.g. `licsrc:u16_res`; golden key via `goldenKeyOf`).
 - Wiring (T23 `RegsScreen`): `const [who, setWho] = useAnglerProfile()` (D8 (a): Shell-level, in memory, default
-  `{age:"adult", residency:"resident"}`); `useRegulations(..., who)` rebuilds only the licence slice on change.
+  `{age:"adult", residency:"resident"}`); `useRegsPage(inputs, who, today)` (T11) rebuilds the page from the same inputs on change (no reload); `buildLicence` is the only part that reads `who`.
 
 ## Reads
 `RegsPage.methods`, `RegsPage.licence`, `RegsPage.who`.
 
 ## Tests
 ### Page parity — `app/conformance/src/regs/gml.parity.test.ts` (project `logic`; skipped when `provinceStore()` is null; golden v33)
-For every `{id, g, page}` of `cases("gear")`/`cases("methods")`/`cases("licence")` (`page(who)` = `buildRegsPage` for `requestOf(id)`, `pid` = id):
+For every `{id, g, page}` of `cases("gear")`/`cases("methods")`/`cases("licence")` (`page(who)` = `buildRegsPage` for `requestOf(id)`; keys compared via `goldenKeyOf(key, id)`):
 `eqPlain(page.gear, golden.states[id].gear)` (T30 + T31 fields), `eqPlain(page.methods, golden.states[id].methods)` (T32 fields);
 then for each of the six profiles (`adult|resident`, `adult|non_resident`, `adult|non_resident_alien`, `u16|resident`,
 `u16|non_resident`, `u16|non_resident_alien`) rebuild with that `who` and compare `page.licence` to
@@ -74,7 +74,7 @@ the state id, the profile and the first differing path.
    each named "Who is fishing?"; radio `"16 or older"` and `"B.C. resident"` have `aria-checked="true"`, the other three
    `"false"`; label `"B.C. resident, 16 or older"`; `"Also, only if…"` precedes `"Steelhead Conservation Surcharge Stamp"`;
    price `"$41.15 a year · $11.43 a day · $22.86 for 8 days"`; the source button `"Province · This water ›"` has no Rule book
-   links; pressing it calls `onOpen("licsrc:lic|vedder_1010|adult")`.
+   links; pressing it calls `onOpen("licsrc:adult")`.
 4. Pressing radio `"Under 16"` calls `onWho({age:"u16", residency:"resident"})`; pressing `"From outside Canada"` calls
    `onWho({age:"adult", residency:"non_resident_alien"})`.
 5. `LICENCE_VEDDER_1010_U16_NON`: label `"Canadian, other province, under 16"`; the youth box text starts

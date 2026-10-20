@@ -25,7 +25,7 @@ import type { Day, StripVM } from "./model";
 export const BOOK_DAYS: readonly Day[];
 export function bookIndex(d: Day): number;                         // DAYS.indexOf(md); Feb 29 → index of Feb 28 (never asked)
 /** display frame of book day i: inp.year.displayByDay[leapDayOfYear(BOOK_DAYS[i]) - 1] (drop leap index 59). */
-export function displayOnBookDay(inp: RegsInputs, i: number): StatusFrame | null;
+export function displayOnBookDay(inp: RegsInputs, i: number): DisplayFrame | null;   // tidal frame → StripVM null (contracts §6 #10)
 export function isClosedOn(inp: RegsInputs, i: number): boolean;   // frame?.status === "closed"
 export function nextOpen(inp: RegsInputs, d: Day): Day | null;     // page_v36 nextOpen 443
 export interface Run { readonly now: string; readonly all: boolean; readonly from?: Day; readonly until?: Day; readonly next?: Day; readonly then?: string }
@@ -74,7 +74,7 @@ Words (`words.ts`): `STRIP_OPEN = "Open"`, `STRIP_OPEN_EXCEPT = "Open, except so
 - No strip at all when the water is tidal or outside (page v36 `waterStrip` returns `tidalHtml` → T14 banner) — `stripOf` → null.
 
 ## Reads
-`inp.year.displayByDay[366]` (`StatusFrame.strip`, `.status`), `inp.year.segStarts`, `inp.year.moments`,
+`inp.year.displayByDay[366]` (`DisplayFrame | null`; `StatusFrame.strip`, `.status`), `inp.year.segStarts`, `inp.year.moments`,
 `inp.year.rowsBySeg` (new, see Notes), `inp.statics.strip[].{bit,label}`, `settled.status`, `settled.inpart[].{now,family}`,
 `card.rows[].{pool,kind,members}`, `inp.key.tidal`.
 

@@ -38,7 +38,9 @@ Words: `TODAY = "Today"`, `WD3 = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]` ke
 - **labels** (`hereLabel`/`shortLabel`/`placeRow`): with a part picker, `o = inp.item.parts[partIx]`:
   `long = o.label` (page v36's `t` minus `/ · \d+ sections?$/` — the store's `label_s` is already without the count; assert it);
   `full = sub names long ? long : (o.short uncut ? o.short : long)` where "uncut" = no "…";
-  `short = o.short uncut ? o.short : long`. In v33 the "sub names it" test is `inp.item.sub.includes(long)` (page v36 subtitle).
+  `short = o.short uncut ? o.short : long`. In v33 the "sub names it" test is `subtitleOf(inp).includes(long)` (page v36 subtitle). `inp.item.sub` no longer exists
+  (T09); `subtitleOf` composes it from `item.kind`, `item.sections`/`partSections[partIx]` and the part label, giving "stream · 5 sections" or
+  "stream · 1 section · <label>" (contracts §6 #7).
   A water with no picker: the prototype falls back to the water map's part name; in the app that is `PartFacts.short`/`label` of
   part 0 — **when `short === item.name` the label slot is empty (`place: null`)** (golden klwa_1010, wilkes_1010, glenn_501).
 - **action** (`placeGo`): prototype = Map when its water map export has the water, else Parts when the item has > 1 part, else

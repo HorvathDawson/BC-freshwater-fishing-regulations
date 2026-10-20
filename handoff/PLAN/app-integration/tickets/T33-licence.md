@@ -35,7 +35,7 @@ export function priceTxt(p: Prices): string;                                    
 export function srcOf(l: LicWords): string;                                     // page v36 srcOf L1290
 export function licenceWho(inp: RegsInputs, p: ProfileAnswer, h: Holds): readonly string[];  // the source-line words, deduped
 export function licenceSources(inp: RegsInputs, p: ProfileAnswer, h: Holds): readonly { act: string; cards: readonly ReqCardVM[] }[];  // T36 draws the licsrc: sheet from this
-export function buildLicence(inp: RegsInputs, who: Who, pid: string, ctx: { closed: boolean; rows: RowsValue; species: SpeciesWords; glossary: ReadonlySet<string> }): LicenceVM;
+export function buildLicence(inp: RegsInputs, who: Who, ctx: { closed: boolean; rows: RowsValue; species: SpeciesWords; glossary: ReadonlySet<string> }): LicenceVM;
 ```
 `words.ts` `LIC` (verbatim page v36 L1273–1366 and prototype 1381–1426 / render 1597–1608):
 ```ts
@@ -96,7 +96,7 @@ the result directly, in this order:
    i.e. for each requirement card (groups by `actTxt`, stable-sorted by `orderAct`: "To fish here" 0, "To fish for…" 1,
    "To keep…" 2, else 3) `srcOf(l) + (H.also_printed[req].length ? " +" + n : "")`, then each guiding card's `srcOf`, then
    each `P.others` card's `srcOf`; deduped first-seen. `src = words.length ? {who: words.join(" · ") + " ›", open:
-   \`licsrc:lic|${pid}|${keyOf(who)}\`} : null`. The "Where each one comes from" fold becomes `licenceSources()` (T36's sheet;
+   \`licsrc:${profileKeyOf(who)}\`} : null`. The "Where each one comes from" fold becomes `licenceSources()` (T36's sheet;
    its title is the fold's summary "Where each one comes from").
 5. **prototype `licence` selectors 1420–1426**: `question` "Who is fishing?", `questionTerms` `["under_16"]` (when the
    glossary has it); `axes` = `[{axis:"age", aria:"Who is fishing?", options: AXES.age → {value: "adult"|"u16", text, checked}},
@@ -116,7 +116,7 @@ statics `profileDims`, `profiles`, `profileLabels`, `exportLicences` (DOC names)
 
 **Where the tests live** (tests.md §1.2): core may not import `@app/data` or `node:fs`, so every golden-driven case below
 is in `app/conformance/src/regs/licence.parity.test.ts` over T12's harness — `for await (const {id, g, page} of cases("licence"))`,
-`requestOf(id)` (today Oct 10, `pid` = the golden id), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
+`requestOf(id)` (today Oct 10, keys compared via `goldenKeyOf(key, id)`), `eqPlain(plainLines(vm), goldenLines(g))`, one `it(id)` per state, skipped
 when `provinceStore()` is null. ``licence.test.ts`` keeps only unit cases over small hand-built `GearAnswer`/`LicenceValue` literals
 (cases marked *unit* below).
 Cases 1–10 are parity; 11 is *unit*, plus `priceTxt`, `actTxt`, `whoTxt`, `keyOf`, and `patchNeeds` (steelhead drop / kokanee / only-if split) over hand lists.
@@ -129,7 +129,7 @@ Cases 1–10 are parity; 11 is *unit*, plus `priceTxt`, `actTxt`, `whoTxt`, `key
 2. **Labels, vedder_1010** — `adult|resident` "B.C. resident, 16 or older"; `adult|non_resident` "Canadian, other province, 16 or older";
    `adult|non_resident_alien` "From outside Canada, 16 or older"; `u16|resident` "B.C. resident, under 16";
    `u16|non_resident` "Canadian, other province, under 16"; `u16|non_resident_alien` "From outside Canada, under 16";
-   `src.open` `licsrc:lic|vedder_1010|adult` … `|u16_alien`, `src.who` "Province · This water ›" for all six.
+   `src.open` `licsrc:adult` … `licsrc:u16_alien` (golden `licsrc:lic|vedder_1010|adult` …), `src.who` "Province · This water ›" for all six.
 3. `vedder_1010 adult|resident` needs: `[{name:"Basic angling licence", when:"Needed to fish at all", price:"$41.15 a year · $11.43 a day · $22.86 for 8 days"}]`,
    onlyIf `["Steelhead Conservation Surcharge Stamp" (terms ["steelhead_stamp"]) "Only if you fish for steelhead, even to release them" "$28.57 a year",
    "White Sturgeon Conservation Licence" …, "Conservation Surcharge Stamp for salmon" "Only if you keep salmon (not kokanee)" "$17.14 a year"]`;
