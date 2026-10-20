@@ -2068,7 +2068,7 @@ async function roundUr2(){
   check('ur2-headline-per-angler', !hb.length, hb.join('; '));
   // round 20b (C4): the keep-N lines are the two ends of the range
   const W = K.vedder.worked, want = [/^If you keep 4 hatchery rainbow trout here: that’s your trout and char for the day, everywhere\.$/,
-    /^If you keep 2 hatchery rainbow trout here: they count as your 2 from streams anywhere else today — up to 2 more of any kind, from here or from lakes\.$/];   // rows 29 (UR7 1)
+    /^If you keep 2 hatchery rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes\.$/];   // rows 29 (UR7 1)
   check('ur2-worked-plain', W.length === 2 && W.every((t, i) => want[i].test(t)), JSON.stringify(W));
   const kb = [];
   if (!/^Only 1 of the 2 may be hatchery Dolly Varden\/bull trout or lake trout/.test(K.vedder.dv)) kb.push('Vedder DV ' + JSON.stringify(K.vedder.dv));
@@ -2246,11 +2246,11 @@ async function roundUr7(){
   // (1) the worked keep-the-share line says the fish count as the 2 elsewhere ("here"), never "none from other streams"
   let W = {};
   await page('w=glenn&d=615', async b => { W = JSON.parse(await b.evaluate(`(() => { const bad = [], good = [];
-    Object.entries(SNAP.states).forEach(([id, st]) => (st.rows || []).forEach(r => (r.group?.worked || []).forEach(w => { if (/none from other/.test(w.a)) bad.push(id + ': ' + w.a);
+    Object.entries(SNAP.states).forEach(([id, st]) => (st.rows || []).forEach(r => (r.group?.worked || []).forEach(w => { if (/^none from other/.test(w.a)) bad.push(id + ': ' + w.a);   /* UR7 1: the line says both halves before "none from other streams" */
       if (w.at === 'here' && w.share != null && /^If you keep \\d+ .+ here$/.test(w.q)) good.push(id); })));
     const li = [...document.querySelectorAll('#keep .worked li')].map(e => e.textContent.replace(/\\s+/g, ' ').trim());
     return JSON.stringify({bad: bad.slice(0, 3), nbad: bad.length, good: good.length, glenn: li.find(t => /^If you keep 2 rainbow trout here:/.test(t)) || li.join(' | ')}); })()`)); });
-  check('ur7-worked-here', !W.nbad && W.good >= 4 && /^If you keep 2 rainbow trout here: they count as your 2 from streams anywhere else today — up to 3 more of any kind, from here or from lakes\.$/.test(W.glenn), JSON.stringify(W).slice(0, 300));
+  check('ur7-worked-here', !W.nbad && W.good >= 4 && /^If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes\.$/.test(W.glenn), JSON.stringify(W).slice(0, 300));
   // (2) a kind directly under the share says it is part of it (data, every state); the Chilliwack part 2's rainbow row draws it
   let K = {};
   await page('w=chilliwack&d=1010&p=1', async b => { K = JSON.parse(await b.evaluate(`(() => { ${walkT} const bad = []; let n = 0;

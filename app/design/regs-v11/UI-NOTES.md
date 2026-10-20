@@ -10,8 +10,10 @@ B. **The size section's head in the bar's colour, the bar at the screen's edge**
    #46627F, 6.3:1 on the card; dark #93A8BE, 7.3:1); the size head line and its numbers are drawn in it; the section is full-bleed
    (`margin: 0 -16px`), its 3 px rule flush against the screen's left edge, its rows on the page's 16 px text edge. The pinned
    size line the same (rule at x 0, words in --rule).
-1. **Glenn's worked line** (data): "If you keep 2 rainbow trout here: they count as your 2 from streams anywhere else today — up to 3
-   more of any kind, from here or from lakes." (was "none from other streams today — …"); both keep-N lines say "here".
+1. **Glenn's worked line** (data): "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3
+   more of any kind, from here or from lakes." (was "none from other streams today — …"); both keep-N lines say "here". The owner's "they count as your 2 from streams anywhere else
+   today — …" (shipped first) read right at lower confidence (Vedder Q3 4 → 2): an A/B of three wordings on whole cards (ur7/exp,
+   one fresh reader each, 5 answers) — all right; confidence 17 / 19 / 19 of 20 — these words say both halves in the relation's terms.
 2. **A kind directly under the stream share** (data): "Up to 2 hatchery rainbow trout (part of the 2 from streams)" (the Chilliwack
    part 2's default hatchery rainbow after the size section closes; 49 rows across the snapshot); "Only 1 of the 2 from streams may
    be …".
