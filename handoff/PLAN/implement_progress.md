@@ -15,7 +15,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 | 3 reader files | ALREADY DONE in a4b37eff (`app/design/regs-v11/port/reader/`) |
 | 4 baseline | DONE, see Baseline counts |
 | 5 golden re-sync | NOT NEEDED: golden.json meta ref 7fb6809f, v38, misses unchanged (4) |
-| 6 first tickets | P00 DONE (a4ee3a9b) → P03 DONE → P05 (next) → P06 → N1 |
+| 6 first tickets | P00 DONE (a4ee3a9b) → P03 DONE (c2d15a05) → P05 DONE → P06 (next) → N1 |
 
 ## P00: test tiers
 - [x] measure: pytest fast (durations), pytest slow (collect count only), vitest per file, `pnpm check` per step, check.mjs total + per round, card gate
@@ -60,6 +60,25 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - Mutation: a hand edit to answers.generated.ts makes `pnpm -C app check` exit 1 ("stale"). Clean run: 59 files / 645 tests.
 - NOT verified: a real CI run on a scratch branch (nothing pushed). Open: the fixture writes meta `shed_rule` where the
   bundle writes `trust_bands`; no app code reads either, so it is left for whoever next touches build-fixture.mjs.
+
+## P05: card gate on the shipped answers (DONE, except the full `deliver all` run)
+- `card_check.check_shipped` decodes `ui-rules-answers.json` from its bytes (`encode.decode`) and proves every key.
+  `check_built` (rebuild, `--items`) is unchanged and shares `check_model`.
+- `card_check --all` writes the stamp + report `card-check.json` BESIDE the answers: problems, parts_checked,
+  keys_checked, cards, groups, dates, code_sha (all of pipeline/deliver/answers/*.py), answers_sha256. Any old stamp is
+  deleted first.
+- DEVIATION from APP-PREP: the stamp is a sidecar, not inside `answers.about`. Writing it into the file after checking would
+  change the bytes that were checked (and the `.gz`). The sha binds the stamp to the exact bytes instead. The store copies
+  it into its meta `card_check`; P08 copies it into the package meta.
+- `deliver all`: answers → **card_check** → store. There is also a `deliver card_check` step. The store build refuses
+  without a passing stamp for its exact bytes (`require_card_check=False` is used only by test_regs_store's encoding
+  fixture).
+- Tests: `test_card_gate_in_chain.py`, 5 tests (chain order, failing gate stops before store, stamp refusals, store
+  refusal, live mutation: Vedder headline n+1 fails). All 5 FAILED on the old code; all pass now.
+- Live: `deliver card_check` → 0 problems, parts_checked 20461 (= the answers' part count), keys 2268, 57 s. A store built
+  to scratch carries meta.card_check. The live `data/generated/regs/card-check.json` now exists.
+- NOT YET RUN: `python -m pipeline.deliver all --out-dir <tmp>` (the full heavy chain). Batched with P07, which changes
+  the same chain (owner: heavy jobs sparingly).
 
 ## Baseline counts
 - pytest fast: 3572 passed / 6 skipped (unfiltered; matches the UR7 report's 3462 plus the tests added since).

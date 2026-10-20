@@ -1030,19 +1030,53 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
     """Build the rows for every part (or `items`) and prove every group of every card at `dates`:
     {checked, groups, problems [str]} — one check per distinct (rule key, kind, steelhead, date, the
     reader's verdicts, the card): rows are keyed by content and many sections share a key, so each
-    distinct card is proved once on each sample date (the date picks the zone rules in force elsewhere)."""
+    distinct card is proved once on each sample date (the date picks the zone rules in force elsewhere).
+    This REBUILDS the rows: it proves the code, not a file. The shipped file is `check_shipped`'s."""
     from pathlib import Path
-    from pipeline.deliver.answers import answers as A, common as C, encode as E, rows as RW
-    from pipeline.deliver.calendar import day_of
+    from pipeline.deliver.answers import answers as A, common as C
     data, guide = C.load_export(Path(export_dir))
     model = A.build(bundle, Path(export_dir), workers=1, items=items, sections=["rows"],
                     export=(data, guide), log=lambda *_: None)
+    return check_model(model, bundle, data, dates=dates, log=log)
+
+
+def check_shipped(bundle: str, export_dir, answers=None, dates=DATES, keys=None, log=print) -> dict:
+    """THE GATE ON THE SHIPPED FILE (P05): decode `ui-rules-answers.json` exactly as written (default: in
+    `export_dir`) and prove every group of every card it holds — every key, or only `keys`. A number
+    changed in the file is a problem here, because the cards come from the file's bytes and the maxima
+    from the bundle's rules. The result also has `parts_checked`, `keys_checked` and
+    `answers_sha256`, the digest of the bytes that were proved."""
+    import hashlib
+    import json
+    from pathlib import Path
+    from pipeline.deliver.answers import common as C, encode as E
+    answers = Path(answers) if answers else Path(export_dir) / "ui-rules-answers.json"
+    raw = answers.read_bytes()
+    wire = json.loads(raw)
+    data, guide = C.load_export(Path(export_dir))
+    E.check_pair(wire, data, guide)
+    model = E.decode(wire, data)
+    got = check_model(model, bundle, data, dates=dates, keys=keys, log=log)
+    got["keys_checked"] = len(model.keys) if keys is None else len(set(keys))
+    got["parts_checked"] = sum(len(v) for v in model.parts.values()) if keys is None else None
+    got["answers_sha256"] = hashlib.sha256(raw).hexdigest()
+    return got
+
+
+def check_model(model, bundle: str, data: dict, dates=DATES, keys=None, log=print) -> dict:
+    """Prove every rows group of `model` (built or decoded: the same `answers.Model`) at `dates`,
+    over every key or only `keys`."""
+    from pipeline.deliver.answers import common as C, encode as E, rows as RW
+    from pipeline.deliver.calendar import day_of
     B = C.load(bundle)
     ids = data["rule_ids"]
     seen, probs, groups = set(), [], 0
     lad_json: Dict[int, str] = {}
     t0 = time.monotonic()
+    only = None if keys is None else set(keys)
     for k, key in enumerate(model.keys):
+        if only is not None and k not in only:
+            continue
         if k and k % 2000 == 0:
             log(f"card_check: {k}/{len(model.keys)} keys, {len(seen)} distinct cards, {groups} groups, "
                 f"{len(probs)} problems, {time.monotonic() - t0:.0f} s")
@@ -1073,6 +1107,57 @@ def check_built(bundle: str, export_dir, items=None, dates=DATES, log=print) -> 
     return {"checked": len(seen), "groups": groups, "problems": probs}
 
 
+# --------------------------------------------------------------------------------------------
+# The stamp (P05): what `deliver all` writes after the gate, and what the store refuses without
+# --------------------------------------------------------------------------------------------
+
+#: written beside the answers file it proves; `pipeline.deliver.store.build` reads it
+STAMP_NAME = "card-check.json"
+
+
+def code_sha() -> str:
+    """The digest of the gate's code and the engine it holds the cards against (every module of
+    `pipeline.deliver.answers`), so a stamp says WHICH gate passed."""
+    import hashlib
+    from pathlib import Path
+    h = hashlib.sha256()
+    for f in sorted(Path(__file__).parent.glob("*.py")):
+        h.update(f.name.encode() + b"\0" + f.read_bytes() + b"\0")
+    return h.hexdigest()[:16]
+
+
+def stamp_of(got: dict, dates=DATES) -> dict:
+    """The stamp for a whole-file `check_shipped` result (no `keys`)."""
+    return {"card_check": {"problems": len(got["problems"]), "parts_checked": got["parts_checked"],
+                           "keys_checked": got["keys_checked"], "cards_checked": got["checked"],
+                           "groups_checked": got["groups"], "dates": [list(d) for d in dates],
+                           "code_sha": code_sha(), "answers_sha256": got["answers_sha256"]},
+            "problems": got["problems"]}
+
+
+def stamp_problems(answers, raw: bytes) -> List[str]:
+    """Why the answers bytes `raw` (of the file `answers`) may NOT be packaged: no stamp beside them,
+    a stamp with problems, or a stamp for other bytes. Empty means proved."""
+    import hashlib
+    import json
+    from pathlib import Path
+    p = Path(answers).with_name(STAMP_NAME)
+    if not p.exists():
+        return [f"no card-gate stamp {p} — run `python -m pipeline.deliver.answers.card_check --all`"]
+    try:
+        st = json.loads(p.read_text())["card_check"]
+    except (ValueError, KeyError, TypeError) as e:
+        return [f"{p} is not a card-gate stamp ({e})"]
+    out = []
+    if st.get("problems") != 0:
+        out.append(f"{p}: the card gate found {st.get('problems')} problems")
+    if st.get("answers_sha256") != hashlib.sha256(raw).hexdigest():
+        out.append(f"{p} proves other answers bytes (sha {str(st.get('answers_sha256'))[:12]}…), not {Path(answers).name}")
+    if not st.get("parts_checked"):
+        out.append(f"{p} was not a whole-file run (parts_checked {st.get('parts_checked')!r})")
+    return out
+
+
 def json_key(v) -> str:
     import json
     return json.dumps(v, sort_keys=True, default=str)
@@ -1080,14 +1165,32 @@ def json_key(v) -> str:
 
 def main(argv=None) -> int:
     import argparse
+    import json
     from pathlib import Path
     from pipeline.deliver.bundle import read as RD
     ap = argparse.ArgumentParser(description="answers 2.8: prove every number on every quota card")
     ap.add_argument("--bundle", default=RD.BUNDLE)
     ap.add_argument("--export-dir", default=str(Path(RD.BUNDLE).parent.parent / "regs"))
     ap.add_argument("--items", default=None, help="comma-separated item ids (default: every part)")
+    ap.add_argument("--all", action="store_true",
+                    help="prove the SHIPPED answers file (every key, decoded from its bytes) and write the "
+                         f"stamp + JSON report ({STAMP_NAME} beside it); `deliver all` runs this")
+    ap.add_argument("--answers", default=None, help="with --all: default ui-rules-answers.json in --export-dir")
     a = ap.parse_args(argv)
-    got = check_built(a.bundle, a.export_dir, a.items.split(",") if a.items else None)
+    if a.all:
+        if a.items:
+            ap.error("--all proves the whole file; --items is for the rebuild check")
+        answers = Path(a.answers) if a.answers else Path(a.export_dir) / "ui-rules-answers.json"
+        out = answers.with_name(STAMP_NAME)
+        out.unlink(missing_ok=True)              # a stale stamp never outlives a failed run
+        got = check_shipped(a.bundle, a.export_dir, answers)
+        st = stamp_of(got)
+        tmp = out.with_name(out.name + ".tmp")
+        tmp.write_text(json.dumps(st, indent=1) + "\n")
+        tmp.replace(out)
+        print(json.dumps(st["card_check"]))
+    else:
+        got = check_built(a.bundle, a.export_dir, a.items.split(",") if a.items else None)
     for p in got["problems"][:200]:
         print(p)
     return 1 if got["problems"] else 0

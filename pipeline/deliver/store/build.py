@@ -167,11 +167,23 @@ def unnamed_problems(A: dict, bundle: sqlite3.Connection) -> List[str]:
 
 
 def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str = "zdict",
-          check: bool = True) -> dict:
-    """Write the store to `out` (atomically) and return its counts."""
+          check: bool = True, require_card_check: bool = True) -> dict:
+    """Write the store to `out` (atomically) and return its counts.
+
+    THE CARD GATE BLOCKS PACKAGING (P05): answers whose exact bytes have no passing stamp
+    (`card_check.STAMP_NAME` beside them, written by `card_check --all`) are refused, and the stamp is
+    copied into the store's meta (`card_check`). `require_card_check=False` is for tests that exercise
+    the encoding on inputs no gate ran over; nothing that ships passes it."""
     if blobs not in CODECS:
         raise StoreError(f"store: blob codec {blobs!r} is not one of {CODECS}")
     raw, A, E, G = load_inputs(answers, export_dir)
+    stamp = None
+    if require_card_check:
+        from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
+        bad = stamp_problems(answers, raw)
+        if bad:
+            raise StoreError("store: the answers are not proved by the card gate — " + "; ".join(bad))
+        stamp = json.loads(Path(answers).with_name(STAMP_NAME).read_text())["card_check"]
     from pipeline.tools.export_codec import expand
     X = expand(E, G)
     sub = export_subset(X)
@@ -198,7 +210,8 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
     tmp = out.with_name(out.name + ".tmp")
     try:
         counts = write_store(tmp, raw, A, sub, item_ord, part_section, blobs,
-                             unnamed_section=unnamed_section, in_bc=in_bc, where=where)
+                             unnamed_section=unnamed_section, in_bc=in_bc, where=where,
+                             card_check=stamp)
         if check:
             from pipeline.deliver.store.decode import Store
             s = Store(tmp)
@@ -219,7 +232,7 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
 
 def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int],
                 part_section: list, codec: str = "zdict", *, unnamed_section=(),
-                in_bc: Optional[List[int]] = None, where=()) -> dict:
+                in_bc: Optional[List[int]] = None, where=(), card_check: Optional[dict] = None) -> dict:
     """Write a store at `path` (replaced) from the decoded inputs — the answers wire `A` (and its
     bytes `raw`), the export subset `sub`, the bundle's item ords, its `part_section` rows
     (ord, sid, part_ix), its unnamed sections `(sid, up)`, every section in B.C. (`in_bc`: every
@@ -234,6 +247,8 @@ def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, 
     try:
         counts = _write(con, raw, A, sub, item_ord, part_section, codec, unnamed_section, in_bc,
                         where)
+        if card_check is not None:
+            con.execute("INSERT INTO meta VALUES ('card_check', ?)", (dumps_s(card_check),))
         con.commit()
         con.execute("INSERT INTO meta VALUES ('store_digest', ?)", (store_digest(con),))
         con.commit()

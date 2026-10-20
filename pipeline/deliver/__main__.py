@@ -5,6 +5,7 @@
     python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
     python -m pipeline.deliver answers [--bundle FILE] [--export-dir DIR] [--out FILE]
     python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
+    python -m pipeline.deliver card_check [--bundle FILE] [--export-dir DIR]
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
@@ -94,6 +95,10 @@ def main(argv=None) -> int:
     an.add_argument("--out", type=Path, default=None,
                     help="default: ui-rules-answers.json in the export's directory")
     an.add_argument("--workers", type=int, default=4)
+    cc = sub.add_parser("card_check", help="the card gate on the shipped answers; writes card-check.json")
+    cc.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
+    cc.add_argument("--export-dir", type=Path, default=None,
+                    help="the answers' directory (default: the canonical export's)")
     st = sub.add_parser("store", help="the regs store (regs.sqlite) from the answers + export pair")
     st.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     st.add_argument("--export-dir", type=Path, default=None,
@@ -131,6 +136,9 @@ def main(argv=None) -> int:
         export_out = (d / "ui-rules-export.json") if d else _EXPORT_OUT
         _step(["export", "--bundle", str(bundle), "--out", str(export_out)])
         _step(["answers", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
+        # THE CARD GATE (P05): every number on every card of the answers just written, proved
+        # against the bundle's rules; a problem stops the chain here, before anything is packaged
+        _step(["card_check", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
         from pipeline.deliver.store import OUT as _STORE_OUT
         _step(["store", "--bundle", str(bundle), "--export-dir", str(export_out.parent),
                "--out", str((d / "regs.sqlite") if d else _STORE_OUT)])
@@ -153,6 +161,13 @@ def main(argv=None) -> int:
                            "--out", str(out), "--workers", str(a.workers)])
         if rc:
             raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
+    elif a.step == "card_check":
+        from pipeline.deliver.answers.card_check import main as card_main
+        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        exp = a.export_dir or _EXPORT_OUT.parent
+        if card_main(["--all", "--bundle", str(a.bundle), "--export-dir", str(exp)]):
+            raise SystemExit(f"pipeline.deliver: the card gate found problems in {exp / 'ui-rules-answers.json'} "
+                             "— nothing was packaged")
     elif a.step == "store":
         from pipeline.deliver.store import OUT as _STORE_OUT
         from pipeline.deliver.store.__main__ import main as store_main
