@@ -9,7 +9,7 @@ are two versions with one `handles16`, and a data release declares `tiles.compat
 
 `stamp` writes `tile_version`, `section_handles` and `labels_registry` (informational: which registry the labels came
 from) into the pmtiles metadata, so an archive swapped under a manifest cannot pass (audit F6). `to_release` copies the
-stamped archive and the outside-BC mask into `data/release/tiles/<version>/`; the mask is a separate file, never a tile
+stamped archive, the outside-BC mask and the self-hosted map assets (`assets.py`) into `data/release/tiles/<version>/`; the mask is a separate file, never a tile
 layer (owner, MINIMAL-PACKAGING §1).
 """
 from __future__ import annotations
@@ -83,6 +83,8 @@ def to_release(archive: Path, version: str, release_root: Path, boundary: Path) 
     try:
         shutil.copy2(archive, stage / f"atlas-{version}.pmtiles")
         B.build(boundary, stage / "bc_outside.geojson")
+        from pipeline.deliver.tiles import assets
+        assets.write(stage)                                  # map-assets-<n>/: self-hosted glyphs + sprites
         stage.rename(final)
     finally:
         shutil.rmtree(stage, ignore_errors=True)

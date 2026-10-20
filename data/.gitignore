@@ -19,6 +19,8 @@ source/runtiming/cu_tiles/
 # Steelhead evidence (pipeline/regs/steelhead/known_waters.py): the accessibility model (6.6 GB)
 # and ~17,000 DataBC records, both re-fetched by the script when missing.
 source/steelhead/
+# The pinned Protomaps glyphs + sprites (P18, pipeline/deliver/tiles/assets.py): a fetch away, 13 MB.
+source/map-assets/
 *.gpkg
 *.pmtiles
 

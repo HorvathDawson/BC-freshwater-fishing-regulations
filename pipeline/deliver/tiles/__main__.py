@@ -49,6 +49,9 @@ def main() -> None:
     layer_dir = out_dir / "layers"
     layer_dir.mkdir(parents=True, exist_ok=True)
     tippe.check()                       # fail before an hour of work, not after
+    if not a.no_release:
+        from pipeline.deliver.tiles import assets
+        assets.fetch()                  # the glyphs + sprites the release folder needs (cached; P18)
 
     t0 = time.time()
     if a.tiles_only:

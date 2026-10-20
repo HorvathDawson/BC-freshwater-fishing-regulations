@@ -390,3 +390,27 @@ def test_every_built_region_feature_carries_region_id(request):
     p = need(request, "tiles", GENERATED.tiles / "layers" / "region.geojsonl", "python -m pipeline.deliver.tiles")
     ids = [_json.loads(ln)["properties"].get("region_id") for ln in p.read_text().splitlines() if ln.strip()]
     assert ids and all(ids), f"{sum(1 for i in ids if not i)} of {len(ids)} region features have no region_id"
+
+
+def test_the_map_assets_are_every_font_the_style_names_plus_the_basemaps_and_both_sprites():
+    from pipeline.deliver.tiles import assets as A
+    w = A.wanted()
+    fonts = sorted(A.style_fonts() | set(A.BASEMAP_FONTS))
+    assert {"Noto Sans Regular", "Noto Sans Medium", "Noto Sans Italic"} <= set(fonts)
+    assert len(w) == len(fonts) * 256 + 8
+    assert "fonts/Noto Sans Regular/0-255.pbf" in w and "fonts/Noto Sans Regular/65280-65535.pbf" in w
+    assert {"sprites/v4/light.json", "sprites/v4/dark@2x.png"} <= set(w)
+
+
+def test_the_assets_folder_lists_every_file_with_its_digest(tmp_path, monkeypatch):
+    from pipeline.deliver.tiles import assets as A
+    cache = tmp_path / "cache"
+    for rel in A.wanted():
+        (cache / rel).parent.mkdir(parents=True, exist_ok=True)
+        (cache / rel).write_bytes(rel.encode())
+    monkeypatch.setattr(A, "fetch", lambda workers=8: cache)
+    out = A.write(tmp_path / "rel")
+    meta = json.loads((out / "assets.json").read_text())
+    assert out.name == f"map-assets-{A.ASSETS_VERSION}" and meta["pin"] == A.PIN
+    assert sorted(meta["files"]) == sorted(A.wanted())
+    assert len(A.files_sha256(out / "assets.json")) == 64

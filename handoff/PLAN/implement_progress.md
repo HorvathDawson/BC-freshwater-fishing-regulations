@@ -158,7 +158,13 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
   2 slow ones FAIL on today's tiles (as they should) until the rebuild. test_vintage: the registry tests now say "note".
 - HUMAN: rebuild tiles, `.venv/bin/python -m pipeline.deliver.tiles --build data/generated/atlas/full`
   (≈ 1 h; via heavy.sh 70). Then: the tile tests (`pytest pipeline/tests/test_tiles.py -m slow`).
-- NEXT (P18 part 2): self-hosted glyphs + sprites (map-assets-<n>/) and the style pointing at them.
+- P18 part 2 (DONE): `tiles/assets.py` fetches the pinned Protomaps glyphs (every style text-font + the basemap's
+  Regular/Medium/Italic, 256 ranges each) + the v4 light/dark sprites ONCE into data/source/map-assets/<pin>/ (13 MB,
+  git-ignored; already fetched 2026-10-20), and to_release writes map-assets-1/ + assets.json (per-file sha) into the
+  version folder. The tile step fetches before the hour of work. Verified end to end into scratch: archive + mask
+  (61 KB) + 768 pbf + sprites = 14 MB; a second release of the same version is refused.
+- LEFT FOR P10 (app): point TileEndpoints.glyphs / .sprite / the mask at the release folder (runtime-style.ts already
+  takes overrides; the Protomaps CDN is only its fallback). The app still reads the mask from its old place until P10/P11.
 
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
