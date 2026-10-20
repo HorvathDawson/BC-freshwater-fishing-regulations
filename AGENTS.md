@@ -121,6 +121,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 18. **`pytest.ini` deselects the `slow` tests by default** (㊷) — 197 of 2,263 on
     2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
+    **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
+    commit (≈ 75 s: app check, `pytest -m smoke` from `pipeline/tests/smoke.txt`, check.mjs `ONLY=smoke`); Tier 2 is
+    `scripts/test-full.sh` via heavy.sh, once per phase or before a merge.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
 20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an

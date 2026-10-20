@@ -159,6 +159,9 @@ check('no-hand-facts', !hand && !pend, `${hand} data-src="design", ${pend} "pend
 const TOPS = `var topsOf = (g, art) => { const q = art.querySelector(':scope > .qtree'), els = q ? [...q.children] : [], root = [].concat(g.tree || [])[0];
   return root && g.header && g.header.tier === root.id ? {hdr: art.querySelector(':scope > .ghd [data-root-tier]'), root, nodes: root.children || [], els} : {hdr: null, root: null, nodes: [].concat(g.tree || []), els}; };
 var hdrWords = el => { if (!el) return ''; const c = el.cloneNode(true); c.querySelectorAll('.tbk, .gl, .glk, .ghr, button').forEach(x => x.remove()); return (c.textContent || '').replace(/\\s+/g, ' ').replace(/ ⓘ$/, '').trim(); };`;
+// ONLY=smoke (Tier 1, P00 2026-10-20): no-hand-facts plus the four cheapest rounds (≈ 21 s of the full ≈ 440 s). int1 renders and
+// scrolls every one of the 134 snapshot states, so a page that breaks anywhere fails here; every other round is Tier 2 (the full run)
+if (process.env.ONLY === 'smoke') { await roundUr2(); await roundUr3(); await roundInt1(); await round20f(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
