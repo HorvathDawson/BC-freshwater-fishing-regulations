@@ -6,8 +6,9 @@ file is a PROJECTION of the stored verdicts (`verdicts.sqlite`: the reader run o
 and reading — DATAFLOW P4); these tests ask the reader DIRECTLY, section by section, with no
 shortcut, and hold the file to it.
 
-Fast tests (no bundle needed): the format round-trips, the calendar (Feb 29 is day 60 every
-year, a season over New Year), the rollup, and the decoder refusing a damaged file.
+Fast tests (no bundle needed): the format round-trips, the calendar (Feb 29 is stored as day 60
+every year and READ as Feb 28, day 59, P06; a season over New Year), the rollup, and the decoder
+refusing a damaged file.
 
 Slow tests (`-m slow`, ~3 min; they build the index from the shipped bundle, or read the file at
 `STATUS_INDEX`):
@@ -44,7 +45,7 @@ BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 def _tiny() -> dict:
     wrap = [SI.CLOSED] * 90 + [SI.OWN] * (366 - 90 - 31) + [SI.CLOSED] * 31   # Dec 1 - Mar 30
     leap = [SI.BASE] * 366
-    leap[59] = SI.CLOSED                                                        # Feb 29 only
+    leap[58] = SI.CLOSED            # Feb 28 only: Feb 29 must read it (P06), where day 60 would read base
     profiles = sorted({tuple(wrap), tuple(leap), (SI.OWN,) * 366, (SI.OUTSIDE,) * 366},
                       key=lambda p: (SI.runs_of(p), p))
     ix = {p: i for i, p in enumerate(profiles)}
@@ -74,6 +75,9 @@ def test_the_format_round_trips():
 
 def test_feb_29_is_day_60_in_every_year_and_march_1_is_61():
     assert CAL.day_of(dt.date(2024, 2, 29)) == 60
+    # ...and is READ as Feb 28 (P06: the year keeps its 365 reading days; slot 60 is never read)
+    assert CAL.reading_day_of(dt.date(2024, 2, 29)) == 59 == CAL.reading_day_of((2, 28))
+    assert all(CAL.reading_day_of(CAL.month_day(d)) == d for d in range(1, 367) if d != 60)
     assert CAL.day_of(dt.date(2025, 3, 1)) == 61 == CAL.day_of(dt.date(2024, 3, 1))
     assert CAL.day_of(dt.date(2025, 12, 31)) == 366
     assert all(CAL.day_of(CAL.month_day(d)) == d for d in range(1, 367))
@@ -87,8 +91,9 @@ def test_a_season_over_new_year_and_a_leap_day_read_back():
     assert back.code(3, dt.date(2026, 3, 31)) == SI.OWN          # day 91
     assert back.code(3, dt.date(2026, 12, 1)) == SI.CLOSED       # day 336
     assert back.code(3, dt.date(2026, 11, 30)) == SI.OWN
-    assert back.code(900, dt.date(2024, 2, 29)) == SI.CLOSED
-    assert back.code(900, dt.date(2024, 2, 28)) == SI.BASE
+    assert back.code(900, dt.date(2024, 2, 29)) == SI.CLOSED       # reads Feb 28's day (P06)
+    assert back.code(900, dt.date(2024, 2, 28)) == SI.CLOSED
+    assert back.code(900, dt.date(2024, 2, 27)) == SI.BASE
     assert back.code(900, dt.date(2024, 3, 1)) == SI.BASE
     assert back.code(6, dt.date(2026, 1, 1)) == SI.BASE           # absent = base
     assert back.item_code("fwa:é", (2, 29)) == SI.CLOSED

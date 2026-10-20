@@ -15,7 +15,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 | 3 reader files | ALREADY DONE in a4b37eff (`app/design/regs-v11/port/reader/`) |
 | 4 baseline | DONE, see Baseline counts |
 | 5 golden re-sync | NOT NEEDED: golden.json meta ref 7fb6809f, v38, misses unchanged (4) |
-| 6 first tickets | P00 DONE (a4ee3a9b) → P03 DONE (c2d15a05) → P05 DONE → P06 (next) → N1 |
+| 6 first tickets | P00 a4ee3a9b, P03 c2d15a05, P05 8cbfd8c7, P06 done → N1 next (then P07, P01/P02/P04/P12/P13/T22 in parallel) |
 
 ## P00: test tiers
 - [x] measure: pytest fast (durations), pytest slow (collect count only), vitest per file, `pnpm check` per step, check.mjs total + per round, card gate
@@ -79,6 +79,22 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   to scratch carries meta.card_check. The live `data/generated/regs/card-check.json` now exists.
 - NOT YET RUN: `python -m pipeline.deliver all --out-dir <tmp>` (the full heavy chain). Batched with P07, which changes
   the same chain (owner: heavy jobs sparingly).
+
+## P06: Feb 29 (DONE)
+- One rule: `calendar_spec.reading_day` (Feb 29 → 59) + `weekday_of` (the real weekday) + `cases()`, generated to TS
+  (`readingDay`, `weekdayOf`, `CALENDAR_CASES`), JSON, and the page JS (`readingDayOf`, `realWeekdayOf`).
+- Readers: app `statusIndex.dayOfYear` → readingDay; Python `calendar.reading_day_of`, used by `status_index.Index.code`
+  / `item_code` and `encode.tap_key`. Builders keep `day_of`'s 366 slots.
+- Page `page_v36.js`: LEAP_VIEW makes Feb 29 read Feb 28 on its own weekday; the date box keeps 02-29. The script was
+  re-inlined into `page_v36.html` (only the script block changed). The prototype `regs-v11.html` has no weekdayOf and
+  was not touched.
+- Tests: test_feb29.py adds 4 (spec cases; the page's weekdayOf + calendar in node; needs_bundle: no segment starts at
+  day 60 and status profile slot 60 == 59; Zymoetz Fri 2036-02-29 → r10 speaks, Thu does not, Thu Feb 29 == Feb 28).
+  test_status_index's tiny fixture is now closed on Feb 28 only (Feb 29 must read closed). The app test reads Feb 29
+  as 59 and loops over CALENDAR_CASES.
+- Before the change, 6 Python tests failed and the app test failed to load; all pass after. Tier 1: 75 s.
+- NOT done: the port harness `hydrate.mjs` YEAR 2036 case (prototype lane; T05 covers taps.json parity at 2036-02-29).
+  The next golden sync will report page_v36.js `weekdayOf` / `setMd` / `fromBox` as changed functions.
 
 ## Baseline counts
 - pytest fast: 3572 passed / 6 skipped (unfiltered; matches the UR7 report's 3462 plus the tests added since).

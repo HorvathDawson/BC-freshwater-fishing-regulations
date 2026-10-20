@@ -29,3 +29,17 @@ export const COMMON_YEAR_MONTH_LAST_DAY: readonly number[] = [31, 28, 31, 30, 31
 
 /** The days of the week, Monday first (a weekday bitmask's bit 0). */
 export const WEEKDAYS: readonly Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/** The day whose regulations a date READS (`calendar_spec.reading_day`): its day on the leap calendar,
+ *  except Feb 29, which reads Feb 28's (59). The year keeps 365 reading days. */
+export function readingDay(month: number, day: number): number {
+  return month === 2 && day === 29 ? DAYS_BEFORE_MONTH[1]! + 28 : DAYS_BEFORE_MONTH[month - 1]! + day;
+}
+
+/** The date's REAL weekday (`calendar_spec.weekday_of`): Feb 29 keeps its own. */
+export function weekdayOf(year: number, month: number, day: number): Weekday {
+  return WEEKDAYS[(new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7]!;
+}
+
+/** The worked cases every copy is tested against (`calendar_spec.cases`). */
+export const CALENDAR_CASES: readonly { date: string; reading_day: number; weekday: Weekday }[] = [{"date": "2027-02-28", "reading_day": 59, "weekday": "Sunday"}, {"date": "2028-02-28", "reading_day": 59, "weekday": "Monday"}, {"date": "2028-02-29", "reading_day": 59, "weekday": "Tuesday"}, {"date": "2028-03-01", "reading_day": 61, "weekday": "Wednesday"}, {"date": "2036-02-28", "reading_day": 59, "weekday": "Thursday"}, {"date": "2036-02-29", "reading_day": 59, "weekday": "Friday"}, {"date": "2036-03-01", "reading_day": 61, "weekday": "Saturday"}];

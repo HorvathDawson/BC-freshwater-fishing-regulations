@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple
 
 from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED, AnswersError,
                                               Model)
-from pipeline.deliver.calendar import DAYS, day_of
+from pipeline.deliver.calendar import DAYS, day_of, reading_day_of
 from pipeline.deliver.answers.common import Interner
 from pipeline.deliver.bundle import read
 
@@ -975,7 +975,7 @@ def tap_key(wire: dict, data: dict, k: int, month: int, day: int,
     `unnamed.parts`, answers 2.4: what the regs store's `section_akey` gives a section)."""
     key = wire["keys"][k]
     m = key[MOMENT_SLOT]
-    s = segment_index(wire["segments"][key[SEG_SLOT]], day_of((month, day)),
+    s = segment_index(wire["segments"][key[SEG_SLOT]], reading_day_of((month, day)),
                       None if m is None else [wire["moments"][i]
                                               for i in wire["segment_moments"][m]],
                       weekday, inside)

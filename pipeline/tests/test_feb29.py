@@ -76,3 +76,85 @@ def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29(request):
     assert "z3:spring_stream_closure::spring_stream_closure.r1" not in feb29
     assert feb29 == speaks((2, 28))
     assert "z3:spring_stream_closure::spring_stream_closure.r1" in speaks((3, 1))
+
+
+# ---- P06 (owner 2026-10-20, D31): Feb 29 READS Feb 28's regulations, on its OWN real weekday ------------------
+# One rule, `calendar_spec.reading_day` + `weekday_of`, generated for the app (calendar.generated.ts) and the reference
+# page (calendar.generated.js); the Python readers (status index, tap) ask through `calendar.reading_day_of`.
+
+import datetime as _dt
+import json as _json
+import shutil as _shutil
+import subprocess as _subprocess
+
+from pipeline.common import calendar_spec as SPEC
+from pipeline.deliver import calendar as CAL
+
+ZYMOETZ, ZYMOETZ_R10 = "gnis:3137", "r6:zymoetz_copper_river@6-9::zymoetz_river.r10"
+
+
+def test_feb_29_reads_feb_28_on_its_own_weekday():
+    assert SPEC.reading_day(2, 29) == SPEC.reading_day(2, 28) == 59
+    assert all(SPEC.reading_day(*CAL.month_day(d)) == d for d in range(1, 367) if d != 60)
+    assert SPEC.weekday_of(2036, 2, 29) == "Friday" and SPEC.weekday_of(2036, 2, 28) == "Thursday"
+    assert {c["date"]: (c["reading_day"], c["weekday"]) for c in SPEC.cases()}["2036-02-29"] == (59, "Friday")
+    assert CAL.reading_day_of(_dt.date(2036, 2, 29)) == 59 and CAL.day_of(_dt.date(2036, 2, 29)) == 60
+
+
+def _node(script: str) -> str:
+    node = _shutil.which("node")
+    if node is None:
+        pytest.fail("node is not on PATH: the reference page's calendar cannot be checked")
+    return _subprocess.run([node, "-e", script], check=True, capture_output=True, text=True).stdout
+
+
+def test_the_reference_page_reads_feb_29_as_feb_28_on_its_own_weekday():
+    """The page's generated calendar and its own `weekdayOf` (page_v36.js), evaluated in node: every worked case, and
+    on 2036-02-29 (LEAP_VIEW) the Feb 28 slot is a Friday; on Feb 28 itself it is a Thursday."""
+    from pipeline.deliver.answers.reference import page_data as PD
+    js = PD.JS.read_text()
+    line = next(ln for ln in js.splitlines() if ln.startswith("const weekdayOf = "))
+    script = (PD.CALENDAR_JS.read_text() + "let YEAR = 2036, LEAP_VIEW = false;\n" + line + "\n" +
+              "const cases = CALENDAR.cases.map(c => { const [y, m, d] = c.date.split('-').map(Number);"
+              " return [c.date, readingDayOf(m, d), realWeekdayOf(y, m, d)]; });\n"
+              "const thu = weekdayOf(228); LEAP_VIEW = true; const fri = weekdayOf(228);\n"
+              "console.log(JSON.stringify({cases, thu, fri}));")
+    got = _json.loads(_node(script))
+    assert got["cases"] == [[c["date"], c["reading_day"], c["weekday"]] for c in SPEC.cases()]
+    assert (got["thu"], got["fri"]) == ("Thursday", "Friday")
+
+
+@pytest.mark.needs_bundle
+def test_no_stored_year_reads_differently_on_day_60(request):
+    """The data invariant that keeps a day-60 reader honest: no answers segment starts at day 60, and every status
+    profile holds the same code on day 60 as on day 59."""
+    from pipeline.common.curated import GENERATED
+    from pipeline.deliver import status_index as SI
+    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.tests.conftest import EXPORT_HINT
+    answers = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT)
+    index = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
+    wire = _json.loads(answers.read_bytes())
+    assert not [i for i, seg in enumerate(wire["segments"]) if 60 in seg]
+    ix = SI.Index(index.read_bytes())
+    assert not [i for i, p in enumerate(ix.profiles) if p[59] != p[58]]
+
+
+@pytest.mark.needs_bundle
+def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(request):
+    """Zymoetz River B (`zymoetz_river.r10`, "Fridays, Saturdays, and Sundays Jul 24 – May 31"): on Fri 2036-02-29 the
+    tap reads Feb 28's day on a Friday, so the rule speaks; on Feb 28's own Thursday it does not, and a Thursday Feb 29
+    reads exactly Feb 28."""
+    from pipeline.deliver.answers import common as AC, encode as E
+    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.tests.conftest import EXPORT_HINT
+    exp = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
+    wire = _json.loads((exp / "ui-rules-answers.json").read_bytes())
+    data, _guide = AC.load_export(exp)
+    wd = SPEC.weekday_of(2036, 2, 29)
+    fri = E.tap(wire, data, ZYMOETZ, 0, 2, 29, weekday=wd)["ladder"]
+    thu = E.tap(wire, data, ZYMOETZ, 0, 2, 28, weekday=SPEC.weekday_of(2036, 2, 28))["ladder"]
+    assert wd == "Friday"
+    speaks = lambda lad: {r for f in lad for o in lad[f] for r, v in lad[f][o].items() if v[0] == "speaks"}  # noqa
+    assert ZYMOETZ_R10 in speaks(fri) and ZYMOETZ_R10 not in speaks(thu)
+    assert E.tap(wire, data, ZYMOETZ, 0, 2, 29, weekday="Thursday")["ladder"] == thu

@@ -90,7 +90,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import read
 from pipeline.deliver.bundle.rules import closure_grade
-from pipeline.deliver.calendar import DAYS, day_of, month_day
+from pipeline.deliver.calendar import DAYS, day_of, month_day, reading_day_of
 from pipeline.regs.parsing.catalogue import GAME_FISH
 
 MAGIC = b"BCSI"
@@ -388,11 +388,11 @@ class Index:
 
     def code(self, sid: int, on) -> int:
         pi = self.sections.get(sid)
-        return BASE if pi is None else self.profiles[pi][day_of(on) - 1]
+        return BASE if pi is None else self.profiles[pi][reading_day_of(on) - 1]
 
     def item_code(self, item_id: str, on) -> int:
         pi = self.items.get(item_id)
-        return BASE if pi is None else self.profiles[pi][day_of(on) - 1]
+        return BASE if pi is None else self.profiles[pi][reading_day_of(on) - 1]
 
 
 # --------------------------------------------------------------------------------------------

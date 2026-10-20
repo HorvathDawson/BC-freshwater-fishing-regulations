@@ -21,7 +21,7 @@
  * two bundles from one atlas and two reach runs share handles and differ in rules, and the
  * decoder refuses an index whose reach digest is not the bundle's when the caller holds one.
  */
-import { CALENDAR_DAYS, DAYS_BEFORE_MONTH } from "./calendar.generated";
+import { CALENDAR_DAYS, readingDay } from "./calendar.generated";
 import type { SectionKey } from "./section";
 
 /** What the file can say about a section on a day. `tidal` and `outside` are not statuses. */
@@ -37,13 +37,15 @@ const VERSION = 2;
 const DAYS = CALENDAR_DAYS;
 
 /**
- * A date's day on the catalogue's calendar (`calendar_spec.day_index`): 1..366, Feb 29 is 60 and
- * Mar 1 is 61 IN EVERY YEAR, so a printed "Mar 1" is the same day whether or not the year is a
- * leap year. Read in the date's LOCAL calendar — the regulations are dated where the water is.
+ * The day whose regulations a date reads (`calendar_spec.reading_day`, generated): 1..366 on the
+ * catalogue's leap calendar (Mar 1 is 61 IN EVERY YEAR), except that Feb 29 reads Feb 28's day, 59
+ * (owner, P06/D31: the year keeps 365 reading days; slot 60 is never read). A weekday rule reads the
+ * date's own weekday (`weekdayOf`). Read in the date's LOCAL calendar: the regulations are dated where
+ * the water is.
  */
 export function dayOfYear(on: Date | { month: number; day: number }): number {
   const [m, d] = on instanceof Date ? [on.getMonth() + 1, on.getDate()] : [on.month, on.day];
-  return DAYS_BEFORE_MONTH[m - 1]! + d;
+  return readingDay(m, d);
 }
 
 export interface StatusIndex {

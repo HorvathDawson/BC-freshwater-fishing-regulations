@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FIXTURE as fixture } from "./statusIndex.fixture";
 import { statusOfCode, statusOn, waterStatusOn } from "./status";
 import { dayOfYear, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
+import { CALENDAR_CASES, weekdayOf } from "./calendar.generated";
 
 /*
  * THE FIXTURE IS THE PIPELINE'S. `statusIndex.fixture.ts` is written by
@@ -53,13 +54,26 @@ describe("the status index decoder", () => {
     expect(ix.codeOn(-1, new Date(2026, 0, 1))).toBe("base");
   });
 
-  it("puts Feb 29 on day 60 and Mar 1 on day 61 in every year", () => {
-    expect(dayOfYear(new Date(2024, 1, 29))).toBe(60);
+  it("reads Feb 29 as Feb 28 (day 59) and puts Mar 1 on day 61 in every year (P06)", () => {
+    expect(dayOfYear(new Date(2024, 1, 29))).toBe(59);
+    expect(dayOfYear(new Date(2036, 1, 29))).toBe(59);
     expect(dayOfYear(new Date(2025, 2, 1))).toBe(61);
     expect(dayOfYear(new Date(2024, 2, 1))).toBe(61);
     expect(dayOfYear(new Date(2025, 0, 1))).toBe(1);
     expect(dayOfYear(new Date(2025, 11, 31))).toBe(366);
     expect(dayOfYear({ month: 2, day: 28 })).toBe(59);
+  });
+
+  it("answers every worked calendar case as the Python spec does (calendar_spec.cases)", () => {
+    expect(CALENDAR_CASES.length).toBeGreaterThanOrEqual(7);
+    for (const c of CALENDAR_CASES) {
+      const [y, m, d] = c.date.split("-").map(Number) as [number, number, number];
+      expect({ date: c.date, day: dayOfYear(new Date(y, m - 1, d)), weekday: weekdayOf(y, m, d) })
+        .toEqual({ date: c.date, day: c.reading_day, weekday: c.weekday });
+    }
+    // the Zymoetz case: Fri 2036-02-29 reads Feb 28's day on a Friday, not Feb 28's Thursday
+    expect([dayOfYear(new Date(2036, 1, 29)), weekdayOf(2036, 2, 29), weekdayOf(2036, 2, 28)])
+      .toEqual([59, "Friday", "Thursday"]);
   });
 
   it("reads the day on the LOCAL calendar — Dec 31 at night is still Dec 31", () => {

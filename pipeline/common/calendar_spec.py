@@ -19,9 +19,14 @@ display year, parsing printed dates — stays where it runs and reads these cons
                  dates for one (the 2025-2027 synopsis), so a display of the printed year walks it,
                  and so does a 365-day day-of-year circle (run timing).
   WEEKDAYS       Monday first (a weekday bitmask's bit 0), the catalogue's `when.weekdays` names.
+  READING DAY    (owner, 2026-10-20, P06/D31) The year keeps its 365 reading days: Feb 29 READS Feb 28's
+                 regulations (day 59), on its OWN real weekday, for weekday and hours rules. Storage keeps
+                 its 366 slots (Mar 1 = 61); slot 60 is never read. `reading_day` + `weekday_of` are the one
+                 rule; the app, the reference page and the Python tap all call a generated copy of them.
 """
 from __future__ import annotations
 
+import datetime
 from typing import Tuple
 
 #: The months as the book abbreviates them, January first.
@@ -67,8 +72,30 @@ def month_day(day: int) -> Tuple[int, int]:
     return m, day
 
 
+def reading_day(month: int, day: int) -> int:
+    """The day whose regulations a date READS: `day_index`, except Feb 29, which reads Feb 28's (59)."""
+    return day_index(2, 28) if (month, day) == (2, 29) else day_index(month, day)
+
+
+def weekday_of(year: int, month: int, day: int) -> str:
+    """The date's REAL weekday (Feb 29 keeps its own: Fri 2036-02-29 is a Friday, not Feb 28's Thursday)."""
+    return WEEKDAYS[datetime.date(year, month, day).weekday()]
+
+
+#: The worked cases every generated copy is tested against: (year, month, day) -> reading day and
+#: weekday. Fri 2036-02-29 is the Zymoetz below Limonite Creek's "Fridays, Saturdays, and Sundays" case.
+CASE_DATES: Tuple[Tuple[int, int, int], ...] = ((2027, 2, 28), (2028, 2, 28), (2028, 2, 29), (2028, 3, 1),
+                                                (2036, 2, 28), (2036, 2, 29), (2036, 3, 1))
+
+
+def cases() -> list:
+    return [{"date": f"{y:04d}-{m:02d}-{d:02d}", "reading_day": reading_day(m, d), "weekday": weekday_of(y, m, d)}
+            for y, m, d in CASE_DATES]
+
+
 def as_json() -> dict:
     """The spec as data — what every generated copy is rendered from."""
     return {"months": list(MONTHS), "last_day": list(LAST_DAY), "days": DAYS,
             "days_before": list(DAYS_BEFORE), "leap_day": LEAP_DAY,
-            "common_year_last_day": list(COMMON_YEAR_LAST_DAY), "weekdays": list(WEEKDAYS)}
+            "common_year_last_day": list(COMMON_YEAR_LAST_DAY), "weekdays": list(WEEKDAYS),
+            "cases": cases()}

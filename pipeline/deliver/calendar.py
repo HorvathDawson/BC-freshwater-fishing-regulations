@@ -42,6 +42,14 @@ def day_of(on) -> Day:
     return Day(SPEC.day_index(m, d))
 
 
+def reading_day_of(on) -> Day:
+    """`datetime.date` or `(month, day)` -> the day whose regulations it READS (`calendar_spec.reading_day`):
+    `day_of`, except Feb 29, which reads Feb 28's day (59; owner, P06). Every reader of a stored year (the
+    status index, the answers' tap) asks with this; the builders keep `day_of`'s 366 slots."""
+    m, d = (on.month, on.day) if hasattr(on, "month") else on
+    return Day(SPEC.reading_day(m, d))
+
+
 def month_day(day: int) -> MonthDay:
     """1..366 -> (month, day), the inverse of `day_of` (day 60 is Feb 29)."""
     if not 1 <= day <= DAYS:

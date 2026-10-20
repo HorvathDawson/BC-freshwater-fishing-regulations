@@ -67,5 +67,42 @@
     "Friday",
     "Saturday",
     "Sunday"
+  ],
+  "cases": [
+    {
+      "date": "2027-02-28",
+      "reading_day": 59,
+      "weekday": "Sunday"
+    },
+    {
+      "date": "2028-02-28",
+      "reading_day": 59,
+      "weekday": "Monday"
+    },
+    {
+      "date": "2028-02-29",
+      "reading_day": 59,
+      "weekday": "Tuesday"
+    },
+    {
+      "date": "2028-03-01",
+      "reading_day": 61,
+      "weekday": "Wednesday"
+    },
+    {
+      "date": "2036-02-28",
+      "reading_day": 59,
+      "weekday": "Thursday"
+    },
+    {
+      "date": "2036-02-29",
+      "reading_day": 59,
+      "weekday": "Friday"
+    },
+    {
+      "date": "2036-03-01",
+      "reading_day": 61,
+      "weekday": "Saturday"
+    }
   ]
 }
