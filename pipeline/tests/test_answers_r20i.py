@@ -50,8 +50,8 @@ def test_a_size_says_the_rule():
 def test_the_worked_line_says_any_kind_here():
     out, _P = F.card(F.VEDDER, OCT10)
     w = {x["q"]: x["a"] for x in F.trout_group(out)["worked"]}
-    assert w["If you keep 2 hatchery rainbow trout"] == \
-        "none from other streams today — up to 2 more of any kind, from here or from lakes."
+    assert w["If you keep 2 hatchery rainbow trout here"] == \
+        "they count as your 2 from streams anywhere else today — up to 2 more of any kind, from here or from lakes."
 
 
 # 3 -----------------------------------------------------------------------------------------------------------------

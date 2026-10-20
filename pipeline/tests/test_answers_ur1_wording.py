@@ -45,7 +45,7 @@ def test_a_the_total_and_header_say_per_angler():
 def test_a_the_share_says_the_lifted_fish_do_not_use_it():
     g, _o, _P = _g(F.VEDDER)
     share, _own = g["tree"][0]["children"]                       # ROUND20b C3: the share first
-    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"   # ROUND20 2
+    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
     assert "don’t use" not in share["says"]

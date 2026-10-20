@@ -98,6 +98,24 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND UR7 (2026-10-20) — rows 29: the owner's final prototype round before the app port
+
+A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hatchery rainbow trout" where every lifting rule's
+   own tier carries its `relation` ("Not part of the 2 from streams; part of the 4 a day across Region 2") — the Vedder's share
+   is "Only 2 of the 4 may be from streams", which the page folds under the head's "2 a day per angler from streams". With no
+   relation (no region total, no kinds left in the share) the share still names the lifted fish.
+1. **The worked keep-the-share line** (`card.py`): "If you keep 2 rainbow trout here: they count as your 2 from streams anywhere
+   else today — up to 3 more of any kind, from here or from lakes." (was "none from other streams today — …", read against the
+   own tier's "Not part of the 2 from streams": the lift holds only on its own waters; on other streams the region's 2 counts
+   them). Both keep-N lines say "here".
+2. **A kind directly under the stream share says it is part of it** (`tree._kind_says(share_of=)`): "Up to 2 hatchery rainbow
+   trout (part of the 2 from streams)" (the Chilliwack part 2's default hatchery rainbow, after the size section closes);
+   "Only 1 of the 2 from streams may be …"; a hatchery-only steelhead "Up to 2 hatchery steelhead only (part of the 2 from
+   streams) — wild steelhead go back". Kinds inside a size or count tier, under an own tier, or the share's one folded kind
+   keep their words.
+
+`pipeline/tests/test_answers_ur7.py`.
+
 ## ROUND UR6 (2026-10-20) — rows 28, display 17: the owner's last prototype fixes before porting
 
 1. **A size tier's words say no box** (`tree.py`): "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery

@@ -66,7 +66,7 @@ def test_3_the_vedder_tree():
     (rb,) = own["children"]
     assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
     assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"   # ROUND20 2
+    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
     assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
     assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"

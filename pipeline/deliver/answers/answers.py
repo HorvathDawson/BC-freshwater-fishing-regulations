@@ -289,7 +289,9 @@ def _sections() -> Tuple[Section, ...]:
         # here: Kootenay Lake main body "Kept cutthroat trout over 50 cm elsewhere today?", not the rule's "rainbow trout or …")
         # ROUND UR6: rows 28 (a size tier "Of these, only 1 may be over …", no box; an own tier's `relation` to the share and
         # the total)
-        Section("rows", 28, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND UR7: rows 29 (the share says no lifted fish where the own tier's relation says them; a kind directly under the
+        # share "(part of the 2 from streams)"; the worked keep-the-share line "they count as your 2 from streams anywhere else")
+        Section("rows", 29, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

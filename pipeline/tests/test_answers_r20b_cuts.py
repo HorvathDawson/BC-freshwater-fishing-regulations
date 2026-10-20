@@ -60,7 +60,7 @@ def test_c1_the_fold_words_for_an_own_and_a_share_tier():
     # the fixture's share (the Vedder) holds a size tier, not one kind: nothing folds
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
+    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert all(not k.get("folded") for k in share["children"] if k["node"] == "kind")
 
 
@@ -98,7 +98,7 @@ def test_c4_the_worked_lines_say_the_ends_of_the_range_only():
     here = [w for w in g["worked"] if w["at"] == "here"]
     assert [w["kept"] for w in here] == [4, 2]
     assert here[0]["a"] == "that’s your trout and char for the day, everywhere."
-    assert here[1]["a"] == "none from other streams today — up to 2 more of any kind, from here or from lakes."
+    assert here[1]["a"] == "they count as your 2 from streams anywhere else today — up to 2 more of any kind, from here or from lakes."
 
 
 # the gate ----------------------------------------------------------------------------------------

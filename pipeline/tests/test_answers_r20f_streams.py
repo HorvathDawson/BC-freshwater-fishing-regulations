@@ -37,7 +37,7 @@ def test_the_place_phrase():
 def test_a_regions_share_says_from_streams():
     g, _o, _P = _g(F.VEDDER)                   # Region 2's "2 from streams" (z2), lifted by the river's row
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
+    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert g["headline"]["says"] == "2 a day per angler from streams"
     assert g["headline"]["unit"] == "a day per angler from streams"
     g, _o, _P = _g(F.STREAM)                   # a plain Region 2 stream

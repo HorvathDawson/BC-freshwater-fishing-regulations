@@ -126,8 +126,8 @@ def test_every_kind_row_lists_each_of_its_species_for_its_own_picture():
 def test_q23b_the_worked_count_on_a_lifted_stream():
     g = _g(F.VEDDER)
     assert [{k: w[k] for k in ("kept", "q", "a")} for w in g["worked"]] == [
-        {"kept": 4, "q": "If you keep 4 hatchery rainbow trout", "a": "that’s your trout and char for the day, everywhere."},
-        {"kept": 2, "q": "If you keep 2 hatchery rainbow trout", "a": "none from other streams today — up to 2 more "
+        {"kept": 4, "q": "If you keep 4 hatchery rainbow trout here", "a": "that’s your trout and char for the day, everywhere."},
+        {"kept": 2, "q": "If you keep 2 hatchery rainbow trout here", "a": "they count as your 2 from streams anywhere else today — up to 2 more "
                                                                       "of any kind, from here or from lakes."},
         # ROUND12 4: the kept-elsewhere examples the keep-N count does not repeat, in the one list
         {"kept": 1, "q": "Kept 1 at a lake?",

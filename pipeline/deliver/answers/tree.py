@@ -122,17 +122,25 @@ def _short(t: dict) -> str:
     return "no daily limit" if t["n"] is None else f"{_js(t['n'])} a day"
 
 
-def _kind_says(k: dict, parent_n, plain: bool = False) -> str:
+def _kind_says(k: dict, parent_n, plain: bool = False, share_of: Optional[str] = None) -> str:
     """A kind's line. UR2 3 (user panel: "Only 1 may be Dolly Varden" — inside the 2 or extra?): a kind held to fewer
     than its count tier says of how many, "Only 1 of the 2 may be …"; UR2 4 (wild steelhead release unsaid on the
     Vedder): a steelhead kind keeping hatchery fish only, "Up to 2 may be hatchery steelhead only — wild steelhead go
-    back". `plain`: the bare line the kind's `sentence` reads after "Of the 2 a day: ", which says the count itself."""
+    back". `plain`: the bare line the kind's `sentence` reads after "Of the 2 a day: ", which says the count itself.
+    ROUND UR7 2 (owner: the Chilliwack part 2's rainbow row, after the size section closes, said nothing of the 2): a kind
+    DIRECTLY under the stream share (`share_of` "2 from streams") says it is part of it — "Up to 2 hatchery rainbow trout
+    (part of the 2 from streams)", "Only 1 of the 2 from streams may be …"."""
     names = kind_names(k["species"], k["name"] == "Steelhead", origin=k.get("_origin"))
     wild_back = not plain and k["name"] == "Steelhead" and k.get("_origin") == "hatchery"
     if k["n"] == 0:
         return f"No {names} may be kept"
     if k["n"] is None:
         return f"Any number may be {names}"
+    if share_of is not None and not plain:
+        tail = " — wild steelhead go back" if wild_back else ""
+        if parent_n is not None and k["n"] < parent_n:
+            return f"Only {_js(k['n'])} of the {share_of} may be {names}{tail}"
+        return f"Up to {_js(k['n'])} {names}{' only' if wild_back else ''} (part of the {share_of}){tail}"
     if parent_n is not None and k["n"] < parent_n:
         of = "" if plain else f" of the {_js(parent_n)}"
         return f"Only {_js(k['n'])}{of} may be {names}" + (" — wild steelhead go back" if wild_back else "")
@@ -490,8 +498,15 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # ROUND20 2 (owner: "— your hatchery rainbow trout count toward the 4, not these 2" read as 4 + 2): the share
     # says it sits INSIDE the total, in the kinds' own shape — "Only 2 of the 4 may be from this stream", the lifted
     # fish ", not counting hatchery rainbow trout" (they are in the 4, and only the OTHER fish are held to the 2)
+    # ROUND UR7 A (owner: the Vedder said the 2 twice — the head's "2 a day from streams" and the share's "Only 2 of the 4 may
+    # be from streams, not counting hatchery rainbow trout"): where every lifting rule's own tier says its `relation` ("Not
+    # part of the 2 from streams; …", below), the lifted fish are said ONCE, there; the share says nothing more than the head
+    rel_on = share_t is not None and any(x["node"] == "kind" for x, _p in walk(share_t["children"])) and zone \
+        and not c.unlimited and share_t["n"] is not None and root["n"] is not None
+    said_by_own = rel_on and bool(c.lifting) and all(
+        any(b is lb and any(t is u for u in under_total) for t, b in own_ts) for lb in c.lifting)
     lifted = common.join(lifted_names, " and ") if share_t is not None and lifted_names and share_t["n"] is not None \
-        else None
+        and not said_by_own else None
     for t, p in walk([root]):
         if t["node"] == "tier" and t["tier"] in ("own", "share") and p is not None:
             up = count_of(par, p)
@@ -517,20 +532,25 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # ROUND UR6 6 (owner; UR5 Tom on Glenn/Hamill: "the big '2 a day from streams' fights the Duncan's 5"): a water's own
     # rule standing beside the stream share under the region's total says how it stands to both — its fish are not in the
     # share, they are in the total: "Not part of the 2 from streams; part of the 5 a day across Region 4" (`relation`)
-    holds_kinds = share_t is not None and any(x["node"] == "kind" for x, _p in walk(share_t["children"]))
     for t in under_total:
-        if holds_kinds and zone and not c.unlimited and share_t["n"] is not None and root["n"] is not None:
+        if rel_on:
             t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
                              f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
                              f"part of the {_js(root['n'])} a day across {scope}")
     from pipeline.deliver.bundle import read as RD
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
+    # ROUND UR7 2: the kinds sitting directly under the share (not its one kind at its number: that one is folded into it)
+    share_of = None
+    if share_t is not None and share_t["n"] is not None and not (
+            len(share_t["children"]) == 1 and share_t["children"][0]["node"] == "kind"
+            and share_t["children"][0]["n"] == share_t["n"]):
+        share_of = f"{_js(share_t['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
     for x, p in walk([root]):
         if x["node"] != "kind":
             continue
         up = count_of(par, p)
-        x["says"] = _kind_says(x, up["n"])
+        x["says"] = _kind_says(x, up["n"], share_of=share_of if p is share_t else None)
         bare = _kind_says(x, up["n"], plain=True)
         kind_origin[id(x)] = x.get("_origin")
         x["folded"] = False

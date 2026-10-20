@@ -133,7 +133,7 @@ def test_w3_the_gate_fails_a_wrong_nested_or_count_note():
 def test_w4_vedder_one_list_keep_n_then_what_it_does_not_repeat():
     row, _o, _P = _card(F.VEDDER)
     w = row["group"]["worked"]
-    assert [x["q"] for x in w] == ["If you keep 4 hatchery rainbow trout", "If you keep 2 hatchery rainbow trout",   # ROUND20b C4: the ends
+    assert [x["q"] for x in w] == ["If you keep 4 hatchery rainbow trout here", "If you keep 2 hatchery rainbow trout here",   # ROUND20b C4: the ends
                                    "Kept 1 at a lake?", "Kept trout or char over 50 cm (20 in) elsewhere today?"]
     assert row["elsewhere"]["ask"] == []
     assert row["elsewhere"]["says"] == "Your own limit, counted across every Region 2 stream you fish today."

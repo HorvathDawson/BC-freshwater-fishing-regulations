@@ -98,8 +98,8 @@ def test_vedder_mouth_oct_10_card(built):
         == "hatchery, any length, 50 cm or less"
     # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
-        "If you keep 4 hatchery rainbow trout → that’s your trout and char for the day, everywhere.",
-        "If you keep 2 hatchery rainbow trout → none from other streams today — up to 2 more of any kind, from here or from lakes.",
+        "If you keep 4 hatchery rainbow trout here → that’s your trout and char for the day, everywhere.",
+        "If you keep 2 hatchery rainbow trout here → they count as your 2 from streams anywhere else today — up to 2 more of any kind, from here or from lakes.",
         "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
         "Kept trout or char over 50 cm (20 in) elsewhere today? → It counts here too: at most 2 over 50 cm (20 in) a day in all — "
         "only 1 of them may be anything other than a hatchery steelhead."]

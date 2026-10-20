@@ -65,7 +65,7 @@ def test_1_a_waters_own_total_says_per_angler():
 def test_2_the_lifted_share_sits_inside_the_total():
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
+    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert not any("count toward" in t["says"] or "don’t use" in t["says"] for t in _tiers(g))
 
 

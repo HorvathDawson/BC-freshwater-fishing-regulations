@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "28",
+            "version": "29",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -429,7 +429,12 @@ SPEC = {
                     "not the Region 4 rule's \"rainbow trout or cutthroat trout\": rainbow has its own row there). "
                     "Version 28 (ROUND UR6, owner): a size tier says \"Of these, only 1 may be over 50 cm (20 in) — 2 if one is a "
                     "hatchery steelhead\" (no box: the page draws the section's extent); an own tier beside the share under a region "
-                    "total carries `relation` \"Not part of the 2 from streams; part of the 5 a day across Region 4\".",
+                    "total carries `relation` \"Not part of the 2 from streams; part of the 5 a day across Region 4\". "
+                    "Version 29 (ROUND UR7, owner): the share says no lifted fish where every lifting rule's own tier says its "
+                    "`relation` (\"Only 2 of the 4 may be from streams\"); a kind directly under the share says it is part of it "
+                    "(\"Up to 2 hatchery rainbow trout (part of the 2 from streams)\", \"Only 1 of the 2 from streams may be …\"); "
+                    "the worked keep-the-share line \"If you keep 2 hatchery rainbow trout here\" / \"they count as your 2 from "
+                    "streams anywhere else today — up to 2 more of any kind, from here or from lakes.\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

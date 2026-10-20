@@ -1334,7 +1334,7 @@ function licParts(){
   const alsoTxt = w => { const t = actTxt(w); return t.startsWith('To fish for') ? 'at any other time only if you ' + lc(t.replace(/^To /, '')) : lc(whenTxt(w)); };
   const docGi = d => d === 'steelhead_stamp' ? gi('steelhead_stamp') : d === 'classified_waters_licence' ? gi('classified_waters') : /conservation surcharge/i.test(DOC(d)) ? gi('conservation_surcharge') : '';
   const buy = P.documents.map(b => { const alts = (b.or || []).map(o => o.need.map(DOC).join(' + '));
-    return { name:cap([DOC(b.doc), ...alts].join(' or ')), docs:[b.doc], alts, when:[whenTxt(b.when), ...(b.also_when || []).map(alsoTxt)].join('; ') + (alts.length ? '. Either one does' : ''), base:b.base, price:priceTxt(b.prices || {}),
+    return { name:cap([DOC(b.doc), ...alts].join(' or ')), docs:[b.doc], alts, act:b.when.act, sp:expand(b.when.species || []), mincm:(b.when.lengths || []).map(x => x.min_cm).find(x => x != null), when:[whenTxt(b.when), ...(b.also_when || []).map(alsoTxt)].join('; ') + (alts.length ? '. Either one does' : ''), base:b.base, price:priceTxt(b.prices || {}),
       tile:[DOC(b.doc), ...alts].map(n => n.replace(/^basic angling licence$/i, alts.length ? 'B.C. licence' : 'Basic licence').replace(/^(.+?) angling licence$/i, '$1 licence')).join(' or ').replace(/^(\S+) licence or (\S+) licence$/, '$1 or $2 licence') }; });
   // UNDER 16 (user test 2026-10-08, item 2): no document of their own, and a fishing requirement met by fishing
   // with a licensed adult (`accompanied_by`) or as an adult (`as`): say so on top, in "You need" and on the tile
@@ -1349,7 +1349,9 @@ function licParts(){
     buy.push({ name:'Nothing, if you fish with a licensed adult (16 or older)', when: youth.counts ? 'What you keep counts toward their limit' : 'They must hold what this fishing needs', base:true, price:'', youth:true });
     if (asP && adocs.length) buy.push({ name:adocs.join(' + '), when:'Or, for your own limit: what a 16+ angler buys', base:false, price:priceTxt(adult.documents.find(b => b.base)?.prices || {}), youth:true });
   }
-  if (buy.length) h += `<div class="needs"><div class="lbl">You need</div><ul>${buy.map(b => `<li><b>${esc(b.name)} ${(b.docs || []).map(docGi).join('')}</b><span>${esc(b.when)}</span>${b.price ? `<span class="price">${esc(b.price)}</span>` : ''}</li>`).join('')}</ul>${buy.some(b => b.price) ? '<p class="pricenote">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</p>' : ''}</div>`;
+  // round UR7 (owner 4): a document needed only to fish for / keep some fish carries its `when` structurally (data-doc, data-act,
+  // data-sp the fish codes, data-min-cm) so a reader of this page can name it on that fish's own section; no words added
+  if (buy.length) h += `<div class="needs"><div class="lbl">You need</div><ul>${buy.map(b => `<li${(b.act === 'targeting' || b.act === 'retaining') && b.sp?.length ? ` data-doc="${esc(b.docs[0])}" data-act="${b.act}" data-sp="${esc(b.sp.join(' '))}"${b.mincm != null ? ` data-min-cm="${b.mincm}"` : ''}` : ''}><b>${esc(b.name)} ${(b.docs || []).map(docGi).join('')}</b><span>${esc(b.when)}</span>${b.price ? `<span class="price">${esc(b.price)}</span>` : ''}</li>`).join('')}</ul>${buy.some(b => b.price) ? '<p class="pricenote">Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence</p>' : ''}</div>`;
   // the paper licence: the record duties that reach this water (answers display.waters part paper_licence)
   const paperReq = P.requirements.find(x => x.when.act === 'retaining_recorded');
   const paperRules = (PLACE.disp?.paper_licence || []).map(PLACE.R);
