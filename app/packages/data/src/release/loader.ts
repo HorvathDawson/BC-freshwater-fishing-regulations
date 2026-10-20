@@ -1,0 +1,116 @@
+/**
+ * THE RELEASE LOADER (P11): the app's one way to the data. Every file opens on first need and is held after that; the
+ * paint is decoded once. Platform-free: the two things that differ are injected.
+ *
+ *   web      `source` = fetchVerified from `${base}${url}` (Cache Storage by immutable url, cache.web.ts); `open` = sql.js
+ *            over the bytes. Lazy: paint first, core next, water + regs-<region> on the first water in a region (a tap in
+ *            another region fetches that region's file), regs-sid on the first unnamed tap, near / conditions on first use.
+ *   native   `source` = the installed file (install.ts put every file on disk, sha-verified); `open` = expo-sqlite in place.
+ *
+ * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
+ */
+import { decodePaint, decodeFlowArea, type Paint } from "@app/core";
+import type { Db } from "../bundle/db";
+import type { Manifest } from "../manifest";
+import { REGIONS, type Region } from "../pack.generated";
+
+export type FileName = "paint" | "flow-area" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid" | "conditions";
+export type DbName = Exclude<FileName, "paint" | "flow-area">;
+
+export interface ReleaseSource {
+  /** The RAW (decoded, verified) bytes of a release file. */
+  bytes(name: FileName): Promise<Uint8Array>;
+}
+export type Opener = (name: DbName, bytes: Uint8Array) => Promise<Db>;
+
+export class ReleaseError extends Error {}
+
+export interface ReleaseLoader {
+  readonly release: string;
+  readonly handles: string;
+  db(name: DbName): Promise<Db>;
+  paint(): Promise<Paint>;
+  /** The target areas, in paint section order (opened with Conditions). */
+  flowArea(): Promise<Float64Array>;
+  /** The regions an answer key's frames are in (water.akey_region; loaded with water). */
+  regionsOf(akey: number): Promise<Region[]>;
+  /** The region file holding an akey's frames (the first of its regions; every one of them holds them). */
+  regionDb(akey: number): Promise<Db>;
+  /** Which files have been opened so far (the web's lazy-load test reads this). */
+  opened(): readonly FileName[];
+}
+
+export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener): ReleaseLoader {
+  const handles = Object.values(m.files)[0]?.section_handles ?? "";
+  const dbs = new Map<DbName, Promise<Db>>();
+  const order: FileName[] = [];
+  let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
+  let regions: Promise<Map<number, Region[]>> | null = null;
+  const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
+
+  const db = (name: DbName): Promise<Db> => {
+    const spec = m.files[name];
+    if (!spec) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
+    let p = dbs.get(name);
+    if (!p) {
+      touch(name);
+      p = source.bytes(name).then((b) => open(name, b)).then(async (d) => {
+        const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
+        if (meta.format !== spec.format || meta.section_handles !== spec.section_handles)
+          throw new ReleaseError(`${name}: format ${meta.format} / handles ${meta.section_handles} are not the manifest's ` +
+                                 `${spec.format} / ${spec.section_handles}`);
+        return d;
+      });
+      p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
+      dbs.set(name, p);
+    }
+    return p;
+  };
+
+  const loader: ReleaseLoader = {
+    release: m.data_release,
+    handles,
+    db,
+    paint() {
+      if (!paint) {
+        touch("paint");
+        paint = source.bytes("paint").then((b) => decodePaint(b, handles));
+        paint.catch(() => { paint = null; });
+      }
+      return paint;
+    },
+    async flowArea() {
+      if (!area) {
+        touch("flow-area");
+        area = Promise.all([loader.paint(), source.bytes("flow-area")]).then(([p, b]) => decodeFlowArea(b, p.sectionCount));
+        area.catch(() => { area = null; });
+      }
+      return area;
+    },
+    async regionsOf(akey) {
+      if (!regions) {
+        regions = db("water").then(async (w) => {
+          const out = new Map<number, Region[]>();
+          for (const r of await w.all("SELECT akey, region FROM akey_region ORDER BY akey, region")) {
+            const a = Number(r.akey);
+            out.set(a, [...(out.get(a) ?? []), String(r.region) as Region]);
+          }
+          return out;
+        });
+        regions.catch(() => { regions = null; });
+      }
+      return (await regions).get(akey) ?? [];
+    },
+    async regionDb(akey) {
+      const rs = await loader.regionsOf(akey);
+      if (!rs.length) throw new ReleaseError(`akey ${akey} is in no region`);
+      // a region already opened that holds this key wins: a tap in a region the reader is already in fetches nothing
+      const held = rs.find((r) => dbs.has(`regs-${r}`));
+      return db(`regs-${held ?? rs[0]!}`);
+    },
+    opened: () => order.slice(),
+  };
+  return loader;
+}
+
+export const ALL_REGIONS: readonly Region[] = REGIONS;
