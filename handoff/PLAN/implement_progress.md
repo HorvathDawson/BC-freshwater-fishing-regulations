@@ -13,6 +13,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   T20 803bc30d, T00 40b2c67d, T02 53ea8298, spots-no-sid 2e92ddee, P12b 22ba0b08 + review fix 9c56fa3a, P12a 386fa5bb,
   P12c 3a8ed83d, search debounce 200 ms 3f1602d0. All passed adversarial review (one major fixed: a saved spot's
   estimate named today's season). Worktrees removed.
+- Workflow `spots-photos-leadup` RUNNING (wf_bd378f50-817): ticket S1 (owner 2026-10-20): spots get PHOTOS (native:
+  expo-image-picker, copied into documentDirectory/spots/photos; web: IndexedDB blobs) and the ONE-WEEK LEAD-UP (7 daily
+  weather days from Open-Meteo + the station's 7 daily means with percentiles from the feed), frozen at capture,
+  backfilled by refresh. Defaults chosen by me; owner may override.
 - Workflow `tickets-batch-2` RUNNING (wf_7703a540-b9f): P11 integration (web first, Android-portable), T06, the
   test_answers_reference fix, P16 (before/after shots for the owner). On completion: cherry-pick, Tier 1, record.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
