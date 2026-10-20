@@ -18,15 +18,22 @@ function EXTRACT(onlyRe) {
   const norm = t => (t || '').replace(/\s+/g, ' ').trim();
   const BLOCK = 'P,LI,H1,H2,H3,H4,DIV,SECTION,ARTICLE,SUMMARY,BLOCKQUOTE,UL,OL,DETAILS,FIGURE,DT,DD';
   // every visible text line of an element, one per block (details' hidden content included: a fold is still data)
+  // a space where two ELEMENTS abut (</span><b>, </span><span>): what a reader sees as separate words; text runs inside one
+  // element, and an element after text ("Up to <b>2</b>"), are left as the page wrote them
+  const gap = c => c.querySelectorAll('*').forEach(x => { if (x.previousSibling && x.previousSibling.nodeType === 1) x.before(document.createTextNode(' ')); });
   const lines = el => { if (!el) return []; const c = el.cloneNode(true);
     c.querySelectorAll('svg, script, style').forEach(x => x.remove());
     c.querySelectorAll(BLOCK).forEach(x => x.prepend(document.createTextNode('\n')));
-    c.querySelectorAll('span, small, em, button, a, i').forEach(x => x.prepend(document.createTextNode(' ')));
+    gap(c);
     c.querySelectorAll('br').forEach(x => x.replaceWith(document.createTextNode('\n')));
     return c.textContent.split('\n').map(norm).filter(Boolean); };
   const used = {}; const q = (el, sel) => { const r = el ? el.querySelector(sel) : null; used[sel] = (used[sel] || 0) + (r ? 1 : 0); return r; };
   const qa = (el, sel) => { const r = el ? [...el.querySelectorAll(sel)] : []; used[sel] = (used[sel] || 0) + r.length; return r; };
-  const tx = (el, sel) => { const e = sel ? q(el, sel) : el; return e ? norm(e.textContent) : null; };
+  // one text field: textContent with a space where two elements abut (gap) and around blocks, so "2 a day per angler from
+  // streams" + "of the 4 …" never fuse; plain(Line) in the app joins runs the same way
+  const spaced = e => { const c = e.cloneNode(true); c.querySelectorAll('svg, script, style').forEach(x => x.remove());
+    gap(c); c.querySelectorAll('p, div, li').forEach(x => x.prepend(document.createTextNode(' '))); return norm(c.textContent); };
+  const tx = (el, sel) => { const e = sel ? q(el, sel) : el; return e ? spaced(e) : null; };
   const books = el => qa(el, 'a.book').map(a => ({ text: norm(a.textContent), pdf: +((a.getAttribute('href') || '').match(/#page=(\d+)/) || [])[1] || null }));
   const src = el => el ? { who: tx(el, '.srcs'), open: q(el, '.srcs')?.dataset.open || null, pages: books(el) } : null;
   const chg = el => qa(el, ':scope > .chg, :scope .chg').map(c => ({ now: c.classList.contains('now'), chip: tx(c, '.chgi'), text: tx(c, ':scope > span'), when: tx(c, 'span > b'), inForce: !!q(c, 'em') }));
@@ -42,30 +49,30 @@ function EXTRACT(onlyRe) {
       tabs: qa(h, '.segm[role=tablist] button').map(b => ({ sec: b.dataset.sec, text: norm(b.textContent) })) }; };
 
   const strip = keep => { const w = q(keep, '.wstrip'); if (!w) return null; const bar = q(w, '.sbar'), today = q(bar, '.today');
-    return { line: qa(w, '.wsline > span').map(s => ({ cls: s.className, text: norm(s.textContent) })),
+    return { line: qa(w, '.wsline > span').map(s => ({ cls: s.className, text: spaced(s) })),
       status: tx(w, '.wsstat'), statusClass: (q(w, '.wsstat')?.className || '').replace('wsstat', '').trim(),
       bar: bar ? [...bar.children].filter(i => !i.classList.contains('today')).map(i => ({ cls: i.className, flex: +((i.getAttribute('style') || '').match(/flex:(\d+)/) || [])[1] })) : [],
       today: today ? (today.getAttribute('style') || '') : null,
-      months: qa(w, '.smonths > *').map(m => norm(m.textContent)), legend: qa(w, '.slegend > span').map(s => ({ swatch: q(s, 'i')?.className || '', text: norm(s.textContent) })),
+      months: qa(w, '.smonths > *').map(m => norm(m.textContent)), legend: qa(w, '.slegend > span').map(s => ({ swatch: q(s, 'i')?.className || '', text: spaced(s) })),
       lines: lines(w) }; };
 
   const banner = keep => { const b = q(keep, '.banner'); if (!b) return null;
-    return { big: qa(b, '.big').map(e => norm(e.textContent)), paras: qa(b, ':scope > p').map(e => norm(e.textContent)), golink: qa(b, '.golink').map(e => ({ text: norm(e.textContent), day: e.dataset.day || e.querySelector('[data-day]')?.dataset.day || null })),
+    return { big: qa(b, '.big').map(e => spaced(e)), paras: qa(b, ':scope > p').map(e => spaced(e)), golink: qa(b, '.golink').map(e => ({ text: spaced(e), day: e.dataset.day || e.querySelector('[data-day]')?.dataset.day || null })),
       chain: qa(keep, '.closechain li').map(li => ({ text: tx(li, '.cd'), scope: tx(li, '.cd .muted'), src: tx(li, '.srcbtn') })), lines: lines(b) }; };
 
   const inherited = keep => { const i = q(keep, '.inh'); if (!i) return null;
-    return { label: tx(i, '.ltag'), lines: qa(i, '[data-inherited]').map(p => ({ text: norm(p.textContent), pages: books(p) })), cautions: qa(i, '[data-caution]').map(p => norm(p.textContent)) }; };
+    return { label: tx(i, '.ltag'), lines: qa(i, '[data-inherited]').map(p => ({ text: spaced(p), pages: books(p) })), cautions: qa(i, '[data-caution]').map(p => norm(p.textContent)) }; };
 
   const kind = k => ({ t: 'kind', kind: k.dataset.kind || null, sp: (k.dataset.sp || '').split(' ').filter(Boolean), folded: !!k.dataset.folded, zero: k.classList.contains('kzero'),
     says: tx(k, ':scope > .kb > .ks'), n: tx(k, ':scope > .kb > .ks .kn'), howtell: !!q(k, '[data-howtell]'),
     size: tx(k, ':scope > .kb > .kmeta .szc'), q: tx(k, ':scope > .kb > .kmeta .kq'), pics: pics(k),
-    sizeNote: tx(k, ':scope > .kb > .ksn'), also: qa(k, ':scope > .kb > .kac').map(e => norm(e.textContent)),
+    sizeNote: tx(k, ':scope > .kb > .ksn'), also: qa(k, ':scope > .kb > .kac').map(e => spaced(e)),
     duty: tx(k, ':scope > .kb > .duty'), presence: tx(k, ':scope > .kb > .kpres'), terms: glOf(k), lines: lines(k) });
   const tierNode = tn => { const t = q(tn, ':scope > .tier');
     return { t: 'tier', tier: tn.dataset.tnode, tid: tn.dataset.tid || null, kicker: tx(t, ':scope > .tkick'), line: tx(t, ':scope > .tl'),
       big: qa(t, ':scope > .tl .tn').map(b => ({ n: norm(b.textContent), second: b.classList.contains('tn2') })),
       pages: books(q(t, ':scope > .tl .tbk')), terms: glOf(q(t, ':scope > .tl')), sub: tx(t, ':scope > .tsub'),
-      origin: (o => o ? { text: norm(o.textContent), says: tx(o, ':scope > span'), howtell: !!q(o, '[data-howtell]'), pages: books(o) } : null)(q(t, ':scope > .torigin')),
+      origin: (o => o ? { text: spaced(o), says: tx(o, ':scope > span'), howtell: !!q(o, '[data-howtell]'), pages: books(o) } : null)(q(t, ':scope > .torigin')),
       children: [...(q(tn, ':scope > .tch')?.children || [])].map(node) }; };
   const node = el => el.matches('section.tnode') ? tierNode(el) : el.matches('.krow.kt') ? kind(el)
     : el.matches('.krel28') ? { t: 'release', names: tx(el, '.nm'), pics: pics(el) } : { t: 'other', cls: el.className, lines: lines(el) };
@@ -76,7 +83,7 @@ function EXTRACT(onlyRe) {
     return { row: art.dataset.row || null, title, scope: tx(rt, '.scope'),
       head: num ? { form: num.dataset.tot || null, nolimit: num.classList.contains('nolimit'), rootTier: num.dataset.rootTier || null,
         lead: tx(num, '[data-share-lead]'), leadN: tx(num, '.gln'), big: tx(num, '.ghn'), ofTotal: tx(num, '[data-of-total]'),
-        whyHere: tx(num, '[data-why-here]'), shareOf: tx(num, '[data-share-of]'), terms: glOf(num), text: norm(num.textContent) } : null,
+        whyHere: tx(num, '[data-why-here]'), shareOf: tx(num, '[data-share-of]'), terms: glOf(num), text: spaced(num) } : null,
       headLines: lines(pin), origin: sub ? { lines: lines(sub), tag: tx(sub, '.gtag'), howtell: !!q(sub, '[data-howtell]'), pages: books(sub) } : null,
       tree: tree ? [...tree.children].map(node) : null, treeRoot: tree?.dataset.root || null,
       buckets: tree ? null : qa(art, ':scope > section.bkt').map(b => lines(b)),
@@ -92,7 +99,7 @@ function EXTRACT(onlyRe) {
       plainRows: qa(keep, 'article.row').filter(a => !a.classList.contains('g28')).map(a => lines(a)),
       otherFish: others ? qa(others, '.orow').map(r => ({ thumb: q(r, '.th')?.dataset.open?.replace(/^sp:/, '') || (q(r, '.sil') ? null : null), name: tx(r, '.on'), week: tx(r, '.owk'), open: q(r, '.obtn')?.dataset.open || null, lines: lines(q(r, '.obtn')) })) : null,
       possession: (p => p ? { label: tx(p, '.on'), value: tx(p, 'b'), open: q(p, '[data-open]')?.dataset.open || null } : null)(q(keep, '.posrow')),
-      whereNot: (n => n ? { heading: tx(n, 'h3'), scope: tx(n, 'h3 .scope'), items: qa(n, 'li').map(li => ({ text: norm(li.textContent), pages: books(li) })) } : null)(q(keep, '.nofish')),
+      whereNot: (n => n ? { heading: tx(n, 'h3'), scope: tx(n, 'h3 .scope'), items: qa(n, 'li').map(li => ({ text: spaced(li), pages: books(li) })) } : null)(q(keep, '.nofish')),
       lines: lines(keep) }; };
 
   const yn = el => el ? qa(el, '.ync').map(c => ({ col: c.dataset.col, head: tx(c, '.ynh'), items: qa(c, 'li').map(li => ({ mark: tx(li, 'i'), name: tx(li, 'b'), note: tx(li, 'small') })) })) : null;
@@ -101,21 +108,21 @@ function EXTRACT(onlyRe) {
     return { closed: tx(g, ':scope > .foot'), day: tx(g, '.gday'),
       mode: mode ? { value: tx(mode, '.gval'), terms: glOf(q(mode, '.gmode')), changes: chg(mode), src: src(q(mode, '.isrc')) } : null,
       lines: qa(g, '.glines > .gline').map(l => ({ k: l.dataset.gline, label: tx(l, '.glab'), values: qa(l, '.gval > b').map(b => norm(b.textContent)), terms: glOf(q(l, '.gval')), changes: chg(l), src: src(q(l, '.isrc')) })),
-      bait: (b => b ? { label: tx(b, '.gxl'), notes: qa(b, ':scope > .gxs').map(e => norm(e.textContent)), dated: chg(b), list: yn(q(b, '.yn')), src: src(q(b, '.isrc')) } : null)(q(g, '.gxc[data-k=bait]')),
+      bait: (b => b ? { label: tx(b, '.gxl'), notes: qa(b, ':scope > .gxs').map(e => spaced(e)), dated: chg(b), list: yn(q(b, '.yn')), src: src(q(b, '.isrc')) } : null)(q(g, '.gxc[data-k=bait]')),
       lines_: lines(g) }; };
   const methodsTab = () => { const m = document.getElementById('methods');
     return { closed: tx(m, ':scope > .foot'),
       ways: (w => w ? { label: tx(w, '.gxl'), list: yn(q(w, '.yn')), src: src(q(w, '.isrc')) } : null)(q(m, '.gxc[data-k=methods]')),
-      boats: (b => b ? { label: tx(b, '.gxl'), items: qa(b, 'li').map(li => norm(li.textContent)), src: src(q(b, '.isrc')) } : null)(q(m, '.gxc[data-k=boats]')),
+      boats: (b => b ? { label: tx(b, '.gxl'), items: qa(b, 'li').map(li => spaced(li)), src: src(q(b, '.isrc')) } : null)(q(m, '.gxc[data-k=boats]')),
       reference: (r => r ? { label: tx(r, 'summary .lab'), title: tx(r, 'summary b'), sub: tx(r, 'summary em'), open: r.open,
-        groups: qa(r, ':scope > .hh').map(h => ({ head: norm(h.textContent), items: [...(h.nextElementSibling?.matches('ul') ? h.nextElementSibling.querySelectorAll('li') : [])].map(li => norm(li.textContent)) })), src: src(q(r, '.isrc')) } : null)(q(m, '.gref')),
+        groups: qa(r, ':scope > .hh').map(h => ({ head: spaced(h), items: [...(h.nextElementSibling?.matches('ul') ? h.nextElementSibling.querySelectorAll('li') : [])].map(li => spaced(li)) })), src: src(q(r, '.isrc')) } : null)(q(m, '.gref')),
       lines: lines(m) }; };
   const licenceTab = () => { const l = document.getElementById('licence'); if (!l) return null; const ch = q(l, '.lchoose');
     const ans = q(l, '#g-licence'), body = ans ? [...ans.children].filter(c => !c.matches('h3, .lchoose, .resfor, .isrc')) : [];
     return { question: tx(ch, ':scope > .lab'), questionTerms: glOf(q(ch, ':scope > .lab')),
-      axes: qa(ch, '[role=radiogroup]').map(g => ({ axis: g.dataset.axis, aria: g.getAttribute('aria-label'), options: qa(g, '[role=radio]').map(b => ({ text: norm(b.textContent), checked: b.getAttribute('aria-checked') === 'true', age: b.dataset.age || null, res: b.dataset.res || null })) })),
+      axes: qa(ch, '[role=radiogroup]').map(g => ({ axis: g.dataset.axis, aria: g.getAttribute('aria-label'), options: qa(g, '[role=radio]').map(b => ({ text: spaced(b), checked: b.getAttribute('aria-checked') === 'true', age: b.dataset.age || null, res: b.dataset.res || null })) })),
       label: tx(l, '.resfor'),
-      needs: qa(l, '.needs').map(n => ({ label: tx(n, '.lbl'), items: qa(n, 'li').map(li => ({ text: norm(li.textContent), pages: books(li) })) })),
+      needs: qa(l, '.needs').map(n => ({ label: tx(n, '.lbl'), items: qa(n, 'li').map(li => ({ text: spaced(li), pages: books(li) })) })),
       blocks: body.map(b => ({ cls: b.className, lines: lines(b) })),
       src: (s => s ? { who: tx(s, '.srcs'), open: q(s, '.srcs')?.dataset.open || null } : null)(q(l, '[data-isrc-lic]')), lines: lines(l) }; };
 
