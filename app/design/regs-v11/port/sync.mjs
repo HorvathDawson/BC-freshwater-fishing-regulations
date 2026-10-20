@@ -19,7 +19,7 @@ run('node', [path.join(HERE, 'tokens.mjs'), '--ref', A.ref]);
 if (fs.existsSync(path.join(TMP, 'inventory.json'))) run('node', [path.join(HERE, 'inventory.mjs'), '--ref', A.ref, '--diff', path.join(TMP, 'inventory.json')]);
 run('node', [path.join(HERE, 'inventory.mjs'), '--ref', A.ref]);
 const py = path.join(REPO, '.venv/bin/python');
-if (fs.existsSync(py) && fs.existsSync(path.join(REPO, 'data/generated/bundle/regs.sqlite'))) run(py, [path.join(HERE, 'taps.py')]);
+if (fs.existsSync(py) && fs.existsSync(path.join(REPO, 'data/generated/bundle/regs.sqlite'))) { run(py, [path.join(HERE, 'taps.py')]); run(py, [path.join(HERE, 'verify_map.py')]); }
 else console.log('taps: skipped (no .venv or no data/generated/bundle/regs.sqlite)');
 
 const J = f => JSON.parse(fs.readFileSync(f, 'utf8'));
