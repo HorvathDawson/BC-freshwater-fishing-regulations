@@ -99,7 +99,7 @@
   },
   {
    "file": "chum-salmon-ocean-phase.webp",
-   "code": null,
+   "code": "CM",
    "caption": "Chum salmon",
    "phase": "ocean",
    "stand_in_for": null,
@@ -111,7 +111,7 @@
   },
   {
    "file": "chum-salmon-spawning-phase.webp",
-   "code": null,
+   "code": "CM",
    "caption": "Chum salmon",
    "phase": "spawning",
    "stand_in_for": null,
@@ -147,7 +147,7 @@
   },
   {
    "file": "coho-salmon-ocean-phase.webp",
-   "code": null,
+   "code": "CO",
    "caption": "Coho salmon",
    "phase": "ocean",
    "stand_in_for": null,
@@ -159,7 +159,7 @@
   },
   {
    "file": "coho-salmon-spawning-phase.webp",
-   "code": null,
+   "code": "CO",
    "caption": "Coho salmon",
    "phase": "spawning",
    "stand_in_for": null,
@@ -327,7 +327,7 @@
   },
   {
    "file": "pink-salmon-ocean-phase.webp",
-   "code": null,
+   "code": "PK",
    "caption": "Pink salmon",
    "phase": "ocean",
    "stand_in_for": null,
@@ -339,7 +339,7 @@
   },
   {
    "file": "pink-salmon-spawning-phase.webp",
-   "code": null,
+   "code": "PK",
    "caption": "Pink salmon",
    "phase": "spawning",
    "stand_in_for": null,
@@ -375,7 +375,7 @@
   },
   {
    "file": "sockeye-salmon-ocean-phase.webp",
-   "code": null,
+   "code": "SK",
    "caption": "Sockeye salmon",
    "phase": "ocean",
    "stand_in_for": null,
@@ -387,7 +387,7 @@
   },
   {
    "file": "sockeye-salmon-spawning-phase.webp",
-   "code": null,
+   "code": "SK",
    "caption": "Sockeye salmon",
    "phase": "spawning",
    "stand_in_for": null,
