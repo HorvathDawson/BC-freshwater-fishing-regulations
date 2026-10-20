@@ -55,10 +55,10 @@ def test_a_the_share_says_the_lifted_fish_do_not_use_it():
 def test_b_a_size_tier_says_the_fish_in_its_box():
     g, _o, _P = _g(F.VEDDER)
     (size,) = g["tree"][0]["children"][0]["children"]
-    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
+    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
     (own,) = g["tree"][0]["children"]
-    assert own["children"][0]["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
+    assert own["children"][0]["says"] == "Of these, only 1 may be over 50 cm (20 in)"
 
 
 # D ---------------------------------------------------------------------------------------------

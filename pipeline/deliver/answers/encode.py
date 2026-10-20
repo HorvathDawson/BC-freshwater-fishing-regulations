@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "27",
+            "version": "28",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -426,7 +426,10 @@ SPEC = {
                     "2 a day\" (the water's own row's noun, p.21 \"stop fishing that water\"); `elsewhere.says` \"Your own "
                     "limit, counted across every Region 2 stream you fish today.\" Version 27 (ROUND UR5, user panel 5): the kept-elsewhere over-the-size question names the fish the "
                     "group's size clause holds here (Kootenay Lake main body: \"Kept cutthroat trout over 50 cm (20 in) elsewhere today?\", "
-                    "not the Region 4 rule's \"rainbow trout or cutthroat trout\": rainbow has its own row there).",
+                    "not the Region 4 rule's \"rainbow trout or cutthroat trout\": rainbow has its own row there). "
+                    "Version 28 (ROUND UR6, owner): a size tier says \"Of these, only 1 may be over 50 cm (20 in) — 2 if one is a "
+                    "hatchery steelhead\" (no box: the page draws the section's extent); an own tier beside the share under a region "
+                    "total carries `relation` \"Not part of the 2 from streams; part of the 5 a day across Region 4\".",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -531,7 +534,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "16",
+            "version": "17",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -601,7 +604,8 @@ SPEC = {
                        "(\"{rule}\": write the rule it beat)",
             "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
                       "the export's parts ({order, label, short, runs, place, hint, km, closed_all_year, "
-                      "paper_licence [rule]} | null outside B.C.; `short` (version 6, answers 2.7) the "
+                      "paper_licence [rule] (version 17, ROUND UR6: only record rules that speak on some day here — a "
+                      "fish nobody may keep here is not named)} | null outside B.C.; `short` (version 6, answers 2.7) the "
                       "part strip's name from the range's end labels, mouth upward: \"Mouth → Vedder "
                       "Crossing Bridge\", \"Site C dam → Hwy. 29 bridge (2 stretches)\", \"Side "
                       "channel\" — `label` stays the sheet's full name); `picker` {choices [{parts "

@@ -751,7 +751,7 @@ class TreeThen(Model):
 
 class TreeExtra(Model):
     """RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be
-    kept — "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead" (UR1 B); `by` the cap letting
+    kept — "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead" (UR1 B, ROUND UR6 1); `by` the cap letting
     them past (Region 2's "2 over 50 cm" with steelhead). The extra kinds sit INSIDE the tier."""
     n: Positive
     species: Tuple[Fish, ...] = Field(min_length=1)
@@ -812,8 +812,8 @@ class TreeTier(Model):
     `replaces`, `why_here` — ROUND18 8, "its row covers its tributaries, so it applies here" where the rule reached
     this water by the tributary walk — and `line`), share ("2 a day per angler from this stream (part of the 4)"; UR3 4,
     where a water's own rule lifts fish out of it: "— your hatchery rainbow trout count toward the 4, not these 2"),
-    count ("1 cutthroat or rainbow trout in all", UR1 D; UR3 3, inside an own tier or the share: "(part of the 2)") or size (ROUND19 3: HOLDING every kind it caps, "Only 1 of the fish in this box may
-    be over 50 cm (20 in) — 2 if one is a hatchery steelhead", UR1 B: `over_cm`, `species` the kinds its cap
+    count ("1 cutthroat or rainbow trout in all", UR1 D; UR3 3, inside an own tier or the share: "(part of the 2)") or size (ROUND19 3: HOLDING every kind it caps, "Of these, only 1 may
+    be over 50 cm (20 in) — 2 if one is a hatchery steelhead", UR1 B, ROUND UR6 1: `over_cm`, `species` the kinds its cap
     names, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`."""
     node: Literal["tier"]
     id: Annotated[StrictStr, Field(pattern=r"^t[0-9]+$")]
@@ -826,6 +826,9 @@ class TreeTier(Model):
     why_here: Optional[StrictStr] = None
     replaces: Optional[StrictStr] = None
     line: Optional[StrictStr] = None
+    #: ROUND UR6 6 (owner): an own tier beside the share under a region total says how it stands to both ("Not part of the 2
+    #: from streams; part of the 5 a day across Region 4")
+    relation: Optional[StrictStr] = None
     over_cm: Optional[Cm] = None
     species: Optional[Tuple[Fish, ...]] = None
     then: Optional[Tuple[TreeThen, ...]] = None
@@ -842,6 +845,8 @@ class TreeTier(Model):
             raise ValueError("a size tier, and only it, has a size")
         if self.extra is not None and self.tier != "size":
             raise ValueError("only a size tier lets extra kinds past its number")
+        if self.relation is not None and self.tier != "own":
+            raise ValueError("only a water's own-rule tier says how it stands to the share and the total")
         if self.origin is not None and self.tier != "share":
             raise ValueError("only the share's tier says an origin (the group says one that holds where its total does)")
         return self

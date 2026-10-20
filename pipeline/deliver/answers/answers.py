@@ -259,7 +259,7 @@ def _sections() -> Tuple[Section, ...]:
         # the origin in the fish's names; sizes "50 cm (20 in)"; table bands and cap kinds `from_in`/`to_in` (the
         # boundary standard); "1 between cutthroat and rainbow trout"; "(part of the 4)"; replaces names the fish)
         # UR1 A/B/D/F/G (user panel round 1): rows 18 (totals "per angler"; the share names the lifted fish that don't
-        # use it; a size tier "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery
+        # use it; a size tier "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery
         # steelhead"; a count tier "1 cutthroat or rainbow trout in all"; a species closure "no fishing for them, not
         # even catch and release — release any you hook by accident"; duty "write each one on your licence right away")
         # UR2 1-5 (user panel round 2): rows 19 (headline "2 a day per angler from this stream"; worked lines "If you
@@ -287,7 +287,9 @@ def _sections() -> Tuple[Section, ...]:
         # limit, counted across every Region 2 stream you fish today.")
         # ROUND UR5 D1: rows 27 (the over-the-size question asked of fish kept elsewhere names the fish the group's clause holds
         # here: Kootenay Lake main body "Kept cutthroat trout over 50 cm elsewhere today?", not the rule's "rainbow trout or …")
-        Section("rows", 27, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND UR6: rows 28 (a size tier "Of these, only 1 may be over …", no box; an own tier's `relation` to the share and
+        # the total)
+        Section("rows", 28, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -327,7 +329,8 @@ def _sections() -> Tuple[Section, ...]:
         # UR3 2: display 15 (`rules[].plain` of a no-fishing place rule says feet too, "within 23 m (75 ft) …")
         # ROUND20g 3: display 16 (a possession rule's `plain` "Possession: 2 days’ quota." with the home exception as its
         # own sentence)
-        Section("display", 16, display.section_scope, prepare=display.section_prepare,
+        # ROUND UR6 4: display 17 (a part's `paper_licence` holds only record rules that speak there)
+        Section("display", 17, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

@@ -98,6 +98,28 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND UR6 (2026-10-20) — rows 28, display 17: the owner's last prototype fixes before porting
+
+1. **A size tier's words say no box** (`tree.py`): "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery
+   steelhead" ("None" → "Of these, none may be over …"). Since the flat redesign the page draws no box; it now draws the
+   section's extent (a rule from its head to its last row). Picked by a fresh-reader single-frame test (head / mid-section /
+   last row on the Vedder, the Chilliwack part 2, the Bella Coola May 1 and the Cowichan part 2) over naming every fish ("Only
+   1 brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout or lake trout may be over …"): both right on every head
+   frame (conf 4); the shorter words read at conf 3–4 mid-section against 2–3.
+2. **The paper licence names only fish the water lets you keep** (`display.paper_licence(…, store=)`, `record_kept`): a
+   record rule is listed for a part only where its fish may be KEPT on some day — in some stored verdict of the part's key,
+   for one of its fish (and its origin, where it names one), a keeping quota speaks (a retention rule with a take above 0, no
+   `while=` / `caught=`). The record duty itself always speaks (it competes with nothing), so its own state cannot say this.
+   Where no keeping quota of the book takes part for the fish at all (adult chinook: DFO sets it) the duty stays.
+   The Ape and the Bella Coola, closed to steelhead ("No fishing for steelhead" displaces every steelhead keeper), no longer
+   say "Keep … a hatchery steelhead? Carry your paper licence".
+3. **A water's own rule says how it stands to the share and the total** (`TreeTier.relation`): an own tier beside the share
+   under a REGION total, where the share still holds kinds — "Not part of the 2 from streams; part of the 5 a day across
+   Region 4" (Glenn and Hamill under the Duncan River's 5 rainbow trout; the Vedder's own 4 hatchery rainbow trout). UR5's guide
+   read the Duncan's 5 against the head's "2 a day from streams" as a contradiction.
+
+`pipeline/tests/test_answers_ur6.py`.
+
 ## ROUND UR5 (2026-10-20) — rows 27: the user panel UR5's data word
 
 1. **The kept-elsewhere over-the-size question names the fish the group's size clause holds here** (`rows.over_elsewhere`): where

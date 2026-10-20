@@ -69,7 +69,7 @@ def test_3_the_vedder_tree():
     assert share["says"] == "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"   # ROUND20 2
     assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
-    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
+    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
     trout, dv, st = size["children"]
     assert trout["sentence"] == ("Of the 2 a day: up to 2 may be hatchery brook, brown or cutthroat trout, 30 cm (12 in) "
@@ -87,7 +87,7 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
     (own,) = g["tree"][0]["children"]
     assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
     size, count = own["children"]
-    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
+    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in)"
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
     assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"     # UR3 3; ≤33 and ≤50 cm: never over 50
     assert [k["sentence"] for k in count["children"]] == [
@@ -98,7 +98,7 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
 def test_3_a_size_tier_spanning_tiers_wraps_them():
     g, _o, _P = _g(F.CLAKE)             # Chilliwack Lake's own Dolly Varden rule under Region 2's 1 over 50 cm
     (size,) = g["tree"][0]["children"]
-    assert size["says"] == "Only 1 of the fish in this box may be over 50 cm (20 in)"
+    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in)"
     assert [x.get("tier") or x["species"] for x in size["children"]] == ["own", ["EB", "GB", "CT", "RB"], ["LT"]]
 
 

@@ -10,7 +10,9 @@ count groups, size groups and notes) as that tree; it decides nothing new.
                 whose it is)
          own    a water's own rule's bucket ("This river’s rule: up to 4 a day"), with `whose`, `replaces`
                 ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery rainbow
-                trout" — ROUND19 6: the fish by name), `why_here` when the rule reached this water by the
+                trout" — ROUND19 6: the fish by name), `relation` (ROUND UR6 6) where it stands beside the share
+                under a region total ("Not part of the 2 from streams; part of the 5 a day across Region 4"), `why_here`
+                when the rule reached this water by the
                 TRIBUTARY WALK ("its row covers its tributaries, so it applies here", ROUND18 8) and `line` (all
                 three in one line); under the share where it holds share kinds to a smaller number, else under the
                 total
@@ -22,8 +24,8 @@ count groups, size groups and notes) as that tree; it decides nothing new.
          count  a count over some of a tier's kinds, naming them ("1 cutthroat or rainbow trout in all", UR1 D)
          size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
                 size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
-                a kind that can never pass the size stays outside ("Only 1 of the fish in this box may be over 50 cm
-                (20 in)", UR1 B). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
+                a kind that can never pass the size stays outside ("Of these, only 1 may be over 50 cm (20 in)", UR1 B,
+                ROUND UR6 1). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
                 INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}; ROUND20g 2: said once, the
                 steelhead's own `size_note` is gone). A cap on one kind
                 row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (Region 2's
@@ -292,7 +294,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             # share's "not counting hatchery rainbow trout" as two different limits): the line is whose rule and why it
             # applies here; what it replaced stays in `replaces` (history, not a rule in force)
             t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None else f"up to {_js(b['cap'])} a day"),
-                     b["by"], whose=whose, why_here=why_here, replaces=rep,
+                     b["by"], whose=whose, why_here=why_here, replaces=rep, relation=None,
                      line=whose + (f" ({why_here})" if why_here else ""))
             own_ts.append((t, b))
         elif b["why"] == "share":
@@ -407,9 +409,11 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         cn = count_of(parents(), box)["n"]
         if extra is None and cn is not None and sz["n"] >= cn:
             continue
-        # UR1 B (user panel: "which these?"): the fish in the tier's box (the page draws a size tier as a box)
-        n_w = "None" if not sz["n"] else f"Only {_js(sz['n'])}"
-        says = f"{n_w} of the fish in this box may be over {common.cm_in(cm)}"
+        # UR1 B (user panel: "which these?"): the fish the tier holds. ROUND UR6 1 (owner: "this box" with no box since the flat
+        # redesign): "Of these, only 1 may be over 50 cm (20 in)" — the page draws the section's extent (a rule from its head to
+        # its last row); a fresh-reader single-frame test picked these words over naming every fish (rows 28)
+        n_w = "none" if not sz["n"] else f"only {_js(sz['n'])}"
+        says = f"Of these, {n_w} may be over {common.cm_in(cm)}"
         for th in sz.get("then") or []:
             says += f", and {'none' if not th['n'] else 'only ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
         who = f"{st['_origin']} steelhead" if st is not None and st["_origin"] else "steelhead"
@@ -510,6 +514,15 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if up is not None and up["tier"] in ("own", "share") and up["n"] is not None and t["n"] is not None \
                     and t["n"] < up["n"]:
                 t["says"] += f" (part of the {_js(up['n'])})"
+    # ROUND UR6 6 (owner; UR5 Tom on Glenn/Hamill: "the big '2 a day from streams' fights the Duncan's 5"): a water's own
+    # rule standing beside the stream share under the region's total says how it stands to both — its fish are not in the
+    # share, they are in the total: "Not part of the 2 from streams; part of the 5 a day across Region 4" (`relation`)
+    holds_kinds = share_t is not None and any(x["node"] == "kind" for x, _p in walk(share_t["children"]))
+    for t in under_total:
+        if holds_kinds and zone and not c.unlimited and share_t["n"] is not None and root["n"] is not None:
+            t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
+                             f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
+                             f"part of the {_js(root['n'])} a day across {scope}")
     from pipeline.deliver.bundle import read as RD
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}

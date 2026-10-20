@@ -7280,7 +7280,7 @@
     },
     "TreeExtra": {
      "additionalProperties": false,
-     "description": "RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be\nkept \u2014 \"Only 1 of the fish in this box may be over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\" (UR1 B); `by` the cap letting\nthem past (Region 2's \"2 over 50 cm\" with steelhead). The extra kinds sit INSIDE the tier.",
+     "description": "RULINGS Q16 on a size tier (ROUND18 3, ROUND19 3): after its number, `n` more of `species` over the size may be\nkept \u2014 \"Of these, only 1 may be over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\" (UR1 B, ROUND UR6 1); `by` the cap letting\nthem past (Region 2's \"2 over 50 cm\" with steelhead). The extra kinds sit INSIDE the tier.",
      "properties": {
       "by": {
        "anyOf": [
@@ -7526,7 +7526,7 @@
     },
     "TreeTier": {
      "additionalProperties": false,
-     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day per angler\nacross Region 2, lakes included\", UR1 A), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day per angler from this stream (part of the 4)\"; UR3 4,\nwhere a water's own rule lifts fish out of it: \"\u2014 your hatchery rainbow trout count toward the 4, not these 2\"),\ncount (\"1 cutthroat or rainbow trout in all\", UR1 D; UR3 3, inside an own tier or the share: \"(part of the 2)\") or size (ROUND19 3: HOLDING every kind it caps, \"Only 1 of the fish in this box may\nbe over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\", UR1 B: `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
+     "description": "ROUND18 1 (owner: the card as FOLDERS): a tier line holding what it limits \u2014 `tier` total (\"4 a day per angler\nacross Region 2, lakes included\", UR1 A), own (a water's own rule: \"This river\u2019s rule: up to 4 a day\", with `whose`,\n`replaces`, `why_here` \u2014 ROUND18 8, \"its row covers its tributaries, so it applies here\" where the rule reached\nthis water by the tributary walk \u2014 and `line`), share (\"2 a day per angler from this stream (part of the 4)\"; UR3 4,\nwhere a water's own rule lifts fish out of it: \"\u2014 your hatchery rainbow trout count toward the 4, not these 2\"),\ncount (\"1 cutthroat or rainbow trout in all\", UR1 D; UR3 3, inside an own tier or the share: \"(part of the 2)\") or size (ROUND19 3: HOLDING every kind it caps, \"Of these, only 1 may\nbe over 50 cm (20 in) \u2014 2 if one is a hatchery steelhead\", UR1 B, ROUND UR6 1: `over_cm`, `species` the kinds its cap\nnames, `then`, `extra`); `children` its tiers and kinds. `id` names it for a kind's `also_counts`.",
      "properties": {
       "by": {
        "minimum": 0,
@@ -7625,6 +7625,18 @@
        ],
        "default": null,
        "title": "Over Cm"
+      },
+      "relation": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Relation"
       },
       "replaces": {
        "anyOf": [

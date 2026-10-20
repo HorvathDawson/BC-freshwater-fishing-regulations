@@ -1012,10 +1012,13 @@ def closed_all_year(store, key_ix: int) -> bool:
     return all(r.closed for r in store.readings(key_ix))
 
 
-def paper_licence(B, key, kind: Optional[str]) -> List[str]:
+def paper_licence(B, key, kind: Optional[str], store=None) -> List[str]:
     """The record duties that reach this part (7.7 step 7, "Keep a hatchery steelhead? Carry your
     paper licence"): its set's rules with `record_retention` for this kind of water — the
-    `records` of `zp:licence_administration#carry_paper_licence` that bind here."""
+    `records` of `zp:licence_administration#carry_paper_licence` that bind here. ROUND UR6 4 (owner:
+    the line named hatchery steelhead on the Ape and the Bella Coola, closed to steelhead): with the
+    verdicts, only a record rule whose fish may be KEPT here on some day (`record_kept`) — a duty to
+    record a fish nobody may keep here is no duty here."""
     out = []
     for e, r, _ in B.sets[key.set_id]:
         x = B.rules[(e, r)]
@@ -1026,7 +1029,41 @@ def paper_licence(B, key, kind: Optional[str]) -> List[str]:
             # water is a binding defect, never filtered here
             raise AnswersError(f"display: {e}::{r} is for {x['water']}s, bound to a {kind}")
         out.append(f"{e}::{r}")
+    if store is not None:
+        out = [rid for rid in out if record_kept(B, store, B.key_ix[key], rid)]
     return out
+
+
+def record_kept(B, store, key_ix: int, rid: str) -> bool:
+    """The record rule's fish may be KEPT here on some day: in some stored verdict of the key, for one of the rule's
+    fish (and its origin, where the rule names one), a keeping quota SPEAKS — a retention rule with a take above 0 that
+    is no method's or circumstance's (`while=` / `caught=`). The record duty itself always speaks (it is no keeper and
+    competes with nothing), so it cannot say this; the closure that shuts a fish displaces its keepers in the reader
+    (RU-7, step 4c), so a speaking quota is a fish someone may keep. Where no keeping quota of the book takes part for
+    the fish at all (adult chinook: DFO sets it), the book cannot say it is shut: the duty stays."""
+    import re as _re
+    x = B.rules[tuple(rid.split("::", 1))]
+    fish = set(x.get("species") or [])
+    m = _re.search(r"origin=(\w+)", x.get("dimension") or "")
+    origin = m.group(1) if m else None
+    ids = store.rule_ids
+    from pipeline.deliver import types as T
+    took_part = False
+    for (_rd, f, o), v in sorted(store.frames(key_ix).items()):
+        if f not in fish or (origin is not None and o != origin):
+            continue
+        for r, st, *_rest in store.rows(v):
+            if ids[r] == rid:
+                continue
+            y = B.rules.get(tuple(ids[r].split("::", 1))) or {}
+            d = y.get("dimension") or ""
+            if y.get("family") == "retention" and (y.get("take") or 0) > 0 and "while=" not in d and "caught=" not in d:
+                if st in T.SPEAKER_CODES:
+                    return True
+                took_part = True
+    # no keeping quota of the book's takes part for the fish at all (adult chinook: the book sets no chinook quota, DFO
+    # does): the book cannot say it is shut here, so the duty stays — only a fish whose keepers ALL lost is dropped
+    return not took_part
 
 
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
@@ -1065,7 +1102,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                 "place": part_place(W, i) or None,           # null: no entry heading
                 "hint": part_label(W, i), "km": part_km(p),
                 "closed_all_year": closed[-1],
-                "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"))]}
+                "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"), store=store)]}
         out[item_id] = {"parts": facts, "picker": picker(W, labels, closed),
                         "unresolved_licensing": [lic_ref(k) for k in sorted(
                             k for e in w.get("entries") or [] for k in unresolved.get(e, []))]}
