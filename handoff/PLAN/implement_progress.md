@@ -174,6 +174,25 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
   vitest 678/678; the steps other than fixture pass (fixture differs only by P09's schema, committed with P09).
 - NOT met: Shell is 709 lines (target < 400); P14 (water-mode shell) and P17 take out the rest.
 
+## P09 (IN PROGRESS, uncommitted): part_geo / part_mark / water_exit
+- `bundle/topology.py` (keep_named geometries → write after derived.write), schema.sql tables, build.py wiring;
+  water_map_export imports order_parts/split_label from topology. test_part_geo.py: 6 no-data tests pass; 3 needs_bundle
+  tests wait for a side bundle (scratchpad p09/bundle.next.sqlite, building via heavy.sh). The app dev fixture is
+  rebuilt for the 3 new tables (uncommitted; commit with P09).
+- KNOWN GAP: Kootenay Lake (KLWA) marks are between separate lake-part ITEMS (wbk:-22/-21/-20), which per-water
+  part_mark cannot express. To be decided at P15 (owner), not invented here.
+
+## P08 design notes (next after P09)
+- Several app queries JOIN across what become separate files: SEARCH / WATERS_NEAR read section_gauge.mag, gauge,
+  lake_gauge, entry, stock_water. The plan already moved one (entry → `item.has_rows`). So: core.item gains
+  `size` (max mag), `gauged`, `has_rows` (stocked stays false until a producer exists), and the release-form queries
+  read them. Parity = the OLD query on the bundle == the NEW query on the owning file (P08 test 2); the contract is
+  emitted to pack.generated.ts (emit_pack --check).
+- Files: paint (status_index.bin + the flow runs, as measure/paint.py), core (item+flags, alias, item_section, place,
+  meta; NOCASE indexes), near (place_water), water (store common tables + part_section + akey_region + P09 tables),
+  regs-<region> (cell + frame families for akeys of that region's sections), regs-sid (section_akey, section_place),
+  conditions (gauge, section_gauge, lake_gauge, section_down, gauge_clim f16). Each .gz, sha-named; manifest app-manifest/2.
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).
