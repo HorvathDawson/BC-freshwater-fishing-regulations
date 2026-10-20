@@ -16,11 +16,12 @@ const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8'
 
 export function stage(ref = 'HEAD') {
   if (ref === 'WORKTREE') return { ref, sha: 'WORKTREE', root: REPO, page: path.join(REPO, FILES[0]), version: versionOf(path.join(REPO, FILES[3])), cleanup() {} };
-  const sha = git('rev-parse', '--short', ref).trim();
+  // the prototype's own last commit at that ref (what "regs vNN @ sha" means), not the ref's tip
+  const sha = git('log', '-1', '--format=%h', ref, '--', FILES[0]).trim() || git('rev-parse', '--short', ref).trim();
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'regs-port-'));
   for (const f of FILES) {
     const out = path.join(root, f); fs.mkdirSync(path.dirname(out), { recursive: true });
-    fs.writeFileSync(out, execFileSync('git', ['-C', REPO, 'show', `${sha}:${f}`], { maxBuffer: 1 << 30 }));
+    fs.writeFileSync(out, execFileSync('git', ['-C', REPO, 'show', `${ref}:${f}`], { maxBuffer: 1 << 30 }));
   }
   return { ref, sha, root, page: path.join(root, FILES[0]), version: versionOf(path.join(root, FILES[3])),
     cleanup() { fs.rmSync(root, { recursive: true, force: true }); } };

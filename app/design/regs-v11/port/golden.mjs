@@ -136,10 +136,21 @@ function EXTRACT(onlyRe) {
   // the pin bar over a scroll of the Keep tab: the anchors (content offsets at scrollTop 0) and every distinct bar
   const pins = () => { const hdr = document.getElementById('hdr'), keep = document.getElementById('keep'), bar = document.querySelector('#pins .pinbar');
     sc.scrollTop = 0; const top0 = sc.getBoundingClientRect().top, Y = e => Math.round(e.getBoundingClientRect().top - top0 + sc.scrollTop), H = e => Math.round(e.getBoundingClientRect().height);
-    const anchors = qa(keep, 'article.row.ledger.g28').map(a => ({ row: a.dataset.row, top: Y(a), height: H(a),
-      pin: (p => p ? { top: Y(p), height: H(p) } : null)(q(a, ':scope > .ghd.gpin')),
-      tiers: qa(a, 'section.tnode').map(tn => ({ tid: tn.dataset.tid, tier: tn.dataset.tnode, top: Y(tn), height: H(tn), head: (t => t ? { top: Y(t), height: H(t) } : null)(q(tn, ':scope > .tier')) })),
-      worked: (w => w ? { top: Y(w), height: H(w) } : null)(q(a, ':scope > .worked')) }));
+    // every input pinUpdate reads, in content offsets: each ledger article (with or without a group), its pinned head, each
+    // tier node with its own head, the NEXT section's head exactly as pinUpdate finds it (or null), the tier's short line
+    // (shortOf) and the group line (form a: the share + "(of …)" sub) — so a pure pinChain can be replayed against samples
+    const st = ST(), byRow = a => (st.rows[+(a.dataset.row || 'r0').slice(1)] || {}).group;
+    const anchors = qa(keep, 'article.row.ledger').map(a => { const g = byRow(a), root = g && g.tree ? [].concat(g.tree)[0] : null, pin = q(a, ':scope > .ghd.gpin');
+      const byId = {}; (function walk(ns) { (ns || []).forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children); } }); })(root ? root.children : []);
+      const name = norm(a.querySelector('.rtitle')?.firstChild?.textContent || ''), totA = !!pin?.querySelector('[data-tot="a"]'), hl = g ? g.headline : null;
+      let groupLine = null; try { if (root) groupLine = totA && hl ? { cls: 'g two', text: `${name} · ${shortOf({ tier: 'share', n: hl.n, says: hl.says })}`, sub: `(of ${shortOf(root).replace(/ a day /, ' ')})` } : { cls: 'g', text: `${name} · ${shortOf(root)}`, sub: null }; } catch (e) {}
+      return { row: a.dataset.row, group: !!g, tree: !!root, formA: totA, headlineN: hl ? hl.n : null, top: Y(a), height: H(a), groupLine,
+        pin: pin ? { top: Y(pin), height: H(pin) } : null,
+        tiers: qa(a, 'section.tnode').map(tn => { const t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
+          const nxt = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd');
+          return { tid: tn.dataset.tid, tier: tn.dataset.tnode, n: t ? t.n : null, top: Y(tn), height: H(tn), head: tl ? { top: Y(tl), height: H(tl) } : null,
+            nextHead: nxt ? Y(nxt) : null, short: t ? '↳ ' + shortOf(t) : null }; }),
+        worked: (w => w ? { top: Y(w), height: H(w) } : null)(q(a, ':scope > .worked')) }; });
     const end = keep.offsetTop + keep.offsetHeight, samples = []; let last = null;
     let error = null;
     for (let y = 0; y <= end; y += 8) { sc.scrollTop = y; try { pinUpdate(); } catch (e) { error = error || { y, error: String(e) }; continue; }
