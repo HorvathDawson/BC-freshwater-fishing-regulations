@@ -15,6 +15,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
+## FINAL CLEAN-UP PHASE (owner, 2026-10-20) — ONLY after the app is done AND the owner has looked at it and confirmed it
+## looks like the prototype
+1. Remove the design work from app/design/ (the prototype is in the app by then).
+2. Audit handoff/ (repo + the memory project's handoff/) and remove what is no longer needed.
+3. Audit pipeline/ for OLD files nothing uses any more (not planned/future work), and remove them.
+Do not start any of this early.
+
 ## Owner direction (2026-10-20, third round)
 - Platform order: ANDROID (mobile) + the WEB app (react-native-web) now; iOS later. Keep everything portable to iOS
   (cross-platform binding, platform code only behind .native/.web). Acceptance on native = the Android emulator for now.
