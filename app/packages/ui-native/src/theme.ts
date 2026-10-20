@@ -118,6 +118,11 @@ export interface Radii {
 
 export const RADIUS: Radii = { box: 0, chip: 0, pill: 0, none: 0 };
 
+/** The regs page's spacing scale (the prototype's --s1..--s4; T22, tokens.md §3). */
+export const SPACE = { s1: 4, s2: 8, s3: 12, s4: 16 } as const;
+/** The regs page's side gutter (.row.ledger / .wstrip / .sec / #pins .pl padding). */
+export const GUTTER = 16;
+
 /**
  * A HARD OFFSET SHADOW, not a blur.
  *

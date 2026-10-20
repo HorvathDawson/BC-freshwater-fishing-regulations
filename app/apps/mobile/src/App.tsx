@@ -16,7 +16,7 @@ import {
   BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
 } from "@expo-google-fonts/bricolage-grotesque";
 import {
-  Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold,
+  Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { makeBundleSource } from "@app/data/bundle";
@@ -118,7 +118,7 @@ export default function App() {
   // app in the system face and reflow it a beat later.
   const [ready] = useFonts({
     BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-    Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold,
+    Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
     JetBrainsMono_500Medium,
   });
 
