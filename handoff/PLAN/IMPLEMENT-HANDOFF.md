@@ -81,6 +81,17 @@ Format: **id** · goal · depends on · ticket · acceptance. Paths are relative
 
 There is **no P19** (the numbering skips it).
 
+### Stage 0 — test tiers (do this FIRST, before anything else)
+0. ★ **P00** · split the tests into a fast SMOKE set and the FULL set (owner: the tests take far too long) · needs
+   nothing · this doc §3 rule 4 · Measure the current durations first (pytest `--durations=50`, vitest per-file times,
+   check.mjs per check, the card gate, the build). Then:
+   - pytest: a `smoke` marker on a small representative set (one test per gate/invariant, no live-bundle scans), run
+     with `-m smoke`; mark the slowest tests `slow`, and make the default CI run fast-but-complete;
+   - vitest: a `smoke` project or filter; check.mjs: an `ONLY=smoke` list of ~10 checks covering every round;
+   - a `make`-style entry point per tier (e.g. `scripts/test-smoke.sh`, `scripts/test-full.sh`) and a one-line doc in
+     AGENTS.md. Acceptance: Tier 1 (smoke) ≤ 2 min wall clock on the laptop; Tier 2 unchanged in coverage (same tests,
+     just run rarely); a table of before/after times in the commit message. No test deleted without the owner's OK.
+
 ### Stage A — native map, safety and gates (start together)
 1. ★ **N1** · MapLibre Native spike: local pmtiles, feature-state, taps, frame time; device factor for A1–A11 ·
    needs nothing · AP L116 · `app-data/N1-SPIKE.md` gives go/no-go and numbers on an iPhone and a mid Android. The
@@ -244,9 +255,16 @@ reader gate pass.
    - The atlas, tile and fixture rebuilds named in the tickets are human-run.
 3. **Test-first.** Write a short CI test that fails before the change and passes after it (record the "fails before"
    evidence). Mutation-pin gates that could be tautologies (memory `checks-seeded-from-input-launder`).
-4. **Run the full suites ONCE per round, not after every edit.** While iterating, run the targeted vitest filter, one
-   pytest file, or `ONLY=…`. Then, before the round's final commit, run everything once: `pnpm -C app check`, pytest
-   fast (+ slow if the pipeline changed), and check.mjs if the prototype changed.
+4. **Tests are tiered; long tests run rarely** (owner, 2026-10-20: "the tests are too long… long tests run less often,
+   a faster set run more frequently"). Three tiers:
+   - **Tier 0, while iterating (seconds):** only the test file / vitest filter / `ONLY=…` check for what you touched.
+   - **Tier 1, the SMOKE set, per ticket commit (target ≤ 2 min total):** `pnpm -C app check` without the slow bits, plus
+     the pytest smoke marker set, plus `ONLY=smoke` in check.mjs. Built by ticket **P00** (below), first thing.
+   - **Tier 2, the FULL set, once per phase or before a merge (never per edit or per ticket):** the full fast + slow
+     pytest, the full check.mjs, the card gate on shipped answers, the golden re-sync, the comprehension reader. Perf
+     gates run here too.
+   Never rerun a tier on an unchanged tree. If a Tier 2 run fails, fix it and rerun only the failing files, then Tier 2
+   once more at the end.
 5. **Gating runs are unfiltered.** Never decide on an `rtk` test run (it once showed a red suite as clean). Use
    `.venv/bin/python -m pytest …` / `pnpm -C app exec vitest run …` directly (or `rtk proxy …`), and read the summary
    counts. `rtk` is fine for iterating.
