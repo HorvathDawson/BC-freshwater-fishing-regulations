@@ -1,8 +1,16 @@
 # APP-PREP — the work before the Regulations prototype is ported
 
 PLANNING ONLY. These are ordered tickets in the integration spec's format (`handoff/PLAN/app-integration/README.md` §4).
+**Revision 3 (2026-10-20, every owner answer folded in; QUESTIONS.md).**
+- The app is **native-first and always offline**: Expo/React Native is the primary target, holding the full tiles and
+  every data file, with an update check that downloads only what changed.
+- The web app is compiled from the same tree and fetches the same release files lazily.
+- The native map is built early (N1 spike, N2). Every ticket is accepted on native first, then web parity.
+- Build artifacts (`data/generated/`) and the shipped release (`data/release/`) live apart (MINIMAL-PACKAGING §1).
+
 They make the app ready to accept the port:
-- one data source (the package in `MINIMAL-PACKAGING.md`);
+- one data flow (the release files in `MINIMAL-PACKAGING.md`: a few small gzip files, all on device on native, lazy on
+  web; tiles geometry-only and versioned on their own);
 - no logic in components;
 - the owner's audit decisions;
 - the regs-mode navigation shell;
@@ -41,15 +49,14 @@ BROWSE MODE (bottom bar shown)                         WATER MODE (bottom bar hi
       │                                    tap a part / a boundary mark        – midpoint of this part"
       │                                    ⤢ Whole river · Flows into ›       (ConditionsPanel for mid_sid,
       │                                    "Show regulations for this part"    weather at mid lon/lat)
-      └──── "Explore the map ×" (water map only): leave water mode onto the Map tab, framed on this part
 ```
 
 **Rules:**
 1. **One back rule.** ‹, the Android back button and the iOS edge swipe all pop the water's view stack
    (CONDITIONS → REGS, MAP → REGS). At the REGS root, back leaves water mode and restores the browse state it came from:
-   the tab, the map camera, the search query and the Conditions drill. Nothing else exits water mode, except
-   "Explore the map ×" on the water map and a deep link.
-2. **"Conditions here" uses the part's midpoint section** (`part_geo.mid_sid`, MINIMAL-PACKAGING §4), never
+   the tab, the map camera, the search query and the Conditions drill. Back is always "back to where you
+   came from" (owner). Nothing else exits water mode, except a deep link.
+2. **"Conditions here" uses the part's midpoint section** (`part_geo.mid_sid`, MINIMAL-PACKAGING §10), never
    `sections[0]`. Changing part on the water map or the Parts sheet moves it. Its view states its own place ("at
    <short label> – midpoint of this part"), so the reader knows it is not the whole water.
 3. **The day is one state**: the Shell's `mapDay` (integration D7). The water's map, regs page and Conditions view all
@@ -61,23 +68,28 @@ BROWSE MODE (bottom bar shown)                         WATER MODE (bottom bar hi
 6. **The browse Conditions tab is unchanged as a mode.** Picking a section there shows ConditionsScreen with a
    "Regulations ›" link that enters water mode on the part holding that section.
 
-This replaces integration **D1** (the bar stays) and **D2** (FaceBar above the header). See `QUESTIONS.md` Q6–Q8 for
-the details the owner may want to adjust.
+This replaces integration **D1** (the bar stays) and **D2** (FaceBar above the header). **Owner answers (2026-10-20):**
+- "Conditions here" sits **next to Map** in the header.
+- It opens the midpoint section of the **part currently being read**.
 
 ---
 
 ## 1. Order
 
 ```
+Native map first                 N1 (spike) → N2            (blocks every map-facing ticket)
 Data safety & gates (parallel)   P01  P02  P03  P04  P05  P06
-Pipeline packaging               P07 → P08 → P09            (P18 any time; tile rebuild human-run)
-App data plumbing                P10 → P11                  (needs P08)
+Pipeline packaging               P07 → P18 → P08 → P09      (P18's tile rebuild is human-run)
+App data plumbing                P10 → P11                  (needs P08 + N2)
 App clean-up                     P12  P13 → P16  P17        (P12/P13 independent of the data work)
-Shell + map for the port         P13 → P14 → P15            (P15 needs P09 + P11)
+Shell + map for the port         P13 → P14 → P15            (P15 needs N2 + P09 + P11)
+Retire the middle-men            P20  P21                   (P20 after P08 + P11 and the port tooling switch)
 ```
 
 | # | ticket | area | size |
 |---|---|---|---|
+| N1 | native map spike: MapLibre Native in the Expo app (pmtiles, feature-state, taps, frame time, device factor) | native map | 1 day, time-boxed |
+| N2 | the native map behind a real adapter contract; web/native adapter parity | native map | 2–3 days |
 | P01 | spots store: no silent loss, atomic save, serialised writes, awaited UI | app data | 1 day |
 | P02 | feed freshness: no fabricated `fetchedAt`; `freshness()` wired | app data/core | ½ day |
 | P03 | CI gaps: generated-TS paths, app-ci = `pnpm check` + `--check`s, fixture schema test | CI | ½ day |
@@ -85,17 +97,106 @@ Shell + map for the port         P13 → P14 → P15            (P15 needs P09 +
 | P05 | card gate on SHIPPED answers inside `deliver all` (blocks shipping) | pipeline | 1 day |
 | P06 | Feb 29: one calendar rule for page and app | pipeline + core | ½ day |
 | P07 | bundle format version + atomic `deliver all` (out-dir, promote all, `vintage.report_all`) | pipeline | 1 day |
-| P08 | `deliver package`: the one app package + manifest + query-parity test | pipeline | 1–1½ days |
+| P08 | `deliver release`: the shipped files + manifest into `data/release/`; parity, perf and size gates | pipeline | 2 days |
 | P09 | part topology + camera hints: `part_geo`, `part_mark`, `water_exit` | pipeline | 1½ days |
-| P10 | endpoints config, `fetchVerified`, manifest; `publish` script (human-run) | app data + tools | 1 day |
-| P11 | `PackSource`: the app reads the package (web Cache Storage; native disk cache + atomic swap) | app data | 1½ days |
+| P10 | endpoints config, `fetchVerified`, manifest v2: tile compatibility + per-file diff; `publish` (human-run) | app data + tools | 1 day |
+| P11 | the app reads the release: native always offline (install + update check + atomic swap), web lazy; device perf | app data | 2–3 days |
 | P12 | data-flow clean-up: logic and sentences out of components (conditions, spots, date, map modes) | app | 2 days (3 commits) |
 | P13 | explicit route state: `useRoute` (browse / water stack), one back rule | app ui | 1 day |
 | P14 | water mode shell: bottom bar hidden, header, "Conditions here" at the midpoint, back | app ui | 1 day |
 | P15 | water map view: part highlight + framing from tiles, ▼/▲, marks, mouth exit | app map/ui | 1½ days |
-| P16 | Conditions tab clean-up pass | app ui | 1½ days |
+| P16 | Conditions: the same content, better formatted | app ui | 1½ days |
 | P17 | navigation/UI clean-up pass (tabs, search back, empty states, dead UI) | app ui | 1 day |
-| P18 | tiles: vintage in the pmtiles metadata; `region_id` on all region features | pipeline (rebuild human-run) | ½ day + rebuild |
+| P18 | tiles geometry-only, versioned on their own; the mask as a tile layer; self-hosted glyphs/sprites; `region_id` fix | pipeline (rebuild human-run) | 1½ days + rebuild |
+| P20 | debug-only middle-man JSON (answers/export/guide); no shipped `regs.sqlite`; drop `stats.json` + `record()`, the mask geojson | pipeline | 1½ days |
+| P21 | stop writing `blk_chains.pkl` (2.57 GB, no reader) | pipeline | ¼ day |
+
+---
+
+# N1 — native map spike: MapLibre Native in the Expo app, against the adapter contract
+
+Native map · Depends on — · Blocks N2, and every map-facing ticket (P11, P14, P15) · Decisions: native-first (owner 2026-10-20) · Size 1 day (time-boxed spike)
+
+## Goal
+Owner Q9: web and native use the SAME `atlas.pmtiles` / `basemap.pmtiles` bytes and the same style. Only the source
+differs (an R2 URL with range reads on web; a downloaded local file on native) and the renderer: MapLibre GL JS needs a
+browser WebGL canvas, so native needs MapLibre Native through an RN binding (MINIMAL-PACKAGING §7). This spike checks the
+binding, not the data. A throwaway branch answers four questions with measurements, on a mid Android phone and an iPhone:
+1. **Rendering:** can `@maplibre/maplibre-react-native` (or the current MapLibre RN binding, through an Expo config
+   plugin / dev client) render our `atlas.pmtiles` + `basemap.pmtiles` **from a local file** (always offline), with our
+   runtime style?
+   MapLibre Native's `pmtiles://` support and the binding's version are **NOT VERIFIED**.
+2. **Feature-state:** does the binding support it (status colours, `selected`), or do we need the fallback, data-driven
+   `match` expressions over the visible sid set?
+3. **Taps:** can a tap return `section_id` (promoteId) as a number? Can `queryRenderedFeatures` run in a 24 px box?
+4. **Speed:** frame time while panning at z9–14 with status colouring on 5,000 visible sids.
+
+The spike also measures the access timings A1–A11 (MINIMAL-PACKAGING §3) on both phones, through expo-sqlite opening a
+file from `documentDirectory`.
+
+## Files (spike branch only; nothing merges)
+`app/apps/mobile/app.json` (plugin), `app/packages/map/src/Map.native.tsx` (spike body), `app/deps.md` (the candidate
+line), `handoff/PLAN/app-data/N1-SPIKE.md` (the results).
+
+## Fallback measured too
+`Map.web.tsx` inside a WebView on native: the same code, with a bridge for taps and feature-state. Record its frame time
+and gesture feel beside the native binding.
+
+## Acceptance
+- `N1-SPIKE.md` answers questions 1–4 with numbers, a short screen recording per phone, and the chosen binding and
+  version.
+- A go/no-go on feature-state, with the fallback named.
+- The device factor (phone ÷ laptop) for A1–A11, which MINIMAL-PACKAGING §3's budgets use from then on.
+
+---
+
+# N2 — the native map behind the adapter contract (native-first, web parity)
+
+Native map · Depends on N1 · Blocks P14, P15, integration T23 (`onMap`) · Size 2–3 days (3 commits: render, interaction, parity)
+
+## Goal
+- `Map.native.tsx` (a stub today, `:16-26`) becomes a real MapLibre Native map implementing the same contract as
+  `Map.web.tsx`.
+- **Contract:** the style from `layers.source.json` / `runtime-style.ts`, pmtiles sources, `promoteId`, feature-state
+  status / standing / `selected` (or N1's fallback behind the same API), a numeric feature id on tap, camera fit to
+  bounds, point sources (gauges, marks), and the `outside-bc` mask background.
+- **The adapters:** `packages/map/src/adapters/*` become REAL adapters (web and native), replacing today's tautological
+  parity test (audit F14). Both `Map.*.tsx` use them.
+
+## Files
+- `app/packages/map/src/Map.native.tsx`, `app/packages/map/src/adapters/{contract,web,native}.ts`
+- `app/packages/map/src/parity.test.ts`: rewritten to run the SAME op script against both adapters' recorded command
+  logs (style layers, filters, states set, camera calls) and compare them
+- `app/apps/mobile/app.json`, `app/deps.md`, `app/layers.json` (the binding allowed only in `packages/map`, AGENTS 28)
+- the glyphs/sprites: self-hosted copies served beside the basemap (no CDN at run time)
+
+## Signatures
+```ts
+export interface MapAdapter {
+  setStyle(style: StyleSpec): void;
+  setFeatureStates(source: "atlas", layer: "stream" | "lake" | "wetland", states: ReadonlyMap<number, Record<string, unknown>>): void;
+  fitBounds(b: [w: number, s: number, e: number, n: number], opts?: { padding?: number; animate?: boolean }): void;
+  onPress(cb: (layer: string, id: number) => void): () => void;
+  setPoints(sourceId: "gauges" | "marks", fc: GeoJSON.FeatureCollection<GeoJSON.Point>): void;
+  visible(layers: readonly string[]): Promise<number[]>;     // ids of rendered features (status colouring)
+}
+```
+
+## Tests
+- Adapter parity: one op script gives identical command logs on web and native (a mock native module).
+- A tap on a fixture returns a number id.
+- Render smoke on the RN test renderer.
+
+## Acceptance
+- `pnpm -C app check`.
+- **Device run:** iOS + Android dev builds show the BC map with status colours, a tap opens a water, and pan frame time
+  is within N1's budget.
+- **Web run:** no change in behaviour (Playwright walk).
+- `deps.md` lines added.
+
+## Notes
+From here on every new map or UI ticket is accepted **on native first, then web parity** (the same tree through Expo
+web).
 
 ---
 
@@ -243,7 +344,7 @@ Pipeline · Depends on — · Blocks P07 (the promote waits for it), P08 · Size
 
 ## Files
 - `pipeline/deliver/__main__.py` (:113–140): a `card_check` step after `answers`, before `store`
-- `pipeline/deliver/answers/card_check.py` (`check_built(bundle, export_dir, items=None, dates=DATES)` :1029; `main` :1081): add `--all` / `--sample N` and a JSON report
+- `pipeline/deliver/answers/card_check.py` (`check_built(bundle, export_dir, items=None, dates=DATES)` :1029; `main` :1081): add `--all` and a JSON report
 - `pipeline/deliver/store/build.py`: refuse answers without a passing stamp
 - `pipeline/tests/test_card_gate_in_chain.py`
 
@@ -257,9 +358,10 @@ Pipeline · Depends on — · Blocks P07 (the promote waits for it), P08 · Size
 - `pytest pipeline/tests/test_card_gate_in_chain.py`
 
 ## Notes
+- **Owner Q13 ("worthless?"):** the gate adds no shipped bytes, only build time, and it re-proves every quota number
+  on the shipped answers (its first live run found 1,907 wrong numbers). The question was only whether to sample, and it
+  is dropped: the gate runs on everything.
 - Audit F4: the gate found 1,907 problems on its first live run and has since run only on a 15-rule fixture.
-- Measure the full run's time first. If it is over about 10 min, run the default as every part shown in the goldens
-  plus a fixed 2,000-key sample, and `--all` in `pipeline build`.
 
 ---
 
@@ -268,7 +370,8 @@ Pipeline · Depends on — · Blocks P07 (the promote waits for it), P08 · Size
 Pipeline + core · Depends on — · Blocks integration T05 (`weekdayOf`) · Size ½ day
 
 ## Goal
-Feb 29 is **day 60 with its real weekday**, everywhere. It is never clamped to Feb 28.
+The year keeps its 365 reading days (owner): **Feb 29 reads exactly the regulations of Feb 28, with its own real
+weekday** for weekday and hours rules. Page, app and pipeline answer through one generated function.
 
 ## The current difference (precise)
 
@@ -294,14 +397,20 @@ Feb 29 is **day 60 with its real weekday**, everywhere. It is never clamped to F
 - **The latent risk:** a future rule with a segment starting at day 60 would never be shown by the page, and would be
   labelled "Mar 1".
 
-## Recommendation
-- One rule in `calendar_spec.py`: *a date is (day_index(month, day), its real weekday); Feb 29 is day 60; a range printed
-  to Feb 28 already covers day 60 through `catalogue.range_days`* (AGENTS 57 FEB 29).
-- Emit worked cases `[(iso, day, weekday)]` (2028-02-28/29, 2028-03-01, 2027-03-01, 2036-02-29) into all three generated
-  files: `calendar.generated.{ts,json}` and `reference/calendar.generated.js`.
-- Remove the page's two clamps and its 365-day `DAYS`.
-- Add a data invariant: day 60 equals day 59 for every status profile and every segment, so the page's old reading
-  could never have differed silently. When it fails, it names the rule.
+## Recommendation (owner: keep the 365-day year; Feb 29 = Feb 28's regulations)
+- **The rule:** `readingDay(date) = day_index(month, day)`, with Feb 29 → Feb 28's day (59). `weekday(date)` is the
+  date's REAL weekday. One function in `calendar_spec.py`, emitted to `calendar.generated.{ts,json}` and
+  `reference/calendar.generated.js` (AGENTS 40). The app's `statusIndex.ts:44-47 dayOfYear` and the page's clamps both
+  call it.
+- **Storage stays as is.** The 366 slots and Mar 1 = 61 remain, so `range_days` and the segment starts do not move, and
+  slot 60 is simply never read. A data invariant, slot 60 == slot 59 for every status profile and segment, keeps old
+  readers honest. Dropping the slot from storage is optional later cleanup: it saves nothing material.
+- **Why the real weekday:** Feb 28's date rules are what the owner asked for. The weekday is a fact about the day, and
+  "Fridays, Saturdays and Sundays" closures speak about weekdays.
+- **Zymoetz, one line:** on Fri 2036-02-29 the Zymoetz below Limonite Creek reads Feb 28's rules on a Friday, so it is
+  closed to non-guided non-resident aliens. Today's page uses Thursday and shows it open.
+- **Worked cases** in the generated files: 2027-02-28, 2028-02-28/29, 2028-03-01, 2036-02-29 (Fri) → (reading day,
+  weekday).
 
 ## Files
 - `pipeline/common/calendar_spec.py`, `pipeline/tools/emit_calendar.py`
@@ -313,8 +422,8 @@ Feb 29 is **day 60 with its real weekday**, everywhere. It is never clamped to F
 ## Acceptance
 - `emit_calendar --check`; `pytest pipeline/tests/test_feb29.py`
 - vitest `calendar`
-- The Python tap on (Zymoetz part, 2036-02-29, non-guided non-resident alien) answers the Friday closure, and the page
-  harness agrees.
+- On 2036-02-29 the app, the page harness and the Python tap all read day 59 with weekday Friday (the Zymoetz closure
+  applies).
 
 ---
 
@@ -339,55 +448,59 @@ Pipeline · Depends on P05 · Blocks P08 · Size 1 day
 
 ---
 
-# P08 — `deliver package`: the one app package + manifest + query parity
+# P08 — `deliver release`: the shipped files + manifest into `data/release/`, with parity, perf and size gates
 
-Pipeline · Depends on P05, P07 (P03 for the `--check` CI wiring) · Blocks P10, P11, integration T01/T03/T10 · Size 1–1½ days
+Pipeline · Depends on P05, P07, P18 (tile version id) (P03 for the `--check` CI wiring) · Blocks P10, P11, P20, integration T01/T03/T10 · Size 2 days
 
 ## Goal
-`python -m pipeline.deliver package` writes `data/generated/dist/<handles16>/{manifest.json, app-<sha16>.sqlite}` as
-specified in `MINIMAL-PACKAGING.md` §2–§3:
-- the E6 tables;
-- the `regs_*` tables, byte-copied;
-- the `status_index` blob;
-- `part_section`;
-- one `meta`.
+`python -m pipeline.deliver release` writes `data/release/<data_release>/`. That is ONLY the shipped set
+(MINIMAL-PACKAGING §1–§2):
+- **the files:** `paint` (BCSI v2 status + flow runs + donor columns), `core`, `near`, `water` (regs-common +
+  `part_section` + `akey_region` + the P09 topology), `regs-{1,2,3,4,5,6,7a,7b,8}`, `regs-sid`, `conditions` (without
+  the panel tables; climatology float16);
+- **the form:** each a `.gz` with a sha-named file; a `meta` per SQLite file (format, `section_handles`, regs versions
+  where they apply, the card-gate stamp);
+- **`manifest.json`** (`app-manifest/2`): per file url, bytes, gz bytes, sha256 and format; `tiles.compatible` /
+  `current` / `assets` from P18; basemap; `regulations.valid_until`.
 
-There is no logic in the step. It is the last step of `deliver all`.
+Build and debug artifacts stay in `data/generated/`. The step holds **no regulation logic**: it copies, cuts the region
+shards, writes the paint runs, indexes, vacuums, gzips and hashes. It is the last step of `deliver all`.
 
 ## Files
-- create `pipeline/deliver/package/{__init__,__main__,build,schema}.py`, `pipeline/deliver/package/schema.sql`
-- create `pipeline/tools/emit_pack.py` → `app/packages/data/src/pack.generated.ts` (table/column contract + format + schema sha; `--check`)
-- `pipeline/deliver/__main__.py`: the `package` step
-- `pipeline/deliver/store/build.py`: block deflate for `section_akey` / `section_place` (codec byte per block, audit smaller win; T02's blob codec already has `fflate`)
-- `pipeline/common/curated.py`: `GENERATED.dist`
-- tests: `pipeline/tests/test_package.py`
-
-## Signatures
-```python
-def build(bundle: Path, store: Path, status_index: Path, atlas_meta: Path, out_dir: Path) -> Path   # returns the package path
-def manifest(package: Path, atlas: Path, basemap: Path) -> dict                                   # pure: no clocks
-```
+- create `pipeline/deliver/release/{__init__,__main__,build,paint,shards,manifest}.py` and one `schema/<file>.sql` per file
+- create `pipeline/tools/emit_pack.py` → `app/packages/data/src/pack.generated.ts` (per-file table/column contract, the paint layout, formats, schema shas, the manifest type; `--check`)
+- `pipeline/deliver/__main__.py`: the `release` step; `pipeline/common/curated.py`: `GENERATED.release` (= `data/release`)
+- tests: `pipeline/tests/test_release.py`, `test_release_perf.py`, `app/tools/release-perf.test.ts` (node:sqlite + sql.js)
 
 ## Tests
-1. **Query parity:** for every SQL constant in `app/packages/data/src/bundle/queries.ts`, run it with the fixture's and
-   the province's sample parameters against the bundle and against the package, and require identical rows. The test
-   parses the TS file for the `export const NAME = \`…\`` strings, so a new query is covered automatically.
-2. `regs_*` tables byte-equal the store's, and `store check` passes when run on the package through a table-prefix shim.
-3. `status_index` blob == `status_index.bin`.
-4. Meta digests: package `bundle.section_handles` == atlas, and the card-gate stamp is present.
-5. `item.ord` == `regs_item.item_ord` for every `item_id` (19,641 / 19,641 today).
-6. Determinism: two package runs give the same sha.
+1. **Only shipped files:** `data/release/<r>/` contains exactly the manifest's files. Nothing under `data/generated/`
+   is referenced by the manifest.
+2. **Query parity:** every SQL constant in `app/packages/data/src/bundle/queries.ts` (parsed from the TS) gives
+   identical rows against the bundle and against the file that owns its tables. The panel and donor queries are checked
+   against the decoded paint arrays.
+3. **Regs parity:** water + regs-* + regs-sid reproduce `regs.sqlite`'s tables byte-for-byte (a table-routing shim
+   under `store check`). Every akey of a region's sections has its frames in that region's file.
+4. **Paint parity:** the status half == `status_index.bin`; the flow half decodes to `section_panel` /
+   `panel_member` / `basin_member` exactly.
+5. **Pairing:** every file's `section_handles` == the tile version's; the card-gate stamp is present; `item.ord` ==
+   water `item_ord` per `item_id`.
+6. **Determinism:** two runs give identical shas.
+7. **Size gate (gzip):** paint ≤ 1.0 MB, core ≤ 1.3 MB, each regs-<region> ≤ 1.5 MB, total ≤ 14 MB. Logged into
+   `sizes.json` (measured today: MINIMAL-PACKAGING §2).
+8. **Perf gate** (MINIMAL-PACKAGING §3):
+   - p95 ≤ 2 ms for A1, A3, A5, A6, A7, A9 and ≤ 5 ms for A2, on both node:sqlite and sql.js;
+   - each paint decode ≤ 30 ms;
+   - `EXPLAIN QUERY PLAN` shows a SEARCH (PK/index), never a SCAN, for every hot query.
 
 ## Acceptance
-- `pytest pipeline/tests/test_package.py -m needs_bundle` (unfiltered, not through rtk; memory "rtk pytest false pass")
+- `pytest pipeline/tests/test_release*.py -m needs_bundle`, run unfiltered
 - `python -m pipeline.tools.emit_pack --check`
-- Sizes logged: raw, gzip-9 and br-11 of the package (expect ≈ 41 MB / 16 MB / 13 MB; record the real numbers in
-  MINIMAL-PACKAGING §7).
+- `pnpm -C app exec vitest run release-perf`
 
 ## Notes
-- Drop `entry` and use an `item.has_rows` flag for `WATERS_NEAR`'s EXISTS (`queries.ts`). This changes one query; the
-  parity test runs against an equivalent query.
-- `chart`, `release` and `stock_water` stay out until a producer exists.
+- `entry` is dropped: `WATERS_NEAR`'s EXISTS reads an `item.has_rows` flag.
+- `chart`, `release` (the stocking table) and `stock_water` stay out until a producer exists.
+- Measurement scripts: `…/scratchpad/pack/{build_pkgs.py,paint.py,bench.mjs}`.
 
 ---
 
@@ -448,82 +561,125 @@ bundle.
 
 ---
 
-# P10 — endpoints config, `fetchVerified`, manifest; `publish`
+# P10 — endpoints config, `fetchVerified`, manifest v2 + tile compatibility, the per-file diff; `publish`
 
-App data + tools · Depends on P08 · Blocks P11 · Size 1 day
+App data + tools · Depends on P08, P18 · Blocks P11 · Size 1 day
 
 ## Goal
-- The app reads one config, never `localhost` literals: `App.tsx:35-37,57,75,77` today.
-- Every whole-file fetch is verified against the manifest's decoded bytes and sha256.
-- The dev server serves `dist/`.
-- A human-run `publish` uploads a dist to R2.
+- One config, never `localhost` literals (`App.tsx:35-37,57,75,77` today).
+- `loadManifest` refuses an unknown format.
+- `diff(held, manifest)` lists the files to download: per file by sha256. The tiles appear only when
+  `tiles.current.id` changes, the basemap only when its id changes.
+- `fetchVerified` checks the decoded bytes + sha256 from the manifest, never `Content-Length`. Everything is gzip.
+- `pair` returns a typed result. On a mismatch it keeps the **last good pair**.
+- The dev server serves `data/release/` as R2 will.
+- A human-run `publish` uploads the tiles + assets first, then the data files, then `manifest.json` last.
 
 ## Files
-- create `app/apps/mobile/src/config.ts` (`ENDPOINTS` from Expo `extra`, dev default `http://localhost:39217`)
-- create `app/packages/data/src/fetchVerified.ts`; delete the duplicated fetch bodies in `bundle/drivers/engine.web.ts:66-85` / `engine.native.ts:59-87` (and the `Content-Length` checks at :73 / :66; clear the native 15 s timer)
-- create `app/packages/data/src/manifest.ts` (type from `pack.generated.ts`; refuse an unknown `format`)
-- `app/tools/serve-tiles.mjs`: serve `data/generated/dist/<current>/` + the atlas/basemap under digest names. Keep `/province.sqlite` until P11 lands, then remove it. Send `Content-Encoding: br` for the package so the dev server proves compression works.
-- create `pipeline/tools/publish.py` (human-run; R2 credentials from env; uploads immutable files first, `manifest.json` last)
+- create `app/apps/mobile/src/config.ts`
+- create `app/packages/data/src/fetchVerified.ts` (+ a resumable variant for native, writing `.part` files); delete the duplicated fetch bodies in `bundle/drivers/engine.web.ts:66-85` / `engine.native.ts:59-87` (and the `Content-Length` checks :73 / :66; clear the native 15 s timer)
+- create `app/packages/data/src/manifest.ts` (types from `pack.generated.ts`): `loadManifest`, `diff`, `pair`
+- `app/tools/serve-tiles.mjs`: serve `data/release/` (with `Content-Encoding: gzip` for `.gz`) and Range for the pmtiles
+- create `pipeline/tools/publish.py` (human-run; R2 credentials from env)
 
 ## Signatures
 ```ts
 export async function fetchVerified(url: string, expect: { bytes: number; sha256: string }, signal?: AbortSignal): Promise<Uint8Array>;
-export interface Manifest { format: "app-manifest/1"; vintage: Vintage; package: PackRef; atlas: FileRef; basemap: FileRef; feeds: { url: string }; regulations: { valid_until: string } }
 export async function loadManifest(url: string, signal?: AbortSignal): Promise<Manifest>;
+export interface Held { tiles: TileVersion | null; basemap: string | null; files: Readonly<Record<FileName, string /* sha256 */>> }
+export function diff(held: Held, m: Manifest): { files: FileName[]; tiles: boolean; basemap: boolean; assets: boolean };
+export type Pairing =
+  | { ok: true; tiles: TileVersion; release: string }
+  | { ok: false; reason: "tiles-incompatible" | "format" | "offline"; keep: { tiles: TileVersion; release: string } | null };
+export function pair(m: Manifest, held: Held): Pairing;
 ```
 
 ## Tests
 - A sha mismatch rejects.
-- A br-encoded response with a compressed Content-Length is accepted when the sha matches.
-- An unknown manifest format is refused.
-- A test asserts no `localhost` literal under `app/packages` or `app/apps/*/src` except `config.ts`.
+- A gzip body is accepted on its decoded sha.
+- `diff`:
+  - a data-only release with the same tiles lists only the changed files and `tiles: false`;
+  - a geometry release lists `tiles: true` + the data;
+  - the basemap is untouched unless its id moved.
+- `pair`: same tiles + new data → ok; incompatible → keep the old pair.
+- No `localhost` literal outside `config.ts`.
 
 ## Acceptance
-`pnpm -C app check`; `pnpm -C app exec vitest run fetchVerified manifest`
+- `pnpm -C app check`; vitest `fetchVerified manifest`.
+- **Native first:** a device dev build reads the manifest from the LAN dev server. **Then web.**
 
 ---
 
-# P11 — `PackSource`: the app reads the package
+# P11 — the app reads the release: native always offline (install + update check), web lazy
 
-App data · Depends on P08, P10 · Blocks P14, P15, integration T01/T03/T11 · Size 1½ days
+App data · Depends on P08, P10, N2 · Blocks P14, P15, integration T01/T03/T11 · Size 2–3 days
 
 ## Goal
-The app opens ONE file:
-- `makeBundleSource` runs over the package Db unchanged (same queries);
-- the status index comes from the `status_index` blob;
-- the vintage comes from the manifest and the package meta (no `atlas.meta.json`, no `bc_outside.geojson`).
 
-**Native:**
-- the package is cached at `documentDirectory/pack/app-<sha>.sqlite`;
-- it is opened from disk;
-- a new manifest downloads in the background, verifies, renames, and swaps at the next launch;
-- the previous package is kept until the new one opens.
+**Native (primary, always offline):**
+- **First run** downloads every file in the manifest (data ≈ 12.5 MB gz, atlas 531 MB, basemap 918 MB, map assets) into
+  `documentDirectory/release/`. Downloads are resumable and sha-verified, with progress. The map opens once tiles +
+  paint are complete.
+- **Every launch** opens the held set from disk, with no network needed. When online it runs the update check:
+  `diff` (P10), download only new or changed files into `release/<new>/` (unchanged files linked or copied locally),
+  verify, then an **atomic swap** of a `current` pointer at the next launch or a screen boundary. The previous set is
+  kept until the new one has opened and paired.
+- Tiles move only when the tile version changes.
 
-**Web:** Cache Storage keyed by the immutable URL. Both platforms show `regulations.valid_until` once it has passed.
+**Web (same tree, parity):**
+- Fetches paint first, then core, then each other file on first need: water + `regs-<region>` on the first water in a
+  region (**a tap in another region fetches that region's file automatically**), regs-sid on the first unnamed tap,
+  near on the first near-search, conditions on the first Conditions view.
+- Files are cached in Cache Storage by immutable URL; tiles are range reads.
+
+**Both:**
+- Every SQLite file opens over the `Db` seam: native opens in place; web uses sql.js.
+- `makeBundleSource` routes each query to the file that owns its table; panel and donor lookups use the decoded paint
+  arrays.
+- No `/province.sqlite`, `/status_index.bin`, `atlas.meta.json` or `bc_outside.geojson`.
+- `regulations.valid_until` is shown when passed.
 
 ## Files
-- `app/packages/data/src/bundle/source.ts` (:61–78): check `pack.format`; stop turning a `HAS_ITEM_AREA` failure into `false`; observe `ready`
-- create `app/packages/data/src/pack/{open.web.ts,open.native.ts,cache.native.ts}` (`.native/.web` pair: check-platform)
+- `app/packages/data/src/bundle/source.ts` (:61–78): a query router over file handles; check each file's format; stop
+  turning a `HAS_ITEM_AREA` failure into `false`; observe `ready`
+- create `app/packages/data/src/release/{loader.ts, paint.ts, install.native.ts, update.native.ts, cache.web.ts, open.native.ts, open.web.ts}` (`.native/.web` pairs, check-platform)
+- `app/packages/core/src/statusIndex.ts` → `paint.ts` (decode both halves; the BCSI v2 status half is unchanged)
 - `app/packages/ui/src/hooks.ts`:
-  - `useStatusIndex` (:545) and `loadStatusIndex` (:521) read the blob, not a URL. Do not cache a failure for the
-    session (audit 02#11).
-  - `useVintage` (:483) compares the manifest atlas digest. Flow colours are gated on `ok === true` (`Shell.tsx:264-267`).
-- `app/packages/map/src/runtime-style.ts`, `Map.web.tsx`: drop the `outside` geojson source (the background layer is the mask)
-- `app/apps/mobile/src/App.tsx`: manifest → package → `Shell`
-- tests: `open.native.test.ts` (swap atomicity with a fake FS), `pack-source.conformance.test.ts` (run `runConformance("pack", …)` over the fixture package, which also fixes audit 01#13's tautology)
+  - `useStatusIndex` (:545) / `loadStatusIndex` (:521) read paint and do not cache a failure;
+  - `useVintage` (:483) → `usePairing`;
+  - flow colours are gated on `ok === true` (`Shell.tsx:264-267`).
+- `app/packages/map/src/runtime-style.ts`, `Map.*.tsx`: tile and basemap URLs from the held set (a local file on
+  native); the `outside` mask from the tile layer (P18)
+- `app/apps/mobile/src/App.tsx`: manifest → install/update → paint → `Shell`; a first-run download screen
+- tests: `loader.test.ts`, `update.native.test.ts` (diff → download only changed; a crash mid-swap keeps the old set; a
+  failed sha keeps the old set), `pack-source.conformance.test.ts` (`runConformance("release", …)` over the fixture
+  release, ending audit 01#13's tautology)
+
+## Signatures
+```ts
+export type FileName = "paint" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid" | "conditions";
+export interface ReleaseLoader { db(name: Exclude<FileName, "paint">): Promise<Db>; paint(): Promise<Paint>; held(): Held; regionOf(akey: number): Region[] }
+export async function install(m: Manifest, onProgress: (p: Progress) => void): Promise<Held>;          // native
+export async function update(m: Manifest, held: Held): Promise<{ swapped: boolean; next: Held }>;      // native
+```
 
 ## Acceptance
-- `pnpm -C app check`
-- conformance on the fixture package
-- **Manual (web):** cold start fetches the manifest and the package only (network panel). Record bytes and time on a
-  phone browser.
-- **Manual (native):** airplane-mode relaunch opens the cached package.
+- `pnpm -C app check`; conformance on the fixture release.
+- **Native, on the N1 phones:**
+  - first-run install (the measured time and bytes go in the PR);
+  - an airplane-mode relaunch works fully;
+  - a data-only release downloads only the changed files (proved by the dev server's log);
+  - a tile release swaps tiles and data together;
+  - A1–A11 within MINIMAL-PACKAGING §3's budgets;
+  - tap → regs page data < 20 ms; paint decode < 150 ms.
+- **Web parity:** cold start fetches the manifest + paint (≈ 0.9 MB gz) before the first coloured map. Opening the
+  Vedder adds core + water + regs-2. A tap in Region 5 then fetches regs-5 only.
 
 ## Notes
-- Spike first (2 h): does this Expo SDK's `openDatabaseAsync(name, options, directory)` open a file in `documentDirectory`?
-  If not, keep `deserializeDatabaseAsync` from the cached bytes (memory ≈ 41 MB), and say so in `deps.md`.
-- The fixture package replaces `packages/data/dev/bundle.sqlite`, built by `build-fixture.mjs` or by
-  `deliver package --items …` (integration D13).
+- The fixture release replaces `packages/data/dev/bundle.sqlite` (`deliver release --items …`, integration D13
+  amended).
+- A 1.45 GB first download is the cost of "always offline". The deferred tile optimisations would cut about 345 MB
+  (MINIMAL-PACKAGING §5).
 
 ---
 
@@ -556,6 +712,11 @@ AGENTS 25/33: components draw a view model. Sentences are composed in `core` and
 - fragment assertions → whole-string `toBe`: `DonorPanel.test.tsx` 23/45, `GaugeBadge.test.tsx` 17/23 (if GaugeBadge survives P16), `SpotScreen.test.tsx` 17/52, `SpotsScreen.test.tsx` 6/11
 - `useAsync`: a keyed promise cache that includes the source identity (`source.info().version`), so `gaugeSeries` is not fetched 4× per panel and a package swap invalidates
 - the false comment at `hooks.ts:347-349`
+- `traceToGauge`, the walk over `section_down` (MINIMAL-PACKAGING §3 A8: p95 15.8 ms node / 28.4 ms wasm on the laptop,
+  so about 150–280 ms on a phone):
+  - it runs once per section in a cached hook, off the render path;
+  - if the P11 device run shows over 50 ms, the conditions package stores each gauged section's route end and length
+    (`section_gauge.down_steps`), so the walk is not needed to answer, only to draw.
 
 ## Tests
 Core: every sentence branch pinned whole (`traceSentence` 4 branches, `shareWord` boundaries, `donorReason` per WHY key).
@@ -591,7 +752,7 @@ export type Route =
 export type RouteAction =
   | { type: "tab"; tab: TabKey } | { type: "openWater"; item: ItemId; tapSid?: SectionId; part?: number }
   | { type: "view"; view: View } | { type: "part"; part: number } | { type: "flowInto"; item: ItemId; part: number }
-  | { type: "back" } | { type: "exploreMap" } | { type: "openSpot"; id: SpotId } | { type: "condSection"; section: SectionId };
+  | { type: "back" } | { type: "openSpot"; id: SpotId } | { type: "condSection"; section: SectionId };
 export function reduce(r: Route, a: RouteAction): Route;
 export function bottomBarShown(r: Route): boolean;          // false in water mode and while adding a spot
 export function useRoute(initial?: Route): [Route, (a: RouteAction) => void];
@@ -604,7 +765,6 @@ The map camera of the `from` state is kept in `Shell`'s camera ref and restored 
 - water regs → view map → back → regs → back → browse.
 - flowInto twice → back, back returns to the first water.
 - The stack cap is 8.
-- exploreMap → browse map with `focus` on the current part.
 - A tab action inside water mode is impossible: there is no bar.
 
 ## Acceptance
@@ -614,7 +774,7 @@ The map camera of the `from` state is kept in `Shell`'s camera ref and restored 
 
 # P14 — water-mode shell: bottom bar hidden, header, "Conditions here", back
 
-App ui · Depends on P13, P11, P09 (`mid_sid`) · Blocks integration T23, T29 · Decisions: replaces integration D1/D2 (§0) · Size 1 day
+App ui · Depends on P13, P11, P09 (`mid_sid`), N2 · Blocks integration T23, T29 · Decisions: replaces integration D1/D2 (§0; owner: Conditions here next to Map, midpoint of the current part) · Size 1 day
 
 ## Goal
 Opening a water enters water mode:
@@ -629,7 +789,7 @@ Opening a water enters water mode:
 
 ## Files
 - create `app/packages/ui-native/src/water/WaterMode.tsx` (frame: header + the view slot), `WaterHeader.tsx`, `ConditionsHere.tsx` (wraps `ConditionsPanel` with the place line)
-- create `app/packages/ui/src/water.ts`: `useWaterPart(pack, item, part | tapSid) → { partIx, label, short, midSid, midLonLat, bbox }` (reads `regs_part` + `part_geo`)
+- create `app/packages/ui/src/water.ts`: `useWaterPart(pack, item, part | tapSid) → { partIx, label, short, midSid, midLonLat, bbox }` (reads the water package's `part` + `part_geo`)
 - `app/packages/ui-native/src/WaterScreen.tsx`: becomes the regs view body (placeholder); `Faces.tsx` / FaceBar deleted if nothing else uses it
 - `app/packages/ui-native/src/Shell.tsx`: render `WaterMode` when `route.mode === "water"`; hide the `TabBar` when `!bottomBarShown(route)`
 - tests: `WaterMode.test.tsx`, `water.test.ts`
@@ -642,8 +802,11 @@ Opening a water enters water mode:
 - A tap on a mid-river section opens that section's part (`tapSid`), not part 0.
 
 ## Acceptance
-`pnpm -C app check`; vitest `WaterMode water`; a manual web walk: Map → tap the Vedder → Conditions here → ‹ → ‹ lands
-on the same camera.
+- `pnpm -C app check`; vitest `WaterMode water`.
+- **Native first** (iOS + Android dev builds): Map → tap the Vedder → Conditions here → ‹ → ‹ lands on the same camera.
+  The Android back button and the iOS edge swipe follow the same rule.
+- **Web parity:** the same walk in Expo web.
+- **Perf:** tap → water mode drawn (placeholder body) < 100 ms on the N1 mid phone.
 
 ## Notes
 - The integration's `RegsHeader` (T23) later replaces `WaterHeader`'s body. Keep the props identical to T23's
@@ -654,7 +817,7 @@ on the same camera.
 
 # P15 — the water map view: highlight and framing from tiles, ▼/▲, marks, mouth exit
 
-App map/ui · Depends on P09, P11, P13 · Blocks integration T16 (`placeAction` "map"), T23 (`onMap`) · Size 1½ days
+App map/ui · Depends on N2, P09, P11, P13 · Blocks integration T16 (`placeAction` "map"), T23 (`onMap`) · Size 1½ days
 
 ## Goal
 The water map matches the prototype's navigation (research C; `regs-v11.html` `mapHtml` and the controls ≈ L1817–1842 @
@@ -668,12 +831,12 @@ The water map matches the prototype's navigation (research C; `regs-v11.html` `m
 - **Tapping a part** selects it.
 - **"Flows into <name> ›"** at the lowest part opens the receiving water.
 - **"Show regulations for this part"** returns to the regs view on that part.
-- **"Explore the map ×"** leaves water mode.
+- Back (‹) returns to the regs view, then to where the reader came from (P13).
 - **No geometry is read from the package or `watermap.js`.**
 
 ## Files
 - `app/packages/map/style/layers.source.json`: `selected` / `water` feature-state paint on stream/lake/wetland, using token colours (AGENTS 28; then `pnpm style:build`)
-- `app/packages/map/src/Map.web.tsx`: a `focus={ {bounds} }` prop and a `marks` symbol source (points only)
+- the map adapter (N2), on BOTH `Map.native.tsx` and `Map.web.tsx`: `fitBounds` and a `marks` point source
 - `app/packages/ui/src/waterMap.ts`: `useWaterMap(pack, item, part) → { parts:[{ix, rank, label, short}], current, down, ups, marks, exit, bounds, selected: SectionId[] }`, a pure nav step in `core/src/waterNav.ts`
 - `app/packages/ui-native/src/water/WaterMapView.tsx`
 - remove the trilateration / `querySourceFeatures` re-fit for a picked water (`ui/src/search.ts:145 usePickFocus`, `Map.web.tsx:501`); keep `usePickFocus` for search results only if they still need it
@@ -687,72 +850,61 @@ The water map matches the prototype's navigation (research C; `regs-v11.html` `m
 
 ## Acceptance
 - `pnpm -C app check`
-- **Manual web, side by side with the prototype** (`regs-v11.html` map) for the Vedder, Cowichan and KLWA: same part
-  order, same marks, same labels.
+- **Native first,** side by side with the prototype (`regs-v11.html` map) for the Vedder, Cowichan and KLWA: same part
+  order, same marks, same labels. Then the same check on web (parity).
+- **Perf:** a ▼/▲ step (state change + camera start) < 50 ms on the N1 mid phone; the part's sid set comes from one
+  keyed query (A9).
 
 ## Notes
-- Native: `Map.native.tsx` is a placeholder (:16–26). This ticket is web-only, and the native map is an owner question
-  (Q9).
+- The native map comes from N2. If N1 found no feature-state on native, `selected` / `water` use N2's fallback (a
+  `match` on the sid set) behind the same adapter call.
 - A part highlight works only on loaded tiles, which is fine: the camera is framed on the part first.
 
 ---
 
-# P16 — Conditions tab clean-up pass
+# P16 — Conditions: the same content, better formatted
 
 App ui · Depends on P02, P12 · Size 1½ days
 
 ## Goal
-The Conditions views say each thing once, in one vocabulary, with honest ages. This is the current screen inventory
-(research B; lines per component): ConditionsScreen 67, ConditionsPanel 335, DonorPanel 510, GaugeTrace 139, Hydrograph
-183, ChartControls 61, MiniMap 52, Faces 60, GaugeBadge 96, StatusChip 29.
+Owner (Q10): the Conditions content is already right; the menu is poorly formatted. **No new content.** This ticket
+changes layout and formatting only, on top of P12 (logic and sentences moved to core/hooks) and P02 (honest ages). The
+screens today (research B, lines per component): ConditionsScreen 67, ConditionsPanel 335, DonorPanel 510, GaugeTrace
+139, Hydrograph 183, ChartControls 61, MiniMap 52, Faces 60.
 
-## Concrete simplifications
-1. **One "no gauge" sentence.** There are four wordings today:
-   - `ConditionsPanel.tsx:251` "No gauge is entitled to speak for this water…";
-   - `DonorPanel.tsx:37` "No gauge on this water is close enough in size…";
-   - `SpotScreen.tsx:197`;
-   - `SpotsScreen.tsx:128` "no gauge".
-   Replace them with `core` `noGaugeSentence(reason)`.
-2. **One answer at the top.** ConditionsPanel shows the DonorPanel headline, then a lead-station reading block, then a
-   GaugeTrace fallback, which can be three overlapping answers. Keep the DonorPanel headline (estimate or reading + age)
-   as THE answer, and fold the lead-station block into its first donor row.
-3. **One horizon control.** Today the horizon is set in the map legend (`Shell.tsx:526`, `HORIZONS`) and again in
-   DonorPanel (`[0,1,3,5]` :269). Keep one control, in the Conditions header, driven by `HORIZONS`.
-4. **Ages everywhere:** show the observation time per reading (P02), and "unknown age" where `fetchedAt` is missing.
-   Re-poll `index.json` every 5 min while the view is open.
-5. **Collapse the explanations.** "Counts this much because…" rows and the notes go in a closed "How this estimate is
-   made" fold. The headline, the chart and the donor list stay open.
-6. **Chart:** Hydrograph + ChartControls stay. The disclaimer sentence moves into the fold. Delete the GaugeTrace
-   fallback, or keep it only when no hydrograph series exists.
-7. **Delete dead UI:**
-   - `GaugeBadge.tsx` (no app importer; only `index.ts` and its test);
-   - `StatusChip.tsx` `Chip`;
-   - `core` `NO_GAUGE` / `NO_READING_HERE` if (1) replaces them;
-   - the unused forecast fetch (research B).
-8. **Empty state:** the Conditions tab with no section picked shows one hint line, "Tap a river to see its flow and
-   temperature", over the gauge-dot map. Today there is none.
-9. **Temperature legend** from the policy (P12c), not literals.
-10. **Credits** are reached from the fold, not as a block at the end of every panel.
-11. **Place line:** in water mode (P14), the panel's title is the part's place ("Conditions at Vedder Crossing –
-    midpoint of this part"), not the bare water name. In browse mode it is the section's water + "this stretch".
-12. **Local time:** every displayed time is local and labelled (`ConditionsPanel.tsx:245` prints UTC unlabelled).
+## Formatting changes
+1. **One reading order:** the place line → the headline (the existing DonorPanel headline: estimate or reading + its
+   age) → the chart (Hydrograph + ChartControls) → the donor list → the explanations. Today the lead-station block and
+   the GaugeTrace fallback can stack three answer-like blocks above the chart; they keep their content but move under
+   the headline as its detail rows.
+2. **One horizon control**, in the panel header, using the existing `HORIZONS`. Today it is in the map legend
+   (`Shell.tsx:526`) AND in DonorPanel (`[0,1,3,5]`, `:269`). Same choices, one place.
+3. **Long explanations fold, the words unchanged:** the "Counts this much because…" rows, the notes, the chart
+   disclaimer and Credits go into one closed fold under the donor list.
+4. **Consistent typography and spacing:** section kickers, `TYPE` sizes and `SPACE` steps as the rest of the app (the
+   tokens from integration T22). One number style for readings, and units always beside the number.
+5. **Times:** every time is local and labelled, the same format everywhere (`ConditionsPanel.tsx:245` prints UTC
+   unlabelled), with the age next to each reading (P02).
+6. **The "no gauge" case** is one layout. The wording is unified by P12 (`noGaugeSentence`); here it gets one place in
+   the order above.
+7. **Water mode (P14):** the panel's title line is the part's place ("Conditions at Vedder Crossing – midpoint of this
+   part").
+8. **Dead UI removed** (no visible change): `GaugeBadge.tsx` (no importer), `StatusChip.tsx` `Chip`, the unused forecast
+   fetch.
 
 ## Files
 `ConditionsScreen.tsx`, `ConditionsPanel.tsx`, `DonorPanel.tsx`, `GaugeTrace.tsx`, `Hydrograph.tsx`, `ChartControls.tsx`,
-`Credits.tsx`, `GaugeBadge.tsx` (delete), `StatusChip.tsx`, `Shell.tsx` (legend), `core/src/conditions.ts`, tests.
+`Credits.tsx`, `Shell.tsx` (legend horizon), `GaugeBadge.tsx` (delete), `StatusChip.tsx`, render tests.
 
 ## Tests
-- Whole-string pins for each headline and empty state.
-- A render test: exactly one headline region, one horizon control, and the fold closed by default.
-- `rg -n "no gauge|No gauge" app/packages/ui-native/src` → only via `noGaugeSentence`.
+- A render test: the block order above; exactly one horizon control; the fold closed by default.
+- Every string present before the change is still present after it (a snapshot of the panel's text set, minus the
+  deleted dead components). This is the "same content" guard.
 
 ## Acceptance
-`pnpm -C app check`; a manual web walk on 3 sections: gauged, donor estimate, no gauge. Before/after screenshots go in
-the commit message.
-
-## Notes
-Riffle (`app/design/riffle.html`) remains the design target for Conditions (memory "riffle is the design target"). Any
-change here that departs from Riffle goes to the owner first (Q10).
+- `pnpm -C app check`.
+- Before/after screenshots on **native (iOS + Android)**, then web, for 3 sections (gauged, donor estimate, no gauge),
+  attached to the commit. The owner reviews them.
 
 ---
 
@@ -768,46 +920,127 @@ Navigation is predictable and the shell is free of dead paths before the port ad
    (map: back to BC framing; search: clear).
 2. Search → result → water mode → ‹ returns to the results with the query and scroll position kept. Today Back goes to
    the map, framed.
-3. Map tap on unnamed water: a short "Unnamed stream · Region N" sheet with "Regulations ›" (through `regs_section_akey`;
+3. Map tap on unnamed water: a short "Unnamed stream · Region N" sheet with "Regulations ›" (through the regs-sid package;
    integration T42) instead of nothing.
 4. Remove stale comments citing gone paths (`App.tsx` header "FIXTURE"; research B), the untracked `packages/*/dist`
    (`noEmit` or a clean step in `pnpm check`), and `app/tools/render-setup.{js,d.ts}`.
 5. Delete dead exports listed in audit §4.2 #7 (`regulations.ts` stays until T00 rewrites it; `pins.ts PinStore`,
    `LAKE_GAUGES`, `DEFAULT_VIEW`, `clearBasinCache`, `FACES_REQUIRED`, …).
-6. Layers sheet: hide "Stocked" / "Surveyed" while their tables are empty (no producer). Counts come from
+6. Layers sheet: "Stocked" / "Surveyed" are shown greyed out and disabled while their tables are empty (no producer; owner Q15). Counts come from
    `source.counts()` (AGENTS 32).
 7. `MiniMap`: one map instance per screen at most (every MiniMap opens another map today).
 8. `Map.web.tsx:657`: pass the numeric feature id, not `String(best.id)`, and drop the `Number()` round-trip in Shell.
 
 ## Acceptance
-`pnpm -C app check`; a manual web walk of every tab and back path, recorded as a checklist in the commit message.
+`pnpm -C app check`; a manual walk of every tab and back path on native (iOS + Android), then web, recorded as a checklist in
+the commit message.
 
 ---
 
-# P18 — tiles: vintage in the pmtiles metadata; `region_id` on every region feature
+# P18 — tiles: geometry-only, versioned on their own; the mask as a tile layer; self-hosted map assets
 
-Pipeline (the tile rebuild is human-run, ≈ 1 h) · Depends on — · Blocks P11's tile check (until it lands, P11 compares the manifest only) · Size ½ day + rebuild
+Pipeline (the tile rebuild is human-run, ≈ 1 h) · Depends on — · Blocks P08 (`tiles.compatible`), P10, P11 · Size 1½ days + rebuild
 
 ## Goal
-- The atlas archive itself states `section_handles` + `registry_digest`, so a swapped archive cannot pass (audit F6).
-- All 18 `region` features carry `region_id`: today 9 carry only `{"name": "1".."7b"}` and no id (research D).
+Tiles carry geometry and the sid key only, and a data-only release never rebuilds them (MINIMAL-PACKAGING §6).
+- **Version id:** `"<handles16>.<tilebuild12>"` + `section_handles` + an informational `labels_registry` digest are
+  written into the pmtiles metadata. A swapped archive cannot pass (audit F6).
+- **The tiles stage key** (`pipeline/build.py:125-126`) is geometry-only: the atlas handles, `pipeline/atlas/splits`,
+  `CURATED.waters.areas`, the tile code. `--labels` forces a label refresh.
+- **`vintage.report_all`** pairs on `section_handles` only. A registry mismatch is a warning.
+- **The mask:** the outside-BC mask polygon (today `pipeline.deliver.tiles.boundary` → `bc_outside.geojson`, drawn by
+  `runtime-style.ts:331-360`) becomes an `outside` layer in the atlas tiles. The style reads it from the tile source.
+  The atlas starts at z4: check the app's min zoom, or give the style a low-zoom fallback fill.
+- **Map assets:** the tile step generates the self-hosted glyphs (the fonts the style names) and sprites into
+  `data/release/tiles/<version>/map-assets-<n>/`. The style points at them; no Protomaps CDN at run time (owner Q18).
+- **`region_id`** on all 18 `region` features (today 9 carry only `{"name"}`).
+- **The release copy** goes to `data/release/tiles/<version>/atlas-<version>.pmtiles`. The basemap goes to
+  `data/release/basemap/<id>/`.
+- **Inventory test:** the tile properties are exactly the §6.1 list. Adding a status, a rule or any non-geometry
+  property fails.
 
 ## Files
-- `pipeline/deliver/tiles/__main__.py` (:111–127): write the digests into the archive metadata (the tippecanoe/tile-join `--description` JSON, or patch the pmtiles metadata after the join; check which survives `tile-join`)
-- `pipeline/deliver/tiles/export.py`: the region layer writer
-- `pipeline/build.py:125-126`: add `pipeline/atlas/splits` + `CURATED.waters.areas` to the tiles stage key (audit F6)
-- `pipeline/tests/test_tiles.py`: pin both
+- `pipeline/deliver/tiles/__main__.py` (:111–127), `export.py` (region writer; `outside` layer; `LayerSpec.attrs` frozen), `boundary.py` (now feeds the layer), a new `assets.py` (glyphs + sprites)
+- `pipeline/deliver/tiles/basemap.py`: write into `data/release/basemap/<id>/`
+- `pipeline/build.py` (geometry key, `--labels`); `pipeline/common/vintage.py` (`report_all`, shared with P07)
+- `app/packages/map/style/layers.source.json` (+ `pnpm style:build`): the `outside` fill from the tile source-layer
+- tests: `pipeline/tests/test_tiles.py`, `test_vintage.py`
 
 ## Acceptance
-`pytest pipeline/tests/test_tiles.py -m needs_tiles` after the human-run rebuild. Promote file by file (memory "tiles dir
-holds basemap").
+- The tile tests after the human-run rebuild. Promote file by file (memory "tiles dir holds basemap").
+- A dry run of a data-only `pipeline build` shows the tiles stage SKIPPED.
+- **Native and web** draw the mask from the tiles and use glyphs from the release (no CDN request in the network log).
+
+## Notes
+The atlas maxzoom-13 overzoom and the basemap landuse filter stay **deferred to their own effort** (owner). Always-offline
+makes them worth about −345 MB per install (est.).
+
+---
+
+# P20 — retire the middle-man JSON (answers, export, guide) and the separate regs file
+
+Pipeline · Depends on P08 (packages exist), P11 (the app reads them), the port tooling switched (below) · Size 1½ days
+
+## Goal
+The bundling step writes only the pipeline's own databases and `dist/`. By default nothing writes `ui-rules-answers.json`,
+`ui-rules-export.json`, `ui-rules-guide.json`, `regs.sqlite`, `feeds/stats.json` or `bc_outside.geojson`. The answers
+and export models pass between steps in memory, and a `--debug-json` flag writes the JSON on request for a human.
+(Owner decision 2026-10-20: remove middle-man data.)
+
+## Files
+- `pipeline/deliver/__main__.py`: `export` → `answers` → `store` → `package` in one process for the model hand-off (the
+  bundle and verdicts steps stay separate subprocesses for memory, DATAFLOW P1b)
+- `pipeline/tools/export_ui_rules.py`, `pipeline/deliver/answers/cli.py`, `pipeline/deliver/store/build.py`: take models, not paths; `--debug-json DIR`
+- `pipeline/deliver/answers/reference/page_data.py`, `pipeline/tools/water_map_export.py`, `app/design/regs-v11/port/{taps.py,verify_map.py,sync.mjs}`: read the packages (water / regs-frames / regs-sid) or the debug dump
+- about 35 tests that `json.load` the export: switch them to `export_ui_rules.load()` over the in-memory model (AGENTS 58 already says so)
+- `pipeline/gauges/feed/publish.py:644-646`: stop writing `stats.json`. Delete `record(station)` (`app/packages/data/src/feed/http.ts:179,219-223`, no caller). Map colouring reads `index.json` only (MINIMAL-PACKAGING §9).
+- `bc_outside.geojson` stops being served once P18's tile layer draws the mask (`App.tsx:37`, `runtime-style.ts:220,331`)
+- `regs.sqlite` is no longer written by default (its tables live in water / regs-* / regs-sid; owner Q12)
+
+## Tests
+- `deliver all --out-dir <tmp>` leaves only `bundle.sqlite`, `verdicts.sqlite`, `status_index.bin` (kept for the pipeline tests) and `dist/`.
+- `--debug-json` reproduces today's three files byte-identically, so the round-trip pins stay valid.
+
+## Acceptance
+- `pytest -m "not slow"` green.
+- `node app/design/regs-v11/port/sync.mjs --ref HEAD` runs on the packages.
+- The memory note `bundle-is-the-only-source` still holds.
+
+## Notes
+**Coordinate with whoever owns `pipeline/deliver/answers` and the regs-v11 prototype at the time.** Both read these files
+today.
+
+---
+
+# P21 — stop writing `blk_chains.pkl` (2.57 GB per atlas build, no reader)
+
+Pipeline · Depends on — · Size ¼ day
+
+## Goal
+The atlas build stops writing a file nothing reads:
+- it is written at `pipeline/atlas/build.py:990` (`write_artifact(chains, …"blk_chains.pkl")`);
+- the chains are used in memory during the build (`build.py:467`, `:589`);
+- the only mention of the file is the determinism hash list in `pipeline/tests/test_no_slivers.py:234`.
+
+(Owner Q17.)
+
+## Files
+`pipeline/atlas/build.py` (drop the write; fix the module docstring at :7), `pipeline/tests/test_no_slivers.py:234`
+(drop the name; the determinism twin still hashes `graph.pkl`, `geometries.pkl`, …), `pipeline/docs/03-graph-design.md`
+(the outputs list).
+
+## Acceptance
+`pytest pipeline/tests/test_no_slivers.py -m slow` at the next human-run atlas build. The existing live file can be
+deleted by the owner (a deletion: ask).
 
 ---
 
 ## 2. What the integration tickets inherit from this
 
 See `app-integration/README.md` §0 and `decisions.md` D22–D26 (updated with this plan). In short:
-- T01, T03, T04, T10 and T11 read the **package** (P08/P11), not a `/regs.sqlite` beside `/province.sqlite`.
+- T01, T03, T04, T10 and T11 read the **packages** (P08/P11): `water` + `regs-frames-<region>` + `regs-sid`, lazily,
+  not a `/regs.sqlite` beside `/province.sqlite`.
+- Every RN integration ticket is accepted on native first (N2), then web parity.
 - T05's `weekdayOf` follows P06.
 - T16 and T23 sit in P14's water-mode shell, with the bottom bar hidden and FaceBar gone.
 - T23's `onMap` is P15's water map.

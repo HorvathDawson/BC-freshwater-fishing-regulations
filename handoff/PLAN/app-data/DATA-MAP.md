@@ -6,7 +6,8 @@ edited. Sizes are `ls -l` / `dbstat` on the live `data/generated/` tree, or the 
 and was not re-checked here, the text says **(per research)**.
 
 Companion files:
-- `MINIMAL-PACKAGING.md`: the target.
+- `MINIMAL-PACKAGING.md`: the target (revision 3: a few small gzip files in `data/release/`, always offline on native,
+  lazy on web; tiles versioned on their own).
 - `APP-PREP.md`: the tickets.
 - `QUESTIONS.md`: the owner's calls.
 
@@ -65,7 +66,7 @@ data/source/*  (FWA, ECCC/HYDAT, Protomaps bc.pmtiles 4.36 GB, steelhead roster 
                         tiles/atlas.pmtiles 530.7 MB ★ (range) · tiles/atlas.meta.json 97 B ★
        python -m pipeline.deliver.tiles.basemap   (NOT in `pipeline build`; last run Sep 25)
                         tiles/basemap.pmtiles 918.4 MB ★ (range)
-       python -m pipeline.deliver.tiles.boundary  (NOT in build) → data/source/bc_outside.geojson 62.5 KB ★ (redundant)
+       python -m pipeline.deliver.tiles.boundary  (NOT in build) → data/source/bc_outside.geojson 62.5 KB ★ (the mask; used)
        python -m pipeline.gauges.feed.publish     (publish.py:654-733; every 30 min in prod)
                         gauges/feeds/ 432 files 20.9 MB: index.json ★, {station}.json ★ (lazy), stats.json ✕, clim.json 8.4 MB ✕(→ bundle gauge_clim)
 
@@ -141,8 +142,11 @@ about 12% (audit §3.1 #3). The glyphs and sprites come from the Protomaps CDN, 
 ### 2.5 Mask: `bc_outside.geojson`
 
 The producer is `python -m pipeline.deliver.tiles.boundary` (not in the build). It is 62,563 B, fetched whole
-(`App.tsx:37`) and added as an `outside` fill. **It is redundant:** the style's `outside-bc` background layer already is
-the mask (per research D). This is a middle-man fetch that can go.
+(`App.tsx:37`) and drawn as the `outside` fill layer (`app/packages/map/src/runtime-style.ts:220` source, `:331-360` layer).
+**It IS the mask, and it is used.** Corrected on verification: an earlier research note called it redundant, but the
+`outside-bc` background (`runtime-style.ts:280`) is documented as "NOT the outside-BC mask" (`:276-279`). It is only the
+colour under the basemap. It is not in the tiles. The target moves it INTO the atlas tiles as an `outside` layer, since
+it is geometry, and stops serving the file (P18, P20).
 
 ### 2.6 `bundle.sqlite`
 
@@ -215,7 +219,7 @@ The producer is `python -m pipeline.deliver answers` (`pipeline/deliver/answers/
 | bundle `gauge`, `section_gauge`, `lake_gauge`, `section_panel`, `panel_member`, `basin_member`, `section_down`, `gauge_clim` | bundle build :582–759 | ≈ 14 MB together | **read** (Conditions, DonorPanel, SpotCapture, map standing colours, charts) |
 | `feeds/index.json` | `pipeline.gauges.feed.publish` (`publish.py:654-733`) | 157 KB, 425 stations | **fetched at startup** (5-min TTL) |
 | `feeds/{station}.json` | same | 8–38 KB each | **lazy**, per panel |
-| `feeds/stats.json` | same | 185 KB | never fetched. **Dead output.** |
+| `feeds/stats.json` | same (`publish.py:644-646`) | 185 KB | read only by `record(station)` (`data/src/feed/http.ts:219-223`), which nothing calls; **not** used for map colouring (that reads `index.json`). **Dead output.** |
 | `feeds/clim.json` | same | 8.4 MB | not fetched. It becomes bundle `gauge_clim`. Middle-man. |
 
 Missing `fetchedAt` is shown as live: `packages/data/src/feed/http.ts:214` (`stamp = s ? Date.parse(s) : Date.now()`),
@@ -257,7 +261,7 @@ must die with the port are `v36snap.js` and `watermap.js`: the app reads the sto
 | 4 | `/atlas.meta.json` | ✓ | ✓ | startup | vintage vs bundle handles |
 | 5 | `/status_index.bin` | whole | whole | startup | handles + reach_digest |
 | 6 | `/atlas.pmtiles`, `/basemap.pmtiles` | Range | — (no native map) | per view | none |
-| 7 | `/bc_outside.geojson` | ✓ | — | startup | none (redundant) |
+| 7 | `/bc_outside.geojson` | ✓ | — | startup | none (it IS the mask; moves into the tiles) |
 | 8 | Protomaps glyphs/sprites, EOX satellite | CDN | — | lazy | — |
 | 9 | `/feeds/live/{station}.json` | lazy | lazy | per panel | none |
 | 10 | Open-Meteo | lazy | lazy | spot capture | — |
@@ -272,14 +276,14 @@ Cold start is 105,081,128 B on the wire (audit 03 §1).
 | middle-man | bytes | why it exists | fate in the target (MINIMAL-PACKAGING) |
 |---|---:|---|---|
 | reach jsonl (rule_section …) | 20.4 GB | reach → bundle hand-off | stays pipeline-internal (out of scope; never shipped) |
-| `blk_chains.pkl` | 2.57 GB | none at run time | delete the output (pipeline cleanup, not app) |
+| `blk_chains.pkl` | 2.57 GB | none: written at `atlas/build.py:990`, only named in a test hash list | stop writing it (P21) |
 | bundle rule/licensing/topology tables | ≈ 70 MB | answers/status/export inputs | stay in the bundle; **never ship** |
 | `verdicts.sqlite` | 46.7 MB | the traced reader, once | stays pipeline-internal |
-| `ui-rules-export.json` + guide | 8 MB | answers input, the export subset, tests | not shipped; later folded into the answers step (M6) |
-| `ui-rules-answers.json` | 38 MB | store input, prototype input | not shipped; becomes an optional debug dump (M6) |
-| `regs.sqlite` as a separate file | 14.2 MB | the store | **merged into the one app package** |
-| `status_index.bin` as a separate file | 1.66 MB | map colours | **a blob inside the app package** |
-| `atlas.meta.json` | 97 B | vintage pairing | **replaced by the manifest** |
-| `bc_outside.geojson` | 63 KB | the old mask | **dropped** (style background is the mask) |
+| `ui-rules-export.json` + guide | 8 MB | answers input, the export subset, tests | **retired** (P20): the model passes in memory; `--debug-json` on request |
+| `ui-rules-answers.json` | 38 MB | store input, prototype input | **retired** (P20), same as the export |
+| `regs.sqlite` as a separate file | 14.2 MB | the store | **not shipped**: its tables are split into the water / regs-<region> / regs-sid release files |
+| `status_index.bin` as a separate file | 1.66 MB | map colours | **half of the `paint` file** (with the flow panels) |
+| `atlas.meta.json` | 97 B | vintage pairing | **replaced by the manifest + the pmtiles metadata** (P18) |
+| `bc_outside.geojson` | 63 KB | the mask (used) | **moved into the atlas tiles** as an `outside` layer; the file is dropped (P18, P20) |
 | `feeds/stats.json`, `feeds/clim.json` | 8.6 MB | clim → bundle | `stats.json` dropped; `clim.json` stays a bundle input, not served |
 | `watermap.js`, `v36snap.js`, oracle, regs-diagram | ≈ 16 MB | prototype | dev/test only, until the port lands |

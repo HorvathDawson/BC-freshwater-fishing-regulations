@@ -15,48 +15,64 @@ is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `
 | `tickets/NN-*.md` | the ordered backlog, ≤ ~1 day each |
 | `self-check.md` | three tickets dry-run against the real code |
 
-## 0. Prerequisites: app prep + the minimal package (added 2026-10-20)
+## 0. Prerequisites: app prep + the minimal release (added 2026-10-20)
 
-This spec now depends on `handoff/PLAN/app-data/`:
+This spec now depends on `handoff/PLAN/app-data/` (revision 2, 2026-10-20):
 - `DATA-MAP.md`: every data product, from source to screen.
-- `MINIMAL-PACKAGING.md`: ONE app package per vintage plus the tiles. Geometry comes only from the tiles.
-- `APP-PREP.md`: tickets P01–P18.
+- `MINIMAL-PACKAGING.md` (revision 3): a few small gzip files in `data/release/`, separate from the build artifacts
+  in `data/generated/`:
+  - **paint** (0.88 MB: the status index + flow panels) is the only file before first paint;
+  - **core** (1.11 MB: names, search, sid → water);
+  - **water** (regs-common + part topology, 1.94 MB);
+  - **regs-<region>** × 9 (frames, 0.19–1.32 MB each est.);
+  - **regs-sid** (1.22 MB), **conditions** (2.66 MB), **near** (1.99 MB).
+  Native is always offline: it holds the full tiles + every file, and the update check downloads only changed files.
+  Web fetches them lazily; a tap in a new region fetches that region. Every access is keyed and measured. Tiles are
+  geometry-only and versioned separately.
+- `APP-PREP.md`: tickets N1–N2 (the native map), P01–P18, P20, P21.
 - `QUESTIONS.md`.
 
 The owner decided (2026-10-20):
 - the prototype layout, with the **bottom bar hidden in water mode**;
-- "Conditions here" at the part's midpoint, and one back rule to the normal map views;
-- the map's up/downstream navigation drawn from the tiles;
-- the minimal packages produced by one bundling step.
+- "Conditions here" **next to Map**, opening the midpoint section of the **part being read**, and one back rule to the
+  normal map views;
+- the map's up/downstream navigation drawn from the tiles; no geometry store;
+- **a few small files, each with a reason**, written by one bundling step into `data/release/` (apart from the build
+  artifacts), fast to query, gzip;
+- **tiles versioned separately**, so a data release never rebuilds them;
+- **native-first** (Expo/React Native), with web compiled from the same tree. The native map is built early (N1, N2);
+- native always offline with an update check that downloads only changed files;
+- the middle-man JSON is debug-only (P20).
 
 **Gate before phase 0:**
 - **Before T00 / T02 / T05:** P03 (CI runs `answers --check`) and P06 (one Feb 29 rule; T05's `weekdayOf`).
 - **Before T01 / T03 / T04 / T10 / T11:**
-  - P08 (`deliver package`);
-  - P11 (the app opens the package).
-  - The regs store is NOT a second file beside `/province.sqlite`. It is the package's `regs_*` tables, opened over the
-    same `Db` (decisions D22).
+  - P08 (`deliver release`);
+  - P11 (the release reader: native offline install/update, web lazy).
+  - The regs store is NOT a file beside `/province.sqlite`. Its tables are split across the **water**,
+    **regs-<region>** and **regs-sid** release files, opened over the `Db` seam (decisions D22).
 - **Before T16 / T23 / T29:**
+  - N2 (the native map);
   - P13 (route state);
-  - P14 (water-mode shell: no bottom bar, header Map + Conditions here, no FaceBar; D1/D2 as amended);
-  - P15 (the water map, which T23's `onMap` opens).
-- **Before any release build:** P01 (spots), P02 (feed freshness), P04 (workflows retired), P05 (card gate on the
-  shipped answers), P07 (atomic deliver).
+  - P14 (water-mode shell);
+  - P15 (the water map).
+- **Before any release build:** P01, P02, P04, P05, P07, P18.
+- **Every RN ticket below is accepted on native first (iOS + Android dev builds), then web parity.**
 
 | integration ticket | what changes because the data source / shell changed |
 |---|---|
-| T01 | No `/regs.sqlite` route and no `REGS` constant. The app gets ONE package URL from the manifest (P10). The props plumbing (`day`, `section`) stays. `regsUrl` becomes the package `Db` handed down from `App.tsx`. |
-| T03 | `openRegsStore(db)` opens over the package `Db`. The table names carry a `regs_` prefix (one constant in `store.ts`). The format/version checks are unchanged. The three digest checks compare the package's `regs.*` meta with its `bundle.*` meta: they are now an internal consistency check, and the package is refused as a whole on a mismatch (P11). `BundleInfo.ruleIdsSha256` still lands. |
-| T04 | Same reads, prefixed table names. `section_akey` / `section_place` blocks carry a codec byte (deflated, P08). Inflate with T02's `fflate`. |
-| T05 | `weekdayOf` uses the real weekday on Feb 29 (P06). The `taps.json` parity gains the 2036-02-29 Zymoetz case. |
-| T09 | `targetFor(section)` resolves a tapped sid to its part through `part_section` (in the package) when the item is named. Unnamed sids go through `regs_section_akey` as before. |
-| T10 | The regs fixture is the fixture PACKAGE (`deliver package --items …`, P11), which also replaces `packages/data/dev/bundle.sqlite`. D13 is amended. |
-| T11 | `useRegsStore(packageDb)` takes the already-open package instead of fetching a URL. The store opens lazily (first water screen) from the same `Db`. |
-| T12 | The parity harness still opens `data/generated/bundle/regs.sqlite` (kept while the port tooling reads it; QUESTIONS Q12), or the package's `regs_*` tables through the same prefix constant. |
-| T16 | `placeAction` gains `"conditions"` beside `map`/`parts`. The header carries `[Map] [Conditions here]` (QUESTIONS Q6). |
+| T01 | No `/regs.sqlite` route and no `REGS` constant. The water screen receives the `ReleaseLoader` (P11) and asks it for `water`, `regs-<region>` and `regs-sid` on first need (native: already on disk). The props plumbing (`day`, `section`) stays. |
+| T03 | `openRegsStore(loader)` opens a store view over three release files. The format/version checks read the water file's `meta`; the digest checks compare every file's `section_handles` with the manifest's tile version (P10 `pair`); `rule_ids_sha256` is checked across the three. A mismatch refuses the whole release (keep the last good pair). |
+| T04 | The same reads, routed by table: `akey`/`seglist`/`part`/statics → water; `cell` + frames → the `regs-<region>` file named by water's `akey_region`; `section_akey`/`section_place` → regs-sid. The per-access latency budgets are in MINIMAL-PACKAGING §3 (A1–A3, A10). |
+| T05 | Feb 29 reads Feb 28's reading day with its own real weekday (P06, D31). The `taps.json` parity gains the 2036-02-29 (Friday) Zymoetz case. |
+| T09 | `targetFor(section)` resolves a tapped sid through core `item_section` → water `part_section` (named), or regs-sid (unnamed). |
+| T10 | The fixture is the fixture RELEASE (`deliver release --items …`, P11). It also replaces `packages/data/dev/bundle.sqlite`. D13 is amended. |
+| T11 | `useRegsStore(loader)` opens lazily on the first water screen. A "loading the regulations for Region N" state appears only on web when a shard is not cached. |
+| T12 | The parity harness reads the release files (P20 stops writing `regs.sqlite`; until then either works). |
+| T16 | `placeAction` gains `"conditions"`. The header carries `[Map] [Conditions here]` (owner). |
 | T23 | `RegsScreen` mounts inside P14's `WaterMode`. There is no FaceBar row (D2 amended) and no bottom bar (D1 amended). `onConditions` opens P14's Conditions view at `mid_sid`, and `onMap` opens P15's water map. |
-| T29 | The pin bar's top is the regs header alone: there is no FaceBar row to measure. |
-| T41 | The web walk starts from the map, enters water mode, uses Map / Conditions here, and backs out. |
+| T29 | The pin bar's top is the regs header alone. |
+| T41 | The parity walk is native first, then web. It starts from the map, enters water mode, uses Map / Conditions here, and backs out. |
 | T42 | The unnamed-section door is P17 #3. "Conditions here" on an unnamed section uses the section itself. |
 
 ## 1. The frozen target and the generators
@@ -106,8 +122,8 @@ except the version line — the tickets cite golden paths.
 ## 2. Order
 
 ```
-Prep (app-data/APP-PREP.md)   P01–P07 (parallel) → P08 → P09 → P10 → P11 ; P12 ; P13 → P14 → P15 ; P16 P17 P18
-                               phase 0 waits for P03 P06 P08 P11; T16/T23/T29 wait for P13 P14 P15 (§0)
+Prep (app-data/APP-PREP.md)   N1 → N2 ; P01–P07 (parallel) → P18 → P08 → P09 → P10 → P11 ; P12 ; P13 → P14 → P15 ; P16 P17 ; P20 P21
+                               phase 0 waits for P03 P06 P08 P11; T16/T23/T29 wait for N2 P13 P14 P15 (§0)
 Phase 0  data + decoder        T00 → T01 → T02 → T03 → T04 → T05 → T06 → T09 → T07 → T08 → T10 → T11 → T12
                                (T09 before T07/T08: their parity tests need loadRegsInputs; T05 starts conformance/src/regs/golden.ts,
                                 T09 adds requestOf/inputsOf, T12 completes it)

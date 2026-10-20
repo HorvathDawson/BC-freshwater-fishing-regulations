@@ -1,282 +1,352 @@
-# MINIMAL-PACKAGING — the target: one bundling step, three shipped files
+# MINIMAL-PACKAGING — what ships, how it is laid out, how it updates
 
-PLANNING ONLY. Builds on `DATA-MAP.md` and on the audit's measured sizes (`scratchpad/audit/03-size.md`, also
-`handoff/PLAN/AUDIT-2026-10-20.md` §3). It supersedes the 2026-10-10 "unified app data layout" (atlas.sqlite +
-regs.sqlite + climate.sqlite + index; see `~/.claude/…/handoff/PLAN/APP-REGS-INTEGRATION.md`). That layout used four
-files and joined them in TypeScript; the owner asked for the fewest artifacts and transforms. Figures marked **est.**
-are extrapolations, not measurements.
+PLANNING ONLY. **Revision 3 (2026-10-20), with every owner answer folded in** (QUESTIONS.md). The design:
+- **Native-first and always offline.** The native app holds the full map tiles and every data file, and updates by
+  downloading only what changed. Web is compiled from the same tree and fetches the same files lazily.
+- **Tiles are geometry-only and versioned on their own.** A data release never rebuilds or re-ships them.
+- **A few small data files, each with a stated reason**, all gzip.
+- **Every hot access is keyed and measured.**
+- **Build artifacts and shipped files live in different places.** The shipped set is a stripped-down release directory.
 
----
-
-## 1. The recommendation in one table
-
-`python -m pipeline.deliver all` ends with a new step, **`package`**. It writes `data/generated/dist/<vintage>/`, and
-that directory is the whole production delivery, the same for the web app and the mobile app:
-
-| # | file | what | size on device | on the wire | cadence |
-|---|---|---|---:|---:|---|
-| 1 | `manifest.json` | the only mutable URL: format, vintage digests, each file's url / decoded bytes / sha256, the regulations year | < 2 KB | < 1 KB | every publish |
-| 2 | `app-<sha16>.sqlite` | **the one app data package** (`app-pack/1`): waters, search, gauges + climate, panels, the status index (as a blob), the regulations store, and the per-water map topology | **≈ 41 MB est.** | **≈ 13 MB br est.** (≈ 16 MB gzip) | every mill run |
-| 3 | `atlas-<handles16>.pmtiles` | ALL water geometry (sections keyed by `sid`), areas, MUs, basins | 530.7 MB (≈ 295 MB est. after the z13 overzoom, audit §3.1 #2) | range reads only | every atlas build |
-| — | `basemap-<v>.pmtiles` | roads/places/landcover (Protomaps) | 918 MB (≈ 807 MB est. after the landuse filter) | range reads | rarely (not a build stage) |
-| — | `feeds/live/…` | live gauge readings and forecasts | — | index 157 KB + 8–38 KB per station | every 30 min (a separate publisher, not a package) |
-
-**Today** the app downloads the 102.7 MB bundle, the 1.66 MB status index, `atlas.meta.json` and the mask, all
-identity-encoded: 105 MB on every launch. Regulations are not even included yet. **Target:** about 13 MB once per
-vintage, cached on native, regulations included.
-
-**What goes away from the shipped set:**
-- `bundle.sqlite` as a download;
-- `status_index.bin` and `atlas.meta.json` as separate files;
-- `bc_outside.geojson`;
-- the planned separate `/regs.sqlite`.
-
-**What never ships:** `ui-rules-answers.json`, `ui-rules-export.json` / `guide`, `verdicts.sqlite`,
-`v36snap.js` / `watermap.js` / the oracle. These were never shipped, and the plan makes sure they never start.
-
-Inside the app binary, not data: fonts (0.78 MB, or 0.35 MB subset), fish WebP (1.52 MB), map glyphs/sprites (a copy
-of the Protomaps CDN assets, needed for a shipped app), and the sql.js wasm (web build asset).
+All sizes and timings were **measured on copies** in the session scratchpad
+(`/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/266b6a4b-cf8d-417b-b326-25e034ead4e0/scratchpad/pack/`)
+of the 2026-10-20 03:00 live set. The scripts are `build_variants.py`, `build_pkgs.py`, `paint.py`, `cond_blocks.py`
+and `bench.mjs`. Nothing in the repo was built. The laptop is Apple silicon. A mid phone is assumed to be 5–10× slower;
+that factor is **not measured** (N1 measures it). `est.` marks an extrapolation.
 
 ---
 
-## 2. The app package `app-pack/1`
+## 1. Build artifacts vs the release (two places)
 
-One SQLite file. **Per-water data inside it is keyed by `item.ord` and `sid`. Both are valid only inside one vintage,
-which is why the package and the atlas are paired by digest (§5).** Neither id is ever saved by the app: spots and
-deep links bind to `item_id` (AGENTS 5).
+```
+data/generated/                      BUILD + DEBUG — never shipped, never fetched by an app
+  atlas/full/                        graph.pkl, geometries.pkl, registry.json, section_handles.txt …
+  reaches/full/                      rule_section.jsonl …
+  bundle/bundle.sqlite               the pipeline's database (rules, licensing, topology …)
+  bundle/verdicts.sqlite             the traced reader
+  bundle/status_index.bin            kept for the pipeline tests
+  tiles/layers/*.geojsonl            tippecanoe input
+  tiles/atlas.pmtiles, basemap.pmtiles   the built archives (before release naming)
+  debug/                             ONLY with --debug-json: ui-rules-{export,guide,answers}.json (P20)
 
-| group | tables | from | bytes raw (measured unless est.) |
-|---|---|---|---:|
-| **meta** | `meta` (one table; keys namespaced: `pack.*`, `bundle.*`, `regs.*`) | packager | — |
-| **waters + search** | `item`, `alias`, `item_section` (WITHOUT ROWID), `place`, `place_water` | bundle | E6 slice |
-| **gauges + conditions** | `gauge`, `gauge_clim` (float16), `section_gauge`, `lake_gauge`, `section_panel`, `panel_member`, `basin_member`, `section_down` | bundle | E6 slice |
-| (subtotal: the audit's **E6** client slice) | | | **26.6 MB** (br11 6.3 MB) |
-| **map colours** | `status_index` (one row: the BCSI v2 bytes unchanged, so `core/statusIndex.ts` decodes it as today) | status index step | 1.66 MB (0.36 MB br) |
-| **regulations** | the regs-store/4 tables under a `regs_` prefix: `regs_str`, `regs_static`, `regs_akey`, `regs_cell`, frames, `regs_item`, `regs_part`, `regs_picker`, `regs_section_akey`, `regs_section_place`, `regs_rule`, `regs_lic`, `regs_entry`, `regs_ruleset`, `regs_lset`, `regs_zdict`, … | store step | 14.2 MB as built; **9.5 MB** with the two block tables deflated (audit §3.1 smaller wins), ≈ 5.1 MB br |
-| **map topology** (new, §4) | `part_section` (ord, sid, part_ix), `part_geo`, `part_mark`, `water_exit` | bundle (new columns/tables) | part_section 0.77 MB measured; the other three ≈ 2.5 MB **est.** |
-| **dropped** | `entry` (replace its one EXISTS use with an `item.has_rows` flag), `chart` / `release` / `stock_water` (0 rows; return when a producer exists), every rule/licensing/topology table in DATA-MAP §2.6 | — | −76 MB |
+data/release/<data_release>/         THE SHIPPED SET — exactly what the apps download, nothing else
+  manifest.json
+  paint-<sha12>.bin                  map paint (regulations status + flow panels)
+  core-<sha12>.sqlite                names, aliases, places, sid → water
+  near-<sha12>.sqlite                waters near a town
+  water-<sha12>.sqlite               regulations common + part topology
+  regs-<region>-<sha12>.sqlite       regulation frames, one per region (1 2 3 4 5 6 7a 7b 8)
+  regs-sid-<sha12>.sqlite            sid → answer key / place, for unnamed water
+  conditions-<sha12>.sqlite          gauges, section → gauge, downstream links, climatology (float16)
+  (each also as .gz, the transfer form)
+data/release/tiles/<tile_version>/   SHIPPED, versioned separately (§4)
+  atlas-<tile_version>.pmtiles       geometry only, + the outside-BC mask layer (P18)
+  map-assets-<assets_version>/       self-hosted glyphs + sprites, generated by the tile step (P18)
+data/release/basemap/<basemap_version>/basemap.pmtiles
+```
 
-**Total ≈ 41 MB on device, ≈ 13 MB brotli-11 (est.: the sum of the measured parts; one file compresses about as well
-as the parts).**
-
-### 2.1 Why the trimmed bundle can rely on `regs.sqlite`
-
-The audit made the E6 trim conditional on "the regs integration reads `regs.sqlite`, never `section_ruleset`"
-(owner decision §7 #4). It does, and here is why that is safe:
-
-1. **Everything the Regulations page draws is in the store.**
-   - The store is answers/2 re-encoded losslessly. The build refuses unless the decode is byte-identical,
-     `pipeline/deliver/store/build.py:203-206`, and it pins `meta.answers_sha256`.
-   - It also holds the export subset of rule, licence, entry, ruleset, species and conduct words.
-   - The integration spec reads only the store: `handoff/PLAN/app-integration/contracts.md`, tickets T03–T09.
-2. **The store's only link to the rest of the data is `sid`.** `regs_section_akey` maps every sid to an answer key,
-   which covers every section in B.C., unnamed water included (S1). `sid` is the same id as the tile feature id
-   (`promoteId: section_id`) and the status index key. The rulesets have already been decided into frames, so the app
-   never needs `section_ruleset` / `ruleset` / `section_licensing`. Those tables exist so the pipeline can *compute*
-   answers; nothing on a screen reads them.
-3. **The store needs nothing from the bundle at read time.** `decode.py:28` opens only the store. Its `item_ord` space
-   is the bundle's today: 19,641 of 19,641 regs items have the same ord as the bundle's `item` (checked 2026-10-20 by
-   joining on `item_id`). The packager asserts this instead of relying on it.
-
-**The one thing the store lacks is part → sids.** It has only sid → akey, and an akey is shared by many waters. The map
-needs to highlight a part. That is `part_section` (63,263 rows, 0.77 MB), which the package carries.
-
-### 2.2 Why ONE file, not app + regs as two
-
-- **For one file:**
-  - one sha, one download, one atomic swap and one pairing check;
-  - the regs tables cannot drift from the app tables (today that is a three-digest handshake, T03);
-  - both platforms open the same thing;
-  - the integration's `RegsStore` simply opens over the same `Db`.
-- **Against:**
-  - a regulations-only fix re-downloads about 13 MB instead of about 5 MB;
-  - web parses the regs tables before first paint.
-  - Neither matters much. Every mill run rebuilds both halves together (the bundle and the store are one `deliver all`).
-    sql.js `deserialize` of a 41 MB file costs one copy, which T03/D9 already measure.
-- **If web first paint measures badly:** `regs_*` moves to a second file with the same manifest mechanism (Q2). That is
-  a packager flag, not a redesign.
-
-### 2.3 Lazy loading per region or per section: not now
-
-- **Per region:** the sid-keyed tables cut per region are R6 28% of the whole and a median of about 1.3 MB zstd (audit
-  §2b). Lazy regions would save about 8 MB br for a one-region user. The price is a fetch whenever search or a pan
-  crosses a region, a sharded manifest, and a cross-region search index.
-- **Per section:** the frames are already deduplicated per answer key (2,268 keys), so per-section loading buys nothing.
-- **Decision:** revisit only if the measured first-run on a mid phone over 4G is over budget (Q3).
+`python -m pipeline.deliver release` writes `data/release/<data_release>/`; it copies nothing else. The human-run
+`publish` uploads that directory as-is to Cloudflare R2. A file outside `data/release/` can never reach an app, and
+P08's test checks this.
 
 ---
 
-## 3. Delivery
+## 2. The shipped files, and why each one is separate
 
-### 3.1 The manifest, not `Content-Length`
+The owner's rule: multiple files only with a reason. The reasons are web fetch speed (the first paint and the first tap
+wait only for what they need) and update granularity (a release re-downloads only what changed). The native app
+downloads all of them either way.
+
+| file | holds | raw (on device) | **gzip** (transfer) | brotli-11 (for reference) | reason it is its own file | web: fetched when | native |
+|---|---|---:|---:|---:|---|---|---|
+| `manifest.json` | versions, urls, sizes, sha256, tile compatibility | < 3 KB | < 1 KB | | the update check | every launch | every launch when online |
+| **paint** | regulations status index (BCSI v2, as today) + **flow paint** (sid runs → panel, panel donors, basin donors) | 2.78 MB | **0.88 MB** | 0.75 MB | first paint needs only this. Both halves are decoded once into typed arrays. | **first paint** | installed |
+| **core** | `item`, `alias`, `item_section` (sid → water), `place` + shipped indexes | 3.03 MB | **1.11 MB** | 0.78 MB | first tap and search, without regulation or conditions bytes | right after paint (parallel) | installed |
+| **near** | `place_water` (waters by town) | 4.92 MB | **1.99 MB** | 1.16 MB | 2× core's size, used only by "near a town" search | first near-search | installed |
+| **water** | regulations common (statics, strings, zdicts, rules, licences, entries, rulesets, akeys, segments, items, parts, pickers, places, runs, `akey_region`) + `part_section` + topology (`part_geo`, `part_mark`, `water_exit`) | 4.94 MB (+≈ 2.5 est.) | **1.94 MB** (+≈ 0.5 est.) | 1.62 MB | every regulations page needs it; shared by all regions | first water opened | installed |
+| **regs-<region>** × 9 | `cell` + frame families for the answer keys whose sections lie in that region (an akey in two regions is in both) | 3.69 MB all | **2.74 MB all**; per region ≈ 0.19–1.32 MB est. (R8 7% … R5 48%) | 2.41 MB all | a reader needs one region's frames. **Tapping a section in another region fetches that region automatically** (owner). | first water in that region | installed |
+| **regs-sid** | `section_akey`, `section_place` (8 KB blocks of u16/u8) | 6.38 MB | **1.22 MB** | 1.04 MB | only unnamed water needs it, but that is most streams | first tap on unnamed water | installed |
+| **conditions** | `gauge`, `section_gauge`, `lake_gauge`, `section_down`, `gauge_clim` (float16) | 6.09 MB | **2.66 MB** | 1.99 MB | the Conditions views only. It changes with gauge matches and climatology, not regulations. | first Conditions view | installed |
+| **total data** | | **≈ 34 MB** | **≈ 12.5 MB** (+ topology est.) | ≈ 9.8 MB | | | |
+| atlas tiles | geometry + the mask layer (P18) | 530.7 MB | (gzip MVT inside) | | separate version (§4) | range reads from R2 | **downloaded whole**, read from a local file |
+| basemap | Protomaps roads, places, landcover | 918.4 MB | (gzip MVT inside) | | separate version, rarely changes | range reads | **downloaded whole** |
+| map assets | glyphs + sprites (self-hosted, generated by the tile step) | ≈ 5–15 MB **est.** | | | needed offline; no CDN at run time | lazy (per glyph range) | downloaded with the tiles |
+
+**Dropped, with the reasons:**
+- `bundle.sqlite` (102.7 MB): only about 25 MB of it is ever read by the app, and that part is now spread over the files
+  above.
+- `status_index.bin` as its own file: it becomes half of paint.
+- `atlas.meta.json`: replaced by the manifest + pmtiles metadata.
+- `regs.sqlite` as a shipped file: its tables are spread over water / regs-<region> / regs-sid, so it disappears from
+  the release (owner Q12).
+- `ui-rules-*.json`: debug-only (owner Q11; P20).
+- `feeds/stats.json`: never read (§9).
+- `bc_outside.geojson`: becomes a tile layer (§9; P18).
+- Conditions no longer carries `section_panel` / `panel_member` / `basin_member`. Those are in paint, which is where
+  they are used: one copy, no duplicate.
+- The section geometry the prototype used (`watermap.js`): the tiles have it.
+
+**What loads when:**
+
+| moment | web (lazy, from R2) | cumulative (gzip) | native (always offline) |
+|---|---|---:|---|
+| first paint (coloured map) | tiles (range) + **paint** | **0.88 MB** (+ the visible tiles) | everything is local |
+| first tap / search by name | + core | 2.0 MB | — |
+| first water opened (named; Region 2, the Vedder) | + water + regs-2 | ≈ 4.2 MB **est.** (worst region, R5: ≈ 5.3 MB) | — |
+| unnamed water | + regs-sid | + 1.2 MB | — |
+| Conditions | + conditions | + 2.7 MB | — |
+| install / update | — | — | first run: tiles 1.45 GB + data 12.5 MB + assets. Updates: only changed files (§5). |
+
+Today the web downloads 105 MB before the first paint, with no regulations in it.
+
+---
+
+## 3. Fast to query: every access, how it is served, measured
+
+**Rule (owner):** every hot path is a keyed lookup through a primary key or a shipped index, or a binary search in an
+array decoded once. The decode unit is at most one row or one 8 KB block. A layout that compresses better but needs a
+scan or a whole-blob decode on a hot path is rejected. Times are the median / p95 of 100–500 random keys, in ms, warm,
+on the measured files.
+
+| # | access | file · how it is served | node:sqlite (≈ native) | sql.js (≈ web) | budget on a mid phone | verdict |
+|---|---|---|---:|---:|---|---|
+| A1 | map tap: sid → water → part → answer key | core `item_section` PK(sid) → water `part_section` PK(ord, sid) → water `part` PK(item_ord, part_ix) | 0.012 / 0.016 | 0.023 / 0.034 | tap → page data < 20 ms | ✓ |
+| A2 | regulations page data for a part on a date: segment → `cell(akey, s)` → 5 frames + about 12 `rows_row`, each inflated with its zdict and parsed | water `akey`/`seglist` PK → regs-<region> `cell` PK(akey, s) → `*_frame` PK(id) | 0.35 / 0.52 | 0.42 / 0.52 | **tap → regs page drawn < 100 ms** (data ≤ 10 ms) | ✓ |
+| A3 | unnamed tap: sid → answer key + place | regs-sid block PK(sid >> 12), one u16/u8 read | 0.006 / 0.008 | 0.011 / 0.013 | < 20 ms | ✓ |
+| A4 | map paint: status for the visible sids on a day; flow panel for the visible sids | paint, decoded once into typed run columns, then binary search per sid | decode 7.9 (status); lookup 5,000 sids 0.22 | decode 14.5; lookup 0.22 / 0.44 | per recolour < 16 ms; decode at start < 150 ms | ✓ (the flow half is the same form, 241k runs ≈ the status index's size) |
+| A5 | search: name + alias + town prefix | core: `item(name NOCASE)` index, `alias` PK(alias NOCASE), `place(name)` index; range + LIMIT 20 | 0.015 / 0.021 | 0.035 / 0.054 | per keystroke < 50 ms | ✓ |
+| A6 | waters near a town | near `place_water` PK(place_id, ckm, ord) | 0.010 / 0.011 | 0.022 / 0.024 | < 50 ms | ✓ |
+| A7 | Conditions for a section: gauge + donors + gauge row + climatology | conditions `section_gauge` PK(sid), `gauge` PK, `gauge_clim` PK(station, parameter); the panel and its donors from paint (A4 arrays) | 0.020 / 0.027 | 0.038 / 0.046 | panel data < 50 ms | ✓ |
+| A8 | trace downstream to the gauge (≤ 5,000 `section_down` steps) | conditions `section_down` PK(sid), one lookup per step | 0.016 / **15.8** | 0.029 / **28.4** | < 50 ms | **✗ at p95** → P12: cached and off the render path; if the device run is over budget, store each gauged section's route end and length |
+| A9 | part highlight, ▼▲ navigation, marks, mouth exit | water `part_section` PK(ord, sid) prefix; `part_geo`/`part_mark`/`water_exit` PK(ord, …) | 0.004 / 0.007 | 0.007 / 0.009 | < 20 ms | ✓ |
+| A10 | licence for a profile | inside A2 (`licence_frame`) + `static licence.profiles` read once | — | — | — | ✓ |
+| A11 | open a file | native: open in place | 0.1–0.3 | — | < 50 ms | ✓ |
+| | | web: `new SQL.Database(bytes)` | — | core 1.3; others 0.4–1.1 | < 50 ms | ✓ |
+| | | (today: the whole bundle in sql.js) | — | 25 ms, **175 MB RSS** | | |
+
+**Indexes ship.** The tuned core with its secondary indexes is 1.11 MB gz (0.78 br). Without them it is 0.48 MB br, and
+building them on the device takes 9.9 ms on the laptop. They ship, so the first query is never slow and web never
+rebuilds them. That is the owner's preference.
+
+**Perf acceptance** is in P08 (packager), P11 (reader) and N1/N2 (device):
+- p95 ≤ 2 ms on the laptop for A1, A3, A5, A6, A7, A9; ≤ 5 ms for A2;
+- each paint decode ≤ 30 ms;
+- no hot access may plan a scan (`EXPLAIN QUERY PLAN` must show `SEARCH … USING PRIMARY KEY|INDEX`);
+- the device run records A1–A11 against the budgets above.
+
+---
+
+## 4. Formatting for size (measured) and the codec
+
+| data | SQLite as today | alternative measured | chosen |
+|---|---:|---|---|
+| core | naive copy 1.21 MB br; **tuned** (WITHOUT ROWID PKs, NOCASE indexes) 0.78 br / 1.11 gz | struct-of-arrays binary 0.25 MB br, but search becomes a scan of about 20k names | tuned SQLite (keyed) |
+| status paint | — | BCSI v2 columnar varint 0.36 br / 0.42 gz | as is (paint) |
+| flow paint (`section_panel`) | B-tree 0.97 MB br | runs (gap, count, panel) + donor columns: 0.39 br / 0.45 gz | runs, in paint |
+| `section_gauge` / `section_down` | B-tree 0.50 + 0.41 MB br | block columns: raw 1.25 MB br but 21.5 MB on disk; deflated 1.70 br; integer-coded SQLite gave nothing | SQLite (keyed; small gain not worth an inflate per lookup) |
+| climatology | f32 blobs 1.71 MB br | **f16 inside SQLite, keyed: 1.01 br**; f16 struct-of-arrays 0.99; log-u16 1.07 | f16 SQLite (max relative error 4.9e-4) |
+| regs sid maps | blocks 1.04 MB br | RLE varint 1.02 | blocks (keyed, same size) |
+| regs frames | deflate + zdict per blob 2.41 br | plain-JSON blobs: −36% on the wire for the whole store, 3.3× on disk | keep deflate + zdict (one frame = one inflate) |
+| near | 1.16 MB br | struct-of-arrays 0.77 (whole-array decode) | SQLite (keyed; lazy anyway) |
+| shared dictionaries across files | — | zstd + trained dictionary on regs blobs ≈ 0% (audit 03 §2c); shared-brotli is Chromium-only; no decoder in React Native | not used |
+
+**Codec: gzip everywhere (owner Q4).**
+
+| | gzip-9 | brotli-11 | difference |
+|---|---:|---:|---:|
+| web first paint (paint) | 0.88 MB | 0.75 MB | 0.13 MB |
+| web first water (paint + core + water + regs-2) | ≈ 4.2 MB | ≈ 3.3 MB | ≈ 0.9 MB |
+| every data file | 12.5 MB | 9.8 MB | 2.7 MB (+28%) |
+| native first install (tiles + data) | ≈ 1,461 MB | ≈ 1,459 MB | 0.2% (the tiles are gzip MVT either way) |
+
+Brotli is not "a LOT better": 0.13 MB at first paint, and noise on a native install. gzip decodes natively on every
+platform, including Android's OkHttp, which needs an extra interceptor for brotli. **Recommendation: gzip everywhere**,
+and the release stores only `.gz` files.
+
+---
+
+## 5. Always offline on native: install and the update check
+
+- **First run:** the app ships with no data.
+  - It reads `manifest.json` and downloads every listed file (data ≈ 12.5 MB gz, atlas 531 MB, basemap 918 MB, map
+    assets) into `documentDirectory/release/` — not the cache directory, which the OS may purge.
+  - Downloads are **resumable** (HTTP Range resume of a `.part` file) and sha-verified.
+  - The map opens as soon as tiles + paint are complete; the other files keep downloading. Wi-Fi is recommended for the
+    tiles (a UI note, not a gate).
+- **Every launch:** the app works fully from the local files.
+  - If online, it fetches `manifest.json` (5 s timeout) and **diffs it per file by sha256** against the held set.
+  - It downloads only new or changed files into `release/<new>/` (unchanged files are hard-linked or copied locally,
+    never re-downloaded) and verifies each sha.
+  - Then it **swaps atomically**: one rename of a `current` pointer file, at the next launch or at a screen boundary.
+  - The previous set is kept until the new one has opened and passed its format and pairing checks, then deleted.
+- **Tiles download only when the tile version changes.** The manifest's `tiles.current.id` differs from the held one,
+  so a data-only release never touches the 1.45 GB.
+- **Failure:** any failed download or check leaves the held set in use, with "Showing the data of <date>".
+  `regulations.valid_until` is shown when passed.
+- **Web:** the same manifest and files. Files are cached in Cache Storage by their immutable URL and fetched lazily
+  (§2). Tiles are range reads from R2. A web user is online by definition, and the browser cannot reliably hold 1.45 GB.
+
+**The size this makes visible:** an always-offline install downloads the map, 1.45 GB, and the basemap is 63% of that.
+The two tile optimisations the owner deferred — atlas maxzoom 13 with overzoom, about −235 MB est.; the basemap landuse
+filter, about −110 MB est. (audit §3.1) — now matter for every install. They remain **deferred to their own effort**.
+They are flagged here so that effort is scheduled before a public native release.
+
+---
+
+## 6. Tiles: geometry only, versioned on their own
+
+### 6.1 What ties data to tiles, and what moves
+
+| tile property / tie | geometry? | decision |
+|---|---|---|
+| `section_id` (sid; feature id via `promoteId`) | the key: the line number in the atlas's `section_handles.txt` | **keep.** It IS the compatibility key. |
+| `ord` (stream magnitude: minzoom, width) | from the graph | keep (changes only with the atlas) |
+| `area_m2` | yes | keep |
+| `water` (a flowing polygon drawn as stream: `lake_flowing` / `wetland_flowing`) | a registry decision made at atlas build (AGENTS 55) | keep: it changes only with a geometry release |
+| `name` (map labels) | **no** (registry + `name_variants`) | **keep for labels only.** MapLibre places label text from the tile, and feature-state cannot drive `text-field`. Every name the app states as fact (headers, search, regs) comes from the data files. A name fix is a data release; tile labels catch up at the next tile release. |
+| `area_id`, `mu_id`, `basin_id`, region | area polygons + `areas.json` | keep; **fix** the 9 of 18 `region` features with no `region_id` (P18) |
+| the outside-BC mask | geometry | **move INTO the atlas tiles** as an `outside` layer (§9; P18) |
+| `vintage.report` compares the registry digest of tiles vs bundle | — | **pair on the handles digest only**; the registry digest is informational (label freshness) |
+| tiles stage key includes the registry (`pipeline/build.py:125-126`) | — | key on geometry inputs only; labels rebuild only with `--labels` |
+
+**No regulation, status or condition ever goes into a tile.** Colours are feature-state from paint.
+
+### 6.2 The compatibility contract (owner Q1: "if the tile is unchanged, a newly changed bundle still works with the old tile")
+
+- **Tile version** `"<handles16>.<tilebuild12>"` = the sid-space digest + the sha of the pmtiles bytes. It is written
+  into the pmtiles metadata (P18).
+- **Every data file** carries `meta.section_handles`. The manifest declares
+  `tiles: { compatible: ["<handles16>.*"], current: {id, url, bytes, sha256} }`.
+- **Any data release built on the same atlas is compatible with every tile build of that atlas.** A data-only release
+  lists the same `handles16`, so a held tile file stays valid and is not downloaded again.
+- **The app** pairs data with tiles only when `compatible` matches the held tile version. On a mismatch it keeps the
+  **last good pair** and says so plainly. It never colours tiles from an incompatible file.
 
 ```json
-{
-  "format": "app-manifest/1",
-  "vintage": { "section_handles": "d768d6e135e62b99", "registry_digest": "8c77ba1cd2dc3929",
-               "reach_digest": "cad1c21fe6eb9ba9", "rule_ids_sha256": "16be720be08b0fca" },
-  "package": { "url": "app-2753a73afa9f20b9.sqlite", "format": "app-pack/1", "schema_sha256": "…",
-               "bytes": 41000000, "sha256": "…" },
-  "atlas":   { "url": "atlas-d768d6e135e62b99.pmtiles", "bytes": 530738094, "sha256": "…" },
-  "basemap": { "url": "basemap-2025-09-25.pmtiles", "bytes": 918378038, "sha256": "…" },
-  "feeds":   { "url": "feeds/live/", "format": "feed/1" },
-  "regulations": { "year": "2025-2027", "valid_until": "2027-03-31" }
-}
+{ "format": "app-manifest/2", "data_release": "2026-10-20.1",
+  "tiles":   { "compatible": ["d768d6e135e62b99.*"],
+               "current": { "id": "d768d6e135e62b99.5f1c0a9e2b7d", "url": "tiles/d768…/atlas-d768….pmtiles", "bytes": 530738094, "sha256": "…" },
+               "assets":  { "id": "glyphs-1", "url": "tiles/d768…/map-assets-1/", "files_sha256": "…" } },
+  "basemap": { "id": "protomaps-2025-09-25", "url": "basemap/protomaps-2025-09-25/basemap.pmtiles", "bytes": 918378038, "sha256": "…" },
+  "files": {
+    "paint": { "url": "2026-10-20.1/paint-1a2b….bin.gz", "bytes": 2776845, "gz": 878083, "sha256": "…", "format": "paint/1", "section_handles": "d768d6e135e62b99" },
+    "core":  { … }, "near": { … }, "water": { …, "regs_versions": {"rows": 26, "gear": 12, "licence": 6, "display": 16, "glossary": 5} },
+    "regs-1": { … }, "…": { }, "regs-sid": { … }, "conditions": { … } },
+  "regulations": { "valid_until": "2027-03-31" } }
 ```
 
-- **Integrity:** the app verifies **decoded bytes and sha256** against the manifest. The `Content-Length` checks in
-  `engine.web.ts:73` and `engine.native.ts:66` go: with `Content-Encoding` that header is the compressed size (audit
-  top-10 #7). One shared `fetchVerified(url, {bytes, sha256})` replaces the duplicated bodies of about 25 lines.
-- **Encoding:** the package is served with `Content-Encoding: br`, falling back to `gzip`. Browsers and iOS decode both.
-  Android OkHttp decodes only gzip unless a brotli interceptor is added. **Default:** br on web, gzip on Android until
-  the interceptor lands (16 MB vs 13 MB; Q4). zstd is not used (no RN support).
-- **Caching:** digest-named URLs are immutable (`Cache-Control: public, max-age=31536000, immutable`), and
-  `manifest.json` gets `max-age=300`. **No clocks in the manifest** (AGENTS 19): it is a pure function of its inputs.
-- **Host:** R2, as the code comments say. No upload script exists; ticket P10 adds `publish` (human-run).
-- **Tiles:** stay HTTP Range reads of gzip MVT tiles (MapLibre Native has no other tile codec, audit §3.2).
+### 6.3 When the atlas changes (new sids)
 
-### 3.2 Versioning and the vintage pairing
+A new atlas gives new sids, so a new tile version, and every data file is rebuilt for it.
+- **No sid remap** (the simplest): one data release targets exactly one sid space. Both tile versions stay on R2 under
+  immutable URLs.
+- A client switches tiles and data together after the new tiles finish downloading. Until then it keeps the old pair.
+- Saved state binds to `item_id` (AGENTS 5), so nothing a user holds needs a remap. A remap would be the "cached resolved
+  section list across versions" that AGENTS 6 forbids.
 
-- **`pack.format = app-pack/1`, `pack.schema_sha256`** = sha of the package DDL. The DDL is generated into
-  `app/packages/data/src/pack.generated.ts` by `python -m pipeline.tools.emit_pack --check` (AGENTS 40), so a schema
-  edit fails CI on both sides. The app refuses a format it does not know.
-- **Regs section versions** stay where T03 reads them (`regs.layout.versions`, `glossary.version`). T03's refusal logic
-  is unchanged.
-- **The pairing:** the manifest names the atlas by its `section_handles` digest, and the package carries the same digest
-  in `meta`.
-  - The app refuses to colour or highlight when the package's `bundle.section_handles` ≠ the atlas archive's.
-  - The atlas archive's own metadata JSON gets `section_handles` + `registry_digest` written at tile build. This closes
-    audit F6: today `atlas.meta.json` is not bound to the pmtiles bytes.
-  - With that, `atlas.meta.json` and `useVintage`'s extra fetch go.
-  - The flow colours must also wait for `ok === true` (audit 02#8, `Shell.tsx:264-267`).
-- **One promote:** `deliver all` builds into an `--out-dir` and promotes the six pipeline files plus `dist/` only after
-  every step passes, including the **card gate** (P05) and the strict vintage check over ALL artifacts
-  (`vintage.report_all`). Today `deliver/__main__.py:118-135` overwrites in place, and the end check covers tiles↔bundle
-  only.
+### 6.4 Release flows
 
-### 3.3 Offline and caching on native
-
-- **Startup:** fetch `manifest.json` with a 5 s timeout and an `AbortController`.
-  - Unreachable: open the **last good package** from `FileSystem.documentDirectory/pack/`, show its age, and keep the
-    tiles' HTTP cache.
-  - Changed sha: download in the background to `app-<sha>.sqlite.part`, verify the sha, `rename` to the final name,
-    then open it **at the next launch, or at a screen boundary when no sheet is open**.
-  - Keep the previous package until the new one has opened and passed its format and vintage checks, then delete it.
-  - The atlas URL changes in the same manifest, so a cached old tile never meets a new package.
-- **Open from disk, not `deserializeDatabaseAsync`.** expo-sqlite opens a file in a given directory (SDK 51+
-  `openDatabaseAsync(name, options, directory)`; **NOT VERIFIED on this project's Expo version** — the P11 spike checks
-  it). Native memory then holds pages, not 41 MB.
-- **Tiles offline:** not in this plan. The native map is unbuilt (`Map.native.tsx:16-26`). The regs page and Conditions
-  history work offline from the package; the map needs the network (or MapLibre's ambient cache). Per-region offline
-  pmtiles extracts are an owner call (Q5).
-- **Expiry:** `regulations.valid_until` is shown when passed. Today `validUntil` is never shown (audit 02#8).
-
-### 3.4 Web
-
-- `manifest.json` → Cache Storage keyed by the immutable URL → sql.js `new SQL.Database(bytes)`.
-- The pmtiles are range-read as today.
-- Memory is about 41 MB in the wasm heap, against about 103 MB today. P11 measures the first open on a phone browser.
-- A range-read VFS is not needed at this size.
-
----
-
-## 4. Geometry only from the tiles: highlight, framing, up/downstream
-
-**Rule: the app stores no section geometry.** Lines and polygons come from `atlas.pmtiles` (feature id = `sid`). The
-package carries only **topology and camera hints**: a handful of numbers per part, computed once by the pipeline, which
-already loads `geometries.pkl` in the bundle build.
-
-| need | how | data |
+| | (a) data-only (regulations, answers, gauges, curated names) | (b) geometry (new atlas) |
 |---|---|---|
-| highlight the part being read | feature-state `selected` on stream/lake/wetland features whose id ∈ the part's sids | `part_section(ord, sid, part_ix)` |
-| frame the part / the whole water | `fitBounds` | `part_geo.w,s,e,n` (lon/lat, 4 × f32); the whole water = the union (computed at pack time into `item_geo`) |
-| status colours on the water map | as the main map | `status_index` |
-| ▼ Downstream / ▲ Upstream | step along the water's **part graph**, mouth first. Side channels and lake splits are why it is a graph, not i ± 1 (research C). | `part_geo.order` (mouth-first rank) + `part_mark(ord, mark_ix, lon, lat, label_s, down_part, up_parts)`. The marks are the boundaries where two parts touch within 60 m, each with its split label ("Vedder Crossing"), as `water_map_export.py` computes them today. |
-| leave the water downstream (mouth → the receiving water) | "Flows into the Fraser ›" opens that water on the part it enters | `water_exit(ord, down_item_ord, down_part_ix)`, from `item_down` + `section_down` |
-| "Conditions here" | open Conditions on the section at the part's midpoint, with weather at that point | `part_geo.mid_sid`, `mid_lon`, `mid_lat` |
-| part labels, short labels, hints, km | already in the store | `regs_part.label_s/short_s/hint_s/km` |
+| pipeline | `pipeline build`: reach (if the corpus changed) → deliver all → card gate → release. **The tiles stage is skipped** (geometry key unchanged). | `pipeline build --atlas … --promote` → reach → tiles (new version + mask layer + map assets) → deliver all → card gate → release |
+| checks | `vintage.report_all(strict)`: every file's `section_handles` == the held tile version's; the card gate; parity, perf and size tests; the `--check` generators | the same + atlas parity + the per-rule binding diff vs live (AGENTS 63) + the tile tests |
+| publish (human-run) | `data/release/<r>/` → R2, `manifest.json` last | tiles + assets → R2, then the data, then `manifest.json` last |
+| native client | downloads only the changed data files | downloads the new tiles (1.45 GB class) + the changed data, swaps both together |
 
-**The midpoint is defined in the pipeline.**
-- **Stream part:** the sid that contains the point at half the part's length, measured along its main stem (by `route
-  measure` where `section_span` has it, otherwise by summed section length in mouth-first order). `mid_lon/mid_lat` is
-  that point.
-- **Lake part:** `mid_sid` is the part's `rep_sid` (bundle `part.rep_sid`), the conditions use `lake_gauge` as today, and
-  the point is the polygon's representative point.
-- **Why stored, not computed on device:** the app cannot compute a length-weighted midpoint without geometry, and tiles
-  are clipped per tile.
-
-**What replaces what:**
-- `usePickFocus`'s place-ring trilateration and the `querySourceFeatures` re-fit loop (`ui/src/search.ts:145`,
-  `Map.web.tsx:501`) are replaced by `part_geo` / `item_geo` bounds.
-- `watermap.js` (a projected-SVG copy of three waters) is retired: the app draws the real tiles.
-- WaterScreen's two "Conditions" doors use `sections[0]`, which assumes the first sid is the mouth
-  (`WaterScreen.tsx:87-88,115-134`). They are replaced by `mid_sid`.
-
-**Size:** 20,461 parts × (rank, mid_sid, 2 + 4 floats) ≈ 0.6 MB, marks ≈ 1–1.5 MB, `water_exit` ≈ 0.2 MB.
-About 2.5 MB raw, under 1 MB br. **est.** P09 measures it.
+Per-file granularity in practice:
+- a gauges-only release changes **conditions** (and paint, if the panels moved);
+- a regulations release changes paint (status) + water + regs-* + regs-sid;
+- a curated-name release changes core + water.
 
 ---
 
-## 5. One bundling step: the producers after the change
+## 7. Web and native: the same tiles, a different source and renderer (owner Q9)
+
+**Yes, it is the same tile file.** Web and native use the identical `atlas.pmtiles` and `basemap.pmtiles` bytes, the
+identical style (`layers.source.json` → `runtime-style.ts`) and the identical feature ids. Only two things differ:
+
+| | web | native |
+|---|---|---|
+| where the tiles come from | HTTPS range reads from Cloudflare R2 (`pmtiles://https://…`) | a local file downloaded once (`documentDirectory/release/tiles/…/atlas-….pmtiles`), read in place |
+| what draws them | MapLibre GL JS in the browser (`Map.web.tsx`) | **MapLibre Native** through a React Native binding. GL JS needs a browser WebGL canvas, which React Native does not have outside a WebView. `Map.native.tsx` is a placeholder today (`:16-26`). |
+
+The native map work is therefore **the renderer binding behind the existing adapter contract**. It is not new data or
+new tiles. N1 is a spike: does the binding read a local pmtiles file, and does it support feature-state? N2 builds it.
+A fallback if the binding fails: run `Map.web.tsx` inside a WebView on native (same code, weaker gestures and
+performance); N1 measures both.
+
+---
+
+## 8. The one bundling step
 
 ```
-pipeline build  (reach → tiles → deliver)
+pipeline build
+  [atlas --promote]                                   geometry release only
+  reach
+  tiles   (geometry key) → data/generated/tiles + data/release/tiles/<version>/ (+ mask layer, map assets)
   deliver all --out-dir <tmp>
-    bundle      → bundle.sqlite            (pipeline DB; + part_geo, part_mark, water_exit — P09)
-    verdicts    → verdicts.sqlite          (pipeline only)
-    status_index→ status_index.bin         (kept as a file for the pipeline tests; copied into the package)
-    export      → ui-rules-export.json …   (pipeline only)
-    answers     → ui-rules-answers.json    (pipeline only)
-    card_check  → FAILS THE CHAIN on any problem (P05)
-    store       → regs.sqlite              (pipeline only, read by the port tooling)
-    package     → dist/<vintage>/{manifest.json, app-<sha>.sqlite}   + the atlas named by digest
-    vintage.report_all(strict)  → promote everything, or nothing
+    bundle → verdicts → status_index → export(model) → answers(model) → card_check (blocks) → store(model)
+    release → data/release/<data_release>/  (paint, core, near, water, regs-*, regs-sid, conditions, manifest)
+    vintage.report_all(strict) → promote all, or nothing
 ```
 
-`package` is a copy-and-assemble step with **no logic**:
-- it `ATTACH`es the bundle and the store;
-- copies the E6 tables, the `regs_*` tables and the topology tables;
-- inserts the status blob;
-- writes `meta`, `VACUUM INTO`, then hashes.
-- A parity test runs **every query in `app/packages/data/src/bundle/queries.ts`** against both the bundle and the
-  package and requires identical rows.
-- The regs tables are byte-copied, so `store check` still holds.
-
-**Later, removing the remaining middle-men (M6, pipeline refactor, not needed for the app):**
-- `store` writes its tables straight into the package. `regs.sqlite` as a file stays only while the port tooling reads
-  it (`port/taps.py`, `verify_map.py`).
-- `answers` hands its model to `store` in memory. `ui-rules-answers.json` becomes `--debug-json`, written only for the
-  prototype and page chain until the port lands.
-- `export` folds into `answers` in-process: the export's tests read `export_ui_rules.build()` in memory, as AGENTS 58
-  already says. The JSON pair becomes a debug dump.
-- `feeds/stats.json` is dropped (never fetched). `bc_outside.geojson` and `pipeline.deliver.tiles.boundary` are dropped
-  from serving.
+`release` assembles the files and holds no regulation logic. It copies tables, cuts the region shards (akey → regions
+through `section_akey` × `section_place` × `place.regions`), writes the paint runs, writes the indexes, `VACUUM INTO`,
+gzips, hashes and writes the manifest. No JSON is written by default (P20).
 
 ---
 
-## 6. Migration from today
+## 9. Verified answers to the owner's back-questions
 
-| step | what | app change | pipeline change | proves |
-|---|---|---|---|---|
-| **M0** | guard the chain | — | `meta.format = bundle/N` + `schema_sha256` (audit F3); card gate in `deliver all` (P05); `--out-dir` + promote-all (P07) | a failed step leaves the live set untouched |
-| **M1** | packager v1 | — | `deliver package` → `dist/`: E6 + `regs_*` + status blob + `part_section`; `emit_pack --check`; query-parity test (P08) | the package answers every app query like the bundle |
-| **M2** | the app reads the package | `config.ts` endpoints (no localhost literals); `fetchVerified` + manifest; `PackSource` = `makeBundleSource` over the package Db; status from the blob; stop fetching `/province.sqlite`, `/status_index.bin`, `/atlas.meta.json`, `/bc_outside.geojson`; `serve-tiles.mjs` serves `dist/` (P10, P11) | cold start 105 MB → ≈ 13 MB |
-| **M3** | regulations | integration T01/T03 open `RegsStore` over the package Db (table prefix `regs_`); no `/regs.sqlite` route | — | T03's checks pass on the package |
-| **M4** | topology + water map | the regs-mode map (P15), "Conditions here" (P14) | `part_geo`, `part_mark`, `water_exit` in the bundle + package (P09) | the Vedder/Cowichan/KLWA water maps match the prototype's part order and marks |
-| **M5** | native caching | disk cache, atomic swap, offline open; open from file (P11) | `publish` to R2 (P10) | airplane-mode launch opens the last package |
-| **M6** | retire the middle-men | — | store → package directly; answers/export JSON → debug dumps; drop `stats.json`, the mask | `deliver all` writes only pipeline DBs + `dist/` |
-
-Each step lands green on its own. M2 can ship before M3: the regs tables simply sit unused in the package until the
-integration lands.
+- **Q4 gzip vs brotli:** measured in §4. gzip costs 0.13 MB at web first paint and 0.2% of a native install. gzip
+  everywhere.
+- **Q9 same tile?** Yes. §7 covers what differs: the source and the renderer.
+- **Q14 Feb 29:** in APP-PREP P06. Feb 29 reads Feb 28's regulations by date, with its own real weekday.
+- **Q16 the mask:**
+  - It is **not in the tiles and it IS used.** `app/packages/map/src/runtime-style.ts:331-360` draws the `outside` fill
+    layer from `bc_outside.geojson` (`App.tsx:37`).
+  - The `outside-bc` background (`:280`) is explicitly "NOT the outside-BC mask" (`:276-279`). It is only the colour
+    under the basemap. An earlier research note calling the file redundant was wrong.
+  - Plan: the tile step writes the mask polygon into the atlas tiles as an `outside` layer. It is geometry, versioned
+    with the tiles. The style reads it from there, and the geojson file stops being produced and served (P18, P20).
+  - Check: the atlas starts at z4, so the style needs a fill for zooms under 4 (or a min zoom of 4).
+- **Q16 stats.json:**
+  - **Not used, and not used for map colouring.** The map's flow and standing colours come from `feeds/index.json`
+    (`feed.index()` at `app/packages/ui/src/panel.ts:121,193,258`, `hooks.ts:259,432`) plus the panel and basin donors.
+  - `stats.json` is read only by `record(station)` (`app/packages/data/src/feed/http.ts:179,219-223`), and nothing calls
+    it.
+  - The publisher writes it at `pipeline/gauges/feed/publish.py:644-646`. Stop writing it and delete `record()` (P20).
+- **Q17 `blk_chains.pkl`:**
+  - It is written at `pipeline/atlas/build.py:990`, and no code reads the file. The chains are used in memory during
+    the build (`build.py:467,589`).
+  - The only mention of the file is the determinism hash list in `pipeline/tests/test_no_slivers.py:234`.
+  - Stop writing it, drop it from that list, and save 2.57 GB per build (P21).
 
 ---
 
-## 7. Sizes summary (today → target)
+## 10. Map navigation from the tiles: topology and camera hints, no geometry
 
-| | today | target |
-|---|---:|---:|
-| cold-start download | 105.1 MB identity | ≈ 13 MB br (≈ 16 MB gzip) **est.**, once per vintage on native |
-| on device | 102.7 MB bundle (in memory) + 1.66 MB index | ≈ 41 MB package **est.** (native: on disk, paged) |
-| regulations | not shipped (would add 14.2 MB + a second handshake) | inside the package |
-| geometry | tiles (+ a 288 KB SVG copy for 3 waters in the prototype) | tiles only, + ≈ 2.5 MB topology/camera hints **est.** |
-| files the app fetches at startup | 5 (+ wasm on web) | 2 (manifest, package; + wasm on web) |
+The app stores no section geometry. Lines and polygons come from the atlas tiles (feature id = sid). The **water** file
+carries only topology and camera hints, computed once by the pipeline, which already loads `geometries.pkl` in the
+bundle build (P09):
+
+| need | how | data (in water) |
+|---|---|---|
+| highlight the part being read | feature-state `selected` on the part's sids | `part_section(ord, sid, part_ix)` |
+| frame the part / the whole water | `fitBounds` | `part_geo.w,s,e,n` (lon/lat); the whole water = the union |
+| ▼ Downstream / ▲ Upstream | step along the part graph, mouth first; side channels and lake splits make it a graph | `part_geo.rank` + `part_mark(ord, mark_ix, lon, lat, label, down_part, up_parts)` |
+| leave by the mouth | "Flows into <name> ›" opens the receiving water at the part it enters | `water_exit(ord, down_ord, down_part)` |
+| "Conditions here" (owner: next to Map) | Conditions on the section at the midpoint of the **part being read**, "between x and y" | `part_geo.mid_sid`, `mid_lon`, `mid_lat` |
+
+**How the midpoint is found (owner Q7):**
+- **Stream part:** the point at half the part's length along its main stem, measured mouth-first (by route measure
+  where `section_span` has it, otherwise by summed section length). `mid_sid` is the section containing that point.
+- **Lake part:** `rep_sid` and the polygon's representative point.
+
+**Size:** about 2.5 MB raw, 0.5 MB gzip, est. (P09 measures it).
+
+**What it replaces:**
+- `usePickFocus`'s trilateration and the `querySourceFeatures` re-fit loop (`ui/src/search.ts:145`,
+  `Map.web.tsx:501`);
+- WaterScreen's two "Conditions" doors that use `sections[0]` (`WaterScreen.tsx:87-88,115-134`);
+- the prototype's `watermap.js`.
