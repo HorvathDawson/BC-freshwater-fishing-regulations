@@ -13,8 +13,10 @@ import { LIGHT } from "./theme";
 
 afterEach(cleanup);
 
+// LOCAL parts: the list dates a spot by the reader's own day (P12b), so the test must not depend on the zone it runs in.
+const VISIT = new Date(2026, 7, 30, 23, 30).getTime();
 const spot = (over: Partial<Spot> = {}): Spot => ({
-  id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
+  id: "s1", createdAt: VISIT, visitedAt: VISIT, updatedAt: 0,
   lat: 49.0974, lon: -121.9675, item: null, waterName: null,
   title: "Tamihi run", notes: "", photos: [],
   reading: null, weather: null, trace: null, panel: null, ...over,
@@ -25,7 +27,8 @@ describe("<SpotsScreen>", () => {
     const { getByText } = render(
       <SpotsScreen palette={LIGHT} spots={[]} onOpen={() => {}} onAdd={() => {}} />);
     expect(getByText("No spots yet")).toBeTruthy();
-    expect(getByText(/records the gauge/)).toBeTruthy();
+    expect(getByText("Pin an exact point on a stream and the app records the gauge, its standing against the " +
+                     "record and the weather that day. Notes and photographs go on top.")).toBeTruthy();
   });
 
   it("offers a way in from the empty state", () => {
@@ -39,30 +42,31 @@ describe("<SpotsScreen>", () => {
   it("shows a spot with no photo, no gauge and no water as a normal spot", () => {
     // 97.6% of BC's water has no registry item, so a pin on unnamed water is the ORDINARY
     // case. If it rendered as degraded, most real pins would look broken.
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <SpotsScreen palette={LIGHT} spots={[spot()]} onOpen={() => {}} onAdd={() => {}} />);
     expect(getByText("Tamihi run")).toBeTruthy();
-    expect(getByText(/no gauge/)).toBeTruthy();
+    expect(getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · no gauge · no weather\n49.0974, -121.9675");
     expect(getByText("NO PHOTO")).toBeTruthy();
   });
 
   it("shows the reading that was recorded, not a live one", () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <SpotsScreen palette={LIGHT} onOpen={() => {}} onAdd={() => {}}
                    spots={[spot({ reading: { station: "08MH001", discharge: 15.7, level: null,
                                             percentile: 0.038, at: null },
                                   weather: { window: null, tempC: 14, windKph: null, windDir: null,
                                              rain3h: null, pressureHpa: null, code: null,
                                              at: null } })]} />);
-    expect(getByText(/15\.7 m³\/s/)).toBeTruthy();
-    expect(getByText(/p4/)).toBeTruthy();
-    expect(getByText(/14°C/)).toBeTruthy();
+    expect(getByTestId("spot-row-s1").textContent)
+      .toBe("2026-08-30 · 15.7 m³/s · p4th · 14°C\n49.0974, -121.9675");
   });
 
-  it("always shows where the spot is, because that is the one thing it cannot lose", () => {
-    const { getByText } = render(
-      <SpotsScreen palette={LIGHT} spots={[spot()]} onOpen={() => {}} onAdd={() => {}} />);
-    expect(getByText(/49\.0974, -121\.9675/)).toBeTruthy();
+  it("dates the row by the local day at the water, not the day it was typed up", () => {
+    // Always shows where the spot is, too: the one thing it cannot lose.
+    const { getByTestId } = render(
+      <SpotsScreen palette={LIGHT} spots={[spot({ createdAt: new Date(2026, 8, 1, 8).getTime() })]}
+                   onOpen={() => {}} onAdd={() => {}} />);
+    expect(getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · no gauge · no weather\n49.0974, -121.9675");
   });
 
   it("opens the spot you tapped", () => {

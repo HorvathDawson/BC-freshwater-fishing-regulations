@@ -9,30 +9,12 @@
  * Every control is a 44 px target with its own accessible label, and the day is said in words
  * ("Oct 10"), never a bare number.
  */
-import { monthAbbr } from "@app/core";
+import { dayLabel, shiftDay } from "@app/core";
 import { Pressable, Text, View } from "react-native";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
 
-/** "Oct 10" */
-export function dayLabel(d: Date): string {
-  return `${monthAbbr(d.getMonth())} ${d.getDate()}`;
-}
-
-/** The day `n` days (or, with `months`, months) after `d`; a month step keeps the day, clamped. */
-export function shiftDay(d: Date, n: number, months = false): Date {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  if (!months) {
-    x.setDate(x.getDate() + n);
-    return x;
-  }
-  const day = x.getDate();
-  x.setDate(1);
-  x.setMonth(x.getMonth() + n);
-  const last = new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate();
-  x.setDate(Math.min(day, last));
-  return x;
-}
+// The day arithmetic and its words are `core/day.ts` (P12b); this only draws them.
 
 export function MapDay({ palette, day, onDay }:
   { palette: Palette; day: Date | null; onDay: (d: Date | null) => void }) {

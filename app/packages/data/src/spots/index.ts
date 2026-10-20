@@ -14,3 +14,4 @@ export { openSpotsWith, SpotsCorrupt, type SpotsFs, type SpotsStore } from "./co
 export { serialised } from "./queue";
 export { openMeteo, OPEN_METEO_ATTRIBUTION } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
+export { observedLine, spotHeadline, spotRowLines, weatherTrend } from "./words";

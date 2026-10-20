@@ -18,13 +18,12 @@
  * the choice and asking is the difference between picking and guessing.
 
  */
-import type { SectionKey } from "@app/core";
+import { VISIT_QUICK_DAYS, type SectionKey, type VisitSteps } from "@app/core";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { RegsSource, SectionId } from "@app/data";
 import type { Spot, WeatherSource } from "@app/data/spots";
-import { captureSpot } from "@app/data/spots";
-import { spotSaveFailed } from "@app/ui";
+import { useCaptureSpot, type CaptureWater } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
@@ -58,16 +57,13 @@ export interface SpotCaptureProps {
 export function SpotCapture(props: SpotCaptureProps) {
   const { palette, tiles, theme, camera, source, feed } = props;
   const [step, setStep] = useState<Step>("water");
-  const [water, setWater] = useState<{ section: SectionId; item: ItemId | null;
-                                       name: string | null } | null>(null);
+  const [water, setWater] = useState<CaptureWater | null>(null);
   const [point, setPoint] = useState<{ lat: number; lon: number } | null>(null);
-  // Defaults to now, because that is the common case and a default nobody has to touch is
-  // worth more than a blank that everybody must.
-  const [visitedAt, setVisitedAt] = useState(() => Date.now());
-  const [draft, setDraft] = useState<Spot | null>(null);
+  // The visit's day and hour, the capture and the save: `useCaptureSpot` (P12b).
+  const cap = useCaptureSpot({ source, weather: props.weather, feed });
+  const draft = cap.draft;
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const pickWater = async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
@@ -80,30 +76,16 @@ export function SpotCapture(props: SpotCaptureProps) {
   const toDetails = async () => {
     if (!water || !point) return;
     setStep("saving");
-    setError(null);
-    let spot: Spot;
-    try {
-      spot = await captureSpot({
-        feed,
-        source, weather: props.weather, at: point, visitedAt,
-        item: water.item, section: water.section, waterName: water.name,
-        title: title || water.name || "",
-      });
-    } catch (e) {
-      // never left on "saving": back to the step that asked, with the reason (P01)
-      setError(spotSaveFailed(e));
-      setStep("when");
-      return;
-    }
-    setDraft(spot);
-    setTitle(spot.title);
+    // never left on "saving": a failure goes back to the step that asked, with the reason (P01)
+    if (!(await cap.capture(water, point, title))) { setStep("when"); return; }
+    setTitle(title || water.name || "");
     setStep("details");
   };
 
   if (step === "when") {
     return (
-      <WhenScreen palette={palette} at={visitedAt} onChange={setVisitedAt}
-                  water={water?.name ?? null} error={error}
+      <WhenScreen palette={palette} steps={cap.steps} onShiftDay={cap.shiftDay} onDay={cap.toDay}
+                  onHour={cap.setHour} water={water?.name ?? null} error={cap.error}
                   onBack={() => setStep("point")} onNext={toDetails} />
     );
   }
@@ -117,15 +99,9 @@ export function SpotCapture(props: SpotCaptureProps) {
       <SpotScreen spot={draft} palette={palette} mode="draft"
                   title={title} notes={notes} onTitle={setTitle} onNotes={setNotes}
                   onBack={() => setStep("when")}
-                  error={error}
-                  onSave={async () => {
-                    setError(null);
-                    try {
-                      await props.onSaved({ ...draft, title: title || draft.title, notes, updatedAt: Date.now() });
-                    } catch (e) {
-                      setError(spotSaveFailed(e));      // the sheet stays open with the draft in it
-                    }
-                  }} />
+                  error={cap.error}
+                  // a failure is said and the sheet stays open with the draft in it
+                  onSave={() => cap.save(title, notes, props.onSaved)} />
     );
   }
 
@@ -169,26 +145,13 @@ export function SpotCapture(props: SpotCaptureProps) {
  * archive has nothing for tomorrow, and a spot that records a visit that has not happened
  * is not a spot.
  */
-function WhenScreen({ palette, at, onChange, water, onBack, onNext, error }: {
-  palette: Palette; at: number; onChange: (t: number) => void;
+function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, onNext, error }: {
+  palette: Palette; steps: VisitSteps;
+  onShiftDay: (n: number) => void; onDay: (offset: number) => void; onHour: (h: number) => void;
   water: string | null; onBack: () => void; onNext: () => void; error?: string | null;
 }) {
-  const d = new Date(at);
-  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
-  const dayOffset = Math.round(
-    (new Date(at).setHours(0, 0, 0, 0) - startOfToday.getTime()) / 86_400_000);
-
-  const shiftDay = (n: number) => {
-    const next = new Date(at); next.setDate(next.getDate() + n);
-    if (next.getTime() > Date.now()) return;      // never ahead of now
-    onChange(next.getTime());
-  };
-  const setHour = (h: number) => {
-    const next = new Date(at); next.setHours(h, 0, 0, 0);
-    onChange(Math.min(next.getTime(), Date.now()));
-  };
-
-  const quick: [string, number][] = [["Today", 0], ["Yesterday", -1], ["2 days ago", -2]];
+  const { dayOffset } = steps;
+  const { hour } = steps;
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card, padding: 20, gap: 26 }}>
@@ -209,9 +172,9 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext, error }: {
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
                        color: palette.faint }}>DAY</Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-          {quick.map(([label, off]) => (
+          {VISIT_QUICK_DAYS.map(([label, off]) => (
             <Pressable key={label} accessibilityRole="button" accessibilityLabel={label}
-                       onPress={() => shiftDay(off - dayOffset)}
+                       onPress={() => onDay(off)}
                        style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
                                 borderWidth: 1,
                                 borderColor: dayOffset === off ? palette.accent : palette.line2,
@@ -224,12 +187,12 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext, error }: {
           ))}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14, paddingTop: 4 }}>
-          <Step palette={palette} label="Earlier day" glyph="‹" onPress={() => shiftDay(-1)} />
+          <Step palette={palette} label="Earlier day" glyph="‹" onPress={() => onShiftDay(-1)} />
           <Text style={{ ...TYPE.bodyStrong, flex: 1, textAlign: "center", color: palette.ink }}>
-            {d.toDateString()}
+            {steps.dayText}
           </Text>
-          <Step palette={palette} label="Later day" glyph="›" onPress={() => shiftDay(1)}
-                disabled={dayOffset >= 0} />
+          <Step palette={palette} label="Later day" glyph="›" onPress={() => onShiftDay(1)}
+                disabled={!steps.laterDay} />
         </View>
       </View>
 
@@ -238,15 +201,13 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext, error }: {
                        color: palette.faint }}>HOUR</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <Step palette={palette} label="Earlier hour" glyph="‹"
-                onPress={() => setHour(d.getHours() - 1)} disabled={d.getHours() <= 0} />
+                onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />
           <Text style={{ ...TYPE.figureBig, fontSize: 30, flex: 1, textAlign: "center",
                          color: palette.ink }}>
-            {String(d.getHours()).padStart(2, "0")}:00
+            {steps.hourLabel}
           </Text>
           <Step palette={palette} label="Later hour" glyph="›"
-                onPress={() => setHour(d.getHours() + 1)}
-                disabled={d.getHours() >= 23
-                          || new Date(at).setHours(d.getHours() + 1, 0, 0, 0) > Date.now()} />
+                onPress={() => onHour(hour + 1)} disabled={!steps.laterHour} />
         </View>
       </View>
 

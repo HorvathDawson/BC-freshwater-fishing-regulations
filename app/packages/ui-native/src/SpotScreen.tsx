@@ -22,8 +22,8 @@
  */
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { isUntitled, needsRefresh, refreshReason, spotLabel, type Spot,
-  type SpotWeather, type WeatherSample } from "@app/data/spots";
+import { isUntitled, needsRefresh, observedLine, refreshReason, spotHeadline, spotLabel, weatherTrend,
+  type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { percentileLabel } from "@app/core";
@@ -68,7 +68,6 @@ export function SpotScreen(p: SpotScreenProps) {
 
   const r = spot.reading;
   const w = spot.weather;
-  const when = new Date(spot.visitedAt ?? spot.createdAt);
 
   // Edit with nothing changed is not a decision worth interrupting someone for.
   const leaveEdit = () => (p.dirty ? setConfirm("discard") : p.onDiscard?.());
@@ -135,9 +134,9 @@ export function SpotScreen(p: SpotScreenProps) {
               <Text style={{ ...TYPE.small, color: palette.accent }}>Add a title</Text>
             </Pressable>
           )}
-          <Text style={{ ...TYPE.small, color: palette.sub }}>
-            {when.toISOString().slice(0, 10)} at {when.toISOString().slice(11, 16)} ·{" "}
-            {spot.lat.toFixed(4)}, {spot.lon.toFixed(4)}
+          {/* The visit, in the reader's own time (P12b) — the day they were at the water. */}
+          <Text testID="spot-when" style={{ ...TYPE.small, color: palette.sub }}>
+            {spotHeadline(spot)}
           </Text>
           {spot.waterName && (
             <Text style={{ ...TYPE.small, color: palette.faint }}>
@@ -355,33 +354,15 @@ function Window({ weather, palette }: { weather: SpotWeather; palette: Palette }
   );
 }
 
-/**
- * What changed across the window, in words.
- *
- * Thresholds are the width of the models' own disagreement, so a value below one is noise
- * rather than a trend: 10 points of cloud, 1 hPa of pressure. Below both, the honest
- * sentence is that it was holding — which is itself information.
- */
+/** What changed across the window, in words — `weatherTrend` in @app/data/spots says it, or says nothing. */
 function Trend({ win, palette }: {
   win: NonNullable<SpotWeather["window"]>; palette: Palette;
 }) {
-  const b = win.before, a = win.after;
-  if (!b || !a) return null;
-
-  const bits: string[] = [];
-  if (b.cloudPct != null && a.cloudPct != null) {
-    const d = a.cloudPct - b.cloudPct;
-    bits.push(d >= 10 ? "clouding over" : d <= -10 ? "clearing" : "cloud holding");
-  }
-  if (b.pressureHpa != null && a.pressureHpa != null) {
-    const d = a.pressureHpa - b.pressureHpa;
-    bits.push(d >= 1 ? "pressure rising" : d <= -1 ? "pressure falling" : "pressure steady");
-  }
-  if (!bits.length) return null;
-
+  const said = weatherTrend(win);
+  if (said === null) return null;
   return (
-    <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-      {bits.join(" · ")} — across the hour either side
+    <Text testID="spot-trend" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
+      {said}
     </Text>
   );
 }
@@ -426,14 +407,9 @@ function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
 function Meta({ palette, at, backfilled, station }: {
   palette: Palette; at: string | null; backfilled?: boolean; station?: string | null;
 }) {
-  const bits = [
-    station ?? null,
-    at ? `observed ${at.replace("T", " ").slice(0, 16)}` : "no observation time recorded",
-    backfilled ? "filled in afterwards" : null,
-  ].filter(Boolean);
   return (
-    <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-      {bits.join(" · ")}
+    <Text testID="spot-observed" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
+      {observedLine(at, backfilled, station)}
     </Text>
   );
 }

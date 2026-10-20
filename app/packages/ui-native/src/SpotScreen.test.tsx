@@ -14,8 +14,10 @@ import { LIGHT } from "./theme";
 
 afterEach(cleanup);
 
+// LOCAL parts, so the dated lines below read the same in any time zone the suite runs in.
+const VISIT = new Date(2026, 7, 30, 9).getTime();
 const spot = (over: Partial<Spot> = {}): Spot => ({
-  id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
+  id: "s1", createdAt: VISIT, visitedAt: VISIT, updatedAt: 0,
   lat: 49.0974, lon: -121.9675, item: null, waterName: null,
   title: "Tamihi run", notes: "", photos: [],
   reading: null, weather: null, trace: null, panel: null, ...over,
@@ -23,36 +25,39 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
 
 describe("<SpotScreen>", () => {
   it("dates every spot, because a spot is a record and not a reading", () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} />);
-    expect(getByText(/2026-08-30/)).toBeTruthy();
+    expect(getByTestId("spot-when").textContent).toBe("2026-08-30 at 09:00 · 49.0974, -121.9675");
   });
 
   it("says WHY there is no discharge instead of showing a dash", () => {
     // A gauge that does not speak for this water is not a missing value — it is an answer.
     const { getByText, queryByText } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} />);
-    expect(getByText(/No gauge is entitled to speak/)).toBeTruthy();
+    expect(getByText("No gauge is entitled to speak for this water, so no reading was recorded. A station " +
+                     "draining a far larger watershed would have given a number, and the number would have been " +
+                     "wrong.")).toBeTruthy();
     expect(queryByText("m³/s")).toBeNull();
   });
 
   it("marks a value that was filled in after the fact", () => {
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({
         reading: { station: "08MH016", discharge: 41.2, level: 1.42, percentile: 0.62,
                    at: "2026-08-30T09:00", backfilled: true },
       })} />);
-    expect(getByText(/filled in afterwards/)).toBeTruthy();
+    expect(getByTestId("spot-observed").textContent)
+      .toBe("08MH016 · observed 2026-08-30 09:00 · filled in afterwards");
     expect(getByText("41.2")).toBeTruthy();
   });
 
   it("does not claim a backfill when the reading was live", () => {
-    const { queryByText } = render(
+    const { getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({
         reading: { station: "08MH016", discharge: 41.2, level: null, percentile: null,
                    at: "2026-08-30T09:00", backfilled: false },
       })} />);
-    expect(queryByText(/filled in afterwards/)).toBeNull();
+    expect(getByTestId("spot-observed").textContent).toBe("08MH016 · observed 2026-08-30 09:00");
   });
 
   it("offers a refresh only when something is actually stale", () => {
@@ -92,26 +97,29 @@ describe("<SpotScreen> cloud window", () => {
   });
 
   it("shows the hour either side, so the direction is readable", () => {
-    const { getByText, getByLabelText } = render(
+    const { getByTestId, getByLabelText } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ weather: w() })} />);
-    expect(getByLabelText("Cloud −1 h")).toBeTruthy();
-    expect(getByText(/clouding over/)).toBeTruthy();
+    expect(getByLabelText("Cloud −1 h").textContent).toBe("35%");
+    expect(getByTestId("spot-trend").textContent)
+      .toBe("clouding over · pressure falling — across the hour either side");
   });
 
   it("calls it clearing when the sky opened up", () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ weather: w({
         window: { before: hour(90, 1014), at: hour(60, 1014), after: hour(20, 1014) },
       }) })} />);
-    expect(getByText(/clearing/)).toBeTruthy();
+    expect(getByTestId("spot-trend").textContent)
+      .toBe("clearing · pressure steady — across the hour either side");
   });
 
   it("reports the barometer's direction, which decides as much as the sky", () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ weather: w({
         window: { before: hour(60, 1016), at: hour(60, 1014), after: hour(60, 1011) },
       }) })} />);
-    expect(getByText(/pressure falling/)).toBeTruthy();
+    expect(getByTestId("spot-trend").textContent)
+      .toBe("cloud holding · pressure falling — across the hour either side");
   });
 
   it("shows humidity and pressure at each hour, not only at the visit", () => {
@@ -123,21 +131,21 @@ describe("<SpotScreen> cloud window", () => {
   });
 
   it("does not invent a trend from a change inside the model's own noise", () => {
-    const { getByText, queryByText } = render(
+    const { getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ weather: w({
         window: { before: hour(58, 1014), at: hour(60, 1014), after: hour(63, 1014) },
       }) })} />);
-    expect(queryByText(/clouding over|clearing/)).toBeNull();
-    expect(getByText(/cloud holding/)).toBeTruthy();
+    expect(getByTestId("spot-trend").textContent)
+      .toBe("cloud holding · pressure steady — across the hour either side");
   });
 
   it("claims no trend at all when one end of the window is missing", () => {
-    const { queryByText, getByLabelText } = render(
+    const { queryByTestId, getByLabelText } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ weather: w({
         window: { before: null, at: hour(60, 1013), after: hour(85, 1012) },
       }) })} />);
-    expect(queryByText(/clouding over|clearing|holding|rising|falling/)).toBeNull();
-    expect(getByLabelText("Cloud visit")).toBeTruthy();    // the figures still show
+    expect(queryByTestId("spot-trend")).toBeNull();
+    expect(getByLabelText("Cloud visit").textContent).toBe("60%");    // the figures still show
   });
 
   it("says nothing rather than implying clear sky when no window was fetched", () => {
@@ -148,12 +156,12 @@ describe("<SpotScreen> cloud window", () => {
   });
 
   it("dates the spot by the visit, not by when the record was typed up", () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({
-        createdAt: Date.parse("2026-09-01T20:00:00Z"),
-        visitedAt: Date.parse("2026-08-30T09:00:00Z"),
+        createdAt: new Date(2026, 8, 1, 20).getTime(),
+        visitedAt: new Date(2026, 7, 30, 9).getTime(),
       })} />);
-    expect(getByText(/2026-08-30/)).toBeTruthy();
+    expect(getByTestId("spot-when").textContent).toBe("2026-08-30 at 09:00 · 49.0974, -121.9675");
   });
 });
 
@@ -171,7 +179,8 @@ describe("<SpotScreen> editing and deleting", () => {
     const { getByLabelText, getByText } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} onDelete={() => {}} />);
     fireEvent.click(getByLabelText("Delete spot"));
-    expect(getByText(/recorded nowhere else/)).toBeTruthy();
+    expect(getByText("The gauge reading, the weather and the rules that were in force are recorded nowhere " +
+                     "else. This cannot be undone.")).toBeTruthy();
   });
 
   it("lets the confirm be backed out of", () => {
@@ -273,11 +282,11 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
     const out = {
       cloud: grab("Cloud visit"), pressure: grab("Pressure visit"),
       humidity: grab("Humidity visit"), temp: grab("Temp visit"),
-      wind: !!r.queryByText(/wind 8 km\/h/), rain: !!r.queryByText(/rain 2 mm/),
+      wind: !!r.queryByText("wind 8 km/h"), rain: !!r.queryByText("rain 2 mm"),
       // `percentileLabel`, shared with the map dot and the sheet — this read "p62"
       // while the map read "p62nd" about the same station.
-      pctile: !!r.queryByText(/p62nd against the record/),
-      observed: r.queryAllByText(/observed 2026-08-30/).length,
+      pctile: !!r.queryByText("· p62nd against the record"),
+      observed: r.queryAllByTestId("spot-observed").map((e) => e.textContent),
     };
     cleanup();
     return out;
@@ -295,7 +304,7 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
     expect(d.wind && d.rain && d.pctile).toBe(true);
     // Two observation times: one for the gauge reading, one for the weather. Both are
     // separately dated on purpose — they come from different services at different hours.
-    expect(d.observed).toBe(2);
+    expect(d.observed).toEqual(["08MH016 · observed 2026-08-30 09:00", "observed 2026-08-30 09:00"]);
   });
 });
 
@@ -359,7 +368,7 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
   it("renders the estimate as the app rendered it", () => {
     const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
                                 palette={LIGHT} onBack={() => {}} />);
-    expect(r.getByText(/Low for the time of year/)).toBeTruthy();
+    expect(r.getByText("Low for the time of year")).toBeTruthy();
     expect(r.getByText("08MH001")).toBeTruthy();
   });
 
@@ -367,7 +376,7 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     const r = render(<SpotScreen spot={spot({ panel: null })} palette={LIGHT}
                                 onBack={() => {}} />);
     // Still a true record of that day — just less of one.
-    expect(r.queryByText(/for the time of year/)).toBeNull();
+    expect(r.queryByText("Low for the time of year")).toBeNull();
   });
 });
 

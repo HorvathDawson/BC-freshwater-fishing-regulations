@@ -7,7 +7,7 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
+import { dayLabel, WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
@@ -28,7 +28,7 @@ import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
-import { MapDay, dayLabel } from "./MapDay";
+import { MapDay } from "./MapDay";
 import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";

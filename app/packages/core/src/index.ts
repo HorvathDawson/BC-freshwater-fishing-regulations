@@ -20,6 +20,7 @@ export * from "./statusIndex";
 export * from "./paint";
 export * from "./search";
 export * from "./near";
+export * from "./day";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

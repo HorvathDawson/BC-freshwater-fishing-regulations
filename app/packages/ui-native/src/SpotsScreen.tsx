@@ -11,8 +11,7 @@
  * case, not a degraded one: 97.6% of BC's water carries no registry item at all.
  */
 import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { percentileLabel } from "@app/core";
-import { needsRefresh, type Spot, spotLabel } from "@app/data/spots";
+import { needsRefresh, type Spot, spotLabel, spotRowLines } from "@app/data/spots";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
@@ -103,8 +102,8 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
 
 function SpotRow({ spot, palette, onPress }:
   { spot: Spot; palette: Palette; onPress: () => void }) {
-  const when = new Date(spot.createdAt).toISOString().slice(0, 10);
-  const g = spot.reading;
+  // The LOCAL day of the visit and what was recorded then, composed whole in @app/data/spots (P12b).
+  const [recorded, where] = spotRowLines(spot);
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={spotLabel(spot)}
                style={({ pressed }) => ({
@@ -126,20 +125,10 @@ function SpotRow({ spot, palette, onPress }:
         <Text style={{ ...TYPE.name, fontSize: 18, color: palette.ink }} numberOfLines={1}>
           {spotLabel(spot)}
         </Text>
-        <Text style={{ ...TYPE.small, fontSize: 12.5, lineHeight: 18, color: palette.sub,
-                       marginTop: 4 }}>
+        <Text testID={`spot-row-${spot.id}`}
+              style={{ ...TYPE.small, fontSize: 12.5, lineHeight: 18, color: palette.sub, marginTop: 4 }}>
           {/* The reading is what it WAS, not what it is. A spot is a record of a day. */}
-          {when} · {g?.discharge != null
-            // `percentileLabel`, not a fourth hand-rolled one: this dropped the ordinal
-            // suffix entirely, so a saved spot read "p4" beside a map dot reading "p4th"
-            // and a sheet reading "p0.4th" — three spellings of one number.
-            ? `${g.discharge} m³/s${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
-            : "no gauge"}
-          {spot.weather?.tempC != null
-            ? ` · ${spot.weather.tempC}°C${spot.weather.backfilled ? " (filled in)" : ""}`
-            : " · no weather"}
-          {"\n"}
-          {spot.lat.toFixed(4)}, {spot.lon.toFixed(4)}
+          {recorded}{"\n"}{where}
         </Text>
       </View>
     </Pressable>
