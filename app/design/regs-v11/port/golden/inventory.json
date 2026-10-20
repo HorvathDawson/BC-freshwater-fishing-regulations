@@ -1,9 +1,9 @@
 {
  "meta": {
   "generator": "app/design/regs-v11/port/inventory.mjs",
-  "ref": "0f02d2b9",
+  "ref": "a9b1bad0",
   "sha": "0f02d2b9",
-  "version": "v35"
+  "version": "v36"
  },
  "files": {
   "app/design/regs-v11.html": [

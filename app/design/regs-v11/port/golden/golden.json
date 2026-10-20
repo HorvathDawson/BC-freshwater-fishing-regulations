@@ -1,9 +1,9 @@
 {
  "meta": {
   "generator": "app/design/regs-v11/port/golden.mjs",
-  "ref": "0f02d2b9",
+  "ref": "a9b1bad0",
   "sha": "0f02d2b9",
-  "version": "v35",
+  "version": "v36",
   "states": 134,
   "sheets": 144,
   "profiles": 6,
@@ -23760,7 +23760,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -23779,7 +23779,7 @@
        "How it adds up",
        "Your own limit, counted across every water in Region 4 you fish today, lakes and streams alike.",
        "Kept 2 elsewhere today? Keep 3 more here",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -23934,7 +23934,7 @@
      "How it adds up",
      "Your own limit, counted across every water in Region 4 you fish today, lakes and streams alike.",
      "Kept 2 elsewhere today? Keep 3 more here",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Rainbow troutSeparate from your 5 trout and char",
      "10a day",
      "Keep 10 any size · wild or hatchery",
@@ -26011,7 +26011,7 @@
       "formA": false,
       "headlineN": 5,
       "top": 241,
-      "height": 804,
+      "height": 786,
       "groupLine": {
        "cls": "g",
        "text": "Trout and char · 5 a day across Region 4",
@@ -26038,7 +26038,7 @@
       ],
       "worked": {
        "top": 799,
-       "height": 190
+       "height": 172
       }
      },
      {
@@ -26047,7 +26047,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1057,
+      "top": 1039,
       "height": 171,
       "groupLine": null,
       "pin": null,
@@ -26104,7 +26104,7 @@
       "height": 27
      },
      {
-      "y": 904,
+      "y": 888,
       "lines": [],
       "height": 0
      }
@@ -48021,7 +48021,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -48047,7 +48047,7 @@
        "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
        "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -48172,7 +48172,7 @@
      "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
      "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -50067,7 +50067,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 397,
-      "height": 1196,
+      "height": 1178,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -50107,7 +50107,7 @@
       ],
       "worked": {
        "top": 1232,
-       "height": 305
+       "height": 287
       }
      }
     ],
@@ -50160,7 +50160,7 @@
       "height": 43
      },
      {
-      "y": 1448,
+      "y": 1432,
       "lines": [],
       "height": 0
      }
@@ -50463,7 +50463,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -50489,7 +50489,7 @@
        "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
        "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -50611,7 +50611,7 @@
      "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
      "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -52448,7 +52448,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1196,
+      "height": 1178,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -52488,7 +52488,7 @@
       ],
       "worked": {
        "top": 1076,
-       "height": 305
+       "height": 287
       }
      }
     ],
@@ -52541,7 +52541,7 @@
       "height": 43
      },
      {
-      "y": 1296,
+      "y": 1280,
       "lines": [],
       "height": 0
      }
@@ -52844,7 +52844,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -52870,7 +52870,7 @@
        "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
        "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -52992,7 +52992,7 @@
      "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
      "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -54829,7 +54829,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1196,
+      "height": 1178,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -54869,7 +54869,7 @@
       ],
       "worked": {
        "top": 1076,
-       "height": 305
+       "height": 287
       }
      }
     ],
@@ -54922,7 +54922,7 @@
       "height": 43
      },
      {
-      "y": 1296,
+      "y": 1280,
       "lines": [],
       "height": 0
      }
@@ -55235,7 +55235,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -55262,7 +55262,7 @@
        "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
        "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -55385,7 +55385,7 @@
      "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
      "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -57200,7 +57200,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1223,
+      "height": 1205,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -57240,7 +57240,7 @@
       ],
       "worked": {
        "top": 1103,
-       "height": 305
+       "height": 287
       }
      }
     ],
@@ -57293,7 +57293,7 @@
       "height": 43
      },
      {
-      "y": 1320,
+      "y": 1304,
       "lines": [],
       "height": 0
      }
@@ -57606,7 +57606,7 @@
         },
         {
          "at": "elsewhere",
-         "q": "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today?",
+         "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?",
          "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all."
         }
        ]
@@ -57633,7 +57633,7 @@
        "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
        "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
+       "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
      }
     ],
@@ -57756,7 +57756,7 @@
      "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
      "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-     "Kept rainbow trout or cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
+     "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -59571,7 +59571,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1223,
+      "height": 1205,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -59611,7 +59611,7 @@
       ],
       "worked": {
        "top": 1103,
-       "height": 305
+       "height": 287
       }
      }
     ],
@@ -59664,7 +59664,7 @@
       "height": 43
      },
      {
-      "y": 1320,
+      "y": 1304,
       "lines": [],
       "height": 0
      }
