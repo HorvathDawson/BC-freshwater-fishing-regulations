@@ -98,6 +98,41 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20i (2026-10-19) — rows 26, gear 12, glossary 5: the user panel UR4's data words
+
+1. **A kind's size says the rule** (`TreeKind.size_rule`): "keep 30–50 cm (12–20 in); release the rest" from the kind's
+   `sizes` (exactly the lengths it may be kept at here, gate-proved). Where a rainbow's top is the steelhead line on a steelhead
+   water the top is no release (over it the fish IS a steelhead, its own row): "keep 30–50 cm (12–20 in); release smaller
+   ones", nothing where that is the only end; null for any size, none, or a steelhead.
+2. **The worked keep-share line says what is still allowed HERE**: "none from other streams today — up to 2 more of any kind,
+   from here or from lakes." (UR4's one wrong answer: a guide read rainbows kept here as blocking a cutthroat here; RULINGS
+   Q23b — the lifted kind does not use the share on its own water). The old words stay where `here` < the total's rest.
+3. **A gear change's dates leave out the closed days**: `add_changes(…, closed=)` — the days of a reading the verdicts mark
+   `closed` (no fishing at all) are no change's days: the Vedder May 15 "Jun 1–Apr 30: one hook, lure or fly" (the water closed
+   Jun 1–30) → "Jul 1–Apr 30".
+4. **Fly and hook words name what the book's p.80 definitions exclude**: "single hook: a hook having only one point (In
+   contrast, a treble hook is a hook having three points …)" → `HOOK_WORDS` "a single barbless hook, no trebles"; "fly
+   fishing: angling with a line to which only an artificial fly is attached (floats, sinkers, or attracting devices may not be
+   attached …)" and "artificial fly: a single-pointed hook …" → fly fishing only "no float or strike indicator, no sinker or
+   split shot, no lure, spinner or other attracting device" (a strike indicator is a float, split shot a sinker, a spinner a
+   lure — the angler's names for the book's words); the glossary `fly_fishing` term likewise.
+5. **The stop duty names the water**: p.21 "you must stop fishing that water for the remainder of that day" → "stop fishing
+   this river after 2 a day" (`card.this_water`: the noun of the water's own row, else the part's kind). A frame serves every
+   water with the same rule set, so the data names the noun, not the water; a page may put the water's name in.
+6. (c) `elsewhere.says` "Shared with every Region 2 stream you fish today." (read as shared with Dad) → "Your own limit,
+   counted across every Region 2 stream you fish today."; "Shared with everywhere in Region 2 …" → "Your own limit, counted
+   across every water in Region 2 you fish today, lakes and streams alike."
+
+Verified, not changed: (a) the steelhead stamp on a water closed to steelhead — the book's requirement is to FISH FOR
+steelhead (licensing p.6 "if you fish for steelhead anywhere in B.C. (whether you keep or release your catch)"); where no
+fishing for steelhead is allowed it cannot hold there, but the licence frames are per licence key, not per rule set — the page
+can drop the line where the card's `not_kept` says steelhead are `closed` (per-water licence relevance is owner item O3).
+(b) Kokanee need no salmon stamp: licensing p.6–7 "to keep a salmon of any legal size or species (other than kokanee) from
+non-tidal waters"; the export's `zp:salmon_stamp` `parts.doing` already says "to keep salmon (not kokanee)" and
+`FEDERAL_SALMON` holds no kokanee — the page should say the record's `parts.doing`.
+
+`test_answers_r20i.py`.
+
 ## ROUND20h (2026-10-19) — gear 11, rows 25, glossary 4: a bait allowance names its ban, possession said once, each card's own example
 
 Owner (round 20h 1–3).

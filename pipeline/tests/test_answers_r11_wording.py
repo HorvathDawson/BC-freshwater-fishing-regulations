@@ -142,7 +142,7 @@ def _rules(kind, hook=None, kootenay=False, fly=None):
 def test_a2_vedder_one_sentence_of_terminal_gear():
     s = _rules("stream", hook=Z2_HOOK)["summary"]
     # ROUND12 5: no em dash
-    assert s["says"] == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
+    assert s["says"] == "1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
     assert s["terms"] == ["single_barbless_hook"]
     assert s["cites"] == [PROVINCE, Z2_HOOK, ATTACH, WEIGHT]
     assert s["changes"] == []
@@ -166,8 +166,8 @@ def test_a2_kootenay_main_body_no_limit_in_a_boat():
 
 def test_a2_cowichan_fly_only_part():
     s = _rules("stream", hook=Z1_HOOK, fly=COWICHAN_FLY)["summary"]
-    assert s["says"] == ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, "
-                         "sinker or attracting device.")
+    assert s["says"] == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or "
+                         "strike indicator, no sinker or split shot, no lure, spinner or other attracting device.")
     assert s["terms"] == ["fly_fishing", "single_barbless_hook"]
     assert s["cites"] == [COWICHAN_FLY, PROVINCE, Z1_HOOK, ATTACH]
 

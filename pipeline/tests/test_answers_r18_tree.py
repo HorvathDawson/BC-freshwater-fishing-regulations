@@ -59,7 +59,7 @@ def test_1_the_vedder_tree():
     trout, _dv, st = size["children"]
     assert trout["sizes"] == {"cm": [[30, None]], "in": [[12, None]]}
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
-    assert st["duties"] == ["10 a year", "stop fishing here after 2 a day", "record each on your licence right away"]   # ROUND20g 2
+    assert st["duties"] == ["10 a year", "stop fishing this river after 2 a day", "record each on your licence right away"]   # ROUND20g 2
     assert st["presence"]["line"] == "known_with_rules"
 
 

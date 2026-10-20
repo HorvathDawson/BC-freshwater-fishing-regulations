@@ -2,7 +2,7 @@
 
   1  the headline's unit says whose number it is: "2 a day per angler from streams" (a lake "4 a day per angler")
   2  the worked lines in plain words: "If you keep 3 hatchery rainbow trout: 1 more fish of any kind, from here or from a
-     lake." / "If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more from here or from
+     lake." / "If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more of any kind, from here or from
      lakes."; the gate proves every number they state
   3  a kind held to fewer than its count tier says the count: "Only 1 of the 2 may be … Dolly Varden/bull trout …"
   4  a steelhead kind keeping hatchery fish only says "hatchery steelhead only — wild steelhead go back"; the presence
@@ -51,7 +51,7 @@ def test_2_the_worked_lines_are_plain():
     here = [(w["q"], w["a"]) for w in g["worked"] if w["at"] == "here"]
     assert here == [
         ("If you keep 4 hatchery rainbow trout", "that’s your trout and char for the day, everywhere."),
-        ("If you keep 2 hatchery rainbow trout", "none from other streams today — up to 2 more from here or from lakes."),
+        ("If you keep 2 hatchery rainbow trout", "none from other streams today — up to 2 more of any kind, from here or from lakes."),
     ]
 
 
@@ -59,7 +59,7 @@ def test_2_the_gate_proves_the_numbers_a_worked_line_states():
     g, _o, P = _g(F.VEDDER)
     assert CC.check_group(P, g) == []
     w = next(w for w in g["worked"] if w["at"] == "here" and w["kept"] == 2)       # ROUND20b C4: the ends only
-    w["a"] = "none from other streams today — up to 3 more from here or from lakes."
+    w["a"] = "none from other streams today — up to 3 more of any kind, from here or from lakes."
     assert any("worked line" in p and "[3.0]" in p for p in CC.check_group(P, g))
 
 
@@ -92,7 +92,7 @@ def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():
 def test_5_after_you_keep_2_stop_fishing_for_the_day():
     g, _o, _P = _g(F.VEDDER)
     duties = _kind(g, "ST")["duties"]
-    assert "stop fishing here after 2 a day" in duties   # ROUND20g 2
+    assert "stop fishing this river after 2 a day" in duties   # ROUND20g 2
     assert not any("stop fishing for the day after" in d for d in duties)
 
 

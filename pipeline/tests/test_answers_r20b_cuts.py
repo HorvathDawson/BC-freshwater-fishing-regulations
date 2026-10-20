@@ -98,7 +98,7 @@ def test_c4_the_worked_lines_say_the_ends_of_the_range_only():
     here = [w for w in g["worked"] if w["at"] == "here"]
     assert [w["kept"] for w in here] == [4, 2]
     assert here[0]["a"] == "that’s your trout and char for the day, everywhere."
-    assert here[1]["a"] == "none from other streams today — up to 2 more from here or from lakes."
+    assert here[1]["a"] == "none from other streams today — up to 2 more of any kind, from here or from lakes."
 
 
 # the gate ----------------------------------------------------------------------------------------

@@ -26,7 +26,8 @@ from pipeline.deliver.answers.common import AnswersError
 #: 2 (ROUND11 A2): `fly_fishing`, `artificial_fly` — the gear sentence's terms
 #: 3 (ROUND20g 3): the possession quota in one short line and one short example (the book's words stay in `quote`)
 #: 4 (ROUND20h 2): the possession term says only WHERE it holds — the rule's plain line says the number and the exception
-VERSION = 4
+#: 5 (ROUND20i 4): fly fishing only names the gear the p.80 definitions exclude
+VERSION = 5
 
 
 # --------------------------------------------------------------------------------------------
@@ -222,8 +223,11 @@ def t_hook(B: Book, D: Data) -> dict:
 def t_fly_fishing(B: Book, D: Optional[Data] = None) -> dict:
     """ROUND11 A2: the gear sentence's "Fly fishing only" (`gear.FLY_MODES`)."""
     return _term("fly_fishing", "Fly fishing only",
-                 "Only an artificial fly on the line — no bait, lure, float, sinker or attractor. "
-                 "Where a water is fly fishing only, that is the only way to fish it.",
+                 # ROUND20i 4 (UR4: name the common gear): p.80 "fly fishing" (only an artificial fly; no floats,
+                 # sinkers or attracting devices) and "artificial fly" (a single-pointed hook)
+                 "Only an artificial fly on the line (one single-pointed hook) — no bait or lure, no float or strike "
+                 "indicator, no sinker or split shot, no spinner or other attracting device. Where a water is fly "
+                 "fishing only, that is the only way to fish it.",
                  [80], f"fly fishing: {B.define('fly fishing')} artificial fly: "
                  f"{B.define('artificial fly')}", "definitions p.80")
 

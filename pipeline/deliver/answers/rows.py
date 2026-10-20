@@ -1767,7 +1767,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
-        says = f"Shared with every {s} {wk} you fish today."
+        says = f"Your own limit, counted across every {s} {wk} you fish today."   # ROUND20i 6c (UR4 Maya: "shared" with Dad?)
         # RULINGS Q23b (owner 2026-10-12): the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
@@ -1803,7 +1803,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
                        model, row["members"], 1, other, here2)]
     elif s:
-        says = f"Shared with everywhere in {s} you fish today" + \
+        says = f"Your own limit, counted across every water in {s} you fish today" + \
             (", lakes and streams alike." if not pool.f.get("water") else ".")
         if row["kind"] == "keep" and n is not None and n > 1:
             k = 2 if n > 2 else 1

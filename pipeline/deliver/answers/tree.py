@@ -510,6 +510,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if up is not None and up["tier"] in ("own", "share") and up["n"] is not None and t["n"] is not None \
                     and t["n"] < up["n"]:
                 t["says"] += f" (part of the {_js(up['n'])})"
+    from pipeline.deliver.bundle import read as RD
+    steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
     for x, p in walk([root]):
         if x["node"] != "kind":
@@ -519,6 +521,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         bare = _kind_says(x, up["n"], plain=True)
         kind_origin[id(x)] = x.get("_origin")
         x["folded"] = False
+        x["size_rule"] = size_rule(x, P.steelhead_water, steel_cm)     # ROUND20i 1
         for k_ in ("_hi", "_origins", "_origin"):
             x.pop(k_, None)
         s = f"Of the {_short(up)}: {common.lc(bare)}"
@@ -547,6 +550,26 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
     header = {"says": root["says"], "tier": root["id"], "tag": None}
     return [root], header
+
+
+def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:
+    """ROUND20i 1 (UR4, three personas: "30–50 cm" read as a description, "never says a fish outside the range must be
+    released"): the kind's size as the RULE — "keep 30–50 cm (12–20 in); release the rest" — from its `sizes` (exactly the
+    lengths it may be kept at here, gate-proved). A rainbow's top at the steelhead line on a steelhead water is no release
+    (over it the fish IS a steelhead, its own row): "keep 30–50 cm (12–20 in); release smaller ones", nothing where that is
+    the only end. None for a kind kept at any size, at none, or a steelhead (its row's size is what it is)."""
+    from pipeline.deliver.answers.card import _size_words
+    segs = [(a, INF if b is None else b) for a, b in kn["sizes"]["cm"]]
+    if kn["n"] == 0 or not segs or kn["species"] == ["ST"]:
+        return None
+    steel_cut = "RB" in kn["species"] and steelhead_water and segs[-1][1] == steel_cm
+    below, gaps = segs[0][0] > 0, len(segs) > 1
+    above = segs[-1][1] != INF and not steel_cut
+    if not (below or above or gaps):
+        return None
+    words = ", or ".join(_size_words(a, b, inch=True) for a, b in segs)
+    rest = "release smaller ones" if steel_cut and not gaps else "release the rest"
+    return f"keep {words}; {rest}"
 
 
 def walk(nodes: Sequence[dict]):

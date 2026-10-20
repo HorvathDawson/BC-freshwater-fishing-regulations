@@ -85,7 +85,7 @@ def test_vedder_mouth_oct_10_card(built):
         "between them",
         "EB/GB/CT 2: ",
         "DV/LT 1: ",
-        "ST 2: 10 a year · stop fishing here after 2 a day · record each on your licence right away"]   # ROUND20g 2
+        "ST 2: 10 a year · stop fishing this river after 2 a day · record each on your licence right away"]   # ROUND20g 2
     share = next(t for t in row["group"]["tree"][0]["children"] if t["tier"] == "share")
     assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     # ROUND20h 3: possession on the group's TOTAL (p.21 "Possession quotas = 2 daily quotas"), not the stream share
@@ -99,7 +99,7 @@ def test_vedder_mouth_oct_10_card(built):
     # ROUND12 4: ONE list — the keep-N count, then the examples it does not repeat
     assert [w["q"] + " → " + w["a"] for w in row["group"]["worked"]] == [
         "If you keep 4 hatchery rainbow trout → that’s your trout and char for the day, everywhere.",
-        "If you keep 2 hatchery rainbow trout → none from other streams today — up to 2 more from here or from lakes.",
+        "If you keep 2 hatchery rainbow trout → none from other streams today — up to 2 more of any kind, from here or from lakes.",
         "Kept 1 at a lake? → Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
         "Kept trout or char over 50 cm (20 in) elsewhere today? → It counts here too: at most 2 over 50 cm (20 in) a day in all — "
         "only 1 of them may be anything other than a hatchery steelhead."]

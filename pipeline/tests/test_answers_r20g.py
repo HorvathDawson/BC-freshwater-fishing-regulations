@@ -6,7 +6,7 @@
    share tier carries `origin` ("From streams, keep hatchery fish only — wild trout and char go back."), the group's `origin` is
    None. The group keeps it only where the rules sending the other origin back hold wherever the total does.
 2. THE STEELHEAD ROW SAYS LESS. The size band's head already says "— 2 if one is a hatchery steelhead", so the kind's
-   `size_note` is gone; duties "10 a year · stop fishing here after 2 a day · record each on your licence right away"; the presence
+   `size_note` is gone; duties "10 a year · stop fishing this river after 2 a day · record each on your licence right away"; the presence
    line "A rainbow trout over 50 cm (20 in) here counts as a steelhead."
 3. THE POSSESSION LINE IS ONE PLAIN SENTENCE PAIR. "Possession: 2 days’ quota. Fish at home don’t count."; the glossary term
    says one short line and one short example; the book's definition stays VERBATIM in its own field (`quote`), for a fold.
@@ -69,7 +69,7 @@ def test_the_steelhead_row_says_it_once():
     (size,) = [t for t in _tiers(g) if t["tier"] == "size"]
     assert size["says"].endswith("— 2 if one is a hatchery steelhead")      # the band head says it
     st = _st(g)
-    assert st["duties"] == ["10 a year", "stop fishing here after 2 a day", "record each on your licence right away"]
+    assert st["duties"] == ["10 a year", "stop fishing this river after 2 a day", "record each on your licence right away"]
     assert st["presence"]["says"] == "A rainbow trout over 50 cm (20 in) here counts as a steelhead."
 
 
@@ -101,7 +101,7 @@ def test_the_possession_term_is_short_and_keeps_the_book_verbatim():
     t3 = G.t_possession(B, G.Data(_doc(per_daily=3, total=4)))
     assert t3["example"] == \
         "With a daily quota of 4 trout you may have 12: 3 days' fish."
-    assert G.VERSION == 4                                                            # ROUND20h
+    assert G.VERSION >= 4                                                            # ROUND20h
 
 
 def test_the_gate_still_proves_every_card():

@@ -90,7 +90,7 @@ def test_g_write_each_one_on_your_licence_right_away():
 
 def test_g_weight_in_kg_and_lb_and_boat_lines_from_shore():
     vedder = R11._rules("stream", hook=R11.Z2_HOOK)["summary"]["says"]
-    assert vedder == ("1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg "
+    assert vedder == ("1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg "
                       "(2.2 lb).")
     kootenay = R11._rules("lake", kootenay=True)
     assert kootenay["summary"]["says"] == ("1 line from shore; any number from a boat, each with one hook, lure or "

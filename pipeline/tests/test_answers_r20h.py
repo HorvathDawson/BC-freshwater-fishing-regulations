@@ -61,7 +61,7 @@ def test_the_possession_term_does_not_repeat_the_plain_line():
     t = G.t_possession(G.Book(), G.Data(_doc()))
     assert t["says"] == "The fish you have with you at any time — in camp, a cooler or a vehicle."
     assert "quota" not in t["says"] and "home" not in t["says"]
-    assert G.VERSION == 4
+    assert G.VERSION >= 4
 
 
 # 3 -----------------------------------------------------------------------------------------------------------------

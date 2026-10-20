@@ -7387,6 +7387,18 @@
        "title": "Sentence",
        "type": "string"
       },
+      "size_rule": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Size Rule"
+      },
       "sizes": {
        "$ref": "#/$defs/TreeSizes"
       },

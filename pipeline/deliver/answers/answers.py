@@ -282,7 +282,10 @@ def _sections() -> Tuple[Section, ...]:
         # your licence right away"; "A rainbow trout over 50 cm (20 in) here counts as a steelhead.")
         # ROUND20h 3: rows 25 (`group.possession` {per_daily, of, n, by, example, doubles}: the possession quota on the
         # group's total, "With 4 trout and char a day you may have 8: 2 days’ fish.")
-        Section("rows", 25, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND20i 1/2/5/6c: rows 26 (kind `size_rule` "keep 30–50 cm (12–20 in); release the rest"; the worked keep-share
+        # line "… up to 2 more of any kind, from here or from lakes."; "stop fishing this river after 2 a day"; "Your own
+        # limit, counted across every Region 2 stream you fish today.")
+        Section("rows", 26, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -293,7 +296,9 @@ def _sections() -> Tuple[Section, ...]:
         # UR1 G: gear 10 (weight "1 kg (2.2 lb)"; a boat lifting the line count "1 line from shore; any number from a
         # boat", the Lines row "1 line (rod) from shore; no limit from a boat")
         # ROUND20h 1: gear 11 (`bait[].excepted_from` {element, by}: the ban an allowed element is an exception to)
-        Section("gear", 11, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND20i 3/4: gear 12 (a change's dates leave out the closed days; "a single barbless hook, no trebles"; fly fishing
+        # only "no float or strike indicator, no sinker or split shot, no lure, spinner or other attracting device")
+        Section("gear", 12, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
         # ROUND16 4: licence 6 (the under-16 answers say the book's p.6: a resident needs nothing, fishes alone and

@@ -177,6 +177,17 @@ def _whose(P, L) -> Tuple[str, str]:
     return (f"In {name}", f"{name}’s rule") if name else ("In this area", "this area’s rule")
 
 
+def this_water(P) -> str:
+    """ROUND20i 5 (UR4 Kev: "does 'here' mean the whole Vedder?"): the water a "stop fishing that water" duty names (the
+    book's words, p.21 "you must stop fishing that water"): the noun of this water's own row ("river"), else the part's kind
+    ("stream", "lake"); a row naming the other kind of water (a lake's row on its outlet river) is never it."""
+    from collections import Counter
+    from pipeline.deliver.answers.rows import badge_of
+    seen = Counter(n for r in P.cands if r.via != "trib" and badge_of(r) == "water" and r.x.get("entry_name")
+                   for n in [_noun(P, r)] if (n in ("lake", "reservoir", "pond")) == (P.kind == "lake"))
+    return seen.most_common(1)[0][0] if seen else ("lake" if P.kind == "lake" else "stream")
+
+
 def _kept_origins(model: dict, S: str) -> List[str]:
     from pipeline.deliver.answers.rows import _keepish
     R_ = model["R"].get(S) or {}
@@ -285,7 +296,9 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
         elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
             w = "record each on your licence right away"          # UR1 G; ROUND20g 2 (owner: fewer words)
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
-            w = f"stop fishing here after {_js(n)} a day"   # UR2 5; ROUND20g 2 (owner: fewer words; "here": the book's "stop fishing that water")
+            # UR2 5; ROUND20g 2 (owner: fewer words); ROUND20i 5 (UR4: "here" read as the whole Vedder?): the book's "stop
+            # fishing that water", named by its noun ("this river")
+            w = f"stop fishing this {this_water(P)} after {_js(n)} a day"
         else:
             continue
         if w not in out:
@@ -892,6 +905,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                                                  for L in parts))
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
+            elif k == share["take"] and here >= left:
+                # ROUND20i 2 (UR4 Rob: rainbows kept here read as blocking a cutthroat here): what is still allowed HERE
+                a = (f"none from other {share['water']}s today — up to {_js(left)} more of any kind, "
+                     f"from here or from {other_kind}s.")
             elif k == share["take"]:
                 a = (f"none from other {share['water']}s today — up to {_js(left)} more "
                      f"from here or from {other_kind}s.")

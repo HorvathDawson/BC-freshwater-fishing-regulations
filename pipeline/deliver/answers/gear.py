@@ -277,7 +277,9 @@ def lines_says(main: dict, held: Sequence[dict]) -> str:
 # --------------------------------------------------------------------------------------------
 
 #: the hook answer in words (`resolve`'s `hook`)
-HOOK_WORDS = {"single_barbless": "a single barbless hook", "single": "a single hook",
+#: ROUND20i 4 (UR4 Kev: "no trebles" was only in the ⓘ): p.80 "single hook: a hook having only one point (In contrast, a
+#: treble hook is a hook having three points on a common shaft.)"
+HOOK_WORDS = {"single_barbless": "a single barbless hook, no trebles", "single": "a single hook, no trebles",
               "any_barbless": "barbless hooks", "trebles_and_barbs": "any hook"}
 #: a terminal attachment's noun (`terminal_attachments_per_line` members)
 ATTACH_NOUNS = {"hook": ("hook", "hooks"), "artificial_lure": ("lure", "lures"),
@@ -287,7 +289,10 @@ FLY_MODES = {"fly_fishing_only": ("Fly fishing only", "fly_fishing"),
              "artificial_fly_only": ("Artificial fly only", "artificial_fly")}
 #: what fly fishing only leaves off the line (p.80 "fly fishing": "floats, sinkers, or attracting
 #: devices may not be attached to the line when fishing is restricted to 'fly fishing only'")
-FLY_ONLY_WEIGHT = "no float, sinker or attracting device"
+#: ROUND20i 4 (UR4 Arjun, Claire: name the common gear): the book's float, sinker and attracting device with the gear an
+#: angler knows them by (a strike indicator floats, split shot sinks), and p.80 "fly fishing: angling with a line to which
+#: only an artificial fly is attached" — no lure or spinner
+FLY_ONLY_WEIGHT = "no float or strike indicator, no sinker or split shot, no lure, spinner or other attracting device"
 #: the order a summary's parts are said in
 SUMMARY_PARTS = ("mode", "lines", "hook", "attach", "weight")
 
@@ -421,11 +426,13 @@ def _change(me: dict, other: dict) -> Optional[dict]:
             "terms": list(dict.fromkeys(t for p in got for t in p["terms"]))}
 
 
-def add_changes(answers: Sequence[dict], runs: Sequence[Tuple[int, int]]) -> None:
+def add_changes(answers: Sequence[dict], runs: Sequence[Tuple[int, int]], closed=()) -> None:
     """Each reading's `summary.changes` (ROUND11 A2): the other days of the year (at one moment:
     `runs` [(start day, reading)] covering 1..366) whose sentence differs, by what they say —
     [{when: "May 1–31", says: "fly fishing only", cites}], in calendar order (a run over New Year
     from its start: "Jun 1–Apr 30"); each change's terms join the reading's."""
+    # ROUND20i 3 (UR4 Arjun: "NEXT Jun 1–Apr 30" read as fishable from Jun 1 on a water closed Jun 1–30): the days of a
+    # `closed` reading (the verdicts' `closed`: no fishing at all) are no change's days — "Jul 1–Apr 30"
     from pipeline.deliver.answers.common import range_txt
     from pipeline.deliver.calendar import DAYS, SPEC, runs as day_runs
     days: Dict[int, List[int]] = {}
@@ -438,7 +445,7 @@ def add_changes(answers: Sequence[dict], runs: Sequence[Tuple[int, int]]) -> Non
             continue
         by_says: Dict[str, dict] = {}
         for j, ds in days.items():
-            other = answers[j].get("summary") if j != i else None
+            other = answers[j].get("summary") if j != i and j not in closed else None
             ch = _change(me, other) if other is not None else None
             if ch is None:
                 continue
@@ -837,8 +844,9 @@ def gear_readings(B: Bundle, key: RuleKey, lawful: Sequence[str], ref: Callable 
                        at=ms[rd.moment])
            for rd in store.readings(k)]
     # ROUND11 A2: each reading's sentence names the days of its year (at its moment) that differ
+    shut = {i for i, rd in enumerate(store.readings(k)) if rd.closed}      # ROUND20i 3
     for m in range(len(ms)):
-        add_changes(got, store.runs(k, m))
+        add_changes(got, store.runs(k, m), closed=shut)
     return got
 
 

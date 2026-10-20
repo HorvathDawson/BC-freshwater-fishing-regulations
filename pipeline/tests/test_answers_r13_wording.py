@@ -94,12 +94,12 @@ def test_g_no_hook_clause_without_a_hook_restriction():
     okanagan = R11._rules("lake")["summary"]["says"]
     kootenay = R11._rules("lake", kootenay=True)["summary"]["says"]
     cowichan = R11._rules("stream", hook=R11.Z1_HOOK, fly=R11.COWICHAN_FLY)["summary"]["says"]
-    assert vedder == "1 line with a single barbless hook (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
+    assert vedder == "1 line with a single barbless hook, no trebles (one hook, lure or fly). Weight on the line up to 1 kg (2.2 lb)."
     assert okanagan == "1 line (2 while alone in a boat) with one hook, lure or fly. Weight on the line up to 1 kg (2.2 lb)."
     assert kootenay == ("1 line from shore; any number from a boat, each with one hook, lure or fly. "
                         "Weight on the line up to 1 kg (2.2 lb).")              # UR1 G
-    assert cowichan == ("Fly fishing only: 1 line with a single barbless hook (one fly). No float, sinker or "
-                        "attracting device.")
+    assert cowichan == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or strike indicator, no sinker or "
+                        "split shot, no lure, spinner or other attracting device.")
     assert not any("any hook" in s for s in (vedder, okanagan, kootenay, cowichan))
 
 
