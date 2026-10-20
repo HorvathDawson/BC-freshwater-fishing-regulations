@@ -368,34 +368,30 @@ reader gate pass.
 
 ## 6. Open questions (unanswered across the docs)
 
-None of these blocks the start; each has a default.
-1. **Fish image permissions** (GoFishBC, WDFW, What To Fish, Photo Ark): a legal matter. T43 makes it a ship gate.
-2. **The 8 `code: null` salmon images** in the fish manifest: keep, recode or drop? (decisions.md)
-3. **D19 `klmb_1010` pooled row:** the default is a data-side `group` (a pipeline change). Until it lands the state stays
-   excluded from Keep parity. Whether rows 27/28 resolved it is **not verified**; check at T19b/T21.
-4. **D18 bait `also_allowed`:** hidden by default. Owner question for a design round.
-5. **D21(b):** move the licence patches (`patchNeeds()`) into the pipeline. Filed for the data agent.
-6. **Prototype-side items from UR5/UR6** (r20_ui_progress; they may be closed by the round now running — check its
-   report):
-   - O1, the licence default profile;
-   - the KL rainbow/steelhead stamp on the Keep tab's kind;
-   - stacked "Up to 2" kinds;
-   - Glenn's worked line vs "Not part of the 2 from streams";
-   - Chilliwack p2's rainbow row saying nothing of the 2;
-   - the pinned size line still showing while the next section's rows are visible.
-7. **Audit §7 items with no recorded answer:**
-   - #9, keep the lake splitter;
-   - #10, the "unsure tools";
-   - #11, delete or wire `test_answers_reference`;
-   - #12, the glossary's curated read at answers time (move into the bundle, or stamp it);
-   - #14, the fish image / font trims (AVIF/q60, font subset).
+**ANSWERED by the owner 2026-10-20** (do not re-ask):
+1. **Fish image permissions:** the owner HAS permission for every image. Not a ship gate; drop that part of T43.
+2. **Salmon images:** recoded (chum CM, coho CO, pink PK, sockeye SK) in `bb47bde5`. Show them where the species appears.
+3. **D19 `klmb_1010` pooled row:** still technical: default is a data-side `group`; verify at T19b/T21 whether rows 27/28
+   already resolved it.
+4. **D18 bait `also_allowed` (dead fin fish as bait):** keep HIDDEN.
+5. **D21(b):** move the licence patches (`patchNeeds()`) into the pipeline (default stands; technical).
+6. **Prototype-side items:** the licence default STAYS (no change; the user changes the selectors); the pinned size line
+   staying to its section's last row is FINE; Glenn's worked line, Chilliwack p2's rainbow row and stamps on each fish's
+   section are done by the final prototype round (see §5).
+7. **Audit leftovers:**
+   - the lake splitter: REMOVED (`167aa27b`);
+   - the "unsure tools": ARCHIVE them after confirming nothing runs them, EXCEPT the tools the owner keeps: the DFO dossier
+     and the review/curation tools (keep those);
+   - `test_answers_reference` (always skips because the module it imports was renamed): FIX it so it runs;
+   - #12 glossary curated read at answers time: stamp a digest of the curated book text (technical default);
+   - fish image / font trims: DROPPED (the images were already trimmed once).
+8. **Devices and hosting:** the owner does physical-device testing and production hosting (R2 bucket, domain,
+   credentials) LATER. Use emulators/simulators meanwhile; perf numbers from emulators are provisional.
+9. **Heavy jobs:** allowed for this implementer via `heavy.sh`, one at a time, but SPARINGLY (don't let builds dominate the
+   timeline; batch changes before a rebuild).
+10. **P21:** OK to delete the existing `blk_chains.pkl` once the build stops writing it.
 
-   None is on the port's path.
-8. **Devices and hosting:**
-   - N1/N2/P11 need a physical iPhone and a mid Android. Who runs them?
-   - The production R2 bucket, domain and credentials for `publish.py`.
-9. **Heavy-job go-ahead:** the owner must say builds are OK for this implementer (§3 rule 2).
-10. **P21:** deleting the existing live `blk_chains.pkl` needs the owner's OK.
+Still open: none.
 
 Already answered elsewhere, so do not re-ask:
 - old prototypes and the archive dir (deleted, `1581bc6e`);
