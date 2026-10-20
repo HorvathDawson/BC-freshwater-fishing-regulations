@@ -1,1207 +1,1207 @@
 {
  "meta": {
   "generator": "app/design/regs-v11/port/inventory.mjs",
-  "ref": "HEAD",
-  "sha": "04765ab5",
-  "version": "v33"
+  "ref": "0f02d2b9",
+  "sha": "0f02d2b9",
+  "version": "v35"
  },
  "files": {
   "app/design/regs-v11.html": [
    {
     "name": "PARTS",
     "kind": "const",
-    "start": 896,
-    "end": 897,
+    "start": 901,
+    "end": 902,
     "sha": "553ec4b5a5"
    },
    {
     "name": "WATERS",
     "kind": "const",
-    "start": 898,
-    "end": 920,
+    "start": 903,
+    "end": 925,
     "sha": "f3d8f6d917"
    },
    {
     "name": "MON",
     "kind": "const",
-    "start": 921,
-    "end": 921,
+    "start": 926,
+    "end": 926,
     "sha": "751b859fb4"
    },
    {
     "name": "fmt",
     "kind": "const",
-    "start": 922,
-    "end": 922,
+    "start": 927,
+    "end": 927,
     "sha": "d03243da7b"
    },
    {
     "name": "S",
     "kind": "const",
-    "start": 923,
-    "end": 923,
+    "start": 928,
+    "end": 928,
     "sha": "dfdeddadc4"
    },
    {
     "name": "esc",
     "kind": "const",
-    "start": 924,
-    "end": 924,
+    "start": 929,
+    "end": 929,
     "sha": "06abd1cdbb"
    },
    {
     "name": "$",
     "kind": "const",
-    "start": 925,
-    "end": 925,
+    "start": 930,
+    "end": 930,
     "sha": "bd905b2203"
    },
    {
     "name": "sid",
     "kind": "const",
-    "start": 926,
-    "end": 926,
+    "start": 931,
+    "end": 931,
     "sha": "c32791570c"
    },
    {
     "name": "ST",
     "kind": "const",
-    "start": 927,
-    "end": 927,
+    "start": 932,
+    "end": 932,
     "sha": "e8474739f6"
    },
    {
     "name": "SYNOPSIS_PDF",
     "kind": "const",
-    "start": 928,
-    "end": 929,
+    "start": 933,
+    "end": 934,
     "sha": "91523a57ef"
    },
    {
     "name": "bookLinks",
     "kind": "const",
-    "start": 930,
-    "end": 930,
+    "start": 935,
+    "end": 935,
     "sha": "d439ac57ac"
    },
    {
     "name": "booksOnce",
     "kind": "const",
-    "start": 931,
-    "end": 934,
+    "start": 936,
+    "end": 939,
     "sha": "8fdd98ab9e"
    },
    {
     "name": "pageLink",
     "kind": "const",
-    "start": 935,
-    "end": 936,
+    "start": 940,
+    "end": 941,
     "sha": "feebd0f402"
    },
    {
     "name": "glossBody",
     "kind": "function",
-    "start": 937,
-    "end": 940,
+    "start": 942,
+    "end": 945,
     "sha": "841786c479"
    },
    {
     "name": "appliesOf",
     "kind": "const",
-    "start": 941,
-    "end": 943,
+    "start": 946,
+    "end": 948,
     "sha": "84773aa005"
    },
    {
     "name": "FLAG",
     "kind": "const",
-    "start": 944,
-    "end": 944,
+    "start": 949,
+    "end": 949,
     "sha": "6fc3a8225a"
    },
    {
     "name": "flagBar",
     "kind": "function",
-    "start": 945,
-    "end": 948,
+    "start": 950,
+    "end": 953,
     "sha": "d01d1b13e5"
    },
    {
     "name": "flagBar.style",
     "kind": "nested",
-    "start": 946,
+    "start": 951,
     "parent": "flagBar",
-    "end": 948,
+    "end": 953,
     "sha": "4fb5452dc8"
    },
    {
     "name": "flagLegend",
     "kind": "function",
-    "start": 949,
-    "end": 953,
+    "start": 954,
+    "end": 958,
     "sha": "dc35b275b4"
    },
    {
     "name": "flagLegend.sw",
     "kind": "nested",
-    "start": 951,
+    "start": 956,
     "parent": "flagLegend",
-    "end": 953,
+    "end": 958,
     "sha": "a84c775062"
    },
    {
     "name": "CHEVI",
     "kind": "const",
-    "start": 954,
-    "end": 954,
+    "start": 959,
+    "end": 959,
     "sha": "5721b1280d"
    },
    {
     "name": "CHEV",
     "kind": "const",
-    "start": 955,
-    "end": 955,
+    "start": 960,
+    "end": 960,
     "sha": "5082192747"
    },
    {
     "name": "FISHPIC",
     "kind": "const",
-    "start": 956,
-    "end": 957,
+    "start": 961,
+    "end": 962,
     "sha": "29fcfd49d3"
    },
    {
     "name": "SIL",
     "kind": "const",
-    "start": 958,
-    "end": 958,
+    "start": 963,
+    "end": 963,
     "sha": "ee37b533f9"
    },
    {
     "name": "thumb",
     "kind": "function",
-    "start": 959,
-    "end": 962,
+    "start": 964,
+    "end": 967,
     "sha": "95806df3ef"
    },
    {
     "name": "fishName",
     "kind": "const",
-    "start": 963,
-    "end": 963,
+    "start": 968,
+    "end": 968,
     "sha": "f783f8f605"
    },
    {
     "name": "fishBtn",
     "kind": "function",
-    "start": 964,
-    "end": 968,
+    "start": 969,
+    "end": 973,
     "sha": "5401843526"
    },
    {
     "name": "citeBooks",
     "kind": "const",
-    "start": 969,
-    "end": 970,
+    "start": 974,
+    "end": 975,
     "sha": "12cbf0acc8"
    },
    {
     "name": "tip",
     "kind": "const",
-    "start": 971,
-    "end": 971,
+    "start": 976,
+    "end": 976,
     "sha": "b98d4ffe31"
    },
    {
     "name": "tips",
     "kind": "const",
-    "start": 972,
-    "end": 972,
+    "start": 977,
+    "end": 977,
     "sha": "eb5d8a1b91"
    },
    {
     "name": "combineTips",
     "kind": "const",
-    "start": 973,
-    "end": 978,
+    "start": 978,
+    "end": 983,
     "sha": "79be6bffb3"
    },
    {
     "name": "statusOf",
     "kind": "function",
-    "start": 979,
-    "end": 982,
+    "start": 984,
+    "end": 987,
     "sha": "2dda159ecf"
    },
    {
     "name": "fullPart",
     "kind": "const",
-    "start": 983,
-    "end": 983,
+    "start": 988,
+    "end": 988,
     "sha": "06d5bd22b9"
    },
    {
     "name": "hereLabel",
     "kind": "function",
-    "start": 984,
-    "end": 991,
+    "start": 989,
+    "end": 996,
     "sha": "42efc50539"
    },
    {
     "name": "shortLabel",
     "kind": "function",
-    "start": 992,
-    "end": 1000,
+    "start": 997,
+    "end": 1005,
     "sha": "e6032c871e"
    },
    {
     "name": "placeRow",
     "kind": "function",
-    "start": 1001,
-    "end": 1002,
+    "start": 1006,
+    "end": 1007,
     "sha": "0d78723c69"
    },
    {
     "name": "placeGo",
     "kind": "function",
-    "start": 1003,
-    "end": 1007,
+    "start": 1008,
+    "end": 1012,
     "sha": "49be8538bf"
    },
    {
     "name": "fitLabel",
     "kind": "function",
-    "start": 1008,
-    "end": 1011,
+    "start": 1013,
+    "end": 1016,
     "sha": "7400e1d0f3"
    },
    {
     "name": "fitLabel.fits",
     "kind": "nested",
-    "start": 1009,
+    "start": 1014,
     "parent": "fitLabel",
-    "end": 1011,
+    "end": 1016,
     "sha": "d488c1d87c"
    },
    {
     "name": "hdr",
     "kind": "function",
-    "start": 1012,
-    "end": 1021,
+    "start": 1017,
+    "end": 1026,
     "sha": "274ed6d45c"
    },
    {
     "name": "speciesRow",
     "kind": "function",
-    "start": 1022,
-    "end": 1026,
+    "start": 1027,
+    "end": 1031,
     "sha": "b98aa0c2ba"
    },
    {
     "name": "buildKeep",
     "kind": "function",
-    "start": 1027,
-    "end": 1326,
-    "sha": "5f7d333da0"
+    "start": 1032,
+    "end": 1342,
+    "sha": "48b6d6847c"
    },
    {
     "name": "buildKeep.fresh",
     "kind": "nested",
-    "start": 1066,
+    "start": 1071,
     "parent": "buildKeep",
-    "end": 1110,
-    "sha": "27f3296780"
+    "end": 1116,
+    "sha": "70b3ff6397"
    },
    {
     "name": "buildKeep.keyIn",
     "kind": "nested",
-    "start": 1111,
+    "start": 1117,
     "parent": "buildKeep",
-    "end": 1111,
+    "end": 1117,
     "sha": "b84ea87b3f"
    },
    {
     "name": "buildKeep.glOf",
     "kind": "nested",
-    "start": 1112,
+    "start": 1118,
     "parent": "buildKeep",
-    "end": 1123,
+    "end": 1129,
     "sha": "8d3acaa94e"
    },
    {
     "name": "buildKeep.pics",
     "kind": "nested",
-    "start": 1124,
+    "start": 1130,
     "parent": "buildKeep",
-    "end": 1128,
+    "end": 1134,
     "sha": "d390d9679f"
    },
    {
     "name": "buildKeep.bhead",
     "kind": "nested",
-    "start": 1129,
+    "start": 1135,
     "parent": "buildKeep",
-    "end": 1137,
+    "end": 1143,
     "sha": "fdc9126737"
    },
    {
     "name": "buildKeep.same",
     "kind": "nested",
-    "start": 1138,
+    "start": 1144,
     "parent": "buildKeep",
-    "end": 1138,
+    "end": 1144,
     "sha": "bf4d97bcdf"
    },
    {
     "name": "buildKeep.presOf",
     "kind": "nested",
-    "start": 1139,
+    "start": 1145,
     "parent": "buildKeep",
-    "end": 1139,
+    "end": 1145,
     "sha": "5d06be692a"
    },
    {
     "name": "buildKeep.presP",
     "kind": "nested",
-    "start": 1140,
+    "start": 1146,
     "parent": "buildKeep",
-    "end": 1145,
+    "end": 1151,
     "sha": "42e51cf968"
    },
    {
     "name": "buildKeep.ktags",
     "kind": "nested",
-    "start": 1146,
+    "start": 1152,
     "parent": "buildKeep",
-    "end": 1146,
+    "end": 1152,
     "sha": "e826d72488"
    },
    {
     "name": "buildKeep.krow",
     "kind": "nested",
-    "start": 1147,
+    "start": 1153,
     "parent": "buildKeep",
-    "end": 1148,
+    "end": 1154,
     "sha": "d0d129f9eb"
    },
    {
     "name": "buildKeep.capWords",
     "kind": "nested",
-    "start": 1149,
+    "start": 1155,
     "parent": "buildKeep",
-    "end": 1150,
+    "end": 1156,
     "sha": "c750b36dd2"
    },
    {
     "name": "buildKeep.sizeTag",
     "kind": "nested",
-    "start": 1151,
+    "start": 1157,
     "parent": "buildKeep",
-    "end": 1151,
+    "end": 1157,
     "sha": "412cb262f7"
    },
    {
     "name": "buildKeep.covers",
     "kind": "nested",
-    "start": 1152,
+    "start": 1158,
     "parent": "buildKeep",
-    "end": 1155,
+    "end": 1161,
     "sha": "dfc61d4e9d"
    },
    {
     "name": "buildKeep.qgrp",
     "kind": "nested",
-    "start": 1156,
+    "start": 1162,
     "parent": "buildKeep",
-    "end": 1162,
+    "end": 1168,
     "sha": "c5a7fddd97"
    },
    {
     "name": "buildKeep.lc1",
     "kind": "nested",
-    "start": 1163,
+    "start": 1169,
     "parent": "buildKeep",
-    "end": 1163,
+    "end": 1169,
     "sha": "0b7427c4c7"
    },
    {
     "name": "buildKeep.sgrp",
     "kind": "nested",
-    "start": 1164,
+    "start": 1170,
     "parent": "buildKeep",
-    "end": 1169,
+    "end": 1175,
     "sha": "caefc7d76d"
    },
    {
     "name": "buildKeep.betw",
     "kind": "nested",
-    "start": 1170,
+    "start": 1176,
     "parent": "buildKeep",
-    "end": 1171,
+    "end": 1177,
     "sha": "959ab68cee"
    },
    {
     "name": "buildKeep.shared",
     "kind": "nested",
-    "start": 1172,
+    "start": 1178,
     "parent": "buildKeep",
-    "end": 1175,
+    "end": 1181,
     "sha": "165f5aec32"
    },
    {
     "name": "buildKeep.within",
     "kind": "nested",
-    "start": 1176,
+    "start": 1182,
     "parent": "buildKeep",
-    "end": 1221,
+    "end": 1227,
     "sha": "b497014cc9"
    },
    {
     "name": "buildKeep.nbsp",
     "kind": "nested",
-    "start": 1222,
+    "start": 1228,
     "parent": "buildKeep",
-    "end": 1222,
+    "end": 1228,
     "sha": "283c5c0b2d"
    },
    {
     "name": "buildKeep.boldN",
     "kind": "nested",
-    "start": 1223,
+    "start": 1229,
     "parent": "buildKeep",
-    "end": 1223,
+    "end": 1229,
     "sha": "922a7d0336"
    },
    {
     "name": "buildKeep.sizeOf",
     "kind": "nested",
-    "start": 1224,
+    "start": 1230,
     "parent": "buildKeep",
-    "end": 1232,
+    "end": 1238,
     "sha": "ea46f4b9f4"
    },
    {
     "name": "buildKeep.dutyWords",
     "kind": "nested",
-    "start": 1233,
+    "start": 1239,
     "parent": "buildKeep",
-    "end": 1233,
+    "end": 1239,
     "sha": "879f57573f"
    },
    {
     "name": "buildKeep.kt",
     "kind": "nested",
-    "start": 1234,
+    "start": 1240,
     "parent": "buildKeep",
-    "end": 1248,
+    "end": 1254,
     "sha": "cf5e7d8336"
    },
    {
     "name": "buildKeep.tierWords",
     "kind": "nested",
-    "start": 1249,
+    "start": 1255,
     "parent": "buildKeep",
-    "end": 1253,
+    "end": 1259,
     "sha": "cece9ec312"
    },
    {
     "name": "buildKeep.pagesOf",
     "kind": "nested",
-    "start": 1254,
+    "start": 1260,
     "parent": "buildKeep",
-    "end": 1276,
-    "sha": "71f01fda42"
+    "end": 1289,
+    "sha": "eb53c7aaf6"
    },
    {
     "name": "buildKeep.bigWords",
     "kind": "nested",
-    "start": 1277,
+    "start": 1290,
     "parent": "buildKeep",
-    "end": 1326,
-    "sha": "901432c48a"
+    "end": 1342,
+    "sha": "0de1692f8d"
    },
    {
     "name": "KINDS",
     "kind": "const",
-    "start": 1327,
-    "end": 1331,
+    "start": 1343,
+    "end": 1347,
     "sha": "05fc8a3afe"
    },
    {
     "name": "weekSheet",
     "kind": "function",
-    "start": 1332,
-    "end": 1358,
+    "start": 1348,
+    "end": 1374,
     "sha": "546d0969bd"
    },
    {
     "name": "weekSheet.line",
     "kind": "nested",
-    "start": 1350,
+    "start": 1366,
     "parent": "weekSheet",
-    "end": 1358,
+    "end": 1374,
     "sha": "b2a74e5ddc"
    },
    {
     "name": "SRCS",
     "kind": "const",
-    "start": 1359,
-    "end": 1359,
+    "start": 1375,
+    "end": 1375,
     "sha": "33cdc01712"
    },
    {
     "name": "parse",
     "kind": "const",
-    "start": 1360,
-    "end": 1360,
+    "start": 1376,
+    "end": 1376,
     "sha": "a84f85a7ea"
    },
    {
     "name": "DAY0",
     "kind": "const",
-    "start": 1361,
-    "end": 1361,
+    "start": 1377,
+    "end": 1377,
     "sha": "f3f07dd85e"
    },
    {
     "name": "dayIx",
     "kind": "const",
-    "start": 1362,
-    "end": 1362,
+    "start": 1378,
+    "end": 1378,
     "sha": "f6b6a0dad6"
    },
    {
     "name": "span",
     "kind": "function",
-    "start": 1363,
-    "end": 1365,
+    "start": 1379,
+    "end": 1381,
     "sha": "92c7dc1f73"
    },
    {
     "name": "dated",
     "kind": "function",
-    "start": 1366,
-    "end": 1372,
+    "start": 1382,
+    "end": 1388,
     "sha": "1f8755be6e"
    },
    {
     "name": "dayLine",
     "kind": "const",
-    "start": 1373,
-    "end": 1374,
+    "start": 1389,
+    "end": 1390,
     "sha": "3199071123"
    },
    {
     "name": "levelOf",
     "kind": "const",
-    "start": 1375,
-    "end": 1375,
+    "start": 1391,
+    "end": 1391,
     "sha": "d1d21c7287"
    },
    {
     "name": "CHIPWORD",
     "kind": "const",
-    "start": 1376,
-    "end": 1376,
+    "start": 1392,
+    "end": 1392,
     "sha": "7a5d8fff79"
    },
    {
     "name": "learnChipWords",
     "kind": "function",
-    "start": 1377,
-    "end": 1379,
+    "start": 1393,
+    "end": 1395,
     "sha": "436041550e"
    },
    {
     "name": "wordOf_",
     "kind": "const",
-    "start": 1380,
-    "end": 1380,
+    "start": 1396,
+    "end": 1396,
     "sha": "85d029d7d7"
    },
    {
     "name": "licence",
     "kind": "function",
-    "start": 1381,
-    "end": 1426,
+    "start": 1397,
+    "end": 1442,
     "sha": "e9a37da30d"
    },
    {
     "name": "licence.lift",
     "kind": "nested",
-    "start": 1389,
+    "start": 1405,
     "parent": "licence",
-    "end": 1392,
+    "end": 1408,
     "sha": "279d12bebc"
    },
    {
     "name": "licence.isOthers",
     "kind": "nested",
-    "start": 1393,
+    "start": 1409,
     "parent": "licence",
-    "end": 1393,
+    "end": 1409,
     "sha": "179d28fc09"
    },
    {
     "name": "licence.one",
     "kind": "nested",
-    "start": 1394,
+    "start": 1410,
     "parent": "licence",
-    "end": 1406,
+    "end": 1422,
     "sha": "67d1f3f02d"
    },
    {
     "name": "licence.asNeeds",
     "kind": "nested",
-    "start": 1407,
+    "start": 1423,
     "parent": "licence",
-    "end": 1419,
+    "end": 1435,
     "sha": "f0bb4b6da6"
    },
    {
     "name": "licence.seg",
     "kind": "nested",
-    "start": 1420,
+    "start": 1436,
     "parent": "licence",
-    "end": 1426,
+    "end": 1442,
     "sha": "b4b78f31fa"
    },
    {
     "name": "KEYOF",
     "kind": "function",
-    "start": 1427,
-    "end": 1432,
+    "start": 1443,
+    "end": 1448,
     "sha": "d568919774"
    },
    {
     "name": "IC",
     "kind": "const",
-    "start": 1433,
-    "end": 1445,
+    "start": 1449,
+    "end": 1461,
     "sha": "ca243279df"
    },
    {
     "name": "icon",
     "kind": "const",
-    "start": 1446,
-    "end": 1446,
+    "start": 1462,
+    "end": 1462,
     "sha": "387da6df4e"
    },
    {
     "name": "ROWKEY",
     "kind": "const",
-    "start": 1447,
-    "end": 1447,
+    "start": 1463,
+    "end": 1463,
     "sha": "533f156100"
    },
    {
     "name": "gearJSON",
     "kind": "const",
-    "start": 1448,
-    "end": 1449,
+    "start": 1464,
+    "end": 1465,
     "sha": "7cca067208"
    },
    {
     "name": "namesBoat",
     "kind": "const",
-    "start": 1450,
-    "end": 1451,
+    "start": 1466,
+    "end": 1467,
     "sha": "f26f6010e8"
    },
    {
     "name": "yesNo",
     "kind": "function",
-    "start": 1452,
-    "end": 1456,
+    "start": 1468,
+    "end": 1472,
     "sha": "c86ff4ffad"
    },
    {
     "name": "yesNo.col",
     "kind": "nested",
-    "start": 1455,
+    "start": 1471,
     "parent": "yesNo",
-    "end": 1456,
+    "end": 1472,
     "sha": "31ca069e7e"
    },
    {
     "name": "closedUntil",
     "kind": "function",
-    "start": 1457,
-    "end": 1463,
+    "start": 1473,
+    "end": 1479,
     "sha": "3908b73516"
    },
    {
     "name": "itemSrc",
     "kind": "function",
-    "start": 1464,
-    "end": 1474,
+    "start": 1480,
+    "end": 1490,
     "sha": "bee2e6e9ef"
    },
    {
     "name": "gnote",
     "kind": "const",
-    "start": 1475,
-    "end": 1475,
+    "start": 1491,
+    "end": 1491,
     "sha": "f86fd842ef"
    },
    {
     "name": "buildGear",
     "kind": "function",
-    "start": 1476,
-    "end": 1572,
-    "sha": "a0523f4fef"
+    "start": 1492,
+    "end": 1594,
+    "sha": "30bfbbe17c"
    },
    {
     "name": "buildGear.sect",
     "kind": "nested",
-    "start": 1480,
+    "start": 1496,
     "parent": "buildGear",
-    "end": 1490,
-    "sha": "eff159df4e"
+    "end": 1512,
+    "sha": "d52ef06e49"
    },
    {
     "name": "buildGear.tipFor",
     "kind": "nested",
-    "start": 1491,
+    "start": 1513,
     "parent": "buildGear",
-    "end": 1491,
+    "end": 1513,
     "sha": "3f5f4e0480"
    },
    {
     "name": "buildGear.pagesSpan",
     "kind": "nested",
-    "start": 1492,
+    "start": 1514,
     "parent": "buildGear",
-    "end": 1500,
+    "end": 1522,
     "sha": "0ca6a91ec1"
    },
    {
     "name": "buildGear.val",
     "kind": "nested",
-    "start": 1501,
+    "start": 1523,
     "parent": "buildGear",
-    "end": 1506,
+    "end": 1528,
     "sha": "a0b9328b43"
    },
    {
     "name": "buildGear.rowOf",
     "kind": "nested",
-    "start": 1507,
+    "start": 1529,
     "parent": "buildGear",
-    "end": 1509,
+    "end": 1531,
     "sha": "dc5f603024"
    },
    {
     "name": "buildGear.notesFor",
     "kind": "nested",
-    "start": 1510,
+    "start": 1532,
     "parent": "buildGear",
-    "end": 1510,
+    "end": 1532,
     "sha": "462e465116"
    },
    {
     "name": "buildGear.citesAt",
     "kind": "nested",
-    "start": 1511,
+    "start": 1533,
     "parent": "buildGear",
-    "end": 1531,
+    "end": 1553,
     "sha": "b77dc3d6e7"
    },
    {
     "name": "buildGear.note2",
     "kind": "nested",
-    "start": 1532,
+    "start": 1554,
     "parent": "buildGear",
-    "end": 1572,
+    "end": 1594,
     "sha": "054d239c14"
    },
    {
     "name": "WAYS",
     "kind": "const",
-    "start": 1573,
-    "end": 1575,
+    "start": 1595,
+    "end": 1597,
     "sha": "bd52fb7583"
    },
    {
     "name": "render",
     "kind": "function",
-    "start": 1576,
-    "end": 1613,
+    "start": 1598,
+    "end": 1635,
     "sha": "8bc81cce0f"
    },
    {
     "name": "pinTops",
     "kind": "function",
-    "start": 1614,
-    "end": 1626,
+    "start": 1636,
+    "end": 1648,
     "sha": "0518fc7ea9"
    },
    {
     "name": "lc1w",
     "kind": "const",
-    "start": 1627,
-    "end": 1627,
+    "start": 1649,
+    "end": 1649,
     "sha": "b0cf7895b9"
    },
    {
     "name": "shortOf",
     "kind": "function",
-    "start": 1628,
-    "end": 1635,
+    "start": 1650,
+    "end": 1657,
     "sha": "54c94c54fe"
    },
    {
     "name": "PIN_LAST",
     "kind": "const",
-    "start": 1636,
-    "end": 1636,
+    "start": 1658,
+    "end": 1658,
     "sha": "8315aac461"
    },
    {
     "name": "pinUpdate",
     "kind": "function",
-    "start": 1637,
-    "end": 1655,
-    "sha": "479620fbd0"
+    "start": 1659,
+    "end": 1677,
+    "sha": "09ec58d11b"
    },
    {
     "name": "mini",
     "kind": "function",
-    "start": 1656,
-    "end": 1667,
+    "start": 1678,
+    "end": 1689,
     "sha": "150cabd04f"
    },
    {
     "name": "mini.reached",
     "kind": "nested",
-    "start": 1661,
+    "start": 1683,
     "parent": "mini",
-    "end": 1667,
+    "end": 1689,
     "sha": "c564a15adc"
    },
    {
     "name": "head",
     "kind": "const",
-    "start": 1668,
-    "end": 1668,
+    "start": 1690,
+    "end": 1690,
     "sha": "5b8a133136"
    },
    {
     "name": "scopeLines",
     "kind": "function",
-    "start": 1669,
-    "end": 1673,
+    "start": 1691,
+    "end": 1695,
     "sha": "2118f3f4d7"
    },
    {
     "name": "groupedSources",
     "kind": "function",
-    "start": 1674,
-    "end": 1683,
+    "start": 1696,
+    "end": 1705,
     "sha": "5ba95e8962"
    },
    {
     "name": "groupedSources.flush",
     "kind": "nested",
-    "start": 1676,
+    "start": 1698,
     "parent": "groupedSources",
-    "end": 1683,
+    "end": 1705,
     "sha": "e84a250799"
    },
    {
     "name": "sheetHtml",
     "kind": "function",
-    "start": 1684,
-    "end": 1735,
+    "start": 1706,
+    "end": 1757,
     "sha": "f92ed4716e"
    },
    {
     "name": "sheetHtml.norm1",
     "kind": "nested",
-    "start": 1699,
+    "start": 1721,
     "parent": "sheetHtml",
-    "end": 1735,
+    "end": 1757,
     "sha": "738bef0889"
    },
    {
     "name": "WM",
     "kind": "const",
-    "start": 1736,
-    "end": 1736,
+    "start": 1758,
+    "end": 1758,
     "sha": "9ff9b7029d"
    },
    {
     "name": "ST_KIND",
     "kind": "const",
-    "start": 1737,
-    "end": 1744,
+    "start": 1759,
+    "end": 1766,
     "sha": "7043efbb4f"
    },
    {
     "name": "ST_KIND.v",
     "kind": "nested",
-    "start": 1739,
+    "start": 1761,
     "parent": "ST_KIND",
-    "end": 1744,
+    "end": 1766,
     "sha": "0ac9e77987"
    },
    {
     "name": "BR",
     "kind": "const",
-    "start": 1745,
-    "end": 1745,
+    "start": 1767,
+    "end": 1767,
     "sha": "e03d5ff57e"
    },
    {
     "name": "wgroup",
     "kind": "const",
-    "start": 1746,
-    "end": 1746,
+    "start": 1768,
+    "end": 1768,
     "sha": "113a01aa56"
    },
    {
     "name": "mgroup",
     "kind": "const",
-    "start": 1747,
-    "end": 1747,
+    "start": 1769,
+    "end": 1769,
     "sha": "eea6862726"
    },
    {
     "name": "dayCol",
     "kind": "const",
-    "start": 1748,
-    "end": 1748,
+    "start": 1770,
+    "end": 1770,
     "sha": "44558501be"
    },
    {
     "name": "kindOf",
     "kind": "const",
-    "start": 1749,
-    "end": 1749,
+    "start": 1771,
+    "end": 1771,
     "sha": "e1a71d7e6d"
    },
    {
     "name": "wordOf",
     "kind": "const",
-    "start": 1750,
-    "end": 1751,
+    "start": 1772,
+    "end": 1773,
     "sha": "60fc58af3c"
    },
    {
     "name": "curPart",
     "kind": "function",
-    "start": 1752,
-    "end": 1754,
+    "start": 1774,
+    "end": 1776,
     "sha": "e39efea29f"
    },
    {
     "name": "stateFor",
     "kind": "function",
-    "start": 1755,
-    "end": 1760,
+    "start": 1777,
+    "end": 1782,
     "sha": "e7260bfa99"
    },
    {
     "name": "partName",
     "kind": "const",
-    "start": 1761,
-    "end": 1762,
+    "start": 1783,
+    "end": 1784,
     "sha": "25c244ca48"
    },
    {
     "name": "itemNote",
     "kind": "const",
-    "start": 1763,
-    "end": 1763,
+    "start": 1785,
+    "end": 1785,
     "sha": "08d9f26fe3"
    },
    {
     "name": "statusChip",
     "kind": "const",
-    "start": 1764,
-    "end": 1765,
+    "start": 1786,
+    "end": 1787,
     "sha": "922d2b8321"
    },
    {
     "name": "markLabel",
     "kind": "function",
-    "start": 1766,
-    "end": 1768,
+    "start": 1788,
+    "end": 1790,
     "sha": "c306edc0a9"
    },
    {
     "name": "pct",
     "kind": "const",
-    "start": 1769,
-    "end": 1770,
+    "start": 1791,
+    "end": 1792,
     "sha": "bdfd08179a"
    },
    {
     "name": "braidSays",
     "kind": "function",
-    "start": 1771,
-    "end": 1773,
+    "start": 1793,
+    "end": 1795,
     "sha": "b3a853ba46"
    },
    {
     "name": "braidSo",
     "kind": "const",
-    "start": 1774,
-    "end": 1774,
+    "start": 1796,
+    "end": 1796,
     "sha": "fee4fc7237"
    },
    {
     "name": "pageOf",
     "kind": "const",
-    "start": 1775,
-    "end": 1775,
+    "start": 1797,
+    "end": 1797,
     "sha": "e0c1443008"
    },
    {
     "name": "braidMapHtml",
     "kind": "function",
-    "start": 1776,
-    "end": 1794,
+    "start": 1798,
+    "end": 1816,
     "sha": "b3e61f2a50"
    },
    {
     "name": "braidMapHtml.stroke",
     "kind": "nested",
-    "start": 1778,
+    "start": 1800,
     "parent": "braidMapHtml",
-    "end": 1784,
+    "end": 1806,
     "sha": "76eeabf5ea"
    },
    {
     "name": "braidMapHtml.nb",
     "kind": "nested",
-    "start": 1785,
+    "start": 1807,
     "parent": "braidMapHtml",
-    "end": 1794,
+    "end": 1816,
     "sha": "e6304450e7"
    },
    {
     "name": "mapHtml",
     "kind": "function",
-    "start": 1795,
-    "end": 1820,
+    "start": 1817,
+    "end": 1842,
     "sha": "c96b14e9de"
    },
    {
     "name": "mapHtml.stroke",
     "kind": "nested",
-    "start": 1798,
+    "start": 1820,
     "parent": "mapHtml",
-    "end": 1820,
+    "end": 1842,
     "sha": "84d7e15060"
    },
    {
     "name": "markPop",
     "kind": "function",
-    "start": 1821,
-    "end": 1825,
+    "start": 1843,
+    "end": 1847,
     "sha": "60c267b5b1"
    },
    {
     "name": "markPop.side",
     "kind": "nested",
-    "start": 1822,
+    "start": 1844,
     "parent": "markPop",
-    "end": 1825,
+    "end": 1847,
     "sha": "d8a12194ac"
    },
    {
     "name": "MV",
     "kind": "const",
-    "start": 1826,
-    "end": 1826,
+    "start": 1848,
+    "end": 1848,
     "sha": "9b6f46185f"
    },
    {
     "name": "fitBox",
     "kind": "function",
-    "start": 1827,
-    "end": 1831,
+    "start": 1849,
+    "end": 1853,
     "sha": "4b26402c34"
    },
    {
     "name": "targetBox",
     "kind": "function",
-    "start": 1832,
-    "end": 1834,
+    "start": 1854,
+    "end": 1856,
     "sha": "83fcdb4c12"
    },
    {
     "name": "setVB",
     "kind": "function",
-    "start": 1835,
-    "end": 1835,
+    "start": 1857,
+    "end": 1857,
     "sha": "513bf0318c"
    },
    {
     "name": "ease",
     "kind": "function",
-    "start": 1836,
-    "end": 1840,
+    "start": 1858,
+    "end": 1862,
     "sha": "dac4f9af2a"
    },
    {
     "name": "placeMarks",
     "kind": "function",
-    "start": 1841,
-    "end": 1851,
+    "start": 1863,
+    "end": 1873,
     "sha": "3537e1cec5"
    },
    {
     "name": "mapOpened",
     "kind": "function",
-    "start": 1852,
-    "end": 1881,
+    "start": 1874,
+    "end": 1903,
     "sha": "388a7da0fc"
    },
    {
     "name": "mapOpened.at",
     "kind": "nested",
-    "start": 1855,
+    "start": 1877,
     "parent": "mapOpened",
-    "end": 1856,
+    "end": 1878,
     "sha": "ced945b20f"
    },
    {
     "name": "mapOpened.zoom",
     "kind": "nested",
-    "start": 1857,
+    "start": 1879,
     "parent": "mapOpened",
-    "end": 1868,
+    "end": 1890,
     "sha": "7580505423"
    },
    {
     "name": "mapOpened.up",
     "kind": "nested",
-    "start": 1869,
+    "start": 1891,
     "parent": "mapOpened",
-    "end": 1881,
+    "end": 1903,
     "sha": "75aefaf223"
    },
    {
     "name": "go",
     "kind": "function",
-    "start": 1882,
-    "end": 1882,
+    "start": 1904,
+    "end": 1904,
     "sha": "5dc0106475"
    },
    {
     "name": "toast",
     "kind": "function",
-    "start": 1883,
-    "end": 1921,
+    "start": 1905,
+    "end": 1943,
     "sha": "2393f630b1"
    },
    {
     "name": "poster",
     "kind": "function",
-    "start": 1922,
-    "end": 1947,
+    "start": 1944,
+    "end": 1969,
     "sha": "b4107a97c5"
    }
   ],
@@ -1801,7 +1801,7 @@
     "kind": "const",
     "start": 260,
     "end": 433,
-    "sha": "48d330c0a3"
+    "sha": "cc42fb90eb"
    },
    {
     "name": "FISHART.smooth",
@@ -1881,7 +1881,7 @@
     "start": 335,
     "parent": "FISHART",
     "end": 433,
-    "sha": "444664f3c3"
+    "sha": "6755f1258a"
    },
    {
     "name": "state",
@@ -1936,1370 +1936,1370 @@
     "name": "waterStrip0",
     "kind": "function",
     "start": 459,
-    "end": 468,
-    "sha": "43078dc211"
+    "end": 469,
+    "sha": "767ab10b0e"
    },
    {
     "name": "miniStrip",
     "kind": "function",
-    "start": 469,
-    "end": 475,
+    "start": 470,
+    "end": 476,
     "sha": "8fe200bb80"
    },
    {
     "name": "miniStrip.toDays",
     "kind": "nested",
-    "start": 471,
+    "start": 472,
     "parent": "miniStrip",
-    "end": 475,
+    "end": 476,
     "sha": "b10bd682c7"
    },
    {
     "name": "choicesOf",
     "kind": "const",
-    "start": 476,
-    "end": 476,
+    "start": 477,
+    "end": 477,
     "sha": "020208bb69"
    },
    {
     "name": "groupOf",
     "kind": "const",
-    "start": 477,
-    "end": 477,
+    "start": 478,
+    "end": 478,
     "sha": "6a191a14c4"
    },
    {
     "name": "partLabel",
     "kind": "const",
-    "start": 478,
-    "end": 479,
+    "start": 479,
+    "end": 480,
     "sha": "5541c242cb"
    },
    {
     "name": "mergedHtml",
     "kind": "function",
-    "start": 480,
-    "end": 487,
+    "start": 481,
+    "end": 488,
     "sha": "79798ccbcd"
    },
    {
     "name": "runOf",
     "kind": "function",
-    "start": 488,
-    "end": 494,
+    "start": 489,
+    "end": 495,
     "sha": "18f9c918eb"
    },
    {
     "name": "closedRuns",
     "kind": "function",
-    "start": 495,
-    "end": 502,
+    "start": 496,
+    "end": 503,
     "sha": "d641184ab5"
    },
    {
     "name": "nextYr",
     "kind": "const",
-    "start": 503,
-    "end": 503,
+    "start": 504,
+    "end": 504,
     "sha": "83bd86d58f"
    },
    {
     "name": "runUntil",
     "kind": "function",
-    "start": 504,
-    "end": 504,
+    "start": 505,
+    "end": 505,
     "sha": "d0d24f5894"
    },
    {
     "name": "runTxt",
     "kind": "function",
-    "start": 505,
-    "end": 516,
+    "start": 506,
+    "end": 517,
     "sha": "fdd31263ce"
    },
    {
     "name": "closersAt",
     "kind": "function",
-    "start": 517,
-    "end": 519,
+    "start": 518,
+    "end": 520,
     "sha": "c07d5dbb08"
    },
    {
     "name": "closedBanner",
     "kind": "function",
-    "start": 520,
-    "end": 541,
+    "start": 521,
+    "end": 542,
     "sha": "6e956bf47a"
    },
    {
     "name": "closedBanner.closeTxt",
     "kind": "nested",
-    "start": 533,
+    "start": 534,
     "parent": "closedBanner",
-    "end": 541,
+    "end": 542,
     "sha": "8c167c3061"
    },
    {
     "name": "daysTxt",
     "kind": "function",
-    "start": 542,
-    "end": 544,
+    "start": 543,
+    "end": 545,
     "sha": "506a1ba12f"
    },
    {
     "name": "daysTxt.sh",
     "kind": "nested",
-    "start": 544,
+    "start": 545,
     "parent": "daysTxt",
-    "end": 544,
+    "end": 545,
     "sha": "21ee31e38a"
    },
    {
     "name": "hoursTxt",
     "kind": "const",
-    "start": 545,
-    "end": 545,
+    "start": 546,
+    "end": 546,
     "sha": "53e0af427a"
    },
    {
     "name": "momentTxt",
     "kind": "function",
-    "start": 546,
-    "end": 547,
+    "start": 547,
+    "end": 548,
     "sha": "28b154fcef"
    },
    {
     "name": "answerTxt",
     "kind": "const",
-    "start": 548,
-    "end": 552,
+    "start": 549,
+    "end": 553,
     "sha": "99076f7e71"
    },
    {
     "name": "timedHtml",
     "kind": "function",
-    "start": 553,
-    "end": 583,
+    "start": 554,
+    "end": 584,
     "sha": "3eb9842a92"
    },
    {
     "name": "timedHtml.spk",
     "kind": "nested",
-    "start": 578,
+    "start": 579,
     "parent": "timedHtml",
-    "end": 583,
+    "end": 584,
     "sha": "39bede8880"
    },
    {
     "name": "anglerClosures",
     "kind": "function",
-    "start": 584,
-    "end": 587,
+    "start": 585,
+    "end": 588,
     "sha": "ffd6fcd11a"
    },
    {
     "name": "uncertainHtml",
     "kind": "function",
-    "start": 588,
-    "end": 591,
+    "start": 589,
+    "end": 592,
     "sha": "1be2b8fd73"
    },
    {
     "name": "inPartHtml",
     "kind": "function",
-    "start": 592,
-    "end": 603,
+    "start": 593,
+    "end": 604,
     "sha": "1de1efdf1c"
    },
    {
     "name": "inPartHtml.boat",
     "kind": "nested",
-    "start": 596,
+    "start": 597,
     "parent": "inPartHtml",
-    "end": 597,
+    "end": 598,
     "sha": "dc28cd467d"
    },
    {
     "name": "inPartHtml.where",
     "kind": "nested",
-    "start": 598,
+    "start": 599,
     "parent": "inPartHtml",
-    "end": 598,
+    "end": 599,
     "sha": "93dcdc16ef"
    },
    {
     "name": "inPartHtml.li",
     "kind": "nested",
-    "start": 599,
+    "start": 600,
     "parent": "inPartHtml",
-    "end": 603,
+    "end": 604,
     "sha": "3293da5672"
    },
    {
     "name": "sideHtml",
     "kind": "function",
-    "start": 604,
-    "end": 610,
+    "start": 605,
+    "end": 611,
     "sha": "7b323b42f5"
    },
    {
     "name": "inheritedHtml",
     "kind": "function",
-    "start": 611,
-    "end": 615,
+    "start": 612,
+    "end": 616,
     "sha": "012f7915b0"
    },
    {
     "name": "whereHtml",
     "kind": "function",
-    "start": 616,
-    "end": 620,
+    "start": 617,
+    "end": 621,
     "sha": "a4b95efdc5"
    },
    {
     "name": "standingHtml",
     "kind": "function",
-    "start": 621,
-    "end": 625,
+    "start": 622,
+    "end": 626,
     "sha": "9eb25d5349"
    },
    {
     "name": "possessionHtml",
     "kind": "function",
-    "start": 626,
-    "end": 636,
+    "start": 627,
+    "end": 637,
     "sha": "ad0caa7350"
    },
    {
     "name": "scopeOf",
     "kind": "const",
-    "start": 637,
-    "end": 638,
+    "start": 638,
+    "end": 639,
     "sha": "555ed7f00c"
    },
    {
     "name": "ruleScope",
     "kind": "const",
-    "start": 639,
-    "end": 639,
+    "start": 640,
+    "end": 640,
     "sha": "77ef208255"
    },
    {
     "name": "scopeBadge",
     "kind": "function",
-    "start": 640,
-    "end": 642,
+    "start": 641,
+    "end": 643,
     "sha": "db8a31b001"
    },
    {
     "name": "fact",
     "kind": "function",
-    "start": 643,
-    "end": 668,
+    "start": 644,
+    "end": 669,
     "sha": "3a309478eb"
    },
    {
     "name": "liftNoteHtml",
     "kind": "function",
-    "start": 669,
-    "end": 671,
+    "start": 670,
+    "end": 672,
     "sha": "282d3dfd06"
    },
    {
     "name": "valueHtml",
     "kind": "function",
-    "start": 672,
-    "end": 679,
+    "start": 673,
+    "end": 680,
     "sha": "7fa3c07893"
    },
    {
     "name": "narrowAll",
     "kind": "const",
-    "start": 680,
-    "end": 681,
+    "start": 681,
+    "end": 682,
     "sha": "293bb361a6"
    },
    {
     "name": "groupedNames",
     "kind": "function",
-    "start": 682,
-    "end": 687,
+    "start": 683,
+    "end": 688,
     "sha": "8498b58e92"
    },
    {
     "name": "nar0",
     "kind": "const",
-    "start": 688,
-    "end": 688,
+    "start": 689,
+    "end": 689,
     "sha": "ae38d432b8"
    },
    {
     "name": "ddOpen",
     "kind": "const",
-    "start": 689,
-    "end": 690,
+    "start": 690,
+    "end": 691,
     "sha": "aa72fe82c5"
    },
    {
     "name": "TROUTISH",
     "kind": "const",
-    "start": 691,
-    "end": 691,
+    "start": 692,
+    "end": 692,
     "sha": "90e200dbff"
    },
    {
     "name": "rowsHtml",
     "kind": "function",
-    "start": 692,
-    "end": 700,
+    "start": 693,
+    "end": 701,
     "sha": "abaa2463db"
    },
    {
     "name": "rowsHtml.short",
     "kind": "nested",
-    "start": 697,
+    "start": 698,
     "parent": "rowsHtml",
-    "end": 700,
+    "end": 701,
     "sha": "482aaaa4de"
    },
    {
     "name": "renderCard",
     "kind": "function",
-    "start": 701,
-    "end": 716,
+    "start": 702,
+    "end": 717,
     "sha": "eeb31db34c"
    },
    {
     "name": "adiposeHtml",
     "kind": "const",
-    "start": 717,
-    "end": 719,
+    "start": 718,
+    "end": 720,
     "sha": "0b81cb4f86"
    },
    {
     "name": "rowConds",
     "kind": "function",
-    "start": 720,
-    "end": 762,
+    "start": 721,
+    "end": 763,
     "sha": "0b76bfc232"
    },
    {
     "name": "rowConds.lifted",
     "kind": "nested",
-    "start": 746,
+    "start": 747,
     "parent": "rowConds",
-    "end": 746,
+    "end": 747,
     "sha": "3c73fb0b60"
    },
    {
     "name": "rowConds.keepO",
     "kind": "nested",
-    "start": 747,
+    "start": 748,
     "parent": "rowConds",
-    "end": 753,
+    "end": 754,
     "sha": "c47f081d7c"
    },
    {
     "name": "rowConds.whoN",
     "kind": "nested",
-    "start": 754,
+    "start": 755,
     "parent": "rowConds",
-    "end": 762,
+    "end": 763,
     "sha": "4f64949089"
    },
    {
     "name": "FAMS",
     "kind": "const",
-    "start": 763,
-    "end": 763,
+    "start": 764,
+    "end": 764,
     "sha": "7be3552ea0"
    },
    {
     "name": "hasPic",
     "kind": "const",
-    "start": 764,
-    "end": 764,
+    "start": 765,
+    "end": 765,
     "sha": "06a1258bbb"
    },
    {
     "name": "openFish",
     "kind": "function",
-    "start": 765,
-    "end": 769,
+    "start": 766,
+    "end": 770,
     "sha": "a550d9957b"
    },
    {
     "name": "openFishGroup",
     "kind": "function",
-    "start": 770,
-    "end": 772,
+    "start": 771,
+    "end": 773,
     "sha": "c2dbd91302"
    },
    {
     "name": "namedIn",
     "kind": "const",
-    "start": 773,
-    "end": 775,
+    "start": 774,
+    "end": 776,
     "sha": "6196456fb4"
    },
    {
     "name": "ROLE",
     "kind": "const",
-    "start": 776,
-    "end": 777,
+    "start": 777,
+    "end": 778,
     "sha": "91576e72dd"
    },
    {
     "name": "WINS",
     "kind": "const",
-    "start": 778,
-    "end": 778,
+    "start": 779,
+    "end": 779,
     "sha": "83aaccad74"
    },
    {
     "name": "RK",
     "kind": "const",
-    "start": 779,
-    "end": 779,
+    "start": 780,
+    "end": 780,
     "sha": "efce096dd4"
    },
    {
     "name": "rowSources",
     "kind": "function",
-    "start": 780,
-    "end": 787,
+    "start": 781,
+    "end": 788,
     "sha": "bc98c38bff"
    },
    {
     "name": "srcCard",
     "kind": "function",
-    "start": 788,
-    "end": 792,
+    "start": 789,
+    "end": 793,
     "sha": "0fbb857d63"
    },
    {
     "name": "fieldsPre",
     "kind": "const",
-    "start": 793,
-    "end": 793,
+    "start": 794,
+    "end": 794,
     "sha": "425e59d726"
    },
    {
     "name": "scrim",
     "kind": "const",
-    "start": 794,
-    "end": 794,
+    "start": 795,
+    "end": 795,
     "sha": "7176680a7a"
    },
    {
     "name": "openSheet",
     "kind": "function",
-    "start": 795,
-    "end": 795,
+    "start": 796,
+    "end": 796,
     "sha": "08381c5a88"
    },
    {
     "name": "openRowSources",
     "kind": "function",
-    "start": 796,
-    "end": 805,
+    "start": 797,
+    "end": 806,
     "sha": "7908104f02"
    },
    {
     "name": "openRowSources.card",
     "kind": "nested",
-    "start": 799,
+    "start": 800,
     "parent": "openRowSources",
-    "end": 805,
+    "end": 806,
     "sha": "5f4a1e710b"
    },
    {
     "name": "levelTag",
     "kind": "const",
-    "start": 806,
-    "end": 806,
+    "start": 807,
+    "end": 807,
     "sha": "5385fb21f8"
    },
    {
     "name": "levelHead",
     "kind": "const",
-    "start": 807,
-    "end": 807,
+    "start": 808,
+    "end": 808,
     "sha": "055cbf80c8"
    },
    {
     "name": "ICON",
     "kind": "const",
-    "start": 808,
-    "end": 816,
+    "start": 809,
+    "end": 817,
     "sha": "6e85a6a8b8"
    },
    {
     "name": "shortNames",
     "kind": "function",
-    "start": 817,
-    "end": 826,
+    "start": 818,
+    "end": 827,
     "sha": "f086e742c8"
    },
    {
     "name": "shortNames.last",
     "kind": "nested",
-    "start": 820,
+    "start": 821,
     "parent": "shortNames",
-    "end": 826,
+    "end": 827,
     "sha": "92af2076c8"
    },
    {
     "name": "condParts",
     "kind": "function",
-    "start": 827,
-    "end": 838,
+    "start": 828,
+    "end": 839,
     "sha": "61e2f9b1ca"
    },
    {
     "name": "chipHtml",
     "kind": "const",
-    "start": 839,
-    "end": 839,
+    "start": 840,
+    "end": 840,
     "sha": "e682540c40"
    },
    {
     "name": "extraChips",
     "kind": "function",
-    "start": 840,
-    "end": 843,
+    "start": 841,
+    "end": 844,
     "sha": "0ec9788346"
    },
    {
     "name": "shortLabel",
     "kind": "function",
-    "start": 844,
-    "end": 848,
+    "start": 845,
+    "end": 849,
     "sha": "d5d5b3ae52"
    },
    {
     "name": "friendlyWhy",
     "kind": "const",
-    "start": 849,
-    "end": 851,
+    "start": 850,
+    "end": 852,
     "sha": "ac6d08af32"
    },
    {
     "name": "COVER",
     "kind": "const",
-    "start": 852,
-    "end": 852,
+    "start": 853,
+    "end": 853,
     "sha": "d0940ef10a"
    },
    {
     "name": "speciesItems",
     "kind": "function",
-    "start": 853,
-    "end": 870,
+    "start": 854,
+    "end": 871,
     "sha": "10044c29bb"
    },
    {
     "name": "bandWords",
     "kind": "const",
-    "start": 871,
-    "end": 871,
+    "start": 872,
+    "end": 872,
     "sha": "fb20e9280a"
    },
    {
     "name": "itemBands",
     "kind": "const",
-    "start": 872,
-    "end": 873,
+    "start": 873,
+    "end": 874,
     "sha": "7e2cca1399"
    },
    {
     "name": "itemOrigins",
     "kind": "const",
-    "start": 874,
-    "end": 875,
+    "start": 875,
+    "end": 876,
     "sha": "c79f2974ed"
    },
    {
     "name": "againstOf",
     "kind": "const",
-    "start": 876,
-    "end": 876,
+    "start": 877,
+    "end": 877,
     "sha": "299787fb52"
    },
    {
     "name": "VAR",
     "kind": "const",
-    "start": 877,
-    "end": 878,
+    "start": 878,
+    "end": 879,
     "sha": "617017f6ff"
    },
    {
     "name": "generalCap",
     "kind": "const",
-    "start": 879,
-    "end": 879,
+    "start": 880,
+    "end": 880,
     "sha": "b827e6cfa7"
    },
    {
     "name": "groupBlock",
     "kind": "function",
-    "start": 880,
-    "end": 931,
+    "start": 881,
+    "end": 932,
     "sha": "86c4e28469"
    },
    {
     "name": "groupBlock.exemptOf",
     "kind": "nested",
-    "start": 911,
+    "start": 912,
     "parent": "groupBlock",
-    "end": 931,
+    "end": 932,
     "sha": "4e9c7175b1"
    },
    {
     "name": "bookOf",
     "kind": "function",
-    "start": 932,
-    "end": 935,
+    "start": 933,
+    "end": 936,
     "sha": "3238bd5e68"
    },
    {
     "name": "treeBlock",
     "kind": "function",
-    "start": 936,
-    "end": 945,
+    "start": 937,
+    "end": 946,
     "sha": "9833e90dd8"
    },
    {
     "name": "treeBlock.kindT",
     "kind": "nested",
-    "start": 937,
+    "start": 938,
     "parent": "treeBlock",
-    "end": 938,
+    "end": 939,
     "sha": "8749f442b9"
    },
    {
     "name": "treeBlock.orgT",
     "kind": "nested",
-    "start": 939,
+    "start": 940,
     "parent": "treeBlock",
-    "end": 939,
+    "end": 940,
     "sha": "d51de27cdf"
    },
    {
     "name": "treeBlock.tierT",
     "kind": "nested",
-    "start": 940,
+    "start": 941,
     "parent": "treeBlock",
-    "end": 945,
+    "end": 946,
     "sha": "e2eab7b9f4"
    },
    {
     "name": "cardBlock",
     "kind": "function",
-    "start": 946,
-    "end": 974,
+    "start": 947,
+    "end": 975,
     "sha": "16195a7a89"
    },
    {
     "name": "cardBlock.pic",
     "kind": "nested",
-    "start": 952,
+    "start": 953,
     "parent": "cardBlock",
-    "end": 953,
+    "end": 954,
     "sha": "dcbbb02bef"
    },
    {
     "name": "cardBlock.kind",
     "kind": "nested",
-    "start": 954,
+    "start": 955,
     "parent": "cardBlock",
-    "end": 955,
+    "end": 956,
     "sha": "765e7ff0ce"
    },
    {
     "name": "cardBlock.subs",
     "kind": "nested",
-    "start": 956,
+    "start": 957,
     "parent": "cardBlock",
-    "end": 958,
+    "end": 959,
     "sha": "fe8d062d28"
    },
    {
     "name": "cardBlock.sizes",
     "kind": "nested",
-    "start": 959,
+    "start": 960,
     "parent": "cardBlock",
-    "end": 959,
+    "end": 960,
     "sha": "c913b3a40a"
    },
    {
     "name": "cardBlock.bnotes",
     "kind": "nested",
-    "start": 960,
+    "start": 961,
     "parent": "cardBlock",
-    "end": 961,
+    "end": 962,
     "sha": "4ff6795169"
    },
    {
     "name": "cardBlock.betw",
     "kind": "nested",
-    "start": 962,
+    "start": 963,
     "parent": "cardBlock",
-    "end": 962,
+    "end": 963,
     "sha": "743228baf8"
    },
    {
     "name": "cardBlock.repl",
     "kind": "nested",
-    "start": 963,
+    "start": 964,
     "parent": "cardBlock",
-    "end": 974,
+    "end": 975,
     "sha": "c1460a98ff"
    },
    {
     "name": "sent",
     "kind": "const",
-    "start": 975,
-    "end": 975,
+    "start": 976,
+    "end": 976,
     "sha": "b46df521e0"
    },
    {
     "name": "rngTxt",
     "kind": "const",
-    "start": 976,
-    "end": 978,
+    "start": 977,
+    "end": 979,
     "sha": "c0df2359db"
    },
    {
     "name": "xrefLo",
     "kind": "function",
-    "start": 979,
-    "end": 981,
+    "start": 980,
+    "end": 982,
     "sha": "620961c635"
    },
    {
     "name": "isSteelRiver",
     "kind": "function",
-    "start": 982,
-    "end": 983,
+    "start": 983,
+    "end": 984,
     "sha": "6f58b4597f"
    },
    {
     "name": "STEEL_LINE",
     "kind": "const",
-    "start": 984,
-    "end": 984,
+    "start": 985,
+    "end": 985,
     "sha": "1e387e9ef7"
    },
    {
     "name": "steelPresence",
     "kind": "function",
-    "start": 985,
-    "end": 987,
+    "start": 986,
+    "end": 988,
     "sha": "d919ada03a"
    },
    {
     "name": "presHtml",
     "kind": "const",
-    "start": 988,
-    "end": 988,
+    "start": 989,
+    "end": 989,
     "sha": "d724164970"
    },
    {
     "name": "noRulesLine",
     "kind": "const",
-    "start": 989,
-    "end": 992,
+    "start": 990,
+    "end": 993,
     "sha": "47f87e943c"
    },
    {
     "name": "weekHtml",
     "kind": "const",
-    "start": 993,
-    "end": 998,
+    "start": 994,
+    "end": 999,
     "sha": "cd6175ca98"
    },
    {
     "name": "capLines",
     "kind": "function",
-    "start": 999,
-    "end": 1005,
+    "start": 1000,
+    "end": 1006,
     "sha": "087992ae37"
    },
    {
     "name": "speciesBlock",
     "kind": "function",
-    "start": 1006,
-    "end": 1070,
+    "start": 1007,
+    "end": 1071,
     "sha": "9345e32530"
    },
    {
     "name": "speciesBlock.rg",
     "kind": "nested",
-    "start": 1062,
+    "start": 1063,
     "parent": "speciesBlock",
-    "end": 1070,
+    "end": 1071,
     "sha": "ddcc62225a"
    },
    {
     "name": "SAYS",
     "kind": "const",
-    "start": 1071,
-    "end": 1071,
+    "start": 1072,
+    "end": 1072,
     "sha": "730ebeaafb"
    },
    {
     "name": "QORDER",
     "kind": "const",
-    "start": 1072,
-    "end": 1072,
+    "start": 1073,
+    "end": 1073,
     "sha": "730cb3713c"
    },
    {
     "name": "LOSES",
     "kind": "const",
-    "start": 1073,
-    "end": 1073,
+    "start": 1074,
+    "end": 1074,
     "sha": "5789c5ca2b"
    },
    {
     "name": "byName",
     "kind": "const",
-    "start": 1074,
-    "end": 1075,
+    "start": 1075,
+    "end": 1076,
     "sha": "387cdde7ff"
    },
    {
     "name": "say",
     "kind": "const",
-    "start": 1076,
-    "end": 1076,
+    "start": 1077,
+    "end": 1077,
     "sha": "f74efce006"
    },
    {
     "name": "ladderHtml",
     "kind": "function",
-    "start": 1077,
-    "end": 1110,
+    "start": 1078,
+    "end": 1111,
     "sha": "7818b2e959"
    },
    {
     "name": "ladderHtml.forFish",
     "kind": "nested",
-    "start": 1084,
+    "start": 1085,
     "parent": "ladderHtml",
-    "end": 1084,
+    "end": 1085,
     "sha": "cef36575c5"
    },
    {
     "name": "ladderHtml.subsetOf",
     "kind": "nested",
-    "start": 1085,
+    "start": 1086,
     "parent": "ladderHtml",
-    "end": 1085,
+    "end": 1086,
     "sha": "d97004dafb"
    },
    {
     "name": "ladderHtml.line",
     "kind": "nested",
-    "start": 1086,
+    "start": 1087,
     "parent": "ladderHtml",
-    "end": 1093,
+    "end": 1094,
     "sha": "4f4f911192"
    },
    {
     "name": "ladderHtml.steps",
     "kind": "nested",
-    "start": 1094,
+    "start": 1095,
     "parent": "ladderHtml",
-    "end": 1110,
+    "end": 1111,
     "sha": "cdc22f8854"
    },
    {
     "name": "sameSet",
     "kind": "const",
-    "start": 1111,
-    "end": 1111,
+    "start": 1112,
+    "end": 1112,
     "sha": "88377c6a26"
    },
    {
     "name": "summaryHtml",
     "kind": "function",
-    "start": 1113,
-    "end": 1144,
+    "start": 1114,
+    "end": 1145,
     "sha": "08d7dbd605"
    },
    {
     "name": "parentRow",
     "kind": "function",
-    "start": 1145,
-    "end": 1145,
+    "start": 1146,
+    "end": 1146,
     "sha": "5f72d6f949"
    },
    {
     "name": "rowHtml",
     "kind": "function",
-    "start": 1146,
-    "end": 1155,
+    "start": 1147,
+    "end": 1156,
     "sha": "36a37f507b"
    },
    {
     "name": "openRule",
     "kind": "function",
-    "start": 1156,
-    "end": 1164,
+    "start": 1157,
+    "end": 1165,
     "sha": "79001b1abb"
    },
    {
     "name": "SLOT_LABEL",
     "kind": "const",
-    "start": 1165,
-    "end": 1166,
+    "start": 1166,
+    "end": 1167,
     "sha": "159c98245d"
    },
    {
     "name": "ELEM",
     "kind": "const",
-    "start": 1167,
-    "end": 1168,
+    "start": 1168,
+    "end": 1169,
     "sha": "1c373f0f5a"
    },
    {
     "name": "WHILE_TXT",
     "kind": "const",
-    "start": 1169,
-    "end": 1169,
+    "start": 1170,
+    "end": 1170,
     "sha": "da765c95cb"
    },
    {
     "name": "MUST",
     "kind": "const",
-    "start": 1170,
-    "end": 1170,
+    "start": 1171,
+    "end": 1171,
     "sha": "eb8ef1d83e"
    },
    {
     "name": "GROUPWORD",
     "kind": "const",
-    "start": 1171,
-    "end": 1171,
+    "start": 1172,
+    "end": 1172,
     "sha": "a59ffd58a0"
    },
    {
     "name": "tgtTxt",
     "kind": "const",
-    "start": 1172,
-    "end": 1172,
+    "start": 1173,
+    "end": 1173,
     "sha": "fbdf266aba"
    },
    {
     "name": "clauseOf",
     "kind": "const",
-    "start": 1173,
-    "end": 1173,
+    "start": 1174,
+    "end": 1174,
     "sha": "5d74e187ef"
    },
    {
     "name": "circTxt",
     "kind": "const",
-    "start": 1174,
-    "end": 1174,
+    "start": 1175,
+    "end": 1175,
     "sha": "c81e8197e0"
    },
    {
     "name": "countTxt",
     "kind": "function",
-    "start": 1175,
-    "end": 1186,
+    "start": 1176,
+    "end": 1187,
     "sha": "76d89323fd"
    },
    {
     "name": "gSrc",
     "kind": "const",
-    "start": 1187,
-    "end": 1187,
+    "start": 1188,
+    "end": 1188,
     "sha": "cbcf82e512"
    },
    {
     "name": "gRow",
     "kind": "function",
-    "start": 1188,
-    "end": 1188,
+    "start": 1189,
+    "end": 1189,
     "sha": "810ba3dfb2"
    },
    {
     "name": "gearAt",
     "kind": "const",
-    "start": 1189,
-    "end": 1189,
+    "start": 1190,
+    "end": 1190,
     "sha": "67b183f5a2"
    },
    {
     "name": "MOMENT_HEAD",
     "kind": "const",
-    "start": 1190,
-    "end": 1190,
+    "start": 1191,
+    "end": 1191,
     "sha": "306a1fcb0e"
    },
    {
     "name": "gearParts",
     "kind": "function",
-    "start": 1191,
-    "end": 1259,
+    "start": 1192,
+    "end": 1260,
     "sha": "1cb0cf2365"
    },
    {
     "name": "gearParts.top",
     "kind": "nested",
-    "start": 1196,
+    "start": 1197,
     "parent": "gearParts",
-    "end": 1208,
+    "end": 1209,
     "sha": "ff25ebebae"
    },
    {
     "name": "gearParts.row",
     "kind": "nested",
-    "start": 1209,
+    "start": 1210,
     "parent": "gearParts",
-    "end": 1259,
+    "end": 1260,
     "sha": "71eb0c93af"
    },
    {
     "name": "openGearAll",
     "kind": "function",
-    "start": 1260,
-    "end": 1268,
+    "start": 1261,
+    "end": 1269,
     "sha": "c82a0d5a34"
    },
    {
     "name": "LIC",
     "kind": "const",
-    "start": 1269,
-    "end": 1270,
+    "start": 1270,
+    "end": 1271,
     "sha": "18b47c34ec"
    },
    {
     "name": "LX",
     "kind": "const",
-    "start": 1271,
-    "end": 1271,
+    "start": 1272,
+    "end": 1272,
     "sha": "cf0f76a0c2"
    },
    {
     "name": "DOC",
     "kind": "const",
-    "start": 1272,
-    "end": 1272,
+    "start": 1273,
+    "end": 1273,
     "sha": "a282ad742a"
    },
    {
     "name": "AXES",
     "kind": "const",
-    "start": 1273,
-    "end": 1273,
+    "start": 1274,
+    "end": 1274,
     "sha": "126b7b03ef"
    },
    {
     "name": "whoTxt",
     "kind": "const",
-    "start": 1274,
-    "end": 1274,
+    "start": 1275,
+    "end": 1275,
     "sha": "d4f34cfb05"
    },
    {
     "name": "actTxt",
     "kind": "function",
-    "start": 1275,
-    "end": 1279,
+    "start": 1276,
+    "end": 1280,
     "sha": "df23cafbea"
    },
    {
     "name": "profileIx",
     "kind": "const",
-    "start": 1280,
-    "end": 1280,
+    "start": 1281,
+    "end": 1281,
     "sha": "544b915f55"
    },
    {
     "name": "licAt",
     "kind": "function",
-    "start": 1281,
-    "end": 1281,
+    "start": 1282,
+    "end": 1282,
     "sha": "fa6747be90"
    },
    {
     "name": "priceTxt",
     "kind": "const",
-    "start": 1282,
-    "end": 1282,
+    "start": 1283,
+    "end": 1283,
     "sha": "cc3a63e055"
    },
    {
     "name": "pathHtml",
     "kind": "function",
-    "start": 1283,
-    "end": 1289,
+    "start": 1284,
+    "end": 1290,
     "sha": "1a07353be8"
    },
    {
     "name": "srcOf",
     "kind": "const",
-    "start": 1290,
-    "end": 1290,
+    "start": 1291,
+    "end": 1291,
     "sha": "ad803d26cb"
    },
    {
     "name": "reqCard",
     "kind": "function",
-    "start": 1291,
-    "end": 1301,
+    "start": 1292,
+    "end": 1302,
     "sha": "296f3b7c08"
    },
    {
     "name": "otherCard",
     "kind": "function",
-    "start": 1302,
-    "end": 1305,
+    "start": 1303,
+    "end": 1306,
     "sha": "cb34eb6e09"
    },
    {
     "name": "profileHtml",
     "kind": "function",
-    "start": 1306,
-    "end": 1308,
+    "start": 1307,
+    "end": 1309,
     "sha": "d12216f420"
    },
    {
     "name": "licParts",
     "kind": "function",
-    "start": 1309,
-    "end": 1370,
+    "start": 1310,
+    "end": 1371,
     "sha": "deb415a49d"
    },
    {
     "name": "licParts.whenTxt",
     "kind": "nested",
-    "start": 1329,
+    "start": 1330,
     "parent": "licParts",
-    "end": 1332,
+    "end": 1333,
     "sha": "b888c3b643"
    },
    {
     "name": "licParts.alsoTxt",
     "kind": "nested",
-    "start": 1333,
+    "start": 1334,
     "parent": "licParts",
-    "end": 1333,
+    "end": 1334,
     "sha": "df7ae80671"
    },
    {
     "name": "licParts.docGi",
     "kind": "nested",
-    "start": 1334,
+    "start": 1335,
     "parent": "licParts",
-    "end": 1355,
+    "end": 1356,
     "sha": "b3bb2f13bd"
    },
    {
     "name": "licParts.fishOf",
     "kind": "nested",
-    "start": 1356,
+    "start": 1357,
     "parent": "licParts",
-    "end": 1360,
+    "end": 1361,
     "sha": "9b16f38064"
    },
    {
     "name": "licParts.orderAct",
     "kind": "nested",
-    "start": 1361,
+    "start": 1362,
     "parent": "licParts",
-    "end": 1370,
+    "end": 1371,
     "sha": "1191c8dc6f"
    },
    {
     "name": "openLic",
     "kind": "function",
-    "start": 1371,
-    "end": 1371,
+    "start": 1372,
+    "end": 1372,
     "sha": "e58b9c8f38"
    },
    {
     "name": "openLicAll",
     "kind": "function",
-    "start": 1372,
-    "end": 1378,
+    "start": 1373,
+    "end": 1379,
     "sha": "fbfd49d405"
    },
    {
     "name": "openLicAll.card",
     "kind": "nested",
-    "start": 1375,
+    "start": 1376,
     "parent": "openLicAll",
-    "end": 1378,
+    "end": 1379,
     "sha": "f615c6a986"
    },
    {
     "name": "KIT_TABS",
     "kind": "const",
-    "start": 1379,
-    "end": 1381,
+    "start": 1380,
+    "end": 1382,
     "sha": "3148c2027c"
    },
    {
     "name": "shortDoc",
     "kind": "const",
-    "start": 1382,
-    "end": 1382,
+    "start": 1383,
+    "end": 1383,
     "sha": "f05e6f31a9"
    },
    {
     "name": "renderKit",
     "kind": "function",
-    "start": 1383,
-    "end": 1417,
+    "start": 1384,
+    "end": 1418,
     "sha": "ce217d5a65"
    },
    {
     "name": "SHOWN",
     "kind": "const",
-    "start": 1418,
-    "end": 1418,
+    "start": 1419,
+    "end": 1419,
     "sha": "9c7a7ce260"
    },
    {
     "name": "caseRule",
     "kind": "const",
-    "start": 1419,
-    "end": 1419,
+    "start": 1420,
+    "end": 1420,
     "sha": "f8ad4b068e"
    },
    {
     "name": "caseLadder",
     "kind": "function",
-    "start": 1420,
-    "end": 1427,
+    "start": 1421,
+    "end": 1428,
     "sha": "237fbe7a03"
    },
    {
     "name": "runCase",
     "kind": "function",
-    "start": 1428,
-    "end": 1438,
+    "start": 1429,
+    "end": 1439,
     "sha": "d7d1d7bba3"
    },
    {
     "name": "CASE_RESULTS",
     "kind": "const",
-    "start": 1439,
-    "end": 1439,
+    "start": 1440,
+    "end": 1440,
     "sha": "b303efea9b"
    },
    {
     "name": "renderCases",
     "kind": "function",
-    "start": 1440,
-    "end": 1467,
+    "start": 1441,
+    "end": 1468,
     "sha": "ca05cfe736"
    },
    {
     "name": "renderCases.rk",
     "kind": "nested",
-    "start": 1453,
+    "start": 1454,
     "parent": "renderCases",
-    "end": 1453,
+    "end": 1454,
     "sha": "a21afd0187"
    },
    {
     "name": "renderCases.rowHtml",
     "kind": "nested",
-    "start": 1454,
+    "start": 1455,
     "parent": "renderCases",
-    "end": 1467,
+    "end": 1468,
     "sha": "813862b186"
    },
    {
     "name": "defaultPart",
     "kind": "function",
-    "start": 1468,
-    "end": 1477,
+    "start": 1469,
+    "end": 1478,
     "sha": "e7c7921b99"
    },
    {
     "name": "dateChips",
     "kind": "function",
-    "start": 1478,
-    "end": 1484,
+    "start": 1479,
+    "end": 1485,
     "sha": "352a713bb7"
    },
    {
     "name": "renderParts",
     "kind": "function",
-    "start": 1485,
-    "end": 1494,
+    "start": 1486,
+    "end": 1495,
     "sha": "2dfe0e2d16"
    },
    {
     "name": "renderParts.opt",
     "kind": "nested",
-    "start": 1491,
+    "start": 1492,
     "parent": "renderParts",
-    "end": 1494,
+    "end": 1495,
     "sha": "753b2a3c7c"
    },
    {
     "name": "renderAll",
     "kind": "function",
-    "start": 1495,
-    "end": 1506,
+    "start": 1496,
+    "end": 1507,
     "sha": "f078e4f8f5"
    },
    {
     "name": "wEl",
     "kind": "const",
-    "start": 1507,
-    "end": 1511,
+    "start": 1508,
+    "end": 1512,
     "sha": "ca9d7dd8de"
    },
    {
     "name": "dIn",
     "kind": "const",
-    "start": 1512,
-    "end": 1513,
+    "start": 1513,
+    "end": 1514,
     "sha": "d5d1ca7dc9"
    },
    {
     "name": "isoOf",
     "kind": "const",
-    "start": 1514,
-    "end": 1514,
+    "start": 1515,
+    "end": 1515,
     "sha": "130d29c004"
    },
    {
     "name": "setMd",
     "kind": "function",
-    "start": 1515,
-    "end": 1515,
+    "start": 1516,
+    "end": 1516,
     "sha": "0bd949c89e"
    },
    {
     "name": "fromBox",
     "kind": "const",
-    "start": 1516,
-    "end": 1518,
+    "start": 1517,
+    "end": 1519,
     "sha": "949291d88a"
    },
    {
     "name": "setTab",
     "kind": "function",
-    "start": 1519,
-    "end": 1541,
+    "start": 1520,
+    "end": 1542,
     "sha": "3239690443"
    },
    {
     "name": "setStick",
     "kind": "const",
-    "start": 1542,
-    "end": 1546,
+    "start": 1543,
+    "end": 1547,
     "sha": "6d20933728"
    }
   ]
