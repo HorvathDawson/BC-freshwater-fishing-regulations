@@ -74,6 +74,10 @@ jobs:
       - name: Generated calendar is current
         run: python -m pipeline.tools.emit_calendar --check
 
+      # THE RELEASE CONTRACT (P08): the app's pack.generated.ts is generated from release/contract.py; no data needed.
+      - name: Generated release contract is current
+        run: python -m pipeline.tools.emit_pack --check
+
       # The no-data tier. A test that reads generated or fetched data (bundle, atlas, reach run,
       # tiles, the gpkg, the DFO cache) carries a needs_* marker and FAILS without it — it never
       # skips (pipeline/tests/conftest.py, test_no_silent_skips.py). A runner has none of that

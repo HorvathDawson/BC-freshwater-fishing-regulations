@@ -172,3 +172,23 @@ def test_two_builds_write_the_same_bytes_and_the_sizes_hold(rel):
     d, d2 = rel[0], rel[1]
     assert (d / "manifest.json").read_text() == (d2 / "manifest.json").read_text()
     assert B.gate_problems(d) == [], B.sizes(d)
+
+
+@pytest.mark.needs_bundle
+def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
+    from pipeline.deliver.release.contract import FILES
+    d = rel[0]
+    m = json.loads((d / "manifest.json").read_text())
+    assert set(m["files"]) == set(FILES)
+    for name, spec in FILES.items():
+        assert m["files"][name]["format"] == spec["format"], name
+        if spec["kind"] == "sqlite":
+            con = _open(d, name, tmp_path)
+            got = {t: [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
+                   for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            assert got == spec["tables"], name
+
+
+def test_the_apps_pack_contract_is_current():
+    from pipeline.tools import emit_pack
+    assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit_pack"
