@@ -23,7 +23,7 @@ import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import { catchmentLabel, confidenceWord, interval, inTen, metresApart, ordinal,
          panelCamera,
          plainStanding,
-         SAME_PLACE_M, seasonPhrase, standing, type Estimate, type NoEstimate }
+         SAME_PLACE_M, seasonPhrase, shiftDay, standing, type Estimate, type NoEstimate }
   from "@app/core";
 import type { TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
@@ -104,7 +104,7 @@ function because(r: DonorRow): string {
 }
 
 export function DonorPanel({ palette, value, at, theme, from, selected, onSelect,
-                             horizon = 0, onHorizon, chain: chainProp, data }: {
+                             horizon = 0, onHorizon, chain: chainProp, data, day }: {
   palette: Palette; value: PanelAnswer;
   /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
   at?: TileEndpoints; theme?: string;
@@ -147,6 +147,14 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    * beside the number it changes.
    */
   onHorizon?: (d: 0 | 1 | 3 | 5) => void;
+  /**
+   * The day this estimate is about; the horizon counts from it. Absent, today.
+   *
+   * A saved spot draws its frozen panel weeks later, and its percentile is a percentile for
+   * the VISIT's time of year: naming today's season beside it compares that day's river with
+   * the wrong weeks.
+   */
+  day?: Date;
 }) {
   /*
    * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
@@ -257,7 +265,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
       </Text>
       <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 4 }}>
         {bound(lo)}–{bound(hi)} percentile for{" "}
-        {seasonPhrase(new Date(Date.now() + horizon * 86_400_000))}
+        {seasonPhrase(shiftDay(day ?? new Date(), horizon))}
         {value.areaKm2 != null ? ` · this spot drains ${catchmentLabel(value.areaKm2)}` : ""}
       </Text>
 

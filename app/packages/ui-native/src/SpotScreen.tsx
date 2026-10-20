@@ -181,7 +181,8 @@ export function SpotScreen(p: SpotScreenProps) {
           */}
           {spot.panel ? (
             <>
-              <DonorPanel palette={palette} value={spot.panel} />
+              <DonorPanel palette={palette} value={spot.panel}
+                          day={new Date(spot.visitedAt)} />
               {r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
                           station={r.station} />}
             </>

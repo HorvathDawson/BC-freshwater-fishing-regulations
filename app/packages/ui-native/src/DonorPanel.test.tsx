@@ -41,6 +41,12 @@ describe("the donor panel", () => {
     expect(screen.getByText(/\d+\w+–\d+\w+/)).toBeTruthy();
   });
 
+  it("names the season of the day it is given, counting a forecast from that day", () => {
+    // A saved spot draws this panel months later; the season is the chosen day's, never today's.
+    render(<DonorPanel palette={LIGHT} value={answer()} day={new Date(2026, 5, 9)} horizon={3} />);
+    expect(screen.getByText(/percentile for/).textContent).toBe("3rd–27th percentile for mid June · this spot drains 50 km²");
+  });
+
   it("names every gauge that voted, with where it is and how far off in size", () => {
     render(<DonorPanel palette={LIGHT} value={answer()} />);
     expect(screen.getByText("08MH001")).toBeTruthy();

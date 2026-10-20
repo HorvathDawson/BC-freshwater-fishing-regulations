@@ -372,6 +372,14 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     expect(r.getByText("08MH001")).toBeTruthy();
   });
 
+  it("dates the estimate's season by the visit, not by the day it is opened", () => {
+    // Visited 30 August. Read in October, the frozen percentile is still a percentile for late
+    // August; labelling it with today's season would compare that day's river to the wrong weeks.
+    const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
+                                palette={LIGHT} onBack={() => {}} />);
+    expect(r.getByText(/percentile for/).textContent).toBe("1st–24th percentile for late August · this spot drains 50 km²");
+  });
+
   it("falls back to the bare reading for a spot saved before this existed", () => {
     const r = render(<SpotScreen spot={spot({ panel: null })} palette={LIGHT}
                                 onBack={() => {}} />);
