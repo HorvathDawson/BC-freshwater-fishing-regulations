@@ -1,0 +1,128 @@
+{
+ "A.core.sqlite (item,alias,item_section,place)": [
+  2568192,
+  926427,
+  707577,
+  635455
+ ],
+ "A.status_index.bin": [
+  1656954,
+  423732,
+  394846,
+  361245
+ ],
+ "A.near.sqlite (place_water)": [
+  4919296,
+  1991042,
+  1259801,
+  1162663
+ ],
+ "A.cond.sqlite (gauges, panels, down)": [
+  10833920,
+  4146262,
+  3078771,
+  2673212
+ ],
+ "A.clim.sqlite (gauge_clim f32)": [
+  4067328,
+  2103829,
+  1755993,
+  1706495
+ ],
+ "A.regs.sqlite (all regs tables)": [
+  14495744,
+  5967149,
+  5345162,
+  5133643
+ ],
+ "A.regs-frames.sqlite (no sid maps)": [
+  8122368,
+  4747866,
+  4249928,
+  4096705
+ ],
+ "A.regs-sid.sqlite (section_akey+place blocks)": [
+  6377472,
+  1217526,
+  1090480,
+  1047387
+ ],
+ "A.topo.sqlite (part_section)": [
+  770048,
+  254608,
+  177553,
+  160783
+ ],
+ "B.item_section soa": [
+  192029,
+  99349,
+  95949,
+  82540
+ ],
+ "B.item soa": [
+  570237,
+  136754,
+  99216,
+  93851
+ ],
+ "B.alias+place soa": [
+  251035,
+  94511,
+  81928,
+  74317
+ ],
+ "B.place_water soa": [
+  1150032,
+  942239,
+  878673,
+  767285
+ ],
+ "B.cond soa (+gauge/members as text)": [
+  3046290,
+  1352310,
+  1205771,
+  1140347
+ ],
+ "B.clim f32 concat": [
+  3197796,
+  2019285,
+  1701561,
+  1658262
+ ],
+ "B.clim f16 soa": [
+  1675036,
+  1203984,
+  1093482,
+  988428
+ ],
+ "B.clim log-u16 soa": [
+  1675036,
+  1271935,
+  1170917,
+  1065993
+ ],
+ "B.section_akey dense u16": [
+  3915776,
+  895566,
+  795429,
+  764757
+ ],
+ "B.section_akey RLE varint": [
+  2655779,
+  812816,
+  755562,
+  752457
+ ],
+ "B.section_place RLE varint": [
+  1183124,
+  298688,
+  275222,
+  266775
+ ],
+ "B.part_section soa": [
+  255292,
+  103388,
+  99188,
+  82555
+ ]
+}

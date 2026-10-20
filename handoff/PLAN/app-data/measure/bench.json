@@ -1,0 +1,97 @@
+{
+ "native": {
+  "open core": 0.3,
+  "open topo": 0.1,
+  "open regs_common": 0.1,
+  "open regs_frames": 0.1,
+  "open regs_sid": 0.1,
+  "open cond": 0.1,
+  "open near": 0.1,
+  "open clim": 0.1,
+  "tap sid→ord→part→akey": [
+   0.011541000000001134,
+   0.015666000000003066
+  ],
+  "regs frames for a part+day (5 frames + 12 rows, inflate+parse)": [
+   0.3518329999999992,
+   0.5192909999999955
+  ],
+  "unnamed sid→akey (block read)": [
+   0.005540999999993801,
+   0.007749999999987267
+  ],
+  "search name+alias+place prefix": [
+   0.015084000000001652,
+   0.021250000000009095
+  ],
+  "near: waters by town (50)": [
+   0.009749999999996817,
+   0.01125000000001819
+  ],
+  "conditions: section→gauge+panel+members+gauge row+climatology": [
+   0.019709000000005972,
+   0.026833000000010543
+  ],
+  "trace downstream (walk section_down, ≤5000 steps)": [
+   0.016415999999992437,
+   15.83883400000002
+  ],
+  "part sids for highlight (part_section by ord)": [
+   0.004332999999974163,
+   0.006834000000026208
+  ],
+  "status index decode (once)": 7.9,
+  "status lookup 5,000 visible sids": [
+   0.2170409999999947,
+   0.23154200000010405
+  ],
+  "core: build 4 indexes on device": 9.9
+ },
+ "wasm": {
+  "open core": 8.5,
+  "open topo": 0.4,
+  "open regs_common": 0.8,
+  "open regs_frames": 0.6,
+  "open regs_sid": 0.7,
+  "open cond": 1.1,
+  "open near": 0.5,
+  "open clim": 0.5,
+  "tap sid→ord→part→akey": [
+   0.02304099999992104,
+   0.03429099999993923
+  ],
+  "regs frames for a part+day (5 frames + 12 rows, inflate+parse)": [
+   0.4191250000000082,
+   0.5160419999999704
+  ],
+  "unnamed sid→akey (block read)": [
+   0.01091699999994944,
+   0.0126669999999649
+  ],
+  "search name+alias+place prefix": [
+   0.03475000000003092,
+   0.053916999999955806
+  ],
+  "near: waters by town (50)": [
+   0.022499999999922693,
+   0.024499999999989086
+  ],
+  "conditions: section→gauge+panel+members+gauge row+climatology": [
+   0.03774999999995998,
+   0.04570899999998801
+  ],
+  "trace downstream (walk section_down, ≤5000 steps)": [
+   0.02891700000009223,
+   28.354540999999926
+  ],
+  "part sids for highlight (part_section by ord)": [
+   0.006541999999853942,
+   0.009208000000171523
+  ],
+  "status index decode (once)": 14.5,
+  "status lookup 5,000 visible sids": [
+   0.21850000000017644,
+   0.4360420000000431
+  ]
+ }
+}
