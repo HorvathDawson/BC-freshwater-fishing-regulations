@@ -99,7 +99,9 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
 - `@types/sql.js` — types only, no runtime cost. sql.js ships none of its own.
 - `fflate` — gzip (P10: every release file ships gzipped, and `fetchVerified` checks the DECODED bytes) and, at T02,
   the regs blobs' dictionary inflate. Pure JS, ~8 KB, the same on Hermes, web and node; neither Hermes nor every
-  browser has a native gunzip that takes a byte array. Pinned 0.8.2.
+  browser has a native gunzip that takes a byte array. Pinned 0.8.2. The regs blobs are raw DEFLATE with a per-table
+  preset dictionary (`meta.blob_codec = zdict`, `packages/data/src/regs/blob.ts`); zlib preset dictionaries are why
+  `DecompressionStream` (no dictionary option, absent on Hermes) cannot do it.
 - `expo-file-system` — writes the `.spots` file on iOS and Android. Spots are the only thing
   in this app a person cannot re-download, and the regulation bundle is replaced wholesale
   on every update — so they get a file of their own that no update touches. Web uses browser
