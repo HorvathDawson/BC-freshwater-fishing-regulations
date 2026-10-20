@@ -60,3 +60,19 @@ def test_no_band_means_no_gauge():
     # why it is absent, so this reads the declaration rather than the whole text.)
     union = E.render().split("export type GaugeTrust =")[1].split(";")[0]
     assert "none" not in union
+
+
+def test_the_temperature_bands_are_the_publishers():
+    # P12: the Conditions legend read "under 18 °C / 18–20 °C / 20 °C and over" from literals typed into Shell.tsx,
+    # while the publisher classed every reading by `_TEMP_BANDS`. Both renderings now carry the publisher's bands,
+    # ceilings in order, the last open-ended (null) -- one place to change when the real thresholds are curated.
+    from pipeline.gauges.feed.publish import _TEMP_BANDS
+    want = [[name, None if ceiling == float("inf") else ceiling] for ceiling, name in _TEMP_BANDS]
+    assert json.loads(E.render_json())["temperature"] == want
+    ts = E.render().split("export const TEMP_BANDS")[1].split("];")[0]
+    assert ts == (': readonly (readonly [TempBand, number | null])[] = [\n'
+                  '  ["cool", 18],\n'
+                  '  ["warm", 20],\n'
+                  '  ["critical", null],\n')
+    union = E.render().split("export type TempBand =")[1].split(";")[0]
+    assert union == ' "cool" | "warm" | "critical"'

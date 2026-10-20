@@ -1,6 +1,6 @@
 {
   "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
-  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS",
+  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS",
   "bands": [
     "good",
     "fair",
@@ -10,5 +10,19 @@
     "good": 0.1,
     "fair": 0.01,
     "weak": 0.001
-  }
+  },
+  "temperature": [
+    [
+      "cool",
+      18
+    ],
+    [
+      "warm",
+      20
+    ],
+    [
+      "critical",
+      null
+    ]
+  ]
 }

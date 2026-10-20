@@ -22,3 +22,17 @@ export const TRUST_BANDS: readonly (readonly [GaugeTrust, number])[] = [
   ["fair", 0.01],
   ["weak", 0.001],
 ];
+
+// The water-temperature classes, from `_TEMP_BANDS` in pipeline/gauges/feed/publish.py -- the publisher writes one
+// onto every temperature reading (`temperatureBand`), and the Conditions legend words them (`TEMP_LEGEND` in core).
+// POLICY awaiting curation, not physics, and never a citation of a closure order.
+
+/** A temperature class the publisher can write. */
+export type TempBand = "cool" | "warm" | "critical";
+
+/** Each band holds readings BELOW its ceiling in °C, in order; the last is open-ended (null). */
+export const TEMP_BANDS: readonly (readonly [TempBand, number | null])[] = [
+  ["cool", 18],
+  ["warm", 20],
+  ["critical", null],
+];

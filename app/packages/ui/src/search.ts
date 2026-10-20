@@ -12,7 +12,7 @@
  */
 import { useMemo } from "react";
 import {
-  duplicateNames, fixOf, normalise, rankNear, townBox, waterStatusOn,
+  NEAR_KM, duplicateNames, fixOf, normalise, rankNear, townBox, waterStatusOn, watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
@@ -57,8 +57,6 @@ export interface TownView {
   sections: readonly SectionId[];
 }
 
-export const NEAR_KM = 25;
-
 /**
  * THE DECISION. A picked town wins over the water (it is a narrower question the reader
  * asked after typing); otherwise the water is shown; otherwise nothing, and the map stays
@@ -85,10 +83,7 @@ export function focusFor(input: {
       highlight: town.sections,
       refine: false,
       marker: { lat: p.lat, lon: p.lon },
-      caption: town.near.length
-        ? `${town.near.length} ${town.near.length === 1 ? "water" : "waters"} within ` +
-          `${NEAR_KM} km of ${p.name}`
-        : `No named water within ${NEAR_KM} km of ${p.name}`,
+      caption: watersNear(town.near.length, p.name),
     };
   }
   if (best) {

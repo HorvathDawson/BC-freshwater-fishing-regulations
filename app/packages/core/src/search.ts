@@ -157,6 +157,54 @@ export function wherePhrase(p: { name: string; km: number } | null): string | nu
   return `near ${p.name} · ${p.km < 1 ? "under 1 km" : `${Math.round(p.km)} km`}`;
 }
 
+/*
+ * THE SEARCH ROWS' DISTANCE WORDS (P12). These were composed inline in `SearchScreen.tsx`, with the 25 km ring typed a
+ * second time as "no town within 25 km" beside `NEAR_KM`. One place now, pinned whole in search.test.ts.
+ */
+
+/** How far "water near a town" reaches: the bundle's precomputed `place_water` ring. */
+export const NEAR_KM = 25;
+
+/** What the atlas calls a water, said in a row. An unknown kind is said as the atlas spells it, never guessed. */
+export const KIND_WORD: Readonly<Record<string, string>> = { stream: "Stream", lake: "Lake", wetland: "Wetland" };
+const kindWord = (kind: string): string => KIND_WORD[kind] ?? kind;
+
+/** A distance in a near-list row: "under 1 km", or one decimal ("7.9 km"). */
+export function kmWords(km: number): string {
+  return km < 1 ? "under 1 km" : `${km.toFixed(1)} km`;
+}
+
+/** The line under a water in "Water near <town>": "Stream · 1.5 km". */
+export function nearRowSub(kind: string, km: number): string {
+  return `${kindWord(kind)} · ${kmWords(km)}`;
+}
+
+/**
+ * The line under a searched water: "Stream · near Fernie · 3 km". A name shared by several waters with no town to
+ * tell it apart says so ("Stream · no town within 25 km"); a unique name needs no where.
+ */
+export function waterRowSub(kind: string, near: { name: string; km: number } | null, dup: boolean): string {
+  const where = wherePhrase(near) ?? (dup ? `no town within ${NEAR_KM} km` : null);
+  return where ? `${kindWord(kind)} · ${where}` : kindWord(kind);
+}
+
+/** A searched water's name with its where, as spoken (the "·" is noise read aloud): "Elk River, near Fernie, 3 km". */
+export function spokenName(name: string, near: { name: string; km: number } | null): string {
+  const where = wherePhrase(near);
+  return where ? `${name}, ${where.replace(" · ", ", ")}` : name;
+}
+
+/** The near-list header's count: "12 within 25 km". */
+export function nearCount(n: number): string {
+  return `${n} within ${NEAR_KM} km`;
+}
+
+/** What is near a town, said whole: "2 waters within 25 km of Smithers", or that there is none. */
+export function watersNear(n: number, town: string): string {
+  return n ? `${n} ${n === 1 ? "water" : "waters"} within ${NEAR_KM} km of ${town}`
+           : `No named water within ${NEAR_KM} km of ${town}`;
+}
+
 // ---- place ----------------------------------------------------------------------------
 
 /**

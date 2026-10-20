@@ -26,10 +26,11 @@
  */
 import { useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { WATER_STATUS, wherePhrase, type WaterStatus } from "@app/core";
+import { WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
+         type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
-import { NEAR_KM, NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
+import { NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
          useSearchView, useStatusIndex,
          type SearchAction, type SearchPick, type SearchResults, type SearchTarget }
   from "@app/ui";
@@ -42,9 +43,6 @@ import { count } from "./format";
 
 /** Where the search map opens before anything is typed: the province. */
 const HOME: Camera = { lon: -124.5, lat: 53.6, zoom: 4.2 };
-
-/** "stream" -> "River or creek" is a guess; say what the atlas says, capitalised. */
-const KIND: Record<string, string> = { stream: "Stream", lake: "Lake", wetland: "Wetland" };
 
 type Row =
   | { t: "head"; key: string; label: string; right?: string; back?: boolean; place?: boolean;
@@ -90,13 +88,12 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
   if (place) {
     const near = town.state === "ready" && town.value ? town.value.near : [];
     rows.push({ t: "head", key: "back", label: "← All results", back: true,
-                right: town.state === "ready" ? `${near.length} within ${NEAR_KM} km` : "" });
+                right: town.state === "ready" ? nearCount(near.length) : "" });
     rows.push({ t: "head", key: "near-h", label: `Water near ${place.name}`, place: true });
     if (town.state === "failed")
       rows.push({ t: "note", key: "fail", text: "Could not read what is near this town." });
     else if (town.state === "ready" && !near.length)
-      rows.push({ t: "note", key: "none",
-                  text: `No named water within ${NEAR_KM} km of ${place.name}.` });
+      rows.push({ t: "note", key: "none", text: watersNear(0, place.name) });
     for (const n of near) rows.push({ t: "near", key: `n:${n.item}`, near: n });
   } else if (typed) {
     for (const g of resultGroups(results)) {
@@ -240,8 +237,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
               return (
                 <Hit palette={palette} tone={palette.accent} name={r.near.name}
                      status={rowStatus(r.near.item, statusIndex, today)}
-                     sub={`${KIND[r.near.kind] ?? r.near.kind} · ${
-                       r.near.km < 1 ? "under 1 km" : `${r.near.km.toFixed(1)} km`}`}
+                     sub={nearRowSub(r.near.kind, r.near.km)}
                      selected={isSelected(pick, t)}
                      label={`Show ${r.near.name} on the map`}
                      goLabel={`View ${r.near.name}`}
@@ -250,17 +246,13 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
               );
             }
             const h = r.hit;
-            const where = wherePhrase(h.near);
-            // Spoken, the "·" is noise: "Elk River, near Fernie, 3 km".
-            const named = where ? `${h.name}, ${where.replace(" · ", ", ")}` : h.name;
+            const named = spokenName(h.name, h.near);
             const t: SearchTarget = { kind: "water", item: h.item, name: h.name };
             return (
               <Hit palette={palette} tone={palette.accent} name={h.name}
                    status={rowStatus(h.item, statusIndex, today)}
                    alias={h.matchedAs !== null ? `also ${h.matchedAs}` : null}
-                   sub={[KIND[h.kind] ?? h.kind,
-                         where ?? (r.dup ? "no town within 25 km" : null)]
-                     .filter(Boolean).join(" · ")}
+                   sub={waterRowSub(h.kind, h.near, r.dup)}
                    strongSub={r.dup}
                    selected={isSelected(pick, t)}
                    label={`Show ${named} on the map`}

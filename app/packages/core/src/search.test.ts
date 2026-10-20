@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   bboxOfGeometry, boxAround, describeBy, distanceKm, duplicateNames, fixOf, matchTier,
   normalise, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
+  NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
 } from "./search";
 
 const w = (name: string, size: number | null, pieces = 1, matchedAs: string | null = null) =>
@@ -165,5 +166,41 @@ describe("refining the camera against loaded geometry", () => {
     const ew = distanceKm({ lat: 54, lon: b[0] }, { lat: 54, lon: b[2] });
     const ns = distanceKm({ lat: b[1], lon: -126 }, { lat: b[3], lon: -126 });
     expect(Math.abs(ew - ns)).toBeLessThan(0.01);
+  });
+});
+
+describe("distance words (P12): the search rows' sub-lines, composed whole in core", () => {
+  it("a distance in a near-list row", () => {
+    expect(kmWords(0.44)).toBe("under 1 km");
+    expect(kmWords(1)).toBe("1.0 km");
+    expect(kmWords(7.93)).toBe("7.9 km");
+  });
+
+  it("the line under a water in 'Water near <town>'", () => {
+    expect(nearRowSub("stream", 1.48)).toBe("Stream · 1.5 km");
+    expect(nearRowSub("lake", 0.2)).toBe("Lake · under 1 km");
+    expect(nearRowSub("wetland", 3)).toBe("Wetland · 3.0 km");
+    expect(nearRowSub("canal", 3)).toBe("canal · 3.0 km");
+  });
+
+  it("the line under a searched water", () => {
+    expect(waterRowSub("stream", { name: "Fernie", km: 3.2 }, false)).toBe("Stream · near Fernie · 3 km");
+    expect(waterRowSub("lake", { name: "Hope", km: 0 }, true)).toBe("Lake · at Hope");
+    expect(waterRowSub("stream", null, true)).toBe("Stream · no town within 25 km");
+    expect(waterRowSub("stream", null, false)).toBe("Stream");
+  });
+
+  it("a searched water's name, as spoken", () => {
+    expect(spokenName("Elk River", { name: "Fernie", km: 3.2 })).toBe("Elk River, near Fernie, 3 km");
+    expect(spokenName("Coquihalla River", { name: "Hope", km: 0 })).toBe("Coquihalla River, at Hope");
+    expect(spokenName("Elk River", null)).toBe("Elk River");
+  });
+
+  it("the near-list header and its empty note", () => {
+    expect(NEAR_KM).toBe(25);
+    expect(nearCount(12)).toBe("12 within 25 km");
+    expect(watersNear(1, "Smithers")).toBe("1 water within 25 km of Smithers");
+    expect(watersNear(2, "Smithers")).toBe("2 waters within 25 km of Smithers");
+    expect(watersNear(0, "Smithers")).toBe("No named water within 25 km of Smithers");
   });
 });

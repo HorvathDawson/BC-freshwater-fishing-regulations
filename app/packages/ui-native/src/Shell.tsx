@@ -7,22 +7,14 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { dayLabel, WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
+import { dayLabel, TEMP_LEGEND, WATER_STATUS, WATER_STATUSES, type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { bottomBarShown, spotSaveFailed, useRoute, type BrowseTab } from "@app/ui";
+import type { ItemId, RegsSource, SectionId } from "@app/data";
+import { bottomBarShown, spotSaveFailed, useMapModes, useRoute, type BrowseTab, type FlowParam } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, useStatusIndex, useVintage, statusData,
-         type GaugeQuantity, type Horizon } from "@app/ui";
-
-/** What the Conditions view is showing. `both` colours the water by either percentile. */
-/**
- * What the Conditions map is coloured by. ONE quantity plus the temperature field — see
- * `Quantity` in @app/data for why "both" is gone: it put stage and discharge percentiles on
- * the same ramp, and they disagree by more than 25 points at 84 stations.
- */
-type FlowParam = Parameter | "temperature";
+         type Horizon } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
@@ -57,6 +49,10 @@ const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
  * the rivers are back and they are what you tap.
  */
 const HANDOVER_Z = 9;
+
+/** A temperature band's colour: the "may I fish here" colours, as the map paints the dots (runtime-style). */
+const tempColour = (p: Palette): Record<TempBand, string> =>
+  ({ cool: p.open, warm: p.restricted, critical: p.closed });
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
@@ -169,53 +165,49 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // HOW FAR AHEAD the Conditions map is painted. 0 is now, and is where it opens: a
   // forecast is what you ask for, never what you are shown without asking.
   const [horizon, setHorizon] = useState<Horizon>(0);
-  const quantity: GaugeQuantity =
-    flowParam === "temperature" ? "temperature"
-      : flowParam === "level" ? "level" : "flow";
-  // The water keeps its last percentile question under temperature — there is nothing to
-  // colour it with, so `standings` is simply not asked for.
-  //
+  // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
+  const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
+  // Streams, lakes and gauges each carry their own colouring, as the design has it — plain rivers while the lakes
+  // show Stocked is a normal thing to want.
+  const [layers, setLayers] = useState<LayersState>(
+    { lake: "plain", basemap: "map" });
+  const [groups, setGroups] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(toggleableGroups().map((g) => [g.id, g.defaultVisible])));
+  /*
+   * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
+   *
+   * A section is an integer handle into the atlas's table, and both artifacts carry it. A
+   * mixed pair does not fail to match — it matches the WRONG SECTION, so every colour on
+   * screen would be a real reading about a different river. That is the one outcome this
+   * app may never produce, and it has happened once already: the tiles were rebuilt and
+   * `bundle.sqlite` was left behind, and the map went quietly grey.
+   *
+   * `ok === false` is the only refusal. `null` means the sidecar has not answered yet or the
+   * deployment has none, which is not evidence of a mismatch — see `useVintage`.
+   */
+  const vintage = useVintage(source, tiles?.atlas);
+  const mixedPair = vintage.ok === false;
+  /*
+   * THE DAY'S STATUS, on the Map tab. The index is refused unless it was built against this
+   * bundle's atlas (`useStatusIndex`), and nothing is coloured from it on a mixed pair. Until it
+   * has loaded the water stays plain: "not asked" is never drawn as "base".
+   */
+  const statusIndex = useStatusIndex(source, tiles?.atlas);
+  const statusOk = statusIndex !== null && !mixedPair;
+  const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
+  /*
+   * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
+   * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
+   */
+  const mm = useMapModes({ tab, flowParam, horizon, zoomedOut, mixedPair, statusOk, lake: lakeChoice, groups });
+  const { onConditions, quantity, modes, activeGroups } = mm;
   // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
   // grey for its whole length because the station matched to those reaches had gone quiet,
   // while a tap on that same grey opened a sheet answering confidently from two other
   // gauges. One arithmetic now serves both — see `usePanelStandings`.
-  const standings = usePanelStandings(source, feed, visible,
-                                      // Under temperature the rivers stay plain (below),
-                                      // so this quantity is not drawn — it just has to be
-                                      // a real one.
-                                      flowParam === "temperature" ? "discharge" : flowParam,
-                                      // Temperature has no forecast — the models publish
-                                      // flow and stage. Asking ahead would colour nothing,
-                                      // so it stays on today's degrees.
-                                      flowParam === "temperature" ? 0 : horizon);
-  /*
-   * THE FIELD, and only where it is the answer.
-   *
-   * Not under temperature: the models publish flow and stage, so a temperature field would
-   * be a province coloured from nothing. Not above the handover either — the rivers carry
-   * the colour there and the whole table would be read to paint shapes nobody can see.
-   */
-  const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
-  const fieldOn = tab === "conditions" && flowParam !== "temperature" && zoomedOut;
-  const basins = useBasinStandings(source, feed, fieldOn,
-                                   flowParam === "temperature" ? "discharge" : flowParam,
-                                   horizon);
-  // Streams, lakes and gauges each carry their own colouring, as the design has it —
-  // plain rivers while the lakes show Stocked is a normal thing to want.
-  //
-  // DECLARED BEFORE THE HOOKS THAT READ IT. `useGaugeGeoJSON` needs to know whether it is
-  // fetching the temperature roster or the flow one, and a `const` read above its own
-  // initialiser is a ReferenceError at render — which is a blank screen, not a type error,
-  // so the compiler said nothing and only opening the page found it.
-  const [layers, setLayers] = useState<LayersState>(
-    { lake: "plain", basemap: "map" });
-  /*
-   * WHAT THE CONDITIONS VIEW IS ASKING. Flow, depth or temperature — a question about the
-   * water, so it is asked ON the map rather than filed in the Layers sheet, and it only
-   * exists while the Conditions view is open. `flow` on every other tab, so the dots never
-   * appear somewhere the reader did not ask a question.
-   */
-  const onConditions = tab === "conditions";
+  const standings = usePanelStandings(source, feed, visible, mm.standingParam, mm.standingHorizon);
+  // THE FIELD, and only where it is the answer — see `mapModes` for when.
+  const basins = useBasinStandings(source, feed, mm.fieldOn, mm.standingParam, horizon);
   const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
 
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
@@ -257,103 +249,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * the camera except the map itself.
    */
   const camera = useRef<Camera>(HOME);
-  const [groups, setGroups] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(toggleableGroups().map((g) => [g.id, g.defaultVisible])));
-
-  // The Conditions TAB is a different question, so it overrides the stream colouring while
-  // you are on it. Everything else is whatever Layers was left set to.
-  // A Layers choice is not always a colour mode. Resolve each one through its declaration
-  // rather than passing the key straight to the map — "depth" is a layer, and handing it
-  // over as a mode threw from inside a render effect and took the whole tree down.
-  /*
-   * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
-   *
-   * A section is an integer handle into the atlas's table, and both artifacts carry it. A
-   * mixed pair does not fail to match — it matches the WRONG SECTION, so every colour on
-   * screen would be a real reading about a different river. That is the one outcome this
-   * app may never produce, and it has happened once already: the tiles were rebuilt and
-   * `bundle.sqlite` was left behind, and the map went quietly grey.
-   *
-   * `ok === false` is the only refusal. `null` means the sidecar has not answered yet or the
-   * deployment has none, which is not evidence of a mismatch — see `useVintage`.
-   */
-  const vintage = useVintage(source, tiles?.atlas);
-  const mixedPair = vintage.ok === false;
-  /*
-   * THE DAY'S STATUS, on the Map tab. The index is refused unless it was built against this
-   * bundle's atlas (`useStatusIndex`), and nothing is coloured from it on a mixed pair. Until it
-   * has loaded the water stays plain: "not asked" is never drawn as "base".
-   */
-  const statusIndex = useStatusIndex(source, tiles?.atlas);
-  const statusOk = statusIndex !== null && !mixedPair;
   const statusMapData = useMemo(
     () => (statusOk && tab === "map" ? statusData(statusIndex, visible, mapDay ?? new Date()) : undefined),
     [statusOk, statusIndex, tab, visible, mapDay]);
-
-  const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
-  const modes = {
-    /*
-     * COLOURED FOR FLOW AND FOR LEVEL; PLAIN ONLY UNDER TEMPERATURE.
-     *
-     * This used to paint rivers for flow alone, on the reasoning that a depth cannot be
-     * carried from a station to the water around it — which is true, and was the right
-     * guard while the data layer would SUBSTITUTE. It no longer does: a level question is
-     * answered from level donors or not at all (see `Quantity` in @app/data), so a reach
-     * with nothing to say now arrives with no standing and draws as unmeasured. The guard
-     * has moved to where the arithmetic is, and the map can stop refusing a question it is
-     * able to answer — which it was doing while the LAKES beside it answered the same one.
-     *
-     * Temperature stays plain, and for the original reason: nothing carries a temperature
-     * between waters, so colouring a river from a gauge 40 km away would be inventing a
-     * reading for water nobody measured. The dots say what they know; the rivers say
-     * nothing.
-     */
-    // On the Map tab: the day's status, once the index has loaded and matched; plain before.
-    stream: mixedPair ? "plain"
-      : onConditions
-        ? (quantity === "temperature" ? "plain" : "standing")
-        : statusOk ? "status" : "plain",
-    // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
-    // sitting IN the lake. Under depth and temperature they go plain for the same reason
-    // the rivers do: nothing can carry either to a water with no station of its own.
-    lake: mixedPair ? "plain"
-      : onConditions
-        ? (flowParam === "temperature" ? "plain" : "standing")
-        // A lake left "plain" in Layers wears the day's status like the rivers; Stocked and
-        // Depth are questions the reader asked instead.
-        : (lakeChoice?.mode ?? "plain") === "plain" && statusOk ? "status"
-          : lakeChoice?.mode ?? "plain",
-    /*
-     * A STREAM'S POLYGON IS A STREAM. A river's wide reach or a slough drawn as a polygon
-     * (`water: stream` on the tile, the registry's kind) wears the rivers' colouring in every
-     * view — never the lakes' Stocked or Depth, which are questions about standing water.
-     * Declared once here, read by the two style layers that draw such polygons.
-     */
-    lake_flowing: mixedPair ? "plain"
-      : onConditions
-        ? (quantity === "temperature" ? "plain" : "standing")
-        : statusOk ? "status" : "plain",
-    wetland_flowing: mixedPair ? "plain"
-      : onConditions
-        ? (quantity === "temperature" ? "plain" : "standing")
-        : statusOk ? "status" : "plain",
-    gauges: quantity === "temperature" ? "temperature" : "standing",
-    /*
-     * THE FIELD. It has to be in this list or it is never painted at all: the map sets a
-     * layer's colour from `modes`, and a layer nobody names keeps whatever the style shipped
-     * — which for this one is nothing, so it drew as an invisible polygon over the province.
-     *
-     * `standing` only where the rivers are also on `standing` — which now includes LEVEL.
-     * The field is the zoomed-out form of the same answer, so gating it more tightly than
-     * the rivers meant zooming out of a coloured Level map turned the province blank.
-     * Under temperature the models publish no field to colour it from; on the Map tab it is
-     * not the question being asked.
-     */
-    basin: mixedPair ? "plain"
-      : onConditions && quantity !== "temperature" ? "standing" : "plain",
-  };
-  const activeGroups = { ...groups };
-  if (lakeChoice?.group) activeGroups[lakeChoice.group] = true;
 
   /**
    * Tapping the map. A tile carries a `section_id`, and a section is not something a person
@@ -547,7 +445,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
                      // The forecast horizons, on the Conditions tab. Temperature has no
                      // forecast, so it gets none.
-                     horizons={tab === "conditions" && flowParam !== "temperature"
+                     horizons={mm.horizonsShown
                        ? { days: HORIZONS, value: horizon,
                            onPick: (d) => setHorizon(d as Horizon) }
                        : undefined}
@@ -661,11 +559,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               // the flow ramp can span the screen — which stacked these three bands
               // vertically and took three lines of map to say what fits on one. A legend
               // is a caption; the moment it needs three rows it has become a panel.
+              // The bands and their words are the publisher's (`TEMP_LEGEND`, from `_TEMP_BANDS`); the colours are
+              // the map's own for them (runtime-style `tempExpression`).
               <View style={{ flexDirection: "row", alignItems: "center", gap: 18,
                              flexWrap: "wrap" }}>
-                <LegendCount palette={palette} colour={palette.open} label="under 18 °C" />
-                <LegendCount palette={palette} colour={palette.restricted} label="18–20 °C" />
-                <LegendCount palette={palette} colour={palette.closed} label="20 °C and over" />
+                {TEMP_LEGEND.map((b) => (
+                  <LegendCount key={b.band} palette={palette} colour={tempColour(palette)[b.band]}
+                               label={b.label} />
+                ))}
               </View>
             ) : (
               <LegendRamp palette={palette}

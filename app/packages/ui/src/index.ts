@@ -19,6 +19,7 @@ export * from "./search";
 export * from "./spots";
 export * from "./capture";
 export * from "./route";
+export * from "./mapModes";
 
 export type FormFactor = "phone" | "desktop";
 
