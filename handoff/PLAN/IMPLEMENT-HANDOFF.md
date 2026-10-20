@@ -346,21 +346,23 @@ reader gate pass.
   - `d4a0ccd9`: **regs v37**, the last committed prototype.
   - `cf500b33`: goldens re-synced to v37; verify_map 130/130, 273/273, 134/134.
   - `cc73e5ef`: regs-diagram rebuilt.
-- **Final prototype round (running now):** `<<PROTOTYPE_FINAL_COMMIT>>`. **The port target is this commit.** On day 1,
-  re-sync the goldens to it (§7).
+- **Final prototype round (UR7, DONE):** data `813ec879` + `fdce06e4` (rows 29), page **regs v38** `bdda3586` +
+  `7fb6809f`, goldens re-synced `7ba60cfd` (verify_map full marks; the golden label says "v38 @ bdda3586", generated from
+  the `7fb6809f` tree). **The port target is `7fb6809f` (regs v38).** Published. Its final runs: fast suite 3462 passed /
+  6 skipped (unfiltered), check.mjs 136/136, card gate 0. On day 1, confirm the goldens are current (§7).
 - **Data versions, live store** (`data/generated/bundle/regs.sqlite`, `regs-store/4`):
-  - rows **28**, gear **12**, licence **6**, display **17**, ladder **1**;
+  - rows **29** (UR7), gear **12**, licence **6**, display **17**, ladder **1**;
   - glossary **5** (`pipeline/deliver/answers/glossary.py` `VERSION`);
   - handles `d768d6e135e62b99`, reach `cad1c21fe6eb9ba9`, rule ids `16be720be08b0fca`.
-  - The goldens are at v37: 134 states, 144 sheets, 6 profiles.
+  - The goldens are at v38 (7ba60cfd): 134 states, 144 sheets, 6 profiles.
 - **Published links:**
   - prototype: https://claude.ai/artifact/VmvnzcpAcpxWU2bgsQM7z2
   - reference page: https://claude.ai/artifact/K2CoUr5UYj9Uj9xAFheAyS
   - diagrams: https://claude.ai/artifact/EbLF9vd7DhccM8RGtuWUKn
   - v37 itself was committed "NOT published"; check the prototype link's version before you compare against it.
 - **Known caveats:**
-  - **Suites:** the last full fast suite was not rerun after one pin move. Treat the suite state as unproven, and run
-    it once unfiltered before your first commit that depends on it.
+  - **Suites:** the last full fast suite (UR7) passed unfiltered on the final state; still run it once unfiltered as your
+    day-1 baseline.
   - **App suite:** the audit ran no vitest or `pnpm check`, and whether the app suite is green is unknown. Establish a
     baseline on day 1.
   - **Native map:** a placeholder (`app/packages/map/src/Map.native.tsx:16-26`). Whether MapLibre RN supports pmtiles
@@ -427,7 +429,7 @@ Already answered elsewhere, so do not re-ask:
 
 1. Read `AGENTS.md`, this file, APP-PREP §0–§1, MINIMAL-PACKAGING §1–§3 and §6, integration README §0–§3, and
    `decisions.md`.
-2. `git log --oneline -15`. Confirm that `<<PROTOTYPE_FINAL_COMMIT>>` has been filled and that the other agent's round
+2. `git log --oneline -15`. Confirm that `7fb6809f` has been filled and that the other agent's round
    is committed. `ls ~/.claude/heavy-job.pause` (if it exists: light work only). Ask the owner for the heavy-job
    go-ahead.
 3. Copy the reader prompt files out of the session scratchpad into `app/design/regs-v11/port/reader/` and commit them
@@ -435,7 +437,7 @@ Already answered elsewhere, so do not re-ask:
 4. Get a baseline, unfiltered and once: `pnpm -C app check`; `.venv/bin/python -m pytest pipeline/tests -q`. Record the
    counts in your progress note.
 5. Re-sync the goldens to the final prototype, through heavy.sh:
-   `node app/design/regs-v11/port/sync.mjs --ref <<PROTOTYPE_FINAL_COMMIT>>`. Read the report: changed functions,
+   `node app/design/regs-v11/port/sync.mjs --ref 7fb6809f`. Read the report: changed functions,
    per-block golden changes, token changes, `meta.misses`. Then run `verify_map.py`, `pinreplay.mjs` and `quotes.mjs`.
    Commit `port/golden/`.
 6. **The first three tickets** (independent; start all three):
@@ -451,7 +453,7 @@ Already answered elsewhere, so do not re-ask:
 
 | # | conflict | wins |
 |---|---|---|
-| C1 | Port target: integration README §1, D5, tests.md, T41 and ticket line refs say **v33 @ `04765ab5`**; the goldens are at **v37 @ `d4a0ccd9`** (`cf500b33`), and a final round is running | **`<<PROTOTYPE_FINAL_COMMIT>>`, i.e. whatever `port/golden/golden.json` `meta.ref` says after the day-1 sync.** Line refs are stale; function names hold. |
+| C1 | Port target: integration README §1, D5, tests.md, T41 and ticket line refs say **v33 @ `04765ab5`**; the goldens are at **v37 @ `d4a0ccd9`** (`cf500b33`), and a final round is running | **`7fb6809f`, i.e. whatever `port/golden/golden.json` `meta.ref` says after the day-1 sync.** Line refs are stale; function names hold. |
 | C2 | Data source: T01 (serve `/regs.sqlite`), T03/T10/T12, T41 and tests.md §4 (store from `/regs.sqlite`; `dev/regs.sqlite` fixture) vs README §0, D22 and P20 | **README §0 + D22:** the release files (water / regs-<region> / regs-sid) through the `ReleaseLoader`; there is no `/regs.sqlite` route, and the fixture is a fixture release. `regs.sqlite` remains only for the port tooling until P20. |
 | C3 | Shell: T23 ("under the FaceBar", `TabBar` stays), D1/D2 defaults, T29 (pin top = both rows) vs APP-PREP §0 / P14 | **APP-PREP §0 + P14:** water mode, bottom bar hidden, no FaceBar, `[Map] [Conditions here]` in the header; the pin top is the regs header alone. |
 | C4 | Prep order: integration README §2 says "P01–P07 (parallel) → P18 → P08 → P09 → P10 → P11" vs APP-PREP §1 and the ticket headers | **APP-PREP ticket headers:** P05 → P07 → P18 → P08; P09 has no prerequisites (parallel; P08 copies its tables when present); P11 also needs **N2**. |
