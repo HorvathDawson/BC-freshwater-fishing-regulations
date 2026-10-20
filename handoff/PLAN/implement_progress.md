@@ -9,9 +9,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   card-gate chain + feb29 + vintage 53/53; release-perf 13/13 (A5 5.7 ms, accepted with debounce).
   (2) RUNNING after it: tile rebuild into a SIDE folder scratchpad/tiles_next (then run the tile tests, promote
   atlas.pmtiles + atlas.meta.json + layers/*.geojsonl FILE BY FILE into data/generated/tiles; never replace the dir).
-- Workflow `light-tickets-batch-1` (5 worktree agents + adversarial review + fix): spots sid removal + P12b, P12a,
-  P12c + search debounce, T00+T02, T20. On completion: cherry-pick their branch commits into redesign/stream-sections,
-  resolve conflicts, Tier 1, record.
+- Batch 1 MERGED (cherry-picked, conflicts resolved, Tier 1 green: vitest 861, pytest smoke 192, check.mjs 18):
+  T20 803bc30d, T00 40b2c67d, T02 53ea8298, spots-no-sid 2e92ddee, P12b 22ba0b08 + review fix 9c56fa3a, P12a 386fa5bb,
+  P12c 3a8ed83d, search debounce 200 ms 3f1602d0. All passed adversarial review (one major fixed: a saved spot's
+  estimate named today's season). Worktrees removed.
+- Workflow `tickets-batch-2` RUNNING (wf_7703a540-b9f): P11 integration (web first, Android-portable), T06, the
+  test_answers_reference fix, P16 (before/after shots for the owner). On completion: cherry-pick, Tier 1, record.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
