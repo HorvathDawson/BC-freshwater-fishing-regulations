@@ -757,6 +757,7 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 #pins .pinbar{position:absolute;left:0;right:0;top:0;background:var(--wash);border-bottom:1.5px solid var(--ink)}
 #pins .pl{margin:0;padding:3px 16px;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pins .pl.g{font-size:var(--t3)}
+#pins .pl.g.two{white-space:normal}#pins .pl .pls{display:block;font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}   /* round 20h form a: the share, then the total in brackets on its own line */
 #pins .pl + .pl{padding-left:26px}
 #pins .pl b{font-weight:var(--w-num);color:var(--open)}
 .tall #pins{display:none}
@@ -843,7 +844,21 @@ html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-s
 .ts2 .ync[data-col="no"]{padding-left:0;border-left:0;margin-top:6px}
 /* 4 the possession sheet's fold */
 .sbody details.bookw{margin:var(--s2) 0 0}.sbody .glex{margin:var(--s1) 0 0;font-size:var(--t4);color:var(--sub)}
+.sbody ul.posx{margin:2px 0 0;padding-left:0;list-style:none}.sbody ul.posx li{margin:0 0 3px;font:400 var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}.sbody ul.posx li b{font-weight:var(--w-head);color:var(--ink)}
 .ksn{border-left-color:var(--line2)}
+/* round 20h (owner 2, 3): ONE surface — the card; no bands (the head band, the size band and the pin bar were a second and third
+   surface, white → grey → white → tinted → white). Grouping is spacing + hairlines: the size section is framed by two hairlines
+   full-bleed; the size chip keeps the tint (a chip, not a band). Fish pictures have no tile of their own: they are RGBA cut-outs
+   and sit on whatever surface they are on, light and dark. */
+.ghd.gpin{background:var(--card)}
+#pins .pinbar{background:var(--card);box-shadow:0 1px 0 var(--line)}
+.tnode[data-tnode="size"]{background:none;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding-bottom:var(--s2)}
+.tnode[data-tnode="size"] .szc{background:var(--tint)}
+.tnode[data-tnode="size"] > .tier .tl{background:none}   /* the size head painted the old --wash band head */
+.kp img,.th img,.sbody .pic,.spg .im,.sbody .pic img,.spg .im img{background:transparent}
+.ghd .num[data-tot="a"]{display:block}.ghd .num[data-tot="a"] .glead{display:block;font:var(--w-head) var(--t4)/1.6 Archivo,sans-serif;color:var(--ink)}.ghd .num[data-tot="a"] .glead .gln{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;vertical-align:-1px;color:var(--ink)}
+.ghd .num[data-tot="a"] .gof{display:block;margin-top:1px;font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}.ghd .num[data-tot="a"] .gof .ghn{font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;vertical-align:0;color:var(--ink)}.ghd .num[data-tot="a"] .gof .ghu{font-size:var(--t4);color:var(--sub)}.ghd .num[data-tot="a"] .gofw{display:inline;margin:0;font:inherit;color:var(--sub)}   /* .ghr is a block elsewhere; here it is the two words before the total */
+.ghd .num .g2{display:block;margin-top:2px;font:var(--w-head) var(--t4)/1.4 Archivo,sans-serif;color:var(--ink)}.ghd .num .g2 .ghn2{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;vertical-align:-1px}
 .tier .torigin{margin:var(--s1) 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}.tier .torigin .linkbtn{min-height:32px;font-size:var(--t4)}   /* the size note's bar is a rule, not an action: the accent stays on links and buttons */
 </style>
 </head>
@@ -898,7 +913,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:'', hdr:'', chg:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:'', hdr:'', chg:'', tot:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -1235,9 +1250,27 @@ function buildKeep(){
     // IS the root tier: its line (the number big in its words, the ⓘ, its Rule book page; a total the tributary walk brought
     // says why under it) stands where the headline stood, and the root's children are the top of the tree, one level less
     const rootT = g.tree ? [].concat(g.tree)[0] : null, hdrRoot = rootT && g.header?.tier === rootT.id ? rootT : null;
+    // round 20h (owner 1): a REGION total over a stream share (the Vedder's 4 across Region 2 over its 2 from streams; Glenn's 5
+    // over 2; Bella Coola's 5 over the river's own 2) was read as "4 from the stream". Two forms, tot=a|b in the hash:
+    // (a) the share leads — the data's headline ("2 a day per angler from streams") is the big line, the region total a quiet
+    //     note under it, "of the" + the root's words (page-side connecting words: "of the");
+    // (b) the total leads as before, and a second strong line under it says the share at once, "↳ " + shortOf(share)
+    //     ("↳ 2 of them from streams", the pin bar's own words). relTier: the top tier that carries the headline's number.
+    const relTier = hdrRoot && hdrRoot.tier === 'total' && g.headline && g.headline.n != null && g.headline.n !== hdrRoot.n
+      ? (hdrRoot.children || []).find(c => c.node === 'tier' && c.n === g.headline.n && (c.tier === 'share' || c.tier === 'own')) : null;
+    const bigWords = (says, n) => { const mm = n != null ? says.match(new RegExp(`^(.*?)\\b${n}\\b(.*)$`)) : null;
+      return mm ? `${mm[1].trim() ? `<span class="ghu">${nbsp(mm[1].trim())}</span> ` : ''}<b class="ghn">${n}</b> <span class="ghu">${nbsp(mm[2].trim())}</span>` : null; };
     const rootLine = !hdrRoot ? '' : (() => { const key = st.ruleKey?.[hdrRoot.by], m = hdrRoot.n != null ? hdrRoot.says.match(new RegExp(`^(.*?)\\b${hdrRoot.n}\\b(.*)$`)) : null;
+      // form a is the default (the round-20h readers: the stream's number answered at conf 4 vs 3; tot=b keeps the other)
+      if (relTier && (S.tot || 'a') === 'a') { const mh = g.headline.says.match(new RegExp(`^(.*?)\\b${g.headline.n}\\b(.*)$`));
+        // the share leads (.glead, a .ghr the checks strip as a note); the root's own words stay the block's words — "of the"
+        // + "4 a day per angler across Region 2, lakes included" — with its .ghn small, so the head still IS the root tier
+        const lead = `<span class="ghr glead" data-share-lead>${mh && mh[1].trim() ? `<span>${nbsp(mh[1].trim())}</span> ` : ''}<b class="gln">${g.headline.n}</b> <span>${nbsp(mh ? mh[2].trim() : g.headline.says)}</span></span>`;
+        const words = m ? `${m[1].trim() ? `<span class="ghu">${nbsp(m[1].trim())}</span> ` : ''}<b class="ghn">${hdrRoot.n}</b> <span class="ghu">${nbsp(m[2].trim())}</span>` : `<small>${nbsp(hdrRoot.says)}</small>`;
+        return `<div class="num" data-root-tier="${esc(hdrRoot.id)}" data-tot="a">${lead}<span class="gof" data-of-total><span class="ghr gofw">of the</span> ${words}${qtip ? ' ' + qtip : ''}</span></div>`; }
       const words = m ? `${m[1].trim() ? `<span class="ghu">${nbsp(m[1].trim())}</span> ` : ''}<b class="ghn">${hdrRoot.n}</b> <span class="ghu">${nbsp(m[2].trim())}</span>` : `<small>${nbsp(hdrRoot.says)}</small>`;
-      return `<div class="num${m ? '' : ' nolimit'}" data-root-tier="${esc(hdrRoot.id)}">${words}${qtip ? ' ' + qtip : ''}${hdrRoot.why_here ? `<span class="ghr" data-why-here>${esc(cap1(hdrRoot.why_here))}</span>` : ''}</div>`; })();
+      const rel2 = relTier && S.tot === 'b' ? `<span class="ghr g2" data-share-of>↳ ${esc(shortOf(relTier)).replace(/\b(\d+)\b/, '<b class="ghn2">$1</b>')}</span>` : '';
+      return `<div class="num${m ? '' : ' nolimit'}" data-root-tier="${esc(hdrRoot.id)}"${rel2 ? ' data-tot="b"' : ''}>${words}${qtip ? ' ' + qtip : ''}${hdrRoot.why_here ? `<span class="ghr" data-why-here>${esc(cap1(hdrRoot.why_here))}</span>` : ''}${rel2}</div>`; })();
     // round 20d (owner 1): the root's Rule book page sits in the block under the head (the total line stays one line)
     const rootBook = hdrRoot && st.ruleKey?.[hdrRoot.by] ? `<span class="tbk gbk">${bookLinks(st.ruleKey[hdrRoot.by])}</span>` : '';
     const tops = hdrRoot ? (hdrRoot.children || []) : [].concat(g.tree || []);
@@ -1475,11 +1508,14 @@ function buildGear(){
     // round 12 (owner 3): two columns, ✓ allowed | ✕ not (the column says "allowed" / "banned", so a note that only repeats it
     // is dropped; the rest of the note stays under its item)
     const note2 = x => x.s.replace(/^(allowed|banned|bait ban)(\s*·\s*)?/, '');
-    // UR2 7: an allowance a banned item's note carries ("<x> is still OK") goes to the allowed item it names
+    // UR2 7: an allowance a banned item's note carries ("<x> is still OK") belongs with the allowed item it names.
+    // Round 20h (gear 11): the allowed item's own words now NAME the ban it is excepted from ("the fish or fish parts ban
+    // excepts it", `excepted_from`), so the banned item's trailing "roe is still OK" is dropped and nothing page-side is added;
+    // only where the data gives the allowed item no such words does the moved phrase stand, naming the item's own ban.
     items.filter(x => !x.ok).forEach(x => { const m = note2(x).match(/^(.*?)(?:\s*·\s*)?\b(\w+) is still OK$/i); if (!m) return;
       const to = items.find(y => y.ok && new RegExp('^' + m[2], 'i').test(y.n.replace(/<[^>]+>/g, '')));
       if (!to) return;
-      x.s = m[1]; to.s = [to.s, 'still OK — not part of the ban'].filter(Boolean).join(' · '); });
+      x.s = m[1]; if (!/ban excepts it/i.test(to.s)) to.s = [to.s, `${m[2]} is still OK`].filter(Boolean).join(' · '); });
     const bans = dated(st, 16).map(x => gnote(x.when, x.words, x.now)).join('');
     gearCells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${bans}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${itemSrc(`bait|${id}`, ks)}</div>`); }
   // ways to fish: what's allowed (with the data's conditions), then what is not
@@ -1514,6 +1550,7 @@ const WAYS = (ok, no) => yesNo(ok.map(x => [x.n, x.s]), no.map(t => [esc(t), '']
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   if (S.hdr) de.dataset.hdr = S.hdr; else delete de.dataset.hdr;   // round 20f (owner 2): the tier-header style to compare, hdr=a|b|c
+  if (S.tot) de.dataset.tot = S.tot; else delete de.dataset.tot;   // round 20h (owner 1): how a region total over a stream share is led, tot=a|b
   if (S.chg) de.dataset.chg = S.chg; else delete de.dataset.chg;   // round 20g (owner 2): chg=a keeps the ◷ glyph the reader passed over (the Now / Next chips are the default)
   const sc = $('sc'), prev = sc.scrollTop;
   // round 20b (owner: "split gear and license tabs") / round 20e (owner 1: Gear and Methods apart): the bar reads What you can
@@ -1562,13 +1599,18 @@ function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstEleme
   const art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => { const r = R(a); return r.top < y && r.bottom > y + LH; });
   if (art) { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, root = g && g.tree ? [].concat(g.tree)[0] : null, pin = art.querySelector(':scope > .ghd.gpin');
     const name = (art.querySelector('.rtitle')?.firstChild?.textContent || '').trim();
-    if (root && pin && R(pin).top < y) { lines.push({cls: 'g', t: `${name} · ${shortOf(root)}`});
+    const totA = pin?.querySelector('[data-tot="a"]'), hl = g.headline;   // round 20h (owner 1, form a): the share leads the group line too, the total in brackets
+    if (root && pin && R(pin).top < y) { lines.push(totA && hl ? {cls: 'g two', t: `${name} · ${shortOf({tier: 'share', n: hl.n, says: hl.says})}`, sub: `(of ${shortOf(root).replace(/ a day /, ' ')})`} : {cls: 'g', t: `${name} · ${shortOf(root)}`});   // the total in brackets on its own line under the share
       const byId = {}; (function walk(ns){ ns.forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children || []); } }); })(root.children || []);
       [...art.querySelectorAll('section.tnode')].forEach(tn => { const r = R(tn), t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
         // round 20f (the 20e reader: a line outlived its section over the next section's rows): a tier's line goes once less
         // than about a row (110 px) of its section is left under the bar
-        if (t && tl && r.top < y && r.bottom > y + LH + 110 && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
-  const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}</p>`).join('');   // the tier's number big, once
+        // round 20h (owner 4 i): and it goes as soon as the NEXT section's head is in view (its top above the bottom of the
+        // scroll area less a line) — a reader saw "↳ 2 of them from streams" over the Duncan River's own rainbow row
+        const nxt = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd'), nextIn = nxt ? R(nxt).top < R(sc).bottom - LH : false;
+        if (totA && t.tier === 'share' && t.n === hl?.n) return;   // form a: the group line already says the share
+        if (t && tl && r.top < y && r.bottom > y + LH + 110 && !nextIn && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
+  const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}${l.sub ? `<span class="pls">${esc(l.sub).replace(/\b(\d+)\b/, '<b>$1</b>')}</span>` : ''}</p>`).join('');   // the tier's number big, once; form a's total in brackets under it
   if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; } }
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), m = $('methods'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
@@ -1617,7 +1659,12 @@ function sheetHtml(k){
   if (k.startsWith('pos:')) { const o = POS_[k.slice(4)]; if (!o) return ''; const t = SNAP.gloss?.[o.gl], key = o.rule && st.ruleKey ? (Object.entries(st.ruleKey).find(([, v]) => v === o.rule) || [])[0] : null;
     // round 20g (owner 4): one plain line, the example, the book's own words in a fold closed by default, then the source line
     const term = t && t.term;
-    return head('Possession', '') + `<div class="sbody"><p class="glsays" data-possession>${esc(o.says)}</p>${term && term.says && norm1(term.says) !== norm1(o.says) ? `<p class="glex" data-term-says>${esc(term.says)}</p>` : ''}${term && term.example ? `<p class="glex"><b>For example:</b> ${esc(term.example)}</p>` : ''}`
+    // round 20h (rows 25): the card's own possession examples (`group.possession`: "With 4 trout and char a day you may have
+    // 8: 2 days’ fish." + "Possession doubles the 4 a day, not the 2 from streams.") stand in place of the glossary's generic
+    // example, which is the fallback only
+    const own = (st.rows || []).map(r => r.group && r.group.possession).filter(Boolean);
+    const examples = own.length ? `<p class="glex" data-pos-own><b>For example:</b></p><ul class="posx" data-pos-own>${own.map(x => `<li>${esc(x.example)}${x.doubles ? ` <b>${esc(x.doubles)}</b>` : ''}</li>`).join('')}</ul>` : (term && term.example ? `<p class="glex" data-pos-generic><b>For example:</b> ${esc(term.example)}</p>` : '');
+    return head('Possession', '') + `<div class="sbody"><p class="glsays" data-possession>${esc(o.says)}</p>${term && term.says && norm1(term.says) !== norm1(o.says) && !norm1(term.says).includes(norm1(o.says).replace(/^possession: ?/, '').replace(/\.$/, '')) ? `<p class="glex" data-term-says>${esc(term.says)}</p>` : ''}${examples}`
       + (term && term.quote ? `<details class="bookw" data-book-fold><summary>In the rule book’s words</summary><blockquote class="exact">${esc(term.quote)}</blockquote></details>` : term && term.says ? '' : (t && t.body ? t.body : ''))
       + `<p class="isrc">${o.rule ? `<button class="srcs" type="button" data-rule="${esc(o.rule)}">Source ›</button>` : ''}${bookLinks(o.rule)}</p></div>`; }
   if (k.startsWith('other:')) { const o = OTHERS_[k.slice(6)]; if (!o) return ''; const x = weekSheet(o.html);

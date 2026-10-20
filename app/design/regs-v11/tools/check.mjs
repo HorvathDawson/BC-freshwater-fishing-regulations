@@ -54,6 +54,15 @@
 //   the data's words), no dropdown or fold, all six pairs show their own answer; r20e-region-vs-stream: a row's streams tag
 //   heads the share, not the region's total; the pin bar says the same; r20e-ways-columns: Ways to fish in Bait's two columns
 //   (✓ Allowed | ✕ Not allowed). r20b-three-tabs retired (r20e-four-tabs)
+//   (round 20h, owner: the region total vs the stream share, one surface, pictures without a tile, the pin line's end; ONLY=20h)
+//   + the round-20h data on the page: r20h-roe-names-ban (a bait allowance names the ban it is excepted from, the banned row
+//   drops "is still OK", the dated line carries nothing of it); r20h-possession-own-example (the possession sheet shows the
+//   card's own example(s) and doubles line, never the generic 5 → 10 beside them, the term line not repeating the rule)
+//   r20h-one-surface: inside a keep card and the pin bar nothing band-sized (> 200 × 40 px) paints a background but the card's;
+//   r20h-picture-surface: a fish picture and its tile paint no background of their own, light and dark; r20h-pin-drops: a pinned
+//   tier line ends once the next section's head is in view (the own rainbow row never under "from streams"), and stands while
+//   that head is below the fold; r20h-total-relation: a region total over a stream share shows both numbers in the group head
+//   (form a: the share big + "of the …" note; form b: the total big + "↳ N of them from streams")
 //   (round 20g, owner: colours with one meaning each, one future-change pattern, the ways list, possession; ONLY=20g)
 //   r20g-palette: every text colour on a tab is a token (ink, sub, accent, open, closed, restricted, on-accent), status
 //   colours only on status, every number in ink, one grouping tint, at most 6 / 5 / 5 / 4 distinct text colours on Keep /
@@ -145,6 +154,7 @@ if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => 
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20h') { await round20h(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20g') { await round20g(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20f') { await round20f(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur3') { await roundUr3(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -756,7 +766,7 @@ async function round20e(){
           const sc = document.getElementById('sc'), kr = [...(sec?.querySelectorAll('.krow') || [])].pop(), hh = document.getElementById('hdr').offsetHeight; if (kr) { sc.scrollTop += R(kr).top - R(sc).top - hh - 70; await new Promise(z => setTimeout(z, 120)); pinUpdate();
             const pl = [...document.querySelectorAll('#pins .pl')].map(p => norm(p.textContent)), across = (root.says.match(/ across (.+?)(?:,|$)/) || [])[1];
             if (!pl[0] || !pl[0].includes('across ' + across)) bad.push('pin group line ' + JSON.stringify(pl[0]) + ' does not say across ' + across);
-            if (!pl[1] || !/from (this stream|this lake|streams|lakes)/.test(pl[1])) bad.push('pin share line ' + JSON.stringify(pl[1])); sc.scrollTop = 0; } } }
+            if (!(pl[1] && /from (this stream|this lake|streams|lakes)/.test(pl[1])) && !/from (this stream|this lake|streams|lakes)/.test(pl[0])) bad.push('pin share line ' + JSON.stringify(pl[1])); sc.scrollTop = 0; } } }   /* round 20h form a: the group line itself says the share */
       return JSON.stringify({hash: location.hash.slice(8), shares, bad}); })()`)));
   });
   const rsb = RS.filter(x => x.bad.length);
@@ -764,6 +774,74 @@ async function round20e(){
 }
 
 // ---------- round 20c (owner: a format audit; context in every screenful) ----------
+// ---------- round 20h (owner: the region total vs the stream share; one surface; pictures without a tile; the pin line's end) ----------
+async function round20h(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (2) ONE surface: inside a keep card (and the pin bar) no element wider than 200 px and taller than 40 px paints a background
+  // other than the card's; (3) a fish picture and its tile paint no background of their own — light and dark
+  const SF = [];
+  for (const theme of ['light', 'dark']) for (const hash of ['w=vedder&d=1010', 'w=x35p&d=1010', 'w=klwa&d=1012']) await page(hash + (theme === 'dark' ? '&theme=dark' : ''), async b => {
+    SF.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], cs = e => getComputedStyle(e), R = e => e.getBoundingClientRect();
+      const probe = (n, prop) => { const e = document.createElement('i'); e.style[prop] = 'var(--' + n + ')'; document.body.appendChild(e); const c = cs(e)[prop]; e.remove(); return c; };
+      const card = probe('card', 'backgroundColor'), clear = c => /rgba\\(0, 0, 0, 0\\)|transparent/.test(c); let bands = 0, pics = 0;
+      document.querySelectorAll('#keep article.row.ledger *, #pins .pinbar').forEach(e => { const c = cs(e).backgroundColor, r = R(e); if (clear(c) || r.width < 200 || r.height < 40) return; bands++;
+        if (c !== card) bad.push('SURFACE ' + (e.className || e.tagName) + ' ' + Math.round(r.width) + '×' + Math.round(r.height) + ' paints ' + c); });
+      document.querySelectorAll('#keep .kp img, #keep .th img').forEach(im => { pics++; if (!clear(cs(im).backgroundColor)) bad.push('PIC a tile under ' + (im.closest('button')?.getAttribute('aria-label') || 'a picture') + ': ' + cs(im).backgroundColor);
+        const p = im.parentElement; if (p && !p.matches('button, .kp, .th') && !clear(cs(p).backgroundColor)) bad.push('PIC a tile around a picture: ' + p.className); });
+      return {hash: location.hash.slice(8), bands, pics, bad}; })())`)));
+  });
+  const sfb = SF.filter(x => x.bad.length);
+  check('r20h-one-surface', SF.length === 6 && !sfb.some(x => x.bad.some(y => /^SURFACE /.test(y))),   /* bands counts band-sized painted elements: with one surface it may be 0 */ sfb.flatMap(x => x.bad.filter(y => /^SURFACE /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 6).join('; '));
+  check('r20h-picture-surface', SF.reduce((a, x) => a + x.pics, 0) >= 12 && !sfb.some(x => x.bad.some(y => /^PIC /.test(y))), sfb.flatMap(x => x.bad.filter(y => /^PIC /.test(y)).map(y => x.hash + ': ' + y)).slice(0, 6).join('; '));
+  // (4 i) a pinned tier line ends when the next section's head is in view: with the Vedder's own rainbow row (Glenn's Duncan row)
+  // at 60 % of the viewport the bar says nothing "from streams"; with the share's first rows there and the own head below the
+  // fold, the share's line stands
+  const PD = [];
+  for (const [hash, sel] of [['w=vedder&d=1010', '#keep section.tnode[data-tnode="own"] .krow.kt'], ['w=glenn&d=615', '#keep section.tnode[data-tnode="own"] .krow.kt[data-sp~="RB"]']]) {
+    const b = await open(`${pathToFileURL(PAGE).href}#shot=1&${hash}`, { width: 440, height: 900, offline: true });
+    try { await new Promise(r => setTimeout(r, 500)); PD.push(JSON.parse(await b.evaluate(`(async () => { ${norm} await document.fonts.ready; const sc = document.getElementById('sc'), R = e => e.getBoundingClientRect(), pins = () => [...document.querySelectorAll('#pins .pl')].map(e => norm(e.textContent));
+      const own = document.querySelector(${JSON.stringify(sel)}), share = document.querySelector('#keep section.tnode[data-tnode="share"] .krow.kt'), ownHead = document.querySelector('#keep section.tnode[data-tnode="own"] > .tier');
+      sc.scrollTop = sc.scrollTop + R(own).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 400)); const atOwn = pins();
+      sc.scrollTop = 0; await new Promise(r => setTimeout(r, 200)); const shareHead = document.querySelector('#keep section.tnode[data-tnode="share"] > .tier');
+      sc.scrollTop = sc.scrollTop + R(shareHead).top - R(sc).top - document.getElementById('hdr').offsetHeight + 12; await new Promise(r => setTimeout(r, 400));   /* the share's head just slid under the bar */
+      return JSON.stringify({hash: location.hash.slice(8), atOwn, atShare: pins(), ownHeadBelow: R(ownHead).top > R(sc).bottom}); })()`))); } finally { await b.close(); } }
+  const pdb = PD.filter(x => x.atOwn.some(t => /↳.*from streams/.test(t)) || (x.ownHeadBelow && !x.atShare.some(t => /from streams/.test(t))));   /* form a: the group line itself says the share; form b: a ↳ line */
+  check('r20h-pin-drops', PD.length === 2 && !pdb.length, JSON.stringify(PD));
+  // (1) the region total and the stream share are both in the group head, each on its own line (form a: the share big, the total
+  // a note "of the …"; form b: the total big, "↳ N of them from streams" under it); the pin bar's group line never puts the
+  // region's number "from streams"
+  const TR = [];
+  for (const hash of ['w=vedder&d=1010', 'w=glenn&d=615', 'w=bellacoola&d=501&p=1', 'w=klwa&d=1012']) await page(hash, async b => {
+    TR.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), out = [];
+      document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.tree) return; const root = [].concat(g.tree)[0], num = art.querySelector('[data-root-tier]');
+        const rel = root.tier === 'total' && g.headline && g.headline.n != null && g.headline.n !== root.n && (root.children || []).some(c => c.node === 'tier' && c.n === g.headline.n);
+        out.push({says: root.says, rel, form: num?.dataset.tot || '', big: norm(num?.querySelector('.gln, .ghn')?.textContent), of: norm(num?.querySelector('[data-of-total]')?.textContent), under: norm(num?.querySelector('[data-share-of]')?.textContent), hl: g.headline?.says}); });
+      return {hash: location.hash.slice(8), out}; })())`)));
+  });
+  const trb = TR.flatMap(x => x.out.filter(o => o.rel && !((o.form === 'a' && o.big === String((o.hl.match(/\d+/) || [])[0]) && /^of the \d+ a day/.test(o.of)) || (o.form === 'b' && /^↳ \d+ (of them|a day)/.test(o.under)))).map(o => x.hash + ': ' + JSON.stringify(o)));
+  check('r20h-total-relation', TR.some(x => x.out.some(o => o.rel)) && !trb.length, trb.slice(0, 4).join('; '));
+  // (data, gear 11) a bait allowance names the ban it is excepted from (the roe row: "the fish or fish parts ban excepts it"),
+  // never a bare "the ban"; the banned row carries no "is still OK"; the NEXT bait-ban line carries nothing of it
+  const RO = [];
+  for (const hash of ['w=vedder&d=1010&sec=gear', 'w=vedder&d=515&sec=gear', 'w=klwa&d=1010&sec=gear']) await page(hash, async b => {
+    RO.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], bait = document.querySelector('#gear [data-k="bait"]'); if (!bait) return {hash: location.hash.slice(8), bad: ['no bait item']};
+      const rows = [...bait.querySelectorAll('.yn li')].map(li => ({ok: li.classList.contains('ok'), n: norm(li.querySelector('b')?.textContent), s: norm(li.querySelector('small')?.textContent)}));
+      rows.forEach(r => { if (/\\bthe ban\\b/i.test(r.s)) bad.push(r.n + ': a bare "the ban": ' + r.s); if (!r.ok && /still OK/i.test(r.s)) bad.push(r.n + ': the banned row keeps the allowance: ' + r.s); if (r.ok && /still OK/i.test(r.s) && !/\\bban\\b/i.test(r.s)) bad.push(r.n + ': an allowance without its ban: ' + r.s); });
+      const roe = rows.find(r => /^Roe/.test(r.n)); bait.querySelectorAll('.chg').forEach(c => { if (/roe|still OK|excepts/i.test(c.textContent)) bad.push('the dated line carries the allowance: ' + norm(c.textContent)); });
+      return {hash: location.hash.slice(8), roe, bad}; })())`)));
+  });
+  const rob = RO.filter(x => x.bad.length), roeV = RO.find(x => x.hash.startsWith('w=vedder&d=1010'))?.roe;
+  check('r20h-roe-names-ban', RO.length === 3 && !rob.length && !!roeV && roeV.ok && /\bban\b/i.test(roeV.s), rob.flatMap(x => x.bad.map(y => x.hash + ': ' + y)).slice(0, 5).join('; ') + ' · Vedder roe ' + JSON.stringify(roeV));
+  // (data, rows 25) the possession sheet shows the card's own example(s) and the doubles line, not the glossary's generic 5 → 10
+  const PX = await page('w=vedder&d=1010&sheet=' + encodeURIComponent('pos:vedder_1010|pos'), async b => JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const sh = document.querySelector('#sheet.on .sbody'); if (!sh) return {bad: ['no sheet']}; const st = ST(), bad = [];
+    const own = (st.rows || []).map(r => r.group && r.group.possession).filter(Boolean), lis = [...sh.querySelectorAll('[data-pos-own] li, ul[data-pos-own] li')].map(e => norm(e.textContent)), txt = norm(sh.textContent);
+    own.forEach(x => { if (!lis.some(l => l.includes(x.example))) bad.push('example missing: ' + x.example); if (x.doubles && !lis.some(l => l.includes(x.doubles))) bad.push('doubles missing: ' + x.doubles); });
+    if (own.length && sh.querySelector('[data-pos-generic]')) bad.push('the generic example drawn beside the card’s own');
+    if (/5 trout/.test(txt) && own.length) bad.push('the generic 5 → 10 shown');
+    const plain = norm(sh.querySelector('[data-possession]')?.textContent), ts = norm(sh.querySelector('[data-term-says]')?.textContent); if (ts && plain && (ts.includes(plain.replace(/^Possession: ?/, '').replace(/\\.$/, '')) || /2 days/.test(ts))) bad.push('the term line repeats the rule: ' + ts);
+    return {bad, own: own.length, lis}; })())`)));
+  check('r20h-possession-own-example', PX.own >= 1 && !PX.bad.length, PX.bad.join('; ') + ' · ' + JSON.stringify(PX.lis));
+}
 // ---------- round 20g (owner: colours with one meaning each; one way to show a future change; the ways list; possession) ----------
 async function round20g(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
@@ -786,7 +864,7 @@ async function round20g(){
         els.forEach(e => { const t = tok[cs(e).color]; if ((t === 'open' || t === 'closed' || t === 'restricted') && !status(e)) bad.push(id + ': ' + t + ' on a non-status ' + e.className + ' “' + norm(e.textContent).slice(0, 30) + '”');
           if ((t === 'card' || t === 'on-accent') && !e.closest('.segm button, .pill, .obtn')) bad.push(id + ': ' + t + ' text off a filled control: ' + norm(e.textContent).slice(0, 30)); }); }
       document.querySelectorAll('#keep .tier .tn, #keep .ghd .ghn, #keep .ks .kn, #keep .szl .qgn, #pins .pl b').forEach(e => { if (vis(e) && tok[cs(e).color] !== 'ink') bad.push('a number not in ink: ' + e.className + ' ' + norm(e.textContent)); });
-      const bands = [...document.querySelectorAll('#keep .ghd.gpin, #keep section.tnode[data-tnode="size"], #pins .pinbar, .chg .chgi')].filter(vis).map(e => cs(e).backgroundColor).filter(c => !/rgba\\(0, 0, 0, 0\\)|transparent/.test(c));
+      const bands = [...document.querySelectorAll('#keep .szc, .chg .chgi')]   /* round 20h: one surface; the tint is on chips only */.filter(vis).map(e => cs(e).backgroundColor).filter(c => !/rgba\\(0, 0, 0, 0\\)|transparent/.test(c));
       new Set(bands).forEach(c => { if (c !== tint) bad.push('a grouping tint that is not --tint: ' + c); });
       return {hash: location.hash.slice(8), counts, bad}; })())`)));
   });
@@ -825,7 +903,7 @@ async function round20g(){
     const order = [plain, ex, fold, src].filter(Boolean); for (let i = 1; i < order.length; i++) if (!(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING)) bad.push('out of order at ' + order[i].className);
     const vis = [...sh.querySelectorAll('*')].filter(e => e.getBoundingClientRect().height > 0 && !fold?.contains(e) || e === fold).length;
     return {bad, lines: norm(plain?.textContent), h: Math.round(sh.getBoundingClientRect().height)}; })())`)));
-  check('r20g-possession-fold', !PO.bad.length && PO.h < 260, PO.bad.join('; ') + ' · ' + PO.lines + ' · ' + PO.h + 'px');
+  check('r20g-possession-fold', !PO.bad.length && PO.h < 300,   /* rows 25: the card's own examples (three groups on the Vedder) + the doubles line; 273 px */ PO.bad.join('; ') + ' · ' + PO.lines + ' · ' + PO.h + 'px');
 }
 // ---------- round 20f (owner: thumbnails in one place; tier headers without the left bar; "from streams") ----------
 async function round20f(){
@@ -844,7 +922,8 @@ async function round20f(){
         art.querySelectorAll('.tier .tl, .tier .tkick').forEach(h => { heads++; if (parseFloat(cs(h).borderLeftWidth) > 0 && cs(h).borderLeftStyle !== 'none') bad.push('HDR a left bar on ' + norm(h.textContent).slice(0, 40));
           if (Math.abs(Math.round(R(h).left + parseFloat(cs(h).paddingLeft)) - edge) > 1) bad.push('HDR header off the text edge: ' + norm(h.textContent).slice(0, 40)); });
         art.querySelectorAll('.krow.kt').forEach(r => { if (Math.abs(Math.round(R(r).left + parseFloat(cs(r).paddingLeft)) - edge) > 1) bad.push('HDR row off the text edge'); });
-        art.querySelectorAll('section.tnode[data-tnode="size"]').forEach(t => { if (/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs(t).backgroundColor)) bad.push('HDR the size band lost its tint'); }); });
+        // round 20h (owner 2): ONE surface — the size section is framed by two hairlines, not tinted
+        art.querySelectorAll('section.tnode[data-tnode="size"]').forEach(t => { if (!/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs(t).backgroundColor)) bad.push('HDR the size section paints a band'); if (parseFloat(cs(t).borderTopWidth) < 1 || parseFloat(cs(t).borderBottomWidth) < 1) bad.push('HDR the size section has no hairlines'); }); });
       return {hash: location.hash.slice(8), rows, heads, caps, bad}; })())`)));
   });
   const rfb = RF.filter(x => x.bad.length);
@@ -855,7 +934,7 @@ async function round20f(){
       const line = norm([...document.querySelectorAll('#keep section.tnode[data-tnode="share"] > .tier .tl')].map(e => { const c = e.cloneNode(true); c.querySelectorAll('.tbk, .gl').forEach(x => x.remove()); return c.textContent; }).join(' | '));
       const row = document.querySelector('#keep .krow.kt[data-sp~="DV"]'); sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 400));
       return JSON.stringify({line, pin: [...document.querySelectorAll('#pins .pl')].map(e => norm(e.textContent))}); })()`)); } finally { await b.close(); } })();
-  check('r20f-region-words', /^Only 2 of the 4 may be from streams/.test(RW.line) && !/this stream/.test(RW.line) && RW.pin.some(t => t === '↳ 2 of them from streams'), JSON.stringify(RW));
+  check('r20f-region-words', /^Only 2 of the 4 may be from streams/.test(RW.line) && !/this stream/.test(RW.line) && RW.pin.some(t => t === '↳ 2 of them from streams' || /^Trout and char · 2 a day from streams \(of 4 across Region 2\)$/.test(t)), JSON.stringify(RW));   // round 20h form a
 }
 async function round20c(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
@@ -877,10 +956,12 @@ async function round20c(){
           if (Math.abs(R(bar()).top - top) > 1.5) bad.push('bar at ' + Math.round(R(bar()).top - top) + 'px under the header');
           if (!norm(L[0].textContent).startsWith(name + ' · ') || !new RegExp('(^|[^0-9])' + root.n + '([^0-9]|$)').test(norm(L[0].textContent))) bad.push('group line ' + JSON.stringify(norm(L[0].textContent)));
           L.slice(1).forEach(l => { if (!/^↳ /.test(norm(l.textContent))) bad.push('a deeper line without ↳: ' + norm(l.textContent)); });
-          L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * 1.6) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
+          L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * (l.classList.contains('two') ? 2.6 : 1.6)) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
           if (R(bar()).height > 90) bad.push('stack ' + Math.round(R(bar()).height) + 'px');
           // every section containing the pin line whose header has slid under the bar has a line, in order; no other line
-          const want = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn), tl = tn.querySelector(':scope > .tier'); return r.top < y && r.bottom > y + 26 && tl && R(tl).top < R(bar()).bottom; }).map(tn => tn.dataset.tid);
+          const nextIn = tn => { const nx = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd'); return nx ? R(nx).top < R(sc).bottom - 26 : false; };   /* round 20h: a line ends once the next head is in view */
+          const leadA = !!art.querySelector('[data-tot="a"]');   /* form a: the group line says the share */
+          const want = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn), tl = tn.querySelector(':scope > .tier'); return r.top < y && r.bottom > y + 26 && tl && R(tl).top < R(bar()).bottom && !nextIn(tn) && !(leadA && tn.dataset.tnode === 'share'); }).map(tn => tn.dataset.tid);
           if (L.length - 1 !== want.length) bad.push('lines ' + (L.length - 1) + ' for sections ' + JSON.stringify(want));
           if (R(row).top < R(bar()).bottom - 1) bad.push('the row is under the bar'); }
         const res = {hash: location.hash.slice(8), stack: bar() && !bar().hidden ? Math.round(R(bar()).height) : 0, lines: L.map(l => norm(l.textContent))};
@@ -890,7 +971,7 @@ async function round20c(){
         return JSON.stringify({...res, bad}); })()`)));
     } finally { await b.close(); } }
   const pcb = PC.filter(x => x.bad.length);
-  check('r20d-pinned-stack', PC.length === 6 && !pcb.length && PC.some(x => x.lines.length >= 3) && PC.every(x => x.stack <= 90), pcb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; ') || `stacks ${JSON.stringify(PC.map(x => [x.hash, x.stack, x.lines]))}`);
+  check('r20d-pinned-stack', PC.length === 6 && !pcb.length && PC.some(x => x.lines.length >= 2) && PC.every(x => x.stack <= 90),   /* round 20h form a: the share rides the group line, so two lines is a stack */ pcb.map(x => `${x.hash}: ${x.bad.slice(0, 5).join(' | ')}`).join('; ') || `stacks ${JSON.stringify(PC.map(x => [x.hash, x.stack, x.lines]))}`);
 
   // round 20d: FLAT — no bordered section, one indent level (every row and every section header's text on one edge, the
   // group head on the card's edge), no rail; a size section is a tinted band without a border. The group head is two lines:
@@ -900,13 +981,14 @@ async function round20c(){
     FL.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], R = e => e.getBoundingClientRect(), cs = e => getComputedStyle(e); let bands = 0, heads = 0;
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin'); if (!pin) return; heads++;
         const num = pin.querySelector('.num'), lh = num ? parseFloat(cs(num).lineHeight) : 0;
-        if (R(pin).height > 66) bad.push('group head ' + Math.round(R(pin).height) + 'px');
-        if (num && R(num).height > lh * 1.6) bad.push('the total line wraps: ' + norm(num.textContent).slice(0, 50));
-        if (/rgba\(0, 0, 0, 0\)|transparent/.test(cs(pin).backgroundColor)) bad.push('group head without its band');
+        const lead = num?.querySelector('.glead'), leadH = lead ? R(lead).height : 0;   /* round 20h form a: the share's lead line sits above the total line */
+        if (R(pin).height > 66 + leadH) bad.push('group head ' + Math.round(R(pin).height) + 'px');
+        if (num && R(num).height - leadH > lh * 1.6) bad.push('the total line wraps: ' + norm(num.textContent).slice(0, 50));
+        /* round 20h (owner 2): the head paints the card (one surface), no band */
         const edge = Math.round(R(pin).left + parseFloat(cs(pin).paddingLeft));
-        art.querySelectorAll('section.tnode').forEach(tn => { const c = cs(tn); if (['Top', 'Right', 'Bottom', 'Left'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0)) bad.push('a bordered section: ' + tn.dataset.tnode);
+        art.querySelectorAll('section.tnode').forEach(tn => { const c = cs(tn); if (['Right', 'Left'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0) || (tn.dataset.tnode !== 'size' && ['Top', 'Bottom'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0))) bad.push('a bordered section: ' + tn.dataset.tnode);   /* round 20h: the size section's two hairlines are the one allowed */
           const ch = tn.querySelector(':scope > .tch'); if (ch && (parseFloat(cs(ch).paddingLeft) > 0 || parseFloat(cs(ch).marginLeft) > 0 || cs(ch).borderLeftStyle !== 'none')) bad.push('a rail under ' + tn.dataset.tnode);
-          if (tn.dataset.tnode === 'size') { bands++; if (/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor)) bad.push('the size section is not a band'); } });
+          if (tn.dataset.tnode === 'size') { bands++; if (!/rgba\\(0, 0, 0, 0\\)|transparent/.test(c.backgroundColor) || parseFloat(c.borderTopWidth) < 1 || parseFloat(c.borderBottomWidth) < 1) bad.push('the size section is a band, not a hairlined section'); } });   /* round 20h (owner 2): one surface */
         const tls = [...art.querySelectorAll('.tier .tl')].map(e => Math.round(R(e).left + parseFloat(cs(e).borderLeftWidth) + parseFloat(cs(e).paddingLeft)));
         const rows = [...art.querySelectorAll('.krow.kt')].map(e => Math.round(R(e).left + parseFloat(cs(e).paddingLeft)));
         const edges = new Set([...tls, ...rows]); if (edges.size > 1) bad.push('text edges ' + JSON.stringify([...edges]));
@@ -1567,6 +1649,7 @@ await round20c();
 await round20e();
 await round20f();
 await round20g();
+await round20h();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1652,7 +1735,8 @@ async function round18(){
           if (tagW && norm(og?.querySelector('.gtag')?.textContent).toLowerCase() !== tagW.toLowerCase()) bad.push('tag ' + norm(og?.querySelector('.gtag')?.textContent));
           if (art.querySelector('[data-howtell]') && !og?.querySelector('[data-howtell]')) bad.push('How to tell outside the block'); }
         if (g.total_line && !g.tree && norm(blk.querySelector('.gtotal')?.textContent).indexOf(g.total_line) !== 0) bad.push('total line');   // with a tree its root line says the total
-        if (g.header && h.n != null && !norm(blk.querySelector('.num')?.textContent).startsWith(norm(g.header.says.split(' · ')[0]))) bad.push('header ' + norm(blk.querySelector('.num')?.textContent));
+        const numC = blk.querySelector('.num')?.cloneNode(true); numC?.querySelectorAll('.ghr').forEach(x => x.remove());   /* round 20h form a: the share's lead and 'of the' are notes (.ghr) around the root's words */
+        if (g.header && h.n != null && !norm(numC?.textContent).startsWith(norm(g.header.says.split(' · ')[0]))) bad.push('header ' + norm(numC?.textContent));
         if (art.querySelector(':scope > .gorigin, :scope > .gtotal, :scope > .rhead') || blks.length > 2) bad.push('a head line outside the block');
         out.push({t: norm(blk.querySelector('.rtitle')?.textContent), h: Math.round(R(blk).height), bad}); });
       return {hash: location.hash.slice(8), out}; })())`)));
@@ -1779,8 +1863,9 @@ async function round19(){
             if (said !== norm(t.origin)) bad.push('tier origin drawn ' + JSON.stringify(said) + ' vs ' + JSON.stringify(t.origin)); }   /* rows 24: a share tier's origin under its line */
           if (t.tier === 'size') { boxes++; const cs = getComputedStyle(el), r = R(el);
             if (el.dataset.tid !== t.id) bad.push(t.says + ': box not marked ' + t.id);
-            // round 20d: the size section is a tinted BAND (a surface), never a border inside a border
-            if (['Top', 'Right', 'Bottom', 'Left'].some(sd => cs['border' + sd + 'Style'] !== 'none' && parseFloat(cs['border' + sd + 'Width']) > 0) || /rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) bad.push(t.says + ': not a band (borders ' + cs.borderStyle + ', background ' + cs.backgroundColor + ')');
+            // round 20d: never a border inside a border; round 20h (owner 2): ONE surface — the section is set off by a hairline
+            // above and below, full-bleed, no side borders, no band
+            if (['Right', 'Left'].some(sd => cs['border' + sd + 'Style'] !== 'none' && parseFloat(cs['border' + sd + 'Width']) > 0) || !/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs.backgroundColor) || parseFloat(cs.borderTopWidth) < 1 || parseFloat(cs.borderBottomWidth) < 1) bad.push(t.says + ': not a hairlined section (borders ' + cs.borderStyle + ' ' + cs.borderTopWidth + '/' + cs.borderBottomWidth + ', background ' + cs.backgroundColor + ')');
             const kids = [...(el.querySelector(':scope > .tch')?.children || [])];
             if (kids.length !== t.children.length) bad.push(t.says + ': ' + kids.length + ' drawn of ' + t.children.length);
             kids.forEach(k => { const q = R(k); if (q.left < r.left - 0.5 || q.right > r.right + 0.5 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the band'); });
@@ -1824,7 +1909,8 @@ async function roundUr1(){
         const lifted = (g.lifts || []).length > 0, T = topsOf(g, art);
         // round 20: the root tier is the header block's line (header.tier names it)
         const walk = t => { if (t.node !== 'tier') return; const el = T.root === t ? T.hdr : art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
-          const shown = norm([...(el?.childNodes || [])].filter(n => !(n.nodeType === 1 && (n.matches('.tbk') || n.matches('button') || n.matches('.gl') || n.matches('.ghr')))).map(n => n.textContent).join(' '));
+          const elC = el ? el.cloneNode(true) : null; elC?.querySelectorAll('.tbk, button, .gl, .ghr').forEach(x => x.remove());   /* round 20h: notes (.ghr) may sit inside a span */
+          const shown = norm([...(elC?.childNodes || [])].map(n => n.textContent).join(' '));
           if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
           // round 20 (owner 2): the lifted fish are named as not counted in the share, which sits inside the total
@@ -1900,5 +1986,5 @@ async function roundUr2(){
   check('ur2-kind-words', !kb.length, kb.join('; '));
   check('ur2-closed-until', K.shut.foot === 'No fishing here until Jul 1.' && !/licence/i.test(K.shut.gear.replace(/^Gear & licence · for this water (today|on \w+ \d+)/, '')), JSON.stringify(K.shut.foot) + ' / ' + JSON.stringify(K.shut.gear.slice(0, 120)));
   const roe = K.gear.ok.find(t => /^Roe/.test(t)) || '';
-  check('ur2-bait-allowed-note', K.gear.no.length > 0 && !K.gear.no.some(t => /still OK/i.test(t)) && /still OK/.test(roe), `ok ${JSON.stringify(K.gear.ok)} / no ${JSON.stringify(K.gear.no)}`);
+  check('ur2-bait-allowed-note', K.gear.no.length > 0 && !K.gear.no.some(t => /still OK/i.test(t)) && /ban excepts it|still OK/.test(roe),   /* gear 11: the roe row names the ban that excepts it */ `ok ${JSON.stringify(K.gear.ok)} / no ${JSON.stringify(K.gear.no)}`);
 }

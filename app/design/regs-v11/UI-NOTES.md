@@ -1,3 +1,56 @@
+# regs v32 (round 20h, owner: the region total vs the stream share, one surface, pictures without a tile, the pin line's end) — in place on regs-v11.html
+
+Report: handoff/PLAN/r20h_report.md (the two head forms with their readers, before/after pairs, scores). UI only until the
+data agent's round-20h rows land (roe note out of time, possession duplicate, the example from the water's own total).
+- **1 The region total over the stream share — two forms, one pick.** On a card whose total is the REGION's and whose headline
+  is a stream share (`relTier`: the top tier carrying `headline.n`; the Vedder's 4 over 2, Glenn's 5 over 2, Bella Coola's 5
+  over the river's own 2), the group head is drawn one of two ways, `tot=a|b` in the hash:
+  (a) the share leads — the data's headline is the big line ("**2** a day per angler from streams") and the region total is a
+  quiet note under it: "of the " + the root's words ("of the 4 a day per angler across Region 2, lakes included"); the pin bar's
+  group line follows: "Trout and char · 2 a day from streams (of 4 across Region 2)", two lines allowed, and the share tier's own
+  "↳ 2 of them from streams" line is not repeated;
+  (b) the total leads as before ("**4** a day per angler across Region 2, lakes included") with a second strong line under it,
+  "↳ **2** of them from streams" (shortOf's own words); the pin bar as before.
+  Two fresh opus readers (one per form, the same ten questions on the Vedder, Glenn, Bella Coola and Kootenay cards and
+  screenfuls; scratchpad r20h/prompt-tot-a|b.md, reader-tot-a|b.md): both right everywhere; (a) answered "how many from this
+  stream" from the top screenful at conf 4, (b) at conf 3; (b)'s reader named the head's big 4 next to the river's own 4 as the
+  thing that most risked "4 from the Vedder", (a)'s reader named only the river's own-rule heading (present in both forms).
+  **THE PICK is (a)**, the default; (b) stays behind `tot=b`. Page-side connecting words: "of the", "(of … )". A one-total card
+  (Kootenay) is unchanged.
+- **2 ONE surface.** The card is the only surface: the group head block and the pin bar paint the card colour (the head keeps
+  its 1.5 px ink rule on top, the bar its rule below); the size section is no longer a tinted band but a section framed by two
+  hairlines (`--line2`) full-bleed, with its chip still tinted (a chip, not a band). The old head band (`--wash`), the size band
+  (`--tint`) and the bar were three surfaces that striped the card white → grey → white → tinted → white.
+- **3 Pictures without a tile.** Every fish picture is an RGBA cut-out (`app/apps/mobile/assets/fish/*.webp`, transparent
+  corners); the grey tile was CSS (`background: var(--wash)` on `.kp img`, `.th img`, the sheet's `.pic`, the gallery's `.im`).
+  Gone everywhere, light and dark (the dark brightness filter stays).
+- **4 (i) A pinned tier line ends sooner.** Besides the round-20f rule (less than a row of its section left), a tier's line goes
+  as soon as the NEXT section's head is in view (its top above the bottom of the scroll area less a line): the Vedder's own
+  rainbow row and Glenn's Duncan row never sit under "↳ 2 of them from streams". (ii) The possession sheet does not draw the
+  term's line when it merely restates the plain line (containment, not only equality). (iii) The roe note and the example wait for
+  the data.
+- **Data: gear 11, rows 25, glossary 4** (commit 7131c6d4; handoff/PLAN/r20h_data.md; re-snapped, oracle regenerated). The
+  roe row's own words name the ban it is excepted from ("the fish or fish parts ban excepts it", `excepted_from` on the days the
+  province's fin-fish ban is in force); the page drops the banned row's trailing "roe is still OK" and adds nothing page-side (the
+  UR2-7 phrase "still OK — not part of the ban" is gone; it only stands, naming the item, where the data gives the allowed row
+  no words). The possession sheet shows the card's own `group.possession` examples as a list under "For example:" ("With 4 trout
+  and char a day you may have 8: 2 days’ fish." + in ink "Possession doubles the 4 a day, not the 2 from streams."; the
+  whitefish and bass lines after), the glossary's generic 5 → 10 only as a fallback; the term's line no longer repeats the rule.
+- **Checks** (ONLY=20h; all six fail on regs v31 — scratchpad r20h/check-20h-before.txt): `r20h-one-surface` (inside a keep
+  card and the pin bar nothing band-sized, > 200 × 40 px, paints a background but the card's; six page loads, light and dark),
+  `r20h-picture-surface` (no fish picture or tile paints a background), `r20h-pin-drops` (the own row at 60 % of the viewport:
+  no "from streams" line; the share's head just under the bar with the own head below the fold: the share still said),
+  `r20h-total-relation` (a region total over a share shows both numbers in the head: form a's big headline number + the "of the"
+  note, or form b's "↳ N of them" line), `r20h-roe-names-ban` (an allowance names its ban, the banned row drops "is still OK",
+  the dated line carries nothing of it), `r20h-possession-own-example` (the card's examples + doubles, never the generic beside
+  them, the term line not repeating the rule). Retargeted with a reason: `r20f-headers`, `size-tier-box`, `r20d-flat` (hairlines, no
+  band), `r20d-compact-head` (+ the lead line), `r20d-pinned-stack` (a two-line group line; the share rides it), `r20e-region-vs-
+  stream`, `r20f-region-words` (the group line says the share), `r20g-palette` (the tint lives on chips), `group-head-compact`,
+  `ur1-tier-words` (notes stripped before comparing), `ur2-bait-allowed-note` (the roe row names its ban).
+- **Readers**: the round-20g 36 questions + Q29 (from the Vedder vs anywhere in Region 2), F9 (the same from one screenful), Q30
+  (possession: 8 or 4?) — BEFORE (v31) 39/39 (Q29 conf 4, F9 conf 4 "a reader could think 2 is the Vedder's maximum", Q30 conf 4);
+  AFTER: see r20h_report.md.
+
 # regs v31 (round 20g, owner: colours with one meaning each, one way to show a future change, the ways list, possession) — in place on regs-v11.html
 
 Report: handoff/PLAN/r20g_report.md (before/after pairs, the colour census, the changes-line pick, the reader scores).
