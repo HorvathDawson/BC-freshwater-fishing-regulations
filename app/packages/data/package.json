@@ -6,7 +6,8 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@app/core": "workspace:*"
+    "@app/core": "workspace:*",
+    "fflate": "0.8.2"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -17,13 +18,13 @@
     "./spots": "./src/spots/index.ts"
   },
   "peerDependencies": {
+    "expo-file-system": "*",
     "expo-sqlite": "*",
-    "sql.js": "*",
-    "expo-file-system": "*"
+    "sql.js": "*"
   },
   "devDependencies": {
     "expo-sqlite": "57.0.2",
     "sql.js": "^1.14.2"
   },
-  "$comment_exports": "./bundle/open names a concrete file; the platform split is on the RELATIVE import inside it. A package exports target is not subject to platform extension resolution \u2014 naming open.web.ts there does nothing, and naming open.ts there means the web build silently gets the native driver."
+  "$comment_exports": "./bundle/open names a concrete file; the platform split is on the RELATIVE import inside it. A package exports target is not subject to platform extension resolution — naming open.web.ts there does nothing, and naming open.ts there means the web build silently gets the native driver."
 }

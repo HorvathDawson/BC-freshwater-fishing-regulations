@@ -11,7 +11,7 @@
  * them directly; nothing about the client changes, which is the point of the two-storage
  * design (`design/` and the architecture artifact).
  */
-import { createReadStream, statSync, existsSync } from "node:fs";
+import { createReadStream, statSync, existsSync, readdirSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 
@@ -63,6 +63,26 @@ for (const [route, file] of Object.entries(ARCHIVES)) {
   console.log(`  ${route}  ${(statSync(file).size / 1e6).toFixed(0)} MB`);
 }
 
+/**
+ * THE RELEASE (P10), laid out as R2 will hold it: `/release/manifest.json` is the newest `data/release/r-*` (or
+ * `RELEASE=<id>`), and every url in it — `<release>/<file>.gz`, `tiles/<version>/…` — resolves under `data/release/`.
+ * No path may climb out of it.
+ */
+const RELEASE_ROOT = process.env.RELEASE_ROOT ? `${process.env.RELEASE_ROOT.replace(/\/$/, "")}/` : `${repo}data/release/`;
+function releaseFile(route) {
+  if (!route.startsWith("/release/")) return undefined;
+  const rel = decodeURIComponent(route.slice("/release/".length));
+  if (rel.split("/").includes("..")) return undefined;
+  if (rel === "manifest.json") {
+    const id = process.env.RELEASE ?? (existsSync(RELEASE_ROOT)
+      ? readdirSync(RELEASE_ROOT).filter((d) => d.startsWith("r-"))
+          .sort((a, b) => statSync(`${RELEASE_ROOT}${b}`).mtimeMs - statSync(`${RELEASE_ROOT}${a}`).mtimeMs)[0]
+      : undefined);
+    return id ? `${RELEASE_ROOT}${id}/manifest.json` : undefined;
+  }
+  return `${RELEASE_ROOT}${rel}`;
+}
+
 createServer((req, res) => {
   // The map runs on a different port in development, so it is cross-origin to this server.
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -87,9 +107,17 @@ createServer((req, res) => {
     ?? (/^\/feeds\/gauge\/[\w-]+\.json$/.test(route)
           ? `${repo}app/packages/data/dev${route}` : undefined)
     ?? (/^\/feeds\/live\/[\w-]+\.json$/.test(route)
-          ? `${repo}data/generated/gauges/feeds/${route.split("/").pop()}` : undefined);
+          ? `${repo}data/generated/gauges/feeds/${route.split("/").pop()}` : undefined)
+    ?? releaseFile(route);
   if (!file || !existsSync(file)) return res.writeHead(404).end("no such archive");
 
+  // A release data file is stored gzipped and sent as such: the client decodes it and checks the RAW bytes and sha256
+  // against the manifest (fetchVerified), as it will from R2.
+  if (file.endsWith(".gz")) {
+    res.writeHead(200, { "Content-Type": "application/octet-stream", "Content-Encoding": "gzip",
+                         "Content-Length": statSync(file).size });
+    return req.method === "HEAD" ? res.end() : createReadStream(file).pipe(res);
+  }
   const total = statSync(file).size;
   const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? "");
   const head = {

@@ -529,3 +529,9 @@ export { httpFeed, type GaugeFeed } from "./feed/http";
 // The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
 // one of them not a screen, so it cannot live behind a hook — see ./panel.ts.
 export * from "./panel";
+// THE RELEASE (P10): verified fetches, the manifest's diff and pairing
+export { fetchVerified, verify, ungzip, VerifyError } from "./fetchVerified";
+export { loadManifest, parseManifest, diff, pair, compatible, ManifestError, type Held, type Pairing,
+         type TileVersion, type Manifest } from "./manifest";
+export { sha256Hex } from "./sha256";
+export { PACK_FILES, PACK_UNITS, REGIONS, MANIFEST_FORMAT, type PackFile, type ManifestFile } from "./pack.generated";

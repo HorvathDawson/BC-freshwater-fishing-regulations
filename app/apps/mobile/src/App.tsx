@@ -27,55 +27,17 @@ import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { useSpots } from "@app/ui";
 
 
-/**
- * Where the tiles are served from. `pnpm tiles` runs a range-capable server over the two
- * archives in development; in production these are R2 URLs and nothing else changes,
- * which is the whole point of addressing them as endpoints rather than as files.
- */
-const TILES = {
-  atlas: "http://localhost:39217/atlas.pmtiles",
-  basemap: "http://localhost:39217/basemap.pmtiles",
-  outside: "http://localhost:39217/bc_outside.geojson",
-};
-/**
- * The data bundle. `province.sqlite` is the real build — 19,862 waters — and
- * `bundle.sqlite` is the small Chilliwack slice that has gauges in it. Both are
- * the same format, which is the point: swapping this line is the whole difference between
- * a development bundle and a shipped one.
- */
-/**
- * THE THREE MUST BE ONE SET. Tiles, bundle and feed are joined on section ids and station
- * ids, and mixing vintages joins nothing: pairing the PROVINCE tiles with the FIXTURE
- * bundle asks a Chilliwack-sized database about section ids from the whole province, gets
- * no rows, and paints an uncoloured map that looks exactly like a broken feed.
- *
- *   province set   /atlas.pmtiles  +  /province.sqlite  +  /feeds/live
- *   fixture set    /atlas.pmtiles  +  /bundle.sqlite    +  /feeds/gauge
- *
- * The province set is the real one. The fixture set exists so tests and the design
- * comparison have a small, fixed world.
- */
-const BUNDLE = "http://localhost:39217/province.sqlite";
+import { ENDPOINTS } from "./config";
 
 /**
- * The live gauge feed.
- *
- * Only this string changes between dev and production — the artifacts are byte-identical,
- * so the feed path the app exercises here is the one it runs in production. Nothing in the
- * app ever calls ECCC directly: a browser full of users hitting the source we scrape is how
- * an open dataset gets closed.
- *
- * A FEED IS ONLY MEANINGFUL PAIRED WITH ITS BUNDLE, so this tracks BUNDLE above:
- *
- *   /feeds/gauge  the fixture feed — five stations, matching the fixture bundle
- *   /feeds/live   real ECCC data from `python -m pipeline.hydro.publish`, matching
- *                 data/generated/bundle/bundle.sqlite (served here as /province.sqlite)
- *
- * Point both at the province pair to see live numbers over the whole map.
+ * Where everything is served from: ONE base, in `config.ts` (P10). The tiles, bundle and feed must be one set — they
+ * join on section and station ids, and mixing vintages paints an uncoloured map that looks exactly like a broken feed.
+ * In production these are R2 URLs and nothing else changes.
  */
-const FEED = "http://localhost:39217/feeds/live";
-/** Where sql.js finds its engine on the web. Same origin as the bundle it opens. */
-const SQL_WASM = "http://localhost:39217/";
+const TILES = ENDPOINTS.tiles;
+const BUNDLE = ENDPOINTS.bundle;
+const FEED = ENDPOINTS.feed;
+const SQL_WASM = ENDPOINTS.sqlWasm;
 
 export default function App() {
   const scheme = useColorScheme();

@@ -215,6 +215,21 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
 - The live bundle predates P07/P09: the next human `deliver all` (or pipeline build) writes format + part_geo, after
   which the release step runs in the chain on live data.
 
+## P10 (DONE, except device): endpoints, fetchVerified, manifest diff/pair, publish
+- app/apps/mobile/src/config.ts: ONE base (EXPO_PUBLIC_DATA_BASE; default the dev server), App reads ENDPOINTS;
+  tools/no-localhost.test.ts guards it.
+- @app/data: sha256.ts (pure TS; FIPS vectors), fetchVerified.ts (decoded bytes + sha256, gzip either way; fflate added +
+  deps.md + layers.json), manifest.ts (parseManifest refuses unknown formats, diff per sha / tiles / basemap / assets,
+  pair keeps the last good pair). release.test.ts 7.
+- serve-tiles.mjs serves data/release as R2 will (/release/manifest.json = newest r-*, .gz with Content-Encoding gzip;
+  RELEASE / RELEASE_ROOT env). Verified end to end against the scratch release (manifest → core fetched, decoded, verified).
+- pipeline/tools/publish.py (HUMAN-RUN; dry-run by default; --yes uploads with R2_* env via boto3): tiles first, data,
+  manifest last; immutable cache headers. test_publish.py 2.
+- LEFT FOR P11: the resumable native variant (.part files) and deleting engine.web/native's duplicated fetch bodies
+  (they still open the dev bundle until the reader switches).
+- NOT verified: a device build reading the manifest from the LAN dev server (N1/devices pending).
+- CAUTION: my server test ran `pkill -f serve-tiles.mjs`, which also stops a `pnpm tiles` server if one was running.
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).
