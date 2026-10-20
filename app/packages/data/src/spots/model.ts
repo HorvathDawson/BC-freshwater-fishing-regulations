@@ -9,9 +9,9 @@
  * It is also the only user-authored data in the app, and the only thing that cannot be
  * re-downloaded. `pins.ts` says why it lives in its own store.
  */
-import type { GaugeTrace } from "@app/core";
+import type { FrozenTrace } from "@app/core";
 import type { PanelAnswer } from "../panel";
-import type { ItemId, SectionId } from "../index";
+import type { ItemId } from "../index";
 
 /** Weather at the moment of capture. Every field nullable: a spot with no forecast is fine. */
 /**
@@ -98,13 +98,15 @@ export interface Spot {
   lon: number;
 
   /**
-   * The water the user picked, and the reach they picked on it. `section` is stored ONLY
-   * to replay the trace; it does not survive a rebuild (94%), so nothing may look a spot
-   * up by it. `item` is the durable id (99.88%) and is null for unnamed water, which is
-   * the ordinary case.
+   * The water the user picked: the durable id (99.88% across a rebuild), null for unnamed
+   * water, which is the ordinary case.
+   *
+   * NO SECTION ID (owner decision 2026-10-20, AGENTS 5). A spot is a file a person keeps,
+   * and a section id must never leave the bundle: it does not survive a rebuild (94%). A
+   * spot is a coordinate plus this id. Spots saved with a `section` lose it on load
+   * (`fromDisk` in ./migrate).
    */
   item: ItemId | null;
-  section: SectionId | null;
   /** What the water was called when it was pinned. Kept even if the registry renames it. */
   waterName: string | null;
 
@@ -117,7 +119,8 @@ export interface Spot {
   /** Frozen at capture. Null where the app could not know — never faked. */
   reading: SpotReading | null;
   weather: SpotWeather | null;
-  trace: GaugeTrace | null;
+  /** The route to the gauge as it stood: its facts and reach count, never its section handles. */
+  trace: FrozenTrace | null;
   /**
    * THE ESTIMATE, EXACTLY AS THE APP SHOWED IT — frozen.
    *

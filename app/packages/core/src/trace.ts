@@ -24,11 +24,9 @@ export interface GaugeTrace {
    * The reaches between here and the gauge, this one first.
    *
    * SectionKey, because a section is an integer handle in the bundle and `core` has no
-   * business knowing which. NOTE what this means for a SAVED SPOT: these handles are valid
-   * only against the atlas that produced them, so a spot pinned before a rebuild carries a
-   * route that no longer refers to anything. That is why the trace is drawn from the
-   * frozen `lon`/`lat` below when they are present, and why a path alone may not be
-   * resolved back into water — see AGENTS rule 5.
+   * business knowing which. These handles are valid only against the atlas that produced
+   * them, so a SAVED SPOT never stores them: it keeps a `FrozenTrace` (below), with the
+   * count in place of the path — see AGENTS rule 5.
    */
   path: readonly SectionKey[];
   /** Along-channel distance to the station. Null when nothing has computed it. */
@@ -50,6 +48,32 @@ export interface GaugeTrace {
 }
 
 /**
+ * A trace as a SAVED SPOT keeps it: every fact, and the number of reaches in place of the section handles.
+ *
+ * Owner decision 2026-10-20 and AGENTS rule 5: a saved spot is a file a person keeps across every rebuild, and a
+ * section id must never leave the bundle. The handles named reaches of the atlas that produced them and nothing
+ * after it; the COUNT is what the words and the camera use, and it stays true.
+ */
+export interface FrozenTrace extends Omit<GaugeTrace, "path"> {
+  reaches: number;
+}
+
+/** Either a live trace or a frozen one. Every sentence and camera below takes both. */
+export type AnyTrace = GaugeTrace | FrozenTrace;
+
+/** How many reaches lie between here and the gauge, this one included. */
+export const reachCount = (t: AnyTrace): number => ("path" in t ? t.path.length : t.reaches);
+
+/** The reaches to highlight on a map. A frozen trace has none: its handles were never kept. */
+export const tracePath = (t: AnyTrace): readonly SectionKey[] => ("path" in t ? t.path : []);
+
+/** The one way a live trace becomes a stored one. */
+export function freezeTrace(t: GaugeTrace): FrozenTrace {
+  const { path, ...facts } = t;
+  return { ...facts, reaches: path.length };
+}
+
+/**
  * Where to point a small map so both ends of the route are on it.
  *
  * CENTRED ON THE STATION, not fitted to the path, and the reason is a gap in the data
@@ -63,13 +87,13 @@ export interface GaugeTrace {
  * gets a map that certainly contains the gauge and probably contains their reach, and the
  * facts underneath say which.
  */
-export function routeCamera(t: GaugeTrace, from?: { lat: number; lon: number } | null):
+export function routeCamera(t: AnyTrace, from?: { lat: number; lon: number } | null):
   { lon: number; lat: number; zoom: number } | null {
   if (t.lon === null || t.lat === null) return null;
   if (!from) {
     // Nothing but the station. The hop count is the only measure of "how far" that
     // survives to the client, so the zoom is coarse because the evidence is.
-    const hops = Math.max(0, t.path.length - 1);
+    const hops = Math.max(0, reachCount(t) - 1);
     return { lon: t.lon, lat: t.lat,
              zoom: hops === 0 ? 12.5 : hops <= 3 ? 11 : hops <= 10 ? 9.5 : 8 };
   }
@@ -179,8 +203,8 @@ export function metresApart(a: { lat: number; lon: number },
 export const SAME_PLACE_M = 250;
 
 /** The gauge is on this very reach — there is no distance to travel. */
-export const onTheReach = (t: GaugeTrace): boolean =>
-  t.station !== null && t.path.length <= 1;
+export const onTheReach = (t: AnyTrace): boolean =>
+  t.station !== null && reachCount(t) <= 1;
 
 /**
  * What fraction of the gauge's watershed this reach is.
@@ -189,7 +213,7 @@ export const onTheReach = (t: GaugeTrace): boolean =>
  * km² and knows nothing about a creek above Chilliwack. Null when either magnitude is
  * missing — a share computed from a guess is worse than no share.
  */
-export function share(t: GaugeTrace): number | null {
+export function share(t: AnyTrace): number | null {
   if (!t.reachMagnitude || !t.gaugeMagnitude) return null;
   return t.reachMagnitude / t.gaugeMagnitude;
 }
@@ -201,7 +225,7 @@ export function distanceWord(metres: number | null): string | null {
 }
 
 /** "2.4 %", "0.03 %", or null. Two decimals below one percent, where the floors live. */
-export function shareWord(t: GaugeTrace): string | null {
+export function shareWord(t: AnyTrace): string | null {
   const s = share(t);
   if (s === null) return null;
   const pct = s * 100;
@@ -214,7 +238,7 @@ export function shareWord(t: GaugeTrace): string | null {
  * Says what is true, including when that is "we cannot tell you" — the sentence a person
  * needs is different in each case, and a generic one would be wrong in all of them.
  */
-export function traceSentence(t: GaugeTrace): string {
+export function traceSentence(t: AnyTrace): string {
   if (t.station === null)
     return "No station drains enough of this water to speak for it. One that did not " +
            "would still give you a number, and the number would be wrong.";

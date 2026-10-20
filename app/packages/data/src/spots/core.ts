@@ -13,6 +13,7 @@
  *     there, so a refresh that finishes after a delete never brings the spot back.
  */
 import type { Spot, SpotStore } from "./model";
+import { fromDisk } from "./migrate";
 import { serialised } from "./queue";
 
 /** What a platform must provide: whole-file text by name, in one directory. `write` throws when it cannot store. */
@@ -41,7 +42,8 @@ export interface SpotsStore extends SpotStore {
 const parse = (text: string): Spot[] => {
   const v: unknown = JSON.parse(text);
   if (!Array.isArray(v)) throw new Error("the spots file is not a list");
-  return v as Spot[];
+  // An older app's spots carry section ids; they are dropped on every load (./migrate, AGENTS 5).
+  return v.map(fromDisk);
 };
 
 export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Date.now): SpotsStore {

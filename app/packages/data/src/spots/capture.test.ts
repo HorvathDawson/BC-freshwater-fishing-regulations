@@ -80,13 +80,25 @@ describe("captureSpot", () => {
     expect(s.title).toBe("Chilliwack River");
   });
 
-  it("does not store a section id as an identity", async () => {
-    // section_id survives a rebuild only 94% of the time. It is kept to replay the trace
-    // and nothing may look a spot up by it — `item` is the durable id.
-    const s = await captureSpot({ source: source(), ...base });
-    // The handle, unchanged — captureSpot must not launder or re-derive it.
-    expect(s.section).toBe(1);
-    expect(s.item).toBeNull();
+  it("stores no section id anywhere — a coordinate and the item only (AGENTS 5)", async () => {
+    // section_id survives a rebuild only 94% of the time and must never leave the bundle;
+    // a saved spot is a file a person keeps. The trace keeps its facts and its reach COUNT.
+    const s = await captureSpot({
+      ...base, item: "it_42" as never,
+      source: source({
+        gaugeForSection: async () => ({ station: "08MH001", name: "Vedder", trust: "good",
+          reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }) as never,
+        traceToGauge: async () => [101, 102, 103] as never,
+      }),
+    });
+    const stored = JSON.parse(JSON.stringify(s));
+    expect("section" in stored).toBe(false);
+    expect(stored.item).toBe("it_42");
+    expect(stored.trace).toEqual({
+      station: "08MH001", stationName: "Vedder", trust: "good", reaches: 3, metres: null,
+      reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09,
+    });
+    expect(JSON.stringify(s)).not.toMatch(/\b10[123]\b/);
   });
 });
 

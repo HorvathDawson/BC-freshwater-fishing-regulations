@@ -86,6 +86,35 @@ describe("the spots store core (P01)", () => {
   });
 });
 
+describe("a spot saved before section ids were removed (owner 2026-10-20)", () => {
+  // Spots already on people's phones carry `section` and a trace `path` of section handles. They must still load,
+  // without those, and the next save must not write them back (AGENTS 5).
+  const legacy = {
+    id: "old", title: "Tamihi run", item: "it_42", section: 4242, lat: 49.09, lon: -121.96,
+    trace: { station: "08MH001", stationName: "Vedder", trust: "good", path: [4242, 4243, 4244], metres: null,
+             reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09 },
+    panel: { answer: { ok: false, why: "offline" }, areaKm2: 50, routesReady: true,
+             rows: [{ station: "08MH001", route: { station: "08MH001", path: [4242, 4243] } }] },
+  };
+
+  it("loads without the section, with the trace's reach count in place of its handles", async () => {
+    const fs = memFs({ "s.json": JSON.stringify([legacy]) });
+    expect(await openSpotsWith(fs, "s.json").get("old")).toEqual({
+      id: "old", title: "Tamihi run", item: "it_42", lat: 49.09, lon: -121.96,
+      trace: { station: "08MH001", stationName: "Vedder", trust: "good", reaches: 3, metres: null,
+               reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09 },
+      panel: { answer: { ok: false, why: "offline" }, areaKm2: 50, routesReady: true,
+               rows: [{ station: "08MH001" }] },
+    });
+  });
+
+  it("writes no section handle back on the next save", async () => {
+    const fs = memFs({ "s.json": JSON.stringify([legacy]) });
+    await openSpotsWith(fs, "s.json").put(spot("new"));
+    expect(fs.files.get("s.json")).not.toMatch(/section|"path"|424[234]/);
+  });
+});
+
 describe("serialised", () => {
   it("runs jobs one at a time, in order, and a failure does not stop the queue", async () => {
     const q = serialised(), log: string[] = [];

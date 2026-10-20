@@ -8,10 +8,11 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import type { GaugeTrace } from "@app/core";
+import { freezeTrace, type FrozenTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
 import type { ItemId, RegsSource, SectionId } from "../index";
 import type { Spot, SpotReading, SpotWeather } from "./model";
+import { stripRoutes } from "./migrate";
 
 /**
  * Weather, from wherever weather comes from.
@@ -32,6 +33,10 @@ export interface CaptureInput {
   weather?: WeatherSource;
   at: { lat: number; lon: number };
   item: ItemId | null;
+  /**
+   * The reach tapped, used ONLY to look up the reading, the trace and the estimate while
+   * capturing. It is never stored on the spot (AGENTS 5).
+   */
   section: SectionId | null;
   waterName: string | null;
   title: string;
@@ -60,7 +65,7 @@ async function panelFor(source: RegsSource, section: SectionId | null,
     const got = answerFrom(panels.get(section), idx, "discharge");
     // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
     // a fact about the app, and it would read as one on a spot opened a year later.
-    return got.answer.ok || got.rows.length ? got : null;
+    return got.answer.ok || got.rows.length ? stripRoutes(got) : null;
   } catch {
     // A spot must save. A missing estimate is a smaller loss than a lost record.
     return null;
@@ -88,7 +93,7 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
     id: input.id?.() ?? `spot_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     createdAt: now, updatedAt: now, visitedAt,
     lat: at.lat, lon: at.lon,
-    item, section, waterName,
+    item, waterName,
     // May be "". A spot without a title is a perfectly good spot — it has a place, a
     // date and what the water was doing — and "Untitled spot" is a placeholder pretending
     // to be a name. The list falls back to the water or the coordinates, which are true.
@@ -119,14 +124,15 @@ async function readingFor(source: RegsSource, section: SectionId | null):
 }
 
 async function traceFor(source: RegsSource, section: SectionId | null):
-  Promise<GaugeTrace | null> {
+  Promise<FrozenTrace | null> {
   if (!section) return null;
   const link = await source.gaugeForSection(section);
   if (!link)
-    return { station: null, stationName: null, trust: null, path: [],
+    return { station: null, stationName: null, trust: null, reaches: 0,
              metres: null, reachMagnitude: null, gaugeMagnitude: null,
              lon: null, lat: null };
-  return {
+  // FROZEN WITHOUT ITS HANDLES: the walk's section ids name reaches of this atlas only.
+  return freezeTrace({
     station: link.station, stationName: link.name, trust: link.trust,
     path: await source.traceToGauge(section),
     metres: null,
@@ -137,5 +143,5 @@ async function traceFor(source: RegsSource, section: SectionId | null):
     // what was recorded, not a failure to load.
     lon: link.lon,
     lat: link.lat,
-  };
+  });
 }

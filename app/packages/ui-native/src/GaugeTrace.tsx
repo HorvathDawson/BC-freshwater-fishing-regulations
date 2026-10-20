@@ -13,8 +13,8 @@
  * `@app/core/trace`; this file only lays them out.
  */
 import { Text, View } from "react-native";
-import { distanceWord, onTheReach, routeCamera, shareWord, traceSentence, trustWord,
-         type GaugeTrace as Trace } from "@app/core";
+import { distanceWord, onTheReach, reachCount, routeCamera, shareWord, traceSentence,
+         tracePath, trustWord, type AnyTrace as Trace } from "@app/core";
 import type { TileEndpoints } from "@app/map";
 import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
@@ -52,10 +52,10 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
       <View style={{ flexDirection: "row", alignItems: "baseline" }}>
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
                        color: palette.faint }}>{title.toUpperCase()}</Text>
-        {trace.path.length > 0 && (
+        {reachCount(trace) > 0 && (
           <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
                          color: palette.faint, marginLeft: "auto" }}>
-            {trace.path.length} {trace.path.length === 1 ? "REACH" : "REACHES"}
+            {reachCount(trace)} {reachCount(trace) === 1 ? "REACH" : "REACHES"}
           </Text>
         )}
       </View>
@@ -75,7 +75,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
                  // CONDITIONS, so water off the route is drawn as unmeasured grey and the
                  // highlighted chain is the only thing with colour in it. Under "plain"
                  // every river was the same blue and the route did not stand out.
-                 view="conditions" highlight={trace.path}
+                 view="conditions" highlight={tracePath(trace)}
                  // Water only — see DonorPanel. At 190 px every other layer competes for
                  // the pixels this map exists to spend on the route.
                  groups={{ water: true, admin: false, protected: false, access: false,

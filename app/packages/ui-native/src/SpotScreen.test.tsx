@@ -16,7 +16,7 @@ afterEach(cleanup);
 
 const spot = (over: Partial<Spot> = {}): Spot => ({
   id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
-  lat: 49.0974, lon: -121.9675, item: null, section: null, waterName: null,
+  lat: 49.0974, lon: -121.9675, item: null, waterName: null,
   title: "Tamihi run", notes: "", photos: [],
   reading: null, weather: null, trace: null, panel: null, ...over,
 });
