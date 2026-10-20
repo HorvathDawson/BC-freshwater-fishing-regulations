@@ -3,6 +3,20 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## IN FLIGHT (2026-10-20 evening) — check these first on a restart
+- Heavy (heavy.sh, one at a time): (1) live `deliver all` → canonical paths + data/release/r-*; log scratchpad/live/deliver.log;
+  (2) queued after it: tile rebuild into a SIDE folder scratchpad/tiles_next (then run the tile tests, promote
+  atlas.pmtiles + atlas.meta.json + layers/*.geojsonl FILE BY FILE into data/generated/tiles; never replace the dir).
+- Workflow `light-tickets-batch-1` (5 worktree agents + adversarial review + fix): spots sid removal + P12b, P12a,
+  P12c + search debounce, T00+T02, T20. On completion: cherry-pick their branch commits into redesign/stream-sections,
+  resolve conflicts, Tier 1, record.
+- N1 spike agent (worktree, iOS simulator first; Android needs a system image + AVD) → handoff/PLAN/app-data/N1-SPIKE.md.
+
+## Owner answers (2026-10-20, second round)
+- Native builds + tile rebuild: allowed; keep other work going while they run. Live deliver: do it.
+- Search A5 ~5 ms: ACCEPTED, provided the input is debounced well.
+- Saved spots: remove the sid; a spot = coordinate + river id (item_id); migrate saved files on load.
+
 ## Owner answers (2026-10-20)
 - Heavy jobs: allowed now for the day-1 baseline (via heavy.sh, one at a time, ≤4 workers).
 - Order: **P00 first**, then P05 + P03 (then P06, N1 scaffold).
