@@ -11,6 +11,7 @@ import { WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
+import { spotSaveFailed } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, useStatusIndex, useVintage, statusData,
          type GaugeQuantity, type Horizon } from "@app/ui";
@@ -58,7 +59,7 @@ const HANDOVER_Z = 9;
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       attribution }: {
+                       spotsError, attribution }: {
   source: RegsSource; palette: Palette;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
@@ -72,8 +73,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /** Weather at capture time. Absent -> the spot records that it does not know. */
   weather?: WeatherSource;
   /** Fill in what spots could not know when they were made. */
-  onRefreshSpots?: () => void;
-  onDeleteSpot?: (id: string) => void;
+  onRefreshSpots?: () => void | Promise<void>;
+  /** Awaited like a save: a rejection is shown and the spot stays open (P01). */
+  onDeleteSpot?: (id: string) => void | Promise<void>;
+  /** The spots could not be read (a corrupt file, set aside): said on the Spots tab, never an empty list (P01). */
+  spotsError?: string | null;
   /**
    * The live gauge feed. Absent means the Conditions view colours nothing — which is the
    * honest rendering of "we could not check", and never a map of droughts.
@@ -111,6 +115,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
   const [edit, setEdit] = useState<{ title: string; notes: string } | null>(null);
+  // P01: a failed save or delete, said on the spot's screen; and a tab change asked for while an edit is unsaved
+  const [spotError, setSpotError] = useState<string | null>(null);
+  const [pendingTab, setPendingTab] = useState<TabKey | null>(null);
   // A pin dropped on the map when you ask to see a spot there. Cleared when you pan away
   // to something else, so it never lingers as a mystery dot.
   const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(null);
@@ -370,7 +377,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   if (viewing) {
     const dirty = edit !== null
       && (edit.title !== viewing.title || edit.notes !== viewing.notes);
-    const close = () => { setOpenSpot(null); setEdit(null); };
+    const close = () => { setOpenSpot(null); setEdit(null); setSpotError(null); setPendingTab(null); };
+    const goTab = (k: TabKey) => { close(); setItem(null); setCondSection(null); setPicked(null); setTab(k); };
     return (
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
@@ -383,13 +391,26 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                       onBack={close}
                       onEdit={onSaveSpot &&
                         (() => setEdit({ title: viewing.title, notes: viewing.notes }))}
-                      onDiscard={() => setEdit(null)}
-                      onSave={edit && onSaveSpot ? () => {
-                        void onSaveSpot({ ...viewing, title: edit.title || viewing.title,
-                                          notes: edit.notes, updatedAt: Date.now() });
-                        setEdit(null);
+                      onDiscard={() => { setEdit(null); if (pendingTab) goTab(pendingTab); }}
+                      error={spotError}
+                      askToDiscard={pendingTab !== null}
+                      onKeepEditing={() => setPendingTab(null)}
+                      onSave={edit && onSaveSpot ? async () => {
+                        try {
+                          await onSaveSpot({ ...viewing, title: edit.title || viewing.title,
+                                             notes: edit.notes, updatedAt: Date.now() });
+                          setEdit(null);
+                          setSpotError(null);
+                          if (pendingTab) goTab(pendingTab);
+                        } catch (e) {
+                          setPendingTab(null);
+                          setSpotError(spotSaveFailed(e));    // the edit stays open, nothing dropped
+                        }
                       } : undefined}
-                      onDelete={onDeleteSpot && (() => { close(); onDeleteSpot(viewing.id); })}
+                      onDelete={onDeleteSpot && (async () => {
+                        try { await onDeleteSpot(viewing.id); close(); }
+                        catch (e) { setSpotError(spotSaveFailed(e)); }
+                      })}
                       onShowOnMap={() => {
                         // The camera is a ref, so setting it and then mounting the map is
                         // what moves it — MapScreen reads the ref when it mounts.
@@ -403,8 +424,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                       refreshing={refreshing} />
         </View>
         <TabBar active={tab} palette={palette}
-                onChange={(k) => { close(); setItem(null); setCondSection(null);
-                                   setPicked(null); setTab(k); }} />
+                // an unsaved edit is never dropped by a tab change without asking (P01)
+                onChange={(k) => (dirty ? setPendingTab(k) : goTab(k))} />
       </View>
     );
   }
@@ -417,7 +438,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    feed={feed}
                    theme={theme} camera={camera.current}
                    onCancel={() => setAdding(false)}
-                   onSaved={(s) => { setAdding(false); void onSaveSpot(s); setTab("spots"); }} />
+                   // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
+                   onSaved={async (s) => { await onSaveSpot(s); setAdding(false); setTab("spots"); }} />
     );
 
   const body = item !== null
@@ -552,7 +574,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          }
                        : onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
-        : <SpotsScreen palette={palette} spots={spots}
+        : <SpotsScreen palette={palette} spots={spots} error={spotsError ?? null}
                        onOpen={setOpenSpot}
                        onAdd={() => setAdding(true)}
                        onRefresh={onRefreshSpots} refreshing={refreshing} />;

@@ -6,6 +6,6 @@
  * signature. A store that exports something the other does not is how a feature ships on
  * one platform only.
  */
-import type { SpotStore } from "./model";
+import type { SpotsStore } from "./core";
 
-export declare function openSpots(): SpotStore;
+export declare function openSpots(): SpotsStore;

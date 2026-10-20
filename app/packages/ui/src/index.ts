@@ -16,6 +16,7 @@ export * from "./panel";
 export * from "./hydrograph";
 export * from "./sprite";
 export * from "./search";
+export * from "./spots";
 
 export type FormFactor = "phone" | "desktop";
 

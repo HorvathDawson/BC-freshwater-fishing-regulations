@@ -24,6 +24,7 @@ import { httpFeed } from "@app/data";
 import { openMeteo, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
+import { useSpots } from "@app/ui";
 
 
 /**
@@ -95,8 +96,9 @@ export default function App() {
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
   const [refreshing, setRefreshing] = useState(false);
-  const [spots, setSpots] = useState<Spot[]>([]);
-  useEffect(() => { void spotStore.list().then(setSpots); }, [spotStore]);
+  // P01: every write awaited and serialised; a failure reaches the screen that asked
+  const spotsHook = useSpots(spotStore);
+  const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
   useEffect(() => {
     let live = true;
     setSqlWasmUrl(SQL_WASM);
@@ -142,25 +144,17 @@ export default function App() {
                onTheme={setTheme} tiles={TILES}
                spots={spots}
                weather={weather}
-               onSaveSpot={async (s) => {
-                 await spotStore.put(s);
-                 setSpots(await spotStore.list());
-               }}
+               onSaveSpot={spotsHook.save}
+               spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
                refreshing={refreshing}
-               onDeleteSpot={async (id) => {
-                 await spotStore.remove(id);
-                 setSpots(await spotStore.list());
-               }}
+               onDeleteSpot={spotsHook.remove}
                onRefreshSpots={async () => {
                  setRefreshing(true);
-                 try {
-                   for (const s of await spotStore.list()) {
-                     const filled = await refreshSpot(s, weather);
-                     if (filled !== s) await spotStore.put(filled);
-                   }
-                   setSpots(await spotStore.list());
-                 } finally { setRefreshing(false); }
+                 // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
+                 try { await spotsHook.refresh((s) => refreshSpot(s, weather)); }
+                 catch { /* said by spotsHook.error; the list keeps what was saved */ }
+                 finally { setRefreshing(false); }
                }}
                attribution={[
                  "Basemap © OpenStreetMap contributors · © Protomaps",

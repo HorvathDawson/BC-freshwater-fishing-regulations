@@ -21,7 +21,7 @@ import { Button } from "./Button";
 // flow writes. A second, thinner shape meant two definitions of what a spot IS, and the
 // two had already drifted (one had `tags`, the other did not) before either was used.
 
-export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshing }: {
+export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshing, error = null }: {
   palette: Palette;
   spots: readonly Spot[];
   onOpen: (id: string) => void;
@@ -29,8 +29,17 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
   /** Fill in what spots could not know when they were made. Absent -> no banner. */
   onRefresh?: () => void;
   refreshing?: boolean;
+  /** The spots could not be read (P01): said, so an unreadable file never looks like "No spots yet". */
+  error?: string | null;
 }) {
   const stale = spots.filter(needsRefresh);
+  if (error) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.card, paddingHorizontal: 30, paddingTop: 52 }}>
+        <Text accessibilityRole="alert" style={{ ...TYPE.body, color: palette.closed }}>{error}</Text>
+      </View>
+    );
+  }
   if (spots.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: palette.card,

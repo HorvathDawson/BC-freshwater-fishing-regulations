@@ -108,7 +108,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   mismatch promotes nothing; a pass promotes all; canonical homes) and test_vintage.py +6. All failed before.
 - Live report_all: lenient = every artifact agrees; strict refuses only the bundle's missing format/schema_sha256
   (it predates P07; the next bundle build writes them).
-- NEXT: the batched heavy run `python -m pipeline.deliver all --out-dir <scratch>` (P05 + P07 acceptance).
+- HEAVY ACCEPTANCE RUN DONE (2026-10-20, heavy.sh, 493 s): `deliver all --out-dir <scratch>` passed. Card gate 0
+  problems / 20461 parts / 59 s; strict report_all: every artifact agrees; 9 files promoted, staging gone. The answers
+  are byte-identical to live (sha 03e9d33b…). The live files were not touched.
 
 ## P04 (DONE): the 3 cron workflows deleted; archive/README updated.
 
@@ -120,6 +122,22 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - `Conditions.observedAt`; ConditionsPanel shows readingAgeLine. `useStationReading` re-polls every 5 min (usePoll),
   and `useAsync(…, sameAs)` keeps the last reading during and after a failed refresh.
 - Tests: http +3, core +6 (8 failed before), async refresh +2. pnpm check 657/657.
+
+## P01 (DONE): spots store
+- `spots/core.ts` `openSpotsWith(fs, name)`: atomic save (.writing → .bak → rename); load prefers a parseable
+  .writing, then the file, then .bak; a corrupt file is renamed `.corrupt-<ts>` and `SpotsCorrupt` is thrown; writes
+  are serialised (`queue.ts`); `patch(id, f)` changes a spot only if it still exists. Native = expo-file-system
+  adapter; web = localStorage adapter (a quota error now rejects).
+- ui `useSpots(store)` (awaited save/remove/refresh, `spotSaveFailed` sentence); App uses it; the refresh writes through
+  patch only onto the spot as it was read.
+- Shell awaits save and delete and shows the error; a tab change with a dirty edit asks (SpotScreen askToDiscard /
+  onKeepEditing). SpotCapture awaits onSaved (error shown, sheet stays open); a capture failure goes back to When
+  with the reason; When's back goes to the point step (it looped to itself).
+- Tests: core 9 (corrupt kept + nothing written, crash between write and rename recovered, torn .writing, concurrent
+  puts, remove during refresh, patch on the current spot, .bak, quota rejects, queue order). useSpots 3. SpotScreen +2.
+  pnpm check 671/671.
+- NOT done: a mounted SpotCapture flow test (it needs the map; covered through SpotScreen + useSpots instead).
+- FOUND, not changed: `Spot.section` stores a sid ("only to replay the trace"), against AGENTS 5. Owner decision.
 
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.

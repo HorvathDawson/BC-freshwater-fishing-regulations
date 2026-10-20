@@ -54,6 +54,11 @@ export interface SpotScreenProps {
   onShowOnMap?: () => void;
   /** True in edit mode once something has actually changed. Gates the discard prompt. */
   dirty?: boolean;
+  /** A save or delete that failed, said in full (P01); the screen stays open. */
+  error?: string | null;
+  /** The shell asks before dropping an unsaved edit (a tab change, P01); `onKeepEditing` answers "keep". */
+  askToDiscard?: boolean;
+  onKeepEditing?: () => void;
 }
 
 export function SpotScreen(p: SpotScreenProps) {
@@ -67,6 +72,7 @@ export function SpotScreen(p: SpotScreenProps) {
 
   // Edit with nothing changed is not a decision worth interrupting someone for.
   const leaveEdit = () => (p.dirty ? setConfirm("discard") : p.onDiscard?.());
+  const shown = confirm ?? (p.askToDiscard ? "discard" : null);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -91,16 +97,22 @@ export function SpotScreen(p: SpotScreenProps) {
         </View>
       </View>
 
-      {confirm && (
+      {p.error ? (
+        <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed, paddingHorizontal: 18 }}>
+          {p.error}
+        </Text>
+      ) : null}
+
+      {shown && (
         <Confirm palette={palette}
-                 kind={confirm}
-                 onCancel={() => setConfirm(null)}
+                 kind={shown}
+                 onCancel={() => { setConfirm(null); if (!confirm) p.onKeepEditing?.(); }}
                  onConfirm={() => {
                    setConfirm(null);
-                   if (confirm === "delete") p.onDelete?.();
+                   if (shown === "delete") p.onDelete?.();
                    else p.onDiscard?.();
                  }}
-                 onSaveInstead={confirm === "discard" ? p.onSave : undefined} />
+                 onSaveInstead={shown === "discard" ? p.onSave : undefined} />
       )}
 
       <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,

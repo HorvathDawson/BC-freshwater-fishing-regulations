@@ -370,3 +370,27 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     expect(r.queryByText(/for the time of year/)).toBeNull();
   });
 });
+
+describe("<SpotScreen> never drops a spot silently (P01)", () => {
+  it("shows a failed save in full and stays open", () => {
+    const { getByRole } = render(
+      <SpotScreen spot={spot()} palette={LIGHT} mode="edit" title="x" notes="" onTitle={() => {}} onNotes={() => {}}
+                  error="This spot was not saved (disk full). It is still on screen; try again." />);
+    expect(getByRole("alert").textContent).toBe("This spot was not saved (disk full). It is still on screen; try again.");
+  });
+
+  it("asks before a tab change drops an unsaved edit: keep editing, or discard", () => {
+    const keep = vi.fn(), discard = vi.fn();
+    const props = { spot: spot(), palette: LIGHT, mode: "edit" as const, title: "x", notes: "",
+                    onTitle: () => {}, onNotes: () => {}, dirty: true, askToDiscard: true,
+                    onKeepEditing: keep, onDiscard: discard };
+    const a = render(<SpotScreen {...props} />);
+    fireEvent.click(a.getByText("Keep editing"));
+    expect(keep).toHaveBeenCalledTimes(1);
+    expect(discard).not.toHaveBeenCalled();
+    a.unmount();
+    const b = render(<SpotScreen {...props} />);
+    fireEvent.click(b.getByText("Discard"));
+    expect(discard).toHaveBeenCalledTimes(1);
+  });
+});

@@ -12,43 +12,22 @@
  * a crash, which is the entry someone just made.
  */
 import { Directory, File, Paths } from "expo-file-system";
-import type { Spot, SpotStore } from "./model";
+import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 
 const NAME = "spots.spots";
 
-export function openSpots(): SpotStore {
+/** The file rules (atomic save, recovery, a corrupt file kept aside, one write at a time) are `core.ts`'s; this only
+ *  says how to touch a file on the phone. */
+export function openSpots(): SpotsStore {
   const dir = new Directory(Paths.document, "spots");
-  const file = new File(dir, NAME);
-  const tmp = new File(dir, `${NAME}.writing`);
-
-  const load = async (): Promise<Spot[]> => {
-    try {
-      if (!file.exists) return [];
-      const parsed: unknown = JSON.parse(file.textSync());
-      return Array.isArray(parsed) ? (parsed as Spot[]) : [];
-    } catch {
-      // A corrupt file must not take the app down, and must not be silently emptied
-      // either — leaving it alone means a person can still recover it by hand.
-      return [];
-    }
+  const at = (n: string) => new File(dir, n);
+  const fs: SpotsFs = {
+    exists: (n) => at(n).exists,
+    read: (n) => at(n).textSync(),
+    write: (n, t) => { if (!dir.exists) dir.create({ intermediates: true }); at(n).write(t); },
+    // expo-file-system's move refuses an existing destination: replace it explicitly
+    rename: (a, b) => { const to = at(b); if (to.exists) to.delete(); at(a).move(to); },
+    remove: (n) => { const f = at(n); if (f.exists) f.delete(); },
   };
-
-  const save = async (spots: Spot[]) => {
-    if (!dir.exists) dir.create({ intermediates: true });
-    tmp.write(JSON.stringify(spots));
-    if (file.exists) file.delete();
-    tmp.move(file);
-  };
-
-  return {
-    list: load,
-    async get(id) { return (await load()).find((s) => s.id === id) ?? null; },
-    async put(spot) {
-      const all = await load();
-      const i = all.findIndex((s) => s.id === spot.id);
-      if (i >= 0) all[i] = spot; else all.unshift(spot);
-      await save(all);
-    },
-    async remove(id) { await save((await load()).filter((s) => s.id !== id)); },
-  };
+  return openSpotsWith(fs, NAME);
 }

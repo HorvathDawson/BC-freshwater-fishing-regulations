@@ -9,35 +9,26 @@
  *
  * The phone writes a real file (`store.native.ts`). Nothing above this line can tell.
  */
-import type { Spot, SpotStore } from "./model";
+import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 
 const KEY = "canifishthis.spots.v1";
 
-export function openSpots(): SpotStore {
-  const load = async (): Promise<Spot[]> => {
-    try {
-      const raw = globalThis.localStorage?.getItem(KEY);
-      const parsed: unknown = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? (parsed as Spot[]) : [];
-    } catch {
-      // Private windows and blocked site data both throw on access rather than returning
-      // null, so this has to catch rather than check.
-      return [];
-    }
+/** The store rules are `core.ts`'s. Here a "file" is a localStorage key. A write that the browser refuses (quota, or
+ *  storage blocked in a private window) THROWS, so the save rejects and the reader is told (P01). It used to be
+ *  swallowed. */
+export function openSpots(): SpotsStore {
+  const ls = (): Storage => {
+    const s = globalThis.localStorage;
+    if (!s) throw new Error("This browser is not letting the app store anything.");
+    return s;
   };
-  const save = async (spots: Spot[]) => {
-    try { globalThis.localStorage?.setItem(KEY, JSON.stringify(spots)); }
-    catch { /* storage full or blocked; the session keeps working, the record does not */ }
+  const safe = <T>(f: () => T, otherwise: T): T => { try { return f(); } catch { return otherwise; } };
+  const fs: SpotsFs = {
+    exists: (n) => safe(() => ls().getItem(n) !== null, false),
+    read: (n) => { const v = ls().getItem(n); if (v === null) throw new Error(`no ${n}`); return v; },
+    write: (n, t) => { ls().setItem(n, t); },
+    rename: (a, b) => { const s = ls(), v = s.getItem(a); if (v === null) throw new Error(`no ${a}`); s.setItem(b, v); s.removeItem(a); },
+    remove: (n) => { ls().removeItem(n); },
   };
-  return {
-    list: load,
-    async get(id) { return (await load()).find((s) => s.id === id) ?? null; },
-    async put(spot) {
-      const all = await load();
-      const i = all.findIndex((s) => s.id === spot.id);
-      if (i >= 0) all[i] = spot; else all.unshift(spot);
-      await save(all);
-    },
-    async remove(id) { await save((await load()).filter((s) => s.id !== id)); },
-  };
+  return openSpotsWith(fs, KEY);
 }

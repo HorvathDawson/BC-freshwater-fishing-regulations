@@ -24,6 +24,7 @@ import { Pressable, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { captureSpot } from "@app/data/spots";
+import { spotSaveFailed } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
@@ -50,7 +51,8 @@ export interface SpotCaptureProps {
   theme: string;
   camera: Camera;
   onCancel: () => void;
-  onSaved: (spot: Spot) => void;
+  /** Awaited: a rejection is shown and the sheet stays open (P01). */
+  onSaved: (spot: Spot) => void | Promise<void>;
 }
 
 export function SpotCapture(props: SpotCaptureProps) {
@@ -65,6 +67,7 @@ export function SpotCapture(props: SpotCaptureProps) {
   const [draft, setDraft] = useState<Spot | null>(null);
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const pickWater = async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
@@ -77,12 +80,21 @@ export function SpotCapture(props: SpotCaptureProps) {
   const toDetails = async () => {
     if (!water || !point) return;
     setStep("saving");
-    const spot = await captureSpot({
-      feed,
-      source, weather: props.weather, at: point, visitedAt,
-      item: water.item, section: water.section, waterName: water.name,
-      title: title || water.name || "",
-    });
+    setError(null);
+    let spot: Spot;
+    try {
+      spot = await captureSpot({
+        feed,
+        source, weather: props.weather, at: point, visitedAt,
+        item: water.item, section: water.section, waterName: water.name,
+        title: title || water.name || "",
+      });
+    } catch (e) {
+      // never left on "saving": back to the step that asked, with the reason (P01)
+      setError(spotSaveFailed(e));
+      setStep("when");
+      return;
+    }
     setDraft(spot);
     setTitle(spot.title);
     setStep("details");
@@ -91,8 +103,8 @@ export function SpotCapture(props: SpotCaptureProps) {
   if (step === "when") {
     return (
       <WhenScreen palette={palette} at={visitedAt} onChange={setVisitedAt}
-                  water={water?.name ?? null}
-                  onBack={() => setStep("when")} onNext={toDetails} />
+                  water={water?.name ?? null} error={error}
+                  onBack={() => setStep("point")} onNext={toDetails} />
     );
   }
 
@@ -105,8 +117,15 @@ export function SpotCapture(props: SpotCaptureProps) {
       <SpotScreen spot={draft} palette={palette} mode="draft"
                   title={title} notes={notes} onTitle={setTitle} onNotes={setNotes}
                   onBack={() => setStep("when")}
-                  onSave={() => props.onSaved({ ...draft, title: title || draft.title, notes,
-                                                updatedAt: Date.now() })} />
+                  error={error}
+                  onSave={async () => {
+                    setError(null);
+                    try {
+                      await props.onSaved({ ...draft, title: title || draft.title, notes, updatedAt: Date.now() });
+                    } catch (e) {
+                      setError(spotSaveFailed(e));      // the sheet stays open with the draft in it
+                    }
+                  }} />
     );
   }
 
@@ -150,9 +169,9 @@ export function SpotCapture(props: SpotCaptureProps) {
  * archive has nothing for tomorrow, and a spot that records a visit that has not happened
  * is not a spot.
  */
-function WhenScreen({ palette, at, onChange, water, onBack, onNext }: {
+function WhenScreen({ palette, at, onChange, water, onBack, onNext, error }: {
   palette: Palette; at: number; onChange: (t: number) => void;
-  water: string | null; onBack: () => void; onNext: () => void;
+  water: string | null; onBack: () => void; onNext: () => void; error?: string | null;
 }) {
   const d = new Date(at);
   const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
@@ -176,6 +195,7 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext }: {
       <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
         <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>‹  Back</Text>
       </Pressable>
+      {error ? <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{error}</Text> : null}
 
       <View style={{ gap: 6 }}>
         <Text style={{ ...TYPE.title, color: palette.ink }}>When were you there?</Text>

@@ -10,5 +10,7 @@ export type { Spot, SpotStore, SpotReading, SpotWeather, WeatherSample,
 export { spotLabel, isUntitled } from "./model";
 export { captureSpot, noWeather, type CaptureInput, type WeatherSource } from "./capture";
 export { openSpots } from "./store";
+export { openSpotsWith, SpotsCorrupt, type SpotsFs, type SpotsStore } from "./core";
+export { serialised } from "./queue";
 export { openMeteo, OPEN_METEO_ATTRIBUTION } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
