@@ -1,3 +1,36 @@
+# regs v38 (round UR7, owner: the final prototype round before the app port; data rows 29) — in place on regs-v11.html
+
+A. **The 2 said once on the Vedder** (data, rows 29): the share no longer says ", not counting hatchery rainbow trout" where the
+   lifting rule's own tier says its `relation` ("Not part of the 2 from streams; part of the 4 a day across Region 2"), so the
+   share is "Only 2 of the 4 may be from streams" and folds under the head (int1's `[data-share-folded]`); its children, origin
+   line, Rule book page and pin line stay. The exception is said once, by the own tier. Glenn/Hamill keep their share line: it
+   names the fish the 2 holds ("Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams"), which the head
+   doesn't (their one kind is folded into it).
+B. **The size section's head in the bar's colour, the bar at the screen's edge**: `--rule` is a slate that reads as text (light
+   #46627F, 6.3:1 on the card; dark #93A8BE, 7.3:1); the size head line and its numbers are drawn in it; the section is full-bleed
+   (`margin: 0 -16px`), its 3 px rule flush against the screen's left edge, its rows on the page's 16 px text edge. The pinned
+   size line the same (rule at x 0, words in --rule).
+1. **Glenn's worked line** (data): "If you keep 2 rainbow trout here: they count as your 2 from streams anywhere else today — up to 3
+   more of any kind, from here or from lakes." (was "none from other streams today — …"); both keep-N lines say "here".
+2. **A kind directly under the stream share** (data): "Up to 2 hatchery rainbow trout (part of the 2 from streams)" (the Chilliwack
+   part 2's default hatchery rainbow after the size section closes; 49 rows across the snapshot); "Only 1 of the 2 from streams may
+   be …".
+4. **Stamps on the fish**: a fish whose licence answer names a document needed only to fish for / keep it gets a duty-style line on
+   its own section, in the licence's own words: its "You need" label, the document's name as a link to the Licence tab, its `when`
+   ("You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them"; duty-line type, the
+   link an `<a role=link>` so a long name flows in the sentence, a 33 px hit area) — on a tree kind, a release line, a page-v36
+   keep line (Kootenay Lake's "Rainbow trout · Keep 10": "Conservation Surcharge Stamp for Kootenay Lake rainbow trout ›") and an
+   Other fish row; only where the water lets you fish for it (kept or released) / keep it (over the document's size). The
+   steelhead's "Steelhead stamp ›" on its duty line stays as it was. Salmon: no Keep-tab section holds salmon, so the salmon stamp
+   stays on the Licence tab only. The documents come from page v36's "You need" list, which now carries each one's `when`
+   structurally (`li[data-doc][data-act][data-sp][data-min-cm]`, page_v36.js; no words added).
+3, 5: no change (licence default; the pinned size line to its last row).
+Checks ONLY=ur7 (all six fail on regs v37: scratchpad ur7/check-ur7-before.txt): ur7-share-said-once, ur7-worked-here,
+ur7-kind-part-of-share, ur7-size-head-colour, ur7-stamps-on-the-fish (every state), ur7-stamp-link-lands. Retargeted with the
+reason in the file: ur1-tier-words, ur2-worked-plain, ur3-lifted-share, r20-share-inside-total, r20f-region-words, int1-share-said-once
+(the Vedder's share folds), r20d-flat / r20f-headers (the size section's text back on the page's text edge), r20g-palette (--rule is
+a token; Keep's bound 6 → 7; the size head's numbers in --rule).
+
 # regs v37 (round UR6, owner: the last prototype fixes before porting; data rows 28 / display 17) — in place on regs-v11.html
 
 1. **"This box" with no box.** Data (rows 28): a size tier says "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a

@@ -882,6 +882,18 @@ html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-s
 .tnode[data-tnode="size"] .krow.kt{padding-left:0}
 #pins .pl[data-tier="size"]{margin-left:16px;padding-left:12px;border-left:3px solid var(--rule)}
 #keep .okey{margin:var(--s2) 0 0;padding-top:var(--s2);border-top:1px solid var(--line)}#keep .okl{margin:0 0 6px;font:400 var(--t4)/1.4 Archivo,sans-serif;color:var(--sub)}#keep .okl b{margin-right:4px}#keep .okl .gl{vertical-align:-1px}
+/* round UR7 (owner B): the size section's head line is the colour of its side bar — it belongs to the group — and the bar is
+   flush against the screen's left edge (full-bleed, like the hairlines), the content on the page's text edge. Same for the pinned
+   line. --rule is a slate that reads as text in both themes (light #46627F on the card 6.3:1, dark #93A8BE 7.3:1; the bar >= 3:1). */
+:root{--rule:#46627F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rule:#93A8BE}}
+:root[data-theme="dark"]{--rule:#93A8BE}
+#keep .tnode[data-tnode="size"]{margin-left:-16px;margin-right:-16px;padding-left:13px;padding-right:16px}
+#keep .tnode[data-tnode="size"] > .tier .tl,#keep .tnode[data-tnode="size"] > .tier .tl .tn{color:var(--rule)}
+#pins .pl[data-tier="size"]{margin-left:0;padding-left:13px}#pins .pl[data-tier="size"],#pins .pl[data-tier="size"] b{color:var(--rule)}
+/* round UR7 (owner 4): a fish's own stamp / licence add-on, a duty-style line linking to the Licence tab, its when in the data's words */
+#keep .k28 p.kstamp a.linkbtn{display:inline;cursor:pointer;text-align:left;min-height:0;padding:9px 0;margin:-9px 0;line-height:inherit}   /* a 33 px hit area, the line box unchanged */
+#keep .ostamps{margin:-4px 0 6px 0;padding-left:0}#keep .ostamps .kstamp{margin-top:0}#keep .kstamps .kstamp{margin-top:var(--s1)}
 #keep .tier .trel{margin:var(--s1) 0 0 0;font:600 var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
 </style>
 </head>
@@ -1205,7 +1217,7 @@ function buildKeep(){
     // data's words, whose rule and its Book page, the fish pictured; a closure (✕, closed colour) reads apart from a release.
     // round 15 (8): a release line draws NO number — its words say it; a bare big 0 under the buckets read as a total above
     // "How it adds up" ("Keep 2 more here", Vedder May 15)
-    const nk = (g.not_kept || []).length ? `<section class="nkt" aria-label="Not kept here">${g.not_kept.map(x => `<div class="krow k28 nkr ${x.status}" data-notkept="${x.status}"><div class="kb"><p class="kl"><b class="nm">${esc(x.says)}</b></p><p class="s2">${esc(cap1(x.whose))}${st.ruleKey?.[x.by] ? ' · ' + bookLinks(st.ruleKey[x.by]) : ''}</p>${presP(x.presence)}${pics(x.species)}</div>${x.status === 'closed' ? '<b class="kn">✕</b>' : ''}</div>`).join('')}</section>` : '';
+    const nk = (g.not_kept || []).length ? `<section class="nkt" aria-label="Not kept here">${g.not_kept.map(x => `<div class="krow k28 nkr ${x.status}" data-notkept="${x.status}"><div class="kb"><p class="kl"><b class="nm">${esc(x.says)}</b></p><p class="s2">${esc(cap1(x.whose))}${st.ruleKey?.[x.by] ? ' · ' + bookLinks(st.ruleKey[x.by]) : ''}</p>${presP(x.presence)}${pics(x.species)}${x.status === 'release' ? stampsFor(st, x.species, {fish: true, keep: false}).map(stampLine).join('') : ''}</div>${x.status === 'closed' ? '<b class="kn">✕</b>' : ''}</div>`).join('')}</section>` : '';
     // round 16 (owner 2): "How it adds up" closes its group — after the buckets AND the not-kept lines (Ape Creek May 1: it
     // sat between the trout and the steelhead / char lines, before the end of the section). It opens on a full rule of its
     // own so it reads as the group's sum, not as a note on the line above it (the round 15 persona trip, Vedder May 15)
@@ -1259,7 +1271,8 @@ function buildKeep(){
         + pics(k.species)
         + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
-        + (k.duties?.length ? `<p class="duty" data-duty>${k.duties.map(dutyWords).join(' · ')}${stampST && k.species.includes('ST') ? ` <button class="linkbtn" type="button" data-sec="licence" data-stamp>Steelhead stamp ›</button>` : ''}</p>` : '') + presP(presOf(k)) + '</div></div>'; };
+        + (k.duties?.length ? `<p class="duty" data-duty>${k.duties.map(dutyWords).join(' · ')}${stampST && k.species.includes('ST') ? ` <button class="linkbtn" type="button" data-sec="licence" data-stamp>Steelhead stamp ›</button>` : ''}</p>` : '')
+        + stampsFor(st, k.species, {fish: true, keep: k.n !== 0, maxCm: (k.sizes?.cm || []).some(x => x[1] == null) ? null : Math.max(0, ...(k.sizes?.cm || []).map(x => x[1])), skip: k.duties?.length && stampST && k.species.includes('ST') ? ['steelhead_stamp'] : []}).map(stampLine).join('') + presP(presOf(k)) + '</div></div>'; };
     const qtip = tips(glOf(lis[lis.length - 1]));   // the total's ⓘ (daily quota) on the tree's root line
     // round 20 (owner 3): a size box's numbers are as big as every other tier's; the second number its `extra` lets past
     // ("— 2 if one is a hatchery steelhead") is big too
@@ -1278,7 +1291,8 @@ function buildKeep(){
       // round int1 (coordinator, after v34): with form a the head already leads with the share ("2 a day per angler from streams / of
       // the 4 …"); a share tier whose words say no more than that ("Only 2 of the 4 may be from streams") folds its in-place header —
       // its kicker and line — so the 2 is said once; its children, origin line, Rule book page and pin line stay. A share with more
-      // to say keeps its line (the Vedder's "…, not counting hatchery rainbow trout"; Glenn's "… brook, brown, cutthroat or lake trout …")
+      // to say keeps its line (Glenn's "… brook, brown, cutthroat or lake trout …": it names the fish the 2 holds). Round UR7 (owner A): the
+      // Vedder's lifted fish are said once, by its own tier's relation (rows 29), so its share folds too
       if (t === relTier && (S.tot || 'a') === 'a' && t.tier === 'share' && t.n === g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || '')) {
         const bk = key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : '';
         return `<div class="tier" data-tier="${t.tier}" data-share-folded>${torg ? torg.replace(/<\/p>$/, bk + '</p>') : (bk ? `<p class="gorigin">${bk.trim()}</p>` : '')}</div>`; }
@@ -1331,6 +1345,11 @@ function buildKeep(){
     art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig2 || (g.header ? '' : total) ? `<div class="ghd gsub">${orig2}${g.header ? '' : total}</div>` : ''}${ywl}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
+  // round UR7 (owner 4): a group drawn as page v36's own keep line (Kootenay Lake's "Rainbow trout · Keep 10") names its documents under it
+  root.querySelectorAll('article.row.ledger:not(.g28)').forEach(art => { if (art.closest('details.others')) return;
+    const raw = st.rows[+(art.dataset.row || 'r0').slice(1)] || {}, at = art.querySelector('.rsum .sp2');
+    const ls = at ? stampsFor(st, raw.members || [], {fish: raw.kind === 'keep' || raw.kind === 'release' || raw.kind === 'nolimit', keep: raw.kind === 'keep' || raw.kind === 'nolimit'}) : [];
+    if (ls.length) at.insertAdjacentHTML('beforeend', `<div class="k28 kstamps">${ls.map(stampLine).join('')}</div>`); });
   // other fish: the compact list; each line opens its full row (with how it was decided) as a sheet
   root.querySelectorAll('details.others').forEach(o => {
     const arts = [...o.querySelectorAll(':scope > article.row')], list = o.querySelector('.olist');
@@ -1347,7 +1366,9 @@ function buildKeep(){
       // the hint shares the count's line box (one baseline: "4 a day · size limit"), not a flex item of its own that floats high
       const kk = hasSize ? r.querySelector('.k-keep') : null;
       if (kk) { const w = document.createElement('span'); w.className = 'okeep'; kk.replaceWith(w); w.append(kk); w.insertAdjacentHTML('beforeend', '<small class="osz" data-size-hint>· size limit</small>'); }
-      return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>`; }).join('');
+      const okind = arts[i] ? st.rows[+(arts[i].dataset.row || 'r0').slice(1)]?.kind : null;
+      const ost = stampsFor(st, codes || [], {fish: okind === 'keep' || okind === 'release' || okind === 'nolimit', keep: okind === 'keep' || okind === 'nolimit'});
+      return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>${ost.length ? `<div class="k28 kstamps ostamps">${ost.map(stampLine).join('')}</div>` : ''}`; }).join('');
     // round UR6 (owner 3; UR5 Linh, Doug: "release (amber) vs closed (red): what's the difference?"): under the list, one line per
     // status a row shows, in the glossary's own plain words (catch_and_release, no_fishing_for) with its ⓘ — page-side only the
     // status word itself, as the row shows it
@@ -1394,6 +1415,20 @@ function weekSheet(html){
    section (who says so + the book pages) replaces a chip per line. Dated changes come from the strip's per-day flags. */
 const SRCS = {}, LICSRC = {};
 const parse = html => { const d = new DOMParser().parseFromString(`<div id="x">${html}</div>`, 'text/html'); return d.getElementById('x'); };
+// round UR7 (owner 4): a fish that needs a stamp or licence add-on names it on its own section of the Keep tab, linking to the
+// Licence tab. The documents and their words are the licence answer's (page v36's "You need" list for the default angler, each
+// needed only to fish for / keep some fish carrying data-doc / data-act / data-sp / data-min-cm); page-side only the "›".
+// Only where the water lets you: a "fish for" document where the fish may be fished (kept or released), a "keep" document where
+// it may be kept (over the document's size, where it names one)
+const stampsOf = st => { const d = parse(st.licence?.adult || ''), need = (d.querySelector('.needs > .lbl')?.textContent || '').trim();
+  return [...d.querySelectorAll('li[data-doc]')].map(li => ({doc: li.dataset.doc, act: li.dataset.act, need,
+    sp: (li.dataset.sp || '').split(' ').filter(Boolean), min: li.dataset.minCm != null ? +li.dataset.minCm : null,
+    name: (li.querySelector('b')?.firstChild?.textContent || '').trim(), when: (li.querySelector(':scope > span:not(.price)')?.textContent || '').trim()})).filter(x => x.name && x.need); };
+const stampsFor = (st, codes, {fish, keep, maxCm = null, skip = []}) => stampsOf(st).filter(x => !skip.includes(x.doc) && x.sp.some(c => codes.includes(c))
+  && (x.act === 'targeting' ? fish : keep && (x.min == null || maxCm == null || maxCm > x.min)));
+// one duty line, in the licence's own words: its "You need" label, the document (a link to the Licence tab, like "Steelhead stamp ›"; an <a>
+// so a long name flows in the sentence — a <button> is always an inline-block), its when
+const stampLine = x => `<p class="duty kstamp" data-stamp-line="${esc(x.doc)}">${esc(x.need)} <a class="linkbtn" role="link" tabindex="0" data-sec="licence" data-stamp="${esc(x.doc)}">${esc(x.name)} ›</a> ${esc(x.when ? x.when[0].toLowerCase() + x.when.slice(1) : '')}</p>`;
 const DAY0 = new Date(2026, 0, 1), dayDate = i => new Date(2026, 0, 1 + i);
 const dayIx = d => Math.round((new Date(2026, Math.floor(d / 100) - 1, d % 100) - DAY0) / 864e5);
 function span(a, b){ const A = dayDate(a), B = dayDate(b), m = x => MON[x.getMonth()];
@@ -1979,7 +2014,7 @@ document.addEventListener('click', e => {
   if (d.cw) { const [w, dd, p] = d.cw.split('|'); return go({w, d:+dd, p:+(p||0), sheet:'', map:0, br:-1}); }
   if (d.ct != null) { const [th, ts] = d.ct.split('|'); return go({theme:th, ts:+ts||0}, true); }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true); } });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches?.('a.linkbtn[data-sec][tabindex]')) { e.target.click(); return; } if (e.key === 'Escape') { if (S.sheet) go({sheet:''}, true); else if (S.mk >= 0) go({mk:-1}, true); else if (+S.map) go({map:0, mp:-1, mk:-1, mw:0, br:-1}, true); } });
 function poster(){
   $('c-w').innerHTML = [['vedder|1010','Vedder · Oct 10'],['vedder|515','Vedder · May 15'],['vedder|615','Vedder · Jun 15'],['klwa|1010','Kootenay LWA · Sat'],['klwa|1012','Kootenay LWA · Mon'],['cowichan|1010|0','Cowichan · mouth'],['cowichan|1010|1','Cowichan · part 2'],['wilkes|1010','Wilkes Creek (plain R2)'],['anderson|1010','Anderson River (plain R3)']]
     // round 13 (owner B): Bella Coola, each part on Oct 10 and May 1, named by the snapshot's own water name and part labels
