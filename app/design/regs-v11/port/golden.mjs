@@ -199,9 +199,9 @@ try {
   const misses = Object.entries(out.used).filter(([, n]) => n === 0).map(([s]) => s);
   delete out.used;
   const meta = { generator: 'app/design/regs-v11/port/golden.mjs', ref: S.ref, sha: S.sha, version: S.version, states: Object.keys(out.states).length,
-    sheets: Object.keys(out.sheets).length, profiles: 6, misses, ms: Date.now() - t0 };
+    sheets: Object.keys(out.sheets).length, profiles: 6, misses }; const ms = Date.now() - t0;
   const file = path.join(A.out, 'golden.json');
   fs.writeFileSync(file, JSON.stringify({ meta, ...out }, null, 1));
-  console.log(`golden: ${meta.states} states, ${meta.sheets} global sheets, regs ${meta.version} @ ${meta.sha} -> ${path.relative(process.cwd(), file)} (${(fs.statSync(file).size / 1e6).toFixed(1)} MB, ${meta.ms} ms)`);
+  console.log(`golden: ${meta.states} states, ${meta.sheets} global sheets, regs ${meta.version} @ ${meta.sha} -> ${path.relative(process.cwd(), file)} (${(fs.statSync(file).size / 1e6).toFixed(1)} MB, ${ms} ms)`);
   if (misses.length) console.log(`selectors that matched nothing in any state (expected for features no snapshot state has; a NEW entry after a design change means EXTRACT needs a look):\n  ${misses.join('\n  ')}`);
 } finally { await b.close(); S.cleanup(); }
