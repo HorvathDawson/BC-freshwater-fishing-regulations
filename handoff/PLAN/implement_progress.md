@@ -174,13 +174,18 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
   vitest 678/678; the steps other than fixture pass (fixture differs only by P09's schema, committed with P09).
 - NOT met: Shell is 709 lines (target < 400); P14 (water-mode shell) and P17 take out the rest.
 
-## P09 (IN PROGRESS, uncommitted): part_geo / part_mark / water_exit
-- `bundle/topology.py` (keep_named geometries → write after derived.write), schema.sql tables, build.py wiring;
-  water_map_export imports order_parts/split_label from topology. test_part_geo.py: 6 no-data tests pass; 3 needs_bundle
-  tests wait for a side bundle (scratchpad p09/bundle.next.sqlite, building via heavy.sh). The app dev fixture is
-  rebuilt for the 3 new tables (uncommitted; commit with P09).
-- KNOWN GAP: Kootenay Lake (KLWA) marks are between separate lake-part ITEMS (wbk:-22/-21/-20), which per-water
-  part_mark cannot express. To be decided at P15 (owner), not invented here.
+## P09 (DONE): part_geo / part_mark / water_exit
+- `bundle/topology.py`: keep_named (1-based handles via id_at; lake outlines from waterbody_polys.pkl) → write after
+  derived.write; rank (km mouth-first), midpoint (half the stem by route measure, point_on), marks (≤ 60 m, split
+  name), exit (item_down, nearest receiving part). water_map_export imports order_parts/split_label from it.
+- Side bundle (heavy, 4.8 min): 20,461 parts, 774 marks, 17,964 exits; 131 stream parts placed by section length.
+  test_part_geo.py 10/10 on it: the Chilliwack + Cowichan ranks and marks (words included) = the prototype's
+  watermap.js; Chilliwack → Vedder part 0; every mid_sid in its part and inside its bbox.
+- The tests caught an off-by-one: sid N is LINE N of section_handles.txt (1-based). Pinned in a no-data test.
+- Offline harness (scratchpad p09/extract.py + offline.py) iterates in seconds: extract named geoms once, then run
+  topology.write on a live-bundle copy.
+- KNOWN GAP (unchanged): Kootenay Lake's marks are between lake-part ITEMS; decide at P15.
+- T22 follow-ups committed: tokens test moved to app/tools (boundaries), fish-sprite.html regenerated.
 
 ## P08 design notes (next after P09)
 - Several app queries JOIN across what become separate files: SEARCH / WATERS_NEAR read section_gauge.mag, gauge,

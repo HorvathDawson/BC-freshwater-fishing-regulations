@@ -848,6 +848,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
     places = _water_places(build_dir, graph, registry_items)
+    # P09: the named sections' shapes, kept until the parts exist (part_geo / part_mark / water_exit)
+    from pipeline.deliver.bundle import topology as _topology
+    named_geo = _topology.keep_named(db, build_dir, geoms)
     del graph, geoms, registry_items
     # The regulations. The reach builder resolved which water every rule covers; this only
     # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
@@ -903,6 +906,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
+        _topology.write(db, named_geo, cov)
+        del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
         _nearer.write_trib_nearer(db, cov)
         _nearer.prove(db)

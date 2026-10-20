@@ -117,24 +117,9 @@ def order_items(items: Sequence[str], drains: Dict[str, set]) -> List[str]:
     return out
 
 
-def order_parts(parts: Sequence[dict]) -> List[dict]:
-    """Within one item: by the display's km, mouth up; parts with no km (side channels) last,
-    in part order."""
-    with_km = sorted((p for p in parts if p.get("km") is not None), key=lambda p: (p["km"], p["v"]))
-    return with_km + [p for p in parts if p.get("km") is None]
-
-
-def split_label(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[str]:
-    """The split where `up` (upstream) meets `down`: the downstream part's run start, else the
-    upstream part's run end, when the export names it. A branch (`km` None: a side channel, a lake
-    part) is named only by its own runs' ends — the main stem's next split is not where it leaves."""
-    ends = ((down, "from"), (up, "to")) if up.get("km") is not None else ((up, "to"), (up, "from"))
-    for p, end in ends:
-        for r in p.get("runs") or []:
-            s = splits.get(r.get(end) or "")
-            if s and s.get("name"):
-                return s["name"]
-    return None
+# THE ORDER AND THE BOUNDARY NAMES ARE THE BUNDLE'S (P09): one implementation, in pipeline/deliver/bundle/topology.py,
+# which writes them into `part_geo` / `part_mark` for the app.
+from pipeline.deliver.bundle.topology import order_parts, split_label  # noqa: E402,F401
 
 
 # --------------------------------------------------------------------------------------------

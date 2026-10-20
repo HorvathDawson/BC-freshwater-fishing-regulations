@@ -377,6 +377,20 @@ CREATE TABLE part_section (ord     INTEGER NOT NULL,
                            PRIMARY KEY (ord, sid),
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 
+-- PART TOPOLOGY AND CAMERA HINTS (P09, `topology.py`): the map navigation's data, NO geometry (the tiles draw it).
+-- `rank` mouth first within the water; the bbox in lon/lat; `mid_sid` + point where "Conditions here" opens.
+-- `part_mark`: where two parts meet (the split's name, or NULL), the down part and the up parts (a JSON list).
+-- `water_exit`: the water this one flows into and the part it enters. All keyed by `ord`: never across bundles.
+CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL,
+                        mid_sid INTEGER NOT NULL, mid_lon REAL NOT NULL, mid_lat REAL NOT NULL,
+                        w REAL, s REAL, e REAL, n REAL,
+                        PRIMARY KEY (ord, part_ix),
+                        FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
+CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL NOT NULL, lat REAL NOT NULL,
+                        label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL,
+                        PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
+CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
+
 -- EVERY SECTION HAS AN ANSWER (S1, user ruling 2026-10-10: "unnamed or named but unregulated
 -- waters should always show base regs/zone and any area they are in, tiered properly"). A section
 -- inside B.C. that no named water owns (1.89 M of 1.96 M) is answered like a part: its rule set
