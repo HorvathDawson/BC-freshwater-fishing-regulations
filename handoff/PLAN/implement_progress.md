@@ -4,8 +4,10 @@ Restart here. Update this file after EVERY step: what is done, what is running, 
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
 ## IN FLIGHT (2026-10-20 evening) — check these first on a restart
-- Heavy (heavy.sh, one at a time): (1) live `deliver all` → canonical paths + data/release/r-*; log scratchpad/live/deliver.log;
-  (2) queued after it: tile rebuild into a SIDE folder scratchpad/tiles_next (then run the tile tests, promote
+- Heavy: (1) DONE 2026-10-20: live `deliver all` (9.3 min): card gate 0 problems, strict vintage agrees, 9 files
+  promoted + release data/release/r-6960fe8201e3 (13.89 MB gz). Live Tier 2 data checks: test_release + test_part_geo +
+  card-gate chain + feb29 + vintage 53/53; release-perf 13/13 (A5 5.7 ms, accepted with debounce).
+  (2) RUNNING after it: tile rebuild into a SIDE folder scratchpad/tiles_next (then run the tile tests, promote
   atlas.pmtiles + atlas.meta.json + layers/*.geojsonl FILE BY FILE into data/generated/tiles; never replace the dir).
 - Workflow `light-tickets-batch-1` (5 worktree agents + adversarial review + fix): spots sid removal + P12b, P12a,
   P12c + search debounce, T00+T02, T20. On completion: cherry-pick their branch commits into redesign/stream-sections,
@@ -228,6 +230,12 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
   (+~1 MB, over the core gate) / prefix + word-prefix only (changes results). The test holds A5 to an 8 ms ceiling.
 - The live bundle predates P07/P09: the next human `deliver all` (or pipeline build) writes format + part_geo, after
   which the release step runs in the chain on live data.
+
+## P11 parts DONE: core paint decoder (paint.ts, fixture-held to the Python encoder; 28 ms real decode),
+release/loader.ts (lazy, verified, per-region; real Vedder opens core + water + regs-2), release/install.ts (native
+install/update core, atomic pointer swap). LEFT: the .web/.native adapters, source.ts routing, hooks (useStatusIndex →
+paint, usePairing), App first-run screen, conformance on a fixture release — after the P12 workflow lands and N2.
+P20 part DONE: stats.json + record() gone.
 
 ## P10 (DONE, except device): endpoints, fetchVerified, manifest diff/pair, publish
 - app/apps/mobile/src/config.ts: ONE base (EXPO_PUBLIC_DATA_BASE; default the dev server), App reads ENDPOINTS;
