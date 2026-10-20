@@ -74,7 +74,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "area_ha",
         "size",
         "gauged",
-        "has_rows"
+        "has_rows",
+        "pieces"
       ],
       "item_alias": [
         "alias",

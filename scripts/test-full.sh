@@ -28,9 +28,18 @@ step "pytest fast" "$PY" -m pytest -q
 step "pytest slow" "$PY" -m pytest -q -m slow
 step "check.mjs" node app/design/regs-v11/tools/check.mjs
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check
+# the release (P08): parity of every single-file read against the bundle, the query plans and the perf budgets
+REL=$(/bin/ls -dt data/release/r-* 2>/dev/null | head -1)
+if [ -n "$REL" ]; then
+  step "release parity + perf" env RELEASE_DIR="$REL" BUNDLE=data/generated/bundle/bundle.sqlite \
+       pnpm -C app exec vitest run release-perf
+else
+  echo "── release parity + perf: no data/release/r-* yet (run python -m pipeline.deliver release)"; failed+=("release (none built)")
+fi
 step "answers model --check" "$PY" -m pipeline.deliver.answers.model --check
 step "calendar --check" "$PY" -m pipeline.tools.emit_calendar --check
 step "gauge policy --check" "$PY" -m pipeline.tools.emit_gauge_policy --check
+step "pack --check" "$PY" -m pipeline.tools.emit_pack --check
 
 echo "full: $((SECONDS - t0)) s"
 if ((${#failed[@]})); then echo "FAILED: ${failed[*]}"; exit 1; fi

@@ -25,7 +25,7 @@ FILES = {
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         "alias": ["item_id", "alias"],
-        "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "size", "gauged", "has_rows"],
+        "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "size", "gauged", "has_rows", "pieces"],
         "item_alias": ["alias", "item_id"],
         "item_section": ["sid", "ord"],
         "meta": ["k", "v"],

@@ -1,0 +1,65 @@
+/**
+ * THE QUERIES, IN THE RELEASE'S FORM (P08): what each bundle query in `../bundle/queries.ts` becomes when the bundle is
+ * the release's files (`pack.generated.ts`). Each runs on ONE file. `tools/release-parity.test.ts` holds every one to the
+ * bundle form: the same rows, a SEARCH plan (never a SCAN), and the perf budget.
+ *
+ * NOT HERE, AND WHY: the reads that cross two files become two keyed reads in the release reader (P11 / T04), never a
+ * join across files:
+ *   NEAR_FOR_ITEMS, WATERS_NEAR, RINGS_FOR_ITEM    near (place_water) → core (item, place)
+ *   GAUGES_ON_ITEM, GAUGE_FOR_ITEM                  core (item_section) → conditions (gauge, section_gauge)
+ *   gaugesForSections, lakeStationsFor              conditions + core (the lake road: section → item → lake_gauge)
+ *   panelsForSections, BASIN_MEMBERS                paint (decoded arrays, not SQL) + flow-area
+ *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   no producer yet: not in the release (the reader answers empty)
+ */
+import * as B from "../bundle/queries";
+
+export type PackName = "core" | "near" | "conditions" | "water" | "regs-sid";
+
+export interface ReleaseQuery {
+  file: PackName;
+  sql: string;
+  /** The bundle form it must answer like. */
+  bundle: string;
+}
+
+/**
+ * Search, from `core` alone: `size` is `item.size` (the biggest reach's stream magnitude, which the bundle computed
+ * through `section_gauge`), so no conditions file is needed to rank a search; `pieces` is `item.pieces` (its section
+ * count, > 0 = it owns a section), precomputed so a match costs no subquery.
+ */
+export const SEARCH =
+  "SELECT m.item_id, m.name, m.kind, m.matched_as, min(m.tier) AS tier, " +
+  "       m.pieces AS pieces, m.size AS size, m.area_ha " +
+  "FROM ( " +
+  "  SELECT i.ord, i.item_id, i.name, i.kind, i.area_ha, i.size, i.pieces, NULL AS matched_as, " +
+  "         (CASE WHEN i.name LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN i.name LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
+  "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
+  "               ELSE 6 END) AS tier " +
+  "  FROM item i WHERE i.pieces > 0 AND i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  UNION ALL " +
+  "  SELECT i.ord, i.item_id, i.name, i.kind, i.area_ha, i.size, i.pieces, a.alias AS matched_as, " +
+  "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
+  "               WHEN a.alias LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
+  "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
+  "               ELSE 7 END) AS tier " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE i.pieces > 0 AND a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  ") m GROUP BY m.item_id, m.matched_as " +
+  "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
+  "         length(m.name), m.name LIMIT ?2";
+
+/** Every single-file read, by its bundle name. Same SQL where the tables moved whole. */
+export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {
+  ITEM: { file: "core", sql: B.ITEM, bundle: B.ITEM },
+  SECTIONS_FOR_ITEM: { file: "core", sql: B.SECTIONS_FOR_ITEM, bundle: B.SECTIONS_FOR_ITEM },
+  ITEM_FOR_SECTION: { file: "core", sql: B.ITEM_FOR_SECTION, bundle: B.ITEM_FOR_SECTION },
+  SEARCH: { file: "core", sql: SEARCH, bundle: B.withArea(B.SEARCH, true) },
+  SEARCH_PLACES: { file: "core", sql: B.SEARCH_PLACES, bundle: B.SEARCH_PLACES },
+  GAUGE_FOR_SECTION: { file: "conditions", sql: B.GAUGE_FOR_SECTION, bundle: B.GAUGE_FOR_SECTION },
+  GAUGE_POINTS: { file: "conditions", sql: B.GAUGE_POINTS, bundle: B.GAUGE_POINTS },
+  LAKE_GAUGES: { file: "conditions", sql: B.LAKE_GAUGES, bundle: B.LAKE_GAUGES },
+  CLIM_PARAMETERS: { file: "conditions", sql: B.CLIM_PARAMETERS, bundle: B.CLIM_PARAMETERS },
+  DOWN_FROM: { file: "conditions", sql: B.DOWN_FROM, bundle: B.DOWN_FROM },
+  /** The bands are float16 in the release (clim/2); the parity test compares the decoded values. */
+  CLIMATOLOGY: { file: "conditions", sql: B.CLIMATOLOGY, bundle: B.CLIMATOLOGY },
+};

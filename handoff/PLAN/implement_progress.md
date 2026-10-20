@@ -202,9 +202,16 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
   file's handles + format; card stamp in water; core ord = water item_ord; paint = status_index.bin + flow tables
   exactly; water + 9 regions + regs-sid = the regs store row for row; each region holds exactly its akeys' cells;
   two builds identical; size gates.
-- NEXT (stage 2): emit_pack → app/packages/data/src/pack.generated.ts (per-file tables/columns, paint layout,
-  formats, manifest type; --check in CI), release-form queries + query parity (old query on bundle == new query on
-  file), perf gates (test_release_perf.py, vitest release-perf).
+- Stage 2a (DONE): release/contract.py (exact tables + columns per file, units) → emit_pack →
+  app/packages/data/src/pack.generated.ts; `--check` in pnpm check (`pack`) + pipeline-ci; a built release must equal
+  the contract exactly.
+- Stage 2b (DONE): app/packages/data/src/release/queries.ts (the 11 single-file reads, SEARCH rewritten to core's
+  size + pieces flags; the cross-file reads listed for P11/T04 as two keyed reads). app/tools/release-perf.test.ts
+  (Tier 2, RELEASE_DIR + BUNDLE): 11/11 parity on sampled keys (climatology within float16), keyed plans = SEARCH
+  only, p95 A1 0.018 / A2 0.008 / A3 0.007 / A6 0.007 / A7 0.006 / A9 0.004 ms.
+- OWNER DECISION PENDING: A5 search p95 5.4 ms against the 2 ms budget. The app's search is a substring scan (the bare
+  name scan alone is 1.9 ms); the budget came from a prefix measurement. Options: accept ~5 ms / trigram index
+  (+~1 MB, over the core gate) / prefix + word-prefix only (changes results). The test holds A5 to an 8 ms ceiling.
 - The live bundle predates P07/P09: the next human `deliver all` (or pipeline build) writes format + part_geo, after
   which the release step runs in the chain on live data.
 

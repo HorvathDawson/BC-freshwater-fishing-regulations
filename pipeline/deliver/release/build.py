@@ -117,6 +117,9 @@ def _core_flags(con: sqlite3.Connection) -> None:
     con.execute("ALTER TABLE item ADD COLUMN size INTEGER")
     con.execute("ALTER TABLE item ADD COLUMN gauged INTEGER NOT NULL DEFAULT 0")
     con.execute("ALTER TABLE item ADD COLUMN has_rows INTEGER NOT NULL DEFAULT 0")
+    # search's two per-match subqueries (does it own a section, how many), answered once here (A5's budget)
+    con.execute("ALTER TABLE item ADD COLUMN pieces INTEGER NOT NULL DEFAULT 0")
+    con.execute("UPDATE item SET pieces = (SELECT count(*) FROM item_section s WHERE s.ord = item.ord)")
     con.execute("UPDATE item SET size = (SELECT max(sg.mag) FROM item_section s JOIN b.section_gauge sg ON sg.sid = s.sid "
                 "WHERE s.ord = item.ord)")
     con.execute("UPDATE item SET gauged = (EXISTS (SELECT 1 FROM item_section s JOIN b.gauge g ON g.sid = s.sid "
