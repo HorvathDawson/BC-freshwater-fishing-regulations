@@ -29,6 +29,8 @@ def main() -> None:
                          "skip the export. For changes to the tippecanoe invocation, where "
                          "re-deriving the same geometry is ~40 min of wasted work.")
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--no-release", action="store_true",
+                    help="stamp the version but do not copy into data/release/tiles/<version>/ (a scratch build)")
     ap.add_argument("--write-contract", action="store_true",
                     help="regenerate pipeline/deliver/tiles/tile-contract.json and stop. The app's "
                          "style is checked against it, so a layer rename cannot silently "
@@ -59,6 +61,7 @@ def main() -> None:
                           minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
         print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
               f"tiles took {time.time() - t0:,.0f}s")
+        _version_and_release(build_dir, out_dir, out, a.no_release)
         return
 
     counts: dict[str, int] = {}
@@ -87,8 +90,20 @@ def main() -> None:
                       minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
     mb = out.stat().st_size / 1e6
     print(f"\n{out}  {mb:,.1f} MB   total {time.time() - t0:,.0f}s")
-    _write_sidecar(build_dir, out_dir)
+    _version_and_release(build_dir, out_dir, out, a.no_release)
     _check_vintage(out_dir)
+
+
+def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_release: bool) -> None:
+    """P18: stamp the tile version into the archive, write the sidecar, and copy archive + mask into
+    `data/release/tiles/<version>/` (the shipped set). The archive in `out_dir` stays where the dev server reads it."""
+    from pipeline.deliver.tiles import version as V
+    v = V.stamp(archive, build_dir)
+    print(f"tile version {v}")
+    _write_sidecar(build_dir, out_dir, v)
+    if not no_release:
+        d = V.to_release(archive, v, GENERATED.release, SOURCE / "bc_boundary.geojson")
+        print(f"released: {d}")
 
 
 def _check_vintage(out_dir: Path) -> None:
@@ -108,7 +123,7 @@ def _check_vintage(out_dir: Path) -> None:
               "--build <this build>")
 
 
-def _write_sidecar(build_dir: Path, out_dir: Path) -> None:
+def _write_sidecar(build_dir: Path, out_dir: Path, tile_version: str) -> None:
     """`atlas.meta.json` — the vintage the bundle has to match.
 
     A SEPARATE FILE AND NOT PMTILES METADATA, because the app has to read it on both
@@ -121,7 +136,8 @@ def _write_sidecar(build_dir: Path, out_dir: Path) -> None:
     from pipeline.common.section_handles import digest_for, registry_digest_for
 
     meta = {"section_handles": digest_for(build_dir), "build": build_dir.name,
-            "registry": registry_digest_for(build_dir)}     # P2: names and kinds too
+            "registry": registry_digest_for(build_dir),     # P2: names and kinds too (informational, P18)
+            "tile_version": tile_version}                    # P18: also stamped inside the archive
     p = out_dir / "atlas.meta.json"
     p.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     print(f"{p}  {meta}")

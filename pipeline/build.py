@@ -43,7 +43,9 @@ CODE = {
     "reach": ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
               "pipeline/common"),     # graph/: the tributary walk the reach run uses
     "deliver": ("pipeline",),
-    "tiles": ("pipeline/deliver/tiles", "pipeline/common", "pipeline/atlas/registry"),
+    # P18: GEOMETRY ONLY. The tile code and the area cutter; names and registry changes are a data release, and the
+    # tile labels catch up with `--labels` (MINIMAL-PACKAGING §6.1).
+    "tiles": ("pipeline/deliver/tiles", "pipeline/atlas/splits"),
 }
 
 
@@ -122,9 +124,18 @@ def keys(build_dir: Path) -> dict[str, dict]:
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources={k: v for k, v in src.items() if k != "gpkg"},
                         code=code_digest(CODE["deliver"])),
-        "tiles": dict(atlas, gpkg=src["gpkg"], places=src["places"],
-                      code=code_digest(CODE["tiles"])),
+        "tiles": tiles_key(build_dir),
     }
+
+
+def tiles_key(build_dir: Path) -> dict:
+    """P18: the tiles stage reruns only when GEOMETRY can change: the atlas's sid space (handles), the FWA source, the
+    curated areas and the tile code. Not the registry, the corpus, place names or anything a data release changes, so a
+    data-only `pipeline build` never rebuilds (or re-ships) the tiles."""
+    from pipeline.common.section_handles import digest_for
+    areas = Path(CURATED.waters.areas)
+    return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
+            "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"])}
 
 
 def outputs(build_dir: Path) -> dict[str, list[Path]]:
@@ -233,6 +244,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--force", nargs="*", default=[], choices=STAGES, metavar="STAGE",
                     help=f"rerun these stages and what depends on them ({', '.join(STAGES)})")
     ap.add_argument("--no-tiles", action="store_true", help="stop after deliver (tiles take ~40 min)")
+    ap.add_argument("--labels", action="store_true",
+                    help="rebuild the tiles to refresh their labels (names are not in the tiles stage key, P18)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan and stop")
     a = ap.parse_args(argv)
 
@@ -253,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
             run_stage("promote", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt)], "-",
                       run, m)
 
-    rows = plan(build_dir, set(a.force))
+    rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()))
     cmds = commands(build_dir)
     print(f"build: atlas {build_dir}")
     for s, key, go in rows:

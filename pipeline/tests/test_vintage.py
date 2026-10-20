@@ -120,20 +120,27 @@ def _pair(tmp_path: Path, tiles_meta: dict, bundle_meta: dict):
     return tiles, bundle
 
 
-def test_one_handle_table_two_registries_is_a_mismatch(tmp_path: Path):
-    """P2: the registry pairs names and kinds; a sidecar rewrite leaves the handles alone."""
+def test_one_handle_table_two_registries_is_a_WARNING_not_a_mismatch(tmp_path: Path):
+    """P18 (MINIMAL-PACKAGING §6.1): tiles and data pair on the sid space alone. A registry difference only means the tile
+    LABELS are older than the data's names (a name fix is a data release; labels catch up at the next tile release)."""
     tiles, bundle = _pair(tmp_path, {"section_handles": "a" * 16, "registry": "1" * 16},
                           {"section_handles": "a" * 16, "registry_digest": "2" * 16})
-    ok, msg = report(tiles, bundle)
-    assert not ok and "two registries" in msg
+    ok, msg = report(tiles, bundle, strict=True)
+    assert ok and "labels" in msg and "1" * 16 in msg and "2" * 16 in msg
 
 
-def test_matching_registries_pass_and_strict_wants_both(tmp_path: Path):
+def test_matching_registries_pass_and_strict_no_longer_wants_the_registry(tmp_path: Path):
     tiles, bundle = _pair(tmp_path, {"section_handles": "a" * 16, "registry": "1" * 16},
                           {"section_handles": "a" * 16, "registry_digest": "1" * 16})
     assert report(tiles, bundle, strict=True)[0]
     (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "a" * 16}))
-    assert report(tiles, bundle)[0] and not report(tiles, bundle, strict=True)[0]
+    assert report(tiles, bundle)[0] and report(tiles, bundle, strict=True)[0]
+
+
+def test_two_handle_tables_still_fail_whatever_the_registry_says(tmp_path: Path):
+    tiles, bundle = _pair(tmp_path, {"section_handles": "a" * 16, "registry": "1" * 16},
+                          {"section_handles": "b" * 16, "registry_digest": "1" * 16})
+    assert not report(tiles, bundle, strict=True)[0]
 
 
 # ---- P07: report_all — every artifact of a delivery against the bundle's digests ------------------------------

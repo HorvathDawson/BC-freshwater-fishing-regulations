@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 import re
+
+import pytest
 from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
@@ -305,3 +307,86 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
     # against. It moved from the geometry sidecar into its own file (waterbody_polys.pkl)
     # precisely so a lake's shape and its through-route stopped being the same object.
     assert "waterbody_polys.pkl" in build
+
+
+# ---- P18: geometry only, versioned on their own ------------------------------------------------------------------
+
+#: THE TILE INVENTORY (MINIMAL-PACKAGING §6.1): every property any tile layer may carry. Geometry, identity (the sid is the
+#: compatibility key) and the administrative geography; `name` is for map labels only. Adding a property, above all a
+#: status, a rule or anything a data release changes, must be a decision made here, so it fails until this list moves.
+TILE_INVENTORY = {
+    "stream": ("section_id", "name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
+    "wetland": ("section_id", "name", "water"), "contour": ("item", "depth_m", "index"),
+    "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
+    "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
+    "no_access": ("area_id", "name", "kind"), "watershed": ("area_id", "name"), "parcel": (),
+    "region": ("region_id", "name"), "mu": ("mu_id",), "basin": ("basin_id",),
+}
+
+
+def test_the_tile_properties_are_exactly_the_inventory():
+    assert {s.name: tuple(s.attrs) for s in ALL} == TILE_INVENTORY
+
+
+def test_a_tile_version_is_the_sid_space_plus_the_tile_build():
+    from pipeline.deliver.tiles import version as V
+    assert V.version_id("d768d6e135e62b99", "5f1c0a9e2b7d") == "d768d6e135e62b99.5f1c0a9e2b7d"
+    with pytest.raises(ValueError):
+        V.version_id("d768d6e1", "5f1c0a9e2b7d")
+    meta = {"name": "atlas", "vector_layers": [{"id": "stream"}]}
+    got = V.stamped_metadata(meta, "d768d6e135e62b99.5f1c0a9e2b7d", "d768d6e135e62b99", "8c77ba1cd2dc3929")
+    assert got == {**meta, "tile_version": "d768d6e135e62b99.5f1c0a9e2b7d", "section_handles": "d768d6e135e62b99",
+                   "labels_registry": "8c77ba1cd2dc3929"}
+
+
+def test_every_region_feature_has_one_spelling_of_region_id():
+    from pipeline.deliver.tiles.export import region_id_of
+    assert [region_id_of(x) for x in ("1", "7a", " 7B ", 8)] == ["1", "7A", "7B", "8"]
+
+
+def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
+    """A registry, corpus or place-name change is a data release: it must not rerun (or re-ship) the tiles."""
+    import pipeline.build as B
+    build = tmp_path / "full"
+    build.mkdir()
+    (build / "section_handles.txt").write_text("blk:1:0\nblk:1:100\n")
+    gpkg = tmp_path / "fwa.gpkg"
+    gpkg.write_bytes(b"x")
+    monkeypatch.setattr(B, "sources", lambda: {"gpkg": gpkg})
+    before = B.tiles_key(build)
+    assert set(before) == {"handles", "gpkg", "areas", "code"}
+    (build / "registry.json").write_text('{"items": {"renamed": 1}}')
+    assert B.tiles_key(build) == before
+    (build / "section_handles.txt").write_text("blk:1:0\nblk:1:50\nblk:1:100\n")      # new sids: new geometry
+    assert B.tiles_key(build) != before
+
+
+@pytest.mark.slow
+@pytest.mark.needs_tiles
+def test_the_built_archive_carries_its_version_and_the_release_holds_archive_and_mask(request):
+    """After the human-run tile rebuild (P18 acceptance)."""
+    import json as _json
+
+    from pipeline.common.curated import GENERATED
+    from pipeline.deliver.tiles import version as V
+    from pipeline.tests.conftest import need
+    side = _json.loads(need(request, "tiles", GENERATED.tiles / "atlas.meta.json", "python -m pipeline.deliver.tiles")
+                       .read_text())
+    v = side.get("tile_version")
+    assert v and v.startswith(side["section_handles"] + ".")
+    meta = V.read_metadata(GENERATED.tiles / "atlas.pmtiles")
+    assert (meta["tile_version"], meta["section_handles"]) == (v, side["section_handles"])
+    rel = GENERATED.release / "tiles" / v
+    assert (rel / f"atlas-{v}.pmtiles").exists() and (rel / "bc_outside.geojson").exists()
+
+
+@pytest.mark.slow
+@pytest.mark.needs_tiles
+def test_every_built_region_feature_carries_region_id(request):
+    import json as _json
+
+    from pipeline.common.curated import GENERATED
+    from pipeline.tests.conftest import need
+    p = need(request, "tiles", GENERATED.tiles / "layers" / "region.geojsonl", "python -m pipeline.deliver.tiles")
+    ids = [_json.loads(ln)["properties"].get("region_id") for ln in p.read_text().splitlines() if ln.strip()]
+    assert ids and all(ids), f"{sum(1 for i in ids if not i)} of {len(ids)} region features have no region_id"

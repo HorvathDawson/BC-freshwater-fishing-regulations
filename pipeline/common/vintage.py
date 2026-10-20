@@ -101,17 +101,13 @@ def report(tiles_dir: Path, bundle: Path, *, strict: bool = False) -> tuple[bool
             f"      One of these keys sections by an integer handle and the other by a\n"
             f"      string. Rebuild the older one.")
     if t == b:
-        # THE REGISTRY TOO (P2): one handle table, but names and kinds from another registry
-        # still label and draw the wrong water.
+        # PAIRED ON THE HANDLES ALONE (P18, MINIMAL-PACKAGING §6.1). The tiles are geometry; the only names in them are
+        # map labels, and a name fix is a data release. So a registry difference is reported, never refused: the
+        # labels are older than the data's names until the next tile release (`pipeline build --labels`).
         rt, rb = registry_vintages(tiles_dir, bundle)
         if rt and rb and rt != rb:
-            return False, (
-                f"  ⚠️  VINTAGE MISMATCH — one handle table ({t}), two registries\n"
-                f"        tiles  registry {rt}\n        bundle registry {rb}\n"
-                f"      Rebuild whichever is older against the atlas's current registry.json.")
-        if strict and not (rt and rb):
-            return False, (f"  vintage: handles agree ({t}) but the registry is not recorded by "
-                           f"{'the tiles' if not rt else 'the bundle'} — rebuild it")
+            return True, (f"  vintage: tiles and bundle agree ({t}); note: the tile labels are from registry {rt}, "
+                          f"the data from {rb} — refresh with `pipeline build --labels` when the names matter")
         return True, f"  vintage: tiles and bundle agree ({t}, registry {rt or rb or 'unrecorded'})"
     return False, (
         f"  ⚠️  VINTAGE MISMATCH — these two must not ship together\n"

@@ -264,9 +264,11 @@ class Generated(BaseModel):
     regs: GeneratedRegs
     gauges: GeneratedGauges
     runtiming: Path
+    #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
+    release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", mode="before")(_absolute)
+                           "runtiming", "release", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

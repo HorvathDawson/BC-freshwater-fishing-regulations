@@ -53,6 +53,9 @@ generated:
   # Run timing (pipeline/runtiming/generate): runs.json, the section->CU index, the
   # deduplicated profiles and the colour cube. Re-runnable from data/source/runtiming/.
   runtiming: "data/generated/runtiming"
+  # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
+  # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
+  release: "data/release"
 
 # ============================================================================
 # Input Data Directories

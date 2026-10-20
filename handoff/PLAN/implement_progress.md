@@ -139,6 +139,27 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - NOT done: a mounted SpotCapture flow test (it needs the map; covered through SpotScreen + useSpots instead).
 - FOUND, not changed: `Spot.section` stores a sid ("only to replay the trace"), against AGENTS 5. Owner decision.
 
+## P21 (DONE): the atlas build no longer writes blk_chains.pkl; guard in test_dataflow_gates. The live copies were
+deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scratch_a26 symlink (5.1 GB).
+
+## P18 part 1 (DONE, code; the HUMAN tile rebuild is pending)
+- `tiles/version.py`: version = "<handles16>.<tilebuild12>", where tilebuild12 = the sha of the archive BEFORE the
+  stamp. `pmtiles edit --metadata` writes tile_version / section_handles / labels_registry into the archive; the
+  sidecar also gets tile_version. `to_release` copies the archive + bc_outside.geojson (boundary.build) into
+  data/release/tiles/<version>/, and an existing version folder is refused (immutable).
+- The tile step (both paths) stamps and releases; `--no-release` is available for scratch builds.
+- export: `region_id_of` gives one spelling ("7A") on all 18 region features (9 had a name only).
+- build.py: `tiles_key` = handles + gpkg stamp + areas.json + tile code (deliver/tiles, atlas/splits). No registry,
+  places or corpus. `--labels` forces tiles.
+- vintage.report: a registry difference is a NOTE (labels), never a refusal; pairing is on handles only.
+- GENERATED.release = data/release (config.yaml), ignored by data/.gitignore.
+- Tests: test_tiles +4 fast (inventory snapshot, version id + metadata merge, region_id, the tiles key ignores the
+  registry) + 2 slow needs_tiles (version stamped, release has archive + mask; every region feature has region_id). The
+  2 slow ones FAIL on today's tiles (as they should) until the rebuild. test_vintage: the registry tests now say "note".
+- HUMAN: rebuild tiles, `.venv/bin/python -m pipeline.deliver.tiles --build data/generated/atlas/full`
+  (≈ 1 h; via heavy.sh 70). Then: the tile tests (`pytest pipeline/tests/test_tiles.py -m slow`).
+- NEXT (P18 part 2): self-hosted glyphs + sprites (map-assets-<n>/) and the style pointing at them.
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).

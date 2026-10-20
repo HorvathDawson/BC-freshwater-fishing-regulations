@@ -29,6 +29,8 @@ source/steelhead/
 # CONTENTS instead leaves the directory itself visible, which is what makes the negations
 # below actually apply.
 generated/*
+# The shipped set (P08/P18): built, never committed; publish uploads it.
+release/
 
 # TWO EXCEPTIONS, and they are temporary. These predate their matchers being wired, so they
 # CANNOT currently be regenerated — and between them they hold 2,265 bathymetry identifiers

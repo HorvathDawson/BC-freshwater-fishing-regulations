@@ -26,6 +26,11 @@ from pipeline.deliver.tiles.names import display
 _ROUND = 6                      # ~11 cm; tippecanoe quantises to the tile grid anyway
 
 
+
+def region_id_of(name) -> str:
+    """One spelling of a region's id on every `region` feature: "1" … "8", "7A", "7B" (P18)."""
+    return str(name).strip().upper()
+
 def _writer(out_dir: Path, spec: LayerSpec):
     fh = (out_dir / f"{spec.name}.geojsonl").open("w")
     allowed = set(spec.attrs)
@@ -394,6 +399,10 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
             # coloured, and nothing anywhere errored. Exactly the failure the tile
             # contract was created to stop, one seam further along.
             props = {"area_id": name, "name": display(name), "kind": ad.get("tile_kind")}
+            if lname == "region":
+                # P18: the region layer is keyed by `region_id` (the style's feature id and label). These nine came
+                # from areas.json with a name only; give them the id the dissolved units carry ("7A", not "7a").
+                props["region_id"] = region_id_of(name)
             props.update({k: v for k, v in (extra.get(name) or {}).items() if v is not None})
             # A CLOSURE EARNS FEWER PIXELS BEFORE IT MUST BE SHOWN.
             #
@@ -444,7 +453,7 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
             if g is None or g.is_empty:
                 continue
             write(_to4326(g, tf),
-                  {"region_id": str(key).strip(),
+                  {"region_id": region_id_of(key),
                    "name": display(str(part.get(rnm) or "").strip())},
                   spec.minzoom)
             n_reg += 1
