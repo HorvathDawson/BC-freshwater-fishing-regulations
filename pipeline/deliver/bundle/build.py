@@ -39,6 +39,16 @@ _ROOT = REPO_ROOT
 SCHEMA = HERE / "schema.sql"
 INDEXES = HERE / "indexes.sql"
 
+#: THE BUNDLE'S FORMAT (P07): `meta.format`. Bump it when a reader must refuse an older bundle.
+BUNDLE_FORMAT = "bundle/1"
+
+
+def schema_sha256() -> str:
+    """`meta.schema_sha256`: the digest of the DDL the bundle was written with (schema.sql + indexes.sql). The old
+    `meta.schema` was schema.sql's first comment line, identical in every revision."""
+    import hashlib
+    return hashlib.sha256(SCHEMA.read_bytes() + b"\0" + INDEXES.read_bytes()).hexdigest()[:16]
+
 #: The envelope, written by `pipeline.gauges.feed.climatology` and read by BOTH the feed publisher
 #: and this. Anchored on the repo root rather than derived from `data_dir`, which is how it
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
@@ -939,6 +949,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
 
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema", SCHEMA.read_text().split("\n")[0]),
+        ("format", BUNDLE_FORMAT),
+        ("schema_sha256", schema_sha256()),
         ("build", str(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),

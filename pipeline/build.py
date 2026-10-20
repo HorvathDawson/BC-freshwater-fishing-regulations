@@ -265,8 +265,9 @@ def main(argv: list[str] | None = None) -> int:
         if go and not (a.no_tiles and s == "tiles"):
             run_stage(s, cmds[s], key, run, m)
 
-    from pipeline.common.vintage import report
-    ok, msg = report(GENERATED.tiles, GENERATED.bundle / "bundle.sqlite", strict=not a.no_tiles)
+    # P07: every artifact of the delivery, not only tiles <-> bundle
+    from pipeline.common.vintage import Artifacts, report_all
+    ok, msg = report_all(GENERATED.tiles, Artifacts.canonical(), strict=not a.no_tiles)
     print(msg)
     run["status"] = "ok" if ok else "vintage mismatch"
     save_manifest(m)

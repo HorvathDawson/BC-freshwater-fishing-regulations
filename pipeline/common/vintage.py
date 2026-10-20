@@ -157,3 +157,131 @@ def promoted_atlas(build_dir: Path, tiles_dir: Path, bundle: Path) -> str | None
     except Exception:            # noqa: BLE001 — an unreadable table is not a promoted atlas
         return None
     return shipped_digests(tiles_dir, bundle).get(have)
+
+
+# --------------------------------------------------------------------------------------------
+# P07: EVERY ARTIFACT OF A DELIVERY, not only tiles ↔ bundle
+# --------------------------------------------------------------------------------------------
+#
+# One `deliver all` cuts the status index, the export pair, the answers, the card gate's stamp and the regs store from ONE
+# bundle. Each records the digests it was cut from: section_handles, reach_digest, rule_ids_sha256, and, for the store
+# and the stamp, the sha256 of the exact answers bytes. `report_all` holds every one of them to the bundle's (and the
+# bundle's handles to the tiles', through `report`), so a delivery that mixes two runs is refused naming the artifact.
+# The release package (P08) joins this list when it exists.
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Artifacts:
+    """Where one delivery's artifacts are."""
+    bundle: Path
+    status_index: Path
+    export: Path            # ui-rules-export.json; the guide, the answers and the stamp sit beside it
+    store: Path
+
+    @property
+    def guide(self) -> Path:
+        return self.export.with_name("ui-rules-guide.json")
+
+    @property
+    def answers(self) -> Path:
+        return self.export.with_name("ui-rules-answers.json")
+
+    @property
+    def stamp(self) -> Path:
+        from pipeline.deliver.answers.card_check import STAMP_NAME
+        return self.export.with_name(STAMP_NAME)
+
+    @classmethod
+    def in_dir(cls, d: Path) -> "Artifacts":
+        """`deliver all --out-dir d`'s layout: every file in one directory."""
+        d = Path(d)
+        return cls(d / "bundle.sqlite", d / "status_index.bin", d / "ui-rules-export.json", d / "regs.sqlite")
+
+    @classmethod
+    def canonical(cls) -> "Artifacts":
+        from pipeline.common.curated import GENERATED
+        from pipeline.deliver.store import OUT as STORE_OUT
+        from pipeline.tools.export_ui_rules import OUT as EXPORT_OUT
+        return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT, STORE_OUT)
+
+
+def _meta(p: Path) -> dict:
+    db = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+    try:
+        return dict(db.execute("SELECT k, v FROM meta"))
+    finally:
+        db.close()
+
+
+def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tuple[bool, str]:
+    """`(ok, message)` for EVERY artifact of the delivery at `arts`, against the bundle's digests and the tiles'.
+    `strict` (the end of `deliver all` and `pipeline build`) refuses a missing artifact; otherwise it is "not checked"."""
+    import hashlib
+    ok, first = report(tiles_dir, arts.bundle, strict=strict)
+    lines, bad = [first], [] if ok else ["tiles/bundle"]
+    if not arts.bundle.exists():
+        return ok, "\n".join(lines)
+    from pipeline.deliver.bundle.build import BUNDLE_FORMAT, schema_sha256
+    B = _meta(arts.bundle)
+    want = {"section_handles": B.get("section_handles"), "reach_digest": B.get("reach_digest")}
+
+    def fail(name: str, why: str) -> None:
+        bad.append(name)
+        lines.append(f"  ⚠️  {name}: {why}")
+
+    def same(name: str, got: dict, keys=("section_handles", "reach_digest")) -> None:
+        diff = {k: (got.get(k), want[k]) for k in keys if got.get(k) != want[k]}
+        if diff:
+            fail(name, "cut from another bundle — " + ", ".join(f"{k} {g!r} ≠ bundle's {w!r}" for k, (g, w) in diff.items()))
+
+    # the bundle's own format
+    for k, v in (("format", BUNDLE_FORMAT), ("schema_sha256", schema_sha256())):
+        if B.get(k) != v and (strict or B.get(k) is not None):
+            fail("bundle.sqlite", f"meta {k} {B.get(k)!r} is not this code's {v!r} — rebuild the bundle")
+    missing = []
+    for p in (arts.status_index, arts.export, arts.guide, arts.answers, arts.stamp, arts.store):
+        if not p.exists():
+            missing.append(p.name)
+    if missing:
+        (fail if strict else lambda n, w: lines.append(f"  vintage: not checked — {w}"))(
+            ", ".join(missing), "not built")
+    if arts.status_index.exists():
+        from pipeline.deliver import status_index as SI
+        ix = SI.Index(arts.status_index.read_bytes())
+        same(arts.status_index.name, {"section_handles": ix.handles, "reach_digest": ix.reach_digest})
+    rids = B.get("rule_ids_sha256")
+    for p in (arts.export, arts.guide):
+        if p.exists():
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            same(p.name, doc["about"]["bundle"])
+            if "rule_ids" in doc:
+                from pipeline.deliver.answers.encode import rule_ids_digest
+                if rule_ids_digest(doc["rule_ids"]) != rids:
+                    fail(p.name, f"rule_ids are not the bundle's ({rids})")
+    sha = None
+    if arts.answers.exists():
+        raw = arts.answers.read_bytes()
+        sha = hashlib.sha256(raw).hexdigest()
+        about = json.loads(raw)["about"]
+        same(arts.answers.name, about["bundle"])
+        if about["export"]["rule_ids_sha256"] != rids:
+            fail(arts.answers.name, f"rule_ids_sha256 {about['export']['rule_ids_sha256']!r} ≠ the bundle's {rids!r}")
+    if arts.stamp.exists() and sha:
+        st = json.loads(arts.stamp.read_text(encoding="utf-8")).get("card_check", {})
+        if st.get("problems") != 0:
+            fail(arts.stamp.name, f"the card gate found {st.get('problems')} problems")
+        if st.get("answers_sha256") != sha:
+            fail(arts.stamp.name, "answers_sha256 is not the answers file's: the gate proved other bytes")
+    if arts.store.exists():
+        S = _meta(arts.store)
+        same(arts.store.name, S)
+        if S.get("rule_ids_sha256") != rids:
+            fail(arts.store.name, f"rule_ids_sha256 {S.get('rule_ids_sha256')!r} ≠ the bundle's {rids!r}")
+        if sha and S.get("answers_sha256") != sha:
+            fail(arts.store.name, "answers_sha256 is not the answers file's: the store holds other answers")
+    if not bad:
+        lines.append(f"  vintage: every artifact agrees (handles {want['section_handles']}, reach {want['reach_digest']}, "
+                     f"rule ids {rids})")
+    return not bad, "\n".join(lines)

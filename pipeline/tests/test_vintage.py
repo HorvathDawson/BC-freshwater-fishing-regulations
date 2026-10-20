@@ -134,3 +134,88 @@ def test_matching_registries_pass_and_strict_wants_both(tmp_path: Path):
     assert report(tiles, bundle, strict=True)[0]
     (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "a" * 16}))
     assert report(tiles, bundle)[0] and not report(tiles, bundle, strict=True)[0]
+
+
+# ---- P07: report_all — every artifact of a delivery against the bundle's digests ------------------------------
+
+import hashlib
+
+import pytest
+
+from pipeline.common.vintage import Artifacts, report_all
+
+H, REACH, RIDS = "147b20dce7d8576c", "ad6279cad5f3fc76", "16be720be08b0fca"
+
+
+def _delivery(d: Path, *, handles=H, reach=REACH, store_handles=None, answers_text='x', stamp_ok=True,
+              fmt="bundle/1") -> Artifacts:
+    """One delivery's artifacts in `d`, every digest agreeing unless told otherwise."""
+    from pipeline.deliver import status_index as SI
+    from pipeline.deliver.answers.card_check import STAMP_NAME
+    from pipeline.deliver.bundle.build import BUNDLE_FORMAT, schema_sha256
+    d.mkdir(parents=True, exist_ok=True)
+    _tiles(d / "tiles", handles)
+    (d / "tiles" / "atlas.meta.json").write_text(json.dumps({"section_handles": handles, "registry": "reg1"}))
+    db = sqlite3.connect(d / "bundle.sqlite")
+    db.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    db.executemany("INSERT INTO meta VALUES (?, ?)", [
+        ("section_handles", handles), ("reach_digest", reach), ("rule_ids_sha256", RIDS),
+        ("format", fmt if fmt else BUNDLE_FORMAT), ("schema_sha256", schema_sha256()), ("registry_digest", "reg1")])
+    db.commit()
+    db.close()
+    (d / "status_index.bin").write_bytes(SI.encode({"handles": handles, "reach_digest": reach, "profiles": [],
+                                                    "sections": {}, "items": {}}))
+    about = {"bundle": {"section_handles": handles, "reach_digest": reach}}
+    from pipeline.deliver.answers.encode import rule_ids_digest
+    rule_ids = ["a", "b"]
+    rids = rule_ids_digest(rule_ids)
+    (d / "ui-rules-export.json").write_text(json.dumps({"about": about, "rule_ids": rule_ids}))
+    (d / "ui-rules-guide.json").write_text(json.dumps({"about": about}))
+    ans = json.dumps({"about": {**about, "export": {"rule_ids_sha256": rids}}, "x": answers_text}).encode()
+    (d / "ui-rules-answers.json").write_bytes(ans)
+    sha = hashlib.sha256(ans).hexdigest()
+    (d / STAMP_NAME).write_text(json.dumps({"card_check": {"problems": 0 if stamp_ok else 3, "answers_sha256": sha,
+                                                           "parts_checked": 5}}))
+    st = sqlite3.connect(d / "regs.sqlite")
+    st.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    st.executemany("INSERT INTO meta VALUES (?, ?)", [
+        ("section_handles", store_handles or handles), ("reach_digest", reach), ("rule_ids_sha256", rids),
+        ("answers_sha256", sha)])
+    st.commit()
+    st.close()
+    # the bundle's rule_ids digest is the export's (they are cut from one bundle)
+    db = sqlite3.connect(d / "bundle.sqlite")
+    db.execute("UPDATE meta SET v = ? WHERE k = 'rule_ids_sha256'", (rids,))
+    db.commit()
+    db.close()
+    return Artifacts.in_dir(d)
+
+
+def test_report_all_passes_a_delivery_whose_every_digest_agrees(tmp_path: Path):
+    ok, msg = report_all(tmp_path / "tiles", _delivery(tmp_path), strict=True)
+    assert ok, msg
+
+
+@pytest.mark.parametrize("what, kw, says", [
+    ("the store from another atlas", {"store_handles": "0000000000000000"}, "regs.sqlite"),
+    ("a stamp with problems", {"stamp_ok": False}, "card-check.json"),
+    ("an older bundle format", {"fmt": "bundle/0"}, "format"),
+])
+def test_report_all_refuses_one_artifact_out_of_step(tmp_path: Path, what, kw, says):
+    ok, msg = report_all(tmp_path / "tiles", _delivery(tmp_path, **kw), strict=True)
+    assert not ok and says in msg, (what, msg)
+
+
+def test_report_all_refuses_answers_changed_after_the_store_and_the_gate(tmp_path: Path):
+    arts = _delivery(tmp_path)
+    arts.answers.write_bytes(arts.answers.read_bytes() + b" ")
+    ok, msg = report_all(tmp_path / "tiles", arts, strict=True)
+    assert not ok and "answers_sha256" in msg
+
+
+def test_report_all_strict_refuses_a_missing_artifact_lenient_notes_it(tmp_path: Path):
+    arts = _delivery(tmp_path)
+    arts.store.unlink()
+    assert not report_all(tmp_path / "tiles", arts, strict=True)[0]
+    ok, msg = report_all(tmp_path / "tiles", arts, strict=False)
+    assert ok and "not checked" in msg

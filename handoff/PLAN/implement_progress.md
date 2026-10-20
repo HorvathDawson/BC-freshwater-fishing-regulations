@@ -96,6 +96,20 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - NOT done: the port harness `hydrate.mjs` YEAR 2036 case (prototype lane; T05 covers taps.json parity at 2036-02-29).
   The next golden sync will report page_v36.js `weekdayOf` / `setMd` / `fromBox` as changed functions.
 
+## P07: bundle format + atomic deliver all (DONE, except the heavy live run)
+- bundle meta gains `format` = "bundle/1" (`build.BUNDLE_FORMAT`) and `schema_sha256` (schema.sql + indexes.sql). `schema`
+  is kept.
+- `deliver all` (`_all`): every step writes into `.deliver-staging-*` beside the destination; promotion by os.replace
+  happens only after the last step + `report_all(strict)`. A file with no home refuses the promotion. Staging is
+  removed on every exit.
+- `vintage.Artifacts` + `report_all`: tiles · bundle (+format) · status index · export pair (+rule_ids) · answers ·
+  card-check stamp · store (handles, reach, rule ids, answers_sha256). The package joins at P08. `pipeline build` calls it.
+- Tests: test_deliver_atomic.py (8: a failing step at 5 points leaves live bytes and mtimes unchanged; a vintage
+  mismatch promotes nothing; a pass promotes all; canonical homes) and test_vintage.py +6. All failed before.
+- Live report_all: lenient = every artifact agrees; strict refuses only the bundle's missing format/schema_sha256
+  (it predates P07; the next bundle build writes them).
+- NEXT: the batched heavy run `python -m pipeline.deliver all --out-dir <scratch>` (P05 + P07 acceptance).
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).

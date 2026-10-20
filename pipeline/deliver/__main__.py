@@ -68,6 +68,72 @@ def _step(args: list) -> None:
     subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
 
 
+def canonical_homes() -> dict:
+    """Where each file `deliver all` writes lives when no --out-dir is given: {file name: its live path}."""
+    from pipeline.deliver.answers.card_check import STAMP_NAME
+    from pipeline.deliver.store import OUT as _STORE_OUT
+    from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+    b, r = GENERATED.bundle, _EXPORT_OUT.parent
+    return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
+            "status_index.bin": b / "status_index.bin", "regs.sqlite": _STORE_OUT,
+            "ui-rules-export.json": _EXPORT_OUT, "ui-rules-guide.json": r / "ui-rules-guide.json",
+            "ui-rules-answers.json": r / "ui-rules-answers.json",
+            "ui-rules-answers.json.gz": r / "ui-rules-answers.json.gz", STAMP_NAME: r / STAMP_NAME}
+
+
+def _all(a) -> int:
+    """THE CHAIN, ATOMIC (P07). Every step writes into a staging directory beside the destination (on the same disk, so
+    `os.replace` is a rename). Only when the last step AND `vintage.report_all(strict)` pass is each file moved into
+    place: into --out-dir, or to its canonical home (`canonical_homes`). A failed step or a vintage mismatch moves
+    nothing, and the staging directory is removed either way, so the live files are never a mix of two runs."""
+    import os
+    import shutil
+    import tempfile
+    from pipeline.common import vintage
+    dest = a.out_dir
+    base = dest.parent if dest else GENERATED.bundle.parent
+    base.mkdir(parents=True, exist_ok=True)
+    d = Path(tempfile.mkdtemp(prefix=".deliver-staging-", dir=base))
+    try:
+        bundle = d / "bundle.sqlite"
+        # EACH STEP IN ITS OWN PROCESS (DATAFLOW P1b, M10.1): CPython rarely hands a fragmented
+        # heap back, so a step run in-process inherited the bundle build's peak. A step that
+        # fails stops the chain (`check=True`); each still runs alone.
+        b = ["bundle", "--out", str(bundle)]
+        for flag, v in (("--build", a.build), ("--reaches", a.reaches), ("--entries", a.entries)):
+            if v is not None:
+                b += [flag, str(v)]
+        _step(b)
+        _step(["verdicts", "--bundle", str(bundle), "--out", str(d / "verdicts.sqlite")])
+        _step(["status_index", "--bundle", str(bundle), "--out", str(d / "status_index.bin")])
+        _step(["export", "--bundle", str(bundle), "--out", str(d / "ui-rules-export.json")])
+        _step(["answers", "--bundle", str(bundle), "--export-dir", str(d)])
+        # THE CARD GATE (P05): every number on every card of the answers just written, proved
+        # against the bundle's rules; a problem stops the chain here, before anything is packaged
+        _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)])
+        _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")])
+        ok, msg = vintage.report_all(GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
+        print(msg)
+        if not ok:
+            print("pipeline.deliver: vintage refused — nothing was promoted", file=sys.stderr)
+            return 1
+        homes = canonical_homes()
+        names = sorted(p.name for p in d.iterdir())
+        unknown = [n for n in names if dest is None and n not in homes]
+        if unknown:
+            raise SystemExit(f"pipeline.deliver: no home for {unknown} — nothing was promoted")
+        if dest:
+            dest.mkdir(parents=True, exist_ok=True)
+        for n in names:
+            target = dest / n if dest else homes[n]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(d / n, target)
+        print(f"pipeline.deliver: promoted {len(names)} files to {dest or 'their canonical homes'}")
+        return 0
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="pipeline.deliver", description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="step")
@@ -119,33 +185,7 @@ def main(argv=None) -> int:
         if a.step is None:
             a.build = a.reaches = a.entries = None
             a.out_dir = None
-        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
-        d = a.out_dir
-        bundle = (d / "bundle.sqlite") if d else (GENERATED.bundle / "bundle.sqlite")
-        # EACH STEP IN ITS OWN PROCESS (DATAFLOW P1b, M10.1): CPython rarely hands a fragmented
-        # heap back, so a step run in-process inherited the bundle build's peak. A step that
-        # fails stops the chain (`check=True`); each still runs alone.
-        b = ["bundle", "--out", str(bundle)]
-        for flag, v in (("--build", a.build), ("--reaches", a.reaches), ("--entries", a.entries)):
-            if v is not None:
-                b += [flag, str(v)]
-        _step(b)
-        _step(["verdicts", "--bundle", str(bundle), "--out", str(bundle.with_name("verdicts.sqlite"))])
-        _step(["status_index", "--bundle", str(bundle), "--out",
-               str((d / "status_index.bin") if d else GENERATED.bundle / "status_index.bin")])
-        export_out = (d / "ui-rules-export.json") if d else _EXPORT_OUT
-        _step(["export", "--bundle", str(bundle), "--out", str(export_out)])
-        _step(["answers", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
-        # THE CARD GATE (P05): every number on every card of the answers just written, proved
-        # against the bundle's rules; a problem stops the chain here, before anything is packaged
-        _step(["card_check", "--bundle", str(bundle), "--export-dir", str(export_out.parent)])
-        from pipeline.deliver.store import OUT as _STORE_OUT
-        _step(["store", "--bundle", str(bundle), "--export-dir", str(export_out.parent),
-               "--out", str((d / "regs.sqlite") if d else _STORE_OUT)])
-        from pipeline.common.vintage import report
-        ok, msg = report(GENERATED.tiles, bundle)
-        print(msg)
-        return 0 if ok else 1
+        return _all(a)
     if a.step == "bundle":
         _bundle(a)
     elif a.step == "verdicts":

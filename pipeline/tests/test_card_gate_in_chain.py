@@ -35,7 +35,7 @@ def _run_all(monkeypatch, tmp_path, fail_at=None):
         if args[0] == fail_at:
             raise subprocess.CalledProcessError(1, args)
     monkeypatch.setattr(D, "_step", step)
-    monkeypatch.setattr("pipeline.common.vintage.report", lambda *a, **k: (True, "ok"))
+    monkeypatch.setattr("pipeline.common.vintage.report_all", lambda *a, **k: (True, "ok"))
     try:
         D.main(["all", "--out-dir", str(tmp_path)])
     except subprocess.CalledProcessError:
