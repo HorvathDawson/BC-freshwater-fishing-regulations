@@ -468,7 +468,6 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     """Fetch every station and write the feed. Returns a small summary for the caller."""
     out.mkdir(parents=True, exist_ok=True)
     envelope = (clim or {}).get("stations", {})
-    stats = (clim or {}).get("stats", {})
     release = (clim or {}).get("release")
     forecast = forecast or {}
     now = datetime.now(timezone.utc)
@@ -639,12 +638,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         "stations": index,
     }, separators=(",", ":")), encoding="utf-8")
 
-    # The envelope's own statistics ride along so a client can say "97 years of record"
-    # without opening the bundle. Small: a few numbers per station.
-    if stats:
-        (out / "stats.json").write_text(json.dumps(
-            {"release": release, "stations": stats}, separators=(",", ":")),
-            encoding="utf-8")
+    # NO stats.json (P20, owner Q16): nothing read it. A record length shown beside a percentile comes from the
+    # bundle's climatology, never from a second file that can fall out of step with it.
 
     return {"asked": len(stations), "answered": len(got), "release": release,
             "stale": stale, "latest": latest_release,

@@ -139,19 +139,6 @@ describe("httpFeed", () => {
 });
 
 describe("record length and HYDAT provenance", () => {
-  const STATS = { release: "20260717",
-                  stations: { "08MH001": { from_year: 1913, to_year: 2026, years: 97 } } };
-
-  it("reports how long a station's record is", async () => {
-    const f = httpFeed("http://x", server({ "stats.json": STATS }));
-    expect(await f.record(S)).toEqual({ fromYear: 1913, toYear: 2026, years: 97 });
-  });
-
-  it("returns null for a station with no published record", async () => {
-    const f = httpFeed("http://x", server({ "stats.json": STATS }));
-    expect(await f.record("08XX999" as StationId)).toBeNull();
-  });
-
   it("carries which HYDAT release the percentiles were measured against", async () => {
     // A percentile with no stated source claims more authority than it has.
     const idx = { ...INDEX, hydat: { release: "20260717", latest: "20260717",

@@ -392,3 +392,10 @@ def test_the_atlas_build_writes_no_blk_chains_pickle():
     from pipeline.common.curated import REPO_ROOT
     src = (REPO_ROOT / "pipeline" / "atlas" / "build.py").read_text()
     assert "blk_chains.pkl" not in src
+
+
+def test_the_feed_publisher_writes_no_stats_json():
+    """P20 / owner Q16: stats.json had no reader. A record length beside a percentile comes from the bundle."""
+    from pipeline.common.curated import REPO_ROOT
+    src = (REPO_ROOT / "pipeline" / "gauges" / "feed" / "publish.py").read_text()
+    assert '"stats.json"' not in src

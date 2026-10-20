@@ -76,13 +76,6 @@ interface IndexFile {
   }>;
 }
 
-/** How long a station's record runs — the weight behind "below normal for the date". */
-export interface GaugeRecord {
-  fromYear: number;
-  toYear: number;
-  years: number;
-}
-
 interface StationFile {
   fetchedAt: string;
   station: string;
@@ -170,14 +163,6 @@ export interface GaugeFeed {
   index(): Promise<IndexFile | null>;
   /** Whether the feed actually carries this station — see the note on the implementation. */
   published(station: string): Promise<boolean>;
-  /**
-   * How long this station's record is.
-   *
-   * Shown NEXT TO a percentile, never instead of it. "4th percentile" backed by 97 years
-   * and by 11 are different claims, and only one of them is worth acting on — a reader who
-   * cannot see which is being made will assume the stronger one.
-   */
-  record(station: StationId): Promise<GaugeRecord | null>;
 }
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFeed {
@@ -220,13 +205,6 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
 
   return {
     index: () => load<IndexFile>("index.json"),
-
-    async record(station) {
-      const f = await load<{ stations: Record<string, {
-        from_year: number; to_year: number; years: number }> }>("stats.json");
-      const r = f?.stations?.[station];
-      return r ? { fromYear: r.from_year, toYear: r.to_year, years: r.years } : null;
-    },
 
     async live() {
       const idx = await load<IndexFile>("index.json");
