@@ -96,6 +96,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - NOT done: the port harness `hydrate.mjs` YEAR 2036 case (prototype lane; T05 covers taps.json parity at 2036-02-29).
   The next golden sync will report page_v36.js `weekdayOf` / `setMd` / `fromBox` as changed functions.
 
+## N1: native map spike (BLOCKED on the owner, not started)
+- It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
+  - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).
+  - The Android SDK is at ~/Library/Android/sdk (it has emulator/ and build-tools/), but `adb` is not on PATH.
+- Asked the owner: go-ahead for the native builds, and whether to fix the simulator / emulator setup.
+- Spike rules (APP-PREP N1): throwaway branch, nothing merges; results go in handoff/PLAN/app-data/N1-SPIKE.md.
+- Light tickets that can run meanwhile: P01, P02, P04, P12, P13, T22; P07 (it heads packaging; the full
+  `deliver all` heavy run is batched with P05's acceptance).
+
 ## Baseline counts
 - pytest fast: 3572 passed / 6 skipped (unfiltered; matches the UR7 report's 3462 plus the tests added since).
 - `pnpm -C app check`: **RED at `fixture`.** `build-fixture.mjs` is deterministic (two rebuilds are byte-identical), but the
