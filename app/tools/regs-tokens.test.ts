@@ -6,11 +6,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { DARK, LIGHT, SPACE, GUTTER, type Palette } from "../theme";
-import { FACE, FACES_REQUIRED, TYPE } from "../type";
+import { DARK, LIGHT, SPACE, GUTTER, type Palette } from "../packages/ui-native/src/theme";
+import { FACE, FACES_REQUIRED, TYPE } from "../packages/ui-native/src/type";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
-const tokens = JSON.parse(readFileSync(here("../../../../design/regs-v11/port/golden/tokens.json"), "utf8")) as {
+const tokens = JSON.parse(readFileSync(here("../design/regs-v11/port/golden/tokens.json"), "utf8")) as {
   tokens: { light: Record<string, string>; dark: Record<string, string> };
   compare: { token: string; light: string; dark: string; same: boolean }[];
 };
@@ -50,7 +50,8 @@ describe("T22 tokens", () => {
   });
 
   it("no regs component sets a weight, a folded colour or a literal radius", () => {
-    const dir = here(".");
+    // here, not in packages/ui-native: a ui-native file may not import node:fs (the boundaries gate)
+    const dir = here("../packages/ui-native/src/regs");
     const files: string[] = [];
     const walk = (d: string) => {
       for (const f of readdirSync(d)) {
@@ -70,7 +71,7 @@ describe("T22 tokens", () => {
 
   it("every TYPE face is loaded, Archivo 800 included", () => {
     expect(FACES_REQUIRED).toContain(FACE.textHeavy);
-    const app = readFileSync(here("../../../../apps/mobile/src/App.tsx"), "utf8");
+    const app = readFileSync(here("../apps/mobile/src/App.tsx"), "utf8");
     for (const face of FACES_REQUIRED) expect([face, app.includes(face)]).toEqual([face, true]);
   });
 });
