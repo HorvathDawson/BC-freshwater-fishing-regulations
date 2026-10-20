@@ -226,3 +226,13 @@ def test_report_all_strict_refuses_a_missing_artifact_lenient_notes_it(tmp_path:
     assert not report_all(tmp_path / "tiles", arts, strict=True)[0]
     ok, msg = report_all(tmp_path / "tiles", arts, strict=False)
     assert ok and "not checked" in msg
+
+
+def test_report_all_refuses_a_release_file_from_another_atlas(tmp_path: Path):
+    arts = _delivery(tmp_path)
+    rel = tmp_path / "release" / "r-x"
+    rel.mkdir(parents=True)
+    (rel / "manifest.json").write_text(json.dumps({"files": {"core": {"section_handles": H},
+                                                             "water": {"section_handles": "0" * 16}}}))
+    ok, msg = report_all(tmp_path / "tiles", arts, strict=True)
+    assert not ok and "water" in msg and "core" not in msg.split("release r-x")[1]

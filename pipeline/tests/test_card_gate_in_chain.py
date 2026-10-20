@@ -45,7 +45,7 @@ def _run_all(monkeypatch, tmp_path, fail_at=None):
 
 def test_deliver_all_runs_the_card_gate_after_answers_and_before_store(monkeypatch, tmp_path):
     ran = _run_all(monkeypatch, tmp_path)
-    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store"]
+    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release"]
 
 
 def test_a_failing_card_gate_stops_the_chain_before_store(monkeypatch, tmp_path):

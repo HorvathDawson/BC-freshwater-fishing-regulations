@@ -19,7 +19,7 @@ from pipeline.deliver import __main__ as D
 WRITES = {"bundle": ["bundle.sqlite"], "verdicts": ["verdicts.sqlite"], "status_index": ["status_index.bin"],
           "export": ["ui-rules-export.json", "ui-rules-guide.json"],
           "answers": ["ui-rules-answers.json", "ui-rules-answers.json.gz"], "card_check": ["card-check.json"],
-          "store": ["regs.sqlite"]}
+          "store": ["regs.sqlite"], "release": []}
 
 
 def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
@@ -30,6 +30,11 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
         ran.append(name)
         if name == fail_at:
             raise subprocess.CalledProcessError(1, args)
+        if name == "release":                       # a folder, under --out-root
+            r = Path(args[args.index("--out-root") + 1]) / "r-test"
+            r.mkdir(parents=True)
+            (r / "manifest.json").write_text("new manifest")
+            return
         out = Path(args[args.index("--out") + 1]).parent if "--out" in args else Path(args[args.index("--export-dir") + 1])
         for f in WRITES[name]:
             (out / f).write_text(f"new {f}")
@@ -45,14 +50,14 @@ def _live(dest: Path) -> dict:
         for f in files:
             (dest / f).write_text(f"old {f}")
             os.utime(dest / f, (1_000_000_000, 1_000_000_000))
-    return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir()}
+    return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir() if f.is_file()}
 
 
 def _state(dest: Path) -> dict:
-    return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir()}
+    return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir() if f.is_file()}
 
 
-@pytest.mark.parametrize("fail_at", ["bundle", "export", "answers", "card_check", "store"])
+@pytest.mark.parametrize("fail_at", ["bundle", "export", "answers", "card_check", "store", "release"])
 def test_a_failing_step_leaves_every_live_file_unchanged(monkeypatch, tmp_path, fail_at):
     dest = tmp_path / "out"
     before = _live(dest)
@@ -76,8 +81,10 @@ def test_a_passing_run_promotes_every_file_and_leaves_no_staging(monkeypatch, tm
     _live(dest)
     ran = _fake_steps(monkeypatch)
     assert D.main(["all", "--out-dir", str(dest)]) == 0
-    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store"]
-    assert {n: t for n, (t, _m) in _state(dest).items()} == {f: f"new {f}" for fs in WRITES.values() for f in fs}
+    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release"]
+    assert {n: t for n, (t, _m) in _state(dest).items() if n != "release"} == \
+        {f: f"new {f}" for fs in WRITES.values() for f in fs}
+    assert (dest / "release" / "r-test" / "manifest.json").read_text() == "new manifest"
     assert [p.name for p in tmp_path.iterdir()] == ["out"]
 
 

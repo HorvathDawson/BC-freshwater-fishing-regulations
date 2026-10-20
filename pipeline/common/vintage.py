@@ -277,6 +277,13 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
             fail(arts.store.name, f"rule_ids_sha256 {S.get('rule_ids_sha256')!r} ≠ the bundle's {rids!r}")
         if sha and S.get("answers_sha256") != sha:
             fail(arts.store.name, "answers_sha256 is not the answers file's: the store holds other answers")
+    # THE RELEASE (P08): every shipped file names the bundle's sid space
+    rel = arts.bundle.parent / "release"
+    for man in sorted(rel.glob("*/manifest.json")) if rel.exists() else []:
+        files = json.loads(man.read_text(encoding="utf-8")).get("files", {})
+        off = sorted(n for n, e in files.items() if e.get("section_handles") != want["section_handles"])
+        if off:
+            fail(f"release {man.parent.name}", f"files from another atlas: {off}")
     if not bad:
         lines.append(f"  vintage: every artifact agrees (handles {want['section_handles']}, reach {want['reach_digest']}, "
                      f"rule ids {rids})")

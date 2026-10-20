@@ -187,16 +187,26 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
 - KNOWN GAP (unchanged): Kootenay Lake's marks are between lake-part ITEMS; decide at P15.
 - T22 follow-ups committed: tokens test moved to app/tools (boundaries), fish-sprite.html regenerated.
 
-## P08 design notes (next after P09)
-- Several app queries JOIN across what become separate files: SEARCH / WATERS_NEAR read section_gauge.mag, gauge,
-  lake_gauge, entry, stock_water. The plan already moved one (entry → `item.has_rows`). So: core.item gains
-  `size` (max mag), `gauged`, `has_rows` (stocked stays false until a producer exists), and the release-form queries
-  read them. Parity = the OLD query on the bundle == the NEW query on the owning file (P08 test 2); the contract is
-  emitted to pack.generated.ts (emit_pack --check).
-- Files: paint (status_index.bin + the flow runs, as measure/paint.py), core (item+flags, alias, item_section, place,
-  meta; NOCASE indexes), near (place_water), water (store common tables + part_section + akey_region + P09 tables),
-  regs-<region> (cell + frame families for akeys of that region's sections), regs-sid (section_akey, section_place),
-  conditions (gauge, section_gauge, lake_gauge, section_down, gauge_clim f16). Each .gz, sha-named; manifest app-manifest/2.
+## P08 stage 1 (DONE): the release writer
+- `pipeline/deliver/release/` {build, paint, shards, manifest, __main__}; `python -m pipeline.deliver release` and the
+  last step of `deliver all` (staged + promoted with the rest; report_all checks each release manifest's handles).
+- Files: paint (status + flow runs/members/basins; paint/1), flow-area (target areas as varints, 0.19 MB; as a sid-keyed
+  table they cost 0.9 MB), core (item + size/gauged/has_rows flags, alias, item_alias, item_section WITHOUT ROWID
+  (sid, ord) + ord index, place; NOCASE indexes, OSM index dropped), near, conditions (gauge_clim → float16 clim/2),
+  water (store common tables + display_rule + akey_region + part_section/part_geo (e6 ints)/part_mark (e6)/water_exit
+  (no label)), regs-<9 regions> (cells + every row their frames reach), regs-sid. Each gz, sha-named; manifest app-manifest/2;
+  data_release id = r-<sha12 of the file shas> unless given.
+- Sizes (gzip): paint 0.93, core 1.27, near 1.99, conditions 2.88, water 2.75, regs-sid 1.22, regions 0.13–0.44,
+  flow-area 0.19; TOTAL 13.88 MB (gate 14). The plan's 12.5 estimate left out the panel target areas.
+- test_release.py: 3 no-data + 5 needs_bundle (on the P09 side bundle): only manifest files; sha + bytes true; every
+  file's handles + format; card stamp in water; core ord = water item_ord; paint = status_index.bin + flow tables
+  exactly; water + 9 regions + regs-sid = the regs store row for row; each region holds exactly its akeys' cells;
+  two builds identical; size gates.
+- NEXT (stage 2): emit_pack → app/packages/data/src/pack.generated.ts (per-file tables/columns, paint layout,
+  formats, manifest type; --check in CI), release-form queries + query parity (old query on bundle == new query on
+  file), perf gates (test_release_perf.py, vitest release-perf).
+- The live bundle predates P07/P09: the next human `deliver all` (or pipeline build) writes format + part_geo, after
+  which the release step runs in the chain on live data.
 
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.

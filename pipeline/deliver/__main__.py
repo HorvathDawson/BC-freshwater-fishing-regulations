@@ -112,13 +112,19 @@ def _all(a) -> int:
         # against the bundle's rules; a problem stops the chain here, before anything is packaged
         _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)])
         _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")])
+        # THE SHIPPED SET (P08): data/release/<data_release>/, from the files just made
+        _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
+               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release")])
         ok, msg = vintage.report_all(GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
         print(msg)
         if not ok:
             print("pipeline.deliver: vintage refused — nothing was promoted", file=sys.stderr)
             return 1
         homes = canonical_homes()
-        names = sorted(p.name for p in d.iterdir())
+        # the release folder(s) go to data/release/ (or <out-dir>/release/), whole
+        rel_root = (dest / "release") if dest else GENERATED.release
+        releases = sorted(p for p in (d / "release").iterdir()) if (d / "release").exists() else []
+        names = sorted(p.name for p in d.iterdir() if p.name != "release")
         unknown = [n for n in names if dest is None and n not in homes]
         if unknown:
             raise SystemExit(f"pipeline.deliver: no home for {unknown} — nothing was promoted")
@@ -128,13 +134,25 @@ def _all(a) -> int:
             target = dest / n if dest else homes[n]
             target.parent.mkdir(parents=True, exist_ok=True)
             os.replace(d / n, target)
-        print(f"pipeline.deliver: promoted {len(names)} files to {dest or 'their canonical homes'}")
+        for r in releases:
+            rel_root.mkdir(parents=True, exist_ok=True)
+            if (rel_root / r.name).exists():          # the same content id: identical bytes, replaced whole
+                shutil.rmtree(rel_root / r.name)
+            os.replace(r, rel_root / r.name)
+        print(f"pipeline.deliver: promoted {len(names)} files to {dest or 'their canonical homes'}"
+              + (f" and release {', '.join(r.name for r in releases)} to {rel_root}" if releases else ""))
         return 0
     finally:
         shutil.rmtree(d, ignore_errors=True)
 
 
 def main(argv=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["release"]:                 # its flags are its own module's (argparse cannot pass them through)
+        from pipeline.deliver.release.__main__ import main as release_main
+        if release_main(argv[1:]):
+            raise SystemExit("pipeline.deliver: the release was refused (a size gate) — nothing was packaged")
+        return 0
     ap = argparse.ArgumentParser(prog="pipeline.deliver", description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="step")
     b = sub.add_parser("bundle", help="the SQLite bundle from an atlas and its reach run")
@@ -165,6 +183,8 @@ def main(argv=None) -> int:
     cc.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     cc.add_argument("--export-dir", type=Path, default=None,
                     help="the answers' directory (default: the canonical export's)")
+    sub.add_parser("release", help="the shipped set: data/release/<data_release>/ (P08); its own flags: "
+                                   "python -m pipeline.deliver.release --help")
     st = sub.add_parser("store", help="the regs store (regs.sqlite) from the answers + export pair")
     st.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     st.add_argument("--export-dir", type=Path, default=None,
