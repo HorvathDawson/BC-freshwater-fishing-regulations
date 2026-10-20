@@ -939,7 +939,9 @@ function treeBlock(g, pic){
   const orgT = o => o ? `<p class="gorigin">${esc(o)} <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button> ${gi('hatchery_wild')}</p>` : '';
   const tierT = t => `<section class="bucket${t.tier === 'size' ? ' sub size' : ''}"${t.tier === 'size' ? ' style="margin-left:14px;padding-left:8px;border-left:2px dashed #c9c9c9"' : ''}><p class="gline"><b>${esc(t.says)}</b> ${bookOf(t.by)}</p>${t.why_here ? `<p class="s2">${esc(cap(t.why_here))}</p>` : ''}${orgT(t.origin)}${t.children.map(x => x.node === 'tier' ? tierT(x) : kindT(x)).join('')}</section>`;
   const root = g.tree[0];
-  return `<section class="bucket"><p class="gline" style="font-size:16px"><b>${esc(g.header.says)}</b> ${bookOf(root.by)}</p>${orgT(g.origin)}${root.children.map(x => x.node === 'tier' ? tierT(x) : kindT(x)).join('')}</section>`;
+  // ROUND20h 3: the possession quota on this total (`group.possession`)
+  const pos = g.possession ? `<p class="s2"><b>Possession:</b> ${esc(g.possession.example)}${g.possession.doubles ? ' ' + esc(g.possession.doubles) : ''} ${gi('possession_quota')}</p>` : '';
+  return `<section class="bucket"><p class="gline" style="font-size:16px"><b>${esc(g.header.says)}</b> ${bookOf(root.by)}</p>${orgT(g.origin)}${root.children.map(x => x.node === 'tier' ? tierT(x) : kindT(x)).join('')}${pos}</section>`;
 }
 function cardBlock(row, id){
   const g = row.raw.group, el = row.raw.elsewhere;
@@ -1220,7 +1222,8 @@ function gearParts(){
   const WHY = { bait_ban:'bait ban', on_streams:'on streams', on_lakes:'on lakes', not_on_streams:'not on streams', not_on_lakes:'not on lakes', banned_roe_ok:'banned · roe is still OK', allowed:'allowed' };
   P.baitList = G.bait.map(b => ({ e:b.element, ok:b.ok }));
   P.bait = `<div class="gsec">${P.baitBan ? `<p class="kitnote">No natural bait of any kind while the ban runs. ${gi('bait_ban')}</p>` : ''}<div class="baitgrid">${G.bait.map(b => {
-    const r = b.by ? PLACE.R(b.by[0]) : null, sub = b.by ? (b.why ? (WHY[b.why] || b.why) : '') : 'allowed';
+    // ROUND20h 1: an allowed element names the ban it is an exception to (`excepted_from`)
+    const r = b.by ? PLACE.R(b.by[0]) : null, sub = b.excepted_from ? `allowed · the ${(ELEM[b.excepted_from.element] || b.excepted_from.element).toLowerCase()} ban excepts it` : b.by ? (b.why ? (WHY[b.why] || b.why) : '') : 'allowed';
     return `<button class="bait ${b.ok ? 'ok' : 'no'}" type="button" data-rule="${r ? esc(r.key) : ''}"><i>${b.ok ? '✓' : '✕'}</i><b>${ELEM[b.element] || b.element}</b><span>${esc([sub, b.carry_kg != null ? `carry up to ${b.carry_kg} kg` : ''].filter(Boolean).join(' · '))}</span>${(b.also_allowed || []).map(c => `<small>✓ dead fish ${esc(circTxt(c))}</small>`).join('')}</button>`; }).join('')}</div></div>`;
   // ways to fish: the answers' verdict per method against the province's lawful methods
   const WAYWHY = { fly_fishing_only:'fly fishing only: nothing but the fly on the line, no float, sinker or attractor', not_allowed_here:'not allowed here', not_lawful:'not a lawful way to sport fish', fly_fishing_only_here:'fly fishing only here' };

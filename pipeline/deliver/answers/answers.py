@@ -280,7 +280,9 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND20g 1/2: rows 24 (the origin rule on the share's tier where it holds on the share's water only, "From
         # streams, keep hatchery fish only — …"; no steelhead `size_note`; "stop fishing here after 2 a day", "record each on
         # your licence right away"; "A rainbow trout over 50 cm (20 in) here counts as a steelhead.")
-        Section("rows", 24, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND20h 3: rows 25 (`group.possession` {per_daily, of, n, by, example, doubles}: the possession quota on the
+        # group's total, "With 4 trout and char a day you may have 8: 2 days’ fish.")
+        Section("rows", 25, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -290,7 +292,8 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND13 G/P: gear 9 (no hook named without a hook restriction; "weight on the line up to 1 kg")
         # UR1 G: gear 10 (weight "1 kg (2.2 lb)"; a boat lifting the line count "1 line from shore; any number from a
         # boat", the Lines row "1 line (rod) from shore; no limit from a boat")
-        Section("gear", 10, gear.section_scope, prepare=gear.section_prepare,
+        # ROUND20h 1: gear 11 (`bait[].excepted_from` {element, by}: the ban an allowed element is an exception to)
+        Section("gear", 11, gear.section_scope, prepare=gear.section_prepare,
                 static=gear.section_static),
         # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
         # ROUND16 4: licence 6 (the under-16 answers say the book's p.6: a resident needs nothing, fishes alone and

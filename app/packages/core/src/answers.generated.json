@@ -877,6 +877,17 @@
        "title": "Element",
        "type": "string"
       },
+      "excepted_from": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/ExceptedFrom"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
       "ok": {
        "title": "Ok",
        "type": "boolean"
@@ -1165,6 +1176,44 @@
       "over"
      ],
      "title": "ElementPick",
+     "type": "object"
+    },
+    "ExceptedFrom": {
+     "additionalProperties": false,
+     "description": "ROUND20h 1: the ban an allowed bait element is an exception to \u2014 the banned `element` and its clause (`by`): the\nroe the province's fin-fish ban excepts (\"fin fish \u2026 other than roe\", p.8), on the days that ban is in force.",
+     "properties": {
+      "by": {
+       "maxItems": 2,
+       "minItems": 2,
+       "prefixItems": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "minimum": 0,
+         "type": "integer"
+        }
+       ],
+       "title": "By",
+       "type": "array"
+      },
+      "element": {
+       "enum": [
+        "worms",
+        "roe",
+        "invertebrate",
+        "fin_fish"
+       ],
+       "title": "Element",
+       "type": "string"
+      }
+     },
+     "required": [
+      "element",
+      "by"
+     ],
+     "title": "ExceptedFrom",
      "type": "object"
     },
     "GearAnswer": {
@@ -5130,6 +5179,58 @@
      "title": "Group",
      "type": "object"
     },
+    "GroupPossession": {
+     "additionalProperties": false,
+     "description": "ROUND20h 3 (owner): the possession quota on THIS group's total \u2014 `per_daily` the rule's multiplier, `of` the group's\ntotal (the daily quota it multiplies, never the stream share), `n` their product, `by` the possession rule; `example`\n\"With 4 trout and char a day you may have 8: 2 days\u2019 fish.\"; `doubles` \"Possession doubles the 4 a day, not the 2\nfrom streams.\" where a share sits under the total (None otherwise).",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "doubles": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Doubles"
+      },
+      "example": {
+       "minLength": 1,
+       "title": "Example",
+       "type": "string"
+      },
+      "n": {
+       "minimum": 0,
+       "title": "N",
+       "type": "integer"
+      },
+      "of": {
+       "minimum": 0,
+       "title": "Of",
+       "type": "integer"
+      },
+      "per_daily": {
+       "minimum": 1,
+       "title": "Per Daily",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "per_daily",
+      "of",
+      "n",
+      "by",
+      "example",
+      "doubles"
+     ],
+     "title": "GroupPossession",
+     "type": "object"
+    },
     "GroupTotal": {
      "additionalProperties": false,
      "description": "One total on today's card and its sub-caps (answers 2.5, rows F14) \u2014 the DECISION (`pool`,\n`total`, `kinds`, `subcaps`) \u2014 and, answers 2.8 (ROUND9 A1-A3), the CARD water-first, each fact\nonce: `headline`, `origin`, `lifts`, `total_line`, `buckets`, `not_kept`, `worked`, `states` (`card.py`; every\nnumber proved by `card_check`).",
@@ -5199,6 +5300,17 @@
        "minimum": 0,
        "title": "Pool",
        "type": "integer"
+      },
+      "possession": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/GroupPossession"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
       },
       "states": {
        "items": {

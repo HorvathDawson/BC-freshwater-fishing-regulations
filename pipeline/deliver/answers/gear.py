@@ -589,6 +589,19 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
         if also:
             row["also_allowed"] = also
         bait.append(row)
+    # ROUND20g-h 1 (owner: "roe — still OK, not part of the ban" read against a dated bait ban): an allowed element that a
+    # banned element's ban EXCEPTS names that ban — the province's year-round "fin fish … other than roe" (p.8) — on the
+    # days it is in force; on a bait-ban day it is banned too, nobody's exception
+    for row in bait:
+        if row["ok"]:
+            continue
+        x = any_ban if row["element"] == "worms" else elems.get(f"bait:{row['element']}")
+        if x is None or x["s"] != "ban":
+            continue
+        for ex in x["e"]["c"].get("except") or []:
+            to = next((y for y in bait if y["element"] == ex and y["ok"]), None)
+            if to is not None and "excepted_from" not in to:
+                to["excepted_from"] = {"element": row["element"], "by": ref(x["e"])}
     ans["bait"] = bait
     ans["bait_ban"] = all(verdict(f"bait:{k}") == "ban" for k in ("roe", "invertebrate", "fin_fish"))
 

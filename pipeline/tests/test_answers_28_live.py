@@ -88,6 +88,11 @@ def test_vedder_mouth_oct_10_card(built):
         "ST 2: 10 a year · stop fishing here after 2 a day · record each on your licence right away"]   # ROUND20g 2
     share = next(t for t in row["group"]["tree"][0]["children"] if t["tier"] == "share")
     assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
+    # ROUND20h 3: possession on the group's TOTAL (p.21 "Possession quotas = 2 daily quotas"), not the stream share
+    ps = row["group"]["possession"]
+    assert (ps["per_daily"], ps["of"], ps["n"]) == (2, 4, 8)
+    assert ps["example"] == "With 4 trout and char a day you may have 8: 2 days’ fish."
+    assert ps["doubles"] == "Possession doubles the 4 a day, not the 2 from streams."
     # ROUND12 1: the lift's size, said as the book says it (p.22 "of any length 50 cm or less")
     assert next(k for b in row["group"]["buckets"] for k in b["kinds"] if k["species"] == ["RB"])["detail"] \
         == "hatchery, any length, 50 cm or less"

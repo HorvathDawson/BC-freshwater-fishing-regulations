@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "24",
+            "version": "25",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -415,14 +415,18 @@ SPEC = {
                     "back.\") and the group's `origin` is null — draw it under the share's line; the steelhead kind has no "
                     "`size_note` (the size tier's \"— 2 if one is a hatchery steelhead\" says it once); duties \"stop fishing here "
                     "after 2 a day\", \"record each on your licence right away\"; the presence line \"A rainbow trout over 50 "
-                    "cm (20 in) here counts as a steelhead.\"",
+                    "cm (20 in) here counts as a steelhead.\". Version 25 (ROUND20h): `group.possession` {per_daily, of, n, by, "
+                    "example, doubles} — the possession rule's multiplier on the group's TOTAL (p.21 \"Possession quotas = 2 daily "
+                    "quotas\", p.80): \"With 4 trout and char a day you may have 8: 2 days’ fish.\", where a share sits under "
+                    "the total \"Possession doubles the 4 a day, not the 2 from streams.\" (null otherwise); null with no one "
+                    "possession rule holding every kind",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
                     "counts, specs, elements, circumstantial clauses, hook, fly, bait, ways to "
                     "fish, conduct by moment, vessel rules, timed / in-part / side / while rules, "
                     "overruled rules, the rules that decide and those that repeat",
-            "version": "10",
+            "version": "11",
             "at": "[[frame index per segment] per key]",
             "frames": "[gear answer] — on TIDAL water (key `tidal` 1) the documented tidal state "
                       "`{tidal: true, note, see, licence}` (`common.TIDAL_STATE`) and nothing else; "
@@ -445,7 +449,8 @@ SPEC = {
                       "alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
-                      "why?, carry_kg?, also_allowed?}], bait_ban, ways [{method, allowed, by, "
+                      "why?, carry_kg?, also_allowed?, excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
+                      "element is an exception to, the province's fin-fish ban's roe, on the days it is in force}], bait_ban, ways [{method, allowed, by, "
                       "why?, not_for?, for?, while?, conduct?, while_rules?, devices?}], conduct "
                       "{moment: [[act, [rule]]]}, vessel {active, timed}, timed, in_part, side, "
                       "while_rules, caught, overruled [{rule, state, reason, by}], decides, repeats}; "

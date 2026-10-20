@@ -98,6 +98,32 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND20h (2026-10-19) — gear 11, rows 25, glossary 4: a bait allowance names its ban, possession said once, each card's own example
+
+Owner (round 20h 1–3).
+
+1. **A bait allowance names the ban it is an exception to.** The Vedder's Oct 10 "Roe (fish eggs) — still OK" is NOT about
+   the May 1–31 bait ban (`chilliwack_vedder_rivers.r5`, `ban: any_bait`), which bans roe too (May 15: every element banned,
+   `bait_ban`); it is the exception of the province's year-round fin-fish ban, `zp:bait.r1` "The use of fin fish (dead or
+   alive) or parts of fin fish other than roe is prohibited throughout the province" (p.8; `ban: [fin_fish], except: [roe]`;
+   also `z7b:bait.r2`; no dated bait rule in the export carries an exception). The allowed element's row carries
+   `excepted_from` {element, by} — the banned element and the clause whose ban excepts it — on the days that ban is in force;
+   a banned element is nobody's exception. The page says "not part of the fin fish ban", never a bare "the ban".
+2. **Possession said once.** The glossary term `possession_quota.says` is only where possession holds — "The fish you have
+   with you at any time — in camp, a cooler or a vehicle." — the rule's plain line says the number and the home exception;
+   the multiplier stays in the generic `example` (the fallback).
+3. **Each card's possession example (`group.possession`).** {per_daily, of, n, by, example, doubles}: the ONE possession rule
+   holding every kind of the group (its `per_daily`) on the group's TOTAL. Book: p.21 "Possession Quotas — Possession quotas
+   = 2 daily quotas"; p.80 "possession quota: … In most instances, the possession quota is two times the daily quota" and
+   "daily quota: the maximum number of fish of a given species, group of species, or size class that you may keep in one
+   calendar day" — Region 2's table heads "Trout/char: 4, but not more than … 2 from streams": the daily quota is the 4, the
+   2 says where some of them may come from. `example` "With 4 trout and char a day you may have 8: 2 days’ fish.";
+   `doubles` "Possession doubles the 4 a day, not the 2 from streams." where a share sits under the total (null otherwise).
+   Null where no one possession rule with a multiplier holds every kind, or the total is unlimited. The gate proves `n` =
+   `of` × `per_daily`, `of` the total, the multiplier the rule's.
+
+`test_answers_r20h.py`.
+
 ## ROUND20g (2026-10-19) — rows 24, display 16, glossary 3: the origin rule where its scope is, fewer steelhead words, the possession line
 
 Owner (round 20g 1–3).
@@ -123,7 +149,7 @@ Owner (round 20g 1–3).
    possession. Fish at home don’t count.") — the exception is its own sentence (`display._home`, one source,
    `POSSESSION_HOME`). The glossary term `possession_quota`: `says` "The fish you have with you at any time — in camp, a
    cooler or a vehicle: 2 days' quota. Fish at home don't count.", `example` "With a daily quota of 5 trout you may have 10:
-   2 days' fish, not 3." (the multiplier and the commonest trout total from the rules); `quote` the book's p.80 definition
+   2 days' fish." (the multiplier and the commonest trout total from the rules); `quote` the book's p.80 definition
    VERBATIM, unchanged — a page shows it in a COLLAPSIBLE "In the rule book's words" fold.
 
 `test_answers_r20g.py`.

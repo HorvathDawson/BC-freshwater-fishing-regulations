@@ -25,7 +25,8 @@ from pipeline.deliver.answers.common import AnswersError
 
 #: 2 (ROUND11 A2): `fly_fishing`, `artificial_fly` — the gear sentence's terms
 #: 3 (ROUND20g 3): the possession quota in one short line and one short example (the book's words stay in `quote`)
-VERSION = 3
+#: 4 (ROUND20h 2): the possession term says only WHERE it holds — the rule's plain line says the number and the exception
+VERSION = 4
 
 
 # --------------------------------------------------------------------------------------------
@@ -183,12 +184,13 @@ def t_possession(B: Book, D: Data) -> dict:
     # ROUND20g 3 (owner: one plain line and one short example; the book's definition, verbatim, is `quote`)
     return _term(
         "possession_quota", "Possession quota",
-        f"The fish you have with you at any time — in camp, a cooler or a vehicle: {k} days' quota. "
-        f"Fish at home don't count.",
+        # ROUND20h 2 (owner: said twice beside the rule's plain line, which says the number and the home exception):
+        # what that line does not say — where possession holds; the multiplier stays in the example
+        "The fish you have with you at any time — in camp, a cooler or a vehicle.",
         sorted({80} | {p for e in ("z1:possession_quota",) for p in D.pages(e)}),
         f"possession quota: {B.define('possession quota')}",
         "definitions p.80; every region-wide 'Possession quotas = N daily quotas' rule",
-        example=f"With a daily quota of {n} trout you may have {n * k}: {k} days' fish, not {k + 1}.")
+        example=f"With a daily quota of {n} trout you may have {n * k}: {k} days' fish.")
 
 
 def t_release(B: Book, D: Data) -> dict:

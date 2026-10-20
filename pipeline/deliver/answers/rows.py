@@ -2283,7 +2283,9 @@ def refs(out: dict, ix) -> dict:
                                      for w in g["worked"]],
                           "states": [{**x, "r": ix(x["r"])} for x in g["states"]],
                           "caps": [{**c, "by": ix(c["by"])} for c in g["caps"]],
-                          "tree": map_rules(g["tree"], ix)}
+                          "tree": map_rules(g["tree"], ix),
+                          "possession": None if g.get("possession") is None else
+                          {**g["possession"], "by": ix(g["possession"]["by"])}}
         return o
     return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
             "rows": [row(r) for r in out["rows"]]}

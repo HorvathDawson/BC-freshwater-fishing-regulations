@@ -94,14 +94,14 @@ def _doc(per_daily=2, total=5):
 def test_the_possession_term_is_short_and_keeps_the_book_verbatim():
     B = G.Book()
     t = G.t_possession(B, G.Data(_doc()))
-    assert t["says"] == ("The fish you have with you at any time — in camp, a cooler or a vehicle: 2 days' quota. "
-                         "Fish at home don't count.")
-    assert t["example"] == "With a daily quota of 5 trout you may have 10: 2 days' fish, not 3."
+    # ROUND20h 2: the term says only where possession holds (the plain line says the number and the exception)
+    assert t["says"] == "The fish you have with you at any time — in camp, a cooler or a vehicle."
+    assert t["example"] == "With a daily quota of 5 trout you may have 10: 2 days' fish."
     assert t["quote"] == f"possession quota: {B.define('possession quota')}"          # verbatim, its own field
     t3 = G.t_possession(B, G.Data(_doc(per_daily=3, total=4)))
-    assert "3 days' quota" in t3["says"] and t3["example"] == \
-        "With a daily quota of 4 trout you may have 12: 3 days' fish, not 4."
-    assert G.VERSION == 3
+    assert t3["example"] == \
+        "With a daily quota of 4 trout you may have 12: 3 days' fish."
+    assert G.VERSION == 4                                                            # ROUND20h
 
 
 def test_the_gate_still_proves_every_card():

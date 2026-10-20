@@ -203,6 +203,41 @@ def origin_place(P, model: dict, kinds: Sequence[str], keep: str, T, share: Opti
     return share_place(share["water"], all(badge_of(w) in ("region", "bc") for w in wins))
 
 
+def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share: Optional[dict]) -> Optional[dict]:
+    """ROUND20h 3 (owner: the glossary's "a daily quota of 5" is no water's number, and the reader could not tell which daily
+    number possession doubles): the possession rule holding every kind of the group (its `per_daily`, p.21 "Possession quotas
+    = 2 daily quotas") on the group's TOTAL — p.80 "the possession quota is two times the daily quota", the daily quota "the
+    maximum number of fish of a given species, group of species, or size class that you may keep in one calendar day" (Region
+    2's trout/char 4), never the stream share, which says only where some of the 4 may come from:
+      {per_daily, of, n, by, example "With 4 trout and char a day you may have 8: 2 days’ fish.",
+       doubles "Possession doubles the 4 a day, not the 2 from streams." (None with no share under the total)}.
+    None where no one possession rule with a multiplier holds every kind, or the total has no number."""
+    from pipeline.deliver.answers.tree import share_place, share_region_wide
+    if not isinstance(total, (int, float)) or not kinds:
+        return None
+    each = []
+    for S in kinds:
+        got = {k for v in (model["R"].get(S) or {}).values() if v
+               for k, ro in (v.get("roles") or {}).items() if ro.get("role") == "possession"}
+        each.append({k for k in got if P.by_key[k].f.get("per_daily")})
+    common_ = set.intersection(*each)
+    if len(common_) != 1:
+        return None
+    by = common_.pop()
+    k = int(P.by_key[by].f["per_daily"])
+    n_ = total * k
+    n_ = int(n_) if float(n_).is_integer() else n_
+    n = _js(n_)
+    days = "1 day’s fish" if k == 1 else f"{k} days’ fish"    # ROUND20h (reader: "not 3" puzzled — said nothing)
+    doubles = None
+    if share is not None and share.get("take") is not None and share["take"] < total:
+        verb = {1: "is", 2: "doubles", 3: "triples"}.get(k, f"is {k} times")
+        doubles = (f"Possession {verb} the {_js(total)} a day, not the {_js(share['take'])} from "
+                   f"{share_place(share['water'], share_region_wide(P, share))}.")
+    return {"per_daily": k, "of": int(total) if float(total).is_integer() else total, "n": n_, "by": by,
+            "example": f"With {_js(total)} {what} a day you may have {n}: {days}.", "doubles": doubles}
+
+
 def _items_of(rows_out: List[dict], home: int, S: str) -> List[dict]:
     """Every row item holding `S`, the group's own row first."""
     order = [rows_out[home]] + [r for i, r in enumerate(rows_out) if i != home]
@@ -898,4 +933,5 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         what=what, share_origin=share_origin))
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
-            "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header}
+            "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header,
+            "possession": None if unlimited else possession_of(P, model, kinds, total, what, share)}   # ROUND20h 3

@@ -801,6 +801,16 @@ def check_tree(P, g: dict) -> List[str]:
             probs.append(f"{where}: the header names tier {h['tier']!r}, the tree's root is {root['id']!r}")
         elif h.get("says") != root["says"]:
             probs.append(f"{where}: the header says {h.get('says')!r}, its tier {root['says']!r}")
+    # ROUND20h 3: the possession example multiplies the group's TOTAL by its possession rule's own multiplier
+    ps = g.get("possession")
+    if ps is not None:
+        R_ = P.by_key.get(ps["by"])
+        if R_ is None or R_.f.get("per_daily") != ps["per_daily"]:
+            probs.append(f"{where}: possession says ×{ps['per_daily']}, its rule {ps['by']} says otherwise")
+        if _claim(g["total"]) != ps["of"] or ps["n"] != ps["of"] * ps["per_daily"]:
+            probs.append(f"{where}: possession {ps['n']} is not {ps['per_daily']} × the total {g['total']}")
+        words_ok(ps["example"], {float(ps["of"]), float(ps["n"]), float(ps["per_daily"]), float(ps["per_daily"] + 1)},
+                 "possession")
     return probs
 
 
@@ -1011,6 +1021,8 @@ def _unref(v, ids):
         g["tree"] = map_rules(g["tree"], r)
     if g.get("caps") is not None:
         g["caps"] = [{**c, "by": r(c["by"])} for c in g["caps"]]
+    if g.get("possession") is not None:
+        g["possession"] = {**g["possession"], "by": r(g["possession"]["by"])}
     return g
 
 

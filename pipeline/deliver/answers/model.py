@@ -848,6 +848,19 @@ class TreeTier(Model):
 TreeTier.model_rebuild()
 
 
+class GroupPossession(Model):
+    """ROUND20h 3 (owner): the possession quota on THIS group's total — `per_daily` the rule's multiplier, `of` the group's
+    total (the daily quota it multiplies, never the stream share), `n` their product, `by` the possession rule; `example`
+    "With 4 trout and char a day you may have 8: 2 days’ fish."; `doubles` "Possession doubles the 4 a day, not the 2
+    from streams." where a share sits under the total (None otherwise)."""
+    per_daily: StrictInt = Field(ge=1)
+    of: Count
+    n: Count
+    by: RuleIx
+    example: StrictStr = Field(min_length=1)
+    doubles: Optional[StrictStr]
+
+
 class Header(Model):
     """ROUND18 4: the group's compact header. ROUND20 1 (owner: the group's top and the first tier are ONE block): the
     header IS the tree's root tier — `says` its line ("4 a day per angler across Region 2, lakes included"; a water's
@@ -881,6 +894,7 @@ class GroupTotal(Model):
     caps: Tuple[Cap, ...]                             # ROUND16 1: legal iff every cap holds
     tree: Tuple[TreeTier, ...] = Field(min_length=1, max_length=1)   # ROUND18 1: the card as folders
     header: Header                                    # ROUND18 4: one compact line
+    possession: Optional[GroupPossession] = None      # ROUND20h 3: the possession quota on this total
 
     @model_validator(mode="after")
     def _caps_name_kinds(self):
@@ -1072,6 +1086,13 @@ class ElementPick(Model):
     over: Tuple[Tuple[RuleIx, Count, Literal["ban", "allow"]], ...]
 
 
+class ExceptedFrom(Model):
+    """ROUND20h 1: the ban an allowed bait element is an exception to — the banned `element` and its clause (`by`): the
+    roe the province's fin-fish ban excepts ("fin fish … other than roe", p.8), on the days that ban is in force."""
+    element: Literal["worms", "roe", "invertebrate", "fin_fish"]
+    by: ClauseRef
+
+
 class BaitPick(Model):
     element: Literal["worms", "roe", "invertebrate", "fin_fish"]
     ok: StrictBool
@@ -1079,6 +1100,8 @@ class BaitPick(Model):
     why: Optional[StrictStr] = None
     carry_kg: Optional[Union[StrictInt, StrictFloat]] = None
     also_allowed: Optional[Tuple[Circumstance, ...]] = None
+    #: ROUND20h 1: the ban this allowed element is an exception to (only on an allowed element)
+    excepted_from: Optional[ExceptedFrom] = None
 
 
 class Device(Model):
