@@ -38,6 +38,7 @@ import { ConditionsScreen } from "./ConditionsScreen";
 import { SpotScreen } from "./SpotScreen";
 import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
+import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
 
@@ -59,7 +60,7 @@ const HANDOVER_Z = 9;
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       spotsError, attribution }: {
+                       spotsError, attribution, fishImages }: {
   source: RegsSource; palette: Palette;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
@@ -85,6 +86,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   feed?: import("@app/data").GaugeFeed;
   refreshing?: boolean;
   attribution?: readonly string[];
+  /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */
+  fishImages?: FishImages;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -445,7 +448,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     );
 
   const body = item !== null
-    ? <WaterScreen source={source} item={item} palette={palette}
+    ? <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
                    // NO `feed`. The sheet quotes no number, so it reads no gauge data —
                    // see the note in WaterScreen about why the hooks came out with the UI.
                    // The toggle LEAVES for the one conditions screen rather than rendering

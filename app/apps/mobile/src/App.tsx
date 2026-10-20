@@ -28,6 +28,7 @@ import { useSpots } from "@app/ui";
 
 
 import { ENDPOINTS } from "./config";
+import { FISH_IMAGES } from "./fishImages.generated";
 
 /**
  * Where everything is served from: ONE base, in `config.ts` (P10). The tiles, bundle and feed must be one set — they
@@ -105,6 +106,7 @@ export default function App() {
                theme={name} themeName={name}
                onTheme={setTheme} tiles={TILES}
                spots={spots}
+               fishImages={FISH_IMAGES}
                weather={weather}
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}

@@ -24,6 +24,7 @@ import { useWater } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
+import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -40,6 +41,11 @@ export function WaterScreen({ source, item, palette, onBack, onConditions }: {
    * it useful — the reach you tapped, where on it you tapped, and the map's own quantity.
    */
   onConditions?: (section: SectionId) => void;
+  /**
+   * The fish pictures by species code (T20), for the regulations panel. Carried here so the
+   * app's map reaches `RegsScreen` when it replaces the placeholder (T23); unread until then.
+   */
+  fishImages?: FishImages;
 }) {
   const sheet = useWater(source, item);
   // Sections run mouth -> source; conditions belong to the first, which is the reach a

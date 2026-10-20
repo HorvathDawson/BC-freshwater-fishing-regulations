@@ -31,6 +31,7 @@ export { Chip } from "./StatusChip";
 export { Icon, LayersIcon, type IconName } from "./icons";
 export * from "./type";
 export { RegulationsPlaceholder } from "./RegulationsPlaceholder";
+export type { FishImages } from "./regs/types";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
