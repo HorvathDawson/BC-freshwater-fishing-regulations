@@ -1073,7 +1073,8 @@ function buildKeep(){
       ban.querySelectorAll('.big').forEach(e => { const ph = e.textContent.split(' · ').filter(fresh); if (ph.length) e.textContent = ph.join(' · '); else e.remove(); });
       ban.querySelectorAll(':scope > p').forEach(e => { if (!fresh(e.textContent)) e.remove(); });
       ban.querySelectorAll('.golink').forEach(e => { if (e.children.length) return; e.textContent = e.textContent.split(/(?<=\.)\s+/).filter(fresh).join(' '); }); } }
-  root.querySelectorAll('.closechain li').forEach(li => { const t = li.firstChild; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(/^No fishing for any game fish,?\s*/, '').replace(/^from streams,\s*/, 'From streams, ');
+  root.querySelectorAll('.closechain li').forEach(li => { const t = li.firstChild; if (t && t.nodeType === 3) { const t0 = t.textContent, t1 = t0.replace(/^No fishing for any game fish,?\s*/, '').replace(/^from streams,\s*/, 'From streams, ');
+      t.textContent = /[A-Za-z]/.test(t1) ? t1 : t0; }   // integration 1 (T14): "No fishing for any game fish." alone was cut to "."
     const sc = li.querySelector('.muted'), b = li.querySelector('.srcbtn'); li.innerHTML = `<span class="cd">${esc(li.firstChild.textContent.trim())}${sc ? ` <span class="muted small">${esc(sc.textContent)}</span>` : ''}</span>${b ? b.outerHTML : ''}`; });
   // round 9 / answers 2.8: each group drawn from the data's card (rows[i].group) — headline, origin, lifts, total line,
   // buckets of kinds, the worked count — each fact once. From v36's own HTML only what the data does not carry:
@@ -1263,6 +1264,13 @@ function buildKeep(){
       // trout and char go back.") when the group's is null; it is drawn under the share's line with How to tell › and the root's
       // Rule book page, which move here from the group head (orig2 below draws no head line then)
       const torg = t.origin ? `<p class="gorigin torigin" data-origin data-tier-origin><span>${esc(t.origin)}</span> ${obtn}${!g.origin && rootBook ? ' ' + rootBook : ''}</p>` : '';
+      // round int1 (coordinator, after v34): with form a the head already leads with the share ("2 a day per angler from streams / of
+      // the 4 …"); a share tier whose words say no more than that ("Only 2 of the 4 may be from streams") folds its in-place header —
+      // its kicker and line — so the 2 is said once; its children, origin line, Rule book page and pin line stay. A share with more
+      // to say keeps its line (the Vedder's "…, not counting hatchery rainbow trout"; Glenn's "… brook, brown, cutthroat or lake trout …")
+      if (t === relTier && (S.tot || 'a') === 'a' && t.tier === 'share' && t.n === g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || '')) {
+        const bk = key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : '';
+        return `<div class="tier" data-tier="${t.tier}" data-share-folded>${torg ? torg.replace(/<\/p>$/, bk + '</p>') : (bk ? `<p class="gorigin">${bk.trim()}</p>` : '')}</div>`; }
       return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}${torg}</div>`; };
     const tnode = (t, i, a, root, seen = new Set()) => { if (t.node !== 'tier') return kt(t);
       const key = st.ruleKey?.[t.by], below = new Set([...seen, ...(key ? pagesOf(key) : [])]);
@@ -1493,6 +1501,12 @@ function buildGear(){
   const lic = L ? sect('licence', 'Licence', L.html + licSrc) : '';
   // UR2 6 (user panel: "no licence is needed while fishing is closed" read as "no licence needed"): a closed day says when
   // fishing opens, from the data's strip (the first day after this one not closed); the licence is said only in its tab
+  // integration 1 (D20 b): a water the strip does not govern (tidal: no day has a flag) is not closed; its Gear/Methods carry the
+  // card's own banner words ("Tidal water" + the guide note), not "No fishing here on any day of the year."
+  const ungoverned = (st.runs || []).length && st.runs.every(([f]) => f == null);
+  if (!st.kitTiles && ungoverned) { const d = new DOMParser().parseFromString(`<div>${st.cardHTML}</div>`, 'text/html'), bn = d.querySelector('.banner');
+    const f = bn ? `<p class="foot"><b>${esc(bn.querySelector('.big')?.textContent || '')}</b></p>${[...bn.querySelectorAll('p')].map(x => `<p class="foot">${esc(x.textContent)}</p>`).join('')}` : '';
+    return {gear: f, methods: f, licence: lic}; }
   if (!st.kitTiles) { const f = `<p class="foot">${esc(closedUntil(st))}</p>`; return {gear: f, methods: f, licence: lic}; }
   learnChipWords(st);
   const gearCells = [], wayCells = [];
@@ -1647,7 +1661,7 @@ function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstEleme
   const art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => { const r = R(a); return r.top < y && r.bottom > y + LH; });
   if (art) { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, root = g && g.tree ? [].concat(g.tree)[0] : null, pin = art.querySelector(':scope > .ghd.gpin');
     const name = (art.querySelector('.rtitle')?.firstChild?.textContent || '').trim();
-    const totA = pin?.querySelector('[data-tot="a"]'), hl = g.headline;   // round 20h (owner 1, form a): the share leads the group line too, the total in brackets
+    const totA = pin?.querySelector('[data-tot="a"]'), hl = g?.headline;   // integration 1: a ledger row with no group (Other-fish-like rows) pins nothing; it threw here   // round 20h (owner 1, form a): the share leads the group line too, the total in brackets
     if (root && pin && R(pin).top < y) { lines.push(totA && hl ? {cls: 'g two', t: `${name} · ${shortOf({tier: 'share', n: hl.n, says: hl.says})}`, sub: `(of ${shortOf(root).replace(/ a day /, ' ')})`} : {cls: 'g', t: `${name} · ${shortOf(root)}`});   // the total in brackets on its own line under the share
       const byId = {}; (function walk(ns){ ns.forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children || []); } }); })(root.children || []);
       [...art.querySelectorAll('section.tnode')].forEach(tn => { const r = R(tn), t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');

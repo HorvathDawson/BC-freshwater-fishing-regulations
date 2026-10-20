@@ -159,6 +159,7 @@ if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => 
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === 'int1') { await roundInt1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur5') { await roundUr5(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20i') { await round20i(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20h') { await round20h(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -768,7 +769,8 @@ async function round20e(){
         if (headT.toLowerCase().includes(tag.toLowerCase())) bad.push(art.dataset.row + ': the tag ' + JSON.stringify(tag) + ' sits on the region total');
         const share = (root.children || []).find(c => c.node === 'tier' && c.tier === 'share');
         if (share) { shares++; const sec = art.querySelector('section.tnode[data-tid="' + share.id + '"]'), k = sec?.querySelector(':scope > .tier [data-scope-tag]');
-          if (!k || norm(k.textContent).toLowerCase() !== tag.toLowerCase()) bad.push(art.dataset.row + ': the share has no ' + JSON.stringify(tag) + ' tag (' + JSON.stringify(norm(k?.textContent)) + ')');
+          const fold = !!sec?.querySelector(':scope > .tier[data-share-folded]');   /* int1: a folded share (the head's lead says "from streams") carries no kicker */
+          if (!fold && (!k || norm(k.textContent).toLowerCase() !== tag.toLowerCase())) bad.push(art.dataset.row + ': the share has no ' + JSON.stringify(tag) + ' tag (' + JSON.stringify(norm(k?.textContent)) + ')');
           // the pin bar while inside the share: the group line names the region, the share line this stream
           const sc = document.getElementById('sc'), kr = [...(sec?.querySelectorAll('.krow') || [])].pop(), hh = document.getElementById('hdr').offsetHeight; if (kr) { sc.scrollTop += R(kr).top - R(sc).top - hh - 70; await new Promise(z => setTimeout(z, 120)); pinUpdate();
             const pl = [...document.querySelectorAll('#pins .pl')].map(p => norm(p.textContent)), across = (root.says.match(/ across (.+?)(?:,|$)/) || [])[1];
@@ -1201,7 +1203,7 @@ async function round20(){
   check('r20-header-is-total', R20.length === R20S.length && !hb.length && v?.out[0]?.hdr === '4 a day per angler across Region 2, lakes included' && !!ape?.out[0]?.why && /^This river’s rule: up to \d+ a day per angler$/.test(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr || ''),
     hb.map(x => `${x.hash}: ${x.bad.slice(0, 4).join(' | ')}`).join('; ') || `vedder header ${JSON.stringify(v?.out[0]?.hdr)}; ape why ${JSON.stringify(ape?.out[0]?.why)}; bella ${JSON.stringify(R20.find(x => x.hash === 'w=bellacoola&d=1010&p=1')?.out[0]?.hdr)}`);
   const stale = R20.flatMap(x => x.out.flatMap(o => o.share)).filter(t => /count toward the \d+, not these|don’t use these|\(part of the \d+\)$/.test(t));
-  check('r20-share-inside-total', JSON.stringify(v?.out[0]?.share) === '["Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"]' && JSON.stringify(c?.out[0]?.share) === '["Only 2 of the 4 may be from streams"]' && !stale.length,
+  check('r20-share-inside-total', JSON.stringify(v?.out[0]?.share) === '["Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"]' && JSON.stringify(c?.out[0]?.share) === '[]' && !stale.length,   /* int1 (coordinator after v34): Chilliwack's plain share ("Only 2 of the 4 may be from streams") folds under the head's lead; the Vedder's lifted share keeps its line */
     `vedder ${JSON.stringify(v?.out[0]?.share)}; chilliwack ${JSON.stringify(c?.out[0]?.share)}; stale ${JSON.stringify(stale)}`);
   const small = R20.flatMap(x => x.out.flatMap(o => o.nums.filter(([, px]) => o.big && px < o.big - 0.5).map(n => `${x.hash}: ${n[0]} ${n[2]} at ${n[1]}px (header ${o.big}px)`)));
   const seconds = R20.flatMap(x => x.out.flatMap(o => o.sizes.map(s => ({...s, big: o.big, hash: x.hash})))), sb = seconds.filter(s => s.second !== String(s.n + s.extra) || s.secondPx < s.big - 0.5);
@@ -1693,7 +1695,7 @@ for (const hash of R17) await page(hash, async b => {
           return; }
         if (!el) { bad.push(t.says + ': tier not drawn'); return; }
         // round 20: the root tier is the header block's line (its number .ghn), its children the top of .qtree
-        const atHdr = el.matches('[data-root-tier]'), n = +norm(el.querySelector(atHdr ? '.ghn' : ':scope > .tier .tn')?.textContent);
+        const atHdr = el.matches('[data-root-tier]'), fold = !atHdr && el.querySelector(':scope > .tier[data-share-folded]'), n = +norm((fold ? art.querySelector('[data-share-lead] .gln') : el.querySelector(atHdr ? '.ghn' : ':scope > .tier .tn'))?.textContent);   /* int1: a folded share's number is the head's lead */
         const kids = [...((atHdr ? art.querySelector(':scope > .qtree') : el.querySelector(':scope > .tch'))?.children || [])];
         if (t.n != null) { nums++;
           if (n !== t.n) bad.push(t.says + ': shows ' + n);
@@ -1722,6 +1724,7 @@ await round20g();
 await round20h();
 await round20i();
 await roundUr5();
+await roundInt1();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1853,10 +1856,13 @@ async function round18(){
         if (JSON.stringify(ac) !== JSON.stringify(want)) bad.push(k.says + ': also ' + JSON.stringify(ac) + ' vs ' + JSON.stringify(want));
         if (el.querySelectorAll('.kpics').length !== 1) bad.push(k.says + ': ' + el.querySelectorAll('.kpics').length + ' picture strips'); };
       const tier = (t, el, at) => { if (!el?.matches('section.tnode')) return bad.push(at + ': tier ' + t.says + ' not drawn here'); tiers++;
+        // int1 (coordinator after v34): a share the head's lead already says folds its line; its number is the lead's
+        if (el.querySelector(':scope > .tier[data-share-folded]')) { const ln = norm(el.closest('article')?.querySelector('[data-share-lead] .gln')?.textContent); if (ln !== String(t.n)) bad.push('tier ' + t.says + ': folded, lead ' + ln); }
+        else {
         const tl = el.querySelector(':scope > .tier > .tl'), cl = tl.cloneNode(true); cl.querySelectorAll('.tbk, .gl, .glk').forEach(x => x.remove());
         if (norm(cl.textContent) !== norm(t.says)) bad.push('tier ' + t.says + ': drawn ' + norm(cl.textContent));
         if (t.n != null && norm(tl.querySelector('.tn')?.textContent) !== String(t.n)) bad.push('tier ' + t.says + ': number ' + norm(tl.querySelector('.tn')?.textContent));
-        const ts = getComputedStyle(tl); if (!(+ts.fontWeight >= 700 && (/Bricolage/.test(ts.fontFamily) || ts.borderTopStyle !== 'none' || parseFloat(ts.borderLeftWidth) >= 3))) bad.push('tier ' + t.says + ': not styled as a tier line');   /* round 20f: a header is bold in the display face (c), on a hairline (a, b) or barred (before); round 20f: the Rule book page sits on the origin line, read past it */
+        const ts = getComputedStyle(tl); if (!(+ts.fontWeight >= 700 && (/Bricolage/.test(ts.fontFamily) || ts.borderTopStyle !== 'none' || parseFloat(ts.borderLeftWidth) >= 3))) bad.push('tier ' + t.says + ': not styled as a tier line');   /* round 20f: a header is bold in the display face (c), on a hairline (a, b) or barred (before); round 20f: the Rule book page sits on the origin line, read past it */ }
         const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
         // round 19 (owner 3): a size tier is a box holding its kinds (size-tier-box); every other tier a guide line
         // round 20d: FLAT — the children sit on the section's own edge, no guide line (round 18's rail retired)
@@ -1983,7 +1989,8 @@ async function roundUr1(){
         const walk = t => { if (t.node !== 'tier') return; const el = T.root === t ? T.hdr : art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier .tl');
           const elC = el ? el.cloneNode(true) : null; elC?.querySelectorAll('.tbk, button, .gl, .ghr').forEach(x => x.remove());   /* round 20h: notes (.ghr) may sit inside a span */
           const shown = norm([...(elC?.childNodes || [])].map(n => n.textContent).join(' '));
-          if (shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
+          const folded = !!art.querySelector('section.tnode[data-tid="' + t.id + '"] > .tier[data-share-folded]');   /* int1: a folded share says its words through the head's lead */
+          if (!folded && shown.replace(/ ⓘ$/, '') !== norm(t.says)) bad.push(t.tier + ' drawn ' + JSON.stringify(shown) + ' vs ' + JSON.stringify(t.says));
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
           // round 20 (owner 2): the lifted fish are named as not counted in the share, which sits inside the total
           if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/^Only \\d+ of the \\d+ may be from (this stream|this lake|streams|lakes), not counting .+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
@@ -2107,4 +2114,35 @@ async function roundUr5(){
   check('h1-steelhead-tip', !!fish.ST && !/50 cm[^|]*or longer|or longer[^|]*50 cm/.test(tips), tips);
   const wrong = Object.entries(fish).filter(([c, f]) => ex[c]?.name && f.name !== ex[c].name).map(([c, f]) => `${c}: "${f.name}" vs "${ex[c].name}"`);
   check('h2-fish-names', Object.keys(fish).length > 5 && Object.keys(ex).length > 5 && !wrong.length, wrong.join('; '));
+}
+
+// ---------- integration round 1 (the app port's generators found three prototype bugs at v33; handoff/PLAN/app-integration D20, T14) ----------
+async function roundInt1(){
+  // (1) pinUpdate runs without throwing on every snapshot state, scrolled top to bottom (it threw on 25/134: a ledger row with no group)
+  let PU = {};
+  await page('w=vedder&d=1010', async b => { PU = JSON.parse(await b.evaluate(`(async () => { const bad = [], ids = Object.keys(SNAP.states), wait = ms => new Promise(r => setTimeout(r, ms)); let n = 0, chains = 0; const chainBad = [];
+    const want = new Set(ids), seen = new Set();
+    for (const [w, o] of Object.entries(WATERS)) for (const [d, v] of Object.entries(o.snap || {})) [].concat(v).forEach((id, p) => { if (!want.has(id) || seen.has(id)) return; seen.add(id);
+      try { go({w, d: +d, p, sec: 'keep', sheet: ''}); } catch (e) { bad.push(id + ' render: ' + e.message); return; }
+      document.querySelectorAll('#keep .closechain li .cd').forEach(e => { chains++; const t = (e.firstChild?.textContent || '').trim(); if (!/[A-Za-z]/.test(t)) chainBad.push(id + ': "' + t + '"'); });
+      const sc = $('sc'); for (let y = 0; y <= sc.scrollHeight; y += 120) { sc.scrollTop = y; try { pinUpdate(); n++; } catch (e) { bad.push(id + ' @' + y + ': ' + e.message); break; } } });
+    return JSON.stringify({states: seen.size, of: ids.length, n, bad, chains, chainBad}); })()`)); });
+  check('int1-pin-never-throws', PU.states === PU.of && PU.n > 1000 && !PU.bad.length, `${PU.states}/${PU.of} states, ${PU.n} updates; ` + (PU.bad || []).slice(0, 5).join('; ') + ((PU.bad || []).length > 5 ? ` … ${PU.bad.length} in all` : ''));
+  // (2) a closed-all-year chain line keeps its words (chw0 and the other closed-all-year states: "No fishing for any game fish." was cut to ".")
+  check('int1-chain-words', PU.chains >= 1 && !PU.chainBad.length, `${PU.chains} chain lines; ` + PU.chainBad.slice(0, 5).join('; '));
+  // (3) a tidal water's Gear/Methods do not say it is closed all year: they carry the data's tidal words (D20 b)
+  let TD = {};
+  await page('w=x31p&d=1010&sec=gear', async b => { TD = JSON.parse(await b.evaluate(`JSON.stringify({gear: (document.getElementById('gear')?.textContent || '').replace(/\\s+/g, ' ').trim(), methods: (document.getElementById('methods')?.textContent || '').replace(/\\s+/g, ' ').trim()})`)); });
+  // (4, coordinator after v34) with form a the share is said once: a share tier whose words add nothing to the head's lead folds its
+  // line and kicker (Cowichan, Chilliwack p2); a share with more to say keeps it (the Vedder's "not counting hatchery rainbow trout")
+  const SO = [];
+  for (const hash of ['w=cowichan&d=1010&p=1', 'w=chilliwack&d=1010&p=1', 'w=vedder&d=1010', 'w=glenn&d=615']) await page(hash, async b => {
+    SO.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const n = t => (t || '').replace(/\\s+/g, ' ').trim(), art = document.querySelector('#keep article.row.ledger');
+      const lead = !!art?.querySelector('[data-share-lead]'), lines = [...(art?.querySelectorAll('.tnode[data-tnode="share"] > .tier .tl') || [])].map(e => n(e.textContent));
+      return {hash: location.hash.slice(8), lead, lines, kick: art?.querySelectorAll('.tnode[data-tnode="share"] > .tier [data-scope-tag]').length || 0}; })())`)));
+  });
+  const plain = SO.slice(0, 2), more = SO.slice(2);
+  check('int1-share-said-once', SO.every(x => x.lead) && plain.every(x => !x.lines.some(l => /^Only \d+ of the \d+ may be from streams\.?( |$)/.test(l)) && !x.kick) && more.every(x => x.lines.length >= 1),
+    JSON.stringify(SO).slice(0, 400));
+  check('int1-tidal-gear', !!TD.gear && !/any day of the year/.test(TD.gear + TD.methods) && /Tidal water/.test(TD.gear), JSON.stringify(TD).slice(0, 300));
 }

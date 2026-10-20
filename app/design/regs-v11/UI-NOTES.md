@@ -1,3 +1,20 @@
+# regs v35 (integration round 1: the app port's three prototype bugs + the share said once) — in place on regs-v11.html
+
+Found by the port generators (app/design/regs-v11/port/, handoff/PLAN/app-integration/decisions.md D20, T14):
+- **pinUpdate threw on 25/134 states** (a ledger row with no `group`: `g.headline`); such a row now pins nothing. The port's
+  `pinChain` "skip" (keep the old lines) should become "no lines" when the goldens are re-synced.
+- **A closed-all-year chain line read "."**: the shortening of "No fishing for any game fish." left no words; a line keeps its own
+  words when the shortening would leave none (chw0 and 4 more).
+- **Tidal Gear/Methods said "No fishing here on any day of the year."** (`closedUntil` over a strip with no flags): a water the
+  strip does not govern carries its card banner's words ("Tidal water" + the guide note), D20 (b).
+- **The share said once** (coordinator after v34): with form a the head already leads "2 a day per angler from streams"; a share
+  tier whose words add nothing ("Only 2 of the 4 may be from streams") folds its kicker and line (`[data-share-folded]`); its
+  children, origin line, Rule book page and pin line stay. A share with more to say keeps its line (the Vedder Oct 10: "…, not
+  counting hatchery rainbow trout"; Glenn/Hamill: "… brook, brown, cutthroat or lake trout from streams").
+Checks ONLY=int1: int1-pin-never-throws (every snapshot state, scrolled top to bottom), int1-chain-words, int1-tidal-gear,
+int1-share-said-once — all fail on v34. Retargeted with the reason in the file: card-is-the-caps, the round-18 tier walker,
+ur1-tier-words, r20-share-inside-total, r20e-region-vs-stream (a folded share's number is the head's lead; no kicker).
+
 # regs v34 (round UR5, the fifth user panel + the coordinator's audit H1/H2) — in place on regs-v11.html
 
 Panel: ~/.claude/projects/…/handoff/PLAN/USER-ROUNDS.md "Round UR5" (8 fresh personas, six waters new to the panels, 30/33).
