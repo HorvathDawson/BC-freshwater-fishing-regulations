@@ -157,12 +157,14 @@ describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", (
     };
     const budget: Record<string, number> = { A1: 2, A2: 5, A3: 2, A5: 2, A6: 2, A7: 2, A9: 2 };
     /*
-     * KNOWN OVER, OWNER DECISION PENDING (2026-10-20). A5 is the app's search, which matches a substring ANYWHERE in a
-     * name (`LIKE '%q%'`): a full scan of 19.6k names + 2.9k aliases. Measured on the laptop: the bare name scan alone
-     * is 1.9 ms p95, the whole search 5.4 ms (6.7 ms before `item.pieces`). The 2 ms budget was measured on a PREFIX
-     * search (MINIMAL-PACKAGING §3 A5). Options: accept ~5 ms (≈ 27–54 ms on a phone, against 50 ms a keystroke); a
-     * trigram index (≈ +1 MB, over the core gate); or prefix + word-prefix only (changes what search finds). Until
-     * decided, A5 is held to a regression ceiling instead of the budget.
+     * KNOWN OVER, ACCEPTED WITH DEBOUNCE (owner decision 2026-10-20). A5 is the app's search, which matches a substring
+     * ANYWHERE in a name (`LIKE '%q%'`): a full scan of 19.6k names + 2.9k aliases. Measured on the laptop: the bare
+     * name scan alone is 1.9 ms p95, the whole search 5.4 ms (6.7 ms before `item.pieces`). The 2 ms budget was measured
+     * on a PREFIX search (MINIMAL-PACKAGING §3 A5). The owner accepted ~5 ms (≈ 27–54 ms on a phone) over a trigram
+     * index (≈ +1 MB, over the core gate) or prefix-only matching (changes what search finds), PROVIDED the box does not
+     * query on every keystroke: `useSearch` waits `SEARCH_DEBOUNCE_MS` (200 ms) after the last one, pinned in
+     * packages/ui/src/search.debounce.render.test.tsx (a burst of keystrokes -> exactly one search). A5 stays held to
+     * this 8 ms regression ceiling instead of the 2 ms budget, so a slower search still fails here.
      */
     const KNOWN_OVER: Record<string, number> = { A5: 8 };
     const over = Object.entries(t).filter(([k, v]) => v > (KNOWN_OVER[k] ?? budget[k]!));

@@ -32,12 +32,23 @@ export interface SearchResults {
   places: readonly PlaceHit[];
 }
 
-/** Names and aliases, plus the towns you can ask "what is near here" about. */
+/**
+ * HOW LONG THE SEARCH BOX WAITS after the last keystroke before it asks (owner decision 2026-10-20).
+ *
+ * Search matches a substring anywhere in a name, a full scan of ~20k names + aliases: ~5 ms p95 on the laptop, so
+ * ~27–54 ms on a phone (A5 in tools/release-perf.test.ts). That was accepted on the condition that the box does not
+ * query on every keystroke. 200 ms is past the gap between letters of a fast typist (~100–180 ms on a phone keyboard),
+ * so a word typed in one go is ONE query; and under the ~250 ms where a reader starts to wait for results. Pinned with
+ * fake timers in search.debounce.render.test.tsx (a burst of keystrokes -> exactly one search).
+ */
+export const SEARCH_DEBOUNCE_MS = 200;
+
+/** Names and aliases, plus the towns you can ask "what is near here" about. Debounced: see `SEARCH_DEBOUNCE_MS`. */
 export function useSearch(
   source: RegsSource,
   query: string,
   limit = 40,
-  debounceMs = 160,
+  debounceMs = SEARCH_DEBOUNCE_MS,
 ): Async<SearchResults> {
   const q = useDebounced(query.trim(), debounceMs);
   return useAsync(
