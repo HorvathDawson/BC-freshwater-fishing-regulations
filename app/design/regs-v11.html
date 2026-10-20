@@ -872,6 +872,17 @@ html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-s
 #sc{scroll-padding-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}#keep .tier,#keep .ghd.gpin,#keep .krow.kt,#keep .worked,#keep .olist{scroll-margin-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}
 .needs ul.needs-only{margin-top:0}.needs .lbl[data-only-if-head]{margin-top:var(--s3)}
 .tier .torigin{margin:var(--s1) 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}.tier .torigin .linkbtn{min-height:32px;font-size:var(--t4)}   /* the size note's bar is a rule, not an action: the accent stays on links and buttons */
+/* round UR6 (owner 1: "this box" with no box): the size section's extent is visible — one continuous rule down its left edge
+   from its head to its last row, closed by its two hairlines (a bracket open to the right: a clear start and a clear end). Its
+   pinned line in the bar carries the same rule at the same x, so mid-section the reader sees which rows the line holds. */
+:root{--rule:#9AA0A6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rule:#626A72}}
+:root[data-theme="dark"]{--rule:#626A72}
+.tnode[data-tnode="size"]{margin-left:0;padding-left:12px;border-left:3px solid var(--rule)}
+.tnode[data-tnode="size"] .krow.kt{padding-left:0}
+#pins .pl[data-tier="size"]{margin-left:16px;padding-left:12px;border-left:3px solid var(--rule)}
+#keep .okey{margin:var(--s2) 0 0;padding-top:var(--s2);border-top:1px solid var(--line)}#keep .okl{margin:0 0 6px;font:400 var(--t4)/1.4 Archivo,sans-serif;color:var(--sub)}#keep .okl b{margin-right:4px}#keep .okl .gl{vertical-align:-1px}
+#keep .tier .trel{margin:var(--s1) 0 0 0;font:600 var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1271,7 +1282,10 @@ function buildKeep(){
       if (t === relTier && (S.tot || 'a') === 'a' && t.tier === 'share' && t.n === g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || '')) {
         const bk = key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : '';
         return `<div class="tier" data-tier="${t.tier}" data-share-folded>${torg ? torg.replace(/<\/p>$/, bk + '</p>') : (bk ? `<p class="gorigin">${bk.trim()}</p>` : '')}</div>`; }
-      return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}${torg}</div>`; };
+      // round UR6 (owner 6; rows 28 `relation`): an own tier beside the share under a region total says how it stands to both,
+      // in the data's words, in ink right under its line ("Not part of the 2 from streams; part of the 5 a day across Region 4")
+      const rel = t.relation ? `<p class="tsub trel" data-relation>${nbsp(t.relation)}</p>` : '';
+      return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${rel}${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}${torg}</div>`; };
     const tnode = (t, i, a, root, seen = new Set()) => { if (t.node !== 'tier') return kt(t);
       const key = st.ruleKey?.[t.by], below = new Set([...seen, ...(key ? pagesOf(key) : [])]);
       return `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root, seen)}<div class="tch">${(t.children || []).map(c => tnode(c, 0, 0, false, below)).join('')}</div></section>`; };
@@ -1334,7 +1348,13 @@ function buildKeep(){
       const kk = hasSize ? r.querySelector('.k-keep') : null;
       if (kk) { const w = document.createElement('span'); w.className = 'okeep'; kk.replaceWith(w); w.append(kk); w.insertAdjacentHTML('beforeend', '<small class="osz" data-size-hint>· size limit</small>'); }
       return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>`; }).join('');
-    o.outerHTML = `<section class="sec" style="padding-top:14px;border-top:1.5px solid var(--ink)"><div class="sech"><h2>Other fish</h2></div><div class="olist">${rows}</div></section>`;
+    // round UR6 (owner 3; UR5 Linh, Doug: "release (amber) vs closed (red): what's the difference?"): under the list, one line per
+    // status a row shows, in the glossary's own plain words (catch_and_release, no_fishing_for) with its ⓘ — page-side only the
+    // status word itself, as the row shows it
+    const okey = [['release', 'catch_and_release'], ['closed', 'no_fishing_for']].filter(([w]) => list.querySelector('.orow .k-' + w)).map(([w, id]) => {
+      const plain = (parse(SNAP.gloss[id]?.body || '').querySelector('.glsays')?.textContent || '').trim();
+      return plain ? `<p class="okl" data-status-key="${w}"><b class="k-${w}">${w}</b> ${esc(plain)} ${tip(id)}</p>` : ''; }).join('');
+    o.outerHTML = `<section class="sec" style="padding-top:14px;border-top:1.5px solid var(--ink)"><div class="sech"><h2>Other fish</h2></div><div class="olist">${rows}</div>${okey ? `<div class="okey" data-status-keys>${okey}</div>` : ''}</section>`;
   });
   // closed "Other fish"-less waters keep their banner; the char row etc. stay as they are
   if (nofish) root.append(nofish);
@@ -1393,7 +1413,10 @@ let CHIPWORD = {};
 function learnChipWords(st){ CHIPWORD = {};
   Object.values(st.panes || {}).forEach(h => parse(h).querySelectorAll('.gsrc[data-rule]').forEach(b => { const t = b.textContent.trim();
     if (t !== 'Region') CHIPWORD[levelOf(b.dataset.rule)] = t; })); }
-const wordOf_ = k => CHIPWORD[levelOf(k)] || levelOf(k);
+// round UR6 (owner 5: Hamill's bait source read "Downstream ›", meaningless to a reader): a rule reached from a water downstream
+// is named by that water — the rule sheet's own "Downstream rule · Duncan River" gives it ("Duncan River ›")
+const downWater = k => levelOf(k) === 'Downstream' ? ((SNAP.rules[k]?.sub || '').split(' rule · ')[1] || '').trim() : '';
+const wordOf_ = k => downWater(k) || CHIPWORD[levelOf(k)] || levelOf(k);
 function licence(st, id){
   // round 20e (owner 5: "replace the dropdowns with two selectors"): the licence answers by TWO segmented choices — age and
   // where you live — named by page v36's own "Who is fishing?" options (`#who-age`, `#who-residency`); the answer for the
@@ -1651,29 +1674,45 @@ function shortOf(t){ const n = t.n, says = t.says || '';
   if (t.tier === 'total') { if (n == null) return says; const m = says.match(/ across (.+?)(?:, (?:lakes|streams) included)?$/); return m ? `${n} a day across ${m[1]}` : t.whose ? `${t.whose}: ${n} a day` : `${n} a day`; }
   if (t.tier === 'share') { const w = (says.match(/from (this stream|this lake|streams|lakes)/) || [])[1] || 'streams'; return /^Only /.test(says) ? `${n} of them from ${w}` : `${n} a day from ${w}`; }   // rows 23: "from streams" where the share is the region's
   if (t.tier === 'own') { const k = (t.children || []).find(c => c.node === 'kind' && c.folded), names = k ? (k.says.match(/ may be (.+?)(?: only —.*)?$/) || [])[1] || '' : '', whose = lc1w(t.whose || '');
+    // round UR6 (owner 6): an own tier with `relation` is not "of them" (not part of the share): its line says so in the data's words
+    if (t.relation) return `${n}${names ? ' ' + names : ''} a day under ${whose}, ${lc1w(t.relation.split(';')[0].trim())}`;
     return t.replaces ? `plus up to ${n}${names ? ' ' + names : ''} under ${whose}` : `${n} of them${names ? ` (${names})` : ''} under ${whose}`; }   // round 20f 4: "2 of them (lake trout) under this lake’s rule"
   if (t.tier === 'count') return `of those, ${says.replace(/ \(part of the \d+\)$/, '')}`;
   if (t.tier === 'size') { const cut = says.indexOf(' — '), tail = cut > 0 ? says.slice(cut + 3) : ''; return `of those, ${n == null ? '' : n + ' '}over ${t.over_cm} cm${tail ? ` (${tail})` : ''}`; }
   return says; }
 let PIN_LAST = '';
+// round UR6 (owner 2: "the pinned '↳ of those, 1 over 50 cm' disappears before the last item of that section has scrolled away"):
+// a tier's line stays until its section's LAST row has scrolled up under the stack, then drops — so the rows right under the
+// stack are always the line's own section (the next section's rows never sit under it, the round-20f/20h rule kept by
+// construction). A section's rows are its kind rows and tier heads (`secEnd`, the bottom of the last); a line is pinned while
+// more than PIN_ROW px of them show below the stack and its head has gone under it. The stack's height is measured, not
+// guessed: each line's height is cached by its words after a render and the stack is recomputed until it stands still.
+const PIN_ROW = 12, PIN_HC = {};
+const secEnd = tn => { let b = -Infinity; tn.querySelectorAll('.krow, .tier').forEach(e => { const r = e.getBoundingClientRect(); if (r.height > 0 && r.bottom > b) b = r.bottom; }); return b; };
+const pinHtml = lines => lines.map(l => `<p class="pl ${l.cls}"${l.tid ? ` data-tid="${esc(l.tid)}" data-tier="${esc(l.tier)}"` : ''}>${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}${l.sub ? `<span class="pls">${esc(l.sub).replace(/\b(\d+)\b/, '<b>$1</b>')}</span>` : ''}</p>`).join('');   // the tier's number big, once; form a's total in brackets under it
 function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstElementChild; if (!bar || !sc) return;
-  const hh = document.documentElement.classList.contains('ts2') ? 0 : ($('hdr')?.offsetHeight || 0), y = sc.getBoundingClientRect().top + hh, LH = 26, R = e => e.getBoundingClientRect(), st = ST(), lines = [];
+  const hh = document.documentElement.classList.contains('ts2') ? 0 : ($('hdr')?.offsetHeight || 0), y = sc.getBoundingClientRect().top + hh, LH = 26, R = e => e.getBoundingClientRect(), st = ST();
   const art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => { const r = R(a); return r.top < y && r.bottom > y + LH; });
+  const head = [], cands = [];
   if (art) { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, root = g && g.tree ? [].concat(g.tree)[0] : null, pin = art.querySelector(':scope > .ghd.gpin');
     const name = (art.querySelector('.rtitle')?.firstChild?.textContent || '').trim();
     const totA = pin?.querySelector('[data-tot="a"]'), hl = g?.headline;   // integration 1: a ledger row with no group (Other-fish-like rows) pins nothing; it threw here   // round 20h (owner 1, form a): the share leads the group line too, the total in brackets
-    if (root && pin && R(pin).top < y) { lines.push(totA && hl ? {cls: 'g two', t: `${name} · ${shortOf({tier: 'share', n: hl.n, says: hl.says})}`, sub: `(of ${shortOf(root).replace(/ a day /, ' ')})`} : {cls: 'g', t: `${name} · ${shortOf(root)}`});   // the total in brackets on its own line under the share
+    if (root && pin && R(pin).top < y) { head.push(totA && hl ? {cls: 'g two', t: `${name} · ${shortOf({tier: 'share', n: hl.n, says: hl.says})}`, sub: `(of ${shortOf(root).replace(/ a day /, ' ')})`} : {cls: 'g', t: `${name} · ${shortOf(root)}`});   // the total in brackets on its own line under the share
       const byId = {}; (function walk(ns){ ns.forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children || []); } }); })(root.children || []);
-      [...art.querySelectorAll('section.tnode')].forEach(tn => { const r = R(tn), t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
-        // round 20f (the 20e reader: a line outlived its section over the next section's rows): a tier's line goes once less
-        // than about a row (110 px) of its section is left under the bar
-        // round 20h (owner 4 i): and it goes as soon as the NEXT section's head is in view (its top above the bottom of the
-        // scroll area less a line) — a reader saw "↳ 2 of them from streams" over the Duncan River's own rainbow row
-        const nxt = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd'), nextIn = nxt ? R(nxt).top < R(sc).bottom - LH : false;
+      [...art.querySelectorAll('section.tnode')].forEach(tn => { const t = byId[tn.dataset.tid], tl = tn.querySelector(':scope > .tier');
+        if (!t || !tl) return;
         if (totA && t.tier === 'share' && t.n === hl?.n) return;   // form a: the group line already says the share
-        if (t && tl && r.top < y && r.bottom > y + LH + 110 && !nextIn && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
-  const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}${l.sub ? `<span class="pls">${esc(l.sub).replace(/\b(\d+)\b/, '<b>$1</b>')}</span>` : ''}</p>`).join('');   // the tier's number big, once; form a's total in brackets under it
-  if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; }
+        cands.push({tn, tl, line: {cls: 'c', t: '↳ ' + shortOf(t), tid: t.id, tier: t.tier}}); }); } }
+  const hOf = l => PIN_HC[l.cls + '|' + l.t + '|' + (l.sub || '')] || (l.sub ? 2 * LH : LH);
+  const pick = () => { const lines = [...head]; let B = y + head.reduce((a, l) => a + hOf(l), 0);
+    cands.forEach(c => { const h = hOf(c.line); if (R(c.tl).top < B && secEnd(c.tn) > B + h + PIN_ROW) { lines.push(c.line); B += h; } });
+    return lines; };
+  let lines = pick(), html = pinHtml(lines);
+  for (let k = 0; k < 3; k++) {
+    if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; }
+    let moved = false; [...bar.children].forEach((e, i) => { const l = lines[i], key = l && (l.cls + '|' + l.t + '|' + (l.sub || '')), h = Math.round(R(e).height); if (key && PIN_HC[key] !== h) { PIN_HC[key] = h; moved = true; } });
+    if (!moved) break;
+    lines = pick(); html = pinHtml(lines); }
   sc.style.setProperty('--pin-h', (lines.length ? Math.round(bar.getBoundingClientRect().height) : 0) + 'px'); }   // round 20i (UR4 fix 3): anchored scrolls land under the stack, not beneath it
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), m = $('methods'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
@@ -1713,7 +1752,7 @@ function sheetHtml(k){
       const long = o ? o.t.replace(/ · \d+ sections?$/, '') : '';   // round 18: the full label here, the header shows the short one
       return `<button class="orow" data-part="${i}"><span class="on">${esc(fullPart(o) || t.name)} <span class="muted small">${esc(statusOf(t))}</span>${long && long !== fullPart(o) ? `<small class="plong">${esc(long)}</small>` : ''}</span>${i === S.p ? '<b>✓</b>' : ''}</button>`; }).join('')}</div>`; }
   if (k.startsWith('srcs:')) { const keys = SRCS[k.slice(5)] || [];
-    return head('Sources', '') + `<div class="sbody">${keys.map(key => `<div class="prule"><button class="pline pl2" type="button" data-open="rule:${key}"><span>${esc(SNAP.rules[key].title)}</span><em>${esc(levelOf(key))}</em></button>${appliesOf(key).map(a => `<span class="appl">${esc(a)}</span>`).join('')}${bookLinks(key)}</div>`).join('')}</div>`; }
+    return head('Sources', '') + `<div class="sbody">${keys.map(key => `<div class="prule"><button class="pline pl2" type="button" data-open="rule:${key}"><span>${esc(SNAP.rules[key].title)}</span><em>${esc(downWater(key) || levelOf(key))}</em></button>${appliesOf(key).map(a => `<span class="appl">${esc(a)}</span>`).join('')}${bookLinks(key)}</div>`).join('')}</div>`; }
   if (k.startsWith('licsrc:')) { const x = LICSRC[k.slice(7)]; if (!x) return '';
     return head(esc(x.t || 'Sources'), '') + `<div class="sbody gtopic">${x.b}</div>`; }
   if (k.startsWith('kind:')) { const x = KINDS[k.slice(5)]; if (!x) return '';

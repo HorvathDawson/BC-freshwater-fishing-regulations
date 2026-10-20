@@ -8,7 +8,10 @@ Checks (each prints passed / states):
   strip.status   closed iff the day's display_frame.status == "closed" == golden keep.strip.statusClass
   groups         rows with group.headline among the rows page v36 draws in full (TROUTISH split; none on a closed day) == golden keep.groups
   otherFish      the non-trout rows when >= 2 (and not closed) == golden keep.otherFish
-  tiers / kinds  TreeTier.says == the golden tier line (minus a trailing ⓘ / Rule book link); TreeKind.says starts the golden kind sentence
+  tiers / kinds  TreeTier.says == the golden tier line (minus a trailing ⓘ / Rule book link); TreeKind.says starts the golden kind sentence.
+                 A FOLDED share (golden `folded`, the page's data-share-folded: its words add nothing to the head's lead, int1) draws
+                 no line: it passes when it is a share and the head's lead shows the group headline's number, which is the share's.
+                 An own tier's `relation` (rows 28) == the golden relation line.
 """
 import json, re, sys
 from pathlib import Path
@@ -63,21 +66,26 @@ def main():
             if not tree or not gg["tree"]: continue
             root = tree[0] if isinstance(tree, list) else tree
             nodes = root.get("children", []) if gg["head"] and gg["head"]["rootTier"] == root.get("id") else (tree if isinstance(tree, list) else [tree])
-            walk(nodes, gg["tree"], tiers, kinds, bad, sid)
+            walk(nodes, gg["tree"], tiers, kinds, bad, sid, r["group"].get("headline"), gg["head"])
     for k, v in R.items():
         print(f"{k:13} {v} / {n}")
     print(f"{'tiers':13} {tiers[0]} / {tiers[1]}\n{'kinds':13} {kinds[0]} / {kinds[1]}")
     if bad: print("differ:", bad[:10])
 
 
-def walk(ns, gs, tiers, kinds, bad, sid):
+def walk(ns, gs, tiers, kinds, bad, sid, headline=None, head=None):
     for nd, x in zip(ns, gs):
         if nd["node"] == "tier":
             tiers[1] += 1
             line = re.sub(r"\s*(ⓘ|What these words mean)?\s*(Rule book p\.\d+ ↗\s*)*$", "", x["line"] or "")
-            if line == nd["says"]: tiers[0] += 1
-            else: bad.append(("tier", sid, nd["says"], x["line"]))
-            walk(nd.get("children", []), x["children"], tiers, kinds, bad, sid)
+            if x.get("folded"):
+                ok = (nd["tier"] == "share" and not x["line"] and headline is not None and nd.get("n") == headline.get("n")
+                      and head is not None and head.get("leadN") == str(nd.get("n")))
+            else:
+                ok = line == nd["says"] and (x.get("relation") or None) == nd.get("relation")
+            if ok: tiers[0] += 1
+            else: bad.append(("tier", sid, nd["says"], x["line"], nd.get("relation"), x.get("relation")))
+            walk(nd.get("children", []), x["children"], tiers, kinds, bad, sid, headline, head)
         else:
             kinds[1] += 1
             if nd.get("folded") or (x["says"] or "").startswith(nd["says"]): kinds[0] += 1

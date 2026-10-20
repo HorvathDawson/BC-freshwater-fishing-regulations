@@ -1,3 +1,32 @@
+# regs v37 (round UR6, owner: the last prototype fixes before porting; data rows 28 / display 17) — in place on regs-v11.html
+
+1. **"This box" with no box.** Data (rows 28): a size tier says "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a
+   hatchery steelhead". Page: the size section's extent is drawn — a continuous 3 px rule (`--rule`, light #9AA0A6 / dark
+   #626A72) down its left edge from its head to its last row, closed by its top and bottom hairlines (a bracket open to the
+   right); its pinned line in the bar carries the same rule at the same x. Picked by a single-frame reader test (scratchpad
+   ur6/exp: head / mid / last-row frames on the Vedder, Chilliwack p2, Bella Coola May 1, Cowichan p2) between "Of these, …"
+   (A) and naming every fish (B): both read the extent right on every frame where a covered row shows; A at conf 3–4 mid-section,
+   B at 2–3. At the last row (only the pin and the end of the section visible) both said "can't tell which fish" — not wrong.
+2. **The pinned line drops at the section's last row.** `pinUpdate`: a tier line is pinned while its head has gone under the stack
+   and more than `PIN_ROW` (12 px) of its rows (`.krow`, `.tier`; `secEnd`) show below the stack, its own line counted; the stack's
+   height is measured (each line's height cached by its words, recomputed until it stands still). The round-20h "next head in
+   view" rule is gone: the rows right under the stack are always the line's own section, so it never sits over the next
+   section's rows. Each pinned tier line carries `data-tid` / `data-tier`.
+3. **"release" vs "closed" on Other fish**: under the list, one line per status a row shows, the status word in its colour and the
+   glossary's own plain words (`catch_and_release`, `no_fishing_for` `.glsays`) with its ⓘ (`[data-status-key]`). Page-side
+   words: the status word only.
+4. **The paper licence line** names only fish the water lets you keep (data, display 17: a record rule only where it speaks
+   in some verdict of the part's key). The Ape and the Bella Coola no longer name hatchery steelhead.
+5. **"Downstream ›"**: a source line names a rule reached from a downstream water by that water — the rule sheet's own
+   "Downstream rule · Duncan River" → "Duncan River ›" (`downWater`; the Sources sheet's level label too).
+6. **An own rule's relation** (data, rows 28 `relation`): "Not part of the 2 from streams; part of the 5 a day across Region 4"
+   in ink right under the own tier's line (`.trel`, `[data-relation]`); its pin line says "5 rainbow trout a day under the Duncan
+   River’s rule, not part of the 2 from streams" (the relation's first clause, not "5 of them").
+Checks ONLY=ur6 (all eight fail on regs v36: scratchpad ur6/check-ur6-before.txt): ur6-size-extent, ur6-size-words, ur6-pin-extent
+(every state, every 60 px), ur6-pin-last-row, ur6-status-key, ur6-paper-keepable, ur6-source-name, ur6-own-relation. Retargeted:
+the UR1 size-tier words ("Of these, …"). Port: golden.mjs records a tier's `folded` and `relation`; verify_map.py passes a folded
+share when the head's lead shows its number, and compares `relation`.
+
 # regs v36 (UR5 data, rows 27) — snapshot only
 
 Re-snapped on 0e857a10 (rows 27): the Kootenay main body's worked line asks "Kept cutthroat trout over 50 cm (20 in) elsewhere

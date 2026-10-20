@@ -23,7 +23,7 @@
 //   place of its guide line; group-head-compact: no tag when header.tag is null); ONLY=19
 //   (user round 1, UR1; ONLY=ur1) rule-book-label: every book link and page label reads "Rule book p.N" (C);
 //   ur1-tier-words: the tree's tier lines are the data's words whole, the total "per angler", a lifted water's share naming
-//   the fish that don't use it, a size tier "of the fish in this box", a count tier "… in all" (A, B, D); ur1-plain-words:
+//   the fish that don't use it, a size tier "Of these, only 1 may be over …" (UR6; was "of the fish in this box"), a count tier "… in all" (A, B, D); ur1-plain-words:
 //   the species closure says not even catch and release (F), the record duty "Write each one … right away", the weight
 //   "kg (… lb)", Kootenay Lake main body's lines "from shore … from a boat" (G); howtell-current-water: the How to tell
 //   sheet sits over the CURRENT water's header and date (E: screen 59 had been shot over Iron River)
@@ -89,6 +89,8 @@
 //   that, the row below (position:sticky, measured offsets); r20c-style-tokens: on the Keep tab at most 4 font sizes beside the
 //   strip's axis, 4 weights, one link colour, no underlined link, ALL-CAPS only on the section kickers, every hit area ≥ 32 px.
 //   group-head-compact reads the two header blocks (.ghd.gpin + .ghd.gsub); tree-folders takes a tinted chip as prominent
+//   (round UR6, owner: the last prototype fixes before porting; ONLY=ur6) ur6-size-extent, ur6-size-words, ur6-pin-extent,
+//   ur6-pin-last-row, ur6-status-key, ur6-paper-keepable, ur6-source-name, ur6-own-relation: see roundUr6
 //   (round 20b, owner: fewer words, real visuals, split tabs; ONLY=20b) r20b-three-tabs: What you can keep · Gear · Licence
 //   on one row, each its own section (#gear: Gear & methods + Reference; #licence: the licence alone), each tab lands on
 //   its section and reads pressed, sec=licence lands there, no words of the old combined tab, no dead [data-sec]/[data-jump];
@@ -160,6 +162,7 @@ if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x =
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'int1') { await roundInt1(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === 'ur6') { await roundUr6(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === 'ur5') { await roundUr5(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20i') { await round20i(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20h') { await round20h(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -989,11 +992,12 @@ async function round20f(){
         kids.slice(i + 1).forEach(e => { if (e.matches('.ks, .kmeta')) bad.push('PIC ' + e.className + ' after the pictures'); });
         row.querySelectorAll('.kcap').forEach(c => { caps++; const lh = parseFloat(cs(c).lineHeight); if (R(c).height > lh * 2.6) bad.push('PIC a caption of ' + Math.round(R(c).height / lh) + ' lines: ' + norm(c.textContent)); });
         row.querySelectorAll('.kp img').forEach(im => { if (Math.round(R(im).width) < 80) bad.push('PIC a picture shrunk to ' + Math.round(R(im).width) + 'px'); }); });
+      const szIn = e => { const z = e.closest('section.tnode[data-tnode="size"]'); return z ? parseFloat(getComputedStyle(z).borderLeftWidth) + parseFloat(getComputedStyle(z).paddingLeft) : 0; };   /* UR6 (owner 1): inside the size section's left rule the text edge is one rule-and-gap in */
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const pin = art.querySelector(':scope > .ghd.gpin'); if (!pin) return;
         const edge = Math.round(R(pin).left + parseFloat(cs(pin).paddingLeft));
         art.querySelectorAll('.tier .tl, .tier .tkick').forEach(h => { heads++; if (parseFloat(cs(h).borderLeftWidth) > 0 && cs(h).borderLeftStyle !== 'none') bad.push('HDR a left bar on ' + norm(h.textContent).slice(0, 40));
-          if (Math.abs(Math.round(R(h).left + parseFloat(cs(h).paddingLeft)) - edge) > 1) bad.push('HDR header off the text edge: ' + norm(h.textContent).slice(0, 40)); });
-        art.querySelectorAll('.krow.kt').forEach(r => { if (Math.abs(Math.round(R(r).left + parseFloat(cs(r).paddingLeft)) - edge) > 1) bad.push('HDR row off the text edge'); });
+          if (Math.abs(Math.round(R(h).left + parseFloat(cs(h).paddingLeft) - szIn(h)) - edge) > 1) bad.push('HDR header off the text edge: ' + norm(h.textContent).slice(0, 40)); });
+        art.querySelectorAll('.krow.kt').forEach(r => { if (Math.abs(Math.round(R(r).left + parseFloat(cs(r).paddingLeft) - szIn(r)) - edge) > 1) bad.push('HDR row off the text edge'); });
         // round 20h (owner 2): ONE surface — the size section is framed by two hairlines, not tinted
         art.querySelectorAll('section.tnode[data-tnode="size"]').forEach(t => { if (!/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs(t).backgroundColor)) bad.push('HDR the size section paints a band'); if (parseFloat(cs(t).borderTopWidth) < 1 || parseFloat(cs(t).borderBottomWidth) < 1) bad.push('HDR the size section has no hairlines'); }); });
       return {hash: location.hash.slice(8), rows, heads, caps, bad}; })())`)));
@@ -1031,10 +1035,13 @@ async function round20c(){
           L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * 2.6) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
           if (R(bar()).height > 90) bad.push('stack ' + Math.round(R(bar()).height) + 'px');
           // every section containing the pin line whose header has slid under the bar has a line, in order; no other line
+          /* UR6 (owner 2): a line stays until its section's last row has gone under the stack (the round-20h next-head rule retired) */
+          const endOf = tn => { let m = -Infinity; tn.querySelectorAll('.krow, .tier').forEach(e => { const q = R(e); if (q.height > 0 && q.bottom > m) m = q.bottom; }); return m; };
           const nextIn = tn => { const nx = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd'); return nx ? R(nx).top < R(sc).bottom - 26 : false; };   /* round 20h: a line ends once the next head is in view */
           const leadA = !!art.querySelector('[data-tot="a"]');   /* form a: the group line says the share */
-          const want = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn), tl = tn.querySelector(':scope > .tier'); return r.top < y && r.bottom > y + 26 && tl && R(tl).top < R(bar()).bottom && !nextIn(tn) && !(leadA && tn.dataset.tnode === 'share'); }).map(tn => tn.dataset.tid);
-          if (L.length - 1 !== want.length) bad.push('lines ' + (L.length - 1) + ' for sections ' + JSON.stringify(want));
+          const want = [...art.querySelectorAll('section.tnode')].filter(tn => { const r = R(tn), tl = tn.querySelector(':scope > .tier'); return tl && R(tl).top < R(bar()).bottom && endOf(tn) > R(bar()).bottom + 12 && !(leadA && tn.dataset.tnode === 'share'); })   /* UR6: head (going) under the stack, rows still below it */.map(tn => tn.dataset.tid);
+          const must = want.filter(id => R(art.querySelector('section.tnode[data-tid="' + id + '"] > .tier')).bottom < R(bar()).bottom);   /* a head wholly under the stack must have its line; one half under may */
+          if (L.length - 1 > want.length || L.length - 1 < must.length) bad.push('lines ' + (L.length - 1) + ' for sections ' + JSON.stringify(want) + ' (must ' + JSON.stringify(must) + ')');
           if (R(row).top < R(bar()).bottom - 1) bad.push('the row is under the bar'); }
         const res = {hash: location.hash.slice(8), stack: bar() && !bar().hidden ? Math.round(R(bar()).height) : 0, lines: L.map(l => norm(l.textContent))};
         // at How it adds up: the group line only; in Other fish: nothing
@@ -1058,11 +1065,12 @@ async function round20c(){
         if (num && R(num).height - leadH > lh * 1.6) bad.push('the total line wraps: ' + norm(num.textContent).slice(0, 50));
         /* round 20h (owner 2): the head paints the card (one surface), no band */
         const edge = Math.round(R(pin).left + parseFloat(cs(pin).paddingLeft));
-        art.querySelectorAll('section.tnode').forEach(tn => { const c = cs(tn); if (['Right', 'Left'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0) || (tn.dataset.tnode !== 'size' && ['Top', 'Bottom'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0))) bad.push('a bordered section: ' + tn.dataset.tnode);   /* round 20h: the size section's two hairlines are the one allowed */
+        art.querySelectorAll('section.tnode').forEach(tn => { const c = cs(tn); if (['Right', 'Left'].filter(sd => !(sd === 'Left' && tn.dataset.tnode === 'size')).some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0) || (tn.dataset.tnode !== 'size' && ['Top', 'Bottom'].some(sd => c['border' + sd + 'Style'] !== 'none' && parseFloat(c['border' + sd + 'Width']) > 0))) bad.push('a bordered section: ' + tn.dataset.tnode);   /* round 20h: the size section's two hairlines are the one allowed; UR6: and its left rule (its extent) */
           const ch = tn.querySelector(':scope > .tch'); if (ch && (parseFloat(cs(ch).paddingLeft) > 0 || parseFloat(cs(ch).marginLeft) > 0 || cs(ch).borderLeftStyle !== 'none')) bad.push('a rail under ' + tn.dataset.tnode);
           if (tn.dataset.tnode === 'size') { bands++; if (!/rgba\\(0, 0, 0, 0\\)|transparent/.test(c.backgroundColor) || parseFloat(c.borderTopWidth) < 1 || parseFloat(c.borderBottomWidth) < 1) bad.push('the size section is a band, not a hairlined section'); } });   /* round 20h (owner 2): one surface */
-        const tls = [...art.querySelectorAll('.tier .tl')].map(e => Math.round(R(e).left + parseFloat(cs(e).borderLeftWidth) + parseFloat(cs(e).paddingLeft)));
-        const rows = [...art.querySelectorAll('.krow.kt')].map(e => Math.round(R(e).left + parseFloat(cs(e).paddingLeft)));
+        const szIn = e => { const z = e.closest('section.tnode[data-tnode="size"]'); return z ? parseFloat(getComputedStyle(z).borderLeftWidth) + parseFloat(getComputedStyle(z).paddingLeft) : 0; };   /* UR6 (owner 1): inside the size section's left rule the text edge is one rule-and-gap in */
+        const tls = [...art.querySelectorAll('.tier .tl')].map(e => Math.round(R(e).left + parseFloat(cs(e).borderLeftWidth) + parseFloat(cs(e).paddingLeft) - szIn(e)));
+        const rows = [...art.querySelectorAll('.krow.kt')].map(e => Math.round(R(e).left + parseFloat(cs(e).paddingLeft) - szIn(e)));
         const edges = new Set([...tls, ...rows]); if (edges.size > 1) bad.push('text edges ' + JSON.stringify([...edges]));
         if (rows.length && [...edges][0] - edge > 40) bad.push('rows ' + ([...edges][0] - edge) + 'px in'); });
       return {hash: location.hash.slice(8), heads, bands, bad}; })())`)));
@@ -1725,6 +1733,7 @@ await round20h();
 await round20i();
 await roundUr5();
 await roundInt1();
+await roundUr6();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1866,9 +1875,9 @@ async function round18(){
         const ch = el.querySelector(':scope > .tch'), kids = ch ? [...ch.children] : [];
         // round 19 (owner 3): a size tier is a box holding its kinds (size-tier-box); every other tier a guide line
         // round 20d: FLAT — the children sit on the section's own edge, no guide line (round 18's rail retired)
-        if (t.children.length && (!ch || Math.abs(R(ch).left - (R(el).left + parseFloat(getComputedStyle(el).paddingLeft))) > 1 || getComputedStyle(ch).borderLeftStyle !== 'none')) bad.push('tier ' + t.says + ': children indented or railed');   // a size band bleeds and pads back: its content edge
+        if (t.children.length && (!ch || Math.abs(R(ch).left - (R(el).left + parseFloat(getComputedStyle(el).borderLeftWidth) + parseFloat(getComputedStyle(el).paddingLeft))) > 1 || getComputedStyle(ch).borderLeftStyle !== 'none')) bad.push('tier ' + t.says + ': children indented or railed');   // a size band bleeds and pads back: its content edge (UR6: the size section's left rule is its border — the edge is after it)
         if (kids.length !== t.children.length) bad.push('tier ' + t.says + ': ' + kids.length + ' drawn children of ' + t.children.length);
-        if (t.tier === 'own') own.push({says: t.says, sub: norm(el.querySelector(':scope > .tier .tsub')?.textContent), why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
+        if (t.tier === 'own') own.push({says: t.says, sub: norm([...el.querySelectorAll(':scope > .tier .tsub:not([data-relation])')].map(e => e.textContent).join(' '))   /* UR6: the relation line (rows 28) sits above why-here */, why: t.why_here || '', repl: t.replaces || '', book: !!el.querySelector(':scope > .tier .book')});
         t.children.forEach((c, i) => (c.node === 'tier' ? tier : kind)(c, kids[i], t.says)); };
       document.querySelectorAll('#keep article.row.ledger').forEach(art => { const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group; if (!g || !g.headline || !g.tree) return;
         // round 20 (owner 1): the root tier is the header block's line; its children are the top of the tree
@@ -1943,7 +1952,7 @@ async function round19(){
             if (el.dataset.tid !== t.id) bad.push(t.says + ': box not marked ' + t.id);
             // round 20d: never a border inside a border; round 20h (owner 2): ONE surface — the section is set off by a hairline
             // above and below, full-bleed, no side borders, no band
-            if (['Right', 'Left'].some(sd => cs['border' + sd + 'Style'] !== 'none' && parseFloat(cs['border' + sd + 'Width']) > 0) || !/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs.backgroundColor) || parseFloat(cs.borderTopWidth) < 1 || parseFloat(cs.borderBottomWidth) < 1) bad.push(t.says + ': not a hairlined section (borders ' + cs.borderStyle + ' ' + cs.borderTopWidth + '/' + cs.borderBottomWidth + ', background ' + cs.backgroundColor + ')');
+            if ((cs.borderRightStyle !== 'none' && parseFloat(cs.borderRightWidth) > 0) || parseFloat(cs.borderLeftWidth) < 2 ||   /* UR6 (owner 1): ONE left rule, the section's extent (round 20h: no side borders) */ !/rgba\\(0, 0, 0, 0\\)|transparent/.test(cs.backgroundColor) || parseFloat(cs.borderTopWidth) < 1 || parseFloat(cs.borderBottomWidth) < 1) bad.push(t.says + ': not a hairlined section (borders ' + cs.borderStyle + ' ' + cs.borderTopWidth + '/' + cs.borderBottomWidth + ', background ' + cs.backgroundColor + ')');
             const kids = [...(el.querySelector(':scope > .tch')?.children || [])];
             if (kids.length !== t.children.length) bad.push(t.says + ': ' + kids.length + ' drawn of ' + t.children.length);
             kids.forEach(k => { const q = R(k); if (q.left < r.left - 0.5 || q.right > r.right + 0.5 || q.top < r.top || q.bottom > r.bottom) bad.push(t.says + ': ' + norm(k.textContent).slice(0, 40) + ' not inside the band'); });
@@ -1994,7 +2003,7 @@ async function roundUr1(){
           if (t.tier === 'total' && t.n != null && / across /.test(t.says)) { seen.total++; if (!/ a day per angler across /.test(t.says)) bad.push('total without per angler: ' + t.says); }
           // round 20 (owner 2): the lifted fish are named as not counted in the share, which sits inside the total
           if (t.tier === 'share') { seen.share++; if (lifted) { seen.lifted++; if (!/^Only \\d+ of the \\d+ may be from (this stream|this lake|streams|lakes), not counting .+$/.test(t.says)) bad.push('lifted share: ' + t.says); } }
-          if (t.tier === 'size') { seen.size++; if (!/^(Only \\d+|None) of the fish in this box may be over /.test(t.says)) bad.push('size: ' + t.says); }
+          if (t.tier === 'size') { seen.size++; if (!/^Of these, (only \\d+|none) may be over /.test(t.says)) bad.push('size: ' + t.says); }   /* ROUND UR6 (rows 28): no box — "Of these, only 1 may be over …" */
           if (t.tier === 'count') { seen.count++; if (!/^\\d+ .+ in all( \\(part of the \\d+\\))?$/.test(t.says)) bad.push('count: ' + t.says); }
           (t.children || []).forEach(walk); };
         [].concat(g.tree).forEach(walk);
@@ -2120,6 +2129,98 @@ async function roundUr5(){
   check('h1-steelhead-tip', !!fish.ST && !/50 cm[^|]*or longer|or longer[^|]*50 cm/.test(tips), tips);
   const wrong = Object.entries(fish).filter(([c, f]) => ex[c]?.name && f.name !== ex[c].name).map(([c, f]) => `${c}: "${f.name}" vs "${ex[c].name}"`);
   check('h2-fish-names', Object.keys(fish).length > 5 && Object.keys(ex).length > 5 && !wrong.length, wrong.join('; '));
+}
+
+// ---------- round UR6 (owner: the last prototype fixes before porting) ----------
+async function roundUr6(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (1) "this box" with no box: the size section's extent is VISIBLE (a continuous left rule from its head to its last row, closed by
+  // hairlines at both ends, light and dark, the rule at least 2:1 on the card) and its words never say "box"
+  const EXT = [];
+  for (const theme of ['', '&theme=dark']) for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=1', 'w=cowichan&d=1010&p=1']) await page(hash + theme, async b => {
+    EXT.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { const R = e => e.getBoundingClientRect(), lum = c => { const m = c.match(/\\d+(\\.\\d+)?/g).map(Number).slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * m[0] + .7152 * m[1] + .0722 * m[2]; };
+      const card = getComputedStyle(document.querySelector('#keep article.row.ledger') || document.body).backgroundColor, cardL = lum(card === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.body).backgroundColor : card);
+      return [...document.querySelectorAll('#keep section.tnode[data-tnode="size"]')].map(tn => { const cs = getComputedStyle(tn), head = tn.querySelector(':scope > .tier'), rows = [...tn.querySelectorAll('.krow')];
+        const last = Math.max(...rows.map(r => R(r).bottom)), L = lum(cs.borderLeftColor), ratio = (Math.max(L, cardL) + .05) / (Math.min(L, cardL) + .05);
+        return {hash: location.hash.slice(8), rule: parseFloat(cs.borderLeftWidth), ratio: +ratio.toFixed(2), top: parseFloat(cs.borderTopWidth), bottom: parseFloat(cs.borderBottomWidth),
+          headIn: R(head).top >= R(tn).top - 1, endGap: Math.round(R(tn).bottom - last), rows: rows.length}; }); })())`)));
+  });
+  const ex = EXT.flat(), exb = ex.filter(x => x.rule < 2 || x.ratio < 2 || x.top < 1 || x.bottom < 1 || !x.headIn || x.endGap < 0 || x.endGap > 28 || !x.rows);
+  check('ur6-size-extent', ex.length >= 8 && !exb.length, exb.slice(0, 4).map(x => JSON.stringify(x)).join('; ') || 'size sections ' + ex.length);
+  let BOX = {};
+  await page('w=vedder&d=1010', async b => { BOX = JSON.parse(await b.evaluate(`JSON.stringify((() => { const bad = [], seen = []; let n = 0;
+    Object.entries(SNAP.states).forEach(([id, st]) => (st.rows || []).forEach(r => { (function walk(ns){ (ns || []).forEach(t => { if (t.node === 'tier' && t.tier === 'size') { n++; seen.push(t.says); if (/\\bbox\\b/i.test(t.says)) bad.push(id + ': ' + t.says); } if (t.children) walk(t.children); }); })([].concat(r.group?.tree || [])); }));
+    return {n, bad: bad.slice(0, 3), nbad: bad.length, page: /\\bin this box\\b/.test(document.getElementById('keep')?.textContent || ''), sample: [...new Set(seen)].slice(0, 4)}; })())`)); });
+  check('ur6-size-words', BOX.n > 10 && !BOX.nbad && !BOX.page, `${BOX.nbad} of ${BOX.n} size tiers say "box": ` + (BOX.bad || []).join(' | '));
+  // (2) a pinned line stays until its section's LAST row has scrolled up under the stack, then drops: on every snapshot state, at every
+  // scroll step, each pinned tier line's section still shows a row below the stack, and each section whose head has gone under the
+  // stack while rows of it still show below (more than its own line could cover: 72 px, a three-line line and a row's sliver) has its
+  // line pinned (a share the group line already says, form a, is that line)
+  let PE = {};
+  await page('w=vedder&d=1010', async b => { PE = JSON.parse(await b.evaluate(`(async () => { const ids = Object.keys(SNAP.states), R = e => e.getBoundingClientRect(), bad = [], seen = new Set(); let steps = 0, pinnedN = 0;
+    const end = tn => { let m = -Infinity; tn.querySelectorAll('.krow, .tier').forEach(e => { const r = R(e); if (r.height > 0 && r.bottom > m) m = r.bottom; }); return m; };
+    for (const [w, o] of Object.entries(WATERS)) for (const [d, v] of Object.entries(o.snap || {})) [].concat(v).forEach((id, p) => { if (seen.has(id) || !ids.includes(id)) return; seen.add(id);
+      go({w, d: +d, p, sec: 'keep', sheet: ''}); const sc = $('sc'), hh = $('hdr')?.offsetHeight || 0, st = ST();
+      for (let yy = 0; yy <= sc.scrollHeight; yy += 60) { sc.scrollTop = yy; pinUpdate(); steps++;
+        const bar = document.querySelector('#pins .pinbar'), top = R(sc).top + hh, B = bar && !bar.hidden ? R(bar).bottom : top;
+        const art = [...document.querySelectorAll('#keep article.row.ledger')].find(a => { const r = R(a); return r.top < top && r.bottom > top + 26; });
+        const pinned = [...document.querySelectorAll('#pins .pl.c')]; pinnedN += pinned.length;
+        pinned.forEach(pl => { const tn = art?.querySelector('section.tnode[data-tid="' + pl.dataset.tid + '"]');
+          if (!tn) bad.push(id + ' @' + yy + ': a pinned line with no section (' + pl.textContent.trim().slice(0, 40) + ')');
+          else if (end(tn) <= B + 4) bad.push(id + ' @' + yy + ': "' + pl.textContent.trim().slice(0, 40) + '" outlived its rows (' + Math.round(end(tn) - B) + ' px)'); });
+        if (!art) continue;
+        const g = (st.rows[+(art.dataset.row || 'r0').slice(1)] || {}).group, hl = g?.headline, totA = art.querySelector('.ghd.gpin [data-tot="a"]');
+        const byId = {}; (function walk(ns){ (ns || []).forEach(x => { if (x.node === 'tier') { byId[x.id] = x; walk(x.children); } }); })([].concat(g?.tree || []));
+        art.querySelectorAll('section.tnode').forEach(tn => { const t = byId[tn.dataset.tid], head = tn.querySelector(':scope > .tier'); if (!t || !head) return;
+          if (totA && t.tier === 'share' && t.n === hl?.n) return;
+          if (R(head).bottom < B - 2 && end(tn) > B + 72 && !pinned.some(pl => pl.dataset.tid === t.id)) bad.push(id + ' @' + yy + ': ' + t.tier + ' "' + (t.says || '').slice(0, 40) + '" has rows below the stack but no pinned line'); }); } });
+    return JSON.stringify({states: seen.size, of: ids.length, steps, pinnedN, n: bad.length, bad: bad.slice(0, 6)}); })()`)); });
+  check('ur6-pin-extent', PE.states === PE.of && PE.steps > 2000 && PE.pinnedN > 50 && !PE.n, `${PE.states}/${PE.of} states, ${PE.steps} steps, ${PE.pinnedN} pinned; ${PE.n} bad: ` + (PE.bad || []).join('; '));
+  // the four owner states: deep inside the size section at its LAST row (its bottom just under the stack + a row) the size line is pinned
+  const LAST = [];
+  for (const hash of ['w=vedder&d=1010', 'w=chilliwack&d=1010&p=1', 'w=bellacoola&d=501&p=1', 'w=cowichan&d=1010&p=1']) await page(hash, async b => {
+    LAST.push(JSON.parse(await b.evaluate(`(async () => { const sc = $('sc'), R = e => e.getBoundingClientRect(), tn = document.querySelector('#keep section.tnode[data-tnode="size"]'); if (!tn) return JSON.stringify({hash: location.hash.slice(8), none: true});
+      const rows = [...tn.querySelectorAll('.krow')], last = rows[rows.length - 1], out = [];
+      for (const frac of [0.5, 0.15]) { sc.scrollTop = 0; pinUpdate(); const bar = () => document.querySelector('#pins .pinbar');
+        sc.scrollTop += R(last).bottom - R(sc).top - sc.clientHeight * frac; pinUpdate(); await new Promise(r => setTimeout(r, 120)); pinUpdate();
+        out.push({frac, size: [...document.querySelectorAll('#pins .pl')].some(p => p.dataset.tier === 'size'), lastBelow: Math.round(R(last).bottom - R(bar()).bottom)}); }
+      return JSON.stringify({hash: location.hash.slice(8), out}); })()`)));
+  });
+  const lb = LAST.filter(x => x.none || x.out.some(o => o.lastBelow > 40 && !o.size));
+  check('ur6-pin-last-row', LAST.length === 4 && !lb.length, JSON.stringify(lb.length ? lb : LAST).slice(0, 400));
+  // (3) "release" vs "closed" in plain words on Other fish: each status a row shows has a key line in the glossary's own plain words
+  const KEY = [];
+  for (const hash of ['w=hamill&d=615', 'w=glenn&d=615', 'w=vedder&d=1010', 'w=ape&d=501']) await page(hash, async b => {
+    KEY.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const ol = document.querySelector('#keep .olist'), sec = ol?.closest('section');
+      const shown = ['release', 'closed'].filter(w => [...(ol?.querySelectorAll('.orow .k-' + w) || [])].length), plain = id => norm(new DOMParser().parseFromString(SNAP.gloss[id]?.body || '', 'text/html').querySelector('.glsays')?.textContent);
+      const keys = [...(sec?.querySelectorAll('[data-status-key]') || [])].map(e => ({w: e.dataset.statusKey, t: norm(e.textContent)}));
+      const want = {release: plain('catch_and_release'), closed: plain('no_fishing_for')};
+      return {hash: location.hash.slice(8), shown, keys: keys.map(k => k.w), miss: shown.filter(w => !keys.some(k => k.w === w && k.t.includes(want[w]) && k.t.startsWith(w))), extra: keys.filter(k => !shown.includes(k.w)).map(k => k.w)}; })())`)));
+  });
+  check('ur6-status-key', KEY.some(x => x.shown.includes('release')) && KEY.some(x => x.shown.includes('closed')) && KEY.every(x => !x.miss.length && !x.extra.length), JSON.stringify(KEY));
+  // (4) the carry-your-paper-licence line names only fish the water lets you keep: no steelhead on the Ape or the Bella Coola (closed to
+  // steelhead); the Vedder (keeps hatchery steelhead) still names them
+  const PAP = [];
+  for (const hash of ['w=ape&d=501', 'w=bellacoola&d=501&p=1', 'w=bellacoola&d=1010&p=0', 'w=vedder&d=1010']) await page(hash + '&sec=licence', async b => {
+    PAP.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} return {hash: location.hash.slice(8), paper: norm(document.querySelector('#licence .paper')?.textContent)}; })())`)));
+  });
+  check('ur6-paper-keepable', PAP.slice(0, 3).every(x => !/steelhead/i.test(x.paper)) && /hatchery steelhead/.test(PAP[3]?.paper || ''), JSON.stringify(PAP));
+  // (5) a source line never says "Downstream ›" (a rule reached from a water downstream is named by that water): Hamill's bait ban is
+  // the Duncan River's
+  let SRC = {};
+  await page('w=vedder&d=1010', async b => { SRC = JSON.parse(await b.evaluate(`JSON.stringify((() => { const ids = Object.keys(SNAP.states), seen = new Set(), bad = []; let n = 0, hamill = '';
+    for (const [w, o] of Object.entries(WATERS)) for (const [d, v] of Object.entries(o.snap || {})) [].concat(v).forEach((id, p) => { if (seen.has(id) || !ids.includes(id)) return; seen.add(id);
+      go({w, d: +d, p, sec: 'keep', sheet: ''}); document.querySelectorAll('.isrc .srcs').forEach(e => { n++; const t = e.textContent.trim(); if (/^Downstream\\b|· Downstream\\b/.test(t)) bad.push(id + ': ' + t); });
+      if (id === 'hamill_615') hamill = [...document.querySelectorAll('#gear .isrc .srcs')].map(e => e.textContent.trim()).join(' | '); });
+    return {n, bad: bad.slice(0, 5), nbad: bad.length, hamill}; })())`)); });
+  check('ur6-source-name', SRC.n > 500 && !SRC.nbad && /Duncan River ›/.test(SRC.hamill), `${SRC.nbad} of ${SRC.n}: ${(SRC.bad || []).join('; ')}; Hamill gear: ${SRC.hamill}`);
+  // (6) a water's own rule under the region total says how it stands to the stream share and the total: Glenn and Hamill (the Duncan
+  // River's 5 rainbow trout) and the Vedder (its own 4 hatchery rainbow trout) — "Not part of the 2 from streams; part of the 5 a day …"
+  const OWN = [];
+  for (const hash of ['w=glenn&d=615', 'w=hamill&d=615', 'w=vedder&d=1010']) await page(hash, async b => {
+    OWN.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const t = norm(document.querySelector('#keep section.tnode[data-tnode="own"] > .tier')?.textContent); return {hash: location.hash.slice(8), t}; })())`)));
+  });
+  check('ur6-own-relation', OWN.length === 3 && OWN.every(x => /\bnot part of the 2 from streams\b/i.test(x.t) && /\bpart of the [45] a day\b/.test(x.t)), JSON.stringify(OWN));
 }
 
 // ---------- integration round 1 (the app port's generators found three prototype bugs at v33; handoff/PLAN/app-integration D20, T14) ----------

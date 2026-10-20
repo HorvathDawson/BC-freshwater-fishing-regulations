@@ -69,7 +69,8 @@ function EXTRACT(onlyRe) {
     sizeNote: tx(k, ':scope > .kb > .ksn'), also: qa(k, ':scope > .kb > .kac').map(e => spaced(e)),
     duty: tx(k, ':scope > .kb > .duty'), presence: tx(k, ':scope > .kb > .kpres'), terms: glOf(k), lines: lines(k) });
   const tierNode = tn => { const t = q(tn, ':scope > .tier');
-    return { t: 'tier', tier: tn.dataset.tnode, tid: tn.dataset.tid || null, kicker: tx(t, ':scope > .tkick'), line: tx(t, ':scope > .tl'),
+    return { t: 'tier', tier: tn.dataset.tnode, tid: tn.dataset.tid || null, folded: !!t?.hasAttribute('data-share-folded'), kicker: tx(t, ':scope > .tkick'), line: tx(t, ':scope > .tl'),
+      relation: tx(t, ':scope > [data-relation]'),   // UR6: a folded share (its number is the head's lead) draws no line; an own tier's relation to the share and the total
       big: qa(t, ':scope > .tl .tn').map(b => ({ n: norm(b.textContent), second: b.classList.contains('tn2') })),
       pages: books(q(t, ':scope > .tl .tbk')), terms: glOf(q(t, ':scope > .tl')), sub: tx(t, ':scope > .tsub'),
       origin: (o => o ? { text: spaced(o), says: tx(o, ':scope > span'), howtell: !!q(o, '[data-howtell]'), pages: books(o) } : null)(q(t, ':scope > .torigin')),
