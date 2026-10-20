@@ -1,3 +1,8 @@
+# regs v36 (UR5 data, rows 27) — snapshot only
+
+Re-snapped on 0e857a10 (rows 27): the Kootenay main body's worked line asks "Kept cutthroat trout over 50 cm (20 in) elsewhere
+today?" (it named "rainbow trout or cutthroat trout"; rainbow has its own row there). Page unchanged; check ur5-elsewhere-names-here.
+
 # regs v35 (integration round 1: the app port's three prototype bugs + the share said once) — in place on regs-v11.html
 
 Found by the port generators (app/design/regs-v11/port/, handoff/PLAN/app-integration/decisions.md D20, T14):

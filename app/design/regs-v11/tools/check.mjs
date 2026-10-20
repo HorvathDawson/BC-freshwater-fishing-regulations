@@ -2103,6 +2103,12 @@ async function roundUr5(){
       const q = [...document.querySelectorAll('#keep .kpres, #keep .gquiet')].filter(x => x.querySelector('[data-gl="steelhead"]') && /counts as a steelhead/.test(x.textContent)); return {n: q.length, bad: q.filter(x => getComputedStyle(x).color !== ink).map(x => getComputedStyle(x).color)}; })())`)));
   });
   check('ur5-steelhead-definition-ink', INK.every(x => x.n) && INK.every(x => !x.bad.length), INK.map(x => x.n + ' notes, ' + x.bad.join(',')).join('; '));
+  // (D1, data rows 27) the kept-elsewhere over-the-size question names only the fish the clause holds here: the Kootenay main body's
+  // trout and char card never asks about rainbow trout (its own row: 10 a day, 20 a year over 50 cm) — two readers took it as a daily cap
+  let EL = {};
+  await page('w=klmb&d=1010', async b => { EL = JSON.parse(await b.evaluate(`JSON.stringify((() => { const t = (document.querySelector('#keep article.row.ledger')?.textContent || '').replace(/\\s+/g, ' ');
+    return {cut: /Kept cutthroat trout over 50 cm/.test(t), rb: /Kept rainbow trout or cutthroat trout over 50 cm/.test(t)}; })())`)); });
+  check('ur5-elsewhere-names-here', EL.cut && !EL.rb, JSON.stringify(EL));
   // (H1) the steelhead look-for tip never says "50 cm or longer" (the book: longer than 50 cm; exactly 50 cm is a rainbow)
   // (H2) every fish name the snapshot carries is the export's species name (Lake whitefish, not the art table's "Whitefish")
   const ref = fs.readFileSync(path.join(APP, '../pipeline/deliver/answers/reference/page_v36.html'), 'utf8');
