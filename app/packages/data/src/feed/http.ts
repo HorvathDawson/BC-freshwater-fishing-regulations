@@ -108,7 +108,8 @@ interface StationFile {
  * joins the two halves; see `gaugeSeries` in `bundle/source.ts`.
  */
 export interface Observations {
-  fetchedAt: number;
+  /** When our copy was fetched; null when the file does not say (P02: unknown age, never "now"). */
+  fetchedAt: number | null;
   from: string;
   /** Which quantity the station itself leads with, when the caller did not pick one. */
   parameter: Parameter;
@@ -211,7 +212,11 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
     return p;
   }
 
-  const stamp = (s: string | undefined) => (s ? Date.parse(s) : Date.now());
+  // P02: a file with no fetchedAt, or a malformed one, has an UNKNOWN age (null), never "now".
+  const stamp = (s: string | undefined): number | null => {
+    const t = s ? Date.parse(s) : NaN;
+    return Number.isFinite(t) ? t : null;
+  };
 
   return {
     index: () => load<IndexFile>("index.json"),

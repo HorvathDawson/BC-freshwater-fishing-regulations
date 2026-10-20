@@ -25,13 +25,38 @@ export type Freshness =
   | { state: "stale"; ageMs: number }
   | { state: "unknown" };
 
+/** A feed reading older than this is stale: the publisher writes every 30 minutes, so two hours is four
+ *  missed runs (P02). */
+export const STALE_AFTER_MS = 2 * 60 * 60_000;
+
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
 export function freshness(
   fetchedAt: number | null,
   now: number,
-  staleAfterMs: number,
+  staleAfterMs: number = STALE_AFTER_MS,
 ): Freshness {
-  if (fetchedAt === null) return { state: "unknown" };
+  if (fetchedAt === null || !Number.isFinite(fetchedAt)) return { state: "unknown" };
   const ageMs = Math.max(0, now - fetchedAt);
   return ageMs > staleAfterMs ? { state: "stale", ageMs } : { state: "live", ageMs };
+}
+
+const agoWords = (ms: number): string => {
+  const min = Math.floor(ms / 60_000);
+  if (min < 60) return `${min} min ago`;
+  const h = Math.floor(min / 60);
+  return h < 48 ? `${h} h ago` : `${Math.floor(h / 24)} days ago`;
+};
+
+/**
+ * The line under a gauge reading (P02): when it was observed, and how old our copy is. An unknown age says so; it
+ * is never shown as live. `observedAt` is the reading's own ISO time, left out when missing or malformed.
+ */
+export function readingAgeLine(f: Freshness, observedAt: string | null): string {
+  const parts = ["This gauge's own reading"];
+  const t = observedAt ? Date.parse(observedAt) : NaN;
+  if (Number.isFinite(t)) parts.push(`observed ${new Date(t).toISOString().replace("T", " ").slice(0, 16)} UTC`);
+  parts.push(f.state === "unknown" ? "age unknown"
+    : f.state === "live" ? `checked ${agoWords(f.ageMs)}`
+    : `last checked ${agoWords(f.ageMs)}, may be out of date`);
+  return parts.join(" · ");
 }

@@ -110,6 +110,17 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   (it predates P07; the next bundle build writes them).
 - NEXT: the batched heavy run `python -m pipeline.deliver all --out-dir <scratch>` (P05 + P07 acceptance).
 
+## P04 (DONE): the 3 cron workflows deleted; archive/README updated.
+
+## P02 (DONE): feed freshness
+- http `stamp` → null for a missing or malformed fetchedAt; `Observations.fetchedAt: number | null`; source.ts no longer
+  fabricates `Date.now()`.
+- core `STALE_AFTER_MS` = 2 h (the default for `freshness`), and `readingAgeLine(f, observedAt)`, the whole sentence
+  ("… · observed … UTC · checked 10 min ago" / "last checked 3 h ago, may be out of date" / "age unknown").
+- `Conditions.observedAt`; ConditionsPanel shows readingAgeLine. `useStationReading` re-polls every 5 min (usePoll),
+  and `useAsync(…, sameAs)` keeps the last reading during and after a failed refresh.
+- Tests: http +3, core +6 (8 failed before), async refresh +2. pnpm check 657/657.
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).

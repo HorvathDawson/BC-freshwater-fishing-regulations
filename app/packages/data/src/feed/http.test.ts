@@ -167,3 +167,22 @@ describe("record length and HYDAT provenance", () => {
     expect((await f.index())!.hydat!.stale).toBe(true);
   });
 });
+
+describe("feed freshness (P02): no fabricated fetchedAt", () => {
+  const withStamp = (fetchedAt: unknown) => {
+    const file: Record<string, unknown> = { ...STATION };
+    if (fetchedAt === undefined) delete file.fetchedAt; else file.fetchedAt = fetchedAt;
+    return httpFeed("http://x/feeds/gauge", server({ "08MH001.json": file }));
+  };
+  it("a station file without fetchedAt has an UNKNOWN age, never now", async () => {
+    const f = withStamp(undefined);
+    expect((await f.now(S))!.fetchedAt).toBeNull();
+    expect((await f.observations(S))!.fetchedAt).toBeNull();
+  });
+  it("a malformed fetchedAt is unknown too", async () => {
+    expect((await withStamp("garbage").now(S))!.fetchedAt).toBeNull();
+  });
+  it("a well-formed fetchedAt is that instant", async () => {
+    expect((await withStamp("2026-09-01T12:00:00Z").now(S))!.fetchedAt).toBe(Date.parse("2026-09-01T12:00:00Z"));
+  });
+});

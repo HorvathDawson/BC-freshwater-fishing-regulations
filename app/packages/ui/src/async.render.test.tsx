@@ -104,3 +104,35 @@ describe("useAsync", () => {
     expect(getByRole("button").textContent).toBe("failed:feed down");
   });
 });
+
+/** P02's re-poll: a refresh of the same question keeps the last reading on screen, and a failed refresh keeps it too. */
+function Polled({ impl, queryKey, sameAs }: { impl: () => Promise<string>; queryKey: string; sameAs?: string }) {
+  const out = useAsync(() => impl(), queryKey, true, sameAs);
+  return <p>{out.state}:{out.value ?? out.error?.message ?? ""}</p>;
+}
+
+describe("useAsync refresh (P02)", () => {
+  it("a refresh keeps the last value while it loads; a new question does not", async () => {
+    let resolve: (v: string) => void = () => {};
+    const slow = () => new Promise<string>((r) => { resolve = r; });
+    const { container, rerender } = render(<Polled impl={async () => "first"} queryKey="s#0" sameAs="s" />);
+    await settle();
+    expect(container.textContent).toBe("ready:first");
+    rerender(<Polled impl={slow} queryKey="s#1" sameAs="s" />);
+    await settle();
+    expect(container.textContent).toBe("ready:first");               // not "loading:"
+    await act(async () => { resolve("second"); });
+    expect(container.textContent).toBe("ready:second");
+    rerender(<Polled impl={slow} queryKey="t#0" sameAs="t" />);       // another station: a new question
+    await settle();
+    expect(container.textContent).toBe("loading:");
+  });
+
+  it("a failed refresh keeps the last reading (its age says how old it is)", async () => {
+    const { container, rerender } = render(<Polled impl={async () => "first"} queryKey="s#0" sameAs="s" />);
+    await settle();
+    rerender(<Polled impl={async () => { throw new Error("offline"); }} queryKey="s#1" sameAs="s" />);
+    await settle();
+    expect(container.textContent).toBe("ready:first");
+  });
+});

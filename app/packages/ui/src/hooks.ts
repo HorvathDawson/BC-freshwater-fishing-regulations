@@ -9,7 +9,7 @@ import type {
   BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
-import { useAsync, useDebounced, type Async } from "./async";
+import { useAsync, useDebounced, usePoll, type Async } from "./async";
 import { buildHydrograph, type Hydrograph } from "./hydrograph";
 import { gaugeGeoJSON, type GaugeQuantity } from "./gaugePoints";
 
@@ -65,6 +65,8 @@ export interface Conditions {
   trust: string | null;
   /** Age of the reading. A stale value must never render as a live one. */
   fetchedAt: number | null;
+  /** The reading's own observation time (ISO), or null when the feed does not say (P02). */
+  observedAt: string | null;
   /**
    * The model run behind the chart's ribbon — for the issue time, the model's name and its
    * provider's disclaimer, none of which belong to the reading beside it.
@@ -79,7 +81,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
     async (): Promise<Conditions> => {
       const empty: Conditions = {
         station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, trace: [], forecast: null,
+        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [], forecast: null,
       };
       if (!section) return empty;
       const link = await source.gaugeForSection(section);
@@ -102,6 +104,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
         percentile: now?.value.percentile ?? null,
         standing: now?.value.standing ?? null,
         fetchedAt: now?.fetchedAt ?? null,
+        observedAt: now?.value.at || null,
         forecast: series?.value.forecast ?? null,
       };
     },
@@ -136,14 +139,20 @@ export function useWaterName(
  * fifth (the matched one, which need not be in the panel at all) is being shown two models
  * and told they are one. This is the same reading, for a station the caller chooses.
  */
+/** How often an open view re-asks the feed for a station's reading: the feed's cache TTL (5 min). */
+export const READING_POLL_MS = 5 * 60_000;
+
 export function useStationReading(
   source: RegsSource, station: StationId | null,
 ): Async<Conditions> {
+  // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
+  // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
+  const tick = usePoll(READING_POLL_MS, station !== null);
   return useAsync(
     async (): Promise<Conditions> => {
       const empty: Conditions = {
         station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, trace: [], forecast: null,
+        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [], forecast: null,
       };
       if (!station) return empty;
       const [now, series] = await Promise.all([
@@ -162,11 +171,12 @@ export function useStationReading(
         station, stationName: null, trust: null, trace: [],
         discharge: now.value.discharge, level: now.value.level,
         percentile: now.value.percentile, standing: now.value.standing,
-        fetchedAt: now.fetchedAt, forecast: series?.value.forecast ?? null,
+        fetchedAt: now.fetchedAt, observedAt: now.value.at || null, forecast: series?.value.forecast ?? null,
       };
     },
-    `reading:${station ?? ""}`,
+    `reading:${station ?? ""}#${tick}`,
     station !== null,
+    `reading:${station ?? ""}`,
   );
 }
 

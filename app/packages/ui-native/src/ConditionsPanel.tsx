@@ -13,7 +13,7 @@
  */
 import { useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { percentileOrdinal, standingWord, type Standing } from "@app/core";
+import { freshness, percentileOrdinal, readingAgeLine, standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
@@ -241,9 +241,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
               : "There is a reading here, but no record to compare it against."}
           </Text>
           <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-            This gauge's own reading
-            {c.fetchedAt ? ` · checked ${new Date(c.fetchedAt).toISOString()
-              .replace("T", " ").slice(0, 16)}` : ""}
+            {readingAgeLine(freshness(c.fetchedAt, Date.now()), c.observedAt)}
           </Text>
         </View>
       ) : (

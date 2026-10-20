@@ -390,7 +390,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
           .filter((p) => Number.isFinite(p.year))
           .sort((a, b) => b.year - a.year);
         return {
-          fetchedAt: obs?.fetchedAt ?? Date.now(),
+          fetchedAt: obs?.fetchedAt ?? null,         // P02: no observations, no age; never "now"
           value: {
             step: "1d", from: `${year}-01-01`, parameter: param,
             at: stamps, values, band,

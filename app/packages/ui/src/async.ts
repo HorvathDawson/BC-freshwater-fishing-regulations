@@ -40,9 +40,13 @@ export function useAsync<T>(
   run: () => Promise<T>,
   key: string,
   enabled = true,
+  /** A REFRESH, not a new question (P02's re-poll): when the previous run had this same `sameAs`, the last ready
+   *  value stays on screen while the new one loads, and a failed refresh keeps it (its age says how old it is). */
+  sameAs?: string,
 ): Async<T> {
   const [out, setOut] = useState<Async<T>>(LOADING as Async<T>);
   const seq = useRef(0);
+  const lastSame = useRef<string | undefined>(undefined);
 
   // Declared FIRST, so it has already run by the time the effect below fires: the effect
   // always calls the closure from the most recent render without depending on it.
@@ -53,12 +57,15 @@ export function useAsync<T>(
     if (!enabled) return;
     const mine = ++seq.current;
     let alive = true;
-    setOut(LOADING as Async<T>);
+    const refresh = sameAs !== undefined && lastSame.current === sameAs;
+    lastSame.current = sameAs;
+    if (!refresh) setOut(LOADING as Async<T>);
     latest.current().then(
       (value) => { if (alive && mine === seq.current) setOut({ state: "ready", value, error: null }); },
       (e: unknown) => {
         if (alive && mine === seq.current) {
-          setOut({ state: "failed", value: null, error: e instanceof Error ? e : new Error(String(e)) });
+          const failed = { state: "failed", value: null, error: e instanceof Error ? e : new Error(String(e)) } as const;
+          setOut((prev) => (refresh && prev.state === "ready" ? prev : failed));
         }
       },
     );
@@ -76,4 +83,15 @@ export function useDebounced<T>(value: T, ms: number): T {
     return () => clearTimeout(t);
   }, [value, ms]);
   return held;
+}
+
+/** A counter that ticks every `intervalMs` while `enabled`: put it in a `useAsync` key to re-ask on a schedule. */
+export function usePoll(intervalMs: number, enabled = true): number {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!enabled) return;
+    const id = setInterval(() => setTick((t) => t + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs, enabled]);
+  return tick;
 }
