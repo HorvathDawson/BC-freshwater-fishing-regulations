@@ -12,7 +12,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - Workflow `light-tickets-batch-1` (5 worktree agents + adversarial review + fix): spots sid removal + P12b, P12a,
   P12c + search debounce, T00+T02, T20. On completion: cherry-pick their branch commits into redesign/stream-sections,
   resolve conflicts, Tier 1, record.
-- N1 spike agent (worktree, iOS simulator first; Android needs a system image + AVD) → handoff/PLAN/app-data/N1-SPIKE.md.
+- N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
+  (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
+
+## Owner direction (2026-10-20, third round)
+- Platform order: ANDROID (mobile) + the WEB app (react-native-web) now; iOS later. Keep everything portable to iOS
+  (cross-platform binding, platform code only behind .native/.web). Acceptance on native = the Android emulator for now.
 
 ## Owner answers (2026-10-20, second round)
 - Native builds + tile rebuild: allowed; keep other work going while they run. Live deliver: do it.
