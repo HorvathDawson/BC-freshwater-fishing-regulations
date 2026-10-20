@@ -166,6 +166,14 @@ deleted with the owner's §6 approval: atlas/full, atlas/full.prev, and the scra
 - LEFT FOR P10 (app): point TileEndpoints.glyphs / .sprite / the mask at the release folder (runtime-style.ts already
   takes overrides; the Protomaps CDN is only its fallback). The app still reads the mask from its old place until P10/P11.
 
+## P13 (DONE, except the line target): route state
+- ui/route.ts: Route (browse | water stack with `from`), RouteAction, reduce, bottomBarShown, useRoute, STACK_CAP 8,
+  one back rule. route.test.ts: 7 (the spec's 5 + browse back + tab reset).
+- Shell reads tab / water / spot / add flow / Conditions drill from the route and dispatches every move. The TabBar is
+  hidden in water mode. Back from a water now restores the Conditions drill it came from (before, the reach was lost).
+  vitest 678/678; the steps other than fixture pass (fixture differs only by P09's schema, committed with P09).
+- NOT met: Shell is 709 lines (target < 400); P14 (water-mode shell) and P17 take out the rest.
+
 ## N1: native map spike (BLOCKED on the owner, not started)
 - It needs a native dev-client build (xcodebuild / gradle: heavy and long) plus a simulator or emulator.
   - On 2026-10-20 `xcrun simctl list` hung for more than 2 min (CoreSimulator not answering).

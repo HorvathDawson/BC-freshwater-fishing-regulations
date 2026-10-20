@@ -17,6 +17,7 @@ export * from "./hydrograph";
 export * from "./sprite";
 export * from "./search";
 export * from "./spots";
+export * from "./route";
 
 export type FormFactor = "phone" | "desktop";
 

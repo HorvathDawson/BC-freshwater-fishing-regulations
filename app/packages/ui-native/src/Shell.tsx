@@ -11,7 +11,7 @@ import { WATER_STATUS, WATER_STATUSES, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { spotSaveFailed } from "@app/ui";
+import { bottomBarShown, spotSaveFailed, useRoute, type BrowseTab } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, useStatusIndex, useVintage, statusData,
          type GaugeQuantity, type Horizon } from "@app/ui";
@@ -96,10 +96,22 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const facts = useDataFacts(source, feed);
   const counts = facts.state === "ready" ? facts.value.counts : null;
-  const [tab, setTab] = useState<TabKey>("map");
+  /*
+   * THE ROUTE (P13): what is on screen is ONE value, moved by one reducer (`@app/ui` route.ts). The tab, the water
+   * open, the spot, the add flow and the Conditions drill are read from it; every way of moving dispatches to it.
+   * Water mode keeps the browse state underneath (`from`), so back restores it whole.
+   */
+  const [route, go] = useRoute();
+  const browse = route.mode === "browse" ? route : route.from;
+  const tab: TabKey = browse.tab;
+  const item: ItemId | null = route.mode === "water" ? route.stack[route.stack.length - 1]!.item : null;
+  const adding = route.mode === "browse" && route.adding;
+  const openSpot = route.mode === "browse" ? route.spot : null;
+  const condSection: SectionId | null = route.mode === "browse" ? route.cond?.section ?? null : null;
+  const condAt = route.mode === "browse" ? route.cond?.at ?? null : null;
+  const toTab = (k: BrowseTab) => { setPicked(null); go({ type: "tab", tab: k }); };
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(null);
-  const [item, setItem] = useState<ItemId | null>(null);
   /**
    * The water chosen from SEARCH, which the map opens on and lights when the reader comes
    * back from its page — riffle's `goTo`: frame the water, then open it. Cleared by
@@ -109,9 +121,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const [picked, setPicked] = useState<ItemId | null>(null);
   const pickFocus = usePickFocus(source, picked);
   const [layersOpen, setLayersOpen] = useState(false);
-  /** Adding a spot takes over the whole screen: it is a flow, not a mode of the map. */
-  const [adding, setAdding] = useState(false);
-  const [openSpot, setOpenSpot] = useState<string | null>(null);
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
   const [edit, setEdit] = useState<{ title: string; notes: string } | null>(null);
@@ -127,11 +136,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * about the few hundred reaches actually on screen.
    */
   const [visible, setVisible] = useState<readonly SectionId[]>([]);
-  // The reach tapped while in Conditions. A tap there asks "what is THIS water doing",
-  // which is a different question from the regulations sheet a tap on the Map tab opens.
-  const [condSection, setCondSection] = useState<SectionId | null>(null);
-  /** Where on that reach the tap landed — the "you are here" end of the route map. */
-  const [condAt, setCondAt] = useState<{ lat: number; lon: number } | null>(null);
   // Percentiles for what is on screen. Empty while the feed is unreachable, which paints
   // nothing rather than painting every reach as a drought.
   // STABLE IDENTITY MATTERS HERE. As an inline arrow this changed every render, so the
@@ -356,9 +360,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
-    const found = await source.itemForSection(Number(featureId) as SectionId);
-    if (found) { setPicked(null); setItem(found); }
-  }, [source]);
+    const sid = Number(featureId) as SectionId;
+    const found = await source.itemForSection(sid);
+    if (found) { setPicked(null); go({ type: "openWater", item: found, tapSid: sid }); }
+  }, [source, go]);
 
   /**
    * Open a water from a list — and forget whichever reach the Conditions tab was on.
@@ -368,17 +373,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * Coquihalla's sheet would open the Fraser.
    */
   const openWater = useCallback((id: ItemId) => {
-    setCondSection(null);
-    setCondAt(null);
-    setItem(id);
-  }, []);
+    go({ type: "tab", tab: "map" });
+    go({ type: "openWater", item: id });
+  }, [go]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   if (viewing) {
     const dirty = edit !== null
       && (edit.title !== viewing.title || edit.notes !== viewing.notes);
-    const close = () => { setOpenSpot(null); setEdit(null); setSpotError(null); setPendingTab(null); };
-    const goTab = (k: TabKey) => { close(); setItem(null); setCondSection(null); setPicked(null); setTab(k); };
+    const close = () => { setEdit(null); setSpotError(null); setPendingTab(null); go({ type: "back" }); };
+    const goTab = (k: TabKey) => { setEdit(null); setSpotError(null); setPendingTab(null); toTab(k); };
     return (
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
@@ -416,9 +420,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                         // what moves it — MapScreen reads the ref when it mounts.
                         camera.current = { lon: viewing.lon, lat: viewing.lat, zoom: 14 };
                         setFocus({ lat: viewing.lat, lon: viewing.lon });
-                        close();
-                        setItem(null);
-                        setTab("map");
+                        goTab("map");
                       }}
                       onRefresh={onRefreshSpots && (() => onRefreshSpots())}
                       refreshing={refreshing} />
@@ -437,9 +439,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    // not just the matched station's own number.
                    feed={feed}
                    theme={theme} camera={camera.current}
-                   onCancel={() => setAdding(false)}
+                   onCancel={() => go({ type: "back" })}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
-                   onSaved={async (s) => { await onSaveSpot(s); setAdding(false); setTab("spots"); }} />
+                   onSaved={async (s) => { await onSaveSpot(s); toTab("spots"); }} />
     );
 
   const body = item !== null
@@ -460,16 +462,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                     * opens a DIFFERENT water (search, a map tap, a tab change).
                     */
                    onConditions={(sec) => {
-                     if (!condSection) { setCondAt(null); setCondSection(sec); }
-                     setItem(null); setTab("conditions");
+                     const kept = route.mode === "water" ? route.from.cond : null;
+                     go({ type: "back" });
+                     go({ type: "condSection", section: kept?.section ?? sec, at: kept?.at ?? null });
                    }}
-                   onBack={() => setItem(null)} />
+                   onBack={() => go({ type: "back" })} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette}
                       onPick={(id) => {
                         // Frame it on the map AND open it: back from the page lands on
                         // the water, lit, rather than on the search list.
-                        setPicked(id); setTab("map"); openWater(id);
+                        openWater(id); setPicked(id);
                       }}
                       total={counts?.waters} tiles={tiles} theme={theme}
                       basemap={layers.basemap} />
@@ -496,11 +499,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                              * are here". One component, two completely different answers,
                              * which reads as two different screens.
                              */
-                            onRegulations={(sec) => {
-                              setItem(null);
-                              void onPressFeature("stream", sec);
-                            }}
-                            onBack={() => setCondSection(null)} feed={feed}
+                            onRegulations={(sec) => { void onPressFeature("stream", sec); }}
+                            onBack={() => go({ type: "back" })} feed={feed}
                             credits={attribution} horizon={horizon}
                             onHorizon={setHorizon} />
       : tab === "map" || tab === "conditions"
@@ -568,15 +568,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                            // Converted, not cast — see noteVisible above. This is the
                            // Conditions tap, so a string here would open a sheet whose
                            // every lookup misses while the screen looks fine.
-                           setCondSection(Number(id) as SectionId);
-                           setCondAt(lat !== undefined && lon !== undefined
-                             ? { lat, lon } : null);
+                           go({ type: "condSection", section: Number(id) as SectionId,
+                                at: lat !== undefined && lon !== undefined ? { lat, lon } : null });
                          }
                        : onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
         : <SpotsScreen palette={palette} spots={spots} error={spotsError ?? null}
-                       onOpen={setOpenSpot}
-                       onAdd={() => setAdding(true)}
+                       onOpen={(id) => go({ type: "openSpot", id })}
+                       onAdd={() => go({ type: "addSpot" })}
                        onRefresh={onRefreshSpots} refreshing={refreshing} />;
 
   /*
@@ -693,10 +692,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           )}
         </LegendStrip>
       )}
-      {/* A tab change is a change of subject: the remembered reach goes with it. */}
-      <TabBar active={tab} palette={palette}
-              onChange={(k) => { setItem(null); setCondSection(null); setCondAt(null);
-                                 setPicked(null); setTab(k); }} />
+      {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
+      {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={toTab} />}
 
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}
