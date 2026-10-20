@@ -1,9 +1,9 @@
 {
  "meta": {
   "generator": "app/design/regs-v11/port/golden.mjs",
-  "ref": "d4a0ccd9",
-  "sha": "d4a0ccd9",
-  "version": "v37",
+  "ref": "7fb6809f",
+  "sha": "bdda3586",
+  "version": "v38",
   "states": 134,
   "sheets": 144,
   "profiles": 6,
@@ -520,6 +520,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -2457,7 +2458,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1320,
+      "height": 1317,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -2473,7 +2474,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 718,
+        "height": 715,
         "head": {
          "top": 325,
          "height": 64
@@ -2486,17 +2487,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 645,
+        "height": 642,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1231,
+       "top": 1228,
        "height": 274
       }
      }
@@ -2535,10 +2536,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 824,
+      "y": 840,
       "lines": [
        {
         "cls": "g two",
@@ -3086,16 +3087,11 @@
         "t": "tier",
         "tier": "share",
         "tid": "t3",
-        "folded": false,
-        "kicker": "All Region 2 streams",
-        "line": "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout",
+        "folded": true,
+        "kicker": null,
+        "line": null,
         "relation": null,
-        "big": [
-         {
-          "n": "2",
-          "second": false
-         }
-        ],
+        "big": [],
         "pages": [],
         "terms": [],
         "sub": null,
@@ -3307,13 +3303,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 4 hatchery rainbow trout:",
+         "q": "If you keep 4 hatchery rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 hatchery rainbow trout:",
-         "a": "none from other streams today — up to 2 more of any kind, from here or from lakes."
+         "q": "If you keep 2 hatchery rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -3332,8 +3328,6 @@
       "lines": [
        "Trout and char",
        "2 a day per angler from streams of the 4 a day per angler across Region 2, lakes included",
-       "All Region 2 streams",
-       "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout",
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
@@ -3349,8 +3343,8 @@
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
-       "If you keep 4 hatchery rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more of any kind, from here or from lakes.",
+       "If you keep 4 hatchery rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 hatchery rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
        "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead. See every regulation line ›"
       ]
@@ -3458,8 +3452,6 @@
      "✓ open ✕ closed fly fishing only bait ban",
      "Trout and char",
      "2 a day per angler from streams of the 4 a day per angler across Region 2, lakes included",
-     "All Region 2 streams",
-     "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout",
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
@@ -3475,8 +3467,8 @@
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
-     "If you keep 4 hatchery rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more of any kind, from here or from lakes.",
+     "If you keep 4 hatchery rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 hatchery rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
      "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead. See every regulation line ›",
      "Other fish",
@@ -3485,6 +3477,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -5442,7 +5435,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1538,
+      "height": 1488,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -5458,35 +5451,35 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 836,
+        "height": 750,
         "head": {
          "top": 325,
-         "height": 147
+         "height": 64
         },
-        "nextHead": 1169,
+        "nextHead": 1083,
         "short": "↳ 2 of them from streams"
        },
        {
         "tid": "t4",
         "tier": "size",
         "n": 1,
-        "top": 481,
-        "height": 680,
+        "top": 398,
+        "height": 677,
         "head": {
-         "top": 482,
-         "height": 64
+         "top": 399,
+         "height": 61
         },
-        "nextHead": 1169,
+        "nextHead": 1083,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        },
        {
         "tid": "t2",
         "tier": "own",
         "n": 4,
-        "top": 1169,
+        "top": 1083,
         "height": 216,
         "head": {
-         "top": 1169,
+         "top": 1083,
          "height": 105
         },
         "nextHead": null,
@@ -5494,8 +5487,8 @@
        }
       ],
       "worked": {
-       "top": 1401,
-       "height": 322
+       "top": 1315,
+       "height": 358
       }
      }
     ],
@@ -5518,7 +5511,7 @@
       "height": 43
      },
      {
-      "y": 328,
+      "y": 240,
       "lines": [
        {
         "cls": "g two",
@@ -5533,10 +5526,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 944,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -5548,7 +5541,7 @@
       "height": 43
      },
      {
-      "y": 1008,
+      "y": 928,
       "lines": [
        {
         "cls": "g two",
@@ -5566,7 +5559,7 @@
       "height": 81
      },
      {
-      "y": 1176,
+      "y": 1088,
       "lines": [
        {
         "cls": "g two",
@@ -5578,7 +5571,7 @@
       "height": 43
      },
      {
-      "y": 1640,
+      "y": 1584,
       "lines": [],
       "height": 0
      }
@@ -10961,7 +10954,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -10978,7 +10971,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -11021,7 +11014,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -11146,7 +11139,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -13052,7 +13045,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -13068,7 +13061,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -13081,17 +13074,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -13101,7 +13094,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -13143,10 +13136,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -13158,7 +13151,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -13460,7 +13453,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -13477,7 +13470,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -13520,7 +13513,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -13645,7 +13638,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -15518,7 +15511,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -15534,7 +15527,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -15547,17 +15540,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -15567,7 +15560,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -15609,10 +15602,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -15624,7 +15617,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -15934,7 +15927,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -15951,7 +15944,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -15994,7 +15987,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -16119,7 +16112,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -18017,7 +18010,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -18033,7 +18026,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -18046,17 +18039,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -18066,7 +18059,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 278,
       "groupLine": null,
       "pin": null,
@@ -18108,10 +18101,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -18123,7 +18116,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -18448,7 +18441,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -18465,7 +18458,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -18510,7 +18503,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
@@ -18632,7 +18625,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
@@ -18645,6 +18638,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -20571,7 +20565,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1321,
+      "height": 1338,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -20587,7 +20581,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 891,
+        "height": 908,
         "head": {
          "top": 325,
          "height": 64
@@ -20600,17 +20594,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 680,
+        "height": 677,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1232,
+       "top": 1249,
        "height": 274
       }
      }
@@ -20649,10 +20643,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 864,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -20664,7 +20658,7 @@
       "height": 43
      },
      {
-      "y": 1424,
+      "y": 1440,
       "lines": [],
       "height": 0
      }
@@ -20989,7 +20983,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -21006,7 +21000,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -21051,7 +21045,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
@@ -21173,7 +21167,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
@@ -21186,6 +21180,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -23112,7 +23107,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1321,
+      "height": 1338,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -23128,7 +23123,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 891,
+        "height": 908,
         "head": {
          "top": 325,
          "height": 64
@@ -23141,17 +23136,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 680,
+        "height": 677,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1232,
+       "top": 1249,
        "height": 274
       }
      }
@@ -23190,10 +23185,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 864,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -23205,7 +23200,7 @@
       "height": 43
      },
      {
-      "y": 1424,
+      "y": 1440,
       "lines": [],
       "height": 0
      }
@@ -23857,6 +23852,7 @@
       "Keep 10 any size · wild or hatchery",
       "20 a year over 50 cm",
       "Record ones over 50 cm on your licence",
+      "You need Conservation Surcharge Stamp for Kootenay Lake rainbow trout › only if you keep rainbow trout over 50 cm",
       "How this was decided",
       "What you can keep",
       "✓ 10 a day here.",
@@ -24007,6 +24003,7 @@
      "Keep 10 any size · wild or hatchery",
      "20 a year over 50 cm",
      "Record ones over 50 cm on your licence",
+     "You need Conservation Surcharge Stamp for Kootenay Lake rainbow trout › only if you keep rainbow trout over 50 cm",
      "How this was decided",
      "What you can keep",
      "✓ 10 a day here.",
@@ -26119,7 +26116,7 @@
       "formA": false,
       "headlineN": null,
       "top": 1039,
-      "height": 171,
+      "height": 232,
       "groupLine": null,
       "pin": null,
       "tiers": [],
@@ -30843,7 +30840,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1231,
+      "height": 1228,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -30859,7 +30856,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 818,
+        "height": 815,
         "head": {
          "top": 325,
          "height": 64
@@ -30872,17 +30869,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 745,
+        "height": 742,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1159,
+       "top": 1156,
        "height": 256
       }
      }
@@ -30921,10 +30918,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 928,
+      "y": 944,
       "lines": [
        {
         "cls": "g two",
@@ -31193,7 +31190,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 4 may be rainbow trout",
+          "says": "Up to 4 rainbow trout (part of the 4 from streams)",
           "n": "4",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -31210,7 +31207,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 4 may be rainbow trout",
+           "Up to 4 rainbow trout (part of the 4 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -31275,11 +31272,12 @@
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 4 may be lake trout",
        "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
-       "Up to 4 may be rainbow trout",
+       "Up to 4 rainbow trout (part of the 4 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Steelhead and Dolly Varden/bull trout: release every one",
        "Region 3’s rule · Rule book p.28 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 3 stream you fish today.",
        "Kept 4 on another stream? None more here",
@@ -31396,11 +31394,12 @@
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 4 may be lake trout",
      "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
-     "Up to 4 may be rainbow trout",
+     "Up to 4 rainbow trout (part of the 4 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Steelhead and Dolly Varden/bull trout: release every one",
      "Region 3’s rule · Rule book p.28 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 3 stream you fish today.",
      "Kept 4 on another stream? None more here",
@@ -31411,6 +31410,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -33321,7 +33321,7 @@
       "formA": true,
       "headlineN": 4,
       "top": 241,
-      "height": 1103,
+      "height": 1192,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 4 a day from streams",
@@ -33337,7 +33337,7 @@
         "tier": "share",
         "n": 4,
         "top": 359,
-        "height": 479,
+        "height": 499,
         "head": {
          "top": 359,
          "height": 0
@@ -33360,7 +33360,7 @@
        }
       ],
       "worked": {
-       "top": 1050,
+       "top": 1139,
        "height": 238
       }
      }
@@ -33414,7 +33414,7 @@
       "height": 43
      },
      {
-      "y": 1200,
+      "y": 1288,
       "lines": [],
       "height": 0
      }
@@ -48257,13 +48257,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 5 rainbow trout:",
+         "q": "If you keep 5 rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 rainbow trout:",
-         "a": "none from other streams today — up to 3 more of any kind, from here or from lakes."
+         "q": "If you keep 2 rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -48296,8 +48296,8 @@
        "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
-       "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+       "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
        "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
@@ -48422,8 +48422,8 @@
      "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
-     "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+     "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
      "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
@@ -50324,7 +50324,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 397,
-      "height": 1216,
+      "height": 1251,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -50364,7 +50364,7 @@
       ],
       "worked": {
        "top": 1270,
-       "height": 287
+       "height": 322
       }
      }
     ],
@@ -50417,7 +50417,7 @@
       "height": 43
      },
      {
-      "y": 1472,
+      "y": 1504,
       "lines": [],
       "height": 0
      }
@@ -50709,13 +50709,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 5 rainbow trout:",
+         "q": "If you keep 5 rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 rainbow trout:",
-         "a": "none from other streams today — up to 3 more of any kind, from here or from lakes."
+         "q": "If you keep 2 rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -50748,8 +50748,8 @@
        "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
-       "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+       "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
        "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
@@ -50871,8 +50871,8 @@
      "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
-     "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+     "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
      "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
@@ -52715,7 +52715,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1216,
+      "height": 1251,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -52755,7 +52755,7 @@
       ],
       "worked": {
        "top": 1114,
-       "height": 287
+       "height": 322
       }
      }
     ],
@@ -52808,7 +52808,7 @@
       "height": 43
      },
      {
-      "y": 1312,
+      "y": 1352,
       "lines": [],
       "height": 0
      }
@@ -53100,13 +53100,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 5 rainbow trout:",
+         "q": "If you keep 5 rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 rainbow trout:",
-         "a": "none from other streams today — up to 3 more of any kind, from here or from lakes."
+         "q": "If you keep 2 rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -53139,8 +53139,8 @@
        "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
-       "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+       "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
        "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
@@ -53262,8 +53262,8 @@
      "Trout Lake’s rule for its tributaries · Rule book p.40 ↗ Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
-     "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+     "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
      "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
@@ -55106,7 +55106,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1216,
+      "height": 1251,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -55146,7 +55146,7 @@
       ],
       "worked": {
        "top": 1114,
-       "height": 287
+       "height": 322
       }
      }
     ],
@@ -55199,7 +55199,7 @@
       "height": 43
      },
      {
-      "y": 1312,
+      "y": 1352,
       "lines": [],
       "height": 0
      }
@@ -55501,13 +55501,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 5 rainbow trout:",
+         "q": "If you keep 5 rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 rainbow trout:",
-         "a": "none from other streams today — up to 3 more of any kind, from here or from lakes."
+         "q": "If you keep 2 rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -55541,8 +55541,8 @@
        "any size Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
-       "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+       "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
        "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
@@ -55665,8 +55665,8 @@
      "any size Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
-     "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+     "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
      "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
@@ -57487,7 +57487,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1243,
+      "height": 1278,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -57527,7 +57527,7 @@
       ],
       "worked": {
        "top": 1141,
-       "height": 287
+       "height": 322
       }
      }
     ],
@@ -57580,7 +57580,7 @@
       "height": 43
      },
      {
-      "y": 1344,
+      "y": 1376,
       "lines": [],
       "height": 0
      }
@@ -57882,13 +57882,13 @@
        "lines": [
         {
          "at": "here",
-         "q": "If you keep 5 rainbow trout:",
+         "q": "If you keep 5 rainbow trout here:",
          "a": "that’s your trout and char for the day, everywhere."
         },
         {
          "at": "here",
-         "q": "If you keep 2 rainbow trout:",
-         "a": "none from other streams today — up to 3 more of any kind, from here or from lakes."
+         "q": "If you keep 2 rainbow trout here:",
+         "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes."
         },
         {
          "at": "elsewhere",
@@ -57922,8 +57922,8 @@
        "any size Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
-       "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-       "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+       "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+       "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
        "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
        "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
       ]
@@ -58046,8 +58046,8 @@
      "any size Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
-     "If you keep 5 rainbow trout: that’s your trout and char for the day, everywhere.",
-     "If you keep 2 rainbow trout: none from other streams today — up to 3 more of any kind, from here or from lakes.",
+     "If you keep 5 rainbow trout here: that’s your trout and char for the day, everywhere.",
+     "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
      "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
      "Kept cutthroat trout over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
      "Other fish",
@@ -59868,7 +59868,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1243,
+      "height": 1278,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -59908,7 +59908,7 @@
       ],
       "worked": {
        "top": 1141,
-       "height": 287
+       "height": 322
       }
      }
     ],
@@ -59961,7 +59961,7 @@
       "height": 43
      },
      {
-      "y": 1344,
+      "y": 1376,
       "lines": [],
       "height": 0
      }
@@ -60245,7 +60245,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -60262,7 +60262,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -60305,7 +60305,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -60434,7 +60434,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -62379,7 +62379,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 342,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -62395,7 +62395,7 @@
         "tier": "share",
         "n": 2,
         "top": 509,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 509,
          "height": 0
@@ -62408,17 +62408,17 @@
         "tier": "size",
         "n": 1,
         "top": 509,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 510,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1164,
+       "top": 1161,
        "height": 274
       }
      },
@@ -62428,7 +62428,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1506,
+      "top": 1503,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -62470,10 +62470,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 792,
+      "y": 784,
       "lines": [
        {
         "cls": "g two",
@@ -62754,7 +62754,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -62771,7 +62771,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -62814,7 +62814,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -62939,7 +62939,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -64831,7 +64831,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -64847,7 +64847,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -64860,17 +64860,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -64880,7 +64880,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -64922,10 +64922,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -64937,7 +64937,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -70053,7 +70053,8 @@
             "lines": [
              "Up to 1 may be Dolly Varden/bull trout or lake trout",
              "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
-             "5 a year · Record each on your licence right away"
+             "5 a year · Record each on your licence right away",
+             "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm"
             ]
            },
            {
@@ -70083,7 +70084,8 @@
             "lines": [
              "Up to 1 may be rainbow trout",
              "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
-             "5 a year · Record each on your licence right away"
+             "5 a year · Record each on your licence right away",
+             "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm"
             ]
            }
           ]
@@ -70156,9 +70158,11 @@
        "Up to 1 may be Dolly Varden/bull trout or lake trout",
        "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
        "5 a year · Record each on your licence right away",
+       "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm",
        "Up to 1 may be rainbow trout",
        "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
        "5 a year · Record each on your licence right away",
+       "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm",
        "Up to 5 may be brown or cutthroat trout",
        "any size Brown trout › Coastal cutthroat trout ›",
        "How it adds up",
@@ -70286,9 +70290,11 @@
      "Up to 1 may be Dolly Varden/bull trout or lake trout",
      "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
      "5 a year · Record each on your licence right away",
+     "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm",
      "Up to 1 may be rainbow trout",
      "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
      "5 a year · Record each on your licence right away",
+     "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm",
      "Up to 5 may be brown or cutthroat trout",
      "any size Brown trout › Coastal cutthroat trout ›",
      "How it adds up",
@@ -70300,6 +70306,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -72201,7 +72208,7 @@
       "formA": false,
       "headlineN": 5,
       "top": 287,
-      "height": 1145,
+      "height": 1242,
       "groupLine": {
        "cls": "g",
        "text": "Trout and char · 5 a day across Region 3",
@@ -72217,7 +72224,7 @@
         "tier": "size",
         "n": 1,
         "top": 387,
-        "height": 801,
+        "height": 898,
         "head": {
          "top": 388,
          "height": 42
@@ -72230,7 +72237,7 @@
         "tier": "own",
         "n": 1,
         "top": 429,
-        "height": 597,
+        "height": 694,
         "head": {
          "top": 429,
          "height": 68
@@ -72240,7 +72247,7 @@
        }
       ],
       "worked": {
-       "top": 1204,
+       "top": 1301,
        "height": 172
       }
      }
@@ -72306,7 +72313,7 @@
       "height": 71
      },
      {
-      "y": 832,
+      "y": 928,
       "lines": [
        {
         "cls": "g",
@@ -72324,7 +72331,7 @@
       "height": 49
      },
      {
-      "y": 1000,
+      "y": 1104,
       "lines": [
        {
         "cls": "g",
@@ -72336,7 +72343,7 @@
       "height": 27
      },
      {
-      "y": 1288,
+      "y": 1392,
       "lines": [],
       "height": 0
      }
@@ -75112,7 +75119,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -75147,7 +75154,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -75160,7 +75167,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -75177,7 +75184,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -75213,10 +75220,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -75356,10 +75363,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -77327,7 +77334,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -77343,7 +77350,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -77353,7 +77360,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -77377,7 +77384,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -77590,7 +77597,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -77625,7 +77632,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -77638,7 +77645,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -77655,7 +77662,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -77691,10 +77698,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -77807,10 +77814,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -79651,7 +79658,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -79667,7 +79674,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -79677,7 +79684,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -79701,7 +79708,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -79914,7 +79921,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -79949,7 +79956,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -79962,7 +79969,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -79979,7 +79986,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -80015,10 +80022,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -80149,10 +80156,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -82082,7 +82089,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -82098,7 +82105,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -82108,7 +82115,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -82132,7 +82139,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -82345,7 +82352,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -82380,7 +82387,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -82393,7 +82400,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -82410,7 +82417,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -82446,10 +82453,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -82562,10 +82569,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -84418,7 +84425,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -84434,7 +84441,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -84444,7 +84451,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -84468,7 +84475,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -84693,7 +84700,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -84728,7 +84735,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -84741,7 +84748,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -84758,7 +84765,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -84795,10 +84802,10 @@
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
        "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -84912,10 +84919,10 @@
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
      "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -86756,7 +86763,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 909,
+      "height": 929,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -86772,7 +86779,7 @@
         "tier": "share",
         "n": 2,
         "top": 420,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 420,
          "height": 0
@@ -86782,7 +86789,7 @@
        }
       ],
       "worked": {
-       "top": 838,
+       "top": 858,
        "height": 256
       }
      }
@@ -86806,7 +86813,7 @@
       "height": 43
      },
      {
-      "y": 1008,
+      "y": 1032,
       "lines": [],
       "height": 0
      }
@@ -101734,6 +101741,7 @@
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "This river’s rule: 1 a day here. Brook trout, brown trout, cutthroat trout or rainbow trout you kept anywhere else today count toward that 1. They also count toward Region 5’s 5 trout and char a day.",
        "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
@@ -101842,6 +101850,7 @@
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "This river’s rule: 1 a day here. Brook trout, brown trout, cutthroat trout or rainbow trout you kept anywhere else today count toward that 1. They also count toward Region 5’s 5 trout and char a day.",
      "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
@@ -103714,7 +103723,7 @@
       "formA": true,
       "headlineN": 1,
       "top": 241,
-      "height": 902,
+      "height": 971,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 1 a day from streams",
@@ -103740,7 +103749,7 @@
        }
       ],
       "worked": {
-       "top": 928,
+       "top": 996,
        "height": 159
       }
      }
@@ -103794,7 +103803,7 @@
       "height": 43
      },
      {
-      "y": 1000,
+      "y": 1072,
       "lines": [],
       "height": 0
      }
@@ -106691,7 +106700,7 @@
       "formA": false,
       "headlineN": 5,
       "top": 400,
-      "height": 1476,
+      "height": 1456,
       "groupLine": {
        "cls": "g",
        "text": "Trout and char · 5 a day across Region 6",
@@ -106720,7 +106729,7 @@
         "tier": "size",
         "n": 1,
         "top": 805,
-        "height": 499,
+        "height": 479,
         "head": {
          "top": 806,
          "height": 42
@@ -106730,7 +106739,7 @@
        }
       ],
       "worked": {
-       "top": 1595,
+       "top": 1574,
        "height": 225
       }
      }
@@ -106802,7 +106811,7 @@
       "height": 49
      },
      {
-      "y": 1120,
+      "y": 1096,
       "lines": [
        {
         "cls": "g",
@@ -106814,7 +106823,7 @@
       "height": 27
      },
      {
-      "y": 1736,
+      "y": 1712,
       "lines": [],
       "height": 0
      }
@@ -109318,7 +109327,7 @@
       "formA": false,
       "headlineN": 5,
       "top": 241,
-      "height": 1476,
+      "height": 1456,
       "groupLine": {
        "cls": "g",
        "text": "Trout and char · 5 a day across Region 6",
@@ -109347,7 +109356,7 @@
         "tier": "size",
         "n": 1,
         "top": 645,
-        "height": 499,
+        "height": 479,
         "head": {
          "top": 646,
          "height": 42
@@ -109357,7 +109366,7 @@
        }
       ],
       "worked": {
-       "top": 1435,
+       "top": 1415,
        "height": 225
       }
      }
@@ -109429,7 +109438,7 @@
       "height": 49
      },
      {
-      "y": 960,
+      "y": 944,
       "lines": [
        {
         "cls": "g",
@@ -109441,7 +109450,7 @@
       "height": 27
      },
      {
-      "y": 1576,
+      "y": 1552,
       "lines": [],
       "height": 0
      }
@@ -111965,7 +111974,7 @@
       "formA": false,
       "headlineN": 5,
       "top": 241,
-      "height": 1476,
+      "height": 1456,
       "groupLine": {
        "cls": "g",
        "text": "Trout and char · 5 a day across Region 6",
@@ -111994,7 +112003,7 @@
         "tier": "size",
         "n": 1,
         "top": 645,
-        "height": 499,
+        "height": 479,
         "head": {
          "top": 646,
          "height": 42
@@ -112004,7 +112013,7 @@
        }
       ],
       "worked": {
-       "top": 1435,
+       "top": 1415,
        "height": 225
       }
      }
@@ -112076,7 +112085,7 @@
       "height": 49
      },
      {
-      "y": 960,
+      "y": 944,
       "lines": [
        {
         "cls": "g",
@@ -112088,7 +112097,7 @@
       "height": 27
      },
      {
-      "y": 1576,
+      "y": 1552,
       "lines": [],
       "height": 0
      }
@@ -112476,7 +112485,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -112493,7 +112502,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -112538,7 +112547,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Fraser River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
@@ -112660,7 +112669,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Fraser River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
@@ -114570,7 +114579,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1321,
+      "height": 1338,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -114586,7 +114595,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 891,
+        "height": 908,
         "head": {
          "top": 325,
          "height": 64
@@ -114599,17 +114608,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 680,
+        "height": 677,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1232,
+       "top": 1249,
        "height": 274
       }
      }
@@ -114648,10 +114657,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 864,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -114663,7 +114672,7 @@
       "height": 43
      },
      {
-      "y": 1424,
+      "y": 1440,
       "lines": [],
       "height": 0
      }
@@ -115926,7 +115935,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -115943,7 +115952,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -116004,7 +116013,7 @@
        "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
        "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.23 ↗",
@@ -116127,7 +116136,7 @@
      "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
      "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.23 ↗",
@@ -116143,6 +116152,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -118094,7 +118104,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 386,
-      "height": 1202,
+      "height": 1222,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -118110,7 +118120,7 @@
         "tier": "share",
         "n": 2,
         "top": 471,
-        "height": 592,
+        "height": 612,
         "head": {
          "top": 471,
          "height": 64
@@ -118133,7 +118143,7 @@
        }
       ],
       "worked": {
-       "top": 1293,
+       "top": 1314,
        "height": 238
       }
      }
@@ -118187,7 +118197,7 @@
       "height": 43
      },
      {
-      "y": 1448,
+      "y": 1464,
       "lines": [],
       "height": 0
      }
@@ -118580,6 +118590,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -120963,6 +120974,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -124284,6 +124296,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -126659,6 +126672,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -135964,7 +135978,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown or cutthroat trout",
+          "says": "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -135991,7 +136005,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown or cutthroat trout",
+           "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
            "Only 1 over 50 cm (20 in)"
           ]
@@ -136004,7 +136018,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be rainbow trout",
+          "says": "Up to 2 rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -136021,7 +136035,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be rainbow trout",
+           "Up to 2 rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -136085,14 +136099,15 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
        "Rule book p.42 ↗",
-       "Up to 2 may be brook, brown or cutthroat trout",
+       "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 over 50 cm (20 in)",
-       "Up to 2 may be rainbow trout",
+       "Up to 2 rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 5 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -136195,14 +136210,15 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
      "Rule book p.42 ↗",
-     "Up to 2 may be brook, brown or cutthroat trout",
+     "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 over 50 cm (20 in)",
-     "Up to 2 may be rainbow trout",
+     "Up to 2 rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 5 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -138109,7 +138125,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 940,
+      "height": 1050,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -138125,7 +138141,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 316,
+        "height": 357,
         "head": {
          "top": 359,
          "height": 0
@@ -138135,7 +138151,7 @@
        }
       ],
       "worked": {
-       "top": 887,
+       "top": 996,
        "height": 238
       }
      }
@@ -138159,7 +138175,7 @@
       "height": 43
      },
      {
-      "y": 1040,
+      "y": 1152,
       "lines": [],
       "height": 0
      }
@@ -138432,7 +138448,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown or cutthroat trout",
+          "says": "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -138459,7 +138475,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown or cutthroat trout",
+           "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
            "Only 1 over 50 cm (20 in)"
           ]
@@ -138472,7 +138488,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be rainbow trout",
+          "says": "Up to 2 rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -138489,7 +138505,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be rainbow trout",
+           "Up to 2 rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -138553,14 +138569,15 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
        "Rule book p.42 ↗",
-       "Up to 2 may be brook, brown or cutthroat trout",
+       "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 over 50 cm (20 in)",
-       "Up to 2 may be rainbow trout",
+       "Up to 2 rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 5 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -138663,14 +138680,15 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
      "Rule book p.42 ↗",
-     "Up to 2 may be brook, brown or cutthroat trout",
+     "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 over 50 cm (20 in)",
-     "Up to 2 may be rainbow trout",
+     "Up to 2 rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 5 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -140538,7 +140556,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 940,
+      "height": 1050,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -140554,7 +140572,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 316,
+        "height": 357,
         "head": {
          "top": 359,
          "height": 0
@@ -140564,7 +140582,7 @@
        }
       ],
       "worked": {
-       "top": 887,
+       "top": 996,
        "height": 238
       }
      }
@@ -140588,7 +140606,7 @@
       "height": 43
      },
      {
-      "y": 1040,
+      "y": 1152,
       "lines": [],
       "height": 0
      }
@@ -140861,7 +140879,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown or cutthroat trout",
+          "says": "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -140888,7 +140906,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown or cutthroat trout",
+           "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
            "Only 1 over 50 cm (20 in)"
           ]
@@ -140901,7 +140919,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be rainbow trout",
+          "says": "Up to 2 rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -140918,7 +140936,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be rainbow trout",
+           "Up to 2 rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -140982,14 +141000,15 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
        "Rule book p.42 ↗",
-       "Up to 2 may be brook, brown or cutthroat trout",
+       "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 over 50 cm (20 in)",
-       "Up to 2 may be rainbow trout",
+       "Up to 2 rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 5 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -141092,14 +141111,15 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 5, lakes included",
      "Rule book p.42 ↗",
-     "Up to 2 may be brook, brown or cutthroat trout",
+     "Up to 2 brook, brown or cutthroat trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 over 50 cm (20 in)",
-     "Up to 2 may be rainbow trout",
+     "Up to 2 rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 5 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -142967,7 +142987,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 940,
+      "height": 1050,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -142983,7 +143003,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 316,
+        "height": 357,
         "head": {
          "top": 359,
          "height": 0
@@ -142993,7 +143013,7 @@
        }
       ],
       "worked": {
-       "top": 887,
+       "top": 996,
        "height": 238
       }
      }
@@ -143017,7 +143037,7 @@
       "height": 43
      },
      {
-      "y": 1040,
+      "y": 1152,
       "lines": [],
       "height": 0
      }
@@ -143381,7 +143401,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be rainbow trout",
+          "says": "Up to 2 rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -143398,7 +143418,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be rainbow trout",
+           "Up to 2 rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -143465,7 +143485,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be rainbow trout",
+       "Up to 2 rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Dolly Varden/bull trout and lake trout: release every one",
        "Zone A’s rule · Rule book p.58 ↗ Bull trout › Lake trout ›",
@@ -143578,7 +143598,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be rainbow trout",
+     "Up to 2 rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Dolly Varden/bull trout and lake trout: release every one",
      "Zone A’s rule · Rule book p.58 ↗ Bull trout › Lake trout ›",
@@ -145462,7 +145482,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1184,
+      "height": 1204,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -145478,7 +145498,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 598,
+        "height": 618,
         "head": {
          "top": 359,
          "height": 0
@@ -145501,7 +145521,7 @@
        }
       ],
       "worked": {
-       "top": 1130,
+       "top": 1150,
        "height": 238
       }
      }
@@ -145555,7 +145575,7 @@
       "height": 43
      },
      {
-      "y": 1280,
+      "y": 1304,
       "lines": [],
       "height": 0
      }
@@ -148666,7 +148686,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -148683,7 +148703,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -148726,7 +148746,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -148851,7 +148871,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -150799,7 +150819,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -150815,7 +150835,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -150828,17 +150848,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -150848,7 +150868,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -150890,10 +150910,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -150905,7 +150925,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -151232,7 +151252,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -151249,7 +151269,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -151292,7 +151312,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -151417,7 +151437,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -153300,7 +153320,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -153316,7 +153336,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -153329,17 +153349,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -153349,7 +153369,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -153391,10 +153411,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -153406,7 +153426,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -153729,7 +153749,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -153746,7 +153766,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -153789,7 +153809,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -153914,7 +153934,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -155824,7 +155844,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -155840,7 +155860,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -155853,17 +155873,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -155873,7 +155893,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -155915,10 +155935,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -155930,7 +155950,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -156253,7 +156273,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -156270,7 +156290,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -156313,7 +156333,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -156438,7 +156458,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -158348,7 +158368,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -158364,7 +158384,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -158377,17 +158397,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -158397,7 +158417,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -158439,10 +158459,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -158454,7 +158474,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -158777,7 +158797,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -158794,7 +158814,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -158837,7 +158857,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -158962,7 +158982,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -160872,7 +160892,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -160888,7 +160908,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -160901,17 +160921,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -160921,7 +160941,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -160963,10 +160983,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -160978,7 +160998,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -161301,7 +161321,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -161318,7 +161338,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -161361,7 +161381,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -161486,7 +161506,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -163396,7 +163416,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -163412,7 +163432,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -163425,17 +163445,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -163445,7 +163465,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 257,
       "groupLine": null,
       "pin": null,
@@ -163487,10 +163507,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -163502,7 +163522,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -163813,7 +163833,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "50 cm (20 in) or less",
@@ -163830,7 +163850,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "50 cm (20 in) or less Rainbow trout ›"
           ]
          }
@@ -163873,7 +163893,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -163998,7 +164018,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today.",
@@ -165935,7 +165955,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1153,
+      "height": 1150,
       "groupLine": {
        "cls": "g two",
        "text": "Trout · 2 a day from streams",
@@ -165951,7 +165971,7 @@
         "tier": "share",
         "n": 2,
         "top": 408,
-        "height": 640,
+        "height": 637,
         "head": {
          "top": 408,
          "height": 0
@@ -165964,17 +165984,17 @@
         "tier": "size",
         "n": 1,
         "top": 408,
-        "height": 502,
+        "height": 479,
         "head": {
          "top": 409,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1064,
+       "top": 1061,
        "height": 274
       }
      },
@@ -165984,7 +166004,7 @@
       "tree": false,
       "formA": false,
       "headlineN": null,
-      "top": 1405,
+      "top": 1402,
       "height": 236,
       "groupLine": null,
       "pin": null,
@@ -166026,10 +166046,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 696,
+      "y": 688,
       "lines": [
        {
         "cls": "g two",
@@ -166041,7 +166061,7 @@
       "height": 43
      },
      {
-      "y": 1256,
+      "y": 1248,
       "lines": [],
       "height": 0
      }
@@ -182788,7 +182808,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -182823,7 +182843,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -182836,7 +182856,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -182853,7 +182873,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -182889,10 +182909,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -183032,10 +183052,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -185015,7 +185035,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -185031,7 +185051,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -185041,7 +185061,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -185065,7 +185085,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -185285,7 +185305,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -185320,7 +185340,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -185333,7 +185353,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -185350,7 +185370,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -185386,10 +185406,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -185529,10 +185549,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -187512,7 +187532,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -187528,7 +187548,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -187538,7 +187558,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -187562,7 +187582,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -187770,7 +187790,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -187805,7 +187825,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -187818,7 +187838,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -187835,7 +187855,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -187871,10 +187891,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -188014,10 +188034,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -190009,7 +190029,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -190025,7 +190045,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -190035,7 +190055,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -190059,7 +190079,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -190267,7 +190287,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -190302,7 +190322,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -190315,7 +190335,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -190332,7 +190352,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -190368,10 +190388,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -190493,10 +190513,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -192414,7 +192434,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -192430,7 +192450,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -192440,7 +192460,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -192464,7 +192484,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -192672,7 +192692,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -192707,7 +192727,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -192720,7 +192740,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -192737,7 +192757,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -192773,10 +192793,10 @@
        "Trout and char",
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -192898,10 +192918,10 @@
      "Trout and char",
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -194776,7 +194796,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 848,
+      "height": 868,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -194792,7 +194812,7 @@
         "tier": "share",
         "n": 2,
         "top": 359,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 359,
          "height": 0
@@ -194802,7 +194822,7 @@
        }
       ],
       "worked": {
-       "top": 777,
+       "top": 797,
        "height": 256
       }
      }
@@ -194826,7 +194846,7 @@
       "height": 43
      },
      {
-      "y": 952,
+      "y": 968,
       "lines": [],
       "height": 0
      }
@@ -217942,6 +217962,7 @@
        "Steelhead and Dolly Varden/bull trout: release every one",
        "Region 3’s rule · Rule book p.28 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 3 stream you fish today.",
        "Kept 4 on another stream? None more here",
@@ -218063,6 +218084,7 @@
      "Steelhead and Dolly Varden/bull trout: release every one",
      "Region 3’s rule · Rule book p.28 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 3 stream you fish today.",
      "Kept 4 on another stream? None more here",
@@ -218073,6 +218095,7 @@
      "Whitefish 15 a day",
      "Burbot 2 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Largemouth bass, smallmouth bass and yellow perch closed",
      "Crayfish 25 a day",
      "Protected species closed",
@@ -219993,7 +220016,7 @@
       "formA": true,
       "headlineN": 4,
       "top": 241,
-      "height": 1151,
+      "height": 1220,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 4 a day from streams",
@@ -220045,7 +220068,7 @@
        }
       ],
       "worked": {
-       "top": 1098,
+       "top": 1167,
        "height": 238
       }
      }
@@ -220129,7 +220152,7 @@
       "height": 43
      },
      {
-      "y": 1248,
+      "y": 1320,
       "lines": [],
       "height": 0
      }
@@ -238170,7 +238193,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -238187,7 +238210,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -238248,11 +238271,12 @@
        "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
        "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "Steelhead: release every one",
        "This river’s rule · Rule book p.22 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead ›",
+       "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -238369,11 +238393,12 @@
      "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
      "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "Steelhead: release every one",
      "This river’s rule · Rule book p.22 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead ›",
+     "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -240280,7 +240305,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1163,
+      "height": 1252,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -240296,7 +240321,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 592,
+        "height": 612,
         "head": {
          "top": 325,
          "height": 64
@@ -240319,7 +240344,7 @@
        }
       ],
       "worked": {
-       "top": 1109,
+       "top": 1198,
        "height": 238
       }
      }
@@ -240373,7 +240398,7 @@
       "height": 43
      },
      {
-      "y": 1264,
+      "y": 1352,
       "lines": [],
       "height": 0
      }
@@ -258242,7 +258267,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+          "says": "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "any size",
@@ -258277,7 +258302,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+           "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
            "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
            "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
           ]
@@ -258290,7 +258315,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
+          "says": "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
           "n": "1",
           "howtell": false,
           "size": "any size",
@@ -258307,7 +258332,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Only 1 of the 2 may be Dolly Varden/bull trout",
+           "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
            "any size Bull trout ›"
           ]
          }
@@ -258344,10 +258369,10 @@
        "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
        "Rule book p.34 ↗",
        "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
-       "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+       "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-       "Only 1 of the 2 may be Dolly Varden/bull trout",
+       "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
        "any size Bull trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 4 stream you fish today.",
@@ -258461,10 +258486,10 @@
      "2 a day per angler from streams of the 5 a day per angler across Region 4, lakes included",
      "Rule book p.34 ↗",
      "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
-     "Up to 2 may be brook, brown, cutthroat, lake or rainbow trout",
+     "Up to 2 brook, brown, cutthroat, lake or rainbow trout (part of the 2 from streams)",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
-     "Only 1 of the 2 may be Dolly Varden/bull trout",
+     "Only 1 of the 2 from streams may be Dolly Varden/bull trout",
      "any size Bull trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 4 stream you fish today.",
@@ -260305,7 +260330,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 909,
+      "height": 929,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -260321,7 +260346,7 @@
         "tier": "share",
         "n": 2,
         "top": 420,
-        "height": 401,
+        "height": 422,
         "head": {
          "top": 420,
          "height": 0
@@ -260331,7 +260356,7 @@
        }
       ],
       "worked": {
-       "top": 838,
+       "top": 858,
        "height": 256
       }
      }
@@ -260355,7 +260380,7 @@
       "height": 43
      },
      {
-      "y": 1008,
+      "y": 1032,
       "lines": [],
       "height": 0
      }
@@ -260740,6 +260765,7 @@
      "Bass 20 a day",
      "Black crappie 20 a day",
      "White sturgeon release",
+     "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them",
      "Crayfish 25 a day",
      "Protected species closed",
      "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any. ⓘ",
@@ -265378,7 +265404,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -265395,7 +265421,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -265440,7 +265466,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
@@ -265562,7 +265588,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
@@ -267472,7 +267498,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1321,
+      "height": 1338,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -267488,7 +267514,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 891,
+        "height": 908,
         "head": {
          "top": 325,
          "height": 64
@@ -267501,17 +267527,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 680,
+        "height": 677,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1232,
+       "top": 1249,
        "height": 274
       }
      }
@@ -267550,10 +267576,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 864,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -267565,7 +267591,7 @@
       "height": 43
      },
      {
-      "y": 1424,
+      "y": 1440,
       "lines": [],
       "height": 0
      }
@@ -270392,7 +270418,7 @@
           ],
           "folded": false,
           "zero": false,
-          "says": "Up to 2 may be hatchery rainbow trout",
+          "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
           "size": "keep 30–50 cm (12–20 in); release smaller ones",
@@ -270409,7 +270435,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "Up to 2 may be hatchery rainbow trout",
+           "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
            "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
           ]
          }
@@ -270454,7 +270480,7 @@
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-       "Up to 2 may be hatchery rainbow trout",
+       "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
        "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
@@ -270576,7 +270602,7 @@
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
-     "Up to 2 may be hatchery rainbow trout",
+     "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
      "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
@@ -272486,7 +272512,7 @@
       "formA": true,
       "headlineN": 2,
       "top": 241,
-      "height": 1321,
+      "height": 1338,
       "groupLine": {
        "cls": "g two",
        "text": "Trout and char · 2 a day from streams",
@@ -272502,7 +272528,7 @@
         "tier": "share",
         "n": 2,
         "top": 325,
-        "height": 891,
+        "height": 908,
         "head": {
          "top": 325,
          "height": 64
@@ -272515,17 +272541,17 @@
         "tier": "size",
         "n": 1,
         "top": 398,
-        "height": 680,
+        "height": 677,
         "head": {
          "top": 399,
-         "height": 64
+         "height": 61
         },
         "nextHead": null,
         "short": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"
        }
       ],
       "worked": {
-       "top": 1232,
+       "top": 1249,
        "height": 274
       }
      }
@@ -272564,10 +272590,10 @@
         "big": "1"
        }
       ],
-      "height": 81
+      "height": 65
      },
      {
-      "y": 864,
+      "y": 872,
       "lines": [
        {
         "cls": "g two",
@@ -272579,7 +272605,7 @@
       "height": 43
      },
      {
-      "y": 1424,
+      "y": 1440,
       "lines": [],
       "height": 0
      }
