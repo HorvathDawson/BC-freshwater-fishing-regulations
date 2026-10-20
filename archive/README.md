@@ -12,5 +12,6 @@ greenfield in `app/` and inherits no code from them (see `pipeline/docs/13-build
 (`.github/workflows/update-*.yml`) already import `pipeline.recurring.*`, which was archived
 earlier, so those workflows are legacy. The new live-feed design is 13-build-plan §5 / step 10.
 
-**Left at root:** `.github/workflows/update-*.yml` (dead until repointed — delete or rewrite when
-step 10 lands) and `DEPLOY.md` (still the record of how v1 was wired).
+**Left at root:** `DEPLOY.md` (still the record of how v1 was wired). The `.github/workflows/update-*.yml` crons
+were removed 2026-10-20 (P04, owner audit decision #3): they ran code that no longer exists. Successors: the P3-CRONS
+plan (`handoff/PLAN/P3-CRONS.md` in the memory project directory).
