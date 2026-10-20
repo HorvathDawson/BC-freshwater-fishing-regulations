@@ -1,3 +1,59 @@
+# regs v31 (round 20g, owner: colours with one meaning each, one way to show a future change, the ways list, possession) — in place on regs-v11.html
+
+Report: handoff/PLAN/r20g_report.md (before/after pairs, the colour census, the changes-line pick, the reader scores).
+- **Data: rows 24, display 16, glossary 3** (commit b13f6110; handoff/PLAN/r20g_data.md; page v36 re-snapped, oracle
+  regenerated). On a Region 2 stream card `group.origin` is null and the SHARE tier carries `origin` ("From streams, keep
+  hatchery fish only — wild trout and char go back."): the page draws it under the share's line (`.torigin`, `data-tier-origin`)
+  with "How to tell ›" and the root's Rule book p.21, which move there from the group head (no `.gsub` block then); where
+  `group.origin` is still set (a water's own total) it stays at the head. The steelhead kind has no `size_note` (the band head
+  says "— 2 if one is a hatchery steelhead" once); duties "Stop fishing here after 2 a day · Record each on your licence right
+  away"; presence "A rainbow trout over 50 cm (20 in) here counts as a steelhead." The possession foot is two sentences
+  ("Possession: 2 days’ quota. Fish at home don’t count."): the card row reads "Possession · 2 days’ quota ›" (the posrow regex
+  takes the first sentence as the value); the sheet is the plain line, the term's short line, the example, the quote alone in the
+  closed fold, the source line. Pins moved: ur2-kind-words (presence, duty), r20g-possession-fold (two sentences).
+- **1 Colour tokens, each with ONE meaning** (the census tool, `tools/census.mjs`, counted 7 / 6 / 6 / 5 distinct text colours
+  on Keep / Gear / Methods / Licence on the Vedder in light; now 6 / 5 / 5 / 4, and the same in dark):
+  `--ink` text and EVERY number (the group total, the tier numbers, a row's "Up to 2", the pin bar's figures, the size box's
+  numbers, the duty line, the gear mode line — they were in the open green, the accent or the restricted amber) ·
+  `--sub` the one secondary grey: labels, kickers, "How it adds up", the year strip's months, a row's size chip, the changes
+  line's words (the second grey `--faint` and the second tint `--wash` now resolve to `--sub` / `--tint`, light and dark) ·
+  `--accent` links and actions only: "How to tell ›", "Rule book p.N ↗", the ⓘ buttons, "Source ›", a picture's caption, the
+  pressed tab's rule · `--open` / `--closed` / `--restricted` ONLY status: the year strip and its legend, Open / Closed, the ✓
+  / ✕ marks of the ways and bait lists, a closed or release row's title and number slot, the status words in the regulation
+  lines · `--tint` the ONE grouping tint: the group head band, the size band, the pin bar, the Now / Next chip ·
+  `--card` text only on a filled control (the pressed segment). `--line` / `--line2` are rules. No other text colour is drawn.
+- **2 ONE pattern for a rule that differs on other dates**: a quiet "changes" line `.chg` right under the item's value —
+  a small chip, **the dates in ink**, then the data's words — before the item's source line, which also carries the change's
+  rule ("Province · Region 2 · This water’s ›" with its Rule book pages). No tinted box, no amber bar, no page link or ⓘ inside
+  the line (the 20e note was a tinted bar with "ⓘ Rule book p.22 ↗" inline). The same line on Hooks ("May 1–31: fly fishing
+  only"), on a fly-only day's Hooks ("Jun 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)") and
+  on Bait, between the bait sentence and the list ("May 1–31: bait ban · in force today"). Two chips were drawn and read
+  (scratchpad r20g/chg-a, chg-b; prompt-chg.md; reader-chg.md): (a) a ◷ glyph on every dated line, (b) a NOW / NEXT chip.
+  THE PICK is (b), reader conf 4: the chip says which dated line is today's before the dates are read (May 15: NOW on the bait
+  ban, NEXT on the way back); (a) made the same line read like part of today's rule for a beat, both on Hooks and on Bait.
+  `chg=a` in the hash keeps the glyph. Page-side connecting words (structural, not data): "Now", "Next", "· in force today".
+  Methods and the keep rows have no dated changes in the data (a way's fly-only condition is its own small line; a kind
+  row's dates are its year strip), so the pattern has nowhere else to go yet; `r20g-changes-line` refuses any other dated note.
+- **3 Ways to fish / Bait as ONE list**: the ✓ ways then the ✕ ways, stacked (no second column at 390 px: the "Not allowed"
+  column wrapped "Water insects and crayfish" and left the ✓ column half empty), every row with its own mark on the left,
+  the row's name in emphasis, its condition small under the name, a short header word over each group ("Allowed" / "Not
+  allowed", sub grey, no mark of its own). A lone group (Bait on May 15: everything banned) is one column too.
+- **4 The possession sheet**: one plain line — the possession row's own words ("Possession: twice the daily quota (fish at
+  home don’t count).") — then the term's example ("For example: …"), then "In the rule book’s words ▸", a fold CLOSED by
+  default holding the term's sentence and the exact quote, then "Source › Rule book p.21 ↗". 388 px tall (was 512, the full
+  term body open).
+- **Checks** (ONLY=20g; all three fail on regs v30 — scratchpad r20g/check-20g-before.txt): `r20g-palette` (a probe reads
+  every token's computed colour; on each tab, light and dark, every text colour is a token, status colours only on status,
+  every number in ink, one grouping tint, at most 6 / 5 / 5 / 4 distinct text colours on Keep / Gear / Methods / Licence),
+  `r20g-changes-line` (the pattern above, nothing else dated anywhere, the bait line before the list), `r20g-possession-fold`
+  (plain line, example, closed fold, source, in that order, under 260 px). Retargeted from 20e (both fail on v30 —
+  r20g/check-20e-before.txt): `r20e-dated-on-its-line` wants the quiet line before the source line, `r20e-ways-columns` wants
+  one stacked list with a mark on every row; `r20e-sources-per-item`, `gear-sentence`, `gear-lines` let the change's rule and page join its line's source line;
+  `dated-rows` reads past the chip; `bait-ways-compact` measures slack (rows as tall as their text, no gap over 8 px) instead
+  of the v28 two-column height; `ur2-bait-allowed-note` reads past a row's mark. The size note's bar is `--line2`.
+- **Readers**: the r20f 34-question set + Q27 (bait and the hook rule on the Vedder, May 15) + Q28 (possession), fresh opus,
+  PNGs only — BEFORE (v30) 36/36; AFTER: see r20g_report.md.
+
 # regs v30 (round 20f, owner: thumbnails in one place, tier headers without the left bar, "from streams", small items) — in place on regs-v11.html
 
 Report: handoff/PLAN/r20f_report.md (before/after pairs, the header alternatives with screens, the reader scores).

@@ -616,6 +616,7 @@ button.hplace:active .pl{color:var(--accent)}
 .wyn li b{font-weight:600}.wyn li small{font:400 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
 .wyn p{font-weight:500}.wyn p .sep{color:var(--faint)}
 .ts2 .yn{grid-template-columns:minmax(0,1fr)}.ts2 .ync[data-col="no"]{padding-left:0;border-left:0;margin-top:6px}
+.yn .ync ul,.ync:only-child ul{columns:1;column-count:1}   /* one list, one column — a lone group no longer flows in two */
 /* round 12 (owner 3): an ⓘ sheet — the plain words, the book's own words folded, the pages as links */
 .sbody .glsays{margin:4px 0 8px;font-size:var(--t3);line-height:1.45}.sbody .glex{margin:0 0 8px;font-size:var(--t4);color:var(--sub)}
 details.bookw{margin:2px 0}
@@ -770,12 +771,7 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 .isrc .srcs{color:var(--accent);font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;text-decoration:none;position:relative;padding:0}
 .isrc .srcs::before{content:"";position:absolute;left:-4px;right:-4px;top:-12px;bottom:-12px}
 .gxc > .isrc,.gmodew > .isrc{margin-top:var(--s2)}
-.gnote{grid-column:1 / -1;margin:4px 0 0;padding:6px 10px;background:var(--tint);border-left:3px solid var(--restricted);font:var(--w-emph) var(--t4)/1.35 Archivo,sans-serif;color:var(--ink)}
-.gnote > b{font-weight:var(--w-head);color:var(--restricted);font-variant-numeric:tabular-nums}
-.gnote em{font-style:normal;font-weight:var(--w-head);color:var(--restricted)}
-.gnote .gnsrc{white-space:nowrap}
 .isrc .book,.gnote .book{display:inline;min-height:0;padding:0;margin:0}
-.gnote + .gnote{margin-top:2px}
 .gmodew{margin:0 0 8px}.gmodew > .gmode{margin:0}
 .ts2 .isrc{grid-column:1}
 .lchoose{margin:0 0 var(--s3)}
@@ -817,6 +813,38 @@ html[data-hdr="a"] .tnode[data-tnode="size"] > .tier .tl,html[data-hdr="b"] .tno
 html[data-hdr="a"] .tnode,html[data-hdr="b"] .tnode{margin-top:0}
 html[data-hdr="b"] .tier .tl .tn{background:var(--tint);padding:0 6px;margin:0 2px 0 5px;line-height:1}
 html[data-hdr="b"] .tnode[data-tnode="size"] > .tier .tl .tn{background:var(--card)}
+/* ---------- round 20g (owner: colours with one meaning each; one way to show a future change; the ways list; possession) ----------
+   TOKENS (UI-NOTES v31): --ink text and every number · --sub secondary text, labels, the changes line · --accent links, buttons,
+   tabs · --open / --closed / --restricted ONLY status (the year strip and its legend, Open / Closed, the release / closed pills,
+   the ✓ / ✕ marks, a release row's words, a closure's words) · --tint the one grouping tint (group head band, size band, chips,
+   the pin bar) · --line / --line2 rules. The second grey (--faint) and the second tint (--wash) fold into --sub and --tint. */
+:root,:root[data-theme="dark"]{--faint:var(--sub);--wash:var(--tint)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--faint:var(--sub);--wash:var(--tint)}}
+.tier .tn,.ghd .num .ghn,.kt .ks .kn,.krow .sl .n,#pins .pl b,.tnode[data-tnode="own"] > .tier .tl .tn,.szl .qgn{color:var(--ink)}
+.k28 .duty{color:var(--ink);font-weight:var(--w-emph)}
+.gmode{color:var(--ink);border-left:0;padding-left:0}
+.gdate em,.caveats .lbl{color:var(--sub)}
+.gconds .ck,.scrole.won{color:var(--ink)}
+/* 2 the changes line */
+.chg{grid-column:1 / -1;display:flex;gap:6px;align-items:baseline;margin:var(--s1) 0 0;padding:0;background:none;border:0;font:var(--w-emph) var(--t4)/1.35 Archivo,sans-serif;color:var(--sub)}
+.chg .chgi{font-style:normal;flex:0 0 auto;color:var(--sub);font-size:var(--t3);line-height:1}
+.chg b{color:var(--ink);font-weight:var(--w-head);font-variant-numeric:tabular-nums}
+.chg em{font-style:normal;font-weight:var(--w-head);color:var(--ink)}
+.chg + .chg{margin-top:2px}
+.gxs + .chg{margin-bottom:var(--s2)}
+html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-serif;letter-spacing:.4px;text-transform:uppercase;padding:0 5px;background:var(--tint);color:var(--ink)}
+/* 3 ways and bait as ONE list: the ✓ group, then the ✕ group, a mark on every row, conditions small under the name */
+.yn{display:block;margin:var(--s1) 0 0}
+.yn .ync{padding:0;border:0;margin:0}.yn .ync + .ync{margin-top:var(--s2)}
+.yn .ynh{margin:0 0 2px;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+.yn li,.wyn li{position:relative;margin:0;padding:3px 0 3px 20px;font:var(--w-emph) var(--t3)/1.3 Archivo,sans-serif}
+.yn li > i,.wyn li > i{position:absolute;left:0;top:3px;font-style:normal;font-weight:800}.yn li.ok > i{color:var(--open)}.yn li.no > i{color:var(--closed)}
+.yn li b{font-weight:var(--w-emph)}.yn li small,.wyn li small{display:block;font:400 var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}
+.ts2 .ync[data-col="no"]{padding-left:0;border-left:0;margin-top:6px}
+/* 4 the possession sheet's fold */
+.sbody details.bookw{margin:var(--s2) 0 0}.sbody .glex{margin:var(--s1) 0 0;font-size:var(--t4);color:var(--sub)}
+.ksn{border-left-color:var(--line2)}
+.tier .torigin{margin:var(--s1) 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}.tier .torigin .linkbtn{min-height:32px;font-size:var(--t4)}   /* the size note's bar is a rule, not an action: the accent stays on links and buttons */
 </style>
 </head>
 <body>
@@ -870,7 +898,7 @@ for (const k of Object.keys(SNAP.states)) { const m = k.match(/^(x\d+p|iron)(\d*
   if (!w.snap[m[3]]) { const ps = PARTS(m[1], +m[3]); w.snap[m[3]] = ps.length ? ps : k; } }
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const fmt = md => MON[Math.floor(md/100)-1] + ' ' + (md%100), wday = md => WD[new Date(2026, Math.floor(md/100)-1, md%100).getDay()];
-const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:'', hdr:''};
+const S = {w:'vedder', d:1010, p:0, sec:'keep', sheet:'', map:0, mp:-1, mk:-1, mw:0, br:-1, bj:0, age:'adult', res:'resident', kit:'', theme:'', ts:0, scroll:0, at:'', open:'', hdr:'', chg:''};
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
 const sid = () => { const x = WATERS[S.w].snap[S.d]; return Array.isArray(x) ? x[S.p] : x; };
@@ -997,7 +1025,7 @@ function buildKeep(){
     cav.remove(); }
   // round 20d (owner): possession covers EVERY fish — a card-level row in the list's style after the groups, not a footnote
   // under Other fish; its sentence, the term's words and its Source open in a sheet (data words only)
-  root.querySelectorAll('.foot').forEach(f => { const txt = (f.textContent || '').replace(/\s+/g, ' ').trim(), m = txt.match(/^ⓘ?\s*(Possession)\s*:\s*([^(.]+?)\s*(?:\((.*?)\))?\.?\s*Source\s*$/); if (!m) return;
+  root.querySelectorAll('.foot').forEach(f => { const txt = (f.textContent || '').replace(/\s+/g, ' ').trim(), m = txt.match(/^ⓘ?\s*(Possession)\s*:\s*([^(.]+?)\s*(?:\((.*?)\))?\.?\s*Source\s*$/) || txt.match(/^ⓘ?\s*(Possession)\s*:\s*([^.]+?)\.\s*(.*?)\.?\s*Source\s*$/); if (!m) return;   // round 20g (display 16): "Possession: 2 days’ quota. Fish at home don’t count."  
     const rule = f.querySelector('[data-rule]')?.dataset.rule || '', gl = f.querySelector('.gl')?.dataset.gl || '', id = `${sid()}|pos`;
     POS_[id] = {says: txt.replace(/^ⓘ?\s*/, '').replace(/\s*Source\s*$/, ''), rule, gl};
     f.outerHTML = `<section class="posrow" aria-label="Possession"><button class="orow obtn" type="button" data-open="pos:${esc(id)}"><span class="on">${esc(m[1])}</span><b class="k-keep">${esc(m[2])}</b>${CHEV}</button></section>`; });
@@ -1195,7 +1223,11 @@ function buildKeep(){
     const pagesOf = key => new Set((SNAP.ruleInfo[key]?.book || []).map(b => b[0]));
     const tierH = (t, root, seen = new Set()) => { const key = st.ruleKey?.[t.by], sub = t.tier === 'own' && t.why_here ? cap1(t.why_here) : '';
       const pg = key ? pagesOf(key) : new Set(), fresh = [...pg].some(p => !seen.has(p));
-      return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}</div>`; };
+      // round 20g (data rows 24): a share tier may carry the origin rule (`tier.origin`, "From streams, keep hatchery fish only — wild
+      // trout and char go back.") when the group's is null; it is drawn under the share's line with How to tell › and the root's
+      // Rule book page, which move here from the group head (orig2 below draws no head line then)
+      const torg = t.origin ? `<p class="gorigin torigin" data-origin data-tier-origin><span>${esc(t.origin)}</span> ${obtn}${!g.origin && rootBook ? ' ' + rootBook : ''}</p>` : '';
+      return `<div class="tier" data-tier="${t.tier}">${t === tagShare ? `<p class="scope tkick" data-scope-tag>${esc(tag)}</p>` : ''}<p class="tl">${tierWords(t)}${root && qtip ? ' ' + qtip : ''}${key && fresh ? ` <span class="tbk">${bookLinks(key)}</span>` : ''}</p>${sub ? `<p class="tsub">${nbsp(sub)}</p>` : ''}${torg}</div>`; };
     const tnode = (t, i, a, root, seen = new Set()) => { if (t.node !== 'tier') return kt(t);
       const key = st.ruleKey?.[t.by], below = new Set([...seen, ...(key ? pagesOf(key) : [])]);
       return `<section class="tnode" data-tnode="${t.tier}" data-tid="${esc(t.id || '')}">${tierH(t, root, seen)}<div class="tch">${(t.children || []).map(c => tnode(c, 0, 0, false, below)).join('')}</div></section>`; };
@@ -1215,7 +1247,8 @@ function buildKeep(){
     // are ONE pinned block (`.ghd.gpin`, position:sticky under the header while inside the group); the origin line is the
     // block under it and scrolls away. A top-level tier line and a size box's head pin under the group block (CSS, pinTops()).
     // round 20f (owner 4): the root's Rule book page sits on the origin's own line, not under it
-    const orig2 = orig ? orig.replace(/<\/p>$/, ` ${rootBook}</p>`) : (rootBook ? `<p class="gorigin">${rootBook}</p>` : '');
+    const tierOrg = !g.origin && JSON.stringify(g.tree || []).includes('"origin":"');   // round 20g: the origin sits on a tier, with the root's page
+    const orig2 = orig ? orig.replace(/<\/p>$/, ` ${rootBook}</p>`) : (rootBook && !tierOrg ? `<p class="gorigin">${rootBook}</p>` : '');
     art.innerHTML = `<div class="ghd gpin"><div class="rhead">${head}${rootLine || num}</div></div>${orig2 || (g.header ? '' : total) ? `<div class="ghd gsub">${orig2}${g.header ? '' : total}</div>` : ''}${tree}${nk}${worked}${quiet}${more}`;
     art.classList.add('g28');
   });
@@ -1362,7 +1395,9 @@ const gearJSON = key => { const m = (SNAP.rules[key]?.body || '').match(/<pre cl
 const namesBoat = key => (gearJSON(key)?.gear || []).some(g => /boat/.test(JSON.stringify(g.when || {})));
 /* round 12 (owner 3): Bait and Ways to fish as two columns — ✓ allowed | ✕ not — each item its name, its note small under it */
 function yesNo(ok, no){ const solo = !ok.length || !no.length;   // persona: a lone column flowed in two — each item carries its own mark
-  const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh"><i>${k === 'ok' ? '✓' : '✕'}</i>${h}</p><ul>${xs.map(([n, sm]) => `<li>${solo ? `<i>${k === 'ok' ? '✓' : '✕'}</i>` : ''}<b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
+  // round 20g (owner 3): ONE list — the ✓ ways then the ✕ ways, each row with its own mark, its conditions small under its name
+  // (two columns cramped a long condition against an empty column at 390 px); the group labels stay as small headers
+  const col = (k, h, xs) => !xs.length ? '' : `<div class="ync" data-col="${k}"><p class="ynh">${h}</p><ul>${xs.map(([n, sm]) => `<li class="${k}"><i>${k === 'ok' ? '✓' : '✕'}</i><b>${n}</b>${sm ? `<small>${sm}</small>` : ''}</li>`).join('')}</ul></div>`;
   return `<div class="yn">${col('ok', 'Allowed', ok)}${col('no', 'Not allowed', no)}</div>`; }
 function closedUntil(st){ const days = [], t = dayIx(S.d);
   (st.runs || []).forEach(([f, n]) => { for (let j = 0; j < n; j++) days.push(f); });
@@ -1378,7 +1413,11 @@ function itemSrc(iid, keys){ keys = [...new Set(keys)].filter(k => SNAP.rules[k]
   return `<p class="isrc" data-isrc data-keys="${esc(keys.join(' '))}"><button class="srcs" type="button" data-open="srcs:${esc(iid)}" aria-label="Sources: ${esc(who.join(', ') || 'rules')}">${esc(who.join(' · ') || 'Sources')} ›</button>${books.join('')}</p>`; }
 /* round 20e (owner 2: "Different on other days" floated under a gear line): a dated change is a tinted note JOINED to the
    line it changes, in the data's words — "May 1–31: fly fishing only" — with its own ⓘ and Rule book page */
-const gnote = (when, says, now, extra = '', attr = 'data-dated') => `<p class="gnote${now ? ' now' : ''}" ${attr}><b>${esc(when)}:</b> ${esc(says)}${now ? ' <em>· in force today</em>' : ''}${extra}</p>`;
+// round 20g (owner 2): ONE pattern wherever a rule differs on other dates — a quiet "changes" line right under the item's
+// current value: a clock glyph, the dates bold, the data's words, "· in force today" while the run is on; no tint, no bar,
+// no inline ⓘ or Rule book page (the change's rule joins the item's source line and its Sources sheet). chg=a|b in the hash
+// compares the glyph-led line (a) with a label-led one ("Next" / "Now", b); the pick is the default.
+const gnote = (when, says, now, extra = '', attr = 'data-dated') => `<p class="chg${now ? ' now' : ''}" ${attr}><i class="chgi" aria-hidden="true">${S.chg === 'a' ? '◷' : (now ? 'Now' : 'Next')}</i><span><b>${esc(when)}:</b> ${esc(says)}${now ? ' <em>· in force today</em>' : ''}${extra}</span></p>`;
 function buildGear(){
   const st = ST(), id = sid();
   // round 20e (owner 1): Gear and Methods are two tabs. #gear: the day's gear lines and Bait; #methods: Ways to fish, Boats
@@ -1413,18 +1452,18 @@ function buildGear(){
     const rowOf = c => hasMode ? 'mode' : /\bfly\b|\bflies\b|hook|lure/i.test(c.says) ? 'hook' : /weight|sinker|float/i.test(c.says) ? 'weight' : /\blines?\b|\brods?\b/i.test(c.says) ? 'lines' : 'hook';
     const drawnRows = new Set([...(hasMode ? ['mode'] : []), ...GLAB.filter(([, , ks]) => ks.some(x => of([x]).length)).map(([k]) => k)]);
     const changeAt = {}; sm.changes.forEach(c => { let k = rowOf(c); if (!drawnRows.has(k)) k = [...drawnRows].pop(); (changeAt[k] = changeAt[k] || []).push(c); });
-        const notesFor = k => (changeAt[k] || []).map(c => gnote(c.when, c.says, false, pagesSpan(c.cites), 'data-dated data-change'));
+        const notesFor = k => (changeAt[k] || []).map(c => gnote(c.when, c.says, false, '', 'data-dated data-change'));
+    const citesAt = k => (changeAt[k] || []).flatMap(c => c.cites || []);   // round 20g: the change's rule joins the item's source line
     const blocks = [];
     of(['mode']).forEach(p => { p.terms.forEach(t => used.add(t));
-      blocks.push({k: 'mode', open: `<div class="gmodew" data-gline="mode"><p class="gmode"><b class="gval">${esc(p.says)}</b>${tipFor(p.terms)}</p>`, src: itemSrc(`gl|${id}|mode`, p.cites), close: '</div>'}); });
+      blocks.push({k: 'mode', open: `<div class="gmodew" data-gline="mode"><p class="gmode"><b class="gval">${esc(p.says)}</b>${tipFor(p.terms)}</p>`, iid: `gl|${id}|mode`, cites: p.cites, close: '</div>'}); });
     GLAB.forEach(([k, lab, ks]) => { const ps = ks.flatMap(x => of([x])); if (!ps.length) return;
       blocks.push({k, open: `<li class="gline" data-gline="${k}"><span class="glab">${esc(lab)}</span><span class="gval">${ps.map(p => { p.terms.forEach(t => used.add(t)); return `<b>${esc(val(p, lab))}</b>${tipFor(p.terms)}`; }).join('<br>')}</span>`,
-        src: itemSrc(`gl|${id}|${k}`, ps.flatMap(p => p.cites)), close: '</li>'}); });
+        iid: `gl|${id}|${k}`, cites: ps.flatMap(p => p.cites), close: '</li>'}); });
     // the terms no line used (the changes' own words: "fly fishing") ⓘ on the first note, else on the last line's value
     const rest = sm.terms.filter(t => !used.has(t)); let restDone = !rest.length;
-    const html = blocks.map(bk => { let notes = notesFor(bk.k);
-      if (!restDone && notes.length) { notes[0] = notes[0].replace(/(<span class="gnsrc"|<\/p>$)/, m => tipFor(rest) + ' ' + m); restDone = true; }
-      return bk.open + bk.src + notes.join('') + bk.close; });
+    // round 20g: the changes line sits right under the value, BEFORE the item's source line, which now also carries the change's rule
+    const html = blocks.map(bk => bk.open + notesFor(bk.k).join('') + itemSrc(bk.iid, [...bk.cites, ...citesAt(bk.k)]) + bk.close);
     if (!restDone && html.length) html[html.length - 1] = html[html.length - 1].replace(/<\/span><p class="isrc"/, tipFor(rest) + '</span><p class="isrc"');
     const mode = html.filter((_, i) => blocks[i].k === 'mode').join(''), rows = html.filter((_, i) => blocks[i].k !== 'mode').join('');
     sentence = `<div class="gsum" data-summary>${mode}<ul class="glines">${rows}</ul></div>`; }
@@ -1442,7 +1481,7 @@ function buildGear(){
       if (!to) return;
       x.s = m[1]; to.s = [to.s, 'still OK — not part of the ban'].filter(Boolean).join(' · '); });
     const bans = dated(st, 16).map(x => gnote(x.when, x.words, x.now)).join('');
-    gearCells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${itemSrc(`bait|${id}`, ks)}${bans}</div>`); }
+    gearCells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${bans}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${itemSrc(`bait|${id}`, ks)}</div>`); }
   // ways to fish: what's allowed (with the data's conditions), then what is not
   if (st.panes.ways) { const r = parse(st.panes.ways);
     const ks = [...r.querySelectorAll('[data-rule]')].map(b => b.dataset.rule).filter(Boolean);
@@ -1475,6 +1514,7 @@ const WAYS = (ok, no) => yesNo(ok.map(x => [x.n, x.s]), no.map(t => [esc(t), '']
 function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   if (S.hdr) de.dataset.hdr = S.hdr; else delete de.dataset.hdr;   // round 20f (owner 2): the tier-header style to compare, hdr=a|b|c
+  if (S.chg) de.dataset.chg = S.chg; else delete de.dataset.chg;   // round 20g (owner 2): chg=a keeps the ◷ glyph the reader passed over (the Now / Next chips are the default)
   const sc = $('sc'), prev = sc.scrollTop;
   // round 20b (owner: "split gear and license tabs") / round 20e (owner 1: Gear and Methods apart): the bar reads What you can
   // keep · Gear · Methods · Licence. The page stays ONE scroll (round 13: the header keeps one shape); each tab is its own
@@ -1573,8 +1613,13 @@ function sheetHtml(k){
     return head(esc(x.t || 'Sources'), '') + `<div class="sbody gtopic">${x.b}</div>`; }
   if (k.startsWith('kind:')) { const x = KINDS[k.slice(5)]; if (!x) return '';
     return head(esc(x.title), '') + `<div class="sbody"><div class="krow" style="border:0;padding-top:4px"><span class="kb">${x.head.replace(/<b class="nm">[\s\S]*?<\/b>/, '')}</span></div><div class="lbl">How this was decided</div>${scopeLines(x.dec.replace(/<div class="lbl">How this was decided<\/div>/,''))}</div>`; }
+  const norm1 = t => (t || '').replace(/\s+/g, ' ').trim().toLowerCase();
   if (k.startsWith('pos:')) { const o = POS_[k.slice(4)]; if (!o) return ''; const t = SNAP.gloss?.[o.gl], key = o.rule && st.ruleKey ? (Object.entries(st.ruleKey).find(([, v]) => v === o.rule) || [])[0] : null;
-    return head('Possession', '') + `<div class="sbody"><p class="glsays" data-possession>${esc(o.says)}</p>${t ? `<div class="lab">${esc(t.title)}</div>${t.body || ''}` : ''}<p class="srm">${o.rule ? `<button class="srcbtn" type="button" data-rule="${esc(o.rule)}">Source</button> ` : ''}${bookLinks(o.rule)}</p></div>`; }
+    // round 20g (owner 4): one plain line, the example, the book's own words in a fold closed by default, then the source line
+    const term = t && t.term;
+    return head('Possession', '') + `<div class="sbody"><p class="glsays" data-possession>${esc(o.says)}</p>${term && term.says && norm1(term.says) !== norm1(o.says) ? `<p class="glex" data-term-says>${esc(term.says)}</p>` : ''}${term && term.example ? `<p class="glex"><b>For example:</b> ${esc(term.example)}</p>` : ''}`
+      + (term && term.quote ? `<details class="bookw" data-book-fold><summary>In the rule book’s words</summary><blockquote class="exact">${esc(term.quote)}</blockquote></details>` : term && term.says ? '' : (t && t.body ? t.body : ''))
+      + `<p class="isrc">${o.rule ? `<button class="srcs" type="button" data-rule="${esc(o.rule)}">Source ›</button>` : ''}${bookLinks(o.rule)}</p></div>`; }
   if (k.startsWith('other:')) { const o = OTHERS_[k.slice(6)]; if (!o) return ''; const x = weekSheet(o.html);
     const ph = o.codes.filter(c => FISHPIC(c).length), phRow = ph.length ? `<span class="kpics">${ph.map(c => fishBtn(c)).join('')}</span>` : '';
     const t = (o.html.match(/<span class="rtitle">([^<]+)/) || [])[1] || 'Other fish';

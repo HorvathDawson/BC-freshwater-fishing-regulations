@@ -25,7 +25,7 @@ export const CENSUS = `(() => {
       borders: count([...root.querySelectorAll('*')].filter(vis).map(e => getComputedStyle(e)).filter(c => c.borderTopStyle !== 'none' && parseFloat(c.borderTopWidth) > 0).map(c => c.borderTopWidth + ' ' + c.borderTopColor + ' r' + c.borderTopLeftRadius)),
       radii: count([...root.querySelectorAll('*')].filter(vis).map(e => getComputedStyle(e).borderTopLeftRadius).filter(r => r !== '0px')),
       leftEdges: left.slice(0, 12), smallTargets: small.slice(0, 20), words: (root.innerText || '').trim().split(/\\s+/).length}; };
-  return JSON.stringify({keep: sect(document.getElementById('keep'), 'keep'), gear: sect(document.getElementById('gear'), 'gear'), licence: sect(document.getElementById('licence'), 'licence'), hdr: sect(document.getElementById('hdr'), 'hdr')}); })()`;
+  return JSON.stringify({keep: sect(document.getElementById('keep'), 'keep'), gear: sect(document.getElementById('gear'), 'gear'), methods: sect(document.getElementById('methods'), 'methods'), licence: sect(document.getElementById('licence'), 'licence'), hdr: sect(document.getElementById('hdr'), 'hdr')}); })()`;
 const out = {};
 for (const theme of ['light', 'dark']) for (const [name, hash] of STATES) {
   const key = `${name}-${theme}`; if (only && !key.includes(only)) continue;
