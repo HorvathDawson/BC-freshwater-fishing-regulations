@@ -1,0 +1,3299 @@
+{
+ "meta": {
+  "generator": "app/design/regs-v11/port/inventory.mjs",
+  "ref": "HEAD",
+  "sha": "18bc2a11",
+  "version": "v32"
+ },
+ "files": {
+  "app/design/regs-v11.html": [
+   {
+    "name": "PARTS",
+    "kind": "const",
+    "start": 889,
+    "end": 890,
+    "sha": "553ec4b5a5"
+   },
+   {
+    "name": "WATERS",
+    "kind": "const",
+    "start": 891,
+    "end": 913,
+    "sha": "f3d8f6d917"
+   },
+   {
+    "name": "MON",
+    "kind": "const",
+    "start": 914,
+    "end": 914,
+    "sha": "751b859fb4"
+   },
+   {
+    "name": "fmt",
+    "kind": "const",
+    "start": 915,
+    "end": 915,
+    "sha": "d03243da7b"
+   },
+   {
+    "name": "S",
+    "kind": "const",
+    "start": 916,
+    "end": 916,
+    "sha": "dfdeddadc4"
+   },
+   {
+    "name": "esc",
+    "kind": "const",
+    "start": 917,
+    "end": 917,
+    "sha": "06abd1cdbb"
+   },
+   {
+    "name": "$",
+    "kind": "const",
+    "start": 918,
+    "end": 918,
+    "sha": "bd905b2203"
+   },
+   {
+    "name": "sid",
+    "kind": "const",
+    "start": 919,
+    "end": 919,
+    "sha": "c32791570c"
+   },
+   {
+    "name": "ST",
+    "kind": "const",
+    "start": 920,
+    "end": 920,
+    "sha": "e8474739f6"
+   },
+   {
+    "name": "SYNOPSIS_PDF",
+    "kind": "const",
+    "start": 921,
+    "end": 922,
+    "sha": "91523a57ef"
+   },
+   {
+    "name": "bookLinks",
+    "kind": "const",
+    "start": 923,
+    "end": 923,
+    "sha": "d439ac57ac"
+   },
+   {
+    "name": "booksOnce",
+    "kind": "const",
+    "start": 924,
+    "end": 927,
+    "sha": "8fdd98ab9e"
+   },
+   {
+    "name": "pageLink",
+    "kind": "const",
+    "start": 928,
+    "end": 929,
+    "sha": "feebd0f402"
+   },
+   {
+    "name": "glossBody",
+    "kind": "function",
+    "start": 930,
+    "end": 933,
+    "sha": "841786c479"
+   },
+   {
+    "name": "appliesOf",
+    "kind": "const",
+    "start": 934,
+    "end": 936,
+    "sha": "84773aa005"
+   },
+   {
+    "name": "FLAG",
+    "kind": "const",
+    "start": 937,
+    "end": 937,
+    "sha": "6fc3a8225a"
+   },
+   {
+    "name": "flagBar",
+    "kind": "function",
+    "start": 938,
+    "end": 941,
+    "sha": "d01d1b13e5"
+   },
+   {
+    "name": "flagBar.style",
+    "kind": "nested",
+    "start": 939,
+    "parent": "flagBar",
+    "end": 941,
+    "sha": "4fb5452dc8"
+   },
+   {
+    "name": "flagLegend",
+    "kind": "function",
+    "start": 942,
+    "end": 946,
+    "sha": "dc35b275b4"
+   },
+   {
+    "name": "flagLegend.sw",
+    "kind": "nested",
+    "start": 944,
+    "parent": "flagLegend",
+    "end": 946,
+    "sha": "a84c775062"
+   },
+   {
+    "name": "CHEVI",
+    "kind": "const",
+    "start": 947,
+    "end": 947,
+    "sha": "5721b1280d"
+   },
+   {
+    "name": "CHEV",
+    "kind": "const",
+    "start": 948,
+    "end": 948,
+    "sha": "5082192747"
+   },
+   {
+    "name": "FISHPIC",
+    "kind": "const",
+    "start": 949,
+    "end": 950,
+    "sha": "29fcfd49d3"
+   },
+   {
+    "name": "SIL",
+    "kind": "const",
+    "start": 951,
+    "end": 951,
+    "sha": "ee37b533f9"
+   },
+   {
+    "name": "thumb",
+    "kind": "function",
+    "start": 952,
+    "end": 955,
+    "sha": "95806df3ef"
+   },
+   {
+    "name": "fishName",
+    "kind": "const",
+    "start": 956,
+    "end": 956,
+    "sha": "f783f8f605"
+   },
+   {
+    "name": "fishBtn",
+    "kind": "function",
+    "start": 957,
+    "end": 961,
+    "sha": "5401843526"
+   },
+   {
+    "name": "citeBooks",
+    "kind": "const",
+    "start": 962,
+    "end": 963,
+    "sha": "12cbf0acc8"
+   },
+   {
+    "name": "tip",
+    "kind": "const",
+    "start": 964,
+    "end": 964,
+    "sha": "b98d4ffe31"
+   },
+   {
+    "name": "tips",
+    "kind": "const",
+    "start": 965,
+    "end": 965,
+    "sha": "eb5d8a1b91"
+   },
+   {
+    "name": "combineTips",
+    "kind": "const",
+    "start": 966,
+    "end": 971,
+    "sha": "79be6bffb3"
+   },
+   {
+    "name": "statusOf",
+    "kind": "function",
+    "start": 972,
+    "end": 975,
+    "sha": "2dda159ecf"
+   },
+   {
+    "name": "fullPart",
+    "kind": "const",
+    "start": 976,
+    "end": 976,
+    "sha": "06d5bd22b9"
+   },
+   {
+    "name": "hereLabel",
+    "kind": "function",
+    "start": 977,
+    "end": 984,
+    "sha": "42efc50539"
+   },
+   {
+    "name": "shortLabel",
+    "kind": "function",
+    "start": 985,
+    "end": 993,
+    "sha": "e6032c871e"
+   },
+   {
+    "name": "placeRow",
+    "kind": "function",
+    "start": 994,
+    "end": 995,
+    "sha": "0d78723c69"
+   },
+   {
+    "name": "placeGo",
+    "kind": "function",
+    "start": 996,
+    "end": 1000,
+    "sha": "49be8538bf"
+   },
+   {
+    "name": "fitLabel",
+    "kind": "function",
+    "start": 1001,
+    "end": 1004,
+    "sha": "7400e1d0f3"
+   },
+   {
+    "name": "fitLabel.fits",
+    "kind": "nested",
+    "start": 1002,
+    "parent": "fitLabel",
+    "end": 1004,
+    "sha": "d488c1d87c"
+   },
+   {
+    "name": "hdr",
+    "kind": "function",
+    "start": 1005,
+    "end": 1014,
+    "sha": "274ed6d45c"
+   },
+   {
+    "name": "speciesRow",
+    "kind": "function",
+    "start": 1015,
+    "end": 1019,
+    "sha": "b98aa0c2ba"
+   },
+   {
+    "name": "buildKeep",
+    "kind": "function",
+    "start": 1020,
+    "end": 1304,
+    "sha": "8b126a514a"
+   },
+   {
+    "name": "buildKeep.fresh",
+    "kind": "nested",
+    "start": 1056,
+    "parent": "buildKeep",
+    "end": 1100,
+    "sha": "27f3296780"
+   },
+   {
+    "name": "buildKeep.keyIn",
+    "kind": "nested",
+    "start": 1101,
+    "parent": "buildKeep",
+    "end": 1101,
+    "sha": "b84ea87b3f"
+   },
+   {
+    "name": "buildKeep.glOf",
+    "kind": "nested",
+    "start": 1102,
+    "parent": "buildKeep",
+    "end": 1113,
+    "sha": "8d3acaa94e"
+   },
+   {
+    "name": "buildKeep.pics",
+    "kind": "nested",
+    "start": 1114,
+    "parent": "buildKeep",
+    "end": 1118,
+    "sha": "d390d9679f"
+   },
+   {
+    "name": "buildKeep.bhead",
+    "kind": "nested",
+    "start": 1119,
+    "parent": "buildKeep",
+    "end": 1127,
+    "sha": "fdc9126737"
+   },
+   {
+    "name": "buildKeep.same",
+    "kind": "nested",
+    "start": 1128,
+    "parent": "buildKeep",
+    "end": 1128,
+    "sha": "bf4d97bcdf"
+   },
+   {
+    "name": "buildKeep.presOf",
+    "kind": "nested",
+    "start": 1129,
+    "parent": "buildKeep",
+    "end": 1129,
+    "sha": "5d06be692a"
+   },
+   {
+    "name": "buildKeep.presP",
+    "kind": "nested",
+    "start": 1130,
+    "parent": "buildKeep",
+    "end": 1135,
+    "sha": "42e51cf968"
+   },
+   {
+    "name": "buildKeep.ktags",
+    "kind": "nested",
+    "start": 1136,
+    "parent": "buildKeep",
+    "end": 1136,
+    "sha": "e826d72488"
+   },
+   {
+    "name": "buildKeep.krow",
+    "kind": "nested",
+    "start": 1137,
+    "parent": "buildKeep",
+    "end": 1138,
+    "sha": "d0d129f9eb"
+   },
+   {
+    "name": "buildKeep.capWords",
+    "kind": "nested",
+    "start": 1139,
+    "parent": "buildKeep",
+    "end": 1140,
+    "sha": "c750b36dd2"
+   },
+   {
+    "name": "buildKeep.sizeTag",
+    "kind": "nested",
+    "start": 1141,
+    "parent": "buildKeep",
+    "end": 1141,
+    "sha": "412cb262f7"
+   },
+   {
+    "name": "buildKeep.covers",
+    "kind": "nested",
+    "start": 1142,
+    "parent": "buildKeep",
+    "end": 1145,
+    "sha": "dfc61d4e9d"
+   },
+   {
+    "name": "buildKeep.qgrp",
+    "kind": "nested",
+    "start": 1146,
+    "parent": "buildKeep",
+    "end": 1152,
+    "sha": "c5a7fddd97"
+   },
+   {
+    "name": "buildKeep.lc1",
+    "kind": "nested",
+    "start": 1153,
+    "parent": "buildKeep",
+    "end": 1153,
+    "sha": "0b7427c4c7"
+   },
+   {
+    "name": "buildKeep.sgrp",
+    "kind": "nested",
+    "start": 1154,
+    "parent": "buildKeep",
+    "end": 1159,
+    "sha": "caefc7d76d"
+   },
+   {
+    "name": "buildKeep.betw",
+    "kind": "nested",
+    "start": 1160,
+    "parent": "buildKeep",
+    "end": 1161,
+    "sha": "959ab68cee"
+   },
+   {
+    "name": "buildKeep.shared",
+    "kind": "nested",
+    "start": 1162,
+    "parent": "buildKeep",
+    "end": 1165,
+    "sha": "165f5aec32"
+   },
+   {
+    "name": "buildKeep.within",
+    "kind": "nested",
+    "start": 1166,
+    "parent": "buildKeep",
+    "end": 1211,
+    "sha": "b497014cc9"
+   },
+   {
+    "name": "buildKeep.nbsp",
+    "kind": "nested",
+    "start": 1212,
+    "parent": "buildKeep",
+    "end": 1212,
+    "sha": "283c5c0b2d"
+   },
+   {
+    "name": "buildKeep.boldN",
+    "kind": "nested",
+    "start": 1213,
+    "parent": "buildKeep",
+    "end": 1213,
+    "sha": "922a7d0336"
+   },
+   {
+    "name": "buildKeep.sizeOf",
+    "kind": "nested",
+    "start": 1214,
+    "parent": "buildKeep",
+    "end": 1217,
+    "sha": "eeafcd6a87"
+   },
+   {
+    "name": "buildKeep.kt",
+    "kind": "nested",
+    "start": 1218,
+    "parent": "buildKeep",
+    "end": 1232,
+    "sha": "9c86731832"
+   },
+   {
+    "name": "buildKeep.tierWords",
+    "kind": "nested",
+    "start": 1233,
+    "parent": "buildKeep",
+    "end": 1237,
+    "sha": "cece9ec312"
+   },
+   {
+    "name": "buildKeep.pagesOf",
+    "kind": "nested",
+    "start": 1238,
+    "parent": "buildKeep",
+    "end": 1260,
+    "sha": "71f01fda42"
+   },
+   {
+    "name": "buildKeep.bigWords",
+    "kind": "nested",
+    "start": 1261,
+    "parent": "buildKeep",
+    "end": 1304,
+    "sha": "eae2f34123"
+   },
+   {
+    "name": "KINDS",
+    "kind": "const",
+    "start": 1305,
+    "end": 1309,
+    "sha": "05fc8a3afe"
+   },
+   {
+    "name": "weekSheet",
+    "kind": "function",
+    "start": 1310,
+    "end": 1336,
+    "sha": "546d0969bd"
+   },
+   {
+    "name": "weekSheet.line",
+    "kind": "nested",
+    "start": 1328,
+    "parent": "weekSheet",
+    "end": 1336,
+    "sha": "b2a74e5ddc"
+   },
+   {
+    "name": "SRCS",
+    "kind": "const",
+    "start": 1337,
+    "end": 1337,
+    "sha": "33cdc01712"
+   },
+   {
+    "name": "parse",
+    "kind": "const",
+    "start": 1338,
+    "end": 1338,
+    "sha": "a84f85a7ea"
+   },
+   {
+    "name": "DAY0",
+    "kind": "const",
+    "start": 1339,
+    "end": 1339,
+    "sha": "f3f07dd85e"
+   },
+   {
+    "name": "dayIx",
+    "kind": "const",
+    "start": 1340,
+    "end": 1340,
+    "sha": "f6b6a0dad6"
+   },
+   {
+    "name": "span",
+    "kind": "function",
+    "start": 1341,
+    "end": 1343,
+    "sha": "92c7dc1f73"
+   },
+   {
+    "name": "dated",
+    "kind": "function",
+    "start": 1344,
+    "end": 1350,
+    "sha": "1f8755be6e"
+   },
+   {
+    "name": "dayLine",
+    "kind": "const",
+    "start": 1351,
+    "end": 1352,
+    "sha": "3199071123"
+   },
+   {
+    "name": "levelOf",
+    "kind": "const",
+    "start": 1353,
+    "end": 1353,
+    "sha": "d1d21c7287"
+   },
+   {
+    "name": "CHIPWORD",
+    "kind": "const",
+    "start": 1354,
+    "end": 1354,
+    "sha": "7a5d8fff79"
+   },
+   {
+    "name": "learnChipWords",
+    "kind": "function",
+    "start": 1355,
+    "end": 1357,
+    "sha": "436041550e"
+   },
+   {
+    "name": "wordOf_",
+    "kind": "const",
+    "start": 1358,
+    "end": 1358,
+    "sha": "85d029d7d7"
+   },
+   {
+    "name": "licence",
+    "kind": "function",
+    "start": 1359,
+    "end": 1404,
+    "sha": "e9a37da30d"
+   },
+   {
+    "name": "licence.lift",
+    "kind": "nested",
+    "start": 1367,
+    "parent": "licence",
+    "end": 1370,
+    "sha": "279d12bebc"
+   },
+   {
+    "name": "licence.isOthers",
+    "kind": "nested",
+    "start": 1371,
+    "parent": "licence",
+    "end": 1371,
+    "sha": "179d28fc09"
+   },
+   {
+    "name": "licence.one",
+    "kind": "nested",
+    "start": 1372,
+    "parent": "licence",
+    "end": 1384,
+    "sha": "67d1f3f02d"
+   },
+   {
+    "name": "licence.asNeeds",
+    "kind": "nested",
+    "start": 1385,
+    "parent": "licence",
+    "end": 1397,
+    "sha": "f0bb4b6da6"
+   },
+   {
+    "name": "licence.seg",
+    "kind": "nested",
+    "start": 1398,
+    "parent": "licence",
+    "end": 1404,
+    "sha": "b4b78f31fa"
+   },
+   {
+    "name": "KEYOF",
+    "kind": "function",
+    "start": 1405,
+    "end": 1410,
+    "sha": "d568919774"
+   },
+   {
+    "name": "IC",
+    "kind": "const",
+    "start": 1411,
+    "end": 1423,
+    "sha": "ca243279df"
+   },
+   {
+    "name": "icon",
+    "kind": "const",
+    "start": 1424,
+    "end": 1424,
+    "sha": "387da6df4e"
+   },
+   {
+    "name": "ROWKEY",
+    "kind": "const",
+    "start": 1425,
+    "end": 1425,
+    "sha": "533f156100"
+   },
+   {
+    "name": "gearJSON",
+    "kind": "const",
+    "start": 1426,
+    "end": 1427,
+    "sha": "7cca067208"
+   },
+   {
+    "name": "namesBoat",
+    "kind": "const",
+    "start": 1428,
+    "end": 1429,
+    "sha": "f26f6010e8"
+   },
+   {
+    "name": "yesNo",
+    "kind": "function",
+    "start": 1430,
+    "end": 1434,
+    "sha": "c86ff4ffad"
+   },
+   {
+    "name": "yesNo.col",
+    "kind": "nested",
+    "start": 1433,
+    "parent": "yesNo",
+    "end": 1434,
+    "sha": "31ca069e7e"
+   },
+   {
+    "name": "closedUntil",
+    "kind": "function",
+    "start": 1435,
+    "end": 1441,
+    "sha": "3908b73516"
+   },
+   {
+    "name": "itemSrc",
+    "kind": "function",
+    "start": 1442,
+    "end": 1452,
+    "sha": "bee2e6e9ef"
+   },
+   {
+    "name": "gnote",
+    "kind": "const",
+    "start": 1453,
+    "end": 1453,
+    "sha": "f86fd842ef"
+   },
+   {
+    "name": "buildGear",
+    "kind": "function",
+    "start": 1454,
+    "end": 1546,
+    "sha": "3837ae5de6"
+   },
+   {
+    "name": "buildGear.sect",
+    "kind": "nested",
+    "start": 1458,
+    "parent": "buildGear",
+    "end": 1468,
+    "sha": "eff159df4e"
+   },
+   {
+    "name": "buildGear.tipFor",
+    "kind": "nested",
+    "start": 1469,
+    "parent": "buildGear",
+    "end": 1469,
+    "sha": "3f5f4e0480"
+   },
+   {
+    "name": "buildGear.pagesSpan",
+    "kind": "nested",
+    "start": 1470,
+    "parent": "buildGear",
+    "end": 1478,
+    "sha": "0ca6a91ec1"
+   },
+   {
+    "name": "buildGear.val",
+    "kind": "nested",
+    "start": 1479,
+    "parent": "buildGear",
+    "end": 1484,
+    "sha": "a0b9328b43"
+   },
+   {
+    "name": "buildGear.rowOf",
+    "kind": "nested",
+    "start": 1485,
+    "parent": "buildGear",
+    "end": 1487,
+    "sha": "dc5f603024"
+   },
+   {
+    "name": "buildGear.notesFor",
+    "kind": "nested",
+    "start": 1488,
+    "parent": "buildGear",
+    "end": 1488,
+    "sha": "462e465116"
+   },
+   {
+    "name": "buildGear.citesAt",
+    "kind": "nested",
+    "start": 1489,
+    "parent": "buildGear",
+    "end": 1509,
+    "sha": "b77dc3d6e7"
+   },
+   {
+    "name": "buildGear.note2",
+    "kind": "nested",
+    "start": 1510,
+    "parent": "buildGear",
+    "end": 1546,
+    "sha": "d3a78d09a5"
+   },
+   {
+    "name": "WAYS",
+    "kind": "const",
+    "start": 1547,
+    "end": 1549,
+    "sha": "bd52fb7583"
+   },
+   {
+    "name": "render",
+    "kind": "function",
+    "start": 1550,
+    "end": 1573,
+    "sha": "3224519a2e"
+   },
+   {
+    "name": "pinTops",
+    "kind": "function",
+    "start": 1574,
+    "end": 1586,
+    "sha": "0518fc7ea9"
+   },
+   {
+    "name": "lc1w",
+    "kind": "const",
+    "start": 1587,
+    "end": 1587,
+    "sha": "b0cf7895b9"
+   },
+   {
+    "name": "shortOf",
+    "kind": "function",
+    "start": 1588,
+    "end": 1595,
+    "sha": "54c94c54fe"
+   },
+   {
+    "name": "PIN_LAST",
+    "kind": "const",
+    "start": 1596,
+    "end": 1596,
+    "sha": "8315aac461"
+   },
+   {
+    "name": "pinUpdate",
+    "kind": "function",
+    "start": 1597,
+    "end": 1614,
+    "sha": "df5865cff0"
+   },
+   {
+    "name": "mini",
+    "kind": "function",
+    "start": 1615,
+    "end": 1626,
+    "sha": "150cabd04f"
+   },
+   {
+    "name": "mini.reached",
+    "kind": "nested",
+    "start": 1620,
+    "parent": "mini",
+    "end": 1626,
+    "sha": "c564a15adc"
+   },
+   {
+    "name": "head",
+    "kind": "const",
+    "start": 1627,
+    "end": 1627,
+    "sha": "5b8a133136"
+   },
+   {
+    "name": "scopeLines",
+    "kind": "function",
+    "start": 1628,
+    "end": 1632,
+    "sha": "2118f3f4d7"
+   },
+   {
+    "name": "groupedSources",
+    "kind": "function",
+    "start": 1633,
+    "end": 1642,
+    "sha": "5ba95e8962"
+   },
+   {
+    "name": "groupedSources.flush",
+    "kind": "nested",
+    "start": 1635,
+    "parent": "groupedSources",
+    "end": 1642,
+    "sha": "e84a250799"
+   },
+   {
+    "name": "sheetHtml",
+    "kind": "function",
+    "start": 1643,
+    "end": 1694,
+    "sha": "f92ed4716e"
+   },
+   {
+    "name": "sheetHtml.norm1",
+    "kind": "nested",
+    "start": 1658,
+    "parent": "sheetHtml",
+    "end": 1694,
+    "sha": "738bef0889"
+   },
+   {
+    "name": "WM",
+    "kind": "const",
+    "start": 1695,
+    "end": 1695,
+    "sha": "9ff9b7029d"
+   },
+   {
+    "name": "ST_KIND",
+    "kind": "const",
+    "start": 1696,
+    "end": 1703,
+    "sha": "7043efbb4f"
+   },
+   {
+    "name": "ST_KIND.v",
+    "kind": "nested",
+    "start": 1698,
+    "parent": "ST_KIND",
+    "end": 1703,
+    "sha": "0ac9e77987"
+   },
+   {
+    "name": "BR",
+    "kind": "const",
+    "start": 1704,
+    "end": 1704,
+    "sha": "e03d5ff57e"
+   },
+   {
+    "name": "wgroup",
+    "kind": "const",
+    "start": 1705,
+    "end": 1705,
+    "sha": "113a01aa56"
+   },
+   {
+    "name": "mgroup",
+    "kind": "const",
+    "start": 1706,
+    "end": 1706,
+    "sha": "eea6862726"
+   },
+   {
+    "name": "dayCol",
+    "kind": "const",
+    "start": 1707,
+    "end": 1707,
+    "sha": "44558501be"
+   },
+   {
+    "name": "kindOf",
+    "kind": "const",
+    "start": 1708,
+    "end": 1708,
+    "sha": "e1a71d7e6d"
+   },
+   {
+    "name": "wordOf",
+    "kind": "const",
+    "start": 1709,
+    "end": 1710,
+    "sha": "60fc58af3c"
+   },
+   {
+    "name": "curPart",
+    "kind": "function",
+    "start": 1711,
+    "end": 1713,
+    "sha": "e39efea29f"
+   },
+   {
+    "name": "stateFor",
+    "kind": "function",
+    "start": 1714,
+    "end": 1719,
+    "sha": "e7260bfa99"
+   },
+   {
+    "name": "partName",
+    "kind": "const",
+    "start": 1720,
+    "end": 1721,
+    "sha": "25c244ca48"
+   },
+   {
+    "name": "itemNote",
+    "kind": "const",
+    "start": 1722,
+    "end": 1722,
+    "sha": "08d9f26fe3"
+   },
+   {
+    "name": "statusChip",
+    "kind": "const",
+    "start": 1723,
+    "end": 1724,
+    "sha": "922d2b8321"
+   },
+   {
+    "name": "markLabel",
+    "kind": "function",
+    "start": 1725,
+    "end": 1727,
+    "sha": "c306edc0a9"
+   },
+   {
+    "name": "pct",
+    "kind": "const",
+    "start": 1728,
+    "end": 1729,
+    "sha": "bdfd08179a"
+   },
+   {
+    "name": "braidSays",
+    "kind": "function",
+    "start": 1730,
+    "end": 1732,
+    "sha": "b3a853ba46"
+   },
+   {
+    "name": "braidSo",
+    "kind": "const",
+    "start": 1733,
+    "end": 1733,
+    "sha": "fee4fc7237"
+   },
+   {
+    "name": "pageOf",
+    "kind": "const",
+    "start": 1734,
+    "end": 1734,
+    "sha": "e0c1443008"
+   },
+   {
+    "name": "braidMapHtml",
+    "kind": "function",
+    "start": 1735,
+    "end": 1753,
+    "sha": "b3e61f2a50"
+   },
+   {
+    "name": "braidMapHtml.stroke",
+    "kind": "nested",
+    "start": 1737,
+    "parent": "braidMapHtml",
+    "end": 1743,
+    "sha": "76eeabf5ea"
+   },
+   {
+    "name": "braidMapHtml.nb",
+    "kind": "nested",
+    "start": 1744,
+    "parent": "braidMapHtml",
+    "end": 1753,
+    "sha": "e6304450e7"
+   },
+   {
+    "name": "mapHtml",
+    "kind": "function",
+    "start": 1754,
+    "end": 1779,
+    "sha": "c96b14e9de"
+   },
+   {
+    "name": "mapHtml.stroke",
+    "kind": "nested",
+    "start": 1757,
+    "parent": "mapHtml",
+    "end": 1779,
+    "sha": "84d7e15060"
+   },
+   {
+    "name": "markPop",
+    "kind": "function",
+    "start": 1780,
+    "end": 1784,
+    "sha": "60c267b5b1"
+   },
+   {
+    "name": "markPop.side",
+    "kind": "nested",
+    "start": 1781,
+    "parent": "markPop",
+    "end": 1784,
+    "sha": "d8a12194ac"
+   },
+   {
+    "name": "MV",
+    "kind": "const",
+    "start": 1785,
+    "end": 1785,
+    "sha": "9b6f46185f"
+   },
+   {
+    "name": "fitBox",
+    "kind": "function",
+    "start": 1786,
+    "end": 1790,
+    "sha": "4b26402c34"
+   },
+   {
+    "name": "targetBox",
+    "kind": "function",
+    "start": 1791,
+    "end": 1793,
+    "sha": "83fcdb4c12"
+   },
+   {
+    "name": "setVB",
+    "kind": "function",
+    "start": 1794,
+    "end": 1794,
+    "sha": "513bf0318c"
+   },
+   {
+    "name": "ease",
+    "kind": "function",
+    "start": 1795,
+    "end": 1799,
+    "sha": "dac4f9af2a"
+   },
+   {
+    "name": "placeMarks",
+    "kind": "function",
+    "start": 1800,
+    "end": 1810,
+    "sha": "3537e1cec5"
+   },
+   {
+    "name": "mapOpened",
+    "kind": "function",
+    "start": 1811,
+    "end": 1840,
+    "sha": "388a7da0fc"
+   },
+   {
+    "name": "mapOpened.at",
+    "kind": "nested",
+    "start": 1814,
+    "parent": "mapOpened",
+    "end": 1815,
+    "sha": "ced945b20f"
+   },
+   {
+    "name": "mapOpened.zoom",
+    "kind": "nested",
+    "start": 1816,
+    "parent": "mapOpened",
+    "end": 1827,
+    "sha": "7580505423"
+   },
+   {
+    "name": "mapOpened.up",
+    "kind": "nested",
+    "start": 1828,
+    "parent": "mapOpened",
+    "end": 1840,
+    "sha": "75aefaf223"
+   },
+   {
+    "name": "go",
+    "kind": "function",
+    "start": 1841,
+    "end": 1841,
+    "sha": "5dc0106475"
+   },
+   {
+    "name": "toast",
+    "kind": "function",
+    "start": 1842,
+    "end": 1880,
+    "sha": "2393f630b1"
+   },
+   {
+    "name": "poster",
+    "kind": "function",
+    "start": 1881,
+    "end": 1906,
+    "sha": "b4107a97c5"
+   }
+  ],
+  "pipeline/deliver/answers/reference/page_v36.js": [
+   {
+    "name": "D",
+    "kind": "const",
+    "start": 8,
+    "end": 8,
+    "sha": "c70873c659"
+   },
+   {
+    "name": "A",
+    "kind": "const",
+    "start": 9,
+    "end": 9,
+    "sha": "2c723eba72"
+   },
+   {
+    "name": "CASES",
+    "kind": "const",
+    "start": 10,
+    "end": 11,
+    "sha": "cbf0042e90"
+   },
+   {
+    "name": "PAIR_ERR",
+    "kind": "const",
+    "start": 12,
+    "end": 14,
+    "sha": "e6bc5d23e6"
+   },
+   {
+    "name": "SEC",
+    "kind": "const",
+    "start": 15,
+    "end": 17,
+    "sha": "f92a564b6e"
+   },
+   {
+    "name": "MON",
+    "kind": "const",
+    "start": 18,
+    "end": 19,
+    "sha": "3bb288208b"
+   },
+   {
+    "name": "DIM",
+    "kind": "const",
+    "start": 20,
+    "end": 20,
+    "sha": "0eb1c1b9b7"
+   },
+   {
+    "name": "DAYS",
+    "kind": "const",
+    "start": 21,
+    "end": 22,
+    "sha": "83280dc581"
+   },
+   {
+    "name": "LEAP0",
+    "kind": "const",
+    "start": 23,
+    "end": 23,
+    "sha": "0c0318cd87"
+   },
+   {
+    "name": "dayOf",
+    "kind": "const",
+    "start": 24,
+    "end": 24,
+    "sha": "be59015a59"
+   },
+   {
+    "name": "RANK",
+    "kind": "const",
+    "start": 25,
+    "end": 25,
+    "sha": "8750bb84d8"
+   },
+   {
+    "name": "esc",
+    "kind": "const",
+    "start": 26,
+    "end": 26,
+    "sha": "06abd1cdbb"
+   },
+   {
+    "name": "fmtMd",
+    "kind": "const",
+    "start": 27,
+    "end": 29,
+    "sha": "a4ef9f00f5"
+   },
+   {
+    "name": "NOW",
+    "kind": "const",
+    "start": 30,
+    "end": 30,
+    "sha": "3cd07edafe"
+   },
+   {
+    "name": "TODAY",
+    "kind": "const",
+    "start": 31,
+    "end": 31,
+    "sha": "b61e035aad"
+   },
+   {
+    "name": "cap",
+    "kind": "const",
+    "start": 32,
+    "end": 32,
+    "sha": "7e3d8c6b2d"
+   },
+   {
+    "name": "clean",
+    "kind": "const",
+    "start": 33,
+    "end": 34,
+    "sha": "3cc1c85985"
+   },
+   {
+    "name": "missing",
+    "kind": "const",
+    "start": 35,
+    "end": 36,
+    "sha": "9c3fd66d47"
+   },
+   {
+    "name": "GLOSS",
+    "kind": "const",
+    "start": 37,
+    "end": 38,
+    "sha": "2fbd9409c2"
+   },
+   {
+    "name": "gi",
+    "kind": "const",
+    "start": 39,
+    "end": 40,
+    "sha": "dd0ff5b910"
+   },
+   {
+    "name": "regionGi",
+    "kind": "const",
+    "start": 41,
+    "end": 41,
+    "sha": "f02d9054e6"
+   },
+   {
+    "name": "openGloss",
+    "kind": "function",
+    "start": 42,
+    "end": 46,
+    "sha": "5db044de38"
+   },
+   {
+    "name": "FISH",
+    "kind": "const",
+    "start": 47,
+    "end": 47,
+    "sha": "8ca42c3339"
+   },
+   {
+    "name": "expand",
+    "kind": "const",
+    "start": 48,
+    "end": 48,
+    "sha": "873359e170"
+   },
+   {
+    "name": "PROT",
+    "kind": "const",
+    "start": 49,
+    "end": 49,
+    "sha": "49ed6ae4af"
+   },
+   {
+    "name": "SALM",
+    "kind": "const",
+    "start": 50,
+    "end": 50,
+    "sha": "5b869f3420"
+   },
+   {
+    "name": "GAME",
+    "kind": "const",
+    "start": 51,
+    "end": 51,
+    "sha": "685b1ea8f8"
+   },
+   {
+    "name": "spName",
+    "kind": "const",
+    "start": 52,
+    "end": 52,
+    "sha": "b8167de2a9"
+   },
+   {
+    "name": "lc",
+    "kind": "const",
+    "start": 53,
+    "end": 53,
+    "sha": "03c963ca6b"
+   },
+   {
+    "name": "groupFor",
+    "kind": "function",
+    "start": 54,
+    "end": 54,
+    "sha": "e45458b012"
+   },
+   {
+    "name": "join",
+    "kind": "const",
+    "start": 55,
+    "end": 55,
+    "sha": "bb36c7e0c7"
+   },
+   {
+    "name": "lcNames",
+    "kind": "const",
+    "start": 56,
+    "end": 56,
+    "sha": "e676ccc11f"
+   },
+   {
+    "name": "Names",
+    "kind": "const",
+    "start": 57,
+    "end": 57,
+    "sha": "fb4345a9e9"
+   },
+   {
+    "name": "writtenName",
+    "kind": "const",
+    "start": 58,
+    "end": 60,
+    "sha": "a1f727ed8d"
+   },
+   {
+    "name": "whenDates",
+    "kind": "const",
+    "start": 61,
+    "end": 61,
+    "sha": "5ed4543c23"
+   },
+   {
+    "name": "rangeTxt",
+    "kind": "const",
+    "start": 62,
+    "end": 62,
+    "sha": "7fc3105c77"
+   },
+   {
+    "name": "timeCond",
+    "kind": "function",
+    "start": 63,
+    "end": 69,
+    "sha": "f5d1c57bf9"
+   },
+   {
+    "name": "winTxt",
+    "kind": "const",
+    "start": 70,
+    "end": 72,
+    "sha": "a1bcbd5970"
+   },
+   {
+    "name": "RULES",
+    "kind": "const",
+    "start": 73,
+    "end": 73,
+    "sha": "1a5fe0e187"
+   },
+   {
+    "name": "RIX",
+    "kind": "const",
+    "start": 74,
+    "end": 87,
+    "sha": "1e78d8267f"
+   },
+   {
+    "name": "NORULE",
+    "kind": "const",
+    "start": 88,
+    "end": 88,
+    "sha": "8408cba157"
+   },
+   {
+    "name": "RX",
+    "kind": "const",
+    "start": 89,
+    "end": 89,
+    "sha": "a521baf3cb"
+   },
+   {
+    "name": "closedGate",
+    "kind": "const",
+    "start": 90,
+    "end": 90,
+    "sha": "e04c945e5f"
+   },
+   {
+    "name": "covers",
+    "kind": "const",
+    "start": 91,
+    "end": 93,
+    "sha": "7bec49e893"
+   },
+   {
+    "name": "bands",
+    "kind": "function",
+    "start": 94,
+    "end": 94,
+    "sha": "56db127d36"
+   },
+   {
+    "name": "bandTxt",
+    "kind": "const",
+    "start": 95,
+    "end": 96,
+    "sha": "c4d59519b7"
+   },
+   {
+    "name": "describe",
+    "kind": "function",
+    "start": 97,
+    "end": 112,
+    "sha": "453d7473dd"
+   },
+   {
+    "name": "cutWords",
+    "kind": "const",
+    "start": 113,
+    "end": 115,
+    "sha": "d944749fb0"
+   },
+   {
+    "name": "WATERS",
+    "kind": "const",
+    "start": 116,
+    "end": 116,
+    "sha": "73476c911a"
+   },
+   {
+    "name": "makePlace",
+    "kind": "function",
+    "start": 117,
+    "end": 125,
+    "sha": "df35fef22d"
+   },
+   {
+    "name": "makePlace.R",
+    "kind": "nested",
+    "start": 122,
+    "parent": "makePlace",
+    "end": 125,
+    "sha": "5dcc32f296"
+   },
+   {
+    "name": "segStarts",
+    "kind": "const",
+    "start": 126,
+    "end": 128,
+    "sha": "f89433e966"
+   },
+   {
+    "name": "momentsOf",
+    "kind": "const",
+    "start": 129,
+    "end": 130,
+    "sha": "1d252d36bb"
+   },
+   {
+    "name": "YEAR",
+    "kind": "const",
+    "start": 131,
+    "end": 131,
+    "sha": "cb73c32c83"
+   },
+   {
+    "name": "weekdayOf",
+    "kind": "const",
+    "start": 132,
+    "end": 133,
+    "sha": "083ea0c436"
+   },
+   {
+    "name": "daySegs",
+    "kind": "function",
+    "start": 134,
+    "end": 136,
+    "sha": "7fefc10be3"
+   },
+   {
+    "name": "segAt",
+    "kind": "function",
+    "start": 137,
+    "end": 138,
+    "sha": "9e2b1ea427"
+   },
+   {
+    "name": "segOf",
+    "kind": "const",
+    "start": 139,
+    "end": 140,
+    "sha": "d11152888e"
+   },
+   {
+    "name": "mdOfDay",
+    "kind": "const",
+    "start": 141,
+    "end": 141,
+    "sha": "fc57d7d89e"
+   },
+   {
+    "name": "frameIx",
+    "kind": "const",
+    "start": 142,
+    "end": 142,
+    "sha": "070e898c8d"
+   },
+   {
+    "name": "isTidal",
+    "kind": "const",
+    "start": 143,
+    "end": 145,
+    "sha": "134dc11696"
+   },
+   {
+    "name": "verdictList",
+    "kind": "function",
+    "start": 146,
+    "end": 153,
+    "sha": "2e44ce9b8f"
+   },
+   {
+    "name": "ladderAt",
+    "kind": "function",
+    "start": 154,
+    "end": 162,
+    "sha": "8ecae0d8c9"
+   },
+   {
+    "name": "settle",
+    "kind": "function",
+    "start": 163,
+    "end": 182,
+    "sha": "b316855194"
+   },
+   {
+    "name": "settle.with_",
+    "kind": "nested",
+    "start": 167,
+    "parent": "settle",
+    "end": 182,
+    "sha": "4312685963"
+   },
+   {
+    "name": "statusAt",
+    "kind": "const",
+    "start": 183,
+    "end": 183,
+    "sha": "9bed1f183a"
+   },
+   {
+    "name": "isClosedAt",
+    "kind": "const",
+    "start": 184,
+    "end": 186,
+    "sha": "077f201e53"
+   },
+   {
+    "name": "KEEPISH",
+    "kind": "const",
+    "start": 187,
+    "end": 187,
+    "sha": "90c8527087"
+   },
+   {
+    "name": "st_",
+    "kind": "const",
+    "start": 188,
+    "end": 188,
+    "sha": "fc248a06b4"
+   },
+   {
+    "name": "hydLine",
+    "kind": "function",
+    "start": 189,
+    "end": 196,
+    "sha": "64dd6a3d65"
+   },
+   {
+    "name": "hydRes",
+    "kind": "function",
+    "start": 197,
+    "end": 203,
+    "sha": "735be4f1b8"
+   },
+   {
+    "name": "hydFact",
+    "kind": "function",
+    "start": 204,
+    "end": 205,
+    "sha": "4b1e08b53d"
+   },
+   {
+    "name": "hydRow",
+    "kind": "function",
+    "start": 206,
+    "end": 215,
+    "sha": "8d88951f30"
+   },
+   {
+    "name": "rowsAt",
+    "kind": "function",
+    "start": 216,
+    "end": 222,
+    "sha": "600b7c3997"
+   },
+   {
+    "name": "mainRes",
+    "kind": "const",
+    "start": 223,
+    "end": 224,
+    "sha": "beff08e2be"
+   },
+   {
+    "name": "buildModel",
+    "kind": "function",
+    "start": 225,
+    "end": 227,
+    "sha": "66e47164ec"
+   },
+   {
+    "name": "RANKSTAT",
+    "kind": "const",
+    "start": 228,
+    "end": 230,
+    "sha": "f5ff77ae30"
+   },
+   {
+    "name": "dayStatus",
+    "kind": "function",
+    "start": 231,
+    "end": 237,
+    "sha": "26f7c5a14a"
+   },
+   {
+    "name": "strip",
+    "kind": "function",
+    "start": 238,
+    "end": 242,
+    "sha": "29c2363c0f"
+   },
+   {
+    "name": "segBar",
+    "kind": "function",
+    "start": 243,
+    "end": 246,
+    "sha": "b96b762fb9"
+   },
+   {
+    "name": "shortWindows",
+    "kind": "function",
+    "start": 247,
+    "end": 247,
+    "sha": "eb53830603"
+   },
+   {
+    "name": "MONTHS_ROW",
+    "kind": "const",
+    "start": 248,
+    "end": 248,
+    "sha": "df09bb357e"
+   },
+   {
+    "name": "stripHtml",
+    "kind": "function",
+    "start": 249,
+    "end": 255,
+    "sha": "7462b651d6"
+   },
+   {
+    "name": "keepNames",
+    "kind": "const",
+    "start": 256,
+    "end": 259,
+    "sha": "dc4dc530b6"
+   },
+   {
+    "name": "FISHART",
+    "kind": "const",
+    "start": 260,
+    "end": 433,
+    "sha": "48d330c0a3"
+   },
+   {
+    "name": "FISHART.smooth",
+    "kind": "nested",
+    "start": 263,
+    "parent": "FISHART",
+    "end": 273,
+    "sha": "2cebd8f7aa"
+   },
+   {
+    "name": "FISHART.rng",
+    "kind": "nested",
+    "start": 274,
+    "parent": "FISHART",
+    "end": 275,
+    "sha": "708ae7da76"
+   },
+   {
+    "name": "FISHART.body",
+    "kind": "nested",
+    "start": 276,
+    "parent": "FISHART",
+    "end": 282,
+    "sha": "a9db4ee542"
+   },
+   {
+    "name": "FISHART.tail",
+    "kind": "nested",
+    "start": 283,
+    "parent": "FISHART",
+    "end": 290,
+    "sha": "2d563b6888"
+   },
+   {
+    "name": "FISHART.fin",
+    "kind": "nested",
+    "start": 291,
+    "parent": "FISHART",
+    "end": 291,
+    "sha": "b5ffd0e590"
+   },
+   {
+    "name": "FISHART.rays",
+    "kind": "nested",
+    "start": 292,
+    "parent": "FISHART",
+    "end": 293,
+    "sha": "5fa62e4b55"
+   },
+   {
+    "name": "FISHART.draw",
+    "kind": "nested",
+    "start": 294,
+    "parent": "FISHART",
+    "end": 317,
+    "sha": "5cc413ff7e"
+   },
+   {
+    "name": "FISHART.env",
+    "kind": "nested",
+    "start": 318,
+    "parent": "FISHART",
+    "end": 333,
+    "sha": "0a32f747fa"
+   },
+   {
+    "name": "FISHART.inBody",
+    "kind": "nested",
+    "start": 334,
+    "parent": "FISHART",
+    "end": 334,
+    "sha": "6d9f09a3ad"
+   },
+   {
+    "name": "FISHART.scatter",
+    "kind": "nested",
+    "start": 335,
+    "parent": "FISHART",
+    "end": 433,
+    "sha": "444664f3c3"
+   },
+   {
+    "name": "state",
+    "kind": "const",
+    "start": 434,
+    "end": 434,
+    "sha": "1084d4245f"
+   },
+   {
+    "name": "PLACE",
+    "kind": "const",
+    "start": 435,
+    "end": 435,
+    "sha": "41f9a40d68"
+   },
+   {
+    "name": "rowTitle",
+    "kind": "function",
+    "start": 436,
+    "end": 442,
+    "sha": "4af63f3243"
+   },
+   {
+    "name": "nextOpen",
+    "kind": "function",
+    "start": 443,
+    "end": 443,
+    "sha": "7c9b4e2635"
+   },
+   {
+    "name": "waterSegs",
+    "kind": "function",
+    "start": 444,
+    "end": 448,
+    "sha": "f6e69b7679"
+   },
+   {
+    "name": "tidalHtml",
+    "kind": "function",
+    "start": 449,
+    "end": 453,
+    "sha": "c4f2a997dd"
+   },
+   {
+    "name": "waterStrip",
+    "kind": "function",
+    "start": 454,
+    "end": 458,
+    "sha": "5f0d72c8dd"
+   },
+   {
+    "name": "waterStrip0",
+    "kind": "function",
+    "start": 459,
+    "end": 468,
+    "sha": "43078dc211"
+   },
+   {
+    "name": "miniStrip",
+    "kind": "function",
+    "start": 469,
+    "end": 475,
+    "sha": "8fe200bb80"
+   },
+   {
+    "name": "miniStrip.toDays",
+    "kind": "nested",
+    "start": 471,
+    "parent": "miniStrip",
+    "end": 475,
+    "sha": "b10bd682c7"
+   },
+   {
+    "name": "choicesOf",
+    "kind": "const",
+    "start": 476,
+    "end": 476,
+    "sha": "020208bb69"
+   },
+   {
+    "name": "groupOf",
+    "kind": "const",
+    "start": 477,
+    "end": 477,
+    "sha": "6a191a14c4"
+   },
+   {
+    "name": "partLabel",
+    "kind": "const",
+    "start": 478,
+    "end": 479,
+    "sha": "5541c242cb"
+   },
+   {
+    "name": "mergedHtml",
+    "kind": "function",
+    "start": 480,
+    "end": 487,
+    "sha": "79798ccbcd"
+   },
+   {
+    "name": "runOf",
+    "kind": "function",
+    "start": 488,
+    "end": 494,
+    "sha": "18f9c918eb"
+   },
+   {
+    "name": "closedRuns",
+    "kind": "function",
+    "start": 495,
+    "end": 502,
+    "sha": "d641184ab5"
+   },
+   {
+    "name": "nextYr",
+    "kind": "const",
+    "start": 503,
+    "end": 503,
+    "sha": "83bd86d58f"
+   },
+   {
+    "name": "runUntil",
+    "kind": "function",
+    "start": 504,
+    "end": 504,
+    "sha": "d0d24f5894"
+   },
+   {
+    "name": "runTxt",
+    "kind": "function",
+    "start": 505,
+    "end": 516,
+    "sha": "fdd31263ce"
+   },
+   {
+    "name": "closersAt",
+    "kind": "function",
+    "start": 517,
+    "end": 519,
+    "sha": "c07d5dbb08"
+   },
+   {
+    "name": "closedBanner",
+    "kind": "function",
+    "start": 520,
+    "end": 541,
+    "sha": "6e956bf47a"
+   },
+   {
+    "name": "closedBanner.closeTxt",
+    "kind": "nested",
+    "start": 533,
+    "parent": "closedBanner",
+    "end": 541,
+    "sha": "8c167c3061"
+   },
+   {
+    "name": "daysTxt",
+    "kind": "function",
+    "start": 542,
+    "end": 544,
+    "sha": "506a1ba12f"
+   },
+   {
+    "name": "daysTxt.sh",
+    "kind": "nested",
+    "start": 544,
+    "parent": "daysTxt",
+    "end": 544,
+    "sha": "21ee31e38a"
+   },
+   {
+    "name": "hoursTxt",
+    "kind": "const",
+    "start": 545,
+    "end": 545,
+    "sha": "53e0af427a"
+   },
+   {
+    "name": "momentTxt",
+    "kind": "function",
+    "start": 546,
+    "end": 547,
+    "sha": "28b154fcef"
+   },
+   {
+    "name": "answerTxt",
+    "kind": "const",
+    "start": 548,
+    "end": 552,
+    "sha": "99076f7e71"
+   },
+   {
+    "name": "timedHtml",
+    "kind": "function",
+    "start": 553,
+    "end": 583,
+    "sha": "3eb9842a92"
+   },
+   {
+    "name": "timedHtml.spk",
+    "kind": "nested",
+    "start": 578,
+    "parent": "timedHtml",
+    "end": 583,
+    "sha": "39bede8880"
+   },
+   {
+    "name": "anglerClosures",
+    "kind": "function",
+    "start": 584,
+    "end": 587,
+    "sha": "ffd6fcd11a"
+   },
+   {
+    "name": "uncertainHtml",
+    "kind": "function",
+    "start": 588,
+    "end": 591,
+    "sha": "1be2b8fd73"
+   },
+   {
+    "name": "inPartHtml",
+    "kind": "function",
+    "start": 592,
+    "end": 603,
+    "sha": "1de1efdf1c"
+   },
+   {
+    "name": "inPartHtml.boat",
+    "kind": "nested",
+    "start": 596,
+    "parent": "inPartHtml",
+    "end": 597,
+    "sha": "dc28cd467d"
+   },
+   {
+    "name": "inPartHtml.where",
+    "kind": "nested",
+    "start": 598,
+    "parent": "inPartHtml",
+    "end": 598,
+    "sha": "93dcdc16ef"
+   },
+   {
+    "name": "inPartHtml.li",
+    "kind": "nested",
+    "start": 599,
+    "parent": "inPartHtml",
+    "end": 603,
+    "sha": "3293da5672"
+   },
+   {
+    "name": "sideHtml",
+    "kind": "function",
+    "start": 604,
+    "end": 610,
+    "sha": "7b323b42f5"
+   },
+   {
+    "name": "inheritedHtml",
+    "kind": "function",
+    "start": 611,
+    "end": 615,
+    "sha": "012f7915b0"
+   },
+   {
+    "name": "whereHtml",
+    "kind": "function",
+    "start": 616,
+    "end": 620,
+    "sha": "a4b95efdc5"
+   },
+   {
+    "name": "standingHtml",
+    "kind": "function",
+    "start": 621,
+    "end": 625,
+    "sha": "9eb25d5349"
+   },
+   {
+    "name": "possessionHtml",
+    "kind": "function",
+    "start": 626,
+    "end": 636,
+    "sha": "ad0caa7350"
+   },
+   {
+    "name": "scopeOf",
+    "kind": "const",
+    "start": 637,
+    "end": 638,
+    "sha": "555ed7f00c"
+   },
+   {
+    "name": "ruleScope",
+    "kind": "const",
+    "start": 639,
+    "end": 639,
+    "sha": "77ef208255"
+   },
+   {
+    "name": "scopeBadge",
+    "kind": "function",
+    "start": 640,
+    "end": 642,
+    "sha": "db8a31b001"
+   },
+   {
+    "name": "fact",
+    "kind": "function",
+    "start": 643,
+    "end": 668,
+    "sha": "3a309478eb"
+   },
+   {
+    "name": "liftNoteHtml",
+    "kind": "function",
+    "start": 669,
+    "end": 671,
+    "sha": "282d3dfd06"
+   },
+   {
+    "name": "valueHtml",
+    "kind": "function",
+    "start": 672,
+    "end": 679,
+    "sha": "7fa3c07893"
+   },
+   {
+    "name": "narrowAll",
+    "kind": "const",
+    "start": 680,
+    "end": 681,
+    "sha": "293bb361a6"
+   },
+   {
+    "name": "groupedNames",
+    "kind": "function",
+    "start": 682,
+    "end": 687,
+    "sha": "8498b58e92"
+   },
+   {
+    "name": "nar0",
+    "kind": "const",
+    "start": 688,
+    "end": 688,
+    "sha": "ae38d432b8"
+   },
+   {
+    "name": "ddOpen",
+    "kind": "const",
+    "start": 689,
+    "end": 690,
+    "sha": "aa72fe82c5"
+   },
+   {
+    "name": "TROUTISH",
+    "kind": "const",
+    "start": 691,
+    "end": 691,
+    "sha": "90e200dbff"
+   },
+   {
+    "name": "rowsHtml",
+    "kind": "function",
+    "start": 692,
+    "end": 700,
+    "sha": "abaa2463db"
+   },
+   {
+    "name": "rowsHtml.short",
+    "kind": "nested",
+    "start": 697,
+    "parent": "rowsHtml",
+    "end": 700,
+    "sha": "482aaaa4de"
+   },
+   {
+    "name": "renderCard",
+    "kind": "function",
+    "start": 701,
+    "end": 716,
+    "sha": "eeb31db34c"
+   },
+   {
+    "name": "adiposeHtml",
+    "kind": "const",
+    "start": 717,
+    "end": 719,
+    "sha": "0b81cb4f86"
+   },
+   {
+    "name": "rowConds",
+    "kind": "function",
+    "start": 720,
+    "end": 762,
+    "sha": "0b76bfc232"
+   },
+   {
+    "name": "rowConds.lifted",
+    "kind": "nested",
+    "start": 746,
+    "parent": "rowConds",
+    "end": 746,
+    "sha": "3c73fb0b60"
+   },
+   {
+    "name": "rowConds.keepO",
+    "kind": "nested",
+    "start": 747,
+    "parent": "rowConds",
+    "end": 753,
+    "sha": "c47f081d7c"
+   },
+   {
+    "name": "rowConds.whoN",
+    "kind": "nested",
+    "start": 754,
+    "parent": "rowConds",
+    "end": 762,
+    "sha": "4f64949089"
+   },
+   {
+    "name": "FAMS",
+    "kind": "const",
+    "start": 763,
+    "end": 763,
+    "sha": "7be3552ea0"
+   },
+   {
+    "name": "hasPic",
+    "kind": "const",
+    "start": 764,
+    "end": 764,
+    "sha": "06a1258bbb"
+   },
+   {
+    "name": "openFish",
+    "kind": "function",
+    "start": 765,
+    "end": 769,
+    "sha": "a550d9957b"
+   },
+   {
+    "name": "openFishGroup",
+    "kind": "function",
+    "start": 770,
+    "end": 772,
+    "sha": "c2dbd91302"
+   },
+   {
+    "name": "namedIn",
+    "kind": "const",
+    "start": 773,
+    "end": 775,
+    "sha": "6196456fb4"
+   },
+   {
+    "name": "ROLE",
+    "kind": "const",
+    "start": 776,
+    "end": 777,
+    "sha": "91576e72dd"
+   },
+   {
+    "name": "WINS",
+    "kind": "const",
+    "start": 778,
+    "end": 778,
+    "sha": "83aaccad74"
+   },
+   {
+    "name": "RK",
+    "kind": "const",
+    "start": 779,
+    "end": 779,
+    "sha": "efce096dd4"
+   },
+   {
+    "name": "rowSources",
+    "kind": "function",
+    "start": 780,
+    "end": 787,
+    "sha": "bc98c38bff"
+   },
+   {
+    "name": "srcCard",
+    "kind": "function",
+    "start": 788,
+    "end": 792,
+    "sha": "0fbb857d63"
+   },
+   {
+    "name": "fieldsPre",
+    "kind": "const",
+    "start": 793,
+    "end": 793,
+    "sha": "425e59d726"
+   },
+   {
+    "name": "scrim",
+    "kind": "const",
+    "start": 794,
+    "end": 794,
+    "sha": "7176680a7a"
+   },
+   {
+    "name": "openSheet",
+    "kind": "function",
+    "start": 795,
+    "end": 795,
+    "sha": "08381c5a88"
+   },
+   {
+    "name": "openRowSources",
+    "kind": "function",
+    "start": 796,
+    "end": 805,
+    "sha": "7908104f02"
+   },
+   {
+    "name": "openRowSources.card",
+    "kind": "nested",
+    "start": 799,
+    "parent": "openRowSources",
+    "end": 805,
+    "sha": "5f4a1e710b"
+   },
+   {
+    "name": "levelTag",
+    "kind": "const",
+    "start": 806,
+    "end": 806,
+    "sha": "5385fb21f8"
+   },
+   {
+    "name": "levelHead",
+    "kind": "const",
+    "start": 807,
+    "end": 807,
+    "sha": "055cbf80c8"
+   },
+   {
+    "name": "ICON",
+    "kind": "const",
+    "start": 808,
+    "end": 816,
+    "sha": "6e85a6a8b8"
+   },
+   {
+    "name": "shortNames",
+    "kind": "function",
+    "start": 817,
+    "end": 826,
+    "sha": "f086e742c8"
+   },
+   {
+    "name": "shortNames.last",
+    "kind": "nested",
+    "start": 820,
+    "parent": "shortNames",
+    "end": 826,
+    "sha": "92af2076c8"
+   },
+   {
+    "name": "condParts",
+    "kind": "function",
+    "start": 827,
+    "end": 838,
+    "sha": "61e2f9b1ca"
+   },
+   {
+    "name": "chipHtml",
+    "kind": "const",
+    "start": 839,
+    "end": 839,
+    "sha": "e682540c40"
+   },
+   {
+    "name": "extraChips",
+    "kind": "function",
+    "start": 840,
+    "end": 843,
+    "sha": "0ec9788346"
+   },
+   {
+    "name": "shortLabel",
+    "kind": "function",
+    "start": 844,
+    "end": 848,
+    "sha": "d5d5b3ae52"
+   },
+   {
+    "name": "friendlyWhy",
+    "kind": "const",
+    "start": 849,
+    "end": 851,
+    "sha": "ac6d08af32"
+   },
+   {
+    "name": "COVER",
+    "kind": "const",
+    "start": 852,
+    "end": 852,
+    "sha": "d0940ef10a"
+   },
+   {
+    "name": "speciesItems",
+    "kind": "function",
+    "start": 853,
+    "end": 870,
+    "sha": "10044c29bb"
+   },
+   {
+    "name": "bandWords",
+    "kind": "const",
+    "start": 871,
+    "end": 871,
+    "sha": "fb20e9280a"
+   },
+   {
+    "name": "itemBands",
+    "kind": "const",
+    "start": 872,
+    "end": 873,
+    "sha": "7e2cca1399"
+   },
+   {
+    "name": "itemOrigins",
+    "kind": "const",
+    "start": 874,
+    "end": 875,
+    "sha": "c79f2974ed"
+   },
+   {
+    "name": "againstOf",
+    "kind": "const",
+    "start": 876,
+    "end": 876,
+    "sha": "299787fb52"
+   },
+   {
+    "name": "VAR",
+    "kind": "const",
+    "start": 877,
+    "end": 878,
+    "sha": "617017f6ff"
+   },
+   {
+    "name": "generalCap",
+    "kind": "const",
+    "start": 879,
+    "end": 879,
+    "sha": "b827e6cfa7"
+   },
+   {
+    "name": "groupBlock",
+    "kind": "function",
+    "start": 880,
+    "end": 931,
+    "sha": "86c4e28469"
+   },
+   {
+    "name": "groupBlock.exemptOf",
+    "kind": "nested",
+    "start": 911,
+    "parent": "groupBlock",
+    "end": 931,
+    "sha": "4e9c7175b1"
+   },
+   {
+    "name": "bookOf",
+    "kind": "function",
+    "start": 932,
+    "end": 935,
+    "sha": "3238bd5e68"
+   },
+   {
+    "name": "treeBlock",
+    "kind": "function",
+    "start": 936,
+    "end": 945,
+    "sha": "9833e90dd8"
+   },
+   {
+    "name": "treeBlock.kindT",
+    "kind": "nested",
+    "start": 937,
+    "parent": "treeBlock",
+    "end": 938,
+    "sha": "8749f442b9"
+   },
+   {
+    "name": "treeBlock.orgT",
+    "kind": "nested",
+    "start": 939,
+    "parent": "treeBlock",
+    "end": 939,
+    "sha": "d51de27cdf"
+   },
+   {
+    "name": "treeBlock.tierT",
+    "kind": "nested",
+    "start": 940,
+    "parent": "treeBlock",
+    "end": 945,
+    "sha": "e2eab7b9f4"
+   },
+   {
+    "name": "cardBlock",
+    "kind": "function",
+    "start": 946,
+    "end": 974,
+    "sha": "16195a7a89"
+   },
+   {
+    "name": "cardBlock.pic",
+    "kind": "nested",
+    "start": 952,
+    "parent": "cardBlock",
+    "end": 953,
+    "sha": "dcbbb02bef"
+   },
+   {
+    "name": "cardBlock.kind",
+    "kind": "nested",
+    "start": 954,
+    "parent": "cardBlock",
+    "end": 955,
+    "sha": "765e7ff0ce"
+   },
+   {
+    "name": "cardBlock.subs",
+    "kind": "nested",
+    "start": 956,
+    "parent": "cardBlock",
+    "end": 958,
+    "sha": "fe8d062d28"
+   },
+   {
+    "name": "cardBlock.sizes",
+    "kind": "nested",
+    "start": 959,
+    "parent": "cardBlock",
+    "end": 959,
+    "sha": "c913b3a40a"
+   },
+   {
+    "name": "cardBlock.bnotes",
+    "kind": "nested",
+    "start": 960,
+    "parent": "cardBlock",
+    "end": 961,
+    "sha": "4ff6795169"
+   },
+   {
+    "name": "cardBlock.betw",
+    "kind": "nested",
+    "start": 962,
+    "parent": "cardBlock",
+    "end": 962,
+    "sha": "743228baf8"
+   },
+   {
+    "name": "cardBlock.repl",
+    "kind": "nested",
+    "start": 963,
+    "parent": "cardBlock",
+    "end": 974,
+    "sha": "c1460a98ff"
+   },
+   {
+    "name": "sent",
+    "kind": "const",
+    "start": 975,
+    "end": 975,
+    "sha": "b46df521e0"
+   },
+   {
+    "name": "rngTxt",
+    "kind": "const",
+    "start": 976,
+    "end": 978,
+    "sha": "c0df2359db"
+   },
+   {
+    "name": "xrefLo",
+    "kind": "function",
+    "start": 979,
+    "end": 981,
+    "sha": "620961c635"
+   },
+   {
+    "name": "isSteelRiver",
+    "kind": "function",
+    "start": 982,
+    "end": 983,
+    "sha": "6f58b4597f"
+   },
+   {
+    "name": "STEEL_LINE",
+    "kind": "const",
+    "start": 984,
+    "end": 984,
+    "sha": "1e387e9ef7"
+   },
+   {
+    "name": "steelPresence",
+    "kind": "function",
+    "start": 985,
+    "end": 987,
+    "sha": "d919ada03a"
+   },
+   {
+    "name": "presHtml",
+    "kind": "const",
+    "start": 988,
+    "end": 988,
+    "sha": "d724164970"
+   },
+   {
+    "name": "noRulesLine",
+    "kind": "const",
+    "start": 989,
+    "end": 992,
+    "sha": "47f87e943c"
+   },
+   {
+    "name": "weekHtml",
+    "kind": "const",
+    "start": 993,
+    "end": 998,
+    "sha": "cd6175ca98"
+   },
+   {
+    "name": "capLines",
+    "kind": "function",
+    "start": 999,
+    "end": 1005,
+    "sha": "087992ae37"
+   },
+   {
+    "name": "speciesBlock",
+    "kind": "function",
+    "start": 1006,
+    "end": 1070,
+    "sha": "9345e32530"
+   },
+   {
+    "name": "speciesBlock.rg",
+    "kind": "nested",
+    "start": 1062,
+    "parent": "speciesBlock",
+    "end": 1070,
+    "sha": "ddcc62225a"
+   },
+   {
+    "name": "SAYS",
+    "kind": "const",
+    "start": 1071,
+    "end": 1071,
+    "sha": "730ebeaafb"
+   },
+   {
+    "name": "QORDER",
+    "kind": "const",
+    "start": 1072,
+    "end": 1072,
+    "sha": "730cb3713c"
+   },
+   {
+    "name": "LOSES",
+    "kind": "const",
+    "start": 1073,
+    "end": 1073,
+    "sha": "5789c5ca2b"
+   },
+   {
+    "name": "byName",
+    "kind": "const",
+    "start": 1074,
+    "end": 1075,
+    "sha": "387cdde7ff"
+   },
+   {
+    "name": "say",
+    "kind": "const",
+    "start": 1076,
+    "end": 1076,
+    "sha": "f74efce006"
+   },
+   {
+    "name": "ladderHtml",
+    "kind": "function",
+    "start": 1077,
+    "end": 1110,
+    "sha": "7818b2e959"
+   },
+   {
+    "name": "ladderHtml.forFish",
+    "kind": "nested",
+    "start": 1084,
+    "parent": "ladderHtml",
+    "end": 1084,
+    "sha": "cef36575c5"
+   },
+   {
+    "name": "ladderHtml.subsetOf",
+    "kind": "nested",
+    "start": 1085,
+    "parent": "ladderHtml",
+    "end": 1085,
+    "sha": "d97004dafb"
+   },
+   {
+    "name": "ladderHtml.line",
+    "kind": "nested",
+    "start": 1086,
+    "parent": "ladderHtml",
+    "end": 1093,
+    "sha": "4f4f911192"
+   },
+   {
+    "name": "ladderHtml.steps",
+    "kind": "nested",
+    "start": 1094,
+    "parent": "ladderHtml",
+    "end": 1110,
+    "sha": "cdc22f8854"
+   },
+   {
+    "name": "sameSet",
+    "kind": "const",
+    "start": 1111,
+    "end": 1111,
+    "sha": "88377c6a26"
+   },
+   {
+    "name": "summaryHtml",
+    "kind": "function",
+    "start": 1113,
+    "end": 1144,
+    "sha": "08d7dbd605"
+   },
+   {
+    "name": "parentRow",
+    "kind": "function",
+    "start": 1145,
+    "end": 1145,
+    "sha": "5f72d6f949"
+   },
+   {
+    "name": "rowHtml",
+    "kind": "function",
+    "start": 1146,
+    "end": 1155,
+    "sha": "36a37f507b"
+   },
+   {
+    "name": "openRule",
+    "kind": "function",
+    "start": 1156,
+    "end": 1164,
+    "sha": "79001b1abb"
+   },
+   {
+    "name": "SLOT_LABEL",
+    "kind": "const",
+    "start": 1165,
+    "end": 1166,
+    "sha": "159c98245d"
+   },
+   {
+    "name": "ELEM",
+    "kind": "const",
+    "start": 1167,
+    "end": 1168,
+    "sha": "1c373f0f5a"
+   },
+   {
+    "name": "WHILE_TXT",
+    "kind": "const",
+    "start": 1169,
+    "end": 1169,
+    "sha": "da765c95cb"
+   },
+   {
+    "name": "MUST",
+    "kind": "const",
+    "start": 1170,
+    "end": 1170,
+    "sha": "eb8ef1d83e"
+   },
+   {
+    "name": "GROUPWORD",
+    "kind": "const",
+    "start": 1171,
+    "end": 1171,
+    "sha": "a59ffd58a0"
+   },
+   {
+    "name": "tgtTxt",
+    "kind": "const",
+    "start": 1172,
+    "end": 1172,
+    "sha": "fbdf266aba"
+   },
+   {
+    "name": "clauseOf",
+    "kind": "const",
+    "start": 1173,
+    "end": 1173,
+    "sha": "5d74e187ef"
+   },
+   {
+    "name": "circTxt",
+    "kind": "const",
+    "start": 1174,
+    "end": 1174,
+    "sha": "c81e8197e0"
+   },
+   {
+    "name": "countTxt",
+    "kind": "function",
+    "start": 1175,
+    "end": 1186,
+    "sha": "76d89323fd"
+   },
+   {
+    "name": "gSrc",
+    "kind": "const",
+    "start": 1187,
+    "end": 1187,
+    "sha": "cbcf82e512"
+   },
+   {
+    "name": "gRow",
+    "kind": "function",
+    "start": 1188,
+    "end": 1188,
+    "sha": "810ba3dfb2"
+   },
+   {
+    "name": "gearAt",
+    "kind": "const",
+    "start": 1189,
+    "end": 1189,
+    "sha": "67b183f5a2"
+   },
+   {
+    "name": "MOMENT_HEAD",
+    "kind": "const",
+    "start": 1190,
+    "end": 1190,
+    "sha": "306a1fcb0e"
+   },
+   {
+    "name": "gearParts",
+    "kind": "function",
+    "start": 1191,
+    "end": 1259,
+    "sha": "1cb0cf2365"
+   },
+   {
+    "name": "gearParts.top",
+    "kind": "nested",
+    "start": 1196,
+    "parent": "gearParts",
+    "end": 1208,
+    "sha": "ff25ebebae"
+   },
+   {
+    "name": "gearParts.row",
+    "kind": "nested",
+    "start": 1209,
+    "parent": "gearParts",
+    "end": 1259,
+    "sha": "71eb0c93af"
+   },
+   {
+    "name": "openGearAll",
+    "kind": "function",
+    "start": 1260,
+    "end": 1268,
+    "sha": "c82a0d5a34"
+   },
+   {
+    "name": "LIC",
+    "kind": "const",
+    "start": 1269,
+    "end": 1270,
+    "sha": "18b47c34ec"
+   },
+   {
+    "name": "LX",
+    "kind": "const",
+    "start": 1271,
+    "end": 1271,
+    "sha": "cf0f76a0c2"
+   },
+   {
+    "name": "DOC",
+    "kind": "const",
+    "start": 1272,
+    "end": 1272,
+    "sha": "a282ad742a"
+   },
+   {
+    "name": "AXES",
+    "kind": "const",
+    "start": 1273,
+    "end": 1273,
+    "sha": "126b7b03ef"
+   },
+   {
+    "name": "whoTxt",
+    "kind": "const",
+    "start": 1274,
+    "end": 1274,
+    "sha": "d4f34cfb05"
+   },
+   {
+    "name": "actTxt",
+    "kind": "function",
+    "start": 1275,
+    "end": 1279,
+    "sha": "df23cafbea"
+   },
+   {
+    "name": "profileIx",
+    "kind": "const",
+    "start": 1280,
+    "end": 1280,
+    "sha": "544b915f55"
+   },
+   {
+    "name": "licAt",
+    "kind": "function",
+    "start": 1281,
+    "end": 1281,
+    "sha": "fa6747be90"
+   },
+   {
+    "name": "priceTxt",
+    "kind": "const",
+    "start": 1282,
+    "end": 1282,
+    "sha": "cc3a63e055"
+   },
+   {
+    "name": "pathHtml",
+    "kind": "function",
+    "start": 1283,
+    "end": 1289,
+    "sha": "1a07353be8"
+   },
+   {
+    "name": "srcOf",
+    "kind": "const",
+    "start": 1290,
+    "end": 1290,
+    "sha": "ad803d26cb"
+   },
+   {
+    "name": "reqCard",
+    "kind": "function",
+    "start": 1291,
+    "end": 1301,
+    "sha": "296f3b7c08"
+   },
+   {
+    "name": "otherCard",
+    "kind": "function",
+    "start": 1302,
+    "end": 1305,
+    "sha": "cb34eb6e09"
+   },
+   {
+    "name": "profileHtml",
+    "kind": "function",
+    "start": 1306,
+    "end": 1308,
+    "sha": "d12216f420"
+   },
+   {
+    "name": "licParts",
+    "kind": "function",
+    "start": 1309,
+    "end": 1370,
+    "sha": "deb415a49d"
+   },
+   {
+    "name": "licParts.whenTxt",
+    "kind": "nested",
+    "start": 1329,
+    "parent": "licParts",
+    "end": 1332,
+    "sha": "b888c3b643"
+   },
+   {
+    "name": "licParts.alsoTxt",
+    "kind": "nested",
+    "start": 1333,
+    "parent": "licParts",
+    "end": 1333,
+    "sha": "df7ae80671"
+   },
+   {
+    "name": "licParts.docGi",
+    "kind": "nested",
+    "start": 1334,
+    "parent": "licParts",
+    "end": 1355,
+    "sha": "b3bb2f13bd"
+   },
+   {
+    "name": "licParts.fishOf",
+    "kind": "nested",
+    "start": 1356,
+    "parent": "licParts",
+    "end": 1360,
+    "sha": "9b16f38064"
+   },
+   {
+    "name": "licParts.orderAct",
+    "kind": "nested",
+    "start": 1361,
+    "parent": "licParts",
+    "end": 1370,
+    "sha": "1191c8dc6f"
+   },
+   {
+    "name": "openLic",
+    "kind": "function",
+    "start": 1371,
+    "end": 1371,
+    "sha": "e58b9c8f38"
+   },
+   {
+    "name": "openLicAll",
+    "kind": "function",
+    "start": 1372,
+    "end": 1378,
+    "sha": "fbfd49d405"
+   },
+   {
+    "name": "openLicAll.card",
+    "kind": "nested",
+    "start": 1375,
+    "parent": "openLicAll",
+    "end": 1378,
+    "sha": "f615c6a986"
+   },
+   {
+    "name": "KIT_TABS",
+    "kind": "const",
+    "start": 1379,
+    "end": 1381,
+    "sha": "3148c2027c"
+   },
+   {
+    "name": "shortDoc",
+    "kind": "const",
+    "start": 1382,
+    "end": 1382,
+    "sha": "f05e6f31a9"
+   },
+   {
+    "name": "renderKit",
+    "kind": "function",
+    "start": 1383,
+    "end": 1417,
+    "sha": "ce217d5a65"
+   },
+   {
+    "name": "SHOWN",
+    "kind": "const",
+    "start": 1418,
+    "end": 1418,
+    "sha": "9c7a7ce260"
+   },
+   {
+    "name": "caseRule",
+    "kind": "const",
+    "start": 1419,
+    "end": 1419,
+    "sha": "f8ad4b068e"
+   },
+   {
+    "name": "caseLadder",
+    "kind": "function",
+    "start": 1420,
+    "end": 1427,
+    "sha": "237fbe7a03"
+   },
+   {
+    "name": "runCase",
+    "kind": "function",
+    "start": 1428,
+    "end": 1438,
+    "sha": "d7d1d7bba3"
+   },
+   {
+    "name": "CASE_RESULTS",
+    "kind": "const",
+    "start": 1439,
+    "end": 1439,
+    "sha": "b303efea9b"
+   },
+   {
+    "name": "renderCases",
+    "kind": "function",
+    "start": 1440,
+    "end": 1467,
+    "sha": "ca05cfe736"
+   },
+   {
+    "name": "renderCases.rk",
+    "kind": "nested",
+    "start": 1453,
+    "parent": "renderCases",
+    "end": 1453,
+    "sha": "a21afd0187"
+   },
+   {
+    "name": "renderCases.rowHtml",
+    "kind": "nested",
+    "start": 1454,
+    "parent": "renderCases",
+    "end": 1467,
+    "sha": "813862b186"
+   },
+   {
+    "name": "defaultPart",
+    "kind": "function",
+    "start": 1468,
+    "end": 1477,
+    "sha": "e7c7921b99"
+   },
+   {
+    "name": "dateChips",
+    "kind": "function",
+    "start": 1478,
+    "end": 1484,
+    "sha": "352a713bb7"
+   },
+   {
+    "name": "renderParts",
+    "kind": "function",
+    "start": 1485,
+    "end": 1494,
+    "sha": "2dfe0e2d16"
+   },
+   {
+    "name": "renderParts.opt",
+    "kind": "nested",
+    "start": 1491,
+    "parent": "renderParts",
+    "end": 1494,
+    "sha": "753b2a3c7c"
+   },
+   {
+    "name": "renderAll",
+    "kind": "function",
+    "start": 1495,
+    "end": 1506,
+    "sha": "f078e4f8f5"
+   },
+   {
+    "name": "wEl",
+    "kind": "const",
+    "start": 1507,
+    "end": 1511,
+    "sha": "ca9d7dd8de"
+   },
+   {
+    "name": "dIn",
+    "kind": "const",
+    "start": 1512,
+    "end": 1513,
+    "sha": "d5d1ca7dc9"
+   },
+   {
+    "name": "isoOf",
+    "kind": "const",
+    "start": 1514,
+    "end": 1514,
+    "sha": "130d29c004"
+   },
+   {
+    "name": "setMd",
+    "kind": "function",
+    "start": 1515,
+    "end": 1515,
+    "sha": "0bd949c89e"
+   },
+   {
+    "name": "fromBox",
+    "kind": "const",
+    "start": 1516,
+    "end": 1518,
+    "sha": "949291d88a"
+   },
+   {
+    "name": "setTab",
+    "kind": "function",
+    "start": 1519,
+    "end": 1541,
+    "sha": "3239690443"
+   },
+   {
+    "name": "setStick",
+    "kind": "const",
+    "start": 1542,
+    "end": 1546,
+    "sha": "6d20933728"
+   }
+  ]
+ }
+}
