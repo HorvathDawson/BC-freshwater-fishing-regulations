@@ -80,7 +80,7 @@ export type RegsTarget = { kind: "part"; item: string; partIx: number } | { kind
 export type Tab = "keep" | "gear" | "methods" | "licence";
 
 export interface RegsPage {
-  readonly version: "regs-v33";             // (T00) target 04765ab5
+  readonly version: "regs-v38";             // (T00) target 7fb6809f = golden meta.ref (IMPLEMENT-HANDOFF §8 C1)
   readonly target: RegsTarget;
   readonly day: Day; readonly weekday: Weekday; readonly today: boolean; readonly who: Who;
   readonly status: "open" | "closed" | "tidal" | "outside" | "unknown";  // header dot + strip word; NEVER from the status index
