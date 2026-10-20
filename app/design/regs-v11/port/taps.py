@@ -19,6 +19,8 @@ from pipeline.deliver.answers import encode as E           # noqa: E402
 from pipeline.deliver.calendar import day_of               # noqa: E402
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+_D0 = datetime.date(2026, 1, 1)
+WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timedelta(i)).day)): WEEKDAYS[(_D0 + datetime.timedelta(i)).weekday()] for i in range(365)}
 
 
 def main():
@@ -57,11 +59,16 @@ def main():
             moms = [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         si = E.segment_index(starts, day_of((month, day)), moms, weekday, False)
         cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
-        # the display frame of every day of the leap calendar (weekday-split days: the first moment of the day, as page v36's
-        # strip does through segOf)
+        # the display frame of every day of the leap calendar, each at ITS OWN weekday in 2026 (page v36 segOf(w, md) =
+        # segAt(w, md, weekdayOf(md), false), the snapshot's runsOf); day 60 (Feb 29, absent in 2026) at its first moment
         days = []
         for d in range(1, 367):
-            sd = E.segment_index(starts, d, None, None, False) if moms is None else _first_moment(starts, d)
+            if moms is None:
+                sd = E.segment_index(starts, d, None, None, False)
+            elif d == 60:
+                sd = _first_moment(starts, d)
+            else:
+                sd = E.segment_index(starts, d, moms, WD_OF_DAY[d], False)
             days.append(c.execute("select display from cell where akey=? and s=?", (akey, sd)).fetchone()[0])
         return {"item_ord": o, "akey": akey, "seg": seg, "mom": mom, "nseg": nseg, "starts": starts, "moments": moms,
                 "s": si, "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell)), "displayByDay": days}
