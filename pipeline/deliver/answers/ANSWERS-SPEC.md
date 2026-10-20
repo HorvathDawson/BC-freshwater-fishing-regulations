@@ -104,10 +104,11 @@ A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hat
    own tier carries its `relation` ("Not part of the 2 from streams; part of the 4 a day across Region 2") — the Vedder's share
    is "Only 2 of the 4 may be from streams", which the page folds under the head's "2 a day per angler from streams". With no
    relation (no region total, no kinds left in the share) the share still names the lifted fish.
-1. **The worked keep-the-share line** (`card.py`): "If you keep 2 rainbow trout here: they count as your 2 from streams anywhere
-   else today — up to 3 more of any kind, from here or from lakes." (was "none from other streams today — …", read against the
+1. **The worked keep-the-share line** (`card.py`): "If you keep 2 rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes." (was "none from other streams today — …", read against the
    own tier's "Not part of the 2 from streams": the lift holds only on its own waters; on other streams the region's 2 counts
-   them). Both keep-N lines say "here".
+   them). Both keep-N lines say "here". The owner's suggested "they count as your 2 from streams anywhere else today — …" read
+   right but at lower confidence in a fresh-reader test (scratchpad ur7/exp: 17/20 vs 19/20; it still read against "Not part of
+   the 2"); these words say both halves in the relation's own terms.
 2. **A kind directly under the stream share says it is part of it** (`tree._kind_says(share_of=)`): "Up to 2 hatchery rainbow
    trout (part of the 2 from streams)" (the Chilliwack part 2's default hatchery rainbow, after the size section closes);
    "Only 1 of the 2 from streams may be …"; a hatchery-only steelhead "Up to 2 hatchery steelhead only (part of the 2 from

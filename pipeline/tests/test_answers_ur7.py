@@ -4,8 +4,7 @@
      water's own rule lifts out of it (", not counting hatchery rainbow trout") are said ONCE, by that own tier's `relation`
      ("Not part of the 2 from streams; part of the 4 a day across Region 2"); with no relation the share still says them
   1  the worked keep-the-share line reads with the own tier's "Not part of the 2 from streams" (the lift holds only on its own
-     waters; on other streams the region's 2 counts them): "If you keep 2 hatchery rainbow trout here: they count as your 2
-     from streams anywhere else today — up to 2 more of any kind, from here or from lakes."
+     waters; on other streams the region's 2 counts them): "If you keep 2 hatchery rainbow trout here: they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
   2  a kind row directly under the stream share, with no own rule, says it is part of the share: "Up to 2 hatchery rainbow
      trout (part of the 2 from streams)" (the Chilliwack part 2's rainbow row, after the size section closes); "Only 1 of the
      2 from streams may be …"
@@ -52,15 +51,17 @@ def test_A_two_lifts_said_once_by_the_own_tier():
 def test_1_the_worked_share_line_says_the_fish_count_as_the_2_elsewhere():
     w = {x["kept"]: x for x in _g(F.VEDDER)["worked"] if x["at"] == "here" and x["share"]}
     assert w[2]["q"] == "If you keep 2 hatchery rainbow trout here"
-    assert w[2]["a"] == ("they count as your 2 from streams anywhere else today — up to 2 more of any kind, "
+    assert w[2]["a"] == ("they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, "
                          "from here or from lakes.")
     assert w[4]["q"] == "If you keep 4 hatchery rainbow trout here"
     assert w[4]["a"] == "that’s your trout and char for the day, everywhere."
 
 
-def test_1_no_worked_line_says_none_from_other_streams():
+def test_1_every_keep_the_share_line_says_both_halves():
     for water in (F.VEDDER, F.TWO, F.VEDDER_TRIB):
-        assert not [x for x in _g(water)["worked"] if "none from other" in x["a"]]
+        lines = [x["a"] for x in _g(water)["worked"] if x["at"] == "here" and x["share"] and "none from other" in x["a"]]
+        assert lines and all(a.startswith("they don’t use up your 2 from streams here, but on other streams they count as them: ")
+                             for a in lines)
 
 
 # 2 ---------------------------------------------------------------------------------------------

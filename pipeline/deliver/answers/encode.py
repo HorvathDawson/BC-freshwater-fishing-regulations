@@ -433,8 +433,9 @@ SPEC = {
                     "Version 29 (ROUND UR7, owner): the share says no lifted fish where every lifting rule's own tier says its "
                     "`relation` (\"Only 2 of the 4 may be from streams\"); a kind directly under the share says it is part of it "
                     "(\"Up to 2 hatchery rainbow trout (part of the 2 from streams)\", \"Only 1 of the 2 from streams may be …\"); "
-                    "the worked keep-the-share line \"If you keep 2 hatchery rainbow trout here\" / \"they count as your 2 from "
-                    "streams anywhere else today — up to 2 more of any kind, from here or from lakes.\"",
+                    "the worked keep-the-share line \"If you keep 2 hatchery rainbow trout here\" / \"they don’t use up your 2 from "
+                    "streams here, but on other streams they count as them: none from other streams today — up to 2 more of any "
+                    "kind, from here or from lakes.\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

@@ -51,7 +51,7 @@ def test_the_worked_line_says_any_kind_here():
     out, _P = F.card(F.VEDDER, OCT10)
     w = {x["q"]: x["a"] for x in F.trout_group(out)["worked"]}
     assert w["If you keep 2 hatchery rainbow trout here"] == \
-        "they count as your 2 from streams anywhere else today — up to 2 more of any kind, from here or from lakes."
+        "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
 
 
 # 3 -----------------------------------------------------------------------------------------------------------------

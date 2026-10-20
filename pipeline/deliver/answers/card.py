@@ -909,11 +909,15 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                 # ROUND20i 2 (UR4 Rob: rainbows kept here read as blocking a cutthroat here): what is still allowed HERE
                 # ROUND UR7 1 (owner: "none from other streams today" read against the own tier's "Not part of the 2 from
                 # streams" — both true: the lift holds only on its own waters, on other streams the region's 2 counts them)
-                a = (f"they count as your {_js(share['take'])} from {share['water']}s anywhere else today — up to "
-                     f"{_js(left)} more of any kind, from here or from {other_kind}s.")
+                # (a single-frame reader test, scratchpad ur7/exp: the owner's "they count as your 2 from streams anywhere else
+                # today" read 17/20 in confidence, these words — both halves in the relation's own terms — 19/20, all right)
+                a = (f"they don’t use up your {_js(share['take'])} from {share['water']}s here, but on other {share['water']}s "
+                     f"they count as them: none from other {share['water']}s today — up to {_js(left)} more of any kind, "
+                     f"from here or from {other_kind}s.")
             elif k == share["take"]:
-                a = (f"they count as your {_js(share['take'])} from {share['water']}s anywhere else today — up to "
-                     f"{_js(left)} more from here or from {other_kind}s.")
+                a = (f"they don’t use up your {_js(share['take'])} from {share['water']}s here, but on other {share['water']}s "
+                     f"they count as them: none from other {share['water']}s today — up to {_js(left)} more "
+                     f"from here or from {other_kind}s.")
             elif left == 1:
                 a = f"1 more fish of any kind, from here or from a {other_kind}."
             else:
