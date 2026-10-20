@@ -14,6 +14,7 @@ const keep = f => fs.existsSync(path.join(OUT, f)) && fs.copyFileSync(path.join(
 ['golden.json', 'tokens.json', 'inventory.json'].forEach(keep);
 const run = (cmd, a) => execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'] });
 run('node', [path.join(HERE, 'golden.mjs'), '--ref', A.ref]);
+run('node', [path.join(HERE, 'pinreplay.mjs')]);
 run('node', [path.join(HERE, 'tokens.mjs'), '--ref', A.ref]);
 if (fs.existsSync(path.join(TMP, 'inventory.json'))) run('node', [path.join(HERE, 'inventory.mjs'), '--ref', A.ref, '--diff', path.join(TMP, 'inventory.json')]);
 run('node', [path.join(HERE, 'inventory.mjs'), '--ref', A.ref]);
