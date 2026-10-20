@@ -54,6 +54,11 @@
 //   the data's words), no dropdown or fold, all six pairs show their own answer; r20e-region-vs-stream: a row's streams tag
 //   heads the share, not the region's total; the pin bar says the same; r20e-ways-columns: Ways to fish in Bait's two columns
 //   (✓ Allowed | ✕ Not allowed). r20b-three-tabs retired (r20e-four-tabs)
+//   (round 20i, owner: the UR4 user panel's page-side fixes; ONLY=20i) r20i-size-rule-chip (the chip carries `size_rule`),
+//   r20i-other-size-hint ("· size limit" on an Other-fish row whose kinds carry a size rule), r20i-duty-line (a full-weight ink
+//   line, the water's name for "this river", the stamp link on the steelhead row), r20i-licence-stamps (no steelhead stamp where
+//   steelhead are closed, "(not kokanee)" kept, the Only-if items under their own head), r20i-closed-span ("Closed Jun 1–30"),
+//   r20i-all-year-ban (the year-round ban's line), r20i-glare (--sub ≥ 6.5:1 on the card, "release" bold), r20i-scroll-margins
 //   (round 20h, owner: the region total vs the stream share, one surface, pictures without a tile, the pin line's end; ONLY=20h)
 //   + the round-20h data on the page: r20h-roe-names-ban (a bait allowance names the ban it is excepted from, the banned row
 //   drops "is still OK", the dated line carries nothing of it); r20h-possession-own-example (the possession sheet shows the
@@ -154,6 +159,7 @@ if (process.env.ONLY === '20') { await round20(); const f = results.filter(x => 
 if (process.env.ONLY === '20b') { await round20b(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20e') { await round20e(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20c') { await round20c(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
+if (process.env.ONLY === '20i') { await round20i(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20h') { await round20h(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20g') { await round20g(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
 if (process.env.ONLY === '20f') { await round20f(); const f = results.filter(x => !x[1]).length; console.log(`${results.length - f} passed, ${f} failed`); process.exit(f ? 1 : 0); }
@@ -631,8 +637,8 @@ async function round20e(){
   // fly-only day the change back sits on the fly-only line; the bait ban on Bait), in the data's words; no floating
   // "Different on other days" label; every note inside its row, the last thing in it, touching the content above it
   const DN = [], DNS = [['w=vedder&d=1010', [['hook', 'May 1–31: fly fishing only']], [['bait', 'May 1–31: bait ban']]],
-    ['w=vedder&d=515', [['mode', 'Jun 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []],
-    ['w=cowichan&d=1010&p=1', [['mode', 'Nov 16–Aug 31: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []]];
+    ['w=vedder&d=515', [['mode', 'Jul 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []],
+    ['w=cowichan&d=1010&p=1', [['mode', 'Nov 16–Jul 3: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)']], []]];   // gear 12: a change's span skips the closed days
   for (const [hash, lines, cells] of DNS) await page(hash + '&sec=gear', async b => {
     DN.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} ${txt} const bad = [], R = e => e.getBoundingClientRect(), st = ST();
       const g = document.getElementById('gear') || document.getElementById('sc');
@@ -774,6 +780,69 @@ async function round20e(){
 }
 
 // ---------- round 20c (owner: a format audit; context in every screenful) ----------
+// ---------- round 20i (owner: the UR4 user panel's page-side fixes) ----------
+async function round20i(){
+  const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
+  // (1) the size chip says what happens outside the range where the data gives `size_rule`; (2) an Other-fish row whose kinds
+  // carry a size rule says "· size limit" on the row; (4) the duty line is a full-weight ink line, "this river" is the water's
+  // name, a steelhead row links the stamp when the licence names it; (O3) no steelhead-stamp line where steelhead are closed;
+  // (kokanee) the salmon stamp's words keep "(not kokanee)"; (5) "Closed Jun 1–30"; (6) the all-year bait ban has its line;
+  // (7) the "Only if…" stamps under their own head; (8) --sub one step stronger, "release" bold; (3) scroll margins under the stack
+  const UI = [];
+  const STATES_I = [['w=vedder&d=1010', 'vedder'], ['w=x35p&d=1010', 'bennett'], ['w=bellacoola&d=501&p=1&sec=licence', 'bella-lic'], ['w=klwa&d=1012&sec=licence', 'lwa-lic'], ['w=vedder&d=515', 'vedder-may15'], ['w=glenn&d=615&sec=gear', 'glenn-gear'], ['w=vedder&d=1010&sec=licence', 'vedder-lic'], ['w=vedder&d=1010&theme=dark', 'vedder-dark']];
+  for (const [hash, tag] of STATES_I) await page(hash, async b => {
+    UI.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const st = ST(), bad = [], cs = e => getComputedStyle(e), R = e => e.getBoundingClientRect(), out = {tag: ${JSON.stringify(tag)}};
+      const kinds = []; (st.rows || []).forEach(r => { const walk = n => { if (n.node === 'kind') kinds.push(n); (n.children || []).forEach(walk); }; if (r.group?.tree) [].concat(r.group.tree).forEach(walk); });
+      // 1 the chip
+      document.querySelectorAll('#keep .krow.kt').forEach(row => { const k = kinds.find(x => x.name === row.dataset.kind && x.species.join(' ') === row.dataset.sp); if (!k) return; const chip = row.querySelector('.szc');
+        if (k.size_rule) { out.rules = (out.rules || 0) + 1; if (!chip || norm(chip.textContent) !== norm(k.size_rule)) bad.push('CHIP ' + k.name + ': ' + JSON.stringify(norm(chip?.textContent)) + ' vs ' + k.size_rule); }
+        else if (chip && /release/.test(chip.textContent)) bad.push('CHIP a consequence from nowhere on ' + k.name); });
+      // 2 the other-fish hint
+      document.querySelectorAll('#keep .olist .orow').forEach(r => { const nm = norm(r.querySelector('.on')?.firstChild?.textContent).toLowerCase(), g = (st.rows || []).map(x => x.group).find(gg => gg && gg.tree && kinds.some(k => JSON.stringify(gg.tree).includes(JSON.stringify(k.name)) && k.name.toLowerCase().includes(nm.split(' ').pop()))); if (!g) return;   /* the collapsed list keeps no article: map by the fish's name */
+        const has = /"size_rule":"[^"]|"detail":"[^"]*\\d+ cm/.test(JSON.stringify(g.tree || g.kinds || [])), hint = r.querySelector('[data-size-hint]'); if (has) out.hints = (out.hints || 0) + 1;
+        if (has && !hint) bad.push('HINT no size hint on ' + norm(r.querySelector('.on')?.textContent)); if (!has && hint) bad.push('HINT a hint from nowhere on ' + norm(r.querySelector('.on')?.textContent)); if (hint && norm(hint.textContent) !== '· size limit') bad.push('HINT words ' + norm(hint.textContent)); });
+      // 4 the duty line
+      document.querySelectorAll('#keep .krow.kt').forEach(row => { const k = kinds.find(x => x.name === row.dataset.kind && x.species.join(' ') === row.dataset.sp), d = row.querySelector('.duty'); if (!k || !k.duties?.length) { if (d) bad.push('DUTY a duty line from nowhere'); return; } out.duties = (out.duties || 0) + 1;
+        if (!d) { bad.push('DUTY no line on ' + k.name); return; } const c = cs(d), ink = cs(document.querySelector('#keep .ks') || document.body).color;
+        if (parseFloat(c.fontSize) < parseFloat(cs(row.querySelector('.kmeta .kq') || d).fontSize) + 1 || parseInt(c.fontWeight) < 700 || c.color !== ink) bad.push('DUTY not a full-weight ink line: ' + c.fontSize + ' ' + c.fontWeight + ' ' + c.color);
+        const txt = norm(d.textContent); if (/\\bthis (river|stream|lake|creek)\\b/i.test(txt)) bad.push('DUTY still says "this river": ' + txt); if (k.duties.some(x => /this (river|stream|lake|creek)/.test(x)) && !txt.includes('the ' + st.name)) bad.push('DUTY the water’s name missing: ' + txt);
+        const stamp = d.querySelector('[data-stamp]'), named = /Steelhead Conservation Surcharge Stamp/.test(JSON.stringify(st.licence || '')); if (k.species.includes('ST') && named && !(stamp && stamp.dataset.sec === 'licence' && norm(stamp.textContent) === 'Steelhead stamp ›')) bad.push('DUTY no stamp link on the steelhead row'); if (stamp && !k.species.includes('ST')) bad.push('DUTY a stamp link off the steelhead row'); });
+      // O3 + kokanee (licence tab)
+      const lic = document.getElementById('licence'); if (lic) { const closedST = (st.rows || []).some(r => (r.group?.not_kept || []).some(x => x.status === 'closed' && (x.species || []).includes('ST')));
+        const stampLi = [...lic.querySelectorAll('.needs li')].find(li => /Steelhead Conservation Surcharge Stamp/.test(li.textContent)); out.closedST = closedST; out.stampLi = !!stampLi;
+        if (closedST && stampLi) bad.push('LIC the steelhead stamp listed where steelhead are closed'); if (!closedST && /Steelhead Conservation Surcharge Stamp/.test(JSON.stringify(st.licence || '')) && !stampLi) bad.push('LIC the steelhead stamp missing');
+        const salmon = [...lic.querySelectorAll('.needs li')].find(li => /salmon/i.test(li.textContent)); if (salmon && /not kokanee/.test(JSON.stringify(st.licence || '')) && !/\\(not kokanee\\)/.test(salmon.textContent)) bad.push('LIC the salmon stamp lost "(not kokanee)": ' + norm(salmon.textContent));
+        // 7 the Only-if head
+        const only = [...lic.querySelectorAll('.needs li')].filter(li => /^Only if\\b/i.test(norm(li.querySelector(':scope > span')?.textContent))), head = lic.querySelector('[data-only-if-head]'); out.only = only.length;
+        if (only.length && only.length < lic.querySelectorAll('.needs li').length) { if (!head) bad.push('LIC no "Only if" head'); only.forEach(li => { if (!li.closest('ul[data-only-if]')) bad.push('LIC an Only-if item in the everyone list: ' + norm(li.querySelector('b')?.textContent)); if (head && !(head.compareDocumentPosition(li) & Node.DOCUMENT_POSITION_FOLLOWING)) bad.push('LIC an Only-if item above its head'); });
+          [...lic.querySelectorAll('.needs > ul:not([data-only-if]) li')].forEach(li => { if (/^Only if\\b/i.test(norm(li.querySelector(':scope > span')?.textContent))) bad.push('LIC Only-if left in the first list'); }); } }
+      // 5 the closed span
+      const soon = document.querySelector('#keep .wstrip .wsoon'); if (soon) { out.soon = norm(soon.textContent); if (/^Closed from\\b/.test(out.soon)) bad.push('CLOSED no span: ' + out.soon); if (/^Closed /.test(out.soon) && !/^Closed [A-Z][a-z]{2} \\d+–(?:[A-Z][a-z]{2} )?\\d+$/.test(out.soon)) bad.push('CLOSED odd span: ' + out.soon); }
+      // 6 the all-year line
+      const bait = document.querySelector('#gear [data-k="bait"]'); if (bait) { const allYear = (st.runs || []).length && st.runs.every(([f]) => f != null && (f & 16)); out.allYear = !!allYear; const line = bait.querySelector('[data-all-year]');
+        if (allYear && !line) bad.push('BAIT no All-year line'); if (line) { if (!/^All year:/.test(norm(line.querySelector('span')?.textContent))) bad.push('BAIT the line reads ' + norm(line.textContent)); if (!line.classList.contains('now')) bad.push('BAIT the all-year ban not marked in force'); const banned = norm(bait.querySelector('.yn li.no small, .yn li.no b')?.textContent); if (!/bait ban/i.test(norm(line.textContent))) bad.push('BAIT the line does not say the rows’ ban: ' + norm(line.textContent)); } }   /* the note with its ⓘ stays above the line */
+      // 8 contrast: --sub against the card, the release word bold
+      const probe = (n, prop) => { const e = document.createElement('i'); e.style[prop] = 'var(--' + n + ')'; document.body.appendChild(e); const c = cs(e)[prop]; e.remove(); return c; };
+      const rgb = c => c.match(/\\d+/g).map(Number), lum = ([r, g, b]) => { const f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+      const ratio = (a, b) => { const la = lum(rgb(a)), lb = lum(rgb(b)); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); };
+      out.subRatio = +ratio(probe('sub', 'color'), probe('card', 'backgroundColor')).toFixed(2); if (out.subRatio < 6.5) bad.push('SUB contrast ' + out.subRatio);
+      const rel = document.querySelector('#keep .k-release'); if (rel && parseInt(cs(rel).fontWeight) < 700) bad.push('RELEASE not bold: ' + cs(rel).fontWeight);
+      // 3 scroll margins: the stack's height is a variable on the scroller and the heads carry it
+      const sc = document.getElementById('sc'); out.scrollPad = cs(sc).scrollPaddingTop; if (!/^\\d/.test(out.scrollPad) || parseFloat(out.scrollPad) < (document.getElementById('hdr')?.offsetHeight || 0)) bad.push('SCROLL no scroll-padding under the header: ' + out.scrollPad);
+      const tier = document.querySelector('#keep .tier'); if (tier && parseFloat(cs(tier).scrollMarginTop) < (document.getElementById('hdr')?.offsetHeight || 0)) bad.push('SCROLL a head without its scroll margin: ' + cs(tier).scrollMarginTop);
+      out.bad = bad; return out; })())`)));
+  });
+  const pick = (re, pred) => { const bad = UI.flatMap(x => x.bad.filter(y => re.test(y)).map(y => x.tag + ': ' + y)); return [pred(UI) && !bad.length, bad.slice(0, 6).join('; ')]; };
+  const say = (name, [ok, why], extra = '') => check(name, ok, (why || '') + (extra ? ' · ' + extra : ''));
+  say('r20i-size-rule-chip', pick(/^CHIP /, u => u.reduce((a, x) => a + (x.rules || 0), 0) >= 3), 'rules ' + UI.map(x => x.rules || 0).join(','));
+  say('r20i-other-size-hint', pick(/^HINT /, u => u.reduce((a, x) => a + (x.hints || 0), 0) >= 1), 'hints ' + UI.map(x => x.hints || 0).join(','));
+  say('r20i-duty-line', pick(/^DUTY /, u => u.reduce((a, x) => a + (x.duties || 0), 0) >= 1));
+  say('r20i-licence-stamps', pick(/^LIC /, u => u.some(x => x.closedST) && u.some(x => x.only)), JSON.stringify(UI.filter(x => /lic/.test(x.tag)).map(x => [x.tag, x.closedST, x.stampLi, x.only])));
+  say('r20i-closed-span', pick(/^CLOSED /, u => u.some(x => /^Closed /.test(x.soon || ''))), JSON.stringify(UI.map(x => x.soon).filter(Boolean)));
+  say('r20i-all-year-ban', pick(/^BAIT /, u => u.some(x => x.allYear)));
+  say('r20i-glare', pick(/^SUB |^RELEASE /, u => u.length === STATES_I.length), 'sub ' + JSON.stringify(UI.map(x => x.subRatio)));
+  say('r20i-scroll-margins', pick(/^SCROLL /, u => u.length === STATES_I.length), JSON.stringify(UI.map(x => x.scrollPad)));
+}
 // ---------- round 20h (owner: the region total vs the stream share; one surface; pictures without a tile; the pin line's end) ----------
 async function round20h(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
@@ -784,7 +853,7 @@ async function round20h(){
     SF.push(JSON.parse(await b.evaluate(`JSON.stringify((() => { ${norm} const bad = [], cs = e => getComputedStyle(e), R = e => e.getBoundingClientRect();
       const probe = (n, prop) => { const e = document.createElement('i'); e.style[prop] = 'var(--' + n + ')'; document.body.appendChild(e); const c = cs(e)[prop]; e.remove(); return c; };
       const card = probe('card', 'backgroundColor'), clear = c => /rgba\\(0, 0, 0, 0\\)|transparent/.test(c); let bands = 0, pics = 0;
-      document.querySelectorAll('#keep article.row.ledger *, #pins .pinbar').forEach(e => { const c = cs(e).backgroundColor, r = R(e); if (clear(c) || r.width < 200 || r.height < 40) return; bands++;
+      document.querySelectorAll('#keep article.row.ledger *, #pins .pinbar').forEach(e => { const c = cs(e).backgroundColor, r = R(e); if (clear(c) || r.width < 200 || r.height < 40 || e.matches('.szc, .chgi')) return; bands++;   /* a chip may wrap to two lines (a long size rule) and is still a chip */
         if (c !== card) bad.push('SURFACE ' + (e.className || e.tagName) + ' ' + Math.round(r.width) + '×' + Math.round(r.height) + ' paints ' + c); });
       document.querySelectorAll('#keep .kp img, #keep .th img').forEach(im => { pics++; if (!clear(cs(im).backgroundColor)) bad.push('PIC a tile under ' + (im.closest('button')?.getAttribute('aria-label') || 'a picture') + ': ' + cs(im).backgroundColor);
         const p = im.parentElement; if (p && !p.matches('button, .kp, .th') && !clear(cs(p).backgroundColor)) bad.push('PIC a tile around a picture: ' + p.className); });
@@ -934,7 +1003,7 @@ async function round20f(){
       const line = norm([...document.querySelectorAll('#keep section.tnode[data-tnode="share"] > .tier .tl')].map(e => { const c = e.cloneNode(true); c.querySelectorAll('.tbk, .gl').forEach(x => x.remove()); return c.textContent; }).join(' | '));
       const row = document.querySelector('#keep .krow.kt[data-sp~="DV"]'); sc.scrollTop = sc.scrollTop + R(row).top - R(sc).top - sc.clientHeight * 0.6; await new Promise(r => setTimeout(r, 400));
       return JSON.stringify({line, pin: [...document.querySelectorAll('#pins .pl')].map(e => norm(e.textContent))}); })()`)); } finally { await b.close(); } })();
-  check('r20f-region-words', /^Only 2 of the 4 may be from streams/.test(RW.line) && !/this stream/.test(RW.line) && RW.pin.some(t => t === '↳ 2 of them from streams' || /^Trout and char · 2 a day from streams \(of 4 across Region 2\)$/.test(t)), JSON.stringify(RW));   // round 20h form a
+  check('r20f-region-words', /^Only 2 of the 4 may be from streams/.test(RW.line) && !/this stream/.test(RW.line) && RW.pin.some(t => t === '↳ 2 of them from streams' || /^Trout and char · 2 a day from streams ?\(of 4 across Region 2\)$/.test(t)), JSON.stringify(RW));   // round 20h form a (the bracket on its own line)
 }
 async function round20c(){
   const norm = 'var norm = t => (t || "").replace(/\\s+/g, " ").trim();';
@@ -956,7 +1025,7 @@ async function round20c(){
           if (Math.abs(R(bar()).top - top) > 1.5) bad.push('bar at ' + Math.round(R(bar()).top - top) + 'px under the header');
           if (!norm(L[0].textContent).startsWith(name + ' · ') || !new RegExp('(^|[^0-9])' + root.n + '([^0-9]|$)').test(norm(L[0].textContent))) bad.push('group line ' + JSON.stringify(norm(L[0].textContent)));
           L.slice(1).forEach(l => { if (!/^↳ /.test(norm(l.textContent))) bad.push('a deeper line without ↳: ' + norm(l.textContent)); });
-          L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * (l.classList.contains('two') ? 2.6 : 1.6)) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
+          L.forEach(l => { const lh = parseFloat(getComputedStyle(l).lineHeight); if (R(l).height > lh * 2.6) bad.push('a pinned line of ' + Math.round(R(l).height / lh) + ' lines: ' + norm(l.textContent).slice(0, 40)); if (l.scrollWidth > l.clientWidth + 1) bad.push('a pinned line cut: ' + norm(l.textContent).slice(0, 40)); });
           if (R(bar()).height > 90) bad.push('stack ' + Math.round(R(bar()).height) + 'px');
           // every section containing the pin line whose header has slid under the bar has a line, in order; no other line
           const nextIn = tn => { const nx = (tn.nextElementSibling || tn.parentElement?.closest('section.tnode')?.nextElementSibling)?.querySelector(':scope > .tier, :scope > .ghd'); return nx ? R(nx).top < R(sc).bottom - 26 : false; };   /* round 20h: a line ends once the next head is in view */
@@ -1650,6 +1719,7 @@ await round20e();
 await round20f();
 await round20g();
 await round20h();
+await round20i();
 
 const failed = results.filter(x => !x[1]).length;
 console.log(`${results.length - failed} passed, ${failed} failed — ${path.relative(process.cwd(), PAGE)}`);
@@ -1769,7 +1839,7 @@ async function round18(){
         const kn = norm(el.querySelector('.ks .kn')?.textContent); if (k.n ? kn !== String(k.n) : kn) bad.push(k.says + ': number ' + kn); }
         const chip = el.querySelector('[data-size]'), ct = norm(chip?.textContent), nums = [...new Set([...k.sizes.cm.flat(), ...k.sizes.in.flat()].filter(x => x))];
         if (k.n !== 0) { if (!chip) bad.push(k.says + ': no size chip');
-          else { if (!norm(k.detail).includes(ct)) bad.push(k.says + ': chip not the detail\\'s words: ' + ct);
+          else { if (!norm(k.detail).includes(ct) && norm(k.size_rule || '') !== ct) bad.push(k.says + ': chip not the detail\\'s words: ' + ct);   /* rows 26: the chip may be the kind's size_rule */
             const cmN = k.sizes.cm.flat().filter(x => x), inN = k.sizes.in.flat().filter(x => x);
             // round 19 (owner 2): "50 cm (20 in)" — every cm before its "cm", every inch inside the brackets
             const inT = (ct.match(/\\(([^)]*)\\)/g) || []).join(' ');
@@ -1975,14 +2045,14 @@ async function roundUr2(){
   check('ur2-headline-per-angler', !hb.length, hb.join('; '));
   // round 20b (C4): the keep-N lines are the two ends of the range
   const W = K.vedder.worked, want = [/^If you keep 4 hatchery rainbow trout: that’s your trout and char for the day, everywhere\.$/,
-    /^If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more from here or from lakes\.$/];
+    /^If you keep 2 hatchery rainbow trout: none from other streams today — up to 2 more of any kind, from here or from lakes\.$/];   // rows 26
   check('ur2-worked-plain', W.length === 2 && W.every((t, i) => want[i].test(t)), JSON.stringify(W));
   const kb = [];
   if (!/^Only 1 of the 2 may be hatchery Dolly Varden\/bull trout or lake trout/.test(K.vedder.dv)) kb.push('Vedder DV ' + JSON.stringify(K.vedder.dv));
   if (!/^Only 1 of the \d+ may be Dolly Varden\/bull trout/.test(K.klwa.dv)) kb.push('LWA DV ' + JSON.stringify(K.klwa.dv));
   if (!/^Up to 2 may be hatchery steelhead only — wild steelhead go back$/.test(K.vedder.st)) kb.push('Vedder ST ' + JSON.stringify(K.vedder.st));
   if (!K.vedder.pres.some(t => /^A rainbow trout over 50 cm \(20 in\) here counts as a steelhead\./.test(t))) kb.push('presence ' + JSON.stringify(K.vedder.pres));   // rows 24: the shorter presence words
-  if (!K.vedder.duty.some(t => /Stop fishing here after 2 a day/.test(t)) || K.vedder.duty.some(t => /for the day after/.test(t))) kb.push('duty ' + JSON.stringify(K.vedder.duty));   // rows 24: stop fishing here after 2 a day
+  if (!K.vedder.duty.some(t => /Stop fishing the Vedder River after 2 a day/.test(t)) || K.vedder.duty.some(t => /for the day after|this river/.test(t))) kb.push('duty ' + JSON.stringify(K.vedder.duty));   // rows 26 + round 20i: the water's name for "this river"
   check('ur2-kind-words', !kb.length, kb.join('; '));
   check('ur2-closed-until', K.shut.foot === 'No fishing here until Jul 1.' && !/licence/i.test(K.shut.gear.replace(/^Gear & licence · for this water (today|on \w+ \d+)/, '')), JSON.stringify(K.shut.foot) + ' / ' + JSON.stringify(K.shut.gear.slice(0, 120)));
   const roe = K.gear.ok.find(t => /^Roe/.test(t)) || '';

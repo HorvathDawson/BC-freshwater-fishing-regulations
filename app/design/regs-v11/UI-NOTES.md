@@ -1,3 +1,43 @@
+# regs v33 (round 20i, owner: the UR4 user panel's page-side fixes) — in place on regs-v11.html
+
+Report: handoff/PLAN/r20i_report.md. Data: rows 26, gear 12, glossary 5 (commit 9fc6d7b1; handoff/PLAN/r20i_data.md; re-snapped,
+oracle regenerated). The UR4 write-up: ~/.claude/projects/…/handoff/PLAN/USER-ROUNDS.md "Round UR4"; its frames re-shot on the
+result under scratchpad r20i/frames-after (tools/frames.mjs now also shoots the UR4 states).
+- **1 The size chip says what happens outside the range** (rows 26 `size_rule`): "keep 30–50 cm (12–20 in); release the rest" /
+  "… release smaller ones" on the chip (`data-size-rule`), where the data gives it; any-size, none-kept and steelhead rows keep
+  their old chip.
+- **2 Other-fish rows carry their size rule on the row**: "Arctic grayling 4 a day · size limit ›" (`.osz`, page-side words "size
+  limit") when the row's kinds carry a `size_rule` or a size detail — a reader nearly kept a 40 cm grayling from "4 a day" alone.
+  The hint sits in `.okeep` with the count, so both share one baseline (as its own flex item it floated above the count).
+- **3 The pinned stack and the frames**: `pinUpdate()` sets `--pin-h` (the stack's height) on the scroller; `#sc` has
+  `scroll-padding-top` and the heads, rows, the worked block and the Other fish list `scroll-margin-top` of header + stack, so an
+  anchored scroll lands under the stack. `tools/frames.mjs` steps so a frame never starts with a line under the stack (back by
+  its height) and never ends on a heading whose rule is off screen (the heading opens the next frame) — the frames a reader sees
+  are what the UR4 personas complained about (a line half under the bar, a bull-trout heading cut at the edge).
+- **4 The steelhead duty line in full weight**: `.duty` is an ink line at --t3 / head weight ("10 a year · Stop fishing the
+  Vedder River after 2 a day · Record each on your licence right away"); the data's "this river" / "this stream" / "this lake"
+  becomes the water's own name (the card's `st.name`; a page-side swap of a noun for the name, listed here); where the licence
+  names the Steelhead Conservation Surcharge Stamp the steelhead row ends with "Steelhead stamp ›" (`data-stamp`, jumps to the
+  Licence tab).
+- **5 "Closed Jun 1–30"**: the strip's "Closed from Jun 1" chip (`.wsoon`) takes the whole closed run from `st.runs` (the page's
+  `span()`), so the reopening is in the chip.
+- **6 An all-year bait ban has its line**: where every run carries the ban bit and no dated line exists, the Bait item draws
+  "NOW All year: No natural bait of any kind while the ban runs." (`data-all-year`; "All year" page-side, the sentence the data's)
+  in place of the loose note.
+- **7 The Licence tab's "Only if…" items** sit under their own small head "Also, only if…" (page-side), after what everyone needs;
+  the salmon stamp's short line keeps the record's "(not kokanee)"; where the card's `not_kept` says steelhead are closed (Bella
+  Coola) the steelhead-stamp line is dropped from that water's list (owner O3; the licence frame is per licence, not per water).
+- **8 Glare**: `--sub` one step stronger — light #5F666C → #555C62 (5.83 → 6.79 : 1 on the card), dark #A3ABB2 → #B0B8BF
+  (7.66 → 8.87 : 1); the status word "release" is bold. The census keeps 6 / 5 / 5 / 4 colours.
+- **Data on the page** (rows 26 / gear 12): the worked line "… up to 2 more of any kind, from here or from lakes."; the May 15
+  change "Jul 1–Apr 30: …" (the closed June left out); hooks "a single barbless hook, no trebles"; fly-only "No float or strike
+  indicator, no sinker or split shot, no lure, spinner or other attracting device."; "Your own limit, counted across every
+  Region 2 stream you fish today."
+- **Checks** (ONLY=20i; all eight fail on regs v32 — scratchpad r20i/check-20i-before.txt): r20i-size-rule-chip,
+  r20i-other-size-hint, r20i-duty-line, r20i-licence-stamps, r20i-closed-span, r20i-all-year-ban, r20i-glare (--sub ≥ 6.5 : 1,
+  release bold), r20i-scroll-margins.
+- **Readers**: the UR4 low-confidence questions re-asked on the re-shot frames (fresh opus, PNGs only): see r20i_report.md.
+
 # regs v32 (round 20h, owner: the region total vs the stream share, one surface, pictures without a tile, the pin line's end) — in place on regs-v11.html
 
 Report: handoff/PLAN/r20h_report.md (the two head forms with their readers, before/after pairs, scores). UI only until the

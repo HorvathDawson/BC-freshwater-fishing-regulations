@@ -14,12 +14,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
 /* app tokens (app/packages/map/style/themes) */
-:root{--page:#EFEFEC;--card:#FFFFFF;--wash:#F7F7F5;--tint:#EEEFEB;--line:#E5E6E1;--line2:#D3D5CF;--ink:#15181C;--sub:#5F666C;--faint:#6E757B;
+:root{--page:#EFEFEC;--card:#FFFFFF;--wash:#F7F7F5;--tint:#EEEFEB;--line:#E5E6E1;--line2:#D3D5CF;--ink:#15181C;--sub:#555C62;--faint:#6E757B;
   --open:#1D7741;--restricted:#8f5c00;--closed:#940018;--accent:#5F26E0;--on-accent:#FFFFFF;--water:#4A90E2;--lake:#64B5F6;--land:#F8F8F2;
   --shadow:rgba(21,24,28,.9);--scrim:rgba(21,24,28,.28);color-scheme:light}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0A0B0D;--card:#15181B;--wash:#101215;--tint:#1E2227;--line:#252A2F;--line2:#343B42;--ink:#F0F2F0;--sub:#A3ABB2;--faint:#8A939A;
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0A0B0D;--card:#15181B;--wash:#101215;--tint:#1E2227;--line:#252A2F;--line2:#343B42;--ink:#F0F2F0;--sub:#B0B8BF;--faint:#8A939A;
   --open:#48b07a;--restricted:#e8a733;--closed:#FC4164;--accent:#A97CFF;--on-accent:#100A22;--water:#38B6DE;--lake:#205579;--land:#0A0B0D;--shadow:rgba(0,0,0,.85);--scrim:rgba(0,0,0,.4);color-scheme:dark}}
-:root[data-theme="dark"]{--page:#0A0B0D;--card:#15181B;--wash:#101215;--tint:#1E2227;--line:#252A2F;--line2:#343B42;--ink:#F0F2F0;--sub:#A3ABB2;--faint:#8A939A;
+:root[data-theme="dark"]{--page:#0A0B0D;--card:#15181B;--wash:#101215;--tint:#1E2227;--line:#252A2F;--line2:#343B42;--ink:#F0F2F0;--sub:#B0B8BF;--faint:#8A939A;
   --open:#48b07a;--restricted:#e8a733;--closed:#FC4164;--accent:#A97CFF;--on-accent:#100A22;--water:#38B6DE;--lake:#205579;--land:#0A0B0D;--shadow:rgba(0,0,0,.85);--scrim:rgba(0,0,0,.4);color-scheme:dark}
 /* FOUR type sizes only: --t1 26 (answer, numerals) · --t2 17 (section heads, lead) · --t3 15 (body) · --t4 12.5 (meta, labels) */
 html{font-size:16px} html.ts2{font-size:32px}
@@ -755,9 +755,9 @@ a.book,.book,.golink,.linkrow,.linkbtn,.sbody a,.gsources a,.gsources .srcs,.glk
 .gbk{display:inline-block;margin-left:0}
 #pins{position:sticky;top:var(--hdr-h,0px);z-index:2;height:0}
 #pins .pinbar{position:absolute;left:0;right:0;top:0;background:var(--wash);border-bottom:1.5px solid var(--ink)}
-#pins .pl{margin:0;padding:3px 16px;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pins .pl{margin:0;padding:3px 16px;font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}   /* round 20i: a long line wraps (Glenn's own-tier line was cut at '…the Duncan River’s r'); the stack stays under 90 px */
 #pins .pl.g{font-size:var(--t3)}
-#pins .pl.g.two{white-space:normal}#pins .pl .pls{display:block;font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}   /* round 20h form a: the share, then the total in brackets on its own line */
+#pins .pl{white-space:normal}#pins .pl .pls{display:block;font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--ink)}   /* round 20h form a: the share, then the total in brackets on its own line */
 #pins .pl + .pl{padding-left:26px}
 #pins .pl b{font-weight:var(--w-num);color:var(--open)}
 .tall #pins{display:none}
@@ -859,6 +859,13 @@ html:not([data-chg="a"]) .chg .chgi{font:var(--w-head) .69rem/1.6 Archivo,sans-s
 .ghd .num[data-tot="a"]{display:block}.ghd .num[data-tot="a"] .glead{display:block;font:var(--w-head) var(--t4)/1.6 Archivo,sans-serif;color:var(--ink)}.ghd .num[data-tot="a"] .glead .gln{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;vertical-align:-1px;color:var(--ink)}
 .ghd .num[data-tot="a"] .gof{display:block;margin-top:1px;font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub)}.ghd .num[data-tot="a"] .gof .ghn{font:var(--w-head) var(--t4)/1.3 Archivo,sans-serif;vertical-align:0;color:var(--ink)}.ghd .num[data-tot="a"] .gof .ghu{font-size:var(--t4);color:var(--sub)}.ghd .num[data-tot="a"] .gofw{display:inline;margin:0;font:inherit;color:var(--sub)}   /* .ghr is a block elsewhere; here it is the two words before the total */
 .ghd .num .g2{display:block;margin-top:2px;font:var(--w-head) var(--t4)/1.4 Archivo,sans-serif;color:var(--ink)}.ghd .num .g2 .ghn2{font:800 var(--t2)/1 "Bricolage Grotesque",Archivo,sans-serif;vertical-align:-1px}
+/* round 20i (UR4): the duty line full weight; "release" bold; the other-fish size hint; the All-year line; scroll margins under the pin stack */
+.k28 .duty{font:var(--w-head) var(--t3)/1.35 Archivo,sans-serif;color:var(--ink);margin-top:var(--s2)}.k28 .duty .linkbtn{min-height:32px;font-size:var(--t4);vertical-align:baseline}
+.k-release{font-weight:var(--w-head)}
+.orow .okeep{white-space:nowrap}.orow .osz{font:var(--w-emph) var(--t4)/1.3 Archivo,sans-serif;color:var(--sub);margin-left:6px;white-space:nowrap}
+.szc[data-size-rule]{font-weight:var(--w-head)}
+#sc{scroll-padding-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}#keep .tier,#keep .ghd.gpin,#keep .krow.kt,#keep .worked,#keep .olist{scroll-margin-top:calc(var(--hdr-h,0px) + var(--pin-h,0px) + 8px)}
+.needs ul.needs-only{margin-top:0}.needs .lbl[data-only-if-head]{margin-top:var(--s3)}
 .tier .torigin{margin:var(--s1) 0 0;font:600 var(--t4)/1.3 Archivo,sans-serif;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}.tier .torigin .linkbtn{min-height:32px;font-size:var(--t4)}   /* the size note's bar is a rule, not an action: the accent stays on links and buttons */
 </style>
 </head>
@@ -1020,6 +1027,9 @@ function speciesRow(codes){
 function buildKeep(){
   const st = ST(), doc = new DOMParser().parseFromString(`<div id="root">${st.cardHTML}</div>`, 'text/html'), root = doc.getElementById('root');
   // the strip: the data's per-day flags (answers 2.6)
+  // round 20i (UR4 fix 5): "Closed from Jun 1" gives the whole span, "Closed Jun 1–30", from the strip's own runs
+  const soon = root.querySelector('.wstrip .wsoon'); if (soon && /^Closed from /.test(soon.textContent.trim())) { const t0 = dayIx(S.d); let i0 = 0;
+    for (const [f, n] of st.runs || []) { if (i0 > t0 && f != null && (f & 1)) { soon.textContent = 'Closed ' + span(i0, i0 + n - 1); soon.dataset.closedSpan = '1'; break; } i0 += n; } }
   const bar = root.querySelector('.wstrip .sbar');
   if (bar && st.runs) { const today = bar.querySelector('.today'); bar.innerHTML = flagBar(st.runs) + (today ? today.outerHTML : '');
     const lg = root.querySelector('.wstrip .slegend'); const html = `<div class="slegend">${flagLegend(st.runs)}</div>`;
@@ -1215,18 +1225,24 @@ function buildKeep(){
       (d || '').split(', ').filter(Boolean).forEach(x => { const m = x.match(/^(.*?)((?:or )?(?:over |under |up to )?\d[\d–]* cm\b.*)$/);
         if (m) { if (m[1].trim()) q.push(m[1].trim()); sz.push(m[2]); } else if (/^any (size|length)$/.test(x)) sz.push(x); else q.push(x); });
       const real = sz.filter(x => !/^any /.test(x)); return {size: (real.length ? real : sz).join(', '), q}; };
-    const kt = k => { const {size, q} = sizeOf(k.detail), zero = k.n === 0;
+    // round 20i (UR4 fixes 1, 4; rows 26 `size_rule`): the chip says what happens outside the range ("keep 30–50 cm (12–20 in);
+    // release the rest") where the data gives it; the duty line is a full-weight line of its own; "this river" / "this stream" /
+    // "this lake" in a duty becomes the water's own name (page-side swap, the name is the card's); a steelhead row whose licence
+    // names the steelhead stamp links to it on the Licence tab ("Steelhead stamp ›")
+    const stampST = /Steelhead Conservation Surcharge Stamp/.test(JSON.stringify(st.licence || ''));
+    const dutyWords = x => esc(cap1(x)).replace(/\bthis (river|stream|lake|creek)\b/i, () => 'the ' + esc(st.name));
+    const kt = k => { const {size: size0, q} = sizeOf(k.detail), zero = k.n === 0, size = k.size_rule || size0;
       // user round 3 (1): a steelhead row keeping hatchery fish only (the data's words) carries page v36's How to tell
       const ht = k.species.includes('ST') && /\bhatchery steelhead only\b/.test(k.says) ? ' <button class="linkbtn" type="button" data-howtell="1">How to tell ›</button>' : '';
       // round 20b (owner C1; rows 22 `folded`): the only kind of an own tier at the tier's number — the tier line names it
       // ("This river’s rule: up to 4 hatchery rainbow trout a day"), so the row draws no sentence: the number appears once
       return `<div class="krow k28 kt${zero ? ' kzero' : ''}${k.folded ? ' kfold' : ''}" data-sp="${esc(k.species.join(' '))}" data-kind="${esc(k.name)}"${k.folded ? ' data-folded="1"' : ''}><div class="kb">${k.folded ? '' : `<p class="ks">${boldN(k.says, zero ? null : k.n, 'kn')}${ht}</p>`}`
-        + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
+        + (size && !zero || q.length ? `<p class="kmeta">${size && !zero ? `<span class="szc" data-size${k.size_rule ? ' data-size-rule' : ''}>${nbsp(size)}</span>` : ''}${q.length ? `<span class="kq">${esc(q.join(', '))}</span>` : ''}</p>` : '')
         // round 20f (owner 1): the pictures in ONE place on every row — right under the title and its size chip, before any note
         + pics(k.species)
         + (k.size_note ? `<p class="ksn" data-size-note>${nbsp(cap1(k.size_note.says))}</p>` : '')   // round 19 (owner 3): the steelhead inside the size tier
         + (k.also_counts || []).map(a => `<p class="kac" data-also>${nbsp(cap1(a.says))}</p>`).join('')
-        + (k.duties?.length ? `<p class="duty">${k.duties.map(x => esc(cap1(x))).join(' · ')}</p>` : '') + presP(presOf(k)) + '</div></div>'; };
+        + (k.duties?.length ? `<p class="duty" data-duty>${k.duties.map(dutyWords).join(' · ')}${stampST && k.species.includes('ST') ? ` <button class="linkbtn" type="button" data-sec="licence" data-stamp>Steelhead stamp ›</button>` : ''}</p>` : '') + presP(presOf(k)) + '</div></div>'; };
     const qtip = tips(glOf(lis[lis.length - 1]));   // the total's ⓘ (daily quota) on the tree's root line
     // round 20 (owner 3): a size box's numbers are as big as every other tier's; the second number its `extra` lets past
     // ("— 2 if one is a hatchery steelhead") is big too
@@ -1295,6 +1311,12 @@ function buildKeep(){
       // never read as the rule
       const wk = arts[i] ? st.rows[+(arts[i].dataset.row || 'r0').slice(1)]?.week : null;
       if (wk?.status) r.querySelector('.on')?.insertAdjacentHTML('beforeend', `<small class="owk" data-owk>${esc(wk.status)}</small>`);
+      // round 20i (UR4 fix 2): a row whose kinds carry a size rule says so on the row ("4 a day · size limit ›") — a reader nearly kept a
+      // 40 cm grayling from "4 a day" alone
+      const grp = arts[i] ? st.rows[+(arts[i].dataset.row || 'r0').slice(1)]?.group : null, hasSize = !!grp && /"size_rule":"[^"]|"detail":"[^"]*\d+ cm/.test(JSON.stringify(grp.tree || grp.kinds || []));
+      // the hint shares the count's line box (one baseline: "4 a day · size limit"), not a flex item of its own that floats high
+      const kk = hasSize ? r.querySelector('.k-keep') : null;
+      if (kk) { const w = document.createElement('span'); w.className = 'okeep'; kk.replaceWith(w); w.append(kk); w.insertAdjacentHTML('beforeend', '<small class="osz" data-size-hint>· size limit</small>'); }
       return `<div class="orow">${thumb(codes)}<button class="obtn" type="button" data-open="other:${id}">${r.innerHTML}${CHEV}</button></div>`; }).join('');
     o.outerHTML = `<section class="sec" style="padding-top:14px;border-top:1.5px solid var(--ink)"><div class="sech"><h2>Other fish</h2></div><div class="olist">${rows}</div></section>`;
   });
@@ -1516,7 +1538,11 @@ function buildGear(){
       const to = items.find(y => y.ok && new RegExp('^' + m[2], 'i').test(y.n.replace(/<[^>]+>/g, '')));
       if (!to) return;
       x.s = m[1]; if (!/ban excepts it/i.test(to.s)) to.s = [to.s, `${m[2]} is still OK`].filter(Boolean).join(' · '); });
-    const bans = dated(st, 16).map(x => gnote(x.when, x.words, x.now)).join('');
+    // round 20i (UR4 fix 6): a ban all year long gets its line too — "All year:" (page-side) + the banned rows' own words ("bait ban");
+    // the note with its ⓘ stays above it
+    const dts = dated(st, 16), banWord = items.filter(x => !x.ok).map(x => note2({s: x.s}).replace(/<[^>]+>/g, '').trim()).find(Boolean) || (items.find(x => !x.ok)?.s || '').replace(/<[^>]+>/g, '').replace(/^(allowed|banned)\s*·\s*/, '').trim();
+    const allYear = !dts.length && (st.runs || []).length && (st.runs || []).every(([f]) => f != null && (f & 16)) && items.some(x => !x.ok) && /ban/i.test(items.find(x => !x.ok)?.s || '');
+    const bans = allYear ? gnote('All year', (items.find(x => !x.ok).s || '').replace(/<[^>]+>/g, '').replace(/^(allowed|banned)\s*·\s*/, '').trim(), true, '', 'data-dated data-all-year') : dts.map(x => gnote(x.when, x.words, x.now)).join('');
     gearCells.push(`<div class="gxc wide" data-k="bait" role="listitem"><p class="gxl">${esc(r.querySelector('h3')?.textContent || 'Bait')}</p>${note.map(t => `<p class="gxs">${t}</p>`).join('')}${bans}${yesNo(items.filter(x => x.ok).map(x => [x.n, note2(x)]), items.filter(x => !x.ok).map(x => [x.n, note2(x)]))}${itemSrc(`bait|${id}`, ks)}</div>`); }
   // ways to fish: what's allowed (with the data's conditions), then what is not
   if (st.panes.ways) { const r = parse(st.panes.ways);
@@ -1551,6 +1577,8 @@ function render(keep){
   const de = document.documentElement; if (S.theme) de.dataset.theme = S.theme; else delete de.dataset.theme; de.classList.toggle('ts2', +S.ts === 2);
   if (S.hdr) de.dataset.hdr = S.hdr; else delete de.dataset.hdr;   // round 20f (owner 2): the tier-header style to compare, hdr=a|b|c
   if (S.tot) de.dataset.tot = S.tot; else delete de.dataset.tot;   // round 20h (owner 1): how a region total over a stream share is led, tot=a|b
+  // round 20i (UR4 fix 7): the licence list's conditional stamps ("Only if you fish for steelhead…") under a second small head,
+  // apart from what everyone needs — a reader thought he had to buy all four
   if (S.chg) de.dataset.chg = S.chg; else delete de.dataset.chg;   // round 20g (owner 2): chg=a keeps the ◷ glyph the reader passed over (the Now / Next chips are the default)
   const sc = $('sc'), prev = sc.scrollTop;
   // round 20b (owner: "split gear and license tabs") / round 20e (owner 1: Gear and Methods apart): the bar reads What you can
@@ -1565,6 +1593,18 @@ function render(keep){
   if (+S.map) { const key = `${S.w}|${S.p}|${S.mp}|${S.mw}|${S.br}|${S.bj}`, keepVB = MV.vb;
     if (!keepVB) mapOpened(); else { setVB(keepVB); if (MV.key !== key) ease(targetBox()); } MV.key = key; }
   else { MV.vb = null; MV.key = null; }
+  // round 20i (owner O3): the steelhead stamp is needed only if you fish for steelhead; where the card's not_kept says steelhead are
+  // closed here (Bella Coola), its line is dropped from this water's list (the licence frame is per licence, not per water)
+  if ((ST().rows || []).some(r => (r.group?.not_kept || []).some(x => x.status === 'closed' && (x.species || []).includes('ST'))))
+    document.querySelectorAll('#licence .needs li').forEach(li => { if (/Steelhead Conservation Surcharge Stamp/.test(li.textContent)) { li.remove(); } });
+  // (kokanee) the salmon stamp's own sentence says "to keep salmon (not kokanee)": the list's short line keeps those words
+  document.querySelectorAll('#licence .needs li').forEach(li => { const sp = li.querySelector(':scope > span'); if (!sp || !/salmon/i.test(li.textContent) || /not kokanee/.test(sp.textContent)) return;
+    const full = [...document.querySelectorAll('#licence .lreq .lhead span, #licence [data-lic] span')].map(e => e.textContent).find(tx => /\(not kokanee\)/.test(tx)) || (/\(not kokanee\)/.test(JSON.stringify(ST().licence || '')) ? '(not kokanee)' : '');
+    if (full) sp.textContent = sp.textContent.replace(/\.?$/, '') + ' (not kokanee)'; });
+  document.querySelectorAll('#licence .needs:not([data-split]) > ul').forEach(ul => { const only = [...ul.children].filter(li => /^Only if\b/i.test((li.querySelector(':scope > span')?.textContent || '').trim()));
+    ul.parentElement.dataset.split = '1'; if (!only.length || only.length === ul.children.length) return;
+    const ul2 = document.createElement('ul'); ul2.className = 'needs-only'; ul2.dataset.onlyIf = '1'; only.forEach(li => ul2.appendChild(li));
+    ul.insertAdjacentElement('afterend', ul2); ul.insertAdjacentHTML('afterend', '<div class="lbl" data-only-if-head>Also, only if…</div>'); });   /* the head and its list right after the first list, before the price note */
   fitLabel(); pinTops(); sc.scrollTop = keep ? prev : S.scroll; mini(); pinUpdate();
   poster();
 }
@@ -1611,7 +1651,8 @@ function pinUpdate(){ const sc = $('sc'), box = $('pins'), bar = box?.firstEleme
         if (totA && t.tier === 'share' && t.n === hl?.n) return;   // form a: the group line already says the share
         if (t && tl && r.top < y && r.bottom > y + LH + 110 && !nextIn && R(tl).top < y + lines.length * LH) lines.push({cls: 'c', t: '↳ ' + shortOf(t)}); }); } }
   const html = lines.map(l => `<p class="pl ${l.cls}">${esc(l.t).replace(/\b(\d+)\b/, '<b>$1</b>')}${l.sub ? `<span class="pls">${esc(l.sub).replace(/\b(\d+)\b/, '<b>$1</b>')}</span>` : ''}</p>`).join('');   // the tier's number big, once; form a's total in brackets under it
-  if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; } }
+  if (html !== PIN_LAST) { PIN_LAST = html; bar.innerHTML = html; bar.hidden = !lines.length; }
+  sc.style.setProperty('--pin-h', (lines.length ? Math.round(bar.getBoundingClientRect().height) : 0) + 'px'); }   // round 20i (UR4 fix 3): anchored scrolls land under the stack, not beneath it
 function mini(){ const h = $('hdr');   // round 13 (owner H): the header no longer changes on scroll; this only marks the tab in view
   const g = $('gear'), m = $('methods'), l = $('licence'), sc = $('sc'), hh = h ? h.offsetHeight : 0;
   // round 20b: three tabs on one scroll — the tab in view is the LAST section whose top has reached the header (the

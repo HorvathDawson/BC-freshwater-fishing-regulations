@@ -12,13 +12,15 @@ const only = process.argv[3];
 fs.mkdirSync(OUT, { recursive: true });
 const WATERS = [['vedder-oct10', 'w=vedder&d=1010'], ['bella-coola-may1', 'w=bellacoola&d=501&p=1'], ['kootenay-lwa-oct12', 'w=klwa&d=1012'],
   ['bennett', 'w=x35p&d=1010'], ['glenn-jun15', 'w=glenn&d=615']];
+// a user-panel round shoots its own waters: WATERS_JSON='[["name","hash"],…]' replaces the list (and skips the kokanee sheet)
+if (process.env.WATERS_JSON) WATERS.splice(0, WATERS.length, ...JSON.parse(process.env.WATERS_JSON));
 const SHEETS = [['howtell', 'sheet=hatch'], ['fish-rainbow', `sheet=${encodeURIComponent('sp:RB')}`], ['date', 'sheet=date']];
 const shots = [];
 for (const [w, h] of WATERS) {
   shots.push([`${w}-keep`, h, 'keep'], [`${w}-gear`, `${h}&sec=gear`, 'tab'], [`${w}-methods`, `${h}&sec=methods`, 'tab'], [`${w}-licence`, `${h}&sec=licence`, 'tab']);
   for (const [s, sh] of SHEETS) shots.push([`${w}-sheet-${s}`, `${h}&${sh}`, 'sheet']);
 }
-shots.push(['kootenay-lwa-oct12-sheet-kokanee', `w=klwa&d=1012&sheet=${encodeURIComponent('other:klwa_1012|o0')}`, 'sheet']);
+if (!process.env.WATERS_JSON) shots.push(['kootenay-lwa-oct12-sheet-kokanee', `w=klwa&d=1012&sheet=${encodeURIComponent('other:klwa_1012|o0')}`, 'sheet']);
 for (const theme of ['light', 'dark']) for (const [name, hash, what] of shots) {
   const file = `${name}-${theme}`; if (only && !file.includes(only)) continue;
   const b = await open(`${PAGE}#shot=1&tall=1&${hash}${theme === 'dark' ? '&theme=dark' : ''}`, { width: 440, height: 1200, offline: true });
