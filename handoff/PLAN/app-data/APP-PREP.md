@@ -107,8 +107,8 @@ Retire the middle-men            P20  P21                   (P20 after P08 + P11
 | P15 | water map view: part highlight + framing from tiles, ▼/▲, marks, mouth exit | app map/ui | 1½ days |
 | P16 | Conditions: the same content, better formatted | app ui | 1½ days |
 | P17 | navigation/UI clean-up pass (tabs, search back, empty states, dead UI) | app ui | 1 day |
-| P18 | tiles geometry-only, versioned on their own; the mask as a tile layer; self-hosted glyphs/sprites; `region_id` fix | pipeline (rebuild human-run) | 1½ days + rebuild |
-| P20 | debug-only middle-man JSON (answers/export/guide); no shipped `regs.sqlite`; drop `stats.json` + `record()`, the mask geojson | pipeline | 1½ days |
+| P18 | tiles geometry-only, versioned on their own; the mask geojson + self-hosted glyphs/sprites written into the tile version folder; `region_id` fix | pipeline (rebuild human-run) | 1½ days + rebuild |
+| P20 | debug-only middle-man JSON (answers/export/guide); no shipped `regs.sqlite`; drop `stats.json` + `record()` | pipeline | 1½ days |
 | P21 | stop writing `blk_chains.pkl` (2.57 GB, no reader) | pipeline | ¼ day |
 
 ---
@@ -649,7 +649,7 @@ App data · Depends on P08, P10, N2 · Blocks P14, P15, integration T01/T03/T11 
   - `useVintage` (:483) → `usePairing`;
   - flow colours are gated on `ok === true` (`Shell.tsx:264-267`).
 - `app/packages/map/src/runtime-style.ts`, `Map.*.tsx`: tile and basemap URLs from the held set (a local file on
-  native); the `outside` mask from the tile layer (P18)
+  native); the `outside` mask from the release's `bc_outside.geojson` (a local file on native, fetched on web; P18)
 - `app/apps/mobile/src/App.tsx`: manifest → install/update → paint → `Shell`; a first-run download screen
 - tests: `loader.test.ts`, `update.native.test.ts` (diff → download only changed; a crash mid-swap keeps the old set; a
   failed sha keeps the old set), `pack-source.conformance.test.ts` (`runConformance("release", …)` over the fixture
@@ -937,7 +937,7 @@ the commit message.
 
 ---
 
-# P18 — tiles: geometry-only, versioned on their own; the mask as a tile layer; self-hosted map assets
+# P18 — tiles: geometry-only, versioned on their own; the mask file and self-hosted map assets beside them
 
 Pipeline (the tile rebuild is human-run, ≈ 1 h) · Depends on — · Blocks P08 (`tiles.compatible`), P10, P11 · Size 1½ days + rebuild
 
@@ -948,9 +948,12 @@ Tiles carry geometry and the sid key only, and a data-only release never rebuild
 - **The tiles stage key** (`pipeline/build.py:125-126`) is geometry-only: the atlas handles, `pipeline/atlas/splits`,
   `CURATED.waters.areas`, the tile code. `--labels` forces a label refresh.
 - **`vintage.report_all`** pairs on `section_handles` only. A registry mismatch is a warning.
-- **The mask:** the outside-BC mask polygon (today `pipeline.deliver.tiles.boundary` → `bc_outside.geojson`, drawn by
-  `runtime-style.ts:331-360`) becomes an `outside` layer in the atlas tiles. The style reads it from the tile source.
-  The atlas starts at z4: check the app's min zoom, or give the style a low-zoom fallback fill.
+- **The mask stays a separate file, OUT of the tiles** (owner: putting it in the tiles blew up the tile size).
+  - The tile step runs `pipeline.deliver.tiles.boundary`, which today is not in the build, and writes
+    `bc_outside.geojson` (62.5 KB) into `data/release/tiles/<version>/`. It is geometry, versioned with the tiles.
+  - It is listed in the manifest's `tiles` block (url, bytes, sha256). Native downloads it; web fetches it.
+  - The style keeps drawing it as the `outside` fill (`runtime-style.ts:220,331-360`).
+  - It is no longer read from `data/source/`.
 - **Map assets:** the tile step generates the self-hosted glyphs (the fonts the style names) and sprites into
   `data/release/tiles/<version>/map-assets-<n>/`. The style points at them; no Protomaps CDN at run time (owner Q18).
 - **`region_id`** on all 18 `region` features (today 9 carry only `{"name"}`).
@@ -960,20 +963,20 @@ Tiles carry geometry and the sid key only, and a data-only release never rebuild
   property fails.
 
 ## Files
-- `pipeline/deliver/tiles/__main__.py` (:111–127), `export.py` (region writer; `outside` layer; `LayerSpec.attrs` frozen), `boundary.py` (now feeds the layer), a new `assets.py` (glyphs + sprites)
+- `pipeline/deliver/tiles/__main__.py` (:111–127), `export.py` (region writer; `LayerSpec.attrs` frozen), `boundary.py` (now a tile-step output into the version folder), a new `assets.py` (glyphs + sprites)
 - `pipeline/deliver/tiles/basemap.py`: write into `data/release/basemap/<id>/`
 - `pipeline/build.py` (geometry key, `--labels`); `pipeline/common/vintage.py` (`report_all`, shared with P07)
-- `app/packages/map/style/layers.source.json` (+ `pnpm style:build`): the `outside` fill from the tile source-layer
 - tests: `pipeline/tests/test_tiles.py`, `test_vintage.py`
 
 ## Acceptance
 - The tile tests after the human-run rebuild. Promote file by file (memory "tiles dir holds basemap").
 - A dry run of a data-only `pipeline build` shows the tiles stage SKIPPED.
-- **Native and web** draw the mask from the tiles and use glyphs from the release (no CDN request in the network log).
+- **Native and web** draw the mask from the release's `bc_outside.geojson` and use glyphs from the release (no CDN request
+  in the network log).
 
 ## Notes
-The atlas maxzoom-13 overzoom and the basemap landuse filter stay **deferred to their own effort** (owner). Always-offline
-makes them worth about −345 MB per install (est.).
+The atlas maxzoom-13 overzoom and the basemap landuse filter are **deferred to their own effort, scheduled before the
+first public native release** (owner, decided 2026-10-20). Always-offline makes them worth about −345 MB per install (est.).
 
 ---
 
@@ -994,7 +997,6 @@ and export models pass between steps in memory, and a `--debug-json` flag writes
 - `pipeline/deliver/answers/reference/page_data.py`, `pipeline/tools/water_map_export.py`, `app/design/regs-v11/port/{taps.py,verify_map.py,sync.mjs}`: read the packages (water / regs-frames / regs-sid) or the debug dump
 - about 35 tests that `json.load` the export: switch them to `export_ui_rules.load()` over the in-memory model (AGENTS 58 already says so)
 - `pipeline/gauges/feed/publish.py:644-646`: stop writing `stats.json`. Delete `record(station)` (`app/packages/data/src/feed/http.ts:179,219-223`, no caller). Map colouring reads `index.json` only (MINIMAL-PACKAGING §9).
-- `bc_outside.geojson` stops being served once P18's tile layer draws the mask (`App.tsx:37`, `runtime-style.ts:220,331`)
 - `regs.sqlite` is no longer written by default (its tables live in water / regs-* / regs-sid; owner Q12)
 
 ## Tests

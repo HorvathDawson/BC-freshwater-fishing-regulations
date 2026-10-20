@@ -145,8 +145,8 @@ The producer is `python -m pipeline.deliver.tiles.boundary` (not in the build). 
 (`App.tsx:37`) and drawn as the `outside` fill layer (`app/packages/map/src/runtime-style.ts:220` source, `:331-360` layer).
 **It IS the mask, and it is used.** Corrected on verification: an earlier research note called it redundant, but the
 `outside-bc` background (`runtime-style.ts:280`) is documented as "NOT the outside-BC mask" (`:276-279`). It is only the
-colour under the basemap. It is not in the tiles. The target moves it INTO the atlas tiles as an `outside` layer, since
-it is geometry, and stops serving the file (P18, P20).
+colour under the basemap. It is not in the tiles, on purpose: the owner left it out because it blew up the tile size. The
+target keeps it as a separate file, written by the tile step into the tile version folder and listed in the manifest (P18).
 
 ### 2.6 `bundle.sqlite`
 
@@ -261,7 +261,7 @@ must die with the port are `v36snap.js` and `watermap.js`: the app reads the sto
 | 4 | `/atlas.meta.json` | ✓ | ✓ | startup | vintage vs bundle handles |
 | 5 | `/status_index.bin` | whole | whole | startup | handles + reach_digest |
 | 6 | `/atlas.pmtiles`, `/basemap.pmtiles` | Range | — (no native map) | per view | none |
-| 7 | `/bc_outside.geojson` | ✓ | — | startup | none (it IS the mask; moves into the tiles) |
+| 7 | `/bc_outside.geojson` | ✓ | — | startup | none (it IS the mask; stays a separate file, versioned with the tiles) |
 | 8 | Protomaps glyphs/sprites, EOX satellite | CDN | — | lazy | — |
 | 9 | `/feeds/live/{station}.json` | lazy | lazy | per panel | none |
 | 10 | Open-Meteo | lazy | lazy | spot capture | — |
@@ -284,6 +284,6 @@ Cold start is 105,081,128 B on the wire (audit 03 §1).
 | `regs.sqlite` as a separate file | 14.2 MB | the store | **not shipped**: its tables are split into the water / regs-<region> / regs-sid release files |
 | `status_index.bin` as a separate file | 1.66 MB | map colours | **half of the `paint` file** (with the flow panels) |
 | `atlas.meta.json` | 97 B | vintage pairing | **replaced by the manifest + the pmtiles metadata** (P18) |
-| `bc_outside.geojson` | 63 KB | the mask (used) | **moved into the atlas tiles** as an `outside` layer; the file is dropped (P18, P20) |
+| `bc_outside.geojson` | 63 KB | the mask (used) | **kept as a separate shipped file**, written by the tile step into the tile version folder (owner: in the tiles it blew up the tile size; P18) |
 | `feeds/stats.json`, `feeds/clim.json` | 8.6 MB | clim → bundle | `stats.json` dropped; `clim.json` stays a bundle input, not served |
 | `watermap.js`, `v36snap.js`, oracle, regs-diagram | ≈ 16 MB | prototype | dev/test only, until the port lands |
