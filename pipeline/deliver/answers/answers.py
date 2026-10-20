@@ -285,7 +285,9 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND20i 1/2/5/6c: rows 26 (kind `size_rule` "keep 30–50 cm (12–20 in); release the rest"; the worked keep-share
         # line "… up to 2 more of any kind, from here or from lakes."; "stop fishing this river after 2 a day"; "Your own
         # limit, counted across every Region 2 stream you fish today.")
-        Section("rows", 26, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # ROUND UR5 D1: rows 27 (the over-the-size question asked of fish kept elsewhere names the fish the group's clause holds
+        # here: Kootenay Lake main body "Kept cutthroat trout over 50 cm elsewhere today?", not the rule's "rainbow trout or …")
+        Section("rows", 27, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

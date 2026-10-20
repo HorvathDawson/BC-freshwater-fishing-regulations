@@ -98,6 +98,15 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## ROUND UR5 (2026-10-20) — rows 27: the user panel UR5's data word
+
+1. **The kept-elsewhere over-the-size question names the fish the group's size clause holds here** (`rows.over_elsewhere`): where
+   the rule names more fish than the clause reaches in this group (Kootenay Lake main body: Region 4's "Only 1 rainbow trout or
+   cutthroat trout over 50 cm" reaches its trout and char only for cutthroat — rainbow has its own row, 10 a day, 20 a year over
+   50 cm), the question is "Kept cutthroat trout over 50 cm (20 in) elsewhere today?" (it was "Kept rainbow trout or cutthroat
+   trout …", read by two panel readers as a daily cap on big rainbows). The rule's own words where the clause holds every fish it
+   names; group codes keep the rule's words. Test: `pipeline/tests/test_answers_ur5.py`.
+
 ## ROUND20i (2026-10-19) — rows 26, gear 12, glossary 5: the user panel UR4's data words
 
 1. **A kind's size says the rule** (`TreeKind.size_rule`): "keep 30–50 cm (12–20 in); release the rest" from the kind's

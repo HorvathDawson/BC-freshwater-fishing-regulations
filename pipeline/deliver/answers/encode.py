@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "26",
+            "version": "27",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -424,7 +424,9 @@ SPEC = {
                     "steelhead line; null for any size, none, a steelhead); the worked keep-share line \"none from other streams "
                     "today — up to 2 more of any kind, from here or from lakes.\"; the stop duty \"stop fishing this river after "
                     "2 a day\" (the water's own row's noun, p.21 \"stop fishing that water\"); `elsewhere.says` \"Your own "
-                    "limit, counted across every Region 2 stream you fish today.\"",
+                    "limit, counted across every Region 2 stream you fish today.\" Version 27 (ROUND UR5, user panel 5): the kept-elsewhere over-the-size question names the fish the "
+                    "group's size clause holds here (Kootenay Lake main body: \"Kept cutthroat trout over 50 cm (20 in) elsewhere today?\", "
+                    "not the Region 4 rule's \"rainbow trout or cutthroat trout\": rainbow has its own row there).",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

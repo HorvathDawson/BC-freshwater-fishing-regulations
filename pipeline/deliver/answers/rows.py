@@ -1881,7 +1881,13 @@ def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> Li
             say += (f" — only {_js(xs[1]['take'])} of them may be anything other than "
                     f"{'a ' if len(rest) == 1 else ''}{who}")
         from pipeline.deliver.answers.display import written_name
-        who = written_name(P.by_key[big["r"]].x, " or ").replace(" and ", " or ")
+        # ROUND UR5 (D1): the fish the clause holds HERE — Region 4's "rainbow trout or cutthroat trout" clause reaches the
+        # Kootenay Lake main body's trout and char only for cutthroat (rainbow has its own row there); naming rainbow read as a
+        # daily cap on big rainbows. The rule's own words where the clause holds every fish it names.
+        rx = P.by_key[big["r"]].x
+        rsp = list(rx.get("species") or [])
+        narrower = rsp and all(c not in common._species().SPECIES_GROUPS for c in rsp) and set(rsp) - set(big["of"]) and set(big["of"]) <= set(rsp)
+        who = _names([c for c in rsp if c in big["of"]]) if narrower else written_name(rx, " or ").replace(" and ", " or ")
         kinds = [S for S in small["of"] if S != "ST"] or list(small["of"])
         out.append(_line(f"Kept {who} {band} elsewhere today?", say + ".", model, kinds, 1, "elsewhere",
                          max(0, big["take"] - 1), over_cm=a if b is None else None, most="at_most",
