@@ -15,7 +15,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 | 3 reader files | ALREADY DONE in a4b37eff (`app/design/regs-v11/port/reader/`) |
 | 4 baseline | DONE, see Baseline counts |
 | 5 golden re-sync | NOT NEEDED: golden.json meta ref 7fb6809f, v38, misses unchanged (4) |
-| 6 first tickets | P00 DONE → P03 (in progress) → P05 → P06 → N1 |
+| 6 first tickets | P00 DONE (a4ee3a9b) → P03 DONE → P05 (next) → P06 → N1 |
 
 ## P00: test tiers
 - [x] measure: pytest fast (durations), pytest slow (collect count only), vitest per file, `pnpm check` per step, check.mjs total + per round, card gate
@@ -46,6 +46,20 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - check.mjs `ONLY=smoke` = no-hand-facts + ur2, ur3, int1 (all 134 states rendered and scrolled), 20f. This is one
   additive line in a prototype-lane file, which P00 asked for.
 - The rebuilt dev fixture was committed separately (P03's fixture item), because it blocked `pnpm check`.
+
+## P03: CI gaps (DONE)
+- f6332295: the rebuilt dev fixture. APP-PREP calls this regeneration "human-run", but `pnpm check`'s fixture step
+  rebuilds it on every run anyway; committing it was the only change. Flagged to the owner.
+- app-ci now runs `pnpm check` itself (this adds colours, spinner, fixture, calendar, gauge-policy and answers) with a
+  `.venv` from requirements.txt. It also triggers on `schema.sql` / `indexes.sql`.
+- pipeline-ci triggers on `app/packages/core/src/*.generated.*` (it was calendar only). `reference/calendar.generated.js`
+  is under `pipeline/**`.
+- `app/package.json` `answers` script, inside `check`.
+- `app/packages/data/dev/fixture-schema.test.ts`: the fixture DDL equals schema.sql + indexes.sql. On the old fixture it
+  FAILED (6 missing tables + section_ruleset changed); it passes now.
+- Mutation: a hand edit to answers.generated.ts makes `pnpm -C app check` exit 1 ("stale"). Clean run: 59 files / 645 tests.
+- NOT verified: a real CI run on a scratch branch (nothing pushed). Open: the fixture writes meta `shed_rule` where the
+  bundle writes `trust_bands`; no app code reads either, so it is left for whoever next touches build-fixture.mjs.
 
 ## Baseline counts
 - pytest fast: 3572 passed / 6 skipped (unfiltered; matches the UR7 report's 3462 plus the tests added since).

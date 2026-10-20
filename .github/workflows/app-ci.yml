@@ -2,9 +2,11 @@ name: app
 
 on:
   push:
-    paths: ["app/**", ".github/workflows/app-ci.yml"]
+    paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
+            "pipeline/deliver/bundle/indexes.sql"]
   pull_request:
-    paths: ["app/**", ".github/workflows/app-ci.yml"]
+    paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
+            "pipeline/deliver/bundle/indexes.sql"]
 
 jobs:
   check:
@@ -21,25 +23,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Layer boundaries FIRST: it is the cheapest check and the one whose failure
-      # means the architecture is being violated, not merely that a test broke.
-      - name: Layer boundaries (layers.json)
-        run: pnpm run boundaries
+      # `pnpm check` runs the generated-file --checks (gauge policy, calendar, answers model) with the repo's
+      # `.venv/bin/python`, exactly as on a laptop. They need no data, only the pipeline's code (P03).
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13", cache: pip }
+      - name: Python venv for the generated-file checks
+        working-directory: .
+        run: python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-      - name: Platform parity (variant sets complete, shared code portable)
-        run: pnpm run platform
-
-      - name: Map style is generated, current, and identical for both platforms
-        run: pnpm run style
-
-      - name: Every dependency is justified in deps.md
-        run: pnpm run deps
-
-      - name: Typecheck
-        run: pnpm run typecheck
-
-      - name: Tests + conformance suite
-        run: pnpm run test
+      # THE SAME GATE AS A LAPTOP (P03): boundaries → platform → style → colours → spinner → fixture → gauge-policy →
+      # calendar → answers → deps → typecheck → test. One command, so CI cannot drift from `pnpm check` by
+      # forgetting a step (colours, spinner and fixture were missing here). Boundaries run first inside it: the
+      # cheapest check, and its failure means the architecture is being violated, not that a test broke.
+      - name: pnpm check (every app gate + tests + conformance)
+        run: pnpm check
 
       # The regulations design prototype (design/regs-v11.html), rendered headless and offline: no
       # hand-written fact, the fishway lines beside the open/closed strip, ONE Sources line per Gear &

@@ -18,11 +18,11 @@ on:
   push:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/calendar.generated.*"]
+            "app/packages/core/src/*.generated.*"]
   pull_request:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/calendar.generated.*"]
+            "app/packages/core/src/*.generated.*"]
   workflow_dispatch:
 
 concurrency:
