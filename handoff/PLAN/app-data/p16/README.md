@@ -11,26 +11,45 @@ last reading was 2026-10-15, so every reading says "may be out of date". That is
 | Ungauged stream, donor estimate: Borden Creek (one donor 15 times its size) | `before-ungauged-borden-creek.png` | `after-ungauged-borden-creek.png` | `after-ungauged-borden-creek-fold-open.png` |
 | No gauge: Cultus Lake ("NO ESTIMATE") | `before-lake-cultus.png` | `after-lake-cultus.png` | `after-lake-cultus-fold-open.png` |
 
-Native (Android/iOS) shots were **not** taken. The emulator is a heavy job and was off limits while the tile rebuild ran.
+The **after** shots were retaken after the review fixes (commit `a525e29c`), using the same route each time:
+Search, then the water's eye button, then the Conditions face. They were taken with headless Chromium through the repo's
+Python Playwright, because the Playwright MCP browser was in use by another session. The data server was the main
+checkout's `serve-tiles.mjs` on port 39417 and the web server was Expo on port 39418. The data source was the default
+release path, with no `EXPO_PUBLIC_DATA_SOURCE` override.
+
+Native (Android/iOS) shots were **not** taken. Running an emulator or simulator is a heavy job, and this workflow forbids
+heavy jobs. That acceptance item is still open for a human run.
 
 ## What changed, and why
 
-1. **One reading order.** From top to bottom the panel is now: horizon control, then the headline (estimate, range and
-   its caveats), then the lead gauge's reading, then its chart, then the donor map and list, then one fold.
+1. **One reading order.** From top to bottom the panel is now: horizon control, then the headline (estimate and range),
+   then the lead gauge's reading, then its chart, then the donor map and list, then one fold.
    *Before:* the donor list sat between the headline and the gauge's reading, so a second answer-shaped block (the big
    number) came after a screen of donor rows, and the chart came last. *Now:* the reading sits under the headline as
    its detail, and the chart is next to the reading it plots. The same-gauge-trace fallback (`GaugeTrace`) also moved
    into that detail slot.
-2. **The horizon control is the panel header.** The chips used to sit under the range, between the headline and the
-   map. They now sit above the headline, which is the thing they change. There is still exactly one horizon control on
-   screen: the map legend's copy in `Shell.tsx` is already hidden while a Conditions section is open
-   (`showLegend` requires `condSection === null`), so it was left alone. See "Not done".
-3. **One fold, "Notes and sources", closed by default.** It holds every row's "Counts this much because…" (now headed
-   by the station id it belongs to), the "No gauge sits exactly here…" explainer and the Sources/credits block. The
-   words are unchanged. The fold label is the only new string, and it comes from core (`CONDITIONS_WORDS.fold`).
-4. **Caveats sit with the headline.** The disagreement, dam and short-record notes now appear directly under the range
-   they qualify, each with a rule on the left. The disagreement rule is the restricted tone and the others are a
-   hairline. They used to sit under the donor list. See "Deviations" for why they are not in the fold.
+2. **The horizon control is the panel header, and it is the only one.** The chips used to sit under the range, between
+   the headline and the map. They now sit above the headline, which is the thing they change. The map's own corner copy
+   on the Conditions tab is **removed**. That covers the `MapScreen` `horizons` prop, the wiring in `Shell.tsx` and
+   `mapModes.horizonsShown`. Its labels were typed in a second time there; core's `HORIZONS` and labels are now the only
+   source. Because the map no longer has a control that says which horizon it is painting, `Shell` resets the horizon to
+   "Now" when the Conditions panel closes. **Consequence for you to weigh:** the map can no longer be painted as a
+   forecast. A reader sees forecasts only in a section's panel. If you want the map's forecast view back, it should come
+   back as one shared control, not as a second copy.
+3. **One fold, "Notes and sources", closed by default.** It holds, in this order:
+   - every row's "Counts this much because…", headed by the station id it belongs to;
+   - the **notes**: short record, dam and gauges disagree, in their pre-P16 order, each marked by a rule on its left;
+   - the "No gauge sits exactly here…" explainer;
+   - the **Centre's chart disclaimer** ("USERS OF THIS DATA MUST ACCEPT…"), shown under the same condition as before
+     (a forecast is drawn);
+   - the Sources/credits block.
+
+   The words are unchanged. The fold label is the only new string, and it comes from core (`CONDITIONS_WORDS.fold`).
+4. **Times are local and labelled, in one format (item 5).** Core's new `localStamp` gives "2026-10-15 at 11:20 PDT".
+   That is the same day-and-minute form as the spots' `localDateTime`, plus the zone name. If the runtime has no zone
+   names it falls back to the offset ("UTC−7"). The reading's "observed …" and the forecast run's "issued …" both use it.
+   The chart's axis ticks are now on the reader's clock too. They used UTC hours with no label. Each tick is not labelled,
+   because the run line under the chart names the zone.
 5. **Typography on the T22 tokens.** Every ad-hoc `fontSize` override in the panel (10, 10.5, 11, 11.5, 13.5, 22, 34)
    was removed:
    - Kickers use `TYPE.kicker`.
@@ -42,17 +61,16 @@ Native (Android/iOS) shots were **not** taken. The emulator is a heavy job and w
    hairline and a `SPACE.s4` step. Inside a block the gaps are `SPACE.s1`, `s2` and `s3`. Donor rows are divided by
    rules between rows rather than a box around the list, and their detail lines line up under the station id.
 7. **Dead UI removed.** `GaugeBadge.tsx` and its test had no importer. `StatusChip.tsx` (`Chip`) had no importer. Both
-   exports were dropped from `index.ts`.
+   exports were dropped from `index.ts`. **The unused forecast fetch is gone too.** `useConditions` and
+   `useStationReading` each fetched the station's 72-hour series for a `forecast` field that nothing read. The chart
+   fetches its own series through `useSeries`. A test now asserts that drawing the reading never calls `gaugeSeries`.
 
-## Deviations from the ticket text (please decide)
+## Deviations from the ticket text
 
-- **The chart disclaimer is not in the fold.** "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY…" is the Province's
-  notice, and the code that carries it says it must appear verbatim wherever the forecast is drawn. It stays under the
-  chart, inside `Hydrograph`. The Sources block (attribution) did go into the fold, as the ticket asked.
-- **The three caveats are not in the fold.** These are the dam, short-record and disagreement notes. An existing pinned
-  test ("says when the water is dam-controlled, above the working and not only in it") and the component's own
-  rationale keep the dam note visible. A reader deciding whether to trust the headline should not have to open a fold
-  to learn that the river follows a release schedule. Folding them is a one-line move in `DonorPanel.tsx` if you want it.
+None left after the review fixes. The first pass kept the chart disclaimer and the three notes outside the fold. They are
+now in it, as the ticket says. You have one call to make: the Centre's code said its disclaimer must appear "wherever a
+forecast appears". It is still on the same screen as the forecast, but behind the fold. If you want it visible, move
+`disclaimer` back under the chart in `ConditionsPanel.tsx`. That is a one-line change.
 
 ## Same content: how it is guarded
 
@@ -62,20 +80,20 @@ disagreement, a reading and credits. The no-gauge scene is the second.
 - Before any layout change, the test's record mode (`P16_RECORD=1`) captured every text line the pre-P16 panel drew in
   both scenes. That record is `ConditionsLayout.before.ts`: 43 lines for the estimate scene and 6 for no-gauge.
 - After the change, each scene is drawn, the fold is opened, and every recorded line must still be drawn, matched as a
-  whole text node.
+  whole text node. One change is declared: each `… UTC` stamp in the record is re-said through `localStamp`, which is
+  the same instant. A test pins that this touches exactly one recorded line.
 - A mutation pin proves the guard is not vacuous. With the fold shut, the guard reports the explainer and the credits
   missing.
-- Layout tests cover the block order, the caveats above the reading, exactly one horizon control, the horizon tap being
+- Layout tests cover the block order, the notes and the chart disclaimer in the closed fold (a third, forecast-running
+  scene), exactly one horizon control in the panel, the horizon tap being
   handed back, the fold being shut by default and adding the small print when opened, and the no-gauge order.
 - I also checked by mutation that swapping the reading and chart blocks fails the order test.
+- No horizon control on the map. `MapScreen.test.tsx` passes `horizons` under `@ts-expect-error`, so `tsc` fails if the
+  prop returns. It also checks that no chip is drawn.
 
 ## Not done / not verified
 
-- **Times (ticket item 5).** The reading's "observed … UTC" and the forecast run's "issued … UTC" are still labelled
-  UTC. Those are core's sentences (`readingAgeLine`, `forecastRunLine`), pinned there. Making them local is a content
-  change, which is out of scope under "same content".
-- **Water-mode title (item 7)** depends on P14 and was not done.
-- **"The unused forecast fetch" (item 8)** was not identified or removed.
-- **Native screenshots** were not taken (see above).
+- **Native screenshots (iOS and Android).** Not taken, because emulators are heavy jobs here. This needs a human run.
+- **Water-mode title (item 7).** This depends on P14 and was not done.
 - **`Hydrograph` and `ChartControls`** were not restyled. `ChartControls` is shared with the map legend, where its look
-  is deliberate (it has to read over the map), and `Hydrograph` cannot be render-tested (RENDER-TESTS.md).
+  is deliberate.
