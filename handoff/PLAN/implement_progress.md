@@ -103,6 +103,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
     one-water-screen                                       run wf_9d16c370-feb  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/one-water-screen-wf_9d16c370-feb.js        1 commit on worktree-wf_9d16c370-feb-1 (implement done; review/fix pending)
     wave A Gear/Methods/Licence/pins (batch 10)            run wf_31b13f2b-581  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/batch-10-gear-methods-licence-core-wf_31b13f2b-581.js  lane1 WIP 50101cd8, lane2 1 commit, lane3 1 commit + WIP 0df41933
     P15 water map                                          run wf_aef3d199-122  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/p15-water-map-wf_aef3d199-122.js            WIP 745fd43e (worktree-wf_aef3d199-122-1)
+  Tier 2 during the pause: 5 fast fails FIXED (see the commit after this note); 1 OPEN: test_answers_reference
+  (slow) now has 308 unexplained answers on wbk:329518145 — investigate after the restart (likely from batch 9's
+  pipeline answers: closers/record duty/stamps vs page v35; classify as a PAGE_BUGS class or fix).
   NO-CREDIT JOBS left running: province feed year_backfill (bz0486peg, ~3-4 h) and Tier 2 test-full + graphify update (log:
   scratchpad full_pause.log, session 368da779). QUEUED after these: wave B (T23, T29, T34/T35, T37), Esri online imagery, P14, Other-fish stamps,
   S2 tile/basemap size easy wins (handoff/PLAN/app-data/S2-tile-size-easy-wins.md), D1 phone testing — option 1 dev build
