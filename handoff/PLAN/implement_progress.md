@@ -83,6 +83,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- 2026-10-21 night MERGED: conditions-and-nav (layout: switch by plot, full-width chart, desktop 2 columns, last
+  report, zoomable chart; map: up/down apart, here pin, share labels, trace geometry from tiles, zoom; view swipe
+  Regs<->Conditions<->Map with chart/minimap shielded; Kitimat +1 like the Vedder; T05 leap rule from the calendar
+  spec) + merge fixes 663939f0; batch 7: rows 30 YEAR STRIP from the pipeline (year.py, page ROUND14 rule) + T12
+  harness (+6e9e0443). SKIPPED 8cc353a4 (T05 parity over openRegsStore: collided with batch 6's golden.ts) — redo
+  on HEAD. Colour study DONE (recommend AP web / E1P native) — implement next. Kitimat ruling (a) applied in curated
+  region-6.json (r5 no longer exempts r7). `deliver all` RUNNING via heavy.sh (both rulings + rows 30); after it:
+  taps.py re-cut (sync goldens), `pnpm -C app regs-fixture`, flip the Kitimat test DEC1 hatchery ST to release,
+  pnpm check with REGS_STORE_REQUIRED=1, then Tier 2.
 - RESUMED 2026-10-21 ~01:45 by the scheduled restart: all four workflows resumed with the same run ids (below);
   stale worktrees wf_7703a540-b9f-4 and wf_2c5dbf14-b47-1 removed. Was PAUSED 2026-10-20 ~23:00 (owner out of credit). MERGED before pause: search placement + preview
   (32ee103b 94c2f5d3 1f065176; 19,641/19,641 placeable; eye -> main map, back -> search). pnpm check 1597; smoke pass.
