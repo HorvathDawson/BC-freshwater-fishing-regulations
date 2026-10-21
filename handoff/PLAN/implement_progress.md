@@ -70,6 +70,14 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - OWNER 2026-10-20: "Kooryet Lake — the map cannot place it yet": locate() built extents only from gauges + town
   rings; part_geo has bboxes for 19,638/19,641 items (missing: Williston, Kootenay, Shannon lakes, 0 sections). Plus
   search PREVIEW MAP (open it; tap a result -> preview; eye -> navigate). Workflow search-place-preview RUNNING.
+- MERGED 2026-10-21: horizons 86f97e89 (map control back on Conditions, one shared state with the panel; +10 days
+  end to end); LIVE FEED REPUBLISHED by the lead (425 stations, 363 with +10). Batch 5: T03 openRegsStore, T04 store
+  reads, T01 plumbing, T05 core tap (+ review fixes). pnpm check 1562 pass; smoke pass.
+- OWNER 2026-10-21: Conditions (river + spot) still off; Conditions map up/down separate, you-are-here icon,
+  contribution %, trace geometry from tiles on click, zoom; chart zoom/inspect; SWIPE = between views (Regs <->
+  Conditions <-> Map), not sections; Kitimat (b) ruled "+1 for steelhead, like the Vedder" (no other trout over 50).
+  Workflow conditions-and-nav RUNNING (5 groups incl. T05 follow-up). After kitimat-plus1 merges the lead runs
+  `deliver all` (answers change) and reruns the Kitimat/reference tests.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
