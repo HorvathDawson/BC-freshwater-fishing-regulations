@@ -96,7 +96,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
-- PAUSED 2026-10-21 (owner low on credits). Main tree CLEAN at the commit below; everything merged is committed and
+- RESUMED 2026-10-21 14:40 after the credit reset: all four workflows resumed with the same run ids (below); a
+  single agent is investigating the 308 unexplained reference answers. Was PAUSED 2026-10-21 (owner low on credits). Main tree CLEAN at the commit below; everything merged is committed and
   green (pnpm check 4877; smoke). STOPPED workflows — resume each with Workflow({scriptPath, resumeFromRunId}); finished
   agents replay from cache. Partial work was saved as WIP commits on the worktree branches (reference, not reviewed):
     colouring engine (one pathway, lake modes, feed-only)  run wf_b01b27c4-44c  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/conditions-colour-ap-wf_e6f1ab3e-f02.js   WIP 48be10d9 (worktree-wf_b01b27c4-44c-1)
