@@ -62,3 +62,8 @@ swipe turns on when P15 supplies the part order.
 ## Owner, 2026-10-21 — SWIPE CHANGES VIEW, NOT SECTION
 A sideways swipe on a water moves between its views: Regs <-> Conditions <-> Map. This REPLACES the part swipe above
 (sections stay on the down/up buttons and the water map). The 24 px back zone and the direction lock still apply.
+
+**Done (view-swipe, 2026-10-21):** `classifySwipe` now drives `useViewSwipe` / `viewSwipeAction` (`{type:"view"}`);
+the order is `@app/core` `WATER_VIEWS` (Regulations · Conditions · Map, the header strip's order); `stepPart`,
+`partSwipeStarts` (now `viewSwipeStarts`), `usePartSwipe` and `<PartSwipe>` are gone (`<ViewSwipe>` replaces it).
+The Regulations view swipes anywhere, Conditions and Map from the header. See `view-swipe/README.md`.

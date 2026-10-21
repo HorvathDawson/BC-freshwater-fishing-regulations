@@ -72,3 +72,4 @@ export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: s
   return parts.join(" · ");
 }
 export * from "./gestures";
+export * from "./waterViews";

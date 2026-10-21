@@ -7,16 +7,18 @@
  *                 API) and the iOS left-edge swipe all call it, and it dispatches `{type: "back"}` (APP-PREP §0 rule 1).
  *   historySync   keeps the browser's history and the route in step: one history entry per back step the route holds,
  *                 so the browser's back pops exactly one frame and the ‹ button never leaves a stranded entry.
- *   usePartSwipe  a sideways swipe on a water's view → `{type: "part"}` on the neighbouring part.
+ *   useViewSwipe  a sideways swipe on a water → `{type: "view"}` on the neighbouring view (Regulations · Conditions ·
+ *                 Map); on a Conditions-tab reach, toward Regulations → that water's regulations.
  *   useEdgeBack / useSheetDrag   the thresholds a drag is measured against, for the components that only measure.
  *
  * No react-native here (layers.json): the platform glue — `BackHandler`, `window.history` — lives in the app shell and
  * reaches this file as a `SystemBack`, and the gesture recognisers are `@app/ui-native`'s.
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { EDGE_BACK, classifySwipe, edgeBackCommits, edgeBackEnabled, edgeBackStarts, follow, partSwipeStarts, sheetDismiss,
-         stepPart, type SwipeStep } from "@app/core";
-import { reduce, type Route, type RouteAction } from "./route";
+import { EDGE_BACK, WATER_VIEWS, classifySwipe, edgeBackCommits, edgeBackEnabled, edgeBackStarts, follow, sheetDismiss,
+         stepView, viewSwipeStarts, type SwipeStep, type WaterView } from "@app/core";
+import type { SectionId } from "@app/data";
+import { reduce, type LatLon, type Route, type RouteAction, type View } from "./route";
 
 const BACK: RouteAction = { type: "back" };
 
@@ -181,53 +183,69 @@ export function useSheetDrag(onClose: () => void): SheetDrag {
   }), [onClose]);
 }
 
-/**
- * The part a sideways swipe steps to, as a route action, or null. `order` is the water's parts (`part` values) in step
- * order, mouth first — the water map's ▼ Downstream / ▲ Upstream order — so a finger moving left ("next") goes
- * upstream. Only on a water's regs, map or conditions view, only once a part is being read, never past an end.
- */
-export function partSwipeAction(route: Route, order: readonly number[] | null, step: SwipeStep): RouteAction | null {
-  const at = partPosition(route, order);
-  if (at === null || !order) return null;
-  const to = stepPart(at, order.length, step);
-  return to === null ? null : { type: "part", part: order[to]! };
-}
+/** The views a Conditions-tab reach offers: it IS that reach's conditions, and one step left is its regulations. */
+export const REACH_VIEWS: readonly WaterView[] = ["regs", "conditions"];
 
-const partPosition = (route: Route, order: readonly number[] | null): number | null => {
-  if (route.mode !== "water" || !order || order.length === 0) return null;
-  const part = route.stack[route.stack.length - 1]!.part;
-  if (part === null) return null;
-  const i = order.indexOf(part);
-  return i < 0 ? null : i;
+/** Where a view swipe goes: a view of the water on screen, or — from a Conditions-tab reach — that water's rules. */
+export type ViewSwipeTarget = RouteAction | { type: "regulations"; section: SectionId; at: LatLon | null };
+
+/** The view on screen, and the views on offer, or null where a swipe means nothing (browse, other than a reach). */
+const viewHere = (route: Route): { at: View; within: readonly WaterView[] } | null => {
+  if (route.mode === "water") return { at: route.stack[route.stack.length - 1]!.view, within: WATER_VIEWS };
+  if (route.tab === "conditions" && route.cond !== null && route.spot === null && !route.adding)
+    return { at: "conditions", within: REACH_VIEWS };
+  return null;
 };
 
-export interface PartSwipe {
-  /** False when there is nothing to step through (browse mode, no part yet, one part, parts not known). */
+/**
+ * The target of a finished sideways swipe, or null. In water mode: the neighbouring view in the strip's order
+ * (`@app/core` `WATER_VIEWS`), finger left = the view to the right; nothing past either end. On a Conditions-tab reach
+ * (a browse state, APP-PREP §0 rule 6): finger right = that reach's regulations, the same as its Regulations action.
+ */
+export function viewSwipeAction(route: Route, step: SwipeStep): ViewSwipeTarget | null {
+  const here = viewHere(route);
+  if (here === null) return null;
+  const to = stepView(here.at, step, here.within);
+  if (to === null) return null;
+  if (route.mode === "water") return { type: "view", view: to };
+  const cond = route.cond!;
+  return to === "regs" ? { type: "regulations", section: cond.section, at: cond.at } : null;
+}
+
+export interface ViewSwipe {
+  /** False where there is nothing to move between (browse, other than a Conditions reach). */
   enabled: boolean;
   starts(x: number, width: number): boolean;
   /** Where the view sits for a finger `dx` px along: with it toward a neighbour, held back toward an end. */
   offset(dx: number): number;
-  /** Released: steps (and says which way) or does nothing. */
+  /** Released: moves (and says which way) or does nothing. */
   release(dx: number, dy: number, vx: number): SwipeStep | null;
 }
 
-export function usePartSwipe(route: Route, go: (a: RouteAction) => void,
-                             order: readonly number[] | null): PartSwipe {
+/**
+ * The view swipe's measurements. `toRegulations` opens a reach's water (the Shell resolves its item — the same
+ * resolution as its Regulations action, so the swipe and the button cannot open two different waters).
+ */
+export function useViewSwipe(route: Route, go: (a: RouteAction) => void,
+                             toRegulations: (section: SectionId, at: LatLon | null) => void): ViewSwipe {
   const latest = useRef(route);
   latest.current = route;
-  const at = partPosition(route, order);
-  const count = order?.length ?? 0;
+  const here = viewHere(route);
+  const at = here?.at ?? null;
+  const within = here?.within ?? null;
   return useMemo(() => ({
-    enabled: at !== null && count > 1,
-    starts: partSwipeStarts,
-    offset: (dx: number) => follow(dx, at !== null && stepPart(at, count, dx < 0 ? "next" : "prev") !== null),
+    enabled: at !== null,
+    starts: viewSwipeStarts,
+    offset: (dx: number) =>
+      follow(dx, at !== null && within !== null && stepView(at, dx < 0 ? "next" : "prev", within) !== null),
     release: (dx: number, dy: number, vx: number) => {
       const step = classifySwipe(dx, dy, vx);
       if (step === null) return null;
-      const a = partSwipeAction(latest.current, order, step);
-      if (a === null) return null;
-      go(a);
+      const t = viewSwipeAction(latest.current, step);
+      if (t === null) return null;
+      if (t.type === "regulations") toRegulations(t.section, t.at);
+      else go(t);
       return step;
     },
-  }), [at, count, order, go]);
+  }), [at, within, go, toRegulations]);
 }

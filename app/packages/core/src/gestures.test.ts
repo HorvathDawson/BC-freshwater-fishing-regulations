@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { EDGE_BACK, MAP_GESTURES, RESIST, SHEET_DRAG, SWIPE, TAP_SLOP, classifySwipe, edgeBackCommits,
-         edgeBackEnabled, edgeBackStarts, follow, isTap, partSwipeStarts, sheetDismiss, stepPart } from "./gestures";
+         edgeBackEnabled, edgeBackStarts, follow, isTap, sheetDismiss, viewSwipeStarts } from "./gestures";
 
 const table = <A extends unknown[], R>(f: (...a: A) => R, rows: readonly A[]) =>
   rows.map((a) => [...a, f(...a)]);
@@ -50,9 +50,9 @@ describe("the left-edge back swipe", () => {
   });
 });
 
-describe("a part swipe", () => {
+describe("a view swipe", () => {
   it("never begins inside either edge zone", () => {
-    expect(table(partSwipeStarts, [[23, 390], [24, 390], [200, 390], [366, 390], [367, 390]]))
+    expect(table(viewSwipeStarts, [[23, 390], [24, 390], [200, 390], [366, 390], [367, 390]]))
       .toEqual([[23, 390, false], [24, 390, true], [200, 390, true], [366, 390, true], [367, 390, false]]);
   });
   it("by distance: under, at and over 60 px; finger left is next, right is prev", () => {
@@ -71,14 +71,6 @@ describe("a part swipe", () => {
                                  [-30, 0, 900], [30, 0, 500], [30, 0, -500]]))
       .toEqual([[-30, 0, -499, null], [-30, 0, -500, "next"], [-30, 0, -501, "next"], [-19, 0, -900, null],
                 [-20, 0, -900, "next"], [-30, 0, 900, null], [30, 0, 500, "prev"], [30, 0, -500, null]]);
-  });
-  it("steps within the water and stops at both ends (no wrap)", () => {
-    expect(table(stepPart, [[0, 3, "next"], [1, 3, "next"], [2, 3, "next"], [2, 3, "prev"], [1, 3, "prev"],
-                            [0, 3, "prev"], [0, 1, "next"], [0, 1, "prev"], [0, 0, "next"], [3, 3, "prev"],
-                            [-1, 3, "next"], [1.5, 3, "next"]] as const))
-      .toEqual([[0, 3, "next", 1], [1, 3, "next", 2], [2, 3, "next", null], [2, 3, "prev", 1], [1, 3, "prev", 0],
-                [0, 3, "prev", null], [0, 1, "next", null], [0, 1, "prev", null], [0, 0, "next", null],
-                [3, 3, "prev", null], [-1, 3, "next", null], [1.5, 3, "next", null]]);
   });
 });
 

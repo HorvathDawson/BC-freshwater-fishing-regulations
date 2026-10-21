@@ -6,8 +6,8 @@
  * asynchrony is what makes a double pop possible, so the model keeps it.
  */
 import { describe, expect, it } from "vitest";
-import type { ItemId } from "@app/data";
-import { backDepth, historySync, partSwipeAction, type HistoryPort } from "./gestures";
+import type { ItemId, SectionId } from "@app/data";
+import { backDepth, historySync, viewSwipeAction, type HistoryPort } from "./gestures";
 import { HOME, reduce, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
@@ -182,26 +182,34 @@ describe("the browser's history stays in step with the route", () => {
   });
 });
 
-describe("a part swipe is a part action on the neighbour, in step order", () => {
-  const water = (part: number | null, view: "regs" | "map" | "conditions" = "regs"): Route =>
-    ({ mode: "water", from: HOME, stack: [{ item: VEDDER, part, tapSid: null, view }] });
-  const order = [4, 0, 2];                         // part_ix in step order, mouth first
+describe("a view swipe moves between a water's views, Regulations · Conditions · Map", () => {
+  const water = (view: "regs" | "map" | "conditions"): Route =>
+    ({ mode: "water", from: HOME, stack: [{ item: VEDDER, part: 2, tapSid: null, at: null, view }] });
+  const AT = { lat: 49.1, lon: -121.9 };
+  const reach: Route = { ...HOME, tab: "conditions", cond: { section: 77 as SectionId, at: AT } };
 
-  it("next is upstream, prev is downstream; nothing past either end; nothing without a part or an order", () => {
-    const rows: [string, Route, readonly number[] | null, "next" | "prev"][] = [
-      ["mouth next", water(4), order, "next"], ["mouth prev", water(4), order, "prev"],
-      ["middle next", water(0), order, "next"], ["middle prev", water(0), order, "prev"],
-      ["top next", water(2), order, "next"], ["top prev", water(2, "map"), order, "prev"],
-      ["conditions view", water(0, "conditions"), order, "next"],
-      ["no part yet", water(null), order, "next"], ["part not in order", water(7), order, "next"],
-      ["no order", water(0), null, "next"], ["browse", HOME, order, "next"],
+  it("finger left is the view to the right; nothing past either end; the part never moves", () => {
+    const rows: [string, Route, "next" | "prev"][] = [
+      ["regs next", water("regs"), "next"], ["regs prev", water("regs"), "prev"],
+      ["conditions next", water("conditions"), "next"], ["conditions prev", water("conditions"), "prev"],
+      ["map next", water("map"), "next"], ["map prev", water("map"), "prev"],
     ];
-    expect(rows.map(([k, r, o, s]) => [k, partSwipeAction(r, o, s)])).toEqual([
-      ["mouth next", { type: "part", part: 0 }], ["mouth prev", null],
-      ["middle next", { type: "part", part: 2 }], ["middle prev", { type: "part", part: 4 }],
-      ["top next", null], ["top prev", { type: "part", part: 0 }],
-      ["conditions view", { type: "part", part: 2 }],
-      ["no part yet", null], ["part not in order", null], ["no order", null], ["browse", null],
+    expect(rows.map(([k, r, s]) => [k, viewSwipeAction(r, s)])).toEqual([
+      ["regs next", { type: "view", view: "conditions" }], ["regs prev", null],
+      ["conditions next", { type: "view", view: "map" }], ["conditions prev", { type: "view", view: "regs" }],
+      ["map next", null], ["map prev", { type: "view", view: "conditions" }],
+    ]);
+  });
+
+  it("a Conditions-tab reach: finger right opens its regulations (with the tap); nothing else in browse", () => {
+    const rows: [string, Route, "next" | "prev"][] = [
+      ["reach prev", reach, "prev"], ["reach next", reach, "next"],
+      ["conditions map", { ...HOME, tab: "conditions" }, "prev"], ["browse map", HOME, "prev"],
+      ["reach under a spot", { ...reach, spot: "s1" }, "prev"], ["adding", { ...reach, adding: true }, "prev"],
+    ];
+    expect(rows.map(([k, r, s]) => [k, viewSwipeAction(r, s)])).toEqual([
+      ["reach prev", { type: "regulations", section: 77, at: AT }], ["reach next", null],
+      ["conditions map", null], ["browse map", null], ["reach under a spot", null], ["adding", null],
     ]);
   });
 });

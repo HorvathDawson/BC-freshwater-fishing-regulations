@@ -21,7 +21,7 @@ carrying `{"canifishthis.back": n}`; ‹ drops its entry with `history.go(-n)`, 
 held so nothing pops twice; the browser's forward is refused), and the iOS left-edge swipe (`<EdgeBack>`, off on
 Android and the web, where the system owns that strip).
 
-## Part swipe — which way is which (owner "maybe")
+## Part swipe — SUPERSEDED 2026-10-21 by the view swipe (`../view-swipe/README.md`)
 Parts are stepped in the water map's order, **mouth first** (the ▼ Downstream / ▲ Upstream buttons):
 - **finger moves LEFT → next part UPSTREAM** (▲) — the next part slides in from the right, like turning a page;
 - **finger moves RIGHT → next part DOWNSTREAM** (▼);

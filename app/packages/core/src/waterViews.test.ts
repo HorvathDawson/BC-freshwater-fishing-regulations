@@ -1,0 +1,33 @@
+/**
+ * A water's views: the one order the strip draws and the swipe walks, every step from every view, both ends.
+ */
+import { describe, expect, it } from "vitest";
+import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, stepView, type WaterView } from "./waterViews";
+
+describe("the views and their words", () => {
+  it("Regulations · Conditions · Map, left to right (owner 2026-10-21)", () => {
+    expect(WATER_VIEWS.map((v) => [v, WATER_VIEW_LABEL[v]]))
+      .toEqual([["regs", "Regulations"], ["conditions", "Conditions"], ["map", "Map"]]);
+    expect({ WATER_VIEWS_LABEL, TO_REGULATIONS }).toEqual({
+      WATER_VIEWS_LABEL: "Views of this water",
+      TO_REGULATIONS: { label: "Regulations", hint: "The fishing regulations for this water" },
+    });
+  });
+});
+
+describe("stepView", () => {
+  it("next is the view to the right, prev the view to the left; nothing past either end (no wrap)", () => {
+    const rows = WATER_VIEWS.flatMap((v) => (["next", "prev"] as const).map((d) => [v, d, stepView(v, d)]));
+    expect(rows).toEqual([
+      ["regs", "next", "conditions"], ["regs", "prev", null],
+      ["conditions", "next", "map"], ["conditions", "prev", "regs"],
+      ["map", "next", null], ["map", "prev", "conditions"],
+    ]);
+  });
+  it("within a narrower set keeps the one order (the Conditions tab's reach offers Regulations and Conditions)", () => {
+    const two: WaterView[] = ["conditions", "regs"];            // given out of order: the order is still the strip's
+    expect([stepView("conditions", "prev", two), stepView("conditions", "next", two), stepView("regs", "next", two),
+            stepView("map", "prev", two), stepView("regs", "next", ["regs", "map"])])
+      .toEqual(["regs", null, "conditions", null, "map"]);
+  });
+});

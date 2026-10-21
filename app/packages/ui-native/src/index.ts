@@ -14,14 +14,15 @@ export { SpotsScreen } from "./SpotsScreen";
 export { SpotCapture, type SpotCaptureProps } from "./SpotCapture";
 export { ChartControls } from "./ChartControls";
 export { ConditionsPanel } from "./ConditionsPanel";
-export { FaceBar, type Face } from "./Faces";
+export { FaceBar, ViewTabs, type Face } from "./Faces";
 export { ConditionsScreen } from "./ConditionsScreen";
 export { SpotScreen } from "./SpotScreen";
 export { TabBar, TABS, type TabKey } from "./TabBar";
 export { Pill, LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
-export { PartSwipe } from "./PartSwipe";
+export { ViewSwipe, WaterViewsContext, type WaterViews } from "./ViewSwipe";
+export { WaterConditions, WaterMap } from "./WaterViews";
 export { LayersSheet, STOCK_BANDS, lakeChoices,
          type LayersState, type LayerChoice } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";

@@ -4,7 +4,7 @@
  * The sheet keeps its regulations face and says, in words, that regulations are coming. A
  * blank space there would read as "no rules apply", which is never true of any BC water.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
@@ -30,15 +30,12 @@ describe("<WaterScreen>", () => {
       expect(screen.queryByText(word)).toBeNull();
   });
 
-  it("opens the conditions on the water's first reach, nearest the mouth", async () => {
-    const source = makeFixtureSource();
-    const onConditions = vi.fn();
-    render(<WaterScreen source={source} item={"gnis:8634" as ItemId} palette={LIGHT}
-                        onConditions={onConditions} />);
+  it("has no door to the water's first reach: the header strip is the way to its conditions", async () => {
+    render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} />);
     await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy());
-    screen.getByLabelText("and the conditions: what the water is doing").click();
-    const water = await source.water("gnis:8634" as ItemId);
-    expect(onConditions).toHaveBeenCalledWith(water!.sections[0]);
+    expect(screen.queryByLabelText("and the conditions: what the water is doing")).toBeNull();
+    expect(screen.getAllByRole("tab").map((t) => [t.getAttribute("aria-label"), t.getAttribute("aria-selected")]))
+      .toEqual([["Regulations", "true"], ["Conditions", "false"]]);
   });
 
   it("says so when the bundle has no such water", async () => {

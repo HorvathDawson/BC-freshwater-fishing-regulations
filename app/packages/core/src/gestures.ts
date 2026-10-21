@@ -6,7 +6,7 @@
  * velocities in px per SECOND. A binding measures and calls these; it never compares a number of its own.
  *
  *   back       the left-edge swipe, only where the platform has no system back (`edgeBackEnabled`)
- *   part       a sideways swipe on a water's view steps to the neighbouring part (`classifySwipe`, `stepPart`)
+ *   view       a sideways swipe on a water moves to its neighbouring view (`classifySwipe`; the order is `waterViews`)
  *   sheet      a bottom sheet dragged down closes past a third of its height or on a flick (`sheetDismiss`)
  *   map        one policy for both map bindings (`MAP_GESTURES`): pan, pinch, double-tap and wheel zoom; no rotate,
  *              no tilt; a tap is a press that moved less than `TAP_SLOP`
@@ -19,7 +19,7 @@ export const TAP_SLOP = 8;
 export const EDGE_BACK = { zone: 24, commit: 80, flick: 500 } as const;
 
 /**
- * The sideways part swipe. `lock`: horizontal must beat vertical by this factor, or it is a scroll and nothing
+ * The sideways view swipe. `lock`: horizontal must beat vertical by this factor, or it is a scroll and nothing
  * steps (direction lock). Commits past `distance` px, or on a `flick` that has moved at least `flickMin` px the
  * same way (so a tap that happens to be fast steps nothing).
  */
@@ -28,7 +28,7 @@ export const SWIPE = { lock: 2, distance: 60, flick: 500, flickMin: 20 } as cons
 /** A sheet closes when dragged down past this fraction of its height, or on a downward `flick`. */
 export const SHEET_DRAG = { fraction: 1 / 3, flick: 800 } as const;
 
-/** How far a view may be pulled when there is nowhere to go (the end of a water): a short resistance, no wrap. */
+/** How far a view may be pulled when there is nowhere to go (the first or last view): a short resistance, no wrap. */
 export const RESIST = { factor: 0.3, max: 32 } as const;
 
 /** Did a press that moved (dx, dy) stay a tap? Strictly under `TAP_SLOP`. */
@@ -55,18 +55,18 @@ export function edgeBackCommits(dx: number, vx: number): boolean {
 }
 
 /**
- * May a part swipe begin at `x` in a view `width` px wide? Never inside either edge zone: the left one is the back
+ * May a view swipe begin at `x` in a window `width` px wide? Never inside either edge zone: the left one is the back
  * swipe's (iOS) and both are the system's edge gesture on Android and in a phone browser.
  */
-export function partSwipeStarts(x: number, width: number): boolean {
+export function viewSwipeStarts(x: number, width: number): boolean {
   return x >= EDGE_BACK.zone && x <= width - EDGE_BACK.zone;
 }
 
 export type SwipeStep = "next" | "prev";
 
 /**
- * A finished drag of (dx, dy) leaving at `vx` px/s: a step, or nothing. Finger moving LEFT is "next" (the next part
- * slides in from the right, like turning a page); finger moving RIGHT is "prev".
+ * A finished drag of (dx, dy) leaving at `vx` px/s: a step, or nothing. Finger moving LEFT is "next" (the view to the
+ * right slides in, like turning a page); finger moving RIGHT is "prev".
  */
 export function classifySwipe(dx: number, dy: number, vx: number): SwipeStep | null {
   const ax = Math.abs(dx);
@@ -75,16 +75,6 @@ export function classifySwipe(dx: number, dy: number, vx: number): SwipeStep | n
   const flick = ax >= SWIPE.flickMin && Math.abs(vx) >= SWIPE.flick && Math.sign(vx) === Math.sign(dx);
   if (!far && !flick) return null;
   return dx < 0 ? "next" : "prev";
-}
-
-/**
- * The neighbour of position `at` among `count` parts, or null at an end (no wrap). Positions are in the water's step
- * order — mouth first, the order of the water map's ▼ Downstream / ▲ Upstream buttons — so "next" is upstream.
- */
-export function stepPart(at: number, count: number, dir: SwipeStep): number | null {
-  if (!Number.isInteger(at) || !Number.isInteger(count) || at < 0 || at >= count) return null;
-  const to = dir === "next" ? at + 1 : at - 1;
-  return to >= 0 && to < count ? to : null;
 }
 
 /** A sheet dragged down `dy` px, released at `vy` px/s, `height` px tall: does it close? */

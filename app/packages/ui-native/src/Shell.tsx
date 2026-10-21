@@ -7,15 +7,15 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, type SectionKey,
-         type TempBand } from "@app/core";
+import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, WATER_VIEWS, WATER_VIEW_LABEL,
+         type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, waterFrame, type BrowseTab, type FlowParam,
-         type SpotPhotos } from "@app/ui";
-import { useBack, useEdgeBack, useOnLeave, usePartSwipe, type SystemBack } from "@app/ui";
+         type LatLon, type Route, type SpotPhotos } from "@app/ui";
+import { REACH_VIEWS, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -32,10 +32,11 @@ import { SpotsScreen } from "./SpotsScreen";
 import { SpotCapture } from "./SpotCapture";
 import { ConditionsScreen } from "./ConditionsScreen";
 import { SpotScreen } from "./SpotScreen";
-import { TabBar, type TabKey } from "./TabBar";
+import { TABS, TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
 import { EdgeBack } from "./EdgeBack";
-import { PartSwipe } from "./PartSwipe";
+import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
+import { WaterConditions, WaterMap } from "./WaterViews";
 import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
@@ -63,7 +64,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, photos, status = null, pairing = null,
-                       systemBack = null, loader = null }: {
+                       systemBack = null, loader = null, initialRoute }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -104,6 +105,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   systemBack?: SystemBack | null;
   /** T01: the release loader (P11), handed to the water screen for its Regulations page. null: the dev bundle. */
   loader?: ReleaseLoader | null;
+  /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
+  initialRoute?: Route;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -119,7 +122,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * open, the spot, the add flow and the Conditions drill are read from it; every way of moving dispatches to it.
    * Water mode keeps the browse state underneath (`from`), so back restores it whole.
    */
-  const [route, go] = useRoute();
+  const [route, go] = useRoute(initialRoute);
   const browse = route.mode === "browse" ? route : route.from;
   const tab: TabKey = browse.tab;
   const frame = waterFrame(route);
@@ -133,12 +136,26 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const condAt = route.mode === "browse" ? route.cond?.at ?? null : null;
   const toTab = (k: BrowseTab) => go({ type: "tab", tab: k });
   /*
-   * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe — and the sideways part swipe.
-   * The part order is the water map's (P15 `useWaterMap`), not read yet: until it is, the swipe is off.
+   * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
    */
   const { back, depth } = useBack(route, go, systemBack);
   const edge = useEdgeBack(back, Platform.OS, depth);
-  const partSwipe = usePartSwipe(route, go, null);
+  /*
+   * A CONDITIONS REACH -> ITS REGULATIONS: the water holding the reach, opened on the regs with the tap kept (the
+   * reach and its "you are here"), so its Conditions view one swipe away is the reach the reader was on. The same
+   * section -> item resolution a map tap uses, so the strip's Regulations and the swipe cannot open different waters.
+   */
+  const toRegulations = useCallback(async (sid: SectionId, at: LatLon | null) => {
+    const found = await source.itemForSection(sid);
+    if (found) { setPicked(null); go({ type: "openWater", item: found, tapSid: sid, at }); }
+  }, [source, go]);
+  /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
+  const viewSwipe = useViewSwipe(route, go, toRegulations);
+  /**
+   * THE MAP UNDER A WATER'S MAP VIEW asks the Map tab's questions (the day's status), whatever tab the water was
+   * opened from — a water opened from a Conditions reach must not paint its map with flow percentiles.
+   */
+  const mapTab: BrowseTab = item !== null ? "map" : tab;
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(null);
   /**
@@ -248,7 +265,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
    */
-  const mm = useMapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, lake: lakeChoice, groups });
+  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, lake: lakeChoice, groups });
   const { onConditions, quantity, modes, activeGroups } = mm;
   // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
   // grey for its whole length because the station matched to those reaches had gone quiet,
@@ -299,8 +316,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const camera = useRef<Camera>(HOME);
   const statusMapData = useMemo(
-    () => (statusOk && tab === "map" ? statusData(statusIndex, visible, mapDay ?? new Date()) : undefined),
-    [statusOk, statusIndex, tab, visible, mapDay]);
+    () => (statusOk && mapTab === "map" ? statusData(statusIndex, visible, mapDay ?? new Date()) : undefined),
+    [statusOk, statusIndex, mapTab, visible, mapDay]);
+  /** The water's map view: the water framed and lit (the search's framing; P15 adds its parts). */
+  const waterFocus = usePickFocus(source, frame?.view === "map" ? item : null);
+  /** Its own camera, so leaving water mode puts the browse map back where the reader left it (APP-PREP §0 rule 1). */
+  const waterCamera = useRef<Camera | null>(null);
 
   /**
    * Tapping the map. A tile carries a `section_id`, and a section is not something a person
@@ -390,32 +411,43 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    onSaved={async (s) => { await onSaveSpot(s); toTab("spots"); }} />
     );
 
-  const body = item !== null
-    ? <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
-                   // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
-                   loader={loader} day={mapDay} onDay={setMapDay} section={frame?.tapSid ?? null}
-                   part={frame?.part ?? null}
-                   // NO `feed`. The sheet quotes no number, so it reads no gauge data —
-                   // see the note in WaterScreen about why the hooks came out with the UI.
-                   // The toggle LEAVES for the one conditions screen rather than rendering
-                   // a second one here. Opening it from a list means there is no tapped
-                   // point, so the route map has no "you are here" — which is honest: the
-                   // reader did not choose one.
-                   /*
-                    * BACK TO THE REACH YOU CAME FROM, when there is one.
-                    *
-                    * `sec` is this water's FIRST reach — the right answer when the sheet
-                    * was opened from a search or a list, and the wrong one when the reader
-                    * arrived from a tap two hundred kilometres upstream. `condSection` is
-                    * that tap, kept across the round trip and cleared by every route that
-                    * opens a DIFFERENT water (search, a map tap, a tab change).
-                    */
-                   onConditions={(sec) => {
-                     const kept = route.mode === "water" ? route.from.cond : null;
-                     go({ type: "back" });
-                     go({ type: "condSection", section: kept?.section ?? sec, at: kept?.at ?? null });
-                   }}
-                   onBack={back} />
+  const body = item !== null && frame !== null
+    ? frame.view === "conditions"
+      ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette}
+                         tiles={tiles} theme={theme}
+                         parameter={flowParam === "temperature" ? undefined : flowParam}
+                         onParameter={setFlowParam}
+                         from={frame.at}
+                         onRegulations={() => go({ type: "view", view: "regs" })}
+                         onBack={back} feed={feed}
+                         credits={attribution} horizon={horizon}
+                         onHorizon={hz.pick} />
+      : frame.view === "map"
+        ? <WaterMap source={source} item={item} palette={palette}>
+            <MapScreen at={tiles} palette={palette} theme={theme}
+                       camera={waterCamera.current ?? camera.current}
+                       basemap={layers.basemap}
+                       fit={waterFocus ? { key: waterFocus.key, bbox: waterFocus.bbox, refine: waterFocus.refine } : null}
+                       highlight={waterFocus?.highlight ?? NONE}
+                       data={statusMapData}
+                       onVisible={noteVisible}
+                       onMoved={(at) => { waterCamera.current = at; }}
+                       view="plain" modes={modes} groups={activeGroups}
+                       // another water opens on top (back returns here); a tap on this one changes nothing yet (P15)
+                       onPressFeature={async (_l, id) => {
+                         const sid = Number(id) as SectionId;
+                         const found = await source.itemForSection(sid);
+                         if (found && found !== item) go({ type: "openWater", item: found, tapSid: sid });
+                       }}
+                       onError={(e) => console.error("map:", e.message)} />
+          </WaterMap>
+        : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
+                       // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
+                       loader={loader} day={mapDay} onDay={setMapDay} section={frame.tapSid}
+                       part={frame.part}
+                       // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
+                       // swipe away, is where a water's numbers are.
+                       onBack={back} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} status={status}
                       // the eye: SHOW it on the main map, framed and lit; back returns here as it was
@@ -446,7 +478,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                              * are here". One component, two completely different answers,
                              * which reads as two different screens.
                              */
-                            onRegulations={(sec) => { void onPressFeature("stream", sec); }}
+                            onRegulations={(sec) => { void toRegulations(sec, condAt); }}
                             onBack={back} feed={feed}
                             credits={attribution} horizon={horizon}
                             onHorizon={hz.pick} />
@@ -538,6 +570,25 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * THE MAP TAB HAS A LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE: the day's status
    * (once the index is in), or the lakes' Stocked colouring. Plain water needs no key.
    */
+  /*
+   * THE WATER'S HEADER (FaceBar): the views on offer, the one on screen, and where back goes, in the reader's words.
+   * In water mode all three views; on a Conditions-tab reach, Regulations and Conditions (it IS that reach's
+   * conditions; Regulations opens its water). The swipe listens on the header except where a body detector already
+   * covers it (the Regulations view).
+   */
+  const fromLabel = (b: typeof browse) =>
+    b.cond !== null ? TABS.find((t) => t.k === "conditions")!.t : TABS.find((t) => t.k === b.tab)!.t;
+  const waterViews: WaterViews | null = route.mode === "water" && frame !== null
+    ? { views: WATER_VIEWS, on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
+        backLabel: frame.view !== "regs" ? WATER_VIEW_LABEL.regs
+                   : route.stack.length > 1 ? "Back" : fromLabel(route.from),
+        swipe: frame.view === "regs" ? null : viewSwipe, bodySwipe: frame.view === "regs" ? viewSwipe : null }
+    : route.mode === "browse" && tab === "conditions" && condSection !== null
+      ? { views: REACH_VIEWS, on: "conditions", onBack: back, backLabel: fromLabel({ ...browse, cond: null }),
+          onView: (v) => { if (v === "regs") void toRegulations(condSection, condAt); }, swipe: viewSwipe,
+          bodySwipe: null }
+      : null;
+
   const showLegend = item === null && condSection === null
     && (tab === "conditions"
         || (tab === "map" && (layers.lake === "stocked" || statusOk)));
@@ -574,7 +625,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         </Text>
       )}
       <View style={{ flex: 1 }}>
-        <EdgeBack drag={edge}>{item !== null ? <PartSwipe swipe={partSwipe}>{body}</PartSwipe> : body}</EdgeBack>
+        <EdgeBack drag={edge}>
+          <WaterViewsContext.Provider value={waterViews}>
+            {/* the Regulations view takes the swipe anywhere on it; Conditions and Map from their header only (their
+                maps pan and their charts are read with a finger) — see `waterViews` */}
+            {body}
+          </WaterViewsContext.Provider>
+        </EdgeBack>
       </View>
       {showLegend && (
         <LegendStrip palette={palette} full={onConditions}>

@@ -1,26 +1,33 @@
 /**
- * The two questions a water answers, and the way back — one row, identical on both screens.
+ * A water's header: the way back, and its views as ONE strip — identical on every screen a water is read on.
  *
- * IT DOES NOT MOVE. The switch used to sit under the title on the rules sheet and under the
- * back link on the Conditions screen, so pressing it made it jump: the control you just
- * used ends up somewhere else, and a second press means finding it again. A toggle whose
- * position depends on which side of the toggle you are on is the one control that must not.
+ *   ‹ Back-to-where-you-came-from
+ *   Regulations   Conditions   Map          (the selected view underscored in ink: the regs header's tabs, v11)
  *
- * PRESSING THE OTHER ONE LEAVES. Sharing a panel between the two faces made them agree on
- * the numbers and on nothing else — the Conditions screen carries the reach you actually
- * tapped, the coordinate that puts "you are here" on the route map, and the map's own
- * flow/level choice, and a sheet opened from a search result knows none of those. Two
- * surfaces answering one question, one of them permanently the poorer.
+ * ONE ORDER, LEFT TO RIGHT, and it is the swipe's (`@app/core` `WATER_VIEWS`): a finger moving left brings in the
+ * view written to the right. The strip and the swipe can never disagree because they read the same list.
  *
- * Both labels stay visible rather than showing only the alternative: which two questions
- * this water answers is itself information, and a reader who does not know Conditions
- * exists will never go looking for it.
+ * IT DOES NOT MOVE. The row sits in the same place on Regulations, Conditions and Map, so the control you just used
+ * is where you left it.
+ *
+ * TWO SOURCES, ONE DRAWING. In water mode, and on a Conditions-tab reach, the Shell provides `WaterViewsContext`: the
+ * views on offer, the one on screen, where back goes and the swipe, which the row then listens for (on the Map view
+ * the header is the ONLY place it listens — the canvas pans). Without it (a screen mounted alone) the row falls back
+ * to the `face` / `onFace` props, offering Regulations and Conditions.
+ *
+ * Both labels stay visible rather than showing only the alternative: which questions this water answers is itself
+ * information, and a reader who does not know Conditions exists will never go looking for it.
  */
+import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
+import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
+import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { SPACE, type Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
+
+const toView = (f: Face): WaterView => (f === "regulations" ? "regs" : "conditions");
 
 export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   palette: Palette; face: Face; onFace: (f: Face) => void;
@@ -28,33 +35,52 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   /** Where back goes, in the reader's words — "Conditions", "Map", "Search". */
   backLabel?: string;
 }) {
-  const items: [Face, string][] = [["conditions", "Conditions"],
-                                   ["regulations", "Regulations"]];
-  return (
-    <View style={{ gap: 10 }}>
-      {onBack && (
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>
-            {`‹  ${backLabel ?? "Back"}`}
-          </Text>
+  const ctx = useContext(WaterViewsContext);
+  const views = ctx?.views ?? (["regs", "conditions"] as const);
+  const on = ctx?.on ?? toView(face);
+  const pick = ctx?.onView ?? ((v: WaterView) => { if (v !== "map") onFace(v === "regs" ? "regulations" : "conditions"); });
+  const back = ctx?.onBack ?? onBack;
+  const label = ctx?.backLabel ?? backLabel ?? "Back";
+
+  const row = (
+    <View style={{ gap: SPACE.s1 }}>
+      {back && (
+        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back"
+                   hitSlop={8} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
+          <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`‹  ${label}`}</Text>
         </Pressable>
       )}
-      <View style={{ flexDirection: "row", gap: 8 }} accessibilityRole="radiogroup">
-        {items.map(([id, label]) => {
-          const on = face === id;
-          return (
-            <Pressable key={id} onPress={() => onFace(id)} accessibilityRole="button"
-                       aria-selected={on} accessibilityLabel={label}
-                       style={{ paddingVertical: 8, paddingHorizontal: 16,
-                                borderRadius: palette.r.pill, borderWidth: 1,
-                                borderColor: on ? palette.accent : palette.line,
-                                backgroundColor: on ? palette.tint : "transparent" }}>
-              <Text style={{ ...TYPE.micro, fontSize: 12,
-                             color: on ? palette.accent : palette.sub }}>{label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <ViewTabs palette={palette} views={views} on={on} onView={pick} />
+    </View>
+  );
+  return ctx?.swipe ? <ViewSwipe swipe={ctx.swipe} fill={false} testId="view-swipe-header">{row}</ViewSwipe>
+                    : row;
+}
+
+/**
+ * The view strip: the regs header's tabs (v11 `.segm[role=tablist]`: 700 --t4, 22 px apart, the selected one
+ * underscored 3 px in ink, the rest in `sub`), with a hairline under the whole row so it reads as the header's edge.
+ */
+export function ViewTabs({ palette, views, on, onView }: {
+  palette: Palette; views: readonly WaterView[]; on: WaterView; onView: (v: WaterView) => void;
+}) {
+  const shown = WATER_VIEWS.filter((v) => views.includes(v));
+  return (
+    <View accessibilityRole="tablist" accessibilityLabel={WATER_VIEWS_LABEL}
+          style={{ flexDirection: "row", gap: 22, borderBottomWidth: 1, borderBottomColor: palette.line }}>
+      {shown.map((v) => {
+        const sel = v === on;
+        return (
+          <Pressable key={v} onPress={() => { if (!sel) onView(v); }}
+                     accessibilityRole="tab" aria-selected={sel} accessibilityLabel={WATER_VIEW_LABEL[v]}
+                     accessibilityHint={v === "regs" ? TO_REGULATIONS.hint : undefined}
+                     style={{ minHeight: 38, justifyContent: "flex-end", paddingTop: 2, marginBottom: -1,
+                              borderBottomWidth: 3, borderBottomColor: sel ? palette.ink : "transparent" }}>
+            <Text style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,
+                           color: sel ? palette.ink : palette.sub }}>{WATER_VIEW_LABEL[v]}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

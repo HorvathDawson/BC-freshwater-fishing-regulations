@@ -25,7 +25,7 @@ describe("route (P13): one value, one back rule", () => {
     const w = run(HOME, { type: "openWater", item: VEDDER, part: 1 },
                   { type: "flowInto", item: FRASER, part: 4 }, { type: "flowInto", item: HARRISON, part: 0 });
     const back2 = run(w, { type: "back" }, { type: "back" });
-    expect(back2.mode === "water" && back2.stack).toEqual([{ item: VEDDER, part: 1, tapSid: null, view: "regs" }]);
+    expect(back2.mode === "water" && back2.stack).toEqual([{ item: VEDDER, part: 1, tapSid: null, at: null, view: "regs" }]);
   });
 
   it("the water stack is capped at 8, dropping the oldest", () => {
@@ -94,17 +94,37 @@ describe("waterFrame (T01): what the water screen is handed — the water, its p
 
   it("a map tap keeps its section; a search open has none; a water flowed into has none, at its part", () => {
     const tap = reduce(HOME, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId });
-    expect(waterFrame(tap)).toEqual({ item: VEDDER, part: null, tapSid: 77, view: "regs" });
-    expect(waterFrame(reduce(HOME, { type: "openWater", item: VEDDER }))).toEqual({ item: VEDDER, part: null, tapSid: null, view: "regs" });
+    expect(waterFrame(tap)).toEqual({ item: VEDDER, part: null, tapSid: 77, at: null, view: "regs" });
+    expect(waterFrame(reduce(HOME, { type: "openWater", item: VEDDER }))).toEqual({ item: VEDDER, part: null, tapSid: null, at: null, view: "regs" });
     const flowed = reduce(tap, { type: "flowInto", item: FRASER, part: 4 });
-    expect(waterFrame(flowed)).toEqual({ item: FRASER, part: 4, tapSid: null, view: "regs" });
+    expect(waterFrame(flowed)).toEqual({ item: FRASER, part: 4, tapSid: null, at: null, view: "regs" });
     // back to the first water: its own tap again, never the second water's
-    expect(waterFrame(reduce(flowed, { type: "back" }))).toEqual({ item: VEDDER, part: null, tapSid: 77, view: "regs" });
+    expect(waterFrame(reduce(flowed, { type: "back" }))).toEqual({ item: VEDDER, part: null, tapSid: 77, at: null, view: "regs" });
   });
 
   it("a tap on another water from inside water mode is that water's tap", () => {
     const w = run(HOME, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId },
                   { type: "openWater", item: HARRISON, tapSid: 12 as SectionId });
-    expect(waterFrame(w)).toEqual({ item: HARRISON, part: null, tapSid: 12, view: "regs" });
+    expect(waterFrame(w)).toEqual({ item: HARRISON, part: null, tapSid: 12, at: null, view: "regs" });
+  });
+});
+
+describe("the views are lateral: the strip or a swipe moves them, back returns to the regs, then where it came from", () => {
+  const AT = { lat: 49.1, lon: -121.9 };
+  it("a Conditions reach -> its Regulations keeps the tap; Conditions -> Map -> back -> back is that same reach", () => {
+    const reach = run(HOME, { type: "condSection", section: 77 as SectionId, at: AT });
+    const regs = reduce(reach, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId, at: AT });
+    expect(waterFrame(regs)).toEqual({ item: VEDDER, part: null, tapSid: 77, at: AT, view: "regs" });
+    const views = [regs];
+    for (const v of ["conditions", "map", "conditions"] as const) views.push(reduce(views.at(-1)!, { type: "view", view: v }));
+    expect(views.map((r) => waterFrame(r)!.view)).toEqual(["regs", "conditions", "map", "conditions"]);
+    const back1 = reduce(views.at(-1)!, { type: "back" });
+    expect(waterFrame(back1)).toEqual({ item: VEDDER, part: null, tapSid: 77, at: AT, view: "regs" });
+    expect(reduce(back1, { type: "back" })).toBe(reach);
+  });
+
+  it("a tap point without its section is dropped (it would place \"you are here\" on no reach)", () => {
+    expect(waterFrame(reduce(HOME, { type: "openWater", item: VEDDER, at: AT })))
+      .toEqual({ item: VEDDER, part: null, tapSid: null, at: null, view: "regs" });
   });
 });

@@ -1,5 +1,5 @@
 /**
- * The gesture components, mounted (G1): `<EdgeBack>`, `<PartSwipe>` and the `Sheet` drag, driven through
+ * The gesture components, mounted (G1): `<EdgeBack>`, `<ViewSwipe>` and the `Sheet` drag, driven through
  * react-native-gesture-handler's own test utility (`fireGestureHandler`), which delivers a handler's event sequence
  * (began → active → end) to the callbacks the component registered.
  *
@@ -13,9 +13,9 @@ import { Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
-import { HOME, useEdgeBack, usePartSwipe, useRoute, type Route } from "@app/ui";
+import { HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type Route } from "@app/ui";
 import { EdgeBack } from "./EdgeBack";
-import { PartSwipe } from "./PartSwipe";
+import { ViewSwipe } from "./ViewSwipe";
 import { Sheet } from "./Sheet";
 import { LIGHT } from "./theme";
 
@@ -73,55 +73,67 @@ describe("<EdgeBack> (iOS only)", () => {
 });
 
 const VEDDER = "gnis:3062" as ItemId;
-const at = (part: number | null): Route => ({ mode: "water", from: HOME,
-                                              stack: [{ item: VEDDER, part, tapSid: null, view: "regs" }] });
+const on = (view: "regs" | "conditions" | "map"): Route =>
+  ({ mode: "water", from: HOME, stack: [{ item: VEDDER, part: 2, tapSid: null, at: null, view }] });
 
-function Parts({ start, order }: { start: Route; order: readonly number[] | null }) {
+function Views({ start }: { start: Route }) {
   const [route, go] = useRoute(start);
-  const swipe = usePartSwipe(route, go, order);
-  const part = route.mode === "water" ? route.stack[0]!.part : null;
+  const swipe = useViewSwipe(route, go, () => {});
+  const f = waterFrame(route);
   return (
     <GestureHandlerRootView>
-      <PartSwipe swipe={swipe}><Text>{`part ${part}`}</Text></PartSwipe>
+      <ViewSwipe swipe={swipe}><Text>{`${f?.view} · part ${f?.part}`}</Text></ViewSwipe>
     </GestureHandlerRootView>
   );
 }
 
-describe("<PartSwipe> (owner: maybe)", () => {
+describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the section)", () => {
   // a phone-wide window (jsdom's is 0 x 0, which no swipe can start in): the edge zones are [0, 24) and (366, 390]
   beforeAll(() => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
     Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
     window.dispatchEvent(new Event("resize"));
   });
-  const order = [4, 0, 2];
-  const swipe = (start: Route, events: object[], o: readonly number[] | null = order) => {
-    render(<Parts start={start} order={o} />);
-    fire("part-swipe", events);
-    const text = screen.getByText(/^part /).textContent;
+  const swipe = (start: Route, events: object[]) => {
+    render(<Views start={start} />);
+    fire("view-swipe", events);
+    const text = screen.getByText(/ · part /).textContent;
     cleanup();
     return text;
   };
 
-  it("finger left steps upstream, right downstream, in step order; no wrap at either end", () => {
+  it("finger left brings in the view to the right (Regulations · Conditions · Map), right the one to the left; no wrap", () => {
     expect([
-      swipe(at(4), pan(200, -100)), swipe(at(0), pan(200, -100)), swipe(at(2), pan(200, -100)),
-      swipe(at(0), pan(200, 100)), swipe(at(4), pan(200, 100)),
-    ]).toEqual(["part 0", "part 2", "part 2", "part 4", "part 4"]);
+      swipe(on("regs"), pan(200, -100)), swipe(on("conditions"), pan(200, -100)), swipe(on("map"), pan(200, -100)),
+      swipe(on("map"), pan(200, 100)), swipe(on("conditions"), pan(200, 100)), swipe(on("regs"), pan(200, 100)),
+    ]).toEqual(["conditions · part 2", "map · part 2", "map · part 2",
+                "conditions · part 2", "regs · part 2", "regs · part 2"]);
   });
 
-  it("a scroll, a short drag, an edge-zone start, no part and unknown parts all leave the part alone", () => {
+  it("a scroll, a short drag and a start in either edge zone leave the view alone", () => {
     expect([
-      swipe(at(0), pan(200, -100, 80)), swipe(at(0), pan(200, -40)), swipe(at(0), pan(10, 100)),
-      swipe(at(0), pan(380, -100)), swipe(at(null), pan(200, -100)), swipe(at(0), pan(200, -100), null),
-    ]).toEqual(["part 0", "part 0", "part 0", "part 0", "part null", "part 0"]);
+      swipe(on("regs"), pan(200, -100, 80)), swipe(on("regs"), pan(200, -40)), swipe(on("regs"), pan(10, -100)),
+      swipe(on("regs"), pan(380, -100)),
+    ]).toEqual(["regs · part 2", "regs · part 2", "regs · part 2", "regs · part 2"]);
   });
 
-  it("a flick steps after 20 px", () => {
-    expect([swipe(at(0), pan(200, -25, 0, -700)), swipe(at(0), pan(200, -25, 0, -300))])
-      .toEqual(["part 2", "part 0"]);
+  it("a flick moves after 20 px", () => {
+    expect([swipe(on("regs"), pan(200, -25, 0, -700)), swipe(on("regs"), pan(200, -25, 0, -300))])
+      .toEqual(["conditions · part 2", "regs · part 2"]);
+  });
+
+  it("is off while browsing the map", () => {
+    render(<GestureHandlerRootView><BrowseProbe /></GestureHandlerRootView>);
+    fire("view-swipe", pan(200, 100));
+    expect(screen.getByText(/^mode /).textContent).toBe("mode browse");
   });
 });
+
+function BrowseProbe() {
+  const [route, go] = useRoute(HOME);
+  const swipe = useViewSwipe(route, go, () => {});
+  return <ViewSwipe swipe={swipe}><Text>{`mode ${route.mode}`}</Text></ViewSwipe>;
+}
 
 describe("the Sheet drag (Layers, and the sheets to come)", () => {
   const drag = (events: object[]) => {
