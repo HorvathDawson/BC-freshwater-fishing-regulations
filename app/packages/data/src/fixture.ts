@@ -12,6 +12,7 @@ import type {
   Aged, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
 } from "./index";
+import { buildStandingClasses } from "./standing";
 
 const id = <T extends string>(s: string): T => s as T;
 
@@ -287,6 +288,8 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // The design fixture has no watershed polygons, so the field has nothing to colour.
     // Empty is the real answer, and the map draws no field rather than a wrong one.
     async basinMembers() { return new Map(); },
+    // No panel, no lake station, no basin: every section is unmeasured, which is what the viewport path answers too.
+    async standingClasses() { return buildStandingClasses("fixture", [], new Map(), new Map(), new Map()); },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

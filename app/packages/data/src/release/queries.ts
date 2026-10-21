@@ -96,6 +96,12 @@ export const CROSS = {
   /** conditions: the lake road's second half — the lowest station in each lake, stably. */
   LAKE_STATIONS: (n: number) => ({ file: "conditions", sql:
     `SELECT item_id, min(station) AS station FROM lake_gauge WHERE item_id IN (${ids(n)}) GROUP BY item_id` }),
+  /** conditions: EVERY gauged lake and its lowest station — the Conditions map's lake classes, once per release. */
+  ALL_LAKE_STATIONS: { file: "conditions", sql:
+    "SELECT item_id, min(station) AS station FROM lake_gauge GROUP BY item_id" },
+  /** core: the sections of these items (the lake classes' second half). */
+  SECTIONS_FOR_ITEMS: (n: number) => ({ file: "core", sql:
+    `SELECT s.sid, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE i.item_id IN (${ids(n)})` }),
   GAUGE_PLACES: (n: number) => ({ file: "conditions", sql: B.gaugePlaces(n) }),
   /** water: the answer keys of a water's parts (part's primary key is (item_ord, part_ix)). */
   AKEYS_FOR_ORD: { file: "water", sql:

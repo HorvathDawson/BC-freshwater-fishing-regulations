@@ -12,7 +12,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
   it("the Map tab with the day's status in: every water wears it, through the profile mode (colour-latency AP)", () => {
     expect(at({})).toEqual({
       onConditions: false, quantity: "flow", standingParam: "discharge", standingHorizon: 3, fieldOn: false,
-      horizonsShown: false,
+      horizonsShown: false, asksVisible: false,
       modes: { stream: "profile", lake: "profile", lake_flowing: "profile", wetland_flowing: "profile",
                gauges: "standing", basin: "plain" },
       activeGroups: { depth: false, admin: true },
@@ -26,6 +26,13 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       stream: "status", lake: "status", lake_flowing: "status", wetland_flowing: "status", gauges: "standing",
       basin: "plain" });
     expect(at({ perTile: false, statusOk: false }).modes.stream).toBe("plain");
+  });
+
+  it("the map is asked what is on screen only where something reads it (the one-pathway audit, 2026-10-21)", () => {
+    // web Map tab: the engine colours each tile, nothing reads the visible list — no `idle` -> React round trip per pan;
+    // Conditions: the legend's marks; the phone: its pushed colours on both tabs
+    expect([at({}), at({ tab: "conditions" }), at({ perTile: false }), at({ perTile: false, tab: "conditions" })]
+      .map((m) => m.asksVisible)).toEqual([false, true, true, true]);
   });
 
   it("the Map tab before the index is in: plain, never 'base'", () => {
@@ -44,7 +51,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
   it("Conditions, flow, zoomed out: standings everywhere, the field on, the map's horizons offered", () => {
     expect(at({ tab: "conditions", zoomedOut: true })).toEqual({
       onConditions: true, quantity: "flow", standingParam: "discharge", standingHorizon: 3, fieldOn: true,
-      horizonsShown: true,
+      horizonsShown: true, asksVisible: true,
       modes: { stream: "standing", lake: "standing", lake_flowing: "standing", wetland_flowing: "standing",
                gauges: "standing", basin: "standing" },
       activeGroups: { depth: false, admin: true },
@@ -60,7 +67,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
   it("Conditions under temperature: the water plain, the dots by band, today only, no field, no horizons", () => {
     expect(at({ tab: "conditions", flowParam: "temperature", zoomedOut: true })).toEqual({
       onConditions: true, quantity: "temperature", standingParam: "discharge", standingHorizon: 0, fieldOn: false,
-      horizonsShown: false,
+      horizonsShown: false, asksVisible: true,
       modes: { stream: "plain", lake: "plain", lake_flowing: "plain", wetland_flowing: "plain",
                gauges: "temperature", basin: "plain" },
       activeGroups: { depth: false, admin: true },

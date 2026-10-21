@@ -66,6 +66,13 @@ export interface MapModesVM {
    * panel header's state (`useHorizon`), so the two never disagree.
    */
   horizonsShown: boolean;
+  /**
+   * Whether the map is asked what is on screen (`MapProps.onVisible`: the `idle` -> query -> React round trip). Only
+   * where something reads the answer: the Conditions legend's marks, and the phone's pushed colours (status, standing).
+   * NOT the web Map tab, where the colouring engine labels each tile itself and a per-pan re-render of the Shell would
+   * be work for nothing (the one-pathway audit, 2026-10-21).
+   */
+  asksVisible: boolean;
   modes: MapModes;
   activeGroups: Record<string, boolean>;
 }
@@ -110,6 +117,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     standingHorizon: temperature ? 0 : i.horizon,
     fieldOn: onConditions && !temperature && i.zoomedOut,
     horizonsShown: onConditions && !temperature,
+    asksVisible: !i.perTile || onConditions,
     modes, activeGroups,
   };
 }

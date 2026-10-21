@@ -16,7 +16,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
+import { useConditionsColour, useDataFacts, useGaugeGeoJSON,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
@@ -265,45 +265,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake: lakeChoice,
                            groups });
   const { onConditions, quantity, modes, activeGroups } = mm;
-  // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
-  // grey for its whole length because the station matched to those reaches had gone quiet,
-  // while a tap on that same grey opened a sheet answering confidently from two other
-  // gauges. One arithmetic now serves both — see `usePanelStandings`.
-  const standings = usePanelStandings(source, feed, visible, mm.standingParam, mm.standingHorizon);
-  // THE FIELD, and only where it is the answer — see `mapModes` for when.
-  const basins = useBasinStandings(source, feed, mm.fieldOn, mm.standingParam, horizon);
+  /*
+   * THE CONDITIONS COLOURING, per renderer (`useConditionsColour`): on a map that labels each tile, the release's
+   * classes and the feed's values at the horizon (`standing` — one engine call per feed refresh or horizon change);
+   * otherwise the visible sections' standings, pushed (`data`). Both FROM THE PANEL, through one arithmetic.
+   */
+  const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
+                                     horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible });
   const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
-
-  // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
-  // "gauged but no history") are excluded: they are a state, not a point on the scale.
-  const visibleMarks = useMemo(
-    () => [...standings.values()].filter((p) => p >= 0).sort((a, b) => a - b),
-    [standings]);
-  // Into the map's OWN per-feature channel — `setData` already pushes these to
-  // feature-state. A second mechanism beside it would be two ways to colour one map.
-  //
-  // × 100 BECAUSE THE STYLE'S RAMP IS A PERCENTAGE. `color.flow` stops at 0 / 50 / 100
-  // while every percentile in this app is 0–1 (that is what `@app/core`'s `standing()`
-  // takes, and what the feed publishes). Feeding 0.05 into a 0–100 ramp put every river in
-  // the province onto the bottom one percent of the scale — which renders as one flat
-  // colour and looks exactly like data that never arrived. Converting HERE, at the one
-  // point where app data meets the style, keeps 0–1 as the only representation anything
-  // else has to know about.
-  const conditionData = useMemo(
-    () => ({ stream: Object.fromEntries(
-      // × 100 for the ramp's percentage scale — but the -0.01 sentinel ("gauged, no
-      // history") scales to -1, which is exactly the stop the style reserves for it.
-      [...standings].map(([section, p]) => [section, { standing: p * 100 }])),
-      // THE SAME VALUES ON THE LAKES. `standings` is keyed by section and a lake section
-      // is a section — the map just has to be told twice, because feature-state is per
-      // layer and the lake polygons are a different layer from the stream lines.
-      lake: Object.fromEntries(
-        [...standings].map(([section, p]) => [section, { standing: p * 100 }])),
-      // AND THE FIELD, on the same scale from the same readings — see `useBasinStandings`.
-      // Empty above the handover zoom, where the layer is not drawn and the rivers answer.
-      basin: Object.fromEntries(
-        [...basins].map(([id, p]) => [id, { standing: p * 100 }])) }),
-    [standings, basins]);
+  // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
+  const visibleMarks = cond.marks;
+  const conditionData = cond.data;
   /**
    * The camera survives leaving the map.
    *
@@ -477,12 +449,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        : null}
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : statusMapData}
+                     standing={cond.standing}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
                      // must be answerable from the map without changing tab.
                      gauges={onConditions ? gauges ?? undefined : undefined}
-                     onVisible={noteVisible}
+                     onVisible={mm.asksVisible ? noteVisible : undefined}
                      onMoved={(at) => {
                        camera.current = at;
                        // The ref is deliberate — see below — but ONE BIT of the camera is

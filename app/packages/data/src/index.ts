@@ -498,6 +498,14 @@ export interface RegsSource {
    * the number is not a footnote — it is what stops the field claiming more than it knows.
    */
   basinMembers(): Promise<ReadonlyMap<string, readonly BasinMember[]>>;
+  /**
+   * THE CONDITIONS MAP'S STATIC HALF, for the whole release: every section's standing CLASS (a donor panel at one
+   * target area, or a lake's own station) and the basins' stations — what the map reads a section's value through as
+   * its tile arrives, so a feed refresh or a horizon change asks one value per class, never one panel read per section
+   * (`standing.ts`).
+   * Read once per source; the same panels, lakes and basins `panelsFor`, `lakeStationsFor` and `basinMembers` answer.
+   */
+  standingClasses(): Promise<import("./standing").StandingClasses>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;
@@ -555,6 +563,8 @@ export { httpFeed, type GaugeFeed } from "./feed/http";
 // The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
 // one of them not a screen, so it cannot live behind a hook — see ./panel.ts.
 export * from "./panel";
+// The Conditions map's standings, per class of section (the static half) and per feed (the changing half) — ./standing.ts.
+export * from "./standing";
 // THE RELEASE (P10): verified fetches, the manifest's diff and pairing
 export { fetchVerified, verify, ungzip, VerifyError } from "./fetchVerified";
 export { loadManifest, parseManifest, diff, pair, compatible, ManifestError, type Held, type Pairing,

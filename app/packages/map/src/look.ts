@@ -1,6 +1,6 @@
 /**
  * THE LOOK, ONE SEQUENCE FOR BOTH MAPS (N2): the view, the Conditions wash, the gauge dots' scale, each layer's own mode,
- * the view's hidden layers and the user's groups, in that order, through the adapter. `Map.web.tsx` runs it against
+ * the view's hidden layers, the user's groups and the ground, in that order, through the adapter. `Map.web.tsx` runs it against
  * the live map; `nativeStyle` runs it against a copy of the style JSON MapLibre Native is handed. One function, so a
  * step added for one renderer is a step the other takes too.
  *
@@ -19,6 +19,13 @@ export interface Look {
   /** The view's own layers to draw (`shownLayers`); every other view-only layer stays hidden. */
   show?: readonly string[];
   groups?: Record<string, boolean>;
+  /**
+   * THE GROUND — drawn basemap or satellite (`MapAdapter.setBasemap`). Part of the look, so both maps switch it in the
+   * same pass as everything else: the web map used to set it from its own effect behind `whenStyled`, and a toggle made
+   * mid tile burst (`isStyleLoaded()` false, no `styledata` after) was dropped — the radio said Satellite, the map stayed
+   * drawn (the one-pathway audit, 2026-10-21). Absent: left as it is.
+   */
+  basemap?: "map" | "satellite";
 }
 
 /** `has`: is this layer in the style the handle writes to. */
@@ -51,4 +58,5 @@ export function applyLook(adapter: MapAdapter, h: MapHandle, has: (layerId: stri
   for (const [id, on] of Object.entries(look.groups ?? {})) {
     try { adapter.setGroupVisible(h, id, on); } catch (e) { report(asError(e)); }
   }
+  if (look.basemap !== undefined) adapter.setBasemap(h, look.basemap);
 }

@@ -25,6 +25,7 @@ export * from "./leadUp";
 export * from "./route";
 export * from "./openWater";
 export * from "./mapModes";
+export * from "./conditionsColour";
 export * from "./release";
 export * from "./boot";
 export * from "./regs";

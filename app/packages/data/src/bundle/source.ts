@@ -18,6 +18,7 @@ import type { BasinMember,
 } from "../index";
 import * as Q from "./queries";
 import { num, str, type Db, type Row } from "./db";
+import { buildStandingClasses, type StandingClasses } from "../standing";
 import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "./shared";
 
@@ -59,6 +60,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     const r = await db.get(Q.DOWN_FROM, at);
     return r ? sid(r.down_sid) : null;
   };
+  /** The Conditions map's classes, built once per source (`standingClasses`). */
+  let classes: Promise<StandingClasses> | null = null;
 
   return {
     async info(): Promise<BundleInfo> {
@@ -244,6 +247,35 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
                     years: Number(r.years) });
       }
       return out;
+    },
+
+    standingClasses() {
+      // the whole tables, once: the same rows `panelsFor` and `lakeStationsFor` read a viewport of
+      return (classes ??= (async () => {
+        const members = new Map<number, PanelMember[]>();
+        for (const r of await db.all(Q.ALL_PANEL_MEMBERS)) {
+          const id = Number(r.panel_id);
+          let list = members.get(id);
+          if (!list) members.set(id, (list = []));
+          list.push({ station: str(r.station) as StationId, role: str(r.role) === "down" ? "down" : "up",
+                      areaKm2: Number(r.area_km2), years: Number(r.years),
+                      regulated: Number(r.regulated ?? 0) === 1, sameRiver: Number(r.same_river ?? 1) === 1 });
+        }
+        const sections = (await db.all(Q.ALL_SECTION_PANELS)).map((r) => ({
+          sid: Number(r.sid), panel: Number(r.panel_id), areaKm2: r.area_km2 === null ? null : Number(r.area_km2) }));
+        const lakes = new Map((await db.all(Q.ALL_LAKE_SECTIONS))
+          .map((r) => [Number(r.sid), str(r.station) as StationId] as const));
+        const basins = new Map<string, BasinMember[]>();
+        for (const r of await db.all(Q.BASIN_MEMBERS)) {
+          const id = str(r.basin_id);
+          let rows = basins.get(id);
+          if (!rows) basins.set(id, (rows = []));
+          rows.push({ station: str(r.station) as StationId, areaKm2: r.area_km2 == null ? null : Number(r.area_km2),
+                      years: Number(r.years) });
+        }
+        await ready;
+        return buildStandingClasses(meta.get("version") ?? "unknown", sections, members, lakes, basins);
+      })());
     },
 
     async gaugePoints(): Promise<readonly { station: StationId; name: string;

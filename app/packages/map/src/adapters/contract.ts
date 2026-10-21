@@ -6,13 +6,27 @@
  * Layers come from the generated catalog; colours come from tokens; the active
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
-import type { Bbox, DayProfiles, SectionKey } from "@app/core";
+import type { Bbox, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
 import {
-  MAP_STYLE, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
-  resolveTheme, type Tokens,
+  MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
+  resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
+
+export type { ChannelValues } from "../style";
+
+/**
+ * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — the dashed line over a stream whose standing is the -1 sentinel
+ * (`runtime-style.ts`). A runtime layer outside the catalogue, so the adapter paints it with the stream's own mode:
+ * the `standing` mode reads the number the colour reads, every other mode hides it.
+ */
+export const NOBASELINE_LAYER = "stream-nobaseline";
+
+/** The dash's opacity for the stream layer in `mode`: 1 where the stream's standing is the -1 sentinel, else 0. */
+export function nobaselineOpacity(mode: string): unknown {
+  return mode === "standing" ? ["case", ["==", ["to-number", ["feature-state", "standing"], 0], -1], 1, 0] : 0;
+}
 
 /** The thin platform-specific part each adapter supplies. */
 export interface MapHandle {
@@ -96,12 +110,14 @@ export interface MapAdapter {
    */
   setBasemap(h: MapHandle, kind: "map" | "satellite"): void;
   /**
-   * THE DAY a `profile` colour mode paints (colour-latency AP): the label sets of @app/core `dayProfiles`, or null
-   * when there is no proven pair or no index — every profile-mode layer then paints its plain mode. Repaints the layers
-   * now in a profile mode, and is remembered, so a later theme or mode change paints the same day. Zero feature-state
-   * calls: the sections' profile labels are the renderer's to set (`ProfileColouring`), once per session.
+   * A CHANNEL'S VALUES (the colouring engine, `colouring.ts`). `status`: the day's label sets (@app/core `dayProfiles`),
+   * which the `profile` modes paint — repaints exactly the layers now in a profile mode, and is remembered, so a later
+   * theme or mode change paints the same day; null paints them plain. `standing`: the basins' standings, set on each
+   * basin by its id (the sections' own are the engine's labels) — no paint at all; null clears them. Zero per-section
+   * calls here: the sections are the renderer's to label (`Colouring`).
    */
-  setStatusDay(h: MapHandle, day: DayProfiles | null, themeName: string, overrides?: Tokens): void;
+  setChannel<C extends keyof ChannelValues>(h: MapHandle, channel: C, values: ChannelValues[C],
+                                            themeName: string, overrides?: Tokens): void;
   /** Push the per-feature data a colour mode reads (status, discharge, …). */
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
   /**
@@ -129,13 +145,15 @@ function colourPropFor(type: string | undefined): string {
  * One function means the first frame and every frame after it are painted the same way.
  */
 export function paintFor(layerId: string, mode: string, tokens: Tokens,
-                         day: DayProfiles | null = null): Record<string, unknown> {
+                         given: ChannelValues | null = NO_VALUES): Record<string, unknown> {
+  // null is "nothing installed", the same as `NO_VALUES` — what a caller with no channel at hand passes
+  const values = given ?? NO_VALUES;
   /*
    * A PROFILE MODE WITH NO DAY IS THE PLAIN MAP. The day is installed only on a proven pair whose index passed its digest
-   * checks (`setStatusDay`); without one there is no answer to draw, and the app's rule is that "not asked" stays plain
+   * checks (`setChannel`); without one there is no answer to draw, and the app's rule is that "not asked" stays plain
    * rather than going grey or — worse — keeping another release's colours.
    */
-  if (day === null && STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile")
+  if (values.status === null && STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile")
     return paintFor(layerId, "plain", tokens);
   const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
     ?.type;
@@ -152,7 +170,7 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
    * expression would be one more place for the two to drift apart.
    */
   const selected = ["boolean", ["feature-state", "selected"], false];
-  const base = colorExpression(layerId, mode, tokens, day);
+  const base = colorExpression(layerId, mode, tokens, values);
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
   const out: Record<string, unknown> = {
     [colourPropFor(type)]: isHighlightable && tokens["color.highlight"] !== undefined
@@ -340,11 +358,23 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
    * silently turns every section to the missing grey").
    */
   const modeOf: Record<string, string> = {};
-  let day: DayProfiles | null = null;
+  let values: ChannelValues = NO_VALUES;
+  /** The basins this map holds a standing for (`setChannel("standing")`), so one that loses it is cleared. */
+  const basinsHeld = new Set<string>();
   const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
     modeOf[layerId] = mode;
-    for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens, day)))
+    for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens, values)))
       h.setPaint(layerId, prop, value);
+    // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
+    if (layerId === "stream") {
+      h.setPaint(NOBASELINE_LAYER, "line-opacity", nobaselineOpacity(mode));
+      h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
+    }
+  };
+  /** The channel a layer's mode reads its values from, if any. */
+  const channelOf = (layerId: string, mode: string): keyof ChannelValues | null => {
+    const m = STYLE_META.colorModes[layerId]?.[mode];
+    return m?.scale === "profile" ? "status" : null;
   };
 
   const apply = (h: MapHandle, viewId: string, themeName: string, overrides: Tokens = {}) => {
@@ -408,11 +438,22 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       }
     },
 
-    setStatusDay(h, next, themeName, overrides = {}) {
-      day = next;
+    setChannel(h, channel, next, themeName, overrides = {}) {
+      values = { ...values, [channel]: next };
+      if (channel === "standing") {
+        /*
+         * THE FIELD'S VALUES, by the basin's own id: one feature-state per catchment (190 of them), and nothing for the
+         * style — a basin is a property-keyed feature, so it needs no per-tile label, and a paint change would make the
+         * whole atlas re-lay out. A basin that had a value and has none now is told so (null: `missing`).
+         */
+        const now = (next as ChannelValues["standing"])?.basins ?? {};
+        for (const id of basinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { standing: null }); basinsHeld.delete(id); }
+        for (const [id, v] of Object.entries(now)) { h.setFeatureState("basin", id, { standing: v }); basinsHeld.add(id); }
+        return;
+      }
       const tokens = resolveTheme(themeName, overrides);
       for (const [layerId, mode] of Object.entries(modeOf))
-        if (STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile") paint(h, layerId, mode, tokens);
+        if (channelOf(layerId, mode) === channel) paint(h, layerId, mode, tokens);
     },
 
     highlight(h, featureIds, water = []) {

@@ -1,7 +1,7 @@
 /**
  * A LOADED TILE'S SECTION IDS, read out of maplibre-gl — the cheap way, through its INTERNALS (colour-latency AP).
  *
- * The profile colouring (`profile-paint.ts`) labels a tile's sections in the tile's own load event, so they are
+ * The colouring engine (`colouring.ts`) labels a tile's sections in the tile's own load event, so they are
  * coloured on its first frame. GL JS hands the event the `Tile`, but no public call lists one tile's features. Its
  * internals do: `tile.latestFeatureIndex.loadVTLayers()` decodes the tile's own protobuf (on the main thread; cached
  * on the index, so a later `queryRenderedFeatures` reuses it), and `layer.feature(i).id` is the MVT id — which the

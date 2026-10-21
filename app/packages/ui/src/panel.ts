@@ -6,13 +6,9 @@
  * cannot live behind a hook.
  */
 import { useMemo, useState } from "react";
-import { answerFrom, reading, type BasinMember, type DonorRow, type Horizon, type Panel,
+import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
-// The field combines its gauges with the SAME probit transform the reaches use — see
-// `basinStanding`. A second averaging rule here is how a catchment and the river inside it
-// start disagreeing for reasons that are only arithmetic.
-import { basinStanding, type BasinVote } from "@app/core";
 import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel, donorLastReport,
          gaugeChoiceLabel, donorShare,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
@@ -186,22 +182,14 @@ export function usePanelStandings(
        * reports a level and not a discharge; under "Flow" such a lake has no answer and
        * must stay grey rather than borrow its own stage under a flow legend.
        */
-      for (const [section, station] of lakes) {
-        const row = idx.stations[station as string];
-        if (!row) continue;                        // not transmitting: say nothing
-        const p = reading(row, quantity, horizon);
-        // A gauged lake with nothing to say today is the sentinel, not absence: somebody
-        // measures here and today it cannot tell you.
-        out.set(section, typeof p === "number" ? p : -0.01);
-      }
-      for (const [section, panel] of panels) {
-        // ONE QUANTITY, THE READER'S. This used to ask each panel in whatever quantity its
-        // own donors led with, which coloured the most water and made the ramp compare a
-        // stage percentile against a discharge one — see `Quantity` in @app/data for the
-        // measurement that retired it. A station that does not measure what was asked says
-        // nothing, which is the honest answer and is drawn as such.
-        const { answer } = answerFrom(panel, idx, quantity, horizon);
-        out.set(section, answer.ok ? answer.value.percentile : -0.01);
+      /*
+       * ONE QUANTITY, THE READER'S, and ONE READING (`sectionStanding` in @app/data): the per-tile class path the web map
+       * takes computes its values with the same function, so the two maps cannot colour a section differently. A panel
+       * wins over a lake station; a gauged lake with nothing to say today is the sentinel, not absence.
+       */
+      for (const section of new Set<SectionId>([...lakes.keys(), ...panels.keys()])) {
+        const p = sectionStanding(panels.get(section), lakes.get(section), idx, quantity, horizon);
+        if (p !== null) out.set(section, p);
       }
       return out;
     },
@@ -240,37 +228,13 @@ export function useBasinStandings(
 ): ReadonlyMap<string, number> {
   const got = useAsync(
     async (): Promise<ReadonlyMap<string, number>> => {
-      const out = new Map<string, number>();
-      if (!feed) return out;
+      if (!feed) return new Map<string, number>();
       const [basins, idx] = await Promise.all([cachedBasins(source), feed.index()]);
-      if (!idx) return out;           // offline: colour nothing rather than colour wrong
-      for (const [basin, members] of basins) {
-        /*
-         * EVERY GAUGE IN THE GROUP, not the biggest one. Electing a representative made the
-         * group's colour hostage to that station: Chilliwack has six gauges and went grey
-         * because the one named happened to be quiet. A group now stays coloured while ANY
-         * of its gauges reports, and `basinStanding` decides how much each one counts.
-         */
-        const votes: BasinVote[] = [];
-        for (const m of members) {
-          const r = reading(idx.stations[m.station as string], quantity, horizon);
-          if (typeof r === "number")
-            votes.push({ percentile: r, areaKm2: m.areaKm2, years: m.years });
-        }
-        const p = basinStanding(votes);
-        /*
-         * A GROUP WITH NOTHING TO SAY IS LEFT OUT, not marked with the sentinel.
-         *
-         * On a reach the sentinel is worth drawing — "a gauge reports here and has no
-         * record to rank it against" is a state you can tap and be told about. On a
-         * 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot
-         * interrogate, and it reads as chaos across the province. Absent means the same
-         * unmeasured grey a group with no gauge gets, which at this scale is the truthful
-         * pairing: at a province on screen, "we cannot say" is one answer, not two.
-         */
-        if (typeof p === "number") out.set(basin, p);
-      }
-      return out;
+      /*
+       * EVERY GAUGE IN THE GROUP (`basinStanding`), and a group with nothing to say LEFT OUT rather than marked with
+       * the sentinel — `basinStandings` in @app/data, the one reading the web map's per-tile path computes its field with.
+       */
+      return basinStandings(basins, idx, quantity, horizon);
     },
     `basins:${quantity}:${horizon}:${enabled}`,
     enabled && feed !== undefined,

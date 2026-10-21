@@ -41,6 +41,30 @@ export type ColorMode =
   /** Categorical one step removed: feature-state holds a profile LABEL, the day says which labels are which member. */
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef };
+
+/**
+ * THE STANDING CHANNEL'S VALUES, in the ramp's units (percent; -1 the "measured, no baseline" sentinel; NaN or absent
+ * where nothing speaks): one per standing class, in class order, and one per basin. What a feed refresh or a horizon
+ * change replaces. The colouring engine writes them into feature-state `standing` (a section's from its class, as its
+ * tile arrives; a basin's by its id), which the `standing` mode has always read — so the style never changes with them
+ * (a data-driven paint change makes MapLibre 5.24 re-lay out every loaded tile; measured in the colour-latency README).
+ */
+export interface StandingValues {
+  /** A class's value (its index is the section's class), NaN where nothing speaks — computed when first asked. */
+  section(classIndex: number): number;
+  readonly basins: Readonly<Record<string, number>>;
+}
+
+/**
+ * WHAT EACH CHANNEL'S MODES READ FROM THE STYLE: the day's label sets (status) and the classes' standings (standing).
+ * Null where the channel has nothing installed.
+ */
+export interface ChannelValues {
+  status: DayProfiles | null;
+  standing: StandingValues | null;
+}
+export const NO_VALUES: ChannelValues = { status: null, standing: null };
+
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
 
@@ -182,10 +206,11 @@ export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
  * view or theme never refetches a tile.
  */
 export function colorExpression(layerId: string, modeName: string, t: Tokens,
-                                day: DayProfiles | null = null): unknown {
+                                values: ChannelValues | null = NO_VALUES): unknown {
   const mode = STYLE_META.colorModes[layerId]?.[modeName];
   if (!mode) throw new Error(`layer "${layerId}" has no colour mode "${modeName}"`);
   const val = (r: TokenRef) => t[r.token];
+  const day = (values ?? NO_VALUES).status;
 
   if (mode.scale === "static") return val(mode.color);
 

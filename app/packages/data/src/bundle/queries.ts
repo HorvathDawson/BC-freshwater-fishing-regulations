@@ -364,6 +364,20 @@ export const BASIN_MEMBERS =
   "SELECT basin_id, station, area_km2, years FROM basin_member";
 
 /**
+ * THE CONDITIONS MAP'S STATIC HALF, whole (`standingClasses`): every section's panel and target area, every panel's
+ * members, and every section of a gauged lake with its lowest station — the rows `panelsForSections` and
+ * `lakeStationsFor` read a viewport of, read once.
+ */
+export const ALL_SECTION_PANELS = "SELECT sid, panel_id, area_km2 FROM section_panel";
+export const ALL_PANEL_MEMBERS =
+  "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river FROM panel_member ORDER BY panel_id, ord";
+export const ALL_LAKE_SECTIONS =
+  `SELECT it.sid, min(lg.station) AS station
+     FROM item_section it JOIN item i ON i.ord = it.ord
+                          JOIN lake_gauge lg ON lg.item_id = i.item_id
+    GROUP BY it.sid`;
+
+/**
  * Where a set of stations sit — their own reach and their coordinate.
  *
  * The donor panel names stations and says nothing about where they are, because the panel

@@ -8,7 +8,7 @@ import type { SectionKey } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
-import type { ProfileStatus } from "./profile-paint";
+import type { ProfileStatus, StandingFeed } from "./colouring";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
 export interface MapMark {
@@ -152,6 +152,20 @@ export interface MapProps {
    * index) clears every label the map set, so another release's profile numbers can never colour this one's water.
    */
   status?: ProfileStatus | null;
+  /**
+   * THE CONDITIONS MAP'S STANDINGS, for every layer in the `standing` colour mode — the same engine as `status`
+   * (`colouring.ts`, the `standing` channel). `labels` is the release's static half: each section's standing CLASS (a
+   * donor panel at one target area, or a lake's own station). `values` is the changing half: each class's (and basin's)
+   * standing for the live feed at the chosen horizon. The engine writes a section's value into feature-state `standing`
+   * as its tile arrives (no `idle`, no React); new `values` — a feed refresh, a horizon or quantity change — are ONE
+   * engine call that relabels the sections of the tiles already loaded (feature-state only: no paint change, no tile
+   * reload; the style-table alternative re-lays out every loaded tile and measured slower, colour-latency README).
+   * Null `values` while the feed has not answered: nothing is labelled, the water draws as unmeasured.
+   *
+   * ONLY ON A PROVEN PAIR (P11), like `status`: absent or null otherwise, and taking it away (or handing other labels —
+   * a release swap) clears every label the map set.
+   */
+  standing?: StandingFeed | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *

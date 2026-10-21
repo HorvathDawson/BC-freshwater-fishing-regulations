@@ -28,6 +28,7 @@ import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
               PlaceHit, PlaceId, RegsSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
+import { buildStandingClasses, type StandingClasses } from "../standing";
 import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
@@ -127,6 +128,19 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     }
     return out;
   }));
+  /** paint's basins, by basin. */
+  let byBasin: Promise<Map<string, BasinMember[]>> | null = null;
+  const basinsOf = () => (byBasin ??= loader.paint().then((p) => {
+    const out = new Map<string, BasinMember[]>();
+    for (const b of p.basins) {
+      const list = out.get(b.basin) ?? [];
+      list.push({ station: b.station as StationId, areaKm2: b.areaKm2, years: b.years });
+      out.set(b.basin, list);
+    }
+    return out;
+  }));
+  /** The Conditions map's classes, built once per source (`standingClasses`). */
+  let classes: Promise<StandingClasses> | null = null;
 
   return {
     async info(): Promise<BundleInfo> {
@@ -265,13 +279,30 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     },
 
     async basinMembers() {
-      const out = new Map<string, BasinMember[]>();
-      for (const b of (await loader.paint()).basins) {
-        const list = out.get(b.basin) ?? [];
-        list.push({ station: b.station as StationId, areaKm2: b.areaKm2, years: b.years });
-        out.set(b.basin, list);
-      }
-      return out;
+      return basinsOf();
+    },
+
+    standingClasses() {
+      return (classes ??= (async () => {
+        const [paint, members, area, basins, lakeRows] = await Promise.all([
+          loader.paint(), membersOf(), loader.flowArea(), basinsOf(), all(CROSS.ALL_LAKE_STATIONS)]);
+        // THE LAKE ROAD, whole: every section of a gauged lake, the lowest station over every lake holding it
+        const stationOf = new Map(lakeRows.map((r) => [str(r.item_id), str(r.station)]));
+        const lakes = new Map<number, StationId>();
+        for (const r of await chunked([...stationOf.keys()], (c) => all(CROSS.SECTIONS_FOR_ITEMS(c.length), ...c))) {
+          const st = stationOf.get(str(r.item_id))!, s = Number(r.sid), had = lakes.get(s);
+          if (had === undefined || st < had) lakes.set(s, st as StationId);
+        }
+        // paint's runs, in its section order — the order flow-area's target areas follow (`indexOf` above)
+        const { starts, counts, panels } = paint.runs;
+        function* sections() {
+          let i = 0;
+          for (let r = 0; r < starts.length; r++)
+            for (let k = 0; k < counts[r]!; k++, i++)
+              yield { sid: starts[r]! + k, panel: panels[r]!, areaKm2: area[i]! };
+        }
+        return buildStandingClasses(loader.release, sections(), members, lakes, basins);
+      })());
     },
 
     async gaugePoints() {

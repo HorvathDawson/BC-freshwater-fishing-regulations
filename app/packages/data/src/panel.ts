@@ -12,7 +12,7 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { estimate, trustFor, weightFactors, type Answer, type TrustClass } from "@app/core";
+import { estimate, trustFor, weightFactors, type Answer, type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
@@ -172,7 +172,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    */
   const chosen: "discharge" | "level" = quantity;
 
-  const contributions = [];
+  const contributions = contributionsOf(panel, index, chosen, horizon);
   const raw: (DonorRow & { _w: number })[] = [];
   for (const m of panel.members) {
     const row = index.stations[m.station];
@@ -190,9 +190,6 @@ export function answerFrom(panel: Panel | undefined, index: Index,
                years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
                factors: f, _w: w,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}) });
-    if (own !== null && panel.areaKm2)
-      contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
-                           years: m.years, sameRiver: m.sameRiver });
   }
   /*
    * A DAY AHEAD THAT NO RUN REACHES is said as that. With no donor reading at the horizon
@@ -214,3 +211,34 @@ export function answerFrom(panel: Panel | undefined, index: Index,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
+
+/**
+ * What a panel's donors contribute to `estimate` for one quantity and horizon: every member reporting a reading, while
+ * the section has a target area. THE ONE RULE for it — `answerFrom` (the sheet, and the rows under the answer) and
+ * `panelStanding` (the map's per-class values) both take their contributions from here.
+ */
+export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantity: Quantity,
+                                horizon: Horizon): Contribution[] {
+  const out: Contribution[] = [];
+  if (!panel.areaKm2) return out;
+  for (const m of panel.members) {
+    const row = index.stations[m.station];
+    const own = row ? reading(row, quantity, horizon) : null;
+    if (own !== null)
+      out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: m.years, sameRiver: m.sameRiver });
+  }
+  return out;
+}
+
+/**
+ * THE MAP'S READING OF A PANEL: the percentile `answerFrom` answers, or -0.01 where it answers with nothing — the same
+ * contributions and the same `estimate`, without building the rows a sheet shows (the map asks ~18.5k classes per feed
+ * or horizon, and the rows were most of that cost). Held to `answerFrom` on every section of the fixture release
+ * (`conformance/src/release.test.ts`).
+ */
+export function panelStanding(panel: Panel, index: NonNullable<Index>, quantity: Quantity, horizon: Horizon): number {
+  // `answerFrom`'s "no-forecast" (a horizon no donor reaches) is a reason for the sheet; on the map it is the same
+  // -0.01 any refusal is, which `estimate` gives for no contributions anyway
+  const a = estimate(panel.areaKm2, contributionsOf(panel, index, quantity, horizon));
+  return a.ok ? a.value.percentile : -0.01;
+}

@@ -18,7 +18,7 @@
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
-import { paintFor } from "./adapters/contract";
+import { nobaselineOpacity, paintFor } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
 
 export interface TileEndpoints {
@@ -408,11 +408,13 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * about. Tapping one rewrote its state and the dash vanished, which is what made it
          * look like a rendering glitch rather than a stale layer.
          *
-         * The layer belongs to the standing modes and to nothing else, so it is built only
-         * for them. Cheaper than clearing state on every mode change, and it cannot come
-         * back: there is no layer to leak.
+         * It was then built only for the standing mode — at map CREATION. The map is created on
+         * whichever tab the app opens and is not remounted between tabs, so a reader who
+         * started on the Map tab never saw a dash on Conditions (the one-pathway audit,
+         * 2026-10-21). Now it is ALWAYS built and its opacity is the adapter's, painted with
+         * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
+         * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
          */
-        if (mode !== "standing") return [painted];
         return [painted,
         /*
          * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
@@ -444,9 +446,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
             "line-width": ["interpolate", ["linear"], ["zoom"],
                            6, 1.2, 10, 2, 14, 3.2],
             "line-dasharray": [2.5, 2],
-            "line-opacity": ["case",
-                             ["==", ["to-number", ["feature-state", "standing"], 0], -1],
-                             1, 0],
+            "line-opacity": nobaselineOpacity(mode ?? "plain"),
           }}];
       }),
       /*

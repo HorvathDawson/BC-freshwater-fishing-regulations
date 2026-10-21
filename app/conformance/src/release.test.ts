@@ -20,8 +20,8 @@ import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { httpFeed, parseManifest, verify, type ItemId, type Manifest, type PlaceId, type RegsSource, type SectionId,
-         type StationId } from "@app/data";
+import { answerFrom, classStandings, httpFeed, parseManifest, sectionStanding, verify, type ItemId, type Manifest, type Panel, type PlaceId,
+         type RegsSource, type SectionId, type StandingClasses, type StationId } from "@app/data";
 import { makeBundleSource } from "@app/data/bundle";
 import { makeFixtureSource } from "@app/data/fixture";
 import { DEV_BUNDLE, openBundle } from "@app/data/bundle/node";
@@ -175,6 +175,46 @@ describe("the release reader answers like the bundle reader (P11)", () => {
       expect(q.members.map((m) => ({ ...m, areaKm2: Math.round(m.areaKm2 * 1000) })))
         .toEqual(p.members.map((m) => ({ ...m, areaKm2: Math.round(m.areaKm2 * 1000) })));
     }
+  });
+
+  /*
+   * THE CONDITIONS MAP'S CLASSES (2026-10-21): a section's class value IS its viewport-path standing — for every section
+   * of the fixture, on both readers, at every horizon and in both quantities. The per-tile web map colours from the
+   * class table; the native map from `panelsFor` + `lakeStationsFor` per visible section. One number, or the two maps
+   * disagree about a river.
+   */
+  it("the standing classes answer every section exactly as its own panel or lake station does", async () => {
+    const oracle = (p: Panel, i: typeof idx, q: "discharge" | "level", h: 0 | 1 | 3 | 5 | 10) => {
+      const { answer } = answerFrom(p, i, q, h);
+      return answer.ok ? answer.value.percentile : -0.01;
+    };
+    const all = allSections();
+    const idx = await feed().index();
+    expect(idx).not.toBeNull();
+    for (const [name, src] of [["release", release], ["bundle", bundle]] as const) {
+      const [c, panels, lakes] = await Promise.all([src.standingClasses(), src.panelsFor(all), src.lakeStationsFor(all)]);
+      expect([name, lakes.size > 0, panels.size > 0]).toEqual([name, true, true]);
+      let coloured = 0;
+      for (const q of ["discharge", "level"] as const)
+        for (const h of [0, 1, 3, 5, 10] as const) {
+          const v = classStandings(c, idx, q, h);
+          for (const s of all) {
+            const k = c.classOf(s);
+            // the oracle is the SHEET's answer (`answerFrom`, rows and all) for a panel, the station's reading for a lake
+            const p = panels.get(s);
+            const want = p ? oracle(p, idx, q, h) : sectionStanding(undefined, lakes.get(s), idx, q, h);
+            const got = k === null ? null : Number.isNaN(v[k]!) ? null : v[k]!;
+            if (got !== want) expect([name, s, q, h, got]).toEqual([name, s, q, h, want]);
+            if (got !== null) coloured++;
+          }
+        }
+      expect([name, coloured > 0]).toEqual([name, true]);
+    }
+    // the same sections have a class on both readers, and the same basins
+    const [r, b] = [await release.standingClasses(), await bundle.standingClasses()];
+    const classed = (c: StandingClasses) => all.filter((s) => c.classOf(s) !== null);
+    expect(classed(r)).toEqual(classed(b));
+    expect(r.basins).toEqual(b.basins);
   });
 
   it("the series: the same observations over the same envelope, to float16", async () => {

@@ -32,6 +32,7 @@ type StyleLayer = { id: string; paint?: Json; layout?: Json; minzoom?: number; m
 
 export interface NativeStyleInput extends Look {
   at: TileEndpoints;
+  /** Required here (a phone's style is built whole); applied by `applyLook` like every other part of the look. */
   basemap: "map" | "satellite";
   /** The gauge points the style starts with (GeoJSON text); later ticks go to the `gauges` source directly. */
   gauges: string;
@@ -104,7 +105,7 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
     if (mode === "profile")
       errors.push(new Error(`layer "${id}" is in the "profile" colour mode, which the native map cannot draw `
         + '(no per-tile colouring; give it "status" and pushed data — coloursEachTile)'));
-  adapter.setBasemap(h, o.basemap);
+  // the ground (`o.basemap`) is part of the look: `applyLook` set it, as it does on the web map
 
   const atlas = s.sources.atlas;
   if (atlas) delete atlas.promoteId;

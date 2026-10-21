@@ -37,8 +37,8 @@ import { hereImage } from "./here-mark";
 import { labelShift } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
-import { PROFILE_SOURCE_LAYERS, ProfileColouring, type ProfileRenderer, type ProfileTarget,
-         type TileSections } from "./profile-paint";
+import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, type LabelTarget, type TileRenderer,
+         type Channel, type ChannelInput, type TileSections } from "./colouring";
 import { sourceTiles, tileIds } from "./tile-ids.web";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
@@ -155,7 +155,7 @@ const forcePublic = () => typeof __DEV__ !== "undefined" && __DEV__
  * the map (a section's label is set once per index, so the renderer's de-dupe has nothing to add); the release swap's
  * clear goes THROUGH the renderer, so its sink forgets what it held there and the highlight put back is really sent.
  */
-const atlasTarget = (m: maplibregl.Map, r: WebRenderer): ProfileTarget => ({
+const atlasTarget = (m: maplibregl.Map, r: WebRenderer): LabelTarget => ({
   setState: (sourceLayer, id, s) => m.setFeatureState({ source: "atlas", sourceLayer, id }, s),
   clearAll: (sourceLayer) => r.clearSourceLayer("atlas", sourceLayer),
 });
@@ -167,7 +167,7 @@ const atlasTarget = (m: maplibregl.Map, r: WebRenderer): ProfileTarget => ({
  */
 function publicSections(m: maplibregl.Map): TileSections {
   const out: Record<string, number[]> = {};
-  for (const layer of PROFILE_SOURCE_LAYERS) {
+  for (const layer of LABEL_SOURCE_LAYERS) {
     const ids: number[] = [];
     for (const f of m.querySourceFeatures("atlas", { sourceLayer: layer }))
       if (typeof f.id === "number") ids.push(f.id);
@@ -220,7 +220,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
-                      zoomControls, status, marks, onPressMark }: MapProps) {
+                      zoomControls, status, standing, marks, onPressMark }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   /**
@@ -230,7 +230,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const renderer = useRef<WebRenderer | null>(null);
   const adapter = useRef(baseAdapter("web"));
   /** The profile colouring of this map (colour-latency AP) — made with the map, fed by its tiles' load events. */
-  const colouring = useRef<ProfileColouring | null>(null);
+  const colouring = useRef<Colouring | null>(null);
   const pin = useRef<maplibregl.Marker | null>(null);
   const pinned = useRef<maplibregl.Marker[]>([]);
   /** Re-adds the label pill in the current theme. Set once the map exists. */
@@ -387,7 +387,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
      * route: one `querySourceFeatures` scan per burst of tile events, in a microtask — still before the next frame —
      * and on `moveend` as well, because the public route cannot see a cached tile coming back into view.
      */
-    const c = new ProfileColouring(adapter.current);
+    const c = new Colouring(adapter.current);
     colouring.current = c;
     const target = atlasTarget(m, r0);
     let scanQueued = false;
@@ -400,7 +400,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     };
     const onTile = (e: maplibregl.MapSourceDataEvent & { tile?: unknown }) => {
       if (e.sourceId !== "atlas" || !e.tile || !c.active) return;
-      const ids = forcePublic() ? null : tileIds(e.tile, PROFILE_SOURCE_LAYERS);
+      const ids = forcePublic() ? null : tileIds(e.tile, LABEL_SOURCE_LAYERS);
       if (ids === null) {
         if (!scanQueued) { scanQueued = true; queueMicrotask(() => scan("public-tile")); }
         return;
@@ -484,12 +484,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
       pill.current?.();
-      // THE LOOK — view, wash, gauge scale, per-layer modes, hidden layers, groups — is one sequence shared with the
-      // native map (`applyLook`); a bad mode or group name is reported, never thrown (a blank screen is not
-      // recoverable, a map in its previous colouring is).
+      // THE LOOK — view, wash, gauge scale, per-layer modes, hidden layers, groups, the ground — is one sequence
+      // shared with the native map (`applyLook`); a bad mode or group name is reported, never thrown (a blank screen
+      // is not recoverable, a map in its previous colouring is). The ground is here, not in an effect of its own
+      // behind `whenStyled`, which dropped a toggle made mid tile burst (one-engine.render.test).
       applyLook(adapter.current, handle, (id) => m.getLayer(id) !== undefined,
-                { view, theme, modes, hide, show, groups },
-                (e) => onError?.(e));
+                { view, theme, modes, hide, show, groups, basemap: basemap ?? "map" },
+                (e) => lookError.current?.(e));
       // The route overlay's paper and ink: runtime layers outside the catalogue, web only (the overlay lives here).
       for (const [id, paint] of Object.entries(tracePaint(theme)))
         if (m.getLayer(id))
@@ -502,7 +503,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again, so the new data —
     // the basin standings, which arrive exactly then — was dropped (N2 review web walk)
     return afterLoad(m, apply);
-  }, [view, modes, theme, data, groups, hide, show, onError]);
+    // NOT keyed on `onError`: callers pass an inline arrow, so every render of the screen re-ran the whole look — ~800
+    // paint calls, each a no-op — on every feed refresh and horizon change (the Conditions measurement, 2026-10-21)
+  }, [view, modes, theme, data, groups, hide, show, basemap]);
+  const lookError = useRef(onError);
+  lookError.current = onError;
 
   useEffect(() => {
     const m = map.current;
@@ -612,52 +617,45 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [JSON.stringify(marks ?? []), furniture.ink, furniture.card]);
 
   /**
-   * THE DAY'S STATUS (colour-latency AP): the index and the day go to the profile colouring, which labels the tiles
-   * already loaded and installs the day in the style. A new day is one paint property; a new index, or none, is the
-   * release-swap sequence in `ProfileColouring.set` — and what it clears that is not ours (the selected highlight, the
-   * active mode's pushed data) is put back here.
+   * THE CHANNELS (the colouring engine, `colouring.ts`): the day's status and the Conditions standings go to ONE
+   * engine, which labels the tiles already loaded and installs the values. New values are one `Colouring.set`: a day is
+   * one paint property (the day is in the style); a feed refresh or a horizon relabels the loaded tiles' sections
+   * (feature-state only). New labels, or none, are the release-swap sequence in `Colouring.set` — and what it clears that
+   * is not ours (the selected highlight, the active mode's pushed data) is put back here.
    */
   const latestData = useRef(data);
   latestData.current = data;
   const latestTheme = useRef(theme);
   latestTheme.current = theme;
-  const statusDay = status ? dayOfYear(status.day) : 0;
-  useEffect(() => {
+  /** The tiles this map holds, and what a clear must put back — the same for every channel. */
+  const tileRenderer = (m: maplibregl.Map, r: WebRenderer): TileRenderer => ({
+    loaded: () => {
+      const held = forcePublic() ? null : sourceTiles(m, "atlas");
+      const read = held?.map((t) => tileIds(t, LABEL_SOURCE_LAYERS));
+      return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
+    },
+    restore: () => {
+      adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current]);
+      for (const [layerId, values] of Object.entries(latestData.current ?? {}))
+        adapter.current.setData(layerHandle(m, r), layerId, values);
+    },
+  });
+  /** One channel's input, to the engine, once the atlas exists — the one path both channels take. */
+  const toChannel = (channel: Channel, input: ChannelInput | null, kind: string) => {
     const m = map.current, c = colouring.current, r = renderer.current;
     if (!m || !c || !r) return;
-    const tiles: ProfileRenderer = {
-      loaded: () => {
-        const held = forcePublic() ? null : sourceTiles(m, "atlas");
-        const read = held?.map((t) => tileIds(t, PROFILE_SOURCE_LAYERS));
-        return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
-      },
-      restore: () => {
-        adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current]);
-        for (const [layerId, values] of Object.entries(latestData.current ?? {}))
-          adapter.current.setData(layerHandle(m, r), layerId, values);
-      },
-    };
     return whenAtlas(m, () => {
       const t0 = performance.now(), c0 = c.calls;
-      c.set(layerHandle(m, r), atlasTarget(m, r), tiles, status ?? null, latestTheme.current);
-      devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind: `status:${statusDay}` });
+      c.set(layerHandle(m, r), atlasTarget(m, r), tileRenderer(m, r), channel, input, latestTheme.current);
+      devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind });
     });
-  }, [status?.index, statusDay, at.atlas]);
+  };
+  const statusDay = status ? dayOfYear(status.day) : 0;
+  useEffect(() => toChannel("status", status ? statusInput(status) : null, `status:${statusDay}`),
+            [status?.index, statusDay, at.atlas]);
+  useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),
+            [standing?.labels, standing?.values, at.atlas]);
 
-  /**
-   * THE GROUND — drawn basemap or satellite. Through the adapter, so the native map owes
-   * exactly the same switch (`setBasemap` in the contract), and keyed on the choice alone.
-   */
-  useEffect(() => {
-    const m = map.current;
-    if (!m) return;
-    return whenStyled(m, () => adapter.current.setBasemap({
-      setVisibility: (id, v) => {
-        if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
-      },
-      setPaint: () => {}, setFeatureState: () => {}, clearFeatureStates: () => {},
-    }, basemap ?? "map"));
-  }, [basemap]);
 
   /**
    * SEND THE CAMERA to a subject, then let the water's own shape frame it.
