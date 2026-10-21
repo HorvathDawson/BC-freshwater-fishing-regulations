@@ -5,21 +5,24 @@
  *                                        first coloured map; the first tap adds core; never a dev-path file.
  *   native (Tier 1, an in-memory disk)   first run installs every file with progress; an offline launch opens the held
  *                                        set; a newer release downloads only its changed files, in the background, and
- *                                        is used — and the old set pruned — at the next launch.
+ *                                        is used — and the old set pruned — at the next launch. A tile-only release
+ *                                        (same data_release) is an update too, and its old tile folder is pruned; a new
+ *                                        set that will not open is rolled back to the one it replaced; a launch killed
+ *                                        right after the swap still prunes.
  *   the Vedder (Tier 2, the live release: RELEASE_DIR=data/release/r-…)
  *                                        opening gnis:3062 adds core + water + regs-2 (the loader's `opened()`), and a
  *                                        water in Region 5 then fetches regs-5 only. Without RELEASE_DIR it says so.
  */
 import { describe, expect, it } from "vitest";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
-import { fetchVerified, type ItemId, type Manifest } from "@app/data";
-import { bootRelease, heldPath, openRegsFor, releaseTiles, type ReleaseFs, type ReleasePlatform }
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
+import { bootRelease, heldPath, openRegsFor, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
 import { releaseStatus, statusOf } from "../packages/ui/src/release";
-import { buildFixtureRelease, nodeOpener, releaseFetch } from "../conformance/src/fixtureRelease";
+import { buildFixtureRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
 
 const BASE = "https://r2.test/release/";
 const DEV_TILES = { atlas: "dev:atlas.pmtiles", basemap: "dev:basemap.pmtiles", outside: "dev:bc_outside.geojson" };
@@ -79,8 +82,39 @@ function memFs(): ReleaseFs & { files: Map<string, Uint8Array> } {
   };
 }
 
+/** A tile version in the fixture release's own sid space ("<handles16>.<tilebuild12>"). */
+function tileVersion(fx: FixtureRelease, build: string): string {
+  const m = JSON.parse(readFileSync(join(fx.dir, "manifest.json"), "utf8")) as Manifest;
+  return `${m.tiles.compatible[0]!.slice(0, -1)}${build}`;
+}
+
+/**
+ * The fixture release with a tile version folder (`release/tiles/<v>/`: atlas + mask, as `to_release` writes it), served
+ * by a manifest that names it. Returns the folder `releaseFetch` serves that manifest from (its data urls are the
+ * release's own).
+ */
+function withTiles(fx: FixtureRelease, v: string): string {
+  const folder = join(fx.root, "tiles", v);
+  mkdirSync(folder, { recursive: true });
+  const ref = (name: string, body: string) => {
+    const b = new TextEncoder().encode(body);
+    writeFileSync(join(folder, name), b);
+    return { url: `tiles/${v}/${name}`, bytes: b.length, sha256: sha256Hex(b) };
+  };
+  const m = JSON.parse(readFileSync(join(fx.dir, "manifest.json"), "utf8")) as Manifest;
+  m.tiles.current = { id: v, ...ref(`atlas-${v}.pmtiles`, `atlas ${v}`) };
+  m.tiles.mask = ref("bc_outside.geojson", `mask ${v}`);
+  const at = join(fx.root, `manifest-${v}`);
+  mkdirSync(at, { recursive: true });
+  writeFileSync(join(at, "manifest.json"), JSON.stringify(m));
+  return at;
+}
+
+const tileFiles = (fs: ReturnType<typeof memFs>, v: string) =>
+  [...fs.files.keys()].filter((k) => k.startsWith(`release/tiles/${v}/`)).sort();
+
 /** The phone, over an in-memory disk: files are read from the held set, as source.native.ts does. */
-function phone(fs: ReturnType<typeof memFs>): ReleasePlatform {
+function phone(fs: ReturnType<typeof memFs>, disk: ReleaseFs = fs): ReleasePlatform {
   return {
     releaseOpener: () => nodeOpener(),
     releaseCache: async () => ({ kind: "none", get: async () => null, put: async () => {} }),
@@ -88,8 +122,13 @@ function phone(fs: ReturnType<typeof memFs>): ReleasePlatform {
       bytes: async (name) => fs.read(heldPath(at.held!, m.files[name]!.url)),
     }),
     device: (f) => ({
-      fs, download: (url, e) => fetchVerified(url, e, undefined, f),
-      toDisk: async () => { throw new Error("no tiles in the fixture"); },
+      fs: disk, download: (url, e) => fetchVerified(url, e, undefined, f),
+      // the tiles stream to disk on a phone; here they are small, so a verified download written in one piece
+      toDisk: async (url, path, e, onBytes) => {
+        const b = await fetchVerified(url, e, undefined, f);
+        await disk.write(path, b);
+        onBytes?.(b.length);
+      },
       dirUri: (p) => `file:///doc/${p}`, fileUri: (p) => `file:///doc/${p}`,
     }),
   };
@@ -141,6 +180,98 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
     expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
     expect(fourth.locate("tiles/x/atlas-x.pmtiles")).toBe("file:///doc/release/tiles/x/atlas-x.pmtiles");
   });
+
+  it("a TILE-ONLY release (same data_release) is installed, drawn at the next launch, and the old tiles pruned after",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb");
+      const at1 = withTiles(r1, v1), at2 = withTiles(r1, v2);
+      const fs = memFs(), log: string[] = [];
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
+                                                       wasmBase: "", platform: phone(fs), fetch: f,
+                                                       manifestTimeoutMs: 1000 });
+      const first = await boot(releaseFetch(BASE, at1, []));
+      expect(first.held.tiles).toBe(v1);
+      expect(fs.files.has(`release/tiles/${v1}/atlas-${v1}.pmtiles`)).toBe(true);
+
+      // the same data, new tiles: this launch keeps v1; the update fetches the new tiles and mask, and no data file
+      const second = await boot(releaseFetch(BASE, at2, log));
+      expect(second.held.tiles).toBe(v1);
+      const next = await second.update;
+      expect(next).toMatchObject({ release: first.held.release, tiles: v2 });
+      expect(log).toEqual([`${BASE}manifest.json`, `${BASE}tiles/${v2}/atlas-${v2}.pmtiles`,
+                           `${BASE}tiles/${v2}/bc_outside.geojson`]);
+      // the set it replaces is still whole until the new one has opened
+      expect(tileFiles(fs, v1)).toEqual([`release/tiles/${v1}/atlas-${v1}.pmtiles`,
+                                         `release/tiles/${v1}/bc_outside.geojson`]);
+
+      const third = await boot(offline);
+      expect(third.held.tiles).toBe(v2);
+      expect(third.manifest.tiles.current!.id).toBe(v2);
+      expect(releaseTiles(third, DEV_TILES).atlas).toBe(`file:///doc/release/tiles/${v2}/atlas-${v2}.pmtiles`);
+      // the old tile version is gone; the new one and the (shared) data set stay
+      expect(tileFiles(fs, v1)).toEqual([]);
+      expect(tileFiles(fs, v2)).toEqual([`release/tiles/${v2}/atlas-${v2}.pmtiles`,
+                                         `release/tiles/${v2}/bc_outside.geojson`]);
+      expect(await third.source.water("gnis:8634" as ItemId)).not.toBeNull();
+      expect(fs.files.has("release/previous")).toBe(false);
+    });
+
+  it("a new set that will not open is ROLLED BACK to the one it replaced, said, pruned, and not installed again",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const r2 = buildFixtureRelease(null, (db) => {
+        db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
+      });
+      const fs = memFs();
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
+                                                       wasmBase: "", platform: phone(fs), fetch: f,
+                                                       manifestTimeoutMs: 1000 });
+      const first = await boot(releaseFetch(BASE, r1.dir, []));
+      expect(first.rolledBack).toBeNull();
+      const next = (await (await boot(releaseFetch(BASE, r2.dir, []))).update)!;
+      const m2 = JSON.parse(readFileSync(join(r2.dir, "manifest.json"), "utf8")) as Manifest;
+      // the new set's paint is damaged on disk (the install verified it; something broke it since)
+      fs.files.set(heldPath(next, m2.files.paint!.url), new Uint8Array([1, 2, 3]));
+
+      const back = await boot(offline);
+      expect(back.held.release).toBe(first.held.release);
+      expect(back.rolledBack).toEqual({ refused: m2.data_release, using: first.held.release,
+                                        reason: expect.any(String) as string });
+      expect(JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!)).release).toBe(first.held.release);
+      expect([...fs.files.keys()].some((k) => k.startsWith(`release/${m2.data_release}/`))).toBe(false);
+      expect(fs.files.has("release/previous")).toBe(false);
+
+      // the next launch opens the old set as its own (nothing more to say), and the refused set is not fetched again
+      const log: string[] = [];
+      const after = await boot(releaseFetch(BASE, r2.dir, log));
+      expect(after.held.release).toBe(first.held.release);
+      expect(after.rolledBack).toBeNull();
+      expect(await after.update).toBeNull();
+      expect(log).toEqual([`${BASE}manifest.json`]);
+    });
+
+  it("a launch killed right after the swap still prunes the set it replaced (PREVIOUS is written before the swap)",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const r2 = buildFixtureRelease(null, (db) => {
+        db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
+      });
+      const fs = memFs();
+      const boot = (f: typeof fetch, disk: ReleaseFs = fs) => bootRelease({
+        manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+        platform: phone(fs, disk), fetch: f, manifestTimeoutMs: 1000 });
+      const first = await boot(releaseFetch(BASE, r1.dir, []));
+      // the swap lands, and the app dies before anything after it runs
+      const dying: ReleaseFs = { ...fs, rename: async (a, b) => {
+        await fs.rename(a, b);
+        if (b === POINTER) throw new Error("killed");
+      } };
+      await expect((await boot(releaseFetch(BASE, r2.dir, []), dying)).update).rejects.toThrow("killed");
+      const again = await boot(offline);
+      expect(again.held.release).not.toBe(first.held.release);
+      expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
+    });
 
   it("a first run with no network says so, rather than opening nothing", async () => {
     await expect(bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",

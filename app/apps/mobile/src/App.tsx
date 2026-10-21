@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, installLine, startStage } from "@app/core";
+import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
 import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, type RegsSource } from "@app/data";
 import { releaseTiles } from "@app/data/release";
@@ -109,6 +109,8 @@ export default function App() {
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   const stage = RELEASE ? (boot.state === "loading" ? boot.stage : "paint") : dev.stage;
   const progress = boot.state === "loading" ? boot.progress : null;
+  // a phone whose newest set would not open went back to the one it replaced: said, above the map
+  const rolledBack = RELEASE && boot.state === "ready" ? boot.booted.rolledBack : null;
 
   const name: ThemeName = theme ?? (scheme === "dark" ? "dark" : "light");
   const palette = THEMES[name];
@@ -144,6 +146,12 @@ export default function App() {
           </Text>
         </View>
       ) : ready && data ? (
+        <View style={{ flex: 1 }}>
+        {rolledBack && (
+          <Text style={{ color: palette.sub, fontSize: 12, paddingVertical: 6, paddingHorizontal: 12 }}>
+            {rolledBackLine(rolledBack)}
+          </Text>
+        )}
         <Shell source={data.source} palette={palette}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
@@ -182,6 +190,7 @@ export default function App() {
                  "Satellite imagery: EOxCloudless 2016 by EOX IT Services GmbH (Contains " +
                  "modified Copernicus Sentinel data 2016), CC BY 4.0",
                ]} />
+        </View>
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>

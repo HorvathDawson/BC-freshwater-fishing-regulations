@@ -23,6 +23,9 @@ export interface Held {
   /** The release the files came from, and each file's sha256. */
   release?: string | null;
   files: Readonly<Record<FileName, string>>;
+  /** Native: where the manifest this set was installed from is kept (one per set: a tile-only release shares the data
+   *  folder, so the set it replaced keeps its own manifest until it is pruned). */
+  manifest?: string;
 }
 
 export class ManifestError extends Error {}

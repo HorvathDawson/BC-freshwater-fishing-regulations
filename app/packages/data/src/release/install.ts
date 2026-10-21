@@ -4,13 +4,17 @@
  *
  *   layout     release/<data_release>/<file>       the data files, raw (sha-verified)
  *              release/tiles/<tile version>/…       the tiles, mask and map assets (only when the version moves)
- *              release/current                      THE POINTER: {release, files: {name: sha}, tiles, assets, basemap}
+ *              release/<data_release>/manifest-<sha12>.json   the manifest a set was installed from (one per set)
+ *              release/current                      THE POINTER: {release, files: {name: sha}, tiles, assets, basemap,
+ *                                                   manifest}
  *   install    every manifest file → release/<r>/, each written to `.part`, verified, then renamed; a file already there
  *              with the right sha is kept (resume at file granularity).
  *   update     diff (manifest.ts) against the held pointer: changed files are downloaded, unchanged ones COPIED from the
  *              held set (never re-downloaded); everything verified; then the pointer is replaced by ONE rename. A crash
- *              or a failed sha before that rename leaves the old pointer — the old set — in force.
- *   prune      after the new set has opened and paired, the old release folder is deleted (never before).
+ *              or a failed sha before that rename leaves the old pointer — the old set — in force. A release whose data
+ *              is unchanged (a tile-only release) is an update too: its tiles, mask, basemap or assets moved.
+ *   prune      after the new set has opened and paired, everything of the old set the new one does not name is deleted
+ *              (never before): its release folder, its manifest, and its tile version folder, mask, basemap, assets.
  */
 import { diff, parseManifest, type Held, type Manifest } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts); TextEncoder it has
@@ -88,8 +92,7 @@ export interface Progress { done: number; total: number; file: string; bytes: nu
 export const POINTER = "release/current";
 
 export async function heldFrom(fs: ReleaseFs): Promise<Held | null> {
-  if (!(await fs.exists(POINTER))) return null;
-  return JSON.parse(utf8(await fs.read(POINTER))) as Held;
+  return readHeld(fs, POINTER);
 }
 
 const dirOf = (release: string) => `release/${release}`;
@@ -105,18 +108,45 @@ async function fetchInto(fs: ReleaseFs, dl: Download, url: string, path: string,
   await place(fs, path, await dl(url, expect));
 }
 
-function pointerFor(m: Manifest): Held {
+/** Where a manifest is kept with its set: named by its own bytes, so two sets sharing a data folder keep two. */
+const manifestPath = (m: Manifest, bytes: Uint8Array) => `${dirOf(m.data_release)}/manifest-${sha256Hex(bytes).slice(0, 12)}.json`;
+
+/** The pointer a set installed from `m` is held by. */
+export function pointerFor(m: Manifest, manifest?: string): Held {
   return { release: m.data_release, tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
            assets: m.tiles.assets?.id ?? null,
-           files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])) };
+           files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])),
+           ...(manifest ? { manifest } : {}) };
+}
+
+/** Are two pointers the same set: the same data files, tiles, basemap and map assets (where the manifest is kept aside)? */
+export function sameSet(a: Held, b: Held): boolean {
+  const fa = Object.keys(a.files).sort(), fb = Object.keys(b.files).sort();
+  return (a.release ?? null) === (b.release ?? null) && (a.tiles ?? null) === (b.tiles ?? null)
+    && (a.basemap ?? null) === (b.basemap ?? null) && (a.assets ?? null) === (b.assets ?? null)
+    && fa.length === fb.length && fa.every((k, i) => k === fb[i] && a.files[k] === b.files[k]);
+}
+
+/** Read a pointer-shaped record (the pointer, `release/previous`, `release/refused`), or null when there is none. */
+export async function readHeld(fs: ReleaseFs, path: string): Promise<Held | null> {
+  if (!(await fs.exists(path))) return null;
+  return JSON.parse(utf8(await fs.read(path))) as Held;
+}
+
+/** Write a pointer-shaped record whole (to `.part`, then one rename). */
+export async function writeHeld(fs: ReleaseFs, path: string, h: Held): Promise<void> {
+  await place(fs, path, new TextEncoder().encode(JSON.stringify(h)));
 }
 
 /**
  * Download what `m` needs beside `held` (everything when `held` is null) and swap the pointer. `toDisk` streams the
- * tiles and their mask (a test or the web may leave it out: they are then fetched whole through `dl`).
+ * tiles and their mask (a test or the web may leave it out: they are then fetched whole through `dl`). `beforeSwap`
+ * runs once everything is verified, just before THE SWAP (boot records the set being replaced there, so a launch killed
+ * right after the swap still knows what to prune).
  */
 export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
-                              onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo): Promise<Held> {
+                              onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
+                              beforeSwap?: () => Promise<void>): Promise<Held> {
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true };
   const names = Object.keys(m.files).sort();
   const dir = dirOf(m.data_release);
@@ -160,20 +190,43 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     onProgress({ done: ++done, total, file: b.file, bytes, of });
   }
   // the manifest the set was installed from: an offline launch opens the set with it (`heldManifest`)
-  await place(fs, `${dir}/manifest.json`, new TextEncoder().encode(JSON.stringify(m)));
-  const next = pointerFor(m);
-  await place(fs, POINTER, new TextEncoder().encode(JSON.stringify(next)));      // THE SWAP
+  const mb = new TextEncoder().encode(JSON.stringify(m));
+  const mpath = manifestPath(m, mb);
+  await place(fs, mpath, mb);
+  const next = pointerFor(m, mpath);
+  await beforeSwap?.();
+  await writeHeld(fs, POINTER, next);                                            // THE SWAP
   return next;
 }
 
-/** After the new set has opened and paired: delete the release folder it replaced. */
-export async function prune(fs: ReleaseFs, old: Held | null, now: Held): Promise<void> {
-  if (old?.release && old.release !== now.release) await fs.remove(dirOf(old.release));
+/** The big files a manifest names, as install puts them: `release/<url>` (an assets url is a folder). */
+const bigPaths = (m: Manifest | null): string[] =>
+  !m ? [] : [m.tiles.current?.url, m.tiles.mask?.url, m.basemap?.url, m.tiles.assets?.url]
+    .filter((u): u is string => !!u).map((u) => `release/${u.replace(/\/$/, "")}`);
+
+/**
+ * After the new set has opened and paired: delete everything of the set it replaced that the new one does not name —
+ * its release folder (or, when the two share one, its own manifest), and its tiles, mask, basemap and map assets with
+ * the tile version folder they came in. `oldM`/`nowM` are the two sets' manifests (`oldM` null: unreadable — the tile
+ * version folder is still found by its id).
+ */
+export async function prune(fs: ReleaseFs, old: Held | null, oldM: Manifest | null, now: Held,
+                            nowM: Manifest): Promise<void> {
+  if (!old) return;
+  if (old.release && old.release !== now.release) await fs.remove(dirOf(old.release));
+  else if (old.manifest && old.manifest !== now.manifest) await fs.remove(old.manifest);
+  const keep = bigPaths(nowM);
+  const kept = (p: string) => keep.some((k) => k === p || k.startsWith(`${p}/`) || p.startsWith(`${k}/`));
+  for (const p of bigPaths(oldM)) if (!kept(p)) await fs.remove(p);
+  if (old.tiles && old.tiles !== now.tiles) {
+    const folder = `release/tiles/${old.tiles}`;
+    if (!kept(folder)) await fs.remove(folder);
+  }
 }
 
 /** The manifest the held set was installed from (written by `install`), so a launch with no network can open it. */
 export async function heldManifest(fs: ReleaseFs, h: Held): Promise<Manifest> {
-  return parseManifest(JSON.parse(utf8(await fs.read(`${dirOf(h.release!)}/manifest.json`))));
+  return parseManifest(JSON.parse(utf8(await fs.read(h.manifest ?? `${dirOf(h.release!)}/manifest.json`))));
 }
 
 /** The on-disk path of a held file. */

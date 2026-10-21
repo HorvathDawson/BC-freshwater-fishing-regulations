@@ -1,6 +1,6 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { INSTALL_WORDS, installLine, startStage } from "./install";
+import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "./install";
 
 describe("the first-run download line", () => {
   it("says how much of how much, in MB to one decimal, grouped", () => {
@@ -26,5 +26,17 @@ describe("the start-up stages", () => {
     expect(INSTALL_WORDS.failed).toBe("The map data could not be loaded.");
     expect(INSTALL_WORDS.firstRunOffline)
       .toBe("The first start needs a connection: the map and regulations download once, then work offline.");
+  });
+});
+
+describe("the rollback line (a new set would not open, so the one it replaced is used)", () => {
+  it("names the set refused and the set in use, whole", () => {
+    expect(rolledBackLine({ refused: "r-2b2b2b2b2b2b", using: "r-1a1a1a1a1a1a" }))
+      .toBe("The newest map data (r-2b2b2b2b2b2b) would not open, so the app is using the data it had before " +
+            "(r-1a1a1a1a1a1a).");
+  });
+  it("leaves out a name it does not have rather than making one up", () => {
+    expect(rolledBackLine({ refused: null, using: null }))
+      .toBe("The newest map data would not open, so the app is using the data it had before.");
   });
 });

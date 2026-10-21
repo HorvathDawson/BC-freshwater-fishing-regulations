@@ -33,3 +33,12 @@ const mb = (bytes: number) => {
 export function installLine(p: { bytes: number; of: number }): string {
   return p.of > 0 ? `${mb(p.bytes)} of ${mb(p.of)} MB downloaded` : "";
 }
+
+/**
+ * Said on a phone when the newest set would not open at launch and the app went back to the set it replaced (boot's
+ * `rolledBack`): which release was refused and which one is in use. A name it does not have is left out, not invented.
+ */
+export function rolledBackLine(r: { refused: string | null; using: string | null }): string {
+  const refused = r.refused ? ` (${r.refused})` : "", using = r.using ? ` (${r.using})` : "";
+  return `The newest map data${refused} would not open, so the app is using the data it had before${using}.`;
+}

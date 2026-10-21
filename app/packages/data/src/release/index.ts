@@ -4,10 +4,10 @@
  */
 export { releaseLoader, ReleaseError, ALL_REGIONS, type DbName, type FileName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
-export { install, prune, heldFrom, heldPath, rangedDownload, POINTER, type Download, type DownloadTo, type PartFs,
-         type Progress, type ReleaseFs } from "./install";
+export { install, prune, heldFrom, heldPath, pointerFor, sameSet, rangedDownload, POINTER, type Download,
+         type DownloadTo, type PartFs, type Progress, type ReleaseFs } from "./install";
 export { makeReleaseSource, openRegsFor } from "./source";
-export { bootRelease, releaseTiles, BootError, type BootOptions, type BootStage, type Booted,
+export { bootRelease, releaseTiles, BootError, type BootOptions, type BootStage, type Booted, type RolledBack,
          type ReleasePlatform } from "./boot";
 export { heldManifest } from "./install";
 export { CROSS, RELEASE_QUERIES } from "./queries";

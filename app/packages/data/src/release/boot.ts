@@ -6,17 +6,22 @@
  *   web      manifest (network) → the loader over Cache Storage + sql.js → paint decoded. Nothing else is fetched
  *            before the first coloured map; every other file waits for the first question that needs it.
  *   native   the HELD set first (`release/current`): a launch needs no network. First run: the manifest is required
- *            and `install` downloads every file (progress). Every launch with a network: the manifest (5 s) is diffed
- *            against the held set and only changed files are downloaded, in the background, into the next release's
- *            folder; the pointer swaps when they are all verified and the swap is USED at the next launch, when the
- *            set it replaced is pruned — never before the new one has opened and decoded its paint.
+ *            and `install` downloads every file (progress). Every launch with a network: the manifest (5 s) is compared
+ *            with the held set — its data files, tiles, mask, basemap and map assets — and only what changed is
+ *            downloaded, in the background; the pointer swaps when it is all verified and the swap is USED at the next
+ *            launch, when the set it replaced is pruned — never before the new one has opened, decoded its paint and
+ *            paired. A new set that will not open ROLLS BACK: the pointer goes back to the set it replaced (still on disk:
+ *            nothing is pruned before success), the reader is told (`Booted.rolledBack`), and the refused set is
+ *            deleted and not installed again until the manifest names another.
  */
 import type { Paint } from "@app/core";
-import { loadManifest, type Held, type Manifest } from "../manifest";
+import { compatible, loadManifest, type Held, type Manifest } from "../manifest";
 import type { RegsSource } from "../index";
 import type { BundleSourceOptions } from "../bundle/source";
-import { heldFrom, heldManifest, heldPath, install, prune, type Progress, type ReleaseFs } from "./install";
-import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "./loader";
+import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
+         writeHeld, type Progress, type ReleaseFs } from "./install";
+import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
+         type ReleaseSource } from "./loader";
 import { makeReleaseSource } from "./source";
 
 /** What `@app/data/release/platform` exports (structurally; a test passes fakes). */
@@ -65,13 +70,21 @@ export interface Booted {
   locate(path: string): string;
   /** Native: the background update, resolving to the set installed for the NEXT launch (null: nothing to do). */
   update: Promise<Held | null>;
+  /** Native: the new set would not open, so this launch went back to the one it replaced (null: it did not). */
+  rolledBack: RolledBack | null;
 }
+
+/** Which set was refused, which one is used instead, and why (the error the new set opened with). */
+export interface RolledBack { refused: string | null; using: string | null; reason: string }
 
 export class BootError extends Error {
   constructor(message: string, readonly firstRunOffline = false) { super(message); }
 }
 
+/** The set an update replaced, kept until the new one has opened and paired (written just before the swap). */
 const PREVIOUS = "release/previous";
+/** A set that would not open and was rolled back: not installed again until the manifest names another. */
+const REFUSED = "release/refused";
 
 function timeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((ok, fail) => {
@@ -96,7 +109,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
                          assets: m.tiles.assets?.id ?? null, release: m.data_release, files: {} };
     return { manifest: m, held, loader, paint, source: makeReleaseSource(loader, { feed: o.feed }),
-             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null) };
+             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null };
   }
 
   // THE PHONE: the held set first; the network only to install it once and to look for a newer one
@@ -108,38 +121,68 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     o.onStage?.("install");
     held = await install(latest, dev.fs, dev.download, o.releaseBase, null, o.onProgress, dev.toDisk);
   }
-  const m = await heldManifest(dev.fs, held);
-  const dir = `release/${held.release}`;
-  const loader = releaseLoader(m,
-    o.platform.releaseSource(m, { base: o.releaseBase, cache: await o.platform.releaseCache(), held, fetch: f }),
-    o.platform.releaseOpener({
-      wasmBase: o.wasmBase,
-      installed: (name) => {
-        const spec = m.files[name];
-        return spec ? { dir: dev.dirUri(dir), file: heldPath(held!, spec.url).split("/").pop()! } : null;
-      },
-    }));
-  o.onStage?.("paint");
-  const paint = await loader.paint();
+  /** Open a held set: its manifest, paint decoded against its handles, core opened and checked, its tiles paired. */
+  const cache = await o.platform.releaseCache();
+  const openSet = async (h: Held) => {
+    const m = await heldManifest(dev.fs, h);
+    const t = m.tiles.current;
+    if (t && !(t.id && compatible(m.tiles.compatible, t.id)))
+      throw new ReleaseError(`release ${m.data_release}: tiles ${t.id ?? "(no id)"} are not in ${m.tiles.compatible}`);
+    const dir = `release/${h.release}`;
+    const loader = releaseLoader(m,
+      o.platform.releaseSource(m, { base: o.releaseBase, cache, held: h, fetch: f }),
+      o.platform.releaseOpener({
+        wasmBase: o.wasmBase,
+        installed: (name) => {
+          const spec = m.files[name];
+          return spec ? { dir: dev.dirUri(dir), file: heldPath(h, spec.url).split("/").pop()! } : null;
+        },
+      }));
+    o.onStage?.("paint");
+    const paint = await loader.paint();
+    await loader.db("core");                      // opened in place on a phone: the first file any question needs
+    return { m, loader, paint };
+  };
 
-  // the set this one replaced is deleted only now: the new one has opened and its paint decoded against its handles
-  if (await dev.fs.exists(PREVIOUS)) {
-    const prev = await heldFrom({ ...dev.fs, exists: async () => true, read: () => dev.fs.read(PREVIOUS) });
-    if (prev) await prune(dev.fs, prev, held);
+  let set: Awaited<ReturnType<typeof openSet>>;
+  let rolledBack: RolledBack | null = null;
+  const previous = await readHeld(dev.fs, PREVIOUS);
+  try {
+    set = await openSet(held);
+  } catch (e) {
+    // ROLLBACK: the set this one replaced is still on disk (nothing is pruned before success); swap back to it
+    if (!previous || sameSet(previous, held)) throw e;
+    const bad = held, badM = await heldManifest(dev.fs, bad).catch(() => null);
+    await writeHeld(dev.fs, REFUSED, bad);
+    await writeHeld(dev.fs, POINTER_PATH, previous);
+    held = previous;
+    set = await openSet(held);
+    rolledBack = { refused: bad.release ?? null, using: held.release ?? null,
+                   reason: e instanceof Error ? e.message : String(e) };
+    await prune(dev.fs, bad, badM, held, set.m);
+    await dev.fs.remove(PREVIOUS);
+  }
+
+  // the set this one replaced is deleted only now: the new one has opened, decoded its paint and paired
+  if (!rolledBack && previous) {
+    if (!sameSet(previous, held))
+      await prune(dev.fs, previous, await heldManifest(dev.fs, previous).catch(() => null), held, set.m);
     await dev.fs.remove(PREVIOUS);
   }
 
   const now = held;
-  const update = latest && latest.data_release !== now.release
-    ? install(latest, dev.fs, dev.download, o.releaseBase, now, () => {}, dev.toDisk).then(async (next) => {
-        await dev.fs.write(PREVIOUS, new TextEncoder().encode(JSON.stringify(now)));
-        return next;
-      })
+  const target = latest ? pointerFor(latest) : null;
+  const refused = await readHeld(dev.fs, REFUSED);
+  // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused
+  const update = latest && target && !sameSet(target, now) && !(refused && sameSet(target, refused))
+    ? install(latest, dev.fs, dev.download, o.releaseBase, now, () => {}, dev.toDisk,
+              () => writeHeld(dev.fs, PREVIOUS, now))
     : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
-  return { manifest: m, held: now, loader, paint, source: makeReleaseSource(loader, { feed: o.feed }),
-           locate: (path) => dev.fileUri(`release/${path}`), update };
+  return { manifest: set.m, held: now, loader: set.loader, paint: set.paint,
+           source: makeReleaseSource(set.loader, { feed: o.feed }),
+           locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack };
 }
 
 /**
