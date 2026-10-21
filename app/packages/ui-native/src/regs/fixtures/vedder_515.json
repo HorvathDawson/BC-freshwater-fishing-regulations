@@ -805,7 +805,168 @@
   }
  },
  "licence": null,
- "methods": null,
+ "methods": {
+  "boats": null,
+  "closed": null,
+  "closedMore": [],
+  "reference": {
+   "groups": [
+    {
+     "head": "When you catch a fish",
+     "items": [
+      "Any fish snagged — even by accident — must be released."
+     ]
+    },
+    {
+     "head": "When you release a fish",
+     "items": [
+      "Gently, back in the water",
+      "Without harming it"
+     ]
+    },
+    {
+     "head": "When you keep a fish",
+     "items": [
+      "It stays kept: no swapping for a bigger one",
+      "Don’t waste it",
+      "Don’t hold it alive (no stringer or livewell)",
+      "Leave head, tail and fins on until home",
+      "No canning or filleting until home",
+      "Don’t freeze fish into one block: each must stay countable",
+      "Each fish must stay identifiable and measurable"
+     ]
+    },
+    {
+     "head": "Carrying fish",
+     "items": [
+      "Never more than your legal limit",
+      "Licence at hand while you travel with fish",
+      "Carrying someone else’s fish? Have their signed letter",
+      "Taking fish out of B.C.? Show the letter if asked",
+      "Given fish? Keep the signed letter until eaten"
+     ]
+    },
+    {
+     "head": "Never",
+     "items": [
+      "Sell, buy or trade your catch",
+      "Keep or move live fish or crayfish",
+      "Release aquarium fish",
+      "Put gear in the water during a closure",
+      "Interfere with a fur trap",
+      "Cross private, posted or reserve land without permission"
+     ]
+    }
+   ],
+   "label": "Reference",
+   "src": {
+    "aria": "Sources: Province",
+    "keys": [
+     "zp:prohibited_methods::prohibited_methods.r3",
+     "zp:further_prohibitions::further_prohibitions.r3",
+     "zp:conduct::conduct.r2",
+     "zp:conduct::conduct.r10",
+     "zp:conduct::conduct.r1",
+     "zp:conduct::conduct.r7",
+     "zp:conduct::conduct.r5",
+     "zp:preparing_catch::preparing_catch.r1",
+     "zp:preparing_catch::preparing_catch.r2",
+     "zp:transporting_catch::transporting_catch.r3",
+     "zp:transporting_catch::transporting_catch.r2",
+     "zp:transporting_catch::transporting_catch.r1",
+     "zp:transporting_catch::transporting_catch.r4",
+     "zp:transporting_catch::transporting_catch.r5",
+     "zp:transporting_catch::transporting_catch.r6",
+     "zp:conduct::conduct.r3",
+     "zp:conduct::conduct.r4",
+     "zp:conduct::conduct.r9",
+     "zp:further_prohibitions::further_prohibitions.r1",
+     "zp:further_prohibitions::further_prohibitions.r2",
+     "zp:conduct::conduct.r6"
+    ],
+    "open": "srcs:always",
+    "pages": [
+     {
+      "pdf": 10,
+      "printed": 8
+     },
+     {
+      "pdf": 12,
+      "printed": 10
+     }
+    ],
+    "who": "Province ›"
+   },
+   "sub": "21 rules that apply everywhere",
+   "title": "Handling fish"
+  },
+  "ways": {
+   "label": "Ways to fish",
+   "list": [
+    {
+     "col": "ok",
+     "head": "Allowed",
+     "items": [
+      {
+       "mark": "✓",
+       "name": "Angling (rod and line)",
+       "note": "fly fishing only: nothing but the fly on the line, no float, sinker or attractor"
+      }
+     ]
+    },
+    {
+     "col": "no",
+     "head": "Not allowed",
+     "items": [
+      {
+       "mark": "✕",
+       "name": "Set lines",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Spear or bow",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Crayfish traps",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Nets",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Snagging",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Chumming",
+       "note": null
+      }
+     ]
+    }
+   ],
+   "src": {
+    "aria": "Sources: This water’s",
+    "keys": [
+     "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r4"
+    ],
+    "open": "srcs:ways",
+    "pages": [
+     {
+      "pdf": 24,
+      "printed": 22
+     }
+    ],
+    "who": "This water’s ›"
+   }
+  }
+ },
  "sheets": {
   "gl:bait_ban": null,
   "gl:catch_and_release": null,

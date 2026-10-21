@@ -242,6 +242,34 @@ export const BAIT = Object.freeze({
 /** prototype yesNo: the two column heads and marks. */
 export const YESNO = Object.freeze({ OK: "Allowed", NO: "Not allowed", OK_MARK: "✓", NO_MARK: "✕" } as const);
 
+// ── T32 the Methods tab (page v36 SLOT_LABEL, MUST, GROUPWORD, MOMENT_HEAD, WAYWHY, countTxt, tgtTxt, gearParts ways /
+//    always cards, renderKit's always tile; prototype buildGear ways / boats / reference, WAYS). Verbatim. ──
+export const METHODS = Object.freeze({
+  WAYS: "Ways to fish", BOATS: "Boats", REFERENCE: "Reference", HANDLING: "Handling fish",
+  RULES_EVERYWHERE: (n: number) => `${n} rules that apply everywhere`,
+  NOT_GAME: " — not for trout or other game fish",
+  NOT_FOR: (t: string) => `not for ${t}`, FOR: (t: string) => `${t} allowed`,
+  MUST_BE: (xs: string) => `must be ${xs}`, WITH_DEVICE: (d: string, xs: string) => `with a ${d}: ${xs}`,
+  SLOT_COUNT: (slot: string, n: string) => `${slot}: ${n}`,
+  CRAYFISH_ONLY: "release anything in the trap that isn’t a crayfish",
+  CAUGHT_HEAD: "When you catch a fish",
+  OR: " or ", LIST: ", ", SEP: " · ",
+  WAYWHY: Object.freeze({ fly_fishing_only: "fly fishing only: nothing but the fly on the line, no float, sinker or attractor",
+    not_allowed_here: "not allowed here", not_lawful: "not a lawful way to sport fish", fly_fishing_only_here: "fly fishing only here" }) as Readonly<Record<string, string>>,
+  SLOT_LABEL: Object.freeze({ lines_per_angler: "Lines", terminal_attachments_per_line: "Hook, lure or fly per line", hooks_per_line: "Hooks per line",
+    flies_per_line: "Flies per line", points_per_hook: "Hook points", hook_gap_mm: "Hook gap", weight_per_line_kg: "Weight on the line",
+    bait_possession_kg: "Bait you can carry", light_to_hook_mm: "Light to hook" }) as Readonly<Record<string, string>>,
+  MUST: Object.freeze({ quick_release_to_line: "attached to your line by a quick-release", submerged: "submerged", attached_to_line: "attached to the line" }) as Readonly<Record<string, string>>,
+  GROUPWORD: Object.freeze({ ALL_GAME_FISH: "game fish", SALMON: "salmon", PROTECTED_SPECIES: "protected species", ALL_FIN_FISH: "any fish" }) as Readonly<Record<string, string>>,
+  MOMENT_HEAD: Object.freeze({ release: "When you release a fish", keep: "When you keep a fish", carry: "Carrying fish", never: "Never", also: "Also" }) as Readonly<Record<string, string>>,
+  COUNT: Object.freeze({ NO_LIMIT: "no limit", AT_LEAST: "at least ", UP_TO: "up to ", SINGLE_POINT: "Single point only (no trebles)",
+    MISSING: "(clause missing)",
+    POINTS: (n: string) => `${n} points`, CM: (n: string) => `${n} cm`, KG: (n: string) => `${n} kg`,
+    WITHIN_M: (m: number) => `within ${m} m of the hook` }),
+});
+/** Match keys of the Methods tab (never said): page v36's "not for game fish" limited way, and its crayfish trap rule. */
+export const METHODS_TEST = Object.freeze({ NOT_GAME: /not for game fish/, CRAYFISH: /other than crayfish/i });
+
 /** Every string and function-word fragment of a (nested, frozen) word table (a function of n parameters gets n holes). */
 function deepWords(t: object): string[] {
   const HOLE = "\u0000";
@@ -272,6 +300,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...GEAR_LINES.map(([, label]) => label), ...deepWords(GEAR),
   // (T31) the Bait item
   ...[ELEM, BAIT, YESNO].flatMap(deepWords),
+  // (T32) the Methods tab
+  ...deepWords(METHODS),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

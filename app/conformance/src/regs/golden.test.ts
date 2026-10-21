@@ -237,7 +237,8 @@ describe("T12 chooseSource", () => {
 
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
-    expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal");
+    expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal"   // (T32) the Set lines note the prototype's DOM lost, asserted instead
+      + " · ^ways\\.list\\.0\\.items\\.\\d+\\.note$ not compared (never — a prototype markup bug, not a regulation)");
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal"   // (T31) the Bella Coola snapshot who-word, asserted instead
       + " · ^bait\\.src\\.who$ not compared (never — the prototype's snapshot is global; the app's level is per part)");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"

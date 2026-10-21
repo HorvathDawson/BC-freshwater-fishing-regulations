@@ -141,7 +141,7 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
       "release You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
       "closed You may not fish for it at all, not even to release it. If you catch one by accident, release it at once."]);
     expect([p.keep.possession!.label, p.keep.possession!.value, p.keep.whereNot!.heading]).toEqual(["Possession", "2 days’ quota", "Where you can’t fish"]);
-    expect([p.gear?.day, p.methods, p.licence, p.sheet("pos:pos")]).toEqual(["Today, Oct 10", null, null, null]);   // (T30) the Gear tab is built
+    expect([p.gear?.day, p.methods?.ways?.label, p.licence, p.sheet("pos:pos")]).toEqual(["Today, Oct 10", "Ways to fish", null, null]);   // (T30–T32) Gear and Methods are built
   });
 
   it("vedder_615 (closed) and chw0_1010 (closed all year): strip, banner, where-not — no rows, Other fish or possession", async () => {

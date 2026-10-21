@@ -61,6 +61,12 @@ describe("ALL_WORDS", () => {
       " ban excepts it", "carry up to ", " kg", " is still OK", "Allowed", "Not allowed", "✓", "✕"]) expect(ALL_WORDS.has(w), w).toBe(true);
   });
 
+  it("holds the Methods tab's words and fragments (T32)", () => {
+    for (const w of ["Ways to fish", "Boats", "Reference", "Handling fish", " rules that apply everywhere", " — not for trout or other game fish",
+      "not for ", " allowed", "must be ", "with a ", ": ", "release anything in the trap that isn’t a crayfish", "When you catch a fish",
+      "Never", "Single point only (no trebles)", "up to ", "within ", " m of the hook", "Hook, lure or fly per line"]) expect(ALL_WORDS.has(w), w).toBe(true);
+  });
+
   it("derives the short weekdays and month initials from the generated calendar", () => {
     expect(WD3).toEqual(WEEKDAYS.map((w) => w.slice(0, 3)));
     expect(WD3.join(" ")).toBe("Mon Tue Wed Thu Fri Sat Sun");

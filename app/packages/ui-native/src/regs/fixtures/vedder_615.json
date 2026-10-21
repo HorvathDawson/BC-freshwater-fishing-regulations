@@ -204,7 +204,13 @@
   }
  },
  "licence": null,
- "methods": null,
+ "methods": {
+  "boats": null,
+  "closed": "No fishing here until Jul 1.",
+  "closedMore": [],
+  "reference": null,
+  "ways": null
+ },
  "sheets": {
   "rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8": null,
   "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,

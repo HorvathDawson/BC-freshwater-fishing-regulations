@@ -1,6 +1,6 @@
 /**
  * T21 — `buildRegsPage`: the whole page for one tap on one day. This slice fills the header (T16) and the Keep tab
- * (keep.ts); Gear / Methods / Licence (T30–T35) and the sheets (T36) are null-stubs behind the same signature until their
+ * (keep.ts), Gear (T30, T31) and Methods (T32); Licence (T33) and the sheets (T36) are null-stubs behind the same signature until their
  * tickets land.
  *
  * Owner rule 2026-10-21: nothing here decides a regulation. The place, the settled day and the card model are the store's
@@ -10,6 +10,7 @@
 import { buildModel } from "./card";
 import { buildBait } from "./bait";
 import { buildGearTop, gearCtxOf } from "./gear";
+import { buildMethods } from "./methods";
 import { FISH, type FishManifest } from "./fish.generated";
 import { headerOf } from "./header";
 import type { RegsInputs } from "./inputs";
@@ -38,16 +39,17 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const keep = keepOf(inp, { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" });
   const status: RegsPage["status"] = inp.key == null ? "outside" : inp.key.tidal || settled.status?.status === "tidal" ? "tidal"
     : keep.strip ? keep.strip.status : "unknown";
-  // (T30, T31) the Gear tab: none outside B.C. (no key: the tab is not drawn)
+  // (T30–T32) the Gear and Methods tabs: none outside B.C. (no key: the tabs are not drawn)
   const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
   const gear = gctx && { ...buildGearTop(inp, gctx), bait: buildBait(inp, gctx) };
+  const methods = gctx && buildMethods(inp, gctx);
   return {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
     header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true }),
     keep,
-    gear, methods: null, licence: null,         // T31–T35
+    gear, methods, licence: null,               // T33–T35
     sheet: () => null,                           // T36
   };
 }

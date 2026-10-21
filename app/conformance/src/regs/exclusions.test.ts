@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
@@ -42,7 +42,9 @@ describe("EXCLUDE", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$"]);
+        "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
+        `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`]);
+    expect(SET_LINE_NOTE_IDS).toEqual(["x3p_1010", "x12p_1010", "x30p_1010", "x35p_1010"]);
   });
 });
 

@@ -91,6 +91,19 @@ export const SNAPSHOT_SUB_EXCLUDE: readonly Exclusion[] = [{
   until: "never — the prototype's snapshot is global; the app's level is per part",
 }];
 
+/**
+ * (T32) The allowed "Set lines" way's conditions. Page v36 draws the way as `<button class="wrow">…<b>Set lines</b> ⓘ<small>…</small>`
+ * where the ⓘ (set_line) is itself a `<button>`: a button inside a button is not valid HTML, so the parser closes the way's
+ * button at the ⓘ and the `<small>` conditions fall outside it — the prototype's `w.querySelector('small')` finds none and
+ * the golden note is null. The app shows the pipeline's conditions for the way (its clauses, conduct, while-rules) as it
+ * does for every other allowed way; the parity asserts the golden note is null and the app's is not, and compares every
+ * other field.
+ */
+export const SET_LINE_NOTE_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => ((s.methods as { ways?: { list: { col: string; items: { name: string }[] }[] } | null } | null)?.ways?.list ?? [])
+    .some((c) => c.col === "ok" && c.items.some((i) => i.name === "Set lines")))
+  .map(([id]) => id);
+
 export const EXCLUDE: readonly Exclusion[] = [
   ...(PINS_ERROR_IDS.length ? [{
     block: "pins" as const, ids: PINS_ERROR_IDS,
@@ -114,6 +127,11 @@ export const EXCLUDE: readonly Exclusion[] = [
   ...KEEP_TAB_EXCLUDE,
   // (T31) a source line's who-word read from the prototype's GLOBAL rule-sheet snapshot
   ...SNAPSHOT_SUB_EXCLUDE,
+  // (T32) a way's conditions the prototype's DOM lost (a button nested in a button)
+  ...(SET_LINE_NOTE_IDS.length ? [{
+    block: "methods" as const, ids: SET_LINE_NOTE_IDS, key: /^ways\.list\.0\.items\.\d+\.note$/,
+    reason: "prototype DOM artifact: page v36 nests the set_line ⓘ <button> inside the Set lines way's <button>, so the parser ends the way at the ⓘ and its <small> conditions are not read (golden note null); the app shows the pipeline's conditions — the parity asserts golden null and an app note, and compares everything else",
+    until: "never — a prototype markup bug, not a regulation" }] : []),
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */

@@ -35,4 +35,5 @@ export * from "./page";
 export * from "./gear";
 export * from "./yesno";
 export * from "./bait";
+export * from "./methods";
 export * from "./fish.generated";
