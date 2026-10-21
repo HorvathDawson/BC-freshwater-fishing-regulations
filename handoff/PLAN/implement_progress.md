@@ -96,6 +96,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- RUNNING 2026-10-21 ~15:20: WAVE B run wf_e2463c2d-be5 (script workflows/scripts/wave-b-regs-screens-and-pipeline-needs-wf_e2463c2d-be5.js,
+  session 368da779): lanes header-pins (T23,T29), rn-gear-licence (T34,T35), sheets (T36 part 2, T37), pipeline-answers
+  (the 4 needs below + D21). After merging the pipeline lane: reach check, then `deliver all` via heavy.sh, re-cut taps.
+  Still running: P15 wf_aef3d199-122, colouring engine wf_b01b27c4-44c.
 - MERGED 2026-10-21 ~15:15: WAVE A (wf_31b13f2b-581): T30 T31 T32 Gear/Bait/Methods (+ one levelTag in level.ts), T33 Licence (+
   review fix: youth box reads stored under_16), T28 pins, T36 part 1 sheets (rule/gl/pos/hatch). Parity 134/134 on gear,
   bait, methods, licence (133 + x31p tidal), pins, sheets built so far. pnpm check strict 6295, smoke pass. PIPELINE NEEDS
