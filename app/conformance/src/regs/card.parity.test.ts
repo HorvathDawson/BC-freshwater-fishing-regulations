@@ -63,7 +63,7 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
 
   it.each(ids)("6. %s: every row's STORED year strip (rows[].year) equals page v36's dayStatus runs (365 book days)", async (id) => {
     const { m } = await model(id);
-    expect(m.rows.map((r) => r.year)).toEqual(H.states[id]!.dayStatus);
+    expect(m.rows.map((r) => r.year)).toEqual(rulingApplied(id, H.states[id]!.dayStatus));
     for (const r of m.rows) expect(r.year.reduce((a, [, n]) => a + n, 0)).toBe(365);
   });
 
@@ -112,5 +112,37 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
     }
     expect([withNolimit.length, missing]).toEqual([24, 0]);
     expect(withNolimit.slice(0, 6)).toEqual(["klwa_1010", "klwa_1012", "cow1_1010", "cow2_1010", "cow3_1010", "klmb_1010"]);
+  });
+});
+
+/**
+ * OWNER RULING 2026-10-21 (a) — pipeline/docs/GOTCHAS.md: on the Kitimat, r5's hatchery-steelhead quota does NOT lift
+ * Region 6's Nov 1-June 30 stream release, where page v36 (the oracle) lifted it. The one row per state that the ruling
+ * changes (by index) gets the page's runs with every Nov 1-June 30 'keep' day made 'release'; nothing else moves, and
+ * every other row and state must still equal the page. Mirrors pipeline/tests/test_answers_year_strip_live.py.
+ */
+const KITIMAT_RULED: Readonly<Record<string, number>> = { x14p0_1010: 2, x14p1_1010: 2, x14p2_1010: 2 };
+const NOV1 = 305, JUN30 = 181;   // book day-of-year (365-day year)
+
+export function novJunReleased(runs: readonly [string, number][]): [string, number][] {
+  const days = runs.flatMap(([st, n]) => Array.from({ length: n }, () => st));
+  const out: [string, number][] = [];
+  days.forEach((st, i) => {
+    const d = i + 1, s = st === "keep" && (d >= NOV1 || d <= JUN30) ? "release" : st;
+    const last = out[out.length - 1];
+    if (last && last[0] === s) last[1]++; else out.push([s, 1]);
+  });
+  return out;
+}
+
+function rulingApplied(id: string, page: [string, number][][]): [string, number][][] {
+  const row = KITIMAT_RULED[id];
+  return row === undefined ? page : page.map((runs, i) => (i === row ? novJunReleased(runs) : runs));
+}
+
+describe("the Kitimat ruling's oracle adjustment", () => {
+  it("moves only the Nov 1-June 30 keep days", () => {
+    expect(novJunReleased([["keep", 74], ["closed", 92], ["keep", 199]]))
+      .toEqual([["release", 74], ["closed", 92], ["release", 15], ["keep", 123], ["release", 61]]);
   });
 });

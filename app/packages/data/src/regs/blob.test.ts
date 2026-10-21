@@ -69,7 +69,8 @@ const ROWS: readonly (readonly [string, string, number | string, string, boolean
   ["display_frame", "id", 64, '{"status":"own","closing":[],"strip":20}', true],
   ["licence_frame", "id", 1, "[1,1,0]", true],
   ["ladder_frame", "id", 1057, "[3973,[[0,0],[1,1],[2,2],[3,3],[4,3971],", false],
-  ["rows_frame", "id", 1723, '[["RB","CT","LMB","SMB","BCB","CRA","KO","LW","MW","WSG","ST","GB","DV","LT","EB"],{"RB":[3820,3821]', false],
+  // vedder_515's rows frame — its id is taps.json states.vedder_515.cell.rows, and moves with each delivery
+  ["rows_frame", "id", 1966, '[["RB","CT","LMB","SMB","BCB","CRA","KO","LW","MW","WSG","ST","GB","DV","LT","EB"],{"RB":[3820,3821]', false],
   ["gear_frame", "id", 320, '{"counts":{"bait_possession_kg":{"by":[3322,0],"over":[],"cites":[3322]}', false],
   ["display_rule", "id", 529, '{"kind":"gate","title":"No fishing, Jun 1–30","closure":true,"plain":"No fishing, Jun 1–30.","book":[[22,24]]', false],
   ["rule", "rix", 529, '{"entry_id":"r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4","rule_id":"chilliwack_vedder', false],
