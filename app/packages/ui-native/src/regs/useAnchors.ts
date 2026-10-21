@@ -92,7 +92,10 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | nu
   section: (tab: SectionTab) => { ref: (node: View | null) => void; onLayout: (e: LayoutChangeEvent) => void };
   remeasure: () => void;
 } {
-  const nodes = useRef(new Map<string, { key: AnchorKey; node: View }>()).current;
+  const nodes = useRef(new Map<string, View>()).current;
+  // the key each id was LAST registered with: an id comes back on another page (day, part) with other tier nesting,
+  // and its ref callback is stable (React does not call it again), so the key is looked up at measure time
+  const keys = useRef(new Map<string, AnchorKey>()).current;
   const refs = useRef(new Map<string, (node: View | null) => void>()).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupsRef = useRef(page.keep.groups);
@@ -112,7 +115,8 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | nu
       store.setSections(sectionsOf(boxes));
       store.setAnchors(anchorsOf(groupsRef.current, boxes));
     };
-    for (const [id, { key, node }] of all) {
+    for (const [id, node] of all) {
+      const key = keys.get(id)!;
       try {
         node.measureLayout(content as never, (_x, y, _w, h) => { boxes.set(id, { key, box: { top: y, height: h } }); done(); },
           () => done());
@@ -129,15 +133,16 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | nu
 
   const sink = useMemo<AnchorSink>(() => ({
     ref(id, key) {
+      keys.set(id, key);
       let f = refs.get(id);
       if (!f) {
-        f = (node) => { if (node) nodes.set(id, { key, node }); else nodes.delete(id); };
+        f = (node) => { if (node) nodes.set(id, node); else nodes.delete(id); };
         refs.set(id, f);
       }
       return f;
     },
     changed,
-  }), [refs, nodes, changed]);
+  }), [refs, nodes, keys, changed]);
 
   const section = useCallback((tab: SectionTab) => ({
     ref: sink.ref(`section:${tab}`, { k: "section", tab }),
