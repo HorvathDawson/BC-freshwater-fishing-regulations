@@ -27,4 +27,6 @@ export * from "./decided";
 export * from "./plainrow";
 export * from "./fish.generated";
 export * from "./grouphead";
+export * from "./tree";
 export * from "./others";
+export * from "./fish.generated";

@@ -122,8 +122,11 @@ export interface OriginVM { readonly says: Line; readonly tag: string | null; re
 export type TreeNodeVM = TierVM | KindVM | ReleaseRowVM;
 export interface TierVM {
   readonly t: "tier"; readonly tier: "total" | "own" | "share" | "count" | "size"; readonly tid: string;
-  readonly kicker: string | null;           // the moved scope tag over the share (tagShare)
-  readonly line: Line;                      // tierWords: boldN(says, n) + size extra's 2nd number "big2" + root ⓘ + book
+  readonly kicker: string | null;           // the moved scope tag over the share (tagShare); null when folded
+  readonly line: Line;                      // tierWords: boldN(says, n) + size extra's 2nd number "big2" + root ⓘ + book.
+                                            // (T18) folded: [] — or, with no tier origin, the tier's fresh Rule book link alone
+  readonly folded: boolean;                 // (T18, v38 int1) form a's share that says no more than the head's lead: no kicker, no words
+  readonly relation: string | null;         // (T18, rows 28) an own tier's relation to the share and the total (nbsp'd), under its line
   readonly sub: string | null;              // own tier: cap1(why_here)
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node

@@ -232,7 +232,8 @@ describe("T12 chooseSource", () => {
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
-    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal");   // T13: the trout line is compared (rows 30 year strip)
+    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
+      + " · ^groups\\.\\d+\\.tree$ not compared (never — a re-synced prototype on the ruled data removes it)");   // T13 trout line compared; (T18) the Kitimat ruling
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });

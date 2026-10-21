@@ -14,7 +14,7 @@ const keysOf = (s: GoldenState, block: string): string[] => {
   if (block === "sheets") return Object.keys(s.sheets);
   const out: string[] = [];
   const walk = (o: unknown, p: string) => {
-    if (o === null || typeof o !== "object" || Array.isArray(o)) return;
+    if (o === null || typeof o !== "object") return;   // (T18) arrays too, by index: "groups.0.tree"
     for (const [k, v] of Object.entries(o)) { const q = p ? `${p}.${k}` : k; out.push(q); walk(v, q); }
   };
   walk((s as unknown as Record<string, unknown>)[block], "");
@@ -39,7 +39,8 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$"]);
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
+        "keep 3 ^groups\\.\\d+\\.tree$"]);
   });
 });
 
@@ -83,5 +84,11 @@ describe("excluded", () => {
     expect(excluded("keep", "vedder_515", "strip.line")).toBeNull();
     expect(excluded("keep", "vedder_515", "groups")).toBeNull();
     expect(excluded("keep", "x5p1_1010")).toBeNull();
+  });
+
+  it("(T18) the Kitimat ruling excludes only the 3 ruled states' group trees, never their heads or tails", () => {
+    expect(excluded("keep", "x14p0_1010", "groups.0.tree")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
+    for (const k of ["groups", "groups.0", "groups.0.head", "groups.0.notKept", "groups.0.treeRoot", "groups.0.worked"]) expect(excluded("keep", "x14p0_1010", k), k).toBeNull();
+    expect(excluded("keep", "vedder_1010", "groups.0.tree")).toBeNull();
   });
 });

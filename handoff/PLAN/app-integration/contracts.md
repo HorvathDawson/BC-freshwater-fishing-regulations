@@ -214,6 +214,9 @@ export interface TierVM {
   readonly t: "tier"; readonly tier: "total" | "own" | "share" | "count" | "size"; readonly tid: string;
   readonly kicker: string | null;           // the moved scope tag over the share (tagShare)
   readonly line: Line;                      // tierWords: boldN(says, n) + size extra's 2nd number "big2" + root ⓘ + book (only if a page is fresh on this branch)
+                                            // folded: [] — or, with no tier origin, the tier's fresh Rule book link alone   // (T18)
+  readonly folded: boolean;                 // v38 int1: form a's share that only repeats the head's lead — no kicker, no words; children + origin stay   // (T18)
+  readonly relation: string | null;         // rows 28 / UR6: an own tier's relation to the share and the total, under its line (golden tier.sub is relation ?? sub)   // (T18)
   readonly sub: string | null;              // own tier: cap1(why_here)
   readonly origin: OriginVM | null;         // tier.origin (20g) with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node

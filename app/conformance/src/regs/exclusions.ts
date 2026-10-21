@@ -23,6 +23,8 @@ export const NO_MAP_LABEL_IDS: readonly string[] = Object.entries(golden().state
   .filter(([, s]) => { const h = s.header as { place: unknown; action: { kind: string } | null } | null;
     return !!h && h.place === null && h.action?.kind !== "map"; })
   .map(([id]) => id);
+/** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
+export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
 
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; reason: string; until?: string }
 
@@ -41,6 +43,10 @@ export const EXCLUDE: readonly Exclusion[] = [
     until: "never — prototype map coverage, not a regulation" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
+  // (T18) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design
+  { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.tree$/,
+    reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) is not page v36's. tree.parity holds these states to the STORE's TreeTier.says / TreeKind.says instead; never 'fix' the data to match the page",
+    until: "never — a re-synced prototype on the ruled data removes it" },
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */

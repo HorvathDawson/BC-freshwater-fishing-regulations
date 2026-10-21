@@ -152,6 +152,10 @@ export const WORDS = Object.freeze({
   SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
   SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
+  // ── T18 tree (tree.ts: prototype buildKeep kt, dutyWords, fishBtn) ──
+  STEELHEAD_STAMP: "Steelhead stamp ›",
+  CAPTION: (c: string) => `${c}\u00a0›`,   // U+00A0 keeps the › on the caption's line (T20)
+  THE_NAME: (name: string) => `the ${name}`,
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
