@@ -43,15 +43,23 @@ export function useAsync<T>(
   /** A REFRESH, not a new question (P02's re-poll): when the previous run had this same `sameAs`, the last ready
    *  value stays on screen while the new one loads, and a failed refresh keeps it (its age says how old it is). */
   sameAs?: string,
+  /** AN ANSWER ALREADY IN HAND (`peekAnswer`, answers.ts): returned in the very render the key changes — no loading
+   *  frame — and the question is not asked again. Consulted for a new question only, never for a refresh. */
+  peek?: () => { value: T } | null,
 ): Async<T> {
-  const [out, setOut] = useState<Async<T>>(LOADING as Async<T>);
+  // THE ANSWER IS TAGGED WITH THE QUESTION IT ANSWERS, so the render right after a key change knows the answer it holds
+  // is the last key's — and draws a peeked answer for the new key in its place.
+  const [out, setOut] = useState<Tagged<T>>({ key: null, v: LOADING as Async<T> });
   const seq = useRef(0);
   const lastSame = useRef<string | undefined>(undefined);
+  // The peeked answer, kept by identity so a memo downstream does not rebuild when the effect stores it.
+  const peeked = useRef<{ key: string; v: Async<T> } | null>(null);
 
   // Declared FIRST, so it has already run by the time the effect below fires: the effect
   // always calls the closure from the most recent render without depending on it.
   const latest = useRef(run);
-  useEffect(() => { latest.current = run; });
+  const latestPeek = useRef(peek);
+  useEffect(() => { latest.current = run; latestPeek.current = peek; });
 
   useEffect(() => {
     if (!enabled) return;
@@ -59,21 +67,42 @@ export function useAsync<T>(
     let alive = true;
     const refresh = sameAs !== undefined && lastSame.current === sameAs;
     lastSame.current = sameAs;
-    if (!refresh) setOut(LOADING as Async<T>);
+    const known = refresh ? null : latestPeek.current?.() ?? null;
+    if (known) {
+      const same = peeked.current?.key === key && peeked.current.v.value === known.value;
+      setOut({ key, sameAs, v: same ? peeked.current!.v : { state: "ready", value: known.value, error: null } });
+      return;
+    }
+    // Already loading stays the SAME state object, so React bails out: a caller whose key changes every render (a
+    // loader built inline) must not turn that into a render loop.
+    if (!refresh) setOut((prev) => (prev.v.state === "loading" ? prev : { key, sameAs, v: LOADING as Async<T> }));
     latest.current().then(
-      (value) => { if (alive && mine === seq.current) setOut({ state: "ready", value, error: null }); },
+      (value) => { if (alive && mine === seq.current) setOut({ key, sameAs, v: { state: "ready", value, error: null } }); },
       (e: unknown) => {
         if (alive && mine === seq.current) {
           const failed = { state: "failed", value: null, error: e instanceof Error ? e : new Error(String(e)) } as const;
-          setOut((prev) => (refresh && prev.state === "ready" ? prev : failed));
+          setOut((prev) => (refresh && prev.v.state === "ready" ? { ...prev, key } : { key, sameAs, v: failed }));
         }
       },
     );
     return () => { alive = false; };
   }, [key, enabled]);
 
-  return out;
+  if (out.key === key) return out.v;
+  const hit = enabled && !(sameAs !== undefined && out.sameAs === sameAs) ? peek?.() ?? null : null;
+  if (hit) {
+    if (peeked.current?.key !== key || peeked.current.v.value !== hit.value)
+      peeked.current = { key, v: { state: "ready", value: hit.value, error: null } };
+    return peeked.current.v;
+  }
+  // Otherwise the last answer until the effect has run, as it always was: a caller whose key changes every render (a
+  // loader built inline, regs.render.test 6) only ever sees an answer this way. A chart keeps its last one on purpose
+  // (`useChartView`'s `pending`).
+  return out.v;
 }
+
+/** What `useAsync` holds: an answer, and the question (`key`) it answers — so a peeked answer can stand in for it. */
+interface Tagged<T> { key: string | null; sameAs?: string; v: Async<T> }
 
 /** Debounce a fast-changing value — a search box, mostly. */
 export function useDebounced<T>(value: T, ms: number): T {

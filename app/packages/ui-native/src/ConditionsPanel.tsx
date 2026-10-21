@@ -15,9 +15,9 @@ import { useContext, useState } from "react";
 import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
-import type { Parameter, RegsSource, SectionId } from "@app/data";
+import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { useChartView, useConditionsView, useGaugeParameters, useSeries,
+import { chartParameter, useChartView, useConditionsView, useGaugeParameters, usePrefetchGauges, useSeries,
          type GaugeChoiceVM, type Horizon, type PanelFeed } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
@@ -88,8 +88,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const [span, setSpan] = useState<Span>("72h");
   const picked = parameter ?? own;
   const pick = onParameter ?? setOwn;
-  const param: Parameter | undefined =
-    picked && available.includes(picked) ? picked : undefined;
+  const param = chartParameter(picked, available);
+  // The series is not asked until the station's quantities are known: asked earlier it is the station's "auto" series
+  // and then the picked one a moment later — two loads, and the flicker between them.
+  const known = params.state !== "loading";
   const shown: Parameter = param ?? vm.reading?.quantity ?? "level";
   // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
   const [model, setModel] = useState<string | null>(null);
@@ -100,8 +102,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0 && w !== chartW) setChartW(w);
   };
-  const chart = useChartView(source, station, span, param, model ?? undefined, chartW);
-  const series = useSeries(source, station, span, param, model ?? undefined);
+  const chart = useChartView(source, station, span, param, model ?? undefined, chartW, known);
+  const series = useSeries(source, station, span, param, model ?? undefined, known);
+  // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
+  // time when clicked"), so the gauge switch draws from what is already here.
+  usePrefetchGauges(source, vm.gauges.map((g) => g.station as StationId), span, picked, model ?? undefined);
   const tint = colour ?? palette.live;
   const forecast = chart.state === "ready" ? chart.value?.shape.forecast : null;
   const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
@@ -195,12 +200,18 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
         </View>
       )}
+      {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
       {view && (
-        <Hydrograph shape={view.shape} palette={palette} colour={tint}
-                    unit={UNIT[shown]} view={view}
-                    forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
-                    label={chartLabel(span)}
-                    caption={chartCaption(span)} />
+        <View style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
+          <Hydrograph shape={view.shape} palette={palette} colour={tint}
+                      unit={UNIT[shown]} view={view}
+                      forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
+                      label={chartLabel(span)}
+                      caption={chartCaption(span)} />
+        </View>
+      )}
+      {view?.pending && (
+        <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.loadingRecord}</Text>
       )}
       {chart.state === "ready" && !view && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>

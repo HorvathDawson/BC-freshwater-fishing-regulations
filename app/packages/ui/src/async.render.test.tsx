@@ -136,3 +136,50 @@ describe("useAsync refresh (P02)", () => {
     expect(container.textContent).toBe("ready:first");
   });
 });
+
+/** The gauge switch (owner 2026-10-21: "flickers a millisecond before showing the chart"). */
+function Peeked({ impl, queryKey, known, seen }: {
+  impl: () => Promise<string>; queryKey: string; known: Record<string, string>; seen: string[];
+}) {
+  const out = useAsync(() => impl(), queryKey, true, undefined,
+                       () => (queryKey in known ? { value: known[queryKey]! } : null));
+  seen.push(`${out.state}:${out.value ?? ""}`);
+  return <p>{out.state}:{out.value ?? ""}</p>;
+}
+
+describe("useAsync with an answer in hand", () => {
+  it("draws a known answer in the same render the key changes, and does not ask again", async () => {
+    const run = vi.fn(async () => "asked");
+    const seen: string[] = [];
+    const known = { b: "known-b" };
+    const { rerender } = render(<Peeked impl={run} queryKey="a" known={known} seen={seen} />);
+    await settle();
+    seen.length = 0;
+    rerender(<Peeked impl={run} queryKey="b" known={known} seen={seen} />);
+    await settle();
+    expect(seen).toEqual(["ready:known-b", "ready:known-b"]);       // never "loading:", never "ready:asked"
+    expect(run).toHaveBeenCalledTimes(1);                            // only for "a"
+  });
+
+  it("without one, a new key loads as before (the last answer only until the effect runs)", async () => {
+    const seen: string[] = [];
+    const { rerender } = render(<Peeked impl={async () => "a-answer"} queryKey="a" known={{}} seen={seen} />);
+    await settle();
+    seen.length = 0;
+    rerender(<Peeked impl={() => new Promise<string>(() => {})} queryKey="b" known={{}} seen={seen} />);
+    await settle();
+    expect(seen).toEqual(["ready:a-answer", "loading:"]);
+  });
+
+  it("a key that changes every render while loading settles, rather than looping (a loader built inline)", async () => {
+    let renders = 0;
+    function Fresh() {
+      renders++;
+      const out = useAsync(() => new Promise<string>(() => {}), `fresh:${renders}`);
+      return <p>{out.state}</p>;
+    }
+    render(<Fresh />);
+    await settle();
+    expect(renders).toBeLessThan(5);
+  });
+});

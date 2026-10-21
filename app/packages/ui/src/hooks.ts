@@ -10,6 +10,7 @@ import type {
   Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
+import { askOnce, peekAnswer, seriesKey } from "./answers";
 import { buildHydrograph, type Hydrograph } from "./hydrograph";
 import { gaugeGeoJSON, type GaugeQuantity } from "./gaugePoints";
 
@@ -152,34 +153,44 @@ export function useStationReading(
   // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
   // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
   const tick = usePoll(READING_POLL_MS, station !== null);
+  // ASKED THROUGH THE ANSWER STORE (answers.ts), under the key the Conditions prefetch uses, so a gauge picked in the
+  // switch reads out in the same render. Reused for half a poll: a tick is always older than that, so it asks again.
+  const key = `reading:${station ?? ""}`;
   return useAsync(
-    async (): Promise<Conditions> => {
-      const empty: Conditions = {
-        station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
-      };
-      if (!station) return empty;
-      // The reading only — see `useConditions`: the chart reads its own series.
-      const now = await source.gaugeNow(station);
-      if (!now) return { ...empty, station };
-      return {
-        // `trust` and `trace` belong to a reach-to-station RELATIONSHIP, and there is none
-        // here: this is a station being asked what it reads. Null rather than borrowed from
-        // the matched link, which would attach one reach's trust band to another's gauge.
-        //
-        // `stationName` is null for the same reason it is not on a `Reading`: a reading has
-        // no name, and inventing one here would mean a second place that decides what a
-        // station is called. The caller already holds the name — it came with the donor.
-        station, stationName: null, trust: null, trace: [],
-        discharge: now.value.discharge, level: now.value.level,
-        percentile: now.value.percentile, standing: now.value.standing,
-        fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
-      };
-    },
-    `reading:${station ?? ""}#${tick}`,
+    () => askOnce(source, key, () => stationReading(source, station), READING_REUSE_MS),
+    `${key}#${tick}`,
     station !== null,
-    `reading:${station ?? ""}`,
+    key,
+    () => peekAnswer<Conditions>(source, key, READING_REUSE_MS),
   );
+}
+
+/** How long a station's reading is reused across components (a prefetch, a switch): half a poll. */
+export const READING_REUSE_MS = READING_POLL_MS / 2;
+
+/** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
+export async function stationReading(source: RegsSource, station: StationId | null): Promise<Conditions> {
+  const empty: Conditions = {
+    station: null, stationName: null, discharge: null, level: null, percentile: null,
+    standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
+  };
+  if (!station) return empty;
+  // The reading only — see `useConditions`: the chart reads its own series.
+  const now = await source.gaugeNow(station);
+  if (!now) return { ...empty, station };
+  return {
+    // `trust` and `trace` belong to a reach-to-station RELATIONSHIP, and there is none
+    // here: this is a station being asked what it reads. Null rather than borrowed from
+    // the matched link, which would attach one reach's trust band to another's gauge.
+    //
+    // `stationName` is null for the same reason it is not on a `Reading`: a reading has
+    // no name, and inventing one here would mean a second place that decides what a
+    // station is called. The caller already holds the name — it came with the donor.
+    station, stationName: null, trust: null, trace: [],
+    discharge: now.value.discharge, level: now.value.level,
+    percentile: now.value.percentile, standing: now.value.standing,
+    fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
+  };
 }
 
 /**
@@ -357,18 +368,22 @@ export function useHydrograph(
  * The whole series, not just its shapes — the model runs, the record, the disclaimer.
  *
  * `useHydrograph` returns geometry, which is what a chart draws and nothing a caption can
- * read. The panel needs both, and asking twice is free: `useAsync` keys on the same string,
- * so the second call is the same in-flight promise rather than a second fetch.
+ * read. The panel needs both, and asking twice is free: both ask through the answer store
+ * (`askOnce`, answers.ts) under one `seriesKey`, so the second is the first's promise — it was
+ * not before, whatever this comment said: `useAsync` alone shares nothing between callers.
  */
 export function useSeries(
   source: RegsSource, station: StationId | null, span: "72h" | "year",
-  parameter?: Parameter, model?: string,
+  parameter?: Parameter, model?: string, enabled = true,
 ): Async<Series | null> {
+  const key = seriesKey(station, span, parameter, model);
   const got = useAsync(
-    () => (station ? source.gaugeSeries(station, span, parameter, model)
+    () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
                    : Promise.resolve(null)),
-    `series:${station}:${span}:${parameter ?? "auto"}:${model ?? "auto"}`,
-    station !== null,
+    key,
+    station !== null && enabled,
+    undefined,
+    () => peekAnswer(source, key),
   );
   return useMemo(() => (got.state === "ready"
     ? { state: "ready" as const, value: got.value?.value ?? null, error: null }
@@ -379,10 +394,15 @@ export function useSeries(
 export function useGaugeParameters(
   source: RegsSource, station: StationId | null,
 ): Async<readonly Parameter[]> {
+  // Through the answer store, so a prefetched donor's quantities are known the instant it is picked — otherwise the
+  // chart would ask for the station's "auto" series first and its picked quantity a frame later (two loads).
+  const key = `params:${station}`;
   return useAsync(
-    () => (station ? source.gaugeParameters(station) : Promise.resolve([])),
-    `params:${station}`,
+    () => (station ? askOnce(source, key, () => source.gaugeParameters(station)) : Promise.resolve([])),
+    key,
     station !== null,
+    undefined,
+    () => peekAnswer<readonly Parameter[]>(source, key),
   );
 }
 

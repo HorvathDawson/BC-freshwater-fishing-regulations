@@ -9,11 +9,13 @@
  * Every decision is core's (`chartZoom.ts`: what a zoom, a pan and a nearest sample are; `conditions.ts`: the words)
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import type { Parameter, RegsSource, Series, StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
+import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
+import { READING_REUSE_MS, stationReading } from "./hooks";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
 
 /** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
@@ -68,6 +70,11 @@ export function chartTicks(view: Domain, span: ChartSpan, n = 5): { t: number; l
 
 export interface ChartView {
   shape: Hydrograph;
+  /**
+   * THE LAST CHART, KEPT UP while the asked-for one loads (owner 2026-10-21: "it flickers ... before showing the
+   * chart"): draw it dimmed with a small inline note, never a spinner in its place. False once the chart is current.
+   */
+  pending: boolean;
   /** The window is narrower than the whole record — "Whole chart" has something to do. */
   zoomed: boolean;
   /** The value under the finger, placed and said; null when nothing is being read. */
@@ -102,14 +109,20 @@ function extentOf(s: Series | null): Domain | null {
 /**
  * The chart for one station, span, quantity and model, at `width` px. The window and the read-out reset when any of
  * those change: a zoom into last Tuesday on one gauge means nothing on the next.
+ *
+ * NO LOADING FRAME ON A SWITCH. The series is asked through the answer store (`askOnce`), so one the Conditions
+ * prefetch (`usePrefetchGauges`) already holds is drawn in the render the gauge is picked; one still on its way keeps
+ * the LAST chart up, marked `pending`. Only the first chart a view ever draws shows "loading". `enabled` false (the
+ * station's quantities are not known yet) asks nothing and counts as on its way.
  */
 export function useChartView(source: RegsSource, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
-                             width: number): Async<ChartView | null> {
-  const key = `series:${station}:${span}:${parameter ?? "auto"}:${model ?? "auto"}`;
+                             width: number, enabled = true): Async<ChartView | null> {
+  const key = seriesKey(station, span, parameter, model);
   const series = useAsync(
-    () => (station ? source.gaugeSeries(station, span, parameter, model) : Promise.resolve(null)),
-    key, station !== null);
+    () => (station ? askOnce(source, key, () => source.gaugeSeries(station, span, parameter, model))
+                   : Promise.resolve(null)),
+    key, station !== null && enabled, undefined, () => peekAnswer(source, key));
   const [raw, setState] = useState<State>({ key, domain: null, probe: null });
   const st: State = raw.key === key ? raw : { key, domain: null, probe: null };
   const s = series.state === "ready" ? series.value?.value ?? null : null;
@@ -146,7 +159,7 @@ export function useChartView(source: RegsSource, station: StationId | null, span
     probeAt: (x: number | null) => update((d) => ({ probe: x === null ? null : timeAt(d, frac(x)) })),
   }), []);
 
-  return useMemo<Async<ChartView | null>>(() => {
+  const current = useMemo<Async<ChartView | null>>(() => {
     if (series.state !== "ready") return series as Async<ChartView | null>;
     if (!s) return { state: "ready", value: null, error: null };
     const n = s.values.length;
@@ -169,6 +182,44 @@ export function useChartView(source: RegsSource, station: StationId | null, span
     } : null;
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
-                      ...actions } };
+                      pending: false, ...actions } };
   }, [series, s, span, box.width, box.height, st.domain, st.probe, actions]);
+
+  // The last chart drawn, for the frames between a switch and its answer.
+  const last = useRef<ChartView | null>(null);
+  if (current.state === "ready" && current.value) last.current = current.value;
+  const held = last.current;
+  const stale = useMemo<Async<ChartView | null> | null>(
+    () => (held ? { state: "ready", error: null, value: { ...held, pending: true, readout: null } } : null), [held]);
+  return current.state === "loading" && stale ? stale : current;
+}
+
+/**
+ * EVERY DONOR'S CHART, ASKED WHEN THE CONDITIONS VIEW OPENS (owner 2026-10-21: "maybe get all the data when the page
+ * opens rather than one gauge at a time when clicked"). For each station: its quantities, then its series for `span`
+ * in the quantity the chart will pick (`chartParameter`), and its reading; once all of those have settled, each
+ * series for the other span. Every ask goes through the answer store under the chart's own keys, so the chart, the
+ * model chips and this are one request per donor per span. Bounded: only `stations`, the panel's donors.
+ */
+export function usePrefetchGauges(source: RegsSource, stations: readonly StationId[], span: ChartSpan,
+                                  picked: Parameter | null | undefined, model: string | undefined): void {
+  const list = stations.join("\n");
+  useEffect(() => {
+    if (!list) return;
+    let alive = true;
+    const ids = list.split("\n") as StationId[];
+    const chart = (st: StationId, sp: ChartSpan) =>
+      askOnce(source, `params:${st}`, () => source.gaugeParameters(st))
+        .then((available) => {
+          const p = chartParameter(picked ?? null, available);
+          return askOnce(source, seriesKey(st, sp, p, model), () => source.gaugeSeries(st, sp, p, model));
+        })
+        .catch(() => null);
+    const reading = (st: StationId) =>
+      askOnce(source, `reading:${st}`, () => stationReading(source, st), READING_REUSE_MS).catch(() => null);
+    const other: ChartSpan = span === "72h" ? "year" : "72h";
+    void Promise.all(ids.flatMap((st) => [chart(st, span), reading(st)]))
+      .then(() => { if (alive) for (const st of ids) void chart(st, other); });
+    return () => { alive = false; };
+  }, [source, list, span, picked, model]);
 }
