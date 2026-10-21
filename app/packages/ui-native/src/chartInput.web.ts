@@ -8,18 +8,22 @@
  */
 import { useEffect, type RefObject } from "react";
 
-/** Calls `onWheel(x, deltaY)` for a wheel over the element; the page does not scroll while the chart takes it. */
-export function useChartWheel(ref: RefObject<unknown>, onWheel: (x: number, deltaY: number) => void,
+/**
+ * Calls `onWheel(x, deltaY)` for a wheel over the element. The page does not scroll while the chart TAKES the wheel
+ * (`onWheel` returns true); a wheel it cannot use — out at the whole chart, in at the narrowest — scrolls the page.
+ */
+export function useChartWheel(ref: RefObject<unknown>, onWheel: (x: number, deltaY: number) => boolean,
                               enabled: boolean): void {
   useEffect(() => {
     const el = ref.current as HTMLElement | null;
     if (!enabled || !el || typeof el.addEventListener !== "function") return;
     const h = (e: WheelEvent) => {
-      // Over the chart the wheel ZOOMS, as the hint beside it says (a map does the same); a trackpad pinch arrives
-      // as a ctrl+wheel and is the same zoom. The page scrolls everywhere else.
-      e.preventDefault();
+      // Over the chart the wheel ZOOMS, as the hint beside it says (a map does the same) — but only while there is
+      // zoom left to do: a reader scrolling past the chart at the whole chart must not get stuck on it (review
+      // 2026-10-21). A trackpad pinch arrives as a ctrl+wheel and is the same zoom; it never zooms the PAGE here.
       const r = el.getBoundingClientRect();
-      onWheel(e.clientX - r.left, e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY);
+      const took = onWheel(e.clientX - r.left, e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY);
+      if (took || e.ctrlKey) e.preventDefault();
     };
     el.addEventListener("wheel", h, { passive: false });
     return () => el.removeEventListener("wheel", h);

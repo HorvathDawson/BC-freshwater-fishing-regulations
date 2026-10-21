@@ -5,7 +5,7 @@
  */
 import type { RefObject } from "react";
 
-export declare function useChartWheel(ref: RefObject<unknown>, onWheel: (x: number, deltaY: number) => void,
+export declare function useChartWheel(ref: RefObject<unknown>, onWheel: (x: number, deltaY: number) => boolean,
                                       enabled: boolean): void;
 export declare function useChartHover(ref: RefObject<unknown>, onHover: (x: number | null) => void,
                                       enabled: boolean): void;

@@ -11,7 +11,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, panDomain, timeAt,
-         zoomDomain, type ChartSpan, type Domain } from "@app/core";
+         zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import type { Parameter, RegsSource, Series, StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
@@ -79,6 +79,8 @@ export interface ChartView {
   fit: () => void;
   /** A pinch or a wheel: scale by `factor` (> 1 is in) about `x` px across the chart. */
   zoomAt: (x: number, factor: number) => void;
+  /** Would a zoom by `factor` change the window? A wheel that would not is the page's, to scroll with. */
+  zooms: (factor: number) => boolean;
   /** A drag: the finger moved `dx` px (right = earlier in time comes into view). */
   panBy: (dx: number) => void;
   /** Read the value at `x` px across the chart; null stops reading. */
@@ -116,14 +118,17 @@ export function useChartView(source: RegsSource, station: StationId | null, span
 
   // The actions read the LATEST window, not the one they were made with: a pinch delivers many updates between two
   // renders, and each must compound on the last.
-  const live = useRef({ full, box, key });
-  live.current = { full, box, key };
+  const live = useRef({ full, box, key, domain: st.domain });
+  live.current = { full, box, key, domain: st.domain };
   const update = (f: (d: Domain, full: Domain) => Partial<State>) =>
     setState((prev) => {
       const { full: fu, key: k } = live.current;
       if (!fu) return prev;
       const cur = prev.key === k ? prev : { key: k, domain: null, probe: null };
-      return { ...cur, ...f(cur.domain ?? fitDomain(fu), fu) };
+      const next = { ...cur, ...f(cur.domain ?? fitDomain(fu), fu) };
+      // Several wheel notches can land between two renders: each asks `zooms` of the window the last one left.
+      live.current = { ...live.current, domain: next.domain };
+      return next;
     });
   const frac = (x: number) => (x - live.current.box.padLeft)
     / Math.max(1, live.current.box.width - live.current.box.padLeft - live.current.box.padRight);
@@ -133,6 +138,10 @@ export function useChartView(source: RegsSource, station: StationId | null, span
     zoomOut: () => update((d, fu) => ({ domain: zoomDomain(d, fu, 0.5, 1 / CHART_ZOOM.step) })),
     fit: () => update(() => ({ domain: null, probe: null })),
     zoomAt: (x: number, factor: number) => update((d, fu) => ({ domain: zoomDomain(d, fu, frac(x), factor) })),
+    zooms: (factor: number) => {
+      const { full: fu, domain } = live.current;
+      return !!fu && zoomChanges(domain ?? fitDomain(fu), fu, factor);
+    },
     panBy: (dx: number) => update((d, fu) => ({ domain: panDomain(d, fu, -frac(dx + live.current.box.padLeft)) })),
     probeAt: (x: number | null) => update((d) => ({ probe: x === null ? null : timeAt(d, frac(x)) })),
   }), []);

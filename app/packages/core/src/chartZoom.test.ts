@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHART_ZOOM, clampDomain, fitDomain, isZoomed, minSpan, nearestIndex, panDomain, timeAt,
-         wheelFactor, zoomDomain } from "./chartZoom";
+         wheelFactor, zoomChanges, zoomDomain } from "./chartZoom";
 
 const H = 3_600_000;
 const FULL = { t0: 0, t1: 96 * H };     // a 72 h record plus a day of forecast
@@ -79,5 +79,17 @@ describe("nearestIndex: the sample a read-out names", () => {
   it("names nothing when the closest real sample is too far away, or there is none", () => {
     expect(nearestIndex(times, 21, (i) => i !== 2, 5)).toBe(-1);
     expect(nearestIndex([], 5)).toBe(-1);
+  });
+
+  it("says whether a zoom would change the window, so a wheel that does nothing leaves the page to scroll", () => {
+    const whole = fitDomain(FULL);
+    expect(zoomChanges(whole, FULL, wheelFactor(400))).toBe(false);   // out, at the whole chart
+    expect(zoomChanges(whole, FULL, wheelFactor(-100))).toBe(true);   // in, from the whole chart
+    const tight = zoomDomain(whole, FULL, 0.5, 1000);
+    expect(zoomChanges(tight, FULL, wheelFactor(-100))).toBe(false);  // in, at the narrowest
+    expect(zoomChanges(tight, FULL, wheelFactor(100))).toBe(true);    // out, from the narrowest
+    expect(zoomChanges(whole, FULL, 1)).toBe(false);
+    expect(zoomChanges(whole, FULL, Number.NaN)).toBe(false);
+    expect(zoomChanges(whole, FULL, 0)).toBe(false);
   });
 });

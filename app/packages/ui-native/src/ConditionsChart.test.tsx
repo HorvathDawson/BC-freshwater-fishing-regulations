@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { CONDITIONS_WORDS, donorLastReport, readingHeading } from "@app/core";
+import { chartLabel, CONDITIONS_WORDS, donorLastReport, noGaugeSentence, readingHeading } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
@@ -54,9 +54,9 @@ const feed = { index: async () => ({ stations: {
   QUIET: { percentile: null, parameter: "discharge" as const, observedAt: "2026-08-30T10:00:00-08:00" },
 } }) };
 
-async function draw() {
+async function draw(src: RegsSource = source) {
   render(<GestureHandlerRootView>
-    <ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={DAY} />
+    <ConditionsPanel source={src} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={DAY} />
   </GestureHandlerRootView>);
   await waitFor(() => expect(screen.queryByText(readingHeading("Lead Creek near Town"))).toBeTruthy());
 }
@@ -76,7 +76,7 @@ describe("the gauge switch sits by the plot", () => {
     ];
     for (let i = 1; i < order.length; i++)
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
-    // every donor is offered, the quiet one too (its record is real)
+    // every donor is offered, the quiet one too: it says what it last said (see "charting a quiet gauge")
     expect(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not counted today" })).toBeTruthy();
   });
 
@@ -97,6 +97,40 @@ describe("the gauge switch sits by the plot", () => {
       .toBe("Last reported 2026-08-30 at 11:00 PDT.");
   });
 });
+
+/** The review's 08MH055: a quiet gauge with no file — no reading and no series to chart. */
+const silent = {
+  ...(source as unknown as Record<string, unknown>),
+  gaugeNow: async (st: string) => (st === "QUIET" ? null : (source as unknown as {
+    gaugeNow: (s: string) => Promise<unknown> }).gaugeNow(st)),
+  gaugeSeries: (st: string, span: "72h" | "year", p?: never, m?: string) =>
+    (st === "QUIET" ? Promise.resolve(null) : FIXTURE.gaugeSeries("08MH001" as never, span, p, m)),
+} as unknown as RegsSource;
+
+describe("charting a quiet gauge (review 2026-10-21)", () => {
+  it("says the gauge is quiet and when it last reported, under the switch — never the no-gauge refusal", async () => {
+    await draw(silent);
+    fireEvent.click(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not counted today" }));
+    await waitFor(() => expect(screen.getByText(readingHeading("Quiet River"))).toBeTruthy());
+    // the headline answered from three gauges; picking one to chart does not take that back
+    expect(screen.queryByText(noGaugeSentence())).toBeNull();
+    const radio = screen.getByRole("radio", { name: "Showing QUIET, Quiet River, not counted today" });
+    const said = screen.getAllByText(donorLastReport("2026-08-30T10:00:00-08:00"));
+    // nothing new above the switch: the quiet gauge's words come after it, before the chart's controls
+    const inBlock = said.find((el) => precedes(radio, el)
+      && precedes(el, screen.getByLabelText(CONDITIONS_WORDS.controls.span)));
+    expect(inBlock, "the last report sits between the switch and the chart controls").toBeTruthy();
+    expect(precedes(screen.getByText(CONDITIONS_WORDS.chartGauge), radio)).toBe(true);
+  });
+});
+
+/** The plot's own element, for the browser's wheel. */
+const plot = () => screen.getByLabelText(chartLabel("72h")).querySelector("svg")!;
+const wheel = (deltaY: number) => {
+  const e = new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true });
+  plot().dispatchEvent(e);
+  return e.defaultPrevented;
+};
 
 describe("the chart zooms and reads out", () => {
   const ready = async () => {
@@ -137,6 +171,24 @@ describe("the chart zooms and reads out", () => {
     expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
     act(() => { fireGestureHandler(getByGestureTestId("chart-double-tap"), [{ x: 1, y: 1 }, { x: 1, y: 1 }]); });
     await waitFor(() => expect(screen.queryByText(/^\d{4}-\d\d-\d\d at \d\d:\d\d .+ · [\d.]+ m³\/s/)).toBeNull());
+  });
+
+  it("a wheel the chart cannot use scrolls the page: out at the whole chart, in at the narrowest", async () => {
+    await ready();
+    expect(wheel(400), "zoom out at the whole chart: the page scrolls").toBe(false);
+    // a trackpad pinch (ctrl+wheel) over the chart never zooms the PAGE, even with nothing left to zoom
+    const pinch = new WheelEvent("wheel", { deltaY: 400, ctrlKey: true, bubbles: true, cancelable: true });
+    plot().dispatchEvent(pinch);
+    expect(pinch.defaultPrevented).toBe(true);
+    expect(screen.getByRole("button", { name: CONDITIONS_WORDS.zoom.out }).getAttribute("aria-disabled"))
+      .toBe("true");
+    expect(wheel(-100), "zoom in: the chart takes it").toBe(true);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.zoom.out })
+      .getAttribute("aria-disabled")).not.toBe("true"));
+    // in, and in, to the narrowest window; then one more notch in is the page's
+    for (let i = 0; i < 40; i++) act(() => { wheel(-400); });
+    expect(wheel(-400), "zoom in at the narrowest: the page scrolls").toBe(false);
+    expect(wheel(100), "zoom out from the narrowest: the chart takes it").toBe(true);
   });
 
   it("a pinch zooms in", async () => {

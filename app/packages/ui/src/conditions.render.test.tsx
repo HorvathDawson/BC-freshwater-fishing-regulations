@@ -8,7 +8,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { donorBecause, donorFacts, donorKeyLabel, donorPinTitle, donorReads, donorReason,
+import { donorBecause, donorFacts, donorLastReport, donorKeyLabel, donorPinTitle, donorReads, donorReason,
          donorRowLabel, donorWeightLine, estimateHeadline, estimateRange, estimateSentence,
          freshness, HORIZON_LABELS, horizonChipLabel, localStamp, noGaugeSentence,
          readingAgeLine, readingHeading,
@@ -213,6 +213,41 @@ describe("useConditionsView", () => {
     expect(result.current.reading).toMatchObject({
       heading: readingHeading("Matched River"), unit: "m", quantity: "level", stage: null,
       standing: readingStandingLine(null, null) });
+  });
+
+  it("a quiet donor picked to chart says when it last reported — never the no-gauge refusal (review 2026-10-21)", async () => {
+    const two: Panel = { areaKm2: 50, members: [...PANEL.members,
+      { station: "QUIET" as never, role: "down", areaKm2: 70, years: 30, regulated: false, sameRiver: true }] };
+    const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
+                  gaugeNow: async (st: string) => (st === "QUIET" ? null : source.gaugeNow(st as never)) } as RegsSource;
+    const quietFeed = { index: async () => ({ stations: { ...(await feed.index()).stations,
+      QUIET: { percentile: null, parameter: "discharge" as const, observedAt: "2026-08-30T10:00:00-08:00" } } }) };
+    const { result } = renderHook(() =>
+      useConditionsView(src, SEC, DAY, 0, { feed: quietFeed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
+    expect(result.current.quiet).toBeNull();
+    expect(result.current.refuse).toBe(false);
+    act(() => result.current.select("QUIET" as never));
+    await waitFor(() => expect(result.current.quiet).not.toBeNull());
+    expect(result.current.reading).toBeNull();
+    expect(result.current.refuse).toBe(false);
+    expect(result.current.quiet).toEqual({
+      heading: readingHeading("QUIET"),
+      reads: donorReads({ percentile: null, observedAt: "2026-08-30T10:00:00-08:00" } as never,
+                        { ref: DAY.getTime() }),
+      lastReport: donorLastReport("2026-08-30T10:00:00-08:00"),
+    });
+  });
+
+  it("refuses only where no donor leads and nothing reads", async () => {
+    const { result } = renderHook(() =>
+      useConditionsView({ ...source, panelsFor: async () => new Map(), gaugeForSection: async () => null,
+                          gaugeNow: async () => null } as unknown as RegsSource,
+                        SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.reading).toBeNull();
+    expect(result.current.quiet).toBeNull();
+    expect(result.current.refuse).toBe(true);
   });
 
   it("falls back to the matched trace where no panel answers", async () => {

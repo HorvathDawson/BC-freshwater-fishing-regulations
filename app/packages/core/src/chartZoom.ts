@@ -68,6 +68,19 @@ export function zoomDomain(d: Domain, full: Domain, focus: number, factor: numbe
   return clampDomain({ t0: at - f * next, t1: at - f * next + next }, full);
 }
 
+/**
+ * Would zooming by `factor` change the window? False at the whole chart for a zoom OUT and at the narrowest window
+ * for a zoom IN — the wheel then belongs to the page, which scrolls on past the chart (review 2026-10-21: a desktop
+ * reader's scroll stuck over a chart that had nothing left to do with it).
+ */
+export function zoomChanges(d: Domain, full: Domain, factor: number): boolean {
+  if (!(factor > 0) || !Number.isFinite(factor) || factor === 1) return false;
+  const cur = clampDomain(d, full);
+  const next = zoomDomain(cur, full, 0.5, factor);
+  const whole = Math.max(1, full.t1 - full.t0);
+  return Math.abs((next.t1 - next.t0) - (cur.t1 - cur.t0)) > whole * CHART_ZOOM.fitSlack;
+}
+
 /** Slide the window by `frac` of its own width (positive = later in time), stopping at the ends of the record. */
 export function panDomain(d: Domain, full: Domain, frac: number): Domain {
   const shift = (d.t1 - d.t0) * (Number.isFinite(frac) ? frac : 0);

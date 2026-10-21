@@ -580,6 +580,9 @@ export interface ReadingVM {
   age: string;
 }
 
+/** A quiet donor at the head of the chart, in core's words. */
+export interface QuietVM { heading: string; reads: string; lastReport: string }
+
 export interface ConditionsVM {
   /** The matched gauge is still being looked up. */
   loading: boolean;
@@ -595,8 +598,16 @@ export interface ConditionsVM {
   /** The station the chart and the reading are about. */
   lead: StationId | null;
   select: (station: StationId) => void;
-  /** Null when no gauge may speak for this water; draw `noGauge` instead. */
+  /** Null when the lead gauge has no reading: draw `quiet` if it is set, else `noGauge`. */
   reading: ReadingVM | null;
+  /**
+   * The lead is one of the panel's donors and has no reading (a quiet gauge picked in the switch, or every donor
+   * quiet): whose it is, what it reads today and when it last reported, from core. NOT the no-gauge refusal — the
+   * panel's gauges speak for this water, one of them is only silent today (review 2026-10-21).
+   */
+  quiet: QuietVM | null;
+  /** True where no donor leads and nothing reads: draw `noGauge`, the refusal. */
+  refuse: boolean;
   noGauge: string;
   /** The single-station trace, only where the panel could not answer. */
   trace: GaugeTrace | null;
@@ -664,9 +675,17 @@ export function useConditionsView(
     };
   }
 
+  const row = reading ? undefined : panel.rows.find((r) => r.station === lead);
+  // Said once the reading has been asked for and is not there — not while it is on its way.
+  const quiet: QuietVM | null = row && got.state !== "loading" ? {
+    heading: readingHeading(name),
+    reads: donorReads(row, { ref: today.getTime() }),
+    lastReport: donorLastReport(row.observedAt),
+  } : null;
+
   return {
     loading: conditions.state === "loading",
-    day: today, panel, chain, routeData, lead, select, reading,
+    day: today, panel, chain, routeData, lead, select, reading, quiet, refuse: !reading && !row,
     noGauge: noGaugeSentence(),
     trace: !panel.answer.ok && traced.state === "ready" && traced.value.station
       ? traced.value : null,

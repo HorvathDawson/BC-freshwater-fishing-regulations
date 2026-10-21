@@ -136,16 +136,25 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.standing}</Text>
           <Text style={{ ...TYPE.meta, color: palette.faint }}>{reading.age}</Text>
         </View>
+  ) : vm.quiet ? (
+        // A QUIET DONOR AT THE HEAD OF THE CHART (review 2026-10-21): whose it is, that it is silent today and when it
+        // last spoke — in the reading's place, under the switch. Never the no-gauge refusal: the headline answered.
+        <View style={{ gap: SPACE.s1 }}>
+          <Kicker palette={palette}>{vm.quiet.heading}</Kicker>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.quiet.reads}</Text>
+          <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.quiet.lastReport}</Text>
+        </View>
   ) : null;
 
   /*
-   * THE DETAIL ROWS where no gauge reading leads the chart: the refusal, and the single-station trace where the panel
-   * could not answer. A reading, when there is one, sits in the chart block instead — under the switch that picks its
-   * gauge and over the plot of the same gauge (owner 2026-10-21).
+   * THE DETAIL ROWS where no gauge leads the chart: the refusal, and the single-station trace where the panel could
+   * not answer. A reading — or a quiet donor's last report — sits in the chart block instead, under the switch that
+   * picks its gauge and over the plot of the same gauge (owner 2026-10-21).
    */
-  const detail = !reading || vm.trace ? (
+  const refuse = vm.refuse;
+  const detail = refuse || vm.trace ? (
     <>
-      {!reading && <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>}
+      {refuse && <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>}
       {vm.trace && (
         <GaugeTrace trace={vm.trace} palette={palette} at={tiles} theme={theme} from={from} />
       )}
@@ -235,7 +244,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 /**
  * THE GAUGE SWITCH: one chip per donor in the panel's weight order — its pin's colour, its station id and its share of
  * the estimate — directly above the reading and the plot it changes. Chosen from `vm.gauges` (@app/ui `gaugeChoices`);
- * a quiet gauge is still chartable (its record is real), and says it counts for nothing today.
+ * a quiet gauge is still offered and says it counts for nothing today; picked, it says when it last reported, and the
+ * chart says so if it has no recent record to draw.
  */
 function GaugeSwitch({ palette, gauges, onPick }: {
   palette: Palette; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;

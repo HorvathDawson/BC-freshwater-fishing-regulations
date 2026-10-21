@@ -5,7 +5,7 @@
 import type { RefObject } from "react";
 
 /** No wheel on a phone. */
-export function useChartWheel(_ref: RefObject<unknown>, _onWheel: (x: number, deltaY: number) => void,
+export function useChartWheel(_ref: RefObject<unknown>, _onWheel: (x: number, deltaY: number) => boolean,
                               _enabled: boolean): void {}
 
 /** No hovering pointer on a phone: a tap reads the value instead. */

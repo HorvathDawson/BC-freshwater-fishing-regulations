@@ -107,6 +107,16 @@ describe("useChartView", () => {
     expect(v().shape.view).toEqual({ t0: T0, t1: T0 + 18 * H });
   });
 
+  it("says whether a zoom would do anything, so the page keeps a wheel the chart cannot use", async () => {
+    const { result } = draw(590);
+    const v = await ready(result);
+    expect(v().zooms(0.5)).toBe(false);                   // out, at the whole chart
+    expect(v().zooms(2)).toBe(true);
+    act(() => v().zoomAt(300, 1000));                     // to the narrowest window
+    expect(v().zooms(2)).toBe(false);
+    expect(v().zooms(0.5)).toBe(true);
+  });
+
   it("reads the value under the finger in core's words, and stops reading", async () => {
     const { result } = draw(590);
     const v = await ready(result);

@@ -25,7 +25,7 @@ import { SPACE, type Palette } from "./theme";
 const TICK = 11;
 
 /** What the chart can be asked to do: `useChartView`'s actions, its read-out, and whether it is zoomed. */
-export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "panBy"
+export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
                                 | "probeAt">;
 
 export function Hydrograph({ shape, palette, colour, label, caption, unit,
@@ -239,14 +239,20 @@ function ZoomButton({ palette, label, glyph, onPress }: {
  * THE PLOT'S GESTURES. A pinch zooms about its centre; a one-finger (or mouse) drag moves along a ZOOMED window and is
  * not claimed otherwise, so the page still scrolls and a sideways swipe still reaches whatever owns it; a tap reads
  * the value under it; a double-tap shows the whole chart; a mouse reads as it moves and its wheel zooms where it
- * points (both `chartInput.web.ts`). `touchAction` leaves vertical scrolling to the browser.
+ * points — only while there is zoom left to do, else the page scrolls (both `chartInput.web.ts`). `touchAction` leaves vertical scrolling to the browser.
  */
 function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number; children: React.ReactNode }) {
   const ref = useRef<View>(null);
   // The latest actions, read at event time: the gestures are rebuilt per zoom state, not per render.
   const live = useRef(view);
   live.current = view;
-  const wheel = useMemo(() => (x: number, dy: number) => live.current.zoomAt(x, wheelFactor(dy)), []);
+  // A wheel the window cannot use (out at the whole chart, in at the narrowest) is NOT taken: the page scrolls on.
+  const wheel = useMemo(() => (x: number, dy: number) => {
+    const f = wheelFactor(dy);
+    if (!live.current.zooms(f)) return false;
+    live.current.zoomAt(x, f);
+    return true;
+  }, []);
   useChartWheel(ref, wheel, true);
   // A MOUSE READS AS IT MOVES (the browser's own pointer events: RNGH's Hover never fired under a desktop mouse here).
   const hover = useMemo(() => (x: number | null) => live.current.probeAt(x === null || x < plotX ? null : x), [plotX]);
