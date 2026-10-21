@@ -22,3 +22,4 @@ export * from "./banner";
 export * from "./header";
 export * from "./book";
 export * from "./standing";
+export * from "./caveats";

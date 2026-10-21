@@ -45,7 +45,9 @@ export interface RegsInputs {
   readonly calendarYear: number;                            // the selected date's year: names every day's weekday (page YEAR)
   readonly item: { readonly id: string; readonly ord: number; readonly name: string; readonly kind: string; readonly sections: number;
                    readonly parts: readonly (PartFacts | null)[]; readonly partSections: readonly number[];
-                   readonly picker: Picker | null; readonly steelhead: 1 | 2 | null } | null;
+                   readonly picker: Picker | null; readonly steelhead: 1 | 2 | null;
+                   /** (T15b) the store's `item.unresolved` rules as rix — page v36 WATERS[].uncertain; T09 does not load it yet (absent = none). */
+                   readonly uncertain?: readonly number[] } | null;
   readonly partIx: number;
   readonly place: { readonly label: string; readonly name: string } | null;   // an unnamed section: place label + names[kind]
   readonly key: AkeyRow | null;                             // null = outside B.C. (or an item with no rule set on this part)

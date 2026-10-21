@@ -80,6 +80,28 @@ export const WORDS = Object.freeze({
   WHERE_NOT: "Where you can’t fish",
   NO_FISHING_COLON: "No fishing: ",
   POSSESSION: "Possession",
+  // T15b caveats.ts: page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (+ momentTxt, answerTxt, daysTxt, friendlyWhy)
+  INPART_HOT: "Fishing is different in some spots today",
+  INPART_BOAT: "Boat rules in some spots",
+  INPART_SOME: "Some spots have their own rules",
+  INPART_IC: "ⓘ",
+  CALM_HOT: "Everywhere else, follow this page.",
+  CALM_BOAT: (kind: string) => "Fishing rules are the same everywhere on this " + (kind === "lake" ? "lake" : "river") + ".",
+  CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
+  WHERE: (p: string) => "Where: " + p,
+  WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
+  MAP_IN_REGS: "(map $1 in the regulations)",
+  OTHER_DATES: (n: number) => "Other dates (" + n + ")",
+  SIDE_TITLE: "⚠ On one side of the channel only",
+  HALF_ONLY: (side: string) => side + " half only",
+  TIMED_TITLE: "⚠ At certain times",
+  ANGLER_TITLE: "⚠ Closed to some anglers",
+  UNCERTAIN_TITLE: "? Check: rules for parts of this water that couldn’t be placed on the map",
+  UNPLACED_WHY: "the regulations don’t say exactly where",
+  TODAY_PAREN: (m: string) => "today (" + m + ")",
+  NO_RULE: "no rule", ANSWER_NOLIMIT: "no limit", ANSWER_RELEASE: "release", ANSWER_CLOSED: "closed",
+  OTHER_HOURS: "other hours",
+  MISSING_CLOSER: (when: string) => "Missing from the answers file: the closure that closes it " + when,
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
