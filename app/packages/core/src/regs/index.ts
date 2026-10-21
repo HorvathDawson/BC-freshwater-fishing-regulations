@@ -13,4 +13,6 @@ export * from "./rules";
 export * from "./describe";
 export * from "./versions";
 export * from "./tap";
+export * from "./ladder";
+export * from "./place";
 export * from "./settle";
