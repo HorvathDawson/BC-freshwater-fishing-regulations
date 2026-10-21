@@ -19,14 +19,12 @@ describe("the route overlay's layers", () => {
     expect(traceLayers("light").map((l) => l.id)).toEqual([...TRACE_LAYER_IDS]);
   });
 
-  it("draws a downstream gauge's route SOLID and an upstream one DASHED", () => {
-    const by = Object.fromEntries(traceLayers("light").map((l) => [l.id, l]));
-    expect(by["trace-down"]!.filter)
-      .toEqual(["all", ["==", ["get", "kind"], "line"], ["==", ["get", "role"], "down"]]);
-    expect(by["trace-up"]!.filter)
-      .toEqual(["all", ["==", ["get", "kind"], "line"], ["==", ["get", "role"], "up"]]);
-    expect((by["trace-down"]!.paint as Record<string, unknown>)["line-dasharray"]).toBeUndefined();
-    expect((by["trace-up"]!.paint as Record<string, unknown>)["line-dasharray"]).toEqual([1.4, 1]);
+  it("draws the route as ARROWS ONLY — no casing, no tone line, no dash, no lake wash (owner 2026-10-21)", () => {
+    const ids = traceLayers("light").map((l) => l.id);
+    for (const gone of ["trace-area", "trace-casing", "trace-down", "trace-up"]) expect(ids).not.toContain(gone);
+    expect(traceLayers("light").filter((l) => l.type === "line" || l.type === "fill")).toEqual([]);
+    const arrows = traceLayers("light").find((l) => l.id === "trace-arrows")!;
+    expect((arrows.paint as Record<string, unknown>)["text-color"]).toEqual(["get", "tone"]);
   });
 
   it("marks the spot with its own pin and every gauge with a dot, never the reverse", () => {
@@ -70,13 +68,13 @@ describe("the route overlay's layers", () => {
     expect(here["icon-allow-overlap"]).toBe(true);
   });
 
-  it("takes its paper and ink from the theme, so a dark map gets a dark casing", () => {
+  it("takes its paper and ink from the theme, so a dark map gets a dark arrow halo", () => {
     for (const theme of ["light", "dark"]) {
       const t = resolveTheme(theme);
-      expect(tracePaint(theme)["trace-casing"]).toEqual({ "line-color": t["color.outside"] });
+      expect(tracePaint(theme)["trace-arrows"]).toEqual({ "text-color": ["get", "tone"], "text-halo-color": t["color.outside"] });
       expect(tracePaint(theme)["trace-label"]).toEqual({ "text-color": t["color.ui.ink"] });
     }
-    expect(tracePaint("light")["trace-casing"]).not.toEqual(tracePaint("dark")["trace-casing"]);
+    expect(tracePaint("light")["trace-arrows"]).not.toEqual(tracePaint("dark")["trace-arrows"]);
   });
 
   it("rings every gauge in the theme's ink, so a quiet (dark grey) gauge still shows on a dark map", () => {

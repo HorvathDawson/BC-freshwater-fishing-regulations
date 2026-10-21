@@ -80,7 +80,6 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
   const paper = t["color.outside"] as string;
   const ink = t["color.ui.ink"] as string;
   return {
-    "trace-casing": { "line-color": paper },
     "trace-arrows": { "text-color": ["get", "tone"], "text-halo-color": paper },
     "trace-gauge-halo": { "circle-color": ink },
     "trace-gauge": { "circle-color": ["get", "tone"], "circle-stroke-color": paper },
@@ -90,7 +89,7 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
 }
 
 /** The overlay's layer ids, in draw order. */
-export const TRACE_LAYER_IDS = ["trace-area", "trace-casing", "trace-down", "trace-up",
+export const TRACE_LAYER_IDS = [
   "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
 
 /** Line width over zoom: present but quiet at a province, a clear ribbon at a valley. */
@@ -106,26 +105,12 @@ export function traceLayers(theme: string):
   const p = tracePaint(theme);
   const line = (kind: string) => ["==", ["get", "kind"], kind];
   return [
-    // A lake (or a stream drawn as a polygon) the route passes through: a wash of its tone.
-    { id: "trace-area", type: "fill", source: TRACE_SOURCE,
-      filter: line("area"),
-      paint: { "fill-color": ["get", "tone"], "fill-opacity": 0.3 } },
-    // The paper under every route line, so a tone reads over water, land and imagery alike.
-    { id: "trace-casing", type: "line", source: TRACE_SOURCE,
-      filter: line("line"),
-      layout: { "line-cap": "round", "line-join": "round" },
-      paint: { ...p["trace-casing"], "line-width": width(1.9), "line-opacity": 0.92 } },
-    // A GAUGE DOWNSTREAM: your water flows on to it — solid.
-    { id: "trace-down", type: "line", source: TRACE_SOURCE,
-      filter: ["all", line("line"), ["==", ["get", "role"], "down"]],
-      layout: { "line-cap": "round", "line-join": "round", "line-sort-key": ["get", "order"] },
-      paint: { "line-color": ["get", "tone"], "line-width": width(1) } },
-    // A GAUGE UPSTREAM: its water flows down to you — dashed.
-    { id: "trace-up", type: "line", source: TRACE_SOURCE,
-      filter: ["all", line("line"), ["==", ["get", "role"], "up"]],
-      layout: { "line-cap": "butt", "line-join": "round", "line-sort-key": ["get", "order"] },
-      paint: { "line-color": ["get", "tone"], "line-width": width(1),
-               "line-dasharray": [1.4, 1] } },
+    /*
+     * ARROWS ONLY (owner 2026-10-21: "the dotted line is bad with the arrows. arrows should be enough"). The route used to
+     * be a paper casing + a tone line (solid down, dashed up) + a lake wash, drawn over rivers already coloured by their
+     * standing — two colours on one reach. Now the river keeps its own colour and the route is its arrows, in the tone of
+     * the gauge it leads to (up and down told apart by that tone).
+     */
     /*
      * WHICH WAY THE WATER GOES — as on the Conditions map's `stream__arrows`: stream lines
      * run mouth to source (the tile contract's `flows`; the copy keeps vertex order), so a
@@ -138,11 +123,11 @@ export function traceLayers(theme: string):
      */
     { id: "trace-arrows", type: "symbol", source: TRACE_SOURCE,
       filter: line("line"),
-      layout: { "symbol-placement": "line", "symbol-spacing": 90, "text-field": "◀",
-                "text-font": ["Noto Sans Regular"], "text-size": 11,
+      layout: { "symbol-placement": "line", "symbol-spacing": 56, "text-field": "◀",
+                "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 8, 12, 13, 15],
                 "text-keep-upright": false, "text-allow-overlap": true,
                 "text-ignore-placement": true, "text-rotation-alignment": "map" },
-      paint: { ...p["trace-arrows"], "text-halo-width": 1.2 } },
+      paint: { ...p["trace-arrows"], "text-halo-width": 1.6 } },
     /*
      * A FAINT INK RING under every dot. The paper ring alone vanishes on a dark map, and a
      * quiet gauge's tone is the palette's dark grey there — a dot drawn in the map's own
