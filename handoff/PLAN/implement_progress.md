@@ -90,7 +90,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   T19b; lane C T17/T18/T19; parity 134/134, Kitimat 3 states keyed by the ruling) + merge fixes 0b99102a (one
   ruleBookLine; THE_REGION_LC). REGS_STORE_REQUIRED=1 pnpm check 4787 pass / 19 skip; smoke pass. Owner rule found 5
   answers still derived in TS (closers, narrow_all, parent, record duty, stamps) -> batch 9 moves them into the
-  pipeline (version bump, then lead runs deliver all) + T21 Keep tab wired into the water screen with screenshots vs
+  pipeline (version bump, then lead runs deliver all) + T21 [first run hit the session limit at 6:40 am with nothing
+  saved; RESUMED same run id wf_878ffca2-5ae] Keep tab wired into the water screen with screenshots vs
   the prototype (handoff/PLAN/app-integration/keep-shots/). OWNER Q: T16 now labels one-part waters ("Whole water",
   "Mouth -> Source") where the prototype showed nothing (D1 frames every part) — keep or hide?
 - 2026-10-21 morning: deliver all OK -> release r-7b6e802bf22b PROMOTED (13.85 MB gz; card gate 0 problems; both
