@@ -6,7 +6,7 @@
  * @app/map resolves those through the generated style, so the phone and the desktop cannot
  * colour the same river differently.
  */
-import type { SectionKey } from "@app/core";
+import { SEARCH_MAP, type SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
@@ -19,7 +19,7 @@ import type { Palette } from "./theme";
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
                             onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, gauges, onVisible, onError,
-                            fit, basemap }: {
+                            fit, basemap, onBack }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -51,6 +51,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   fit?: MapProps["fit"];
   /** Drawn ground or satellite — the Layers sheet's Basemap choice. */
   basemap?: MapProps["basemap"];
+  /** Present while the map shows a water search's eye sent it to: a pill back to search. */
+  onBack?: () => void;
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
@@ -97,6 +99,20 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
           ours overlapped it — and the choice already exists in the Layers sheet under
           Basemap, where it sits beside the other things that change what the map is
           showing. Two controls for one setting is one too many. */}
+
+      {/*
+        THE WAY BACK TO SEARCH, while the map shows the water search's eye sent it to (route `show`). Top-left, the
+        corner MapLibre leaves empty; the system back and the browser's back do the same (one back rule).
+      */}
+      {onBack && (
+      <View style={{ position: "absolute", top: 14, left: 14 }}>
+        <Pill palette={palette} onPress={onBack} label={SEARCH_MAP.backLabel}>
+          <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600", color: palette.accent }}>
+            {`‹ ${SEARCH_MAP.back}`}
+          </Text>
+        </Pill>
+      </View>
+      )}
 
       {onLayers && (
       <View style={{ position: "absolute", bottom: 14, left: 14 }}>

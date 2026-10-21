@@ -226,8 +226,9 @@ export interface Extent {
    * `exact`  — built from points on the water itself.
    * `estimate` — inferred from town distances; right to within a few km, which is the
    *              scale of the box, so the map should refine it against the tiles.
+   * `outline` — the water's own geometry: the union of its parts' boxes (`boxOfParts`). Nothing to refine.
    */
-  basis: "exact" | "estimate";
+  basis: "outline" | "exact" | "estimate";
 }
 
 const KM_PER_DEG_LAT = 111.32;
@@ -329,6 +330,70 @@ export function fixOf(fix: WaterFix): Extent | null {
   if (!p) return null;
   const nearest = Math.min(...fix.near.map((r) => r.km));
   return { bbox: boxAround(p, Math.min(Math.max(nearest * 0.6, 2), 8)), basis: "estimate" };
+}
+
+/**
+ * THE SEARCH MAP'S WORDS — the preview pinned under the results, and the way back to it from the main map. One copy, so
+ * the phone and the desktop say the same thing.
+ */
+export const SEARCH_MAP = {
+  /** The caption before anything is picked. */
+  idle: "Tap a result to see it here · the eye shows it on the map",
+  /** The caption when the results hold towns and no water. */
+  placesOnly: "Tap a place to see where it is",
+  /** The fit control on the preview: back to the whole subject after a pan or zoom. */
+  fit: "Show all of it",
+  /** The pill on the main map when search's eye sent the reader there, and its spoken name. */
+  back: "Search",
+  backLabel: "Back to search",
+} as const;
+
+/** The caption under the preview for a water: its name, or — only where the source holds no geometry — that it cannot. */
+export function waterCaption(name: string, placed: boolean): string {
+  return placed ? name : `${name} — the map cannot place it yet`;
+}
+
+/**
+ * One part of a water as the bundle measures it (`part_geo`): its box in degrees, or — where the builder wrote none —
+ * only its midpoint, which then counts as a point of the box.
+ */
+export interface PartBox {
+  w: number | null; s: number | null; e: number | null; n: number | null;
+  midLon: number; midLat: number;
+}
+
+/**
+ * WHERE A WATER IS, FROM ITS OWN GEOMETRY: the union of its parts' boxes. A water split into closure areas (Kootenay
+ * Lake, Williston Lake) is handed its areas' parts, so it is placed by them. Null only for a water with no part at all.
+ */
+export function boxOfParts(parts: readonly PartBox[]): Bbox | null {
+  let box: Bbox | null = null;
+  for (const p of parts) {
+    const own: Bbox = p.w !== null && p.s !== null && p.e !== null && p.n !== null
+      ? [p.w, p.s, p.e, p.n] : [p.midLon, p.midLat, p.midLon, p.midLat];
+    box = unionBbox(box, own);
+  }
+  return box;
+}
+
+/** The smallest side an outline opens on: a pond is a few metres across, and a camera that tight shows no shore. */
+export const OUTLINE_MIN_KM = 0.6;
+
+/** A water's outline as a camera extent — exactly its box, widened only where a side is under `OUTLINE_MIN_KM`. */
+export function outlineOf(box: Bbox | null): Extent | null {
+  if (!box) return null;
+  const mid = (box[1] + box[3]) / 2;
+  const wide = (box[2] - box[0]) * kmPerDegLon(mid) >= OUTLINE_MIN_KM
+    && (box[3] - box[1]) * KM_PER_DEG_LAT >= OUTLINE_MIN_KM;
+  return { bbox: wide ? box : padBbox(box, OUTLINE_MIN_KM), basis: "outline" };
+}
+
+/**
+ * Where to open on a water: its OUTLINE when the bundle has one (every named water in a release does); otherwise the
+ * evidence (`fixOf`: gauges on it, then town rings). Gauges and towns never override the water's own shape.
+ */
+export function extentOf(box: Bbox | null, fix: WaterFix | null): Extent | null {
+  return outlineOf(box) ?? (fix ? fixOf(fix) : null);
 }
 
 /**

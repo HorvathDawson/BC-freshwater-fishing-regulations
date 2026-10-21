@@ -33,6 +33,7 @@ REL=$(/bin/ls -dt data/release/r-* 2>/dev/null | head -1)
 if [ -n "$REL" ]; then
   step "release parity + perf" env RELEASE_DIR="$REL" BUNDLE=data/generated/bundle/bundle.sqlite \
        pnpm -C app exec vitest run release-perf
+  step "release: every water placeable" env RELEASE_DIR="$REL" TIER2=1 pnpm -C app exec vitest run release-placeable
 else
   echo "── release parity + perf: no data/release/r-* yet (run python -m pipeline.deliver release)"; failed+=("release (none built)")
 fi

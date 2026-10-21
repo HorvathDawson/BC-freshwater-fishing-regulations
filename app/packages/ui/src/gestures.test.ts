@@ -80,6 +80,13 @@ describe("backDepth: how many backs the route holds, counted by the reducer that
     expect(rows.map(([k, as]) => [k, backDepth(as.reduce(reduce, HOME as Route))]))
       .toEqual([["root", 0], ["drill", 1], ["water", 2], ["map", 3], ["flow", 4]]);
   });
+
+  it("search's eye is one back (the browser's back returns to search); a water opened there, two", () => {
+    const shown: RouteAction[] = [{ type: "tab", tab: "search" }, { type: "show", item: VEDDER }];
+    expect([backDepth(shown.reduce(reduce, HOME as Route)),
+            backDepth([...shown, { type: "openWater", item: VEDDER } as RouteAction].reduce(reduce, HOME as Route))])
+      .toEqual([1, 2]);
+  });
 });
 
 describe("one back from each input pops exactly one frame", () => {

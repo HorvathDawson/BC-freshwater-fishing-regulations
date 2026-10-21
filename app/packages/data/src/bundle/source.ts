@@ -18,7 +18,7 @@ import type { BasinMember,
 } from "../index";
 import * as Q from "./queries";
 import { num, str, type Db, type Row } from "./db";
-import { link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "./shared";
 
 export interface BundleSourceOptions {
@@ -152,6 +152,10 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         on: [...gauges, ...stocked].map(pt),
         near: rings.map((r) => ({ ...pt(r), km: Number(r.km) })),
       };
+    },
+
+    async waterBox(item) {
+      return boxOfGeoRows(await db.all(Q.PART_GEO_FOR_ITEM, item), 1);
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {

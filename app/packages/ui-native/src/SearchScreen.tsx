@@ -7,8 +7,9 @@
  *
  * LOOK, THEN GO. Tapping a row only shows it on the pinned map — the water framed and lit,
  * or the town framed and pinned with the water around it lit — and the list stays where it
- * is. The eye at the end of the row is the way out: a water's opens its page on the main
- * map; a town's swaps the list for "WATER NEAR SMITHERS", most worth listing first
+ * is. The eye at the end of the row is the way out: a water's shows it, framed and lit, on the
+ * main map, and back returns here as it was (route `show`; the query and selection are the
+ * Shell's); a town's swaps the list for "WATER NEAR SMITHERS", most worth listing first
  * (importance against distance — `rankNear` in core). See `searchStep`.
  *
  * Places are their own group, in their own colour (`palette.place`), above the waters: a
@@ -26,13 +27,13 @@
  */
 import { useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
+import { SEARCH_MAP, WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
          type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
-import { NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
+import { NO_SEARCH, isSelected, resultGroups, rowStatus, searchStep, useSearch,
          useSearchView, useStatusIndex, type StatusSource,
-         type SearchAction, type SearchPick, type SearchResults, type SearchTarget }
+         type SearchAction, type SearchMemory, type SearchResults, type SearchTarget }
   from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { EyeIcon } from "./icons";
@@ -53,25 +54,37 @@ type Row =
   | { t: "near"; key: string; near: NearHit }
   | { t: "note"; key: string; text: string };
 
-export function SearchScreen({ source, palette, onPick, total, tiles, theme, basemap, status = null }: {
+export function SearchScreen({ source, palette, onPick, total, tiles, theme, basemap, status = null,
+                               memory, onMemory }: {
   source: RegsSource; palette: Palette;
   /** Where the day's status comes from (the release's paint, P11). Absent -> no row carries a status. */
   status?: StatusSource | null;
-  /** The eye on a water — open its page, framed and lit on the main map. */
+  /** The eye on a water — show it, framed and lit, on the main map (route `show`; back returns here). */
   onPick: (item: ItemId) => void;
   total?: number;
   /** Present -> the results list gets the pinned map the design calls for. */
   tiles?: TileEndpoints; theme?: string;
   basemap?: MapProps["basemap"];
+  /**
+   * The query and the selection, held by the caller so a trip to the main map and back returns to them. Absent, the
+   * screen holds its own (a test, a screen nothing leaves).
+   */
+  memory?: SearchMemory;
+  onMemory?: (m: SearchMemory) => void;
 }) {
-  const [q, setQ] = useState("");
+  const [own, setOwn] = useState<SearchMemory>(NO_SEARCH);
+  const mem = memory ?? own;
+  const setMem = onMemory ?? setOwn;
+  const { q, pick } = mem;
   const [focused, setFocused] = useState(false);
-  const [pick, setPick] = useState<SearchPick>(NO_PICK);
+  // THE PREVIEW'S FIT CONTROL: each press re-sends the camera to the whole subject after the reader panned away.
+  const [refits, setRefits] = useState(0);
   const act = (a: SearchAction) => {
     const next = searchStep(pick, a);
-    setPick(next.pick);
+    setMem({ q, pick: next.pick });
     if (next.leave) onPick(next.leave);
   };
+  const type = (t: string) => setMem({ q: t, pick: searchStep(pick, { t: "typed" }).pick });
   const hits = useSearch(source, q);
   // The day's status of each water, from the same index the map colours by. Today, read once
   // per render — a list is not open across a midnight in any way that matters.
@@ -122,9 +135,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
   const busy = typed && hits.state === "loading" && !last.current.waters.length
     && !last.current.places.length;
   const caption = focus?.caption
-    ?? (typed && results.places.length && !results.waters.length
-      ? "Tap a place to see where it is"
-      : "Tap a result to see it here · the eye opens it");
+    ?? (typed && results.places.length && !results.waters.length ? SEARCH_MAP.placesOnly : SEARCH_MAP.idle);
   // The town's pin wears the town's colour, so the pin and its row read as one thing.
   const pins = focus?.marker ? [{ ...focus.marker, tone: palette.place }] : EMPTY;
 
@@ -151,7 +162,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
                        backgroundColor: palette.card, ...palette.lift }}>
           <TextInput
             value={q}
-            onChangeText={(t) => { setQ(t); act({ t: "typed" }); }}
+            onChangeText={type}
             onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
             placeholder="River, lake or town"
             placeholderTextColor={palette.faint}
@@ -161,7 +172,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
                      paddingHorizontal: 15, paddingVertical: 13 }}
           />
           {q.length > 0 && (
-            <Pressable onPress={() => { setQ(""); act({ t: "typed" }); }}
+            <Pressable onPress={() => type("")}
                        accessibilityRole="button" accessibilityLabel="Clear search"
                        style={{ paddingHorizontal: 15, alignSelf: "stretch",
                                 justifyContent: "center" }}>
@@ -274,15 +285,33 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
         to open on and light, whole, or which town to open on and pin.
       */}
       {tiles && (
-        <MiniMap at={tiles} palette={palette} theme={theme ?? "light"} camera={HOME}
-                 view="plain" basemap={basemap}
-                 style={{ flexGrow: 1, flexShrink: 0, flexBasis: 186, minHeight: 186,
-                          borderTopWidth: 1, borderTopColor: palette.line }}
-                 fit={focus ? { key: focus.key, bbox: focus.bbox, refine: focus.refine }
-                            : null}
-                 highlight={focus?.highlight ?? EMPTY}
-                 pins={pins}
-                 hint={caption} />
+        <View style={{ flexGrow: 1, flexShrink: 0, flexBasis: 186, minHeight: 186,
+                       borderTopWidth: 1, borderTopColor: palette.line }}>
+          <MiniMap at={tiles} palette={palette} theme={theme ?? "light"} camera={HOME}
+                   view="plain" basemap={basemap}
+                   style={{ flex: 1 }}
+                   // the key carries the fit control's presses, so a press re-sends the camera to the same subject
+                   fit={focus ? { key: `${focus.key}#${refits}`, bbox: focus.bbox, refine: focus.refine }
+                              : null}
+                   highlight={focus?.highlight ?? EMPTY}
+                   pins={pins}
+                   hint={caption} />
+          {/*
+            FIT — riffle's `szfit` (⤢), under the map's own zoom stack in the top-right: after a pan or a zoom, one press
+            shows the whole subject again. Only while there is one to show.
+          */}
+          {focus?.bbox ? (
+            <Pressable onPress={() => setRefits((n) => n + 1)} accessibilityRole="button"
+                       accessibilityLabel={SEARCH_MAP.fit} hitSlop={6}
+                       style={({ pressed }) => ({
+                         position: "absolute", right: 10, top: 78, width: 29, height: 29,
+                         alignItems: "center", justifyContent: "center", borderRadius: 4,
+                         backgroundColor: pressed ? palette.tint : palette.card,
+                         borderWidth: 1, borderColor: palette.line, ...palette.lift })}>
+              <Text style={{ ...TYPE.bodyStrong, fontSize: 15, lineHeight: 17, color: palette.ink }}>⤢</Text>
+            </Pressable>
+          ) : null}
+        </View>
       )}
     </View>
   );

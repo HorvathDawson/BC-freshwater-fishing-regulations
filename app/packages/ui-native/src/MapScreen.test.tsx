@@ -80,6 +80,17 @@ describe("<MapScreen> corner", () => {
     expect(onPick).toHaveBeenLastCalledWith(5);
   });
 
+  it("the corner holds the way back to search only while the map shows what search's eye sent it to", () => {
+    const back = vi.fn();
+    const { rerender } = render(<MapScreen {...BASE} />);
+    expect(screen.queryByRole("button", { name: "Back to search" })).toBeNull();
+    rerender(<MapScreen {...BASE} onBack={back} />);
+    const pill = screen.getByRole("button", { name: "Back to search" });
+    expect(pill.textContent).toBe("‹ Search");
+    pill.click();
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
   it("offers no layers button when the caller gives no handler", () => {
     // The Conditions tab overrides every choice that sheet would offer, so the button
     // would open a sheet whose answers the tab ignores.

@@ -134,6 +134,16 @@ describe("the release reader answers like the bundle reader (P11)", () => {
     expect(c).toEqual(await bundle.counts());
   });
 
+  it("geometry: the bundle places every water; the fixture release has no water file, so it says null, never a guess", async () => {
+    const ids = column("SELECT item_id FROM item ORDER BY ord") as ItemId[];
+    const fromBundle = await Promise.all(ids.map((id) => bundle.waterBox(id)));
+    expect(ids.filter((_, i) => fromBundle[i] === null)).toEqual([]);
+    expect(m.files.water).toBeUndefined();
+    const fromRelease = await Promise.all(ids.map((id) => release.waterBox(id)));
+    expect(fromRelease.filter((b) => b !== null)).toEqual([]);
+    expect(L.opened()).not.toContain("water");
+  });
+
   it("the gauge reads, the lake road and the walks", async () => {
     const all = allSections();
     expect(await release.stationsFor(all)).toEqual(await bundle.stationsFor(all));

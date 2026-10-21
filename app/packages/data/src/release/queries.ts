@@ -56,6 +56,15 @@ const ids = (n: number) => B.placeholders(n);
 export const CROSS = {
   /** core: an item's ord (the key near and water are written in). */
   ITEM_ORD: { file: "core", sql: "SELECT ord FROM item WHERE item_id = ?" },
+  /**
+   * core: a water's ord and the ords of the waters that are a PART OF it (a lake split into closure areas owns no
+   * section of its own — Kootenay, Williston, Shannon) — the keys its geometry is read by (`PART_GEO_FOR_ORDS`).
+   */
+  GEO_ORDS: { file: "core", sql:
+    "SELECT ord FROM item WHERE item_id = ?1 UNION ALL SELECT ord FROM item WHERE part_of = ?1" },
+  /** water: the parts' boxes, integer microdegrees (`part_geo`'s primary key is (ord, part_ix)). */
+  PART_GEO_FOR_ORDS: (n: number) => ({ file: "water", sql:
+    `SELECT w, s, e, n, mid_lon, mid_lat FROM part_geo WHERE ord IN (${ids(n)})` }),
   ORDS_FOR_ITEMS: (n: number) => ({ file: "core", sql: `SELECT ord, item_id FROM item WHERE item_id IN (${ids(n)})` }),
   ITEMS_FOR_ORDS: (n: number) => ({ file: "core", sql:
     "SELECT ord, item_id, name, kind, area_ha, size, pieces, gauged, has_rows FROM item " +

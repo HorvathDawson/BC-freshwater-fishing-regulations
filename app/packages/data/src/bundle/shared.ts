@@ -4,7 +4,7 @@
  * an ANSWER is made from rows lives here, once: the name ranking, the gauge link, the series join, the downstream walks.
  * Only where the rows come from differs between them.
  */
-import { bandAt, describeBy, rankWaters, type Band, type NearPlace } from "@app/core";
+import { bandAt, boxOfParts, describeBy, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, ItemId, NameHit, NearHit, Parameter, PanelRoute, SectionId, Series,
               StationId } from "../index";
@@ -374,6 +374,17 @@ function dayStamp(year: number, index: number): string {
 function last(values: readonly (number | null)[]): number | null {
   const i = lastIndex(values);
   return i < 0 ? null : values[i]!;
+}
+
+/**
+ * A water's box from its `part_geo` rows (w, s, e, n, mid_lon, mid_lat), `perDegree` units to a degree: 1 in the
+ * bundle (REAL degrees), 1e6 in the release (integer microdegrees, the pack's units). One conversion for both readers.
+ */
+export function boxOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): Bbox | null {
+  const deg = (v: Cell | undefined) => (v === null || v === undefined ? null : Number(v) / perDegree);
+  return boxOfParts(rows.map((r) => ({ w: deg(r.w), s: deg(r.s), e: deg(r.e), n: deg(r.n),
+                                       midLon: Number(r.mid_lon) / perDegree,
+                                       midLat: Number(r.mid_lat) / perDegree })));
 }
 
 function lastIndex(values: readonly (number | null)[]): number {

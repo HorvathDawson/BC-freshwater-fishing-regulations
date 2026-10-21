@@ -190,6 +190,25 @@ describe("the bundle source", () => {
     expect(await src.locate("gnis:does-not-exist" as ItemId)).toEqual({ on: [], near: [] });
   });
 
+  it("places EVERY water by its own geometry — none is left to the gauges and towns", async () => {
+    const items = (await db.all("SELECT item_id FROM item ORDER BY ord")).map((r) => str(r.item_id) as ItemId);
+    expect(items.length).toBe(250);
+    const boxes = await Promise.all(items.map((i) => src.waterBox(i)));
+    expect(items.filter((_, k) => boxes[k] === null)).toEqual([]);
+    for (const [w, s, e, n] of boxes as [number, number, number, number][]) {
+      expect(w).toBeLessThanOrEqual(e);
+      expect(s).toBeLessThanOrEqual(n);
+    }
+    expect(await src.waterBox("gnis:does-not-exist" as ItemId)).toBeNull();
+  });
+
+  it("a one-part water's box is its part_geo row, exactly (a water split into areas: conformance/geometry)", async () => {
+    const row = (await db.get("SELECT i.item_id, g.w, g.s, g.e, g.n FROM item i JOIN part_geo g USING(ord) " +
+                              "ORDER BY i.ord LIMIT 1"))!;
+    expect(await src.waterBox(str(row.item_id) as ItemId))
+      .toEqual([Number(row.w), Number(row.s), Number(row.e), Number(row.n)]);
+  });
+
   it("stores only bands the pipeline can produce — a refusal is an absent row", async () => {
     // There is no `none` band. `pipeline/gauges/consume/shed.py` writes NO ROW for a reach the gauge
     // drains far too much to describe, so the refusal reaches the client as a null link.

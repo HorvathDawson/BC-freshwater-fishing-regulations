@@ -11,7 +11,8 @@
  *
  * ONE BACK RULE: in water mode, a map or conditions view goes back to the regs; the regs of a water the reader flowed
  * into go back to the previous water; the regs of the first water leave water mode. In browse mode back closes what is
- * open on the tab (a spot being added, a spot, a Conditions section), and otherwise stays.
+ * open on the tab (a spot being added, a spot, a Conditions section), returns a water search's eye SHOWED on the map
+ * to search, and otherwise stays.
  */
 import { useReducer } from "react";
 import type { ItemId, SectionId } from "@app/data";
@@ -26,6 +27,11 @@ export interface WaterFrame { item: ItemId; part: number | null; tapSid: Section
 export interface BrowseRoute {
   mode: "browse"; tab: BrowseTab; cond: { section: SectionId; at: LatLon | null } | null;
   spot: SpotId | null; adding: boolean;
+  /**
+   * A water SHOWN on the main map by search's eye — framed and lit there, the bar still up. Back returns to search
+   * (which keeps its query and selection: the Shell holds them). Any tab change forgets it.
+   */
+  shown: ItemId | null;
 }
 export interface WaterRoute { mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute }
 export type Route = BrowseRoute | WaterRoute;
@@ -33,6 +39,8 @@ export type Route = BrowseRoute | WaterRoute;
 export type RouteAction =
   | { type: "tab"; tab: BrowseTab }
   | { type: "openWater"; item: ItemId; tapSid?: SectionId; part?: number }
+  /** Search's eye: show this water on the main map, and come back to search on back. */
+  | { type: "show"; item: ItemId }
   | { type: "view"; view: View }
   | { type: "part"; part: number }
   | { type: "flowInto"; item: ItemId; part: number }
@@ -44,7 +52,7 @@ export type RouteAction =
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */
 export const STACK_CAP = 8;
 
-export const HOME: BrowseRoute = { mode: "browse", tab: "map", cond: null, spot: null, adding: false };
+export const HOME: BrowseRoute = { mode: "browse", tab: "map", cond: null, spot: null, adding: false, shown: null };
 
 const top = (r: WaterRoute): WaterFrame => r.stack[r.stack.length - 1]!;
 const withTop = (r: WaterRoute, f: Partial<WaterFrame>): WaterRoute =>
@@ -54,7 +62,8 @@ const push = (r: WaterRoute, f: WaterFrame): WaterRoute => ({ ...r, stack: [...r
 export function reduce(r: Route, a: RouteAction): Route {
   if (r.mode === "browse") {
     switch (a.type) {
-      case "tab": return { mode: "browse", tab: a.tab, cond: null, spot: null, adding: false };
+      case "tab": return { mode: "browse", tab: a.tab, cond: null, spot: null, adding: false, shown: null };
+      case "show": return { mode: "browse", tab: "map", cond: null, spot: null, adding: false, shown: a.item };
       case "openWater":
         return { mode: "water", from: r,
                  stack: [{ item: a.item, part: a.part ?? null, tapSid: a.tapSid ?? null, view: "regs" }] };
@@ -65,6 +74,7 @@ export function reduce(r: Route, a: RouteAction): Route {
         if (r.adding) return { ...r, adding: false };
         if (r.spot !== null) return { ...r, spot: null };
         if (r.cond !== null) return { ...r, cond: null };
+        if (r.shown !== null) return { ...r, tab: "search", shown: null };
         return r;
       default: return r;            // view / part / flowInto mean nothing without a water
     }

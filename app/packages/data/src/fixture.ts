@@ -170,6 +170,12 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         return { on: [], near: [{ lat: 49.171, lon: -121.953, km: 2.4 }] };
       return { on: [], near: [] };
     },
+    async waterBox(i) {
+      // Each water's own outline: the river from Chilliwack Lake to the Vedder; the side channel by the Fraser.
+      if (i === CHILLIWACK.item) return [-122.0, 49.05, -121.4, 49.12];
+      if (i === JEPERSON.item) return [-121.95, 49.17, -121.93, 49.18];
+      return null;
+    },
 
     async gaugeForSection(s): Promise<GaugeLink | null> {
       if (!itemOf.has(s)) return null;

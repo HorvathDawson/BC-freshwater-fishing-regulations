@@ -17,8 +17,8 @@ import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, wa
          type SpotPhotos } from "@app/ui";
 import { useBack, useEdgeBack, useOnLeave, usePartSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
-         useHorizon, type PairingInput, type StatusSource } from "@app/ui";
+         NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
+         useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
@@ -131,7 +131,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const openSpot = route.mode === "browse" ? route.spot : null;
   const condSection: SectionId | null = route.mode === "browse" ? route.cond?.section ?? null : null;
   const condAt = route.mode === "browse" ? route.cond?.at ?? null : null;
-  const toTab = (k: BrowseTab) => { setPicked(null); go({ type: "tab", tab: k }); };
+  const toTab = (k: BrowseTab) => go({ type: "tab", tab: k });
   /*
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe — and the sideways part swipe.
    * The part order is the water map's (P15 `useWaterMap`), not read yet: until it is, the swipe is off.
@@ -142,13 +142,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(null);
   /**
-   * The water chosen from SEARCH, which the map opens on and lights when the reader comes
-   * back from its page — riffle's `goTo`: frame the water, then open it. Cleared by
-   * anything that changes the subject (a tap on another water, a tab change), so a later
-   * remount of the map never drags the camera back to an old search.
+   * The water search's eye SHOWED on the main map (route `show`): framed by its outline and lit, whole. It is the
+   * route's, so back returns to search, and a tab change forgets it — a later remount of the map never drags the
+   * camera back to an old search. Where search was (query, selection) is kept here, for that back.
    */
-  const [picked, setPicked] = useState<ItemId | null>(null);
-  const pickFocus = usePickFocus(source, picked);
+  const shown: ItemId | null = browse.shown;
+  const pickFocus = usePickFocus(source, shown);
+  const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
   const [layersOpen, setLayersOpen] = useState(false);
   // the figures are drawn by the search screen (its total) and the layers sheet (reaches, stations, age)
   const factsWanted = tab === "search" || layersOpen;
@@ -312,20 +312,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     // The tile's feature id IS the section handle — see SectionId in @app/data.
     const sid = Number(featureId) as SectionId;
     const found = await source.itemForSection(sid);
-    if (found) { setPicked(null); go({ type: "openWater", item: found, tapSid: sid }); }
+    if (found) go({ type: "openWater", item: found, tapSid: sid });
   }, [source, go]);
-
-  /**
-   * Open a water from a list — and forget whichever reach the Conditions tab was on.
-   *
-   * The remembered reach exists so the Regulations round trip comes back where it started.
-   * It must not survive a jump to a DIFFERENT water, or the Conditions toggle on the
-   * Coquihalla's sheet would open the Fraser.
-   */
-  const openWater = useCallback((id: ItemId) => {
-    go({ type: "tab", tab: "map" });
-    go({ type: "openWater", item: id });
-  }, [go]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   if (viewing) {
@@ -430,11 +418,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    onBack={back} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} status={status}
-                      onPick={(id) => {
-                        // Frame it on the map AND open it: back from the page lands on
-                        // the water, lit, rather than on the search list.
-                        openWater(id); setPicked(id);
-                      }}
+                      // the eye: SHOW it on the main map, framed and lit; back returns here as it was
+                      onPick={(id) => go({ type: "show", item: id })}
+                      memory={searchMemory} onMemory={setSearchMemory}
                       total={counts?.waters} tiles={tiles} theme={theme}
                       basemap={layers.basemap} />
       : tab === "conditions" && condSection
@@ -466,6 +452,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                             onHorizon={hz.pick} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme}
+                     // the way back to search, while the map shows what search's eye sent it to
+                     onBack={tab === "map" && shown !== null ? back : undefined}
                      camera={camera.current}
                      marker={focus}
                      basemap={layers.basemap}

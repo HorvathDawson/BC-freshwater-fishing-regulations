@@ -22,7 +22,7 @@
 import type { WaterFix } from "@app/core";
 import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
-import { byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../bundle/shared";
 import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -213,6 +213,14 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
       ]);
       // stocking sites: no producer ships them (`STOCKED_ON_ITEM` has nothing to read)
       return { on: gauges.map(pt), near: rings.map((r) => ({ ...pt(r), km: Number(r.km) })) };
+    },
+
+    async waterBox(item) {
+      // no water file (a release cut without regulations, like the fixture's): no geometry, and `locate` places it
+      if (!loader.manifest.files.water) return null;
+      const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
+      if (!ords.length) return null;
+      return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {

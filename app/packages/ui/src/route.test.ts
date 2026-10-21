@@ -51,6 +51,34 @@ describe("route (P13): one value, one back rule", () => {
     expect(reduce(HOME, { type: "back" })).toBe(HOME);
   });
 
+  it("search's eye SHOWS the water on the main map; back returns to search", () => {
+    const search = reduce(HOME, { type: "tab", tab: "search" });
+    const shown = reduce(search, { type: "show", item: VEDDER });
+    expect(shown).toEqual({ mode: "browse", tab: "map", cond: null, spot: null, adding: false, shown: VEDDER });
+    expect(bottomBarShown(shown)).toBe(true);
+    expect(reduce(shown, { type: "back" })).toEqual(search);
+  });
+
+  it("a water opened from the shown map comes back to it, and the next back to search", () => {
+    const search = reduce(HOME, { type: "tab", tab: "search" });
+    const shown = reduce(search, { type: "show", item: VEDDER });
+    const water = reduce(shown, { type: "openWater", item: VEDDER });
+    expect(reduce(water, { type: "back" })).toBe(shown);
+    expect(run(water, { type: "back" }, { type: "back" })).toEqual(search);
+  });
+
+  it("a tab change forgets the shown water — back on a map the reader chose stays", () => {
+    const shown = run(HOME, { type: "tab", tab: "search" }, { type: "show", item: VEDDER });
+    const map = reduce(shown, { type: "tab", tab: "map" });
+    expect(map).toEqual(HOME);
+    expect(reduce(map, { type: "back" })).toBe(map);
+  });
+
+  it("show means nothing in water mode: there is no search under it", () => {
+    const w = reduce(HOME, { type: "openWater", item: VEDDER });
+    expect(reduce(w, { type: "show", item: FRASER })).toBe(w);
+  });
+
   it("a tab change clears the drill, the spot and the add flow (the old TabBar reset), and part/view mean nothing in browse", () => {
     const r = run(HOME, { type: "condSection", section: 5 as SectionId }, { type: "tab", tab: "map" });
     expect(r).toEqual(HOME);

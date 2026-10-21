@@ -12,7 +12,7 @@
  */
 import { useMemo } from "react";
 import {
-  NEAR_KM, duplicateNames, fixOf, normalise, rankNear, townBox, waterStatusOn, watersNear,
+  NEAR_KM, duplicateNames, extentOf, normalise, rankNear, townBox, waterCaption, waterStatusOn, watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
@@ -31,8 +31,8 @@ export interface MapFocus {
   highlight: readonly SectionId[];
   /**
    * Whether the map should widen or tighten `bbox` against the geometry it actually loads.
-   * True for a water (the box is evidence, not an outline); false for a town, whose box is
-   * already exactly what is wanted.
+   * True only for a water placed by evidence (gauges, towns — `fixOf`); false for a water placed by its own
+   * outline (`extentOf`, every water in a release) and for a town, whose boxes are already exactly what is wanted.
    */
   refine: boolean;
   /** A point to mark — the town itself. */
@@ -91,9 +91,10 @@ export function focusFor(input: {
       key: `item:${best.item}`,
       bbox: best.extent?.bbox ?? null,
       highlight: best.sections,
-      refine: true,
+      // the water's own outline is already its shape; only evidence (gauges, towns) is refined against the tiles
+      refine: best.extent?.basis !== "outline",
       marker: pin ? { lat: pin.lat, lon: pin.lon } : null,
-      caption: best.extent ? best.name : `${best.name} — the map cannot place it yet`,
+      caption: waterCaption(best.name, best.extent !== null),
     };
   }
   return null;
@@ -104,9 +105,12 @@ export function useLocated(source: RegsSource, item: ItemId | null): Async<Locat
   return useAsync(
     async () => {
       if (!item) return null;
-      const [water, fix] = await Promise.all([source.water(item), source.locate(item)]);
+      // THE WATER'S OWN SHAPE (its parts' boxes) places it; the gauge-and-town evidence is asked only where the
+      // source holds no geometry — it used to be all there was, and a lake with neither (Kooryet) went unplaced.
+      const [water, box] = await Promise.all([source.water(item), source.waterBox(item)]);
       if (!water) return null;
-      return { item, name: water.name, sections: water.sections, extent: fixOf(fix) };
+      const extent = extentOf(box, box ? null : await source.locate(item));
+      return { item, name: water.name, sections: water.sections, extent };
     },
     `located:${item}`,
     item !== null,
@@ -169,8 +173,8 @@ export function townToPreview(query: string, waters: readonly { name: string }[]
  * A result row answers "where is that?" and nothing else: tapping it frames the water on
  * the pinned map and lights it, or frames the town and marks it — and the reader stays on
  * the list, free to tap the next row and compare. LEAVING is a separate, deliberate act:
- * the eye button on the row. For a water the eye opens its page, framed and lit on the main
- * map; for a town it opens the list of what is near it (which is still this screen — a town
+ * the eye button on the row. For a water the eye shows it, framed and lit, on the main map
+ * (route `show`: back returns to this screen as it was); for a town it opens the list of what is near it (which is still this screen — a town
  * has no page of its own).
  *
  * The two used to be one tap, so every look at a row was a trip away from the results and
@@ -199,6 +203,14 @@ export interface SearchPick {
 }
 
 export const NO_PICK: SearchPick = { selected: null, town: null };
+
+/**
+ * WHERE THE READER WAS ON THE SEARCH SCREEN: what they typed and what they had selected. Held by the Shell, not the
+ * screen, so the eye's trip to the main map and back (route `show`, then back) returns to the same query, the same
+ * results and the same selected row, with the preview on the same water.
+ */
+export interface SearchMemory { q: string; pick: SearchPick }
+export const NO_SEARCH: SearchMemory = { q: "", pick: NO_PICK };
 
 /** Is this row the selected one — the one that shows the go button? */
 export function isSelected(pick: SearchPick, t: SearchTarget): boolean {

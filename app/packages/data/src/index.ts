@@ -15,7 +15,7 @@
  * they plug in and which bundle tables they will read.
  */
 import type {
-  Band, GaugeTrust, NearPlace, Standing, WaterFix, WaterSignals,
+  Band, Bbox, GaugeTrust, NearPlace, Standing, WaterFix, WaterSignals,
 } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
@@ -441,6 +441,13 @@ export interface RegsSource {
    * tiles. Both lists empty is a real answer: remote water with no station and no town.
    */
   locate(item: ItemId): Promise<WaterFix>;
+  /**
+   * WHERE A WATER IS, FROM ITS OWN GEOMETRY: the union of its parts' boxes (`part_geo`), in degrees [w, s, e, n] —
+   * `boxOfParts` in @app/core. A water split into closure areas (Kootenay, Williston and Shannon lakes own no section
+   * of their own) is placed by its areas' parts (`item.part_of`). Null when the source holds no geometry for it (a
+   * release that ships no water file); then `locate`'s evidence is all there is (`extentOf`).
+   */
+  waterBox(item: ItemId): Promise<Bbox | null>;
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;

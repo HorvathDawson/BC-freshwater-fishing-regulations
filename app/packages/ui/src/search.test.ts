@@ -39,6 +39,14 @@ describe("what the search map shows", () => {
     expect(f.caption).toBe("Chilliwack River");
   });
 
+  it("a water placed by its OUTLINE opens on exactly that box, named, with nothing to refine", () => {
+    const kooryet: Located = { item: "wbk:328972518" as ItemId, name: "Kooryet Lake", sections: [sid(7)],
+      extent: { bbox: [-130.043061, 53.333981, -129.902673, 53.361987], basis: "outline" } };
+    expect(focusFor({ town: null, best: kooryet })).toEqual({
+      key: "item:wbk:328972518", bbox: [-130.043061, 53.333981, -129.902673, 53.361987], highlight: [7],
+      refine: false, marker: null, caption: "Kooryet Lake" });
+  });
+
   it("a water the bundle cannot place is still lit, and says so", () => {
     const f = focusFor({ town: null, best: { ...chilliwack, extent: null } })!;
     expect(f.bbox).toBeNull();

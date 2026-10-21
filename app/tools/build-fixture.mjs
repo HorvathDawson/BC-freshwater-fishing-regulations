@@ -118,6 +118,34 @@ const sid = (s) => {
 counts.item_section = insert("INSERT INTO item_section (ord, sid) VALUES (?,?)",
   [...byName].flatMap(([n, e]) => e.sections.map((s) => [ordOf.get(idOf(n, e)), sid(s)])));
 
+// ---- where each water is (part_geo) ------------------------------------------------
+// ONE PART PER WATER, its box the box of every line the design draws for it, and its midpoint the box's centre — the
+// camera hint `RegsSource.waterBox` reads (the production bundler writes one row per part, `topology.py`). Every water
+// here has lines, so every water is placeable, which is what the bundle reader's test holds it to.
+const geo = new Map();
+for (const w of src.waters) {
+  const item = idOf(w.name, byName.get(w.name));
+  const g = geo.get(item) ?? { w: Infinity, s: Infinity, e: -Infinity, n: -Infinity, first: null, sections: 0 };
+  g.sections += 1;                    // riffle's `waters` are sections
+  for (const line of w.lines ?? [])
+    for (const [lon, lat] of line) {
+      g.w = Math.min(g.w, lon); g.e = Math.max(g.e, lon);
+      g.s = Math.min(g.s, lat); g.n = Math.max(g.n, lat);
+    }
+  if (g.first === null || sid(w.id) < g.first) g.first = sid(w.id);
+  geo.set(item, g);
+}
+const placed = [...geo].filter(([, g]) => Number.isFinite(g.w))
+  .sort(([a], [b]) => ordOf.get(a) - ordOf.get(b));
+// part_geo keys on a PART: the water's one part, with no regulations (the fixture carries none) — every section of it.
+counts.part = insert(
+  "INSERT INTO part (ord, part_ix, province_except, steelhead_water, steelhead_rules, home_regions, tidal, " +
+  "sections, rep_sid) VALUES (?,0,'',0,0,'',0,?,?)",
+  placed.map(([item, g]) => [ordOf.get(item), g.sections, g.first]));
+counts.part_geo = insert(
+  "INSERT INTO part_geo (ord, part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n) VALUES (?,0,0,?,?,?,?,?,?,?)",
+  placed.map(([item, g]) => [ordOf.get(item), g.first, (g.w + g.e) / 2, (g.s + g.n) / 2, g.w, g.s, g.e, g.n]));
+
 // ---- conditions -------------------------------------------------------------------
 // Stream magnitudes, CONSTRUCTED. The design fixture records a trust band per section but
 // never the magnitudes it was cut from, and the app ranks gauges on them — so a fixture

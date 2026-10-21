@@ -179,6 +179,18 @@ export const RINGS_FOR_ITEM =
   "JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
   "WHERE i.item_id = ? AND p.lat IS NOT NULL ORDER BY pw.ckm LIMIT 12";
 
+/**
+ * A water's own geometry: the box of every part of it — and of every part of a water that is a PART OF it (a lake
+ * split into closure areas owns no section, so no part, of its own). Two keyed halves (item_id is UNIQUE, part_of is
+ * indexed), never an OR, so neither half scans.
+ */
+export const PART_GEO_FOR_ITEM =
+  "SELECT g.w, g.s, g.e, g.n, g.mid_lon, g.mid_lat FROM item i JOIN part_geo g ON g.ord = i.ord " +
+  "WHERE i.item_id = ?1 " +
+  "UNION ALL " +
+  "SELECT g.w, g.s, g.e, g.n, g.mid_lon, g.mid_lat FROM item i JOIN part_geo g ON g.ord = i.ord " +
+  "WHERE i.part_of = ?1";
+
 // ---- conditions ------------------------------------------------------------------
 /**
  * The gauge for one reach, with the station itself.

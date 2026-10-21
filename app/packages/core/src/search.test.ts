@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  bboxOfGeometry, boxAround, describeBy, distanceKm, duplicateNames, fixOf, matchTier,
+  bboxOfGeometry, boxAround, boxOfParts, describeBy, distanceKm, duplicateNames, extentOf, fixOf,
+  matchTier, outlineOf, SEARCH_MAP, waterCaption,
   normalise, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
   NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
 } from "./search";
@@ -102,6 +103,63 @@ describe("where a water is described from", () => {
     expect(wherePhrase({ name: "Gold River", km: 12.06 })).toBe("near Gold River · 12 km");
     expect(wherePhrase({ name: "Hope", km: 0 })).toBe("at Hope");
     expect(wherePhrase(null)).toBeNull();
+  });
+});
+
+describe("the search map's words", () => {
+  it("a placed water is captioned by its name; an unplaced one says so", () => {
+    expect([waterCaption("Kooryet Lake", true), waterCaption("Kooryet Lake", false)])
+      .toEqual(["Kooryet Lake", "Kooryet Lake — the map cannot place it yet"]);
+  });
+  it("the preview's controls and the way back", () => {
+    expect(SEARCH_MAP).toEqual({
+      idle: "Tap a result to see it here · the eye shows it on the map",
+      placesOnly: "Tap a place to see where it is",
+      fit: "Show all of it", back: "Search", backLabel: "Back to search" });
+  });
+});
+
+describe("placing a water by its own geometry (the bundle's part_geo)", () => {
+  // Kooryet Lake (wbk:328972518) in release r-6960fe8201e3: one part, no gauge, no town ring — the water the search
+  // map used to call unplaceable.
+  const KOORYET = { w: -130.043061, s: 53.333981, e: -129.902673, n: 53.361987, midLon: -129.984551, midLat: 53.344782 };
+  // Kootenay Lake's three closure areas: the parent owns no section, so its box is its parts'.
+  const MAIN = { w: -117.130272, s: 49.246325, e: -116.479453, n: 50.180355, midLon: -116.808854, midLat: 49.64012 };
+  const UPPER_WEST = { w: -117.219097, s: 49.551213, e: -116.967467, n: 49.639755, midLon: -117.10497, midLat: 49.601084 };
+  const LOWER_WEST = { w: -117.468881, s: 49.447024, e: -117.213168, n: 49.592476, midLon: -117.295876, midLat: 49.504886 };
+
+  it("one part: the water's box is that part's box, exactly", () => {
+    expect(boxOfParts([KOORYET])).toEqual([-130.043061, 53.333981, -129.902673, 53.361987]);
+  });
+
+  it("several parts: the union of their boxes", () => {
+    expect(boxOfParts([MAIN, UPPER_WEST, LOWER_WEST])).toEqual([-117.468881, 49.246325, -116.479453, 50.180355]);
+  });
+
+  it("a part with no box counts as its midpoint; no parts is no box", () => {
+    expect(boxOfParts([{ w: null, s: null, e: null, n: null, midLon: -121, midLat: 49 }]))
+      .toEqual([-121, 49, -121, 49]);
+    expect(boxOfParts([KOORYET, { w: null, s: null, e: null, n: null, midLon: -129, midLat: 54 }]))
+      .toEqual([-130.043061, 53.333981, -129, 54]);
+    expect(boxOfParts([])).toBeNull();
+  });
+
+  it("an outline opens on the water itself, and is never narrower than a few hundred metres", () => {
+    expect(outlineOf([-130.043061, 53.333981, -129.902673, 53.361987]))
+      .toEqual({ bbox: [-130.043061, 53.333981, -129.902673, 53.361987], basis: "outline" });
+    const pond = outlineOf([-121, 49, -121, 49])!;
+    expect(pond.basis).toBe("outline");
+    expect(distanceKm({ lat: pond.bbox[1], lon: pond.bbox[0] }, { lat: pond.bbox[1], lon: pond.bbox[2] }))
+      .toBeCloseTo(0.6, 3);
+    expect(outlineOf(null)).toBeNull();
+  });
+
+  it("the outline wins over the gauges and towns; without one the evidence still places it", () => {
+    const fix = { on: [{ lat: 49.1, lon: -121.9 }], near: [{ lat: 55, lon: -127, km: 3 }] };
+    expect(extentOf([-122, 49, -121, 49.5], fix))
+      .toEqual({ bbox: [-122, 49, -121, 49.5], basis: "outline" });
+    expect(extentOf(null, fix)).toEqual(fixOf(fix));
+    expect(extentOf(null, null)).toBeNull();
   });
 });
 
