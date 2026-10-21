@@ -47,6 +47,18 @@ export const WORDS = Object.freeze({
   NO_WORDS: (key: string) => `(no words in the answers for ${key})`,
   MISSING_RULE: (ix: number) => `(rule ${ix}: missing from the page’s data)`,
   MISSING_DATA: (ix: number) => `Missing from the page’s data: rule ${ix}`,
+  // T13 the year strip's status line (page v36 waterStrip0; prototype buildKeep "Closed from" → span rewrite)
+  STRIP_OPEN: "Open", STRIP_OPEN_EXCEPT: "Open, except some parts", STRIP_CLOSED: "Closed",
+  TODAY_LC: "today",
+  ON_DAY: (md: string) => `on ${md}`,
+  WEEKDAY_TAG: (wd3: string) => ` (${wd3})`,
+  OPENS: (md: string) => `Opens ${md}`,
+  CLOSED_FROM: (md: string) => `Closed from ${md}`,
+  CLOSED_SPAN: (span: string) => `Closed ${span}`,
+  TROUT_CLOSED: "closed", TROUT_RELEASE: "release only",
+  TROUT_LINE: (state: string, tail: string) => `Trout ${state}${tail}`,
+  ALL_YEAR: " all year",
+  UNTIL: (md: string) => ` until ${md}`,
 } as const);
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */

@@ -96,5 +96,4 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     await syncFixtures();
   });
 
-  it.todo("keep.strip.line 'Trout …' (11 states, TROUT_LINE_IDS) — read from the STORE's per-row year strip: PENDING the pipeline (owner rule 2026-10-21), never derived in TS; the rest of keep.strip is display_frame.strip (T13)");
 });

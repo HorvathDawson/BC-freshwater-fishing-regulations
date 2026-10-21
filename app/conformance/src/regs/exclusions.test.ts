@@ -39,7 +39,7 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$", "keep 11 ^strip\\.lines?$"]);
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$"]);
   });
 });
 
@@ -67,13 +67,10 @@ describe("excluded", () => {
     expect(excluded("header", "vedder_515", "place.full")).toBeNull();
   });
 
-  it("keep.strip is compared (the water's display strip is a store answer); only the trout line of 11 states is PENDING", () => {
-    expect(excluded("keep", "x5p1_1010", "strip.line")?.reason).toMatch(/^PENDING \(owner rule 2026-10-21\): the 'Trout …' line .* never derived in TS$/);
-    expect(excluded("keep", "x5p1_1010", "strip.lines")?.reason).toMatch(/^PENDING/);
-    for (const k of ["strip", "strip.bar", "strip.legend", "strip.months", "strip.today", "strip.status", "strip.statusClass"])
+  it("keep.strip is compared whole on every state (T13): the trout line reads the stored per-row year strip, rows 30", () => {
+    for (const k of ["strip", "strip.line", "strip.lines", "strip.bar", "strip.legend", "strip.months", "strip.today", "strip.status", "strip.statusClass"])
       expect(excluded("keep", "x5p1_1010", k), k).toBeNull();
     expect(excluded("keep", "vedder_515", "strip.line")).toBeNull();
-    expect(excluded("keep", "vedder_515", "strip")).toBeNull();
     expect(excluded("keep", "vedder_515", "groups")).toBeNull();
     expect(excluded("keep", "x5p1_1010")).toBeNull();
   });
