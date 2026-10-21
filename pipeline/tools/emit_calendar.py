@@ -81,6 +81,17 @@ export function readingDay(month: number, day: number): number {{
   return month === 2 && day === 29 ? DAYS_BEFORE_MONTH[1]! + 28 : DAYS_BEFORE_MONTH[month - 1]! + day;
 }}
 
+/** Whether `year` has a Feb 29 (`calendar_spec.is_leap_year`, the Gregorian rule): it decides which dates
+ *  exist, never the reading day. */
+export function isLeapYear(year: number): boolean {{
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}}
+
+/** The last day of `month` (1..12) in `year` (`calendar_spec.month_last_day`); undefined for a month that is not one. */
+export function monthLastDay(year: number, month: number): number | undefined {{
+  return (isLeapYear(year) ? MONTH_LAST_DAY : COMMON_YEAR_MONTH_LAST_DAY)[month - 1];
+}}
+
 /** The date's REAL weekday (`calendar_spec.weekday_of`): Feb 29 keeps its own. */
 export function weekdayOf(year: number, month: number, day: number): Weekday {{
   return WEEKDAYS[(new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7]!;
@@ -88,6 +99,9 @@ export function weekdayOf(year: number, month: number, day: number): Weekday {{
 
 /** The worked cases every copy is tested against (`calendar_spec.cases`). */
 export const CALENDAR_CASES: readonly {{ date: string; reading_day: number; weekday: Weekday }}[] = {json.dumps(SPEC.cases())};
+
+/** The leap-year cases every copy is tested against (`calendar_spec.leap_year_cases`). */
+export const LEAP_YEAR_CASES: readonly {{ year: number; leap: boolean }}[] = {json.dumps(SPEC.leap_year_cases())};
 '''
 
 

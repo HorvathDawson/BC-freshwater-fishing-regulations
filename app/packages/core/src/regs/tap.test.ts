@@ -5,9 +5,10 @@
  */
 import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
+import { isLeapYear, LEAP_YEAR_CASES, WEEKDAYS } from "../calendar.generated";
 import { AGE_DIM, daySegments, profileIndex, segmentIndex, tapDay, TapError, yearSegments } from "./tap";
 
-const ALL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+const ALL = WEEKDAYS;
 const MON_THU = ["Monday", "Tuesday", "Wednesday", "Thursday"] as const;
 const FRI_SUN = ["Friday", "Saturday", "Sunday"] as const;
 const SUNSET = { end: { offset_min: -60, solar: "sunrise" }, start: { offset_min: 60, solar: "sunset" } } as const;
@@ -65,6 +66,13 @@ describe("tapDay: the reading day and the real weekday (THE CALENDAR SPEC, P06)"
     expect(() => tapDay({ month: 1, day: 0 }, 2026)).toThrow(new TapError("regs: 2026-1-0 is not a date"));
     expect(tapDay({ month: 2, day: 29 }, 2000)).toEqual({ day: 59, weekday: "Tuesday" });
   });
+  it("Feb 29 exists exactly in the calendar spec's leap years (calendar_spec.is_leap_year, generated — not re-derived)", () => {
+    expect(LEAP_YEAR_CASES.map((c) => [c.year, isLeapYear(c.year)])).toEqual(LEAP_YEAR_CASES.map((c) => [c.year, c.leap]));
+    expect(LEAP_YEAR_CASES.map((c) => {
+      try { return [c.year, tapDay({ month: 2, day: 29 }, c.year).day]; } catch (e) { return [c.year, (e as Error).message]; }
+    })).toEqual([[1900, "regs: 1900-2-29 is not a date"], [2000, 59], [2026, "regs: 2026-2-29 is not a date"], [2028, 59],
+      [2036, 59], [2100, "regs: 2100-2-29 is not a date"], [2400, 59]]);
+  });
 });
 
 describe("segmentIndex (encode.segment_index)", () => {
@@ -91,6 +99,15 @@ describe("segmentIndex (encode.segment_index)", () => {
     expect(() => segmentIndex([1], 0, null, null)).toThrow(new TapError("regs: day 0 is not 1..366"));
     expect(() => segmentIndex([1], 367, null, null)).toThrow(new TapError("regs: day 367 is not 1..366"));
     expect(() => segmentIndex([1], 1.5, null, null)).toThrow(new TapError("regs: day 1.5 is not 1..366"));
+  });
+  it("no segment starts by the day (starts not beginning at 1): refused, never segment -1", () => {
+    expect(() => segmentIndex([5, 9], 3, null, null)).toThrow(new TapError("regs: no segment starts by day 3"));
+    expect(() => daySegments([5, 9], 3)).toThrow(new TapError("regs: no segment starts by day 3"));
+    expect(segmentIndex([5, 9], 5, null, null)).toBe(0);                 // mutation pin: the first start itself is a segment
+  });
+  it("a repeated start with fewer moments than segments: refused, naming the missing moment", () => {
+    expect(() => segmentIndex([1, 1], 5, [m(["Monday"])], "Sunday")).toThrow(new TapError("regs: no moment 1 for day 5"));
+    expect(segmentIndex([1, 1], 5, [m(["Monday"])], "Monday")).toBe(0);   // a moment found before the gap is still read
   });
   it("no moment holds the weekday", () => {
     expect(() => segmentIndex([1, 1], 5, [m(["Monday"]), m(["Tuesday"])], "Sunday"))

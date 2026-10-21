@@ -36,6 +36,17 @@ export function readingDay(month: number, day: number): number {
   return month === 2 && day === 29 ? DAYS_BEFORE_MONTH[1]! + 28 : DAYS_BEFORE_MONTH[month - 1]! + day;
 }
 
+/** Whether `year` has a Feb 29 (`calendar_spec.is_leap_year`, the Gregorian rule): it decides which dates
+ *  exist, never the reading day. */
+export function isLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+/** The last day of `month` (1..12) in `year` (`calendar_spec.month_last_day`); undefined for a month that is not one. */
+export function monthLastDay(year: number, month: number): number | undefined {
+  return (isLeapYear(year) ? MONTH_LAST_DAY : COMMON_YEAR_MONTH_LAST_DAY)[month - 1];
+}
+
 /** The date's REAL weekday (`calendar_spec.weekday_of`): Feb 29 keeps its own. */
 export function weekdayOf(year: number, month: number, day: number): Weekday {
   return WEEKDAYS[(new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7]!;
@@ -43,3 +54,6 @@ export function weekdayOf(year: number, month: number, day: number): Weekday {
 
 /** The worked cases every copy is tested against (`calendar_spec.cases`). */
 export const CALENDAR_CASES: readonly { date: string; reading_day: number; weekday: Weekday }[] = [{"date": "2027-02-28", "reading_day": 59, "weekday": "Sunday"}, {"date": "2028-02-28", "reading_day": 59, "weekday": "Monday"}, {"date": "2028-02-29", "reading_day": 59, "weekday": "Tuesday"}, {"date": "2028-03-01", "reading_day": 61, "weekday": "Wednesday"}, {"date": "2036-02-28", "reading_day": 59, "weekday": "Thursday"}, {"date": "2036-02-29", "reading_day": 59, "weekday": "Friday"}, {"date": "2036-03-01", "reading_day": 61, "weekday": "Saturday"}];
+
+/** The leap-year cases every copy is tested against (`calendar_spec.leap_year_cases`). */
+export const LEAP_YEAR_CASES: readonly { year: number; leap: boolean }[] = [{"year": 1900, "leap": false}, {"year": 2000, "leap": true}, {"year": 2026, "leap": false}, {"year": 2028, "leap": true}, {"year": 2036, "leap": true}, {"year": 2100, "leap": false}, {"year": 2400, "leap": true}];

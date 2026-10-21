@@ -23,6 +23,9 @@ display year, parsing printed dates — stays where it runs and reads these cons
                  regulations (day 59), on its OWN real weekday, for weekday and hours rules. Storage keeps
                  its 366 slots (Mar 1 = 61); slot 60 is never read. `reading_day` + `weekday_of` are the one
                  rule; the app, the reference page and the Python tap all call a generated copy of them.
+  LEAP YEAR      `is_leap_year` (Gregorian: every 4th year, but not a century unless it divides by 400) says
+                 whether a year HAS a Feb 29, so `month_last_day` knows a date that does not exist (Feb 29,
+                 2027). It decides only validity, never the reading day; the app's tap reads its generated copy.
 """
 from __future__ import annotations
 
@@ -77,6 +80,18 @@ def reading_day(month: int, day: int) -> int:
     return day_index(2, 28) if (month, day) == (2, 29) else day_index(month, day)
 
 
+def is_leap_year(year: int) -> bool:
+    """Whether `year` has a Feb 29 (the Gregorian rule: 2028 and 2000 do, 2026 and 2100 do not)."""
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
+
+def month_last_day(year: int, month: int) -> int:
+    """The last day of `month` in `year`: the leap calendar's in a leap year, else the common year's."""
+    if not 1 <= month <= len(LAST_DAY):
+        raise ValueError(f"calendar: month {month} is not 1..{len(LAST_DAY)}")
+    return (LAST_DAY if is_leap_year(year) else COMMON_YEAR_LAST_DAY)[month - 1]
+
+
 def weekday_of(year: int, month: int, day: int) -> str:
     """The date's REAL weekday (Feb 29 keeps its own: Fri 2036-02-29 is a Friday, not Feb 28's Thursday)."""
     return WEEKDAYS[datetime.date(year, month, day).weekday()]
@@ -91,6 +106,15 @@ CASE_DATES: Tuple[Tuple[int, int, int], ...] = ((2027, 2, 28), (2028, 2, 28), (2
 def cases() -> list:
     return [{"date": f"{y:04d}-{m:02d}-{d:02d}", "reading_day": reading_day(m, d), "weekday": weekday_of(y, m, d)}
             for y, m, d in CASE_DATES]
+
+
+#: The years every generated `isLeapYear` is tested against: the century rule both ways (1900, 2100 / 2000,
+#: 2400), the book's year (2026), and the Feb 29 cases' years (2028, 2036).
+LEAP_YEAR_CASE_YEARS: Tuple[int, ...] = (1900, 2000, 2026, 2028, 2036, 2100, 2400)
+
+
+def leap_year_cases() -> list:
+    return [{"year": y, "leap": is_leap_year(y)} for y in LEAP_YEAR_CASE_YEARS]
 
 
 def as_json() -> dict:

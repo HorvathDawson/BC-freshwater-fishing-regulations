@@ -32,6 +32,20 @@ def test_the_leap_calendar():
         S.day_index(13, 1)
 
 
+def test_the_leap_year_rule():
+    """`is_leap_year` is the Gregorian rule (the app's tap refuses Feb 29 in a common year through its generated copy)."""
+    import calendar
+    assert [y for y in range(1600, 2501) if S.is_leap_year(y)] == [y for y in range(1600, 2501) if calendar.isleap(y)]
+    assert S.leap_year_cases() == [{"year": 1900, "leap": False}, {"year": 2000, "leap": True},
+                                   {"year": 2026, "leap": False}, {"year": 2028, "leap": True},
+                                   {"year": 2036, "leap": True}, {"year": 2100, "leap": False},
+                                   {"year": 2400, "leap": True}]
+    assert [S.month_last_day(y, 2) for y in (1900, 2000, 2026, 2028)] == [28, 29, 28, 29]
+    assert S.month_last_day(2026, 4) == 30
+    with pytest.raises(ValueError):
+        S.month_last_day(2026, 13)
+
+
 def test_every_python_owner_reads_the_spec():
     """The catalogue's and the delivery's calendars are the spec's, day for day."""
     days = [(m, d) for m in range(1, 13) for d in range(1, S.LAST_DAY[m - 1] + 1)]
@@ -56,6 +70,7 @@ def test_the_generated_copies_are_current():
     ("OUT_JSON", lambda t: t.replace('"leap_day": 60', '"leap_day": 59')),
     ("OUT_PAGE_JS", lambda t: t.replace('"Monday"', '"Mon"')),
     ("OUT_TS", lambda t: t + "\n// a hand note\n"),
+    ("OUT_TS", lambda t: t.replace("year % 400 === 0", "year % 400 !== 0")),
 ])
 def test_a_hand_edit_to_a_generated_copy_fails_the_check(tmp_path, monkeypatch, which, edit):
     for name in ("OUT_TS", "OUT_JSON", "OUT_PAGE_JS"):

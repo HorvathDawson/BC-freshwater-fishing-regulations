@@ -11,9 +11,10 @@
  *
  * The calendar is THE CALENDAR SPEC (`calendar.generated.ts`, P06/D31), never re-derived here: Feb 29 READS Feb 28's
  * day (59) on its OWN real weekday — Fri 2036-02-29 on the Zymoetz below Limonite Creek reads Feb 28's regulations on a
- * Friday. `readingDay`/`weekdayOf` are that module's; this file only refuses a date that does not exist.
+ * Friday. `readingDay`/`weekdayOf`/`monthLastDay` (its leap-year rule) are that module's; this file only refuses a date
+ * that does not exist.
  */
-import { CALENDAR_DAYS, COMMON_YEAR_MONTH_LAST_DAY, DAYS_BEFORE_MONTH, LEAP_DAY, MONTH_LAST_DAY, readingDay, weekdayOf, type Weekday } from "../calendar.generated";
+import { CALENDAR_DAYS, DAYS_BEFORE_MONTH, LEAP_DAY, monthLastDay, readingDay, weekdayOf, type Weekday } from "../calendar.generated";
 import type { Moment } from "../answers.generated";
 import type { Day, Who } from "./model";
 
@@ -22,15 +23,14 @@ export type { Moment } from "../answers.generated";
 
 export class TapError extends Error {}
 
-const isLeap = (y: number): boolean => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
-
 /**
  * The tap's day: the leap-calendar day whose regulations `d` READS in `year` (`calendar_spec.reading_day`: Feb 29 → 59)
- * and the date's real weekday (`calendar_spec.weekday_of`). Throws TapError for a date that does not exist — Feb 29 in a
- * common year, Apr 31, month 13: the date pill never offers one, so it is a programmer error, not a day to guess.
+ * and the date's real weekday (`calendar_spec.weekday_of`). Throws TapError for a date that does not exist
+ * (`calendar_spec.month_last_day`) — Feb 29 in a common year, Apr 31, month 13: the date pill never offers one, so it
+ * is a programmer error, not a day to guess.
  */
 export function tapDay(d: Day, year: number): { readonly day: number; readonly weekday: Weekday } {
-  const last = (isLeap(year) ? MONTH_LAST_DAY : COMMON_YEAR_MONTH_LAST_DAY)[d.month - 1];
+  const last = monthLastDay(year, d.month);
   if (!Number.isInteger(year) || !Number.isInteger(d.month) || !Number.isInteger(d.day) || last === undefined || d.day < 1 || d.day > last)
     throw new TapError(`regs: ${year}-${d.month}-${d.day} is not a date`);
   return { day: readingDay(d.month, d.day), weekday: weekdayOf(year, d.month, d.day) };
