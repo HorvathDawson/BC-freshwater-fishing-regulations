@@ -123,6 +123,22 @@ export function yearWindowOf(row: HydRow, inp: RegsInputs, today: Day, seams: Pl
   return says ? { label: WORDS.THROUGH_YEAR, says } : null;
 }
 
+/**
+ * (T36) page v36 miniStrip's words: under a row page v36 draws a mini strip for (the same draw-or-not as `yearWindowOf`),
+ * its short keeping windows (shortWindows: each stored `keep` run of 14 days or fewer) — "Keeping allowed only Apr 1–3 and
+ * Jul 1–2". Null when no strip is drawn or no run is that short. Words over the stored year; decides nothing.
+ */
+export function shortWindowsOf(row: HydRow, inp: RegsInputs, seams: PlainRowSeams): string | null {
+  if (row.year.length < 2) return null;
+  const sg = perDay(row.year), water = new YearWords(inp, seams);
+  const base = row.year.find(([st]) => st !== "closed")?.[0] ?? "closed";
+  if (sg.every((st, i) => st === (water.closedOn(i) ? "closed" : base))) return null;
+  const D = seams.BOOK_DAYS, out: string[] = [];
+  let d = 0;
+  for (const [st, n] of row.year) { if (st === "keep" && n <= 14) out.push(rangeTxt(md(D[d]!), md(D[d + n - 1]!))); d += n; }
+  return out.length ? WORDS.KEEP_ONLY(out.join(WORDS.AND)) : null;
+}
+
 /** page v36 summaryHtml (`!row.pool`): the row's status through the year in one sentence, over its stored strip. */
 export function runSentence(row: HydRow, inp: RegsInputs, today: Day, seams: PlainRowSeams): string {
   const y = new YearWords(inp, seams);

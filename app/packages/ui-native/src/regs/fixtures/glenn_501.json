@@ -1290,19 +1290,1711 @@
    "sub": null,
    "title": "Anglers under 16"
   },
-  "licsrc:adult": null,
-  "licsrc:adult_alien": null,
-  "licsrc:adult_non": null,
-  "licsrc:u16_alien": null,
-  "licsrc:u16_non": null,
-  "licsrc:u16_res": null,
-  "other:o0": null,
-  "other:o1": null,
-  "other:o2": null,
-  "other:o3": null,
-  "other:o4": null,
-  "other:o5": null,
-  "other:o6": null,
+  "licsrc:adult": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "To fish here"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a basic angling licence to fish.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "basic angling licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Annual basic angling licence: at most 1 licence per licence year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: produce your angling licence and photo ID when an officer asks.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Produce your angling licence and photo ID when an officer asks",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "To keep salmon"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Conservation Surcharge Stamp for salmon",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "When you keep a fish you must record"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Carry your paper licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    }
+   ],
+   "key": "licsrc:adult",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "licsrc:adult_alien": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "To fish here"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a basic angling licence to fish.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "basic angling licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Annual basic angling licence: at most 1 licence per licence year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: produce your angling licence and photo ID when an officer asks.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Produce your angling licence and photo ID when an officer asks",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "To keep salmon"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Conservation Surcharge Stamp for salmon",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "When you keep a fish you must record"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Carry your paper licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    }
+   ],
+   "key": "licsrc:adult_alien",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "licsrc:adult_non": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "To fish here"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a basic angling licence to fish.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "basic angling licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Annual basic angling licence: at most 1 licence per licence year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: produce your angling licence and photo ID when an officer asks.",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Produce your angling licence and photo ID when an officer asks",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "To keep salmon"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Conservation Surcharge Stamp for salmon",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "When you keep a fish you must record"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Carry your paper licence",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Not needed if you are a status First Nations person living in B.C.",
+       "t": "text"
+      }
+     ]
+    }
+   ],
+   "key": "licsrc:adult_non",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "licsrc:u16_alien": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "To fish here"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or over who holds the licences and stamps this fishing requires (any fish you keep count toward your companion's limit), or hold what non-residents or non-resident aliens 16 and over must hold (you keep your own quota).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "be with someone who is 16 or older and holds what this fishing needs (fish you keep count toward their limit)",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "or",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "meet the rules as 16 or older, canadian, other province or from outside Canada",
+       "t": "text"
+      }
+     ]
+    }
+   ],
+   "key": "licsrc:u16_alien",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "licsrc:u16_non": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "To fish here"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or over who holds the licences and stamps this fishing requires (any fish you keep count toward your companion's limit), or hold what non-residents or non-resident aliens 16 and over must hold (you keep your own quota).",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "Province",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "be with someone who is 16 or older and holds what this fishing needs (fish you keep count toward their limit)",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "or",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "meet the rules as 16 or older, canadian, other province or from outside Canada",
+       "t": "text"
+      }
+     ]
+    }
+   ],
+   "key": "licsrc:u16_non",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "licsrc:u16_res": {
+   "blocks": [],
+   "key": "licsrc:u16_res",
+   "sub": null,
+   "title": "Where each one comes from"
+  },
+  "other:o0": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "Kokanee ›",
+       "code": "KO",
+       "name": "Kokanee",
+       "open": "sp:KO",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "↩ Release",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "ids": [
+        "catch_and_release"
+       ],
+       "t": "term"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "You can fish for them, but release every one. No keeping at any time of year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "Release every one here.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:species_quotas::species_quotas.r5",
+         "tag": "Release",
+         "text": [
+          {
+           "s": "In streams, release every kokanee.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "ladder",
+       "q": null,
+       "result": null,
+       "steps": [
+        {
+         "level": "",
+         "lines": [
+          {
+           "applies": [
+            "From the Region 4 table — all of Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:species_quotas::species_quotas.r4",
+           "tag": "Replaced by the Region 4 rule",
+           "text": [
+            {
+             "s": "Keep up to 15 kokanee a day.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          },
+          {
+           "applies": [
+            "From the Region 4 table — all of Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:species_quotas::species_quotas.r6",
+           "tag": "Replaced by the Region 4 rule",
+           "text": [
+            {
+             "s": "Only 5 kokanee over 30 cm (12 in) a day.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          },
+          {
+           "applies": [
+            "From the Region 4 table — every stream in Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "tag": "Replaced by this river’s rule",
+           "text": [
+            {
+             "s": "In streams, no fishing, Apr 1–Jun 14.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Rules that don’t apply here (3)"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r2",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o0",
+   "sub": null,
+   "title": "Kokanee"
+  },
+  "other:o1": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "Lake whitefish ›",
+       "code": "LW",
+       "name": "Lake whitefish",
+       "open": "sp:LW",
+       "sil": false
+      },
+      {
+       "caption": "Mountain whitefish ›",
+       "code": "MW",
+       "name": "Mountain whitefish",
+       "open": "sp:MW",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "group": {
+      "head": {
+       "form": null,
+       "lead": null,
+       "leadN": null,
+       "nolimit": false,
+       "ofTotal": false,
+       "rootTier": "t1",
+       "shareOf": null,
+       "terms": [],
+       "whyHere": null,
+       "words": [
+        {
+         "s": "15",
+         "size": "big",
+         "t": "num"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "a day per angler across Region 4",
+         "t": "text"
+        }
+       ]
+      },
+      "more": {
+       "open": "src:r3",
+       "text": "See every regulation line ›"
+      },
+      "notKept": [],
+      "origin": {
+       "book": [
+        {
+         "pdf": 36,
+         "printed": 34,
+         "t": "book"
+        }
+       ],
+       "howtell": false,
+       "says": [],
+       "tag": null
+      },
+      "pinLine": {
+       "cls": "g",
+       "sub": null,
+       "text": "Whitefish · 15 a day across Region 4"
+      },
+      "quiet": null,
+      "row": 3,
+      "scope": "Region 4-wide",
+      "title": "Whitefish",
+      "tree": [
+       {
+        "also": [],
+        "duty": null,
+        "folded": false,
+        "kind": "Whitefish",
+        "pictures": [
+         {
+          "caption": "Lake whitefish ›",
+          "code": "LW",
+          "name": "Lake whitefish",
+          "open": "sp:LW",
+          "sil": false
+         },
+         {
+          "caption": "Mountain whitefish ›",
+          "code": "MW",
+          "name": "Mountain whitefish",
+          "open": "sp:MW",
+          "sil": false
+         }
+        ],
+        "presence": null,
+        "qualifiers": null,
+        "says": [
+         {
+          "s": "Up to ",
+          "t": "text"
+         },
+         {
+          "s": "15",
+          "size": "inline",
+          "t": "num"
+         },
+         {
+          "s": " may be whitefish",
+          "t": "text"
+         }
+        ],
+        "size": {
+         "rule": false,
+         "text": "any size"
+        },
+        "species": [
+         "LW",
+         "MW"
+        ],
+        "stamps": [],
+        "t": "kind",
+        "zero": false
+       }
+      ],
+      "worked": {
+       "label": "How it adds up",
+       "lines": [
+        {
+         "a": "Keep 13 more here",
+         "at": "elsewhere",
+         "q": "Kept 2 elsewhere today?"
+        }
+       ],
+       "says": "Your own limit, counted across every water in Region 4 you fish today, lakes and streams alike."
+      },
+      "year": null
+     },
+     "k": "group",
+     "titled": true
+    }
+   ],
+   "key": "other:o1",
+   "sub": null,
+   "title": "Whitefish"
+  },
+  "other:o2": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "Burbot ›",
+       "code": "BB",
+       "name": "Burbot",
+       "open": "sp:BB",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "k": "rowTitle",
+     "scope": "Region 4-wide",
+     "title": "Burbot"
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "2",
+       "size": "big",
+       "t": "num"
+      },
+      {
+       "s": "a day",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Shared with all of Region 4 today.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "2 a day here, for all of Region 4 together.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:species_quotas::species_quotas.r2",
+         "tag": "Daily limit",
+         "text": [
+          {
+           "s": "Keep up to 2 burbot a day.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "ladder",
+       "q": null,
+       "result": null,
+       "steps": [
+        {
+         "level": "",
+         "lines": [
+          {
+           "applies": [
+            "From the Region 4 table — every stream in Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "tag": "Replaced by this river’s rule",
+           "text": [
+            {
+             "s": "In streams, no fishing, Apr 1–Jun 14.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Rules that don’t apply here (1)"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r4",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o2",
+   "sub": null,
+   "title": "Burbot"
+  },
+  "other:o3": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "Largemouth bass ›",
+       "code": "LMB",
+       "name": "Largemouth bass",
+       "open": "sp:LMB",
+       "sil": false
+      },
+      {
+       "caption": "Northern pike ›",
+       "code": "NP",
+       "name": "Northern pike",
+       "open": "sp:NP",
+       "sil": false
+      },
+      {
+       "caption": "Smallmouth bass ›",
+       "code": "SMB",
+       "name": "Smallmouth bass",
+       "open": "sp:SMB",
+       "sil": false
+      },
+      {
+       "caption": "Walleye ›",
+       "code": "WP",
+       "name": "Walleye",
+       "open": "sp:WP",
+       "sil": false
+      },
+      {
+       "caption": "Yellow perch ›",
+       "code": "YP",
+       "name": "Yellow perch",
+       "open": "sp:YP",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "⊘ Closed",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "ids": [
+        "no_fishing_for"
+       ],
+       "t": "term"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "Closed here.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
+         "tag": "Closed",
+         "text": [
+          {
+           "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "ladder",
+       "q": null,
+       "result": null,
+       "steps": [
+        {
+         "level": "",
+         "lines": [
+          {
+           "applies": [
+            "From the Region 4 table — every stream in Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "tag": "Replaced by this river’s rule",
+           "text": [
+            {
+             "s": "In streams, no fishing, Apr 1–Jun 14.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Rules that don’t apply here (1)"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r5",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o3",
+   "sub": null,
+   "title": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch"
+  },
+  "other:o4": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "White sturgeon ›",
+       "code": "WSG",
+       "name": "White sturgeon",
+       "open": "sp:WSG",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "⊘ Closed",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "ids": [
+        "no_fishing_for"
+       ],
+       "t": "term"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "Closed here.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:species_quotas::species_quotas.r9",
+         "tag": "Closed",
+         "text": [
+          {
+           "s": "No fishing for white sturgeon.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "ladder",
+       "q": null,
+       "result": null,
+       "steps": [
+        {
+         "level": "",
+         "lines": [
+          {
+           "applies": [
+            "From the Region 4 table — every stream in Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "tag": "Replaced by this river’s rule",
+           "text": [
+            {
+             "s": "In streams, no fishing, Apr 1–Jun 14.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Rules that don’t apply here (1)"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r6",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o4",
+   "sub": null,
+   "title": "White sturgeon"
+  },
+  "other:o5": {
+   "blocks": [
+    {
+     "k": "rowTitle",
+     "scope": "Region 4-wide",
+     "title": "Crayfish"
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "25",
+       "size": "big",
+       "t": "num"
+      },
+      {
+       "s": "a day",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Shared with all of Region 4 today.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "25 a day here, for all of Region 4 together.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:species_quotas::species_quotas.r3",
+         "tag": "Daily limit",
+         "text": [
+          {
+           "s": "Keep up to 25 crayfish a day.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "ladder",
+       "q": null,
+       "result": null,
+       "steps": [
+        {
+         "level": "",
+         "lines": [
+          {
+           "applies": [
+            "From the Region 4 table — every stream in Region 4."
+           ],
+           "book": [
+            {
+             "pdf": 36,
+             "printed": 34,
+             "t": "book"
+            }
+           ],
+           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "tag": "Replaced by this river’s rule",
+           "text": [
+            {
+             "s": "In streams, no fishing, Apr 1–Jun 14.",
+             "t": "text"
+            }
+           ],
+           "won": false
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Rules that don’t apply here (1)"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r7",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o5",
+   "sub": null,
+   "title": "Crayfish"
+  },
+  "other:o6": {
+   "blocks": [
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "⊘ Closed",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "ids": [
+        "no_fishing_for"
+       ],
+       "t": "term"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Don’t fish for them. If one bites, carefully release it.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "Cultus Lake sculpin · Enos Lake stickleback · Misty Lake stickleback · Nooksack dace · Paxton Lake stickleback · Rocky Mountain sculpin · Salish sucker · Shorthead sculpin · Vananda Creek stickleback · Vancouver lamprey · Western brook lamprey (Morrison Creek population) · White sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)",
+         "t": "text"
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Which fish (12)"
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "Closed here.",
+     "steps": [
+      {
+       "level": "Federal law",
+       "lines": [
+        {
+         "applies": [
+          "Set by a federal or park authority — everywhere in B.C."
+         ],
+         "book": [
+          {
+           "pdf": 11,
+           "printed": 9,
+           "t": "book"
+          }
+         ],
+         "rule": "zp:protected_species::protected_species.r1",
+         "tag": "Closed",
+         "text": [
+          {
+           "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r8",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o6",
+   "sub": null,
+   "title": "Protected species"
+  },
   "pos:pos": {
    "blocks": [
     {
@@ -2860,24 +4552,1338 @@
    "sub": "B.C. rule · Everywhere in B.C.",
    "title": "Keep a signed letter from the angler until you have eaten fish given to you"
   },
-  "sp:BB": null,
-  "sp:CT": null,
-  "sp:DV": null,
-  "sp:EB": null,
-  "sp:GB": null,
-  "sp:KO": null,
-  "sp:LMB": null,
-  "sp:LT": null,
-  "sp:LW": null,
-  "sp:RB": null,
-  "sp:WSG": null,
-  "src:r0": null,
-  "srcs:always": null,
-  "srcs:bait": null,
-  "srcs:gl|hook": null,
-  "srcs:gl|lines": null,
-  "srcs:gl|weight": null,
-  "srcs:ways": null
+  "sp:BB": {
+   "blocks": [
+    {
+     "alt": "Burbot",
+     "code": "BB",
+     "credit": "Burbot · NY Forest, Fish and Game Commission (Commons)",
+     "file": "burbot.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "One barbel under the chin",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Two back fins, the second very long",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Long, eel-like mottled body",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:BB",
+   "sub": null,
+   "title": "Burbot"
+  },
+  "sp:CT": {
+   "blocks": [
+    {
+     "alt": "Coastal cutthroat trout",
+     "code": "CT",
+     "credit": "Coastal cutthroat trout · Freshwater Fisheries Society of BC (GoFishBC)",
+     "file": "coastal-cutthroat-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "alt": "Westslope cutthroat trout",
+     "code": "CT",
+     "credit": "Westslope cutthroat trout · Freshwater Fisheries Society of BC (GoFishBC)",
+     "file": "westslope-cutthroat-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Red or orange slash under the lower jaw (may be faint)",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Large mouth, reaching well past the eye",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Black spots all over, more toward the tail",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:CT",
+   "sub": null,
+   "title": "Cutthroat trout"
+  },
+  "sp:DV": {
+   "blocks": [
+    {
+     "alt": "Bull trout",
+     "code": "DV",
+     "credit": "Bull trout · Joel Sartore / National Geographic (Commons)",
+     "file": "bull-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "alt": "Dolly Varden",
+     "code": "DV",
+     "credit": "Dolly Varden · WDFW (eRegulations WA)",
+     "file": "dolly-varden.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Pale pink or cream spots, smaller than the pupil",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "No worm-like markings on the back fin",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "White front edges on the lower fins",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Bull trout: big, broad, flat head",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:DV",
+   "sub": null,
+   "title": "Dolly Varden/bull trout"
+  },
+  "sp:EB": {
+   "blocks": [
+    {
+     "alt": "Brook trout",
+     "code": "EB",
+     "credit": "Brook trout · Freshwater Fisheries Society of BC (GoFishBC)",
+     "file": "brook-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Worm-like markings on the back and back fin",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Red spots with blue halos",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Orange lower fins with white front edges",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:EB",
+   "sub": null,
+   "title": "Brook trout"
+  },
+  "sp:GB": {
+   "blocks": [
+    {
+     "alt": "Brown trout",
+     "code": "GB",
+     "credit": "Brown trout · Duane Raver / USFWS (fws.gov)",
+     "file": "brown-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Black and red spots, many with pale halos",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Tail with few or no spots",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Orange-rimmed adipose fin",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:GB",
+   "sub": null,
+   "title": "Brown trout"
+  },
+  "sp:KO": {
+   "blocks": [
+    {
+     "alt": "Kokanee",
+     "code": "KO",
+     "credit": "Kokanee · spawning · WDFW (sockeye male) (eRegulations WA)",
+     "file": "kokanee-spawning-phase.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "alt": "Kokanee",
+     "code": "KO",
+     "credit": "Kokanee · Freshwater Fisheries Society of BC (GoFishBC)",
+     "file": "kokanee.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "No black spots on the sides",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Dark blue back, bright silver sides",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Long fin under the tail end (13 or more rays)",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:KO",
+   "sub": null,
+   "title": "Kokanee"
+  },
+  "sp:LMB": {
+   "blocks": [
+    {
+     "alt": "Largemouth bass",
+     "code": "LMB",
+     "credit": "Largemouth bass · Duane Raver / USFWS (Commons)",
+     "file": "largemouth-bass.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Dark stripe along the side",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Jaw reaches past the back of the eye",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Front and back fins almost separate",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:LMB",
+   "sub": null,
+   "title": "Largemouth bass"
+  },
+  "sp:LT": {
+   "blocks": [
+    {
+     "alt": "Lake trout",
+     "code": "LT",
+     "credit": "Lake trout · Sherman F. Denton (Commons)",
+     "file": "lake-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Pale spots all over a dark body, no red",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Worm-like light markings on the back and back fin",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Deeply forked tail",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:LT",
+   "sub": null,
+   "title": "Lake trout"
+  },
+  "sp:LW": {
+   "blocks": [
+    {
+     "alt": "Lake whitefish",
+     "code": "LW",
+     "credit": "Lake whitefish · Sherman F. Denton (Commons)",
+     "file": "lake-whitefish.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Large scales, silver sides",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Small mouth under a blunt snout",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Has an adipose fin; no spots",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:LW",
+   "sub": null,
+   "title": "Lake whitefish"
+  },
+  "sp:RB": {
+   "blocks": [
+    {
+     "alt": "Rainbow trout",
+     "code": "RB",
+     "credit": "Rainbow trout · Freshwater Fisheries Society of BC (GoFishBC)",
+     "file": "rainbow-trout.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Pink or red band along the side",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Small black spots, mostly above the middle of the side",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Rows of black spots on the tail",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:RB",
+   "sub": null,
+   "title": "Rainbow trout"
+  },
+  "sp:WSG": {
+   "blocks": [
+    {
+     "alt": "White sturgeon",
+     "code": "WSG",
+     "credit": "White sturgeon · Joseph Huët (Paris Museum) (Commons)",
+     "file": "white-sturgeon.webp",
+     "height": 400,
+     "k": "image",
+     "width": 800
+    },
+    {
+     "k": "head",
+     "text": "What to look for"
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "Rows of bony plates, no scales",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Barbels under a pointed snout",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "Upper lobe of the tail much longer",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    }
+   ],
+   "key": "sp:WSG",
+   "sub": null,
+   "title": "White sturgeon"
+  },
+  "src:r0": {
+   "blocks": [
+    {
+     "k": "head",
+     "text": "These decide it (5)"
+    },
+    {
+     "groups": [
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 42,
+           "printed": 40,
+           "t": "book"
+          }
+         ],
+         "key": "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1",
+         "quote": "Bull trout catch and release",
+         "role": "Release every one · for Dolly Varden/bull trout",
+         "title": "Release all Dolly Varden/bull trout in tributaries"
+        }
+       ],
+       "where": "Region 4 · for this water (Trout Lake)"
+      },
+      {
+       "rows": [
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:trout_char_quota::trout_char_quota.r1",
+         "quote": "Trout/char: 5",
+         "role": "Sets the number · for cutthroat trout, brook trout, brown trout and lake trout",
+         "title": "Keep up to 5 trout and char a day"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:trout_char_quota::trout_char_quota.r3",
+         "quote": "2 from streams",
+         "role": "Lowers the number · for cutthroat trout, brook trout, brown trout and lake trout",
+         "title": "At most 2 trout and char a day from streams"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:possession_quota::possession_quota.r1",
+         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
+         "role": "Possession limit",
+         "title": "Possession: twice the daily quota"
+        },
+        {
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "key": "z4:trout_char_quota::trout_char_quota.r2",
+         "quote": "1 rainbow trout or cutthroat trout over 50 cm",
+         "role": "A limit inside the total · for cutthroat trout",
+         "title": "At most 1 rainbow trout or cutthroat trout over 50 cm (20 in) a day"
+        }
+       ],
+       "where": "Region 4 · region-wide"
+      }
+     ],
+     "k": "sources"
+    },
+    {
+     "body": [
+      {
+       "groups": [
+        {
+         "rows": [
+          {
+           "book": [],
+           "key": "r4:duncan_river@4-19::duncan_river.r5",
+           "notes": [],
+           "quote": "bull trout daily quota = 2 (any size)",
+           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
+           "title": "Keep up to 2 Dolly Varden/bull trout a day",
+           "trib": true
+          }
+         ],
+         "where": "Region 4 · for this water (Duncan River)"
+        },
+        {
+         "rows": [
+          {
+           "book": [],
+           "key": "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1",
+           "notes": [],
+           "quote": "Bull trout catch and release",
+           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
+           "title": "Release all Dolly Varden/bull trout in tributaries",
+           "trib": true
+          }
+         ],
+         "where": "Region 4 · for this water (Kootenay Lake — Main Body)"
+        },
+        {
+         "rows": [
+          {
+           "book": [],
+           "key": "z4:spring_stream_closure::spring_stream_closure.r1",
+           "notes": [],
+           "quote": "No Fishing: in any stream in Region 4 from Apr 1-June 14 (see tables for additional closed times or exceptions).",
+           "role": "Lifted by “Exempt from spring closure”",
+           "title": "No fishing in streams, Apr 1–Jun 14",
+           "trib": false
+          }
+         ],
+         "where": "Region 4 · region-wide"
+        },
+        {
+         "rows": [
+          {
+           "book": [],
+           "key": "z4:trout_char_quota::trout_char_quota.r4",
+           "notes": [],
+           "quote": "1 bull trout (Dolly Varden) of any size",
+           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
+           "title": "At most 1 Dolly Varden/bull trout a day",
+           "trib": false
+          }
+         ],
+         "where": "Region 4 · region-wide"
+        },
+        {
+         "rows": [
+          {
+           "book": [],
+           "key": "zp:quota_defaults::quota_defaults.r1",
+           "notes": [],
+           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
+           "role": "Beaten by “Possession quotas = 2 daily quotas (See tables for exceptions)”",
+           "title": "Possession: twice the daily quota",
+           "trib": false
+          }
+         ],
+         "where": "Provincial · province-wide"
+        }
+       ],
+       "k": "sources",
+       "overruled": true
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Overruled (5)"
+    }
+   ],
+   "key": "src:r0",
+   "sub": "Glenn Creek · May 1. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
+   "title": "Trout and char"
+  },
+  "srcs:always": {
+   "blocks": [
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:prohibited_methods::prohibited_methods.r3",
+     "title": "All fish — release all, if snagged, even by accident"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:further_prohibitions::further_prohibitions.r3",
+     "title": "Return a fish you cannot keep gently to the water"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r2",
+     "title": "Do not release fish in a harmful manner"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r10",
+     "title": "Do not high-grade"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r1",
+     "title": "Do not waste the fish you catch"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r7",
+     "title": "Do not hold your catch alive (livewell, other device or stringer)"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r5",
+     "title": "Leave the head, tail and fins on your catch until your residence"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:preparing_catch::preparing_catch.r1",
+     "title": "Do not can, bottle or fillet your catch away from your residence"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:preparing_catch::preparing_catch.r2",
+     "title": "Do not freeze fish in an unrecognizable block"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r3",
+     "title": "Make sure your fish can be identified, counted and measured"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r2",
+     "title": "Do not transport or possess more than your legal limit"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r1",
+     "title": "Have your angling licence at hand when you travel with fish"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r4",
+     "title": "Carry a signed letter from the angler when you transport fish for someone else"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r5",
+     "title": "Carry the letter and show it on request when you export the fish from B.C."
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:transporting_catch::transporting_catch.r6",
+     "title": "Keep a signed letter from the angler until you have eaten fish given to you"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r3",
+     "title": "Do not buy, sell or barter your catch"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r4",
+     "title": "Do not possess or move live fish or invertebrates"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r9",
+     "title": "Do not release your aquarium fish to the wild"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:further_prohibitions::further_prohibitions.r1",
+     "title": "Do not place gear in the water during a No Fishing period"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:further_prohibitions::further_prohibitions.r2",
+     "title": "Do not damage or interfere with a furbearer trap"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:conduct::conduct.r6",
+     "title": "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, without permission"
+    }
+   ],
+   "key": "srcs:always",
+   "sub": null,
+   "title": "Sources"
+  },
+  "srcs:bait": {
+   "blocks": [
+    {
+     "applies": [
+      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Duncan River.",
+      "Inherited from Duncan River: its row covers its tributaries."
+     ],
+     "book": [
+      {
+       "pdf": 38,
+       "printed": 36,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "Duncan River",
+     "open": "rule:r4:duncan_river@4-19::duncan_river.r3",
+     "title": "Bait ban — downstream of Duncan Lake"
+    }
+   ],
+   "key": "srcs:bait",
+   "sub": null,
+   "title": "Sources"
+  },
+  "srcs:gl|hook": {
+   "blocks": [
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:terminal_tackle::terminal_tackle.r6",
+     "title": "At most 1 terminal attachment per line"
+    },
+    {
+     "applies": [
+      "From the Region 4 table — every stream in Region 4."
+     ],
+     "book": [
+      {
+       "pdf": 36,
+       "printed": 34,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "Region 4",
+     "open": "rule:z4:single_barbless_hook::single_barbless_hook.r1",
+     "title": "Single barbless hook, in streams"
+    }
+   ],
+   "key": "srcs:gl|hook",
+   "sub": null,
+   "title": "Sources"
+  },
+  "srcs:gl|lines": {
+   "blocks": [
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:terminal_tackle::terminal_tackle.r1",
+     "title": "At most 2 lines (rods) per angler (lake, alone in a boat); at most 1 line (rod) per angler"
+    }
+   ],
+   "key": "srcs:gl|lines",
+   "sub": null,
+   "title": "Sources"
+  },
+  "srcs:gl|weight": {
+   "blocks": [
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:terminal_tackle::terminal_tackle.r4",
+     "title": "At most 1kg weight per line (not downrigger weights)"
+    }
+   ],
+   "key": "srcs:gl|weight",
+   "sub": null,
+   "title": "Sources"
+  },
+  "srcs:ways": {
+   "blocks": [
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:terminal_tackle::terminal_tackle.r7",
+     "title": "Angling may be used"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:crayfish_trapping::crayfish_trapping.r1",
+     "title": "Crayfish trapping may be used"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — lakes of Region 6 and Region 7A."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:set_lining::set_lining.r1b",
+     "title": "No set lining"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C. It lifts “Spear fishing may be used” (everywhere in B.C) here."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:spear_fishing::spear_fishing.r3",
+     "title": "No spear fishing — Regions 1, 2 and 4 — lifts “Spear fishing may be used”"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:prohibited_methods::prohibited_methods.r1",
+     "title": "No netting"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:prohibited_methods::prohibited_methods.r2",
+     "title": "No snagging"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:prohibited_methods::prohibited_methods.r4",
+     "title": "No chumming"
+    }
+   ],
+   "key": "srcs:ways",
+   "sub": null,
+   "title": "Sources"
+  }
  },
  "status": "open",
  "target": {

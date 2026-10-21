@@ -5,16 +5,10 @@
  * reads the VM; it never re-derives a value.
  *
  * The golden's sheet keys embed the state id (`srcs:gl|vedder_1010|hook`, `srcs:bait|vedder_1010`); the app's never do
- * (contracts §6 #1) — `goldenSrcKey` bridges them.
+ * (contracts §6 #1) — T36's `goldenKeyOf` (sheetKey.ts, the one bridge) maps them.
  */
-import { GEAR, plain, WORDS, type ChangeVM, type GearVM, type MethodsVM, type SourceLineVM, type YesNoVM } from "@app/core";
+import { GEAR, goldenKeyOf, plain, WORDS, type ChangeVM, type GearVM, type MethodsVM, type SourceLineVM, type YesNoVM } from "@app/core";
 import { norm } from "./eq";
-
-/** app `srcs:gl|hook` → golden `srcs:gl|<id>|hook`; app `srcs:bait` → golden `srcs:bait|<id>`. */
-export function goldenSrcKey(open: string, id: string): string {
-  const m = /^srcs:gl\|(.+)$/.exec(open);
-  return m ? `srcs:gl|${id}|${m[1]}` : `${open}|${id}`;
-}
 
 const bookText = (p: { printed: number; pdf: number }) => plain([{ t: "book", printed: p.printed, pdf: p.pdf }]);
 /** a term run's words: one id "ⓘ", two or more "What these words mean" */
@@ -22,7 +16,7 @@ const tipText = (ids: readonly string[]) => (ids.length ? plain([{ t: "term", id
 const j = (...xs: (string | null | undefined)[]) => norm(xs.filter(Boolean).join(" "));
 
 export const srcProj = (s: SourceLineVM | null, id: string) => s && {
-  who: s.who, open: goldenSrcKey(s.open, id), pages: s.pages.map((p) => ({ text: bookText(p), pdf: p.pdf })),
+  who: s.who, open: goldenKeyOf(s.open, id), pages: s.pages.map((p) => ({ text: bookText(p), pdf: p.pdf })),
 };
 export const srcLine = (s: SourceLineVM | null): string => (s ? j(s.who, ...s.pages.map(bookText)) : "");
 

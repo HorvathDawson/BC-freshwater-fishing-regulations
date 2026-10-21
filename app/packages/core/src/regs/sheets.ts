@@ -9,18 +9,21 @@
  * the export rule's label/verbatim/fields, the glossary term, the rows answers' `group.possession` examples, the Keep tab's
  * possession sentence); this file only selects them for a key and orders them as the prototype's sheet does.
  *
- * Built so far: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch`. Not yet: `src:`, `other:`, `srcs:` (needs T30's
- * gear source keys), `licsrc:` (needs T33's licence "from" groups), `sp:` (needs T20's FISH_TIPS), `parts` — `sheetOf`
- * returns null for those (never a guess).
+ * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1); `srcs:`, `licsrc:`, `src:`, `sp:`, `other:`
+ * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts). Not built: `parts` — it needs each part's status on the day,
+ * which the inputs (one part's answers) do not carry; `sheetOf` returns null for it (never a guess).
  */
 import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView } from "./inputs";
 import { plain, squash, text, type Line, type Run } from "./line";
-import type { SheetBlock, SheetCtx, SheetVM } from "./model";
-import { parseSheetKey, type SheetKey } from "./sheetKey";
+import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
+import { parseSheetKey, type ProfileKey, type SheetKey } from "./sheetKey";
 import { WORDS } from "./words";
 import { ruleSub } from "./level";
 import { clean } from "./names";
+import { licsrcSheet, srcSheet, srcsSheet } from "./sheets/sources";
+import { fishSheet } from "./sheets/fish";
+import { otherSheet } from "./sheets/other";
 
 const para = (s: string, tone?: "small" | "note" | "mono"): SheetBlock => (tone ? { k: "para", text: [text(s)], tone } : { k: "para", text: [text(s)] });
 
@@ -111,7 +114,12 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("gl:")) return glossSheet(key, ctx.inp, key.slice(3).split(","));
   if (key === "pos:pos") return possessionSheet(key, ctx);
   if (key === "hatch") return hatchSheet(key, ctx.inp);
-  return null;   // src: other: srcs: licsrc: sp: parts — see the header
+  if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
+  if (key.startsWith("licsrc:")) return licsrcSheet(ctx, key, key.slice(7) as ProfileKey);
+  if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
+  if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
+  if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
+  return null;   // parts — see the header
 }
 
 // ── the golden comparison form ────────────────────────────────────────────────────────────────────────────────────────
@@ -121,13 +129,39 @@ export interface SheetLines {
   pages: { text: string; pdf: number | null }[]; lines: string[]; nested: string[];
 }
 
-/** One run's sheet key (golden `nested`: data-open / data-rule / data-gl), in document order. */
+/** One run's sheet key (golden `nested`: data-open / data-rule / data-gl), in document order. A `src:` link is not one: the
+ *  page opens a row's sources by `data-src`, which the golden's nested keys do not list. */
 function keysOf(l: Line, out: string[]): void {
   for (const r of l) {
-    if (r.t === "link" && typeof r.open === "string") out.push(r.open);
+    if (r.t === "link" && typeof r.open === "string") { if (!r.open.startsWith("src:")) out.push(r.open); }
     else if (r.t === "term") out.push(`gl:${r.ids.join(",")}`);
   }
 }
+
+/** Every sheet key a drawn VM opens (a group's pictures, ⓘ terms, links), in the VM's field order — the nested keys of a
+ *  `group` block, whose lines the caller words. */
+function keysDeep(x: unknown, out: string[]): void {
+  if (Array.isArray(x)) { for (const y of x) keysDeep(y, out); return; }
+  if (!x || typeof x !== "object") return;
+  const o = x as Record<string, unknown>;
+  if (o.t === "term" && Array.isArray(o.ids)) { out.push(`gl:${(o.ids as string[]).join(",")}`); return; }
+  if (o.t === "link") { if (typeof o.open === "string" && !o.open.startsWith("src:")) out.push(o.open); return; }
+  if (typeof o.code === "string" && typeof o.open === "string" && o.sil === false) { out.push(o.open); return; }
+  for (const [k, v] of Object.entries(o)) if (k !== "more") keysDeep(v, out);
+}
+
+/** Every linked book page a drawn VM holds, in its field order (a `group` block's pages). */
+function booksDeep(x: unknown, out: SheetLines["pages"]): void {
+  if (Array.isArray(x)) { for (const y of x) booksDeep(y, out); return; }
+  if (!x || typeof x !== "object") return;
+  const o = x as Record<string, unknown>;
+  if (o.t === "book") { if (typeof o.pdf === "number") out.push({ text: plain([o as Run]), pdf: o.pdf }); return; }
+  for (const v of Object.values(o)) booksDeep(v, out);
+}
+
+/** Options of the comparison form: the Keep group's drawn lines (the Keep tab's own projection — a `group` block is drawn
+ *  by the Keep group component, so its words are compared the way the Keep parity compares them). */
+export interface SheetLinesOpts { readonly groupLines?: (g: GroupVM) => readonly string[] }
 
 /** golden.mjs `books()`: every LINKED page (an `a.book`) in order; an unlinked page is not a link. */
 function booksOf(l: Line, out: SheetLines["pages"]): void {
@@ -137,24 +171,74 @@ function booksOf(l: Line, out: SheetLines["pages"]): void {
 /**
  * The sheet as golden.mjs records it: the title and sub, every fold (closed), every linked book page, one text line per
  * block (golden `lines()`: a fold's summary, then its body; a term's title, then its body; a list's items one each), the
- * nested sheet keys. Runs of one Line concatenate as is, then collapse (contracts §1 plain()).
+ * nested sheet keys. Runs of one Line concatenate as is, then collapse (contracts §1 plain()); separate elements of one
+ * drawn line (a ladder line's words, tag, where it applies and pages; a rule row's title, level, applies and pages) join
+ * with one space. A `link` block is the prototype's inline `.linkrow` button: it ends the line before it.
  */
-export function sheetLines(vm: SheetVM): SheetLines {
+export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
   const out: SheetLines = { title: vm.title, sub: vm.sub, folds: [], pages: [], lines: [], nested: [] };
   const nested: string[] = [];
   const line = (l: Line) => { const s = plain(l); if (s) out.lines.push(s); booksOf(l, out.pages); keysOf(l, nested); };
   const str = (s: string) => { const t = squash(s); if (t) out.lines.push(t); };
+  /** one drawn line of separate elements (one space between them) */
+  const parts = (...xs: (string | Line | null | undefined)[]) => {
+    const s = squash(xs.map((x) => (x == null ? "" : typeof x === "string" ? x : plain(x))).filter(Boolean).join(" "));
+    if (s) out.lines.push(s);
+    for (const x of xs) if (x && typeof x !== "string") booksOf(x, out.pages);
+  };
   const walk = (bs: readonly SheetBlock[]): void => {
     for (const b of bs) {
       switch (b.k) {
         case "para": case "example": case "value": line(b.text); break;
-        case "pages": case "source": case "link": line(b.line); break;
+        case "pages": case "source": line(b.line); break;
+        case "link": {
+          const s = plain(b.line), last = out.lines.length - 1;
+          if (s && last >= 0) out.lines[last] = squash(`${out.lines[last]} ${s}`); else if (s) out.lines.push(s);
+          booksOf(b.line, out.pages); keysOf(b.line, nested); break;
+        }
         case "head": case "quote": str(b.text); break;
         case "list": b.items.forEach(line); break;
         case "fold": out.folds.push({ summary: b.summary, open: false }); str(b.summary); walk(b.body); break;
         case "term": str(b.title); walk(b.body); break;
         case "adipose": b.figures.forEach((f) => line(f.caption)); break;
-        default: throw new Error(`sheetLines: block ${b.k} is not built yet (T36)`);
+        case "rule": parts(b.title, b.level, ...b.applies, b.book); nested.push(b.open); break;
+        case "image": str(b.credit); break;
+        case "pictures":
+          str(b.pics.flatMap((p) => (p.sil ? [] : [p.caption])).join(" "));
+          for (const p of b.pics) if (!p.sil) nested.push(p.open);
+          break;
+        case "rowTitle": str(b.title + (b.scope ?? "")); break;
+        case "weekBox": parts(b.day, b.scope); str(b.status); str(b.says); break;
+        case "ladder":
+          if (b.q) str(b.q);
+          if (b.result) str(WORDS.CHECK + b.result);
+          for (const st of b.steps) {
+            str(st.level);
+            for (const l of st.lines) {
+              parts(l.text, l.tag, ...l.applies, l.book); keysOf(l.text, nested);
+              if (l.rule) nested.push(`rule:${l.rule}`);
+              (l.notes ?? []).forEach(str);
+            }
+          }
+          break;
+        case "sources":
+          for (const g of b.groups) {
+            if (!b.overruled) str(g.where);
+            for (const r of g.rows) {
+              if (b.overruled) {
+                if (r.key) nested.push(`rule:${r.key}`);   // the card itself opens its rule; its ⓘ sits inside it
+                if (r.trib) { str(WORDS.TERM_ONE); nested.push("gl:tributaries"); }
+                str(WORDS.SHEET_QUOTED(r.quote)); str(g.where); str(r.role); (r.notes ?? []).forEach((n) => str(WORDS.SHEET_NOTE + n));
+              } else { parts(r.title, r.quote); parts(r.role, r.book); }
+            }
+          }
+          break;
+        case "group":
+          if (!opts.groupLines) throw new Error("sheetLines: a group block's lines are the Keep group's — pass opts.groupLines");
+          out.lines.push(...opts.groupLines(b.titled ? b.group : { ...b.group, title: "" }));
+          keysDeep(b.group, nested); booksDeep(b.group, out.pages);
+          break;
+        case "choice": b.items.forEach((i) => parts(i.text, i.status, i.long)); break;
       }
     }
   };

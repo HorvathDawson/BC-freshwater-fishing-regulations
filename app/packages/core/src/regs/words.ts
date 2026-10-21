@@ -108,6 +108,7 @@ export const WORDS = Object.freeze({
   SUM_CLOSED: (until: string) => "Don’t fish for them" + until + ". If one bites, carefully release it.",
   SUM_RELEASE: (until: string) => "You can fish for them, but release every one" + until + ".",
   NEVER_KEEP: "No keeping at any time of year. ",
+  KEEP_ONLY: (spans: string) => `Keeping allowed only ${spans}`,   // (T36) page v36 shortWindows, under a row's mini strip
   THROUGH_YEAR: "Through the year",   // page v36 stripHtml's label; the group's year window (prototype UR5 .gyear)
   ALL_YEAR_SENT: "All year.",
   WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
@@ -179,6 +180,17 @@ export const WORDS = Object.freeze({
   SHEET_HATCH_WILD: "Wild", SHEET_HATCH_WILD_CAP: " · adipose fin there",
   SHEET_HATCH_CLIPPED: "Hatchery", SHEET_HATCH_CLIPPED_CAP: " · clipped, a healed scar instead",
   SHEET_HATCH_LOOK: "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
+  // (T36 part 2) srcs: / src: / sp: / other: (prototype sheetHtml, groupedSources, weekSheet; page v36 openRowSources, srcCard)
+  SHEET_SOURCES: "Sources",
+  SHEET_DECIDE_IT: (n: number) => `These decide it (${n})`, SHEET_OVERRULED: (n: number) => `Overruled (${n})`,
+  SHEET_SRC_SUB: (water: string, date: string) => `${water} · ${date}. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.`,
+  SHEET_CLOSES_IT: "Closes it", SHEET_RELEASE_ALL: "Release every one",
+  SHEET_NO_FOR: "(no “for …” in the answers)",
+  SHEET_QUOTED: (q: string) => `“${q}”`,
+  SHEET_LOOK_FOR: "What to look for",
+  SHEET_TODAY_DOT: "Today · ",
+  SHARED_WITH: (s: string) => `Shared with all of ${s} today.`,
+  NOLIMIT_MARK: "∞", NOLIMIT_SAYS: "No daily limit",   // page v36 groupBlock's no-limit fact (a pooled no-limit row)
   // ── T21 the Keep composition (keep.ts: page v36 renderCard's outside-B.C. foot) ──
   OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
   /** a fish picture's accessible name (prototype fishBtn aria-label) */
@@ -190,6 +202,12 @@ export const WORDS = Object.freeze({
   // ── T23 the regs header (prototype hdr: the pill's caret, the tab row's name; sheetHtml 'date': the day sheet's title) ──
   DATE_CARET: " ▾", TABS_LABEL: "Section", DAY_SHEET_TITLE: "Which day?",
 } as const);
+
+/** (T36) page v36 ROLE: a rule's role in a row's sources sheet (openRowSources), verbatim. */
+export const ROLE: Readonly<Record<string, string>> = Object.freeze({ governs: "Sets the number", contains: "The group total this counts toward",
+  narrows: "Lowers the number", limit: "A limit inside the total", floor: "Size limit", season: "Yearly limit", possession_cap: "Possession limit",
+  duty: "Something you must do", possession: "Possession limit", also: "Also applies (a different limit)", replaced: "Beaten by",
+  agrees: "Says the same as", falls: "Falls away with", moot: "Doesn’t matter today because of", lifted: "Lifted by" });
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
 export const RANK_LEVEL: Readonly<Record<string, string>> = Object.freeze({
@@ -401,7 +419,7 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...WD3, ...MONTH1,
   ...Object.values(RANK_LEVEL),
   // (T19b) the ladder / run tables
-  ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN].flatMap((t) => Object.values(t)),
+  ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN, ROLE].flatMap((t) => Object.values(t)),
   // (T30) the Gear tab
   ...GEAR_LINES.map(([, label]) => label), ...deepWords(GEAR),
   // (T31) the Bait item

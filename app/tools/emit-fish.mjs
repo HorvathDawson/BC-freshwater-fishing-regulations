@@ -13,6 +13,10 @@
  *     `apps/mobile` is the only layer allowed to register assets (layers.json); components
  *     get the map as a `FishImages` prop.
  *
+ * (T36) And the "What to look for" tips of the fish sheet (`FISH_TIPS`): page v36's own FISHART.SPECIES[code].tips
+ * (pipeline/deliver/answers/reference/page_v36.js — the table the prototype's snapshot read, regs-v11/tools/snap.mjs),
+ * evaluated from that file's FISHART block with a stub `window`; not in the store, never hand-written.
+ *
  * Images with `code: null` have no species row and are skipped. Keys are sorted by code for a
  * stable diff; images keep manifest order within a code (the first is the one a row shows).
  * Every string goes through JSON.stringify — never hand-escaped.
@@ -25,6 +29,7 @@ const app = fileURLToPath(new URL("..", import.meta.url));
 export const MANIFEST = `${app}apps/mobile/assets/fish/manifest.json`;
 export const CORE_OUT = `${app}packages/core/src/regs/fish.generated.ts`;
 export const MOBILE_OUT = `${app}apps/mobile/src/fishImages.generated.ts`;
+export const TIPS_SOURCE = `${app}../pipeline/deliver/answers/reference/page_v36.js`;
 
 const s = JSON.stringify;
 
@@ -39,9 +44,17 @@ function byCode(manifest) {
   return [...out.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
+/** page v36's FISHART block (`const FISHART = (() => { … })();`) evaluated alone: code -> its tips, codes sorted. */
+export function fishTips(pageSrc) {
+  const at = pageSrc.indexOf("const FISHART = (() => {"), end = pageSrc.indexOf("\n})();", at);
+  if (at < 0 || end < 0) throw new Error("emit-fish: no FISHART block in page_v36.js");
+  const FISHART = new Function("window", `${pageSrc.slice(at, end + 6)}\nreturn FISHART;`)({});
+  return Object.fromEntries(Object.keys(FISHART.SPECIES).sort().map((c) => [c, [...(FISHART.SPECIES[c].tips ?? [])]]));
+}
+
 const nullable = (v) => (v === null || v === undefined ? "null" : s(v));
 
-export function emit(manifest, sha) {
+export function emit(manifest, sha, tips) {
   const codes = byCode(manifest);
 
   const core = [
@@ -69,6 +82,11 @@ export function emit(manifest, sha) {
     ].join("\n")),
     "};",
     "",
+    "/** (T36) Species code -> \"What to look for\" on its fish sheet: page v36's FISHART.SPECIES[code].tips. */",
+    "export const FISH_TIPS: Readonly<Record<string, readonly string[]>> = {",
+    ...Object.entries(tips).map(([code, ts]) => `  ${s(code)}: [${ts.map(s).join(", ")}],`),
+    "};",
+    "",
   ].join("\n");
 
   const mobile = [
@@ -89,7 +107,7 @@ export function emit(manifest, sha) {
 function main() {
   const bytes = readFileSync(MANIFEST);
   const sha = createHash("sha256").update(bytes).digest("hex");
-  const { core, mobile } = emit(JSON.parse(bytes.toString("utf8")), sha);
+  const { core, mobile } = emit(JSON.parse(bytes.toString("utf8")), sha, fishTips(readFileSync(TIPS_SOURCE, "utf8")));
   if (process.argv.includes("--check")) {
     const read = (p) => { try { return readFileSync(p, "utf8"); } catch { return null; } };
     if (read(CORE_OUT) !== core || read(MOBILE_OUT) !== mobile) {

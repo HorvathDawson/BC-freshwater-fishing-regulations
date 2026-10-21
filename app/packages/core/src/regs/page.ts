@@ -39,7 +39,8 @@ const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 /** The whole page for one tap (T21: header + Keep). */
 export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled);
-  const keep = keepOf(inp, { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" });
+  const env = { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" } as const;
+  const keep = keepOf(inp, env);
   const status: RegsPage["status"] = inp.key == null ? "outside" : inp.key.tidal || settled.status?.status === "tidal" ? "tidal"
     : keep.strip ? keep.strip.status : "unknown";
   // (T30–T32) the Gear and Methods tabs: none outside B.C. (no key: the tabs are not drawn)
@@ -57,5 +58,5 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
       glossary: new Set(inp.statics.glossary.terms.map((t) => t.id)) }),
   };
   // T36: lazy and pure over the same inputs (a sheet is built when it is opened)
-  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today }, key) };
+  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env }, key) };
 }

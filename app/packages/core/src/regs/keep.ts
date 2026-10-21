@@ -59,8 +59,8 @@ export function plainRowSeams(inp: RegsInputs, fish: FishManifest): PlainRowSeam
 }
 
 /** One g28 group (a drawn row with a stored `group.headline`): T17 head + the year window (T19b words over the row's
- *  stored year) + T18 tree + T19 tail. */
-function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>, seams: PlainRowSeams): GroupVM {
+ *  stored year) + T18 tree + T19 tail. (T36: also an other-fish row's `other:` sheet.) */
+export function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>, seams: PlainRowSeams): GroupVM {
   const ctx = headCtx(rowIx, env.card, inp)!, tenv = treeEnv(ctx, env.fish, drawn, env.tot);
   const head = groupHeadOf(ctx, { tot: env.tot }), root = ctx.g.tree[0];
   return {

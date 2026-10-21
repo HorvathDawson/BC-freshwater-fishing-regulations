@@ -112,3 +112,28 @@ export const FISH: FishManifest = {
     { file: "yellow-perch.webp", caption: "Yellow perch", credit: "Freshwater Fisheries Society of BC", type: "Studio photo", source: "GoFishBC", phase: null, standInFor: null, width: 800, height: 400 },
   ],
 };
+
+/** (T36) Species code -> "What to look for" on its fish sheet: page v36's FISHART.SPECIES[code].tips. */
+export const FISH_TIPS: Readonly<Record<string, readonly string[]>> = {
+  "BB": ["One barbel under the chin", "Two back fins, the second very long", "Long, eel-like mottled body"],
+  "BCB": ["Deep, flat body covered in black speckles", "Large, rounded back and bottom fins", "Mouth reaches the front of the eye"],
+  "CT": ["Red or orange slash under the lower jaw (may be faint)", "Large mouth, reaching well past the eye", "Black spots all over, more toward the tail"],
+  "DV": ["Pale pink or cream spots, smaller than the pupil", "No worm-like markings on the back fin", "White front edges on the lower fins", "Bull trout: big, broad, flat head"],
+  "EB": ["Worm-like markings on the back and back fin", "Red spots with blue halos", "Orange lower fins with white front edges"],
+  "GB": ["Black and red spots, many with pale halos", "Tail with few or no spots", "Orange-rimmed adipose fin"],
+  "GE": ["Large golden eye", "Deep, flat silver body", "Back fin set behind the middle"],
+  "GR": ["Very tall, sail-like back fin with blue-purple spots", "A few black spots near the head", "Small mouth"],
+  "IN": ["Large mouth with a jutting lower jaw", "Big silver scales", "Has an adipose fin"],
+  "KO": ["No black spots on the sides", "Dark blue back, bright silver sides", "Long fin under the tail end (13 or more rays)"],
+  "LMB": ["Dark stripe along the side", "Jaw reaches past the back of the eye", "Front and back fins almost separate"],
+  "LT": ["Pale spots all over a dark body, no red", "Worm-like light markings on the back and back fin", "Deeply forked tail"],
+  "LW": ["Large scales, silver sides", "Small mouth under a blunt snout", "Has an adipose fin; no spots"],
+  "MW": ["Large scales, silver sides", "Small mouth under a blunt snout", "Has an adipose fin; no spots"],
+  "NP": ["Long, flat, duck-bill snout", "Back fin set far back, near the tail", "Rows of pale bean-shaped spots"],
+  "RB": ["Pink or red band along the side", "Small black spots, mostly above the middle of the side", "Rows of black spots on the tail"],
+  "SMB": ["Bronze-brown with faint vertical bars", "Jaw reaches about the middle of the eye", "Red or orange eye"],
+  "ST": ["A rainbow trout that went to sea: bright silver", "Faint spots, mostly on the back and tail", "Hatchery steelhead are missing this small fin (the adipose fin)"],
+  "WP": ["Big, glassy eye", "Spiny front back fin", "White tip on the lower tail lobe", "Sharp, fang-like teeth"],
+  "WSG": ["Rows of bony plates, no scales", "Barbels under a pointed snout", "Upper lobe of the tail much longer"],
+  "YP": ["Six to nine dark bars down the sides", "Orange lower fins", "Spiny front back fin; no fang-like teeth"],
+};

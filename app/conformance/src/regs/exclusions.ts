@@ -115,11 +115,35 @@ export const SET_LINE_NOTE_IDS: readonly string[] = Object.entries(golden().stat
     .some((c) => c.col === "ok" && c.items.some((i) => i.name === "Set lines")))
   .map(([id]) => id);
 
+/**
+ * (T36 part 2) Golden sheet lines the app says differently BY DESIGN, each a whole-line substitution the parity applies to
+ * the golden before comparing (and asserts it applied, so an entry cannot go stale silently).
+ */
+export interface SheetSubst { readonly ids: readonly string[]; readonly key: RegExp; readonly from: string; readonly to: string; readonly reason: string }
+export const SHEET_SUBST: readonly SheetSubst[] = [
+  { ids: SNAPSHOT_SUB_IDS, key: /^srcs:bait\|/,
+    from: "Bait ban, Sep 1-May 15 — downstream of Tweedsmuir Park eastern boundary Bella Coola River This water’s own row",
+    to: "Bait ban, Sep 1-May 15 — downstream of Tweedsmuir Park eastern boundary This water’s This water’s own row",
+    reason: "the T31 snapshot artifact (SNAPSHOT_SUB_EXCLUDE) in the Sources sheet: the prototype's who-word comes from its GLOBAL rule-sheet snapshot ('Downstream rule · Bella Coola River', taken on a tributary part); on the Bella Coola's own parts the bait-ban row is the water's own (rank 0) — 'This water’s'" },
+  { ids: ["klmb_1010"], key: /^src:klmb_1010\|r2$/, from: "Size limit Rule book p.7 ↗", to: "Something you must do Rule book p.7 ↗",
+    reason: "owner rule 2026-10-21: the record-retention rule's role is the STORE's (rows 31 `stored_role`: duty — the pipeline took over page v36's ladderHtml record_retention → duty move); page v36's openRowSources read the pre-move role (floor). The app reads the stored role" },
+];
+
+/** (T36 part 2) The Other fish rows page v36 draws on its legacy pooled card path (a pool with stored conditions:
+ *  rowConds → groupBlock / speciesBlock — "Your own limit, counted across …", "Each kind · every fish counts toward the 15",
+ *  "This river’s rule: 15 a day here …"), not ported (decisions D19 (b), ~250 lines); measured on the golden. */
+export const LEGACY_POOL_SHEETS: readonly string[] = ["x18p5_1010 other:x18p5_1010|o0", "x22p1_1010 other:x22p1_1010|o1", "x22p3_1010 other:x22p3_1010|o1"];
+
 export const EXCLUDE: readonly Exclusion[] = [
   // (T28) no pins entry: the prototype's pinUpdate throw on a group-less article (25 states at v33, facts A#25) is fixed
   // since UI-NOTES v35 (a group-less row pins nothing, IMPLEMENT-HANDOFF C5) — pins.parity replays every state whole
   { block: "sheets", ids: "*", key: /^parts$/,
-    reason: "the prototype's parts sheet carries a prototype-only line ('This prototype has no map of this water…'); T36 compares its rows only" },
+    reason: "PIPELINE NEED (owner rule 2026-10-21): the parts sheet lists every part of the water with its status ON THE DAY (open / closed); the regs inputs carry one part's answers, and the store ships no per-item part status for a day — the app must not settle other parts itself. sheetOf('parts') is null until the pipeline ships it (the prototype's own 'This prototype has no map of this water…' line is never ported, D1)",
+    until: "the pipeline ships each part's day status with the item (e.g. part_status per display segment)" },
+  ...[...new Set(LEGACY_POOL_SHEETS.map((x) => x.split(" ")[0]!))].map((id): Exclusion => ({
+    block: "sheets", ids: [id], key: new RegExp(`^(${LEGACY_POOL_SHEETS.filter((x) => x.startsWith(id + " ")).map((x) => x.split(" ")[1]!.replace(/[|]/g, "\\|")).join("|")})$`),
+    reason: "decisions D19: an Other fish row page v36 draws on its legacy pooled card path (a pool with stored conditions: groupBlock / speciesBlock), not ported; the sheet's pictures, value and ladder are built, the legacy block lines are not",
+    until: "D19 (a): the pipeline ships a group (headline) for these rows, or D19 (b) ports the legacy path" })),
   { block: "sheets", ids: "*", key: /^rule:/,
     reason: "'Technical detail' fold body (key + fields JSON) is compared by structure, not string: JSON.stringify spacing",
     until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },

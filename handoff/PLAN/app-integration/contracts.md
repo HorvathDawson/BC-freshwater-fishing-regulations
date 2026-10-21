@@ -361,21 +361,25 @@ export type SheetBlock =                                              // (T36) r
   | { k: "value"; text: Line }                                          // the row's verdict chip "↩ Release ⓘ" / "5 a day"
   | { k: "weekBox"; day: string; scope: string | null; status: string; says: string }
   | { k: "ladder"; q: string | null; result: string | null; steps: readonly LadderStepVM[] }
-  | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[] }
+  | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[]; overruled?: true }   // (T36 part 2) overruled: the "Overruled (N)" cards (srcCard: quoted words, whose, role), one group per card
   | { k: "pictures"; pics: readonly FishPicVM[] }
   | { k: "image"; code: string; file: string; alt: string; credit: string; width: number; height: number }   // credit "<caption>[ · <phase>] · <credit> (<source>)" (T43)
   | { k: "adipose"; figures: readonly { variant: "wild" | "clipped"; caption: Line }[] }
   | { k: "pages"; line: Line }                                          // a paragraph of book runs
   | { k: "source"; line: Line }                                         // "Source ›" link run + book runs
-  | { k: "link"; line: Line }                                           // "See every regulation line ›"
-  | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] };   // parts sheet rows
+  | { k: "link"; line: Line }                                           // "See every regulation line ›" — inline: it ends the line before it (sheetLines)
+  | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] }   // parts sheet rows
+  | { k: "group"; group: GroupVM; titled: boolean }                    // (T36 part 2) an other-fish row with a stored group headline: drawn by the Keep group component; titled false = no title line (the sheet's title says it)
+  | { k: "rowTitle"; title: string; scope: string | null };            // (T36 part 2) the row title with its scope tag run on ("Black crappie" + "Region 2-wide")
 export interface LadderStepVM { readonly level: string;               // also LadderVM.sections[].steps (T19b)   // (T36)
   readonly lines: readonly { text: Line; tag: string | null; rule: RuleKey | null; won: boolean; applies: readonly string[]; book: Line; today?: boolean; days?: string }[] }   // (T36) text Line, applies, today, days; book (T19b) — §6 #5
-export interface SourceRowVM { readonly key: RuleKey | null; readonly title: string | null; readonly quote: string; readonly role: string; readonly book: Line }   // (T36)
-export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day }   // sheets.ts   // (T36)
+export interface SourceRowVM { readonly key: RuleKey | null; readonly title: string | null; readonly quote: string; readonly role: string; readonly book: Line;
+  readonly notes?: readonly string[]; readonly trib?: boolean }   // (T36) — notes/trib (part 2): an overruled card's ⚑ notes and its ⓘ tributaries
+export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day;
+  readonly env?: KeepEnv }   // sheets.ts   // (T36) — env (part 2): page.ts's place/settled/card/fish, read by src: and other:
 export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null;   // null: the key does not apply here (never throws)   // (T36)
-export function sheetLines(vm: SheetVM): { title: string; sub: string | null; folds: { summary: string; open: false }[];
-  pages: { text: string; pdf: number | null }[]; lines: string[]; nested: string[] };   // the golden comparison form (§1 join rule)   // (T36)
+export function sheetLines(vm: SheetVM, opts?: { groupLines?: (g: GroupVM) => readonly string[] }): { title: string; sub: string | null; folds: { summary: string; open: false }[];
+  pages: { text: string; pdf: number | null }[]; lines: string[]; nested: string[] };   // the golden comparison form (§1 join rule)   // (T36) — a `group` block is worded by the caller (the Keep projection)
 ```
 `sheetLines(sheet)` must equal golden `sheets[goldenKeyOf(key, id)]` `.lines` (body), `.title/.sub`, `.folds`, `.pages`.
 
@@ -481,7 +485,7 @@ export interface Statics {
 }
 // CardModel (T08 defines it; card.ts) — Infinity is a legal daily; roles keyed by RuleKey.   // (T08)
 // app/packages/core/src/fish.generated.ts (T20's generator) also emits:
-export const FISH_TIPS: Readonly<Record<string, readonly string[]>>;   // app/design/regs-v10/fishart.js FISHART.SPECIES[code].tips — "What to look for" (not in the store)   // (T36)
+export const FISH_TIPS: Readonly<Record<string, readonly string[]>>;   // page v36's FISHART.SPECIES[code].tips (pipeline/deliver/answers/reference/page_v36.js — what regs-v11/tools/snap.mjs read; regs-v10/fishart.js is an older copy, its ST tip differs) — "What to look for" (not in the store); emitted by app/tools/emit-fish.mjs   // (T36)
 
 // app/packages/data/src/regs/inputs.ts
 export async function loadRegsInputs(store: RegsStore, target: RegsTarget, day: Day, weekday: Weekday,

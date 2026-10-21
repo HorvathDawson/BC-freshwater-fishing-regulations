@@ -11,6 +11,7 @@ import type { SheetKey } from "./sheetKey";
 import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
+import type { KeepEnv } from "./keep";
 
 export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
@@ -255,16 +256,29 @@ export type SheetBlock =
   | { k: "value"; text: Line }
   | { k: "weekBox"; day: string; scope: string | null; status: string; says: string }
   | { k: "ladder"; q: string | null; result: string | null; steps: readonly LadderStepVM[] }
-  | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[] }
+  | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[];
+      /** (T36) the "Overruled (N)" cards: drawn as page v36 srcCard (quoted words, then whose, then the role), one group per card */
+      overruled?: true }
   | { k: "pictures"; pics: readonly FishPicVM[] }
   | { k: "image"; code: string; file: string; alt: string; credit: string; width: number; height: number }
   | { k: "adipose"; figures: readonly { variant: "wild" | "clipped"; caption: Line }[] }
   | { k: "pages"; line: Line }
   | { k: "source"; line: Line }
   | { k: "link"; line: Line }
-  | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] };
+  | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] }
+  /** (T36) an other-fish row drawn as its Keep group (prototype g28 article): T37 draws it with the Keep tab's group component */
+  | { k: "group"; group: GroupVM;
+      /** false: the group's title is not drawn (the sheet's title says it) — the prototype drops a head title with no scope tag */
+      titled: boolean }
+  /** (T36) the row's title with its scope tag run on (page v36 .rtitle + .scope: "Black crappie" "Region 2-wide") */
+  | { k: "rowTitle"; title: string; scope: string | null };
 export interface LadderStepVM { readonly level: string;
   readonly lines: readonly { text: Line; tag: string | null; rule: RuleKey | null; won: boolean; applies: readonly string[]; book: Line; today?: boolean; days?: string;
     notes?: readonly string[] }[] }   // (T19b) notes: the data's restates notes under a winning line (prototype buildKeep rnote)
-export interface SourceRowVM { readonly key: RuleKey | null; readonly title: string | null; readonly quote: string; readonly role: string; readonly book: Line }
-export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day }
+export interface SourceRowVM { readonly key: RuleKey | null; readonly title: string | null; readonly quote: string; readonly role: string; readonly book: Line;
+  /** (T36) an overruled card: the rule's ⚑ notes, and whether it reached this water through a tributary or from downstream (ⓘ tributaries) */
+  readonly notes?: readonly string[]; readonly trib?: boolean }
+export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day;
+  /** (T36 part 2) the page's hydrated answers (place, settled day, card model, fish manifest) the row sheets (src:, other:)
+   *  read — page.ts hands its own; absent: those sheets are null */
+  readonly env?: KeepEnv }

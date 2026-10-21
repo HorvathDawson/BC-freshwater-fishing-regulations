@@ -11,14 +11,15 @@ import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { emit, CORE_OUT, MOBILE_OUT, MANIFEST } from "./emit-fish.mjs";
-import { FISH, FISH_MANIFEST_SHA256 } from "../packages/core/src/regs/fish.generated";
+import { emit, fishTips, CORE_OUT, MOBILE_OUT, MANIFEST, TIPS_SOURCE } from "./emit-fish.mjs";
+import { FISH, FISH_MANIFEST_SHA256, FISH_TIPS } from "../packages/core/src/regs/fish.generated";
 
 const app = fileURLToPath(new URL("..", import.meta.url));
 const assets = `${app}apps/mobile/assets/fish/`;
 const bytes = readFileSync(MANIFEST);
 const manifest = JSON.parse(bytes.toString("utf8"));
 const sha = createHash("sha256").update(bytes).digest("hex");
+const tips = fishTips(readFileSync(TIPS_SOURCE, "utf8"));
 
 describe("emit-fish: the core manifest", () => {
   it("holds every coded species, sorted, salmon included", () => {
@@ -64,8 +65,32 @@ describe("emit-fish: the core manifest", () => {
   });
 });
 
+describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
+  it("are page v36's FISHART.SPECIES[code].tips, every species it draws, sorted", () => {
+    expect(Object.keys(FISH_TIPS)).toEqual(["BB", "BCB", "CT", "DV", "EB", "GB", "GE", "GR", "IN", "KO", "LMB", "LT", "LW", "MW", "NP",
+      "RB", "SMB", "ST", "WP", "WSG", "YP"]);
+    expect(FISH_TIPS.RB).toEqual(["Pink or red band along the side", "Small black spots, mostly above the middle of the side",
+      "Rows of black spots on the tail"]);
+    // page v36's own words (not regs-v10/fishart.js, which an older copy says "…bright silver, 50 cm or longer")
+    expect(FISH_TIPS.ST).toEqual(["A rainbow trout that went to sea: bright silver", "Faint spots, mostly on the back and tail",
+      "Hatchery steelhead are missing this small fin (the adipose fin)"]);
+  });
+  it("read the source's SPECIES table, not a copy: an edited tip changes the output", () => {
+    const src = readFileSync(TIPS_SOURCE, "utf8").replace("'Pink or red band along the side'", "'Mutated band'");
+    expect(fishTips(src).RB![0]).toBe("Mutated band");
+  });
+  it("every golden sp: sheet's \"What to look for\" list equals FISH_TIPS[code]", () => {
+    const g = JSON.parse(readFileSync(`${app}design/regs-v11/port/golden/golden.json`, "utf8")) as { sheets: Record<string, { lines: string[] }> };
+    const sp = Object.entries(g.sheets).filter(([k]) => k.startsWith("sp:"));
+    expect(sp.length).toBe(19);
+    const bad = sp.filter(([k, v]) => { const i = v.lines.indexOf("What to look for");
+      return JSON.stringify(i < 0 ? [] : v.lines.slice(i + 1)) !== JSON.stringify(FISH_TIPS[k.slice(3)] ?? []); }).map(([k]) => k);
+    expect(bad).toEqual([]);
+  });
+});
+
 describe("emit-fish: the mobile require map", () => {
-  const { mobile } = emit(manifest, sha);
+  const { mobile } = emit(manifest, sha, tips);
   const required = [...mobile.matchAll(/require\("\.\.\/assets\/fish\/([^"]+)"\)/g)].map((m) => m[1]);
 
   it("requires every coded .webp in the folder exactly once, each one present", () => {
@@ -87,7 +112,7 @@ describe("emit-fish: the mobile require map", () => {
 
 describe("emit-fish: the committed files are current (--check)", () => {
   it("equal emit() byte for byte", () => {
-    const { core, mobile } = emit(manifest, sha);
+    const { core, mobile } = emit(manifest, sha, tips);
     expect(readFileSync(CORE_OUT, "utf8")).toBe(core);
     expect(readFileSync(MOBILE_OUT, "utf8")).toBe(mobile);
   });

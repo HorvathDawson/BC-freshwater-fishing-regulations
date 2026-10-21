@@ -170,8 +170,10 @@ export function licenceWho(inp: RegsInputs, p: ProfileAnswer, h: Holds): readonl
 
 type Item = NeedItemVM & { readonly docs: readonly string[] };
 
-const isAnswer = (p: unknown): p is ProfileAnswer => !!p && typeof p === "object" && "documents" in p;
-const isHolds = (h: LicenceValue["holds"]): h is Holds => !("tidal" in h);
+/** A stored profile answer (not a profile the frame leaves empty). */
+export const isAnswer = (p: unknown): p is ProfileAnswer => !!p && typeof p === "object" && "documents" in p;
+/** The frame's holds of a non-tidal key. */
+export const isHolds = (h: LicenceValue["holds"]): h is Holds => !("tidal" in h);
 
 /** page v36 licParts for one stored profile answer, as typed blocks (the dropped pieces — the profile selects, "Showing
  *  the answer for:", the under-16 residency list, the "Rules for other anglers" fold, "All licence sources" — are the

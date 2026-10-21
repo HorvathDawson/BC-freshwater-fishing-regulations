@@ -6,10 +6,11 @@
 import { describe, expect, it } from "vitest";
 import type { GroupPossession } from "../answers.generated";
 import type { GlossaryTerm, RegsInputs, RuleFacts } from "./inputs";
-import type { PossessionVM, SheetCtx, SheetVM } from "./model";
+import type { GroupVM, PossessionVM, SheetBlock, SheetCtx, SheetVM, SourceLineVM } from "./model";
 import { ruleIndex } from "./rules";
 import { levelTag } from "./level";
 import { sheetLines, sheetOf } from "./sheets";
+import { dedupe } from "./sheets/other";
 import { RULE_ROWS } from "./testing/ruleRows";
 import { BOOK } from "./testing/speciesBook";
 
@@ -44,13 +45,19 @@ const OWN: GroupPossession[] = [
 const POS: PossessionVM = { label: "Possession", value: "2 days’ quota", says: "Possession: 2 days’ quota. Fish at home don’t count.",
   rule: "z2:possession_quota::possession_quota.r1", term: "possession_quota", open: "pos:pos" };
 
-function ctx(o: { terms?: GlossaryTerm[]; pdf?: Record<number, number>; own?: GroupPossession[]; pos?: PossessionVM | null } = {}): SheetCtx {
+/** T30's source line for the hook item (the keys it names feed the srcs: sheet; who/pages are the line's own) */
+const HOOK_SRC: SourceLineVM = { who: "This water’s · B.C. ›", aria: "", open: "srcs:gl|hook", pages: [],
+  keys: ["r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8", "zp:conduct::conduct.r1", "z9:gone::gone.r1"] };
+
+function ctx(o: { terms?: GlossaryTerm[]; pdf?: Record<number, number>; own?: GroupPossession[]; pos?: PossessionVM | null; hook?: SourceLineVM | null } = {}): SheetCtx {
   const inp = {
     rules: ruleIndex(stored, new Map(), BOOK),
-    statics: { glossary: { version: 5, terms: o.terms ?? [BAIT_BAN, SBH, POSQ, HW] }, pdfPages: o.pdf ?? { 4: 6, 8: 10, 13: 15, 80: 86 } },
+    statics: { glossary: { version: 5, terms: o.terms ?? [BAIT_BAN, SBH, POSQ, HW] }, pdfPages: o.pdf ?? { 4: 6, 8: 10, 13: 15, 80: 86 }, exportSpecies: BOOK },
     frames: { rows: { rows: (o.own ?? OWN).map((p) => ({ group: { possession: p } })).concat([{ group: null } as never]) } },
   } as unknown as RegsInputs;
-  return { inp, today: { month: 10, day: 10 }, page: { keep: { possession: o.pos === undefined ? POS : o.pos } } as unknown as SheetCtx["page"] };
+  const gear = { mode: null, lines: [{ k: "hook", src: o.hook === undefined ? HOOK_SRC : o.hook }], bait: null };
+  return { inp, today: { month: 10, day: 10 },
+    page: { keep: { possession: o.pos === undefined ? POS : o.pos }, gear, methods: null } as unknown as SheetCtx["page"] };
 }
 const lines = (vm: SheetVM | null) => sheetLines(vm!);
 
@@ -135,9 +142,88 @@ describe("hatch (page v36 adiposeHtml + the hatchery_wild term)", () => {
   });
 });
 
+describe("srcs: (prototype sheetHtml srcs: over T30's source line keys)", () => {
+  it("9/10. one rule row per key the item's source line names, in its order: title, who (level), applies, pages; a key the store lacks is dropped", () => {
+    const vm = sheetOf(ctx(), "srcs:gl|hook")!;
+    expect(vm.blocks.map((b) => b.k)).toEqual(["rule", "rule"]);
+    expect(lines(vm)).toEqual({ title: "Sources", sub: null, folds: [],
+      pages: [{ text: "Rule book p.22 ↗", pdf: 24 }, { text: "Rule book p.8 ↗", pdf: 10 }, { text: "Rule book p.10 ↗", pdf: 12 }],
+      lines: ["No fishing, Jun 1-Jun 30 — downstream of Vedder Crossing Bridge This water’s This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River. Inherited from Chilliwack River: its row covers its tributaries. Rule book p.22 ↗",
+        "Do not waste the fish you catch B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗"],
+      nested: ["rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8", "rule:zp:conduct::conduct.r1"] });
+  });
+  it("a rule reached from downstream is named by that water (prototype downWater), not 'Downstream'", () => {
+    const c = ctx(), trib = { ...c, inp: { ...c.inp, rules: ruleIndex(stored, new Map([[529, "trib" as const]]), BOOK) } } as SheetCtx;
+    expect(lines(sheetOf(trib, "srcs:gl|hook")).lines[0]).toMatch(/^No fishing, Jun 1-Jun 30 — downstream of Vedder Crossing Bridge Chilliwack River This water’s own row/);
+  });
+  it("an item with no source line on this page opens nothing", () => {
+    expect(sheetOf(ctx({ hook: null }), "srcs:gl|hook")).toBeNull();
+    expect(sheetOf(ctx(), "srcs:bait")).toBeNull();
+  });
+});
+
+describe("sp: (prototype sheetHtml sp: — the manifest's pictures + credits, FISH_TIPS)", () => {
+  it("15. RB: one picture credited, then What to look for (golden sheets['sp:RB'])", () => {
+    const vm = sheetOf(ctx(), "sp:RB")!;
+    expect([vm.blocks.map((b) => b.k), lines(vm)]).toEqual([["image", "head", "list"], { title: "Rainbow trout", sub: null, folds: [], pages: [],
+      lines: ["Rainbow trout · Freshwater Fisheries Society of BC (GoFishBC)", "What to look for", "Pink or red band along the side",
+        "Small black spots, mostly above the middle of the side", "Rows of black spots on the tail"], nested: [] }]);
+  });
+  it("15. ST: two pictures, each credit with its phase (golden sheets['sp:ST'])", () => {
+    expect(lines(sheetOf(ctx(), "sp:ST")).lines.slice(0, 2)).toEqual(["Steelhead · ocean · Freshwater Fisheries Society of BC (GoFishBC)",
+      "Steelhead · spawning · WDFW (eRegulations WA)"]);
+  });
+  it("a fish neither in the book nor pictured opens nothing; one pictured but not in the book is titled by its caption", () => {
+    expect(sheetOf(ctx(), "sp:ZZ")).toBeNull();
+    expect(lines(sheetOf(ctx(), "sp:BB"))).toMatchObject({ title: "Burbot", lines: ["Burbot · NY Forest, Fish and Game Commission (Commons)",
+      "What to look for", "One barbel under the chin", "Two back fins, the second very long", "Long, eel-like mottled body"] });
+  });
+});
+
+describe("sheetLines: the golden join of the part 2 blocks", () => {
+  const vm = (blocks: SheetBlock[]): SheetVM => ({ key: "other:o0", title: "T", sub: null, blocks });
+  const step = (text: string, o: Partial<{ tag: string; rule: string; applies: string[]; notes: string[] }> = {}) =>
+    ({ text: [{ t: "text" as const, s: text }], tag: o.tag ?? null, rule: o.rule ?? null, won: true, applies: o.applies ?? [], book: [], ...(o.notes ? { notes: o.notes } : {}) });
+  it("a ladder line is its words, tag, where it applies and pages on ONE line; its rule is a nested key; notes are lines of their own", () => {
+    expect(lines(vm([{ k: "ladder", q: "What you can keep", result: "Release every one here.", steps: [{ level: "Region 2",
+      lines: [step("In streams, release every kokanee.", { tag: "Release", rule: "z2:a::a.r5", applies: ["From the Region 2 table — all of Region 2."], notes: ["A note."] })] }] }])))
+      .toMatchObject({ lines: ["What you can keep", "✓ Release every one here.", "Region 2",
+        "In streams, release every kokanee. Release From the Region 2 table — all of Region 2.", "A note."], nested: ["rule:z2:a::a.r5"] });
+  });
+  it("a link block ends the line before it (the .linkrow button is inline); a src: link is no nested key (data-src)", () => {
+    expect(lines(vm([{ k: "para", text: [{ t: "text", s: "Last line." }] }, { k: "link", line: [{ t: "link", s: "See every regulation line ›", open: "src:r3" }] }])))
+      .toMatchObject({ lines: ["Last line. See every regulation line ›"], nested: [] });
+  });
+  it("the row's title runs into its scope tag; the weekday box is its day + scope, status, sentence", () => {
+    expect(lines(vm([{ k: "rowTitle", title: "Black crappie", scope: "Region 2-wide" },
+      { k: "weekBox", day: "Today · Sat", scope: "This water", status: "Weekends: keep 5 · Weekdays: release", says: "Keep up to 5 on Saturdays and Sundays." }])).lines)
+      .toEqual(["Black crappieRegion 2-wide", "Today · Sat This water", "Weekends: keep 5 · Weekdays: release", "Keep up to 5 on Saturdays and Sundays."]);
+  });
+  it("sources: deciding rows under whose they are (title + words, role + pages); overruled cards quoted, whose, role — the card's rule before its ⓘ", () => {
+    const row = { key: "z2:a::a.r1", title: "Keep up to 4", quote: "Trout/char: 4", role: "Sets the number", book: [{ t: "book" as const, printed: 21, pdf: 23 }] };
+    expect(lines(vm([{ k: "sources", groups: [{ where: "Region 2 · region-wide", rows: [row] }] },
+      { k: "sources", overruled: true, groups: [{ where: "Provincial", rows: [{ ...row, key: "zp:b::b.r1", title: null, book: [], role: "Beaten by “x”", trib: true, notes: ["n"] }] }] }])))
+      .toEqual({ title: "T", sub: null, folds: [], pages: [{ text: "Rule book p.21 ↗", pdf: 23 }],
+        lines: ["Region 2 · region-wide", "Keep up to 4 Trout/char: 4", "Sets the number Rule book p.21 ↗", "ⓘ", "“Trout/char: 4”", "Provincial", "Beaten by “x”", "⚑ n"],
+        nested: ["zp:b::b.r1", "gl:tributaries"].map((k, i) => (i ? k : `rule:${k}`)) });
+  });
+  it("other: a step's rule line that repeats an earlier line's words is drawn once (prototype weekSheet); a line with no rule is kept", () => {
+    const a = step("Keep 5.", { rule: "r:a::a.r1" }), b = step("Keep 5.", { rule: "r:b::b.r1" }), c = step("Keep 5."), d = step("Keep 6.", { rule: "r:c::c.r1" });
+    expect(dedupe([a, b, c, d])).toEqual([a, c, d]);
+  });
+  it("a group block is worded by the caller's Keep projection; untitled, its title is blank; its keys are found in the VM", () => {
+    const g = { title: "Bass", scope: null, more: { text: "See every regulation line ›", open: "src:r2" },
+      tree: [{ pictures: [{ code: "LMB", name: "Largemouth bass", caption: "Largemouth bass ›", open: "sp:LMB", sil: false }], says: [{ t: "term", ids: ["daily_quota"] }] }] } as unknown as GroupVM;
+    const seen: string[] = [];
+    const l = sheetLines(vm([{ k: "group", group: g, titled: false }]), { groupLines: (x) => { seen.push(x.title); return ["a line"]; } });
+    expect([seen, l.lines, l.nested]).toEqual([[""], ["a line"], ["sp:LMB", "gl:daily_quota"]]);
+    expect(() => sheetLines(vm([{ k: "group", group: g, titled: true }]))).toThrow(/pass opts.groupLines/);
+  });
+});
+
 describe("every key", () => {
-  it("19. an unknown or not-yet-built key opens nothing (never throws)", () => {
-    for (const k of ["date", "other:o99", "src:r0", "srcs:bait", "licsrc:adult", "sp:RB", "parts", "kind:o0"])
+  it("19. an unknown key, or one this page has nothing for, opens nothing (never throws)", () => {
+    for (const k of ["date", "other:o99", "other:o0", "src:r0", "srcs:bait", "licsrc:adult", "parts", "kind:o0"])
       expect(sheetOf(ctx(), k as never), k).toBeNull();
   });
   it("17. every fold is closed", () => {

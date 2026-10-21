@@ -250,7 +250,10 @@ describe("T12 summary", () => {
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
       + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)");   // (T21) the whole Keep tab; rows 32: Other fish stamps compared
-    expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
+    const d19 = (k: string) => ` · ^(other:${k})$ not compared (D19 (a): the pipeline ships a group (headline) for these rows, or D19 (b) ports the legacy path)`;
+    expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal"
+      + " · ^parts$ not compared (the pipeline ships each part's day status with the item (e.g. part_status per display segment))"   // (T36) PIPELINE NEED
+      + d19("x18p5_1010\\|o0") + d19("x22p1_1010\\|o1") + d19("x22p3_1010\\|o1")   // (T36 part 2) the legacy pooled card path
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");   // the gl:/hatch pages compared since the release ships pdf_pages
     expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 1 excluded (x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
   });

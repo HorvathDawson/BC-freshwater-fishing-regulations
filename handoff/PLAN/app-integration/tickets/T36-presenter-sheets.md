@@ -14,6 +14,19 @@ Blocks T37, T38, T42 · Decisions D5 (frozen target v33 @ 04765ab5), D6 (book li
 > (`Statics.pdfPages` is `{}`), so glossary pages draw unlinked — keyed in exclusions.ts until the pipeline ships it.
 > Contract additions: `SheetBlock` para `tone: "mono"`; `RuleIndex.byKey?`.
 
+> **T36 AS BUILT, part 2 (regs v38 @ 7fb6809f, release r-1bb06fa28daf):** `sheets/sources.ts` (`srcs:` from T30–T32's
+> `SourceLineVM.keys`, `licsrc:` from T33's `licenceSources`, `src:rN` from decided.ts `rowSources` — page v36
+> openRowSources/srcCard/ROLE in groupedSources), `sheets/fish.ts` (`sp:` — manifest pictures + credits + `FISH_TIPS`, now
+> emitted by app/tools/emit-fish.mjs from page v36's own FISHART table), `sheets/other.ts` (`other:oN` — pictures, then the row
+> as a Keep `group` block, or page v36's row: value, sentence or weekday box, presence, names, short keeping windows, the
+> ladder with where each rule applies, the folded rules that don't apply, "See every regulation line ›"). sheets.parity
+> **134/134 states, 7,083 sheets** compared (rule 2,714 · gl 735 · hatch 38 · pos 107 · srcs 659 · licsrc 642 · src 129 ·
+> sp 1,274 · other 785); 5 golden lines substituted by design (exclusions.ts SHEET_SUBST: the Bella Coola snapshot who-word ×4,
+> klmb's stored record role ×1). NOT compared: `parts` (98) — PIPELINE NEED: each part's status on the day (sheetOf null);
+> 3 Other fish rows on page v36's legacy pooled card path (decisions D19: x18p5_1010 o0, x22p1_1010 o1, x22p3_1010 o1).
+> Contract additions: `SheetBlock` `group` / `rowTitle`, `sources.overruled`, `SourceRowVM.notes/trib`, `SheetCtx.env`,
+> `sheetLines(vm, {groupLines})`; gearPage.ts's local `goldenSrcKey` replaced by `goldenKeyOf`.
+
 ## Goal
 `buildRegsPage(...).sheet(key)` returns the finished sheet for every key a page can open — rule, glossary term(s),
 possession, item sources, licence sources, row sources, other-fish (incl. the weekday story and "How this was decided"),
