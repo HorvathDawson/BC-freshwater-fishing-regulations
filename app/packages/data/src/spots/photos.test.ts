@@ -8,6 +8,9 @@ import * as efs from "expo-file-system";
 import { nextPhotoRef, openPhotosWith, photoExt, photosDropped, type PhotoFiles } from "./photos";
 import { nativePhotoFiles, openPhotos as openNativePhotos } from "./photoStore.native";
 import { idbPhotoFiles, openPhotos as openWebPhotos } from "./photoStore.web";
+
+/** No clock stamp, so a reference can be pinned exactly. */
+const PINNED = () => "";
 import { openSpotsWith, type SpotsFs } from "./core";
 import type { Spot } from "./model";
 
@@ -105,6 +108,11 @@ describe("photo references", () => {
     expect(nextPhotoRef("s", ["photos/s-2.jpg"], "jpg")).toBe("photos/s-3.jpg");
   });
 
+  it("stamps every new photo, so a number given back by a delete is never the same URI twice (image caches)", () => {
+    expect(nextPhotoRef("s", ["photos/s-1-a1.jpg"], "jpg", "b2")).toBe("photos/s-2-b2.jpg");
+    expect(nextPhotoRef("s", ["photos/s-1-a1.jpg"], "jpg", "c3")).not.toBe(nextPhotoRef("s", ["photos/s-1-a1.jpg"], "jpg", "b2"));
+  });
+
   it("keeps a photo under its own type, then its name, then jpg", () => {
     expect(photoExt({ mimeType: "image/png" })).toBe("png");
     expect(photoExt({ fileName: "IMG_0001.HEIC" })).toBe("heic");
@@ -130,7 +138,7 @@ describe("the photo store over a platform seam", () => {
   };
 
   it("adds, draws and removes a photo", async () => {
-    const f = files(), store = openPhotosWith(f);
+    const f = files(), store = openPhotosWith(f, PINNED);
     const ref = await store.add("s1", { uri: "file:///cache/a.jpg", mimeType: "image/jpeg" }, []);
     expect(ref).toBe("photos/s1-1.jpg");
     expect(await store.uri(ref)).toBe("file:///doc/spots/photos/s1-1.jpg");
@@ -144,7 +152,7 @@ describe("on a phone: files in documentDirectory/spots/photos (fake expo-file-sy
   it("copies the picked file out of the picker's cache, so clearing the cache keeps the photo", async () => {
     disk.clear();
     disk.set("file:///cache/ImagePicker/abc.jpg", "JPEG BYTES");
-    const store = openNativePhotos();
+    const store = openNativePhotos(PINNED);
     const ref = await store.add("s1", { uri: "file:///cache/ImagePicker/abc.jpg", mimeType: "image/jpeg" }, []);
     disk.delete("file:///cache/ImagePicker/abc.jpg");               // Android clears the picker's cache
     expect(ref).toBe("photos/s1-1.jpg");
@@ -166,7 +174,7 @@ describe("on a phone: files in documentDirectory/spots/photos (fake expo-file-sy
   it("deletes a spot's photos with the spot", async () => {
     disk.clear();
     disk.set("file:///cache/c.jpg", "C");
-    const photos = openNativePhotos();
+    const photos = openNativePhotos(PINNED);
     const store = openSpotsWith(memFs(), "s.json", Date.now, photos);
     const ref = await photos.add("s1", { uri: "file:///cache/c.jpg" }, []);
     await store.put(spot("s1", [ref]));
@@ -178,7 +186,7 @@ describe("on a phone: files in documentDirectory/spots/photos (fake expo-file-sy
 describe("in a browser: blobs in IndexedDB, drawn through object URLs (fake IndexedDB)", () => {
   it("keeps the chosen file's bytes under the reference and draws them from an object URL", async () => {
     const { factory, data } = fakeIdb();
-    const store = openPhotosWith(idbPhotoFiles(factory));
+    const store = openPhotosWith(idbPhotoFiles(factory), PINNED);
     const blob = new Blob(["PNG BYTES"], { type: "image/png" });
     const ref = await store.add("s1", { blob, mimeType: "image/png", fileName: "river.png" }, []);
     expect(ref).toBe("photos/s1-1.png");
@@ -188,7 +196,7 @@ describe("in a browser: blobs in IndexedDB, drawn through object URLs (fake Inde
 
   it("removes a photo: gone from IndexedDB, and nothing to draw", async () => {
     const { factory, data } = fakeIdb();
-    const store = openPhotosWith(idbPhotoFiles(factory));
+    const store = openPhotosWith(idbPhotoFiles(factory), PINNED);
     const ref = await store.add("s1", { blob: new Blob(["x"], { type: "image/jpeg" }) }, []);
     await store.remove(ref);
     expect([...data.get("photos")!.keys()]).toEqual([]);
@@ -197,7 +205,7 @@ describe("in a browser: blobs in IndexedDB, drawn through object URLs (fake Inde
 
   it("deletes a spot's photos with the spot", async () => {
     const { factory, data } = fakeIdb();
-    const photos = openPhotosWith(idbPhotoFiles(factory));
+    const photos = openPhotosWith(idbPhotoFiles(factory), PINNED);
     const store = openSpotsWith(memFs(), "s.json", Date.now, photos);
     const a = await photos.add("s1", { blob: new Blob(["a"], { type: "image/jpeg" }) }, []);
     const b = await photos.add("s2", { blob: new Blob(["b"], { type: "image/jpeg" }) }, []);
@@ -208,13 +216,13 @@ describe("in a browser: blobs in IndexedDB, drawn through object URLs (fake Inde
   });
 
   it("says so when the browser has no IndexedDB, rather than losing the photo quietly", async () => {
-    const store = openPhotosWith(idbPhotoFiles(undefined));
+    const store = openPhotosWith(idbPhotoFiles(undefined), PINNED);
     await expect(store.add("s1", { blob: new Blob(["x"]) }, []))
       .rejects.toThrow("This browser is not letting the app store photos.");
   });
 
   it("the platform entry opens the browser's own IndexedDB", () => {
-    expect(typeof openWebPhotos().add).toBe("function");
+    expect(typeof openWebPhotos(PINNED).add).toBe("function");
   });
 });
 

@@ -249,12 +249,19 @@ export interface Series {
   /** Every model running for this station, so a reader can pick. Empty out of season. */
   forecasts: readonly Forecast[];
   /**
-   * The last complete years of the daily record, on this series' own day index.
+   * The last complete years of the daily record, on this series' own day index — each the WHOLE year, not cut to
+   * `values` (a chart cuts it to its frame; a spot's lead-up reads last December out of it in January, S1). Last
+   * year's line also carries the feed's own December while it is January, where HYDAT has nothing yet.
    *
    * A band shows what is NORMAL and has no shape in time — it cannot show that last summer
    * was dry too, which is the question a person actually asks standing on a low river.
    */
   priorYears: readonly { year: number; values: readonly (number | null)[] }[];
+  /**
+   * A "year" series only: the envelope for EVERY day of the year (366), where `band` stops with `values`. The normal
+   * range is the same each year, so a prior year's day is placed against it (a spot's lead-up into last December).
+   */
+  yearBand?: readonly (Band | null)[];
 }
 
 /**

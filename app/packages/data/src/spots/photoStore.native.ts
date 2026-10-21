@@ -27,6 +27,7 @@ export function nativePhotoFiles(): PhotoFiles {
   };
 }
 
-export function openPhotos(): PhotoStore {
-  return openPhotosWith(nativePhotoFiles());
+/** `stamp` is for a test that pins exact references; the app leaves it to the clock. */
+export function openPhotos(stamp?: () => string): PhotoStore {
+  return openPhotosWith(nativePhotoFiles(), stamp);
 }

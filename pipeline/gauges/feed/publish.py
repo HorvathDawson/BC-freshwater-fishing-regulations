@@ -442,7 +442,7 @@ def daily_means(text: str) -> dict[str, tuple[float | None, float | None]]:
 
 
 def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float | None]],
-                year: int) -> list[list]:
+                year: int, month: int = 12) -> list[list]:
     """This calendar year's daily record, grown one publish at a time.
 
     THE FEED IS ITS OWN ARCHIVE, and it has to be: HYDAT is the only published daily record
@@ -452,10 +452,16 @@ def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float
 
     Bounded to the calendar year on purpose. It resets in January rather than growing without
     limit, and "where this year sits against the record" is the question the chart asks.
+
+    EXCEPT LAST DECEMBER, WHILE IT IS JANUARY. A spot's lead-up is the week before the visit
+    (S1), so a visit on 3 January needs 27-31 December, and nothing else holds those days:
+    HYDAT is a year behind. They ride along through January and drop on 1 February. Readers
+    place them on last year's line (`gaugeSeries`), never on this year's.
     """
-    have = {str(row[0]): row for row in previous or [] if str(row[0]).startswith(str(year))}
+    keep = (str(year),) + ((f"{year - 1}-12",) if month == 1 else ())
+    have = {str(row[0]): row for row in previous or [] if str(row[0]).startswith(keep)}
     for day, (lv, q) in fresh.items():
-        if not day.startswith(str(year)):
+        if not day.startswith(keep):
             continue
         # The freshest reading of a day wins: a day still in progress is re-averaged on
         # every tick until it is over, so the last write of the day is the complete one.
@@ -599,7 +605,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             [f"{t},{'' if lv is None else lv},{'' if q is None else q}"
              for t, lv, q in r["recent"]]))
         seen.update(backfill.get(r["station"]) or {})
-        daily = merge_daily(prior.get(r["station"], {}).get("daily") or [], seen, now.year)
+        daily = merge_daily(prior.get(r["station"], {}).get("daily") or [], seen, now.year, now.month)
 
         (out / f"{r['station']}.json").write_text(json.dumps({
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),

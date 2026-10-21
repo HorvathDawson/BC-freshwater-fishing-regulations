@@ -106,7 +106,7 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   in this app a person cannot re-download, and the regulation bundle is replaced wholesale
   on every update — so they get a file of their own that no update touches. Web uses browser
   storage instead; nothing above the store can tell which it got. It also holds a spot's
-  photographs (`documentDirectory/spots/photos/`, `packages/data/src/spots/photos.native.ts`).
+  photographs (`documentDirectory/spots/photos/`, `packages/data/src/spots/photoStore.native.ts`).
 - `expo-image-picker` — pinned 57.0.20 (the SDK 57 line; `npx expo install` names `~57.0.14`). Adds a photograph to
   a spot on iOS and Android, from the library or the camera, through the system picker — so the app draws no picker
   of its own. Used ONLY by `apps/mobile/src/pickPhoto.native.ts`; the web side is a plain

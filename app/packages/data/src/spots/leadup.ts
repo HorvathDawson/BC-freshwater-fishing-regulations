@@ -45,7 +45,9 @@ function dayIn(s: Series | null, date: string): { v: number | null; band: Band |
   const vals = year === Number(s.from.slice(0, 4)) ? s.values
     : s.priorYears.find((p) => p.year === year)?.values ?? [];
   const v = vals[i] ?? null;
-  return { v: v !== null && Number.isFinite(v) ? v : null, band: (s.band[i] as Band | null | undefined) ?? null };
+  // Last December, read in January, lies past `band` (which stops with this year's frame): the whole-year envelope.
+  const band = (s.yearBand?.[i] ?? s.band[i]) as Band | null | undefined;
+  return { v: v !== null && Number.isFinite(v) ? v : null, band: band ?? null };
 }
 
 /**

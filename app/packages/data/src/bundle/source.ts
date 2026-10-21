@@ -374,26 +374,43 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         const days = Math.min(daysInYear(year), today + 31);
         const values: (number | null)[] = Array.from({ length: days }, () => null);
         const stamps: string[] = Array.from({ length: days }, (_, i) => dayStamp(year, i));
+        // Last December rides along in January (the feed keeps it for a spot's lead-up, S1). It is LAST year's, so it
+        // goes on last year's line below, never on this one.
+        const lastYear: (number | null)[] = [];
         for (const [day, lv, q] of obs?.daily ?? []) {
           const i = dayOfYear(day) - 1;
+          if (day.startsWith(`${year - 1}-`)) {
+            const v = param === "level" ? lv : q;
+            if (i >= 0 && v !== null && Number.isFinite(v)) lastYear[i] = v;
+            continue;
+          }
+          if (!day.startsWith(`${year}-`)) continue;
           if (i < 0 || i >= days) continue;
           const v = param === "level" ? lv : q;
           if (v !== null && Number.isFinite(v)) values[i] = v;
         }
-        const band = Array.from({ length: days }, (_, i) => bandAt(pentads, i + 1));
+        const yearBand = Array.from({ length: 366 }, (_, i) => bandAt(pentads, i + 1));
+        const band = yearBand.slice(0, days);
         const reading = obs
           ? last(param === "level" ? obs.level : obs.discharge) : null;
         // Prior years land on the SAME day index, so 3 August is above 3 August whatever
         // year it was — which is the only comparison a seasonal chart is making.
-        const prior = Object.entries((obs?.priorYears ?? {})[param] ?? {})
-          .map(([y, vals]) => ({ year: Number(y), values: vals.slice(0, days) }))
+        const priorRaw: Record<string, (number | null)[]> = { ...((obs?.priorYears ?? {})[param] ?? {}) };
+        if (lastYear.length) {
+          // HYDAT's own copy of a day wins; the feed's fills only what HYDAT does not have.
+          const had = priorRaw[String(year - 1)] ?? [];
+          priorRaw[String(year - 1)] = Array.from({ length: Math.max(had.length, lastYear.length) },
+            (_, i) => had[i] ?? lastYear[i] ?? null);
+        }
+        const prior = Object.entries(priorRaw)
+          .map(([y, vals]) => ({ year: Number(y), values: vals }))
           .filter((p) => Number.isFinite(p.year))
           .sort((a, b) => b.year - a.year);
         return {
           fetchedAt: obs?.fetchedAt ?? null,         // P02: no observations, no age; never "now"
           value: {
             step: "1d", from: `${year}-01-01`, parameter: param,
-            at: stamps, values, band,
+            at: stamps, values, band, yearBand,
             now: reading === null ? null : { index: today - 1, value: reading },
             forecast: chosen, forecasts: runs, priorYears: prior,
           },

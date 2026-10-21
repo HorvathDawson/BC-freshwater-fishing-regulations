@@ -99,6 +99,7 @@ export async function downscale(blob: Blob, max = PHOTO_MAX_EDGE): Promise<Blob>
   }
 }
 
-export function openPhotos(): PhotoStore {
-  return openPhotosWith(idbPhotoFiles());
+/** `stamp` is for a test that pins exact references; the app leaves it to the clock. */
+export function openPhotos(stamp?: () => string): PhotoStore {
+  return openPhotosWith(idbPhotoFiles(), stamp);
 }

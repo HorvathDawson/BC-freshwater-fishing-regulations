@@ -177,6 +177,9 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const vals = input.values;
   const bands = input.bands;
   const log = input.log ?? false;
+  // An earlier year runs the whole year (a spot's lead-up reads last December out of it, S1); the chart's frame is
+  // `values`, so each is cut to it here, before it can scale the axis or draw past the edge.
+  const prior = (input.priorYears ?? []).map((y) => ({ year: y.year, values: y.values.slice(0, vals.length) }));
 
   // THE TWO SERIES SHARE ONE CLOCK. Observations run from the first stamp to the last;
   // the forecast continues past it. Everything below positions on time, not on index.
@@ -210,7 +213,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   }
   // Earlier years scale the axis too. A previous year that ran twice as high as this one is
   // exactly what the reader is here to see, and clipping it would hide the comparison.
-  for (const y of input.priorYears ?? [])
+  for (const y of prior)
     for (const v of y.values)
       if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
   for (const b of bands) {
@@ -272,7 +275,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   ].filter((e): e is Envelope => e !== null);
 
   /** One path per earlier year, broken wherever that year has a gap. */
-  const priorYears = (input.priorYears ?? []).map((y) => {
+  const priorYears = prior.map((y) => {
     const segs: string[] = [];
     let run: string[] = [];
     y.values.forEach((v, i) => {

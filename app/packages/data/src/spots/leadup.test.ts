@@ -5,9 +5,10 @@
  * it in later; a spot saved before it existed loads, and a refresh fills that in too.
  */
 import { describe, expect, it } from "vitest";
-import type { Band } from "@app/core";
+import { placeInBand, type Band } from "@app/core";
 import { captureSpot } from "./capture";
 import { needsRefresh, refreshReason, refreshSpot } from "./refresh";
+import { weekGauge } from "./leadup";
 import { openSpotsWith, type SpotsFs } from "./core";
 import type { DailyWeather } from "./model";
 import type { WeatherSource } from "./capture";
@@ -204,3 +205,25 @@ describe("a spot saved before the lead-up existed", () => {
   });
 });
 
+
+describe("a visit in the first week of January", () => {
+  // The week is 27 Dec - 2 Jan. The series is THIS year's (40 days long, as in January); last December is on last
+  // year's line — the feed keeps it through January — and is placed against the whole-year envelope.
+  const DAYS = ["2026-12-27", "2026-12-28", "2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-02"];
+  const LOW: Band = [1, 2, 4, 6, 10], HIGH: Band = [100, 200, 400, 600, 1000];
+  const last = Array.from({ length: 365 }, () => null as number | null);
+  last[360] = 3; last[364] = 500;                                   // 27 Dec and 31 Dec 2026
+  const now = Array.from({ length: 40 }, () => null as number | null);
+  now[0] = 5;                                                       // 1 Jan 2027
+  const yearBand = Array.from({ length: 366 }, (_, i) => (i >= 300 ? HIGH : LOW));
+  const s: Aged<Series> = { fetchedAt: 1, value: {
+    step: "1d", from: "2027-01-01", parameter: "discharge", at: [], values: now, band: yearBand.slice(0, 40), yearBand,
+    now: null, forecast: null, forecasts: [], priorYears: [{ year: 2026, values: last }] } };
+  it("reads last December's days and places them, instead of freezing them as nothing", async () => {
+    const got = await weekGauge(source({ gaugeParameters: async () => ["discharge"],
+                                         gaugeSeries: async () => s }), "08MH001", DAYS);
+    expect(got!.map((d) => d.discharge)).toEqual([3, null, null, null, 500, 5, null]);
+    expect(got![0]!.dischargePlace).toBe(placeInBand(3, HIGH));
+    expect(got![5]!.dischargePlace).toBe(placeInBand(5, LOW));
+  });
+});

@@ -4,7 +4,7 @@
  *   - A PHOTO IS COPIED IN WHEN IT IS PICKED. The picker hands back a file in its own cache (a phone) or a `File` the
  *     page holds only while it is open (the web). Neither survives: Android clears the picker's cache, and a reload
  *     drops the `File`. So the bytes are kept at once — `documentDirectory/spots/photos/` on a phone
- *     (`photos.native.ts`), IndexedDB in a browser (`photos.web.ts`; localStorage cannot hold an image).
+ *     (`photoStore.native.ts`), IndexedDB in a browser (`photoStore.web.ts`; localStorage cannot hold an image).
  *   - THE SPOT STORES A RELATIVE REFERENCE, "photos/<spot id>-<n>.<ext>". Never a `file://` path: the document
  *     directory's absolute path changes between installs and OS updates, and a stored one would point at nothing.
  *   - DELETING A SPOT DELETES ITS PHOTOS, and saving a spot without a photo it had deletes that photo
@@ -64,26 +64,31 @@ export function photoExt(picked: Pick<PickedPhoto, "mimeType" | "fileName" | "ur
 export const isPhotoRef = (ref: string): boolean => ref.startsWith(PREFIX);
 
 /**
- * The next reference for a spot: "photos/<spot id>-<n>.<ext>", `n` one past the highest already taken.
+ * The next reference for a spot: "photos/<spot id>-<n>[-<stamp>].<ext>", `n` one past the highest already taken.
  *
  * Past the highest, never the first free number: a photo removed in an edit that is then discarded still has its
  * file, and reusing its number would write over it.
+ *
+ * THE STAMP MAKES EVERY NEW PHOTO A NEW URI. A saved photo that is deleted gives its number back (it is no longer
+ * taken), and an image view caches by URI (Fresco on Android does): without the stamp the next photo would be drawn
+ * as the deleted one.
  */
-export function nextPhotoRef(spotId: string, taken: readonly string[], ext: string): string {
+export function nextPhotoRef(spotId: string, taken: readonly string[], ext: string, stamp = ""): string {
   const id = spotId.replace(/[^A-Za-z0-9_-]/g, "_");
-  const mine = new RegExp(`^${PREFIX}${id}-(\\d+)\\.`);
+  const mine = new RegExp(`^${PREFIX}${id}-(\\d+)[-.]`);
   const n = Math.max(0, ...taken.map((r) => Number(mine.exec(r)?.[1] ?? 0))) + 1;
-  return `${PREFIX}${id}-${n}.${ext}`;
+  return `${PREFIX}${id}-${n}${stamp ? `-${stamp.replace(/[^A-Za-z0-9]/g, "")}` : ""}.${ext}`;
 }
 
 /** The photos in `before` that `after` no longer has — the files a save may delete. */
 export const photosDropped = (before: readonly string[], after: readonly string[]): string[] =>
   before.filter((r) => isPhotoRef(r) && !after.includes(r));
 
-export function openPhotosWith(files: PhotoFiles): PhotoStore {
+export function openPhotosWith(files: PhotoFiles,
+                               stamp: () => string = () => Date.now().toString(36)): PhotoStore {
   return {
     async add(spotId, picked, taken) {
-      const ref = nextPhotoRef(spotId, taken, photoExt(picked));
+      const ref = nextPhotoRef(spotId, taken, photoExt(picked), stamp());
       await files.keep(ref, picked);
       return ref;
     },
