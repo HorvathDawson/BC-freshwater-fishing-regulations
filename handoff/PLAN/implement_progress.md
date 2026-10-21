@@ -92,8 +92,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   answers still derived in TS (closers, narrow_all, parent, record duty, stamps) -> batch 9 moves them into the
   pipeline (version bump, then lead runs deliver all) + T21 [first run hit the session limit at 6:40 am with nothing
   saved; RESUMED same run id wf_878ffca2-5ae] Keep tab wired into the water screen with screenshots vs
-  the prototype (handoff/PLAN/app-integration/keep-shots/). OWNER Q: T16 now labels one-part waters ("Whole water",
-  "Mouth -> Source") where the prototype showed nothing (D1 frames every part) — keep or hide?
+  the prototype (handoff/PLAN/app-integration/keep-shots/). OWNER 2026-10-21: one-part waters KEEP their label ("Whole water"); decisions.md.
 - 2026-10-21 morning: deliver all OK -> release r-7b6e802bf22b PROMOTED (13.85 MB gz; card gate 0 problems; both
   Kitimat rulings live: hatchery ST keep 2 Jul 1-Oct 31, release Nov 1-Jun 30; +1 over 50 like the Vedder). taps.json
   re-cut, regs fixture r-d3b990efee47, Kitimat + year-strip + card parity pin the ruling (3 Kitimat states differ

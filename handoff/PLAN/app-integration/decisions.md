@@ -39,6 +39,11 @@ display. The app DECODES and PRESENTS them; it never decides a regulation. Concr
   derive it in TS. A reviewer treats regulation logic in app code as a blocker.
 - A regulation fix (e.g. the Kitimat rulings) is a pipeline change + `deliver all`; no app change should be needed.
 
+## OWNER 2026-10-21 — one-part waters show their part label
+A water with no part picker shows its part's label in the header ("Whole water", "Mouth → Source") wherever the label
+is not the water's own name — the app frames every part from the tiles (D1). The prototype showed nothing there (it
+had no water map of those waters); the 22 golden states stay keyed in exclusions.ts NO_MAP_LABEL_IDS by design.
+
 ## Added 2026-10-20 — app data + app prep (`handoff/PLAN/app-data/`)
 
 | id | question | options | **default** (why) | blocks / touches | if the owner picks otherwise |
