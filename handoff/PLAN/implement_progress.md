@@ -43,16 +43,20 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   screenshots (need emulator); Kitimat ladder question for owner (r2 lifted for hatchery ST by kitimat r5).
 - Batch 4 RUNNING: F9 detectors (F1 rest item, F16 orphan) so Tier 2 is green; P11 minors (native map assets
   download, transient vs permanent refusal, unproven pairing words, App wiring test, live colour screenshot).
-- G1 GESTURES (owner 2026-10-20; ticket handoff/PLAN/app-data/G1-gestures.md) RUNNING (wf_ba76b522-0c1): RNGH; back
-  everywhere via one route back (Android BackHandler, web History API, edge swipe only where no system back); one map
-  gesture policy; sheets drag to dismiss; sideways swipe on a water's Regs/Conditions/Map steps the part (owner "maybe").
+- G1 GESTURES MERGED (30c7d35c + 6b9e7bf3): RNGH 2.32.0; useBack (Android BackHandler, web History API,
+  EdgeBack iOS-only), map policy (web: no touch/keyboard rotation, compass hidden), Sheet drag-to-dismiss, PartSwipe
+  wired but OFF until P15 supplies the part order (acceptance "part swipe in browser" OPEN). Review fix: spot edit
+  ends on ANY back (useOnLeave). pnpm check 1133 pass, smoke pass. Shots: handoff/PLAN/app-data/g1/.
+- Tiles with MVT ids LIVE: tile_version d768d6e135e62b99.c9f9604f12bf promoted (atlas + meta), release manifest names
+  it. Fix a9da3f75: the release names the PROMOTED tile version (atlas.meta.json), not the last folder by name
+  (hash order). Old tile folder data/release/tiles/d768d6e135e62b99.ffac7c1eb56e can be deleted once nothing serves it.
+- N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
   SPIKE-ONLY, never merge): binding @maplibre/maplibre-react-native 11.5.0; offline pmtiles + glyphs from file://;
   feature-state needs section_id as tile feature id (MapLibre Native ignores promoteId); Android ids arrive as strings;
   Vulkan variant 51-60 fps on the emulator (OpenGL 21-57); A4 paint decode 105 ms and A8 p95 41.6 ms are the budgets
   at risk on a real phone. AVD n1_pixel exists; `adb shell reboot -p` stops it (emu kill hangs).
-- P18 tile ids agent RUNNING (section_id as feature id; proof on an extract); then lead rebuilds tiles via heavy.sh.
-- N2 (real native map) starts AFTER G1 merges (both touch the map binding).
+- P18 tile ids MERGED 6ec40af3 (stream/lake/wetland carry section_id as MVT id AND property; +3% atlas).
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
