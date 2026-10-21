@@ -1,0 +1,630 @@
+{
+ "adult|non_resident": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": true,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": false,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": false,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": true,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Basic angling licence",
+      "price": "$62.87 a year · $22.86 a day · $41.15 for 8 days",
+      "terms": [],
+      "when": "Needed to fish at all"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": {
+     "items": [
+      {
+       "name": "Conservation Surcharge Stamp for Kootenay Lake rainbow trout",
+       "price": "$22.86 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep rainbow trout over 50 cm"
+      },
+      {
+       "name": "Conservation Surcharge Stamp for salmon",
+       "price": "$34.29 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep salmon (not kokanee)"
+      }
+     ],
+     "label": "Also, only if…"
+    },
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "paper",
+    "lead": "Keep a rainbow trout over 50 cm or adult chinook? ",
+    "strong": "Carry your paper licence",
+    "tail": " (16 and over) and record it right away."
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "Canadian, other province, 16 or older",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water +1",
+   "open": "licsrc:adult_non",
+   "who": "Province · This water +1 ›"
+  }
+ },
+ "adult|non_resident_alien": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": true,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": false,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": false,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": true,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Basic angling licence",
+      "price": "$91.44 a year · $22.86 a day · $57.14 for 8 days",
+      "terms": [],
+      "when": "Needed to fish at all"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": {
+     "items": [
+      {
+       "name": "Conservation Surcharge Stamp for Kootenay Lake rainbow trout",
+       "price": "$22.86 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep rainbow trout over 50 cm"
+      },
+      {
+       "name": "Conservation Surcharge Stamp for salmon",
+       "price": "$34.29 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep salmon (not kokanee)"
+      }
+     ],
+     "label": "Also, only if…"
+    },
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "paper",
+    "lead": "Keep a rainbow trout over 50 cm or adult chinook? ",
+    "strong": "Carry your paper licence",
+    "tail": " (16 and over) and record it right away."
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "From outside Canada, 16 or older",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water +1",
+   "open": "licsrc:adult_alien",
+   "who": "Province · This water +1 ›"
+  }
+ },
+ "adult|resident": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": true,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": false,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": true,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Basic angling licence",
+      "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
+      "terms": [],
+      "when": "Needed to fish at all"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": {
+     "items": [
+      {
+       "name": "Conservation Surcharge Stamp for Kootenay Lake rainbow trout",
+       "price": "$11.43 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep rainbow trout over 50 cm"
+      },
+      {
+       "name": "Conservation Surcharge Stamp for salmon",
+       "price": "$17.14 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep salmon (not kokanee)"
+      }
+     ],
+     "label": "Also, only if…"
+    },
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "paper",
+    "lead": "Keep a rainbow trout over 50 cm or adult chinook? ",
+    "strong": "Carry your paper licence",
+    "tail": " (16 and over) and record it right away."
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "B.C. resident, 16 or older",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water +1",
+   "open": "licsrc:adult",
+   "who": "Province · This water +1 ›"
+  }
+ },
+ "u16|non_resident": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": false,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": true,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": false,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": true,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "body": "Fish with someone 16 or older who holds what this fishing needs (Basic angling licence). What you keep counts toward their limit. Or buy the Basic angling licence yourself to have your own limit.",
+    "cls": "classbox youth",
+    "head": "Under 16: no licence needed if you fish with a licensed adult",
+    "terms": [
+     "under_16"
+    ]
+   },
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Nothing, if you fish with a licensed adult (16 or older)",
+      "price": null,
+      "terms": [],
+      "when": "What you keep counts toward their limit"
+     },
+     {
+      "name": "Basic angling licence",
+      "price": "$62.87 a year · $22.86 a day · $41.15 for 8 days",
+      "terms": [],
+      "when": "Or, for your own limit: what a 16+ angler buys"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": null,
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "Canadian, other province, under 16",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water",
+   "open": "licsrc:u16_non",
+   "who": "Province · This water ›"
+  }
+ },
+ "u16|non_resident_alien": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": false,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": true,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": false,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": true,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "body": "Fish with someone 16 or older who holds what this fishing needs (Basic angling licence). What you keep counts toward their limit. Or buy the Basic angling licence yourself to have your own limit.",
+    "cls": "classbox youth",
+    "head": "Under 16: no licence needed if you fish with a licensed adult",
+    "terms": [
+     "under_16"
+    ]
+   },
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Nothing, if you fish with a licensed adult (16 or older)",
+      "price": null,
+      "terms": [],
+      "when": "What you keep counts toward their limit"
+     },
+     {
+      "name": "Basic angling licence",
+      "price": "$91.44 a year · $22.86 a day · $57.14 for 8 days",
+      "terms": [],
+      "when": "Or, for your own limit: what a 16+ angler buys"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": null,
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "From outside Canada, under 16",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water",
+   "open": "licsrc:u16_alien",
+   "who": "Province · This water ›"
+  }
+ },
+ "u16|resident": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": false,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": true,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": true,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "No licence needed to fish here",
+      "price": null,
+      "terms": [],
+      "when": "Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply."
+     }
+    ],
+    "label": "You need",
+    "onlyIf": null,
+    "priceNote": null
+   },
+   {
+    "cls": "nymbox",
+    "label": "In one part of this water",
+    "note": "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+    "says": "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "B.C. resident, under 16",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province, This water",
+   "open": "licsrc:u16_res",
+   "who": "Province · This water ›"
+  }
+ }
+}

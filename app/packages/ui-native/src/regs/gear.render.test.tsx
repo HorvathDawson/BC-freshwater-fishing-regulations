@@ -19,7 +19,7 @@ import goldenLines from "./fixtures/golden_lines.json";
 afterEach(cleanup);
 
 const gearOf = (f: unknown) => (f as RegsPage).gear as GearVM;
-const GL = goldenLines as Record<string, { gear: string[]; methods: string[]; licence: Record<string, string[]> }>;
+const GL = goldenLines as Record<string, { gear?: string[]; methods?: string[]; licence: Record<string, string[]> }>; // licence-only states carry no gear/methods
 
 function mount(vm: GearVM) {
   const sheets: SheetKey[] = [], books: number[] = [];
@@ -98,7 +98,7 @@ describe("<GearTab> other states", () => {
 
   it("bc1_501 golden mount: equal but for the keyed bait source (exclusions.ts SNAPSHOT_SUB_IDS: a prototype snapshot artifact)", () => {
     const { lines } = mount(gearOf(bc1501));
-    const want = GL.bc1_501!.gear.map((l) => (l === "Bella Coola River › Rule book p.43 ↗" ? "This water’s › Rule book p.43 ↗" : l));
+    const want = GL.bc1_501!.gear!.map((l) => (l === "Bella Coola River › Rule book p.43 ↗" ? "This water’s › Rule book p.43 ↗" : l));
     expect(want).not.toEqual(GL.bc1_501!.gear);
     expect(lines()).toEqual(want);
   });

@@ -1,12 +1,13 @@
 /**
  * T35 render: the Methods and Licence tabs drawn from the FROZEN golden pages (fixtures/*.json and, for all six anglers of
- * vedder_1010, fixtures/licence_vedder_1010.json — written by `UPDATE_REGS_FIXTURES=1` from buildRegsPage over the parity
+ * vedder_1010, x5p1_1010 (a classified water: the class box and its "Source", D17) and klmb_1010 (the not-yet-mapped box),
+ * fixtures/licence_<id>.json — written by `UPDATE_REGS_FIXTURES=1` from buildRegsPage over the parity
  * store, never hand-edited) and compared line for line to the golden's own drawn lines (fixtures/golden_lines.json, copied
  * from golden.json by the same writer). Components draw the VM: every word, option and key is core's.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import type { LicenceVM, MethodsVM, RegsPage, SheetKey, Who } from "@app/core";
+import { LIC as LICW, type LicenceVM, type MethodsVM, type RegsPage, type SheetKey, type Who } from "@app/core";
 import { LIGHT } from "../theme";
 import type { KeepActions } from "./LineText";
 import { LicenceTab } from "./LicenceTab";
@@ -17,12 +18,18 @@ import vedder615 from "./fixtures/vedder_615.json";
 import vedder515 from "./fixtures/vedder_515.json";
 import bc1501 from "./fixtures/bc1_501.json";
 import licences from "./fixtures/licence_vedder_1010.json";
+import licencesX5p1 from "./fixtures/licence_x5p1_1010.json";
+import licencesKlmb from "./fixtures/licence_klmb_1010.json";
 import goldenLines from "./fixtures/golden_lines.json";
 
 afterEach(cleanup);
 
-const GL = goldenLines as Record<string, { gear: string[]; methods: string[]; licence: Record<string, string[]> }>;
+const GL = goldenLines as Record<string, { gear?: string[]; methods?: string[]; licence: Record<string, string[]> }>; // licence-only states carry no gear/methods
 const LIC = licences as unknown as Record<string, LicenceVM>;
+const LIC_X5P1 = licencesX5p1 as unknown as Record<string, LicenceVM>;
+const LIC_KLMB = licencesKlmb as unknown as Record<string, LicenceVM>;
+const whoOf = (k: string): Who => { const [age, residency] = k.split("|") as [Who["age"], Who["residency"]]; return { age, residency }; };
+type Block = LicenceVM["blocks"][number];
 const methodsOf = (f: unknown) => (f as RegsPage).methods as MethodsVM;
 const ADULT: Who = { age: "adult", residency: "resident" };
 
@@ -145,14 +152,50 @@ describe("<LicenceTab>", () => {
       needs.includes("Also, only if…")]).toEqual([true, true, false]);
   });
 
-  it("golden mounts: all six anglers of vedder_1010 draw the golden's lines", () => {
-    for (const [k, vm] of Object.entries(LIC)) {
-      const [age, residency] = k.split("|") as [Who["age"], Who["residency"]];
-      const { lines } = mountLicence(vm, { age, residency });
-      expect([k, lines()]).toEqual([k, GL.vedder_1010!.licence[k]]);
+  it("golden mounts: all six anglers of vedder_1010, x5p1_1010 (class box) and klmb_1010 (not-yet-mapped box) draw the golden's lines", () => {
+    for (const [id, all] of [["vedder_1010", LIC], ["x5p1_1010", LIC_X5P1], ["klmb_1010", LIC_KLMB]] as const) {
+      for (const [k, vm] of Object.entries(all)) {
+        const { lines } = mountLicence(vm, whoOf(k));
+        expect([id, k, lines()]).toEqual([id, k, GL[id]!.licence[k]]);
+        cleanup();
+      }
+      expect([id, Object.keys(all).sort()]).toEqual([id, Object.keys(GL[id]!.licence).sort()]);
+    }
+  });
+
+  it("(D17) x5p1_1010: the class box draws its head, ⓘ, unit and \"Source\"; each angler's Source opens licsrc:<profile>", () => {
+    const { lines } = mountLicence(LIC_X5P1["adult|resident"]!);
+    expect(lines()).toContain("Classified (Class II) whenever this water is open ⓘ Licence unit: Elk River. Source");
+    cleanup();
+    const opened: string[] = [];
+    for (const k of ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident", "u16|non_resident_alien"]) {
+      const { sheets } = mountLicence(LIC_X5P1[k]!, whoOf(k));
+      fireEvent.click(within(screen.getByTestId("licence-answer")).getByRole("button", { name: "Source" }));
+      opened.push(...sheets);
       cleanup();
     }
-    expect(Object.keys(LIC).sort()).toEqual(Object.keys(GL.vedder_1010!.licence).sort());
+    expect(opened).toEqual(["licsrc:adult", "licsrc:adult_non", "licsrc:adult_alien", "licsrc:u16_res", "licsrc:u16_non", "licsrc:u16_alien"]);
+  });
+
+  it("klmb_1010: the not-yet-mapped box — its label, what the part says, the note", () => {
+    mountLicence(LIC_KLMB["adult|resident"]!);
+    const lines = domLines(screen.getByTestId("licence-answer"));
+    const at = lines.indexOf("In one part of this water");
+    expect(lines.slice(at, at + 3)).toEqual(["In one part of this water",
+      "Only the south end, within the Creston Valley Wildlife Management Area: you need a Creston Valley Wildlife Management Area permit to fish.",
+      "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water."]);
+  });
+
+  it("flag, scope note (its Source opens its key), muted: no golden state draws them — core's own words, placed as VM blocks", () => {
+    const vm = LIC_X5P1["adult|resident"]!;
+    const extra: Block[] = [{ cls: "flag", text: LICW.CONTESTED }, { cls: "scopenote", text: LICW.EXEMPT_FROM("Basic angling licence"), source: "licsrc:adult_non" },
+      { cls: "muted", text: LICW.NOTHING }];
+    const { sheets } = mountLicence({ ...vm, blocks: [...extra, ...vm.blocks.slice(1)] });
+    expect(domLines(screen.getByTestId("licence-answer")).slice(0, 3)).toEqual([
+      "? Check: part of this water is also marked “not a Classified Water”.", "You’re exempt from: Basic angling licence. Source",
+      "Nothing is required of this angler here."]);
+    fireEvent.click(within(screen.getByTestId("licence-answer")).getByRole("button", { name: "Source" }));
+    expect(sheets).toEqual(["licsrc:adult_non"]);
   });
 
   it("vedder_615 (closed, D16 a): only the heading — no radiogroup, no answer, no source", () => {
@@ -170,6 +213,16 @@ describe("<LicenceTab>", () => {
       label: { ...vm, label: "" },
     };
     const same = Object.entries(muts).filter(([, m]) => { const { lines } = mountLicence(m), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
+    expect(same.map(([k]) => k)).toEqual([]);
+  });
+
+  it("mutation pins: a class box without its Source, or a dropped not-yet-mapped box, fails its golden mount", () => {
+    const x5 = LIC_X5P1["adult|resident"]!, kl = LIC_KLMB["adult|resident"]!;
+    const muts: [string, LicenceVM, string[] | undefined][] = [
+      ["source", { ...x5, blocks: x5.blocks.map((b) => (b.cls === "classbox" ? { ...b, source: null } : b)) }, GL.x5p1_1010!.licence["adult|resident"]],
+      ["nymbox", { ...kl, blocks: kl.blocks.filter((b) => b.cls !== "nymbox") }, GL.klmb_1010!.licence["adult|resident"]],
+    ];
+    const same = muts.filter(([, m, golden]) => { const { lines } = mountLicence(m), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
     expect(same.map(([k]) => k)).toEqual([]);
   });
 });

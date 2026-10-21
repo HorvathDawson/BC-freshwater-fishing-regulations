@@ -52,8 +52,12 @@ export async function frozenJson(id: string): Promise<string> {
   return stableJson(freezePage(page, Object.keys(golden().states[id]!.sheets).map((k) => appSheetKey(k, id))));
 }
 
-/** (T35) The state whose Licence tab the render test mounts for all six anglers (golden `licence["<age>|<res>"]`). */
-export const LICENCE_FIXTURE_STATE = "vedder_1010";
+/**
+ * (T35) The states whose Licence tab the render test mounts for all six anglers (golden `licence["<age>|<res>"]`):
+ * vedder_1010, x5p1_1010 (a classified water — the class box and its "Source", D17) and klmb_1010 (the not-yet-mapped box).
+ * Between them they draw every licence block class the golden draws.
+ */
+export const LICENCE_FIXTURE_STATES = ["vedder_1010", "x5p1_1010", "klmb_1010"] as const;
 export const LICENCE_FIXTURE_PROFILES = ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident",
   "u16|non_resident_alien"] as const;
 
@@ -73,11 +77,15 @@ export async function licenceJson(id: string): Promise<string> {
  */
 export function goldenLinesJson(): string {
   const G = golden().states;
-  return stableJson(Object.fromEntries(FIXTURE_STATES.map((id) => {
-    const s = G[id]!;
-    return [id, { gear: (s.gear as { lines_: string[] }).lines_, methods: (s.methods as { lines: string[] }).lines,
-      licence: Object.fromEntries(Object.entries(s.licence).map(([k, l]) => [k, (l as { lines: string[] }).lines])) }];
-  })));
+  const licence = (id: string) => Object.fromEntries(Object.entries(G[id]!.licence).map(([k, l]) => [k, (l as { lines: string[] }).lines]));
+  return stableJson(Object.fromEntries([
+    ...FIXTURE_STATES.map((id) => {
+      const s = G[id]!;
+      return [id, { gear: (s.gear as { lines_: string[] }).lines_, methods: (s.methods as { lines: string[] }).lines, licence: licence(id) }];
+    }),
+    // licence-only states: the render test mounts only their Licence tab
+    ...LICENCE_FIXTURE_STATES.filter((id) => !(FIXTURE_STATES as readonly string[]).includes(id)).map((id) => [id, { licence: licence(id) }]),
+  ]));
 }
 
 /** UPDATE_REGS_FIXTURES=1: write <FIXTURE_DIR>/<id>.json for each state; otherwise every committed file must equal a fresh one. */
@@ -87,7 +95,7 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
   const stale: string[] = [];
   const files: [string, string, () => Promise<string>][] = [
     ...FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
-    [`licence_${LICENCE_FIXTURE_STATE}`, `${FIXTURE_DIR}/licence_${LICENCE_FIXTURE_STATE}.json`, () => licenceJson(LICENCE_FIXTURE_STATE)],
+    ...LICENCE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`licence_${id}`, `${FIXTURE_DIR}/licence_${id}.json`, () => licenceJson(id)]),
     ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
   ];
   for (const [id, path, make] of files) {
