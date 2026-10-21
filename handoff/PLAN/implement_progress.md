@@ -45,7 +45,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   the orphan IS the cap) -> test_answers_reference 0 unexplained; P11 minors (native installs map-assets and the style
   reads glyphs/sprites from them; only a verified defect refuses a set; unproven pair says why; App map input tested;
   live colours shot handoff/PLAN/app-data/p11/live-colours.png). pnpm check 1154 pass. Old tile folder ffac… deleted.
-  Tier 2 (test-full.sh) running via heavy.sh to confirm green.
+  Tier 2 (test-full.sh, 57 min) 2026-10-21: everything green except one stale source pin (test_bundle_clim: the
+  reader moved to bundle/shared.ts in P11), fixed. slow 266 pass incl. F9; card gate; release parity 13.
 - G1 GESTURES MERGED (30c7d35c + 6b9e7bf3): RNGH 2.32.0; useBack (Android BackHandler, web History API,
   EdgeBack iOS-only), map policy (web: no touch/keyboard rotation, compass hidden), Sheet drag-to-dismiss, PartSwipe
   wired but OFF until P15 supplies the part order (acceptance "part swipe in browser" OPEN). Review fix: spot edit
