@@ -39,6 +39,12 @@ display. The app DECODES and PRESENTS them; it never decides a regulation. Concr
   derive it in TS. A reviewer treats regulation logic in app code as a blocker.
 - A regulation fix (e.g. the Kitimat rulings) is a pipeline change + `deliver all`; no app change should be needed.
 
+## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY
+The satellite basemap is shown only when the device is online; it is never packaged or cached for offline use. Offline,
+the drawn basemap is the ground (the Layers toggle says why satellite is unavailable). This lifts the offline-caching
+constraint from the imagery choice; a provider still needs terms that allow MapLibre use, an acceptable cost/key model,
+and BC coverage at high zoom (research: handoff/PLAN/app-data/satellite/README.md).
+
 ## OWNER 2026-10-21 — one-part waters show their part label
 A water with no part picker shows its part's label in the header ("Whole water", "Mouth → Source") wherever the label
 is not the water's own name — the app frames every part from the tiles (D1). The prototype showed nothing there (it

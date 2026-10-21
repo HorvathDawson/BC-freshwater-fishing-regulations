@@ -89,7 +89,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - OWNER 2026-10-21: satellite imagery is too low-res (today EOX Sentinel-2 cloudless 2016, 10 m) -> research +
-  verification of higher-res sources (licence, cost, offline) -> OWNER PICKS; and allow OVERZOOM past the pmtiles
+  verification of higher-res sources (licence, cost, offline) -> OWNER PICKS [owner: satellite is ONLINE-ONLY, so
+  offline caching terms no longer constrain the pick]; and allow OVERZOOM past the pmtiles
   max (camera max up, every source keeps its own maxzoom). Workflow satellite-and-overzoom RUNNING.
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
   OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +
