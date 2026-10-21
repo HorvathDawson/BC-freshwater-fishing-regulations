@@ -81,11 +81,32 @@ export function Sheet({ open, onClose, title, palette, children }: {
   );
 }
 
-/** A row of mutually exclusive choices. */
-export function Choice<T extends string>({ palette, options, value, onChange, label }: {
+/**
+ * A row of mutually exclusive choices. `variant="segmented"` (T35, the Licence tab's "Who is fishing?": prototype
+ * `.segm.lsel`) draws the same radiogroup as one framed strip — 1.5 px ink frame and dividers, each option an equal
+ * share, the checked one ink with card text — one radiogroup implementation, two looks.
+ */
+export function Choice<T extends string>({ palette, options, value, onChange, label, variant = "pills" }: {
   palette: Palette; options: readonly { k: T; t: string }[]; value: T;
-  onChange: (k: T) => void; label: string;
+  onChange: (k: T) => void; label: string; variant?: "pills" | "segmented";
 }) {
+  if (variant === "segmented")
+    return (
+      <View accessibilityRole="radiogroup" accessibilityLabel={label}
+            style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box, marginBottom: 8 }}>
+        {options.map((o, i) => {
+          const on = o.k === value;
+          return (
+            <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t}
+                       style={{ flex: 1, minHeight: 44, paddingVertical: 4, paddingHorizontal: 6, alignItems: "center", justifyContent: "center",
+                                backgroundColor: on ? palette.ink : "transparent",
+                                borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }}>
+              <Text style={{ ...TYPE.regsTab, textAlign: "center", color: on ? palette.card : palette.sub }}>{o.t}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={label}
           style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 18 }}>

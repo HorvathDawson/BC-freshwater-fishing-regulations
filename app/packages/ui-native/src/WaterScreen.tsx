@@ -8,9 +8,10 @@
  *
  * THE REGULATIONS (T21): the store answers for the tapped part on THE ONE DAY (`useRegsStore` → `useRegsTarget` →
  * `useRegulations` → `useRegsPage`, @app/ui), and `RegsScreen` (T23/T29) draws the page: the water's header row and the
- * regs header fixed above ONE scroll of the four tab sections, the pin bar over it. Gear, Methods and Licence hold a
- * placeholder until T34/T35. With no release loader (the dev bundle holds no regulations), while the store loads, or
- * when it cannot answer, the view keeps its old frame (the header row, the name, then the placeholder / spinner / why).
+ * regs header fixed above ONE scroll of the four tab sections — What you can keep, Gear, Methods, Licence (T21, T34, T35;
+ * the Licence tab's angler is `useAnglerProfile`'s, D8 a) — the pin bar over it. With no release loader (the dev bundle
+ * holds no regulations), while the store loads, or when it cannot answer, the view keeps its old frame (the header row,
+ * the name, then the placeholder / spinner / why).
  *
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
@@ -28,6 +29,8 @@ import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { FishImages } from "./regs/types";
 import { RegsScreen, TabPending } from "./regs/RegsScreen";
 import { GearTab } from "./regs/GearTab";
+import { LicenceTab } from "./regs/LicenceTab";
+import { MethodsTab } from "./regs/MethodsTab";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
@@ -61,7 +64,7 @@ export function WaterScreen({ source, item, palette, onBack,
   const target: RegsTarget | null = useMemo(() => (part !== null ? { kind: "part", item, partIx: part } : found.value ?? null),
     [part, item, found.value]);
   const inputs = useRegulations(store.value ?? null, target, day);
-  const [who] = useAnglerProfile();
+  const [who, setWho] = useAnglerProfile();
   const d = regsDay(day);
   const regs = useRegsPage(inputs.value ?? null, who, d.today);
   const regsError = store.error ?? found.error ?? inputs.error;
@@ -102,11 +105,13 @@ export function WaterScreen({ source, item, palette, onBack,
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
                     onBook: (pdf) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); },   // D6 a: native opens the bare PDF
                   }}
-                  // Gear / Methods / Licence: T34/T35 draw them; until then each says it is not in the app yet
+                  // Gear / Methods / Licence (T34/T35); a part with no such section says it is not in the app yet
                   gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} />
                     : <TabPending label={label("gear")} palette={palette} />}
-                  methods={<TabPending label={label("methods")} palette={palette} />}
-                  licence={<TabPending label={label("licence")} palette={palette} />} />
+                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} />
+                    : <TabPending label={label("methods")} palette={palette} />}
+                  licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
+                    : <TabPending label={label("licence")} palette={palette} />} />
     );
   }
 

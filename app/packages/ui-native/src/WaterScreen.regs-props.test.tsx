@@ -31,7 +31,7 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.queryByTestId("keep-tab")).toBeNull();
   });
 
-  it("the fixture release (T23): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; Gear, Methods and Licence are placeholders in the same scroll", async () => {
+  it("the fixture release (T23/T34/T35): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; Gear, Methods and Licence draw theirs in the same scroll", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={0} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
@@ -48,9 +48,24 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.getByTestId("keep-banner").textContent).toMatch(/^Closed all year/);
     // one scroll: Keep, then the sections; (T34) Gear draws its VM — on a closed-all-year part, its one sentence
     expect(screen.getByTestId("gear-tab").textContent).toBe("No fishing here on any day of the year.");
-    expect(screen.getAllByTestId("regs-tab-pending").map((e) => e.textContent)).toEqual(["Methods", "Licence"].map((t) =>
-      `${t}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`));
+    expect(screen.getByTestId("methods-tab").textContent).toBe("No fishing here on any day of the year.");
+    // (T35) on a closed day the Licence section is its heading (D16 a)
+    expect([screen.getByTestId("licence-tab").textContent, screen.queryByTestId("regs-tab-pending")]).toEqual(["Licence", null]);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence"]);
+  }, 30_000);
+
+  it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {
+    render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
+                        loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={1} />);
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+    fireEvent.click(within(screen.getByTestId("regs-view")).getByRole("tab", { name: "Licence" }));
+    const checked = () => screen.getAllByRole("radio").filter((r) => r.getAttribute("aria-checked") === "true").map((r) => r.textContent);
+    expect(checked()).toEqual(["16 or older", "B.C. resident"]);
+    fireEvent.click(screen.getByRole("radio", { name: "Under 16" }));
+    await waitFor(() => expect(checked()).toEqual(["Under 16", "B.C. resident"]));
+    expect(screen.getByText("B.C. resident, under 16")).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: "16 or older" }));   // the profile is the Shell's, in memory: put it back
+    await waitFor(() => expect(checked()).toEqual(["16 or older", "B.C. resident"]));
   }, 30_000);
 });
