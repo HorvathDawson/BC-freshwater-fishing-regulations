@@ -166,21 +166,22 @@ def test_chilliwack_lake_no_wild_trout_over_50(built):
 # --------------------------------------------------------------------------------------------
 
 @pytest.mark.needs_bundle
-def test_kitimat_february_cutthroat_and_brown_go_back(built, monkeypatch):
+def test_kitimat_february_cutthroat_and_brown_go_back(built):
+    """Feb 15 is inside Region 6's Nov 1-June 30 stream release (r7): the pool keeps EB/LT, and r7 sends cutthroat,
+    brook-trout-ish GB AND (owner ruling 2026-10-21 (a), GOTCHAS.md) hatchery steelhead back.
+
+    The page-bug mutation this test used to carry (the page's count comparison drops a release that names as many fish as
+    the row has members — 2 vs 2) no longer applies here: with steelhead the release names 3 fish against the row's 2, so
+    the mutant could not fail. It was removed rather than kept as a tautology; the count-collision case needs another
+    water as its witness (implement_progress: open)."""
     data = built[0]
     t = card(built, KITIMAT, 1, (2, 15))
     row = row_of(built, t, "z6:trout_char_quota::trout_char_quota.r1")
     assert sorted(row["members"]) == ["EB", "LT"]
-    back = [c for c in row["conds"] if c["c"] == "back" and sorted(c["who"]) == ["CT", "GB"]]
+    back = [c for c in row["conds"] if c["c"] == "back" and sorted(c["who"]) == ["CT", "GB", "ST"]]
     assert back and _rid(data, back[0]["r"]).endswith("trout_char_quota.r7")
     assert item_of(row, "CT")["back"] and item_of(row, "GB")["back"]
     assert "CT" not in (row["real_daily"] or {}).get("open", [])
-    # MUTATION: the page's count comparison drops the release (two fish, like the row's two)
-    monkeypatch.setattr(RW, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
-                        or len(l["members"]) == len(r["members"])) else list(l["members"]))
-    m = row_of(built, card(built, KITIMAT, 1, (2, 15), lambda *_: None),
-               "z6:trout_char_quota::trout_char_quota.r1")
-    assert not any(c["c"] == "back" and sorted(c["who"]) == ["CT", "GB"] for c in m["conds"])
 
 
 # --------------------------------------------------------------------------------------------
@@ -292,3 +293,4 @@ def test_region8_every_shared_cap_counts(built):
                                                            {"take": 1, "over_cm": 50}])
     # MUTATION: the first cap alone (the page) lets all 4 over 30 cm through
     assert general[0] == (50, 1) and RW._shared_caps(over30, general[:1], False)[0] == 0
+

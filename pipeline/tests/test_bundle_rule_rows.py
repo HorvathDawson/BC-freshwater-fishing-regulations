@@ -433,7 +433,6 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         (kit, "kitimat_river.r4", "trout_char_quota.r7"),
         (kit, "kitimat_river.r5", "trout_char_quota.r2"),
         (kit, "kitimat_river.r5", "trout_char_quota.r4"),
-        (kit, "kitimat_river.r5", "trout_char_quota.r7"),
         # CLEARWATER LAKE's "Catch and release, May 1-Oct 31" lifts Zone B's species quotas only
         # on its own days (the naming ruling: the zone's "Burbot: 5" names the fish, so without
         # the lift it would outrank the lake's release; the other days the lake is closed).
