@@ -4,17 +4,24 @@
  * what the map is showing and you want to see it change.
  */
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, Modal, Pressable, Text, View } from "react-native";
+import { Animated, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useBackLayer, useSheetDrag } from "@app/ui";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { GUTTER, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER } from "./motion";
 
-export function Sheet({ open, onClose, title, palette, children }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
+  /** (T37) the body scrolls inside the sheet, at most 82% of the window tall (the regs sheets); default false: as before */
+  scroll?: boolean;
+  /** (T37) a small line under the title row (a rule's level, a row's water and day) */
+  sub?: string | null;
+  /** (T37) the inner ScrollView, so a sheet opened in this one's place can start at its top */
+  scrollRef?: React.Ref<ScrollView>;
 }) {
+  const { height: windowHeight } = useWindowDimensions();
   /*
    * DRAG TO DISMISS (G1), from the grabber and the title row only, so content that scrolls keeps scrolling. The sheet
    * follows the finger downward; past a third of its height or on a downward flick it closes (`useSheetDrag`), and
@@ -54,7 +61,7 @@ export function Sheet({ open, onClose, title, palette, children }: {
   
           Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
         */}
-        <Animated.View onLayout={(e) => { height.current = e.nativeEvent.layout.height; }}
+        <Animated.View onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal
                        style={{ backgroundColor: palette.card, paddingBottom: 28,
                                 borderTopWidth: 1.5, borderColor: palette.ink, transform: [{ translateY: y }] }}>
           <GestureDetector gesture={pull} touchAction="none">
@@ -65,16 +72,22 @@ export function Sheet({ open, onClose, title, palette, children }: {
                              justifyContent: "space-between", paddingHorizontal: 18,
                              paddingBottom: 10, borderBottomWidth: 1.5,
                              borderBottomColor: palette.ink }}>
-                <Text style={{ ...TYPE.screen, fontSize: 19, color: palette.ink }}>{title}</Text>
+                <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
                            hitSlop={10}>
                   {/* Uppercase and tracked, like every other label in this design. */}
                   <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
                 </Pressable>
               </View>
+              {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
             </View>
           </GestureDetector>
-          {children}
+          {scroll
+            // 0.68, not the ticket's 0.82: with the title row and a sub line on top, 0.82 covered the water's header on a
+            // 390 × 844 phone (howtell-current-water: the header stays visible above the scrim)
+            ? <ScrollView ref={scrollRef} style={{ maxHeight: windowHeight * 0.68 }} keyboardShouldPersistTaps="handled"
+                          contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
+            : children}
         </Animated.View>
       </GestureHandlerRootView>
     </Modal>

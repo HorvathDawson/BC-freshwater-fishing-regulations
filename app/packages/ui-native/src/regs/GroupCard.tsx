@@ -138,7 +138,9 @@ function NotKept({ x, palette, actions, images }: { x: NotKeptVM; palette: Palet
   );
 }
 
-export function GroupCard({ g, palette, actions, images }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages }) {
+export function GroupCard({ g, palette, actions, images, titled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T37) false: the head draws no title line (in an other-fish sheet, whose title says it — SheetBlock group.titled) */
+  titled?: boolean }) {
   const h = g.head;
   // (T29) the article (prototype `article.row.ledger`) and its head block (`.ghd.gpin`) — the pin bar's boxes
   const article = useAnchor(`g${g.row}`, { k: "group", row: g.row });
@@ -146,9 +148,10 @@ export function GroupCard({ g, palette, actions, images }: { g: GroupVM; palette
   return (
     <View {...article} testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: 12 }}>
       <View {...pin} style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: 1.5, borderTopColor: palette.ink, backgroundColor: palette.card }}>
-        <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
-          {g.title}{g.scope ? <Text style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
-        </Text>
+        {titled && (
+          <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
+            {g.title}{g.scope ? <Text style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
+          </Text>)}
         {h.lead && <LineText line={h.lead} style={{ ...TYPE.metaBold, lineHeight: 19.97 }} num={TYPE.numeralMid} color={palette.ink} palette={palette} actions={actions} />}
         {h.ofTotal
           ? <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 1 }]}>{`${WORDS.OF_THE} `}<LineText line={h.words} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} /></Text>

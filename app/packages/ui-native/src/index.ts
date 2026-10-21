@@ -32,6 +32,7 @@ export { Icon, LayersIcon, type IconName } from "./icons";
 export * from "./type";
 export { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 export type { FishImages } from "./regs/types";
+export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";

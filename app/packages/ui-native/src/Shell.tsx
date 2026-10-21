@@ -559,7 +559,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           <WaterViewsContext.Provider value={waterViews}>
             {/* Regulations and Conditions take the swipe anywhere on them (the Conditions maps and chart shielded),
                 Map from its header only (the canvas pans) — see `waterViews` */}
-            {body}
+            {/* (T37) the regs sheet is a back layer too: back closes it before it leaves the water */}
+            <BackLayerContext.Provider value={backLayers}>{body}</BackLayerContext.Provider>
           </WaterViewsContext.Provider>
         </EdgeBack>
       </View>

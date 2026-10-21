@@ -1,0 +1,43 @@
+/**
+ * T37 — THE ONE SHEET over the Regulations view: whatever a press opens (an ⓘ, a rule line, "Source ›", "How to tell ›",
+ * a fish picture, an Other fish row, the possession row, "See every regulation line ›") is `page.sheet(key)` drawn in the
+ * app's one `Sheet` (one scrim, one look — the Layers / Day sheets' component). A press inside opens the next sheet in
+ * its place (no back stack, as the prototype); Done, the scrim, a drag down (G1: from the handle, `useSheetDrag`) and the
+ * one back (G1 `useBackLayer`: Android's back, the browser's back, Escape) close it. The water's header stays mounted
+ * behind the scrim. A key the page cannot open (a stale one) draws nothing.
+ *
+ * The open key lives with the caller (RegsView; T23's RegsScreen when it lands). No logic: `page.sheet` is core's (T36).
+ */
+import { useEffect, useMemo, useRef } from "react";
+import type { ImageSourcePropType, ScrollView } from "react-native";
+import type { RegsPage, SheetKey, Tab } from "@app/core";
+import { Sheet } from "../Sheet";
+import type { Palette } from "../theme";
+import { SheetBody } from "./SheetBody";
+import type { FishImages } from "./types";
+
+export interface SheetHostProps {
+  page: RegsPage;                       // page.sheet(key) is lazy + pure (T36)
+  open: SheetKey | null;
+  onOpen: (k: SheetKey) => void;        // nested open: replaces
+  onClose: () => void;
+  onPart?: (partIx: number) => void;    // parts sheet rows
+  onTab?: (t: Tab) => void;             // "Steelhead stamp ›" when it sits in a sheet
+  palette: Palette;
+  fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
+  adipose?: { wild: ImageSourcePropType; clipped: ImageSourcePropType };   // T38
+  onBook?: (pdf: number) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
+}
+
+export function SheetHost(p: SheetHostProps) {
+  const vm = useMemo(() => (p.open ? p.page.sheet(p.open) : null), [p.page, p.open]);
+  const scroll = useRef<ScrollView>(null);
+  // a sheet opened in another's place starts at its top
+  useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [p.open]);
+  if (!vm) return null;
+  return (
+    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose}>
+      <SheetBody vm={vm} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
+    </Sheet>
+  );
+}

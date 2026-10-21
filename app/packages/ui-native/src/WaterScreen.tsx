@@ -101,7 +101,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
-                    onSheet: () => {},                                   // the sheets are T36/T37
+                    onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
                     onBook: (pdf) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); },   // D6 a: native opens the bare PDF
                   }}

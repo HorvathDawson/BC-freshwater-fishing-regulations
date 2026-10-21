@@ -4,7 +4,7 @@
  * four tabs) FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
  *
- * Owns the layout state only: the day sheet's open flag, the pin store (scroll offset → pinned lines + tab in view, off
+ * Owns the layout state only: the day sheet's open flag, the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
  * React's render path) and the anchors. The tabs are not a pager (D1 a): a press scrolls to its section
  * (`tabScrollY`), and the scroll moves the selected tab (`tabInView`). No words of its own and no regulation logic:
  * every string is the RegsPage's.
@@ -14,7 +14,7 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ScrollView, Text, View } from "react-native";
-import { tabScrollY, WORDS, type RegsPage, type Tab } from "@app/core";
+import { tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { FaceBar } from "../Faces";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
@@ -25,6 +25,7 @@ import type { KeepActions } from "./LineText";
 import { PinBar } from "./PinBar";
 import { createPinStore, type PinStore } from "./pinStore";
 import { RegsHeader } from "./RegsHeader";
+import { SheetHost } from "./SheetHost";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import type { FishImages } from "./types";
 
@@ -44,7 +45,7 @@ export interface RegsScreenProps {
   onBack?: () => void;
   /** the Map button: this water's map view. Absent → the button is not drawn (its slot stays). */
   onMap?: () => void;
-  /** the Parts button (T37's sheet). Absent → not drawn. */
+  /** the Parts button; absent → it opens the page's own Parts sheet (T37). */
   onParts?: () => void;
   /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed. A function is handed
    *  this screen's actions (its tab links scroll to the section, like the Keep tab's). */
@@ -86,10 +87,13 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
     store.selectTab(t);
     scroll.current?.scrollTo({ y: tabScrollY(t, store.getSections()), animated: !still.current });
   };
-  const keepActions: KeepActions = { ...actions, onTab: toTab };
+  // (T37) the one sheet over the page: every sheet key a press opens — in any section — lands here (the caller hears it too)
+  const [sheet, setSheet] = useState<SheetKey | null>(null);
+  const openSheet = (k: SheetKey) => { actions.onSheet(k); setSheet(k); };
+  const keepActions: KeepActions = { ...actions, onSheet: openSheet, onTab: toTab };
   const action = page.header.action;
   const onAction = action?.kind === "map" ? onMap && (() => onMap())
-    : action?.kind === "parts" ? onParts && (() => onParts()) : undefined;
+    : action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
   const head = (
     <View>
@@ -132,6 +136,8 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
         <PinBar store={store} palette={palette} />
       </View>
       <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={onDay} />
+      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
+                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} />
     </View>
   );
 }

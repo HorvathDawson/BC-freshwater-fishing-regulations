@@ -3,6 +3,17 @@ Phase 4 · Depends on T36 (SheetVM), T23 (RegsScreen owns `sheet` state), T22 (T
 (`RuleBookLink`, `SourceLine`) · Blocks T38, T41, T42, T43 · Decisions D6 (book links), D7 (the day sheet stays T23's
 `DaySheet`, not a SheetKey) · Size 1 day
 
+> **T37 AS BUILT (2026-10-21):** `SheetHost.tsx` (the one `Sheet`: title, sub, scroll, back layer, drag from the handle),
+> `SheetBody.tsx` (`SheetBlockView` over every `SheetBlock` kind, incl. T36 part 2's `group` → `GroupCard titled` and
+> `rowTitle`), `sheet/{Fold,Para,RuleRow,LadderView,SourcesView,WeekBox,FishImage,PartsChoice,TermSection}.tsx`.
+> T23's `RegsScreen` is not on this branch: the open key lives in **`RegsView`** (T21 slice) — move it when T23 lands.
+> `Sheet.tsx`: optional `scroll` / `sub` / `scrollRef` (no change for existing callers) + the title is a header;
+> the scroll area is **0.68** of the window, not 0.82 (0.82 covered the water's header on 390 × 844). **Shell.tsx**: the
+> water body now sits inside the `BackLayerContext` provider (before, only LayersSheet did — the browser's back left the
+> water with the sheet still open). LineText is reused (T26/T34 had it). `adipose` images are T38's (plain grounds until
+> then). Tests: SheetHost 14 (incl. G1 drag/back, golden mount: all vedder_1010 sheets draw every golden line in order),
+> SheetBody 25. Web: handoff/PLAN/app-integration/T37-shots/.
+
 ## Goal
 Any press on a ⓘ, a rule line, "Source ›", "How to tell ›", a fish picture, an Other-fish row, the possession row or
 "See every regulation line ›" opens ONE bottom sheet over the regs screen, drawn from `page.sheet(key)`. A press inside a
