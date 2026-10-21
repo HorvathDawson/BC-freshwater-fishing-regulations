@@ -96,6 +96,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- PAUSED 2026-10-21 (owner low on credits). Main tree CLEAN at the commit below; everything merged is committed and
+  green (pnpm check 4877; smoke). STOPPED workflows — resume each with Workflow({scriptPath, resumeFromRunId}); finished
+  agents replay from cache. Partial work was saved as WIP commits on the worktree branches (reference, not reviewed):
+    colouring engine (one pathway, lake modes, feed-only)  run wf_b01b27c4-44c  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/conditions-colour-ap-wf_e6f1ab3e-f02.js   WIP 48be10d9 (worktree-wf_b01b27c4-44c-1)
+    one-water-screen                                       run wf_9d16c370-feb  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/one-water-screen-wf_9d16c370-feb.js        1 commit on worktree-wf_9d16c370-feb-1 (implement done; review/fix pending)
+    wave A Gear/Methods/Licence/pins (batch 10)            run wf_31b13f2b-581  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/batch-10-gear-methods-licence-core-wf_31b13f2b-581.js  lane1 WIP 50101cd8, lane2 1 commit, lane3 1 commit + WIP 0df41933
+    P15 water map                                          run wf_aef3d199-122  /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/p15-water-map-wf_aef3d199-122.js            WIP 745fd43e (worktree-wf_aef3d199-122-1)
+  NO-CREDIT JOBS left running: province feed year_backfill (bz0486peg, ~3-4 h) and Tier 2 test-full (see log path in
+  the next note). QUEUED after these: wave B (T23, T29, T34/T35, T37), Esri online imagery, P14, Other-fish stamps.
 - OWNER 2026-10-21 (screenshot): the water Map view's section selector does not work (P15 was never built) -> workflow
   p15-water-map RUNNING (part highlight, framing, down/up + side-channel chooser, marks, Flows into, Show regulations).
   Conditions route overlay made ARROWS ONLY (97d4536c: no casing/tone line/dashes/lake wash over coloured rivers).
