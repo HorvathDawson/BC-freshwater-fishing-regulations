@@ -46,7 +46,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - G1 GESTURES (owner 2026-10-20; ticket handoff/PLAN/app-data/G1-gestures.md) RUNNING (wf_ba76b522-0c1): RNGH; back
   everywhere via one route back (Android BackHandler, web History API, edge swipe only where no system back); one map
   gesture policy; sheets drag to dismiss; sideways swipe on a water's Regs/Conditions/Map steps the part (owner "maybe").
-- N1 resumed (agent a8261f149d43eead6) after the outage; told to rebase onto HEAD and use heavy.sh for gradle.
+- N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
+  SPIKE-ONLY, never merge): binding @maplibre/maplibre-react-native 11.5.0; offline pmtiles + glyphs from file://;
+  feature-state needs section_id as tile feature id (MapLibre Native ignores promoteId); Android ids arrive as strings;
+  Vulkan variant 51-60 fps on the emulator (OpenGL 21-57); A4 paint decode 105 ms and A8 p95 41.6 ms are the budgets
+  at risk on a real phone. AVD n1_pixel exists; `adb shell reboot -p` stops it (emu kill hangs).
+- P18 tile ids agent RUNNING (section_id as feature id; proof on an extract); then lead rebuilds tiles via heavy.sh.
+- N2 (real native map) starts AFTER G1 merges (both touch the map binding).
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
