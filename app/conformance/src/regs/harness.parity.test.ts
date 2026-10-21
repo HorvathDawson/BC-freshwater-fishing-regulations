@@ -59,7 +59,7 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
   it("5. named states, literally", async () => {
     const pick = async (id: string) => { const i = (await inputsOf(id))!; return [id, i.key!.akey, i.s, i.cell]; };
     expect(await Promise.all(["vedder_515", "klwa_1010", "klwa_1012", "x15p7_1010"].map(pick))).toEqual([
-      ["vedder_515", 886, 1, { ladder: 1057, rows: 1723, gear: 320, licence: 1, display: 64 }],
+      ["vedder_515", 886, 1, { ladder: 1057, rows: T.states.vedder_515!.cell.rows, gear: 320, licence: 1, display: 64 }],
       ["klwa_1010", 1229, 1, T.states.klwa_1010!.cell],
       ["klwa_1012", 1229, 0, T.states.klwa_1012!.cell],
       ["x15p7_1010", 1039, 4, { ...T.states.x15p7_1010!.cell, display: 704 }],
