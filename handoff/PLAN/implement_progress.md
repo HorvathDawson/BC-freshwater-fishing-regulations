@@ -53,6 +53,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - Tiles with MVT ids LIVE: tile_version d768d6e135e62b99.c9f9604f12bf promoted (atlas + meta), release manifest names
   it. Fix a9da3f75: the release names the PROMOTED tile version (atlas.meta.json), not the last folder by name
   (hash order). Old tile folder deleted.
+- OWNER 2026-10-20 (later): gesture feel = the core/gestures.ts defaults, tuned on real devices later (no feel
+  gate); the Centre disclaimer stays VISIBLE; add a Kitimat test (r5 lifting r2 for hatchery ST); lake OUTLINES must
+  match their regulation colour. Workflow lakes-and-kitimat RUNNING (wf_ab4d90e7-184).
+- Batch 5 RUNNING: T03 -> T04 -> T01 (regs store over the release, store reads, plumb) and T05 (core tap).
+- The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
   SPIKE-ONLY, never merge): binding @maplibre/maplibre-react-native 11.5.0; offline pmtiles + glyphs from file://;
