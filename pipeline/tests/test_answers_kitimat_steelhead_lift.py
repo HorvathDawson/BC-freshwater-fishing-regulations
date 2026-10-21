@@ -39,12 +39,12 @@ The row prints NO dates on the steelhead quota, so r5 has no window of its own; 
 below are in and out of the zone windows it meets: Aug 15 (r4's Jul 1-Oct 31) and Dec 1 (r7's
 Nov 1-Jun 30). On both, r2 is lifted for hatchery steelhead and for nothing else.
 
-WHERE THE TEXT IS AMBIGUOUS:
+WHERE THE TEXT WAS AMBIGUOUS — both now ruled by the owner (2026-10-21):
   (a) Dec 1, hatchery steelhead under r7 "Trout of any size from streams, Nov 1-June 30": the
-      Kitimat's RAINBOW line says "all year" and its STEELHEAD line does not. Current: r7 lifted
-      by r5 (keep 2 on Dec 1) — the curated `exempts` of kitimat_river.r5 name r7. STILL AWAITING
-      AN OWNER RULING (the owner is checking it, 2026-10-21): pinned as CURRENT behaviour in
-      `test_..._awaiting_owner_ruling` below.
+      Kitimat's RAINBOW line says "all year" and its STEELHEAD line does not. OWNER RULING: r7 is
+      NOT lifted — hatchery steelhead are catch-and-release Nov 1-June 30, keep 2 only outside it.
+      The curated `exempts` of kitimat_river.r5 no longer name r7 (cc775df3; GOTCHAS.md).
+      Pinned in `test_kitimat_hatchery_steelhead_are_released_nov_1_to_june_30_owner_ruling`.
   (b) whether the 2 hatchery steelhead still count toward r2's 1-over-50 for the OTHER trout
       (keep 2 hatchery steelhead, then may you keep 1 cutthroat over 50?). OWNER RULING
       2026-10-21: "no you can't. look at the prototype vedder it is similar. it is more a +1 for
@@ -245,12 +245,6 @@ EXPECTED = {
     },
 }
 
-#: Dec 1, hatchery steelhead — ambiguity (a): CURRENT behaviour, awaiting an owner ruling
-DEC1_HATCHERY_ST_CURRENT = {
-    "status": "keep", "win": K5, "daily": 2, "narrow": None, "lines": HATCHERY_ST_LINES,
-    "roles": [[STOP, "replaced", K7], [Z2, "lifted", K5], [Z7, "lifted", K5]] + HATCHERY_ST_TAIL,
-    "lift_notes": []}
-
 #: ambiguity (b), OWNER RULING 2026-10-21 ("+1 for steelhead"): the pool's general cap (r2) still holds the OTHER
 #: trout/char to 1 over 50 cm (steelhead excepted, as the Vedder's), and r5 raises it to one tally of 2 over 50 cm that
 #: counts every fish, the hatchery steelhead included (the Vedder's "2 over 50 cm" r2b, here r5's own number)
@@ -288,29 +282,35 @@ def test_kitimat_hatchery_steelhead_quota_lifts_region_6s_one_over_50_for_hatche
 
 
 @pytest.mark.needs_bundle
-def test_kitimat_hatchery_steelhead_in_the_nov_jun_release_awaiting_owner_ruling(shipped):
-    """AWAITING AN OWNER RULING — pins CURRENT behaviour only (module docstring, (a)).
-    Dec 1: hatchery steelhead keep 2, r7 "Trout of any size from streams, Nov 1-June 30" lifted
-    by r5, although the row's steelhead line (unlike its rainbow line) prints no "all year". A
-    ruling either way updates this test; `test_kitimat_hatchery_steelhead_quota_lifts_...` does
-    not depend on it."""
+def test_kitimat_hatchery_steelhead_are_released_nov_1_to_june_30_owner_ruling(shipped):
+    """OWNER RULING 2026-10-21 on (a) (pipeline/docs/GOTCHAS.md): r5's undated hatchery-steelhead quota does NOT lift
+    Region 6's "Trout of any size from streams, Nov 1-June 30" release (r7). Hatchery steelhead are catch-and-release
+    Nov 1-June 30 and keep 2 only outside it — the window's both edges pinned."""
     data, model = shipped
-    assert _answer(data, model, DEC1, "ST", "hatchery") == DEC1_HATCHERY_ST_CURRENT
-    assert _rung(data, model, DEC1, "ST", "hatchery", "r7") == LIFTED_BY_R5
+    head = lambda md: {k: _answer(data, model, md, "ST", "hatchery")[k] for k in ("status", "win", "daily")}
+    released = {"status": "release", "win": "z6 trout_char_quota.r7", "daily": None}
+    kept = {"status": "keep", "win": "r6 kitimat_river.r5", "daily": 2}
+    assert [head(md) for md in (DEC1, (6, 20), (7, 2), (10, 31), (11, 1))] == [released, released, kept, kept, released]
+    # r7 SPEAKS for hatchery steelhead in December — never lifted by r5 again
+    assert _rung(data, model, DEC1, "ST", "hatchery", "r7") == ["speaks", None, None, None]
 
 
 @pytest.mark.needs_bundle
 def test_kitimat_pool_says_the_hatchery_steelhead_count_toward_a_2_over_50_tally(shipped):
     """OWNER RULING 2026-10-21 on (b) (module docstring): the pool's conditions keep r2's 1 over
     50 cm for the other trout/char (steelhead excepted) and add r5's one tally of 2 over 50 cm,
-    every fish counted — on both dates r5 lifts r2 for hatchery steelhead."""
+    every fish counted — while r5 applies (Jul 1-Oct 31, ruling (a)); in December there is no steelhead tally."""
     data, model = shipped
-    for md in (AUG15, DEC1):
+
+    def caps(md):
         rows, _ = _at(data, model, md)
         (pool,) = [r for r in rows["rows"] if r.get("pool") is not None and
                    data["rule_ids"][r["pool"]] == "z6:trout_char_quota::trout_char_quota.r1"]
-        caps = [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
-        assert caps == CAP_CONDS_RULING, md
+        return [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
+    assert caps(AUG15) == CAP_CONDS_RULING
+    # December (ruling (a)): the steelhead are released, so there is no steelhead tally — r2's plain 1 over 50 cm
+    assert caps(DEC1) == [{"c": "cap", "r": "z6 trout_char_quota.r2", "sub": 1, "a": 50, "b": None, "take": 1,
+                           "of": None, "general": True}]
 
 
 # ---- the ruling, with the Vedder as its parity witness ---------------------------------------
@@ -473,7 +473,7 @@ def test_the_check_fails_when_the_lift_is_mutated(request, tmp_path, monkeypatch
 
 #: Region 6 "No fishing: in all rivers and streams for steelhead, May 15-June 15" (printed p.49) is a ST_CLOSURE_NAME,
 #: and r5's lift of the quota cap must never reopen it: on May 20 both origins are closed by it, and the row's
-#: own quota (r5) is moot under it; on June 20 (the closure over) hatchery steelhead are keep 2 by r5 again.
+#: own quota (r5) is moot under it; on June 20 the Nov-Jun release still holds, and from July 2 r5's keep 2 applies.
 MAY20, JUN20 = (5, 20), (6, 20)
 ST_CLOSURE_NAME = "z6 steelhead_stream_closure.r1"
 R5_NAME = "r6 kitimat_river.r5"
@@ -491,6 +491,10 @@ def test_r5s_lift_never_reopens_region_6s_may_15_june_15_steelhead_closure(shipp
     assert _head(wild) == {"status": "closed", "win": ST_CLOSURE_NAME, "daily": None}
     assert [[x, r, by] for x, r, by in hatch["roles"] if x == R5_NAME] == [[R5_NAME, "moot", ST_CLOSURE_NAME]]
     assert [[x, r, by] for x, r, by in hatch["roles"] if x == ST_CLOSURE_NAME] == [[ST_CLOSURE_NAME, "governs", None]]
-    after = _answer(data, model, JUN20, "ST", "hatchery")
-    assert _head(after) == {"status": "keep", "win": R5_NAME, "daily": 2}
+    # June 20: the closure is over but the Nov 1-June 30 release still holds (ruling (a)); the quota returns July 2
+    assert _head(_answer(data, model, JUN20, "ST", "hatchery")) == \
+        {"status": "release", "win": "z6 trout_char_quota.r7", "daily": None}
+    assert _head(_answer(data, model, (7, 2), "ST", "hatchery")) == {"status": "keep", "win": R5_NAME, "daily": 2}
     assert _head(_answer(data, model, JUN20, "ST", "wild"))["status"] == "release"
+
+

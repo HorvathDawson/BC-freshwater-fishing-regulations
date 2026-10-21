@@ -47,4 +47,30 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
     k = built.parts[tap["item"]][tap["partIx"]]
     assert built.segments[k] == tap["starts"]                   # the same key year as the oracle's tap
     frame = built.sections["rows"][k][oracle["s"]]
-    assert [r["year"] for r in frame["rows"]] == oracle["dayStatus"]
+    want = oracle["dayStatus"]
+    if sid in KITIMAT_RULED:
+        want = [_nov_jun_released(runs) if i == KITIMAT_RULED[sid] else runs for i, runs in enumerate(want)]
+    assert [r["year"] for r in frame["rows"]] == want
+
+
+#: OWNER RULING 2026-10-21 (a) — pipeline/docs/GOTCHAS.md: on the Kitimat, r5's hatchery-steelhead quota does NOT lift
+#: Region 6's Nov 1-June 30 stream release, where page v36 (the oracle) lifted it. The ONE row that differs per state
+#: (index) is the row the ruling changes; every other row of these states, and every other state, must equal the page.
+KITIMAT_RULED = {"x14p0_1010": 2, "x14p1_1010": 2, "x14p2_1010": 2}
+NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
+
+
+def _nov_jun_released(runs):
+    """The page's strip with the ruling applied: a 'keep' day on Nov 1-June 30 becomes 'release'; nothing else moves."""
+    days = [st for st, n in runs for _ in range(n)]
+    days = ["release" if st == "keep" and (d >= NOV1 or d <= JUN30) else st for d, st in enumerate(days, 1)]
+    out = []
+    for st in days:
+        if out and out[-1][0] == st: out[-1][1] += 1
+        else: out.append([st, 1])
+    return out
+
+
+def test_the_ruling_moves_only_the_nov_jun_keep_days():
+    assert _nov_jun_released([["keep", 74], ["closed", 92], ["keep", 199]]) == \
+        [["release", 74], ["closed", 92], ["release", 15], ["keep", 123], ["release", 61]]
