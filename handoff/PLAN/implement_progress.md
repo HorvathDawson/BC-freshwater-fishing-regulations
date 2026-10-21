@@ -55,7 +55,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   (hash order). Old tile folder deleted.
 - OWNER 2026-10-20 (later): gesture feel = the core/gestures.ts defaults, tuned on real devices later (no feel
   gate); the Centre disclaimer stays VISIBLE; add a Kitimat test (r5 lifting r2 for hatchery ST); lake OUTLINES must
-  match their regulation colour. Workflow lakes-and-kitimat RUNNING (wf_ab4d90e7-184).
+  match their regulation colour. MERGED: 3f1a824a lake__edge follows the lake's colour mode in the shared adapter
+  (native gets it too; shots handoff/PLAN/app-data/lakes/); 24252f4b + 3b27a13e Kitimat tests (r5 lifts r2 and r4 for
+  hatchery ST only; never reopens the May 15-Jun 15 steelhead closure). OWNER RULINGS OPEN: (a) hatchery ST keep 2 in
+  Nov-Jun (r7 lifted by curated exempts; text gives "all year" only on the rainbow line; reviewer leans lift);
+  (b) whether the 2 hatchery ST use up r2's 1-over-50 for other trout (current: they do not, except ['ST']).
 - Batch 5 RUNNING: T03 -> T04 -> T01 (regs store over the release, store reads, plumb) and T05 (core tap).
 - OWNER 2026-10-20: "pan takes a second to colour" -> workflow map-colour-latency MEASURING options (per-tile sync
   feature-state; status as a style expression evaluated at tile layout; region-base + override expression; set-all).
