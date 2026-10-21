@@ -83,6 +83,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
+  Workflow conditions-colour-ap RUNNING (per-tile static labels: panel/basin; the changing standings+horizon in the
+  style or a small per-panel set; measured before/after; native path kept).
 - Tier 2 on r-7b6e802bf22b: everything green (fast 3839, slow 266, card gate, release parity, placeable, checks)
   except 2 fast tests pinned to the pre-ruling Kitimat; fixed (feb release names ST; exemption inventory). OPEN: the
   page-bug "count comparison drops a 2-fish release" mutation lost its Kitimat witness — find another water.
