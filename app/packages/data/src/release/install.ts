@@ -12,7 +12,9 @@
  *              or a failed sha before that rename leaves the old pointer — the old set — in force.
  *   prune      after the new set has opened and paired, the old release folder is deleted (never before).
  */
-import { diff, type Held, type Manifest } from "../manifest";
+import { diff, parseManifest, type Held, type Manifest } from "../manifest";
+// Hermes has no TextDecoder (regs/blob.ts); TextEncoder it has
+import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 
@@ -87,7 +89,7 @@ export const POINTER = "release/current";
 
 export async function heldFrom(fs: ReleaseFs): Promise<Held | null> {
   if (!(await fs.exists(POINTER))) return null;
-  return JSON.parse(new TextDecoder().decode(await fs.read(POINTER))) as Held;
+  return JSON.parse(utf8(await fs.read(POINTER))) as Held;
 }
 
 const dirOf = (release: string) => `release/${release}`;
@@ -124,6 +126,9 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     big.push({ file: "tiles", url: t.url, path: `release/${t.url}`, e: { bytes: t.bytes, sha256: t.sha256 } });
   if (d.tiles && mask?.sha256 && mask.bytes)
     big.push({ file: "mask", url: mask.url, path: `release/${mask.url}`, e: { bytes: mask.bytes, sha256: mask.sha256 } });
+  const bm = m.basemap;
+  if (d.basemap && bm?.sha256 && bm.bytes)
+    big.push({ file: "basemap", url: bm.url, path: `release/${bm.url}`, e: { bytes: bm.bytes, sha256: bm.sha256 } });
   const of = d.files.reduce((n, k) => n + (m.files[k]?.bytes ?? 0), 0) + big.reduce((n, b) => n + b.e.bytes, 0);
   let done = 0, bytes = 0;
   const total = names.length + big.length;
@@ -154,6 +159,8 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     bytes += b.e.bytes;
     onProgress({ done: ++done, total, file: b.file, bytes, of });
   }
+  // the manifest the set was installed from: an offline launch opens the set with it (`heldManifest`)
+  await place(fs, `${dir}/manifest.json`, new TextEncoder().encode(JSON.stringify(m)));
   const next = pointerFor(m);
   await place(fs, POINTER, new TextEncoder().encode(JSON.stringify(next)));      // THE SWAP
   return next;
@@ -162,6 +169,11 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
 /** After the new set has opened and paired: delete the release folder it replaced. */
 export async function prune(fs: ReleaseFs, old: Held | null, now: Held): Promise<void> {
   if (old?.release && old.release !== now.release) await fs.remove(dirOf(old.release));
+}
+
+/** The manifest the held set was installed from (written by `install`), so a launch with no network can open it. */
+export async function heldManifest(fs: ReleaseFs, h: Held): Promise<Manifest> {
+  return parseManifest(JSON.parse(utf8(await fs.read(`${dirOf(h.release!)}/manifest.json`))));
 }
 
 /** The on-disk path of a held file. */

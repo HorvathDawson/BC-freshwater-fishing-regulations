@@ -31,7 +31,7 @@ import { WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNea
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
 import { NO_PICK, isSelected, resultGroups, rowStatus, searchStep, useSearch,
-         useSearchView, useStatusIndex,
+         useSearchView, useStatusIndex, type StatusSource,
          type SearchAction, type SearchPick, type SearchResults, type SearchTarget }
   from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
@@ -53,8 +53,10 @@ type Row =
   | { t: "near"; key: string; near: NearHit }
   | { t: "note"; key: string; text: string };
 
-export function SearchScreen({ source, palette, onPick, total, tiles, theme, basemap }: {
+export function SearchScreen({ source, palette, onPick, total, tiles, theme, basemap, status = null }: {
   source: RegsSource; palette: Palette;
+  /** Where the day's status comes from (the release's paint, P11). Absent -> no row carries a status. */
+  status?: StatusSource | null;
   /** The eye on a water — open its page, framed and lit on the main map. */
   onPick: (item: ItemId) => void;
   total?: number;
@@ -73,7 +75,7 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
   const hits = useSearch(source, q);
   // The day's status of each water, from the same index the map colours by. Today, read once
   // per render — a list is not open across a midnight in any way that matters.
-  const statusIndex = useStatusIndex(source, tiles?.atlas);
+  const statusIndex = useStatusIndex(status);
   const today = new Date();
   // HOLD THE LAST ANSWER while the next one loads. Blanking the list and the map on every
   // keystroke made both flash — the lit river went out and came back for each letter.

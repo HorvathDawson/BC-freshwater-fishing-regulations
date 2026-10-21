@@ -22,6 +22,8 @@ export * from "./photos";
 export * from "./leadUp";
 export * from "./route";
 export * from "./mapModes";
+export * from "./release";
+export * from "./boot";
 
 export type FormFactor = "phone" | "desktop";
 

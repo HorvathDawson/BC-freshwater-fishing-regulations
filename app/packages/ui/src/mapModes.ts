@@ -30,8 +30,9 @@ export interface MapModeInput {
   horizon: Horizon;
   /** Below the handover zoom (the field draws, nothing is tappable). */
   zoomedOut: boolean;
-  /** Tiles and bundle from different atlases: nothing may be coloured. */
-  mixedPair: boolean;
+  /** The data and the tiles are a PROVEN pair (`usePairing` ok === true). Anything less — a mixed pair, or one not
+   *  yet established — colours nothing (P11). */
+  paired: boolean;
   /** The day's status index is in and matches this atlas. */
   statusOk: boolean;
   /** The Layers sheet's lake choice: its colour mode, and a layer group it switches on. */
@@ -69,14 +70,14 @@ export function mapModes(i: MapModeInput): MapModesVM {
    * gauge 40 km away would invent a reading. On the Map tab: the day's status once the index has loaded and matched.
    * A STREAM'S POLYGON IS A STREAM — `lake_flowing` / `wetland_flowing` wear the rivers' colouring in every view.
    */
-  const river = i.mixedPair ? "plain"
+  const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
     : i.statusOk ? "status" : "plain";
   const modes: MapModes = {
     stream: river,
     // Lakes answer the same question as the rivers on Conditions (`lake_gauge`, a station IN the lake). On the Map tab
     // a lake left "plain" in Layers wears the day's status; Stocked and Depth are questions the reader asked instead.
-    lake: i.mixedPair ? "plain"
+    lake: !i.paired ? "plain"
       : onConditions ? (temperature ? "plain" : "standing")
       : lakeMode === "plain" && i.statusOk ? "status" : lakeMode,
     lake_flowing: river,
@@ -84,7 +85,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     gauges: temperature ? "temperature" : "standing",
     // THE FIELD must be named or it is never painted. `standing` only where the rivers are — it is the zoomed-out
     // form of the same answer; under temperature the models publish no field.
-    basin: i.mixedPair ? "plain" : onConditions && !temperature ? "standing" : "plain",
+    basin: !i.paired ? "plain" : onConditions && !temperature ? "standing" : "plain",
   };
   const activeGroups = { ...i.groups };
   if (i.lake?.group) activeGroups[i.lake.group] = true;
@@ -99,10 +100,10 @@ export function mapModes(i: MapModeInput): MapModesVM {
 
 /** `mapModes`, memoised on its inputs so the map's effects see a stable `modes` while nothing changed. */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, mixedPair, statusOk, lake, groups } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, lake, groups } = i;
   const lakeMode = lake?.mode, lakeGroup = lake?.group;
   return useMemo(
-    () => mapModes({ tab, flowParam, horizon, zoomedOut, mixedPair, statusOk,
+    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk,
                      lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups }),
-    [tab, flowParam, horizon, zoomedOut, mixedPair, statusOk, lakeMode, lakeGroup, groups]);
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, lakeMode, lakeGroup, groups]);
 }

@@ -1,0 +1,113 @@
+/**
+ * THE MAP'S STATUS AND ITS PAIRING (P11), as hooks — the release's status half comes from paint, and nothing is
+ * coloured until the data and the tiles are a PROVEN pair.
+ *
+ *   status    `StatusSource` is where the day's status index comes from: the release's paint (`releaseStatus`), or on
+ *             the dev bundle path `status_index.bin` beside the tiles (`devStatus`, until P20). A failure is never
+ *             kept: the next screen to ask tries again.
+ *   pairing   `usePairing` (P10's `pair`): ok true = colour; false = a mixed pair, refused and said; null = not
+ *             established (no tile version known yet), which colours nothing and raises no alarm.
+ */
+import { pair, type Held, type Manifest, type RegsSource } from "@app/data";
+import type { StatusIndex } from "@app/core";
+import { useAsync } from "./async";
+import { loadStatusIndex, statusIndexUrl } from "./hooks";
+
+/** Where the day's status index comes from. `key` names it (one load per key). */
+export interface StatusSource {
+  readonly key: string;
+  load(): Promise<StatusIndex>;
+}
+
+const LOADED = new Map<string, Promise<StatusIndex>>();
+
+/** The status index of `src`, loaded once per key — and a FAILURE IS NOT KEPT: the next ask loads again. */
+export function statusOf(src: StatusSource): Promise<StatusIndex> {
+  let got = LOADED.get(src.key);
+  if (!got) {
+    got = src.load();
+    got.catch(() => { if (LOADED.get(src.key) === got) LOADED.delete(src.key); });
+    LOADED.set(src.key, got);
+  }
+  return got;
+}
+
+/** The release's status: paint's status half (decoded once by the loader, checked against the release's handles). */
+export function releaseStatus(loader: { release: string; paint(): Promise<{ status: StatusIndex }> }): StatusSource {
+  return { key: `paint:${loader.release}`, load: async () => (await loader.paint()).status };
+}
+
+/** THE DEV PATH (the bundle, until P20): `status_index.bin` beside the tiles, held to the bundle's digests. */
+export function devStatus(source: RegsSource, atlasUrl: string): StatusSource {
+  return {
+    key: `dev:${atlasUrl}`,
+    async load() {
+      const info = await source.info();
+      const ix = await loadStatusIndex(statusIndexUrl(atlasUrl), info.sectionHandles, fetch, info.reachDigest);
+      if (!ix) throw new Error("status index: missing, or not this bundle's");
+      return ix;
+    },
+  };
+}
+
+/**
+ * THE DAY'S STATUS OF EVERY SECTION AND WATER — the index, once it has loaded. Null until then, and while it cannot be
+ * had: every surface then draws no status at all, which is what `statusOn` / `waterStatusOn` in @app/core return for it.
+ * A failure is not kept (`statusOf`), so a later mount asks again.
+ */
+export function useStatusIndex(status: StatusSource | null): StatusIndex | null {
+  const got = useAsync(async () => (status ? statusOf(status) : null), `status-index:${status?.key ?? ""}`, !!status);
+  return got.state === "ready" ? got.value : null;
+}
+
+/** What the pairing is checked from. */
+export type PairingInput =
+  | { kind: "release"; manifest: Manifest; held: Held }
+  /** The dev bundle path (until P20): the bundle's section_handles against the tiles' `atlas.meta.json`. */
+  | { kind: "dev"; source: RegsSource; atlasUrl: string | undefined };
+
+/** ok: true = a proven pair · false = a mixed pair · null = not established. `data`/`tiles` name the two sides. */
+export interface PairingView {
+  ok: boolean | null;
+  data: string | null;
+  tiles: string | null;
+}
+
+const UNKNOWN: PairingView = { ok: null, data: null, tiles: null };
+
+/**
+ * The release's pairing as the Shell shows it. A section is an integer handle that means a different river in another
+ * atlas, so data and tiles from two atlases do not miss each other — they agree on the wrong water. P10's `pair` says
+ * whether the manifest's data pairs with the tiles in use (the manifest's own, else the ones held). When NO tile version
+ * is known at all (a dev server before the tile rebuild writes a version folder) nothing has been proven either way:
+ * `ok` is null, which colours nothing and shows no "out of step" banner.
+ */
+export function pairingView(input: { manifest: Manifest; held: Held }): PairingView {
+  const { manifest: m, held } = input;
+  const tiles = m.tiles.current?.id ?? held.tiles ?? null;
+  if (tiles === null) return { ok: null, data: m.data_release, tiles: null };
+  const p = pair(m, held);
+  return { ok: p.ok, data: m.data_release, tiles };
+}
+
+/** Whether the map may be coloured, and the two sides' names for the banner when it may not. */
+export function usePairing(input: PairingInput | null): PairingView {
+  const key = !input ? "none" : input.kind === "release"
+    ? `release:${input.manifest.data_release}:${input.manifest.tiles.current?.id ?? input.held.tiles ?? ""}`
+    : `dev:${input.atlasUrl ?? ""}`;
+  const got = useAsync(async (): Promise<PairingView> => {
+    if (!input) return UNKNOWN;
+    if (input.kind === "release") return pairingView(input);
+    // THE DEV PATH: the tile sidecar, a ~100-byte JSON both map renderers' hosts can read. A sidecar that will not load
+    // leaves this null rather than false — an old deployment has none, and that is not evidence of a mismatch.
+    const info = await input.source.info();
+    const data = info.sectionHandles;
+    if (!input.atlasUrl) return { ok: null, data, tiles: null };
+    const res = await fetch(input.atlasUrl.replace(/[^/]*$/, "atlas.meta.json"));
+    if (!res.ok) return { ok: null, data, tiles: null };
+    const tiles = ((await res.json()) as { section_handles?: string }).section_handles ?? null;
+    if (!data || !tiles) return { ok: null, data, tiles };
+    return { ok: data === tiles, data, tiles };
+  }, `pairing:${key}`);
+  return got.state === "ready" ? got.value : UNKNOWN;
+}

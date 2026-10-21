@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { mapModes, type MapModeInput } from "./mapModes";
 
 const base: MapModeInput = {
-  tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, mixedPair: false, statusOk: true,
+  tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, paired: true, statusOk: true,
   lake: { mode: "plain" }, groups: { depth: false, admin: true },
 };
 const at = (over: Partial<MapModeInput>) => mapModes({ ...base, ...over });
@@ -58,9 +58,11 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
     });
   });
 
-  it("a mixed tile/bundle pair colours nothing, on either tab", () => {
+  it("a pair not PROVEN colours nothing, on either tab — a mixed pair, and one not yet established (P11)", () => {
+    // `ok === null` used to colour: the window between the map appearing and the pair being checked is exactly when
+    // a mixed pair paints real readings onto the wrong rivers
     for (const tab of ["map", "conditions"] as const)
-      expect(at({ tab, mixedPair: true, zoomedOut: true }).modes).toEqual({
+      expect(at({ tab, paired: false, zoomedOut: true }).modes).toEqual({
         stream: "plain", lake: "plain", lake_flowing: "plain", wetland_flowing: "plain", gauges: "standing",
         basin: "plain" });
   });

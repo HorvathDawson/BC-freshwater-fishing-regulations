@@ -17,6 +17,8 @@ export interface Device {
   toDisk: DownloadTo;
   /** The file:// uri of a folder under the install root (the opener opens files in place there). */
   dirUri(path: string): string;
+  /** The file:// uri of a file under the install root (the map reads the installed tiles and mask from it). */
+  fileUri(path: string): string;
 }
 
 export declare function device(fetchImpl?: typeof fetch): Device | null;

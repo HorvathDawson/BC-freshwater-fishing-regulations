@@ -82,5 +82,6 @@ export function device(fetchImpl: typeof fetch = fetch): Device | null {
     download: (url, expect) => fetchVerified(url, expect, undefined, fetchImpl),
     toDisk: rangedDownload(fs, fetchImpl),
     dirUri: (path) => dirAt(path).uri,
+    fileUri: (path) => fileAt(path).uri,
   };
 }

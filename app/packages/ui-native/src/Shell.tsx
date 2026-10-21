@@ -14,8 +14,8 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         usePickFocus, useStatusIndex, useVintage, statusData,
-         type Horizon } from "@app/ui";
+         usePickFocus, usePairing, useStatusIndex, statusData,
+         type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
@@ -57,8 +57,15 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       spotsError, attribution, fishImages, photos }: {
+                       spotsError, attribution, fishImages, photos, status = null, pairing = null }: {
   source: RegsSource; palette: Palette;
+  /**
+   * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
+   * -> the water is drawn plain.
+   */
+  status?: StatusSource | null;
+  /** What says the data and the tiles are one pair (P11 `usePairing`). Absent -> not established: nothing coloured. */
+  pairing?: PairingInput | null;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
   theme: string; themeName: ThemeName; onTheme: (t: ThemeName) => void;
@@ -187,24 +194,26 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * app may never produce, and it has happened once already: the tiles were rebuilt and
    * `bundle.sqlite` was left behind, and the map went quietly grey.
    *
-   * `ok === false` is the only refusal. `null` means the sidecar has not answered yet or the
-   * deployment has none, which is not evidence of a mismatch — see `useVintage`.
+   * COLOUR ONLY ON A PROVEN PAIR (P11, `usePairing`): `ok === true` colours. `false` is a mixed
+   * pair, refused and SAID (the banner below); `null` — not established yet, or no tile version
+   * known — colours nothing and raises no alarm, which is not evidence of a mismatch.
    */
-  const vintage = useVintage(source, tiles?.atlas);
+  const vintage = usePairing(pairing);
+  const paired = vintage.ok === true;
   const mixedPair = vintage.ok === false;
   /*
-   * THE DAY'S STATUS, on the Map tab. The index is refused unless it was built against this
-   * bundle's atlas (`useStatusIndex`), and nothing is coloured from it on a mixed pair. Until it
-   * has loaded the water stays plain: "not asked" is never drawn as "base".
+   * THE DAY'S STATUS, on the Map tab, from the release's paint (`useStatusIndex`; checked against
+   * the release's handles when decoded). Until it has loaded the water stays plain: "not asked" is
+   * never drawn as "base".
    */
-  const statusIndex = useStatusIndex(source, tiles?.atlas);
-  const statusOk = statusIndex !== null && !mixedPair;
+  const statusIndex = useStatusIndex(status);
+  const statusOk = statusIndex !== null && paired;
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   /*
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
    */
-  const mm = useMapModes({ tab, flowParam, horizon, zoomedOut, mixedPair, statusOk, lake: lakeChoice, groups });
+  const mm = useMapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, lake: lakeChoice, groups });
   const { onConditions, quantity, modes, activeGroups } = mm;
   // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
   // grey for its whole length because the station matched to those reaches had gone quiet,
@@ -382,7 +391,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    }}
                    onBack={() => go({ type: "back" })} />
     : tab === "search"
-      ? <SearchScreen source={source} palette={palette}
+      ? <SearchScreen source={source} palette={palette} status={status}
                       onPick={(id) => {
                         // Frame it on the map AND open it: back from the page lands on
                         // the water, lit, rather than on the search list.
@@ -531,7 +540,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             builds, so nothing is coloured. Rebuild or re-download both.
           </Text>
           <Text style={{ color: palette.onAccent, fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-            tiles {vintage.tiles ?? "unknown"} · bundle {vintage.bundle ?? "unknown"}
+            tiles {vintage.tiles ?? "unknown"} · bundle {vintage.data ?? "unknown"}
           </Text>
         </View>
       )}

@@ -23,6 +23,7 @@ export * from "./near";
 export * from "./day";
 export * from "./conditions";
 export * from "./temperature";
+export * from "./install";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

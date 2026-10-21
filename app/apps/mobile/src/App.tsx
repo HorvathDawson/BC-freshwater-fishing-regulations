@@ -5,9 +5,11 @@
  * expo run:android / run:ios render the same file natively. Every screen lives in
  * @app/ui-native, so mobile web and the native app cannot show different things.
  *
- * The source is the FIXTURE for now — a real slice of the Chilliwack valley out of build
- * 54ea0bb4, not invented data. Swapping it for the bundle-backed source is a one-line
- * change here precisely because nothing above `RegsSource` knows which one it has.
+ * THE DATA IS THE RELEASE (P11): the manifest, then paint, then the Shell (`useReleaseBoot` → `bootRelease`). On the
+ * phone the first run downloads the whole release with progress and every later launch opens it from disk, checking for
+ * a newer one in the background; on the web each file is fetched on first need into Cache Storage. Nothing on this path
+ * reads `/province.sqlite`, `/status_index.bin` or `atlas.meta.json`: those belong to the development bundle path,
+ * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20.
  */
 import { useEffect, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, Text, View, useColorScheme } from "react-native";
@@ -19,42 +21,51 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
+import { INSTALL_WORDS, installLine, startStage } from "@app/core";
 import { makeBundleSource } from "@app/data/bundle";
-import { httpFeed } from "@app/data";
+import { httpFeed, type RegsSource } from "@app/data";
+import { releaseTiles } from "@app/data/release";
+import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { useSpots, type SpotPhotos } from "@app/ui";
+import { devStatus, releaseStatus, useReleaseBoot, useSpots, type PairingInput, type SpotPhotos,
+         type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 
-
-import { ENDPOINTS } from "./config";
+import { DATA_SOURCE, ENDPOINTS } from "./config";
 import { FISH_IMAGES } from "./fishImages.generated";
 
 /**
- * Where everything is served from: ONE base, in `config.ts` (P10). The tiles, bundle and feed must be one set — they
- * join on section and station ids, and mixing vintages paints an uncoloured map that looks exactly like a broken feed.
- * In production these are R2 URLs and nothing else changes.
+ * Where everything is served from: ONE base, in `config.ts` (P10). In production these are R2 URLs and nothing else
+ * changes.
  */
-const TILES = ENDPOINTS.tiles;
-const BUNDLE = ENDPOINTS.bundle;
 const FEED = ENDPOINTS.feed;
-const SQL_WASM = ENDPOINTS.sqlWasm;
+const RELEASE = DATA_SOURCE === "release";
+
+/** THE DEVELOPMENT BUNDLE PATH (`EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20): the whole province.sqlite, as before. */
+function useDevBundle(on: boolean): { bundle: LoadedBundle | null; failed: string | null; stage: string } {
+  const [bundle, setBundle] = useState<LoadedBundle | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const [stage, setStage] = useState("bundle");
+  useEffect(() => {
+    if (!on) return;
+    let live = true;
+    setSqlWasmUrl(ENDPOINTS.sqlWasm);
+    loadBundle(ENDPOINTS.bundle, undefined, () => { if (live) setStage("bundle"); })
+      .then((b) => { if (live) setBundle(b); else b.close?.(); })
+      .catch((e: unknown) => { if (live) setFailed(e instanceof Error ? e.message : String(e)); });
+    return () => { live = false; };
+  }, [on]);
+  return { bundle, failed, stage };
+}
 
 export default function App() {
   const scheme = useColorScheme();
   const [theme, setTheme] = useState<ThemeName | null>(null);
-  // The bundle has to arrive before anything can be asked of it. Held as state rather than
-  // faked with an empty source: a source that answers "nothing here" while it loads is
-  // indistinguishable from one that answers "nothing here" because there is nothing.
-  const [bundle, setBundle] = useState<LoadedBundle | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  // Which step we are on. A spinner that says nothing is the same picture whether the app
-  // is working or wedged.
-  const [stage, setStage] = useState("starting");
 
   // Spots live in their own store — a `.spots` file on a phone, browser storage on the
-  // web. Never in the bundle: that is replaced wholesale on every update.
+  // web. Never in the release: that is replaced wholesale on every update.
   const spotStore = useMemo(() => openSpots(), []);
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
@@ -67,17 +78,35 @@ export default function App() {
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
-  useEffect(() => {
-    let live = true;
-    setSqlWasmUrl(SQL_WASM);
-    loadBundle(BUNDLE, undefined, (s) => { if (live) setStage(s); })
-      .then((b) => { if (live) setBundle(b); else b.close?.(); })
-      .catch((e: unknown) => { if (live) setFailed(e instanceof Error ? e.message : String(e)); });
-    return () => { live = false; };
-  }, []);
   const feed = useMemo(() => httpFeed(FEED), []);
-  const source = useMemo(
-    () => (bundle ? makeBundleSource(bundle, { feed }) : null), [bundle, feed]);
+
+  // THE RELEASE: manifest → (native: install / update) → paint, then the Shell
+  const boot = useReleaseBoot(useMemo(() => (RELEASE ? {
+    manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
+  } : null), [feed]));
+  const dev = useDevBundle(!RELEASE);
+
+  const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
+                             tiles: { atlas: string; basemap: string; outside: string } } | null => {
+    if (RELEASE) {
+      if (boot.state !== "ready") return null;
+      const b = boot.booted;
+      return { source: b.source, status: releaseStatus(b.loader),
+               pairing: { kind: "release", manifest: b.manifest, held: b.held },
+               // the mask (and tiles, basemap) from the release's tile folder when it names one, else the dev server's
+               tiles: releaseTiles(b, ENDPOINTS.tiles) };
+    }
+    if (!dev.bundle) return null;
+    const source = makeBundleSource(dev.bundle, { feed });
+    return { source, status: devStatus(source, ENDPOINTS.tiles.atlas),
+             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas }, tiles: ENDPOINTS.tiles };
+  }, [boot, dev.bundle, feed]);
+
+  const failed = RELEASE ? (boot.state === "failed" ? boot.error.message : null) : dev.failed;
+  const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
+  const stage = RELEASE ? (boot.state === "loading" ? boot.stage : "paint") : dev.stage;
+  const progress = boot.state === "loading" ? boot.progress : null;
+
   const name: ThemeName = theme ?? (scheme === "dark" ? "dark" : "light");
   const palette = THEMES[name];
 
@@ -97,19 +126,25 @@ export default function App() {
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,
                        gap: 8 }}>
           <Text style={{ color: palette.closed, fontSize: 16, textAlign: "center" }}>
-            The map data could not be loaded.
+            {INSTALL_WORDS.failed}
           </Text>
+          {firstRunOffline && (
+            <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>
+              {INSTALL_WORDS.firstRunOffline}
+            </Text>
+          )}
           <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>
             {failed}
           </Text>
           <Text style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>
-            Run `pnpm tiles` to serve the bundle.
+            Run `pnpm tiles` to serve the release.
           </Text>
         </View>
-      ) : ready && source ? (
-        <Shell source={source} palette={palette}
+      ) : ready && data ? (
+        <Shell source={data.source} palette={palette}
                theme={name} themeName={name}
-               onTheme={setTheme} tiles={TILES}
+               onTheme={setTheme} tiles={data.tiles}
+               status={data.status} pairing={data.pairing}
                spots={spots}
                fishImages={FISH_IMAGES}
                weather={weather}
@@ -145,13 +180,18 @@ export default function App() {
                  "modified Copernicus Sentinel data 2016), CC BY 4.0",
                ]} />
       ) : (
+        // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <FishSpinner palette={palette} size={110} label={`Loading — ${stage}`} />
+          <FishSpinner palette={palette} size={110} label={startStage(!ready && data ? "fonts" : stage)} />
           <Text style={{ color: palette.sub, fontSize: 13 }}>
-            {stage === "fetching" ? "Downloading the map data…"
-             : stage === "opening" ? "Opening the map data…"
-             : !ready ? "Loading type…" : "Starting…"}
+            {startStage(!ready && data ? "fonts" : stage)}
           </Text>
+          {stage === "install" && progress && (
+            <>
+              <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
+              <Text style={{ color: palette.faint, fontSize: 12 }}>{INSTALL_WORDS.wifi}</Text>
+            </>
+          )}
         </View>
       )}
     </SafeAreaView>

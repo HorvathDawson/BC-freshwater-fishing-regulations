@@ -11,6 +11,14 @@
  */
 const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").replace(/\/$/, "");
 
+/**
+ * WHICH DATA THE APP OPENS (P11): the release (manifest → paint → each file on first need; installed on native), or —
+ * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20 retires it — the development bundle path (`province.sqlite`,
+ * `status_index.bin`, `atlas.meta.json`). Until the human-run tile rebuild writes a tile version folder (P18) the release
+ * names no tiles, so the release path draws the development tiles and colours nothing (the pair cannot be proven).
+ */
+export const DATA_SOURCE: "release" | "bundle" = process.env.EXPO_PUBLIC_DATA_SOURCE === "bundle" ? "bundle" : "release";
+
 export const ENDPOINTS = {
   base: BASE,
   /** The release manifest (app-manifest/2); every release file's url is relative to `${base}/release/`. */
