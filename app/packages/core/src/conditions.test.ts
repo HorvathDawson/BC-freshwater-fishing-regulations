@@ -7,7 +7,8 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  CONDITIONS_WORDS, chartCaption, chartLabel, disagreeNote, donorBecause, donorFacts,
+  CONDITIONS_WORDS, chartCaption, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
+  donorFacts, donorLastReport,
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
@@ -293,5 +294,68 @@ describe("the chart's words", () => {
     expect(CONDITIONS_WORDS.quantity).toEqual({ discharge: "Flow", level: "Level" });
     expect(CONDITIONS_WORDS.span).toEqual({ "72h": "Last 72 hours", year: "This year" });
     expect(CONDITIONS_WORDS.unit).toEqual({ discharge: "m³/s", level: "m" });
+  });
+});
+
+describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)", () => {
+  const VAN = "America/Vancouver";
+  const REF = Date.parse("2026-10-21T05:00:00Z");
+  it("says not reporting when its last report is more than a day old, or unknown", () => {
+    expect(donorReads(row({ percentile: null, observedAt: "2026-10-18T20:30:00-08:00" }), { ref: REF }))
+      .toBe("Not reporting today.");
+    expect(donorReads(row({ percentile: null }), { ref: REF })).toBe("Not reporting today.");
+  });
+  it("does not call a gauge that reported today silent", () => {
+    expect(donorReads(row({ percentile: null, observedAt: "2026-10-20T20:30:00-08:00" }), { ref: REF }))
+      .toBe("Reporting, but its reading cannot be ranked today.");
+    // MUTATION PIN: without the day the answer is for, the old words stand.
+    expect(donorReads(row({ percentile: null, observedAt: "2026-10-20T20:30:00-08:00" })))
+      .toBe("Not reporting today.");
+  });
+  it("a day ahead with no forecast is a missing forecast", () => {
+    expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))
+      .toBe("No forecast for this gauge that far ahead.");
+    expect(donorReads(row({ percentile: 0.2 }), { ref: REF, horizon: 3 }))
+      .toBe("Reads lower than 8 days in 10 at this time of year.");
+  });
+  it("names the last report local and labelled, or says it is not known", () => {
+    expect(donorLastReport("2026-10-18T20:30:00-08:00", VAN)).toBe("Last reported 2026-10-18 at 21:30 PDT.");
+    expect(donorLastReport(null, VAN)).toBe("When it last reported is not known.");
+    expect(donorLastReport("garbage", VAN)).toBe("When it last reported is not known.");
+  });
+  it("says a day-only report (a daily mean) as its own day, never the evening before", () => {
+    expect(donorLastReport("2026-09-25", VAN)).toBe("Last reported on 2026-09-25.");
+    // MUTATION PIN: parsed as an instant it would be 2026-09-24 at 17:00 PDT.
+    expect(donorLastReport("2026-09-25", VAN)).not.toContain("09-24");
+  });
+});
+
+describe("the chart's read-out and controls", () => {
+  const VAN = "America/Vancouver";
+  it("rounds to what a reader reads", () => {
+    expect([1234.5, 123.4, 12.34, 1.234, 0.3349].map(chartFigure)).toEqual(["1235", "123", "12.3", "1.23", "0.33"]);
+  });
+  it("says a reading with its time, unit and the median, whole", () => {
+    expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 4.123, unit: "m³/s",
+                              kind: "reading", daily: false, median: 10.61 }, VAN))
+      .toBe("2026-10-20 at 14:00 PDT · 4.12 m³/s · median 10.6");
+  });
+  it("marks a forecast step as a forecast, and leaves a missing median out", () => {
+    expect(chartReadoutLine({ t: Date.parse("2026-10-22T07:00:00Z"), value: 13.9, unit: "m³/s",
+                              kind: "forecast", daily: false, median: null }, VAN))
+      .toBe("2026-10-22 at 00:00 PDT · 13.9 m³/s forecast");
+  });
+  it("says a daily mean's own calendar day, never the evening before", () => {
+    expect(chartReadoutLine({ t: Date.parse("2026-03-05"), value: 0.335, unit: "m", kind: "reading",
+                              daily: true }, VAN))
+      .toBe("2026-03-05 · 0.34 m");
+  });
+  it("names the zoom controls and the gauge switcher in one table", () => {
+    expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });
+    expect(CONDITIONS_WORDS.chartGauge).toBe("CHART THIS GAUGE");
+    expect(CONDITIONS_WORDS.zoomHint.touch)
+      .toBe("Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.");
+    expect(CONDITIONS_WORDS.zoomHint.pointer)
+      .toBe("Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.");
   });
 });

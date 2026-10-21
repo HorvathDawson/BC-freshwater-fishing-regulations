@@ -11,7 +11,7 @@
  * unusual one — a percentile envelope, a log axis, two year traces, forecast ribbons.
  * Generic chart APIs fight all four.
  */
-import type { Band } from "@app/core";
+import { clampDomain, nearestIndex, type Band, type Domain } from "@app/core";
 
 export interface Box {
   width: number;
@@ -30,6 +30,8 @@ export interface Tick {
   value: number;
   at: number;
   label: string;
+  /** How the label hangs off `at`: an x label at either end of the plot hangs inward, so it is not cut. */
+  anchor?: "start" | "middle" | "end";
 }
 
 export interface Envelope {
@@ -84,7 +86,31 @@ export interface Hydrograph {
   forecast: ForecastShape | null;
   /** True when the y scale is logarithmic — a whole year of flow spans two orders. */
   log: boolean;
+  /**
+   * The chart's whole time extent (record + forecast) and the window on screen, epoch ms. Null when the series
+   * carries no stamps (an index-laid chart cannot zoom).
+   */
+  full: Domain | null;
+  view: Domain | null;
+  /** The plot's rectangle — the data is clipped to it when the window is narrower than the record. */
+  plot: { x: number; y: number; width: number; height: number };
+  /** The sample nearest the asked-for instant (`BuildInput.probe`), placed; null when nothing is near. */
+  probe: Probe | null;
 }
+
+/** A sample under a finger or a pointer — a measurement or a forecast step, never a gap. */
+export interface Probe {
+  x: number;
+  y: number;
+  t: number;
+  value: number;
+  kind: "reading" | "forecast";
+  /** The record's median for that sample's date, where there is a band. */
+  median: number | null;
+}
+
+/** Within this many px of the plot's edge, an x label hangs inward rather than centring off the frame. */
+const EDGE = 24;
 
 const fmt = (v: number): string =>
   v >= 1000 ? `${Math.round(v / 100) / 10}k`
@@ -160,6 +186,15 @@ export interface BuildInput {
   priorYears?: readonly { year: number; values: readonly (number | null)[] }[];
   log?: boolean;
   box?: Box;
+  /** The window of time to draw (zoom). Absent: the whole extent. Ignored without stamps. */
+  domain?: Domain | null;
+  /** An instant to read out (the finger, the pointer). */
+  probe?: number | null;
+  /**
+   * Time ticks for a window. With stamps this replaces `xLabels`' even spread, so a zoomed axis names the days
+   * actually on screen.
+   */
+  ticks?: ((view: Domain) => readonly { t: number; label: string }[]) | null;
 }
 
 /**
@@ -199,25 +234,41 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const fc = ahead.length ? ahead : null;
   const tEnd = fc ? fc[fc.length - 1]!.t : t1;
 
+  // THE WINDOW (zoom). Only a stamped series is laid out on time, so only it can be windowed.
+  const timed = stamps.length === vals.length && vals.length > 1 && stamps.every(Number.isFinite);
+  const full: Domain | null = timed ? { t0, t1: Math.max(tEnd, t0 + 1) } : null;
+  const view: Domain | null = full ? (input.domain ? clampDomain(input.domain, full) : full) : null;
+  const windowed = !!(full && view && (view.t0 > full.t0 || view.t1 < full.t1));
+  /** Does an instant fall in the window? Everything does when the whole extent is on screen. */
+  const seen = (t: number) => !windowed || (t >= view!.t0 && t <= view!.t1);
+  const seenAt = (i: number) => !windowed || seen(stamps[i]!);
+
   let lo = Infinity;
   let hi = -Infinity;
-  for (const v of vals) if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  // A ZOOMED CHART SCALES TO WHAT IS ON SCREEN: a fortnight of summer low water under the whole freshet's axis is
+  // a flat line, which is what the reader zoomed in to get away from.
+  vals.forEach((v, i) => {
+    if (v !== null && Number.isFinite(v) && seenAt(i)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  });
   // THE FORECAST IS INSIDE THE SCALE. A flood outlook that runs off the top of the frame is
   // the one case where the chart most needs to be readable, and clipping it would show a
   // line leaving the picture with no indication of where it was going.
-  for (const p of fc ?? [])
+  for (const p of (fc ?? []).filter((q) => seen(q.t)))
     for (const v of [p.lo, p.mid, p.hi])
       if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
-  if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)) {
+  const nowI = input.nowIndex ?? vals.length - 1;
+  if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)
+      && (nowI < 0 || nowI >= vals.length || seenAt(nowI))) {
     lo = Math.min(lo, input.nowValue); hi = Math.max(hi, input.nowValue);
   }
   // Earlier years scale the axis too. A previous year that ran twice as high as this one is
   // exactly what the reader is here to see, and clipping it would hide the comparison.
   for (const y of prior)
-    for (const v of y.values)
-      if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
-  for (const b of bands) {
-    if (!b) continue;
+    y.values.forEach((v, i) => {
+      if (v !== null && Number.isFinite(v) && seenAt(i)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    });
+  for (const [i, b] of bands.entries()) {
+    if (!b || (i < vals.length && !seenAt(i))) continue;
     lo = Math.min(lo, b[0]);
     hi = Math.max(hi, b[4]);
   }
@@ -238,8 +289,9 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   // TIME IS THE X AXIS, so an hourly forecast and a daily record land where they belong.
   // Falls back to index when the caller passed no stamps, which keeps every existing chart
   // laid out exactly as it was.
-  const span = Math.max(1, tEnd - t0);
-  const xAt = (t: number): number => padLeft + ((t - t0) / span) * innerW;
+  const v0 = view ? view.t0 : t0;
+  const span = Math.max(1, (view ? view.t1 : tEnd) - v0);
+  const xAt = (t: number): number => padLeft + ((t - v0) / span) * innerW;
   const obsW = tEnd > t1 ? xAt(t1) - padLeft : innerW;
   const x = (i: number): number =>
     stamps.length === vals.length && vals.length > 1
@@ -291,8 +343,10 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const medianPts = trace((b) => b[2]);
   const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, 4);
 
-  const nowIndex = input.nowIndex ?? vals.length - 1;
+  const nowIndex = nowI;
   const nowValue = input.nowValue ?? (nowIndex >= 0 ? vals[nowIndex] ?? null : null);
+  /** Inside the plot, horizontally — a mark off the window is not drawn at its edge. */
+  const onPlot = (px: number) => px >= padLeft - 0.5 && px <= width - padRight + 0.5;
 
   /**
    * The forecast, drawn as the model published it.
@@ -334,20 +388,55 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     yTicks: yValues.map((v) => ({ value: v, at: y(v), label: fmt(v) })),
     // Spread across the WHOLE frame when a forecast extends it, so the last label is not
     // stranded halfway with a third of the chart unlabelled to its right.
-    xTicks: input.xLabels.map((label, i) => ({
-      value: i,
-      at: padLeft + (input.xLabels.length > 1
-        ? (i / (input.xLabels.length - 1)) * innerW : 0),
-      label,
-    })),
-    now: nowValue !== null ? { x: x(nowIndex), y: y(nowValue) } : null,
+    xTicks: view && input.ticks
+      ? input.ticks(view).map((k, i) => {
+          const at = xAt(k.t);
+          const anchor = at <= padLeft + EDGE ? "start" as const
+            : at >= width - padRight - EDGE ? "end" as const : "middle" as const;
+          return { value: i, at, label: k.label, anchor };
+        }).filter((k) => onPlot(k.at))
+      : input.xLabels.map((label, i) => ({
+          value: i,
+          at: padLeft + (input.xLabels.length > 1
+            ? (i / (input.xLabels.length - 1)) * innerW : 0),
+          label,
+        })),
+    now: nowValue !== null && onPlot(x(nowIndex)) ? { x: x(nowIndex), y: y(nowValue) } : null,
     priorYears,
     // TODAY IS A RULE OF ITS OWN, drawn whether or not a forecast follows it. On the
     // seasonal chart the record simply stops there and the rest of the frame is band —
     // without the rule a reader cannot tell where the measuring ended and the season's
     // shape took over.
-    todayX: nowIndex >= 0 && nowIndex < vals.length ? x(nowIndex) : null,
+    todayX: nowIndex >= 0 && nowIndex < vals.length && onPlot(x(nowIndex)) ? x(nowIndex) : null,
     forecast,
     log,
+    full,
+    view,
+    plot: { x: padLeft, y: padTop, width: innerW, height: innerH },
+    probe: probeOf(),
   };
+
+  /**
+   * THE SAMPLE UNDER THE FINGER: the nearest measurement or forecast step to the asked-for instant, within a
+   * twentieth of the window — a finger over a gap reads nothing rather than the far side of it.
+   */
+  function probeOf(): Probe | null {
+    const t = input.probe;
+    if (t == null || !Number.isFinite(t) || !view) return null;
+    const near = (view.t1 - view.t0) / 20;
+    const i = nearestIndex(stamps, t, (k) => vals[k] != null && Number.isFinite(vals[k]!) && seenAt(k), near);
+    // Inside the forecast's own span its sparse steps are each the nearest thing to read: no gap rule there.
+    const inFc = !!fc && t >= fc[0]!.t && t <= fc[fc.length - 1]!.t;
+    const fi = fc ? nearestIndex(fc.map((p) => p.t), t, (k) => seen(fc[k]!.t), inFc ? Infinity : near) : -1;
+    const di = i >= 0 ? Math.abs(stamps[i]! - t) : Infinity;
+    const df = fi >= 0 ? Math.abs(fc![fi]!.t - t) : Infinity;
+    if (di === Infinity && df === Infinity) return null;
+    if (di <= df) {
+      const v = vals[i]!;
+      const b = bands[i] ?? null;
+      return { x: x(i), y: y(v), t: stamps[i]!, value: v, kind: "reading", median: b ? b[2] : null };
+    }
+    const p = fc![fi]!;
+    return { x: xAt(p.t), y: y(p.mid!), t: p.t, value: p.mid!, kind: "forecast", median: null };
+  }
 }

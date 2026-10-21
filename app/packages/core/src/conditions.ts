@@ -72,7 +72,16 @@ export const CONDITIONS_WORDS = {
   /** The one fold under the donor list (P16): the working's working and the credits. */
   fold: "Notes and sources",
   loadingRecord: "Loading the record",
-  controls: { quantity: "Quantity", span: "Span", model: "Forecast model" },
+  controls: { quantity: "Quantity", span: "Span", model: "Forecast model", gauge: "Gauge" },
+  /** The gauge switcher's kicker, right above the chart it switches (owner 2026-10-21). */
+  chartGauge: "CHART THIS GAUGE",
+  /** The chart's zoom controls (owner 2026-10-21: "look at data better"). */
+  zoom: { in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" },
+  /** How to work the chart, said once under it — touch and pointer each in their own words. */
+  zoomHint: {
+    touch: "Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.",
+    pointer: "Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.",
+  },
   quantity: { discharge: "Flow", level: "Level" },
   span: { "72h": "Last 72 hours", year: "This year" },
   /** The ONE place the app decides what a quantity is measured in. */
@@ -120,6 +129,8 @@ export interface DonorFacts {
   regulated: boolean;
   factors: { share: number; role: number; record: number };
   route?: { path: readonly unknown[]; name?: string | null } | undefined;
+  /** When the station last reported, from the feed's index (ISO), where the feed says. */
+  observedAt?: string | null;
 }
 
 const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream" };
@@ -148,9 +159,37 @@ export function donorWeightLine(r: DonorFacts): string {
   return r.percentile === null ? "not counted today" : `${donorShare(r)} of this estimate`;
 }
 
-/** What the gauge itself reads, in the headline's words. */
-export function donorReads(r: DonorFacts): string {
-  return r.percentile === null ? "Not reporting today." : `Reads ${inTen(r.percentile)}.`;
+const DAY = 86_400_000;
+
+/**
+ * What the gauge itself reads, in the headline's words.
+ *
+ * A gauge with no percentile is not always silent: the feed may hold a reading from today that cannot be ranked (no
+ * record in the quantity asked for). Calling that "not reporting" beside "last reported this evening" contradicts
+ * itself, so with `ref` (the day the answer is for) a report within a day of it is said as what it is. A day ahead
+ * with no forecast is a missing FORECAST, not a quiet gauge.
+ */
+export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
+  if (r.percentile !== null) return `Reads ${inTen(r.percentile)}.`;
+  if (o.horizon) return "No forecast for this gauge that far ahead.";
+  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
+  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY)
+    return "Reporting, but its reading cannot be ranked today.";
+  return "Not reporting today.";
+}
+
+/**
+ * WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), local and labelled like every other time on the screen (P16).
+ * Unknown is said, never left blank: a blank reads as "never".
+ */
+export function donorLastReport(observedAt: string | null | undefined, zone?: string): string {
+  // A DAY WITH NO CLOCK (the feed's daily mean, when nothing finer survives) names that calendar day: parsed as an
+  // instant it is UTC midnight, which a Pacific reader would be told was the evening before.
+  if (observedAt && /^\d{4}-\d{2}-\d{2}$/.test(observedAt) && Number.isFinite(Date.parse(observedAt)))
+    return `Last reported on ${observedAt}.`;
+  const t = observedAt ? Date.parse(observedAt) : NaN;
+  return Number.isFinite(t) ? `Last reported ${localStamp(t, zone)}.`
+    : "When it last reported is not known.";
 }
 
 /** "upstream · drains 120 km² · 2.4× apart · dam-controlled · 2 reaches away". */
@@ -189,6 +228,16 @@ export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean): st
     : `${Math.round(r.weight * 100)} per cent of the answer`;
   const base = `${r.station}, ${ROLE[r.role]}, ${sizeApart(r.areaRatio)}, ${said}`;
   return pickable ? `${base}. ${on ? "Showing" : "Show"} this gauge's chart` : base;
+}
+
+/**
+ * A choice in the chart's gauge switcher, for a screen reader: "Chart 08MH016, Chilliwack River at outlet of
+ * Chilliwack Lake, 35% of this estimate" — "Showing …" for the one on the chart.
+ */
+export function gaugeChoiceLabel(r: DonorFacts, on: boolean): string {
+  const name = r.route?.name ? `, ${r.route.name}` : "";
+  const said = r.percentile === null ? "not counted today" : `${donorShare(r)} of this estimate`;
+  return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${said}`;
 }
 
 const hereName = (r: DonorFacts, atSpot: boolean) =>
@@ -340,6 +389,42 @@ export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
   const t = Date.parse(run.issuedAt);
   const when = Number.isFinite(t) ? ` issued ${localStamp(t, zone)}` : "";
   return `${run.model} run${when} · ${run.horizonDays}-day outlook`;
+}
+
+/* ------------------------------------------------------------- the read-out ---- */
+
+/** A chart value as a reader reads it: three figures, no false precision. */
+export function chartFigure(v: number): string {
+  const a = Math.abs(v);
+  if (a >= 100) return String(Math.round(v));
+  if (a >= 10) return String(Math.round(v * 10) / 10);
+  return String(Math.round(v * 100) / 100);
+}
+
+export interface ReadoutFacts {
+  /** The sample's instant (epoch ms). */
+  t: number;
+  value: number;
+  unit: string;
+  /** A measurement, or a model's forecast — never said the same way. */
+  kind: "reading" | "forecast";
+  /** A daily series names the day only; an hourly one the minute. */
+  daily: boolean;
+  /** The record's median for that date, where the chart has a band. */
+  median?: number | null;
+}
+
+/**
+ * THE VALUE UNDER THE FINGER: "2026-10-20 at 14:00 PDT · 4.12 m³/s · median 10.6", or for a forecast step
+ * "… · 4.12 m³/s forecast". Local and labelled (P16); a daily mean says its day and no clock.
+ */
+export function chartReadoutLine(f: ReadoutFacts, zone?: string): string {
+  // A DAILY SAMPLE NAMES A CALENDAR DAY, stamped "YYYY-MM-DD" (UTC midnight): it is said as that day, never pushed
+  // into the evening before by a time zone.
+  const when = f.daily ? new Date(f.t).toISOString().slice(0, 10) : localStamp(f.t, zone);
+  const what = `${chartFigure(f.value)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
+  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${chartFigure(f.median)}` : "";
+  return `${when} · ${what}${norm}`;
 }
 
 /** The forecast's label on the chart. */

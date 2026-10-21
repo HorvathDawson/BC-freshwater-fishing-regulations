@@ -11,7 +11,7 @@ import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
 import { useWaterName } from "@app/ui";
-import { ConditionsPanel } from "./ConditionsPanel";
+import { CONDITIONS_MAX, ConditionsPanel } from "./ConditionsPanel";
 import { FaceBar } from "./Faces";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
@@ -51,7 +51,9 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, gap: SPACE.s2 }}>
+      {/* The header shares the panel's measure, so on a desktop the title sits over the content's own left edge. */}
+      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, gap: SPACE.s2,
+                     width: "100%", maxWidth: CONDITIONS_MAX, alignSelf: "center" }}>
         <FaceBar palette={palette} face="conditions" onBack={onBack} backLabel="Conditions"
                  onFace={(f) => { if (f === "regulations") onRegulations?.(section); }} />
         {/* Rendered only once it is known. A placeholder here would be a title that

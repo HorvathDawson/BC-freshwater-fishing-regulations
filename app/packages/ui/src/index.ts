@@ -14,6 +14,7 @@ export * from "./async";
 export * from "./hooks";
 export * from "./panel";
 export * from "./hydrograph";
+export * from "./chart";
 export * from "./sprite";
 export * from "./search";
 export * from "./spots";

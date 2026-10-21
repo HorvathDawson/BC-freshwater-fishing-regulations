@@ -42,6 +42,11 @@ export interface DonorRow {
   factors: { share: number; role: number; record: number };
   /** Where it is and how the water reaches it. Absent until `usePanelRoutes` resolves. */
   route?: PanelRoute;
+  /**
+   * When the station last reported, as the feed's index says (ISO). Absent where the index does not carry the
+   * station: a quiet gauge then says its last report is not known rather than inventing one (owner 2026-10-21).
+   */
+  observedAt?: string;
 }
 
 export interface PanelAnswer {
@@ -93,6 +98,8 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           discharge?: number | null;
                                           level?: number | null;
                                           parameter?: "discharge" | "level";
+                                          /** The station's last observation (ISO), from the feed. */
+                                          observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
                                           ahead?: Ahead }> } | null;
 
@@ -181,7 +188,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
                years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
-               factors: f, _w: w });
+               factors: f, _w: w,
+               ...(row?.observedAt ? { observedAt: row.observedAt } : {}) });
     if (own !== null && panel.areaKm2)
       contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
                            years: m.years, sameRiver: m.sameRiver });

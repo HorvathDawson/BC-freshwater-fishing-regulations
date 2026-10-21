@@ -163,6 +163,29 @@ export interface GaugeFeed {
   index(): Promise<IndexFile | null>;
   /** Whether the feed actually carries this station — see the note on the implementation. */
   published(station: string): Promise<boolean>;
+  /**
+   * When the station last reported (ISO instant, or a bare "YYYY-MM-DD" when only a daily mean survives), from its own
+   * file — read EVEN WHEN THE INDEX HAS DROPPED IT, because a dropped station is exactly the quiet one whose last report
+   * the reader asked for (owner 2026-10-21). Null when there is no file or nothing in it.
+   */
+  lastReport(station: StationId): Promise<string | null>;
+}
+
+type Row = readonly [string, number | null, number | null];
+
+/**
+ * THE LAST REPORT IN A STATION FILE: its reading's own time (`now.at`), else the last recent row that holds a value,
+ * else the last daily mean's day. Pure, so the order is pinned in a test rather than spelled in a fetch.
+ */
+export function lastReportAt(f: { now?: { at?: string | null } | null; recent?: readonly Row[] | null;
+                                  daily?: readonly Row[] | null } | null | undefined): string | null {
+  if (!f) return null;
+  if (f.now?.at && Number.isFinite(Date.parse(f.now.at))) return f.now.at;
+  const has = (r: Row) => r[1] != null || r[2] != null;
+  const rec = [...(f.recent ?? [])].reverse().find(has);
+  if (rec) return rec[0];
+  const day = [...(f.daily ?? [])].reverse().find(has);
+  return day ? day[0] : null;
 }
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFeed {
@@ -205,6 +228,10 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
 
   return {
     index: () => load<IndexFile>("index.json"),
+
+    async lastReport(station) {
+      return lastReportAt(await load<StationFile>(`${station}.json`));
+    },
 
     async live() {
       const idx = await load<IndexFile>("index.json");

@@ -12,17 +12,17 @@
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { useConditionsView, useGaugeParameters, useHydrograph, useSeries,
-         type Horizon, type PanelFeed } from "@app/ui";
+import { useChartView, useConditionsView, useGaugeParameters, useSeries,
+         type GaugeChoiceVM, type Horizon, type PanelFeed } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
-import { DonorPanel, Kicker } from "./DonorPanel";
+import { DonorPanel, donorTone, Kicker } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { TYPE } from "./type";
@@ -32,6 +32,9 @@ import { GUTTER, SPACE, type Palette } from "./theme";
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
 
 export type Span = ChartSpan;
+
+/** The Conditions view's widest measure (desktop), content and header alike. */
+export const CONDITIONS_MAX = 1280;
 
 const W = CONDITIONS_WORDS;
 
@@ -85,10 +88,17 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const shown: Parameter = param ?? vm.reading?.quantity ?? "level";
   // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
   const [model, setModel] = useState<string | null>(null);
-  const chart = useHydrograph(source, station, span, param, model ?? undefined);
+  // THE CHART IS BUILT FOR THE WIDTH IT IS DRAWN AT (owner 2026-10-21: "the plot doesnt scale to fill page"):
+  // measured here, the paths are made for exactly that box and the labels stay label-sized.
+  const [chartW, setChartW] = useState(0);
+  const measure = (e: LayoutChangeEvent) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0 && w !== chartW) setChartW(w);
+  };
+  const chart = useChartView(source, station, span, param, model ?? undefined, chartW);
   const series = useSeries(source, station, span, param, model ?? undefined);
   const tint = colour ?? palette.live;
-  const forecast = chart.state === "ready" ? chart.value?.forecast : null;
+  const forecast = chart.state === "ready" ? chart.value?.shape.forecast : null;
   const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
   const run = (series.state === "ready" ? series.value?.forecast : null) ?? null;
   // The Centre's disclaimer, verbatim, while its forecast is drawn (the same condition the chart draws it under).
@@ -109,9 +119,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * could not answer (`vm.trace` is null otherwise). They used to stack under the donor
    * list as two more answer-shaped blocks; here they are the working under the answer.
    */
-  const detail = (
-    <>
-      {reading ? (
+  const readingRows = reading ? (
         <View style={{ gap: SPACE.s1 }}>
           {/* WHOSE READING THIS IS, before the number rather than under it. */}
           <Kicker palette={palette}>{reading.heading}</Kicker>
@@ -128,17 +136,30 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.standing}</Text>
           <Text style={{ ...TYPE.meta, color: palette.faint }}>{reading.age}</Text>
         </View>
-      ) : (
-        <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>
-      )}
+  ) : null;
+
+  /*
+   * THE DETAIL ROWS where no gauge reading leads the chart: the refusal, and the single-station trace where the panel
+   * could not answer. A reading, when there is one, sits in the chart block instead — under the switch that picks its
+   * gauge and over the plot of the same gauge (owner 2026-10-21).
+   */
+  const detail = !reading || vm.trace ? (
+    <>
+      {!reading && <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>}
       {vm.trace && (
         <GaugeTrace trace={vm.trace} palette={palette} at={tiles} theme={theme} from={from} />
       )}
     </>
-  );
+  ) : undefined;
 
+  const view = chart.state === "ready" ? chart.value : null;
   const graph = station ? (
-    <View style={{ gap: SPACE.s3 }}>
+    <View style={{ gap: SPACE.s3 }} onLayout={measure}>
+      {/* WHICH GAUGE, RIGHT BY THE PLOT IT CONTROLS (owner 2026-10-21): it was the donor list, a screen below. */}
+      {vm.gauges.length > 0 && (
+        <GaugeSwitch palette={palette} gauges={vm.gauges} onPick={(s) => vm.select(s as never)} />
+      )}
+      {readingRows}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
         <ChartControls<Parameter> palette={palette} value={shown}
                                   label={W.controls.quantity} onPick={pick}
@@ -160,14 +181,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
         </View>
       )}
-      {chart.state === "ready" && chart.value && (
-        <Hydrograph shape={chart.value} palette={palette} colour={tint}
-                    unit={UNIT[shown]}
+      {view && (
+        <Hydrograph shape={view.shape} palette={palette} colour={tint}
+                    unit={UNIT[shown]} view={view}
                     forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
                     label={chartLabel(span)}
                     caption={chartCaption(span)} />
       )}
-      {chart.state === "ready" && !chart.value && (
+      {chart.state === "ready" && !view && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
       )}
       {/* WHEN the run was made, beside what it says — local and labelled (core). */}
@@ -200,10 +221,45 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     </>
   );
 
+  // ONE MEASURE ON A DESKTOP: the content stops at `CONDITIONS_MAX` and centres, so a 2,560 px window is not one
+  // line of text across the whole screen. The donor panel goes to two columns inside it (`WIDE_PANEL`).
   return scroll
     ? <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3,
-                                           paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 }}>
+                                           paddingBottom: SPACE.s4 * 3, gap: SPACE.s4,
+                                           width: "100%", maxWidth: CONDITIONS_MAX, alignSelf: "center" }}>
         {body}
       </ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
+}
+
+/**
+ * THE GAUGE SWITCH: one chip per donor in the panel's weight order — its pin's colour, its station id and its share of
+ * the estimate — directly above the reading and the plot it changes. Chosen from `vm.gauges` (@app/ui `gaugeChoices`);
+ * a quiet gauge is still chartable (its record is real), and says it counts for nothing today.
+ */
+function GaugeSwitch({ palette, gauges, onPick }: {
+  palette: Palette; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
+}) {
+  return (
+    <View style={{ gap: SPACE.s2 }}>
+      <Kicker palette={palette}>{W.chartGauge}</Kicker>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}
+            accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
+        {gauges.map((g) => (
+          <Pressable key={g.station} onPress={() => onPick(g.station)} accessibilityRole="radio"
+                     aria-checked={g.on} accessibilityLabel={g.label}
+                     style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
+                              paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
+                              borderRadius: palette.r.pill, borderWidth: g.on ? 2 : 1,
+                              borderColor: g.on ? donorTone(palette, g.row, g.quiet) : palette.line2,
+                              backgroundColor: g.on ? palette.tint : palette.card }}>
+            <View style={{ width: 9, height: 9, borderRadius: 5,
+                           backgroundColor: donorTone(palette, g.row, g.quiet) }} />
+            <Text style={{ ...TYPE.figure, color: palette.ink }}>{g.station}</Text>
+            <Text style={{ ...TYPE.metaBold, color: g.quiet ? palette.faint : palette.sub }}>{g.share}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
 }

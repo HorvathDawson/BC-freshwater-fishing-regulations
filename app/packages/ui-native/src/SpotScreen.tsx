@@ -67,6 +67,13 @@ export interface SpotScreenProps {
   photoEdit?: PhotoEdit;
 }
 
+/**
+ * A SPOT READS AS ONE COLUMN AT EVERY WIDTH (owner 2026-10-21: "desktop falls apart"). It is a record — a title, the
+ * water's answer that day, the weather, the notes, the photographs — not a dashboard, so on a desktop it keeps a
+ * reading measure and centres, with its header over the same column. Its donor panel stays one column inside it.
+ */
+const MEASURE = { width: "100%", maxWidth: 760, alignSelf: "center" } as const;
+
 export function SpotScreen(p: SpotScreenProps) {
   const { spot, palette, mode = "view" } = p;
   const editable = mode === "draft" || mode === "edit";
@@ -88,7 +95,7 @@ export function SpotScreen(p: SpotScreenProps) {
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flexDirection: "row", alignItems: "center",
                      justifyContent: "space-between",
-                     paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6 }}>
+                     paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE }}>
         {mode === "edit" ? (
           <Link palette={palette} label="Cancel editing" text="Cancel" onPress={leaveEdit} />
         ) : p.onBack ? (
@@ -126,7 +133,7 @@ export function SpotScreen(p: SpotScreenProps) {
       )}
 
       <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
-                                           paddingBottom: 40 }}>
+                                           paddingBottom: 40, ...MEASURE }}>
         <View style={{ gap: 4 }}>
           {editable && p.onTitle ? (
             <TextInput value={p.title ?? ""} onChangeText={p.onTitle}

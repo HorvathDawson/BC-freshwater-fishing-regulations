@@ -53,6 +53,26 @@ const MAP_H = 210;
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
 const INSET = 9 + SPACE.s2;
 
+/**
+ * THE DESKTOP BREAK (owner 2026-10-21: "desktop falls apart"). At or above this width the panel is two columns — the
+ * answer and its chart on the left, the gauges behind it (map, list, notes) on the right — instead of one phone column
+ * stretched to 1400 px with a donor bar the width of the screen. Below it, nothing changes.
+ */
+export const WIDE_PANEL = 880;
+
+/** The gap between the two columns. */
+const COLUMN_GAP = SPACE.s4 * 2;
+
+/**
+ * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes nothing, and a live tone would
+ * say otherwise; grey is the map's own "nothing to say". One function for the pin, the row, the key and the chart's
+ * gauge switch, so the four are one thing.
+ */
+export function donorTone(palette: Palette, row: number | null, quiet: boolean): string {
+  if (row === null) return palette.accent;
+  return quiet ? palette.quiet : palette.donor[row % palette.donor.length]!;
+}
+
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, data,
                              detail, chart, foot }: {
@@ -95,10 +115,17 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * column, and the camera has to know which axis is the tight one.
    */
   const [mapWidth, setMapWidth] = useState(360);
-  const onLayout = (e: LayoutChangeEvent) => {
+  const onMapLayout = (e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0 && w !== mapWidth) setMapWidth(w);
   };
+  // The panel's own width decides one column or two; the map's column is measured separately (above).
+  const [width, setWidth] = useState(0);
+  const onLayout = (e: LayoutChangeEvent) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0 && w !== width) setWidth(w);
+  };
+  const wide = width >= WIDE_PANEL;
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
                                    size: { width: mapWidth, height: MAP_H },
                                    selected: selected ?? null, pickable: !!onSelect });
@@ -109,7 +136,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
     // stays when the refusal is about the chosen day (`no-forecast`, e.g. +10 past every
     // run), so the reader can step back from it here.
     return (
-      <View style={{ gap: SPACE.s4 }}>
+      <View style={{ gap: SPACE.s4 }} onLayout={onLayout}>
         {onHorizon && vm.horizons && (
           <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />
         )}
@@ -127,17 +154,12 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes
    * nothing, and a live tone would say otherwise; grey is the map's own "nothing to say".
    */
-  const toneOf = (i: number | null) => {
-    if (i === null) return palette.accent;
-    return vm.rows[i]?.quiet ? palette.quiet : palette.donor[i % palette.donor.length]!;
-  };
+  const toneOf = (i: number | null) => donorTone(palette, i, i !== null && !!vm.rows[i]?.quiet);
   const map = vm.map;
   const because = vm.rows.filter((r) => r.because);
 
-  return (
-    // Measured on the ROOT, which renders on the first pass — so the width is known before
-    // the map mounts and the map never has to remount to be framed correctly.
-    <View style={{ gap: SPACE.s4 }} onLayout={onLayout}>
+  const answerSide = (
+    <>
       {/* THE PANEL HEADER: the horizon control, `horizonChips` over the Shell's one state —
           the Conditions map's corner draws the same chips (owner 2026-10-20). Above the
           headline it changes, never under it. */}
@@ -162,8 +184,13 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
 
       {detail && <Block palette={palette}>{detail}</Block>}
       {chart && <Block palette={palette}>{chart}</Block>}
+    </>
+  );
 
-      <Block palette={palette}>
+  const gaugeSide = (
+    <>
+      <Block palette={palette} first={wide}>
+        <View onLayout={onMapLayout} />
         {/* THE MAP WAITS FOR THE ROUTES (`map` is null until they are in): a MapLibre map
             reads its opening camera once, on mount, and a map mounted early stays framed on
             the tap alone. Keyed on the camera for the same reason. */}
@@ -233,6 +260,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
               <Text style={{ ...TYPE.meta, color: palette.ink, marginLeft: INSET }}>
                 {r.reads}
               </Text>
+              {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known. */}
+              {r.lastReport ? (
+                <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>{r.lastReport}</Text>
+              ) : null}
               <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>
                 {r.facts}
               </Text>
@@ -260,6 +291,20 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.explainer}</Text>
         {foot}
       </Fold>
+    </>
+  );
+
+  // Measured on the ROOT, which renders on the first pass. ONE READING ORDER either way: in two columns the left is
+  // read first (header → headline → reading → chart), then the right (donors → the fold).
+  return wide ? (
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: COLUMN_GAP }} onLayout={onLayout}>
+      <View style={{ flex: 3, minWidth: 0, gap: SPACE.s4 }}>{answerSide}</View>
+      <View style={{ flex: 2, minWidth: 0, gap: SPACE.s4 }}>{gaugeSide}</View>
+    </View>
+  ) : (
+    <View style={{ gap: SPACE.s4 }} onLayout={onLayout}>
+      {answerSide}
+      {gaugeSide}
     </View>
   );
 }

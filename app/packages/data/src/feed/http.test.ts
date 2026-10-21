@@ -6,7 +6,7 @@
  * bank turns into an error screen where "we could not check" is the truth.
  */
 import { describe, expect, it, vi } from "vitest";
-import { httpFeed } from "./http";
+import { httpFeed, lastReportAt } from "./http";
 import type { StationId } from "../index";
 
 const S = "08MH001" as StationId;
@@ -171,5 +171,34 @@ describe("feed freshness (P02): no fabricated fetchedAt", () => {
   });
   it("a well-formed fetchedAt is that instant", async () => {
     expect((await withStamp("2026-09-01T12:00:00Z").now(S))!.fetchedAt).toBe(Date.parse("2026-09-01T12:00:00Z"));
+  });
+});
+
+describe("when a quiet gauge last reported (owner 2026-10-21)", () => {
+  it("is the file's own reading time, then its last recent row with a value, then its last daily mean's day", () => {
+    expect(lastReportAt({ now: { at: "2026-09-25T21:35:00-08:00" },
+                          recent: [["2026-09-25T21:30:00-08:00", 3.9, null]] }))
+      .toBe("2026-09-25T21:35:00-08:00");
+    expect(lastReportAt({ now: { at: null },
+                          recent: [["2026-09-25T21:00:00-08:00", 3.9, null],
+                                   ["2026-09-25T21:30:00-08:00", null, null]] }))
+      .toBe("2026-09-25T21:00:00-08:00");
+    expect(lastReportAt({ now: null, recent: [], daily: [["2026-09-24", 1, null], ["2026-09-25", null, null]] }))
+      .toBe("2026-09-24");
+    expect(lastReportAt({})).toBeNull();
+    expect(lastReportAt(null)).toBeNull();
+  });
+
+  it("reads the station's file even when the index has dropped it — a dropped station is the quiet one", async () => {
+    const f = httpFeed("http://x/feeds/gauge", server({
+      "index.json": { fetchedAt: "2026-10-21T05:00:00Z", stations: {} },
+      "08MH001.json": { ...STATION, now: { ...STATION.now, at: "2026-09-25T21:35:00-08:00" } } }));
+    expect(await f.now(S)).toBeNull();
+    expect(await f.lastReport(S)).toBe("2026-09-25T21:35:00-08:00");
+  });
+
+  it("is null, not a failure, when there is no file to ask", async () => {
+    const f = httpFeed("http://x/feeds/gauge", server({ "index.json": { fetchedAt: "x", stations: {} } }));
+    expect(await f.lastReport(S)).toBeNull();
   });
 });

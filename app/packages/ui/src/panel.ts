@@ -13,7 +13,8 @@ import { answerFrom, reading, type BasinMember, type DonorRow, type Horizon, typ
 // `basinStanding`. A second averaging rule here is how a catchment and the river inside it
 // start disagreeing for reasons that are only arithmetic.
 import { basinStanding, type BasinVote } from "@app/core";
-import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel,
+import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel, donorLastReport,
+         gaugeChoiceLabel, donorShare,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
@@ -30,7 +31,45 @@ export type { DonorRow, Horizon, PanelAnswer, Quantity } from "@app/data";
 type Index = Parameters<typeof answerFrom>[1];
 
 /** The live feed as the panel hooks read it: one call for the day's index. */
-export type PanelFeed = { index(): Promise<Index> };
+export type PanelFeed = {
+  index(): Promise<Index>;
+  /** A station's last report from its own file (`GaugeFeed.lastReport`), for a quiet gauge the index has dropped. */
+  lastReport?(station: StationId): Promise<string | null>;
+};
+
+/** The quiet donors whose last report the index does not carry — the ones worth asking their own file about. */
+export function lastReportWanted(rows: readonly DonorRow[]): string[] {
+  return rows.filter((r) => r.percentile === null && !r.observedAt).map((r) => r.station);
+}
+
+/**
+ * THE LAST REPORTS, onto the rows (owner 2026-10-21): only a quiet row with none of its own takes one; the index's word
+ * always stands. Returns the same array when there is nothing to fill.
+ */
+export function withLastReports(rows: readonly DonorRow[], got: ReadonlyMap<string, string | null>): DonorRow[] {
+  const want = new Set(lastReportWanted(rows));
+  if (![...want].some((s) => got.get(s))) return rows as DonorRow[];
+  return rows.map((r) => {
+    const at = want.has(r.station) ? got.get(r.station) : null;
+    return at ? { ...r, observedAt: at } : r;
+  });
+}
+
+/** `withLastReports`, fetched: one file per quiet, index-less donor, through the feed's own cache. */
+export function useLastReports(feed: PanelFeed | undefined, panel: PanelAnswer): PanelAnswer {
+  const want = lastReportWanted(panel.rows);
+  const key = `last:${want.join(",")}`;
+  const got = useAsync(
+    async () => new Map(await Promise.all(
+      want.map(async (s) => [s, (await feed!.lastReport!(s as StationId).catch(() => null)) ?? null] as const))),
+    key, !!feed?.lastReport && want.length > 0);
+  const map = got.state === "ready" ? got.value : null;
+  return useMemo(() => {
+    if (!map) return panel;
+    const rows = withLastReports(panel.rows, map);
+    return rows === panel.rows ? panel : { ...panel, rows };
+  }, [panel, map]);
+}
 
 /*
  * PANELS ARE READ ONCE PER SECTION, EVER.
@@ -325,6 +364,8 @@ export interface DonorRowVM {
   bar: `${number}%`;
   weightLine: string;
   reads: string;
+  /** A quiet gauge's last report, local and labelled — or that it is not known. Null for a reporting gauge. */
+  lastReport: string | null;
   facts: string;
   /** Why it counts what it counts; null for a quiet gauge, which counts nothing. */
   because: string | null;
@@ -416,6 +457,8 @@ export interface DonorViewOptions {
   selected: StationId | null;
   /** Rows are controls (the caller has a chart to steer). */
   pickable: boolean;
+  /** The time zone times are said in — for tests; left out, the device's. */
+  zone?: string;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -469,7 +512,10 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       return {
         station: r.station, name: r.route?.name ?? null, quiet: r.percentile === null, on,
         bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
-        weightLine: donorWeightLine(r), reads: donorReads(r), facts: donorFacts(r),
+        weightLine: donorWeightLine(r),
+        reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
+        lastReport: r.percentile === null ? donorLastReport(r.observedAt, o.zone) : null,
+        facts: donorFacts(r),
         because: r.percentile === null ? null : donorBecause(r),
         label: donorRowLabel(r, o.pickable, on),
       };
@@ -479,6 +525,32 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     disagree: disagreeNote(e),
     explainer: CONDITIONS_WORDS.explainer,
   };
+}
+
+/** One choice in the chart's gauge switcher (owner 2026-10-21: the switch sits by the plot it controls). */
+export interface GaugeChoiceVM {
+  station: string;
+  name: string | null;
+  /** "35%", "<1%" or "quiet" — the same share the donor list and the map's key say. */
+  share: string;
+  quiet: boolean;
+  on: boolean;
+  /** The donor's index, so the switcher's dot is its pin's and its row's colour. */
+  row: number;
+  label: string;
+}
+
+/**
+ * THE GAUGE SWITCHER, beside the chart: every donor in the panel's weight order, the one the chart shows marked. Empty
+ * when there is nothing to switch between (one gauge, or none) — a single option is not a choice.
+ */
+export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null): GaugeChoiceVM[] {
+  if (rows.length < 2) return [];
+  return rows.map((r, i) => {
+    const on = r.station === lead;
+    return { station: r.station, name: r.route?.name ?? null, share: donorShare(r),
+             quiet: r.percentile === null, on, row: i, label: gaugeChoiceLabel(r, on) };
+  });
 }
 
 /** `donorView`, memoised for a component. */
@@ -528,6 +600,8 @@ export interface ConditionsVM {
   noGauge: string;
   /** The single-station trace, only where the panel could not answer. */
   trace: GaugeTrace | null;
+  /** The chart's gauge switcher — see `gaugeChoices`. */
+  gauges: readonly GaugeChoiceVM[];
 }
 
 /**
@@ -544,8 +618,8 @@ export function useConditionsView(
   const { feed, quantity } = opts;
   const conditions = useConditions(source, section);
   const traced = useGaugeTrace(source, section);
-  const panel = usePanelRoutes(source, section,
-                               usePanel(source, feed, section, quantity, horizon));
+  const panel = useLastReports(feed, usePanelRoutes(source, section,
+                                                    usePanel(source, feed, section, quantity, horizon)));
   const chain = useMemo<readonly SectionKey[]>(
     () => [...new Set(panel.rows.flatMap((r) => r.route?.path ?? []))], [panel.rows]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
@@ -596,5 +670,6 @@ export function useConditionsView(
     noGauge: noGaugeSentence(),
     trace: !panel.answer.ok && traced.state === "ready" && traced.value.station
       ? traced.value : null,
+    gauges: gaugeChoices(panel.rows, lead),
   };
 }

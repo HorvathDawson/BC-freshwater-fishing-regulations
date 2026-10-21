@@ -104,10 +104,12 @@ describe("donorView", () => {
     const [a, b] = [v.rows[0]!, v.rows[1]!];
     expect(vm.rows).toEqual([
       { station: "08MH001", name: null, quiet: false, on: false, bar: "60%",
-        weightLine: donorWeightLine(a), reads: donorReads(a), facts: donorFacts(a),
+        weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a),
         because: donorBecause(a), label: donorRowLabel(a, true, false) },
+      // A quiet gauge says when it last reported — here the feed did not say (owner 2026-10-21).
       { station: "08MH024", name: null, quiet: true, on: true, bar: "1%",
-        weightLine: donorWeightLine(b), reads: donorReads(b), facts: donorFacts(b),
+        weightLine: donorWeightLine(b), reads: "Not reporting today.",
+        lastReport: "When it last reported is not known.", facts: donorFacts(b),
         because: null, label: donorRowLabel(b, true, true) },
     ]);
     expect(vm.regulated).not.toBeNull();

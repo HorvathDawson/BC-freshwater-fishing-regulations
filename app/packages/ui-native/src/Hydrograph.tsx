@@ -4,25 +4,51 @@
  * Every number here arrived from `@app/ui`'s `buildHydrograph`. That is what makes the
  * desktop chart free: it is a different renderer over identical arithmetic, so the two
  * cannot disagree about what the water did.
+ *
+ * ZOOMABLE AND READABLE (owner 2026-10-21: "look at data better"). Given a `ChartView`'s actions (`view`), the plot
+ * takes a pinch or a mouse wheel to zoom where it is, a drag to move along a zoomed window, a tap or a hover to read
+ * the value under it, and a double-tap to see the whole chart again — with − / + / "Whole chart" buttons beside the
+ * read-out for anyone who does not gesture. The recognisers only MEASURE: what a zoom, a pan and a nearest sample are
+ * is core's (`chartZoom.ts`), the state is @app/ui's (`useChartView`), and the words are core's.
  */
-import type { Hydrograph as Shape } from "@app/ui";
-import { Text, View } from "react-native";
-import Svg, { G, Line, Path, Circle, Text as SvgText } from "react-native-svg";
+import { useId, useMemo, useRef } from "react";
+import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
+import type { ChartView, Hydrograph as Shape } from "@app/ui";
+import { Pressable, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import { chartPointer, useChartHover, useChartWheel } from "./chartInput";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { SPACE, type Palette } from "./theme";
+
+/** The axis labels' size: the chart is built at the width it is drawn, so a label is drawn at its own size. */
+const TICK = 11;
+
+/** What the chart can be asked to do: `useChartView`'s actions, its read-out, and whether it is zoomed. */
+export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "panBy"
+                                | "probeAt">;
 
 export function Hydrograph({ shape, palette, colour, label, caption, unit,
-                             forecastLabel }:
+                             forecastLabel, view }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
     /** What this chart is actually showing. Never a fixed sentence — see below. */
     caption?: string; unit?: string;
     /** e.g. "ELF · 30 days" — which model is drawing the dashes. */
-    forecastLabel?: string }) {
+    forecastLabel?: string;
+    /** Present, the chart zooms, pans and reads out; absent, it is a picture. */
+    view?: ChartActions }) {
   const { box } = shape;
-  return (
-    <View accessibilityRole="image"
-          accessibilityLabel={label ?? "River flow against its normal range"}>
+  const clip = `plot${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const windowed = !!view?.zoomed;
+  const readout = view?.readout ?? null;
+  const svg = (
       <Svg width="100%" height={box.height} viewBox={`0 0 ${box.width} ${box.height}`}>
+        {/* THE PLOT'S RECTANGLE: a zoomed window's lines run on past its edges and are cut there. */}
+        <Defs>
+          <ClipPath id={clip}>
+            <Rect x={shape.plot.x} y={0} width={shape.plot.width} height={box.height} />
+          </ClipPath>
+        </Defs>
         {/* gridlines first, so nothing draws on top of the data */}
         <G>
           {shape.yTicks.map((t) => (
@@ -31,6 +57,7 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
                   stroke={palette.line} strokeWidth={1} />
           ))}
         </G>
+        <G clipPath={windowed ? `url(#${clip})` : undefined}>
         {/* widest envelope first: min-max, then 10th-90th, then the middle half */}
         {shape.envelopes.map((e, i) => (
           <Path key={`e${i}`} d={e.d} fill={palette.ink}
@@ -65,7 +92,7 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
                   x2={shape.todayX} y2={box.height - box.padBottom}
                   stroke={palette.sub} strokeWidth={1} strokeDasharray="2,3" />
             <SvgText x={shape.todayX + 3} y={box.padTop + 8}
-                     fontSize={8.5} fill={palette.faint}>TODAY</SvgText>
+                     fontSize={TICK - 1} fill={palette.faint}>TODAY</SvgText>
           </G>
         )}
         {shape.forecast && (
@@ -85,21 +112,38 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
           <Circle cx={shape.now.x} cy={shape.now.y} r={4}
                   fill={colour} stroke={palette.card} strokeWidth={2} />
         )}
+        </G>
+        {/* THE READ-OUT'S CROSSHAIR: where the value said above the chart sits. Dashed, as an annotation. */}
+        {readout && (
+          <G>
+            <Line x1={readout.x} y1={box.padTop} x2={readout.x} y2={box.height - box.padBottom}
+                  stroke={palette.ink} strokeOpacity={0.5} strokeWidth={1} strokeDasharray="3,2" />
+            <Circle cx={readout.x} cy={readout.y} r={4.5} fill={palette.card} stroke={palette.ink}
+                    strokeWidth={2} />
+          </G>
+        )}
         <G>
           {shape.yTicks.map((t) => (
             <SvgText key={`y${t.value}`} x={box.padLeft - 6} y={t.at + 3.5}
-                     fontSize={9.5} fill={palette.faint} textAnchor="end">
+                     fontSize={TICK} fill={palette.faint} textAnchor="end">
               {t.label}
             </SvgText>
           ))}
           {shape.xTicks.map((t) => (
             <SvgText key={`x${t.value}`} x={t.at} y={box.height - 7}
-                     fontSize={9.5} fill={palette.faint} textAnchor="middle">
+                     fontSize={TICK} fill={palette.faint} textAnchor={t.anchor ?? "middle"}>
               {t.label}
             </SvgText>
           ))}
         </G>
       </Svg>
+  );
+  return (
+    <View accessibilityRole="image"
+          accessibilityLabel={label ?? "River flow against its normal range"}>
+      {view ? <ZoomBar palette={palette} view={view} /> : null}
+      {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+      {view ? <ZoomHint palette={palette} /> : null}
       {/* A KEY, because four things share one frame and only one of them is a measurement.
           Drawn from the same palette and the same `colour` the paths use, so a swatch
           cannot end up describing a line of a different shade. */}
@@ -145,6 +189,103 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
   );
 }
 
+/** How to work the chart, said whole under the plot (above it, beside the buttons, a phone cut it to "…"). */
+function ZoomHint({ palette }: { palette: Palette }) {
+  const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
+  return <Text style={{ ...TYPE.meta, color: palette.faint, marginTop: SPACE.s1 }}>{hint}</Text>;
+}
+
+/**
+ * THE LINE ABOVE THE PLOT: the value under the finger when one is being read — and the zoom buttons, right where the
+ * eye is. Two lines of room, so reading a value never moves the chart.
+ */
+function ZoomBar({ palette, view }: { palette: Palette; view: ChartActions }) {
+  const W = CONDITIONS_WORDS;
+  const r = view.readout;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, marginBottom: SPACE.s1 }}>
+      <Text numberOfLines={2} accessibilityLiveRegion="polite"
+            style={{ ...TYPE.metaBold, flex: 1, minHeight: 2 * TYPE.meta.lineHeight, color: palette.ink }}>
+        {r ? r.line : ""}
+      </Text>
+      <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
+            accessibilityLabel={W.zoom.group}>
+        <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
+        <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
+        <ZoomButton palette={palette} label={W.zoom.fit} glyph={W.zoom.fit}
+                    onPress={view.zoomed || r ? view.fit : undefined} />
+      </View>
+    </View>
+  );
+}
+
+/** A zoom control. `onPress` omitted means disabled, said to a screen reader (AGENTS 34). */
+function ZoomButton({ palette, label, glyph, onPress }: {
+  palette: Palette; label: string; glyph: string; onPress?: () => void;
+}) {
+  const off = !onPress;
+  return (
+    <Pressable onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
+               aria-disabled={off}
+               style={{ minWidth: 32, height: 32, paddingHorizontal: SPACE.s2, alignItems: "center",
+                        justifyContent: "center", borderRadius: palette.r.pill, borderWidth: 1,
+                        borderColor: palette.line2, backgroundColor: palette.card, opacity: off ? 0.4 : 1 }}>
+      <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{glyph}</Text>
+    </Pressable>
+  );
+}
+
+/**
+ * THE PLOT'S GESTURES. A pinch zooms about its centre; a one-finger (or mouse) drag moves along a ZOOMED window and is
+ * not claimed otherwise, so the page still scrolls and a sideways swipe still reaches whatever owns it; a tap reads
+ * the value under it; a double-tap shows the whole chart; a mouse reads as it moves and its wheel zooms where it
+ * points (both `chartInput.web.ts`). `touchAction` leaves vertical scrolling to the browser.
+ */
+function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number; children: React.ReactNode }) {
+  const ref = useRef<View>(null);
+  // The latest actions, read at event time: the gestures are rebuilt per zoom state, not per render.
+  const live = useRef(view);
+  live.current = view;
+  const wheel = useMemo(() => (x: number, dy: number) => live.current.zoomAt(x, wheelFactor(dy)), []);
+  useChartWheel(ref, wheel, true);
+  // A MOUSE READS AS IT MOVES (the browser's own pointer events: RNGH's Hover never fired under a desktop mouse here).
+  const hover = useMemo(() => (x: number | null) => live.current.probeAt(x === null || x < plotX ? null : x), [plotX]);
+  useChartHover(ref, hover, true);
+  const zoomed = view.zoomed;
+  const gesture = useMemo(() => {
+    let lastScale = 1;
+    let lastX = 0;
+    const pinch = Gesture.Pinch().runOnJS(true)
+      .onStart(() => { lastScale = 1; })
+      .onUpdate((e) => {
+        const f = e.scale / (lastScale || 1);
+        lastScale = e.scale;
+        live.current.zoomAt(e.focalX, f);
+      })
+      .withTestId("chart-pinch");
+    const pan = Gesture.Pan().runOnJS(true).enabled(zoomed).maxPointers(1)
+      .activeOffsetX([-8, 8]).failOffsetY([-12, 12])
+      .onStart(() => { lastX = 0; })
+      .onUpdate((e) => { live.current.panBy(e.translationX - lastX); lastX = e.translationX; })
+      .withTestId("chart-pan");
+    const double = Gesture.Tap().numberOfTaps(2).runOnJS(true)
+      .onEnd((_e, ok) => { if (ok) live.current.fit(); })
+      .withTestId("chart-double-tap");
+    const tap = Gesture.Tap().runOnJS(true)
+      .onEnd((e, ok) => { if (ok && e.x >= plotX) live.current.probeAt(e.x); })
+      .withTestId("chart-tap");
+    return Gesture.Simultaneous(pinch, pan, Gesture.Exclusive(double, tap));
+  }, [zoomed, plotX]);
+  return (
+    // The browser listeners hang on an OUTER view: GestureDetector takes its child's ref for its own handlers, and a ref
+    // shared with it was never set here (the wheel and the mouse read-out did nothing in a browser).
+    <View ref={ref} collapsable={false}>
+      <GestureDetector gesture={gesture} touchAction="pan-y">
+        <View collapsable={false}>{children}</View>
+      </GestureDetector>
+    </View>
+  );
+}
 
 /**
  * One entry in the chart's key.
