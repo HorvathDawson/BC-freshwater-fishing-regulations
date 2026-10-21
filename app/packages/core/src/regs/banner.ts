@@ -8,9 +8,12 @@
  *   per book day: `inp.year.displayByDay`); "unless opened" is the frame's decided `unless_opened`;
  * - the day it reopens is the first day whose stored frame is not "closed" (T13 `nextOpen`, a read);
  * - each closure's words are its stored facts (`describe`, T06) and `facts.unless_opened`; its level is the part's rank.
- * Nothing here decides a closure. `closersAt` only SELECTS which of a day's stored closures to list (those naming the most
- * game fish, and any not wholly inside a longer one — a one-fish closure beside them closes nothing more), and the chain
- * lists each once, in day order.
+ * OPEN PIPELINE NEED (review 2026-10-21, owner rule): `closersAt` picks which of a day's stored `closing` closures "together
+ * cover" the run by species coverage (those naming the most game fish, and any not wholly inside a longer one) — that is
+ * "which closures apply on a day", the pipeline's answer. Listing every stored `closing` instead breaks 15 banner parity
+ * cases (cow0_1010 gains the Province white-sturgeon closure). The display frame must carry a decided `closers`
+ * (RuleIx[], a subset of `closing`, page v36 closersAt's choice) and `closersAt` must only read it; until then this port
+ * stays as page_v36.js:522-524 and is not to be extended. The chain lists each once, in day order.
  *
  * Ports (inventory names @ 7fb6809f): page_v36 closersAt, closedBanner (+ closeTxt), mergedHtml, tidalHtml, waterSegs;
  * prototype buildKeep's "say each sentence once" pass and the closechain rewrite (with its integration-1 fix: a sentence
