@@ -56,9 +56,11 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
     const p = inputs({ partIx: 1, parts: [part("a", "A"), part("b", "B → C", { runs: "the runs" })] });
     expect(partLabels(p)).toEqual({ full: "B → C", short: "B → C" });
   });
-  it("no picker: the map's part — its uncut short label, else its label; none where the map cannot frame it", () => {
+  it("no picker: the part's uncut short label, else its label — whether or not the map can frame it (T16: the slot is empty only when it is the water's name)", () => {
     const one = inputs({ parts: [part("Mouth to source", "Mouth → Source")], choices: [] });
-    expect([partLabels(one, true), partLabels(one, false)]).toEqual([{ full: "Mouth → Source", short: "Mouth → Source" }, null]);
+    expect(partLabels(one)).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
+    for (const canMap of [true, false])
+      expect(headerOf(one, { today, status: "open", canMap }).place).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
     expect(partLabels(inputs({ parts: [part("Mouth to source", "Mouth…")], choices: [] }))).toEqual({ full: "Mouth to source", short: "Mouth to source" });
     expect(partLabels(inputs({ unnamed: true }))).toBeNull();
   });
@@ -86,6 +88,11 @@ describe("headerOf", () => {
     const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", "Kootenay Lake — Lower West Arm")], choices: [] }),
                        { today, status: "open", canMap: true });
     expect([h.place, h.action?.aria]).toEqual([null, "View on map: where these rules apply, Kootenay Lake — Lower West Arm"]);
+  });
+  it("a one-part water the map cannot frame: the label slot is still empty only when the label is the water's name", () => {
+    const h = headerOf(inputs({ name: "Wilkes Creek", parts: [part("Wilkes Creek", "Wilkes Creek")], choices: [] }),
+                       { today, status: "open", canMap: false });
+    expect([h.place, h.action]).toEqual([null, null]);
   });
   it("an unnamed section: the place's name, no label, no action (D11); always the four tabs", () => {
     const h = headerOf(inputs({ unnamed: true }), { today, status: "open", canMap: true });

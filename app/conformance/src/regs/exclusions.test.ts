@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { EXCLUDE, excluded, PINS_ERROR_IDS, TROUT_LINE_IDS } from "./exclusions";
+import { EXCLUDE, excluded, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, TROUT_LINE_IDS } from "./exclusions";
 import { golden, taps } from "./oracles";
 
 const G = golden(), T = taps();
@@ -39,7 +39,7 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$"]);
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$"]);
   });
 });
 
@@ -48,6 +48,16 @@ describe("TROUT_LINE_IDS", () => {
     expect(TROUT_LINE_IDS).toEqual(["x5p1_1010", "x11p1_1010", "x15p8_1010", "x15p5_1010", "x15p13_1010", "x15p4_1010",
                                     "x15p14_1010", "x15p15_1010", "x15p6_1010", "x21p0_1010", "x32p0_1010"]);
     expect(Object.values(G.states).filter((s) => (s.keep as { strip?: unknown } | null)?.strip).length).toBe(133);
+  });
+});
+
+describe("NO_MAP_LABEL_IDS", () => {
+  it("the 22 golden states with no part label and no Map action (the prototype had no water map of the water)", () => {
+    expect(NO_MAP_LABEL_IDS).toEqual(["wilkes_1010", "anderson_1010", "ape_501", "ape_1010", "glenn_501", "glenn_615", "glenn_1010", "hamill_615", "hamill_1010",
+      "iron_720", "iron_1010", "x2p_1010", "x3p_1010", "x4p_1010", "x12p_1010", "x25p_1010", "x26p_1010", "x30p_1010", "x31p_1010",
+      "x34p_1010", "x35p_1010", "x41p_1010"]);
+    expect(excluded("header", "wilkes_1010", "place")?.reason).toMatch(/no water map/);
+    expect(excluded("header", "vedder_1010", "place")).toBeNull();
   });
 });
 

@@ -16,6 +16,14 @@ export const TROUT_LINE_IDS: readonly string[] = Object.entries(golden().states)
   .filter(([, s]) => ((s.keep as { strip?: { line?: { text: string }[] } } | null)?.strip?.line ?? []).some((l) => /^Trout /.test(l.text)))
   .map(([id]) => id);
 
+/** The states whose golden header has no part label because the PROTOTYPE had no water map of the water (place null,
+ *  action not "map"): the prototype's no-picker label is its water map's part name. The app (D1) frames every named part
+ *  from the tiles, so T16's rule applies — the slot is empty only when the label is the water's own name. */
+export const NO_MAP_LABEL_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => { const h = s.header as { place: unknown; action: { kind: string } | null } | null;
+    return !!h && h.place === null && h.action?.kind !== "map"; })
+  .map(([id]) => id);
+
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; reason: string; until?: string }
 
 export const EXCLUDE: readonly Exclusion[] = [
@@ -28,6 +36,9 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "sheets", ids: "*", key: /^rule:/,
     reason: "'Technical detail' fold body (key + fields JSON) is compared by structure, not string: JSON.stringify spacing",
     until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },
+  { block: "header", ids: NO_MAP_LABEL_IDS, key: /^place$/,
+    reason: "the prototype shows no part label where it had no water map of the water; the app frames every named part (D1) and labels it unless the label is the water's name (T16) — the parity asserts that instead",
+    until: "never — prototype map coverage, not a regulation" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
 ];

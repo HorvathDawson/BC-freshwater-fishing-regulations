@@ -41,12 +41,12 @@ export function subtitleOf(inp: RegsInputs): string {
 /**
  * prototype hereLabel (`full`) and shortLabel (`short`). With a part picker: the choice's text is the long label; the full
  * label is the long one when the subtitle says it, else the choice's first part's short label unless the data cut it;
- * the short label is that short one, uncut, else the long. Without a picker the label is the MAP's part (prototype: its
- * water map export's part, `p.short` uncut else `p.name`): the part's short label, uncut, else its label — only where
- * the map can frame the part (`canMap`); a one-part water the map cannot show has no label (wilkes_1010, x31p_1010).
- * Null for an unnamed section or a water with no part facts.
+ * the short label is that short one, uncut, else the long. Without a picker the label is the part's short label, uncut,
+ * else its label (T16: in the app every named part has one — D1 — so the prototype's "no water map, no label" does not
+ * carry over; `headerOf` empties the slot only when the label is the water's own name). Null for an unnamed section or
+ * a water with no part facts.
  */
-export function partLabels(inp: RegsInputs, canMap = true): { full: string; short: string } | null {
+export function partLabels(inp: RegsInputs): { full: string; short: string } | null {
   const it = inp.item;
   if (!it) return null;
   const g = nParts(inp) > 1 ? choiceOf(inp) : null;
@@ -55,7 +55,7 @@ export function partLabels(inp: RegsInputs, canMap = true): { full: string; shor
     return { full: subtitleOf(inp).includes(long) ? long : short || long, short: short || long };
   }
   const p = it.parts[inp.partIx];
-  if (!p || !canMap) return null;
+  if (!p) return null;
   const s = uncut(p.short) || p.label;
   return { full: s, short: s };
 }
@@ -67,7 +67,7 @@ const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown"; canMap: boolean }): HeaderVM {
   const name = inp.item?.name ?? inp.place?.name ?? "";
   const date = fmtDay(inp.day);
-  const lab = partLabels(inp, o.canMap);
+  const lab = partLabels(inp);
   // prototype placeRow: no label slot when the short label is the water's own name; the action's words keep the full one
   const lbl = lab && lab.short !== name ? lab.short : "";
   const full = lab?.full || lbl;

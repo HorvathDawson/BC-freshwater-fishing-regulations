@@ -4,7 +4,9 @@
  * `inputsOf` over the harness's paired store (REGS_STORE_REQUIRED=1 turns a skip into a failure).
  *
  * `status` is the day's as T13's strip reads it (null strip → tidal / outside); `canMap` is the prototype's own fact (its
- * water map export has the water: golden action "map") — the app's D1 answer is T23's. `place.shown` is fitLabel's
+ * water map export has the water: golden action "map") — the app's D1 answer is T23's. `canMap` drives the action only:
+ * the part label never depends on it (T16), so on the 22 one-part states the prototype could not map (golden place null,
+ * no action — exclusions NO_MAP_LABEL_IDS) the app's label is checked against T16's rule, not the golden. `place.shown` is fitLabel's
  * measurement (excluded; T41). Every expected value is the golden's except the ticket's literals.
  */
 import { afterAll, describe, expect, it } from "vitest";
@@ -39,7 +41,14 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
   it.each(ids)("1–2. %s: name, day, date, aria, dot, place (full, short), action, tabs", async (id) => {
     const v = await headerFor(id), g = G.states[id]!.header as GHeader;
     expect(excluded("header", id, "place.shown")).not.toBeNull();
-    expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: v.place,
+    // no water map in the prototype → no label there; the app labels the part unless the label is the water's name (T16)
+    const noMap = excluded("header", id, "place") !== null;
+    if (noMap) {
+      // a one-part water (no choice of parts) the prototype could not map
+      expect([g.place, g.action, ((await inputsOf(id))!.item?.parts.filter(Boolean).length ?? 0) <= 1]).toEqual([null, null, true]);
+      if (v.place) expect([v.place.full, v.place.short !== v.name]).toEqual([v.place.short, true]);
+    }
+    expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap ? null : v.place,
              action: v.action, tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
       .toEqual({ ...g, place: g.place && { full: g.place.full, short: g.place.short } });
     passed++;
@@ -84,9 +93,9 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect([v.place, v.action?.aria]).toEqual([null, "View on map: where these rules apply, Kootenay Lake — Lower West Arm"]);
   });
 
-  it("9. x31p_1010 (tidal): a faint dot, no label", async () => {
+  it("9. x31p_1010 (tidal): a faint dot; its part is labelled — the prototype's null was its missing water map (review fix)", async () => {
     const v = await headerFor("x31p_1010");
-    expect([v.dot, v.place]).toEqual(["faint", null]);
+    expect([v.dot, v.place && v.place.short !== v.name]).toEqual(["faint", true]);
   });
 
   it("2. canMap false: a picker of several choices gives Parts, a one-part water nothing", async () => {
