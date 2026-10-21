@@ -30,7 +30,7 @@ import type { MapRenderer } from "./adapters/contract";
 import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
-import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
          unionBbox, type Bbox } from "@app/core";
 import type { MapHandle } from "./adapters/contract";
 import { hereImage } from "./here-mark";
@@ -253,11 +253,12 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
                           modes) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
-      // The atlas stops at z14 and has nothing below z4; the basemap is clipped to the
-      // province. Past either end there is no data, so the map was drawing ragged tile
-      // edges and bare paper and calling it a view. See CAMERA_BOUNDS.
+      // The atlas has nothing below z4 and the basemap is clipped to the province: past
+      // either there is no data, only ragged tile edges and bare paper. See CAMERA_BOUNDS.
+      // IN, the camera goes past the tiles (z18) and MapLibre overzooms each source from
+      // its own deepest zoom, which the source declares (runtime-style) — CAMERA_MAX_ZOOM.
       minZoom: MIN_ZOOM,
-      maxZoom: MAX_ZOOM,
+      maxZoom: CAMERA_MAX_ZOOM,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
       attributionControl: bare ? false : { compact: true },
       // G1: one gesture policy for both maps — pan, pinch, double-tap and wheel zoom; no rotate, no tilt; a press
@@ -371,7 +372,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     m.on("load", addPill);
     m.once("load", () => styledOnce.add(m));
     map.current = m;
-    const r0 = webRenderer(m as never, MAX_ZOOM);
+    const r0 = webRenderer(m as never, FIT_MAX_ZOOM);
     renderer.current = r0;
     /*
      * EACH TILE COLOURED IN ITS OWN LOAD EVENT (colour-latency AP).

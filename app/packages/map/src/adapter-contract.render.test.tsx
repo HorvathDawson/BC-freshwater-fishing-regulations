@@ -26,8 +26,8 @@ let answer: (layers: readonly string[], phone: boolean) => { id?: unknown }[] = 
 // ---- maplibre-gl, recorded -------------------------------------------------------------------------------------------
 type Handler = (e?: unknown) => void;
 const web: { map: FakeGl | null; opts: Record<string, unknown> | null; rotationOff: boolean;
-             keyboardRotationOff: boolean; tilesIn: boolean } =
-  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true };
+             keyboardRotationOff: boolean; tilesIn: boolean; fitOpts: unknown[] } =
+  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [] };
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
@@ -51,11 +51,13 @@ class FakeGl {
   setPaintProperty() {} setLayoutProperty() {} setLayerZoomRange() {} setFilter() {}
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
+  getCanvas() { return { style: { width: "400px", height: "800px" } }; }
+  resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }
   getZoom() { return 9; }
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { return []; }
-  fitBounds(b: unknown) { log.push(`fit ${JSON.stringify(b)}`); }
+  fitBounds(b: unknown, o?: unknown) { log.push(`fit ${JSON.stringify(b)}`); web.fitOpts.push(o); }
   setFeatureState(t: { source: string; sourceLayer: string; id: unknown }, s: unknown) {
     log.push(`set ${t.source}/${t.sourceLayer} ${fmt(t.id)} ${JSON.stringify(s)}`);
   }
@@ -130,6 +132,7 @@ afterEach(() => {
   log.length = 0;
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
+  web.fitOpts = [];
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false;
 });
 
@@ -250,6 +253,32 @@ describe("web only", () => {
   });
 });
 
+describe("overzoom: the camera past the tiles, every source at its own deepest zoom", () => {
+  it("web: maplibre-gl is constructed with the camera to z18 and each source stopping where its archive stops", () => {
+    render(<WebMap {...base()} />);
+    const o = web.opts!;
+    const sources = (o.style as { sources: Record<string, { maxzoom?: number }> }).sources;
+    expect({ minZoom: o.minZoom, maxZoom: o.maxZoom, maxBounds: o.maxBounds,
+             atlas: sources.atlas?.maxzoom, basemap: sources.basemap?.maxzoom, imagery: sources.imagery?.maxzoom })
+      .toEqual({ minZoom: 4, maxZoom: 18, maxBounds: [[-147.1, 40.2], [-106.1, 68]],
+                 atlas: 14, basemap: 14, imagery: 13 });
+  });
+  it("web: a fit goes no closer than the atlas's z14, though the camera may", async () => {
+    render(<WebMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
+    await waitFor(() => expect(web.fitOpts.length).toBe(1));
+    expect(web.fitOpts).toEqual([{ padding: 48, maxZoom: 14, duration: 450 }]);
+  });
+  it("native: a fit to a pond is widened to what z14 shows — the binding's fitBounds has no maxZoom", async () => {
+    render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("fit"))).toBe(true));
+    const fits = log.filter((l) => l.startsWith("fit"))
+      .map((l) => (JSON.parse(l.slice(4)) as number[]).map((v) => Math.round(v * 1e4) / 1e4));
+    // a 400 x 800 phone less 48 px padding: 304 x 704 px of z14 (0.0130° of longitude, 0.0198° of latitude at 49.2°N),
+    // centred on the pond
+    expect(fits).toEqual([[-121.9565, 49.1901, -121.9435, 49.2099]]);
+  });
+});
+
 describe("the gesture policy reaches each renderer", () => {
   it("web: maplibre-gl is constructed with it, and pinch- and keyboard-rotation are turned off after", () => {
     render(<WebMap {...base()} />);
@@ -278,7 +307,8 @@ describe("native only", () => {
     expect({ promote: "promoteId" in style.sources.atlas, url: style.sources.atlas.url, camera: native.camera })
       .toEqual({
         promote: false, url: "pmtiles://file:///d/atlas.pmtiles",
-        camera: { initialViewState: { center: [-122, 49], zoom: 9 }, minZoom: 4, maxZoom: 14,
+        // OVERZOOM: the camera to z18, four past the tiles (`CAMERA_MAX_ZOOM`)
+        camera: { initialViewState: { center: [-122, 49], zoom: 9 }, minZoom: 4, maxZoom: 18,
                   maxBounds: [-147.1, 40.2, -106.1, 68] },
       });
   });

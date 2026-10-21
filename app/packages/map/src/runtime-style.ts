@@ -16,6 +16,7 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
+import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
 import { paintFor } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
@@ -220,7 +221,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     glyphs: at.glyphs ?? `${at.assets ?? `${PM_ASSETS}/`}fonts/{fontstack}/{range}.pbf`,
     sprite: at.sprite ?? `${at.assets ?? `${PM_ASSETS}/`}sprites/v4/${theme === "dark" ? "dark" : "light"}`,
     sources: {
-      basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, attribution:
+      // EACH SOURCE STOPS WHERE ITS ARCHIVE STOPS, so the camera can go past it (CAMERA_MAX_ZOOM, z18) and MapLibre
+      // overzooms the last real tile instead of asking the archive for tiles it does not hold — a blank map. Stated
+      // rather than left to the archive's header because a style's own `maxzoom` wins over the header's (GL JS
+      // `loadTileJson`), and `tools/overzoom.test.ts` holds both numbers to the archives the pipeline writes.
+      basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, maxzoom: BASEMAP_MAX_ZOOM, attribution:
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
       ...externalRasters(),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
@@ -244,6 +249,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       atlas: {
         type: "vector" as const,
         url: `pmtiles://${at.atlas}`,
+        maxzoom: ATLAS_MAX_ZOOM,
         // Every reach, lake and boundary in this archive is derived from the Province's
         // Freshwater Atlas, and the rules painted over them from the Province's synopsis.
         // Both are open data with an attribution condition, and the map is where they are

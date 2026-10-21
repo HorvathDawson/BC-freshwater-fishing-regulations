@@ -38,7 +38,8 @@ import {
   Camera, GeoJSONSource, Map as MLMap, Marker, VectorSource,
   type CameraRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, padBbox, refineFit, type Bbox, type SectionKey } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, type Bbox,
+         type SectionKey } from "@app/core";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
@@ -210,7 +211,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       const { width, height } = size.current;
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
-      renderer.fitBounds(b, { padding: p, duration: 450 });
+      // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what FIT_MAX_ZOOM shows
+      renderer.fitBounds(fitAtMost(b, FIT_MAX_ZOOM, width, height, p), { padding: p, duration: 450 });
     };
     if (fit.bbox) go(fit.bbox);
     if (!fit.refine) { refine.current = null; return () => { alive = false; }; }
@@ -289,7 +291,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
         // an empty map and a map whose tiles failed look the same: say so
         onDidFailLoadingMap={() => report(new Error("map failed to load"))}
       >
-        <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={MAX_ZOOM}
+        <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
                 maxBounds={MAX_BOUNDS} />
         <VectorSource id="atlas" ref={atlasAttached} />
         <GeoJSONSource id="gauges" data={gaugeData} />

@@ -23,7 +23,43 @@ export const MAGNITUDE_LADDER: readonly (readonly [number, number])[] = [
 ];
 
 export const MIN_ZOOM = 4;
-export const MAX_ZOOM = 14;
+
+/**
+ * THE DEEPEST ZOOM THE ATLAS ARCHIVE HOLDS — the ladder's bottom rung (`MAGNITUDE_LADDER`), and the `maxzoom` the map
+ * gives the atlas SOURCE. Read from the archive's own header (`atlas.pmtiles`: min 4, max 14, 2026-10-21) and from
+ * `pipeline/deliver/tiles/tile-contract.json`; `tools/overzoom.test.ts` holds this to both.
+ *
+ * There used to be one `MAX_ZOOM` here, used for the ladder, the camera and the fit alike. Those are three different
+ * questions, and overzoom (owner 2026-10-21) is exactly where they come apart: the camera goes past the tiles, the
+ * tiles do not. So there is no bare MAX_ZOOM any more — every caller names which ceiling it means.
+ */
+export const ATLAS_MAX_ZOOM = 14;
+
+/** The basemap archive's deepest zoom (`basemap.pmtiles` header; `pipeline/deliver/tiles/basemap.py` MAX_ZOOM). */
+export const BASEMAP_MAX_ZOOM = 14;
+
+/**
+ * HOW FAR THE CAMERA MAY GO — four zooms past the tiles, which MapLibre OVERZOOMS: the z14 tile is drawn magnified
+ * (vector geometry re-tessellated, so lines and labels stay sharp; rasters scaled), no tile past a source's own
+ * `maxzoom` is ever requested. "Keeps the resolution of the lower zoom", as the owner asked.
+ *
+ * WHY 18 AND NOT MapLibre's DEFAULT 22. A z14 tile is 4,096 units across and drawn 512 px wide, so one unit is 1/8 px
+ * at z14 and 2 px at z18: z18 is the last zoom at which the archive's coordinate grid is still finer than a few
+ * pixels (z19 is 4 px steps, z22 32 px). The ground agrees: z18 is about 0.2 m a pixel at 50°N and a phone is ~80 m
+ * across — already finer than the Freshwater Atlas's own 1:20,000 source (~10 m), so a closer camera shows nothing a
+ * reader can use, only the data's corners. The archive is also simplified at its top zoom (`tippe.py`, 10 units ≈
+ * 4 m on the ground): at z18 that is up to 20 px of corner-cutting on a river bend, visible, and the price of going
+ * this close without a tile rebuild.
+ */
+export const CAMERA_MAX_ZOOM = 18;
+
+/**
+ * THE CLOSEST A FIT GOES — a searched water, a highlighted section, a town. The atlas's own deepest zoom: a fit frames
+ * the subject in its country (z14 is a phone ~2.5 km across), and anything closer is the reader's choice to make with a
+ * pinch, not ours to make for a 40 m pond. The web passes it as `fitBounds`'s `maxZoom`; the native binding's
+ * `fitBounds` takes no such option, so the box is widened first (`fitAtMost`).
+ */
+export const FIT_MAX_ZOOM = ATLAS_MAX_ZOOM;
 
 /**
  * Where the camera may go. `[[west, south], [east, north]]`, MapLibre's `maxBounds` shape.
@@ -55,5 +91,35 @@ export const CAMERA_BOUNDS: readonly [readonly [number, number],
 export function zoomForMagnitude(magnitude: number | null | undefined): number {
   const m = magnitude ?? 0;
   for (const [threshold, zoom] of MAGNITUDE_LADDER) if (m >= threshold) return zoom;
-  return MAX_ZOOM;
+  return ATLAS_MAX_ZOOM;
+}
+
+/** Web Mercator, normalised to [0, 1] — the space tiles are cut in (and `panelCamera`'s in trace.ts). */
+const LAT_LIMIT = 85.05112878;
+const mercY = (lat: number) => {
+  const p = (Math.min(LAT_LIMIT, Math.max(-LAT_LIMIT, lat)) * Math.PI) / 180;
+  return (1 - Math.log(Math.tan(p) + 1 / Math.cos(p)) / Math.PI) / 2;
+};
+const mercLat = (y: number) => (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI;
+
+/**
+ * `b` widened about its centre, in Mercator, just enough that fitting it into a `width` x `height` map with `padding`
+ * on every side lands at `maxZoom` and no closer. Unchanged when it already fits at or below it — MapLibre fits the
+ * tighter axis, so one axis wide enough is enough.
+ *
+ * FOR THE NATIVE MAP, whose `fitBounds` has no `maxZoom`: with the camera allowed to z18 (`CAMERA_MAX_ZOOM`), a fit to
+ * a pond would otherwise fill the screen with 40 m of water and nothing around it. An unmeasured map (0 x 0, before
+ * layout) is taken as a 400 x 800 phone rather than as a point, which would fit at every zoom.
+ */
+export function fitAtMost(b: readonly [number, number, number, number], maxZoom: number,
+                          width: number, height: number, padding: number): [number, number, number, number] {
+  const w = Math.max(1, (width || 400) - 2 * padding), h = Math.max(1, (height || 800) - 2 * padding);
+  const world = 512 * 2 ** maxZoom;
+  const needX = w / world, needY = h / world;
+  const x0 = (b[0] + 180) / 360, x1 = (b[2] + 180) / 360;
+  const y0 = mercY(b[3]), y1 = mercY(b[1]);              // y grows southward
+  if (x1 - x0 >= needX || y1 - y0 >= needY) return [b[0], b[1], b[2], b[3]];
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return [(cx - needX / 2) * 360 - 180, mercLat(cy + needY / 2),
+          (cx + needX / 2) * 360 - 180, mercLat(cy - needY / 2)];
 }
