@@ -152,6 +152,8 @@ export const WORDS = Object.freeze({
   SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
   SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
+  // ── T28 pin bar (pins.ts: prototype pinUpdate's form a group line, the total in brackets under the share) ──
+  PIN_OF_TOTAL: (total: string) => `(of ${total})`,
   // ── T18 tree (tree.ts: prototype buildKeep kt, dutyWords, fishBtn) ──
   STEELHEAD_STAMP: "Steelhead stamp ›",
   // prototype stampLine (round UR7): "You need <document ›> <when>" — the document and its when are the store's (rows 31 stamps)

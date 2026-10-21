@@ -1,6 +1,6 @@
 // Re-sync the app port with the prototype: regenerate every port artifact at a ref and say what moved.
 //   node app/design/regs-v11/port/sync.mjs [--ref HEAD|<sha>|WORKTREE]
-// Runs golden.mjs, pinreplay.mjs, tokens.mjs, inventory.mjs, taps.py and then hydrate.mjs into app/design/regs-v11/port/golden/, then prints
+// Runs golden.mjs, pins.mjs, pinreplay.mjs, tokens.mjs, inventory.mjs, taps.py and then hydrate.mjs into app/design/regs-v11/port/golden/, then prints
 //   - the functions whose bodies changed (inventory diff: the tickets that port them need a look),
 //   - per state and per tab, which golden blocks changed (the app tests that will now fail, and why),
 //   - token values that changed (tokens.md / the theme JSON need a look).
@@ -14,6 +14,7 @@ const keep = f => fs.existsSync(path.join(OUT, f)) && fs.copyFileSync(path.join(
 ['golden.json', 'tokens.json', 'inventory.json'].forEach(keep);
 const run = (cmd, a) => execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'] });
 run('node', [path.join(HERE, 'golden.mjs'), '--ref', A.ref]);
+run('node', [path.join(HERE, 'pins.mjs'), '--ref', A.ref]);   // the v38 pin inputs golden.json's pins block lacks (T28)
 run('node', [path.join(HERE, 'pinreplay.mjs')]);
 run('node', [path.join(HERE, 'tokens.mjs'), '--ref', A.ref]);
 if (fs.existsSync(path.join(TMP, 'inventory.json'))) run('node', [path.join(HERE, 'inventory.mjs'), '--ref', A.ref, '--diff', path.join(TMP, 'inventory.json')]);

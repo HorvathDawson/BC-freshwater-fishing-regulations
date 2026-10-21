@@ -202,9 +202,12 @@ export function originOf(ctx: HeadCtx): OriginVM | null {
 
 const lc1w = (t: string): string => (t ? t[0]!.toLowerCase() + t.slice(1) : t);
 
+/** The tier fields shortOf reads: a TreeTier, or form a's headline read as a share (`{ tier: "share", n, says }`, T28). */
+export type ShortTier = Pick<TreeTier, "tier" | "n" | "says">
+  & Partial<Pick<TreeTier, "whose" | "replaces" | "relation" | "over_cm" | "children">>;
 /** prototype shortOf: one tier as one short line, from its own fields and the page's connecting words (the pin bar's,
  *  T28; form b's "↳ 2 of them from streams"). */
-export function shortOf(t: TreeTier): string {
+export function shortOf(t: ShortTier): string {
   const n = t.n, says = t.says || "";
   switch (t.tier) {
     case "total": {
@@ -217,7 +220,7 @@ export function shortOf(t: TreeTier): string {
       return /^Only /.test(says) ? `${n}${WORDS.SHORT_OF_THEM_FROM}${w}` : `${n}${WORDS.SHORT_DAY_FROM}${w}`;
     }
     case "own": {
-      const k = t.children.find((c): c is TreeKind => c.node === "kind" && !!c.folded);
+      const k = (t.children ?? []).find((c): c is TreeKind => c.node === "kind" && !!c.folded);
       const names = k ? / may be (.+?)(?: only —.*)?$/.exec(k.says)?.[1] || "" : "", whose = lc1w(t.whose || "");
       if (t.relation) return `${n}${names ? " " + names : ""}${WORDS.SHORT_DAY_UNDER}${whose}${WORDS.COMMA}${lc1w(t.relation.split(";")[0]!.trim())}`;
       return t.replaces ? `${WORDS.SHORT_PLUS}${n}${names ? " " + names : ""}${WORDS.SHORT_UNDER}${whose}`

@@ -31,6 +31,7 @@ export * from "./tree";
 export * from "./tail";
 export * from "./others";
 export * from "./keep";
+export * from "./pins";
 export * from "./page";
 export * from "./level";
 export * from "./gear";

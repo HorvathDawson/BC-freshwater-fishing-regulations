@@ -316,6 +316,11 @@
      "says": [],
      "tag": null
     },
+    "pinLine": {
+     "cls": "g two",
+     "sub": "(of 5 across Region 5)",
+     "text": "Trout and char · 2 a day from streams"
+    },
     "quiet": null,
     "row": 0,
     "scope": null,

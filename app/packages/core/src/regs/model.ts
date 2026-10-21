@@ -8,6 +8,7 @@
  */
 import type { Line, RuleKey } from "./line";
 import type { SheetKey } from "./sheetKey";
+import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 
@@ -97,6 +98,8 @@ export interface GroupVM {
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
+  /** (T28) the pin bar's group line (pins.ts groupLine over the stored tree root + headline); null: no tree */
+  readonly pinLine: PinLine | null;
   readonly origin: OriginVM | null;         // the .ghd.gsub block
   readonly year: { label: string; says: string } | null;   // the .gyear year window (plainrow.ts yearWindowOf), under the head
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]

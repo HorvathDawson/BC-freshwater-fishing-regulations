@@ -95,7 +95,7 @@ state id and the block path.
 reason fails `exclusions.test.ts`:
 ```ts
 export const EXCLUDE: readonly { block: Block; ids: readonly string[] | "*"; key?: RegExp; reason: string; until?: string }[] = [
-  { block: "pins", ids: PINS_ERROR_IDS /* the 25 states whose golden pins.error is set */, reason: "prototype bug: pinUpdate throws on an article.row.ledger whose row has no group (facts A#25); samples after the throw are missing — the app's pinChain skips such a group. Re-test with the fixed prototype.", until: "prototype fix" },
+  // (T28) no PINS_ERROR entry: v38 has no pinUpdate throw (UI-NOTES v35); only the Kitimat ruling keys pins anchors.N.tiers
   { block: "sheets", ids: "*", key: /^parts$/, reason: "the prototype's parts sheet carries a prototype-only line ('This prototype has no map of this water…'); T36 compares its rows only" },
   { block: "sheets", ids: "*", key: /^rule:/, reason: "'Technical detail' fold body (key + fields JSON) is compared by structure, not string: JSON.stringify spacing" , until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },
   { block: "header", ids: "*", key: /^place\.shown$/, reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
@@ -108,8 +108,8 @@ tag) and is pinned by a core unit test with a hand fixture instead.
 
 **Pre-implementation proofs, also sync-time gates** (both run by `port/sync.mjs`; a failure after a prototype bump means
 the spec's mapping, not the app, must change first):
-- `node app/design/regs-v11/port/pinreplay.mjs` — a pure `pinChain` over golden `pins.anchors` replays every state's
-  samples (134/134 incl. the 25 `pins.error` states up to their throw); T28 transcribes its `pinChain`.
+- `node app/design/regs-v11/port/pinreplay.mjs` — a pure `pinChain` over golden/pins.json's geometry (port/pins.mjs) and
+  golden.json's strings replays every state's samples (134/134 at v38); T28 transcribes its `pinChain`.
 - `.venv/bin/python app/design/regs-v11/port/verify_map.py` — decodes the store the way contracts.md says the app will
   (strip runs, frames, rows → tree, …) and checks it against golden for all 134 states.
 - `node app/design/regs-v11/port/quotes.mjs` — every string a ticket quotes is still in golden (a miss is a stale ticket).

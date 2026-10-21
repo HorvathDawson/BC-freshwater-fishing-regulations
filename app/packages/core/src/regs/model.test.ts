@@ -28,6 +28,7 @@ const page = {
       row: 0, title: "Trout and char", scope: null,
       head: { form: "a", rootTier: "t1", lead: [{ t: "num", s: "2", size: "big" }], leadN: 2, words: [], ofTotal: true,
         whyHere: null, shareOf: null, terms: [], nolimit: false },
+      pinLine: { cls: "g two", text: "Trout and char · 2 a day from streams", sub: "(of 4 across Region 2)" },
       origin: { says: [], tag: null, howtell: true, book: [{ t: "book", printed: 21, pdf: 23 }] }, year: null,
       tree: [{ t: "tier", tier: "size", tid: "t3", kicker: null, line: [], folded: false, relation: null, sub: null, origin: null, band: true, short: "1 over 50 cm",
         children: [{ t: "kind", kind: "Brook trout", species: ["EB"], folded: false, zero: false, says: null,

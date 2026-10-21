@@ -6,10 +6,6 @@
 import type { Block } from "@app/core/regs/testing";
 import { golden } from "./oracles";
 
-/** The states whose golden `pins.error` is set (the prototype's pinUpdate throw, facts.md A#25) — computed at load. */
-export const PINS_ERROR_IDS: readonly string[] = Object.entries(golden().states)
-  .filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
-
 /** The states whose golden keep.strip.line carries a "Trout …" line — the strip part that words a row's STORED year strip
  *  (rows 30 `rows[].year`; compared since T13, no longer excluded). */
 export const TROUT_LINE_IDS: readonly string[] = Object.entries(golden().states)
@@ -128,10 +124,8 @@ export const SET_LINE_NOTE_IDS: readonly string[] = Object.entries(golden().stat
   .map(([id]) => id);
 
 export const EXCLUDE: readonly Exclusion[] = [
-  ...(PINS_ERROR_IDS.length ? [{
-    block: "pins" as const, ids: PINS_ERROR_IDS,
-    reason: "prototype bug: pinUpdate throws on an article.row.ledger whose row has no group (facts A#25); samples after the throw are missing — the app's pinChain skips such a group. Re-test with the fixed prototype.",
-    until: "prototype fix" }] : []),
+  // (T28) no pins entry: the prototype's pinUpdate throw on a group-less article (25 states at v33, facts A#25) is fixed
+  // since UI-NOTES v35 (a group-less row pins nothing, IMPLEMENT-HANDOFF C5) — pins.parity replays every state whole
   { block: "sheets", ids: "*", key: /^parts$/,
     reason: "the prototype's parts sheet carries a prototype-only line ('This prototype has no map of this water…'); T36 compares its rows only" },
   { block: "sheets", ids: "*", key: /^rule:/,
@@ -145,6 +139,9 @@ export const EXCLUDE: readonly Exclusion[] = [
   // (T18/T19) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design
   { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked|lines)$/,
     reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; the group's drawn lines (which contain both) are not compared; never 'fix' the data to match the page",
+    until: "never — a re-synced prototype on the ruled data removes it" },
+  { block: "pins", ids: KITIMAT_RULED_IDS, key: /^anchors\.\d+\.tiers$/,
+    reason: "OWNER RULING 2026-10-21 (a): the Kitimat's stored size tier says 'Only 1 … over 50 cm — 2 if one is a hatchery steelhead' where page v36 dropped the tail, so TierVM.short (shortOf over the STORE's tier) carries '(2 if one is a hatchery steelhead)' and the app's bar is not the golden's on these states. The group line is compared; the golden-string replay (pins.parity B) still covers the geometry; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
   // (T18/T19 review, rows 31 + T21 review) the stamp lines (the store's `stamps`) and the .gyear line are drawn and compared
   ...KEEP_TAB_EXCLUDE,

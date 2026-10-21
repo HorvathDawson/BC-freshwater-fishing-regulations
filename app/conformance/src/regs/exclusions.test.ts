@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
@@ -42,7 +42,7 @@ describe("EXCLUDE", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
+        "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
         "licence 3 ^u16\\|non_resident(_alien)?\\.blocks$", "licence 1 -", "licence 7 ^adult\\|[a-z_]+\\.blocks$"]);
     expect(SET_LINE_NOTE_IDS).toEqual(["x3p_1010", "x12p_1010", "x30p_1010", "x35p_1010"]);
@@ -109,9 +109,14 @@ describe("(T21) the whole Keep tab", () => {
   });
 });
 
-describe("PINS_ERROR_IDS", () => {
-  it("none at golden v38 @ bdda3586: the prototype's pinUpdate throw (25 states at v33, facts A#25) is fixed", () => {
-    expect([G.meta.version, G.meta.sha, PINS_ERROR_IDS]).toEqual(["v38", "bdda3586", []]);
+describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
+  it("no golden state carries the v33 pinUpdate throw at v38 @ bdda3586; no state is dropped, only the Kitimat ruling's tier lines", () => {
+    const errs = Object.entries(G.states).filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
+    expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "bdda3586", []]);
+    expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null)).toEqual([]);
+    expect(excluded("pins", "x14p1_1010", "anchors.0.tiers")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
+    expect(excluded("pins", "x14p1_1010", "anchors.0.groupLine")).toBeNull();
+    expect(excluded("pins", "vedder_1010", "anchors.0.tiers")).toBeNull();
   });
 });
 

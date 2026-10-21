@@ -563,7 +563,7 @@ Line numbers: `regs-v11.html` @ 04765ab5 (v33) and `page_v36.js` (unchanged sinc
 | `keep.otherFish` = the non-trout rows when ≥ 2 and the day is open, else null | 134/134 |
 | tier line text = `TreeTier.says` (+ ⓘ / Rule book runs) | 130/130 tiers |
 | kind sentence starts with `TreeKind.says` (folded kinds draw none) | 273/273 kinds |
-| pin bar = pure `pinChain(anchors, y, viewport)` | 134/134 states, every transition |
+| pin bar = pure `pinChain(anchors, y, viewport, heightOf)` (regs v38 round UR6; geometry from golden/pins.json) | 134/134 states, every transition |
 
 ## 5. Golden comparison rules
 - Compare `plain()` of a VM field to the golden string after `/\s+/g → " "`, trim. Golden text fields AND `lines()` insert one
@@ -573,9 +573,12 @@ Line numbers: `regs-v11.html` @ 04765ab5 (v33) and `page_v36.js` (unchanged sinc
 - Golden `pins.samples[]` are `{y, lines:[{cls, text, sub, big}]}` at 8 px steps over the Keep tab with `pins.anchors` measured
   at scrollTop 0 in the prototype (440×900 window, 390×844 phone frame, fallback fonts — fonts are blocked offline). The
   pinChain unit test feeds the anchors and y, not RN layout.
-- A prototype bug is pinned too: `pinUpdate` throws on 25 states (an `article.row.ledger` whose row has no `group`, e.g.
-  Cowichan part 1 at y=1296). `golden.states[id].pins.error` records it; samples after the throw are missing. The app's
-  `pinChain` must NOT throw (it skips a group without a tree) — those states are excluded from pin parity (T30).
+- (T28, regs v38) round UR6 rewrote `pinUpdate`: a tier's line stays until its section's LAST row (`secEnd`) is within
+  one line + PIN_ROW (12) of the stack's foot, and the stack's height is MEASURED per line (no `nextHead`, no DROP).
+  golden.json's `pins.anchors` lack those inputs, so `port/pins.mjs` records them from the same prototype into
+  `golden/pins.json` (each tier's `end`, each drawn line's height `h`); `pinChain(anchors, y, {header, LH, ROW}, heightOf)`
+  replays 134/134 (conformance pins.parity). The v33 throw on a group-less article is fixed since UI-NOTES v35: such an
+  article pins NOTHING (IMPLEMENT-HANDOFF C5) and no state is excluded.
 
 ## 6. Resolved conflicts
 

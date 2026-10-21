@@ -7,6 +7,13 @@ D2 (a), D12 (a) · Size 1 day
 Target **regs v33 @ 04765ab5**: `pinTops` 1614–1618, `pinUpdate` 1637–1655 (incl. v33 `--pin-h` 1655), `mini` 1656–1664, scroll
 listener 1665, tab press 1904–1905; CSS 756–762 (+ v33 758/760: lines wrap), 854 (20h bar surface), 867 (v33 scroll margins).
 
+> **T28 AS BUILT (regs v38 @ 7fb6809f, overrides the v33 text below):** `pinChain(anchors, y, {header: 0, LH: PIN_LH, ROW:
+> PIN_ROW}, heightOf)` returns `PinLine[]` (no `skip`; `appPinLines` is the identity). A `PinTierAnchor` is `{tid, tier, n,
+> head, end, short}`: `end` = the bottom of the section's LAST kind row or tier head (prototype `secEnd`), `short` =
+> `TierVM.short` WITHOUT "↳ " (pinChain adds it via `tierLine`). There is no `nextHead` and no `PIN_DROP`. `heightOf` is each
+> line's MEASURED height (cache it by `cls|text|sub` from `onLayout`, `pinLineEstimate` until drawn) and re-run pinChain
+> when a height changes (the prototype's up-to-3-pass loop). `tabInView(tops, y, viewportH, contentH, header = 0)`.
+
 ## Goal
 While the reader scrolls the Keep tab, a bar directly under the header carries the chain of sections they are inside —
 "Trout and char · **2** a day from streams" with "(of **4** across Region 2)" under it, then "↳ of those, **1** over 50 cm (2 if one

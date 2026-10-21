@@ -24,6 +24,7 @@ import type { CaveatVM, Day, GroupVM, KeepBlock, KeepVM, PlainRowVM, StripVM } f
 import { otherFishKeyOf, otherFishOf, splitRows } from "./others";
 import type { RegsPlace } from "./place";
 import { isPlainRow, plainRowOf, yearWindowOf, type PlainRowSeams } from "./plainrow";
+import { groupLine } from "./pins";
 import { settleAt, type Settled } from "./settle";
 import { inheritedOf, possessionOf, whereNotOf } from "./standing";
 import { bookIndex, BOOK_DAYS, runOf, stripOf } from "./strip";
@@ -61,8 +62,11 @@ export function plainRowSeams(inp: RegsInputs, fish: FishManifest): PlainRowSeam
  *  stored year) + T18 tree + T19 tail. */
 function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>, seams: PlainRowSeams): GroupVM {
   const ctx = headCtx(rowIx, env.card, inp)!, tenv = treeEnv(ctx, env.fish, drawn, env.tot);
+  const head = groupHeadOf(ctx, { tot: env.tot }), root = ctx.g.tree[0];
   return {
-    row: rowIx, title: ctx.title, scope: ctx.scope, head: groupHeadOf(ctx, { tot: env.tot }), origin: originOf(ctx),
+    row: rowIx, title: ctx.title, scope: ctx.scope, head,
+    pinLine: root ? groupLine(ctx.title, root, ctx.g.headline, head.form === "a") : null,
+    origin: originOf(ctx),
     year: yearWindowOf(ctx.row, inp, env.settled.day, seams),
     tree: treeOf(tenv), notKept: notKeptOf(ctx.g, tenv), worked: workedOf(ctx.row, ctx.g), quiet: quietOf(ctx.row, env.card),
     more: moreOf(rowIx),

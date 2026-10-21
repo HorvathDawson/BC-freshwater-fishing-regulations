@@ -1,0 +1,9887 @@
+{
+ "meta": {
+  "generator": "app/design/regs-v11/port/pins.mjs",
+  "ref": "7fb6809f",
+  "sha": "bdda3586",
+  "version": "v38",
+  "states": 134
+ },
+ "states": {
+  "vedder_515": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1316.73,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1031.05
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1031.05
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 840,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1416,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "vedder_615": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "vedder_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1487.83,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1066.27
+      },
+      {
+       "tid": "t4",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 4,
+       "head": {
+        "top": 1083.27,
+        "height": 105.19
+       },
+       "end": 1298.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 928,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 1088,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1584,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "klwa_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 646.27,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 2 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 744,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "klwa_1012": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 646.27,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 2 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 744,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "cow0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "cow1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "cow2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "cow3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 278.34,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "chw1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1338.27,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1233.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1440,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "chw2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1338.27,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1233.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1440,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "chw0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "klmb_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 786.39,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 518.2
+      }
+     ]
+    },
+    {
+     "row": "r2",
+     "group": false,
+     "tree": false,
+     "name": "Rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 1039.27,
+     "height": 231.94,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 4",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 4",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them (Dolly Varden/bull trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 344,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 4",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 888,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "kluwa_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 646.27,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 2 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 744,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "wilkes_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1227.55,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1131.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1131.23
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 944,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1328,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "anderson_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 4,
+     "top": 240.88,
+     "height": 1192.11,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 4,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 858.58
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 360.45,
+        "height": 41.75
+       },
+       "end": 691.61
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 504,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1288,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "bc1_501": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1275.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 1088.3
+      },
+      {
+       "tid": "t4",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 435.95,
+        "height": 41.75
+       },
+       "end": 752.14
+      },
+      {
+       "tid": "t3",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 761.14,
+        "height": 37.75
+       },
+       "end": 1088.3
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 256,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 87
+    },
+    {
+     "y": 536,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 584,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 cutthroat or rainbow trout in all",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 87
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 896,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1376,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "bc0_501": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1275.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 1088.3
+      },
+      {
+       "tid": "t4",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 435.95,
+        "height": 41.75
+       },
+       "end": 752.14
+      },
+      {
+       "tid": "t3",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 761.14,
+        "height": 37.75
+       },
+       "end": 1088.3
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 256,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 87
+    },
+    {
+     "y": 536,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 584,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 cutthroat or rainbow trout in all",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 87
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 896,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1376,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "bc1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1042.73,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This river’s rule: 1 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1144,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "bc0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1042.73,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This river’s rule: 1 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1144,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "ape_501": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1079.3,
+     "pin": {
+      "top": 240.88,
+      "height": 76.2
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · The Bella Coola River’s rule: 1 a day",
+       "sub": null,
+       "h": 45
+      }
+     ],
+     "height": 46
+    },
+    {
+     "y": 1176,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "ape_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1079.3,
+     "pin": {
+      "top": 240.88,
+      "height": 76.2
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · The Bella Coola River’s rule: 1 a day",
+       "sub": null,
+       "h": 45
+      }
+     ],
+     "height": 46
+    },
+    {
+     "y": 1176,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "glenn_501": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 396.92,
+     "height": 1251.3,
+     "pin": {
+      "top": 396.92,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 576.22,
+        "height": 78.72
+       },
+       "end": 872.19
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 5,
+       "head": {
+        "top": 880.19,
+        "height": 126.03
+       },
+       "end": 1116.69
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 720,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 912,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1504,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "glenn_615": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1251.3,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 78.72
+       },
+       "end": 716.14
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 5,
+       "head": {
+        "top": 724.14,
+        "height": 126.03
+       },
+       "end": 960.64
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 568,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 752,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1352,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "glenn_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1251.3,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 78.72
+       },
+       "end": 716.14
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 5,
+       "head": {
+        "top": 724.14,
+        "height": 126.03
+       },
+       "end": 960.64
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 568,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 752,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1352,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "hamill_615": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1278.08,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 78.72
+       },
+       "end": 716.14
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 5,
+       "head": {
+        "top": 724.14,
+        "height": 126.03
+       },
+       "end": 1124.61
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 568,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 5 a day under the Duncan River’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 920,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1376,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "hamill_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1278.08,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 78.72
+       },
+       "end": 716.14
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 5,
+       "head": {
+        "top": 724.14,
+        "height": 126.03
+       },
+       "end": 1124.61
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 568,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 5 a day under the Duncan River’s rule, not part of the 2 from streams",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 920,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1376,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "iron_720": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 341.77,
+     "height": 1149.58,
+     "pin": {
+      "top": 341.77,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 508.56,
+        "height": 0
+       },
+       "end": 1145.44
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 509.56,
+        "height": 60.5
+       },
+       "end": 978.47
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1503.34,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 224,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 352,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 784,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1352,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "iron_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x2p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 831.55,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 341.23,
+        "height": 41.75
+       },
+       "end": 819.11
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 382.98,
+        "height": 67.5
+       },
+       "end": 560.95
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 8",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 8",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 8",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (rainbow trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 71
+    },
+    {
+     "y": 360,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 8",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 648,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 8",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 928,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x3p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1057.39,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 3,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 592.73
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 601.73,
+        "height": 41.75
+       },
+       "end": 1044.95
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 3 of them (lake trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 416,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 464,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1160,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x4p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r1",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 287.17,
+     "height": 1242.02,
+     "pin": {
+      "top": 287.17,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 387.53,
+        "height": 41.75
+       },
+       "end": 1275.88
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 429.28,
+        "height": 67.5
+       },
+       "end": 1123.19
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 176,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 3",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 3",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 264,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 3",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 71
+    },
+    {
+     "y": 928,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 3",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 1104,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 3",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1392,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x5p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 417.66,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x5p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p8_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 929.2,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 0
+       },
+       "end": 841.89
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1032,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 736.64,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This river’s rule: 1 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 840,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x9p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 736.64,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This river’s rule: 1 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 840,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x10p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x10p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x11p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 417.66,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x11p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x12p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1076.89,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 612.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 621.23,
+        "height": 41.75
+       },
+       "end": 1064.45
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (lake trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 440,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 480,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 888,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1176,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 901.98,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 716.36
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 528,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1000,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 970.73,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 716.36
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 528,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1072,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x13p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x14p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 400.33,
+     "height": 1455.58,
+     "pin": {
+      "top": 400.33,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 499.69,
+        "height": 67.5
+       },
+       "end": 796.66
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 805.66,
+        "height": 41.75
+       },
+       "end": 1274.53
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 288,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 360,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (hatchery steelhead) under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 624,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 664,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 1096,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1712,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x14p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1455.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 637.2
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 646.2,
+        "height": 41.75
+       },
+       "end": 1115.08
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (hatchery steelhead) under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 464,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 504,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 944,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1552,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x14p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1455.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 637.2
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 646.2,
+        "height": 41.75
+       },
+       "end": 1115.08
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (hatchery steelhead) under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 464,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 504,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 944,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1552,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1338.27,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1233.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1440,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p9_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p7_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 386.17,
+     "height": 1221.8,
+     "pin": {
+      "top": 386.17,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 470.75,
+        "height": 64.44
+       },
+       "end": 1082.81
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 544.19,
+        "height": 41.75
+       },
+       "end": 915.84
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 272,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 384,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 728,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1464,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p8_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 193.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 446.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 161.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 414.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p11_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p12_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p13_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 161.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 414.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 161.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 414.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p14_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 161.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 414.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p15_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 161.78,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 414.66,
+     "height": 204.45,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 193.78,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p16_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1049.73,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 716.2
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1152,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1049.73,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 716.2
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1152,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p17_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1049.73,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 716.2
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1152,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p18_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1203.86,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 977.58
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 360.45,
+        "height": 41.75
+       },
+       "end": 810.61
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 616,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1304,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x15p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 938.92,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1040,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p8_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1149.58,
+     "pin": {
+      "top": 240.88,
+      "height": 92.8
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 407.67,
+        "height": 0
+       },
+       "end": 1044.55
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 408.67,
+        "height": 60.5
+       },
+       "end": 877.58
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Char",
+     "formA": false,
+     "headlineN": null,
+     "top": 1402.45,
+     "height": 235.75,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 248,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout · 2 a day from streams",
+       "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1248,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x16p7_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 394.06,
+     "height": 1430.58,
+     "pin": {
+      "top": 394.06,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 695.67,
+        "height": 56.5
+       },
+       "end": 1405.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 552,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1680,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 394.06,
+     "height": 1430.58,
+     "pin": {
+      "top": 394.06,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 695.67,
+        "height": 56.5
+       },
+       "end": 1405.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 552,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1680,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p7_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 394.06,
+     "height": 1430.58,
+     "pin": {
+      "top": 394.06,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 695.67,
+        "height": 56.5
+       },
+       "end": 1405.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 552,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1680,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x17p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 868.48,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 781.17
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 968,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x18p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 711.42,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · Upper Arrow Lake’s rule: 2 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 808,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1430.58,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 542.48,
+        "height": 56.5
+       },
+       "end": 1252.73
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 400,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1064,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1528,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p5_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 415.36,
+     "height": 1430.58,
+     "pin": {
+      "top": 415.36,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 716.97,
+        "height": 56.5
+       },
+       "end": 1427.22
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 304,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 576,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1240,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1704,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p7_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 394.06,
+     "height": 1430.58,
+     "pin": {
+      "top": 394.06,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 695.67,
+        "height": 56.5
+       },
+       "end": 1405.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 552,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1680,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x19p4_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 394.06,
+     "height": 1430.58,
+     "pin": {
+      "top": 394.06,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "count",
+       "n": 1,
+       "head": {
+        "top": 695.67,
+        "height": 56.5
+       },
+       "end": 1405.92
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 280,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 552,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 1216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1680,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x20p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x20p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x20p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x20p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 4,
+     "top": 240.88,
+     "height": 1220.11,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "share",
+       "n": 4,
+       "head": {
+        "top": 359.45,
+        "height": 0
+       },
+       "end": 877.58
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 537.42
+      },
+      {
+       "tid": "t4",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 546.42,
+        "height": 41.75
+       },
+       "end": 877.58
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (rainbow trout) under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 344,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 392,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 688,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 4 a day from streams",
+       "sub": "(of 5 across Region 3)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1320,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x21p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 756.89,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This river’s rule: 1 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 856,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x21p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 844.67,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 420.17,
+        "height": 88.75
+       },
+       "end": 699.33
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 264,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them (brook, brown, cutthroat, lake or rainbow trout) under this river’s rule",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 496,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 944,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x21p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 397.27,
+     "pin": null,
+     "tiers": []
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Dolly Varden/bull trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 650.14,
+     "height": 257.05,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x22p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 881.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone B)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 984,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x22p3_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 881.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone B)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 984,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x22p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 881.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone B)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 984,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x22p6_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 881.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone B)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 984,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x22p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x23p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1251.55,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 937.52
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 41.75
+       },
+       "end": 770.55
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 576,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1352,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x23p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x25p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 4,
+     "top": 240.88,
+     "height": 705.08,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 341.23,
+        "height": 41.75
+       },
+       "end": 692.64
+      }
+     ]
+    },
+    {
+     "row": "r2",
+     "group": true,
+     "tree": true,
+     "name": "Steelhead",
+     "formA": false,
+     "headlineN": 6,
+     "top": 957.95,
+     "height": 658.63,
+     "pin": {
+      "top": 957.95,
+      "height": 77.75
+     },
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 4 a day across Region 2",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 4 a day across Region 2",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 520,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 4 a day across Region 2",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 808,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 840,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Steelhead · This lake’s rule: 6 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1472,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x26p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 907.23,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 341.23,
+        "height": 41.75
+       },
+       "end": 757.61
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 5",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 5",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 584,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 5",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1008,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x27p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1108.45,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 961.33
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 768,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Zone A)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1208,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x27p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 1128.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 981.58
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 6)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 6)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 792,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 6)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1232,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x27p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 1,
+     "top": 240.88,
+     "height": 901.98,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 359.45,
+        "height": 67.5
+       },
+       "end": 716.36
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them under this river’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 528,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 1 a day from streams",
+       "sub": "(of 5 across Region 5)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1000,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x30p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1039.05,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 341.23,
+        "height": 41.75
+       },
+       "end": 1026.61
+      },
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 1,
+       "head": {
+        "top": 382.98,
+        "height": 67.5
+       },
+       "end": 624.14
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 216,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      },
+      {
+       "cls": "c",
+       "text": "↳ 1 of them (lake trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 71
+    },
+    {
+     "y": 424,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 848,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1136,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x31p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x32p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": false,
+     "tree": false,
+     "name": "Brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout",
+     "formA": false,
+     "headlineN": null,
+     "top": 240.88,
+     "height": 417.66,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x32p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 929.2,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 420.17,
+        "height": 0
+       },
+       "end": 841.89
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Region 4)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1032,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x34p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 4,
+     "top": 240.88,
+     "height": 741.86,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 341.23,
+        "height": 41.75
+       },
+       "end": 777.86
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 4 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 4 a day",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 40 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 600,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · This lake’s rule: 4 a day",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 840,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x35p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": false,
+     "headlineN": 5,
+     "top": 240.88,
+     "height": 1076.89,
+     "pin": {
+      "top": 240.88,
+      "height": 57.36
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 340.23,
+        "height": 67.5
+       },
+       "end": 612.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 621.23,
+        "height": 41.75
+       },
+       "end": 1064.45
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (lake trout) under this lake’s rule",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 440,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 480,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 49
+    },
+    {
+     "y": 888,
+     "lines": [
+      {
+       "cls": "g",
+       "text": "Trout and char · 5 a day across Region 6",
+       "sub": null,
+       "h": 26
+      }
+     ],
+     "height": 27
+    },
+    {
+     "y": 1176,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x37p1_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1338.27,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1233.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1440,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x37p2_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 629.05,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "own",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 88.75
+       },
+       "end": 638.61
+      }
+     ]
+    },
+    {
+     "row": "r1",
+     "group": false,
+     "tree": false,
+     "name": "Dolly Varden/bull trout, lake trout and steelhead",
+     "formA": false,
+     "headlineN": null,
+     "top": 881.92,
+     "height": 327.64,
+     "pin": null,
+     "tiers": []
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 200,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ 2 of them (hatchery brook, brown, cutthroat or rainbow trout) under this river’s rule",
+       "sub": null,
+       "h": 38
+      }
+     ],
+     "height": 81
+    },
+    {
+     "y": 432,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 728,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x37p0_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 1338.27,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 325.45,
+        "height": 64.44
+       },
+       "end": 1233.23
+      },
+      {
+       "tid": "t3",
+       "tier": "size",
+       "n": 1,
+       "head": {
+        "top": 398.89,
+        "height": 60.5
+       },
+       "end": 1066.27
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 240,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      },
+      {
+       "cls": "c",
+       "text": "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "sub": null,
+       "h": 22
+      }
+     ],
+     "height": 65
+    },
+    {
+     "y": 872,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 4 across Region 2)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 1440,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  },
+  "x41p_1010": {
+   "error": null,
+   "viewport": {
+    "width": 390,
+    "height": 703,
+    "header": 119,
+    "LH": 26,
+    "ROW": 12
+   },
+   "anchors": [
+    {
+     "row": "r0",
+     "group": true,
+     "tree": true,
+     "name": "Trout and char",
+     "formA": true,
+     "headlineN": 2,
+     "top": 240.88,
+     "height": 881.7,
+     "pin": {
+      "top": 240.88,
+      "height": 76.58
+     },
+     "tiers": [
+      {
+       "tid": "t2",
+       "tier": "share",
+       "n": 2,
+       "head": {
+        "top": 359.45,
+        "height": 78.72
+       },
+       "end": 655.42
+      }
+     ]
+    }
+   ],
+   "samples": [
+    {
+     "y": 0,
+     "lines": [],
+     "height": 0
+    },
+    {
+     "y": 128,
+     "lines": [
+      {
+       "cls": "g two",
+       "text": "Trout and char · 2 a day from streams",
+       "sub": "(of 5 across Zone B)",
+       "h": 42
+      }
+     ],
+     "height": 43
+    },
+    {
+     "y": 984,
+     "lines": [],
+     "height": 0
+    }
+   ]
+  }
+ }
+}
