@@ -320,3 +320,29 @@ def test_the_check_fails_when_the_lift_is_mutated(request, tmp_path, monkeypatch
     with pytest.raises(AssertionError) as got:
         _check_text_decided(data, mutated)
     assert str(got.value).splitlines()[0] == first_wrong, str(got.value)[:400]
+
+
+
+#: Region 6 "No fishing: in all rivers and streams for steelhead, May 15-June 15" (printed p.49) is a ST_CLOSURE_NAME,
+#: and r5's lift of the quota cap must never reopen it: on May 20 both origins are closed by it, and the row's
+#: own quota (r5) is moot under it; on June 20 (the closure over) hatchery steelhead are keep 2 by r5 again.
+MAY20, JUN20 = (5, 20), (6, 20)
+ST_CLOSURE_NAME = "z6 steelhead_stream_closure.r1"
+R5_NAME = "r6 kitimat_river.r5"
+
+
+def _head(a):
+    return {k: a[k] for k in ("status", "win", "daily")}
+
+
+@pytest.mark.needs_bundle
+def test_r5s_lift_never_reopens_region_6s_may_15_june_15_steelhead_closure(shipped):
+    data, model = shipped
+    hatch, wild = (_answer(data, model, MAY20, "ST", o) for o in ("hatchery", "wild"))
+    assert _head(hatch) == {"status": "closed", "win": ST_CLOSURE_NAME, "daily": None}
+    assert _head(wild) == {"status": "closed", "win": ST_CLOSURE_NAME, "daily": None}
+    assert [[x, r, by] for x, r, by in hatch["roles"] if x == R5_NAME] == [[R5_NAME, "moot", ST_CLOSURE_NAME]]
+    assert [[x, r, by] for x, r, by in hatch["roles"] if x == ST_CLOSURE_NAME] == [[ST_CLOSURE_NAME, "governs", None]]
+    after = _answer(data, model, JUN20, "ST", "hatchery")
+    assert _head(after) == {"status": "keep", "win": R5_NAME, "daily": 2}
+    assert _head(_answer(data, model, JUN20, "ST", "wild"))["status"] == "release"
