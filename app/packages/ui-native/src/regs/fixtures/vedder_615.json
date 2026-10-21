@@ -1,0 +1,219 @@
+{
+ "day": {
+  "day": 15,
+  "month": 6
+ },
+ "gear": null,
+ "header": {
+  "action": {
+   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Jun 15",
+  "dateAria": "Change date, now Jun 15",
+  "dayWord": "Mon",
+  "dot": "closed",
+  "name": "Vedder River",
+  "place": {
+   "full": "Mouth → Vedder Crossing Bridge",
+   "short": "Mouth → Vedder Crossing Bridge"
+  },
+  "tabs": [
+   {
+    "label": "What you can keep",
+    "tab": "keep"
+   },
+   {
+    "label": "Gear",
+    "tab": "gear"
+   },
+   {
+    "label": "Methods",
+    "tab": "methods"
+   },
+   {
+    "label": "Licence",
+    "tab": "licence"
+   }
+  ]
+ },
+ "keep": {
+  "banner": {
+   "big": [],
+   "chain": [
+    {
+     "book": [
+      {
+       "pdf": 24,
+       "printed": 22,
+       "t": "book"
+      }
+     ],
+     "rule": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8",
+     "scope": "This water",
+     "text": "Jun 1–30."
+    }
+   ],
+   "kind": "closed",
+   "merged": null,
+   "paras": [
+    "No fishing for any game fish Jun 1–30."
+   ],
+   "reopen": {
+    "day": {
+     "day": 1,
+     "month": 7
+    },
+    "text": "See the rules from then ›"
+   }
+  },
+  "caveats": [],
+  "groups": [],
+  "inherited": null,
+  "order": [
+   "strip",
+   "banner",
+   "whereNot"
+  ],
+  "otherFish": null,
+  "otherFishKey": [],
+  "outside": null,
+  "plainRows": [],
+  "possession": null,
+  "strip": {
+   "legend": [
+    {
+     "bit": 0,
+     "label": "open",
+     "mark": "✓"
+    },
+    {
+     "bit": 1,
+     "label": "closed",
+     "mark": "✕"
+    },
+    {
+     "bit": 4,
+     "label": "fly fishing only",
+     "mark": null
+    },
+    {
+     "bit": 16,
+     "label": "bait ban",
+     "mark": null
+    }
+   ],
+   "line": [
+    {
+     "kind": "status",
+     "text": "Closed"
+    },
+    {
+     "kind": "when",
+     "text": "on Jun 15"
+    },
+    {
+     "kind": "soonOpen",
+     "text": "Opens Jul 1"
+    }
+   ],
+   "months": [
+    "J",
+    "F",
+    "M",
+    "A",
+    "M",
+    "J",
+    "J",
+    "A",
+    "S",
+    "O",
+    "N",
+    "D"
+   ],
+   "runs": [
+    {
+     "bits": 0,
+     "days": 120
+    },
+    {
+     "bits": 20,
+     "days": 31
+    },
+    {
+     "bits": 1,
+     "days": 30
+    },
+    {
+     "bits": 0,
+     "days": 184
+    }
+   ],
+   "status": "closed",
+   "todayAt": 0.4520547945205479
+  },
+  "whereNot": {
+   "heading": "Where you can’t fish",
+   "items": [
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+     "text": [
+      {
+       "s": "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    },
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+     "text": [
+      {
+       "s": "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "scope": null
+  }
+ },
+ "licence": null,
+ "methods": null,
+ "sheets": {
+  "rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": null
+ },
+ "status": "closed",
+ "target": {
+  "item": "gnis:3062",
+  "kind": "part",
+  "partIx": 0
+ },
+ "today": false,
+ "version": "regs-v38",
+ "weekday": "Monday",
+ "who": {
+  "age": "adult",
+  "residency": "resident"
+ }
+}

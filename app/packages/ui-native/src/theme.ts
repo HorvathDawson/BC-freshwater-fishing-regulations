@@ -27,6 +27,8 @@ export interface Palette {
   page: string;
   card: string; wash: string; tint: string; line: string; line2: string;
   ink: string; sub: string; faint: string;
+  /** the Regulations page's size section: its side bar and head line (prototype --rule, round UR7) */
+  rule: string;
   closed: string; restricted: string; open: string; quiet: string;
   /**
    * A WATER'S STATUS (closed / its own regulations / base only), from the map's own resolver
@@ -158,7 +160,7 @@ export function paletteFor(theme: string): Palette {
   const c = (token: string) => colour(theme, token);
   return {
     page: c("color.ui.page"), card: c("color.ui.card"), wash: c("color.ui.wash"),
-    tint: c("color.ui.tint"), line: c("color.ui.line"), line2: c("color.ui.line2"),
+    tint: c("color.ui.tint"), line: c("color.ui.line"), line2: c("color.ui.line2"), rule: c("color.ui.rule"),
     ink: c("color.ui.ink"), sub: c("color.ui.sub"), faint: c("color.ui.faint"),
     ...statusColours(theme),
     quiet: c("color.ui.quiet"), accent: c("color.ui.accent"), onAccent: c("color.ui.on-accent"),

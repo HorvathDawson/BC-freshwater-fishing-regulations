@@ -29,6 +29,10 @@ describe("T22 tokens", () => {
     expect(DARK.sub).toBe(tokens.tokens.dark["--sub"]);
   });
 
+  it("(T21) the size section's rule is the prototype's (--rule, round UR7)", () => {
+    expect([LIGHT.rule, DARK.rule]).toEqual([tokens.tokens.light["--rule"], tokens.tokens.dark["--rule"]]);
+  });
+
   it("every token the prototype and the app share still agrees", () => {
     const rows = tokens.compare.filter((r) => r.same && FIELD[r.token]);
     expect(rows.length).toBeGreaterThanOrEqual(8);

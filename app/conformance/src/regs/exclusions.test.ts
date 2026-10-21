@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { droppedLines, EXCLUDE, excluded, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
@@ -41,7 +41,8 @@ describe("EXCLUDE", () => {
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
-        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 11 ^groups\\.\\d+\\.lines$"]);
+        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 11 ^groups\\.\\d+\\.lines$",
+        "keep 1 ^plainRows\\.0$", "keep 19 ^lines$", "keep 11 ^lines$"]);
   });
 });
 
@@ -86,6 +87,20 @@ describe("(T17–T19 review) dropped golden lines", () => {
   it("the Kitimat-ruled states' group lines are excluded whole (their tree and worked are held to the store)", () => {
     expect(excluded("keep", "x14p0_1010", "groups.0.lines")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     expect(excluded("keep", "vedder_1010", "groups.0.lines")).toBeNull();
+  });
+});
+
+describe("(T21) the whole Keep tab", () => {
+  it("the 19 states whose keep.lines carry a stamp line (8 in a group, the rest under an Other fish row); the D19 row", () => {
+    expect(KEEP_STAMP_LINE_IDS.length).toBe(19);
+    for (const id of STAMP_LINE_IDS) expect(KEEP_STAMP_LINE_IDS, id).toContain(id);
+    expect(droppedLines("keep", "vedder_1010", "lines")).toEqual([STAMP_LINE]);
+    expect(droppedLines("keep", "glenn_501", "lines")).toEqual([YEAR_WINDOW_LINE]);
+    expect(droppedLines("keep", "cow1_1010", "lines")).toEqual([]);
+    expect(D19_POOLED_IDS).toEqual(["klmb_1010"]);
+    expect(excluded("keep", "klmb_1010", "plainRows.0")?.reason).toMatch(/^decisions D19/);
+    expect(excluded("keep", "klmb_1010", "order")).toBeNull();
+    expect(excluded("keep", "klmb_1010", "lines")).toBeNull();
   });
 });
 

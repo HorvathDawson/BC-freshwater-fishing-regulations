@@ -10,18 +10,15 @@ import { caveatsOf, makePlace, plain, settle, settleAt, type CaveatVM, type Regs
 import { WORDS } from "@app/core";
 import { eqPlain } from "./eq";
 import { cases } from "./golden";
+import { caveatLines } from "./keepPage";
 
 interface GKeep { order: string[]; lines: string[] }
 
 const CAVEAT_SEL = /^(details\.inpart|div\.caveats)/;
 const selOf = (c: CaveatVM) => c.kind === "inpart" ? (c.hot ? "details.inpart.hot" : "details.inpart")
   : c.kind === "uncertain" ? "div.caveats.top.check" : "div.caveats.top";
-const itemLine = (i: CaveatVM["items"][number]) => [plain(i.what), i.where, plain(i.book)].filter(Boolean).join(" ");
-/** The block's golden text form (one string per block element, one space between abutting elements). */
-const linesOf = (c: CaveatVM): string[] => [
-  (c.kind === "inpart" ? WORDS.INPART_IC : "") + c.title, c.calm ?? "", ...c.items.map(itemLine),
-  c.later ? WORDS.OTHER_DATES(c.later.length) : "", ...(c.later ?? []).map(itemLine),
-].filter(Boolean);
+/** The block's golden text form: keepPage.ts `caveatLines`. */
+const linesOf = caveatLines;
 
 const blocks = (inp: RegsInputs): readonly CaveatVM[] => {
   const place = makePlace(inp), s = settle(inp, place);

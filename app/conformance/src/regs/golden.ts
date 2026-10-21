@@ -230,7 +230,7 @@ export interface Case {
   readonly id: string; readonly g: GoldenState; readonly tap: Tap;
   /** = inputsOf(id), never null inside cases */
   inputs(): Promise<RegsInputs>;
-  /** buildRegsPage(inputs, {today: requestOf(id).today, who, tot, pid: id}) — throws "buildRegsPage: T21" until T21 */
+  /** buildRegsPage(inputs, {today: requestOf(id).today, who, tot, pid: id}) (T21) */
   page(who?: Who, tot?: "a" | "b"): Promise<RegsPage>;
 }
 

@@ -53,6 +53,27 @@ export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
  */
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; lines?: RegExp; reason: string; until?: string }
 
+/** The states whose golden Keep tab (`keep.lines`, any block — a group's kind, Other fish) carries a stamp line. */
+export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => ((s.keep as { lines?: string[] } | null)?.lines ?? []).some((l) => STAMP_LINE.test(l))).map(([id]) => id);
+/** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
+export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
+
+/** (T21) the whole Keep tab: the same pending lines, wherever the tab draws them, and the D19 row. */
+export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
+  { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
+    reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
+    until: "D19 (a): the pipeline ships a group for that row" },
+  ...(KEEP_STAMP_LINE_IDS.length ? [{
+    block: "keep" as const, ids: KEEP_STAMP_LINE_IDS, key: /^lines$/, lines: STAMP_LINE,
+    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line (under a group's fish and under an Other fish row: 'You need White Sturgeon Conservation Licence › only if …') is a licence answer the pipeline lane is moving into the store; the Keep presenters draw none. Every other line of the tab is compared",
+    until: "the pipeline ships the per-fish licence-document line" }] : []),
+  ...(YEAR_WINDOW_IDS.length ? [{
+    block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^lines$/, lines: YEAR_WINDOW_LINE,
+    reason: "PENDING: the group's `.gyear` year-window line (see the groups.N.lines entry above)",
+    until: "the group draws the .gyear line" }] : []),
+];
+
 export const EXCLUDE: readonly Exclusion[] = [
   ...(PINS_ERROR_IDS.length ? [{
     block: "pins" as const, ids: PINS_ERROR_IDS,
@@ -78,6 +99,7 @@ export const EXCLUDE: readonly Exclusion[] = [
     block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^groups\.\d+\.lines$/, lines: YEAR_WINDOW_LINE,
     reason: "PENDING: the group's year-window line (prototype UR5 `.gyear`: 'Through the year' + page v36 runTxt over the row's year strip) is T19b's runTxt over the STORED HydRow.year; T17–T19 do not draw it. Every other group line is compared",
     until: "T19b (runTxt over HydRow.year) draws the .gyear line" }] : []),
+  ...KEEP_TAB_EXCLUDE,
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */

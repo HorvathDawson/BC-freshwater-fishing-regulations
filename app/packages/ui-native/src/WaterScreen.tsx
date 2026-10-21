@@ -6,32 +6,34 @@
  * the conditions: what the water is doing", opening the water's FIRST reach): the strip is that door now, and it opens
  * the reach the reader tapped, not `sections[0]`.
  *
- * REGULATIONS ARE NOT INTEGRATED. The view keeps its place and shows `RegulationsPlaceholder`
- * where the regulations will go; see `regulations.ts` in @app/core.
+ * THE REGULATIONS (T21): the store answers for the tapped part on THE ONE DAY (`useRegsStore` → `useRegsTarget` →
+ * `useRegulations` → `useRegsPage`, @app/ui), and `RegsView` draws the page: the "What you can keep" tab in full; Gear,
+ * Methods and Licence hold a placeholder until T30–T35. With no release loader (the dev bundle holds no regulations) the
+ * view keeps `RegulationsPlaceholder`.
  *
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
-import { useContext } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useContext, useMemo } from "react";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { bookUrl, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { useWater } from "@app/ui";
+import { mapDayOf, regsDay, useAnglerProfile, useRegsPage, useRegsStore, useRegsTarget, useRegulations, useWater } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { FishImages } from "./regs/types";
+import { RegsView } from "./regs/RegsView";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
 export function WaterScreen({ source, item, palette, onBack,
-                              loader: _loader = null, day: _day = null, onDay: _onDay, section: _section = null,
-                              part: _part = null }: {
+                              loader = null, day = null, onDay, section = null, part = null, fishImages }: {
   source: RegsSource; item: ItemId;
   /**
-   * T01: everything the Regulations page will read, handed down and NOT read yet (T11 `useRegsStore(loader)` opens the
-   * store on the first water; T23 draws it). Nothing here opens a file: until T11 lands the placeholder stands.
+   * T01: everything the Regulations page reads (T21 draws it: `useRegsStore(loader)` opens the store on the first water).
    *
    * The release loader (P11): the page's water / regs-<region> / regs-sid files come through it (README §0, D22), never
    * a `/regs.sqlite` of their own. null on the dev-bundle path, which holds no regulations.
@@ -46,12 +48,21 @@ export function WaterScreen({ source, item, palette, onBack,
   part?: number | null;
   palette: Palette; onBack?: () => void;
   /**
-   * The fish pictures by species code (T20), for the regulations panel. Carried here so the
-   * app's map reaches `RegsScreen` when it replaces the placeholder (T23); unread until then.
+   * The fish pictures by species code (T20), for the regulations panel (the app registers the assets; T21 draws them).
    */
   fishImages?: FishImages;
 }) {
   const sheet = useWater(source, item);
+  // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
+  const store = useRegsStore(loader);
+  const found = useRegsTarget(store.value ?? null, item, part === null ? section : null);
+  const target: RegsTarget | null = useMemo(() => (part !== null ? { kind: "part", item, partIx: part } : found.value ?? null),
+    [part, item, found.value]);
+  const inputs = useRegulations(store.value ?? null, target, day);
+  const [who] = useAnglerProfile();
+  const d = regsDay(day);
+  const regs = useRegsPage(inputs.value ?? null, who, d.today);
+  const regsError = store.error ?? found.error ?? inputs.error;
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
   const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
 
@@ -85,9 +96,19 @@ export function WaterScreen({ source, item, palette, onBack,
         <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
       </View>
       {/* No "Regulations" heading: the strip's selected view already says it. */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 32 }}>
-        <RegulationsPlaceholder palette={palette} />
-      </View>
+      {loader && regs && !regsError ? (
+        <RegsView page={regs} palette={palette} images={fishImages} actions={{
+          onSheet: () => {},                                   // the sheets are T36/T37
+          onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
+          onBook: (pdf) => { void Linking.openURL(bookUrl(pdf)); },
+        }} />
+      ) : (
+        <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 32 }}>
+          {!loader ? <RegulationsPlaceholder palette={palette} />
+            : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
+            : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
+        </View>
+      )}
     </>
   );
   return (

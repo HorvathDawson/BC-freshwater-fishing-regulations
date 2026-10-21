@@ -118,7 +118,7 @@ export const appOpen = (k: string | null) => (k == null ? null : k.replace(/^oth
 /** one tree node's drawn lines in order (prototype tnode / tierH / kt / krel28; the golden's `lines(article)` over it): a tier
  *  its moved scope tag, its line (a folded share draws none, or its Rule book page alone), its relation, its sub, its origin;
  *  then its children */
-function nodeLines(x: TreeNodeVM): string[] {
+export function nodeLines(x: TreeNodeVM): string[] {
   if (x.t === "kind") return kindProj(x).lines;
   if (x.t === "release") return [join(x.names, ...captions(x.pictures))];
   const o = tierProj(x).origin as { text: string } | null;

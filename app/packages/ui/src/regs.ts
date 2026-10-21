@@ -12,14 +12,13 @@
  * which day and which target to ask about, and hand the answer on.
  *
  * THE T09 SEAM: `loadRegsInputs` (tap → `RegsInputs`) and `targetFor` (tapped section → part) are T09's, in
- * `@app/data/regs`, and not merged when this was written. `useRegsTarget` / `useRegulations` take them as their last
- * argument, defaulting to `T09_PENDING` (which fails with the reason, never guesses). When T09 merges, the defaults
- * become its two functions and every caller keeps its call.
+ * `@app/data/regs`. `useRegsTarget` / `useRegulations` take them as their last argument (a test injects its own) and
+ * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
 import { buildRegsPage, tapDay, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
-import { openRegsStore, RegsStoreError, type RegsExpect, type RegsLoader, type RegsStore } from "@app/data/regs";
+import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsExpect, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 
 // ── the store ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -65,27 +64,21 @@ export function useRegsStore(loader: RegsLoader | null, expect: RegsExpect = {})
   return useAsync(async () => (loader ? loadRegsStore(loader, expect) : null), key);
 }
 
-// ── the T09 seam ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// ── the T09 functions ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** T09 `loadRegsInputs`: everything the page reads for one tap on one day. */
 export type LoadRegsInputs = (store: RegsStore, target: RegsTarget, day: Day, weekday: Weekday, calendarYear: number) => Promise<RegsInputs>;
 /** T09 `targetFor`: the part a tap on `section` of `item` opens. */
 export type TargetFor = (store: RegsStore, item: string, section: number | null) => Promise<RegsTarget>;
 
-/** The seam until T09 merges: both fail, saying so. Replace with `{ loadRegsInputs, targetFor }` from `@app/data/regs`. */
-export const T09_PENDING: { readonly loadRegsInputs: LoadRegsInputs; readonly targetFor: TargetFor } = Object.freeze({
-  loadRegsInputs: () => Promise.reject(new Error("regs: loadRegsInputs is T09's (@app/data/regs) and is not merged yet")),
-  targetFor: () => Promise.reject(new Error("regs: targetFor is T09's (@app/data/regs) and is not merged yet")),
-});
-
 /** A target as a key: `part:<item>:<partIx>` | `section:<handle>`. */
 export const regsTargetKey = (t: RegsTarget): string => (t.kind === "part" ? `part:${t.item}:${t.partIx}` : `section:${t.handle}`);
 
 /** The part the water screen opens for `item` (and the tapped section, when one was tapped). */
 export function useRegsTarget(store: RegsStore | null, item: ItemId | null, section: SectionId | null,
-                              targetFor: TargetFor = T09_PENDING.targetFor): Async<RegsTarget | null> {
+                              targetForPart: TargetFor = targetFor): Async<RegsTarget | null> {
   const key = `regs-target:${store ? idOf(store) : ""}:${item ?? ""}:${section ?? ""}`;
-  return useAsync(async () => (store && item ? targetFor(store, item, section) : null), key, !!store && !!item);
+  return useAsync(async () => (store && item ? targetForPart(store, item, section) : null), key, !!store && !!item);
 }
 
 /**
@@ -94,7 +87,7 @@ export function useRegsTarget(store: RegsStore | null, item: ItemId | null, sect
  * overwrites the new one (useAsync).
  */
 export function useRegulations(store: RegsStore | null, target: RegsTarget | null, mapDay: Date | null,
-                               load: LoadRegsInputs = T09_PENDING.loadRegsInputs): Async<RegsInputs | null> {
+                               load: LoadRegsInputs = loadRegsInputs): Async<RegsInputs | null> {
   const d = regsDay(mapDay);
   const key = `regs:${store ? idOf(store) : ""}:${target ? regsTargetKey(target) : ""}:${isoDay(d.day, d.calendarYear)}`;
   return useAsync(async () => (store && target ? load(store, target, d.day, d.weekday, d.calendarYear) : null), key, !!store && !!target);

@@ -3,9 +3,9 @@
  * per loader and expectation, a refusal cached, a failed fetch retried — over THE COMMITTED REGS FIXTURE RELEASE (T10).
  */
 import { describe, expect, it } from "vitest";
-import { RegsStoreError, type RegsLoader } from "@app/data/regs";
+import { loadRegsInputs, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { DEFAULT_WHO, loadRegsStore, mapDayOf, regsDay, regsStoreKey, T09_PENDING, regsTargetKey } from "./regs";
+import { DEFAULT_WHO, loadRegsStore, mapDayOf, regsDay, regsStoreKey, regsTargetKey } from "./regs";
 
 /** The fixture loader, counting how often the store asks it for water (once per `openRegsStore`). */
 function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: RegsLoader; water: () => number } {
@@ -98,12 +98,12 @@ describe("4–5. loadRegsStore", () => {
   });
 });
 
-describe("the T09 seam", () => {
-  it("until T09 merges, both seams fail saying so (never a guess)", async () => {
+describe("the T09 functions", () => {
+  it("the hooks default to T09's loadRegsInputs / targetFor (T21): a fixture tap resolves to a part and its inputs", async () => {
     const st = await loadRegsStore(counted().loader);
-    expect((await T09_PENDING.loadRegsInputs(st, { kind: "part", item: "gnis:3062", partIx: 0 }, { month: 6, day: 15 }, "Monday", 2026)
-      .catch((e: Error) => e.message))).toBe("regs: loadRegsInputs is T09's (@app/data/regs) and is not merged yet");
-    expect(await T09_PENDING.targetFor(st, "gnis:3062", null).catch((e: Error) => e.message))
-      .toBe("regs: targetFor is T09's (@app/data/regs) and is not merged yet");
+    const t = await targetFor(st, "gnis:3062", null);
+    expect(t).toEqual({ kind: "part", item: "gnis:3062", partIx: 0 });
+    const inp = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
+    expect([inp.target, inp.item?.name]).toEqual([t, "Vedder River"]);
   });
 });

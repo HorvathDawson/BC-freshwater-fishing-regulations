@@ -1,0 +1,502 @@
+{
+ "day": {
+  "day": 10,
+  "month": 10
+ },
+ "gear": null,
+ "header": {
+  "action": {
+   "aria": "View on map: where these rules apply, Kootenay Lake — Lower West Arm",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "dayWord": "Today",
+  "dot": "open",
+  "name": "Kootenay Lake — Lower West Arm",
+  "place": null,
+  "tabs": [
+   {
+    "label": "What you can keep",
+    "tab": "keep"
+   },
+   {
+    "label": "Gear",
+    "tab": "gear"
+   },
+   {
+    "label": "Methods",
+    "tab": "methods"
+   },
+   {
+    "label": "Licence",
+    "tab": "licence"
+   }
+  ]
+ },
+ "keep": {
+  "banner": null,
+  "caveats": [],
+  "groups": [
+   {
+    "head": {
+     "form": null,
+     "lead": null,
+     "leadN": null,
+     "nolimit": false,
+     "ofTotal": false,
+     "rootTier": "t1",
+     "shareOf": null,
+     "terms": [],
+     "whyHere": null,
+     "words": [
+      {
+       "s": "This lake’s rule: up to",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "2",
+       "size": "big",
+       "t": "num"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "a day per angler",
+       "t": "text"
+      }
+     ]
+    },
+    "more": {
+     "open": "src:r0",
+     "text": "See every regulation line ›"
+    },
+    "notKept": [],
+    "origin": {
+     "book": [
+      {
+       "pdf": 39,
+       "printed": 37,
+       "t": "book"
+      }
+     ],
+     "howtell": false,
+     "says": [],
+     "tag": null
+    },
+    "quiet": null,
+    "row": 0,
+    "scope": "This water",
+    "title": "Trout and char",
+    "tree": [
+     {
+      "also": [
+       "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
+      ],
+      "duty": null,
+      "folded": false,
+      "kind": "Brook trout, brown trout, cutthroat trout, lake trout and rainbow trout",
+      "pictures": [
+       {
+        "caption": "Brook trout ›",
+        "code": "EB",
+        "name": "Brook trout",
+        "open": "sp:EB",
+        "sil": false
+       },
+       {
+        "caption": "Brown trout ›",
+        "code": "GB",
+        "name": "Brown trout",
+        "open": "sp:GB",
+        "sil": false
+       },
+       {
+        "caption": "Coastal cutthroat trout ›",
+        "code": "CT",
+        "name": "Cutthroat trout",
+        "open": "sp:CT",
+        "sil": false
+       },
+       {
+        "caption": "Lake trout ›",
+        "code": "LT",
+        "name": "Lake trout",
+        "open": "sp:LT",
+        "sil": false
+       },
+       {
+        "caption": "Rainbow trout ›",
+        "code": "RB",
+        "name": "Rainbow trout",
+        "open": "sp:RB",
+        "sil": false
+       }
+      ],
+      "presence": null,
+      "qualifiers": null,
+      "says": [
+       {
+        "s": "Up to ",
+        "t": "text"
+       },
+       {
+        "s": "2",
+        "size": "inline",
+        "t": "num"
+       },
+       {
+        "s": " may be brook, brown, cutthroat, lake or rainbow trout",
+        "t": "text"
+       }
+      ],
+      "size": {
+       "rule": false,
+       "text": "any size"
+      },
+      "species": [
+       "EB",
+       "GB",
+       "CT",
+       "LT",
+       "RB"
+      ],
+      "t": "kind",
+      "zero": false
+     },
+     {
+      "also": [],
+      "duty": null,
+      "folded": false,
+      "kind": "Dolly Varden/bull trout",
+      "pictures": [
+       {
+        "caption": "Bull trout ›",
+        "code": "DV",
+        "name": "Dolly Varden/bull trout",
+        "open": "sp:DV",
+        "sil": false
+       }
+      ],
+      "presence": null,
+      "qualifiers": null,
+      "says": [
+       {
+        "s": "Only ",
+        "t": "text"
+       },
+       {
+        "s": "1",
+        "size": "inline",
+        "t": "num"
+       },
+       {
+        "s": " of the 2 may be Dolly Varden/bull trout",
+        "t": "text"
+       }
+      ],
+      "size": {
+       "rule": false,
+       "text": "any size"
+      },
+      "species": [
+       "DV"
+      ],
+      "t": "kind",
+      "zero": false
+     }
+    ],
+    "worked": {
+     "label": "How it adds up",
+     "lines": [],
+     "says": "This lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 2."
+    }
+   }
+  ],
+  "inherited": null,
+  "order": [
+   "strip",
+   {
+    "group": 0
+   },
+   "otherFish",
+   "possession",
+   "whereNot"
+  ],
+  "otherFish": [
+   {
+    "name": "Kokanee",
+    "open": "other:o0",
+    "sizeHint": null,
+    "thumb": "KO",
+    "tone": "keep",
+    "value": "5 a day",
+    "week": "Weekends: keep 5 · Weekdays: release"
+   },
+   {
+    "name": "Whitefish",
+    "open": "other:o1",
+    "sizeHint": null,
+    "thumb": "LW",
+    "tone": "keep",
+    "value": "15 a day",
+    "week": null
+   },
+   {
+    "name": "Bass",
+    "open": "other:o2",
+    "sizeHint": null,
+    "thumb": "LMB",
+    "tone": "nolimit",
+    "value": "no limit",
+    "week": null
+   },
+   {
+    "name": "Yellow perch",
+    "open": "other:o3",
+    "sizeHint": null,
+    "thumb": "YP",
+    "tone": "nolimit",
+    "value": "no limit",
+    "week": null
+   },
+   {
+    "name": "Burbot",
+    "open": "other:o4",
+    "sizeHint": null,
+    "thumb": "BB",
+    "tone": "release",
+    "value": "release",
+    "week": null
+   },
+   {
+    "name": "Northern pike and walleye",
+    "open": "other:o5",
+    "sizeHint": null,
+    "thumb": "NP",
+    "tone": "closed",
+    "value": "closed",
+    "week": null
+   },
+   {
+    "name": "White sturgeon",
+    "open": "other:o6",
+    "sizeHint": null,
+    "thumb": "WSG",
+    "tone": "closed",
+    "value": "closed",
+    "week": null
+   },
+   {
+    "name": "Crayfish",
+    "open": "other:o7",
+    "sizeHint": null,
+    "thumb": null,
+    "tone": "keep",
+    "value": "25 a day",
+    "week": null
+   },
+   {
+    "name": "Protected species",
+    "open": "other:o8",
+    "sizeHint": null,
+    "thumb": null,
+    "tone": "closed",
+    "value": "closed",
+    "week": null
+   }
+  ],
+  "otherFishKey": [
+   {
+    "says": "You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
+    "status": "release",
+    "term": "catch_and_release"
+   },
+   {
+    "says": "You may not fish for it at all, not even to release it. If you catch one by accident, release it at once.",
+    "status": "closed",
+    "term": "no_fishing_for"
+   }
+  ],
+  "outside": null,
+  "plainRows": [],
+  "possession": {
+   "label": "Possession",
+   "open": "pos:pos",
+   "rule": "z4:possession_quota::possession_quota.r1",
+   "says": "Possession: 2 days’ quota. Fish at home don’t count.",
+   "term": "possession_quota",
+   "value": "2 days’ quota"
+  },
+  "strip": {
+   "legend": [
+    {
+     "bit": 0,
+     "label": "open",
+     "mark": "✓"
+    }
+   ],
+   "line": [
+    {
+     "kind": "status",
+     "text": "Open"
+    },
+    {
+     "kind": "when",
+     "text": "today (Sat)"
+    }
+   ],
+   "months": [
+    "J",
+    "F",
+    "M",
+    "A",
+    "M",
+    "J",
+    "J",
+    "A",
+    "S",
+    "O",
+    "N",
+    "D"
+   ],
+   "runs": [
+    {
+     "bits": 0,
+     "days": 365
+    }
+   ],
+   "status": "open",
+   "todayAt": 0.7726027397260274
+  },
+  "whereNot": {
+   "heading": "Where you can’t fish",
+   "items": [
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+     "text": [
+      {
+       "s": "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    },
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+     "text": [
+      {
+       "s": "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "scope": null
+  }
+ },
+ "licence": null,
+ "methods": null,
+ "sheets": {
+  "gl:catch_and_release": null,
+  "gl:conservation_surcharge": null,
+  "gl:no_fishing_for": null,
+  "gl:under_16": null,
+  "licsrc:adult": null,
+  "licsrc:adult_alien": null,
+  "licsrc:adult_non": null,
+  "licsrc:u16_alien": null,
+  "licsrc:u16_non": null,
+  "licsrc:u16_res": null,
+  "other:o0": null,
+  "other:o1": null,
+  "other:o2": null,
+  "other:o3": null,
+  "other:o4": null,
+  "other:o5": null,
+  "other:o6": null,
+  "other:o7": null,
+  "other:o8": null,
+  "pos:pos": null,
+  "rule:zp:conduct::conduct.r1": null,
+  "rule:zp:conduct::conduct.r10": null,
+  "rule:zp:conduct::conduct.r2": null,
+  "rule:zp:conduct::conduct.r3": null,
+  "rule:zp:conduct::conduct.r4": null,
+  "rule:zp:conduct::conduct.r5": null,
+  "rule:zp:conduct::conduct.r6": null,
+  "rule:zp:conduct::conduct.r7": null,
+  "rule:zp:conduct::conduct.r9": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r1": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r2": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r3": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": null,
+  "rule:zp:preparing_catch::preparing_catch.r1": null,
+  "rule:zp:preparing_catch::preparing_catch.r2": null,
+  "rule:zp:prohibited_methods::prohibited_methods.r3": null,
+  "rule:zp:transporting_catch::transporting_catch.r1": null,
+  "rule:zp:transporting_catch::transporting_catch.r2": null,
+  "rule:zp:transporting_catch::transporting_catch.r3": null,
+  "rule:zp:transporting_catch::transporting_catch.r4": null,
+  "rule:zp:transporting_catch::transporting_catch.r5": null,
+  "rule:zp:transporting_catch::transporting_catch.r6": null,
+  "sp:BB": null,
+  "sp:CT": null,
+  "sp:DV": null,
+  "sp:EB": null,
+  "sp:GB": null,
+  "sp:KO": null,
+  "sp:LMB": null,
+  "sp:LT": null,
+  "sp:LW": null,
+  "sp:NP": null,
+  "sp:RB": null,
+  "sp:WSG": null,
+  "sp:YP": null,
+  "src:r0": null,
+  "srcs:always": null,
+  "srcs:bait": null,
+  "srcs:gl|hook": null,
+  "srcs:gl|lines": null,
+  "srcs:gl|weight": null,
+  "srcs:ways": null
+ },
+ "status": "open",
+ "target": {
+  "item": "wbk:-22",
+  "kind": "part",
+  "partIx": 0
+ },
+ "today": true,
+ "version": "regs-v38",
+ "weekday": "Saturday",
+ "who": {
+  "age": "adult",
+  "residency": "resident"
+ }
+}

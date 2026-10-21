@@ -30,4 +30,6 @@ export * from "./grouphead";
 export * from "./tree";
 export * from "./tail";
 export * from "./others";
+export * from "./keep";
+export * from "./page";
 export * from "./fish.generated";

@@ -1709,6 +1709,7 @@
       "color.ui.line2": "#D3D5CF",
       "color.ui.ink": "#15181C",
       "color.ui.sub": "#555C62",
+      "color.ui.rule": "#46627F",
       "color.ui.faint": "#6E757B",
       "color.ui.quiet": "#8A9196",
       "color.ui.accent": "#5F26E0",
@@ -1805,6 +1806,7 @@
       "color.ui.line2": "#343B42",
       "color.ui.ink": "#F0F2F0",
       "color.ui.sub": "#B0B8BF",
+      "color.ui.rule": "#93A8BE",
       "color.ui.faint": "#7C858C",
       "color.ui.quiet": "#2F363D",
       "color.ui.accent": "#A97CFF",
@@ -1901,6 +1903,7 @@
       "color.ui.line2": "#D3D5CF",
       "color.ui.ink": "#15181C",
       "color.ui.sub": "#555C62",
+      "color.ui.rule": "#46627F",
       "color.ui.faint": "#6E757B",
       "color.ui.quiet": "#8A9196",
       "color.ui.accent": "#5F26E0",
@@ -2255,6 +2258,11 @@
       "type": "color",
       "themeable": true,
       "$comment": "secondary text, 4.5:1 on the card"
+    },
+    "color.ui.rule": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "the size section's side bar and head line on the Regulations page (prototype --rule, round UR7): a slate that reads as text, >= 4.5:1 on the card"
     },
     "color.ui.faint": {
       "type": "color",

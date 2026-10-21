@@ -240,7 +240,10 @@ describe("T12 summary", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
-      + " · lines /^Through the year / dropped from ^groups\\.\\d+\\.lines$ in 11 states (T19b (runTxt over HydRow.year) draws the .gyear line)");
+      + " · lines /^Through the year / dropped from ^groups\\.\\d+\\.lines$ in 11 states (T19b (runTxt over HydRow.year) draws the .gyear line)"
+      + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)"   // (T21) the whole Keep tab
+      + " · lines /^You need / dropped from ^lines$ in 19 states (the pipeline ships the per-fish licence-document line)"
+      + " · lines /^Through the year / dropped from ^lines$ in 11 states (the group draws the .gyear line)");
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });

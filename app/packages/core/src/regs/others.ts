@@ -13,7 +13,7 @@ import type { CardModel, CardStatus } from "./card";
 import type { FishManifest } from "./fish.generated";
 import { rowTitle } from "./grouphead";
 import type { RegsInputs } from "./inputs";
-import type { OtherFishRowVM } from "./model";
+import type { OtherFishKeyVM, OtherFishRowVM } from "./model";
 import { WORDS } from "./words";
 
 /** page v36 TROUTISH: trout and char first, in full; every other fish folds into one short list. */
@@ -55,6 +55,20 @@ export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest
       sizeHint: hasSize && r.kind === "keep" ? WORDS.SIZE_HINT : null,
       open: `other:o${i}`,
     };
+  });
+}
+
+/** prototype round UR6 Other fish `okey`: the glossary term each status word of the list stands for. */
+export const OTHER_FISH_KEY_TERMS: readonly (readonly ["release" | "closed", string])[] = Object.freeze([
+  ["release", "catch_and_release"], ["closed", "no_fishing_for"]] as const);
+
+/** prototype okey: under the list, one line per status word a row shows (release, then closed), in the glossary's own
+ *  plain words (`says`) with its ⓘ; a term the glossary lacks draws nothing. */
+export function otherFishKeyOf(rows: readonly OtherFishRowVM[] | null, inp: RegsInputs): readonly OtherFishKeyVM[] {
+  if (!rows) return [];
+  return OTHER_FISH_KEY_TERMS.flatMap(([status, term]) => {
+    const says = rows.some((r) => r.tone === status) ? inp.statics.glossary.terms.find((t) => t.id === term)?.says.trim() : "";
+    return says ? [{ status, says, term }] : [];
   });
 }
 

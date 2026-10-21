@@ -164,6 +164,14 @@ export const WORDS = Object.freeze({
   STEEL_KNOWN: "Steelhead are known to be in this water.",
   STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
+  // ── T21 the Keep composition (keep.ts: page v36 renderCard's outside-B.C. foot) ──
+  OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
+  /** a fish picture's accessible name (prototype fishBtn aria-label) */
+  LOOKS_LIKE: (name: string) => `What a ${name} looks like`,
+  /** the water screen while a tab's presenter is not built yet (T30–T35), and when the store cannot answer */
+  TAB_PENDING: (tab: string) => `${tab}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`,
+  REGS_LOADING: "Loading the regulations",
+  REGS_UNAVAILABLE: (why: string) => `Regulations unavailable: ${why}`,
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */

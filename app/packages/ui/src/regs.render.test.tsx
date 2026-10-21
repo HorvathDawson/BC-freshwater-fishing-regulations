@@ -3,9 +3,8 @@
  * is paired; a refusal is a `failed` state with the store's reason; the day is the Shell's `mapDay`, read at call time;
  * a new day is a new question and a slower answer to the old one never overwrites it; who is fishing is shared.
  *
- * `useRegulations` / `useRegsTarget` are exercised through their T09 seam with a recording stand-in: T09
- * (`loadRegsInputs`, `targetFor`) is not merged, and this file must not reimplement it. The stand-in returns a marker,
- * never a regulation answer.
+ * `useRegulations` / `useRegsTarget` are exercised through their T09 seam with a recording stand-in (the stand-in returns
+ * a marker, never a regulation answer), and once by default over T09's own `targetFor` / `loadRegsInputs` (T21).
  */
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
@@ -70,14 +69,15 @@ describe("useRegsStore", () => {
 });
 
 describe("useRegsTarget / useRegulations (through the T09 seam)", () => {
-  it("until T09 merges, the default seam fails with its reason — the page never guesses a target or an answer", async () => {
+  it("by default the hooks ask T09 (T21): the Vedder's part, then its inputs on Jun 15 — the store's answer, not a guess", async () => {
     const st = await fixtureStore();
     const t = renderHook(() => useRegsTarget(st, "gnis:3062" as ItemId, null));
-    await waitFor(() => expect(t.result.current.state).toBe("failed"));
-    expect(t.result.current.error!.message).toBe("regs: targetFor is T09's (@app/data/regs) and is not merged yet");
+    await waitFor(() => expect(t.result.current.state).toBe("ready"));
+    expect(t.result.current.value).toEqual(VEDDER);
     const r = renderHook(() => useRegulations(st, VEDDER, new Date(2026, 5, 15)));
-    await waitFor(() => expect(r.result.current.state).toBe("failed"));
-    expect(r.result.current.error!.message).toBe("regs: loadRegsInputs is T09's (@app/data/regs) and is not merged yet");
+    await waitFor(() => expect(r.result.current.state).toBe("ready"), { timeout: 10_000 });
+    expect([r.result.current.value!.target, r.result.current.value!.day, r.result.current.value!.item?.name])
+      .toEqual([VEDDER, { month: 6, day: 15 }, "Vedder River"]);
   });
 
   it("useRegsTarget hands the store, item and tapped section to targetFor; disabled without a store or item", async () => {

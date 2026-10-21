@@ -27,16 +27,13 @@ export interface RegsPage {
   readonly status: "open" | "closed" | "tidal" | "outside" | "unknown";  // header dot + strip word; NEVER from the status index
   readonly header: HeaderVM;
   readonly keep: KeepVM;
-  readonly gear: GearVM;
-  readonly methods: MethodsVM;
-  readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden)
+  readonly gear: GearVM | null;            // (T21) null until T30–T32 build it
+  readonly methods: MethodsVM | null;      // (T21) null until T32 builds it
+  readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden) — and until T33 builds it
   readonly sheet: (key: SheetKey) => SheetVM | null;   // lazy; pure over the same inputs
 }
 
-/** The whole page for one tap (T21). `pid`: test-harness page id only — sheet keys never embed it (contracts §6 #1). */
-export function buildRegsPage(_inp: RegsInputs, _opts: { today: Day; who: Who; tot?: "a" | "b"; pid?: string }): RegsPage {
-  throw new Error("buildRegsPage: T21");
-}
+/** The whole page for one tap: `buildRegsPage` in page.ts (T21). */
 
 // ── 2.1 Header (prototype hdr, placeRow, placeGo, shortLabel, hereLabel, fitLabel) ──────────────────────────────────
 export interface HeaderVM {
@@ -59,6 +56,9 @@ export interface KeepVM {
   readonly groups: readonly GroupVM[];      // every article.row.ledger.g28 (a row with group.headline)
   readonly plainRows: readonly PlainRowVM[];// a row page v36 draws without a card
   readonly otherFish: readonly OtherFishRowVM[] | null;
+  /** (T21) under the Other fish list, one line per status word a row shows (release, closed), in the glossary's own plain
+   *  words with its ⓘ (prototype round UR6 `okey`); [] when no row shows either */
+  readonly otherFishKey: readonly OtherFishKeyVM[];
   readonly caveats: readonly CaveatVM[];    // top caveat blocks, in draw order (T15b)
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
@@ -173,7 +173,8 @@ export interface CaveatVM {                                           // page v3
 }
 export interface CaveatItemVM { readonly what: Line; readonly where: string | null; readonly rule: RuleKey | null; readonly fish: string | null; readonly book: Line }
 
-export interface OtherFishRowVM { readonly thumb: string | null; readonly name: string; readonly value: string;
+export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
+export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;
   readonly tone: "keep" | "release" | "closed" | "nolimit";   // decided in core, never the component
   readonly week: string | null; readonly sizeHint: string | null; readonly open: SheetKey }   // open = `other:o${i}`
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }

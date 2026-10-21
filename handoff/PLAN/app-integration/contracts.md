@@ -86,9 +86,9 @@ export interface RegsPage {
   readonly status: "open" | "closed" | "tidal" | "outside" | "unknown";  // header dot + strip word; NEVER from the status index
   readonly header: HeaderVM;
   readonly keep: KeepVM;
-  readonly gear: GearVM;
-  readonly methods: MethodsVM;
-  readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden)
+  readonly gear: GearVM | null;            // (T21) null until T30–T32 build it
+  readonly methods: MethodsVM | null;      // (T21) null until T32 builds it
+  readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden) — and until T33 builds it
   readonly sheet: (key: SheetKey) => SheetVM | null;   // lazy; pure over the same inputs
 }
 export function buildRegsPage(inp: RegsInputs, opts: { today: Day; who: Who; tot?: "a" | "b"; pid?: string }): RegsPage;   // (T30) pid: test-harness page id only — sheet keys never embed it (§6 #1)
@@ -125,6 +125,7 @@ export interface KeepVM {
   readonly groups: readonly GroupVM[];      // every article.row.ledger.g28 (a row with group.headline)
   readonly plainRows: readonly PlainRowVM[];// a row page v36 draws without a card (release-only "Char" etc.)
   readonly otherFish: readonly OtherFishRowVM[] | null;
+  readonly otherFishKey: readonly OtherFishKeyVM[];   // (T21) prototype round UR6 okey: one line per status word the list shows (release, closed), the glossary's `says` + ⓘ
   readonly caveats: readonly CaveatVM[];    // top caveat blocks, in draw order (T15b)
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
@@ -132,6 +133,9 @@ export interface KeepVM {
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"   // (T21)
   | "outside";                              // page v36 p.foot; no v33 golden state is outside B.C. (unit only); timed caveats stay { caveat } (§6 #2)   // (T42)
+export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }   // (T21) term: catch_and_release | no_fishing_for
+// (T21) outside B.C.: order ["outside"] (not []), so the component draws the foot from the order like every other block.
+// (T21) the order: core keep.ts `keepOrder` — strip, inherited, banner, caveats but "uncertain", the rows, "uncertain", otherFish, possession, whereNot.
 export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly rule: RuleKey; readonly term: "possession_quota"; readonly open: SheetKey }   // (T15) open = "pos:pos" (T36; §6 #3)
 ```
 

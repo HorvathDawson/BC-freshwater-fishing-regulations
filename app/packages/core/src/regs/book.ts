@@ -27,3 +27,8 @@ export const ruleBookLine = (r: RuleView | null): Line => bookLine(r?.facts?.boo
 export function withBook(line: Line, book: Line): Line {
   return book.length ? [...line, text(" "), ...book] : line;
 }
+
+/** The B.C. Freshwater Fishing Regulations Synopsis the "Rule book p.N ↗" links open (prototype SYNOPSIS_PDF). */
+export const SYNOPSIS_PDF = "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
+/** A book run's link: the synopsis at its PDF page (web honours `#page=`; native opens the PDF, decisions D6 a). */
+export const bookUrl = (pdf: number): string => `${SYNOPSIS_PDF}#page=${pdf}`;

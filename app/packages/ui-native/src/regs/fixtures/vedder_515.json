@@ -1,0 +1,702 @@
+{
+ "day": {
+  "day": 15,
+  "month": 5
+ },
+ "gear": null,
+ "header": {
+  "action": {
+   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "May 15",
+  "dateAria": "Change date, now May 15",
+  "dayWord": "Fri",
+  "dot": "open",
+  "name": "Vedder River",
+  "place": {
+   "full": "Mouth → Vedder Crossing Bridge",
+   "short": "Mouth → Vedder Crossing Bridge"
+  },
+  "tabs": [
+   {
+    "label": "What you can keep",
+    "tab": "keep"
+   },
+   {
+    "label": "Gear",
+    "tab": "gear"
+   },
+   {
+    "label": "Methods",
+    "tab": "methods"
+   },
+   {
+    "label": "Licence",
+    "tab": "licence"
+   }
+  ]
+ },
+ "keep": {
+  "banner": null,
+  "caveats": [],
+  "groups": [
+   {
+    "head": {
+     "form": "a",
+     "lead": [
+      {
+       "s": "2",
+       "size": "big",
+       "t": "num"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "a day per angler from streams",
+       "t": "text"
+      }
+     ],
+     "leadN": 2,
+     "nolimit": false,
+     "ofTotal": true,
+     "rootTier": "t1",
+     "shareOf": null,
+     "terms": [],
+     "whyHere": null,
+     "words": [
+      {
+       "s": "4",
+       "size": "big",
+       "t": "num"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "s": "a day per angler across Region 2, lakes included",
+       "t": "text"
+      }
+     ]
+    },
+    "more": {
+     "open": "src:r0",
+     "text": "See every regulation line ›"
+    },
+    "notKept": [
+     {
+      "mark": null,
+      "pictures": [
+       {
+        "caption": "Rainbow trout ›",
+        "code": "RB",
+        "name": "Rainbow trout",
+        "open": "sp:RB",
+        "sil": false
+       },
+       {
+        "caption": "Coastal cutthroat trout ›",
+        "code": "CT",
+        "name": "Cutthroat trout",
+        "open": "sp:CT",
+        "sil": false
+       }
+      ],
+      "presence": null,
+      "says": "Rainbow trout and cutthroat trout: release every one",
+      "status": "release",
+      "whose": [
+       {
+        "s": "This river’s rule",
+        "t": "text"
+       },
+       {
+        "s": " · ",
+        "t": "text"
+       },
+       {
+        "pdf": 24,
+        "printed": 22,
+        "t": "book"
+       }
+      ]
+     }
+    ],
+    "origin": null,
+    "quiet": null,
+    "row": 0,
+    "scope": null,
+    "title": "Trout and char",
+    "tree": [
+     {
+      "band": false,
+      "children": [
+       {
+        "band": true,
+        "children": [
+         {
+          "also": [],
+          "duty": null,
+          "folded": false,
+          "kind": "Brook trout and brown trout",
+          "pictures": [
+           {
+            "caption": "Brook trout ›",
+            "code": "EB",
+            "name": "Brook trout",
+            "open": "sp:EB",
+            "sil": false
+           },
+           {
+            "caption": "Brown trout ›",
+            "code": "GB",
+            "name": "Brown trout",
+            "open": "sp:GB",
+            "sil": false
+           }
+          ],
+          "presence": null,
+          "qualifiers": null,
+          "says": [
+           {
+            "s": "Up to ",
+            "t": "text"
+           },
+           {
+            "s": "2",
+            "size": "inline",
+            "t": "num"
+           },
+           {
+            "s": " may be hatchery brook or brown trout",
+            "t": "text"
+           }
+          ],
+          "size": {
+           "rule": true,
+           "text": "keep 30 cm (12 in) or longer; release the rest"
+          },
+          "species": [
+           "EB",
+           "GB"
+          ],
+          "t": "kind",
+          "zero": false
+         },
+         {
+          "also": [],
+          "duty": null,
+          "folded": false,
+          "kind": "Dolly Varden/bull trout and lake trout",
+          "pictures": [
+           {
+            "caption": "Bull trout ›",
+            "code": "DV",
+            "name": "Dolly Varden/bull trout",
+            "open": "sp:DV",
+            "sil": false
+           },
+           {
+            "caption": "Lake trout ›",
+            "code": "LT",
+            "name": "Lake trout",
+            "open": "sp:LT",
+            "sil": false
+           }
+          ],
+          "presence": null,
+          "qualifiers": null,
+          "says": [
+           {
+            "s": "Only ",
+            "t": "text"
+           },
+           {
+            "s": "1",
+            "size": "inline",
+            "t": "num"
+           },
+           {
+            "s": " of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
+            "t": "text"
+           }
+          ],
+          "size": {
+           "rule": true,
+           "text": "keep 60 cm (24 in) or longer; release the rest"
+          },
+          "species": [
+           "DV",
+           "LT"
+          ],
+          "t": "kind",
+          "zero": false
+         },
+         {
+          "also": [],
+          "duty": [
+           {
+            "s": "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away",
+            "t": "text"
+           },
+           {
+            "s": " ",
+            "t": "text"
+           },
+           {
+            "open": {
+             "tab": "licence"
+            },
+            "s": "Steelhead stamp ›",
+            "t": "link"
+           }
+          ],
+          "folded": false,
+          "kind": "Steelhead",
+          "pictures": [
+           {
+            "caption": "Steelhead ›",
+            "code": "ST",
+            "name": "Steelhead",
+            "open": "sp:ST",
+            "sil": false
+           }
+          ],
+          "presence": [
+           {
+            "s": "A rainbow trout over 50 cm (20 in) here counts as a steelhead.",
+            "t": "text"
+           },
+           {
+            "s": " ",
+            "t": "text"
+           },
+           {
+            "ids": [
+             "steelhead"
+            ],
+            "t": "term"
+           }
+          ],
+          "qualifiers": "rainbow trout",
+          "says": [
+           {
+            "s": "Up to ",
+            "t": "text"
+           },
+           {
+            "s": "2",
+            "size": "inline",
+            "t": "num"
+           },
+           {
+            "s": " may be hatchery steelhead only — wild steelhead go back",
+            "t": "text"
+           },
+           {
+            "s": " ",
+            "t": "text"
+           },
+           {
+            "open": "hatch",
+            "s": "How to tell ›",
+            "t": "link"
+           }
+          ],
+          "size": {
+           "rule": false,
+           "text": "over 50 cm (20 in)"
+          },
+          "species": [
+           "ST"
+          ],
+          "t": "kind",
+          "zero": false
+         }
+        ],
+        "folded": false,
+        "kicker": null,
+        "line": [
+         {
+          "s": "Of these, only ",
+          "t": "text"
+         },
+         {
+          "s": "1",
+          "size": "big",
+          "t": "num"
+         },
+         {
+          "s": " may be over 50 cm (20 in) — ",
+          "t": "text"
+         },
+         {
+          "s": "2",
+          "size": "big2",
+          "t": "num"
+         },
+         {
+          "s": " if one is a hatchery steelhead",
+          "t": "text"
+         }
+        ],
+        "origin": null,
+        "relation": null,
+        "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+        "sub": null,
+        "t": "tier",
+        "tid": "t3",
+        "tier": "size"
+       }
+      ],
+      "folded": true,
+      "kicker": null,
+      "line": [],
+      "origin": {
+       "book": [
+        {
+         "pdf": 23,
+         "printed": 21,
+         "t": "book"
+        }
+       ],
+       "howtell": true,
+       "says": [
+        {
+         "s": "From streams, keep hatchery fish only — wild trout and char go back.",
+         "t": "text"
+        }
+       ],
+       "tag": null
+      },
+      "relation": null,
+      "short": "2 of them from streams",
+      "sub": null,
+      "t": "tier",
+      "tid": "t2",
+      "tier": "share"
+     }
+    ],
+    "worked": {
+     "label": "How it adds up",
+     "lines": [
+      {
+       "a": "None more here",
+       "at": "elsewhere",
+       "q": "Kept 2 on another stream?"
+      },
+      {
+       "a": "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
+       "at": "elsewhere",
+       "q": "Kept 1 at a lake?"
+      },
+      {
+       "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead.",
+       "at": "elsewhere",
+       "q": "Kept trout or char over 50 cm (20 in) elsewhere today?"
+      }
+     ],
+     "says": "Your own limit, counted across every Region 2 stream you fish today."
+    }
+   }
+  ],
+  "inherited": null,
+  "order": [
+   "strip",
+   {
+    "group": 0
+   },
+   "otherFish",
+   "possession",
+   "whereNot"
+  ],
+  "otherFish": [
+   {
+    "name": "Kokanee",
+    "open": "other:o0",
+    "sizeHint": null,
+    "thumb": "KO",
+    "tone": "release",
+    "value": "release",
+    "week": null
+   },
+   {
+    "name": "Whitefish",
+    "open": "other:o1",
+    "sizeHint": null,
+    "thumb": "LW",
+    "tone": "keep",
+    "value": "15 a day",
+    "week": null
+   },
+   {
+    "name": "Bass",
+    "open": "other:o2",
+    "sizeHint": null,
+    "thumb": "LMB",
+    "tone": "keep",
+    "value": "20 a day",
+    "week": null
+   },
+   {
+    "name": "Black crappie",
+    "open": "other:o3",
+    "sizeHint": null,
+    "thumb": "BCB",
+    "tone": "keep",
+    "value": "20 a day",
+    "week": null
+   },
+   {
+    "name": "White sturgeon",
+    "open": "other:o4",
+    "sizeHint": null,
+    "thumb": "WSG",
+    "tone": "release",
+    "value": "release",
+    "week": null
+   },
+   {
+    "name": "Crayfish",
+    "open": "other:o5",
+    "sizeHint": null,
+    "thumb": null,
+    "tone": "keep",
+    "value": "25 a day",
+    "week": null
+   },
+   {
+    "name": "Protected species",
+    "open": "other:o6",
+    "sizeHint": null,
+    "thumb": null,
+    "tone": "closed",
+    "value": "closed",
+    "week": null
+   }
+  ],
+  "otherFishKey": [
+   {
+    "says": "You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
+    "status": "release",
+    "term": "catch_and_release"
+   },
+   {
+    "says": "You may not fish for it at all, not even to release it. If you catch one by accident, release it at once.",
+    "status": "closed",
+    "term": "no_fishing_for"
+   }
+  ],
+  "outside": null,
+  "plainRows": [],
+  "possession": {
+   "label": "Possession",
+   "open": "pos:pos",
+   "rule": "z2:possession_quota::possession_quota.r1",
+   "says": "Possession: 2 days’ quota. Fish at home don’t count.",
+   "term": "possession_quota",
+   "value": "2 days’ quota"
+  },
+  "strip": {
+   "legend": [
+    {
+     "bit": 0,
+     "label": "open",
+     "mark": "✓"
+    },
+    {
+     "bit": 1,
+     "label": "closed",
+     "mark": "✕"
+    },
+    {
+     "bit": 4,
+     "label": "fly fishing only",
+     "mark": null
+    },
+    {
+     "bit": 16,
+     "label": "bait ban",
+     "mark": null
+    }
+   ],
+   "line": [
+    {
+     "kind": "status",
+     "text": "Open"
+    },
+    {
+     "kind": "when",
+     "text": "on May 15"
+    },
+    {
+     "kind": "soon",
+     "text": "Closed Jun 1–30"
+    }
+   ],
+   "months": [
+    "J",
+    "F",
+    "M",
+    "A",
+    "M",
+    "J",
+    "J",
+    "A",
+    "S",
+    "O",
+    "N",
+    "D"
+   ],
+   "runs": [
+    {
+     "bits": 0,
+     "days": 120
+    },
+    {
+     "bits": 20,
+     "days": 31
+    },
+    {
+     "bits": 1,
+     "days": 30
+    },
+    {
+     "bits": 0,
+     "days": 184
+    }
+   ],
+   "status": "open",
+   "todayAt": 0.36712328767123287
+  },
+  "whereNot": {
+   "heading": "Where you can’t fish",
+   "items": [
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+     "text": [
+      {
+       "s": "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    },
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+     "text": [
+      {
+       "s": "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "scope": null
+  }
+ },
+ "licence": null,
+ "methods": null,
+ "sheets": {
+  "gl:bait_ban": null,
+  "gl:catch_and_release": null,
+  "gl:conservation_surcharge": null,
+  "gl:fly_fishing": null,
+  "gl:no_fishing_for": null,
+  "gl:single_barbless_hook": null,
+  "gl:steelhead": null,
+  "gl:steelhead_stamp": null,
+  "gl:under_16": null,
+  "hatch": null,
+  "licsrc:adult": null,
+  "licsrc:adult_alien": null,
+  "licsrc:adult_non": null,
+  "licsrc:u16_alien": null,
+  "licsrc:u16_non": null,
+  "licsrc:u16_res": null,
+  "other:o0": null,
+  "other:o1": null,
+  "other:o2": null,
+  "other:o3": null,
+  "other:o4": null,
+  "other:o5": null,
+  "other:o6": null,
+  "pos:pos": null,
+  "rule:zp:conduct::conduct.r1": null,
+  "rule:zp:conduct::conduct.r10": null,
+  "rule:zp:conduct::conduct.r2": null,
+  "rule:zp:conduct::conduct.r3": null,
+  "rule:zp:conduct::conduct.r4": null,
+  "rule:zp:conduct::conduct.r5": null,
+  "rule:zp:conduct::conduct.r6": null,
+  "rule:zp:conduct::conduct.r7": null,
+  "rule:zp:conduct::conduct.r9": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r1": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r2": null,
+  "rule:zp:further_prohibitions::further_prohibitions.r3": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": null,
+  "rule:zp:preparing_catch::preparing_catch.r1": null,
+  "rule:zp:preparing_catch::preparing_catch.r2": null,
+  "rule:zp:prohibited_methods::prohibited_methods.r3": null,
+  "rule:zp:transporting_catch::transporting_catch.r1": null,
+  "rule:zp:transporting_catch::transporting_catch.r2": null,
+  "rule:zp:transporting_catch::transporting_catch.r3": null,
+  "rule:zp:transporting_catch::transporting_catch.r4": null,
+  "rule:zp:transporting_catch::transporting_catch.r5": null,
+  "rule:zp:transporting_catch::transporting_catch.r6": null,
+  "sp:BCB": null,
+  "sp:CT": null,
+  "sp:DV": null,
+  "sp:EB": null,
+  "sp:GB": null,
+  "sp:KO": null,
+  "sp:LMB": null,
+  "sp:LT": null,
+  "sp:LW": null,
+  "sp:RB": null,
+  "sp:ST": null,
+  "sp:WSG": null,
+  "src:r0": null,
+  "srcs:always": null,
+  "srcs:bait": null,
+  "srcs:gl|hook": null,
+  "srcs:gl|lines": null,
+  "srcs:gl|mode": null,
+  "srcs:ways": null
+ },
+ "status": "open",
+ "target": {
+  "item": "gnis:3062",
+  "kind": "part",
+  "partIx": 0
+ },
+ "today": false,
+ "version": "regs-v38",
+ "weekday": "Friday",
+ "who": {
+  "age": "adult",
+  "residency": "resident"
+ }
+}

@@ -7,41 +7,24 @@
  * no group headline). klmb_1010's one pooled no-headline row (drawn through page v36's legacy card path, D19) is not a
  * plain row of this port and its golden entry is dropped by its reason (decisions D19), never compared.
  *
- * The sibling functions (T13 runOf, T17 rowTitle, T18 pictures, T19 MORE / splitRows) are this file's STAND-INS
- * (siblingSeams.ts) until those lanes merge — see that file.
+ * The sibling functions (T13 runOf, T17 rowTitle, T18 pictures, T19 MORE / splitRows) are the merged ones, bound once by
+ * T21 (`plainRowSeams`, core keep.ts); the stand-ins this file used before they merged are gone.
  */
 import { afterAll, describe, expect, it } from "vitest";
 import {
-  buildModel, isPlainRow, makePlace, plain, plainRowOf, settle, WORDS, type PlainRowVM, type RegsInputs,
+  buildModel, FISH, isPlainRow, makePlace, plain, plainRowOf, plainRowSeams, settle, splitRows, WORDS, type PlainRowVM, type RegsInputs,
 } from "@app/core";
 import { eqPlain, norm } from "./eq";
 import { cases } from "./golden";
-import { mainRows, seamsFor } from "./siblingSeams";
+import { plainRowLines } from "./keepPage";
 
-/** The golden text form of a plain row (one string per block element, one space between abutting elements). */
-function linesOf(v: PlainRowVM): string[] {
-  const out: string[] = [
-    [v.title, v.pill?.text, v.pill?.term ? WORDS.TERM_ONE : ""].filter(Boolean).join(" "),
-    v.sum ?? "",
-    ...(v.week ? [[v.week.status, v.week.says].filter(Boolean).join(" "), ...v.week.parts.map((p) => [p.days, p.says, plain(p.book)].filter(Boolean).join(" ")),
-      ...v.week.notes.map(plain)] : []),
-    v.release ? [v.release.names, ...v.release.pictures.flatMap((p) => (p.sil ? [] : [p.caption]))].join(" ") : "",
-    plain(v.presence),
-    v.whichFish ?? "", v.names ?? "",
-    v.ladder.label,
-    ...v.ladder.sections.flatMap((s) => [s.q ?? "", s.result ? WORDS.CHECK + s.result : "",
-      ...s.steps.flatMap((st) => [st.level, ...st.lines.flatMap((l) => [[plain(l.text), l.tag, plain(l.book)].filter(Boolean).join(" "), ...(l.notes ?? [])])])]),
-    v.ladder.lost.length ? WORDS.RULES_NOT_APPLY(v.ladder.lost.length) : "",
-    ...v.ladder.lost.map((l) => [l.text, l.status, plain(l.book)].filter(Boolean).join(" ")),
-  ].filter(Boolean);
-  out[out.length - 1] += " " + v.more.text;
-  return out;
-}
+/** The golden text form of a plain row: keepPage.ts `plainRowLines` (one string per block element). */
+const linesOf = plainRowLines;
 
 const rowsOf = (inp: RegsInputs): PlainRowVM[] => {
-  const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled), seams = seamsFor(inp);
+  const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled), seams = plainRowSeams(inp, FISH);
   if (settled.status?.status === "closed" || settled.status?.status === "tidal" || !settled.status) return [];
-  return mainRows(card).filter((i) => isPlainRow(card.rows[i]!)).map((i) => plainRowOf(i, { inp, card, settled, seams }));
+  return splitRows(card).main.filter((i) => isPlainRow(card.rows[i]!)).map((i) => plainRowOf(i, { inp, card, settled, seams }));
 };
 /** D19: klmb_1010's pooled row is drawn by page v36's legacy card path — not this port's plain row. */
 const D19 = (id: string, g: string[][]) => (id === "klmb_1010" ? g.filter((r) => !/^Rainbow troutSeparate from/.test(r[0]!)) : g);

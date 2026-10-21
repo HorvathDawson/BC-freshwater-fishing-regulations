@@ -2,10 +2,10 @@
  * T12: the first parity test — the harness itself. Every golden state's inputs (T09 over `parityStore()`: the province
  * release, else the committed fixture) tap to taps.json's key, segment, cell and per-day display frames (all store
  * answers; nothing here is computed in TS), the request mapping is the oracle's, the two oracles are from one sync, the
- * inputs cache memoises, and the frozen VM fixtures are fresh (from T21). REGS_PARITY=fixture is the CI path.
+ * inputs cache memoises, a case builds its page (T21), and the frozen VM fixtures are fresh. REGS_PARITY=fixture is the CI path.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { buildRegsPage, type DisplayFrame, type RegsInputs } from "@app/core";
+import type { DisplayFrame, RegsInputs } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
 import { syncFixtures } from "./fixtures";
 import {
@@ -17,11 +17,6 @@ const gate = await parityGate();
 const label = await storeLabel();
 const ids = caseIds("keep");
 
-/** buildRegsPage is declared and throws until T21 builds it. */
-const T21 = ((): boolean => {
-  try { buildRegsPage({} as never, { today: { month: 1, day: 1 }, who: { age: "adult", residency: "resident" } }); return true; }
-  catch (e) { return !/buildRegsPage: T21/.test(String(e)); }
-})();
 
 it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"reason" in gate ? gate.reason : gate.fail}` : ` (${label})`}`, () => {
   if (gate.fail) expect.fail(gate.fail);
@@ -72,7 +67,8 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
       seen.push(c.id);
       if (c.id === "vedder_515") {
         expect([c.g.id, c.g.water, c.tap.akey, (await c.inputs()).key!.akey]).toEqual(["vedder_515", "Vedder River", 886, 886]);
-        await expect(c.page()).rejects.toThrow(T21 ? /^$/ : "buildRegsPage: T21");
+        const p = await c.page();
+        expect([p.version, p.target, p.day, p.keep.order[0]]).toEqual(["regs-v38", c.tap && requestOf(c.id).target, { month: 5, day: 15 }, "strip"]);
       }
     }
     expect(seen).toEqual(Object.keys(T.states));
@@ -92,7 +88,7 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     expect(label).toBe(mode !== "auto" ? mode : (await releasePairing()).path !== null ? "province" : "fixture");
   });
 
-  it.skipIf(!T21)("10. the frozen VM fixtures are fresh (buildRegsPage lands in T21)", async () => {
+  it("10. the frozen VM fixtures are fresh (buildRegsPage, T21)", async () => {
     await syncFixtures();
   });
 

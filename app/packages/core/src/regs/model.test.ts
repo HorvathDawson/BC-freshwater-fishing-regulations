@@ -4,7 +4,7 @@
  * assertions only keep vitest from calling the file empty.
  */
 import { describe, expect, it } from "vitest";
-import { buildRegsPage, type RegsPage } from "./model";
+import type { RegsPage } from "./model";
 
 const page = {
   version: "regs-v38",
@@ -38,6 +38,7 @@ const page = {
     }],
     plainRows: [], otherFish: [{ thumb: null, name: "Kokanee", value: "release", tone: "release", week: null, sizeHint: null,
       open: "other:o0" }],
+    otherFishKey: [{ status: "release", says: "You may fish for it, but every one you catch must go back.", term: "catch_and_release" }],
     caveats: [], possession: null, whereNot: null, outside: null,
   },
   gear: { closed: null, day: "Fri, May 15", mode: null, lines: [], bait: null },
@@ -51,8 +52,8 @@ describe("RegsPage", () => {
     expect(page.version).toBe("regs-v38");
   });
 
-  it("buildRegsPage is declared and not yet built (T21)", () => {
-    expect(() => buildRegsPage({} as never, { today: { month: 1, day: 1 }, who: page.who }))
-      .toThrow("buildRegsPage: T21");
+  it("leaves Gear, Methods and Licence to their tickets: each may be null until built (T21)", () => {
+    const stub = { ...page, gear: null, methods: null, licence: null } satisfies RegsPage;
+    expect([stub.gear, stub.methods, stub.licence]).toEqual([null, null, null]);
   });
 });
