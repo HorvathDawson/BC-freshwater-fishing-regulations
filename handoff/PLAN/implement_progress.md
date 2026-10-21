@@ -83,6 +83,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- 2026-10-21 morning: deliver all OK -> release r-7b6e802bf22b PROMOTED (13.85 MB gz; card gate 0 problems; both
+  Kitimat rulings live: hatchery ST keep 2 Jul 1-Oct 31, release Nov 1-Jun 30; +1 over 50 like the Vedder). taps.json
+  re-cut, regs fixture r-d3b990efee47, Kitimat + year-strip + card parity pin the ruling (3 Kitimat states differ
+  from page v36 by design). REGS_STORE_REQUIRED=1 pnpm check: 3364 pass / 19 skip. Dev server serves the new release.
+  KNOWN STALE TOOL: app/design/regs-v11/port/verify_map.py fails on the v38 golden tree (KeyError line/children;
+  written for v33) — not gating; fix or retire later. Tier 2 RUNNING (bpf411jqt). Batch 8 (Keep tab card, lanes
+  A T13->T14->T16, B T15/T15b/T19b, C T17->T18->T19) RUNNING; then T21 build-keep + screenshots vs the prototype.
 - 2026-10-21 early morning: MERGED strip dedupe ad0252d4 (254 distinct strips; release 13.90 MB, ~99 KB under the
   14.0 MB gate, gate untouched; lossless over 9175 cells); colour-latency AP on WEB merged 8af5dcd1 (0 grey frames after
   pans at z8/z11/z13, ~0.2 ms/pan, day change 0 state calls; native keeps the old 'status' path — native per-tile
