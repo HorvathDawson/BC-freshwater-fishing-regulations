@@ -96,6 +96,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED 2026-10-21 ~14:50: one-water-screen (595bb174 + review fix 7f6d4692: an unnamed reach opens the same
+  Conditions-only frame from either map; BACK IS NOW LATERAL, back leaves the water to the map it was tapped on; both
+  noted in decisions.md for the owner to confirm). Reference 308 RESOLVED as page-vs-ruling, not a regression: Shuswap
+  stamp record rules stored as duty (batch 9) vs page v35 floor -> PAGE_BUGS B9.4 (b5f86988); slow test 0 unexplained;
+  no deliver needed. pnpm check strict 4889 pass, smoke pass. Worktrees removed.
 - RESUMED 2026-10-21 14:40 after the credit reset: all four workflows resumed with the same run ids (below); a
   single agent is investigating the 308 unexplained reference answers. Was PAUSED 2026-10-21 (owner low on credits). Main tree CLEAN at the commit below; everything merged is committed and
   green (pnpm check 4877; smoke). STOPPED workflows — resume each with Workflow({scriptPath, resumeFromRunId}); finished
