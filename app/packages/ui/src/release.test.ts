@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseManifest, type Held, type Manifest } from "@app/data";
 import type { StatusIndex } from "@app/core";
 import { loadStatusIndex } from "./hooks";
-import { pairingOf, pairingView, releaseStatus, statusOf, type StatusSource } from "./release";
+import { pairingOf, pairingView, releaseMapInput, releaseStatus, statusOf, type StatusSource } from "./release";
 
 const H = "d768d6e135e62b99";
 const index = { handles: H } as unknown as StatusIndex;
@@ -48,16 +48,16 @@ const held = (tiles: string | null): Held => ({ tiles, basemap: null, release: "
 describe("pairingView: colour only on a proven pair", () => {
   it("the manifest's tiles in its own sid space: paired", () => {
     expect(pairingView({ manifest: M(`${H}.aaa`), held: held(null) }))
-      .toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa` });
+      .toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa`, unproven: false });
   });
   it("the drawn tiles from another atlas: refused, and both named", () => {
     expect(pairingView({ manifest: M(null), held: held(null) }, "0123456789abcdef.bbb"))
-      .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.bbb" });
+      .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.bbb", unproven: false });
   });
   it("no tile version known anywhere (a dev server before the tile rebuild): not established — no colour, no alarm",
     () => {
       expect(pairingView({ manifest: M(null), held: held(null) }))
-        .toEqual({ ok: null, data: "r-2", tiles: null });
+        .toEqual({ ok: null, data: "r-2", tiles: null, unproven: true });
     });
 });
 
@@ -78,24 +78,62 @@ describe("the release path with no tile set named proves the pair against the ti
     ({ kind: "release" as const, manifest: M(tiles), held: held(null), atlasUrl: DRAWN });
   it("drawn tiles stamped in the manifest's sid space: paired — status and flow may colour", async () => {
     const s = sidecar({ section_handles: H, build: "full", registry: "8c77ba1cd2dc3929", tile_version: STAMP });
-    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: STAMP });
+    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: STAMP, unproven: false });
     expect(s.asked).toEqual(["http://dev.test/atlas.meta.json"]);
   });
   it("drawn tiles that are not stamped (the sidecar as it is today: section_handles only): not proven", async () => {
     const s = sidecar({ section_handles: H, build: "full", registry: "8c77ba1cd2dc3929" });
-    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: null, data: "r-2", tiles: null });
+    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: null, data: "r-2", tiles: null, unproven: true });
   });
   it("drawn tiles stamped in another sid space: refused, and both named", async () => {
     const s = sidecar({ section_handles: "0123456789abcdef", tile_version: "0123456789abcdef.0123456789ab" });
     expect(await pairingOf(input(), s.fetcher))
-      .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.0123456789ab" });
+      .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.0123456789ab", unproven: false });
   });
   it("no sidecar beside the drawn tiles: not proven", async () => {
-    expect(await pairingOf(input(), sidecar(null).fetcher)).toEqual({ ok: null, data: "r-2", tiles: null });
+    expect(await pairingOf(input(), sidecar(null).fetcher)).toEqual({ ok: null, data: "r-2", tiles: null, unproven: true });
   });
   it("a manifest that names its tiles is the version drawn: the sidecar is never read", async () => {
     const s = sidecar({ tile_version: "0123456789abcdef.0123456789ab" });
-    expect(await pairingOf(input(`${H}.aaa`), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa` });
+    expect(await pairingOf(input(`${H}.aaa`), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa`, unproven: false });
+    expect(s.asked).toEqual([]);
+  });
+});
+
+describe("an unproven pair is said, a pair not yet checked is not", () => {
+  it("nothing to check (no input, or still loading) is not 'unproven': no line is drawn for it", async () => {
+    expect(await pairingOf(null)).toEqual({ ok: null, data: null, tiles: null, unproven: false });
+  });
+  it("the dev path with no sidecar is unproven; with a matching one it is proven", async () => {
+    const source = { info: async () => ({ sectionHandles: H }) } as never;
+    expect(await pairingOf({ kind: "dev", source, atlasUrl: DRAWN }, sidecar(null).fetcher))
+      .toEqual({ ok: null, data: H, tiles: null, unproven: true });
+    expect(await pairingOf({ kind: "dev", source, atlasUrl: DRAWN }, sidecar({ section_handles: H }).fetcher))
+      .toEqual({ ok: true, data: H, tiles: H, unproven: false });
+  });
+});
+
+describe("releaseMapInput: what App hands the Shell on the release path (the tiles it draws, and the pair they prove)", () => {
+  const DEV = { atlas: "http://dev.test/atlas.pmtiles", basemap: "http://dev.test/basemap.pmtiles",
+                outside: "http://dev.test/bc_outside.geojson" };
+  const locate = (path: string) => `https://r2.test/release/${path}`;
+  it("a manifest that names no tiles draws the dev atlas, and the pairing is proven against THAT atlas's stamp",
+    async () => {
+      const b = { manifest: M(null), held: held(null), locate };
+      const got = releaseMapInput(b, DEV);
+      expect(got.tiles).toEqual(DEV);
+      expect(got.pairing).toEqual({ kind: "release", manifest: b.manifest, held: b.held, atlasUrl: DEV.atlas });
+      const s = sidecar({ section_handles: H, tile_version: STAMP });
+      expect(await pairingOf(got.pairing, s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: STAMP, unproven: false });
+      expect(s.asked).toEqual(["http://dev.test/atlas.meta.json"]);
+    });
+  it("a manifest that names its tiles draws them from the release, and pairs them without a sidecar", async () => {
+    const b = { manifest: M(`${H}.aaa`), held: held(null), locate };
+    const got = releaseMapInput(b, DEV);
+    expect(got.tiles.atlas).toBe(`https://r2.test/release/tiles/${H}.aaa/atlas-${H}.aaa.pmtiles`);
+    expect(got.pairing).toEqual({ kind: "release", manifest: b.manifest, held: b.held, atlasUrl: got.tiles.atlas });
+    const s = sidecar(null);
+    expect(await pairingOf(got.pairing, s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa`, unproven: false });
     expect(s.asked).toEqual([]);
   });
 });

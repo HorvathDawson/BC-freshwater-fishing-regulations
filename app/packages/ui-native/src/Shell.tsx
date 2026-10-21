@@ -7,7 +7,8 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { dayLabel, TEMP_LEGEND, WATER_STATUS, WATER_STATUSES, type SectionKey, type TempBand } from "@app/core";
+import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, type SectionKey,
+         type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
@@ -230,6 +231,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const vintage = usePairing(pairing);
   const paired = vintage.ok === true;
   const mixedPair = vintage.ok === false;
+  // checked, and no tile version to prove the pair with: nothing is coloured, and one quiet line says why
+  const unproven = vintage.ok === null && vintage.unproven;
   /*
    * THE DAY'S STATUS, on the Map tab, from the release's paint (`useStatusIndex`; checked against
    * the release's handles when decoded). Until it has loaded the water stays plain: "not asked" is
@@ -568,6 +571,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             tiles {vintage.tiles ?? "unknown"} · bundle {vintage.data ?? "unknown"}
           </Text>
         </View>
+      )}
+      {unproven && (
+        <Text style={{ paddingVertical: 6, paddingHorizontal: 12, color: palette.sub, fontSize: 12 }}>
+          {unprovenLine(vintage.data)}
+        </Text>
       )}
       <View style={{ flex: 1 }}>
         <EdgeBack drag={edge}>{item !== null ? <PartSwipe swipe={partSwipe}>{body}</PartSwipe> : body}</EdgeBack>

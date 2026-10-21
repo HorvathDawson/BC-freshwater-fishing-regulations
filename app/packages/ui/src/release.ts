@@ -6,9 +6,11 @@
  *             the dev bundle path `status_index.bin` beside the tiles (`devStatus`, until P20). A failure is never
  *             kept: the next screen to ask tries again.
  *   pairing   `usePairing` (P10's `pair`): ok true = colour; false = a mixed pair, refused and said; null = not
- *             established (no tile version known yet), which colours nothing and raises no alarm.
+ *             established, which colours nothing and raises no alarm — and, once checked with no tile version found
+ *             (`unproven`), says why in one quiet line (core `unprovenLine`).
  */
 import { pair, type Held, type Manifest, type RegsSource } from "@app/data";
+import { releaseTiles, type Booted } from "@app/data/release";
 import type { StatusIndex } from "@app/core";
 import { useAsync } from "./async";
 import { loadStatusIndex, statusIndexUrl } from "./hooks";
@@ -67,14 +69,19 @@ export type PairingInput =
   /** The dev bundle path (until P20): the bundle's section_handles against the tiles' `atlas.meta.json`. */
   | { kind: "dev"; source: RegsSource; atlasUrl: string | undefined };
 
-/** ok: true = a proven pair · false = a mixed pair · null = not established. `data`/`tiles` name the two sides. */
+/**
+ * ok: true = a proven pair · false = a mixed pair · null = not established. `data`/`tiles` name the two sides.
+ * `unproven`: checked, and no tile version was found to prove the pair with (unstamped tiles, no sidecar) — said; a
+ * pair not yet checked (loading, no input) is not unproven and says nothing.
+ */
 export interface PairingView {
   ok: boolean | null;
   data: string | null;
   tiles: string | null;
+  unproven: boolean;
 }
 
-const UNKNOWN: PairingView = { ok: null, data: null, tiles: null };
+const UNKNOWN: PairingView = { ok: null, data: null, tiles: null, unproven: false };
 
 /**
  * The release's pairing as the Shell shows it. A section is an integer handle that means a different river in another
@@ -87,9 +94,9 @@ const UNKNOWN: PairingView = { ok: null, data: null, tiles: null };
 export function pairingView(input: { manifest: Manifest; held: Held }, drawn: string | null = null): PairingView {
   const { manifest: m, held } = input;
   const tiles = m.tiles.current?.id ?? drawn;
-  if (tiles === null) return { ok: null, data: m.data_release, tiles: null };
+  if (tiles === null) return { ok: null, data: m.data_release, tiles: null, unproven: true };
   const p = pair(m, { ...held, tiles });
-  return { ok: p.ok, data: m.data_release, tiles };
+  return { ok: p.ok, data: m.data_release, tiles, unproven: false };
 }
 
 type Sidecar = { section_handles?: string; tile_version?: string };
@@ -121,12 +128,27 @@ export async function pairingOf(input: PairingInput | null, fetcher: typeof fetc
   // leaves this null rather than false — an old deployment has none, and that is not evidence of a mismatch.
   const info = await input.source.info();
   const data = info.sectionHandles;
-  if (!input.atlasUrl) return { ok: null, data, tiles: null };
+  if (!input.atlasUrl) return { ok: null, data, tiles: null, unproven: true };
   const meta = await sidecarOf(input.atlasUrl, fetcher);
-  if (!meta) return { ok: null, data, tiles: null };
+  if (!meta) return { ok: null, data, tiles: null, unproven: true };
   const tiles = meta.section_handles ?? null;
-  if (!data || !tiles) return { ok: null, data, tiles };
-  return { ok: data === tiles, data, tiles };
+  if (!data || !tiles) return { ok: null, data, tiles, unproven: true };
+  return { ok: data === tiles, data, tiles, unproven: false };
+}
+
+/** The map's endpoints (`releaseTiles`: dev ones where the release names none). */
+export type MapTiles = ReturnType<typeof releaseTiles>;
+
+/**
+ * THE RELEASE PATH'S MAP INPUT (what App.tsx hands the Shell): the tiles it draws, and the pairing proven against THOSE
+ * tiles — `atlasUrl` is the atlas drawn, so when the manifest names no tile set the pair is proven by the dev atlas's
+ * stamped `tile_version` (`pairingOf`), never assumed.
+ */
+export function releaseMapInput(b: Pick<Booted, "manifest" | "held" | "locate">,
+                                 dev: { atlas: string; basemap: string; outside: string }):
+    { tiles: MapTiles; pairing: PairingInput } {
+  const tiles = releaseTiles(b, dev);
+  return { tiles, pairing: { kind: "release", manifest: b.manifest, held: b.held, atlasUrl: tiles.atlas } };
 }
 
 /** Whether the map may be coloured, and the two sides' names for the banner when it may not. */

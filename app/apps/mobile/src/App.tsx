@@ -25,13 +25,12 @@ import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
 import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, type RegsSource } from "@app/data";
-import { releaseTiles } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { devStatus, releaseStatus, useReleaseBoot, useSpots, type PairingInput, type SpotPhotos,
-         type StatusSource } from "@app/ui";
+import { devStatus, releaseMapInput, releaseStatus, useReleaseBoot, useSpots, type MapTiles, type PairingInput,
+         type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 
@@ -89,16 +88,13 @@ export default function App() {
   const dev = useDevBundle(!RELEASE);
 
   const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
-                             tiles: { atlas: string; basemap: string; outside: string } } | null => {
+                             tiles: MapTiles } | null => {
     if (RELEASE) {
       if (boot.state !== "ready") return null;
       const b = boot.booted;
-      // the mask (and tiles, basemap) from the release's tile folder when it names one, else the dev server's
-      const tiles = releaseTiles(b, ENDPOINTS.tiles);
-      return { source: b.source, status: releaseStatus(b.loader),
-               // the pair is proven against the tiles DRAWN: when the manifest names none, the stamp of those it draws
-               pairing: { kind: "release", manifest: b.manifest, held: b.held, atlasUrl: tiles.atlas },
-               tiles };
+      // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
+      // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
+      return { source: b.source, status: releaseStatus(b.loader), ...releaseMapInput(b, ENDPOINTS.tiles) };
     }
     if (!dev.bundle) return null;
     const source = makeBundleSource(dev.bundle, { feed });

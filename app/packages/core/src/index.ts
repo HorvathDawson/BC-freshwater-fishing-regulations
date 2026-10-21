@@ -26,6 +26,7 @@ export * from "./day";
 export * from "./conditions";
 export * from "./temperature";
 export * from "./install";
+export * from "./pairing";
 
 export type Freshness =
   | { state: "live"; ageMs: number }
