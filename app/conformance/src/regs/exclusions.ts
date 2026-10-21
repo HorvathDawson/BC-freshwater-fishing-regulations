@@ -43,9 +43,9 @@ export const EXCLUDE: readonly Exclusion[] = [
     until: "never — prototype map coverage, not a regulation" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
-  // (T18) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design
-  { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.tree$/,
-    reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) is not page v36's. tree.parity holds these states to the STORE's TreeTier.says / TreeKind.says instead; never 'fix' the data to match the page",
+  // (T18/T19) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design
+  { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked)$/,
+    reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
 ];
 

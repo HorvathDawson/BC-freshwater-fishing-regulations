@@ -1,13 +1,13 @@
 /**
- * T17–T18 parity helpers: a golden state's Keep groups built by the core presenters over the state's inputs (until T21's
+ * T17–T19 parity helpers: a golden state's Keep groups built by the core presenters over the state's inputs (until T21's
  * buildRegsPage composes them), and each VM projected to the golden's own shape (golden.mjs EXTRACT: `group`, `tierNode`,
- * `kind`). A projection only reads the VM and words it the way the prototype's DOM reads (contracts §1:
+ * `kind`, `otherFish`). A projection only reads the VM and words it the way the prototype's DOM reads (contracts §1:
  * runs concatenate as they are, separate elements one space); it never re-derives a value.
  */
 import {
-  buildModel, drawnRows, FISH, groupHeadOf, groupRows, headCtx, makePlace, originOf, plain, plainAll, settle, text, treeEnv,
-  treeOf, WORDS, type CardModel, type GroupHeadVM, type HeadCtx, type KindVM, type Line, type OriginVM, type RegsInputs,
-  type TierVM, type TreeEnv, type TreeNodeVM,
+  buildModel, drawnRows, FISH, groupHeadOf, groupRows, headCtx, makePlace, notKeptOf, originOf, otherFishOf, plain, plainAll,
+  quietOf, moreOf, settle, text, treeEnv, treeOf, workedOf, WORDS, type CardModel, type GroupHeadVM, type HeadCtx, type KindVM,
+  type Line, type NotKeptVM, type OriginVM, type OtherFishRowVM, type RegsInputs, type TierVM, type TreeEnv, type TreeNodeVM,
 } from "@app/core";
 import { norm } from "./eq";
 
@@ -80,6 +80,17 @@ export function goldenTree(nodes: unknown): unknown {
   }) ?? null;
 }
 
+export function notKeptProj(x: NotKeptVM) {
+  return { status: x.status, says: x.says, whose: nl(x.whose), mark: x.mark, presence: nl(x.presence),
+    pics: x.pictures.flatMap((p) => (p.sil ? [] : [{ code: p.code, caption: n(p.caption) }])), pages: books(x.whose) };
+}
+/** golden otherFish row: `name` fuses the weekday status (it is inside `.on`); `lines` is the button's one line. */
+export function otherProj(o: OtherFishRowVM) {
+  const on = o.name + (o.week ?? "");
+  return { thumb: o.thumb, name: on, week: o.week, open: o.open,
+    lines: [norm(plainAll([[text(on)], [text(o.value)], o.sizeHint ? [text(o.sizeHint)] : null]))] };
+}
+
 /** the group's whole head as the golden reads it (title, scope, head, headLines, origin) */
 export function groupHeadProj(gr: KeepGroup, tot: "a" | "b" = "a") {
   const head = headProj(groupHeadOf(gr.ctx, { tot }));
@@ -87,3 +98,10 @@ export function groupHeadProj(gr: KeepGroup, tot: "a" | "b" = "a") {
     origin: originProj(originOf(gr.ctx)) };
 }
 export const treeProj = (gr: KeepGroup) => ({ tree: treeOf(gr.env)?.map(nodeProj) ?? null, treeRoot: gr.ctx.hdrRoot?.id ?? null });
+export const tailProj = (gr: KeepGroup) => ({
+  notKept: notKeptOf(gr.ctx.g, gr.env).map(notKeptProj), worked: (w => w && { says: w.says, lines: w.lines.map((l) => ({ ...l })) })(workedOf(gr.ctx.row, gr.ctx.g)),
+  quiet: nl(quietOf(gr.ctx.row, gr.ctx.card)), more: moreOf(gr.ctx.rowIx).text,
+});
+export const othersProj = (inp: RegsInputs) => otherFishOf(keepOf(inp).card, inp, FISH)?.map(otherProj) ?? null;
+/** golden open key `other:<state>|o<i>` → the app's `other:o<i>` (keys carry no state id, contracts §6 #1) */
+export const appOpen = (k: string | null) => (k == null ? null : k.replace(/^other:.*\|/, "other:"));

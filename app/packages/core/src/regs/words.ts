@@ -156,6 +156,13 @@ export const WORDS = Object.freeze({
   STEELHEAD_STAMP: "Steelhead stamp ›",
   CAPTION: (c: string) => `${c}\u00a0›`,   // U+00A0 keeps the › on the caption's line (T20)
   THE_NAME: (name: string) => `the ${name}`,
+  // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──
+  HOW_IT_ADDS_UP: "How it adds up", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
+  NO_LIMIT: "no limit", CLOSED_LC: "closed", RELEASE_LC: "release", SIZE_HINT: "· size limit", COLON: ":",
+  STEEL_POSSIBLE: "Steelhead rules apply here; steelhead may not be present in this water.",
+  STEEL_KNOWN: "Steelhead are known to be in this water.",
+  STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
+  CLOSED_MARK: "✕",
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */

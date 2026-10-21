@@ -40,7 +40,7 @@ describe("EXCLUDE", () => {
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
-        "keep 3 ^groups\\.\\d+\\.tree$"]);
+        "keep 3 ^groups\\.\\d+\\.(tree|worked)$"]);
   });
 });
 
@@ -86,9 +86,10 @@ describe("excluded", () => {
     expect(excluded("keep", "x5p1_1010")).toBeNull();
   });
 
-  it("(T18) the Kitimat ruling excludes only the 3 ruled states' group trees, never their heads or tails", () => {
+  it("(T18/T19) the Kitimat ruling excludes only the 3 ruled states' group trees and worked lines, never their heads, not-kept lines or roots", () => {
     expect(excluded("keep", "x14p0_1010", "groups.0.tree")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
-    for (const k of ["groups", "groups.0", "groups.0.head", "groups.0.notKept", "groups.0.treeRoot", "groups.0.worked"]) expect(excluded("keep", "x14p0_1010", k), k).toBeNull();
+    expect(excluded("keep", "x14p0_1010", "groups.0.worked")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
+    for (const k of ["groups", "groups.0", "groups.0.head", "groups.0.notKept", "groups.0.treeRoot", "groups.0.quiet"]) expect(excluded("keep", "x14p0_1010", k), k).toBeNull();
     expect(excluded("keep", "vedder_1010", "groups.0.tree")).toBeNull();
   });
 });
