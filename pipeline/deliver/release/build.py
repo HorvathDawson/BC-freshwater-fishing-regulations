@@ -189,7 +189,6 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap` are the
     manifest's blocks (manifest.py)."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
-    from pipeline.deliver.release import manifest as MAN
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
     if bad:
@@ -207,21 +206,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
-        files: Dict[str, Path] = {}
-        p = work / "paint.bin"
-        p.write_bytes(PAINT.encode(status_index.read_bytes(), b))
-        files["paint"] = p
-        p = work / "flow-area.bin"
-        p.write_bytes(PAINT.encode_area(b))
-        files["flow-area"] = p
-        files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
-                                  {**base, "format": FORMATS["core"]}, extra=_core_flags)
-        files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
-                                  {**base, "format": FORMATS["near"]})
-        files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
-                                        [("b", t, None) for t in COND_TABLES],
-                                        {**base, "format": FORMATS["conditions"], "clim": "clim/2"},
-                                        extra=_conditions_extra)
+        files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes())
         regions = SH.akey_regions(st)
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                   if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]
@@ -270,31 +255,63 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
 
-        # gzip + sha-name every file; the data release id is the content's digest unless one is given
-        entries = {}
-        for name, raw in sorted(files.items()):
-            sha = _sha(raw)
-            gz = gzip.compress(raw.read_bytes(), compresslevel=9, mtime=0)
-            fname = f"{name}-{sha[:12]}{raw.suffix}.gz"
-            (work / fname).write_bytes(gz)
-            entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
-                             "format": FORMATS[name], "section_handles": base["section_handles"]}
-            raw.unlink()
-        rid = data_release or "r-" + hashlib.sha256(
-            json.dumps({k: v["sha256"] for k, v in sorted(entries.items())}).encode()).hexdigest()[:12]
-        for e in entries.values():
-            e["url"] = f"{rid}/{e['url']}"
-        man = MAN.manifest(rid, entries, base["section_handles"], tiles=tiles, basemap=basemap,
-                           valid_until=bmeta.get("valid_until") or None, regs_versions=json.loads(smeta["layout"]).get(
-                               "versions") if "layout" in smeta else None)
-        (work / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
-        final = out_root / rid
-        if final.exists():
-            shutil.rmtree(final)                # a re-run of identical inputs writes identical bytes; replace them
-        out_root.mkdir(parents=True, exist_ok=True)
-        work.rename(final)
-        return final
+        return ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
+                    basemap=basemap, valid_until=bmeta.get("valid_until") or None,
+                    regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
     finally:
         b.close()
         st.close()
         shutil.rmtree(work, ignore_errors=True)
+
+
+def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str, str],
+                 status_index: bytes) -> Dict[str, Path]:
+    """The bundle's half of the release — paint, flow-area, core, near, conditions — written into `work`. `base` is
+    every file's meta (section_handles, reach_digest). Shared by `build` and the app's fixture release
+    (`pipeline.tools.fixture_release`), so the fixture is cut by the same code as the shipped files."""
+    files: Dict[str, Path] = {}
+    p = work / "paint.bin"
+    p.write_bytes(PAINT.encode(status_index, b))
+    files["paint"] = p
+    p = work / "flow-area.bin"
+    p.write_bytes(PAINT.encode_area(b))
+    files["flow-area"] = p
+    files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
+                              {**base, "format": FORMATS["core"]}, extra=_core_flags)
+    files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
+                              {**base, "format": FORMATS["near"]})
+    files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
+                                    [("b", t, None) for t in COND_TABLES],
+                                    {**base, "format": FORMATS["conditions"], "clim": "clim/2"},
+                                    extra=_conditions_extra)
+    return files
+
+
+def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, data_release: Optional[str] = None,
+         tiles: Optional[dict] = None, basemap: Optional[dict] = None, valid_until: Optional[str] = None,
+         regs_versions: Optional[dict] = None) -> Path:
+    """Gzip + sha-name every file, write the manifest, and move `work` to `out_root/<release id>`; the id is the
+    content's digest unless one is given."""
+    from pipeline.deliver.release import manifest as MAN
+    entries = {}
+    for name, raw in sorted(files.items()):
+        sha = _sha(raw)
+        gz = gzip.compress(raw.read_bytes(), compresslevel=9, mtime=0)
+        fname = f"{name}-{sha[:12]}{raw.suffix}.gz"
+        (work / fname).write_bytes(gz)
+        entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
+                         "format": FORMATS[name], "section_handles": handles}
+        raw.unlink()
+    rid = data_release or "r-" + hashlib.sha256(
+        json.dumps({k: v["sha256"] for k, v in sorted(entries.items())}).encode()).hexdigest()[:12]
+    for e in entries.values():
+        e["url"] = f"{rid}/{e['url']}"
+    man = MAN.manifest(rid, entries, handles, tiles=tiles, basemap=basemap, valid_until=valid_until,
+                       regs_versions=regs_versions)
+    (work / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
+    final = out_root / rid
+    if final.exists():
+        shutil.rmtree(final)                # a re-run of identical inputs writes identical bytes; replace them
+    out_root.mkdir(parents=True, exist_ok=True)
+    work.rename(final)
+    return final

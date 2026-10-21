@@ -6,3 +6,5 @@ export { releaseLoader, ReleaseError, ALL_REGIONS, type DbName, type FileName, t
          type ReleaseSource } from "./loader";
 export { install, prune, heldFrom, heldPath, rangedDownload, POINTER, type Download, type DownloadTo, type PartFs,
          type Progress, type ReleaseFs } from "./install";
+export { makeReleaseSource, openRegsFor } from "./source";
+export { CROSS, RELEASE_QUERIES } from "./queries";

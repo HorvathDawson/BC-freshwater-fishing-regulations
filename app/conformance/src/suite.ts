@@ -39,12 +39,21 @@ export interface ConformanceSections {
   jeperson: SectionId;
 }
 
+/**
+ * WHAT A SOURCE DECLARES IT HAS NO PRODUCER FOR. The release (P08/P11) ships no bathymetry charts and no stocking
+ * records — nothing produces them yet — so it answers `lakeInfo` null and `stockingHistory` empty by contract. That is
+ * not skipped here: a source that declares it is HELD to the empty answer, so a release that started inventing either
+ * fails, and a source that does not declare it is held to the real one.
+ */
+export interface ConformanceOptions {
+  noProducer?: readonly ("lakes")[];
+}
+
 export function runConformance(name: string, make: () => Promise<RegsSource>,
-                               sections: ConformanceSections) {
+                               sections: ConformanceSections, opts: ConformanceOptions = {}) {
+  const noLakes = opts.noProducer?.includes("lakes") ?? false;
   const T = (what: string, fn: (s: RegsSource) => Promise<void>) =>
     it(`${name}: ${what}`, async () => { await fn(await make()); });
-  const LOWER_REACH = sections.lowerChilliwack;
-  const JEPERSON = sections.jeperson;
 
   // ---- identity ----
   T("reports a bundle version and an edition expiry", async (s) => {
@@ -74,7 +83,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
   });
 
   T("a section resolves to the item that owns it", async (s) => {
-    expect(await s.itemForSection(LOWER_REACH)).toBe(CHILLIWACK);
+    expect(await s.itemForSection(sections.lowerChilliwack)).toBe(CHILLIWACK);
     expect(await s.itemForSection(NO_SUCH_SECTION)).toBeNull();
   });
 
@@ -86,7 +95,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     expect(w!.name).toBeTruthy();
     // A river cut into several sections must not collapse to one.
     expect(w!.sections.length).toBeGreaterThan(1);
-    expect(w!.sections).toContain(LOWER_REACH);
+    expect(w!.sections).toContain(sections.lowerChilliwack);
     expect(w!.sections).toEqual([...w!.sections].sort((a, b) => a - b));
   });
 
@@ -96,7 +105,11 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
 
   // ---- search ----
   T("finds a water by its display name", async (s) => {
-    const hits = await s.searchNames("chilliwack", 10);
+    // The name is the SOURCE's own, not a literal: gnis:8634 is "Chilliwack River" in the hand-written fixture and
+    // "Vedder River" in the build the dev bundle and the fixture release were cut from. Searching for what the water
+    // says it is called must find it, in every source.
+    const name = (await s.water(CHILLIWACK))!.name;
+    const hits = await s.searchNames(name, 10);
     expect(hits.some((h) => h.item === CHILLIWACK)).toBe(true);
   });
 
@@ -121,7 +134,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
 
   // ---- conditions ----
   T("a gauge reading always carries its age", async (s) => {
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     const now = await s.gaugeNow(g!.station);
     // A stale reading rendered as a live one is the failure this field exists to prevent.
     expect(now!.fetchedAt).toBeTypeOf("number");
@@ -129,7 +142,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
   });
 
   T("a reading's percentile is what the colour means, not its magnitude", async (s) => {
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     const now = await s.gaugeNow(g!.station);
     expect(now!.value.percentile).not.toBeNull();
   });
@@ -142,13 +155,13 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     // so there is nothing for the source to return. This asserted `"none"` for as long as
     // three separate implementations of the trust rule existed — the pipeline's, one in
     // @app/core, and one in the fixture builder — and only the last two could produce it.
-    expect(await s.gaugeForSection(JEPERSON)).toBeNull();
-    const near = await s.gaugeForSection(LOWER_REACH);
+    expect(await s.gaugeForSection(sections.jeperson)).toBeNull();
+    const near = await s.gaugeForSection(sections.lowerChilliwack);
     expect(near!.trust).toBe("good");
   });
 
   T("the series carries the percentile envelope beside the observations", async (s) => {
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     const series = await s.gaugeSeries(g!.station, "72h");
     expect(series!.value.values.length).toBeGreaterThan(0);
     expect(series!.value.band.length).toBeGreaterThan(0);
@@ -158,7 +171,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     // The whole reason `parameter` is on the series. A level compared against a discharge
     // envelope produces a percentile that looks entirely reasonable and means nothing, and
     // nothing downstream could tell the difference — the numbers are both just numbers.
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     for (const p of await s.gaugeParameters(g!.station)) {
       const series = await s.gaugeSeries(g!.station, "72h", p);
       expect(series!.value.parameter, `series asked for ${p}`).toBe(p);
@@ -166,7 +179,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
   });
 
   T("the year span is an envelope with today on it, not a relabelled 72 hours", async (s) => {
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     const year = await s.gaugeSeries(g!.station, "year");
     // A POINT PER DAY. The envelope is sampled every five days because percentiles are
     // noisy at daily resolution, but the line across it is this year's own record and
@@ -193,7 +206,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     // The BC River Forecast Centre models discharge and nothing else. The Fraser at Mission
     // reports STAGE — around 1.8 m — and its outlook is 3,157 m3/s; drawn on one axis that
     // is two units in one frame, and the forecast leaves the picture entirely.
-    const g = await s.gaugeForSection(LOWER_REACH);
+    const g = await s.gaugeForSection(sections.lowerChilliwack);
     const level = await s.gaugeSeries(g!.station, "72h", "level");
     if (level) expect(level.value.forecast).toBeNull();
   });
@@ -203,10 +216,18 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
   });
 
   T("a tap traces downstream to the gauge that measures it", async (s) => {
-    expect((await s.traceToGauge(LOWER_REACH)).length).toBeGreaterThan(0);
+    expect((await s.traceToGauge(sections.lowerChilliwack)).length).toBeGreaterThan(0);
   });
 
   // ---- lakes ----
+  if (noLakes) {
+    T("with no producer for charts or stocking, a lake has no sheet and no history — never an invented one",
+      async (s) => {
+        expect(await s.lakeInfo("wbk:329083342" as ItemId)).toBeNull();
+        expect(await s.stockingHistory("wbk:329083342" as ItemId)).toEqual([]);
+      });
+    return;
+  }
   T("a lake reports its charts and when it was last stocked", async (s) => {
     const info = await s.lakeInfo("wbk:329083342" as ItemId);
     expect(info!.charts.length).toBeGreaterThan(0);

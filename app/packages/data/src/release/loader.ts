@@ -31,6 +31,8 @@ export class ReleaseError extends Error {}
 
 export interface ReleaseLoader {
   readonly release: string;
+  /** The manifest the files are checked against (its edition, tiles and versions). */
+  readonly manifest: Manifest;
   readonly handles: string;
   db(name: DbName): Promise<Db>;
   paint(): Promise<Paint>;
@@ -73,6 +75,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
 
   const loader: ReleaseLoader = {
     release: m.data_release,
+    manifest: m,
     handles,
     db,
     paint() {

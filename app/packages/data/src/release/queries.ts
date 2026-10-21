@@ -48,6 +48,51 @@ export const SEARCH =
   "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
   "         length(m.name), m.name LIMIT ?2";
 
+/**
+ * THE KEYED HALVES OF THE CROSS-FILE READS (P11). Each runs on ONE file; `release/source.ts` joins their rows in code,
+ * so no read ever spans two files. `IN (...)` lists are bound, never interpolated, and chunked by the caller.
+ */
+const ids = (n: number) => B.placeholders(n);
+export const CROSS = {
+  /** core: an item's ord (the key near and water are written in). */
+  ITEM_ORD: { file: "core", sql: "SELECT ord FROM item WHERE item_id = ?" },
+  ORDS_FOR_ITEMS: (n: number) => ({ file: "core", sql: `SELECT ord, item_id FROM item WHERE item_id IN (${ids(n)})` }),
+  ITEMS_FOR_ORDS: (n: number) => ({ file: "core", sql:
+    "SELECT ord, item_id, name, kind, area_ha, size, pieces, gauged, has_rows FROM item " +
+    `WHERE ord IN (${ids(n)})` }),
+  PLACES: (n: number) => ({ file: "core", sql:
+    `SELECT place_id, name, kind, lat, lon FROM place WHERE place_id IN (${ids(n)}) AND lat IS NOT NULL` }),
+  /** core: which items hold these sections (the lake road's first half). */
+  ITEMS_FOR_SECTIONS: (n: number) => ({ file: "core", sql:
+    `SELECT s.sid, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid IN (${ids(n)})` }),
+  COUNTS: { file: "core", sql:
+    "SELECT (SELECT COUNT(*) FROM item WHERE name <> '') AS waters, (SELECT COUNT(*) FROM item_section) AS reaches" },
+  /** near: the waters by a town, nearest first (place_water's primary key). */
+  NEAR_PLACE: { file: "near", sql: "SELECT ord, ckm FROM place_water WHERE place_id = ? ORDER BY ckm, ord LIMIT ?" },
+  /** near: the towns each of these waters comes near. Keyed by place, so this scans — once per search, as the
+   *  bundle's NEAR_FOR_ITEMS did. */
+  RINGS_FOR_ORDS: (n: number) => ({ file: "near", sql:
+    `SELECT ord, place_id, ckm FROM place_water WHERE ord IN (${ids(n)}) ORDER BY ckm, place_id` }),
+  TOWNS_FOR_ORDS: (n: number) => ({ file: "near", sql:
+    `SELECT ord, count(*) AS n FROM place_water WHERE ord IN (${ids(n)}) GROUP BY ord` }),
+  /** conditions: stations standing on these sections. */
+  GAUGES_AT: (n: number) => ({ file: "conditions", sql:
+    `SELECT lat, lon FROM gauge WHERE sid IN (${ids(n)}) AND lat IS NOT NULL AND lon IS NOT NULL` }),
+  /** conditions: GAUGE_FOR_SECTION for many sections (GAUGE_FOR_ITEM's second half). */
+  SECTION_GAUGES: (n: number) => ({ file: "conditions", sql:
+    "SELECT sg.sid, sg.station, sg.trust, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, g.mag " +
+    `FROM section_gauge sg LEFT JOIN gauge g USING(station) WHERE sg.sid IN (${ids(n)})` }),
+  SECTION_STATIONS: (n: number) => ({ file: "conditions", sql:
+    `SELECT sid, station FROM section_gauge WHERE sid IN (${ids(n)})` }),
+  /** conditions: the lake road's second half — the lowest station in each lake, stably. */
+  LAKE_STATIONS: (n: number) => ({ file: "conditions", sql:
+    `SELECT item_id, min(station) AS station FROM lake_gauge WHERE item_id IN (${ids(n)}) GROUP BY item_id` }),
+  GAUGE_PLACES: (n: number) => ({ file: "conditions", sql: B.gaugePlaces(n) }),
+  /** water: the answer keys of a water's parts (part's primary key is (item_ord, part_ix)). */
+  AKEYS_FOR_ORD: { file: "water", sql:
+    "SELECT DISTINCT akey FROM part WHERE item_ord = ? AND akey IS NOT NULL ORDER BY akey" },
+} as const;
+
 /** Every single-file read, by its bundle name. Same SQL where the tables moved whole. */
 export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {
   ITEM: { file: "core", sql: B.ITEM, bundle: B.ITEM },

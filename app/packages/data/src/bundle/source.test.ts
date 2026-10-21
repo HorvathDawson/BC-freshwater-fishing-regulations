@@ -358,3 +358,18 @@ describe("the gauge model", () => {
     expect(worst).toBeLessThanOrEqual(CEILING);
   });
 });
+
+describe("a failed capability check is a failure, not a 'no' (P11)", () => {
+  it("search rejects when HAS_ITEM_AREA cannot be asked, instead of ranking every lake as size 0", async () => {
+    // It used to become `false` silently: an app newer than its bundle and a bundle that will not answer looked the same.
+    const broken: Db = {
+      ...db,
+      get: (sql: string, ...args: Parameters<Db["get"]>[1][]) =>
+        sql === Q.HAS_ITEM_AREA ? Promise.reject(new Error("disk I/O error")) : db.get(sql, ...args),
+    };
+    const s = makeBundleSource(broken);
+    await expect(s.searchNames("vedder", 5)).rejects.toThrow("disk I/O error");
+    const near = await s.searchPlaces("chilliwack", 1);
+    await expect(s.watersNear(near[0]!.place)).rejects.toThrow("disk I/O error");
+  });
+});
