@@ -201,5 +201,5 @@ describe.skipIf(!LIVE || !STORE)(`T04 frames = the Python reference decoder's ($
       for (const [id, akey] of ids[f]!) { expect(await st[f](akey, id), `${f} ${id}`).toEqual(py.frames[f]![id]); n++; }
     expect(n).toBeGreaterThan(134);
     console.log(`T04: ${n} frames (${Object.entries(ids).map(([f, m]) => `${f} ${m.size}`).join(", ")}) equal the Python decoder's`);
-  });
+  }, 120_000);   // a Python process run synchronously: ~2.6 s alone, past vitest's 5 s default under the parallel full suite
 });

@@ -15,9 +15,13 @@ import { join } from "node:path";
  * discourages rewrites.
  */
 const DIR = fileURLToPath(new URL("../packages/ui-native/src", import.meta.url));
-/** Comments explain the bug being avoided and name it; the assertions are about CODE. */
+/**
+ * Comments explain the bug being avoided and name it; the assertions are about CODE. A file named `_*` is another
+ * test's transient fixture (check-boundaries.test.ts writes and deletes `_bnd*` in parallel): listing it and then
+ * reading it after it is gone failed the full suite with ENOENT, a race, not a component.
+ */
 const sources = readdirSync(DIR)
-  .filter((f) => /\.tsx?$/.test(f) && !f.endsWith(".test.tsx") && !f.endsWith(".test.ts"))
+  .filter((f) => /\.tsx?$/.test(f) && !f.startsWith("_") && !f.endsWith(".test.tsx") && !f.endsWith(".test.ts"))
   .map((f) => [f, readFileSync(join(DIR, f), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")] as const);
 
