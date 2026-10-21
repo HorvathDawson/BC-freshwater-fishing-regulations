@@ -61,7 +61,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   feature-state; status as a style expression evaluated at tile layout; region-base + override expression; set-all).
   Decide + implement after N2 merges.
 - OWNER 2026-10-20: the Conditions map's 1/3/5-day control is GONE (P16 review fix 2d784837 removed it) -> restore it
-  AND add +10 days end to end (publisher + app): workflow horizons-10day RUNNING. Owner must republish the feed after.
+  AND add +10 days end to end (publisher + app): workflow horizons-10day RUNNING. Owner OK (2026-10-20): the LEAD runs the
+  live feed republish after the merge, then checks +10 is in index.json.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
