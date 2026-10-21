@@ -6,6 +6,19 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
+
+**2026-10-21 · owner ruling · Region 6, `kitimat_river.r5` vs `z6 trout_char_quota.r7` · test `test_answers_kitimat_steelhead_lift.py`**
+
+The Kitimat row prints "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2" with **no dates**, right under
+"Hatchery rainbow trout … daily quota = 5, … **all year**" (printed p.51). Region 6 prints "And you must release: …
+Trout of any size from streams, Nov 1-June 30" (printed p.49). It reads as if the row's quota is a year-round exception
+(and the Kitimat hatchery steelhead run is a winter one), so the curated `exempts` on r5 named r7 and the app let you
+keep 2 in Nov-June. **The owner ruled it is NOT lifted:** hatchery steelhead on the Kitimat are catch-and-release
+Nov 1-June 30, and the quota of 2 applies outside that window. Only "all year" lifts a dated zone release; an undated
+row quota does not. Separately (same day), keeping hatchery steelhead counts toward the 1-over-50 cm trout limit — a
+"+1 for steelhead", as on the Vedder — so it does not free up another trout over 50 cm.
+
 ## A row's closed season does not shorten the zone's (the Stein, the Nahatlatch)
 
 **2026-10-05 · zone closures, all regions · `pipeline/deliver/bundle/rules.py`, export `gotchas.closures_combine`**
