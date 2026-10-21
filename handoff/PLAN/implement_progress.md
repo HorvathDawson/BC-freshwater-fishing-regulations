@@ -96,6 +96,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED 2026-10-21 ~15:45: P15 water map view (088c52c4 + review fix 6af87170: web marks drawn at their point).
+  Merge made its exit / Show-regs actions go through openWater() and other-section taps through opener.tap. Strict
+  check 6348, smoke pass. P15 FOLLOW-UPS (after the colouring engine merges): (a) OWNER QUESTION: the Vedder is 1 part
+  in the release (the prototype hand-grouped Vedder+Chilliwack, 5 parts); needs a pipeline continuation link/group or
+  a chooser over its predecessors; (b) Zymoetz lake part unreachable by ▼/▲; (c) back after stepping returns to the
+  part the map opened on, not the stepped part; (d) `water` paint only widens streams (no lake/wetland, no ink
+  casing); (e) native not run, step perf not measured.
 - RUNNING 2026-10-21 ~15:20: WAVE B run wf_e2463c2d-be5 (script workflows/scripts/wave-b-regs-screens-and-pipeline-needs-wf_e2463c2d-be5.js,
   session 368da779): lanes header-pins (T23,T29), rn-gear-licence (T34,T35), sheets (T36 part 2, T37), pipeline-answers
   (the 4 needs below + D21). After merging the pipeline lane: reach check, then `deliver all` via heavy.sh, re-cut taps.
