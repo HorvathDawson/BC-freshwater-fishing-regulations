@@ -9,6 +9,7 @@ import { KNOWN_VERSIONS } from "@app/core";
 import { openInMemory } from "../bundle/drivers/node";
 import type { Db } from "../bundle/db";
 import type { Manifest } from "../manifest";
+import { releaseLoader, ReleaseError } from "../release/loader";
 import { asBytes, openRegsStore, RegsStoreError, type RegsLoader } from "./store";
 
 const hex = (s: string) => `X'${Buffer.from(s).toString("hex")}'`;
@@ -39,7 +40,9 @@ function release(o: Opts = {}): { loader: RegsLoader; opened: string[] } {
   }) + "CREATE TABLE zdict (tbl TEXT PRIMARY KEY, d BLOB NOT NULL);" +
     `INSERT INTO zdict VALUES ('rule', ${hex("dictionary")});` +
     "CREATE TABLE static (k TEXT PRIMARY KEY, j BLOB NOT NULL);" +
-    `INSERT INTO static VALUES ('answers.glossary', ${hex(o.glossary ?? '{"version":5,"terms":[]}')});`);
+    `INSERT INTO static VALUES ('answers.glossary', ${hex(o.glossary ?? '{"version":5,"terms":[]}')});` +
+    "CREATE TABLE akey_region (akey INTEGER, region TEXT);" +
+    "INSERT INTO akey_region VALUES (7, '1'), (9, '2'), (11, '2'), (11, '1');");
   const region = (r: string, extra: Record<string, string> = {}) => openInMemory("", metaSql({
     format: "regs-region/1", region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }));
   const dbs: Record<string, Db> = {
@@ -183,6 +186,71 @@ describe("openRegsStore: a region or sid file from another build refuses the WHO
     const st = await openRegsStore(release().loader);
     expect(await refusal(st.region(404))).toEqual({ why: "damaged", message: "regs store: akey 404 is in no region file" });
     expect(st.refused()).toBeNull();
+  });
+});
+
+/**
+ * The REAL release loader (P11) over the same in-memory files, its manifest naming each file's format and handles: a
+ * file the release lacks, or one the loader itself refuses (format / handles not the manifest's), is the store's
+ * refusal too — a RegsStoreError that poisons it — while a fetch that merely failed is not, and is tried again.
+ */
+function realLoader(o: { drop?: string; manifestFormat?: Record<string, string>; fail?: Set<string> } = {}) {
+  const { loader: fake } = release();
+  const FMT: Record<string, string> = { water: "water/1", "regs-1": "regs-region/1", "regs-2": "regs-region/1", "regs-sid": "regs-sid/1" };
+  const files = Object.fromEntries(Object.keys(FMT).filter((n) => n !== o.drop)
+    .map((n) => [n, { format: o.manifestFormat?.[n] ?? FMT[n], section_handles: H, url: n, sha256: "", bytes: 0 }]));
+  const manifest = { ...fake.manifest, files } as unknown as Manifest;
+  const opened: string[] = [];
+  const L = releaseLoader(manifest, { bytes: async () => new Uint8Array() }, async (n) => {
+    if (o.fail?.has(n)) { o.fail.delete(n); throw new TypeError("Failed to fetch"); }
+    opened.push(n);
+    return fake.db(n as never);
+  });
+  return { L, opened };
+}
+
+describe("openRegsStore over the real loader: a file the loader refuses refuses the store", () => {
+  it("a release with no file for the key's region: missing, and the store is poisoned", async () => {
+    const { L } = realLoader({ drop: "regs-2" });
+    const st = await openRegsStore(L);
+    const want = { why: "missing", message: "regs store: release r-test has no file regs-2 — refused" };
+    expect(await refusal(st.region(9))).toEqual(want);
+    expect(await refusal(st.region(7))).toEqual(want);           // region 1 is in the release, but the store is refused
+    expect(await refusal(st.water())).toEqual(want);
+    expect(st.refused()?.message).toBe(want.message);
+  });
+
+  it("a release with no regs-sid: missing, and poisoned", async () => {
+    const { L } = realLoader({ drop: "regs-sid" });
+    const st = await openRegsStore(L);
+    expect(await refusal(st.sid())).toEqual({ why: "missing", message: "regs store: release r-test has no file regs-sid — refused" });
+    expect(st.refused()?.why).toBe("missing");
+  });
+
+  it("a region file the loader refuses (not the manifest's format): format, and poisoned", async () => {
+    const { L } = realLoader({ manifestFormat: { "regs-2": "regs-region/9" } });
+    const st = await openRegsStore(L);
+    const want = { why: "format", message: "regs store: regs-2: format regs-region/1 / handles " + H +
+      " are not the manifest's regs-region/9 / " + H + " — refused" };
+    expect(await refusal(st.region(9))).toEqual(want);
+    expect(await refusal(st.sid())).toEqual(want);
+  });
+
+  it("water the loader refuses at open is a RegsStoreError, not the loader's ReleaseError", async () => {
+    const { L } = realLoader({ manifestFormat: { water: "water/9" } });
+    const e = await openRegsStore(L).then(() => null, (x: unknown) => x);
+    expect(e).toBeInstanceOf(RegsStoreError);
+    expect(e).not.toBeInstanceOf(ReleaseError);
+    expect((e as RegsStoreError).why).toBe("format");
+  });
+
+  it("a fetch that failed is not a refusal: it is thrown as is, the store is not poisoned, and the next ask opens it", async () => {
+    const { L, opened } = realLoader({ fail: new Set(["regs-2"]) });
+    const st = await openRegsStore(L);
+    await expect(st.region(9)).rejects.toThrow(new TypeError("Failed to fetch"));
+    expect(st.refused()).toBeNull();
+    await expect(st.region(9)).resolves.toBeDefined();
+    expect(opened).toContain("regs-2");
   });
 });
 

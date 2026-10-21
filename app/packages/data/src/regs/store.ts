@@ -10,8 +10,11 @@
  *   sid        `reach_digest` and `rule_ids_sha256` equal to water's — a region file from another build numbers rules
  *              differently, and every rix it names would be another rule.
  *
- * A refusal is a `RegsStoreError` (the UI says "Regulations unavailable", never a partly-read page). A refusal found
- * after open — a region file from another build — POISONS the store: every later read throws the same error, so a page
+ * A refusal is a `RegsStoreError` (the UI says "Regulations unavailable", never a partly-read page). The loader's own
+ * refusal of a file (a `ReleaseError`: the release has no such file, or the file is not the manifest's format/handles)
+ * is the store's too: `missing` / `format`, the loader's sentence. A fetch that merely failed is not a refusal; it is
+ * thrown as is and the next ask tries again. A refusal found after open — a region file from another build, or one the
+ * release lacks — POISONS the store: every later read throws the same error, so a page
  * is never drawn half from one build and half from another. Keeping the last good pair is the boot's (P10 `pair`).
  *
  * The loader already holds every file to the manifest (its format and `section_handles`); this holds the manifest and
@@ -24,7 +27,7 @@
  */
 import { BLOB_CODECS, KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES, type SectionName } from "@app/core";
 import type { Cell, Db } from "../bundle/db";
-import type { ReleaseLoader } from "../release/loader";
+import { ReleaseError, type ReleaseLoader } from "../release/loader";
 import { unpackBlob } from "./blob";
 import { asBytes, RegsStoreError } from "./errors";
 import { makeReads, type RegsReads } from "./reads";
@@ -76,12 +79,16 @@ export interface RegsStore extends RegsReads {
 const metaOf = async (d: Db): Promise<Map<string, string>> =>
   new Map((await d.all("SELECT k, v FROM meta")).map((r) => [String(r.k), String(r.v)]));
 
+/** A `ReleaseError` (the loader refusing a file) as the store's refusal; anything else (a failed fetch) unchanged. */
+const asRefusal = (e: unknown, missing: boolean): unknown =>
+  e instanceof ReleaseError ? new RegsStoreError(missing ? "missing" : "format", `regs store: ${e.message} — refused`) : e;
+
 const DIGESTS = [["section_handles", "atlas"], ["reach_digest", "rule bindings"], ["rule_ids_sha256", "export rules"]] as const;
 
 export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Promise<RegsStore> {
   if (!loader.manifest.files.water)
     throw new RegsStoreError("missing", `regs store: release ${loader.release} has no water file — refused`);
-  const water = await loader.db("water");
+  const water = await loader.db("water").catch((e) => { throw asRefusal(e, false); });
   const m = await metaOf(water);
   const need = (k: string): string => {
     const v = m.get(k);
@@ -156,6 +163,12 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
     return p;
   };
   const live = () => { if (refusal) throw refusal; };
+  /** The loader's refusal of a file, as the store's (and it poisons the store); any other failure passes through. */
+  const opened = (p: Promise<Db>, missing: boolean): Promise<Db> => p.catch((e) => {
+    const r = asRefusal(e, missing);
+    if (r instanceof RegsStoreError) refusal ??= r;
+    throw r;
+  });
 
   const meta: RegsMeta = {
     release: loader.release, format: REGS_FORMATS.water, blobCodec: codec as RegsMeta["blobCodec"],
@@ -171,14 +184,17 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       live();
       const regions = await loader.regionsOf(akey);
       if (!regions.length) throw new RegsStoreError("damaged", `regs store: akey ${akey} is in no region file`);
-      const d = await loader.regionDb(akey);
+      const d = await opened(loader.regionDb(akey), regions.some((r) => !loader.manifest.files[`regs-${r}`]));
       return hold("a region file", d, REGS_FORMATS.region, (fm) =>
         (regions as readonly string[]).includes(fm.get("region") ?? "")
           ? null : `the region file opened for akey ${akey} is region ${fm.get("region")}, not ${regions.join(" / ")}`);
     },
-    async sid(): Promise<Db> { live(); return hold("regs-sid", await loader.db("regs-sid"), REGS_FORMATS.sid); },
+    async sid(): Promise<Db> {
+      live();
+      return hold("regs-sid", await opened(loader.db("regs-sid"), !loader.manifest.files["regs-sid"]), REGS_FORMATS.sid);
+    },
     /** core: only `itemOrd` (item_id -> ord, its UNIQUE index); the loader holds it to the manifest. */
-    async core(): Promise<Db> { live(); return loader.db("core"); },
+    async core(): Promise<Db> { live(); return opened(loader.db("core"), !loader.manifest.files.core); },
   };
   const { clear, ...reads } = makeReads({ ...files, val });
   return {
