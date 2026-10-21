@@ -34,7 +34,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   tiles_prev); data/release/tiles/<version>/ holds atlas + mask + map-assets-1. Release rebuilt (same rid r-6960fe8201e3,
   data unchanged): manifest now names tiles.current/mask/assets; basemap still null (P18 gap). Slow tile tests 2/2,
   test_tiles+vintage 46, test_release 29, release-boot 5, release-perf 13 all pass.
-- Batch 3 RUNNING (wf_5c95925e-a40): p11-fix, p16, f9-rows (investigation, ruling for owner), t06-followup.
+- Batch 3 MERGED (wf_5c95925e-a40): P11 review fixes (pair proven from the drawn tiles' tile_version; native update on
+  any moved part + tile prune + rollback + PREVIOUS before swap; regs reads via loader.regionDb; sql.js retry; counts on
+  demand), P16 Conditions formatting (+ review fixes: local labelled times, fold, one horizon control, dead forecast
+  fetch removed; web shots in handoff/PLAN/app-data/p16/), F9 ruling notes (F9-72-rows.md: both causes are page bugs
+  under DECISIONS F1 / F16), T06 follow-up. Lead change 92c3b8fe: Centre disclaimer kept VISIBLE under the chart
+  (legal: "wherever a forecast appears"); owner may fold it. pnpm check 1089 pass; smoke pass. OPEN: P16 native
+  screenshots (need emulator); Kitimat ladder question for owner (r2 lifted for hatchery ST by kitimat r5).
+- Batch 4 RUNNING: F9 detectors (F1 rest item, F16 orphan) so Tier 2 is green; P11 minors (native map assets
+  download, transient vs permanent refusal, unproven pairing words, App wiring test, live colour screenshot).
 - G1 GESTURES (owner 2026-10-20; ticket handoff/PLAN/app-data/G1-gestures.md) RUNNING (wf_ba76b522-0c1): RNGH; back
   everywhere via one route back (Android BackHandler, web History API, edge swipe only where no system back); one map
   gesture policy; sheets drag to dismiss; sideways swipe on a water's Regs/Conditions/Map steps the part (owner "maybe").
