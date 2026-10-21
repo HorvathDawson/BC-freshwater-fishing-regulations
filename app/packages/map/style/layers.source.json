@@ -769,6 +769,31 @@
             "field": "status"
           },
           "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+        },
+        "profile": {
+          "label": "Status for the date",
+          "scale": "profile",
+          "property": "p",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.status.own"
+            },
+            "base": {
+              "token": "color.status.base"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "profile"
+          },
+          "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
         }
       },
       "opacity": {
@@ -937,6 +962,31 @@
             "field": "status"
           },
           "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+        },
+        "profile": {
+          "label": "Status for the date",
+          "scale": "profile",
+          "property": "p",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.status.own"
+            },
+            "base": {
+              "token": "color.status.base"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "profile"
+          },
+          "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
         }
       },
       "opacity": {
@@ -1149,6 +1199,31 @@
             "field": "status"
           },
           "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+        },
+        "profile": {
+          "label": "Status for the date",
+          "scale": "profile",
+          "property": "p",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.status.own"
+            },
+            "base": {
+              "token": "color.status.base"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "profile"
+          },
+          "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
         }
       },
       "opacity": {
@@ -1363,6 +1438,31 @@
             "field": "status"
           },
           "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+        },
+        "profile": {
+          "label": "Status for the date",
+          "scale": "profile",
+          "property": "p",
+          "enum": "water_status",
+          "categories": {
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "own": {
+              "token": "color.status.own"
+            },
+            "base": {
+              "token": "color.status.base"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "status",
+            "field": "profile"
+          },
+          "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
         }
       },
       "label": {

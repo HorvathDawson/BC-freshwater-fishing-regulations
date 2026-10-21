@@ -98,6 +98,12 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
   const h = jsonHandle(s.layers);
   const ids = new Set(s.layers.map((l) => l.id));
   applyLook(adapter, h, (id) => ids.has(id), o, (e) => errors.push(e));
+  // 'PROFILE' IS THE WEB'S per-tile colouring from `MapProps.status`, which this map never reads: it would paint plain
+  // with no error (colour-ap review). Said out loud; the Shell gives a phone 'status' (`coloursEachTile`).
+  for (const [id, mode] of Object.entries(o.modes ?? {}))
+    if (mode === "profile")
+      errors.push(new Error(`layer "${id}" is in the "profile" colour mode, which the native map cannot draw `
+        + '(no per-tile colouring; give it "status" and pushed data — coloursEachTile)'));
   adapter.setBasemap(h, o.basemap);
 
   const atlas = s.sources.atlas;

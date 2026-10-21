@@ -18,7 +18,7 @@ import type { Palette } from "./theme";
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
                             onLayers, onPressFeature, onMoved, onMapPoint, horizons,
-                            highlight, marker, data, gauges, onVisible, onError,
+                            highlight, marker, data, status, gauges, onVisible, onError,
                             fit, basemap, onBack }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
@@ -34,6 +34,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   highlight?: readonly SectionKey[];
   /** Per-feature values a colour mode reads. The map's own channel — see MapProps.data. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
+  /** The day's status, on a proven pair only — see MapProps.status. */
+  status?: MapProps["status"];
   /** Gauge points as GeoJSON. Only the Conditions view draws them. */
   gauges?: string;
   onVisible?: (sections: readonly SectionKey[]) => void;
@@ -59,7 +61,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
-           highlight={highlight} marker={marker} data={data} gauges={gauges}
+           highlight={highlight} marker={marker} data={data} status={status} gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} />
 
       {/*

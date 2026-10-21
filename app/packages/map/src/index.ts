@@ -11,6 +11,7 @@
  */
 export { Map } from "./Map";
 export type { MapProps, Camera, MapChrome } from "./map-props";
+export { coloursEachTile, type ProfileStatus } from "./profile-paint";
 export { runtimeStyle, type TileEndpoints } from "./runtime-style";
 export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./adapters/contract";
 /** The catalogue a Layers menu is built from. Groups and views come from the generated

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FIXTURE as fixture } from "./statusIndex.fixture";
-import { statusOfCode, statusOn, waterStatusOn } from "./status";
+import { dayProfiles, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE, waterStatusOn } from "./status";
 import { dayOfYear, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
 import { CALENDAR_CASES, weekdayOf } from "./calendar.generated";
 
@@ -140,5 +140,57 @@ describe("one status vocabulary over the index", () => {
     expect(waterStatusOn(ix, "gnis:2", new Date(2025, 5, 15))).toBe("base");
     expect(statusOn(null, 5, new Date())).toBeNull();
     expect(waterStatusOn(undefined, "gnis:1", new Date())).toBeNull();
+  });
+});
+
+/*
+ * THE MAP'S TWO HALVES OF THE ANSWER (colour-latency AP): a section's profile label, set once, and the day's label
+ * sets, carried in the style. Together they must say exactly what `statusOn` says for every section and day the
+ * fixture pins — that is what keeps the map line and the search row one answer (AGENTS 23) now that the map no longer
+ * asks `statusOn` per section.
+ */
+describe("profile labels and the day's label sets", () => {
+  const ix = decodeStatusIndex(BYTES, fixture.handles);
+  /** The status the label sets give a section: the one set holding its label, `none` read as null. */
+  const viaProfiles = (s: number, on: Date): string | null => {
+    const sets = dayProfiles(ix, on);
+    const label = profileLabel(ix, s);
+    const hits = (Object.keys(sets) as (keyof typeof sets)[]).filter((k) => sets[k].includes(label));
+    expect(hits.length, `${s} ${label} sits in ${hits.length} sets`).toBe(1);
+    return hits[0] === "none" ? null : hits[0]!;
+  };
+
+  it("give every fixture section, on every fixture day, exactly the status statusOn gives", () => {
+    const wrong = fixture.sections
+      .map(([s, d]) => [s, d, statusOn(ix, s as number, day(d as string)),
+                        viaProfiles(s as number, day(d as string))])
+      .filter((r) => r[2] !== r[3]);
+    expect(wrong).toEqual([]);
+    // away from the fixture's rows too: a section the file never mentions is base, through the unlisted label
+    expect(viaProfiles(1_000_000, new Date(2025, 5, 1))).toBe("base");
+  });
+
+  it("labels each listed section by its profile, and an unlisted one as base all year", () => {
+    expect([0, 2, 3, 4, 5, 6, 899, 900, 901, 1_958_036, 1_958_037, -1].map((s) => profileLabel(ix, s)))
+      // 900 (closed Feb 28-29) is p0; 3 and 4 share p1 (closed Dec 1 - Mar 30); 5 (own all year) p2; outside B.C. p3
+      .toEqual(["b", "b", "p1", "p1", "p2", "b", "b", "p0", "b", "p3", "b", "b"]);
+    expect(profileLabel(ix, "3")).toBe("p1");          // the handle as the map reports it
+    expect(profileLabel(ix, "x")).toBe(UNLISTED_PROFILE);
+    expect(ix.profiles).toBe(4);
+  });
+
+  it("splits the profiles by day, whole — a season over New Year, Feb 28's closure, outside B.C.", () => {
+    expect(dayProfiles(ix, new Date(2026, 0, 1)))
+      .toEqual({ closed: ["p1"], own: ["p2"], base: ["b", "p0"], none: ["p3"] });
+    expect(dayProfiles(ix, new Date(2025, 6, 15)))
+      .toEqual({ closed: [], own: ["p1", "p2"], base: ["b", "p0"], none: ["p3"] });
+    expect(dayProfiles(ix, new Date(2024, 1, 29)))
+      .toEqual({ closed: ["p0", "p1"], own: ["p2"], base: ["b"], none: ["p3"] });
+  });
+
+  it("refuses a profile the file does not have rather than reading past its tables", () => {
+    expect(() => ix.profileCodeOn(4, new Date()))
+      .toThrow(new StatusIndexError("status index: no profile 4 (the file has 4)"));
+    expect(() => ix.profileCodeOn(-1, new Date())).toThrow(StatusIndexError);
   });
 });

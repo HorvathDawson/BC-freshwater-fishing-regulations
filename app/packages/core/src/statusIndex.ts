@@ -56,8 +56,17 @@ export interface StatusIndex {
   /** How many sections and waters are listed (every other one is base). */
   readonly sections: number;
   readonly waters: number;
+  /** How many day-profiles the file holds: the shared range tables every section and water reads its year from. */
+  readonly profiles: number;
   /** The code for one section handle — the tiles' feature id — on a day. Absent → base. */
   codeOn(section: SectionKey, on: Date): StatusCode;
+  /**
+   * The day-profile a section reads its year from, or null for one the file does not list (base every day).
+   * A profile number means something only within THIS file: another release numbers its profiles afresh.
+   */
+  profileOf(section: SectionKey): number | null;
+  /** One profile's code on a day. `codeOn` is `profileOf`, then this. */
+  profileCodeOn(profile: number, on: Date): StatusCode;
   /** The code for one water (`item_id`) on a day — its parts rolled up. Absent → base. */
   waterCodeOn(item: string, on: Date): StatusCode;
 }
@@ -170,15 +179,26 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   if (pos !== bytes.length) fail("trailing bytes");
 
   const at = (p: number, on: Date): StatusCode => STATUS_CODES[days[p * DAYS + dayOfYear(on) - 1]!]!;
+  const profileOf = (section: SectionKey): number | null => {
+    const s = typeof section === "number" ? section : Number(section);
+    const p = Number.isInteger(s) && s >= 0 && s < bySection.length ? bySection[s]! : 0;
+    return p === 0 ? null : p - 1;
+  };
   return {
     handles,
     reachDigest,
     sections: listed,
     waters: nItems,
+    profiles: nProfiles,
     codeOn(section, on) {
-      const s = typeof section === "number" ? section : Number(section);
-      const p = Number.isInteger(s) && s >= 0 && s < bySection.length ? bySection[s]! : 0;
-      return p === 0 ? "base" : at(p - 1, on);
+      const p = profileOf(section);
+      return p === null ? "base" : at(p, on);
+    },
+    profileOf,
+    profileCodeOn(profile, on) {
+      if (!Number.isInteger(profile) || profile < 0 || profile >= nProfiles)
+        throw new StatusIndexError(`status index: no profile ${profile} (the file has ${nProfiles})`);
+      return at(profile, on);
     },
     waterCodeOn(item, on) {
       const p = byWater.get(item);

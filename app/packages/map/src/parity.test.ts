@@ -166,6 +166,28 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     expect(log.length).toBe(2);
   });
 
+  it("the web's whole-source-layer clear (the profile colouring's release swap) makes its sink forget that layer only",
+     () => {
+    // colour-ap review: the release swap clears every feature-state on stream/lake/wetland and then puts the selected
+    // highlight back. Past the sink (`onceSink`) that re-set was swallowed as "already held" — the river went unlit.
+    const log: string[] = [];
+    const r = webRenderer(glRecorder(log), 14);
+    const style = baseAdapter("web");
+    style.highlight(r.states(() => []), [311274]);
+    style.setData(r.states(() => []), "basin", { B1: { standing: 4 } });
+    log.length = 0;
+    for (const sl of ["stream", "lake", "wetland"]) r.clearSourceLayer("atlas", sl);
+    style.highlight(r.states(() => []), [311274]);
+    style.setData(r.states(() => []), "basin", { B1: { standing: 4 } });
+    expect(log).toEqual([
+      "remove atlas/stream undefined:undefined undefined", "remove atlas/lake undefined:undefined undefined",
+      "remove atlas/wetland undefined:undefined undefined",
+      'set atlas/wetland number:311274 {"selected":true}', 'set atlas/lake number:311274 {"selected":true}',
+      'set atlas/stream number:311274 {"selected":true}',
+      // basin was never cleared, so its value is still held and not re-sent
+    ]);
+  });
+
   it("an area layer (basin, by property) takes feature-state on the web only — a phone has no id for it", async () => {
     const wlog: string[] = [], nlog: string[] = [];
     baseAdapter("web").setData(webRenderer(glRecorder(wlog), 14).states(() => []), "basin", { B1: { standing: 4 } });

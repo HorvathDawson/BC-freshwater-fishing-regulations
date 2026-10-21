@@ -129,8 +129,20 @@ describe("the native style", () => {
   it("a caller's bad mode is reported, and the style is still made", () => {
     const { style, errors } = nativeStyle({ ...base, modes: { stream: "nope" } });
     expect(errors.map((e) => e.message))
-      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, status)']);
+      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, status, profile)']);
     expect((style as unknown as S).layers.length).toBeGreaterThan(0);
+  });
+
+  it("'profile' is refused on a phone, out loud: it reads MapProps.status, which the native map never does", () => {
+    // colour-ap review: told 'profile', N2's native map painted every water plain with no error. The Shell gives a
+    // phone 'status' (`coloursEachTile`); a caller that forgets must hear about it.
+    const { errors } = nativeStyle({ ...base, modes: { stream: "profile", lake: "profile" } });
+    expect(errors.map((e) => e.message)).toEqual([
+      'layer "stream" is in the "profile" colour mode, which the native map cannot draw (no per-tile colouring; '
+        + 'give it "status" and pushed data — coloursEachTile)',
+      'layer "lake" is in the "profile" colour mode, which the native map cannot draw (no per-tile colouring; '
+        + 'give it "status" and pushed data — coloursEachTile)',
+    ]);
   });
 
   it("writes into a copy: the generated style the web also reads is untouched", () => {

@@ -132,12 +132,17 @@ export const WATER_SOURCE_LAYERS: readonly string[] = ["stream", "lake", "wetlan
  * already held is not sent again, and a key never set is not removed. `forget()` when the renderer has dropped them all
  * (a native style swap).
  */
-export function onceSink(sink: StateSink): StateSink & { forget(): void } {
+export function onceSink(sink: StateSink): StateSink & { forget(t?: { source: string; sourceLayer: string }): void } {
   /** `<source>/<source-layer>/<id>` → key → JSON of the value held. */
   const held = new Map<string, Map<string, string>>();
   const at = (t: { source: string; sourceLayer: string }, id: string | number) => `${t.source}/${t.sourceLayer}/${id}`;
   return {
-    forget: () => held.clear(),
+    // everything, or ONE source-layer the renderer dropped wholesale (the web's profile release swap, colour-ap)
+    forget: (t) => {
+      if (!t) { held.clear(); return; }
+      const prefix = `${t.source}/${t.sourceLayer}/`;
+      for (const k of [...held.keys()]) if (k.startsWith(prefix)) held.delete(k);
+    },
     set: (t, id, state) => {
       const has = held.get(at(t, id)) ?? new Map<string, string>();
       const fresh = Object.entries(state).filter(([k, v]) => has.get(k) !== JSON.stringify(v ?? null));

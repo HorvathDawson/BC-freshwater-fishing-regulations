@@ -1,0 +1,1466 @@
+{
+ "state": "p",
+ "public": true,
+ "size": "1280x800",
+ "net": "none",
+ "cpu": 1,
+ "byZoom": {
+  "z8": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 2.6,
+    "max": 6.4
+   },
+   "fsCalls": {
+    "median": 308,
+    "max": 574
+   },
+   "longtasksMs": 0
+  },
+  "z11": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 2.6,
+    "max": 4.6
+   },
+   "fsCalls": {
+    "median": 245,
+    "max": 898
+   },
+   "longtasksMs": 0
+  },
+  "z13": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.9,
+    "max": 2.2
+   },
+   "fsCalls": {
+    "median": 96,
+    "max": 135
+   },
+   "longtasksMs": 0
+  }
+ },
+ "changes": [
+  {
+   "label": "day-1",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:265",
+     0.3,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 378,
+   "greyFrames": 0,
+   "frames": 306,
+   "longtasks": 0
+  },
+  {
+   "label": "day-2",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:234",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ]
+   ],
+   "idleMs": 573,
+   "greyFrames": 0,
+   "frames": 303,
+   "longtasks": 0
+  },
+  {
+   "label": "day-3",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:203",
+     0.3,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 499,
+   "greyFrames": 0,
+   "frames": 303,
+   "longtasks": 0,
+   "paint": "profile"
+  },
+  {
+   "label": "theme-dark",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.2,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ],
+    [
+     "public-tile",
+     0,
+     0
+    ],
+    [
+     "public-tile",
+     0.1,
+     0
+    ]
+   ],
+   "idleMs": 488,
+   "greyFrames": 0,
+   "frames": 302,
+   "longtasks": 0,
+   "paint": "profile"
+  }
+ ],
+ "heapMB": {
+  "start": 94,
+  "afterPans": 104,
+  "afterDay": 107,
+  "end": 142
+ },
+ "rows": [
+  {
+   "label": "z8/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 3.3,
+   "fsMs": 0,
+   "fsCalls": 195,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.1,
+   "fsMs": 0.2,
+   "fsCalls": 308,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 4.6,
+   "fsMs": 0,
+   "fsCalls": 335,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.4,
+   "fsMs": 0.1,
+   "fsCalls": 393,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 6.4,
+   "fsMs": 0.3,
+   "fsCalls": 574,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.7,
+   "fsMs": 0.3,
+   "fsCalls": 353,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.6,
+   "fsMs": 0.2,
+   "fsCalls": 140,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.7,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.1,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 4.2,
+   "fsMs": 0.1,
+   "fsCalls": 430,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.2,
+   "fsMs": 0.2,
+   "fsCalls": 245,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.5,
+   "fsMs": 0.1,
+   "fsCalls": 159,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 3.6,
+   "fsMs": 0.3,
+   "fsCalls": 898,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 4.6,
+   "fsMs": 0,
+   "fsCalls": 552,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.6,
+   "fsMs": 0.2,
+   "fsCalls": 468,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.2,
+   "fsMs": 0,
+   "fsCalls": 97,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.4,
+   "fsMs": 0,
+   "fsCalls": 118,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 3.0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.7,
+   "fsMs": 0.1,
+   "fsCalls": 135,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.4,
+   "fsMs": 0,
+   "fsCalls": 35,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.2,
+   "fsMs": 0,
+   "fsCalls": 13,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.3,
+   "fsMs": 0,
+   "fsCalls": 106,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.7,
+   "fsMs": 0,
+   "fsCalls": 33,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.5,
+   "fsMs": 0.1,
+   "fsCalls": 99,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.3,
+   "fsMs": 0.1,
+   "fsCalls": 96,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 2.2,
+   "fsMs": 0,
+   "fsCalls": 103,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.9,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  }
+ ]
+}

@@ -8,6 +8,7 @@ import type { SectionKey } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
+import type { ProfileStatus } from "./profile-paint";
 
 export interface Camera {
   lon: number;
@@ -122,6 +123,20 @@ export interface MapProps {
   initial: Camera;
   /** Per-feature values the active colour mode reads, by layer then feature id. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
+  /**
+   * THE DAY'S STATUS, for every layer in the `profile` colour mode (colour-latency study, AP).
+   *
+   * Not through `data`: that waited for the map's `idle` and a React round trip, so every newly loaded tile drew grey
+   * for about half a second after a pan (owner 2026-10-20: "when we pan it takes a second to color from default").
+   * The renderer is handed the index itself and labels each section with its profile as its tile arrives, and carries
+   * the day in the style — a day change sets no per-section state.
+   *
+   * GIVE IT ONLY ON A PROVEN PAIR (P11, `usePairing` ok === true) with an index that passed `decodeStatusIndex`'s
+   * digest checks; null or absent otherwise. Colouring now happens outside React, so this prop IS the pairing as far
+   * as the map knows: with it absent every profile layer paints plain, and taking it away (or handing a different
+   * index) clears every label the map set, so another release's profile numbers can never colour this one's water.
+   */
+  status?: ProfileStatus | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *

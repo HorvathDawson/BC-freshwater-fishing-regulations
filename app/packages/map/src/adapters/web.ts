@@ -14,19 +14,30 @@ import {
 export const webAdapter = (): MapAdapter => baseAdapter("web");
 
 type Target = { source: string; sourceLayer: string; id: string | number };
+type LayerTarget = { source: string; sourceLayer: string; id?: string | number };
 type Feature = { id?: unknown; geometry?: unknown };
 /** What `webRenderer` asks of a maplibre-gl `Map`. */
 export interface GlMapSlice {
   getLayer(id: string): unknown;
   setFeatureState(t: Target, s: Record<string, unknown>): void;
-  removeFeatureState(t: Target, key?: string): void;
+  removeFeatureState(t: LayerTarget, key?: string): void;
   queryRenderedFeatures(...a: unknown[]): Feature[];
   querySourceFeatures(source: string, o: { sourceLayer: string }): Feature[];
   fitBounds(b: [[number, number], [number, number]], o: Record<string, unknown>): unknown;
   getBounds(): { getWest(): number; getSouth(): number; getEast(): number; getNorth(): number };
 }
 
-export function webRenderer(m: GlMapSlice, maxZoom: number): MapRenderer {
+/** The web renderer: the contract, plus the one call only the web's profile colouring makes. */
+export interface WebRenderer extends MapRenderer {
+  /**
+   * Drop EVERY feature-state on one source-layer — the profile colouring's release swap (colour-latency AP). Through
+   * the renderer, not past it: the sink must forget what it held there, or the highlight the swap puts back is taken
+   * for "already set" and never sent (colour-ap review).
+   */
+  clearSourceLayer(source: string, sourceLayer: string): void;
+}
+
+export function webRenderer(m: GlMapSlice, maxZoom: number): WebRenderer {
   const present = (ids: readonly string[]) => ids.filter((id) => m.getLayer(id) !== undefined);
   // GL JS keeps feature-state for the life of the map (the style is never replaced), so nothing is ever forgotten
   const sink = onceSink({
@@ -35,6 +46,10 @@ export function webRenderer(m: GlMapSlice, maxZoom: number): MapRenderer {
   });
   return {
     platform: "web",
+    clearSourceLayer: (source, sourceLayer) => {
+      m.removeFeatureState({ source, sourceLayer });
+      sink.forget({ source, sourceLayer });
+    },
     states: (lit: () => readonly SectionKey[]) => stateHandle(sink, lit),
     fitBounds: (b, { padding, duration }) =>
       void m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding, maxZoom, duration }),
