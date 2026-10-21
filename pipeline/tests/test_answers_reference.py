@@ -195,6 +195,34 @@ def test_port_explains_the_pages_rest_item_as_f1_only_where_its_fish_differ():
     assert classify_row(prow, orow, named) == {"unexplained"}
 
 
+def test_port_explains_a_record_duty_as_b94_only_on_a_record_rule():
+    """B9.4 (rows.stored_role, rows 31, owner 2026-10-21): a deciding record-it rule (Shuswap Lake's
+    rainbow trout stamp record, `record_retention`) is stored as `duty`, as page v36 lists it under
+    "Other rules"; page v35 shows its deciding role (`floor`). Only that explains a moved role."""
+    from pipeline.deliver.answers.reference.port import PAGE_BUGS, classify_answer, recorded
+    assert "B9.4" in PAGE_BUGS
+    rec = {"zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1"}
+    s = "zp:shuswap_rainbow_stamp::shuswap_rainbow_stamp.r1"
+    page = {"status": "keep", "daily": 2, "winner": "w", "narrow": None, "lines": [],
+            "roles": {"w": ["governs", None], s: ["floor", None]}}
+    ours = {**page, "roles": {"w": ["governs", None], s: ["duty", None]}}
+    assert recorded(page, ours, rec) == {s}
+    assert classify_answer(page, ours, rec) == {"B9.4"}
+    # with another documented class on the same answer: both named
+    p6 = {**page, "lines": [{"t": "annual", "r": "p"}], "roles": {**page["roles"], "p": ["season", None]}}
+    o6 = {**ours, "lines": [{"t": "possession_cap", "r": "p"}],
+          "roles": {**ours["roles"], "p": ["possession_cap", None]}}
+    assert classify_answer(p6, o6, rec) == {"B9.4", "F6"}
+    # MUTATION: no record rules known; a rule without record_retention moved to duty; the page's
+    # role not a deciding one; held by another rule; something else differing too
+    assert classify_answer(page, ours) == {"unexplained"}
+    assert classify_answer(page, ours, {"zp:other::other.r1"}) == {"unexplained"}
+    assert classify_answer({**page, "roles": {**page["roles"], s: ["agrees", "w"]}}, ours, rec) == {"unexplained"}
+    assert classify_answer(page, {**ours, "roles": {**ours["roles"], s: ["duty", "w"]}}, rec) == {"unexplained"}
+    assert classify_answer(page, {**ours, "daily": 3}, rec) == {"unexplained"}
+    assert classify_answer(page, {**ours, "roles": {"w": ["governs", None], s: ["floor", None]}}, rec) == set()
+
+
 def test_port_explains_an_unread_orphan_count_clause_as_f16_only_with_the_orphan():
     """F16 (rows.DECISIONS, RULINGS Q2): an ORPHAN count clause (another table's, still speaking)
     caps its fish's bands like a sub-cap; page_v35.js `quotaLines` caps only from outercap/subcap

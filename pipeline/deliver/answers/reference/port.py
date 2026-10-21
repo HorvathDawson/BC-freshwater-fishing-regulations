@@ -46,6 +46,10 @@ PAGE_BUGS = {
     "R15.3": "a rule of the winner's own row saying the very same thing shown as a second "
              "('also') line, not as the same statement agreeing with the winner (rows.py, "
              "ROUND15 3, owner)",
+    "B9.4": "a deciding record-it rule (`record_retention`: Kootenay Lake's 'Write each rainbow trout over "
+            "50 cm on your licence', Shuswap's two stamp records) shown under its deciding role (`floor`), "
+            "where the answers store it as `duty` as page v36 does (rows.stored_role, rows 31, owner "
+            "2026-10-21)",
 }
 
 
@@ -71,10 +75,31 @@ def restated(page: Optional[dict], ours: Optional[dict]) -> Set[str]:
             if v == ["agrees", ours["winner"]] and page["roles"].get(r) == ["also", None]}
 
 
-def classify_answer(page: Optional[dict], ours: Optional[dict]) -> Set[str]:
-    """The documented classes that explain a differing decided answer (empty: identical)."""
+def recorded(page: Optional[dict], ours: Optional[dict], record_rules: Set[str]) -> Set[str]:
+    """B9.4 (rows.stored_role, rows 31): the record-it rules (`record_rules`, ids of the rules with
+    `record_retention`) our answer stores as `duty` where the page gives them a deciding role other
+    than duty (display WINS: v35 ranks them, v36 lists them under "Other rules"), held by the same
+    rule (`by`) — the computation kept its role, only the stored answer says duty."""
+    if not page or not ours or not record_rules:
+        return set()
+    from pipeline.deliver.answers.display import WINS
+    return {r for r, v in ours["roles"].items()
+            if r in record_rules and v[0] == "duty" and r in page["roles"]
+            and page["roles"][r][0] in WINS and page["roles"][r][0] != "duty"
+            and page["roles"][r][1] == v[1]}
+
+
+def classify_answer(page: Optional[dict], ours: Optional[dict],
+                    record_rules: Set[str] = frozenset()) -> Set[str]:
+    """The documented classes that explain a differing decided answer (empty: identical).
+    `record_rules`: the ids of the rules with `record_retention` (B9.4)."""
     if page == ours:
         return set()
+    rec = recorded(page, ours, record_rules)
+    if rec:
+        back = {**ours, "roles": {**ours["roles"], **{r: list(page["roles"][r]) for r in rec}}}
+        why = classify_answer(page, back)
+        return {"unexplained"} if "unexplained" in why else why | {"B9.4"}
     n = _norm_answer(ours)
     if n == page:
         return {"F6"}
@@ -252,6 +277,8 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
     ctx = Context(bundle, {}, verdicts=str(Path(bundle).with_name("verdicts.sqlite")))
     B = ctx.B
     rule_index = ctx.rule_index = common.check_export(B, data, guide)
+    # B9.4: the rules a record-it duty is stored for (rows.stored_role)
+    record_rules = {f"{e}::{r}" for (e, r), x in B.rules.items() if x.get("record_retention")}
     keys, parts = common.part_keys(B, data)
     pk2pi = {}
     for item, w in data["waters"].items():
@@ -309,7 +336,7 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
                 want = CMP._answer(a[o])
                 got = cli.decided_projection(out["fish"][S][o], data["rule_ids"])
                 stats["answers"] += 1
-                why = classify_answer(want, got)
+                why = classify_answer(want, got, record_rules)
                 card_restated |= restated(want, got)
                 for c in why:
                     classes["answer " + c] += 1
