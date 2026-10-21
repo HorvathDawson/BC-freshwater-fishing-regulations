@@ -130,24 +130,37 @@ def _rest_differs(full: dict) -> bool:
 
 
 def _orphan_capped(full: dict) -> bool:
-    """F16: a fish the real daily limit caps has an ORPHAN fact with a take (`orphan_takes`) — the
-    count clause our `rows.fish_bands` caps it with and the page's `quotaLines` never reads."""
+    """F16: a fish the real daily limit caps is capped BY an orphan fact — the count clause our
+    `rows.fish_bands` caps it with and the page's `quotaLines` never reads. The orphan must bind
+    the fish (`binds`, fish_bands' own gate: `orphan_takes`) and its take must be the fish's cap
+    (the top of its item's bands): an orphan above a cap something else sets explains nothing."""
     capped = set((full.get("real_daily") or {}).get("capped") or [])
+    top = {S: max(x[2] for x in it["bands"]) for it in full.get("items") or []
+           if it.get("bands") for S in it["members"]}
     facts = list(full.get("everyone") or []) + [l for g in full.get("groups") or []
                                                 for l in g["facts"]]
     return any(l["t"] == "orphan" and l.get("take") is not None
-               and bool(capped & set(l.get("members") or full["members"])) for l in facts)
+               and top.get(S) == l["take"]
+               for l in facts for S in capped & set(l.get("binds") or ())
+               & set(l.get("members") or full["members"]))
 
 
-def orphan_takes(out: dict, by_key) -> dict:
-    """Each orphan fact of `produce`'s rows given its clause's take (`by_key[rule].f`), in place: a
-    fact ships no number (the rule holds it), and F16 needs one. Port tooling only — the row
-    projection compared with the page does not read it."""
+def orphan_takes(out: dict, P) -> dict:
+    """Each orphan fact of `produce`'s rows given, in place, its clause's take (`P.by_key[rule]`)
+    and the fish it `binds`: those of the fact (else the row) for which `rows.fish_bands` lets the
+    orphan cap at all — its water None or the part's kind, its dates holding, and it covering the
+    fish. A fact ships neither (the rule holds them), and F16 needs both. Port tooling only — the
+    row projection compared with the page does not read them."""
+    from pipeline.deliver.answers.rows import _covers
     for row in out["rows"]:
         for l in list(row.get("everyone") or []) + [l for g in row.get("groups") or []
                                                      for l in g["facts"]]:
             if l["t"] == "orphan":
-                l["take"] = by_key[l["r"]].f.get("take")
+                r = P.by_key[l["r"]]
+                l["take"] = r.f.get("take")
+                live = r.f.get("water") in (None, P.kind) and P.in_dates(r)
+                l["binds"] = [S for S in (l.get("members") or row.get("members") or [])
+                              if live and _covers(r, S)]
     return out
 
 
@@ -285,7 +298,7 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
         at = _page_moment(ctx.store.moments(B.key_ix[rk]))
         P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                     kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md, at), at=at)
-        out = RW.refs(orphan_takes(json.loads(json.dumps(RW.produce(P))), P.by_key),
+        out = RW.refs(orphan_takes(json.loads(json.dumps(RW.produce(P))), P),
                       rule_index.__getitem__)
         stats["cards"] += 1
         if out["spp"] != rec["spp"]:

@@ -207,7 +207,8 @@ def test_port_explains_an_unread_orphan_count_clause_as_f16_only_with_the_orphan
             "all_members": ["DV", "EB", "RB"], "daily": 2, "real_daily": None,
             "everyone": [["orphan", "z5.r4", ["DV"]]], "groups": []}
     orow = {**prow, "real_daily": [2, False, None, 1, False]}
-    orphan = {"t": "orphan", "r": "z5.r4", "members": ["DV"], "rules": ["z5.r4"], "take": 1}
+    orphan = {"t": "orphan", "r": "z5.r4", "members": ["DV"], "rules": ["z5.r4"], "take": 1,
+              "binds": ["DV"]}
     # a fact naming some of the row's fish sits in their fact group (rows.build_model)
     full = {"members": ["DV", "EB", "RB"], "all_members": ["DV", "EB", "RB"], "daily": 2,
             "groups": [{"members": ["DV"], "facts": [orphan]}], "conds": [], "everyone": [],
@@ -229,7 +230,14 @@ def test_port_explains_an_unread_orphan_count_clause_as_f16_only_with_the_orphan
     assert classify_row(prow, orow, with_fact({**orphan, "take": None})) == {"unexplained"}
     assert classify_row(prow, orow, {**full, "groups": [
         {"members": ["DV"], "facts": [{"t": "tnote", "r": "z5.r8", "members": ["DV"]}]},
-        {"members": ["EB"], "facts": [{**orphan, "members": ["EB"]}]}]}) == {"unexplained"}
+        {"members": ["EB"], "facts": [{**orphan, "members": ["EB"], "binds": ["EB"]}]}]}) \
+        == {"unexplained"}
+    # MUTATION: the orphan is not what caps the fish — its take is above the fish's range (z5's
+    # '3 char' over a DV capped at 1 by something else), or its own gate (water, dates, species)
+    # does not hold for the fish, so rows.fish_bands never capped it with the orphan
+    assert classify_row(prow, orow, with_fact({**orphan, "take": 3})) == {"unexplained"}
+    assert classify_row(prow, orow, with_fact({**orphan, "binds": []})) == {"unexplained"}
+    assert classify_row(prow, orow, with_fact({**orphan, "binds": ["EB"]})) == {"unexplained"}
 
 
 def test_port_attributes_polley_lakes_orphan_caps_to_f16_alone():
@@ -245,12 +253,19 @@ def test_port_attributes_polley_lakes_orphan_caps_to_f16_alone():
         def __missing__(self, k):
             return k
     out, P = card("polley", JUL15)
-    out = orphan_takes(json.loads(json.dumps(out, default=str)), P.by_key)
+    out = orphan_takes(json.loads(json.dumps(out, default=str)), P)
     row = next(r for r in out["rows"] if r.get("pool") == "r5:polley_lake@5-2::polley_lake.r1")
     ours = cli.row_projection(row, Ids())
     assert ours["real_daily"] == [8, False, None, 3, False]
     assert classify_row({**ours, "real_daily": None}, ours, row) == {"F16"}
-    for l in [l for g in row["groups"] for l in g["facts"]] + row["everyone"]:
+    orphans = [l for g in row["groups"] for l in g["facts"]] + row["everyone"]
+    assert sorted((l["take"], l["binds"]) for l in orphans if l["t"] == "orphan") \
+        == [(1, ["DV"]), (2, ["LT"])]
+    for l in orphans:
+        if l["t"] == "orphan":
+            l["take"] += 1                                          # MUTATION: above the fish's cap
+    assert classify_row({**ours, "real_daily": None}, ours, row) == {"unexplained"}
+    for l in orphans:
         if l["t"] == "orphan":
             l["take"] = None                                       # MUTATION: no clause number
     assert classify_row({**ours, "real_daily": None}, ours, row) == {"unexplained"}
@@ -258,19 +273,39 @@ def test_port_attributes_polley_lakes_orphan_caps_to_f16_alone():
 
 def test_port_gives_orphan_facts_their_clauses_take():
     """Our rows ship an orphan fact without a number (the rule holds it): the port reads the take
-    off the rule, so F16 can require one. Other facts are left as they are."""
-    from types import SimpleNamespace
+    off the rule, and the fish it BINDS — rows.fish_bands' own orphan gate (water None or the
+    part's kind, its dates hold, it covers the fish) over the fact's fish (else the row's) — so F16
+    can require that the orphan is what caps the fish. Other facts are left as they are."""
+    from types import SimpleNamespace as NS
     from pipeline.deliver.answers.reference.port import orphan_takes
-    by_key = {"z5::r4": SimpleNamespace(f={"take": 1}), "z5::r9": SimpleNamespace(f={})}
-    out = {"rows": [{"everyone": [{"t": "orphan", "r": "z5::r4"}, {"t": "cap", "r": "z5::r4"}],
-                     "groups": [{"members": ["DV"], "facts": [{"t": "orphan", "r": "z5::r9"}]}]},
-                    {"everyone": [], "groups": []}]}
-    orphan_takes(out, by_key)
-    assert out == {"rows": [{"everyone": [{"t": "orphan", "r": "z5::r4", "take": 1},
-                                          {"t": "cap", "r": "z5::r4"}],
-                             "groups": [{"members": ["DV"],
-                                         "facts": [{"t": "orphan", "r": "z5::r9", "take": None}]}]},
-                            {"everyone": [], "groups": []}]}
+
+    def rule(take=None, water=None, species=("DV",), except_=(), dated=True):
+        return NS(f={"take": take, "water": water, "dated": dated}, species=list(species),
+                  except_=list(except_))
+    P = NS(kind="lake", in_dates=lambda r: r.f["dated"], by_key={
+        "z5::r4": rule(1), "z5::r9": rule(), "z5::r5": rule(2, "lake", ("DV", "LT")),
+        "z5::r6": rule(2, "stream"), "z5::r7": rule(2, dated=False),
+        "z5::r8": rule(2, species=("DV", "LT"), except_=("LT",))})
+    out = {"rows": [{"members": ["DV", "LT"],
+                     "everyone": [{"t": "orphan", "r": "z5::r4"}, {"t": "cap", "r": "z5::r4"},
+                                  {"t": "orphan", "r": "z5::r5"}],
+                     "groups": [{"members": ["DV"], "facts": [
+                         {"t": "orphan", "r": "z5::r9", "members": ["DV"]},
+                         {"t": "orphan", "r": "z5::r6", "members": ["DV"]},
+                         {"t": "orphan", "r": "z5::r7", "members": ["DV"]},
+                         {"t": "orphan", "r": "z5::r8", "members": ["DV", "LT"]}]}]},
+                    {"members": [], "everyone": [], "groups": []}]}
+    orphan_takes(out, P)
+    row = out["rows"][0]
+    assert row["everyone"] == [{"t": "orphan", "r": "z5::r4", "take": 1, "binds": ["DV"]},
+                               {"t": "cap", "r": "z5::r4"},
+                               {"t": "orphan", "r": "z5::r5", "take": 2, "binds": ["DV", "LT"]}]
+    assert [(l["take"], l["binds"]) for l in row["groups"][0]["facts"]] == [
+        (None, ["DV"]),     # no take: F16 refuses it on the take
+        (2, []),            # another water's clause
+        (2, []),            # out of its dates
+        (2, ["DV"])]        # LT is excepted
+    assert out["rows"][1] == {"members": [], "everyone": [], "groups": []}
 
 
 def test_port_keys_our_rows_in_the_pages_word():
