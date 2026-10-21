@@ -5,7 +5,9 @@
  * `provinceStore()` is the built regs store the oracles were cut from (`taps.json` `meta.store.store_digest`), read here
  * over node:sqlite with T02's blob codec until T03/T04's store reads land and replace it. Looked for at $REGS_STORE, then
  * this checkout's data/generated/bundle/regs.sqlite, then (in a `.claude/worktrees/<name>` checkout) the main checkout's —
- * read-only. Absent, or a store whose digest is not the oracles' (a stale pairing), is a SKIP with its reason, never a fail.
+ * read-only. Absent, or a store whose digest is not the oracles' (a stale pairing), is a SKIP with its reason, never a fail —
+ * unless REGS_STORE_REQUIRED=1 (`paritySkip`). Not yet tests.md §1.2's `Promise<RegsStore | null>` over the release: T03/T04
+ * are not on this base, so this reads the bundle store with hand-written SQL; replace it with T04's reads when they land.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
@@ -54,19 +56,36 @@ export interface TapStore {
   statics(k: string): unknown;
 }
 
-/** Where the province store is, or why there is none to test against. */
-export function provinceStoreAt(): { path: string; reason: null } | { path: null; reason: string } {
+/** The places a regs store is looked for, in order: $REGS_STORE, this checkout's bundle, the main checkout's (from a worktree). */
+export function storeCandidates(): (string | undefined)[] {
   const here = `${REPO}data/generated/bundle/regs.sqlite`;
-  const main = /\/\.claude\/worktrees\/[^/]+\/$/.test(REPO) ? `${REPO.replace(/\.claude\/worktrees\/[^/]+\/$/, "")}data/generated/bundle/regs.sqlite` : null;
-  const path = [process.env.REGS_STORE, here, main].find((p): p is string => !!p && existsSync(p));
-  if (!path) return { path: null, reason: "no regs store on this machine (REGS_STORE, data/generated/bundle/regs.sqlite)" };
+  const main = /\/\.claude\/worktrees\/[^/]+\/$/.test(REPO) ? `${REPO.replace(/\.claude\/worktrees\/[^/]+\/$/, "")}data/generated/bundle/regs.sqlite` : undefined;
+  return [process.env.REGS_STORE, here, main];
+}
+
+/** Where the province store is, or why there is none to test against. The FIRST candidate on disk is judged: a stale one is a
+ *  skip with its reason, never passed over for a later one (REGS_STORE pointing at a stale store must say so). */
+export function provinceStoreAt(candidates: readonly (string | undefined)[] = storeCandidates()):
+  { path: string; reason: null } | { path: null; reason: string } {
+  const path = candidates.find((p): p is string => !!p && existsSync(p));
+  if (!path) return { path: null, reason: `no regs store on this machine (looked at ${candidates.filter(Boolean).join(", ") || "nothing"})` };
   const db = new DatabaseSync(path, { readOnly: true });
   try {
     const got = (db.prepare("SELECT v FROM meta WHERE k = 'store_digest'").get() as { v: string } | undefined)?.v;
     const want = taps().meta.store.store_digest;
     return got === want ? { path, reason: null }
-      : { path: null, reason: `${path} is store ${got}, the oracles were cut from ${want}: re-run app/design/regs-v11/port/taps.py` };
+      : { path: null, reason: `${path} is store ${got ?? "(no store_digest)"}, the oracles were cut from ${want}: re-run app/design/regs-v11/port/taps.py` };
   } finally { db.close(); }
+}
+
+/** How a store-backed parity suite treats the pairing: run it, or skip it with the reason. REGS_STORE_REQUIRED=1 (a machine
+ *  that is meant to prove parity) turns the skip into a failure, so a rebuilt store cannot make `pnpm check` pass silently. */
+export function paritySkip(at: ReturnType<typeof provinceStoreAt>, env: Readonly<Record<string, string | undefined>> = process.env):
+  { skip: false; fail: null } | { skip: true; fail: null; reason: string } | { skip: true; fail: string } {
+  if (at.path !== null) return { skip: false, fail: null };
+  const required = !!env.REGS_STORE_REQUIRED && env.REGS_STORE_REQUIRED !== "0";
+  return required ? { skip: true, fail: `REGS_STORE_REQUIRED is set and the parity cannot run: ${at.reason}` }
+    : { skip: true, fail: null, reason: at.reason };
 }
 export const hasProvinceRegs = (): boolean => provinceStoreAt().path !== null;
 

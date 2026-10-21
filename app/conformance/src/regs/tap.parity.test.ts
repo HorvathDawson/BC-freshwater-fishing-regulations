@@ -6,10 +6,11 @@
  */
 import { describe, expect, it } from "vitest";
 import { daySegments, profileIndex, segmentIndex, tapDay, type Who } from "@app/core";
-import { provinceStore, provinceStoreAt, taps, type TapStore } from "./golden";
+import { paritySkip, provinceStore, provinceStoreAt, taps, type TapStore } from "./golden";
 
 const T = taps();
 const at = provinceStoreAt();
+const pairing = paritySkip(at);
 const ids = Object.keys(T.states);
 const dayOf = (date: string) => { const [y, m, d] = date.split("-").map(Number); return { year: y!, md: { month: m!, day: d! } }; };
 
@@ -24,7 +25,13 @@ it("the oracle: 134 golden states, 4 Feb 29 cases, at the golden this port targe
   for (const [id, s] of Object.entries(MOMENT_SPLITS)) expect([id, T.states[id]!.s, T.states[id]!.moments !== null]).toEqual([id, s, true]);
 });
 
-describe.skipIf(!at.path)(`T05 tap parity: the regs store (${at.path ?? at.reason})`, () => {
+// The pairing, as its own test that always runs: a skipped parity suite says why, and fails under REGS_STORE_REQUIRED=1.
+it(`T05 tap parity runs against a paired store${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {
+  if (pairing.fail) expect.fail(pairing.fail);
+  if ("reason" in pairing) console.warn(`T05 tap parity skipped: ${pairing.reason}`);
+});
+
+describe.skipIf(pairing.skip)(`T05 tap parity: the regs store (${at.path ?? at.reason})`, () => {
   let S: TapStore;
   const store = async () => (S ??= (await provinceStore())!);
 
