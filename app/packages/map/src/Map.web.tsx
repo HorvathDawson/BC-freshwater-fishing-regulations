@@ -565,8 +565,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /**
    * The ids lit `selected` last, and apart from them the ids lit `water` (P15) — cleared by id on the next highlight,
    * and what a release swap puts back (below). Kept apart, and `wasLit` meaning what it meant before P15 (the selected
-   * ids only), so the one colouring engine's `restore` (colouring.ts, branch wf_b01b27c4) can never put the water's
-   * other parts back as `selected`: absorbing P15 there is adding `[...wasWater.current]` to its one highlight call.
+   * ids only), so the one colouring engine's `restore` (below) can never put the water's
+   * other parts back as `selected`; the restore re-applies both.
    */
   const wasLit = useRef<SectionKey[]>([]);
   const wasWater = useRef<SectionKey[]>([]);
