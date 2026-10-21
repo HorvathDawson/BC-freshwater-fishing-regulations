@@ -4,14 +4,12 @@
  * `fetch` that serves the release folder as R2 / `pnpm tiles` would, and a node:sqlite opener.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
-import { parseManifest, verify } from "@app/data";
-import { releaseLoader, type Opener, type ReleaseLoader, type ReleaseSource } from "@app/data/release";
-import { DEV_BUNDLE, openBundle } from "@app/data/bundle/node";
+import { DEV_BUNDLE } from "@app/data/bundle/node";
 
 const REPO = resolve(__dirname, "../../..");
 
@@ -98,28 +96,5 @@ export function liveRegsStore(): string | null {
   return null;
 }
 
-/**
- * A `ReleaseLoader` over a release folder, the way the app reads one: each file's bytes held to the manifest
- * (`verify`: the decoded length and sha256) and opened in node:sqlite from a temp copy.
- */
-export function openReleaseDir(dir: string): ReleaseLoader {
-  const m = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
-  const source: ReleaseSource = {
-    async bytes(name) {
-      const f = m.files[name];
-      if (!f) throw new Error(`release ${m.data_release} has no file ${name}`);
-      return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
-    },
-  };
-  return releaseLoader(m, source, nodeOpener());
-}
-
-/** node:sqlite over a verified file: the bytes written to a temp file and opened read-only. */
-export function nodeOpener(): Opener {
-  const tmp = mkdtempSync(join(tmpdir(), "release-open-"));
-  return async (name, bytes) => {
-    const p = join(tmp, `${name}.sqlite`);
-    writeFileSync(p, await bytes());
-    return openBundle(p);
-  };
-}
+/** A release folder opened as the app opens one, and the node:sqlite opener: the data drivers' (one copy, T10). */
+export { nodeOpener, openReleaseDir } from "@app/data/release/node";

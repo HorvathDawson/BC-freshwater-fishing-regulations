@@ -21,6 +21,7 @@
     "tiles": "node tools/serve-tiles.mjs",
     "fixture": "node tools/build-fixture.mjs && git diff --exit-code packages/data/dev",
     "fixture:build": "node tools/build-fixture.mjs",
+    "regs-fixture": "cd .. && .venv/bin/python -m pipeline.tools.regs_fixture_release",
     "gauge-policy": "cd .. && .venv/bin/python -m pipeline.tools.emit_gauge_policy --check",
     "fish": "node tools/emit-fish.mjs --check",
     "fish:build": "node tools/emit-fish.mjs",

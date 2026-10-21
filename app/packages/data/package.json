@@ -15,6 +15,7 @@
     "./bundle": "./src/bundle/source.ts",
     "./bundle/node": "./src/bundle/drivers/node.ts",
     "./bundle/open": "./src/bundle/drivers/open.ts",
+    "./release/node": "./src/bundle/drivers/releaseDir.ts",
     "./spots": "./src/spots/index.ts",
     "./release": "./src/release/index.ts",
     "./release/platform": "./src/release/drivers/platform.ts",
