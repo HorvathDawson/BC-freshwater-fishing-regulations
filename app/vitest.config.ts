@@ -38,6 +38,8 @@ const alias = [
   { find: "@app/data/spots", replacement: pkg("data", "src/spots/index.ts") },
   { find: "@app/data/bundle/node", replacement: pkg("data", "src/bundle/drivers/node.ts") },
   { find: "@app/data/bundle", replacement: pkg("data", "src/bundle/source.ts") },
+  { find: "@app/data/release/platform", replacement: pkg("data", "src/release/drivers/platform.ts") },
+  { find: "@app/data/release", replacement: pkg("data", "src/release/index.ts") },
   { find: "@app/data", replacement: pkg("data") },
   { find: "@app/ui", replacement: pkg("ui") },
   { find: "@app/map", replacement: pkg("map") },

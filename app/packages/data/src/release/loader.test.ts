@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
 import { releaseLoader, ReleaseError, type DbName } from "./loader";
-import { heldFrom, install, POINTER, type ReleaseFs } from "./install";
+import { heldFrom, heldPath, install, POINTER, type ReleaseFs } from "./install";
 import type { Db } from "../bundle/db";
 
 const enc = (s: string) => new TextEncoder().encode(s);
@@ -85,6 +85,51 @@ describe("install / update (native, always offline)", () => {
     expect(log).toEqual(["https://r2/r-2/core-x.sqlite.gz"]);
     expect(next.release).toBe("r-2");
     expect(new TextDecoder().decode(await fs.read("release/r-2/water-x.sqlite"))).toBe("w1");
+  });
+  it("an unchanged file that no longer matches on disk is downloaded again, never copied", async () => {
+    // a file opened in place can be touched by the engine (a journal mode written into its header): its bytes are no
+    // longer the manifest's, and copying it would fail the re-verify and strand the update
+    const fs = memFs(), log: string[] = [];
+    const v1 = { core: "c1", water: "w1" };
+    const held = await install(manifest(v1), fs, server(v1, log), "https://r2/");
+    fs.files.set("release/r-1/water-x.sqlite", enc("w1 touched"));
+    log.length = 0;
+    const v2 = { core: "c2", water: "w1" };
+    const next = await install(manifest(v2, "r-2"), fs, server(v2, log), "https://r2/", held);
+    expect(log).toEqual(["https://r2/r-2/core-x.sqlite.gz", "https://r2/r-2/water-x.sqlite.gz"]);
+    expect(new TextDecoder().decode(await fs.read(heldPath(next, "r-2/water-x.sqlite.gz")))).toBe("w1");
+  });
+  it("tiles and their mask stream to disk (never held whole), only when the tile version moves", async () => {
+    const fs = memFs(), log: string[] = [], streamed: string[] = [];
+    const tile = enc("PMTiles bytes"), mask = enc('{"type":"FeatureCollection"}');
+    const tiles = (id: string) => ({
+      compatible: [`${H}.*`], assets: null,
+      current: { id, url: `tiles/${id}/atlas-${id}.pmtiles`, bytes: tile.length, sha256: sha256Hex(tile) },
+      mask: { url: `tiles/${id}/bc_outside.geojson`, bytes: mask.length, sha256: sha256Hex(mask) },
+    });
+    const toDisk = async (url: string, path: string, e: { bytes: number; sha256: string }, onBytes?: (n: number) => void) => {
+      streamed.push(`${url} -> ${path}`);
+      const b = url.endsWith(".pmtiles") ? tile : mask;
+      expect(sha256Hex(b)).toBe(e.sha256);
+      onBytes?.(b.length);
+      await fs.write(`${path}.part`, b);
+      await fs.rename(`${path}.part`, path);
+    };
+    const m1 = { ...manifest({ core: "c1" }), tiles: tiles(`${H}.aaa`) } as Manifest;
+    const progress: string[] = [];
+    const held = await install(m1, fs, server({ core: "c1" }, log), "https://r2/", null,
+                               (p) => progress.push(`${p.file} ${p.bytes}/${p.of}`), toDisk);
+    expect(streamed).toEqual([
+      `https://r2/tiles/${H}.aaa/atlas-${H}.aaa.pmtiles -> release/tiles/${H}.aaa/atlas-${H}.aaa.pmtiles`,
+      `https://r2/tiles/${H}.aaa/bc_outside.geojson -> release/tiles/${H}.aaa/bc_outside.geojson`]);
+    const T = 2 + tile.length + mask.length;
+    // each streamed file reports while it streams (here: once, whole) and again when it is in place
+    expect(progress).toEqual([`core 2/${T}`, `tiles 15/${T}`, `tiles 15/${T}`, `mask ${T}/${T}`, `mask ${T}/${T}`]);
+    expect(held.tiles).toBe(`${H}.aaa`);
+    streamed.length = 0;
+    const m2 = { ...manifest({ core: "c2" }, "r-2"), tiles: tiles(`${H}.aaa`) } as Manifest;
+    await install(m2, fs, server({ core: "c2" }, log), "https://r2/", held, () => {}, toDisk);
+    expect(streamed).toEqual([]);                              // a data-only release never touches the tiles
   });
   it("a crash at the swap, or a failed sha, keeps the old set in force", async () => {
     const fs = memFs(), log: string[] = [];

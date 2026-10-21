@@ -34,8 +34,9 @@ export interface LoadedBundle extends Db {
  */
 export function setSqlWasmUrl(_url: string) {}
 
-/** Wrap an already-open expo database. Exported for tests and for a resident file. */
-export function wrap(db: SQLiteDatabase, bytes = 0): LoadedBundle {
+/** Wrap an already-open expo database. Not exported: `engine.web.ts` has no twin of it, and the pair's surfaces must
+ *  match (check-platform scans packages/data since P11). The release opens its resident files in `release/drivers`. */
+function wrap(db: SQLiteDatabase, bytes = 0): LoadedBundle {
   return {
     bytes,
     // The ASYNC API on purpose: the sync one needs SharedArrayBuffer on web, which needs

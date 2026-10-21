@@ -21,7 +21,11 @@ export interface ReleaseSource {
   /** The RAW (decoded, verified) bytes of a release file. */
   bytes(name: FileName): Promise<Uint8Array>;
 }
-export type Opener = (name: DbName, bytes: Uint8Array) => Promise<Db>;
+/**
+ * Open one SQLite file. `bytes` fetches the verified file (the web opens it in sql.js); an opener that reads the file
+ * in place (native: expo-sqlite on the installed copy) never calls it, so nothing is read into memory.
+ */
+export type Opener = (name: DbName, bytes: () => Promise<Uint8Array>) => Promise<Db>;
 
 export class ReleaseError extends Error {}
 
@@ -54,7 +58,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
     let p = dbs.get(name);
     if (!p) {
       touch(name);
-      p = source.bytes(name).then((b) => open(name, b)).then(async (d) => {
+      p = open(name, () => source.bytes(name)).then(async (d) => {
         const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
         if (meta.format !== spec.format || meta.section_handles !== spec.section_handles)
           throw new ReleaseError(`${name}: format ${meta.format} / handles ${meta.section_handles} are not the manifest's ` +

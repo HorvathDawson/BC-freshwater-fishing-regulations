@@ -540,5 +540,5 @@ export * from "./panel";
 export { fetchVerified, verify, ungzip, VerifyError } from "./fetchVerified";
 export { loadManifest, parseManifest, diff, pair, compatible, ManifestError, type Held, type Pairing,
          type TileVersion, type Manifest } from "./manifest";
-export { sha256Hex } from "./sha256";
+export { Sha256, sha256Hex } from "./sha256";
 export { PACK_FILES, PACK_UNITS, REGIONS, MANIFEST_FORMAT, type PackFile, type ManifestFile } from "./pack.generated";

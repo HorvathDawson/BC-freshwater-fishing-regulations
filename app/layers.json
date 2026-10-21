@@ -135,6 +135,22 @@
       ],
       "why": "A driver satisfies `Db` — four methods — and nothing above it knows which one it got. That is what lets one query layer serve node:sqlite in tests, a wasm build range-reading R2 on the web, and expo-sqlite on the phone. `packages/data` itself must never name a database: the moment a query reaches for a driver directly, the other two platforms stop being possible."
     },
+    "packages/data/src/release/drivers": {
+      "purpose": "The release's platform adapters (P11): how a release file is fetched, cached, installed and opened on each platform.",
+      "mayImport": [
+        "@app/core",
+        "expo-sqlite",
+        "sql.js",
+        "expo-file-system"
+      ],
+      "banned": [
+        "react",
+        "react-native",
+        "react-dom",
+        "node:sqlite"
+      ],
+      "why": "Each adapter is a .native/.web pair (check-platform holds the pair) and the ONLY place the release names a platform module: sql.js and Cache Storage on the web, expo-sqlite and expo-file-system on the phone. The loader, the install/update logic and the release source above it are platform-free, which is what lets a test drive them over an in-memory file system and node:sqlite."
+    },
     "packages/data/src/spots": {
       "purpose": "The user's own records, and the only writable store in the app.",
       "mayImport": [

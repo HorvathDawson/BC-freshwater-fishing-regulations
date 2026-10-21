@@ -82,6 +82,17 @@ describe("nested layers", () => {
   });
 });
 
+describe("the release drivers (P11)", () => {
+  it("may name a platform database and file system; the loader around them may not", () => {
+    expect(check("packages/data/src/release/drivers/_bnd.web.ts",
+      'import initSqlJs from "sql.js";\nexport const x = initSqlJs;\n')).toBe(0);
+    expect(check("packages/data/src/release/drivers/_bnd.native.ts",
+      'import { File } from "expo-file-system";\nexport const x = File;\n')).toBe(0);
+    expect(check("packages/data/src/release/_bnd.ts",
+      'import { openDatabaseAsync } from "expo-sqlite";\nexport const x = openDatabaseAsync;\n')).not.toBe(0);
+  });
+});
+
 describe("comments are not code", () => {
   it("does not read an import out of a sentence", () => {
     // A doc comment explaining a decision can easily contain the shape `… from "x"`, and
@@ -204,6 +215,18 @@ describe("platform parity", () => {
   it("catches a variant that ships on one platform only", () => {
     expect(checkPlatform({
       "packages/ui-native/src/_plat.web.ts": 'export const el = 1;\n',
+    })).not.toBe(0);
+  });
+
+  it("holds @app/data's platform pairs too (the release drivers, P11)", () => {
+    // packages/data holds the database and file-system drivers, which are exactly the pairs that ship on one platform
+    // only when one half is forgotten. It was outside the variant scan, so a lone `.web.ts` there passed.
+    expect(checkPlatform({
+      "packages/data/src/release/drivers/_plat.web.ts": 'export const el = 1;\n',
+    })).not.toBe(0);
+    expect(checkPlatform({
+      "packages/data/src/release/drivers/_plat.web.ts": 'export const a = 1;\nexport const b = 2;\n',
+      "packages/data/src/release/drivers/_plat.native.ts": 'export const a = 1;\n',
     })).not.toBe(0);
   });
 

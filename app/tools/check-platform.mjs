@@ -70,7 +70,9 @@ const fail = (m) => { console.error("✗ " + m); failed++; };
 
 // --- 1 + 2: variant sets ---
 const seen = new Map();   // "dir/base|group" -> {tag: path}
-for (const scope of [...SHARED, "apps/mobile", "apps/web"]) {
+// packages/data is scanned for PAIRS only (not for banned APIs): its drivers — the bundle engine, the spots store,
+// the release adapters (P11) — are the .native/.web pairs that most easily ship on one platform only.
+for (const scope of [...SHARED, "packages/data", "apps/mobile", "apps/web"]) {
   const dir = join(root, scope);
   if (!existsSync(dir)) continue;
   for (const file of walk(dir)) {

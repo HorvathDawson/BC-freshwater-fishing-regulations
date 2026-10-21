@@ -1,7 +1,7 @@
 /** P10: fetchVerified, the manifest's diff and pairing, and the hash they all rest on. */
 import { describe, expect, it } from "vitest";
 import { gzipSync } from "fflate";
-import { sha256Hex } from "./sha256";
+import { Sha256, sha256Hex } from "./sha256";
 import { fetchVerified, VerifyError } from "./fetchVerified";
 import { diff, pair, parseManifest, type Held, type Manifest } from "./manifest";
 
@@ -15,6 +15,15 @@ describe("sha256", () => {
       .toBe("248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1");
     expect(sha256Hex(new Uint8Array(1_000_000).fill(0x61)))
       .toBe("cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0");
+  });
+  it("hashes in chunks exactly as in one piece (P11: a 531 MB tile file is verified off disk, never held whole)", () => {
+    const data = new Uint8Array(1_000_000).fill(0x61);
+    for (const step of [1, 63, 64, 65, 4096, 333_333]) {
+      const h = new Sha256();
+      for (let i = 0; i < data.length; i += step) h.update(data.subarray(i, i + step));
+      expect([step, h.hex()]).toEqual([step, "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"]);
+    }
+    expect(new Sha256().hex()).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
   });
 });
 
