@@ -96,6 +96,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- 2026-10-21 later: deliver all -> release r-1bb06fa28daf PROMOTED (rows 31 / display 18; 13.71 MB; card gate 0);
+  taps.json + regs fixture r-d88e97e5bf83 re-cut; Keep parity compares group stamps; only the 2 Other-fish stamp
+  documents (White Sturgeon licence, Kootenay Lake rainbow surcharge) excluded until the pipeline ships Other-fish
+  stamps (OPEN). MERGED conditions: chart prefetch (no flicker), flow arrows on Conditions (tiles run mouth->source,
+  verified), feed gap refill every run + year_backfill tool. Feed republished + province year_backfill RUNNING
+  (~3-4 h, polite). pnpm check 4877; smoke pass. Pools spike: handoff/PLAN/app-data/pools/ (feasible, unvalidated).
+  NEXT: one-water-screen unification; Esri online imagery (after the colouring engine merges).
 - 2026-10-21 afternoon MERGED batch 9: cb71e1d0 the 5 Keep answers now from the PIPELINE (closers, narrow_all,
   parent, record duty, licence stamps; rows 31 / display 18; TS derivations deleted; scratch release 13.71 MB) +
   T21 Keep tab 3665f151 + review fix a445aa91 (.gyear line drawn; verify_map.py fixed for v38). Keep parity 134/134;
