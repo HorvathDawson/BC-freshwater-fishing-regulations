@@ -95,8 +95,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Before resuming: check each stopped worktree (git -C <wt> log redesign/stream-sections..HEAD) for partial commits.
   AFTER the Kitimat +1 merges: apply ruling (a) (drop r7 from r5 exempts; flip the test) then ONE deliver all.
   OPEN owner items: whole "Kootenay Lake" not a search result (only its 3 areas); search memory now persists across tabs.
-- Batch 6 RUNNING (toward the regulations CARD): T09 -> T07 -> T08 (one chain), T10 + T11. Then T12, then the Keep tab
-  card T13-T21, then T23-T37, then T39-T43. Owner rule (decisions.md 2026-10-21) enforced in every prompt/review.
+- Batch 6 MERGED 2026-10-21: T09 loadRegsInputs, T07 ladder/settle, T08 rows model (parity 134/134 vs hydrate.json),
+  T10 regs fixture release (pnpm regs-fixture) + T11 ui regs hooks. pnpm check 2821 pass; smoke pass. OWNER RULE CAUGHT:
+  the per-row YEAR STRIP colour was derived in TS (most permissive over weekday moments) — removed (430fc927); the
+  PIPELINE must ship per rows_row a run-length [[status, days]] over the 365 book days. Batch 7 (year strip + T12) next.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
