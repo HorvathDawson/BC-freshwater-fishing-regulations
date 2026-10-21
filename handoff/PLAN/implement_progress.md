@@ -88,7 +88,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   the unification as soon as batch 9 (T21 Keep tab, which wires WaterScreen/Shell) merges.
 - OWNER 2026-10-21 (SPEC ONLY, do not build): downloadable high-res imagery CORRIDOR around a stream or one section,
   for offline use (the offline exception to online-only satellite); find free sources that legally allow offline
-  storage. Workflow stream-imagery-corridor-spec RUNNING -> handoff/PLAN/app-data/stream-imagery/SPEC.md.
+  storage. SPEC MERGED (handoff/PLAN/app-data/stream-imagery/SPEC.md): no free current sub-metre imagery of rural BC
+  is allowed offline; usable tiers = 10 m Sentinel-2 composites (ESA WorldCover CC BY), 1-2 m LiDAR relief (open), town
+  orthos (North Cowichan, Surrey...). 8 OWNER QUESTIONS in the spec.
 - OWNER 2026-10-21: (1) Conditions chart flickers when switching gauges -> prefetch every donor series; (2) flow-
   direction arrows on Conditions streams (verify tile line orientation first); (3) "this year" flow gaps -> LEAD
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
