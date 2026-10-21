@@ -29,8 +29,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   so the pair is never proven); a tile-only release never updates on native; prune leaves old tiles; no rollback when
   the new set fails to open; the app's regs reads bypass openRegsFor. Full findings: scratchpad b2_*.json (session
   368da779).
-- Tile rebuild: was deadlocked (heavy.sh 70% free gate vs N1's 2.3 GB headless emulator); emulator killed 2026-10-20,
-  rebuild proceeds into scratchpad tiles_next. N1 agent died in the outage; resume it after the tiles.
+- Tile rebuild DONE 2026-10-20 (691 s): tile_version d768d6e135e62b99.ffac7c1eb56e; promoted file by file into
+  data/generated/tiles (atlas.pmtiles, atlas.meta.json, 15 layers/*.geojsonl; basemap untouched; old copies in scratchpad
+  tiles_prev); data/release/tiles/<version>/ holds atlas + mask + map-assets-1. Release rebuilt (same rid r-6960fe8201e3,
+  data unchanged): manifest now names tiles.current/mask/assets; basemap still null (P18 gap). Slow tile tests 2/2,
+  test_tiles+vintage 46, test_release 29, release-boot 5, release-perf 13 all pass.
+- Batch 3 RUNNING (wf_5c95925e-a40): p11-fix, p16, f9-rows (investigation, ruling for owner), t06-followup.
+- N1 resumed (agent a8261f149d43eead6) after the outage; told to rebase onto HEAD and use heavy.sh for gradle.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
