@@ -157,7 +157,7 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
     : null;
   const below = new Set([...seen, ...pg]);
   const children = t.children.map((c) => (c.node === "tier" ? tierNode(c, env, false, below) : kindRow(c, env)));
-  const base = { t: "tier" as const, tier: t.tier, tid: t.id, band: t.tier === "size", short: shortOf(t), children };
+  const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children };
   if (foldsShare(t, env)) {
     const origin = torg(bk);
     return { ...base, kicker: null, line: origin ? [] : bk, folded: true, relation: null, sub: null, origin };

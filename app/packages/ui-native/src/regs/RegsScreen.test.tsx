@@ -1,7 +1,7 @@
 /**
  * T23 — the Regulations screen: the water's header row and the regs header FIXED above ONE ScrollView of the four tab
  * sections (header-one-shape, one scroll, licence-last, no part strip), the date pill's "Which day?" sheet (D7 a: the
- * map's own day stepper). Mounted over the frozen golden page
+ * map's own day stepper), and (T29) a tab press scrolling to its section. Mounted over the frozen golden page
  * (fixtures/vedder_1010.json, buildRegsPage over the parity store).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -91,5 +91,35 @@ describe("<RegsScreen>", () => {
     const got = onDay.mock.calls[0]![0] as Date, want = new Date();
     want.setDate(want.getDate() - 1);
     expect(got.toDateString()).toBe(want.toDateString());
+  });
+
+  it("(T29) a tab press selects it at once and scrolls to its section top + 2 (prototype 2000); Keep scrolls to 0", () => {
+    const store = createPinStore();
+    mount({ store });
+    // react-native-web's ScrollView.scrollTo is the DOM node's scroll(): smooth when animated
+    const to = vi.fn();
+    (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+    act(() => store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }));
+    fireEvent.click(screen.getByRole("tab", { name: "Gear" }));
+    expect(screen.getByRole("tab", { name: "Gear" }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("tab", { name: "What you can keep" }));
+    expect(to.mock.calls).toEqual([[{ top: 1502, left: 0, behavior: "smooth" }], [{ top: 0, left: 0, behavior: "smooth" }]]);
+  });
+
+  it("(T29) the tab follows the scroll: past the Gear section's top the Gear tab is selected", () => {
+    vi.useFakeTimers();
+    try {
+      const store = createPinStore();
+      mount({ store });
+      act(() => {
+        store.setViewport(584); store.setContentHeight(3300);
+        store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 });
+      });
+      const sel = () => screen.getAllByRole("tab").filter((t) => t.getAttribute("aria-selected") === "true").map((t) => t.textContent);
+      act(() => { fireEvent.scroll(scrollEl(), { target: { scrollTop: 1488 } }); vi.advanceTimersByTime(200); });
+      expect(sel()).toEqual(["Regulations", "Gear"]);
+      act(() => { fireEvent.scroll(scrollEl(), { target: { scrollTop: 0 } }); vi.advanceTimersByTime(200); });
+      expect(sel()).toEqual(["Regulations", "What you can keep"]);
+    } finally { vi.useRealTimers(); }
   });
 });

@@ -380,6 +380,7 @@
         "t": "text"
        }
       ],
+      "n": 2,
       "origin": null,
       "relation": null,
       "short": "2 of them from streams",
@@ -446,6 +447,7 @@
         "t": "book"
        }
       ],
+      "n": 5,
       "origin": null,
       "relation": "Not part of the 2 from streams; part of the 5 a day across Region 4",
       "short": "5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",

@@ -536,6 +536,7 @@
           "t": "text"
          }
         ],
+        "n": 1,
         "origin": null,
         "relation": null,
         "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
@@ -548,6 +549,7 @@
       "folded": true,
       "kicker": null,
       "line": [],
+      "n": 2,
       "origin": {
        "book": [
         {

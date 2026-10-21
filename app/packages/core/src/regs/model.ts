@@ -135,6 +135,7 @@ export interface TierVM {
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node
   readonly short: string;                   // shortOf(tier) for the pin bar (T28)
+  readonly n: number | null;                // (T29) the stored tier's number: the pin bar's form-a share test (PinTierAnchor.n)
   readonly children: readonly TreeNodeVM[];
 }
 export interface KindVM {

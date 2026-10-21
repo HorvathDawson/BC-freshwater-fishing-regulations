@@ -26,7 +26,11 @@ export const PIN_MARGIN = 8;
 /** mini(): a section counts as reached this many px below the bar */
 export const TAB_REACH = 12;
 
-export interface PinLine { readonly cls: "g" | "g two" | "c"; readonly text: string; readonly sub: string | null }
+export interface PinLine {
+  readonly cls: "g" | "g two" | "c"; readonly text: string; readonly sub: string | null;
+  /** (T29) a tier line's tier (prototype `data-tier`: the size line is drawn in the size section's rule colour) */
+  readonly tier?: string;
+}
 
 /** The group line (pinUpdate 1735): form a with a headline → the share leads, the total in brackets under it; else
  *  "<name> · <shortOf(root)>". */
@@ -81,7 +85,7 @@ export function pinChain(anchors: readonly PinAnchor[], scrollY: number, vp: Pin
   for (const t of art.tiers) {
     if (t.short == null || !t.head) continue;
     if (art.formA && t.tier === "share" && t.n === art.headlineN) continue;   // form a: the group line already says the share
-    const line = tierLine(t.short), h = heightOf(line);
+    const line: PinLine = { ...tierLine(t.short), tier: t.tier }, h = heightOf(line);
     if (top(t.head) < B && t.end != null && t.end - scrollY > B + h + vp.ROW) { lines.push(line); B += h; }
   }
   return lines;

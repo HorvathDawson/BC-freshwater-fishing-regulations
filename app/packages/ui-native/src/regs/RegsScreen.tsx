@@ -1,5 +1,5 @@
 /**
- * T23 — the Regulations view of one tap (prototype regs v38 page layout): the water's header row (FaceBar: back and
+ * T23 + T29 — the Regulations view of one tap (prototype regs v38 page layout): the water's header row (FaceBar: back and
  * the view strip, the same row on every view of the water) and the regs header (name, date pill, Map, place label, the
  * four tabs) FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
@@ -22,8 +22,10 @@ import { GUTTER, SPACE, type Palette } from "../theme";
 import { DaySheet } from "./DaySheet";
 import { KeepTab } from "./KeepTab";
 import type { KeepActions } from "./LineText";
+import { PinBar } from "./PinBar";
 import { createPinStore, type PinStore } from "./pinStore";
 import { RegsHeader } from "./RegsHeader";
+import { AnchorContext, useAnchors } from "./useAnchors";
 import type { FishImages } from "./types";
 
 export interface RegsScreenProps {
@@ -62,6 +64,8 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
                              gear, methods, licence, footer, store: injected }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
+  const content = useRef<View>(null);
+  const { sink, section, remeasure } = useAnchors(page, content, store);
   const [dayOpen, setDayOpen] = useState(false);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the fixed header and the scroll's
   // content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx
@@ -93,11 +97,16 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
                   onAction={onAction} onTab={toTab} />
     </View>
   );
-  const sec = (tab: "gear" | "methods" | "licence", node: React.ReactNode) =>
-    node ? <View nativeID={`regs-${tab}`} testID={`regs-${tab}`}>{node}</View> : null;
+  const sec = (tab: "gear" | "methods" | "licence", node: React.ReactNode) => {
+    if (!node) return null;
+    const s = section(tab);
+    return <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>{node}</View>;
+  };
   const body = (
-    <View testID="regs-content">
-      <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
+    <View ref={content} collapsable={false} testID="regs-content">
+      <AnchorContext.Provider value={sink}>
+        <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
+      </AnchorContext.Provider>
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
@@ -112,9 +121,10 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
         <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
                     onScroll={(e) => store.setScroll(e.nativeEvent.contentOffset.y)}
                     onLayout={(e) => store.setViewport(e.nativeEvent.layout.height)}
-                    onContentSizeChange={(_w, h) => store.setContentHeight(h)}>
+                    onContentSizeChange={(_w, h) => { store.setContentHeight(h); remeasure(); }}>
           {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{body}</ViewSwipe> : body}
         </ScrollView>
+        <PinBar store={store} palette={palette} />
       </View>
       <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={onDay} />
     </View>
