@@ -96,6 +96,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- OWNER 2026-10-21: "we need the gear, methods, licence etc from the prototype too". WAVE A RUNNING (core presenters,
+  wf batch-10): T30->T31->T32 (Gear/Methods), T33 (Licence), T28 pins + T36 sheet presenters. WAVE B after
+  one-water-screen merges: T23 header, T24-T27 RN Keep components (as needed), T29 pin bar, T34/T35 RN Gear/Methods/
+  Licence + parity, T37 sheet host. Then T39-T43 (dark theme gate, a11y, web parity walk, edge states, book links).
 - 2026-10-21 later: deliver all -> release r-1bb06fa28daf PROMOTED (rows 31 / display 18; 13.71 MB; card gate 0);
   taps.json + regs fixture r-d88e97e5bf83 re-cut; Keep parity compares group stamps; only the 2 Other-fish stamp
   documents (White Sturgeon licence, Kootenay Lake rainbow surcharge) excluded until the pipeline ships Other-fish
