@@ -12,7 +12,8 @@
  *     beside the dot. The words are handed in finished (from `donorShare`, the panel's own),
  *     never computed here. Labels take whichever side is free (`text-variable-anchor-offset`)
  *     and the heaviest gauge places first (`symbol-sort-key`), so a crowded valley moves a
- *     label rather than drawing two on top of each other.
+ *     label rather than drawing two on top of each other — and when no side is free (a
+ *     province-wide zoom) the label is still drawn, never dropped; the key repeats it.
  *   · IT DRAWS AT EVERY ZOOM, because its lines are copied out of the tiles once
  *     (`trace-geometry.ts`) instead of being lit on whatever the current zoom's tile holds.
  *
@@ -159,8 +160,16 @@ export function traceLayers(theme: string):
                                                     "top", [0, 0.95], "bottom", [0, -0.95]]],
         "icon-image": "gauge-pill", "icon-text-fit": "both",
         "icon-text-fit-padding": [3, 7, 3, 7],
-        "text-allow-overlap": false, "icon-allow-overlap": false,
-        // The share is the point of the label: other labels on the map yield to it.
+        /*
+         * A SHARE IS NEVER DROPPED (review 2026-10-21). Overlap allowed + variable anchors:
+         * MapLibre first tries every side WITHOUT overlap and takes the first free one; only
+         * when none is free does it draw on the first side anyway. Refusing overlap instead
+         * hid the share of a gauge at the spot (the pin took every side) and, zoomed out,
+         * most of them. The pill is not tested in the free-side pass (its icon allows
+         * overlap), so the text box is padded to the pill's size.
+         */
+        "text-allow-overlap": true, "icon-allow-overlap": true, "text-padding": 7,
+        // It still takes its place, so later (lighter) shares look for a side clear of it.
         "text-ignore-placement": false,
       },
       paint: { ...p["trace-label"] } },

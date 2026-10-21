@@ -21,8 +21,9 @@ Owner, 2026-10-21, about the map in a section's Conditions view:
    marker. Now both are drawn.
 3. **Every gauge shows its share of the estimate**, for example "35%", or "not reporting". This uses `donorShare`,
    the same words the panel rows use, so the map and the rows always agree. Labels move to whichever side of the dot
-   is free, and the gauge with the largest share gets its label placed first. The key lists every gauge as
-   `station · share`.
+   is free, and the gauge with the largest share gets its label placed first. A label is never dropped: when no side
+   is free (a gauge at the spot, or a zoomed-out map), it is drawn on its first side anyway, overlapping. The key
+   lists every gauge as `station · share`.
 4. **The route still draws when you zoom out.** When a section opens, the app reads the route's section ids from the
    same atlas `.pmtiles` file the map draws. It reads them at a zoom level where those sections exist, decodes the
    vector tiles, and keeps only the features whose MVT id matches a section id. The result is drawn as a GeoJSON
@@ -77,4 +78,7 @@ My own Metro servers ran on :39301 (after) and :39302 (before) and have been sto
   been checked on a device.
 - **Where "not reporting" appears.** The words "not reporting" appear on the map and in the key. When the gauge last
   reported is shown in the panel rows (conditions-layout), not on the map.
+- **Share labels after the review fix.** The change that stops labels being dropped (overlap allowed after a
+  free-side pass) is tested at the style level only. The screenshots above were taken before it. No new screenshots
+  were taken, because that would mean running a Metro server again.
 - **The flow chart's zoom** belongs to conditions-layout (Hydrograph / ChartControls) and is not part of this change.

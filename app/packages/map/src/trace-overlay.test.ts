@@ -42,9 +42,32 @@ describe("the route overlay's layers", () => {
     const layout = label.layout as Record<string, unknown>;
     expect(layout["text-field"]).toEqual(["get", "label"]);
     expect(layout["symbol-sort-key"]).toEqual(["get", "rank"]);
-    expect(layout["text-allow-overlap"]).toBe(false);
     expect(layout["text-variable-anchor-offset"]).toEqual(
       ["literal", ["left", [1.1, 0], "right", [-1.1, 0], "top", [0, 0.95], "bottom", [0, -0.95]]]);
+  });
+
+  /*
+   * Review 2026-10-21: with overlap refused, a share that found no free side was DROPPED —
+   * the gauge at the spot always lost its label to the pin, and zoomed out three of four
+   * shares vanished. With overlap allowed and variable anchors, MapLibre tries every side
+   * without overlap first (placement.ts, `placementPasses = 2`) and only then draws on the
+   * first side: a free side when there is one, and never no label at all.
+   */
+  it("never drops a share: it takes a free side if there is one, and is drawn regardless", () => {
+    const by = Object.fromEntries(traceLayers("light").map((l) => [l.id, l]));
+    const layout = by["trace-label"]!.layout as Record<string, unknown>;
+    expect(layout["text-allow-overlap"]).toBe(true);
+    expect(layout["icon-allow-overlap"]).toBe(true);
+    expect(layout["text-optional"]).not.toBe(true);
+    // Variable anchors are what make the first, no-overlap pass look for a free side.
+    expect(Array.isArray(layout["text-variable-anchor-offset"])).toBe(true);
+    // The pill's padding is not tested in that pass (the icon allows overlap), so the text
+    // box carries it: a free side is free of the whole pill, not just the digits.
+    expect(layout["text-padding"]).toBeGreaterThanOrEqual(6);
+    // The pin still TAKES its place, so the free-side pass moves a share off it.
+    const here = by["trace-here"]!.layout as Record<string, unknown>;
+    expect(here["icon-ignore-placement"]).toBe(false);
+    expect(here["icon-allow-overlap"]).toBe(true);
   });
 
   it("takes its paper and ink from the theme, so a dark map gets a dark casing", () => {
