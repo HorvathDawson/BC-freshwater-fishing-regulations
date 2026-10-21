@@ -99,7 +99,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - OWNER 2026-10-21: satellite imagery is too low-res (today EOX Sentinel-2 cloudless 2016, 10 m) -> research +
   verification of higher-res sources (licence, cost, offline) -> OWNER PICKS [owner: satellite is ONLINE-ONLY, so
   offline caching terms no longer constrain the pick]; and allow OVERZOOM past the pmtiles
-  max (camera max up, every source keeps its own maxzoom). Workflow satellite-and-overzoom RUNNING.
+  max. MERGED: overzoom 24cb5888 + 2bd4a605 (camera z18; each source held at its archive maxzoom; shots
+  handoff/PLAN/app-data/overzoom/); research 8f80fd13 + verified corrections 80d3935d (handoff/PLAN/app-data/satellite/
+  README.md + local compare.html). Recommendation: online Esri World Imagery (0.3-0.5 m rural BC, z17-18, 2M tiles/mo
+  free then $0.15/1k, client key) over the 10 m base; runner-up Stadia ($80/mo). OWNER Qs: client key + usage billing
+  OK? Esri or Stadia? Build a 10 m Sentinel-2 offline base (2-3 GB)? NOTE: tippe.py simplifies z14 at ~4 m, so z18
+  overzoom shows corner-cutting on bends (a tile-build trade-off; size vs fidelity).
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
   OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +
   standing; audit other Map-vs-Conditions divergences), and colours must update from a NEW FEED ALONE (no tile
