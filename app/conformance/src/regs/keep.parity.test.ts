@@ -7,7 +7,7 @@
  * - `keep.lines`: the tab's every drawn line, block by block, equals golden `keep.lines` (catches a missing, extra or
  *   misplaced block and any line no field parity reads).
  * The keyed exclusions (exclusions.ts) are the only things not compared, and the summary names them: the D19 pooled row
- * (klmb_1010), the pending stamp and `.gyear` lines, and the Kitimat-ruled groups (compared to the golden's own group lines
+ * (klmb_1010), the pending stamp lines, and the Kitimat-ruled groups (compared to the golden's own group lines
  * there, since tree/tail parity holds those to the store).
  */
 import { afterAll, describe, expect, it } from "vitest";

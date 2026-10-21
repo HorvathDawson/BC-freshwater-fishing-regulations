@@ -8,7 +8,8 @@ import type { CardModel, HydRow, YearRun } from "./card";
 import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleView } from "./inputs";
 import { plain } from "./line";
 import type { Day, FishPicVM } from "./model";
-import { isPlainRow, namedIn, plainRowOf, runSentence, YearWords, type PlainRowSeams, type YearRunOf } from "./plainrow";
+import { isPlainRow, namedIn, plainRowOf, runSentence, yearWindowOf, YearWords, type PlainRowSeams, type YearRunOf } from "./plainrow";
+import { runOf } from "./strip";
 import { ruleView } from "./rules";
 import type { Settled } from "./settle";
 import { BOOK } from "./testing/speciesBook";
@@ -37,6 +38,22 @@ const year = (...r: YearRun[]): YearRun[] => r;
 const row = (o: Omit<Partial<HydRow>, "raw"> & { raw?: Record<string, unknown> } = {}): HydRow =>
   ({ kind: "release", pool: null, win: rule(1, "x"), members: ["EB"], allMembers: ["EB"], prot: null, year: year(["release", 365]), ...o,
      raw: { group: null, presence: null, week: null, restates: null, ...o.raw } }) as unknown as HydRow;
+
+describe("(T21 review) the group's year window (prototype .gyear over page v36 miniStrip + stripHtml runTxt)", () => {
+  const real = seams([], { runOf: (perDay, d) => runOf(perDay.map((st) => [st, 1] as const), d) });
+  it("a strip that changes through the year: 'Through the year' and today's run, worded", () => {
+    expect(yearWindowOf(row({ year: year(["release", 90], ["keep", 214], ["release", 61]) }), inputs(), D(10, 10), real))
+      .toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only from Nov 1." });
+    expect(yearWindowOf(row({ year: year(["release", 90], ["keep", 214], ["release", 61]) }), inputs(), D(1, 5), real)!.says)
+      .toBe("Release only until Mar 31. You can keep them from Apr 1.");
+  });
+  it("none for a one-run strip, or one that only repeats the water's own closed days (page v36 draws no strip)", () => {
+    expect(yearWindowOf(row({ year: year(["keep", 365]) }), inputs(), D(10, 10), real)).toBeNull();
+    const water = (d: number) => d >= 153 && d <= 182;   // Jun 1 – 30 (leap calendar)
+    expect(yearWindowOf(row({ year: year(["keep", 151], ["closed", 30], ["keep", 184]) }), inputs(water), D(10, 10), real)).toBeNull();
+    expect(yearWindowOf(row({ year: year(["keep", 151], ["closed", 30], ["keep", 184]) }), inputs(), D(10, 10), real)).not.toBeNull();
+  });
+});
 
 describe("the year's words over the stored strip (page v36 runTxt / closedRuns / runUntil)", () => {
   it("keep now: until when, then what, from when", () => {

@@ -142,6 +142,13 @@ export function GroupCard({ g, palette, actions, images }: { g: GroupVM; palette
           </View>
         </View>
       )}
+      {g.year && (
+        // prototype UR5 `.gyear`: the label on its own line, then the year window in the data's words
+        <View testID="keep-group-year" style={{ marginTop: 4, marginBottom: 8 }}>
+          <Text style={[TYPE.kicker, { color: palette.sub }]}>{g.year.label}</Text>
+          <Text style={[TYPE.metaSemi, { color: palette.ink }]}>{g.year.says}</Text>
+        </View>
+      )}
       {g.tree && <Nodes nodes={g.tree} inBand={false} palette={palette} actions={actions} images={images} />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && (

@@ -51,6 +51,18 @@ describe("<KeepTab> over the frozen pages", () => {
       + "Trout Lake’s row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because its row covers all its tributaries.");
   });
 
+  it("glenn_501: the group's year window under its head block, before the tree (prototype .gyear)", () => {
+    const keep = keepOf(glenn501);
+    mount(keep);
+    const y = screen.getByTestId("keep-group-year");
+    expect(y.textContent).toBe("Through the yearYou can keep them until Oct 31. Then release only from Nov 1.");
+    expect(keep.groups[0]!.year).toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only from Nov 1." });
+    const vedder = keepOf(vedder1010);
+    mount(vedder);
+    expect(vedder.groups[0]!.year).toBeNull();
+    expect(screen.getAllByTestId("keep-group-year")).toHaveLength(1);   // only glenn's
+  });
+
   it("links say where they go: a Rule book page, an Other fish row, 'See every regulation line ›'", () => {
     const { sheets, books } = mount(keepOf(vedder1010));
     fireEvent.click(screen.getAllByText("Rule book p.21 ↗")[0]!);

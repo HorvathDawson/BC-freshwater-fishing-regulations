@@ -309,6 +309,10 @@
       }
      ],
      "says": "Your own limit, counted across every Region 4 stream you fish today."
+    },
+    "year": {
+     "label": "Through the year",
+     "says": "You can keep them until Oct 31. Then release only from Nov 1."
     }
    }
   ],

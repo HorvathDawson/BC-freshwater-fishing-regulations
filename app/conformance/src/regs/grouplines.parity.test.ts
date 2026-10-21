@@ -4,8 +4,8 @@
  * core VMs the field parities project (keepGroups.ts groupLinesProj), against app/design/regs-v11/port/golden/golden.json.
  * The field parities prove each part's words; this proves their order and which parts share a line.
  *
- * Dropped from the golden (exclusions.ts, reported in the summary): the `.gyear` year-window line (YEAR_WINDOW_IDS, T19b).
- * The stamp lines are compared (rows 31: the store's `stamps`, drawn by tree.ts / tail.ts `stampLine`). The 3 Kitimat-ruled states are not compared (their tree and worked
+ * Nothing dropped from the golden group lines: the stamp lines are compared (rows 31: the store's `stamps`, drawn by tree.ts /
+ * tail.ts `stampLine`) and so is the `.gyear` year-window line (the group draws it under its head, T21 review). The 3 Kitimat-ruled states are not compared (their tree and worked
  * lines are held to the store by tree.parity / tail.parity).
  */
 import { afterAll, describe, expect, it } from "vitest";
@@ -47,10 +47,11 @@ describe.skipIf(gate.skip)("T17–T19 group lines", () => {
     expect(got.filter((l) => STAMP_LINE.test(l))).toHaveLength(1);
   });
 
-  it("2. glenn_501: the .gyear line is dropped; the moved scope tag, the own tier's relation then its tributary sub, in order", async () => {
+  it("2. glenn_501: the .gyear line right under the head block; the moved scope tag, the own tier's relation then its tributary sub, in order", async () => {
     const got = groupLinesProj(keepOf((await inputsOf("glenn_501"))!).groups[0]!);
-    expect(got.some((l) => YEAR_WINDOW_LINE.test(l))).toBe(false);
-    expect(got.slice(3, 10)).toEqual(["All Region 4 streams", "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams",
+    expect(got.filter((l) => YEAR_WINDOW_LINE.test(l))).toEqual(["Through the year You can keep them until Oct 31. Then release only from Nov 1."]);
+    expect(got[3]).toBe("Through the year You can keep them until Oct 31. Then release only from Nov 1.");
+    expect(got.slice(4, 11)).toEqual(["All Region 4 streams", "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams",
       "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout ›", "Only 1 cutthroat trout over 50 cm (20 in)",
       "The Duncan River’s rule: up to 5 rainbow trout a day Rule book p.36 ↗", "Not part of the 2 from streams; part of the 5 a day across Region 4",
       "Its row covers its tributaries, so it applies here"]);

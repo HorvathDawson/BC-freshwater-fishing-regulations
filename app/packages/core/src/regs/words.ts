@@ -108,6 +108,7 @@ export const WORDS = Object.freeze({
   SUM_CLOSED: (until: string) => "Don’t fish for them" + until + ". If one bites, carefully release it.",
   SUM_RELEASE: (until: string) => "You can fish for them, but release every one" + until + ".",
   NEVER_KEEP: "No keeping at any time of year. ",
+  THROUGH_YEAR: "Through the year",   // page v36 stripHtml's label; the group's year window (prototype UR5 .gyear)
   ALL_YEAR_SENT: "All year.",
   WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
   CLOSED_RANGE: (r: string) => "Closed " + r + ".",

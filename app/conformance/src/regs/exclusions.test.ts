@@ -41,8 +41,8 @@ describe("EXCLUDE", () => {
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
-        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 11 ^groups\\.\\d+\\.lines$",
-        "keep 1 ^plainRows\\.0$", "keep 19 ^lines$", "keep 11 ^lines$"]);
+        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
+        "keep 1 ^plainRows\\.0$", "keep 19 ^lines$"]);
   });
 });
 
@@ -76,7 +76,7 @@ describe("(T17–T19 review) dropped golden lines", () => {
     expect(excluded("keep", "x4p_1010", "groups.0.tree")).toBeNull();
     // rows 31: the stamp lines are the store's `stamps`, drawn and compared — no state drops them
     expect(STAMP_LINE_IDS.flatMap((id) => [...droppedLines("keep", id, "groups.0.lines"), ...droppedLines("keep", id, "groups.0.tree")])).toEqual([]);
-    expect(droppedLines("keep", "glenn_501", "groups.0.lines")).toEqual([YEAR_WINDOW_LINE]);
+    expect(droppedLines("keep", "glenn_501", "groups.0.lines")).toEqual([]);   // (T21 review) the .gyear line is drawn
     expect(droppedLines("keep", "glenn_501", "groups.0.tree")).toEqual([]);
     expect(droppedLines("keep", "vedder_1010", "groups.0.lines")).toEqual([]);
     expect(droppedLines("keep", "anderson_1010", "groups.0.notKept")).toEqual([]);
@@ -95,7 +95,8 @@ describe("(T21) the whole Keep tab", () => {
     expect(KEEP_STAMP_LINE_IDS.length).toBe(19);
     for (const id of STAMP_LINE_IDS) expect(KEEP_STAMP_LINE_IDS, id).toContain(id);
     expect(droppedLines("keep", "vedder_1010", "lines")).toEqual([STAMP_LINE]);
-    expect(droppedLines("keep", "glenn_501", "lines")).toEqual([YEAR_WINDOW_LINE]);
+    expect(droppedLines("keep", "glenn_501", "lines")).toEqual([]);   // (T21 review) the .gyear line is drawn
+    expect(EXCLUDE.some((x) => x.lines === YEAR_WINDOW_LINE)).toBe(false);
     expect(droppedLines("keep", "cow1_1010", "lines")).toEqual([]);
     expect(D19_POOLED_IDS).toEqual(["klmb_1010"]);
     expect(excluded("keep", "klmb_1010", "plainRows.0")?.reason).toMatch(/^decisions D19/);

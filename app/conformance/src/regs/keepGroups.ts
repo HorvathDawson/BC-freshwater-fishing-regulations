@@ -5,7 +5,7 @@
  * runs concatenate as they are, separate elements one space); it never re-derives a value.
  */
 import {
-  buildModel, drawnRows, FISH, groupHeadOf, groupRows, headCtx, makePlace, notKeptOf, originOf, otherFishOf, plain, plainAll,
+  buildModel, drawnRows, plainRowSeams, yearWindowOf, FISH, groupHeadOf, groupRows, headCtx, makePlace, notKeptOf, originOf, otherFishOf, plain, plainAll,
   quietOf, moreOf, settle, text, treeEnv, treeOf, workedOf, WORDS, type CardModel, type GroupHeadVM, type HeadCtx, type KindVM,
   type Line, type NotKeptVM, type OriginVM, type OtherFishRowVM, type RegsInputs, type TierVM, type TreeEnv, type TreeNodeVM,
 } from "@app/core";
@@ -134,6 +134,8 @@ export function nodeLines(x: TreeNodeVM): string[] {
 export function groupLinesProj(gr: KeepGroup, tot: "a" | "b" = "a"): string[] {
   const h = groupHeadProj(gr, tot), t = tailProj(gr), out: string[] = [...h.headLines.map((l) => norm(l))];
   if (h.origin) out.push(...h.origin.lines);
+  const y = yearWindowOf(gr.ctx.row, gr.ctx.inp, gr.ctx.card.ctx.day, plainRowSeams(gr.ctx.inp, FISH));
+  if (y) out.push(join(y.label, y.says));
   out.push(...(treeOf(gr.env) ?? []).flatMap(nodeLines));
   for (const r of notKeptOf(gr.ctx.g, gr.env)) {
     const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];

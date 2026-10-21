@@ -44,7 +44,8 @@ const idsWithLine = (re: RegExp): string[] => Object.entries(golden().states).fi
 /** The states whose golden Keep groups carry a stamp line (in a kind's lines or the group's) — computed at load; the
  *  parity compares them whole (rows 31). */
 export const STAMP_LINE_IDS: readonly string[] = idsWithLine(STAMP_LINE);
-/** The states whose golden Keep groups carry a `.gyear` line — computed at load. */
+/** The states whose golden Keep groups carry a `.gyear` line — computed at load. Compared, not excluded (T21 review): the
+ *  group draws it (GroupVM.year, plainrow.ts `yearWindowOf`: page v36 runTxt over the STORED HydRow.year). */
 export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
 
 /**
@@ -59,7 +60,7 @@ export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().st
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
-/** (T21) the whole Keep tab: the same pending lines, wherever the tab draws them, and the D19 row. */
+/** (T21) the whole Keep tab: the same pending stamp lines, wherever the tab draws them, and the D19 row. */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
     reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
@@ -68,10 +69,6 @@ export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
     block: "keep" as const, ids: KEEP_STAMP_LINE_IDS, key: /^lines$/, lines: STAMP_LINE,
     reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line (under a group's fish and under an Other fish row: 'You need White Sturgeon Conservation Licence › only if …') is a licence answer the pipeline lane is moving into the store; the Keep presenters draw none. Every other line of the tab is compared",
     until: "the pipeline ships the per-fish licence-document line" }] : []),
-  ...(YEAR_WINDOW_IDS.length ? [{
-    block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^lines$/, lines: YEAR_WINDOW_LINE,
-    reason: "PENDING: the group's `.gyear` year-window line (see the groups.N.lines entry above)",
-    until: "the group draws the .gyear line" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [
@@ -93,12 +90,7 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked|lines)$/,
     reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; the group's drawn lines (which contain both) are not compared; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
-  // (T18/T19 review) lines the Keep presenters do not draw: dropped from the golden lines, the rest of the key compared (the
-  // stamp lines are drawn from the store's `stamps` since rows 31 and compared)
-  ...(YEAR_WINDOW_IDS.length ? [{
-    block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^groups\.\d+\.lines$/, lines: YEAR_WINDOW_LINE,
-    reason: "PENDING: the group's year-window line (prototype UR5 `.gyear`: 'Through the year' + page v36 runTxt over the row's year strip) is T19b's runTxt over the STORED HydRow.year; T17–T19 do not draw it. Every other group line is compared",
-    until: "T19b (runTxt over HydRow.year) draws the .gyear line" }] : []),
+  // (T18/T19 review, rows 31 + T21 review) the stamp lines (the store's `stamps`) and the .gyear line are drawn and compared
   ...KEEP_TAB_EXCLUDE,
 ];
 

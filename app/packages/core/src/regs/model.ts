@@ -98,6 +98,7 @@ export interface GroupVM {
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
   readonly origin: OriginVM | null;         // the .ghd.gsub block
+  readonly year: { label: string; says: string } | null;   // the .gyear year window (plainrow.ts yearWindowOf), under the head
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]
   readonly notKept: readonly NotKeptVM[];
   readonly worked: { label: string; says: string | null; lines: readonly { at: "here" | "elsewhere"; q: string; a: string }[] } | null;   // q carries ":" for at=here

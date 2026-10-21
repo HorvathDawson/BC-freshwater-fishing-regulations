@@ -23,7 +23,7 @@ import type { RegsInputs } from "./inputs";
 import type { CaveatVM, Day, GroupVM, KeepBlock, KeepVM, PlainRowVM, StripVM } from "./model";
 import { otherFishKeyOf, otherFishOf, splitRows } from "./others";
 import type { RegsPlace } from "./place";
-import { isPlainRow, plainRowOf, type PlainRowSeams } from "./plainrow";
+import { isPlainRow, plainRowOf, yearWindowOf, type PlainRowSeams } from "./plainrow";
 import { settleAt, type Settled } from "./settle";
 import { inheritedOf, possessionOf, whereNotOf } from "./standing";
 import { bookIndex, BOOK_DAYS, runOf, stripOf } from "./strip";
@@ -57,11 +57,13 @@ export function plainRowSeams(inp: RegsInputs, fish: FishManifest): PlainRowSeam
   };
 }
 
-/** One g28 group (a drawn row with a stored `group.headline`): T17 head + T18 tree + T19 tail. */
-function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>): GroupVM {
+/** One g28 group (a drawn row with a stored `group.headline`): T17 head + the year window (T19b words over the row's
+ *  stored year) + T18 tree + T19 tail. */
+function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>, seams: PlainRowSeams): GroupVM {
   const ctx = headCtx(rowIx, env.card, inp)!, tenv = treeEnv(ctx, env.fish, drawn, env.tot);
   return {
     row: rowIx, title: ctx.title, scope: ctx.scope, head: groupHeadOf(ctx, { tot: env.tot }), origin: originOf(ctx),
+    year: yearWindowOf(ctx.row, inp, env.settled.day, seams),
     tree: treeOf(tenv), notKept: notKeptOf(ctx.g, tenv), worked: workedOf(ctx.row, ctx.g), quiet: quietOf(ctx.row, env.card),
     more: moreOf(rowIx),
   };
@@ -120,7 +122,7 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
     for (const i of splitRows(card).main) {
       if (!drawn.has(i)) continue;                                  // page v36 draws no article for a parent row
       const row = card.rows[i]!;
-      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn)); }
+      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn, seams)); }
       else if (isPlainRow(row)) { rows.push({ plain: plainRows.length }); plainRows.push(plainRowOf(i, { inp, card, settled, seams })); }
       // else: a pooled row with no stored headline (klmb_1010, decisions D19) — page v36's legacy card path, not ported
     }

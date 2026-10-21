@@ -55,6 +55,7 @@ export function groupLines(g: GroupVM): string[] {
   const h = headProj(g.head), out: string[] = [norm(g.title + (g.scope ?? "")), norm(h.text)];
   const o = originProj(g.origin);
   if (o) out.push(...o.lines);
+  if (g.year) out.push(join(g.year.label, g.year.says));
   out.push(...(g.tree ?? []).flatMap(nodeLines));
   for (const r of g.notKept) {
     const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];

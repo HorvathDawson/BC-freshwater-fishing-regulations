@@ -83,7 +83,7 @@ The words, numbers, block order and Rule book pages are equal. The Keep parity t
     - These are the prototype's "You need Steelhead Conservation Surcharge Stamp › only if…", under a fish and under an Other fish row ("White Sturgeon Conservation Licence").
     - They are a licence answer the pipeline lane is moving into the store.
     - Parity drops them by a keyed exclusion: 19 states.
-16. **The group's `.gyear` line is not drawn** ("Through the year You can keep them until Oct 31…"; glenn / hamill / x9p… — 11 states). Keyed exclusion (pending).
+16. **The group's `.gyear` line** ("Through the year You can keep them until Oct 31…"; glenn / hamill / x9p… — 11 states) was missing when these shots were taken. T21 review: it is now drawn under the group's head block (GroupVM.year, page v36 runTxt over the row's stored year strip) and compared by the parity, no exclusion. None of the 7 states above carries one, so no shot changes.
 17. **klmb_1010's pooled "Rainbow trout" row is not drawn** (decisions D19: page v36's legacy card path). Keyed exclusion. No shot here.
 18. **Links.**
     - "Rule book p.N ↗" opens the synopsis PDF at its page.

@@ -64,6 +64,8 @@ export class YearWords {
   constructor(private readonly inp: RegsInputs, private readonly seams: PlainRowSeams) {
     this.water = seams.BOOK_DAYS.map((d) => (isClosedOn(inp, readingDay(d.month, d.day)) ? "closed" : "keep"));
   }
+  /** The water's own stored closed state of a book day (page v36 waterSegs, per day). */
+  closedOn(i: number): boolean { return this.water[i] === "closed"; }
   /** page v36 nextYr: " next year" when the day comes before the day read. */
   nextYr(d: Day, today: Day): string { return this.seams.bookIndex(d) < this.seams.bookIndex(today) ? WORDS.NEXT_YEAR : ""; }
   /** page v36 runUntil: the last day of today's run, "" when it runs all year. */
@@ -104,6 +106,21 @@ export class YearWords {
     else if (!sg.includes("keep")) out += WORDS.NO_KEEP_TAIL;
     return out.trim();
   }
+}
+
+/**
+ * A group's year window (prototype round UR5 `.gyear`, lifted from page v36's per-row strip): "Through the year" and page
+ * v36 runTxt over the row's STORED year strip ("You can keep them until Oct 31. Then release only from Nov 1."). Null
+ * where page v36 draws no strip under the row (miniStrip): a one-run strip, or one that only repeats the water's own
+ * closed days. Words and a draw-or-not over two stored answers (the row's year, the water's closed days); decides nothing.
+ */
+export function yearWindowOf(row: HydRow, inp: RegsInputs, today: Day, seams: PlainRowSeams): { label: string; says: string } | null {
+  if (row.year.length < 2) return null;
+  const sg = perDay(row.year), water = new YearWords(inp, seams);
+  const base = row.year.find(([st]) => st !== "closed")?.[0] ?? "closed";
+  if (sg.every((st, i) => st === (water.closedOn(i) ? "closed" : base))) return null;
+  const says = water.runTxt(sg, today, false);
+  return says ? { label: WORDS.THROUGH_YEAR, says } : null;
 }
 
 /** page v36 summaryHtml (`!row.pool`): the row's status through the year in one sentence, over its stored strip. */
