@@ -96,6 +96,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- 2026-10-21 afternoon MERGED batch 9: cb71e1d0 the 5 Keep answers now from the PIPELINE (closers, narrow_all,
+  parent, record duty, licence stamps; rows 31 / display 18; TS derivations deleted; scratch release 13.71 MB) +
+  T21 Keep tab 3665f151 + review fix a445aa91 (.gyear line drawn; verify_map.py fixed for v38). Keep parity 134/134;
+  shots handoff/PLAN/app-integration/keep-shots/ (close to the prototype; header T23 + Gear/Methods/Licence pending).
+  deliver all RUNNING (bzwoho73y) for rows 31/display 18; then taps re-cut, regs-fixture, blob/display-dict literals,
+  try dropping T21's whole-tab stamp exclusion ("keep 19 ^lines$"), strict check, Tier 2. Then the ONE-WATER-SCREEN
+  unification (queued on batch 9 — now unblocked).
 - OWNER 2026-10-21: satellite imagery is too low-res (today EOX Sentinel-2 cloudless 2016, 10 m) -> research +
   verification of higher-res sources (licence, cost, offline) -> OWNER PICKS [owner: satellite is ONLINE-ONLY, so
   offline caching terms no longer constrain the pick]; and allow OVERZOOM past the pmtiles
