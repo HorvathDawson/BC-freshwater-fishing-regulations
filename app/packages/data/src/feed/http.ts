@@ -85,7 +85,11 @@ interface StationFile {
   recent?: [string, number | null, number | null][];
   /** Every BC River Forecast Centre run for this station, keyed by model name. */
   forecasts?: Record<string, RawForecast> | null;
-  /** `[day, level, discharge]` daily means for the current year, grown by the feed. */
+  /**
+   * `[day, level, discharge]` daily means for the current year, grown by the feed. Days older than ECCC's 30-day
+   * archive, filled by `pipeline.gauges.feed.year_backfill`, carry a fourth element, "final" (HYDAT / approved) or
+   * "provisional"; nothing reads it yet, and a missing day is absent (the chart breaks its line there).
+   */
   daily?: [string, number | null, number | null][];
   /** `{parameter: {year: [366 daily values]}}` from the same HYDAT release as the envelope. */
   priorYears?: Record<string, Record<string, (number | null)[]>> | null;
