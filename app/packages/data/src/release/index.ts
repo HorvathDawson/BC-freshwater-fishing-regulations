@@ -6,8 +6,8 @@ export { releaseLoader, ReleaseError, ALL_REGIONS, type DbName, type FileName, t
          type ReleaseSource } from "./loader";
 export { install, prune, heldFrom, heldPath, pointerFor, sameSet, rangedDownload, POINTER, type Download,
          type DownloadTo, type PartFs, type Progress, type ReleaseFs } from "./install";
-export { makeReleaseSource, openRegsFor } from "./source";
+export { makeReleaseSource } from "./source";
 export { bootRelease, releaseTiles, BootError, type BootOptions, type BootStage, type Booted, type RolledBack,
          type ReleasePlatform } from "./boot";
 export { heldManifest } from "./install";
-export { CROSS, RELEASE_QUERIES } from "./queries";
+export { CROSS, META, RELEASE_QUERIES } from "./queries";

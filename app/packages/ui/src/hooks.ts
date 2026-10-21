@@ -516,3 +516,12 @@ export function statusData(index: StatusIndex | null, visible: readonly SectionK
   // and on the wetland source-layer, for a slough drawn as a wetland (`wetland_flowing`)
   return { stream: values, lake: values, wetland: values };
 }
+
+/**
+ * THE REGULATIONS READ OF THE WATER THAT IS OPEN (P11): its answer keys, through the source — on the release that opens
+ * core, water and the region file holding them (`RegsSource.regulationKeys`), so opening a water in another region
+ * fetches that region's file. Nothing is asked while no water is open. T01/T03 draw the page from what this opened.
+ */
+export function useRegulationKeys(source: RegsSource, item: ItemId | null): Async<readonly number[]> {
+  return useAsync(async () => (item ? source.regulationKeys(item) : []), `regulation-keys:${item ?? ""}`, item !== null);
+}

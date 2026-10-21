@@ -13,12 +13,14 @@
  *   cross-file reads     two KEYED reads joined in code (`CROSS`), never a join across files
  *   panels, basins       paint's decoded arrays (`Paint.panelOf`, `members`, `basins`) + flow-area's target areas
  *   charts, stocking     no producer ships them: `lakeInfo` null, `stockingHistory` empty, `stocked` false
+ *   regulations          `regulationKeys`: core → water → the key's region file (`loader.regionDb`)
  *
  * What it opens, and when, is the loader's to say: paint at start, core on the first tap or search, near on the first
- * near-search or result line, conditions on the first gauge question, flow-area on the first panel.
+ * near-search or result line, conditions on the first gauge question, flow-area on the first panel, water and
+ * regs-<region> on the first water opened in that region.
  */
 import type { WaterFix } from "@app/core";
-import { num, str, type Db, type Row } from "../bundle/db";
+import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
 import { byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../bundle/shared";
@@ -26,7 +28,7 @@ import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
               PlaceHit, PlaceId, RegsSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
-import { CROSS, RELEASE_QUERIES as R } from "./queries";
+import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
 const CHUNK = 500;
@@ -128,7 +130,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
 
   return {
     async info(): Promise<BundleInfo> {
-      const meta = new Map((await (await db("core")).all(BQ.META)).map((r) => [str(r.k), str(r.v)]));
+      const meta = new Map((await all(META)).map((r) => [str(r.k), str(r.v)]));
       return { version: loader.release, validUntil: loader.manifest.regulations.valid_until ?? null,
                sectionHandles: loader.handles || null, reachDigest: meta.get("reach_digest") || null };
     },
@@ -301,19 +303,20 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     // no producer ships bathymetry charts or stocking records yet: the honest answers are none
     async lakeInfo() { return null; },
     async stockingHistory() { return []; },
-  };
-}
 
-/**
- * Open the files a water's REGULATIONS page reads (P11; T01/T03 build the page on it): core finds its ord, water its
- * parts' answer keys, and each key's region file is opened — the Vedder (Region 2) is core + water + regs-2, and a water
- * in another region fetches that region's file (`loader.opened()` says which). Returns the water's answer keys.
- */
-export async function openRegsFor(loader: ReleaseLoader, item: ItemId): Promise<number[]> {
-  const o = await (await loader.db("core")).get(CROSS.ITEM_ORD.sql, item);
-  if (!o) return [];
-  const water: Db = await loader.db("water");
-  const akeys = (await water.all(CROSS.AKEYS_FOR_ORD.sql, Number(o.ord))).map((r) => Number(r.akey));
-  for (const akey of akeys) await loader.regionDb(akey);
-  return akeys;
+    /**
+     * The files a water's REGULATIONS page reads (T01/T03 decode the frames): core finds its ord, water its parts'
+     * answer keys, and each key's region file is opened (`loader.regionDb`) — the Vedder (Region 2) is core + water +
+     * regs-2, and a water in another region fetches that region's file. A release that ships no water file holds no
+     * regulations: nothing is opened.
+     */
+    async regulationKeys(item) {
+      if (!loader.manifest.files.water) return [];
+      const o = await get(CROSS.ITEM_ORD, item);
+      if (!o) return [];
+      const akeys = (await all(CROSS.AKEYS_FOR_ORD, Number(o.ord))).map((r) => Number(r.akey));
+      for (const akey of akeys) await loader.regionDb(akey);
+      return akeys;
+    },
+  };
 }

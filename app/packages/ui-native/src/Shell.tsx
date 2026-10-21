@@ -14,7 +14,7 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         usePickFocus, usePairing, useStatusIndex, statusData,
+         usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
@@ -114,6 +114,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const browse = route.mode === "browse" ? route : route.from;
   const tab: TabKey = browse.tab;
   const item: ItemId | null = route.mode === "water" ? route.stack[route.stack.length - 1]!.item : null;
+  // the water's regulations read (P11): on the release, opening it opens core, water and its region's file — a water in
+  // another region fetches that region's. The page that draws them is T01/T03's; until then the placeholder stands.
+  useRegulationKeys(source, item);
   const adding = route.mode === "browse" && route.adding;
   const openSpot = route.mode === "browse" ? route.spot : null;
   const condSection: SectionId | null = route.mode === "browse" ? route.cond?.section ?? null : null;

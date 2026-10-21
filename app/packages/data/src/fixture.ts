@@ -305,5 +305,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         ? [{ date: "1987-07-01", species: "Rainbow Trout", count: 19305, stage: "Yearling" }]
         : [];
     },
+    // the fixture holds no regulations store
+    async regulationKeys() { return []; },
   };
 }

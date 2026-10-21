@@ -93,6 +93,13 @@ export const CROSS = {
     "SELECT DISTINCT akey FROM part WHERE item_ord = ? AND akey IS NOT NULL ORDER BY akey" },
 } as const;
 
+/**
+ * A file's own meta (format, section_handles, reach_digest, …), read by `info()` on core. Not in `RELEASE_QUERIES`, which
+ * are held to the bundle's rows: each release file's meta is its own by design (the loader checks format and handles on
+ * every open).
+ */
+export const META = { file: "core", sql: B.META } as const;
+
 /** Every single-file read, by its bundle name. Same SQL where the tables moved whole. */
 export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {
   ITEM: { file: "core", sql: B.ITEM, bundle: B.ITEM },

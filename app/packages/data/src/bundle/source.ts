@@ -310,5 +310,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         count: num(r.count), stage: r.stage == null ? null : str(r.stage),
       }));
     },
+
+    // the bundle holds no regulations store (the release's water + regs-<region> files do)
+    async regulationKeys() { return []; },
   };
 }

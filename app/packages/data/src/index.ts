@@ -526,6 +526,15 @@ export interface RegsSource {
   // ---- lakes ----------------------------------------------------------
   lakeInfo(id: ItemId): Promise<LakeInfo | null>;
   stockingHistory(id: ItemId): Promise<readonly Release[]>;
+
+  // ---- regulations ----------------------------------------------------
+  /**
+   * The answer keys of a water's parts — the regulations read a water's page starts from (P11; T01/T03 decode the
+   * frames). On the release this opens the files that hold them and nothing else: core, water, and the region file of
+   * each key (`loader.regionDb`), so a water in another region fetches that region's file. Empty when the source holds
+   * no regulations (the dev bundle and the fixture do not; a release with no water file does not).
+   */
+  regulationKeys(id: ItemId): Promise<readonly number[]>;
 }
 
 /** User pins — a separate store with a separate lifecycle. See pins.ts. */

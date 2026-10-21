@@ -17,7 +17,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { bootRelease, heldPath, openRegsFor, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
+import { bootRelease, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -287,15 +287,18 @@ describe.skipIf(!LIVE || !existsSync(LIVE!))("the Vedder on the live release (Ti
     const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
                                   platform: web, fetch: releaseFetch(BASE, LIVE!, log) });
     expect(log.map((u) => u.split("/").pop()!.split("-")[0])).toEqual(["manifest.json", "paint"]);
-    expect((await openRegsFor(b.loader, "gnis:3062" as ItemId)).length).toBeGreaterThan(0);
+    // through the source the Shell is handed (`Booted.source`): the read a water's page makes
+    expect((await b.source.regulationKeys("gnis:3062" as ItemId)).length).toBeGreaterThan(0);
     expect(b.loader.opened()).toEqual(["paint", "core", "water", "regs-2"]);
+    expect(log.length).toBe(5);                                        // fetched, not only opened: one each
     const water = await b.loader.db("water"), core = await b.loader.db("core");
     const five = await water.get(
       "SELECT p.item_ord FROM part p JOIN akey_region a ON a.akey = p.akey WHERE a.region = '5' AND p.akey NOT IN " +
       "(SELECT akey FROM akey_region WHERE region <> '5') ORDER BY p.item_ord LIMIT 1");
     const item = await core.get("SELECT item_id FROM item WHERE ord = ?", Number(five!.item_ord));
-    await openRegsFor(b.loader, String(item!.item_id) as ItemId);
+    await b.source.regulationKeys(String(item!.item_id) as ItemId);
     expect(b.loader.opened()).toEqual(["paint", "core", "water", "regs-2", "regs-5"]);
+    expect(log.length).toBe(6);
     expect(log.filter((u) => DEV_PATH.test(u))).toEqual([]);
   });
 });
