@@ -36,11 +36,12 @@ import io
 import json
 import math
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 
@@ -74,6 +75,12 @@ _FLOW = "Discharge / Débit (cms)"
 _WATEROFFICE = "https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline"
 _TEMP_PARAM = "5"
 _TEMP_BATCH = 80
+# THE SERVICE ANSWERS BURSTS WITH A BARE 422 that succeeds on the next try (measured
+# 2026-10-21: three of six batches, 146 of 270 temperatures gone from the map). So a batch
+# is tried _TEMP_TRIES times, the wait doubling from _TEMP_BACKOFF_S.
+_TEMP_TRIES = 4
+_TEMP_BACKOFF_S = 5.0
+_sleep = time.sleep
 
 # ECCC's missing-value sentinel. It is not documented in the CSV and it is not blank — it
 # is 99999, which reads as a perfectly valid float and renders as a hundred-thousand-degree
@@ -292,7 +299,12 @@ def fetch_temperatures(stations: list[str], hours: int = 24) -> dict[str, tuple[
         q = urllib.parse.urlencode(
             [("stations[]", s) for s in batch]
             + [("parameters[]", _TEMP_PARAM), ("start_date", start), ("end_date", end)])
-        text = _get(f"{_WATEROFFICE}?{q}")
+        text = None
+        for i in range(_TEMP_TRIES):
+            if i:
+                _sleep(_TEMP_BACKOFF_S * 2 ** (i - 1))
+            if (text := _get(f"{_WATEROFFICE}?{q}")):
+                break
         if not text:
             continue
         for row in csv.reader(io.StringIO(text)):
@@ -430,9 +442,66 @@ def band_for(bands: dict | None, when: datetime) -> list[float | None] | None:
     return out
 
 
-# The 30-day archive ECCC keeps beside the 2-day hourly file. Read ONCE per station, to
-# start that station's daily record off with a month rather than with today.
+# The 30-day archive ECCC keeps beside the 2-day hourly file. Read for any station whose
+# record is missing a day the archive still holds — see `daily_gaps`.
 _DAILY = f"{BASE}/daily/BC_{{station}}_daily_hydrometric.csv"
+
+# HOW FAR BACK THE ARCHIVE REACHES, in whole local days before today. The file holds thirty
+# days ending yesterday (21 Sep .. 20 Oct, fetched 21 Oct); the oldest of them rolls off
+# during the day, so the window trusts one fewer. A day older than this is beyond the
+# feed's reach: reported by every run, never invented. (Older days: `year_backfill`.)
+ARCHIVE_DAYS = 29
+
+# The archive is static files on ECCC's datamart, but it is still somebody else's server:
+# fewer hands than the hourly pull, and only for stations that have a hole to fill.
+ARCHIVE_WORKERS = 4
+
+
+def _record_start(today: date) -> date:
+    """The first day the daily record keeps: 1 January, or 1 December while it is January (S1)."""
+    return date(today.year - 1, 12, 1) if today.month == 1 else date(today.year, 1, 1)
+
+
+def daily_gaps(rows: list[list], today: date) -> tuple[list[str], list[str]]:
+    """`(inside, beyond)`: the days this year's record lacks, split at the archive's edge.
+
+    `inside` is yesterday back through ARCHIVE_DAYS — the archive can refill those. `beyond`
+    is everything older, back to the start of the record (`_record_start`), which only
+    `year_backfill` can reach. Today is never a gap: it is still being written. A row that
+    carries neither a level nor a discharge is a gap, not a day.
+    """
+    have = {str(r[0]) for r in rows or []
+            if len(r) >= 3 and (r[1] is not None or r[2] is not None)}
+    edge = today - timedelta(days=ARCHIVE_DAYS)
+    inside: list[str] = []
+    beyond: list[str] = []
+    d = _record_start(today)
+    while d < today:
+        s = d.isoformat()
+        if s not in have:
+            (inside if d >= edge else beyond).append(s)
+        d += timedelta(days=1)
+    return inside, beyond
+
+
+def day_runs(days: list[str]) -> list[list[str]]:
+    """Consecutive days as `[[first, last], ...]` — a gap report a person can read."""
+    out: list[list[str]] = []
+    for s in sorted(days):
+        d = date.fromisoformat(s)
+        if out and date.fromisoformat(out[-1][1]) + timedelta(days=1) == d:
+            out[-1][1] = s
+        else:
+            out.append([s, s])
+    return out
+
+
+def _local_day(at: str | None, fallback: date) -> date:
+    """The station's own calendar day from a reading stamped in its local standard time."""
+    try:
+        return date.fromisoformat(str(at)[:10])
+    except ValueError:
+        return fallback
 
 
 def daily_means(text: str) -> dict[str, tuple[float | None, float | None]]:
@@ -488,13 +557,17 @@ def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float
 
 
 def publish(out: Path, stations: list[str], clim: dict | None = None,
-            forecast: dict | None = None, latest_release: str | None = None) -> dict:
-    """Fetch every station and write the feed. Returns a small summary for the caller."""
+            forecast: dict | None = None, latest_release: str | None = None,
+            now: datetime | None = None) -> dict:
+    """Fetch every station and write the feed. Returns a small summary for the caller.
+
+    `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
+    """
     out.mkdir(parents=True, exist_ok=True)
     envelope = (clim or {}).get("stations", {})
     release = (clim or {}).get("release")
     forecast = forecast or {}
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
     pent = pentad_of(now)
 
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
@@ -514,18 +587,36 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
     prior = {r["station"]: previous(r["station"]) for r in got}
 
-    # Backfill a month for any station whose record is empty — first run, or a new station.
-    # One request each, and only ever once: after this its own `daily` is non-empty.
-    cold = [r["station"] for r in got if not (prior.get(r["station"], {}).get("daily"))]
+    # What the 2-hour window can see, as daily means — yesterday and today, usually.
+    seen_by: dict[str, dict] = {}
+    for r in got:
+        seen_by[r["station"]] = daily_means("\n".join(
+            [f"Date,{_LEVEL},{_FLOW}"] +
+            [f"{t},{'' if lv is None else lv},{'' if q is None else q}"
+             for t, lv, q in r["recent"]]))
+    today_of = {r["station"]: _local_day(r["at"], now.date()) for r in got}
+
+    # REFILL ANY HOLE THE ARCHIVE CAN STILL SEE (ticket 2026-10-21). This used to run only
+    # for a station with no record at all, so a station that had ever been published never
+    # refilled a night the publisher did not run — and lost that day for good once it aged
+    # out of the archive. Now every run asks, but only for stations with a hole inside the
+    # window: a complete record costs nothing. One request a station, ARCHIVE_WORKERS wide.
+    def holes(st: str) -> list[str]:
+        have = merge_daily(prior.get(st, {}).get("daily") or [], seen_by[st],
+                           today_of[st].year, today_of[st].month)
+        return daily_gaps(have, today_of[st])[0]
+
+    gappy = [r["station"] for r in got if holes(r["station"])]
     backfill: dict[str, dict] = {}
-    if cold:
+    if gappy:
         def grab(st: str) -> tuple[str, dict]:
             text = _get(_DAILY.format(station=st))
             return st, (daily_means(text) if text else {})
-        with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-            backfill = dict(pool.map(grab, sorted(cold)))
-        print(f"  daily    backfilled {sum(1 for v in backfill.values() if v)} "
-              f"of {len(cold)} station records from ECCC's 30-day archive")
+        with ThreadPoolExecutor(max_workers=ARCHIVE_WORKERS) as pool:
+            backfill = dict(pool.map(grab, sorted(gappy)))
+        print(f"  daily    refilled {sum(1 for v in backfill.values() if v)} "
+              f"of {len(gappy)} station records with a gap from ECCC's 30-day archive")
+    beyond_window: dict[str, list[list[str]]] = {}
 
     # ONE EXTRA REQUEST FOR THE WHOLE PROVINCE, before the per-station loop. See
     # `fetch_temperatures`: it is a different service from the datamart CSV, because the
@@ -617,13 +708,18 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                 forecast.get(r["station"]), have, now)) else {}),
         }
         # This year's daily record: whatever the file already held, plus every day the
-        # 2-hour window can see, plus the one-time 30-day backfill.
-        seen = daily_means("\n".join(
-            [f"Date,{_LEVEL},{_FLOW}"] +
-            [f"{t},{'' if lv is None else lv},{'' if q is None else q}"
-             for t, lv, q in r["recent"]]))
-        seen.update(backfill.get(r["station"]) or {})
-        daily = merge_daily(prior.get(r["station"], {}).get("daily") or [], seen, now.year, now.month)
+        # 2-hour window can see, plus the archive where the record had a hole. The archive
+        # wins inside its window: its day is the mean of every reading, while a day cut off
+        # by a run that stopped is the mean of a morning.
+        st = r["station"]
+        seen = dict(seen_by[st])
+        seen.update(backfill.get(st) or {})
+        day = today_of[st]
+        daily = merge_daily(prior.get(st, {}).get("daily") or [], seen, day.year, day.month)
+        # WHAT NOTHING HERE CAN REACH is said, every run, and left empty: older than the
+        # archive, so a line across it would be a line nobody measured.
+        if (old := daily_gaps(daily, day)[1]):
+            beyond_window[st] = day_runs(old)
 
         (out / f"{r['station']}.json").write_text(json.dumps({
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -667,7 +763,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
     return {"asked": len(stations), "answered": len(got), "release": release,
             "stale": stale, "latest": latest_release,
-            "withPercentile": sum(1 for v in index.values() if v["percentile"] is not None)}
+            "withPercentile": sum(1 for v in index.values() if v["percentile"] is not None),
+            "archive": {"asked": len(gappy), "filled": sum(1 for v in backfill.values() if v)},
+            "gapsBeyondWindow": beyond_window}
 
 
 def main() -> None:
@@ -743,6 +841,12 @@ def main() -> None:
         runs = sum(len(v) for v in fcast.values())
         print(f"     {runs} model runs across {len(fcast)} stations "
               f"from the BC River Forecast Centre")
+    if summary["gapsBeyondWindow"]:
+        days = sum(date.fromisoformat(b).toordinal() - date.fromisoformat(a).toordinal() + 1
+                   for runs in summary["gapsBeyondWindow"].values() for a, b in runs)
+        print(f"     {len(summary['gapsBeyondWindow'])} station records lack {days} days older "
+              f"than the {ARCHIVE_DAYS}-day archive — left empty; "
+              f"`python -m pipeline.gauges.feed.year_backfill --out {args.out}` reaches them")
     if summary["release"]:
         print(f"     envelope from HYDAT {summary['release']}")
     if summary["stale"]:

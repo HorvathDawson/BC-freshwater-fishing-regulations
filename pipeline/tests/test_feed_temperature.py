@@ -86,3 +86,27 @@ def test_a_full_pentad_publishes_the_same_five_numbers_as_every_other_envelope()
 
 def test_it_is_empty_until_a_season_has_passed_and_that_is_not_a_failure():
     assert temperature_envelope({}) == {}
+
+
+# ---------------------------------------------------------------- the service's bursts
+
+def test_a_temperature_batch_that_fails_is_retried(monkeypatch):
+    """The Water Office answers bursts with a bare 422 that succeeds on the next try. On
+    2026-10-21 three of six batches failed that way and the map lost 146 of 270 water
+    temperatures; one failed batch must not cost 80 stations their reading."""
+    from pipeline.gauges.feed import publish as pub
+    answers = iter([None, None, "08MH001,2026-10-21T16:00:00Z,5,9.5,,,Provisional,,\n"])
+    slept: list[float] = []
+    monkeypatch.setattr(pub, "_get", lambda url: next(answers))
+    monkeypatch.setattr(pub, "_sleep", slept.append)
+    assert pub.fetch_temperatures(["08MH001"]) == {"08MH001": ("2026-10-21T16:00:00Z", 9.5)}
+    assert slept == [5.0, 10.0]
+
+
+def test_a_batch_that_never_answers_is_given_up(monkeypatch):
+    from pipeline.gauges.feed import publish as pub
+    calls: list[str] = []
+    monkeypatch.setattr(pub, "_get", lambda url: calls.append(url))
+    monkeypatch.setattr(pub, "_sleep", lambda s: None)
+    assert pub.fetch_temperatures(["08MH001"]) == {}
+    assert len(calls) == pub._TEMP_TRIES == 4
