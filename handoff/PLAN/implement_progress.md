@@ -96,6 +96,14 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED 2026-10-21 ~15:15: WAVE A (wf_31b13f2b-581): T30 T31 T32 Gear/Bait/Methods (+ one levelTag in level.ts), T33 Licence (+
+  review fix: youth box reads stored under_16), T28 pins, T36 part 1 sheets (rule/gl/pos/hatch). Parity 134/134 on gear,
+  bait, methods, licence (133 + x31p tidal), pins, sheets built so far. pnpm check strict 6295, smoke pass. PIPELINE NEEDS
+  (keyed exclusions until shipped): (1) licence drops steelhead_stamp where steelhead closed (7 states,
+  STEELHEAD_DROP_IDS); (2) under_16 buy[] carries `or` alternatives (3 states, YOUTH_ALT_IDS); (3) Statics.pdfPages in
+  release statics (735 gl + 38 hatch sheets unlinked); (4) Other fish rows `stamps` (14 states). Open: D21 row in
+  decisions.md -> (b); T36 part 2 (src:, other:, srcs:, licsrc:, sp: needs FISH_TIPS emit, parts); owner points: bait
+  also_allowed not shown (parity), set_line note on Methods item.
 - MERGED 2026-10-21 ~14:50: one-water-screen (595bb174 + review fix 7f6d4692: an unnamed reach opens the same
   Conditions-only frame from either map; BACK IS NOW LATERAL, back leaves the water to the map it was tapped on; both
   noted in decisions.md for the owner to confirm). Reference 308 RESOLVED as page-vs-ruling, not a regression: Shuswap
