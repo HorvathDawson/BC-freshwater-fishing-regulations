@@ -16,7 +16,7 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme } from "./style";
+import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
 import { paintFor } from "./adapters/contract";
 
 export interface TileEndpoints {
@@ -211,6 +211,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
   const flavor = namedFlavor(theme === "dark" ? "black" : "light");
   const { below: baseBelowLabels, labels: baseLabels } = splitBasemap(flavor);
   const paper = resolveTheme(theme)["color.outside"] as string;
+  // A lake's outline takes the lake's mode on the FIRST frame too — see `withFollowers`.
+  const layerModes = withFollowers(modes);
 
   return {
     version: 8 as const,
@@ -367,7 +369,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       }] : []),
       ...MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
         const view = defaultView();
-        const mode = modes[l.id] ?? view?.modes[l.id];
+        const mode = layerModes[l.id] ?? view?.modes[l.id];
         const painted = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
         /*
          * THE GLOW IS GONE, AND THE FIELD IS WHY.

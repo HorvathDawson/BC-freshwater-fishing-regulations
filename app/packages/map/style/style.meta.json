@@ -302,6 +302,9 @@
     "region__label": "admin",
     "mu__label": "admin"
   },
+  "follows": {
+    "lake__edge": "lake"
+  },
   "highlightable": [
     {
       "id": "wetland",
@@ -1089,11 +1092,11 @@
             "token": "color.stock.old"
           },
           "never": {
-            "token": "color.lake.fill"
+            "token": "color.water.mapped"
           }
         },
         "missing": {
-          "token": "color.lake.fill"
+          "token": "color.water.mapped"
         },
         "data": {
           "provider": "stocking",
@@ -1115,7 +1118,7 @@
           }
         },
         "missing": {
-          "token": "color.lake.fill"
+          "token": "color.water.mapped"
         },
         "data": {
           "provider": "lakes",

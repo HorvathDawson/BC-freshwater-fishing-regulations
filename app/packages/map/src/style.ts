@@ -42,6 +42,8 @@ export const STYLE_META = meta as unknown as {
   groups: LayerGroup[];
   views: MapView[];
   layerGroup: Record<string, string>;
+  /** Generated edge id -> the fill whose colour mode it takes (`outline.follow`). */
+  follows: Record<string, string>;
   highlightable: { id: string; featureIdProperty: string }[];
   colorModes: Record<string, Record<string, ColorMode>>;
   /** A plain token, or a ramp over a tile ATTRIBUTE (not feature-state). */
@@ -96,6 +98,36 @@ export const STYLE_META = meta as unknown as {
  */
 export const isRuntimeLayer = (layerId: string): boolean =>
   (STYLE_META.runtimeLayers ?? []).includes(layerId);
+
+/**
+ * THE LAYERS THAT TAKE `layerId`'s COLOUR MODE — a lake's outline takes the lake's.
+ *
+ * An app sets modes per layer and names the FILL (`lake: "status"`); the edge has to be set
+ * with it, or the lake is filled by its status and ringed in plain water-blue (owner
+ * 2026-10-20: "the outlines of lakes should match their reg color"). The list is the
+ * style's (`follows`, from `outline.follow`), never the app's.
+ */
+export const followersOf = (layerId: string): string[] =>
+  Object.entries(STYLE_META.follows ?? {}).filter(([, fill]) => fill === layerId).map(([edge]) => edge);
+
+/**
+ * The mode a follower takes when its fill is set to `mode`: the same one, or its own plain
+ * where it has no such mode. Every followed mode is generated onto the edge, so the
+ * fallback is a guard, not a path.
+ */
+export const followerMode = (follower: string, mode: string): string =>
+  STYLE_META.colorModes[follower]?.[mode] ? mode : "plain";
+
+/**
+ * `modes` with every follower given its fill's mode — unless the caller named it outright.
+ * For the first frame (`runtimeStyle`); the adapter's `setLayerMode` does the same per call.
+ */
+export function withFollowers(modes: Readonly<Record<string, string>>): Record<string, string> {
+  const out: Record<string, string> = { ...modes };
+  for (const [edge, fill] of Object.entries(STYLE_META.follows ?? {}))
+    if (out[edge] === undefined && modes[fill] !== undefined) out[edge] = followerMode(edge, modes[fill]!);
+  return out;
+}
 
 export const layerIds = (): string[] => MAP_STYLE.layers.map((l) => l.id);
 export const toggleableGroups = (): LayerGroup[] => STYLE_META.groups.filter((g) => g.toggleable);

@@ -8,8 +8,8 @@
  */
 import type { SectionKey } from "@app/core";
 import {
-  MAP_STYLE, STYLE_META, colorExpression, defaultView, isRuntimeLayer, resolveTheme,
-  type Tokens,
+  MAP_STYLE, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
+  resolveTheme, type Tokens,
 } from "../style";
 
 /** The thin platform-specific part each adapter supplies. */
@@ -314,6 +314,18 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       // one view and sets each layer's mode — so a rule applied only in `applyView` would
       // never fire in the running app.
       zoomFor(h, layerId, mode);
+      /*
+       * AND EVERY LAYER THAT FOLLOWS IT — a lake's outline. The app names only `lake`, so
+       * without this the edge kept its plain water-blue under a status-, stocked- or
+       * flow-coloured lake (owner 2026-10-20). Here, in the contract, so both renderers
+       * get it from the one call they already make.
+       */
+      for (const follower of followersOf(layerId)) {
+        const m = followerMode(follower, mode);
+        for (const [prop, value] of Object.entries(paintFor(follower, m, tokens)))
+          h.setPaint(follower, prop, value);
+        zoomFor(h, follower, m);
+      }
     },
 
     highlight(h, featureIds) {

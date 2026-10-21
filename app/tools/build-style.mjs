@@ -268,6 +268,12 @@ const layersById = new Map();
 const outLayers = [];
 /** Generated companion line layers: edge layer id -> the polygon layer it outlines. */
 const edges = new Map();
+/**
+ * Edge layer id -> the fill whose colour mode it takes (`outline.follow`). Emitted so the
+ * RUNTIME can set the edge's mode whenever the fill's is set: a view lists both, but the
+ * app sets per-layer modes and names only the fill, which left the edge plain forever.
+ */
+const follows = {};
 /** Generated companion symbol layers: label layer id -> the layer it names. */
 const labels = new Map();
 /**
@@ -597,6 +603,24 @@ for (const [id, l] of edges) {
    */
   const follow = l.outline.follow === true;
   const own = { plain: { label: `${l.id} outline`, scale: "static", color: l.outline.color } };
+  /*
+   * AND WHERE A FOLLOWED MODE FALLS BACK TO THE FILL'S PLAIN COLOUR, THE EDGE FALLS BACK
+   * TO ITS OWN. Stocked paints a never-stocked lake (and one with no record) in
+   * `color.lake.fill`, the plain water — that lake has no colour in this mode, and an
+   * edge inheriting the fill's plain blue disappears into the fill exactly as it would in
+   * plain. So the reference is swapped for the outline's colour: a lake the mode says
+   * nothing about keeps today's neutral shoreline (owner 2026-10-20).
+   */
+  const fillPlain = l.colorModes?.plain?.scale === "static" ? l.colorModes.plain.color?.token : undefined;
+  const swap = (r) => (r && typeof r === "object" && r.token === fillPlain ? l.outline.color : r);
+  const followed = (m) => ({
+    ...m,
+    ...(m.color ? { color: swap(m.color) } : {}),
+    ...(m.missing ? { missing: swap(m.missing) } : {}),
+    ...(m.categories ? { categories: Object.fromEntries(
+      Object.entries(m.categories).map(([k, r]) => [k, swap(r)])) } : {}),
+    ...(m.stops ? { stops: m.stops.map(([at, r]) => [at, swap(r)]) } : {}),
+  });
   layersById.set(id, {
     ...l, id, geometry: "line",
     // PLAIN STAYS THE AUTHORED COLOUR even when following, and that is not an exception
@@ -604,8 +628,12 @@ for (const [id, l] of edges) {
     // paint the outline the same as the thing it outlines and the border would vanish.
     // The authored `outline.color` is the stream blue v1 used, which is the whole reason a
     // lake and the river through it read as one water. Only the data-driven modes follow.
-    colorModes: follow ? { ...l.colorModes, ...own } : own,
+    colorModes: follow
+      ? { ...Object.fromEntries(Object.entries(l.colorModes ?? {}).map(([k, m]) => [k, followed(m)])),
+          ...own }
+      : own,
   });
+  if (follow) follows[id] = l.id;
   for (const v of src.views ?? [])
     v.modes[id] = follow ? (v.modes[l.id] ?? "plain") : "plain";
 }
@@ -669,6 +697,7 @@ const meta = {
     // and a name belongs to the water it names, for exactly the same reason
     ...[...labels].map(([id, l]) => [id, l.group]),
   ]),
+  follows,
   highlightable: (src.layers ?? []).filter((l) => l.highlightable)
     .map((l) => ({ id: l.id, featureIdProperty: l.featureIdProperty })),
   colorModes: Object.fromEntries([
