@@ -12,7 +12,8 @@
  */
 import { describe as group, expect, it } from "vitest";
 import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, pageDecode, pageSource, storeSource, taps, type RuleSource } from "./ruleSources";
+import { hydrate, taps } from "./oracles";
+import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
 const T = taps();

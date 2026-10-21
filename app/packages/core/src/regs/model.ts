@@ -12,6 +12,8 @@ import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 
 export type { Weekday } from "../calendar.generated";
+/** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
+export { WEEKDAYS } from "../calendar.generated";
 /** The calendar day; the year only names its weekday. */
 export interface Day { readonly month: number; readonly day: number }
 export interface Who { readonly age: "adult" | "u16"; readonly residency: "resident" | "non_resident" | "non_resident_alien" }

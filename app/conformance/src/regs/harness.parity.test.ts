@@ -9,7 +9,7 @@ import { buildRegsPage, type DisplayFrame, type RegsInputs } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
 import { syncFixtures } from "./fixtures";
 import {
-  caseIds, cases, golden, hasProvinceRegs, inputsOf, parityGate, parityMode, parityStore, requestOf, storeLabel, taps,
+  caseIds, cases, golden, inputsOf, parityGate, parityMode, parityStore, releasePairing, requestOf, storeLabel, taps,
 } from "./golden";
 
 const T = taps();
@@ -87,9 +87,9 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     expect(performance.now() - t0).toBeLessThan(3000);
   });
 
-  it("9. storeLabel: REGS_PARITY names it; auto is the province store when it is on this machine, else the fixture", () => {
+  it("9. storeLabel: REGS_PARITY names it; auto is the live release when it is paired, else the fixture", async () => {
     const mode = parityMode();
-    expect(label).toBe(mode !== "auto" ? mode : hasProvinceRegs() ? "province" : "fixture");
+    expect(label).toBe(mode !== "auto" ? mode : (await releasePairing()).path !== null ? "province" : "fixture");
   });
 
   it.skipIf(!T21)("10. the frozen VM fixtures are fresh (buildRegsPage lands in T21)", async () => {

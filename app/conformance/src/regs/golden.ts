@@ -11,45 +11,28 @@
  * - auto: province when paired, else the fixture when paired, else none.
  * None is a SKIP with its reason, never a wall of false failures — unless REGS_STORE_REQUIRED=1 (`paritySkip`).
  *
- * `provinceStore()` is still T05's hand-SQL reader of the province regs.sqlite (`TapStore`, tap.parity.test.ts reads it);
- * the harness's store is `parityStore()` — the ticket's `provinceStore(): Promise<RegsStore | null>` under another name.
+ * Either store is a release opened the way the app opens one (`openPaired`: `@app/data/regs` `openRegsStore(loader)`,
+ * every region file the oracle states read opened up front), so a release the app refuses — wrong tiles, wrong handles,
+ * a region file missing or from another build — is a skip reason in the app's own words, not 134 failures.
+ * `parityStore()` is tests.md §1.2's `provinceStore(): Promise<RegsStore | null>`; every parity suite reads through it.
  */
 import { existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
-import { buildRegsPage, type Day, type Moment, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
-import type { Block, Cell, GoldenState, Tap } from "@app/core/regs/testing";
-import { loadRegsInputs, openRegsStore, unpackBlob, type RegsStore } from "@app/data/regs";
+import { buildRegsPage, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
+import type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
+import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
-import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
+import { liveRelease, liveReleaseAt, openReleaseDir, regsStoreCandidates } from "../fixtureRelease";
 import { EXCLUDE, excluded } from "./exclusions";
-import { golden, REPO, taps, tapsOnce } from "./oracles";
+import { golden, taps, tapsOnce } from "./oracles";
 
-export { golden, hydrate, taps } from "./oracles";
+export { golden, hydrate, HYDRATE, REPO, taps, TAPS } from "./oracles";
 export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
 
-/** The store reads the tap parity needs (T04's `akey`/`segStarts`/`segMoments`/`cell`, by the same names). */
-export interface TapStore {
-  readonly path: string;
-  /** The part's akey (`part.akey` of the item's `item_ord`), or null for a part with no rule set. */
-  partAkey(item: string, partIx: number): number | null;
-  akey(akey: number): { seg: number; mom: number | null; nseg: number };
-  segStarts(seg: number): number[];
-  /** The key's moments (`segmom.ix` → `static answers.moments`), null when `mom` is null. */
-  segMoments(mom: number | null): Moment[] | null;
-  cell(akey: number, s: number): Cell;
-  statics(k: string): unknown;
-}
-
-/** The places a regs store is looked for, in order: $REGS_STORE, this checkout's bundle, the main checkout's (from a worktree). */
-export function storeCandidates(): (string | undefined)[] {
-  const here = `${REPO}data/generated/bundle/regs.sqlite`;
-  const main = /\/\.claude\/worktrees\/[^/]+\/$/.test(REPO) ? `${REPO.replace(/\.claude\/worktrees\/[^/]+\/$/, "")}data/generated/bundle/regs.sqlite` : undefined;
-  return [process.env.REGS_STORE, here, main];
-}
-
-/** Where the province store is, or why there is none to test against. The FIRST candidate on disk is judged: a stale one is a
- *  skip with its reason, never passed over for a later one (REGS_STORE pointing at a stale store must say so). */
-export function provinceStoreAt(candidates: readonly (string | undefined)[] = storeCandidates()):
+/** Where the port tooling's province store (regs.sqlite) is, or why there is none to pair with. The FIRST candidate on
+ *  disk is judged: a stale one is a skip with its reason, never passed over for a later one (REGS_STORE pointing at a
+ *  stale store must say so). */
+export function provinceStoreAt(candidates: readonly (string | undefined)[] = regsStoreCandidates()):
   { path: string; reason: null } | { path: null; reason: string } {
   const path = candidates.find((p): p is string => !!p && existsSync(p));
   if (!path) return { path: null, reason: `no regs store on this machine (looked at ${candidates.filter(Boolean).join(", ") || "nothing"})` };
@@ -71,43 +54,6 @@ export function paritySkip(at: ReturnType<typeof provinceStoreAt>, env: Readonly
   return required ? { skip: true, fail: `REGS_STORE_REQUIRED is set and the parity cannot run: ${at.reason}` }
     : { skip: true, fail: null, reason: at.reason };
 }
-export const hasProvinceRegs = (): boolean => provinceStoreAt().path !== null;
-
-/** The paired regs store, or null (skip; `provinceStoreAt().reason` says why). */
-export async function provinceStore(): Promise<TapStore | null> {
-  const at = provinceStoreAt();
-  if (!at.path) return null;
-  const db = new DatabaseSync(at.path, { readOnly: true });
-  const dicts = new Map<string, Uint8Array>();
-  for (const r of db.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]) dicts.set(r.tbl, r.d);
-  const statics = (k: string): unknown => {
-    const r = db.prepare("SELECT j FROM static WHERE k = ?").get(k) as { j: Uint8Array } | undefined;
-    if (!r) throw new Error(`regs store: no static ${k}`);
-    return unpackBlob(r.j, dicts.get("static") ?? null);
-  };
-  const moments = statics("answers.moments") as Moment[];
-  const one = <T>(sql: string, ...args: (number | string)[]): T => {
-    const r = db.prepare(sql).get(...args) as T | undefined;
-    if (r === undefined) throw new Error(`regs store: nothing for ${sql} ${JSON.stringify(args)}`);
-    return r;
-  };
-  const partQ = db.prepare("SELECT p.akey AS akey FROM item i JOIN str s ON s.id = i.item_id JOIN part p ON p.item_ord = i.item_ord " +
-    "WHERE s.text = ? AND p.part_ix = ?");
-  return {
-    path: at.path,
-    partAkey(item, partIx) {
-      const r = partQ.get(item, partIx) as { akey: number | null } | undefined;
-      if (!r) throw new Error(`regs store: no part ${item}#${partIx}`);
-      return r.akey;
-    },
-    akey: (k) => one("SELECT seg, mom, nseg FROM akey WHERE akey = ?", k),
-    segStarts: (seg) => JSON.parse(one<{ starts: string }>("SELECT starts FROM seglist WHERE seg = ?", seg).starts) as number[],
-    segMoments: (mom) => mom === null ? null
-      : (JSON.parse(one<{ ix: string }>("SELECT ix FROM segmom WHERE mom = ?", mom).ix) as number[]).map((i) => moments[i]!),
-    cell: (k, s) => ({ ...one<Cell>("SELECT ladder, rows, gear, licence, display FROM cell WHERE akey = ? AND s = ?", k, s) }),
-    statics,
-  };
-}
 
 /** golden id → the app's request (tests.md §1.2): the tap's item, part, date and weekday as taps.json gives them (never
  *  recomputed from another year); `today` is Oct 10 2026 for every state (the prototype's "today" is d=1010). */
@@ -119,38 +65,56 @@ export function requestOf(id: string): { target: RegsTarget; day: Day; weekday: 
            today: { month: 10, day: 10 } };
 }
 
+/** A release opened as the app opens it, or why it cannot be. */
+export type Opened = { store: RegsStore; reason: null } | { store: null; reason: string };
+
 /**
- * The regs store the app reads — the LIVE RELEASE (`openRegsStore` over its water / regs-<region> / regs-sid files, D22) —
- * paired with the oracles: the province store the goldens were cut from (`provinceStoreAt`, taps.json `store_digest`) must
- * exist and carry the same `answers_sha256` as the release's water file. Else a skip with the reason: a release delivered
- * after the goldens (a pipeline answers change) would make every parity a stale comparison. REGS_STORE_REQUIRED=1 turns
- * the skip into a failure (`paritySkip`).
+ * `loader`'s release opened as the app opens it (`openRegsStore`), with every region file the oracle states read
+ * (`oracle`'s states and Feb 29 cases) opened — and so held to water's build — now. A refusal (`RegsStoreError`) is the
+ * reason, in the app's own words; anything else (a damaged read, a bug) is thrown, never a skip.
+ */
+export async function openPaired(loader: RegsLoader, oracle: TapsFile = tapsOnce()): Promise<Opened> {
+  const refused = (e: unknown): Opened => {
+    if (e instanceof RegsStoreError) return { store: null, reason: `release ${loader.release} refused: ${e.message}` };
+    throw e;
+  };
+  let st: RegsStore;
+  try { st = await openRegsStore(loader); } catch (e) { return refused(e); }
+  try { for (const a of new Set([...Object.values(oracle.states), ...oracle.leap].map((t) => t.akey))) await st.region(a); }
+  catch (e) { st.close(); return refused(e); }
+  return { store: st, reason: null };
+}
+
+const STORES = new Map<string, Promise<Opened>>();
+/** The release folder `dir`, opened and paired once per test file. */
+const storeAt = (dir: string): Promise<Opened> => {
+  let p = STORES.get(dir);
+  if (!p) STORES.set(dir, p = openPaired(openReleaseDir(dir)));
+  return p;
+};
+
+/**
+ * The LIVE RELEASE paired with the oracles: the province store the goldens were cut from (`provinceStoreAt`, taps.json
+ * `store_digest`) must exist, the app must accept the release (`openPaired`), and its water file must carry the province
+ * store's `answers_sha256`. Else a skip with the reason: a release delivered after the goldens (a pipeline answers change)
+ * would make every parity a stale comparison. REGS_STORE_REQUIRED=1 turns the skip into a failure (`paritySkip`).
  */
 export async function releasePairing(): Promise<{ path: string; reason: null } | { path: null; reason: string }> {
   const at = provinceStoreAt();
   if (at.path === null) return { path: null, reason: at.reason };
   const live = liveReleaseAt(), dir = live.dir;
   if (!dir) return { path: null, reason: live.reason! };
-  const db = new DatabaseSync(at.path, { readOnly: true });
-  let want: string | undefined;
-  try { want = (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v; }
-  finally { db.close(); }
-  const got = (await regsStoreAt(dir)).meta.answersSha256;
+  const opened = await storeAt(dir);
+  if (opened.store === null) return { path: null, reason: opened.reason };
+  const want = provinceAnswers(), got = opened.store.meta.answersSha256;
   return got === want ? { path: dir, reason: null }
     : { path: null, reason: `release ${dir} carries answers ${got.slice(0, 12)}, the oracles' store ${String(want).slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs` };
 }
 
-const STORES = new Map<string, Promise<RegsStore>>();
-const regsStoreAt = (dir: string): Promise<RegsStore> => {
-  let p = STORES.get(dir);
-  if (!p) STORES.set(dir, p = openRegsStore(openReleaseDir(dir)));
-  return p;
-};
-
-/** The paired release's store, or null (skip; `releasePairing()` says why). One store per test file. */
+/** The paired LIVE release's store, or null (skip; `releasePairing()` says why). One store per test file. */
 export async function regsStore(): Promise<RegsStore | null> {
   const at = await releasePairing();
-  return at.path === null ? null : regsStoreAt(at.path);
+  return at.path === null ? null : (await storeAt(at.path)).store;
 }
 
 // ── T12: the parity store (province, else the committed fixture) ─────────────────────────────────────────────────────
@@ -216,9 +180,10 @@ export async function resolveSource(env: Env = process.env,
   let fixture: string | null = "not asked";
   if (mode !== "province" && province !== null) {
     const dir = regsFixtureDir();
-    fixture = existsSync(`${dir}/manifest.json`)
-      ? fixtureVerdict((await regsStoreAt(dir)).meta, facts.store, facts.provinceAnswers())
-      : `no regs fixture release at ${dir}: run pnpm -C app regs-fixture`;
+    const opened = existsSync(`${dir}/manifest.json`) ? await storeAt(dir) : null;
+    fixture = opened === null ? `no regs fixture release at ${dir}: run pnpm -C app regs-fixture`
+      : opened.store === null ? opened.reason
+      : fixtureVerdict(opened.store.meta, facts.store, facts.provinceAnswers());
   }
   const c = chooseSource(mode, province, fixture);
   if (c.label === null) return { label: null, dir: null, reason: c.reason };
@@ -234,7 +199,7 @@ export function paritySource(env: Env = process.env): Promise<Source> {
 /** The harness's regs store (one per test file), or null — `paritySource()` says why. */
 export async function parityStore(): Promise<RegsStore | null> {
   const s = await paritySource();
-  return s.dir === null ? null : regsStoreAt(s.dir);
+  return s.dir === null ? null : (await storeAt(s.dir)).store;
 }
 export async function storeLabel(): Promise<"province" | "fixture" | null> {
   return (await paritySource()).label;

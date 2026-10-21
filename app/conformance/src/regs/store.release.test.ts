@@ -8,10 +8,10 @@ import { describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
 import { openRegsStore, RegsStoreError } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
-import { taps } from "./ruleSources";
+import { taps } from "./oracles";
 
 const LIVE = liveRelease();
-const T = taps() as unknown as { meta: { store: { section_handles: string; reach_digest: string; rule_ids_sha256: string; layout: string } } };
+const T = taps();
 const golden = T.meta.store;
 
 describe("the port's versions are the golden store's", () => {

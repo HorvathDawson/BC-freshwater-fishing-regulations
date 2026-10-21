@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildModel, makePlace, settle, type CardModel, type HydRes } from "@app/core";
 import { inputsOf, paritySkip, releasePairing } from "./golden";
-import { HYDRATE } from "./ruleSources";
+import { HYDRATE } from "./oracles";
 
 type Res = { status: string; daily: number | string | null; win: number; narrow: number | null } | null;
 interface OracleModel {

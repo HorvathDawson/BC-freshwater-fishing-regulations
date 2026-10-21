@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { describe as group, expect, it } from "vitest";
 import { describe, isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
 import { inputsOf, paritySkip, releasePairing, taps } from "./golden";
-import { HYDRATE } from "./ruleSources";
+import { HYDRATE } from "./oracles";
 
 interface OracleSettle {
   status: string | null; broad: number[]; speaks: number[]; beside: number[]; shown: number[]; inpart: [number, boolean][];

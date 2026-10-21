@@ -112,16 +112,16 @@ const ROOTS = (): string[] => {
 /**
  * The regs store `python -m pipeline.deliver store` writes (data/generated/bundle/regs.sqlite, not in git): the PORT
  * TOOLING's file (taps.py, hydrate.mjs) until P20, and the Python reference decoder's input — never the app's data, which
- * is the release. $REGS_STORE, else this checkout's, else the main checkout's. null: none.
+ * is the release. The first of `regsStoreCandidates()` on disk. null: none.
  */
 export function liveRegsStore(): string | null {
-  if (process.env.REGS_STORE) return existsSync(process.env.REGS_STORE) ? process.env.REGS_STORE : null;
-  for (const root of ROOTS()) {
-    const p = join(root, "data/generated/bundle/regs.sqlite");
-    if (existsSync(p)) return p;
-  }
-  return null;
+  return regsStoreCandidates().find((p) => existsSync(p)) ?? null;
+}
+
+/** Where that store is looked for, in order: $REGS_STORE alone when set, else this checkout's, then the main checkout's. */
+export function regsStoreCandidates(env: Readonly<Record<string, string | undefined>> = process.env): string[] {
+  return env.REGS_STORE ? [env.REGS_STORE] : ROOTS().map((root) => join(root, "data/generated/bundle/regs.sqlite"));
 }
 
 /** A release folder opened as the app opens one, and the node:sqlite opener: the data drivers' (one copy, T10). */
-export { nodeOpener, openReleaseDir } from "@app/data/release/node";
+export { nodeOpener, openReleaseDir, type ReleaseTamper } from "@app/data/release/node";

@@ -15,14 +15,11 @@
  * checked against the page's code, not against a re-reading of it.
  */
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import type { ExportRule, RuleFacts, SpeciesBook } from "@app/core";
 import { openRegsStore, type RegsLoader } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
+import { REPO } from "./oracles";
 
-const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
-export const HYDRATE = `${REPO}app/design/regs-v11/port/golden/hydrate.json`;
-export const TAPS = `${REPO}app/design/regs-v11/port/golden/taps.json`;
 const REF = `${REPO}pipeline/deliver/answers/reference/`;
 const PAGE = `${REF}page_v36.html`;
 
@@ -34,16 +31,6 @@ export interface RuleSource {
   ruleset(state: TapState): { readonly reach: readonly number[]; readonly trib: readonly number[] };
 }
 export interface TapState { readonly item: string; readonly partIx: number; readonly akey: number }
-
-export interface OracleMeta { readonly generator: string; readonly ref: string; readonly sha: string; readonly golden: string; readonly version: string }
-export interface Hydrate {
-  readonly meta: OracleMeta;
-  readonly describe: Readonly<Record<string, string>>;
-  readonly rules: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
-  readonly states: Readonly<Record<string, { readonly via: Readonly<Record<string, "trib">>; readonly ranks: Readonly<Record<string, number>> }>>;
-}
-export const hydrate = (): Hydrate => JSON.parse(readFileSync(HYDRATE, "utf8")) as Hydrate;
-export const taps = (): { readonly meta: OracleMeta; readonly states: Readonly<Record<string, TapState>> } => JSON.parse(readFileSync(TAPS, "utf8"));
 
 interface PageData {
   readonly rules: Readonly<Record<string, ExportRule>>; readonly rid: Readonly<Record<string, string>>; readonly species: SpeciesBook;

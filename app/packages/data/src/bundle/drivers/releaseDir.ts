@@ -16,8 +16,8 @@ import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
-import { parseManifest } from "../../manifest";
-import { releaseLoader, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
+import { parseManifest, type Manifest } from "../../manifest";
+import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
 
 /**
  * Where the committed regs fixture release lives (the folder holds exactly one `r-*` release). `__dirname`, not
@@ -65,11 +65,21 @@ export function nodeOpener(): Opener {
 }
 
 /**
- * A `ReleaseLoader` over a release folder, the way the app reads one: each file's bytes held to the manifest
- * (`verify`: the decoded length and sha256) and opened in node:sqlite from a temp copy.
+ * A test's change to a release AS THE LOADER SEES IT (the files on disk are never touched): `manifest` edits the parsed
+ * manifest (drop a file, name other tiles), `db` wraps an opened file (another build's meta).
  */
-export function openReleaseDir(dir: string): ReleaseLoader {
-  const m = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
+export interface ReleaseTamper {
+  manifest?(m: Manifest): Manifest;
+  db?(name: DbName, d: Db): Db;
+}
+
+/**
+ * A `ReleaseLoader` over a release folder, the way the app reads one: each file's bytes held to the manifest
+ * (`verify`: the decoded length and sha256) and opened in node:sqlite from a temp copy. `tamper`: tests only.
+ */
+export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): ReleaseLoader {
+  const read = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
+  const m = tamper.manifest ? tamper.manifest(read) : read;
   const source: ReleaseSource = {
     async bytes(name) {
       const f = m.files[name];
@@ -77,7 +87,8 @@ export function openReleaseDir(dir: string): ReleaseLoader {
       return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
     },
   };
-  return releaseLoader(m, source, nodeOpener());
+  const open = nodeOpener(), wrap = tamper.db;
+  return releaseLoader(m, source, wrap ? async (name, bytes) => wrap(name, await open(name, bytes)) : open);
 }
 
 /** The regs fixture release, opened as the app opens a release. */

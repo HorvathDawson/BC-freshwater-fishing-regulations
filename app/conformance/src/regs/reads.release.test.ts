@@ -11,15 +11,11 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { LadderFrameWire, VerdictWire } from "@app/core";
 import { openRegsStore, type RegsStore } from "@app/data/regs";
 import { liveRegsStore, liveRelease, openReleaseDir } from "../fixtureRelease";
-import { taps } from "./ruleSources";
+import { taps } from "./oracles";
 
 const LIVE = liveRelease();
 const STORE = liveRegsStore();
-const T = taps() as unknown as {
-  states: Record<string, { item: string; partIx: number; item_ord: number; akey: number; seg: number; mom: number | null; nseg: number;
-                            starts: number[]; s: number; cell: { ladder: number; rows: number; gear: number; licence: number; display: number } }>;
-  unnamed: { handle: number; akey: number; place: number; name: string }[];
-};
+const T = taps();
 
 /** The Vedder's rows frame ids on May 15 / Jun 15 (taps.json, the Python reference decoder's): rows frames are re-interned
  *  whenever the rows layout moves (rows 30 added `rows[].year`); the ticket's other ids stay literal. */

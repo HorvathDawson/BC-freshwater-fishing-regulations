@@ -7,10 +7,14 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { basename } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS } from "@app/core";
-import { liveReleaseAt } from "../fixtureRelease";
-import { chooseSource, fixtureVerdict, paritySkip, parityMode, provinceStoreAt, resolveSource, summary, taps } from "./golden";
+import type { Db, Manifest } from "@app/data";
+import type { RegsLoader } from "@app/data/regs";
+import { regsFixtureDir } from "@app/data/release/node";
+import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
+import { chooseSource, fixtureVerdict, openPaired, paritySkip, parityMode, provinceStoreAt, resolveSource, summary, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -55,6 +59,65 @@ describe("provinceStoreAt: which store, or why none", () => {
   it("no candidate on disk is a skip with the places looked", () => {
     const at = provinceStoreAt([undefined, join(dir, "missing.sqlite")]);
     expect(at).toEqual({ path: null, reason: expect.stringMatching(/no regs store on this machine/) });
+  });
+});
+
+/**
+ * The release a parity suite reads is opened the way the app opens it (`openRegsStore(loader)`), every region file the
+ * oracle states read opened up front: each refusal is a skip reason in the app's own words, never 134 failures. Made on the
+ * committed regs fixture by tampering with what the loader sees (`openReleaseDir(dir, tamper)`); the files are only read.
+ */
+describe("openPaired: a release the app refuses is a reason, not a store", () => {
+  const FX = regsFixtureDir(), rel = basename(FX), oracle = taps().meta.store, Z = "0000000000000000";
+  /** A file whose meta says `k` is `v` (another build's file, as the store reads it). */
+  const withMeta = (d: Db, k: string, v: string): Db => ({
+    ...d, all: async (q, ...p) => (await d.all(q, ...p)).map((r) => (/\bFROM meta\b/.test(q) && r.k === k ? { ...r, v } : r)),
+  });
+
+  it("the committed fixture, untampered: the store, every oracle region opened, nothing refused, the oracles' digests", async () => {
+    const at = await openPaired(openReleaseDir(FX));
+    expect(at.reason).toBeNull();
+    expect({ release: at.store!.meta.release, handles: at.store!.meta.sectionHandles, reach: at.store!.meta.reachDigest,
+             rules: at.store!.meta.ruleIdsSha256, refused: at.store!.refused() })
+      .toEqual({ release: rel, handles: oracle.section_handles, reach: oracle.reach_digest, rules: oracle.rule_ids_sha256, refused: null });
+  });
+
+  it("a release with no water file is the app's refusal, in its own words", async () => {
+    const loader = { release: "r-test", manifest: { data_release: "r-test", files: {} } as unknown as Manifest,
+      db: async () => { throw new Error("never opened"); }, regionsOf: async () => [], regionDb: async () => { throw new Error("never opened"); },
+    } as RegsLoader;
+    expect(await openPaired(loader)).toEqual({ store: null, reason: "release r-test refused: regs store: release r-test has no water file — refused" });
+  });
+
+  it("wrong tiles: a map of another atlas is refused", async () => {
+    const at = await openPaired(openReleaseDir(FX, { manifest: (m) => ({ ...m, tiles: { ...m.tiles, current: { id: `${Z}.000000000000`, url: "t" } } }) }));
+    expect(at).toEqual({ store: null,
+      reason: `release ${rel} refused: regs store: built for atlas ${oracle.section_handles}, the map is ${Z}.000000000000 — refused` });
+  });
+
+  it("wrong handles: a water file of another sid space than its manifest is refused", async () => {
+    const at = await openPaired(openReleaseDir(FX, { db: (n, d) => (n === "water" ? withMeta(d, "section_handles", Z) : d) }));
+    expect(at).toEqual({ store: null, reason: `release ${rel} refused: regs store: water: format water/1 / handles ${Z} ` +
+      `are not the manifest's water/1 / ${oracle.section_handles} — refused` });
+  });
+
+  it("a missing region file is refused at open, not as failures later", async () => {
+    const at = await openPaired(openReleaseDir(FX, { manifest: (m) => {
+      const { "regs-2": _gone, ...files } = m.files;
+      return { ...m, files };
+    } }));
+    expect(at).toEqual({ store: null, reason: `release ${rel} refused: regs store: release ${rel} has no file regs-2 — refused` });
+  });
+
+  it("a region file from another build (bad digest) is refused at open", async () => {
+    const at = await openPaired(openReleaseDir(FX, { db: (n, d) => (n === "regs-2" ? withMeta(d, "reach_digest", Z) : d) }));
+    expect(at).toEqual({ store: null,
+      reason: `release ${rel} refused: regs store: a region file is cut for rule bindings ${Z}, water's are ${oracle.reach_digest} — refused` });
+  });
+
+  it("a failure that is not a refusal (a bug, a damaged read) is thrown, never a skip", async () => {
+    await expect(openPaired(openReleaseDir(FX, { db: (n, d) => (n === "regs-2" ? { ...d, all: async () => { throw new Error("disk"); } } : d) })))
+      .rejects.toThrow("disk");
   });
 });
 
