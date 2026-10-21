@@ -56,6 +56,11 @@ describe("ALL_WORDS", () => {
       ".", "No fishing here on any day of the year.", "B.C. rule", "Region ", " rule", " · "]) expect(ALL_WORDS.has(w), w).toBe(true);
   });
 
+  it("holds the Bait item's words and fragments (T31)", () => {
+    for (const w of ["Bait", "No natural bait of any kind while the ban runs. ", "Roe (fish eggs)", "on streams", "allowed · the ",
+      " ban excepts it", "carry up to ", " kg", " is still OK", "Allowed", "Not allowed", "✓", "✕"]) expect(ALL_WORDS.has(w), w).toBe(true);
+  });
+
   it("derives the short weekdays and month initials from the generated calendar", () => {
     expect(WD3).toEqual(WEEKDAYS.map((w) => w.slice(0, 3)));
     expect(WD3.join(" ")).toBe("Mon Tue Wed Thu Fri Sat Sun");

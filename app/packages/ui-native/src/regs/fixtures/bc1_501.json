@@ -4,7 +4,79 @@
   "month": 5
  },
  "gear": {
-  "bait": null,
+  "bait": {
+   "dated": [
+    {
+     "chip": "Now",
+     "inForce": true,
+     "says": "bait ban",
+     "when": "Jan 1–May 15"
+    },
+    {
+     "chip": "Next",
+     "inForce": false,
+     "says": "bait ban",
+     "when": "Sep 1–Dec 31"
+    }
+   ],
+   "label": "Bait",
+   "list": [
+    {
+     "col": "no",
+     "head": "Not allowed",
+     "items": [
+      {
+       "mark": "✕",
+       "name": "Worms",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Roe (fish eggs)",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Water insects and crayfish",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Fish or fish parts",
+       "note": null
+      }
+     ]
+    }
+   ],
+   "notes": [
+    [
+     {
+      "s": "No natural bait of any kind while the ban runs. ",
+      "t": "text"
+     },
+     {
+      "ids": [
+       "bait_ban"
+      ],
+      "t": "term"
+     }
+    ]
+   ],
+   "src": {
+    "aria": "Sources: This water’s",
+    "keys": [
+     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10"
+    ],
+    "open": "srcs:bait",
+    "pages": [
+     {
+      "pdf": 49,
+      "printed": 43
+     }
+    ],
+    "who": "This water’s ›"
+   }
+  },
   "closed": null,
   "closedMore": [],
   "day": "Fri, May 1",

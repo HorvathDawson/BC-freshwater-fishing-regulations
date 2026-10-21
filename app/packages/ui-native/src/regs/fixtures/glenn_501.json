@@ -4,7 +4,73 @@
   "month": 5
  },
  "gear": {
-  "bait": null,
+  "bait": {
+   "dated": [
+    {
+     "chip": "Now",
+     "inForce": true,
+     "says": "bait ban",
+     "when": "All year"
+    }
+   ],
+   "label": "Bait",
+   "list": [
+    {
+     "col": "no",
+     "head": "Not allowed",
+     "items": [
+      {
+       "mark": "✕",
+       "name": "Worms",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Roe (fish eggs)",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Water insects and crayfish",
+       "note": null
+      },
+      {
+       "mark": "✕",
+       "name": "Fish or fish parts",
+       "note": null
+      }
+     ]
+    }
+   ],
+   "notes": [
+    [
+     {
+      "s": "No natural bait of any kind while the ban runs. ",
+      "t": "text"
+     },
+     {
+      "ids": [
+       "bait_ban"
+      ],
+      "t": "term"
+     }
+    ]
+   ],
+   "src": {
+    "aria": "Sources: Duncan River",
+    "keys": [
+     "r4:duncan_river@4-19::duncan_river.r3"
+    ],
+    "open": "srcs:bait",
+    "pages": [
+     {
+      "pdf": 38,
+      "printed": 36
+     }
+    ],
+    "who": "Duncan River ›"
+   }
+  },
   "closed": null,
   "closedMore": [],
   "day": "Fri, May 1",

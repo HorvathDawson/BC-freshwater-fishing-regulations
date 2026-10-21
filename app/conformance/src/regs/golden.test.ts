@@ -237,7 +237,9 @@ describe("T12 chooseSource", () => {
 
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
-    expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
+    expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal");
+    expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal"   // (T31) the Bella Coola snapshot who-word, asserted instead
+      + " · ^bait\\.src\\.who$ not compared (never — the prototype's snapshot is global; the app's level is per part)");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
       + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)"   // (T21) the whole Keep tab

@@ -4,7 +4,67 @@
   "month": 10
  },
  "gear": {
-  "bait": null,
+  "bait": {
+   "dated": [
+    {
+     "chip": "Next",
+     "inForce": false,
+     "says": "bait ban",
+     "when": "May 1–31"
+    }
+   ],
+   "label": "Bait",
+   "list": [
+    {
+     "col": "ok",
+     "head": "Allowed",
+     "items": [
+      {
+       "mark": "✓",
+       "name": "Worms",
+       "note": null
+      },
+      {
+       "mark": "✓",
+       "name": "Roe (fish eggs)",
+       "note": "the fish or fish parts ban excepts it"
+      },
+      {
+       "mark": "✓",
+       "name": "Water insects and crayfish",
+       "note": "on streams"
+      }
+     ]
+    },
+    {
+     "col": "no",
+     "head": "Not allowed",
+     "items": [
+      {
+       "mark": "✕",
+       "name": "Fish or fish parts",
+       "note": null
+      }
+     ]
+    }
+   ],
+   "notes": [],
+   "src": {
+    "aria": "Sources: Province",
+    "keys": [
+     "zp:bait::bait.r4",
+     "zp:bait::bait.r1"
+    ],
+    "open": "srcs:bait",
+    "pages": [
+     {
+      "pdf": 10,
+      "printed": 8
+     }
+    ],
+    "who": "Province ›"
+   }
+  },
   "closed": null,
   "closedMore": [],
   "day": "Today, Oct 10",

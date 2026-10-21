@@ -4,7 +4,60 @@
   "month": 10
  },
  "gear": {
-  "bait": null,
+  "bait": {
+   "dated": [],
+   "label": "Bait",
+   "list": [
+    {
+     "col": "ok",
+     "head": "Allowed",
+     "items": [
+      {
+       "mark": "✓",
+       "name": "Worms",
+       "note": null
+      },
+      {
+       "mark": "✓",
+       "name": "Roe (fish eggs)",
+       "note": "the fish or fish parts ban excepts it"
+      }
+     ]
+    },
+    {
+     "col": "no",
+     "head": "Not allowed",
+     "items": [
+      {
+       "mark": "✕",
+       "name": "Water insects and crayfish",
+       "note": "not on lakes"
+      },
+      {
+       "mark": "✕",
+       "name": "Fish or fish parts",
+       "note": null
+      }
+     ]
+    }
+   ],
+   "notes": [],
+   "src": {
+    "aria": "Sources: Province",
+    "keys": [
+     "zp:bait::bait.r5",
+     "zp:bait::bait.r1"
+    ],
+    "open": "srcs:bait",
+    "pages": [
+     {
+      "pdf": 10,
+      "printed": 8
+     }
+    ],
+    "who": "Province ›"
+   }
+  },
   "closed": null,
   "closedMore": [],
   "day": "Today, Oct 10",

@@ -33,4 +33,6 @@ export * from "./others";
 export * from "./keep";
 export * from "./page";
 export * from "./gear";
+export * from "./yesno";
+export * from "./bait";
 export * from "./fish.generated";

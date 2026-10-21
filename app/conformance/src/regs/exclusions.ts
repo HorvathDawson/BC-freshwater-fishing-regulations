@@ -75,6 +75,22 @@ export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
     until: "the pipeline ships stamps on Other fish rows" }] : []),
 ];
 
+/**
+ * (T31) The Bella Coola's own parts, where the golden's Bait source reads "Bella Coola River ›": the prototype names a
+ * downstream rule by its water from the rule SHEET's sub (`levelOf`/`downWater` over `SNAP.rules[k].sub`), and
+ * regs-v11/tools/snap.mjs keeps ONE sheet per rule key for the whole snapshot (`takeRules`: first taken wins) — taken on
+ * a tributary part (ape_*), where the Bella Coola's bait-ban row is reached from downstream ("Downstream rule · Bella
+ * Coola River"). On the river's own parts the same rule is the water's own row (rank 0, via reach): the app names it per
+ * part ("This water’s ›", the level every other own-row source line in the golden says). The parity asserts exactly that
+ * word for these states and compares everything else.
+ */
+export const SNAPSHOT_SUB_IDS: readonly string[] = ["bc0_501", "bc1_501", "bc0_1010", "bc1_1010"];
+export const SNAPSHOT_SUB_EXCLUDE: readonly Exclusion[] = [{
+  block: "gear", ids: SNAPSHOT_SUB_IDS, key: /^bait\.src\.who$/,
+  reason: "prototype snapshot artifact: snap.mjs keeps one rule sheet per key for every state (first taken: a tributary part, 'Downstream rule · Bella Coola River'); on the Bella Coola's own parts the bait-ban row is the water's own (rank 0), so the app's per-part word is 'This water’s ›' — asserted instead",
+  until: "never — the prototype's snapshot is global; the app's level is per part",
+}];
+
 export const EXCLUDE: readonly Exclusion[] = [
   ...(PINS_ERROR_IDS.length ? [{
     block: "pins" as const, ids: PINS_ERROR_IDS,
@@ -96,6 +112,8 @@ export const EXCLUDE: readonly Exclusion[] = [
     until: "never — a re-synced prototype on the ruled data removes it" },
   // (T18/T19 review, rows 31 + T21 review) the stamp lines (the store's `stamps`) and the .gyear line are drawn and compared
   ...KEEP_TAB_EXCLUDE,
+  // (T31) a source line's who-word read from the prototype's GLOBAL rule-sheet snapshot
+  ...SNAPSHOT_SUB_EXCLUDE,
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */

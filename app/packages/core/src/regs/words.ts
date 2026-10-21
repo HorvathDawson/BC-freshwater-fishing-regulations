@@ -219,6 +219,29 @@ export const GEAR = Object.freeze({
   CHIP_NOT_LEARNED: "Region",
 });
 
+// ── T31 the Bait item (page v36 ELEM, gearParts bait WHY; prototype yesNo, buildGear bait cell). Verbatim. ──
+/** page v36 ELEM: the gear frame's element and method codes as the page names them. */
+export const ELEM: Readonly<Record<string, string>> = Object.freeze({ roe: "Roe (fish eggs)", invertebrate: "Water insects and crayfish", worms: "Worms",
+  fin_fish: "Fish or fish parts", dead_fin_fish: "dead fish", live_fin_fish: "live fish", artificial_fly: "flies", artificial_lure: "lures",
+  angling: "Angling (rod and line)", fly_fishing: "Fly fishing", ice_fishing: "Ice fishing", set_lining: "Set lines",
+  spear_fishing: "Spear or bow", crayfish_trapping: "Crayfish traps", netting: "Nets", snagging: "Snagging",
+  chumming: "Chumming", downrigger: "Downrigger", light: "Light to attract fish" });
+export const BAIT = Object.freeze({
+  LABEL: "Bait",
+  /** + the bait_ban ⓘ as its own run (page v36 gearParts: the note, a space, the ⓘ) */
+  BAN_NOTE: "No natural bait of any kind while the ban runs. ",
+  /** page v36 gearParts WHY */
+  WHY: Object.freeze({ bait_ban: "bait ban", on_streams: "on streams", on_lakes: "on lakes", not_on_streams: "not on streams",
+    not_on_lakes: "not on lakes", banned_roe_ok: "banned · roe is still OK", allowed: "allowed" }) as Readonly<Record<string, string>>,
+  ALLOWED: "allowed",
+  EXCEPTED: (elem: string) => `allowed · the ${elem} ban excepts it`,
+  CARRY: (kg: number) => `carry up to ${kg} kg`,
+  STILL_OK: (w: string) => `${w} is still OK`,
+  SEP: " · ",
+});
+/** prototype yesNo: the two column heads and marks. */
+export const YESNO = Object.freeze({ OK: "Allowed", NO: "Not allowed", OK_MARK: "✓", NO_MARK: "✕" } as const);
+
 /** Every string and function-word fragment of a (nested, frozen) word table (a function of n parameters gets n holes). */
 function deepWords(t: object): string[] {
   const HOLE = "\u0000";
@@ -247,6 +270,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN].flatMap((t) => Object.values(t)),
   // (T30) the Gear tab
   ...GEAR_LINES.map(([, label]) => label), ...deepWords(GEAR),
+  // (T31) the Bait item
+  ...[ELEM, BAIT, YESNO].flatMap(deepWords),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are
