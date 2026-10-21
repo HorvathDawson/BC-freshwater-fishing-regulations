@@ -230,7 +230,7 @@ def test_an_unnamed_stream_in_a_park_takes_the_park_row_over_the_zone(built):
     assert ("z5:trout_char_quota::trout_char_quota.r2", "replaced",
             f"{BOWRON}::bowron_lake_park_waters.r1") in roles
     assert ("z5:trout_char_quota::trout_char_quota.r1", "also", None) in roles
-    assert row["scope"] == {"of": "area", "entry": BOWRON, "share": False, "apart": False}
+    assert row["scope"] == {"of": "area", "entry": BOWRON, "share": False, "apart": False, "narrow_all": False}
     assert t["display"]["status"] == "own"                 # an area row beyond the zone base
 
 
@@ -249,7 +249,7 @@ def test_a_plain_unnamed_stream_reads_the_zone_base(built):
     h, win, _, row = _rb(t, X)
     assert (h["status"], h["daily"], win) == ("keep", 4, "z3:trout_char_quota::trout_char_quota.r1")
     assert row["scope"] == {"of": "region", "entry": "z3:trout_char_quota", "share": True,
-                            "apart": False}
+                            "apart": False, "narrow_all": True}
     assert t["display"]["status"] == "base"
 
 

@@ -265,17 +265,17 @@ def test_the_top_zoom_is_simplified_because_the_camera_cannot_go_past_it():
         "a band is still passing tippecanoe's near-nothing tolerance at its maximum zoom")
 
     ladder = (ROOT / "app/packages/core/src/ladder.ts").read_text()
-    m = re.search(r"export const MAX_ZOOM = (\d+)", ladder)
-    assert m, "app ladder no longer declares MAX_ZOOM"
-    camera_max = int(m.group(1))
+    m = re.search(r"export const ATLAS_MAX_ZOOM = (\d+)", ladder)
+    assert m, "app ladder no longer declares ATLAS_MAX_ZOOM"
+    atlas_max = int(m.group(1))
     tile_max = max(spec.maxzoom for spec in ALL)
-    assert camera_max == tile_max, (
-        f"the app can zoom to z{camera_max} but the atlas stops at z{tile_max}. Past the "
-        f"last tile MapLibre magnifies z{tile_max} geometry, and it is simplified at "
-        f"{tippe.SIMPLIFICATION} units — about {tippe.SIMPLIFICATION / 4096 * 512:.2f} px "
-        f"at 1:1 and {tippe.SIMPLIFICATION / 4096 * 512 * 2 ** (camera_max - tile_max):.2f} "
-        f"px there. Either lower MAX_ZOOM, build another zoom, or give the top zoom a "
-        f"tighter tolerance of its own.")
+    assert atlas_max == tile_max, (
+        f"the app believes the atlas stops at z{atlas_max} but it is built to z{tile_max}")
+    # OVERZOOM IS NOW DELIBERATE (owner 2026-10-21; 24cb5888): the camera goes past the atlas (CAMERA_MAX_ZOOM > the
+    # atlas max) and MapLibre magnifies z{tile_max}, so the top-zoom tolerance above becomes visible corner-cutting at
+    # z17-18. That trade-off (size vs fidelity) is recorded in handoff/PLAN/app-data/S2-tile-size-easy-wins.md.
+    c = re.search(r"export const CAMERA_MAX_ZOOM = (\d+)", ladder)
+    assert c and int(c.group(1)) > atlas_max, "overzoom: the camera max must stay above the atlas max"
 
 
 def test_under_lake_route_is_its_own_layer():

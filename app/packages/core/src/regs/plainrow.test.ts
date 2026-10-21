@@ -9,13 +9,11 @@ import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleView } from "
 import { plain } from "./line";
 import type { Day, FishPicVM } from "./model";
 import { isPlainRow, namedIn, plainRowOf, runSentence, yearWindowOf, YearWords, type PlainRowSeams, type YearRunOf } from "./plainrow";
-import { runOf } from "./strip";
+import { BOOK_DAYS, runOf } from "./strip";   // the calendar spec's 365 book days (one calendar, dataflow gate 4)
 import { ruleView } from "./rules";
 import type { Settled } from "./settle";
 import { BOOK } from "./testing/speciesBook";
 
-const DIM = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const BOOK_DAYS: Day[] = DIM.flatMap((n, m) => Array.from({ length: n }, (_, i) => ({ month: m + 1, day: i + 1 })));
 const ix = (d: Day) => BOOK_DAYS.findIndex((x) => x.month === d.month && x.day === d.day);
 const D = (month: number, day: number): Day => ({ month, day });
 /** A seam whose runOf answers from a queue (the runs T13 would find), in call order. */

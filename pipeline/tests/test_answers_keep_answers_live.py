@@ -83,10 +83,10 @@ def _golden_stamp_lines(sid) -> list:
 
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("sid", IDS)
+# The 3 Kitimat states are left out, not skipped (no silent skips): owner ruling 2026-10-21 (a) makes their stored tree
+# differ from page v36's by design (GOTCHAS.md); their trees are pinned in test_answers_kitimat_steelhead_lift.py.
+@pytest.mark.parametrize("sid", [s for s in IDS if s not in KITIMAT_RULED])
 def test_5_every_stamp_line_the_groups_carry_is_the_prototypes(built, sid):
-    if sid in KITIMAT_RULED:
-        pytest.skip("owner ruling 2026-10-21 (a): the Kitimat's stored tree is not page v36's")
     assert _stamp_lines(_at(built, sid, "rows"), _at(built, sid, "licence")) == _golden_stamp_lines(sid)
 
 
