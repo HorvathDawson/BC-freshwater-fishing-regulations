@@ -24,12 +24,14 @@ def main(argv=None) -> int:
     ap.add_argument("--export-dir", type=Path, default=EXPORT.parent)
     ap.add_argument("--out-root", type=Path, default=GENERATED.release)
     ap.add_argument("--data-release", default=None, help="default: r-<sha12 of the files>")
+    ap.add_argument("--lake-facts", type=Path, default=GENERATED.bundle / "lake_facts.bin",
+                    help="the lake facts (python -m pipeline.deliver lake_facts); shipped as `lakes`")
     a = ap.parse_args(argv)
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"))
+                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"))
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     bad = B.gate_problems(d)

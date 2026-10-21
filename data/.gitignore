@@ -53,3 +53,6 @@ source/official/
 
 # BC outline cache (pipeline/atlas/splits/bc_boundary.py): derived from the gpkg, rebuilt on demand
 source/bc_boundary.exact.*
+
+# The FFSBC stocking roster (pipeline/stocking/fetch.py): one request, ~18 MB, re-fetched per build.
+source/stocking/

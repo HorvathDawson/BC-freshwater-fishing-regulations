@@ -19,7 +19,7 @@ from pipeline.deliver import __main__ as D
 WRITES = {"bundle": ["bundle.sqlite"], "verdicts": ["verdicts.sqlite"], "status_index": ["status_index.bin"],
           "export": ["ui-rules-export.json", "ui-rules-guide.json"],
           "answers": ["ui-rules-answers.json", "ui-rules-answers.json.gz"], "card_check": ["card-check.json"],
-          "store": ["regs.sqlite"], "release": []}
+          "store": ["regs.sqlite"], "lake_facts": ["lake_facts.bin"], "release": []}
 
 
 def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
@@ -31,6 +31,9 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
         if name == fail_at:
             raise subprocess.CalledProcessError(1, args)
         if name == "release":                       # a folder, under --out-root
+            # the lake facts it ships are THIS run's, from the staging directory beside the bundle
+            assert Path(args[args.index("--lake-facts") + 1]) == Path(args[args.index("--bundle") + 1]).with_name(
+                "lake_facts.bin")
             r = Path(args[args.index("--out-root") + 1]) / "r-test"
             r.mkdir(parents=True)
             (r / "manifest.json").write_text("new manifest")
@@ -57,7 +60,7 @@ def _state(dest: Path) -> dict:
     return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir() if f.is_file()}
 
 
-@pytest.mark.parametrize("fail_at", ["bundle", "export", "answers", "card_check", "store", "release"])
+@pytest.mark.parametrize("fail_at", ["bundle", "export", "answers", "card_check", "store", "lake_facts", "release"])
 def test_a_failing_step_leaves_every_live_file_unchanged(monkeypatch, tmp_path, fail_at):
     dest = tmp_path / "out"
     before = _live(dest)
@@ -81,7 +84,8 @@ def test_a_passing_run_promotes_every_file_and_leaves_no_staging(monkeypatch, tm
     _live(dest)
     ran = _fake_steps(monkeypatch)
     assert D.main(["all", "--out-dir", str(dest)]) == 0
-    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release"]
+    assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "lake_facts",
+                   "release"]
     assert {n: t for n, (t, _m) in _state(dest).items() if n != "release"} == \
         {f: f"new {f}" for fs in WRITES.values() for f in fs}
     assert (dest / "release" / "r-test" / "manifest.json").read_text() == "new manifest"

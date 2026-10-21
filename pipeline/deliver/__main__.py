@@ -5,6 +5,7 @@
     python -m pipeline.deliver verdicts [--bundle FILE] [--out FILE] [--workers N]
     python -m pipeline.deliver answers [--bundle FILE] [--export-dir DIR] [--out FILE]
     python -m pipeline.deliver status_index [--bundle FILE] [--out FILE]
+    python -m pipeline.deliver lake_facts [--bundle FILE] [--out FILE]   (its own flags: --help)
     python -m pipeline.deliver card_check [--bundle FILE] [--export-dir DIR]
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
@@ -75,7 +76,8 @@ def canonical_homes() -> dict:
     from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
     b, r = GENERATED.bundle, _EXPORT_OUT.parent
     return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
-            "status_index.bin": b / "status_index.bin", "regs.sqlite": _STORE_OUT,
+            "status_index.bin": b / "status_index.bin", "lake_facts.bin": b / "lake_facts.bin",
+            "regs.sqlite": _STORE_OUT,
             "ui-rules-export.json": _EXPORT_OUT, "ui-rules-guide.json": r / "ui-rules-guide.json",
             "ui-rules-answers.json": r / "ui-rules-answers.json",
             "ui-rules-answers.json.gz": r / "ui-rules-answers.json.gz", STAMP_NAME: r / STAMP_NAME}
@@ -112,9 +114,12 @@ def _all(a) -> int:
         # against the bundle's rules; a problem stops the chain here, before anything is packaged
         _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)])
         _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")])
+        # the lake modes' values (stocked, surveyed), pinned to this bundle's handles
+        _step(["lake_facts", "--bundle", str(bundle), "--out", str(d / "lake_facts.bin")])
         # THE SHIPPED SET (P08): data/release/<data_release>/, from the files just made
         _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
-               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release")])
+               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"),
+               "--lake-facts", str(d / "lake_facts.bin")])
         ok, msg = vintage.report_all(GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
         print(msg)
         if not ok:
@@ -148,6 +153,11 @@ def _all(a) -> int:
 
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["lake_facts"]:              # its flags are its own module's
+        from pipeline.deliver.lake_facts import main as lake_main
+        if lake_main(argv[1:]):
+            raise SystemExit("pipeline.deliver: the lake facts were not written")
+        return 0
     if argv[:1] == ["release"]:                 # its flags are its own module's (argparse cannot pass them through)
         from pipeline.deliver.release.__main__ import main as release_main
         if release_main(argv[1:]):

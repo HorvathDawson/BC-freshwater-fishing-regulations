@@ -7,6 +7,7 @@ app's generated copy) moving with it.
 """
 from __future__ import annotations
 
+from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -23,6 +24,7 @@ _REGION_TABLES = {
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
+    "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         "alias": ["item_id", "alias"],
         "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "size", "gauged", "has_rows", "pieces"],
@@ -80,5 +82,8 @@ UNITS = {
     "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
     "paint": "paint/1: see pipeline/deliver/release/paint.py",
+    "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
+             "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
+             "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
 }
 REGIONS = SH.REGIONS

@@ -13,6 +13,8 @@ writes paint, derives three per-water flags for search, converts the climatology
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
                  (bands float16: clim/2)
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
+  lakes          per lake section: surveyed (sheet / digitised), last stocked     lake_facts.bin
+                 day — the Depth and Stocked modes' values (lakes/1)              (pipeline.deliver.lake_facts)
 
 Every SQLite file carries a `meta` table: format, section_handles, reach_digest (+ rule_ids_sha256 and the card-gate
 stamp where they apply). Each file ships as `<name>-<sha12>.<ext>.gz` (gzip -9, no timestamp); the manifest
@@ -31,14 +33,15 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
+from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
 #: every file and its format (bumped when a reader must refuse an older one)
 FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "core": "core/1", "near": "near/1", "water": "water/1", "regs-sid": "regs-sid/1",
-           "conditions": "conditions/1", **{f"regs-{r}": "regs-region/1" for r in SH.REGIONS}}
+           "conditions": "conditions/1", "lakes": LF.FORMAT, **{f"regs-{r}": "regs-region/1" for r in SH.REGIONS}}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
-SIZE_GATES = {"paint": 1_000_000, "core": 1_300_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+SIZE_GATES = {"paint": 1_000_000, "core": 1_300_000, "lakes": 100_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 14_000_000
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place")
@@ -163,6 +166,15 @@ def _conditions_extra(con: sqlite3.Connection) -> None:
 
 
 
+def lakes_bytes(raw: bytes, handles: str) -> bytes:
+    """The lake facts as shipped (the file IS the release file): refused unless built against this release's atlas."""
+    got = LF.handles_of(raw)
+    if got != handles:
+        raise ReleaseError(f"release: the lake facts are from another atlas ({got}, the bundle's is {handles})")
+    LF.decode(raw)                                  # whole, or refused here rather than in the app
+    return raw
+
+
 def _sha(p: Path, n: Optional[int] = None) -> str:
     h = hashlib.sha256(p.read_bytes()).hexdigest()
     return h[:n] if n else h
@@ -185,9 +197,10 @@ def gate_problems(release_dir: Path) -> List[str]:
 
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
-          data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None) -> Path:
+          data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
+          lakes: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap` are the
-    manifest's blocks (manifest.py)."""
+    manifest's blocks (manifest.py); `lakes` the lake facts (`lake_facts.bin`), shipped as the file `lakes`."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -207,6 +220,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
         files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes())
+        if lakes is not None:
+            p = work / "lakes.bin"
+            p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
+            files["lakes"] = p
         regions = SH.akey_regions(st)
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                   if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]

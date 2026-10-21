@@ -199,6 +199,15 @@ Species and stage travel as integer codes: "Rainbow Trout" written out 200,000 t
 **The `release` table is retired.** It is keyed on a NAME, which is the one join that cannot
 be trusted — two lakes share a name and neither gets the right fish.
 
+**Map recency shipped 2026-10-21, in the release rather than a feed** (owner: the lake modes'
+colours update from data alone, through the one colouring engine). The roster is FFSBC's own
+report endpoint (`python -m pipeline.stocking.fetch`, one request; FIDQ's stocking query is an
+interactive form and the catalogue's FISH_RELEASES_PUBLIC_VW has no download). The tier-1 join
+needs no graph column: `pipeline.deliver.lake_facts` reads `WATERBODY_KEY_GROUP_CODE_50K` from
+the lakes layer and the lake's section is `lake:<WATERBODY_KEY>`; a name must agree or the FWA
+must name nothing. It ships each lake section's last stocked day (and its survey state) as the
+release file `lakes`. `stock_water`, `stock_code` and the per-water history feed are still to do.
+
 ---
 
 ## Bathymetry — deliberately not a feed
