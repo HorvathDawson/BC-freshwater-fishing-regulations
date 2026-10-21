@@ -185,3 +185,10 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/names package
 - `describe()`'s `w.replace(/^all game fish$/,…)` matches the WHOLE written name only — "all game fish" inside a longer list is left alone.
 - `lc()`'s proper-noun list is data the page typed; keep it in `words.ts` (`LC_KEEP`) so a new species name is a words edit.
 - The oracle runs page v36 in node with `YEAR = 2026` (taps.json's year). It needs no `.venv` and no Chrome; it reads only committed files.
+- ACCEPTANCE LINE 1 DOES NOT PASS AS WRITTEN (found in T06 review, 2026-10-20). Not a T06 defect, but not met either:
+  - With no `--ref`, hydrate.mjs stages HEAD. page_v36.js/.html changed after 7fb6809f (P06), so `meta` changes (`decodeLines 1-246`).
+    Run it as `--ref 7fb6809f`, the port target.
+  - Even `--ref 7fb6809f` rewrites `meta.golden`/`meta.version`: `bdda3586`/`v38` against the committed `d4a0ccd9`/`v37`. sync.mjs runs
+    hydrate.mjs (:18) BEFORE taps.py, so hydrate copies the meta of the PREVIOUS taps.json. The committed hydrate.json is one sync behind
+    in `meta` only. With `meta` removed, the regenerated file equals the committed one, and that is what describe.parity reads.
+  - Fix, in the regs-v11 lane (T06 may not edit it): run hydrate.mjs after taps.py in sync.mjs, then re-sync golden/hydrate.json.
