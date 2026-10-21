@@ -24,6 +24,7 @@ import { hatchImage } from "./hatch";
 import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
+import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
@@ -234,12 +235,15 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     });
     m.on("load", addPill);
     map.current = m;
+    // The canvas follows its container, not the window (see size.ts): a box that settles after mount — search's
+    // preview map on the way back from the eye — would otherwise keep the first size and every fit would frame it.
+    const unfollow = followSize(m, () => refit.current?.());
     // Development only: a map is the one component you cannot inspect from the React tree,
     // and every question about it ("where is the camera", "did that source load") needs the
     // instance. Never present in a production bundle.
     if (typeof __DEV__ !== "undefined" && __DEV__)
       (globalThis as { __map?: unknown }).__map = m;
-    return () => { m.remove(); map.current = null; };
+    return () => { unfollow(); m.remove(); map.current = null; };
     // Deliberately keyed on the ARCHIVES only. `theme` and `view` are recoloured by the
     // effect below rather than by rebuilding the map, because remounting would drop the
     // camera and refetch every tile — a theme toggle would look like a crash and a reload.
@@ -486,19 +490,31 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
    */
   const lit = useRef(highlight);
   lit.current = highlight;
+  /** Re-frame the current subject after the container changed size — unless the reader has moved off it. */
+  const refit = useRef<(() => void) | null>(null);
   useEffect(() => {
     const m = map.current;
     if (!m || !fit) return;
     let rounds = 0;
     let alive = true;
+    let last: Bbox | null = null;
+    let moved = false;
+    // a pan or zoom by the READER (it carries the DOM event); our own fitBounds does not
+    const touched = (e: { originalEvent?: unknown }) => { if (e.originalEvent) moved = true; };
+    m.on("movestart", touched);
+    refit.current = () => { if (alive && last && !moved) go(last); };
     const go = (b: Bbox) => {
+      last = b;
+      // measure the box BEFORE framing it: a stale canvas centres the water on a size nobody sees
+      syncSize(m);
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
       m.fitBounds([[b[0], b[1]], [b[2], b[3]]],
                   { padding: Math.max(pad, 8), maxZoom: MAX_ZOOM, duration: 450 });
     };
+    const done = () => { alive = false; m.off("movestart", touched); };
     if (fit.bbox) go(fit.bbox);
-    if (!fit.refine) return () => { alive = false; };
+    if (!fit.refine) return done;
     const measure = () => {
       if (!alive) return;
       const ids = new Set((lit.current ?? []).map(String));
@@ -515,7 +531,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       else m.off("idle", measure);
     };
     m.on("idle", measure);
-    return () => { alive = false; m.off("idle", measure); };
+    return () => { done(); m.off("idle", measure); };
   }, [fit?.key]);
 
   // Which reaches are on screen. Reported after movement settles rather than per frame:
