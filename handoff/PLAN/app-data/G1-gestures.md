@@ -58,3 +58,7 @@ into the views that do; list the rest.
 Feel uses the defaults in `core/src/gestures.ts` (edge 24 px / 80 px or flick, tap slop 8 px, swipe distance and
 velocity, sheet third-of-height). They are tuned during real-device testing; nothing waits on a feel review. The part
 swipe turns on when P15 supplies the part order.
+
+## Owner, 2026-10-21 — SWIPE CHANGES VIEW, NOT SECTION
+A sideways swipe on a water moves between its views: Regs <-> Conditions <-> Map. This REPLACES the part swipe above
+(sections stay on the down/up buttons and the water map). The 24 px back zone and the direction lock still apply.
