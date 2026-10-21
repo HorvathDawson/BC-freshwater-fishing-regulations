@@ -59,7 +59,23 @@ export const WORDS = Object.freeze({
   TROUT_LINE: (state: string, tail: string) => `Trout ${state}${tail}`,
   ALL_YEAR: " all year",
   UNTIL: (md: string) => ` until ${md}`,
+  // T14 the closed banner (page v36 closedBanner / mergedHtml / tidalHtml; prototype closechain rewrite)
+  CLOSED_ALL_YEAR: "Closed all year",
+  CLOSED_OPENS_AGAIN: (md: string) => `Closed · opens again ${md}`,
+  NO_FISHING_RUN: (span: string) => `No fishing for any game fish ${span}.`,
+  TOGETHER: " Together these closures cover it:",
+  OPENS_AGAIN_LINK: (md: string) => `Opens again ${md}. See the rules from then ›`,
+  SOURCE: "Source",
+  FROM_STREAMS_CAP: "From streams, ",
+  MERGED: (n: number, sections: number) => `Closed all year on ${n} stretches (${sections} sections)`,
+  DOT: " · ", SECTION: "section", SECTIONS: "sections",
+  TIDAL_WATER: "Tidal water",
 } as const);
+
+/** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
+export const RANK_LEVEL: Readonly<Record<string, string>> = Object.freeze({
+  "-1": "Federal / parks", "0": "This water", "1": "From downstream", "2": "Named area", "3": "Region", "4": "Province",
+});
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
@@ -76,6 +92,7 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...(Object.values(WORDS) as unknown[]).filter((v): v is string => typeof v === "string"),
   ...(Object.values(WORDS) as unknown[]).filter((v): v is (x: never) => string => typeof v === "function").flatMap(fragments),
   ...WD3, ...MONTH1,
+  ...Object.values(RANK_LEVEL),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

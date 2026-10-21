@@ -18,3 +18,4 @@ export * from "./place";
 export * from "./settle";
 export * from "./card";
 export * from "./strip";
+export * from "./banner";
