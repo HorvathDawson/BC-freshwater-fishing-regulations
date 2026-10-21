@@ -11,6 +11,7 @@ import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
+import { useSwipeShield } from "./ViewSwipe";
 import type { Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
@@ -37,8 +38,10 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   /** Replaces the fixed height — e.g. `{ flexGrow: 1 }` to take what the list leaves. */
   style?: object;
 }) {
+  // A MAP PANS: inside a water's view swipe, a drag that starts on it is the map's (see ViewSwipe)
+  const shield = useSwipeShield();
   return (
-    <View style={[style ? null : { height },
+    <View {...shield} style={[style ? null : { height },
                   { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}

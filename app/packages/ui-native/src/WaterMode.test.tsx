@@ -18,11 +18,17 @@ vi.mock("@app/map", async (orig) => ({
   ...(await orig<Record<string, unknown>>()),
   Map: () => null,
 }));
-// the panel is not under test: it says which reach and which "you are here" it was handed
+// the panel is not under test: it says which reach and which "you are here" it was handed, and it takes the body swipe
+// the Shell hands it the way the real panel does (ConditionsPanel.test pins that the real one does)
 vi.mock("./ConditionsPanel", async () => {
+  const { useContext } = await import("react");
   const { Text } = await import("react-native");
-  return { ConditionsPanel: ({ section, from }: { section: number; from?: { lat: number } | null }) =>
-    <Text>{`panel for ${section} at ${from?.lat ?? "nowhere"}`}</Text> };
+  const { ViewSwipe, WaterViewsContext } = await import("./ViewSwipe");
+  return { ConditionsPanel: ({ section, from }: { section: number; from?: { lat: number } | null }) => {
+    const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
+    const text = <Text>{`panel for ${section} at ${from?.lat ?? "nowhere"}`}</Text>;
+    return swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-conditions">{text}</ViewSwipe> : text;
+  } };
 });
 const { Shell } = await import("./Shell");
 
@@ -102,6 +108,29 @@ describe("water mode's views", () => {
     ]);
     // home: the same reach, its "you are here" kept (the Conditions tab's bar is back)
     expect(chrome().bar).toBe(true);
+  });
+
+  it("the Conditions body swipes too, on the reach and on the water's Conditions view (reviewer 2026-10-21)", async () => {
+    await mount();
+    const seen: string[] = [];
+    const note = () => seen.push(`${chrome().tabs} | regs page ${regsShown()}`);
+    swipe("view-swipe-conditions", 120);                   // finger right on the reach's body: its regulations
+    await waitFor(() => expect(regsShown()).toBe(true)); note();
+    swipe("view-swipe-body", -120);                        // Regulations -> Conditions
+    await waitFor(() => expect(regsShown()).toBe(false)); note();
+    swipe("view-swipe-conditions", -120);                  // on the Conditions body: -> Map
+    note();
+    swipe("view-swipe-header", 120);                       // Map -> Conditions (header only there)
+    note();
+    swipe("view-swipe-conditions", 120);                   // the Conditions body: -> Regulations
+    await waitFor(() => expect(regsShown()).toBe(true)); note();
+    expect(seen).toEqual([
+      "Regulations* · Conditions · Map | regs page true",
+      "Regulations · Conditions* · Map | regs page false",
+      "Regulations · Conditions · Map* | regs page false",
+      "Regulations · Conditions* · Map | regs page false",
+      "Regulations* · Conditions · Map | regs page true",
+    ]);
   });
 
   it("the Conditions view of a water opened from a reach is that reach, its \"you are here\" kept", async () => {

@@ -18,10 +18,17 @@ list and the swipe walks the same list, so the two always agree.
 | view | swipe from | why |
 |---|---|---|
 | Regulations | anywhere on the view | nothing on it pans |
-| Conditions | the header: the back row and the view strip | the route map and the gauge minimap pan, and the chart is read with a finger (zoom is coming) |
+| Conditions | anywhere on the view, except on its maps and the chart's plot | the route map and the gauge minimap pan, and the plot is read with a finger (zoom is coming); those are shielded |
 | Map | the header only | the canvas pans |
 
-On the web, the detector for the Regulations body sits *inside* the view's ScrollView. A browser reads `touch-action`
+**Shields** (review fix, 2026-10-21). The reviewer found that on Conditions only the header (about 120 px of an
+844 px screen) took the swipe. Now the Conditions body takes it too, both on a Conditions-tab reach and on a water's
+Conditions view. The minimap (`MiniMap`, so the route map and the single-gauge map) and the hydrograph's plot (the
+`Svg` only, not its key or caption) wear a shield (`useSwipeShield` / `SwipeShield`). A press that lands on a shield
+claims the drag for that thing, so the swipe neither follows nor moves. The shield's press and the recogniser's begin
+can arrive in either order, so a press within 400 ms of the begin counts.
+
+On the web, the detector for the Regulations body, and the one for the Conditions body, sits *inside* the view's ScrollView. A browser reads `touch-action`
 only up to the nearest scroll container, so a detector wrapped around the ScrollView had its `pan-y` ignored. The
 browser then cancelled every sideways drag. I found this in the browser run, not in the unit tests.
 
@@ -45,12 +52,22 @@ browser then cancelled every sideways drag. I found this in the browser run, not
   - `core/src/gestures.test.ts`: every threshold.
   - `ui/src/gestures.test.ts`: `viewSwipeAction` for every view, the Conditions reach, and browse states.
   - `ui/src/route.test.ts`: the reach → Regs → Conditions → Map → back → back walk, and that the tap is kept.
-  - `ui-native/src/gestures.test.tsx`: `<ViewSwipe>` with `fireGestureHandler`.
+  - `ui-native/src/gestures.test.tsx`: `<ViewSwipe>` with `fireGestureHandler`. A drag that begins with a touch or a
+    pointer press on a shielded canvas does not move the view; the same drag on the body does.
+  - `ui-native/src/SwipeShield.test.tsx`: the minimap and the chart's plot are shielded, while the text around them
+    and the chart's caption still swipe. Mutants caught: shield removed from the plot, `held()` always false.
+  - `ui-native/src/ConditionsPanel.test.tsx`: the panel takes the body swipe from `WaterViewsContext`.
   - `ui-native/src/WaterMode.test.tsx`: the real Shell on the fixture bundle. It swipes the header and the body
     through all three views and back, and pins that the Conditions view is the tapped reach with its "you are here".
+    It also swipes the Conditions body: reach → Regulations, then Conditions → Map, then Conditions → Regulations.
 - **Mutation checks**: two mutants were tried and both were caught. One handed the Conditions view no tap; the other
   turned off the header swipe.
-- **Web** (`web-check.mjs`, Chromium at 390×844 with touch emulation, against a worktree expo server on :39431):
+- **Web** (`web-check.mjs`, Chromium at 390×844 with touch emulation, against a worktree expo server on :39561; start it without file watching only after the last edit, since `CI=1`
+  serves the files as they were at start):
+  0. Review fix: from a Conditions reach, a **body** swipe right (on the estimate) opens Regulations. Back on
+     Conditions, **a pan on the minimap stays** and **a drag on the chart's plot stays**. A body swipe left goes to Map,
+     and a body swipe right goes back to Regulations. With the shield removed, the minimap pan switched to Map, so the
+     browser run sees the shield. Screenshot `phone-light-03b-map-from-body`.
   1. From a Conditions reach, a header swipe right opens Regulations.
   2. A body swipe left goes to Conditions, and a header swipe left goes to Map.
   3. **A pan on the map canvas stays on Map.**
@@ -67,8 +84,6 @@ browser then cancelled every sideways drag. I found this in the browser run, not
   water opened from search or a list opens its Conditions view on the water's first reach. A tapped water opens on the
   tapped reach.
 - **Date pill**: the water header has no date pill yet (P14/T23).
-- **Swiping inside the Conditions body**: it would need the map and chart owners to shield their canvases. Until then,
-  the swipe there comes from the header only.
 - **Native feel**: how it feels on Android and iOS is not checked (no emulator). On Android, RNGH inside a ScrollView
   is expected to work the same way, but this is unproven.
 - **Desktop layout**: the Conditions view's desktop layout (the chart not filling the width, visible in

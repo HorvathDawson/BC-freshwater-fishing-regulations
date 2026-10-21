@@ -573,8 +573,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * THE WATER'S HEADER (FaceBar): the views on offer, the one on screen, and where back goes, in the reader's words.
    * In water mode all three views; on a Conditions-tab reach, Regulations and Conditions (it IS that reach's
-   * conditions; Regulations opens its water). The swipe listens on the header except where a body detector already
-   * covers it (the Regulations view).
+   * conditions; Regulations opens its water). The swipe listens on the header and on the body: on Regulations the
+   * body's detector holds the header (so only that one is set); on Conditions the header sits above the panel's
+   * ScrollView and both listen, the panel's maps and chart shielded; on Map the canvas is the body, header only.
    */
   const fromLabel = (b: typeof browse) =>
     b.cond !== null ? TABS.find((t) => t.k === "conditions")!.t : TABS.find((t) => t.k === b.tab)!.t;
@@ -582,11 +583,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     ? { views: WATER_VIEWS, on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
         backLabel: frame.view !== "regs" ? WATER_VIEW_LABEL.regs
                    : route.stack.length > 1 ? "Back" : fromLabel(route.from),
-        swipe: frame.view === "regs" ? null : viewSwipe, bodySwipe: frame.view === "regs" ? viewSwipe : null }
+        swipe: frame.view === "regs" ? null : viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : route.mode === "browse" && tab === "conditions" && condSection !== null
       ? { views: REACH_VIEWS, on: "conditions", onBack: back, backLabel: fromLabel({ ...browse, cond: null }),
           onView: (v) => { if (v === "regs") void toRegulations(condSection, condAt); }, swipe: viewSwipe,
-          bodySwipe: null }
+          bodySwipe: viewSwipe }
       : null;
 
   const showLegend = item === null && condSection === null
@@ -627,8 +628,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       <View style={{ flex: 1 }}>
         <EdgeBack drag={edge}>
           <WaterViewsContext.Provider value={waterViews}>
-            {/* the Regulations view takes the swipe anywhere on it; Conditions and Map from their header only (their
-                maps pan and their charts are read with a finger) — see `waterViews` */}
+            {/* Regulations and Conditions take the swipe anywhere on them (the Conditions maps and chart shielded),
+                Map from its header only (the canvas pans) — see `waterViews` */}
             {body}
           </WaterViewsContext.Provider>
         </EdgeBack>

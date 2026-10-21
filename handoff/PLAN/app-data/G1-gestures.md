@@ -66,4 +66,5 @@ A sideways swipe on a water moves between its views: Regs <-> Conditions <-> Map
 **Done (view-swipe, 2026-10-21):** `classifySwipe` now drives `useViewSwipe` / `viewSwipeAction` (`{type:"view"}`);
 the order is `@app/core` `WATER_VIEWS` (Regulations · Conditions · Map, the header strip's order); `stepPart`,
 `partSwipeStarts` (now `viewSwipeStarts`), `usePartSwipe` and `<PartSwipe>` are gone (`<ViewSwipe>` replaces it).
-The Regulations view swipes anywhere, Conditions and Map from the header. See `view-swipe/README.md`.
+Regulations and Conditions swipe anywhere (on Conditions the minimap and the chart's plot are shielded, so their
+drags stay theirs: `useSwipeShield`); Map swipes from the header only. See `view-swipe/README.md`.

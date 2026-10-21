@@ -19,6 +19,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { chartPointer, useChartHover, useChartWheel } from "./chartInput";
 import { TYPE } from "./type";
+import { SwipeShield } from "./ViewSwipe";
 import { SPACE, type Palette } from "./theme";
 
 /** The axis labels' size: the chart is built at the width it is drawn, so a label is drawn at its own size. */
@@ -142,7 +143,11 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
     <View accessibilityRole="image"
           accessibilityLabel={label ?? "River flow against its normal range"}>
       {view ? <ZoomBar palette={palette} view={view} /> : null}
-      {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+      {/* THE PLOT IS READ WITH A FINGER: inside a water's view swipe a drag on it is the chart's (zoom, pan, read-out;
+          see ViewSwipe); the zoom bar, the key and the caption are text, and swipe with the page */}
+      <SwipeShield>
+        {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+      </SwipeShield>
       {view ? <ZoomHint palette={palette} /> : null}
       {/* A KEY, because four things share one frame and only one of them is a measurement.
           Drawn from the same palette and the same `colour` the paths use, so a swatch

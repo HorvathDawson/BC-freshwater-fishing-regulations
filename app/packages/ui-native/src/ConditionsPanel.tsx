@@ -11,7 +11,7 @@
  * finished from `useConditionsView` in @app/ui (rule 25, P12a); the chart's words are
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
@@ -25,6 +25,7 @@ import { FishSpinner } from "./FishSpinner";
 import { DonorPanel, donorTone, Kicker } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
+import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
@@ -74,6 +75,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const vm = useConditionsView(source, section, day, horizon,
                                { feed, quantity: parameter ?? "discharge" });
   const station = vm.lead;
+  // THE VIEW SWIPE, on this body in a water's views (Regulations · Conditions · Map): the text, the estimate and the
+  // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
+  // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.
+  const bodySwipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
 
   // WHICH QUANTITIES THIS STATION CAN ANSWER IN, asked of the bundle rather than assumed:
   // 237 BC stations measure stage and never discharge.
@@ -232,12 +237,16 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   // ONE MEASURE ON A DESKTOP: the content stops at `CONDITIONS_MAX` and centres, so a 2,560 px window is not one
   // line of text across the whole screen. The donor panel goes to two columns inside it (`WIDE_PANEL`).
+  // The body is also a water's VIEW SWIPE when it has one (Regulations · Conditions · Map); the plot and minimap
+  // inside are shielded so their own drags stay theirs.
+  const pad = { paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4,
+                width: "100%" as const, maxWidth: CONDITIONS_MAX, alignSelf: "center" as const };
   return scroll
-    ? <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3,
-                                           paddingBottom: SPACE.s4 * 3, gap: SPACE.s4,
-                                           width: "100%", maxWidth: CONDITIONS_MAX, alignSelf: "center" }}>
-        {body}
-      </ScrollView>
+    ? bodySwipe
+      ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <ViewSwipe swipe={bodySwipe} testId="view-swipe-conditions" style={pad}>{body}</ViewSwipe>
+        </ScrollView>
+      : <ScrollView contentContainerStyle={pad}>{body}</ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
 }
 

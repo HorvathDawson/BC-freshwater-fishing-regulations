@@ -8,14 +8,14 @@
  * `fireGestureHandler` skips them — nor how any of it feels under a finger. That is the owner's, on a device.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen } from "@testing-library/react";
-import { Text } from "react-native";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
 import { HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type Route } from "@app/ui";
 import { EdgeBack } from "./EdgeBack";
-import { ViewSwipe } from "./ViewSwipe";
+import { ViewSwipe, useSwipeShield } from "./ViewSwipe";
 import { Sheet } from "./Sheet";
 import { LIGHT } from "./theme";
 
@@ -82,9 +82,17 @@ function Views({ start }: { start: Route }) {
   const f = waterFrame(route);
   return (
     <GestureHandlerRootView>
-      <ViewSwipe swipe={swipe}><Text>{`${f?.view} · part ${f?.part}`}</Text></ViewSwipe>
+      <ViewSwipe swipe={swipe}>
+        <Text>{`${f?.view} · part ${f?.part}`}</Text>
+        <Canvas />
+      </ViewSwipe>
     </GestureHandlerRootView>
   );
+}
+
+/** Something a finger works on (a map, a chart), shielded as the Conditions view's are. */
+function Canvas() {
+  return <View testID="canvas" {...useSwipeShield()} />;
 }
 
 describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the section)", () => {
@@ -120,6 +128,33 @@ describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the sec
   it("a flick moves after 20 px", () => {
     expect([swipe(on("regs"), pan(200, -25, 0, -700)), swipe(on("regs"), pan(200, -25, 0, -300))])
       .toEqual(["conditions · part 2", "regs · part 2"]);
+  });
+
+  beforeAll(() => {
+    Element.prototype.setPointerCapture ??= () => {};
+    Element.prototype.releasePointerCapture ??= () => {};
+    Element.prototype.hasPointerCapture ??= () => false;
+  });
+  it("a drag that starts on a shielded canvas (a map, the chart) is the canvas's; around it the body still swipes", () => {
+    const onCanvas = (start: Route, events: object[], press: "touchStart" | "pointerDown") => {
+      render(<Views start={start} />);
+      // a whole touch (react-native-web's responder reads its force) and a pointer the recogniser can capture (jsdom has
+      // no pointer capture): the press as a browser delivers it
+      const t = { identifier: 1, force: 1, clientX: 200, clientY: 100, pageX: 200, pageY: 100, target: null };
+      act(() => {
+        if (press === "touchStart")
+          fireEvent.touchStart(screen.getByTestId("canvas"), { touches: [t], changedTouches: [t] });
+        else fireEvent.pointerDown(screen.getByTestId("canvas"), { pointerId: 1, pointerType: "mouse" });
+      });
+      fire("view-swipe", events);
+      const text = screen.getByText(/ · part /).textContent;
+      cleanup();
+      return text;
+    };
+    expect([onCanvas(on("conditions"), pan(200, -100), "touchStart"),
+            onCanvas(on("conditions"), pan(200, 100, 0, 900), "pointerDown"),
+            swipe(on("conditions"), pan(200, 100))])
+      .toEqual(["conditions · part 2", "conditions · part 2", "regs · part 2"]);
   });
 
   it("is off while browsing the map", () => {

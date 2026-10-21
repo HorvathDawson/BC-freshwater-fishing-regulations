@@ -4,12 +4,15 @@
  * Whole strings only (AGENTS 33): the expected lines are core's finished sentences, so a
  * reading line that rendered broken cannot pass on a fragment.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { noGaugeSentence, readingHeading, readingStandingLine, stageLine } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
+import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -59,5 +62,29 @@ describe("the conditions panel", () => {
     render(<ConditionsPanel source={sourceWith(null, null)} section={SEC} palette={LIGHT}
                             feed={feed} scroll={false} />);
     await waitFor(() => expect(screen.getByText(noGaugeSentence())).toBeTruthy());
+  });
+});
+
+describe("the conditions panel in a water's views", () => {
+  it("takes the view swipe on its body (inside its ScrollView, as the Regulations view does)", async () => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
+    window.dispatchEvent(new Event("resize"));
+    const release = vi.fn(() => null);
+    const swipe = { enabled: true, starts: () => true, offset: (dx: number) => dx, release };
+    const views: WaterViews = { views: ["regs", "conditions"], on: "conditions", onView: () => {}, onBack: () => {},
+                                backLabel: "Conditions", swipe: null, bodySwipe: swipe };
+    render(
+      <GestureHandlerRootView>
+        <WaterViewsContext.Provider value={views}>
+          <ConditionsPanel source={sourceWith(null, null)} section={SEC} palette={LIGHT} feed={feed} />
+        </WaterViewsContext.Provider>
+      </GestureHandlerRootView>);
+    await waitFor(() => expect(screen.getByText(noGaugeSentence())).toBeTruthy());
+    act(() => {
+      fireGestureHandler(getByGestureTestId("view-swipe-conditions"), [
+        { absoluteX: 200, translationX: 0, translationY: 0 },
+        { absoluteX: 80, translationX: -120, translationY: 0, velocityX: 0 }]);
+    });
+    expect(release.mock.calls).toEqual([[-120, 0, 0]]);
   });
 });
