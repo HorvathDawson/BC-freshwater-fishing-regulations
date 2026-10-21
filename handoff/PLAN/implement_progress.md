@@ -89,7 +89,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   OPEN device-only: iOS (no CocoaPods; owner deferred), two-finger rotate/tilt, basin <z9, hatches/gauge pill on
   native (no runtime-image API). G1 follow-ups 9b7287fb SKIPPED (written for the removed PartSwipe) -> workflow
   g1f-port RUNNING. Kitimat (a) committed cc775df3. deliver all: first attempt refused (reach run older than the
-  curated entries) -> reach rerun + deliver all RUNNING via heavy.sh (bgzibth6q).
+  curated entries) -> reach rerun OK (786 s); deliver all passed bundle/answers/CARD GATE 0 problems/store, then the
+  RELEASE SIZE GATE refused it: 14,156,995 B gz > 14,000,000 (year strip +~270 KB). Nothing promoted; live data
+  unchanged. Workflow year-strip-size RUNNING (dedupe strips, gate NOT raised); then re-run deliver all.
 - 2026-10-21 night MERGED: conditions-and-nav (layout: switch by plot, full-width chart, desktop 2 columns, last
   report, zoomable chart; map: up/down apart, here pin, share labels, trace geometry from tiles, zoom; view swipe
   Regs<->Conditions<->Map with chart/minimap shielded; Kitimat +1 like the Vedder; T05 leap rule from the calendar
