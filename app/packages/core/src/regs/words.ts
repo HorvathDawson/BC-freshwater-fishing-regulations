@@ -187,6 +187,8 @@ export const WORDS = Object.freeze({
   TAB_PENDING: (tab: string) => `${tab}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`,
   REGS_LOADING: "Loading the regulations",
   REGS_UNAVAILABLE: (why: string) => `Regulations unavailable: ${why}`,
+  // ── T23 the regs header (prototype hdr: the pill's caret, the tab row's name; sheetHtml 'date': the day sheet's title) ──
+  DATE_CARET: " ▾", TABS_LABEL: "Section", DAY_SHEET_TITLE: "Which day?",
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */

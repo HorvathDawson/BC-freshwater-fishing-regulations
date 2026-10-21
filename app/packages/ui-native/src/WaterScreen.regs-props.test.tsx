@@ -31,17 +31,25 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.queryByTestId("keep-tab")).toBeNull();
   });
 
-  it("the fixture release: the Chilliwack's closed-all-year part on Oct 10 under the four tabs; another tab is a placeholder", async () => {
+  it("the fixture release (T23): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; Gear, Methods and Licence are placeholders in the same scroll", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={0} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
-    const regs = within(screen.getByTestId("regs-view"));
-    expect(regs.getAllByRole("tab").map((t) => t.textContent)).toEqual(["What you can keep", "Gear", "Methods", "Licence"]);
+    const header = screen.getByTestId("regs-header");
+    expect(within(header).getByRole("heading").textContent).toBe("Chilliwack River");
+    expect(within(header).getByRole("button", { name: "Change date, now Oct 10" }).textContent).toBe("Sat ▾Oct 10");
+    const tabs = within(screen.getByRole("tablist", { name: "Section" }));
+    expect(tabs.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]))
+      .toEqual([["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]]);
+    // the header is not in the scroll; the old frame's placeholder is gone
+    expect(screen.getByTestId("regs-scroll").contains(header)).toBe(false);
+    expect(screen.queryByRole("heading", { name: "Regulations are coming" })).toBeNull();
     expect(screen.getByTestId("keep-strip").textContent).toMatch(/^✕Closed/);
     expect(screen.getByTestId("keep-banner").textContent).toMatch(/^Closed all year/);
-    fireEvent.click(regs.getByRole("tab", { name: "Gear" }));
-    expect(screen.queryByTestId("keep-tab")).toBeNull();
-    expect(screen.getByTestId("regs-tab-pending").textContent).toBe(
-      "Gear: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.");
+    // one scroll: Keep, then the three sections T34/T35 will fill, each saying it is not in the app yet
+    expect(screen.getAllByTestId("regs-tab-pending").map((e) => e.textContent)).toEqual(["Gear", "Methods", "Licence"].map((t) =>
+      `${t}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`));
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence"]);
   }, 30_000);
 });

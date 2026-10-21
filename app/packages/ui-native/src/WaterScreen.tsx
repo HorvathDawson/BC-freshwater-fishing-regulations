@@ -7,9 +7,10 @@
  * the reach the reader tapped, not `sections[0]`.
  *
  * THE REGULATIONS (T21): the store answers for the tapped part on THE ONE DAY (`useRegsStore` → `useRegsTarget` →
- * `useRegulations` → `useRegsPage`, @app/ui), and `RegsView` draws the page: the "What you can keep" tab in full; Gear,
- * Methods and Licence hold a placeholder until T30–T35. With no release loader (the dev bundle holds no regulations) the
- * view keeps `RegulationsPlaceholder`.
+ * `useRegulations` → `useRegsPage`, @app/ui), and `RegsScreen` (T23/T29) draws the page: the water's header row and the
+ * regs header fixed above ONE scroll of the four tab sections, the pin bar over it. Gear, Methods and Licence hold a
+ * placeholder until T34/T35. With no release loader (the dev bundle holds no regulations), while the store loads, or
+ * when it cannot answer, the view keeps its old frame (the header row, the name, then the placeholder / spinner / why).
  *
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
@@ -25,7 +26,7 @@ import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { FishImages } from "./regs/types";
-import { RegsView } from "./regs/RegsView";
+import { RegsScreen, TabPending } from "./regs/RegsScreen";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
@@ -64,7 +65,8 @@ export function WaterScreen({ source, item, palette, onBack,
   const regs = useRegsPage(inputs.value ?? null, who, d.today);
   const regsError = store.error ?? found.error ?? inputs.error;
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
-  const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
+  const views = useContext(WaterViewsContext);
+  const swipe = views?.bodySwipe ?? null;
 
   if (sheet.state === "loading") {
     return (
@@ -87,6 +89,25 @@ export function WaterScreen({ source, item, palette, onBack,
 
   const s = sheet.value;
 
+  // THE REGULATIONS PAGE (T23): its own header fixed above ONE scroll (RegsScreen); the states below keep the old frame
+  if (loader && regs && !regsError) {
+    const label = (t: string) => regs.header.tabs.find((x) => x.tab === t)?.label ?? "";
+    return (
+      <RegsScreen page={regs} palette={palette} images={fishImages} day={day} onDay={(x) => onDay?.(x)} onBack={onBack}
+                  // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
+                  onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
+                  actions={{
+                    onSheet: () => {},                                   // the sheets are T36/T37
+                    onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
+                    onBook: (pdf) => { void Linking.openURL(bookUrl(pdf)); },
+                  }}
+                  // Gear / Methods / Licence: T34/T35 draw them; until then each says it is not in the app yet
+                  gear={<TabPending label={label("gear")} palette={palette} />}
+                  methods={<TabPending label={label("methods")} palette={palette} />}
+                  licence={<TabPending label={label("licence")} palette={palette} />} />
+    );
+  }
+
   const page = (
     <>
       {/* THE SAME INSETS AS THE CONDITIONS VIEW, so the header does not move when the view changes. */}
@@ -96,19 +117,11 @@ export function WaterScreen({ source, item, palette, onBack,
         <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
       </View>
       {/* No "Regulations" heading: the strip's selected view already says it. */}
-      {loader && regs && !regsError ? (
-        <RegsView page={regs} palette={palette} images={fishImages} actions={{
-          onSheet: () => {},                                   // the sheets are T36/T37
-          onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
-          onBook: (pdf) => { void Linking.openURL(bookUrl(pdf)); },
-        }} />
-      ) : (
-        <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 32 }}>
-          {!loader ? <RegulationsPlaceholder palette={palette} />
-            : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
-            : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
-        </View>
-      )}
+      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 32 }}>
+        {!loader ? <RegulationsPlaceholder palette={palette} />
+          : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
+          : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
+      </View>
     </>
   );
   return (

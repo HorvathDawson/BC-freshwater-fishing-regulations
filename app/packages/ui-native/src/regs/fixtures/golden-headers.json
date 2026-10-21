@@ -1,0 +1,4500 @@
+{
+ "anderson_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Anderson River",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "ape_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Ape Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "ape_501": {
+  "action": null,
+  "date": "May 1",
+  "dateAria": "Change date, now May 1",
+  "day": "Fri",
+  "dot": "open",
+  "name": "Ape Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "bc0_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Talchako River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Bella Coola River",
+  "place": {
+   "full": "From the mouth up to the Talchako River confluence",
+   "short": "Mouth → Talchako River confluence",
+   "shown": "From the mouth up to the Talchako River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "bc0_501": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Talchako River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "May 1",
+  "dateAria": "Change date, now May 1",
+  "day": "Fri",
+  "dot": "open",
+  "name": "Bella Coola River",
+  "place": {
+   "full": "From the mouth up to the Talchako River confluence",
+   "short": "Mouth → Talchako River confluence",
+   "shown": "From the mouth up to the Talchako River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "bc1_1010": {
+  "action": {
+   "aria": "Other parts — now 4 side channels, joining 55–59.1 km from the mouth",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Bella Coola River",
+  "place": {
+   "full": "4 side channels, joining 55–59.1 km from the mouth",
+   "short": "4 side channels",
+   "shown": "4 side channels, joining 55–59.1 km from the mouth"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "bc1_501": {
+  "action": {
+   "aria": "Other parts — now 4 side channels, joining 55–59.1 km from the mouth",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "May 1",
+  "dateAria": "Change date, now May 1",
+  "day": "Fri",
+  "dot": "open",
+  "name": "Bella Coola River",
+  "place": {
+   "full": "4 side channels, joining 55–59.1 km from the mouth",
+   "short": "4 side channels",
+   "shown": "4 side channels, joining 55–59.1 km from the mouth"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "chw0_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Chilliwack River",
+  "place": {
+   "full": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "short": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "shown": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "chw1_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Chilliwack River",
+  "place": {
+   "full": "From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge",
+   "short": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "shown": "From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "chw2_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the Tamihi Rapids Bridge up to the fishing boundary signs 100 m below the Slesse Creek confluence",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Chilliwack River",
+  "place": {
+   "full": "From the Tamihi Rapids Bridge up to the fishing boundary signs 100 m below the Slesse Creek confluence",
+   "short": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "shown": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "cow0_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the mouth up to the CNR Mile 66 Trestle",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Cowichan River",
+  "place": {
+   "full": "From the mouth up to the CNR Mile 66 Trestle",
+   "short": "Mouth → CNR Mile 66 Trestle",
+   "shown": "From the mouth up to the CNR Mile 66 Trestle"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "cow1_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the CNR Mile 66 Trestle up to the CNR Bridge (mile 70.2)",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Cowichan River",
+  "place": {
+   "full": "From the CNR Mile 66 Trestle up to the CNR Bridge (mile 70.2)",
+   "short": "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)",
+   "shown": "From the CNR Mile 66 Trestle up to the CNR Bridge (mile 70.2)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "cow2_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the CNR Bridge (mile 70.2) up to the Greendale Trestle",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Cowichan River",
+  "place": {
+   "full": "From the CNR Bridge (mile 70.2) up to the Greendale Trestle",
+   "short": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "shown": "From the CNR Bridge (mile 70.2) up to the Greendale Trestle"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "cow3_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, From the Greendale Trestle up to the Cowichan Lake outlet",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Cowichan River",
+  "place": {
+   "full": "From the Greendale Trestle up to the Cowichan Lake outlet",
+   "short": "Greendale Trestle → Cowichan Lake outlet",
+   "shown": "From the Greendale Trestle up to the Cowichan Lake outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "glenn_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Glenn Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "glenn_501": {
+  "action": null,
+  "date": "May 1",
+  "dateAria": "Change date, now May 1",
+  "day": "Fri",
+  "dot": "open",
+  "name": "Glenn Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "glenn_615": {
+  "action": null,
+  "date": "Jun 15",
+  "dateAria": "Change date, now Jun 15",
+  "day": "Mon",
+  "dot": "open",
+  "name": "Glenn Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "hamill_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Hamill Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "hamill_615": {
+  "action": null,
+  "date": "Jun 15",
+  "dateAria": "Change date, now Jun 15",
+  "day": "Mon",
+  "dot": "open",
+  "name": "Hamill Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "iron_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Iron River",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "iron_720": {
+  "action": null,
+  "date": "Jul 20",
+  "dateAria": "Change date, now Jul 20",
+  "day": "Mon",
+  "dot": "open",
+  "name": "Iron River",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "klmb_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, Kootenay Lake — Main Body",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay Lake — Main Body",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "kluwa_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, Kootenay Lake — Upper West Arm",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay Lake — Upper West Arm",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "klwa_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, Kootenay Lake — Lower West Arm",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay Lake — Lower West Arm",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "klwa_1012": {
+  "action": {
+   "aria": "View on map: where these rules apply, Kootenay Lake — Lower West Arm",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 12",
+  "dateAria": "Change date, now Oct 12",
+  "day": "Mon",
+  "dot": "open",
+  "name": "Kootenay Lake — Lower West Arm",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "vedder_1010": {
+  "action": {
+   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Vedder River",
+  "place": {
+   "full": "Mouth → Vedder Crossing Bridge",
+   "short": "Mouth → Vedder Crossing Bridge",
+   "shown": "Mouth → Vedder Crossing Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "vedder_515": {
+  "action": {
+   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "May 15",
+  "dateAria": "Change date, now May 15",
+  "day": "Fri",
+  "dot": "open",
+  "name": "Vedder River",
+  "place": {
+   "full": "Mouth → Vedder Crossing Bridge",
+   "short": "Mouth → Vedder Crossing Bridge",
+   "shown": "Mouth → Vedder Crossing Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "vedder_615": {
+  "action": {
+   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Jun 15",
+  "dateAria": "Change date, now Jun 15",
+  "day": "Mon",
+  "dot": "closed",
+  "name": "Vedder River",
+  "place": {
+   "full": "Mouth → Vedder Crossing Bridge",
+   "short": "Mouth → Vedder Crossing Bridge",
+   "shown": "Mouth → Vedder Crossing Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "wilkes_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Wilkes Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x10p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Drop Structure No. 1 up to the McIntyre Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Okanagan River",
+  "place": {
+   "full": "From the Drop Structure No. 1 up to the McIntyre Dam",
+   "short": "Drop Structure No. 1 → McIntyre Dam",
+   "shown": "From the Drop Structure No. 1 up to the McIntyre Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x10p1_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from the mouth up to the Drop Structure No. 1, and from the McIntyre Dam up to the Okanagan Lake outlet (through 2 lakes)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Okanagan River",
+  "place": {
+   "full": "Two stretches: from the mouth up to the Drop Structure No. 1, and from the McIntyre Dam up to the Okanagan Lake outlet (through 2 lakes)",
+   "short": "Mouth → Okanagan Lake outlet (2 stretches)",
+   "shown": "Mouth → Okanagan Lake outlet (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x11p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the access road adjacent to km 42 on the Bighorn up to the B.C. border",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Wigwam River",
+  "place": {
+   "full": "From the access road adjacent to km 42 on the Bighorn up to the B.C. border",
+   "short": "Access road adjacent to km 42 on the Bighorn → B.C. border",
+   "shown": "From the access road adjacent to km 42 on the Bighorn up to the B.C. border"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x11p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the access road adjacent to km 42 on the Bighorn",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Wigwam River",
+  "place": {
+   "full": "From the mouth up to the access road adjacent to km 42 on the Bighorn",
+   "short": "Mouth → Access road adjacent to km 42 on the Bighorn",
+   "shown": "From the mouth up to the access road adjacent to km 42 on the Bighorn"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x12p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Morley Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Iltasyuko River confluence up to the Anahim Lake outlet (through 1 lake)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Dean River",
+  "place": {
+   "full": "From the Iltasyuko River confluence up to the Anahim Lake outlet (through 1 lake)",
+   "short": "Iltasyuko River confluence → Anahim Lake outlet",
+   "shown": "From the Iltasyuko River confluence up to the Anahim Lake outlet (through 1 lake)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the signs ~3.5 km above the canyon (3500 m upstream) up to the Crag Creek confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Dean River",
+  "place": {
+   "full": "From the signs ~3.5 km above the canyon (3500 m upstream) up to the Crag Creek confluence",
+   "short": "~3.5 km above the canyon (3500 m upstream) → Crag Creek confluence",
+   "shown": "From the signs ~3.5 km above the canyon (3500 m upstream) up to the Crag Creek confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p2_1010": {
+  "action": {
+   "aria": "Other parts — now ~100 m below the canyon (100 m downstream) → ~0.5 km above the canyon (500 m upstream)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Dean River",
+  "place": {
+   "full": "~100 m below the canyon (100 m downstream) → ~0.5 km above the canyon (500 m upstream)",
+   "short": "~100 m below the canyon (100 m downstream) → ~0.5 km above the canyon (500 m upstream)",
+   "shown": "~100 m below the canyon (100 m downstream) → ~0.5 km above the canyon (500 m upstream)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p3_1010": {
+  "action": {
+   "aria": "Other parts — now From the signs ~0.5 km above the canyon (500 m upstream) up to the signs ~3.5 km above the canyon (3500 m upstream)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Dean River",
+  "place": {
+   "full": "From the signs ~0.5 km above the canyon (500 m upstream) up to the signs ~3.5 km above the canyon (3500 m upstream)",
+   "short": "~0.5 km above the canyon (500 m upstream) → ~3.5 km above the canyon (3500 m upstream)",
+   "shown": "~0.5 km above the canyon (500 m upstream) → ~3.5 km above the canyon (3500 m upstream)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p4_1010": {
+  "action": {
+   "aria": "Other parts — now From Anahim Lake up to the top of the river (through 31 lakes)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Dean River",
+  "place": {
+   "full": "From Anahim Lake up to the top of the river (through 31 lakes)",
+   "short": "Anahim Lake → Source",
+   "shown": "From Anahim Lake up to the top of the river (through 31 lakes)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x13p5_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the signs ~100 m below the canyon (100 m downstream)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Dean River",
+  "place": {
+   "full": "From the mouth up to the signs ~100 m below the canyon (100 m downstream)",
+   "short": "Mouth → ~100 m below the canyon (100 m downstream)",
+   "shown": "From the mouth up to the signs ~100 m below the canyon (100 m downstream)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x14p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Hwy 37 bridge up to the top of the river (through 1 lake)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kitimat River",
+  "place": {
+   "full": "From the Hwy 37 bridge up to the top of the river (through 1 lake)",
+   "short": "Hwy 37 bridge → Source",
+   "shown": "From the Hwy 37 bridge up to the top of the river (through 1 lake)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x14p1_1010": {
+  "action": {
+   "aria": "Other parts — now Mouth → Hwy 37 bridge (2 stretches)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kitimat River",
+  "place": {
+   "full": "Mouth → Hwy 37 bridge (2 stretches)",
+   "short": "Mouth → Hwy 37 bridge (2 stretches)",
+   "shown": "Mouth → Hwy 37 bridge (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x14p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the downstream sign at the Kitimat Hatchery outfall up to the upstream sign at the Kitimat Hatchery outfall",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kitimat River",
+  "place": {
+   "full": "From the downstream sign at the Kitimat Hatchery outfall up to the upstream sign at the Kitimat Hatchery outfall",
+   "short": "Downstream sign at the Kitimat Hatchery outfall → Upstream sign at the Kitimat Hatchery outfall",
+   "shown": "Downstream sign at the Kitimat Hatchery outfall → Upstream sign at the Kitimat Hatchery outfall"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p0_1010": {
+  "action": {
+   "aria": "Other parts — now From Region 5 boundary up to the top of the river (through 3 lakes)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From Region 5 boundary up to the top of the river (through 3 lakes)",
+   "short": "Region 5 boundary → Source",
+   "shown": "From Region 5 boundary up to the top of the river (through 3 lakes)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p11_1010": {
+  "action": {
+   "aria": "Other parts — now From the CNR bridge ~1km below Thompson up to the Thompson River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the CNR bridge ~1km below Thompson up to the Thompson River confluence",
+   "short": "CNR bridge ~1km below Thompson → Thompson River confluence",
+   "shown": "From the CNR bridge ~1km below Thompson up to the Thompson River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p12_1010": {
+  "action": {
+   "aria": "Other parts — now From BC Hydro's tail race outflow channel up to the Hwy 99 bridge at Lillooet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Fraser River",
+  "place": {
+   "full": "From BC Hydro's tail race outflow channel up to the Hwy 99 bridge at Lillooet",
+   "short": "BC Hydro's tail race outflow channel → Hwy 99 bridge at Lillooet",
+   "shown": "From BC Hydro's tail race outflow channel up to the Hwy 99 bridge at Lillooet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p13_1010": {
+  "action": {
+   "aria": "Other parts — now From the BC Railway up to the lower entrance of the fish ladder at Bridge River Rapids",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the BC Railway up to the lower entrance of the fish ladder at Bridge River Rapids",
+   "short": "BC Railway → Lower entrance of the fish ladder at Bridge River Rapids",
+   "shown": "From the BC Railway up to the lower entrance of the fish ladder at Bridge River Rapids"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p14_1010": {
+  "action": {
+   "aria": "Other parts — now From Region 5 boundary up to the China Gulch confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From Region 5 boundary up to the China Gulch confluence",
+   "short": "Region 5 boundary → China Gulch confluence",
+   "shown": "From Region 5 boundary up to the China Gulch confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p15_1010": {
+  "action": {
+   "aria": "Other parts — now From the China Gulch confluence up to Region 3 boundary",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the China Gulch confluence up to Region 3 boundary",
+   "short": "China Gulch confluence → Region 3 boundary",
+   "shown": "From the China Gulch confluence up to Region 3 boundary"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p16_1010": {
+  "action": {
+   "aria": "Other parts — now From the Chilcotin River confluence up to the Williams Lake River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the Chilcotin River confluence up to the Williams Lake River confluence",
+   "short": "Chilcotin River confluence → Williams Lake River confluence",
+   "shown": "From the Chilcotin River confluence up to the Williams Lake River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p17_1010": {
+  "action": {
+   "aria": "Other parts — now From Region 7A boundary up to the side channel above Marvin Creek",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From Region 7A boundary up to the side channel above Marvin Creek",
+   "short": "Region 7A boundary → Side channel above Marvin Creek",
+   "shown": "From Region 7A boundary up to the side channel above Marvin Creek"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p18_1010": {
+  "action": {
+   "aria": "Other parts — now From the side channel above Marvin Creek up to Region 5 boundary",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the side channel above Marvin Creek up to Region 5 boundary",
+   "short": "Side channel above Marvin Creek → Region 5 boundary",
+   "shown": "From the side channel above Marvin Creek up to Region 5 boundary"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the Williams Lake River confluence up to Region 7A boundary",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the Williams Lake River confluence up to Region 7A boundary",
+   "short": "Williams Lake River confluence → Region 7A boundary",
+   "shown": "From the Williams Lake River confluence up to Region 7A boundary"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p2_1010": {
+  "action": {
+   "aria": "Other parts — now 2 stretches",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "2 stretches",
+   "short": "2 stretches",
+   "shown": "2 stretches"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p3_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the CPR Bridge at Mission",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the mouth up to the CPR Bridge at Mission",
+   "short": "Mouth → CPR Bridge at Mission",
+   "shown": "From the mouth up to the CPR Bridge at Mission"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p4_1010": {
+  "action": {
+   "aria": "Other parts — now 3 stretches, including from the Thompson River confluence up to BC Hydro's tail race outflow channel",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "3 stretches, including from the Thompson River confluence up to BC Hydro's tail race outflow channel",
+   "short": "Thompson River confluence → Region 5 boundary (3 stretches)",
+   "shown": "3 stretches, including from the Thompson River confluence up to BC Hydro's tail race outflow channel"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p5_1010": {
+  "action": {
+   "aria": "Other parts — now From the fishing boundary signs 6500 m downstream of Boston Bar up to the CNR bridge ~1km below Thompson",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the fishing boundary signs 6500 m downstream of Boston Bar up to the CNR bridge ~1km below Thompson",
+   "short": "6500 m downstream of Boston Bar → CNR bridge ~1km below Thompson",
+   "shown": "6500 m downstream of Boston Bar → CNR bridge ~1km below Thompson"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p6_1010": {
+  "action": {
+   "aria": "Other parts — now From Region 3 boundary up to the Chilcotin River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From Region 3 boundary up to the Chilcotin River confluence",
+   "short": "Region 3 boundary → Chilcotin River confluence",
+   "shown": "From Region 3 boundary up to the Chilcotin River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p7_1010": {
+  "action": {
+   "aria": "Other parts — now Within Landstrom Bar sign zone",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Fraser River",
+  "place": {
+   "full": "Within Landstrom Bar sign zone",
+   "short": "Within Landstrom Bar sign zone",
+   "shown": "Within Landstrom Bar sign zone"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p8_1010": {
+  "action": {
+   "aria": "Other parts — now From the Spuzzum Creek confluence up to the signs 2800 m downstream of Hell's Gate",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fraser River",
+  "place": {
+   "full": "From the Spuzzum Creek confluence up to the signs 2800 m downstream of Hell's Gate",
+   "short": "Spuzzum Creek confluence → 2800 m downstream of Hell's Gate",
+   "shown": "From the Spuzzum Creek confluence up to the signs 2800 m downstream of Hell's Gate"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x15p9_1010": {
+  "action": {
+   "aria": "Other parts — now 2800 m downstream of Hell's Gate → Hell's Gate",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Fraser River",
+  "place": {
+   "full": "2800 m downstream of Hell's Gate → Hell's Gate",
+   "short": "2800 m downstream of Hell's Gate → Hell's Gate",
+   "shown": "2800 m downstream of Hell's Gate → Hell's Gate"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Strathcona Dam up to the Upper Campbell Lake outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "From the Strathcona Dam up to the Upper Campbell Lake outlet",
+   "short": "Strathcona Dam → Upper Campbell Lake outlet",
+   "shown": "From the Strathcona Dam up to the Upper Campbell Lake outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Upper Campbell Lake up to the top of the river (through 1 lake)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "From Upper Campbell Lake up to the top of the river (through 1 lake)",
+   "short": "Upper Campbell Lake → Source",
+   "shown": "From Upper Campbell Lake up to the top of the river (through 1 lake)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p2_1010": {
+  "action": {
+   "aria": "Other parts — now Side channel, joining 16.9 km from the mouth",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "Side channel, joining 16.9 km from the mouth",
+   "short": "Side channel",
+   "shown": "Side channel, joining 16.9 km from the mouth"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p3_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from the mouth up to the cement block boundary sign, and from the Maple Street boundary sign up to the power line ~200m up of Quinsam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "Two stretches: from the mouth up to the cement block boundary sign, and from the Maple Street boundary sign up to the power line ~200m up of Quinsam",
+   "short": "Mouth → Power line ~200m up of Quinsam (2 stretches)",
+   "shown": "Mouth → Power line ~200m up of Quinsam (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p4_1010": {
+  "action": {
+   "aria": "Other parts — now From John Hart Lake up to the Ladore Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "From John Hart Lake up to the Ladore Dam",
+   "short": "John Hart Lake → Ladore Dam",
+   "shown": "From John Hart Lake up to the Ladore Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p5_1010": {
+  "action": {
+   "aria": "Other parts — now From the cement block boundary sign up to the Maple Street boundary sign",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Campbell River",
+  "place": {
+   "full": "From the cement block boundary sign up to the Maple Street boundary sign",
+   "short": "Cement block boundary sign → Maple Street boundary sign",
+   "shown": "From the cement block boundary sign up to the Maple Street boundary sign"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p6_1010": {
+  "action": {
+   "aria": "Other parts — now From Campbell Lake up to the Strathcona Dam (100 m downstream)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "From Campbell Lake up to the Strathcona Dam (100 m downstream)",
+   "short": "Campbell Lake → Strathcona Dam (100 m downstream)",
+   "shown": "From Campbell Lake up to the Strathcona Dam (100 m downstream)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p7_1010": {
+  "action": {
+   "aria": "Other parts — now Strathcona Dam (100 m downstream) → Strathcona Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Campbell River",
+  "place": {
+   "full": "Strathcona Dam (100 m downstream) → Strathcona Dam",
+   "short": "Strathcona Dam (100 m downstream) → Strathcona Dam",
+   "shown": "Strathcona Dam (100 m downstream) → Strathcona Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x16p8_1010": {
+  "action": {
+   "aria": "Other parts — now From the power line ~200m up of Quinsam up to the Elk Falls",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Campbell River",
+  "place": {
+   "full": "From the power line ~200m up of Quinsam up to the Elk Falls",
+   "short": "Power line ~200m up of Quinsam → Elk Falls",
+   "shown": "From the power line ~200m up of Quinsam up to the Elk Falls"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Nilkitkwa River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From the mouth up to the Nilkitkwa River confluence",
+   "short": "Mouth → Nilkitkwa River confluence",
+   "shown": "From the mouth up to the Nilkitkwa River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Nilkitkwa Lake up to the Fort Babine Bridge",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From Nilkitkwa Lake up to the Fort Babine Bridge",
+   "short": "Nilkitkwa Lake → Fort Babine Bridge",
+   "shown": "From Nilkitkwa Lake up to the Fort Babine Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the Fort Babine Bridge up to the Babine Lake outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From the Fort Babine Bridge up to the Babine Lake outlet",
+   "short": "Fort Babine Bridge → Babine Lake outlet",
+   "shown": "From the Fort Babine Bridge up to the Babine Lake outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p3_1010": {
+  "action": {
+   "aria": "Other parts — now From the Nilkitkwa River confluence up to the Nichyeskwa Creek confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From the Nilkitkwa River confluence up to the Nichyeskwa Creek confluence",
+   "short": "Nilkitkwa River confluence → Nichyeskwa Creek confluence",
+   "shown": "From the Nilkitkwa River confluence up to the Nichyeskwa Creek confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p4_1010": {
+  "action": {
+   "aria": "Other parts — now From the Nichyeskwa Creek confluence up to the signs 80 m downstream of adult fish counting fence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From the Nichyeskwa Creek confluence up to the signs 80 m downstream of adult fish counting fence",
+   "short": "Nichyeskwa Creek confluence → 80 m downstream of adult fish counting fence",
+   "shown": "From the Nichyeskwa Creek confluence up to the signs 80 m downstream of adult fish counting fence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p5_1010": {
+  "action": {
+   "aria": "Other parts — now 80 m downstream of adult fish counting fence → Adult counting fence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Babine River",
+  "place": {
+   "full": "80 m downstream of adult fish counting fence → Adult counting fence",
+   "short": "80 m downstream of adult fish counting fence → Adult counting fence",
+   "shown": "80 m downstream of adult fish counting fence → Adult counting fence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x17p7_1010": {
+  "action": {
+   "aria": "Other parts — now From the fishing boundary signs 100 m upstream of adult fish counting fence up to the Nilkitkwa Lake outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Babine River",
+  "place": {
+   "full": "From the fishing boundary signs 100 m upstream of adult fish counting fence up to the Nilkitkwa Lake outlet",
+   "short": "100 m upstream of adult fish counting fence → Nilkitkwa Lake outlet",
+   "shown": "100 m upstream of adult fish counting fence → Nilkitkwa Lake outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Donald up to the Fairmont (through 1 lake)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "From the Donald up to the Fairmont (through 1 lake)",
+   "short": "Donald → Fairmont",
+   "shown": "From the Donald up to the Fairmont (through 1 lake)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Upper Arrow Lake up to the Hwy 1 bridge in Revelstoke",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "From Upper Arrow Lake up to the Hwy 1 bridge in Revelstoke",
+   "short": "Upper Arrow Lake → Hwy 1 bridge in Revelstoke",
+   "shown": "From Upper Arrow Lake up to the Hwy 1 bridge in Revelstoke"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the B.C. border up to the CPR Bridge, Robson",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "From the B.C. border up to the CPR Bridge, Robson",
+   "short": "B.C. border → CPR Bridge, Robson",
+   "shown": "From the B.C. border up to the CPR Bridge, Robson"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p3_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from Kinbasket Lake up to the Donald, and from the Fairmont up to the Columbia Lake outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "Two stretches: from Kinbasket Lake up to the Donald, and from the Fairmont up to the Columbia Lake outlet",
+   "short": "Kinbasket Lake → Columbia Lake outlet (2 stretches)",
+   "shown": "Two stretches: from Kinbasket Lake up to the Donald, and from the Fairmont up to the Columbia Lake outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p4_1010": {
+  "action": {
+   "aria": "Other parts — now From the CPR Bridge, Robson up to the old Robson Ferry landing ↔ south-bank sign",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "From the CPR Bridge, Robson up to the old Robson Ferry landing ↔ south-bank sign",
+   "short": "CPR Bridge, Robson → Old Robson Ferry landing ↔ south-bank sign",
+   "shown": "From the CPR Bridge, Robson up to the old Robson Ferry landing ↔ south-bank sign"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p5_1010": {
+  "action": {
+   "aria": "Other parts — now From the old Robson Ferry landing ↔ south-bank sign up to the Keenleyside Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Columbia River",
+  "place": {
+   "full": "From the old Robson Ferry landing ↔ south-bank sign up to the Keenleyside Dam",
+   "short": "Old Robson Ferry landing ↔ south-bank sign → Keenleyside Dam",
+   "shown": "From the old Robson Ferry landing ↔ south-bank sign up to the Keenleyside Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x18p6_1010": {
+  "action": {
+   "aria": "Other parts — now Hwy 1 bridge in Revelstoke → Revelstoke Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Columbia River",
+  "place": {
+   "full": "Hwy 1 bridge in Revelstoke → Revelstoke Dam",
+   "short": "Hwy 1 bridge in Revelstoke → Revelstoke Dam",
+   "shown": "Hwy 1 bridge in Revelstoke → Revelstoke Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p0_1010": {
+  "action": {
+   "aria": "Other parts — now 2 stretches (1)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "2 stretches (1)",
+   "short": "2 stretches (1)",
+   "shown": "2 stretches (1)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Skeena River Ecological Reserve boundary up to 1.5 km upstream of the Kitsumkalum River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "From Skeena River Ecological Reserve boundary up to 1.5 km upstream of the Kitsumkalum River confluence",
+   "short": "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence",
+   "shown": "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the Chimdemash Creek confluence up to the Cedarvale",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "From the Chimdemash Creek confluence up to the Cedarvale",
+   "short": "Chimdemash Creek confluence → Cedarvale",
+   "shown": "From the Chimdemash Creek confluence up to the Cedarvale"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p3_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from the Cedarvale up to the Sedan Creek confluence, and from the Shegunia River confluence up to the top of the river",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "Two stretches: from the Cedarvale up to the Sedan Creek confluence, and from the Shegunia River confluence up to the top of the river",
+   "short": "Cedarvale → Source (2 stretches)",
+   "shown": "Cedarvale → Source (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p4_1010": {
+  "action": {
+   "aria": "Other parts — now 2 stretches · Two stretches: from the Sedan Creek confluence up to Kispiox confluence sign zone boundary, and from Kispiox confluence sign zone boundary up to the Shegunia River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "2 stretches · Two stretches: from the Sedan Creek confluence up to Kispiox confluence sign zone boundary, and from Kispiox confluence sign zone boundary up to the Shegunia River confluence",
+   "short": "2 stretches · Two stretches: from the Sedan Creek confluence up to Kispiox confluence sign zone boundary, and from Kispiox confluence sign zone boundary up to the Shegunia River confluence",
+   "shown": "2 stretches · Two stretches: from the Sedan Creek confluence up to Kispiox confluence sign zone boundary, and from Kispiox confluence sign zone boundary up to the Shegunia River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p5_1010": {
+  "action": {
+   "aria": "Other parts — now Within Skeena River Ecological Reserve",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Skeena River",
+  "place": {
+   "full": "Within Skeena River Ecological Reserve",
+   "short": "Within Skeena River Ecological Reserve",
+   "shown": "Within Skeena River Ecological Reserve"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p6_1010": {
+  "action": {
+   "aria": "Other parts — now From 1.5 km upstream of the Zymoetz River confluence up to the Chimdemash Creek confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "From 1.5 km upstream of the Zymoetz River confluence up to the Chimdemash Creek confluence",
+   "short": "1.5 km upstream of the Zymoetz River confluence → Chimdemash Creek confluence",
+   "shown": "From 1.5 km upstream of the Zymoetz River confluence up to the Chimdemash Creek confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x19p7_1010": {
+  "action": {
+   "aria": "Other parts — now Within Kispiox confluence sign zone",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Skeena River",
+  "place": {
+   "full": "Within Kispiox confluence sign zone",
+   "short": "Within Kispiox confluence sign zone",
+   "shown": "Within Kispiox confluence sign zone"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x20p0_1010": {
+  "action": {
+   "aria": "Other parts — now 1 km downstream of Martel → Kamloops Lake outlet (2 stretches)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Thompson River",
+  "place": {
+   "full": "1 km downstream of Martel → Kamloops Lake outlet (2 stretches)",
+   "short": "1 km downstream of Martel → Kamloops Lake outlet (2 stretches)",
+   "shown": "1 km downstream of Martel → Kamloops Lake outlet (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x20p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Kamloops Lake up to the top of the river",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Thompson River",
+  "place": {
+   "full": "From Kamloops Lake up to the top of the river",
+   "short": "Kamloops Lake → Source",
+   "shown": "From Kamloops Lake up to the top of the river"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x20p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the boundary signs 1 km downstream of Martel",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Thompson River",
+  "place": {
+   "full": "From the mouth up to the boundary signs 1 km downstream of Martel",
+   "short": "Mouth → 1 km downstream of Martel",
+   "shown": "From the mouth up to the boundary signs 1 km downstream of Martel"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x20p3_1010": {
+  "action": {
+   "aria": "Other parts — now From the CNR bridge above Bonaparte River up to the CNR bridge below Deadman River",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Thompson River",
+  "place": {
+   "full": "From the CNR bridge above Bonaparte River up to the CNR bridge below Deadman River",
+   "short": "CNR bridge above Bonaparte River → CNR bridge below Deadman River",
+   "shown": "From the CNR bridge above Bonaparte River up to the CNR bridge below Deadman River"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x21p0_1010": {
+  "action": {
+   "aria": "Other parts — now 4 stretches, including from the Elko Dam up to the bridge at Morrissey",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Elk River",
+  "place": {
+   "full": "4 stretches, including from the Elko Dam up to the bridge at Morrissey",
+   "short": "Elko Dam → Lower Elk Lake outlet (4 stretches)",
+   "shown": "4 stretches, including from the Elko Dam up to the bridge at Morrissey"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x21p1_1010": {
+  "action": {
+   "aria": "Other parts — now 3 stretches, including from the bridge at Morrissey up to the northern Hwy 3 bridge at Fernie",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Elk River",
+  "place": {
+   "full": "3 stretches, including from the bridge at Morrissey up to the northern Hwy 3 bridge at Fernie",
+   "short": "Bridge at Morrissey → Forsyth Creek confluence (3 stretches)",
+   "shown": "3 stretches, including from the bridge at Morrissey up to the northern Hwy 3 bridge at Fernie"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x21p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Elko Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Elk River",
+  "place": {
+   "full": "From the mouth up to the Elko Dam",
+   "short": "Mouth → Elko Dam",
+   "shown": "From the mouth up to the Elko Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x22p0_1010": {
+  "action": {
+   "aria": "Other parts — now 2 stretches",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Peace River",
+  "place": {
+   "full": "2 stretches",
+   "short": "2 stretches",
+   "shown": "2 stretches"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x22p1_1010": {
+  "action": {
+   "aria": "Other parts — now Site C dam → Hwy. 29 bridge (2 stretches)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Peace River",
+  "place": {
+   "full": "Site C dam → Hwy. 29 bridge (2 stretches)",
+   "short": "Site C dam → Hwy. 29 bridge (2 stretches)",
+   "shown": "Site C dam → Hwy. 29 bridge (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x22p2_1010": {
+  "action": {
+   "aria": "Other parts — now Within Clayhurst Ecological Reserve",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Peace River",
+  "place": {
+   "full": "Within Clayhurst Ecological Reserve",
+   "short": "Within Clayhurst Ecological Reserve",
+   "shown": "Within Clayhurst Ecological Reserve"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x22p3_1010": {
+  "action": {
+   "aria": "Other parts — now From 5 km downstream of the Halfway River confluence up to 5 km upstream of the Halfway River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Peace River",
+  "place": {
+   "full": "From 5 km downstream of the Halfway River confluence up to 5 km upstream of the Halfway River confluence",
+   "short": "5 km downstream of the Halfway River confluence → 5 km upstream of the Halfway River confluence",
+   "shown": "5 km downstream of the Halfway River confluence → 5 km upstream of the Halfway River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x22p6_1010": {
+  "action": {
+   "aria": "Other parts — now From Dinosaur Lake up to the Williston Lake — Zone B outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Peace River",
+  "place": {
+   "full": "From Dinosaur Lake up to the Williston Lake — Zone B outlet",
+   "short": "Dinosaur Lake → Williston Lake — Zone B outlet",
+   "shown": "From Dinosaur Lake up to the Williston Lake — Zone B outlet"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x23p0_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from the mouth up to the Cariboo Dam, and from the Salamander Creek → Brunette River up to the Burnaby Lake outlet",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Brunette River",
+  "place": {
+   "full": "Two stretches: from the mouth up to the Cariboo Dam, and from the Salamander Creek → Brunette River up to the Burnaby Lake outlet",
+   "short": "Mouth → Burnaby Lake outlet (2 stretches)",
+   "shown": "Mouth → Burnaby Lake outlet (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x23p1_1010": {
+  "action": {
+   "aria": "Other parts — now Cariboo Dam → Salamander Creek → Brunette River",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Brunette River",
+  "place": {
+   "full": "Cariboo Dam → Salamander Creek → Brunette River",
+   "short": "Cariboo Dam → Salamander Creek → Brunette River",
+   "shown": "Cariboo Dam → Salamander Creek → Brunette River"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x25p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Lois Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x26p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Tenas Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x27p0_1010": {
+  "action": {
+   "aria": "Other parts — now 3 stretches, including from Region 5 boundary up to the side channel above Charleson Creek",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "West Road (Blackwater) River",
+  "place": {
+   "full": "3 stretches, including from Region 5 boundary up to the side channel above Charleson Creek",
+   "short": "Region 5 boundary → Source (3 stretches)",
+   "shown": "3 stretches, including from Region 5 boundary up to the side channel above Charleson Creek"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x27p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Region 6 boundary up to the side channel below Carnlick Creek",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "West Road (Blackwater) River",
+  "place": {
+   "full": "From Region 6 boundary up to the side channel below Carnlick Creek",
+   "short": "Region 6 boundary → Side channel below Carnlick Creek",
+   "shown": "From Region 6 boundary up to the side channel below Carnlick Creek"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x27p2_1010": {
+  "action": {
+   "aria": "Other parts — now Two stretches: from the mouth up to Region 5 boundary, and from the side channel above Charleson Creek up to Region 7A boundary",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "West Road (Blackwater) River",
+  "place": {
+   "full": "Two stretches: from the mouth up to Region 5 boundary, and from the side channel above Charleson Creek up to Region 7A boundary",
+   "short": "Mouth → Region 7A boundary (2 stretches)",
+   "shown": "Mouth → Region 7A boundary (2 stretches)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x2p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Okanagan Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x30p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Teslin Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x31p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "faint",
+  "name": "Nitinat Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x32p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Koch Creek falls",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Koch Creek",
+  "place": {
+   "full": "From the mouth up to the Koch Creek falls",
+   "short": "Mouth → Koch Creek falls",
+   "shown": "From the mouth up to the Koch Creek falls"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x32p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the Koch Creek falls up to the top of the river",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Koch Creek",
+  "place": {
+   "full": "From the Koch Creek falls up to the top of the river",
+   "short": "Koch Creek falls → Source",
+   "shown": "From the Koch Creek falls up to the top of the river"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x34p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Wahleach Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x35p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Bennett Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x37p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the Lougheed Highway Bridge up to a lake outlet (through 2 lakes)",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Coquitlam River",
+  "place": {
+   "full": "From the Lougheed Highway Bridge up to a lake outlet (through 2 lakes)",
+   "short": "Lougheed Highway Bridge → A lake outlet",
+   "shown": "From the Lougheed Highway Bridge up to a lake outlet (through 2 lakes)"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x37p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Mary Hill Bypass Bridge",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Coquitlam River",
+  "place": {
+   "full": "From the mouth up to the Mary Hill Bypass Bridge",
+   "short": "Mouth → Mary Hill Bypass Bridge",
+   "shown": "From the mouth up to the Mary Hill Bypass Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x37p2_1010": {
+  "action": {
+   "aria": "Other parts — now From the Mary Hill Bypass Bridge up to the Lougheed Highway Bridge",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Coquitlam River",
+  "place": {
+   "full": "From the Mary Hill Bypass Bridge up to the Lougheed Highway Bridge",
+   "short": "Mary Hill Bypass Bridge → Lougheed Highway Bridge",
+   "shown": "From the Mary Hill Bypass Bridge up to the Lougheed Highway Bridge"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x3p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Atlin Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x41p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Schooler Creek",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x4p_1010": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Shuswap Lake",
+  "place": null,
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x5p0_1010": {
+  "action": {
+   "aria": "Other parts — now Josephine Falls → Source",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Fording River",
+  "place": {
+   "full": "Josephine Falls → Source",
+   "short": "Josephine Falls → Source",
+   "shown": "Josephine Falls → Source"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x5p1_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Josephine Falls",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Fording River",
+  "place": {
+   "full": "From the mouth up to the Josephine Falls",
+   "short": "Mouth → Josephine Falls",
+   "shown": "From the mouth up to the Josephine Falls"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p0_1010": {
+  "action": {
+   "aria": "Other parts — now From the B.C. border up to the Koocanusa Reservoir upstream end",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From the B.C. border up to the Koocanusa Reservoir upstream end",
+   "short": "B.C. border → Koocanusa Reservoir upstream end",
+   "shown": "From the B.C. border up to the Koocanusa Reservoir upstream end"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p1_1010": {
+  "action": {
+   "aria": "Other parts — now From Lake Koocanusa up to the White River confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From Lake Koocanusa up to the White River confluence",
+   "short": "Lake Koocanusa → White River confluence",
+   "shown": "From Lake Koocanusa up to the White River confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p2_1010": {
+  "action": {
+   "aria": "Other parts — now Within Kootenay National Park of Canada",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "closed",
+  "name": "Kootenay River",
+  "place": {
+   "full": "Within Kootenay National Park of Canada",
+   "short": "Within Kootenay National Park of Canada",
+   "shown": "Within Kootenay National Park of Canada"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p3_1010": {
+  "action": {
+   "aria": "Other parts — now From the CPR up to the Old Kootenay River Channel confluence",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From the CPR up to the Old Kootenay River Channel confluence",
+   "short": "CPR → Old Kootenay River Channel confluence",
+   "shown": "From the CPR up to the Old Kootenay River Channel confluence"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p4_1010": {
+  "action": {
+   "aria": "Other parts — now From the Brilliant Dam up to the Corra Linn Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From the Brilliant Dam up to the Corra Linn Dam",
+   "short": "Brilliant Dam → Corra Linn Dam",
+   "shown": "From the Brilliant Dam up to the Corra Linn Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p5_1010": {
+  "action": {
+   "aria": "Other parts — now 2 stretches",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "2 stretches",
+   "short": "2 stretches",
+   "shown": "2 stretches"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p6_1010": {
+  "action": {
+   "aria": "Other parts — now From the mouth up to the Brilliant Dam",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From the mouth up to the Brilliant Dam",
+   "short": "Mouth → Brilliant Dam",
+   "shown": "From the mouth up to the Brilliant Dam"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ },
+ "x9p8_1010": {
+  "action": {
+   "aria": "Other parts — now From the Old Kootenay River Channel confluence up to the Idaho border",
+   "kind": "parts",
+   "label": "Parts"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "day": "Today",
+  "dot": "open",
+  "name": "Kootenay River",
+  "place": {
+   "full": "From the Old Kootenay River Channel confluence up to the Idaho border",
+   "short": "Old Kootenay River Channel confluence → Idaho border",
+   "shown": "From the Old Kootenay River Channel confluence up to the Idaho border"
+  },
+  "tabs": [
+   {
+    "sec": "keep",
+    "text": "What you can keep"
+   },
+   {
+    "sec": "gear",
+    "text": "Gear"
+   },
+   {
+    "sec": "methods",
+    "text": "Methods"
+   },
+   {
+    "sec": "licence",
+    "text": "Licence"
+   }
+  ]
+ }
+}
