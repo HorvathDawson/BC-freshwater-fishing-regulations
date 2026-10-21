@@ -116,6 +116,7 @@
        }
       ],
       "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
+      "stamps": [],
       "status": "closed",
       "whose": [
        {
@@ -211,6 +212,7 @@
            "GB",
            "LT"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -252,6 +254,7 @@
           "species": [
            "DV"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          }
@@ -322,6 +325,7 @@
           "species": [
            "CT"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -363,6 +367,7 @@
           "species": [
            "RB"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          }

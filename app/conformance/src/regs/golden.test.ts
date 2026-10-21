@@ -240,7 +240,8 @@ describe("T12 summary", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
-      + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)");   // (T21) the whole Keep tab
+      + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)"   // (T21) the whole Keep tab
+      + " · lines /^You need (White Sturgeon Conservation Licence|Conservation Surcharge Stamp for Kootenay Lake rainbow trout) ›/ dropped from ^lines$ in 14 states (the pipeline ships stamps on Other fish rows)");
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });

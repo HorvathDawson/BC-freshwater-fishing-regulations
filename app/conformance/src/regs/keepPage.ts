@@ -8,7 +8,7 @@
 import { plain, WORDS, type BannerVM, type CaveatVM, type Day, type GroupVM, type KeepBlock, type KeepVM, type PlainRowVM } from "@app/core";
 import { fmtDay } from "@app/core";
 import { norm } from "./eq";
-import { headProj, nodeLines, notKeptProj, originProj, otherProj } from "./keepGroups";
+import { headProj, nodeLines, notKeptLines, originProj, otherProj } from "./keepGroups";
 
 /** A KeepBlock → the golden `keep.order` selector (the ticket's map; a caveat by its kind and heat). */
 export function selectorOf(b: KeepBlock, keep: KeepVM): string {
@@ -57,10 +57,7 @@ export function groupLines(g: GroupVM): string[] {
   if (o) out.push(...o.lines);
   if (g.year) out.push(join(g.year.label, g.year.says));
   out.push(...(g.tree ?? []).flatMap(nodeLines));
-  for (const r of g.notKept) {
-    const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];
-    out.push(p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]));
-  }
+  for (const r of g.notKept) out.push(...notKeptLines(r));
   if (g.worked) out.push(g.worked.label, ...(g.worked.says ? [norm(g.worked.says)] : []), ...g.worked.lines.map((l) => join(l.q, l.a)));
   const q = g.quiet ? norm(plain(g.quiet)) : null;
   if (q) out.push(q);

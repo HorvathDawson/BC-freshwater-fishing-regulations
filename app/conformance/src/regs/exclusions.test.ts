@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
 import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
-         YEAR_WINDOW_IDS, YEAR_WINDOW_LINE } from "./exclusions";
+         YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
 const G = golden(), T = taps();
@@ -42,7 +42,7 @@ describe("EXCLUDE", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "keep 1 ^plainRows\\.0$"]);
+        "keep 1 ^plainRows\\.0$", "keep 14 ^lines$"]);
   });
 });
 
@@ -91,10 +91,11 @@ describe("(T17–T19 review) dropped golden lines", () => {
 });
 
 describe("(T21) the whole Keep tab", () => {
-  it("the 19 states whose keep.lines carry a stamp line (8 in a group, the rest under an Other fish row); the D19 row", () => {
-    expect(KEEP_STAMP_LINE_IDS.length).toBe(19);
-    for (const id of STAMP_LINE_IDS) expect(KEEP_STAMP_LINE_IDS, id).toContain(id);
-    expect(droppedLines("keep", "vedder_1010", "lines")).toEqual([STAMP_LINE]);
+  it("the 14 states whose keep.lines carry an OTHER FISH stamp line (group stamps are drawn since rows 31); the D19 row", () => {
+    expect(KEEP_STAMP_LINE_IDS.length).toBe(14);
+    expect(droppedLines("keep", "vedder_1010", "lines")).toEqual([OTHER_FISH_STAMP_LINE]);
+    // a group's stamp line is never dropped: the 8 group-stamp states keep "You need … Steelhead/Shuswap" compared
+    expect(OTHER_FISH_STAMP_LINE.test("You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead")).toBe(false);
     expect(droppedLines("keep", "glenn_501", "lines")).toEqual([]);   // (T21 review) the .gyear line is drawn
     expect(EXCLUDE.some((x) => x.lines === YEAR_WINDOW_LINE)).toBe(false);
     expect(droppedLines("keep", "cow1_1010", "lines")).toEqual([]);

@@ -55,16 +55,24 @@ export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; lines?: RegExp; reason: string; until?: string }
 
 /** The states whose golden Keep tab (`keep.lines`, any block — a group's kind, Other fish) carries a stamp line. */
+/** The prototype's stamp lines under OTHER FISH rows (no group draws them): the pipeline ships `stamps` on a group's kinds
+ *  and not-kept fish since rows 31, not on Other fish rows yet. Measured on the golden: only these two documents. */
+export const OTHER_FISH_STAMP_LINE = /^You need (White Sturgeon Conservation Licence|Conservation Surcharge Stamp for Kootenay Lake rainbow trout) ›/;
+/** The states whose golden Keep tab (`keep.lines`) carries an Other fish stamp line. */
 export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().states)
-  .filter(([, s]) => ((s.keep as { lines?: string[] } | null)?.lines ?? []).some((l) => STAMP_LINE.test(l))).map(([id]) => id);
+  .filter(([, s]) => ((s.keep as { lines?: string[] } | null)?.lines ?? []).some((l) => OTHER_FISH_STAMP_LINE.test(l))).map(([id]) => id);
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
-/** (T21) the whole Keep tab: the D19 row (stamp lines are the store's `stamps` since rows 31, drawn and compared). */
+/** (T21) the whole Keep tab: the Other fish rows' stamp lines (pending in the pipeline), and the D19 row. */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
     reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
     until: "D19 (a): the pipeline ships a group for that row" },
+  ...(KEEP_STAMP_LINE_IDS.length ? [{
+    block: "keep" as const, ids: KEEP_STAMP_LINE_IDS, key: /^lines$/, lines: OTHER_FISH_STAMP_LINE,
+    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line under an OTHER FISH row ('You need White Sturgeon Conservation Licence › only if …') — rows 31 ships `stamps` on a group's kinds and not-kept fish (drawn and compared), not on Other fish rows yet. Every other line of the tab is compared",
+    until: "the pipeline ships stamps on Other fish rows" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [

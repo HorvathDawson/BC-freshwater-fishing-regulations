@@ -108,6 +108,7 @@
       ],
       "presence": null,
       "says": "Rainbow trout and cutthroat trout: release every one",
+      "stamps": [],
       "status": "release",
       "whose": [
        {
@@ -184,6 +185,7 @@
            "EB",
            "GB"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -233,6 +235,7 @@
            "DV",
            "LT"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -314,6 +317,7 @@
           "species": [
            "ST"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          }

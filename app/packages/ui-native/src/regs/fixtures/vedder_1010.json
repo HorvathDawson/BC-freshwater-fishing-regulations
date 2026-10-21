@@ -154,6 +154,7 @@
            "GB",
            "CT"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -203,6 +204,7 @@
            "DV",
            "LT"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          },
@@ -284,6 +286,7 @@
           "species": [
            "ST"
           ],
+          "stamps": [],
           "t": "kind",
           "zero": false
          }
@@ -377,6 +380,7 @@
         "species": [
          "RB"
         ],
+        "stamps": [],
         "t": "kind",
         "zero": false
        }

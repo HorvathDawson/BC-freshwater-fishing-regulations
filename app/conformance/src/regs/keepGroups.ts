@@ -131,16 +131,20 @@ export function nodeLines(x: TreeNodeVM): string[] {
  * line; a released fish's licence-document lines under it). Read off the same VMs the field projections read; the draw
  * order and which parts share a line are what it proves.
  */
+/** One not-kept row's drawn lines: its sentence, whose line (+ presence and pictures), then its stamps (rows 31). Shared by
+ *  the group and the whole-tab projections so they cannot drift apart. */
+export function notKeptLines(r: NotKeptVM): string[] {
+  const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];
+  return [p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]), ...r.stamps.map((l) => nl(l)!)];
+}
+
 export function groupLinesProj(gr: KeepGroup, tot: "a" | "b" = "a"): string[] {
   const h = groupHeadProj(gr, tot), t = tailProj(gr), out: string[] = [...h.headLines.map((l) => norm(l))];
   if (h.origin) out.push(...h.origin.lines);
   const y = yearWindowOf(gr.ctx.row, gr.ctx.inp, gr.ctx.card.ctx.day, plainRowSeams(gr.ctx.inp, FISH));
   if (y) out.push(join(y.label, y.says));
   out.push(...(treeOf(gr.env) ?? []).flatMap(nodeLines));
-  for (const r of notKeptOf(gr.ctx.g, gr.env)) {
-    const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];
-    out.push(p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]), ...r.stamps.map((l) => nl(l)!));
-  }
+  for (const r of notKeptOf(gr.ctx.g, gr.env)) out.push(...notKeptLines(r));
   const w = workedOf(gr.ctx.row, gr.ctx.g);
   if (w) out.push(w.label, ...(w.says ? [norm(w.says)] : []), ...w.lines.map((l) => join(l.q, l.a)));
   if (t.quiet) out.push(t.quiet);

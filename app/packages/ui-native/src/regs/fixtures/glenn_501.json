@@ -101,6 +101,7 @@
       ],
       "presence": null,
       "says": "Dolly Varden/bull trout: release every one",
+      "stamps": [],
       "status": "release",
       "whose": [
        {
@@ -189,6 +190,7 @@
          "CT",
          "LT"
         ],
+        "stamps": [],
         "t": "kind",
         "zero": false
        }
@@ -245,6 +247,7 @@
         "species": [
          "RB"
         ],
+        "stamps": [],
         "t": "kind",
         "zero": false
        }
