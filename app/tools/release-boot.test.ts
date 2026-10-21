@@ -12,7 +12,9 @@
  *   native (Tier 1, an in-memory disk)   first run installs every file with progress; an offline launch opens the held
  *                                        set; a newer release downloads only its changed files, in the background, and
  *                                        is used — and the old set pruned — at the next launch. A tile-only release
- *                                        (same data_release) is an update too, and its old tile folder is pruned; a new
+ *                                        (same data_release) is an update too, and its old tile folder is pruned; a tile
+ *                                        rebuild that keeps its assets id still gets the assets folder under the new
+ *                                        tile version (copied from the held one); a new
  *                                        set that will not open is rolled back to the one it replaced; a launch killed
  *                                        right after the swap still prunes.
  *   the Vedder (Tier 2, the live release: RELEASE_DIR=data/release/r-…)
@@ -310,6 +312,38 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
         `release/tiles/${v1}/map-assets-2/${SPRITE}`,
       ]);
       expect(tileFiles(fs, v1)).toContain(`release/tiles/${v1}/atlas-${v1}.pmtiles`);
+    });
+
+  it("a TILE REBUILD that keeps its assets id still makes the assets folder whole under the new tile version",
+    async () => {
+      // every tile rebuild is this: new tiles, same map-assets-1, which lives under the tile version's folder
+      const r1 = buildFixtureRelease(null);
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb");
+      const body = { [GLYPHS]: "glyphs", [SPRITE]: "png" };
+      const at1 = withTiles(r1, v1, { id: "map-assets-1", body });
+      const at2 = withTiles(r1, v2, { id: "map-assets-1", body });
+      const fs = memFs(), log: string[] = [];
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
+                                                       wasmBase: "", platform: phone(fs), fetch: f,
+                                                       manifestTimeoutMs: 1000 });
+      await boot(releaseFetch(BASE, at1, []));
+      const second = await boot(releaseFetch(BASE, at2, log));
+      const next = await second.update;
+      expect(next).toMatchObject({ tiles: v2, assets: "map-assets-1" });
+      // the new tile folder has the assets before the swap: the list is fetched, the files copied from the held folder
+      expect(assetFiles(fs, v2, "map-assets-1")).toEqual([
+        `release/tiles/${v2}/map-assets-1/assets.json`,
+        `release/tiles/${v2}/map-assets-1/${GLYPHS}`,
+        `release/tiles/${v2}/map-assets-1/${SPRITE}`,
+      ]);
+      expect(log.filter((u) => u.includes("map-assets-1"))).toEqual([`${BASE}tiles/${v2}/map-assets-1/assets.json`]);
+
+      const third = await boot(offline);
+      expect(third.held.tiles).toBe(v2);
+      expect(releaseTiles(third, DEV_TILES).assets).toBe(`file:///doc/release/tiles/${v2}/map-assets-1/`);
+      expect(new TextDecoder().decode(fs.files.get(`release/tiles/${v2}/map-assets-1/${GLYPHS}`))).toBe("glyphs");
+      // the old tile version, its assets with it, is pruned
+      expect(assetFiles(fs, v1, "map-assets-1")).toEqual([]);
     });
 
   it("an update whose assets are not the manifest's is refused before the swap: the held set stays in force",
