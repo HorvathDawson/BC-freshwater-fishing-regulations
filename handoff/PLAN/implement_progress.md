@@ -83,6 +83,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- OWNER 2026-10-21: satellite imagery is too low-res (today EOX Sentinel-2 cloudless 2016, 10 m) -> research +
+  verification of higher-res sources (licence, cost, offline) -> OWNER PICKS; and allow OVERZOOM past the pmtiles
+  max (camera max up, every source keeps its own maxzoom). Workflow satellite-and-overzoom RUNNING.
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
   OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +
   standing; audit other Map-vs-Conditions divergences), and colours must update from a NEW FEED ALONE (no tile
