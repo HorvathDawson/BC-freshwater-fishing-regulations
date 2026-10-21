@@ -10,10 +10,11 @@ still open. Nothing here is a plan.
 325 tests, `pnpm check` green (boundaries → platform → style → spinner → fixture → deps →
 typecheck → test).
 
-**Conditions.** One implementation: `ConditionsPanel`, rendered by `ConditionsScreen` and
-reached one way — by tapping a reach on the Conditions tab. The rules sheet does not render
-conditions at all; its `FaceBar` toggle navigates. Both screens show the same header row
-(back link, then the two face buttons) in the same place.
+**Conditions.** One implementation: `ConditionsPanel`, rendered only by the water screen's
+Conditions view (`WaterConditions`). One water screen, whichever map you tapped (owner rule
+2026-10-21): a tap on the Conditions map and on the Map tab both go through `@app/ui`
+`openWater`/`openTap` and open the same frame, differing only in the view in front; back leaves
+the water for the map it was tapped on. An unnamed reach opens on its Conditions view alone.
 
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is

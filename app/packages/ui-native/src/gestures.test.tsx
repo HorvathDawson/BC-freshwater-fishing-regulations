@@ -92,7 +92,7 @@ const on = (view: "regs" | "conditions" | "map"): Route =>
 
 function Views({ start }: { start: Route }) {
   const [route, go] = useRoute(start);
-  const swipe = useViewSwipe(route, go, () => {});
+  const swipe = useViewSwipe(route, go);
   const f = waterFrame(route);
   return (
     <GestureHandlerRootView>
@@ -202,7 +202,7 @@ describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the sec
 
 function BrowseProbe() {
   const [route, go] = useRoute(HOME);
-  const swipe = useViewSwipe(route, go, () => {});
+  const swipe = useViewSwipe(route, go);
   return <ViewSwipe swipe={swipe}><Text>{`mode ${route.mode}`}</Text></ViewSwipe>;
 }
 

@@ -67,18 +67,17 @@ function app(b: ReturnType<typeof browser>) {
 }
 
 describe("backDepth: how many backs the route holds, counted by the reducer that pops it", () => {
-  it("browse root 0; a drill 1; a water on a drill 2; its map view 3; a water flowed into 4", () => {
+  it("browse root 0; a water tapped on the Conditions map 1; its map view still 1 (views are lateral); a flow 2", () => {
+    const tap: RouteAction[] = [{ type: "tab", tab: "conditions" },
+                                { type: "openWater", item: VEDDER, tapSid: 5 as never, view: "conditions" }];
     const rows: [string, RouteAction[]][] = [
       ["root", []],
-      ["drill", [{ type: "condSection", section: 5 as never }]],
-      ["water", [{ type: "condSection", section: 5 as never }, { type: "openWater", item: VEDDER }]],
-      ["map", [{ type: "condSection", section: 5 as never }, { type: "openWater", item: VEDDER },
-               { type: "view", view: "map" }]],
-      ["flow", [{ type: "condSection", section: 5 as never }, { type: "openWater", item: VEDDER },
-                { type: "view", view: "map" }, { type: "flowInto", item: FRASER, part: 0 }]],
+      ["water", tap],
+      ["map", [...tap, { type: "view", view: "map" }]],
+      ["flow", [...tap, { type: "view", view: "map" }, { type: "flowInto", item: FRASER, part: 0 }]],
     ];
     expect(rows.map(([k, as]) => [k, backDepth(as.reduce(reduce, HOME as Route))]))
-      .toEqual([["root", 0], ["drill", 1], ["water", 2], ["map", 3], ["flow", 4]]);
+      .toEqual([["root", 0], ["water", 1], ["map", 1], ["flow", 2]]);
   });
 
   it("search's eye is one back (the browser's back returns to search); a water opened there, two", () => {
@@ -99,7 +98,7 @@ describe("one back from each input pops exactly one frame", () => {
     expect(a.back()).toBe(true);
     b.flush();
     expect({ frames: a.frames(), pops: a.pops, history: b.state })
-      .toEqual({ frames: [`${VEDDER}/map`], pops: 1, history: { entries: [null, 1, 2, 3], at: 2, left: false } });
+      .toEqual({ frames: [`${VEDDER}/map`], pops: 1, history: { entries: [null, 1, 2], at: 1, left: false } });
   });
 
   it("the browser's back button", () => {
@@ -107,7 +106,7 @@ describe("one back from each input pops exactly one frame", () => {
     a.go(...deep);
     b.userBack();
     expect({ frames: a.frames(), pops: a.pops, history: b.state })
-      .toEqual({ frames: [`${VEDDER}/map`], pops: 1, history: { entries: [null, 1, 2, 3], at: 2, left: false } });
+      .toEqual({ frames: [`${VEDDER}/map`], pops: 1, history: { entries: [null, 1, 2], at: 1, left: false } });
   });
 
   it("at the browse root back pops nothing and says so (Android then leaves the app)", () => {
@@ -127,28 +126,27 @@ describe("the browser's history stays in step with the route", () => {
     b.userBack(); seen.push({ frames: a.frames(), history: b.state });
     a.back(); b.flush(); seen.push({ frames: a.frames(), history: b.state });
     b.userBack(); seen.push({ frames: a.frames(), history: b.state });
-    b.userBack(); seen.push({ frames: a.frames(), history: b.state });
     expect(seen).toEqual([
       { frames: [`${VEDDER}/map`, `${FRASER}/regs`, `${HARRISON}/regs`],
-        history: { entries: [null, 1, 2, 3, 4], at: 4, left: false } },
-      { frames: [`${VEDDER}/map`, `${FRASER}/regs`], history: { entries: [null, 1, 2, 3, 4], at: 3, left: false } },
-      { frames: [`${VEDDER}/map`], history: { entries: [null, 1, 2, 3, 4], at: 2, left: false } },
-      { frames: [`${VEDDER}/regs`], history: { entries: [null, 1, 2, 3, 4], at: 1, left: false } },
-      { frames: ["browse:map"], history: { entries: [null, 1, 2, 3, 4], at: 0, left: false } },
+        history: { entries: [null, 1, 2, 3], at: 3, left: false } },
+      { frames: [`${VEDDER}/map`, `${FRASER}/regs`], history: { entries: [null, 1, 2, 3], at: 2, left: false } },
+      // the views are lateral: back from the first water's map view leaves the water
+      { frames: [`${VEDDER}/map`], history: { entries: [null, 1, 2, 3], at: 1, left: false } },
+      { frames: ["browse:map"], history: { entries: [null, 1, 2, 3], at: 0, left: false } },
       // back at the root is the browser's: it leaves the app, and the route is not asked
-      { frames: ["browse:map"], history: { entries: [null, 1, 2, 3, 4], at: 0, left: true } },
+      { frames: ["browse:map"], history: { entries: [null, 1, 2, 3], at: 0, left: true } },
     ]);
-    expect(a.pops).toBe(4);
+    expect(a.pops).toBe(3);
   });
 
   it("a push while the ‹'s traversal is still in flight waits for it (no entry removed by the late traversal)", () => {
     const b = browser(); const a = app(b);
-    a.go({ type: "openWater", item: VEDDER }, { type: "view", view: "map" });
-    a.back();                                      // go(-1) queued, not yet traversed
-    a.go({ type: "view", view: "conditions" });    // depth back to 2 before the popstate
+    a.go({ type: "openWater", item: VEDDER }, { type: "flowInto", item: FRASER, part: 0 });
+    a.back();                                                // go(-1) queued, not yet traversed
+    a.go({ type: "flowInto", item: HARRISON, part: 1 });    // depth back to 2 before the popstate
     b.flush();
     expect({ frames: a.frames(), history: b.state })
-      .toEqual({ frames: [`${VEDDER}/conditions`], history: { entries: [null, 1, 2], at: 2, left: false } });
+      .toEqual({ frames: [`${VEDDER}/regs`, `${HARRISON}/regs`], history: { entries: [null, 1, 2], at: 2, left: false } });
     b.userBack();
     expect({ frames: a.frames(), history: b.state, pops: a.pops })
       .toEqual({ frames: [`${VEDDER}/regs`], history: { entries: [null, 1, 2], at: 1, left: false }, pops: 2 });
@@ -156,7 +154,7 @@ describe("the browser's history stays in step with the route", () => {
 
   it("a tab change that drops two steps drops two entries in one traversal", () => {
     const b = browser(); const a = app(b);
-    a.go({ type: "condSection", section: 9 as never }, { type: "addSpot" });
+    a.go({ type: "tab", tab: "search" }, { type: "show", item: VEDDER }, { type: "addSpot" });
     const d = backDepth(a.route);
     a.go({ type: "tab", tab: "map" });
     b.flush();
@@ -166,7 +164,7 @@ describe("the browser's history stays in step with the route", () => {
 
   it("the browser's forward is refused: a popped frame is gone, so history returns to where the route is", () => {
     const b = browser(); const a = app(b);
-    a.go({ type: "openWater", item: VEDDER }, { type: "view", view: "map" });
+    a.go({ type: "openWater", item: VEDDER }, { type: "flowInto", item: FRASER, part: 0 });
     b.userBack();
     b.userForward();
     expect({ frames: a.frames(), history: b.state, pops: a.pops })
@@ -175,7 +173,7 @@ describe("the browser's history stays in step with the route", () => {
 
   it("the browser going back two entries at once pops two frames", () => {
     const b = browser(); const a = app(b);
-    a.go({ type: "openWater", item: VEDDER }, { type: "view", view: "map" });
+    a.go({ type: "openWater", item: VEDDER }, { type: "flowInto", item: FRASER, part: 0 });
     b.port.go(-2); b.flush();
     expect({ frames: a.frames(), history: b.state, pops: a.pops })
       .toEqual({ frames: ["browse:map"], history: { entries: [null, 1, 2], at: 0, left: false }, pops: 2 });
@@ -210,7 +208,8 @@ describe("a view swipe moves between a water's views, Regulations · Conditions 
   const water = (view: "regs" | "map" | "conditions"): Route =>
     ({ mode: "water", from: HOME, stack: [{ item: VEDDER, part: 2, tapSid: null, at: null, view }] });
   const AT = { lat: 49.1, lon: -121.9 };
-  const reach: Route = { ...HOME, tab: "conditions", cond: { section: 77 as SectionId, at: AT } };
+  const reach: Route = { mode: "water", from: { ...HOME, tab: "conditions" },
+                         stack: [{ item: null, part: null, tapSid: 77 as SectionId, at: AT, view: "conditions" }] };
 
   it("finger left is the view to the right; nothing past either end; the part never moves", () => {
     const rows: [string, Route, "next" | "prev"][] = [
@@ -225,15 +224,13 @@ describe("a view swipe moves between a water's views, Regulations · Conditions 
     ]);
   });
 
-  it("a Conditions-tab reach: finger right opens its regulations (with the tap); nothing else in browse", () => {
+  it("an unnamed reach offers Conditions alone: nothing either way; nothing anywhere in browse", () => {
     const rows: [string, Route, "next" | "prev"][] = [
       ["reach prev", reach, "prev"], ["reach next", reach, "next"],
       ["conditions map", { ...HOME, tab: "conditions" }, "prev"], ["browse map", HOME, "prev"],
-      ["reach under a spot", { ...reach, spot: "s1" }, "prev"], ["adding", { ...reach, adding: true }, "prev"],
     ];
     expect(rows.map(([k, r, s]) => [k, viewSwipeAction(r, s)])).toEqual([
-      ["reach prev", { type: "regulations", section: 77, at: AT }], ["reach next", null],
-      ["conditions map", null], ["browse map", null], ["reach under a spot", null], ["adding", null],
+      ["reach prev", null], ["reach next", null], ["conditions map", null], ["browse map", null],
     ]);
   });
 });

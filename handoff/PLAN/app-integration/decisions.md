@@ -46,6 +46,12 @@ Regulations). "That should be impossible" to diverge: both maps' taps call ONE f
 openWater(item, tapSid, at, view)); the browse-mode Conditions reach panel is folded into the water screen's
 Conditions view (no second Conditions screen); a test pins that the same tap from either map yields routes that are
 equal except `view`. Applies to search's open action and saved spots too where they open a water.
+IMPLEMENTED (one-water-screen workflow, 2026-10-21): `@app/ui` openWater.ts (`openWater`/`openTap`/`useOpenWater`) is the
+only builder of an openWater action and the only caller of `itemForSection`; `ConditionsScreen` and the browse `cond`
+drill are gone (the panel is drawn only by `WaterConditions`). Two consequences for the owner to confirm: (1) BACK IS
+LATERAL — back from any view leaves the water (to the map it was tapped on), no longer Map/Conditions -> Regulations
+first; (2) an UNNAMED reach (no registry item; ~90k of 108k gauged sections) opens from the Conditions map as a frame
+with `item: null` offering Conditions only; from the Map tab it opens nothing (no page of rules), as before.
 
 ## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY, from Esri World Imagery
 The satellite basemap is shown only when the device is online; it is never packaged or cached for offline use. Offline,

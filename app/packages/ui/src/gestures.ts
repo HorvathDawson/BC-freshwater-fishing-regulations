@@ -9,17 +9,16 @@
  *   historySync   keeps the browser's history and the route in step: one history entry per back step the route holds,
  *                 so the browser's back pops exactly one frame and the ‹ button never leaves a stranded entry.
  *   useViewSwipe  a sideways swipe on a water → `{type: "view"}` on the neighbouring view (Regulations · Conditions ·
- *                 Map); on a Conditions-tab reach, toward Regulations → that water's regulations.
+ *                 Map), among the views its frame offers.
  *   useEdgeBack / useSheetDrag   the thresholds a drag is measured against, for the components that only measure.
  *
  * No react-native here (layers.json): the platform glue — `BackHandler`, `window.history` — lives in the app shell and
  * reaches this file as a `SystemBack`, and the gesture recognisers are `@app/ui-native`'s.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { EDGE_BACK, WATER_VIEWS, classifySwipe, edgeBackCommits, edgeBackEnabled, edgeBackStarts, follow, sheetDismiss,
+import { EDGE_BACK, classifySwipe, edgeBackCommits, edgeBackEnabled, edgeBackStarts, follow, sheetDismiss,
          stepView, viewSwipeStarts, type SwipeStep, type WaterView } from "@app/core";
-import type { SectionId } from "@app/data";
-import { reduce, type LatLon, type Route, type RouteAction, type View } from "./route";
+import { frameViews, reduce, type Route, type RouteAction, type View } from "./route";
 
 const BACK: RouteAction = { type: "back" };
 
@@ -244,37 +243,27 @@ export function useSheetDrag(onClose: () => void): SheetDrag {
   }), [onClose]);
 }
 
-/** The views a Conditions-tab reach offers: it IS that reach's conditions, and one step left is its regulations. */
-export const REACH_VIEWS: readonly WaterView[] = ["regs", "conditions"];
-
-/** Where a view swipe goes: a view of the water on screen, or — from a Conditions-tab reach — that water's rules. */
-export type ViewSwipeTarget = RouteAction | { type: "regulations"; section: SectionId; at: LatLon | null };
-
-/** The view on screen, and the views on offer, or null where a swipe means nothing (browse, other than a reach). */
+/** The view on screen, and the views its frame offers, or null where a swipe means nothing (browse). */
 const viewHere = (route: Route): { at: View; within: readonly WaterView[] } | null => {
-  if (route.mode === "water") return { at: route.stack[route.stack.length - 1]!.view, within: WATER_VIEWS };
-  if (route.tab === "conditions" && route.cond !== null && route.spot === null && !route.adding)
-    return { at: "conditions", within: REACH_VIEWS };
-  return null;
+  if (route.mode !== "water") return null;
+  const f = route.stack[route.stack.length - 1]!;
+  return { at: f.view, within: frameViews(f) };
 };
 
 /**
- * The target of a finished sideways swipe, or null. In water mode: the neighbouring view in the strip's order
- * (`@app/core` `WATER_VIEWS`), finger left = the view to the right; nothing past either end. On a Conditions-tab reach
- * (a browse state, APP-PREP §0 rule 6): finger right = that reach's regulations, the same as its Regulations action.
+ * The target of a finished sideways swipe, or null: the neighbouring view in the strip's order (`@app/core`
+ * `WATER_VIEWS`), finger left = the view to the right; nothing past either end, and nothing in browse (a tap on either
+ * map opens the water screen itself — there is no browse-mode reach to swipe from).
  */
-export function viewSwipeAction(route: Route, step: SwipeStep): ViewSwipeTarget | null {
+export function viewSwipeAction(route: Route, step: SwipeStep): RouteAction | null {
   const here = viewHere(route);
   if (here === null) return null;
   const to = stepView(here.at, step, here.within);
-  if (to === null) return null;
-  if (route.mode === "water") return { type: "view", view: to };
-  const cond = route.cond!;
-  return to === "regs" ? { type: "regulations", section: cond.section, at: cond.at } : null;
+  return to === null ? null : { type: "view", view: to };
 }
 
 export interface ViewSwipe {
-  /** False where there is nothing to move between (browse, other than a Conditions reach). */
+  /** False where there is nothing to move between (browse, or a frame with one view). */
   enabled: boolean;
   starts(x: number, width: number): boolean;
   /** Where the view sits for a finger `dx` px along: with it toward a neighbour, held back toward an end. */
@@ -283,19 +272,15 @@ export interface ViewSwipe {
   release(dx: number, dy: number, vx: number): SwipeStep | null;
 }
 
-/**
- * The view swipe's measurements. `toRegulations` opens a reach's water (the Shell resolves its item — the same
- * resolution as its Regulations action, so the swipe and the button cannot open two different waters).
- */
-export function useViewSwipe(route: Route, go: (a: RouteAction) => void,
-                             toRegulations: (section: SectionId, at: LatLon | null) => void): ViewSwipe {
+/** The view swipe's measurements. */
+export function useViewSwipe(route: Route, go: (a: RouteAction) => void): ViewSwipe {
   const latest = useRef(route);
   latest.current = route;
   const here = viewHere(route);
   const at = here?.at ?? null;
   const within = here?.within ?? null;
   return useMemo(() => ({
-    enabled: at !== null,
+    enabled: at !== null && within !== null && within.length > 1,
     starts: viewSwipeStarts,
     offset: (dx: number) =>
       follow(dx, at !== null && within !== null && stepView(at, dx < 0 ? "next" : "prev", within) !== null),
@@ -304,9 +289,8 @@ export function useViewSwipe(route: Route, go: (a: RouteAction) => void,
       if (step === null) return null;
       const t = viewSwipeAction(latest.current, step);
       if (t === null) return null;
-      if (t.type === "regulations") toRegulations(t.section, t.at);
-      else go(t);
+      go(t);
       return step;
     },
-  }), [at, within, go, toRegulations]);
+  }), [at, within, go]);
 }

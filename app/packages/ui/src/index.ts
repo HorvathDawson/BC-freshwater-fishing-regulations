@@ -23,6 +23,7 @@ export * from "./capture";
 export * from "./photos";
 export * from "./leadUp";
 export * from "./route";
+export * from "./openWater";
 export * from "./mapModes";
 export * from "./release";
 export * from "./boot";

@@ -6,20 +6,28 @@
  *   browse   the four tabs (Map · Search · Conditions · Spots), the bottom bar shown.
  *   water    one water latched (APP-PREP §0): a STACK of frames, each a water at a part and a view (regs · map ·
  *            conditions). The bottom bar is hidden. `from` is the browse state underneath, kept whole, so leaving
- *            restores the tab, the Conditions drill and the open spot exactly. The map camera is not here (it would
+ *            restores the tab (the Conditions map or the Map tab) and the open spot exactly. The camera is not here (it would
  *            re-render on every pan): the Shell keeps it in a ref and restores it on the last back.
  *
  * THE VIEWS ARE ONE STRIP (owner 2026-10-21): Regulations · Conditions · Map (`@app/core` `WATER_VIEWS`), moved between by
  * the strip and the sideways swipe (`viewSwipeAction`). A frame keeps the point the reader tapped (`tapSid`, `at`), so
- * the Conditions view of a water opened from a Conditions reach is that reach, "you are here" and all.
+ * every view of a water opened by a tap is about that point — the Conditions view is that reach, "you are here" and all.
  *
- * ONE BACK RULE: in water mode, a map or conditions view goes back to the regs; the regs of a water the reader flowed
- * into go back to the previous water; the regs of the first water leave water mode. In browse mode back closes what is
- * open on the tab (a spot being added, a spot, a Conditions section), returns a water search's eye SHOWED on the map
- * to search, and otherwise stays.
+ * ONE WATER SCREEN, WHICHEVER MAP YOU TAPPED (owner rule 2026-10-21): a tap on the Conditions map and a tap on the Map
+ * tab open the SAME frame — same water, same part, same section, same point — differing only in `view`. There is no
+ * second Conditions screen in browse mode (the old `cond` drill is gone): the Conditions view of the water screen IS
+ * the reach panel. Every water is opened by `openWater` (openWater.ts), the one place a tap's item is resolved.
+ *
+ * AN UNNAMED REACH (no registry item: most gauged reaches) has no regulations page of its own, so its frame has
+ * `item: null` and offers the Conditions view only (`frameViews`); the reducer refuses any other view for it.
+ *
+ * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
+ * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,
+ * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot),
+ * returns a water search's eye SHOWED on the map to search, and otherwise stays.
  */
 import { useReducer } from "react";
-import type { WaterView } from "@app/core";
+import { WATER_VIEWS, type WaterView } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 
 export type BrowseTab = "map" | "search" | "conditions" | "spots";
@@ -28,10 +36,15 @@ export type SpotId = string;
 /** Where on a reach a Conditions tap landed: the "you are here" end of its route map. */
 export interface LatLon { lat: number; lon: number }
 
-/** `at`: where on `tapSid` the tap landed (a Conditions reach's "you are here"), null when not tapped there. */
-export interface WaterFrame { item: ItemId; part: number | null; tapSid: SectionId | null; at: LatLon | null; view: View }
+/**
+ * One water on screen. `item` null: an unnamed reach (then `tapSid` is set and `view` is "conditions"). `at`: where on
+ * `tapSid` the tap landed (the Conditions view's "you are here"), null when not tapped there.
+ */
+export interface WaterFrame {
+  item: ItemId | null; part: number | null; tapSid: SectionId | null; at: LatLon | null; view: View;
+}
 export interface BrowseRoute {
-  mode: "browse"; tab: BrowseTab; cond: { section: SectionId; at: LatLon | null } | null;
+  mode: "browse"; tab: BrowseTab;
   spot: SpotId | null; adding: boolean;
   /**
    * A water SHOWN on the main map by search's eye — framed and lit there, the bar still up. Back returns to search
@@ -44,8 +57,12 @@ export type Route = BrowseRoute | WaterRoute;
 
 export type RouteAction =
   | { type: "tab"; tab: BrowseTab }
-  /** `at`: where on `tapSid` the tap landed — kept only with a `tapSid`. */
-  | { type: "openWater"; item: ItemId; tapSid?: SectionId; part?: number; at?: LatLon | null }
+  /**
+   * Built ONLY by `openWater` (openWater.ts). `at`: where on `tapSid` the tap landed — kept only with a `tapSid`.
+   * `view`: the view in front ("regs" when absent). `item` null: an unnamed reach, opened on Conditions only.
+   */
+  | { type: "openWater"; item: ItemId | null; tapSid?: SectionId | null; part?: number | null; at?: LatLon | null;
+      view?: View }
   /** Search's eye: show this water on the main map, and come back to search on back. */
   | { type: "show"; item: ItemId }
   | { type: "view"; view: View }
@@ -53,53 +70,67 @@ export type RouteAction =
   | { type: "flowInto"; item: ItemId; part: number }
   | { type: "back" }
   | { type: "openSpot"; id: SpotId }
-  | { type: "addSpot" }
-  | { type: "condSection"; section: SectionId; at?: LatLon | null };
+  | { type: "addSpot" };
 
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */
 export const STACK_CAP = 8;
 
-export const HOME: BrowseRoute = { mode: "browse", tab: "map", cond: null, spot: null, adding: false, shown: null };
+export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: false, shown: null };
+
+/** The views a frame offers: all three for a water; an unnamed reach has no regulations or water map, only Conditions. */
+export const REACH_ONLY: readonly WaterView[] = ["conditions"];
+export function frameViews(f: Pick<WaterFrame, "item">): readonly WaterView[] {
+  return f.item === null ? REACH_ONLY : WATER_VIEWS;
+}
 
 const top = (r: WaterRoute): WaterFrame => r.stack[r.stack.length - 1]!;
 const withTop = (r: WaterRoute, f: Partial<WaterFrame>): WaterRoute =>
   ({ ...r, stack: [...r.stack.slice(0, -1), { ...top(r), ...f }] });
 const push = (r: WaterRoute, f: WaterFrame): WaterRoute => ({ ...r, stack: [...r.stack, f].slice(-STACK_CAP) });
 
-const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame =>
-  ({ item: a.item, part: a.part ?? null, tapSid: a.tapSid ?? null, at: a.tapSid !== undefined ? a.at ?? null : null,
-     view: "regs" });
+/** THE ONE FRAME BUILDER (an open and a flow alike); null for a frame that cannot be (an unnamed reach off Conditions). */
+const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | null => {
+  const tapSid = a.tapSid ?? null;
+  const f: WaterFrame = { item: a.item, part: a.part ?? null, tapSid, at: tapSid !== null ? a.at ?? null : null,
+                          view: a.view ?? "regs" };
+  if (f.item === null && tapSid === null) return null;
+  return frameViews(f).includes(f.view) ? f : null;
+};
 
 export function reduce(r: Route, a: RouteAction): Route {
   if (r.mode === "browse") {
     switch (a.type) {
-      case "tab": return { mode: "browse", tab: a.tab, cond: null, spot: null, adding: false, shown: null };
-      case "show": return { mode: "browse", tab: "map", cond: null, spot: null, adding: false, shown: a.item };
-      case "openWater":
-        return { mode: "water", from: r,
-                 stack: [opened(a)] };
+      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: false, shown: null };
+      case "show": return { mode: "browse", tab: "map", spot: null, adding: false, shown: a.item };
+      case "openWater": {
+        const f = opened(a);
+        return f === null ? r : { mode: "water", from: r, stack: [f] };
+      }
       case "openSpot": return { ...r, tab: "spots", spot: a.id, adding: false };
       case "addSpot": return { ...r, adding: true, spot: null };
-      case "condSection": return { ...r, tab: "conditions", cond: { section: a.section, at: a.at ?? null } };
       case "back":
         if (r.adding) return { ...r, adding: false };
         if (r.spot !== null) return { ...r, spot: null };
-        if (r.cond !== null) return { ...r, cond: null };
         if (r.shown !== null) return { ...r, tab: "search", shown: null };
         return r;
       default: return r;            // view / part / flowInto mean nothing without a water
     }
   }
   switch (a.type) {
-    case "view": return withTop(r, { view: a.view });
-    case "part": return withTop(r, { part: a.part });
-    case "flowInto": return push(r, { item: a.item, part: a.part, tapSid: null, at: null, view: "regs" });
-    case "openWater": return push(r, opened(a));
-    case "back":
-      if (top(r).view !== "regs") return withTop(r, { view: "regs" });
+    case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view }) : r;
+    case "part": return top(r).item === null ? r : withTop(r, { part: a.part });
+    case "flowInto": {
+      const f = opened({ type: "openWater", item: a.item, part: a.part });
+      return f === null ? r : push(r, f);
+    }
+    case "openWater": {
+      const f = opened(a);
+      return f === null ? r : push(r, f);
+    }
+    case "back":                    // the views are lateral: back leaves the water, whatever view is in front
       if (r.stack.length > 1) return { ...r, stack: r.stack.slice(0, -1) };
       return r.from;
-    default: return r;              // a tab, a spot or a Conditions drill is impossible: there is no bar
+    default: return r;              // a tab or a spot is impossible: there is no bar
   }
 }
 

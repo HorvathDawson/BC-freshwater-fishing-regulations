@@ -13,7 +13,7 @@ import { BackLayerContext, historySync, useBack, useBackLayer, type Back, type H
 import { useRoute, type Route, type RouteAction } from "./route";
 
 afterEach(cleanup);
-const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId;
+const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
 
 function browser() {
   const entries: (number | null)[] = [null];
@@ -57,7 +57,7 @@ describe("useBack, mounted", () => {
     const a = androidBack();
     const out: Parameters<typeof Probe>[0]["out"] = {};
     render(<Probe system={a.system} out={out} />);
-    act(() => { out.go!({ type: "openWater", item: VEDDER }); out.go!({ type: "view", view: "map" }); });
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); out.go!({ type: "flowInto", item: FRASER, part: 0 }); });
     const seen = [a.press(), frames(out.r!), a.press(), frames(out.r!), a.press(), frames(out.r!)];
     expect(seen).toEqual([true, [`${VEDDER}/regs`], true, ["browse:map"], false, ["browse:map"]]);
   });
@@ -72,6 +72,7 @@ describe("useBack, mounted", () => {
       out.go!({ type: "view", view: "map" });
       out.go!({ type: "flowInto", item: FRASER, part: 1 });
       out.go!({ type: "view", view: "conditions" });
+      out.go!({ type: "flowInto", item: HARRISON, part: 0 });
     });
     const seen: unknown[] = [{ frames: frames(out.r!), depth: out.b!.depth, history: b.state() }];
     act(() => { out.b!.back(); }); b.flush();                       // ‹
@@ -80,14 +81,13 @@ describe("useBack, mounted", () => {
     seen.push({ frames: frames(out.r!), depth: out.b!.depth, history: b.state() });
     act(() => { out.b!.back(); }); b.flush();                       // ‹
     seen.push({ frames: frames(out.r!), depth: out.b!.depth, history: b.state() });
-    b.userBack();                                                    // the browser's back, out of water mode
-    seen.push({ frames: frames(out.r!), depth: out.b!.depth, history: b.state() });
     expect(seen).toEqual([
-      { frames: [`${VEDDER}/map`, `${FRASER}/conditions`], depth: 4, history: { entries: [null, 1, 2, 3, 4], at: 4 } },
-      { frames: [`${VEDDER}/map`, `${FRASER}/regs`], depth: 3, history: { entries: [null, 1, 2, 3, 4], at: 3 } },
-      { frames: [`${VEDDER}/map`], depth: 2, history: { entries: [null, 1, 2, 3, 4], at: 2 } },
-      { frames: [`${VEDDER}/regs`], depth: 1, history: { entries: [null, 1, 2, 3, 4], at: 1 } },
-      { frames: ["browse:map"], depth: 0, history: { entries: [null, 1, 2, 3, 4], at: 0 } },
+      { frames: [`${VEDDER}/map`, `${FRASER}/conditions`, `${HARRISON}/regs`], depth: 3,
+        history: { entries: [null, 1, 2, 3], at: 3 } },
+      { frames: [`${VEDDER}/map`, `${FRASER}/conditions`], depth: 2, history: { entries: [null, 1, 2, 3], at: 2 } },
+      // the views are lateral: back leaves a water whatever view is in front
+      { frames: [`${VEDDER}/map`], depth: 1, history: { entries: [null, 1, 2, 3], at: 1 } },
+      { frames: ["browse:map"], depth: 0, history: { entries: [null, 1, 2, 3], at: 0 } },
     ]);
   });
 
@@ -96,11 +96,11 @@ describe("useBack, mounted", () => {
     const system: SystemBack = (back) => historySync(b.port, back);
     const out: Parameters<typeof Probe>[0]["out"] = {};
     render(<Probe system={system} out={out} />);
-    act(() => { out.go!({ type: "openWater", item: VEDDER }); out.go!({ type: "view", view: "map" }); });
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); out.go!({ type: "flowInto", item: FRASER, part: 0 }); });
     b.userBack();
-    act(() => { out.go!({ type: "view", view: "conditions" }); });
+    act(() => { out.go!({ type: "flowInto", item: HARRISON, part: 0 }); });
     expect({ frames: frames(out.r!), history: b.state() })
-      .toEqual({ frames: [`${VEDDER}/conditions`], history: { entries: [null, 1, 2], at: 2 } });
+      .toEqual({ frames: [`${VEDDER}/regs`, `${HARRISON}/regs`], history: { entries: [null, 1, 2], at: 2 } });
   });
 });
 
@@ -162,12 +162,12 @@ describe("an open sheet: back closes it first, on every platform", () => {
     act(() => { out.setOpen!(true); });
     act(() => { out.setOpen!(false); }); b.flush();               // Done
     const closed = look(out, b);
-    act(() => { out.go!({ type: "view", view: "map" }); });      // a push afterwards reuses the dropped entry's slot
+    act(() => { out.go!({ type: "flowInto", item: FRASER, part: 0 }); });   // a push reuses the dropped entry's slot
     const pushed = look(out, b);
     b.userBack();
     expect([closed, pushed, look(out, b)]).toEqual([
       { frames: [`${VEDDER}/regs`], sheet: false, depth: 1, history: { entries: [null, 1, 2], at: 1 } },
-      { frames: [`${VEDDER}/map`], sheet: false, depth: 2, history: { entries: [null, 1, 2], at: 2 } },
+      { frames: [`${VEDDER}/regs`, `${FRASER}/regs`], sheet: false, depth: 2, history: { entries: [null, 1, 2], at: 2 } },
       { frames: [`${VEDDER}/regs`], sheet: false, depth: 1, history: { entries: [null, 1, 2], at: 1 } },
     ]);
   });
