@@ -1,8 +1,14 @@
 /**
  * P11: START-UP OVER THE RELEASE — the function App.tsx runs (`bootRelease`), driven over a real release.
  *
- *   web (Tier 1, the fixture release)    a cold start fetches the manifest and paint, and NOTHING else, before the
- *                                        first coloured map; the first tap adds core; never a dev-path file.
+ *   web (Tier 1, the fixture release)    `bootRelease` and the map's status fetch the manifest and paint, and NOTHING
+ *                                        else; the first tap adds core; never a dev-path file. This does NOT mount the
+ *                                        Shell. Of what the Shell reads on the map tab, the counts wait for a screen that
+ *                                        shows them (`ui/src/datafacts.render.test.tsx`); the flow standings
+ *                                        (`usePanelStandings`) do NOT wait — once the map reports its visible sections
+ *                                        and the feed is up they open flow-area, core and conditions. So "manifest +
+ *                                        paint only" holds up to the first viewport report, not past it (unmeasured in
+ *                                        a mounted Shell).
  *   native (Tier 1, an in-memory disk)   first run installs every file with progress; an offline launch opens the held
  *                                        set; a newer release downloads only its changed files, in the background, and
  *                                        is used — and the old set pruned — at the next launch. A tile-only release

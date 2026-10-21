@@ -101,10 +101,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * These five figures used to arrive as props from `App.tsx`, hardcoded from the design
    * mock: 255 waters, 6,967 reaches, 35 surveyed lakes, 5 stations and a fixed timestamp.
    * The bundle the app actually opens holds 19,699 waters and 2,324 stations. A screen may
-   * not assert a fact about the data it is sitting on; it asks.
+   * not assert a fact about the data it is sitting on; it asks — when a screen that shows them is up (P11: on the
+   * release the counts open core, which a cold start does not fetch before the first map). Read below, by `factsWanted`.
    */
-  const facts = useDataFacts(source, feed);
-  const counts = facts.state === "ready" ? facts.value.counts : null;
   /*
    * THE ROUTE (P13): what is on screen is ONE value, moved by one reducer (`@app/ui` route.ts). The tab, the water
    * open, the spot, the add flow and the Conditions drill are read from it; every way of moving dispatches to it.
@@ -133,6 +132,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const [picked, setPicked] = useState<ItemId | null>(null);
   const pickFocus = usePickFocus(source, picked);
   const [layersOpen, setLayersOpen] = useState(false);
+  // the figures are drawn by the search screen (its total) and the layers sheet (reaches, stations, age)
+  const factsWanted = tab === "search" || layersOpen;
+  const facts = useDataFacts(source, feed, factsWanted);
+  const counts = facts.state === "ready" ? facts.value.counts : null;
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
   const [edit, setEdit] = useState<{ title: string; notes: string } | null>(null);

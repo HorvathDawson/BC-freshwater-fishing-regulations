@@ -37,8 +37,12 @@ function wrap(db: Database): Db {
 
 export function releaseOpener(at: OpenAt): Opener {
   return async (_name, bytes) => {
-    if (!engine || engine.base !== at.wasmBase)
-      engine = { base: at.wasmBase, sql: initSqlJs({ locateFile: (f: string) => `${at.wasmBase}${f}` }) };
+    if (!engine || engine.base !== at.wasmBase) {
+      const mine = { base: at.wasmBase, sql: initSqlJs({ locateFile: (f: string) => `${at.wasmBase}${f}` }) };
+      // a failed load (the wasm is a network fetch) is NOT kept: the next open loads the engine again
+      mine.sql.catch(() => { if (engine === mine) engine = null; });
+      engine = mine;
+    }
     const [SQL, b] = await Promise.all([engine.sql, bytes()]);
     return wrap(new SQL.Database(b));
   };
