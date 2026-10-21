@@ -181,7 +181,9 @@ export interface CaveatItemVM { readonly what: Line; readonly where: string | nu
 export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;
   readonly tone: "keep" | "release" | "closed" | "nolimit";   // decided in core, never the component
-  readonly week: string | null; readonly sizeHint: string | null; readonly open: SheetKey }   // open = `other:o${i}`
+  readonly week: string | null; readonly sizeHint: string | null; readonly open: SheetKey;   // open = `other:o${i}`
+  /** (rows 32) the row's stored `stamps`, each a tree.ts stampLine ("You need <document ›> <when>"), drawn under the row */
+  readonly stamps: readonly Line[] }
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }
 
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────

@@ -22,6 +22,7 @@ type GLic = { question: string | null; questionTerms: string[]; axes: { axis: st
   blocks: { cls: string; lines: string[] }[]; src?: { who: string; open: string } | null };
 const gl = (id: string, k: string) => (golden().states[id]!.licence as Record<string, GLic>)[k]!;
 
+const ADULT: Who = { age: "adult", residency: "resident" };
 const whoOf = (k: string): Who => { const [age, residency] = k.split("|") as [Who["age"], Who["residency"]]; return { age, residency }; };
 
 /** the VM in the golden's shape (the app's licsrc: key carries no state id; the golden's does) */
@@ -159,16 +160,31 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"] }]);
   });
 
-  it("the youth-alternative exclusion is exactly where a 16+ base document the youth may buy has stored `or` alternatives", async () => {
+  it("(licence 7) the youth alternatives are the STORED under_16 `or`: exactly the 3 Teslin states carry one, compared whole above", async () => {
     const hit: string[] = [];
     for (const id of caseIds("licence")) {
       const inp = (await inputsOf(id))!, F = inp.frames?.licence;
       if (!F?.under_16 || settle(inp, makePlace(inp)).status?.status === "closed") continue;
-      const alt = F.under_16.some((u) => u.buy.some((b) => F.profiles.some((p) => "documents" in p
-        && p.documents.some((d) => d.doc === b.doc && d.base && (d.or ?? []).length))));
-      if (alt) hit.push(id);
+      if (F.under_16.some((u) => u.buy.some((b) => (b.or ?? []).length))) hit.push(id);
     }
     expect(hit).toEqual(YOUTH_ALT_IDS);
+    expect(licenceDropped("x12p_1010", "u16|non_resident")).toEqual([]);              // no line is dropped any more
+    const F = (await inputsOf("x12p_1010"))!.frames!.licence;
+    expect(F.under_16!.find((u) => u.residency === "non_resident")!.buy).toEqual([{ doc: "basic_licence", name: "Basic angling licence",
+      prices: { year: 62.87, day: [22.86], eight_days: [41.15] }, or: [{ need: ["yukon_angling_licence"], names: ["Yukon angling licence"] }] }]);
+  });
+
+  it("(licence 7, mutation) the youth box names exactly the stored alternatives — never the 16+ answer's", async () => {
+    const inp = (await inputsOf("x12p_1010"))!, F = inp.frames!.licence, r = requestOf("x12p_1010");
+    const u16 = F.under_16!.map((u) => ({ ...u, buy: u.buy.map((b) => ({ ...b, or: [{ need: ["m"], names: ["MUT-ALT"] }] })) }));
+    const mut: RegsInputs = { ...inp, frames: { ...inp.frames!, licence: { ...F, under_16: u16 } } };
+    const b = buildRegsPage(mut, { today: r.today, who: { age: "u16", residency: "non_resident" }, pid: "x12p_1010" }).licence!.blocks
+      .map((x) => ({ cls: x.cls, lines: [...licenceBlockLines(x)] }));
+    expect(b.slice(0, 2).map((x) => x.lines)).toEqual([
+      ["Under 16: no licence needed if you fish with a licensed adult ⓘ Fish with someone 16 or older who holds what this fishing needs (Basic angling licence or MUT-ALT). What you keep counts toward their limit. Or buy the Basic angling licence or MUT-ALT yourself to have your own limit."],
+      ["You need", "Nothing, if you fish with a licensed adult (16 or older) What you keep counts toward their limit",
+        "Basic angling licence or MUT-ALT Or, for your own limit: what a 16+ angler buys $62.87 a year · $22.86 a day · $41.15 for 8 days",
+        "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
   });
 
   it("tidal x31p_1010 (excluded, D33 (b)), all six: page v36's tidal box with the stored tidal licence words, no source line", async () => {
@@ -179,16 +195,28 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
     }
   });
 
-  it("the steelhead-drop exclusion is exactly the oracle's condition: a stored not_kept closed ST row × a stored steelhead_stamp document", async () => {
-    const hit: string[] = [];
+  it("(licence 7) the steelhead stamp is left out by the STORE exactly where the card closes steelhead (the prototype's 7 states)", async () => {
+    const closed: string[] = [], listed: string[] = [];
     for (const id of caseIds("licence")) {
       const inp = (await inputsOf(id))!;
       if (!inp.frames || settle(inp, makePlace(inp)).status?.status === "closed") continue;
-      const closedST = inp.frames.rows.rows.some((r) => (r.group?.not_kept ?? []).some((x) => x.status === "closed" && (x.species ?? []).includes("ST")));
-      const stamp = inp.frames.licence.profiles.some((p) => "documents" in p && p.documents.some((d) => d.doc === "steelhead_stamp"));
-      if (closedST && stamp) hit.push(id);
+      if (inp.frames.rows.rows.some((r) => (r.group?.not_kept ?? []).some((x) => x.status === "closed" && (x.species ?? []).includes("ST")))) closed.push(id);
+      if (inp.frames.licence.profiles.some((p) => "documents" in p && p.documents.some((d) => d.doc === "steelhead_stamp"))) listed.push(id);
     }
-    expect(hit).toEqual(STEELHEAD_DROP_IDS);
+    expect(closed).toEqual(STEELHEAD_DROP_IDS);
+    expect(closed.filter((id) => listed.includes(id))).toEqual([]);                    // the stored documents leave it out there
+    expect(STEELHEAD_DROP_IDS.flatMap((id) => LICENCE_PROFILES.flatMap((k) => licenceDropped(id, k)))).toEqual([]);
+  });
+
+  it("(licence 7, mutation) the app draws whatever the stored documents say — a stamp put back is drawn, never dropped by the app", async () => {
+    const inp = (await inputsOf("bc1_501"))!, F = inp.frames!.licence, r = requestOf("bc1_501");
+    const st = (await inputsOf("vedder_1010"))!.frames!.licence.profiles
+      .map((p) => ("documents" in p ? p.documents.find((d) => d.doc === "steelhead_stamp") : undefined)).find(Boolean)!;
+    const profiles = F.profiles.map((p) => ("documents" in p && p.documents.length ? { ...p, documents: [...p.documents, st] } : p));
+    const mut: RegsInputs = { ...inp, frames: { ...inp.frames!, licence: { ...F, profiles } } };
+    const lines = buildRegsPage(mut, { today: r.today, who: ADULT, pid: "bc1_501" }).licence!.blocks
+      .flatMap((x) => [...licenceBlockLines(x)]);
+    expect(lines.filter((l) => l.startsWith("Steelhead"))).toEqual(["Steelhead Conservation Surcharge Stamp ⓘ Only if you fish for steelhead, even to release them $28.57 a year"]);
   });
 
   it("closed is the stored display status (settle), never the licence frame", async () => {

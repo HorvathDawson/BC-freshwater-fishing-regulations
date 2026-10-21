@@ -39,7 +39,7 @@ function fake(o: { openGroup?: boolean } = {}) {
   const cells: Record<number, CellIds[]> = { 2: [cell(1, 20), cell(2, 21), cell(1, 20)], 5: [cell(3, 21), cell(4, 20)] };
   const display: Record<number, DisplayFrame> = { 20: OPEN, 21: SHUT };
   const st = {
-    statics: () => log("statics", { exportSpecies: { fish: {}, groups: {} }, moments: [WEEK, WEEKEND] }),
+    statics: () => log("statics", { exportSpecies: { fish: {}, groups: {} }, moments: [WEEK, WEEKEND], pdfPages: { 4: 6, 80: 86 } }),
     rules: () => log("rules", new Map([[100, rule(100, 0)], [101, rule(101, 0)]])),
     lics: () => log("lics", new Map([[0, { words: "lic" }]])),
     itemOrd: (id: string) => log(`itemOrd ${id}`, id === "gnis:1" ? 3 : id === "gnis:2" ? 4 : null),
@@ -82,7 +82,7 @@ describe("loadRegsInputs: a part", () => {
     expect(inp.ruleset).toEqual({ reach: [100], trib: [101] });
     expect([inp.target, inp.day, inp.weekday, inp.calendarYear]).toEqual([{ kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026]);
     expect(inp.lics.get(0)).toEqual({ words: "lic" });
-    expect(inp.statics.pdfPages).toEqual({});
+    expect(inp.statics.pdfPages).toEqual({ 4: 6, 80: 86 });   // the store's page map, passed through (never computed)
   });
 
   it("the year: every segment's frames by s, each distinct frame read once; displayByDay shares the frame objects", async () => {

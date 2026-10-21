@@ -140,7 +140,7 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
   return (
     <View testID="keep-otherfish" style={{ paddingTop: 18, paddingHorizontal: GUTTER, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
       <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8 }]}>{WORDS.OTHER_FISH}</Text>
-      {rows.map((o) => (
+      {rows.map((o) => [
         <Pressable key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)}
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Thumb code={o.thumb} images={images} palette={palette} />
@@ -152,8 +152,13 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}
           </Text>
           <Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text>
-        </Pressable>
-      ))}
+        </Pressable>,
+        // prototype .ostamps (rows 32): the row's stored licence documents under it, each "You need <document ›> <when>"
+        ...o.stamps.map((s, i) => (
+          <View key={`${o.open}|s${i}`} testID="otherfish-stamp" style={{ marginTop: -4, marginBottom: 6 }}>
+            <LineText line={s} style={TYPE.duty} color={palette.ink} palette={palette} actions={actions} linkStyle={TYPE.metaBold} />
+          </View>)),
+      ])}
       {keys.length > 0 && (
         <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
           {keys.map((k) => (

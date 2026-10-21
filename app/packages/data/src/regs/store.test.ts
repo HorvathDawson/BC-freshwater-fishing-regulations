@@ -14,7 +14,7 @@ import { asBytes, openRegsStore, RegsStoreError, type RegsLoader } from "./store
 
 const hex = (s: string) => `X'${Buffer.from(s).toString("hex")}'`;
 const META = "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);";
-const VERSIONS = { ladder: 1, rows: 31, gear: 12, licence: 6, display: 18 };
+const VERSIONS = { ladder: 1, rows: 32, gear: 12, licence: 7, display: 18 };
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 
 interface Opts {
@@ -129,19 +129,25 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
       .toEqual({ why: "codec", message: "regs store: blob codec brotli, this app reads json / deflate / zdict — refused" });
   });
   it("a section version the presenters were not ported against (every one named)", async () => {
-    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 32, display: 16 } }).loader))).toEqual({
+    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 33, display: 16 } }).loader))).toEqual({
       why: "version",
-      message: "regs store: rows section version 32, this app reads 31, display section version 16, this app reads 18 — refused" });
+      message: "regs store: rows section version 33, this app reads 32, display section version 16, this app reads 18 — refused" });
   });
   it("rows 29 — a store from before the year strip (rows[].year) — is refused: this app draws no strip it would derive", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 29 }, manifestVersions: { ...VERSIONS, rows: 29 } })
-      .loader))).toEqual({ why: "version", message: "regs store: rows section version 29, this app reads 31 — refused" });
+      .loader))).toEqual({ why: "version", message: "regs store: rows section version 29, this app reads 32 — refused" });
   });
   it("rows 30 / display 17 — a store from before the Keep tab's last choices moved to the pipeline (stamps, parent, narrow_all, " +
      "the record duty; closers) — is refused: this app re-derives none of them", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 30, display: 17 }, manifestVersions: { ...VERSIONS, rows: 30, display: 17 } })
       .loader))).toEqual({ why: "version",
-      message: "regs store: rows section version 30, this app reads 31, display section version 17, this app reads 18 — refused" });
+      message: "regs store: rows section version 30, this app reads 32, display section version 17, this app reads 18 — refused" });
+  });
+  it("rows 31 / licence 6 — a store from before the four pipeline answers (Other fish rows' stamps; the steelhead stamp left " +
+     "out where steelhead are closed; an under-16 document's alternatives) — is refused: this app derives none of them", async () => {
+    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 31, licence: 6 }, manifestVersions: { ...VERSIONS, rows: 31, licence: 6 } })
+      .loader))).toEqual({ why: "version",
+      message: "regs store: rows section version 31, this app reads 32, licence section version 6, this app reads 7 — refused" });
   });
   it("a manifest that says other versions than its water file", async () => {
     expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, gear: 13 } }).loader))).toEqual({

@@ -103,7 +103,7 @@ def _subset() -> dict:
         "licensing": {"e1#l1": {"entry_id": "e1", "record_id": "l1", "prov": {}}},
         "entries": {"e1": {"name": "E", "pages": [3]}, "e2": {"name": "F"}},
         "licences": {"basic": {"name": "basic"}}, "species": {"families": {}},
-        "conduct": {"act": "Do it"},
+        "conduct": {"act": "Do it"}, "pdf_pages": {"3": 5, "41": 47},
         "rulesets": {"1": {"sections": 3, "reach": ["e1::r1", "e1::r2"]},
                      "2": {"sections": 1, "reach": [], "trib": ["e1::r2"]}},
         "licensing_sets": {"3": {"sections": 1, "reach": ["e1#l1"]}},
@@ -151,6 +151,8 @@ def test_a_synthetic_store_round_trips_exactly(synthetic):
         assert s.answers() == A
         assert s.answers_bytes() == raw
         assert s.export_subset() == sub
+        # the release statics carry the printed -> PDF page map as the export guide holds it (T36 Statics.pdfPages)
+        assert s.static("export.pdf_pages") == {"3": 5, "41": 47}
         assert s.section_akeys() == {10: 1, BLOCK + 1: 1, 12: 2, 13: 3, 14: 1, 2 * BLOCK + 5: 3}
         assert s.akey_of(11) == 0 and s.akey_of(BLOCK * 7) == 0
         # where every section in B.C. is, apart from its key (S1b)

@@ -477,7 +477,7 @@ export interface Statics {
   profiles: readonly string[]; profileDims: readonly (readonly [string, readonly string[]])[]; profileLabels: readonly string[]; residencyLabels: unknown;
   exportSpecies: SpeciesBook; exportLicences: unknown; exportConduct: Record<string, string>;   // (T06) SpeciesBook {fish, groups, protected?, salmon?} (names.ts)
   ladderReasons: unknown; ladderReasonState: unknown;
-  pdfPages: Readonly<Record<number, number>>;   // printed → pdf, for glossary pages (printed only); source pipeline.common.synopsis_pages — never compute   // (T36)
+  pdfPages: Readonly<Record<number, number>>;   // printed → pdf, for glossary pages (printed only); the release static `export.pdf_pages` (the export guide's pdf_pages, pipeline.common.synopsis_pages) — never compute   // (T36)
 }
 // CardModel (T08 defines it; card.ts) — Infinity is a legal daily; roles keyed by RuleKey.   // (T08)
 // app/packages/core/src/fish.generated.ts (T20's generator) also emits:

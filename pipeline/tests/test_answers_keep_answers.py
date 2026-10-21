@@ -194,7 +194,7 @@ def test_5_a_group_gets_its_stamps_and_a_shared_frame_is_never_changed():
     kind_eb = _kind(["EB"], 2, [[0, None]])
     group = {"tree": [{"node": "tier", "children": [kind_rb, kind_eb]}],
              "not_kept": [{"species": ["ST", "DV"], "status": "release"}, {"species": ["ST"], "status": "closed"}]}
-    frame = {"rows": [{"group": group}, {"group": None}]}
+    frame = {"rows": [{"kind": "keep", "members": [], "group": group}, {"kind": "closed", "members": ["ST"], "group": None}]}
     before = copy.deepcopy(frame)
     [got] = ST.stamp_licence_documents([frame], [lic], NAMES, 0)
     assert frame == before                                                            # the input is untouched

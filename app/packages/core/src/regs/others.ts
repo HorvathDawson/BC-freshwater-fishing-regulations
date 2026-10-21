@@ -4,7 +4,9 @@
  *
  * Owner rule 2026-10-21: each row's kind, daily take, members, weekday status and group are the store's (`rows_row`); the
  * day's status is the settled store answer. This file SPLITS the rows for display (trout and char first, page v36's
- * TROUTISH) and words each other-fish row's stored answer; it decides no regulation.
+ * TROUTISH) and words each other-fish row's stored answer; it decides no regulation. The licence documents a row's fish
+ * need (prototype round UR7 stampsFor on an Other fish row) are the store's (rows 32 `Row.stamps`, the pipeline's
+ * `stamps.row_stamps`); each is drawn as tree.ts `stampLine` words it.
  *
  * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (TROUTISH, rowsHtml.short), renderCard's rows condition;
  * prototype buildKeep Other fish (owk, the v33 size hint), thumb.
@@ -12,6 +14,7 @@
 import type { CardModel, CardStatus } from "./card";
 import type { FishManifest } from "./fish.generated";
 import { rowTitle } from "./grouphead";
+import { stampLine } from "./tree";
 import type { RegsInputs } from "./inputs";
 import type { OtherFishKeyVM, OtherFishRowVM } from "./model";
 import { WORDS } from "./words";
@@ -54,6 +57,7 @@ export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest
       week: r.raw.week?.status ?? null,
       sizeHint: hasSize && r.kind === "keep" ? WORDS.SIZE_HINT : null,
       open: `other:o${i}`,
+      stamps: (r.raw.stamps ?? []).map(stampLine),
     };
   });
 }

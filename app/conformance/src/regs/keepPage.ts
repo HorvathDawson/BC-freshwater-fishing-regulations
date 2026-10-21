@@ -89,7 +89,7 @@ export function keepLines(keep: KeepVM, day: Day, groupOverride: (i: number) => 
       out.push(h.label, ...h.lines.flatMap((x) => [plain(x.says), ...(x.caution ? [x.caution] : [])]));
     } else if (b === "banner") out.push(...bannerLines(keep.banner!));
     else if (b === "otherFish") {
-      out.push(WORDS.OTHER_FISH, ...keep.otherFish!.map((o) => otherProj(o).lines[0]!),
+      out.push(WORDS.OTHER_FISH, ...keep.otherFish!.flatMap((o) => [otherProj(o).lines[0]!, ...o.stamps.map(plain)]),
         ...keep.otherFishKey.map((k) => join(k.status, k.says, WORDS.TERM_ONE)));
     } else if (b === "possession") out.push(join(keep.possession!.label, keep.possession!.value));
     else if (b === "whereNot") {

@@ -36,6 +36,16 @@ describe("<KeepTab> over the frozen pages", () => {
     expect(screen.getByTestId("keep-possession").textContent).toBe("Possession2 days’ quota›");
   });
 
+  it("vedder_1010 (rows 32): the white sturgeon row's stored stamp drawn under it, its document a link to the Licence tab", () => {
+    const tabs: string[] = [];
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT}
+                    actions={{ onSheet() {}, onDay() {}, onTab: (t) => tabs.push(t), onBook() {} }} />);
+    expect(screen.getAllByTestId("otherfish-stamp").map((e) => e.textContent)).toEqual([
+      "You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them"]);
+    fireEvent.click(screen.getByText("White Sturgeon Conservation Licence ›"));
+    expect(tabs).toEqual(["licence"]);
+  });
+
   it("vedder_615 (closed): strip, banner, where-not; the banner's words are the VM's", () => {
     const keep = keepOf(vedder615), { drawn } = mount(keep);
     expect(drawn).toEqual(["keep-strip", "keep-banner", "keep-wherenot"]);

@@ -531,6 +531,7 @@
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
+    "stamps": [],
     "thumb": "KO",
     "tone": "release",
     "value": "release",
@@ -540,6 +541,7 @@
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
+    "stamps": [],
     "thumb": "LW",
     "tone": "keep",
     "value": "15 a day",
@@ -549,6 +551,7 @@
     "name": "Burbot",
     "open": "other:o2",
     "sizeHint": null,
+    "stamps": [],
     "thumb": "BB",
     "tone": "keep",
     "value": "2 a day",
@@ -558,6 +561,7 @@
     "name": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch",
     "open": "other:o3",
     "sizeHint": null,
+    "stamps": [],
     "thumb": "LMB",
     "tone": "closed",
     "value": "closed",
@@ -567,6 +571,7 @@
     "name": "White sturgeon",
     "open": "other:o4",
     "sizeHint": null,
+    "stamps": [],
     "thumb": "WSG",
     "tone": "closed",
     "value": "closed",
@@ -576,6 +581,7 @@
     "name": "Crayfish",
     "open": "other:o5",
     "sizeHint": null,
+    "stamps": [],
     "thumb": null,
     "tone": "keep",
     "value": "25 a day",
@@ -585,6 +591,7 @@
     "name": "Protected species",
     "open": "other:o6",
     "sizeHint": null,
+    "stamps": [],
     "thumb": null,
     "tone": "closed",
     "value": "closed",
@@ -1012,7 +1019,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 6,
        "printed": 4,
        "t": "book"
       },
@@ -1022,7 +1029,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 10,
        "printed": 8,
        "t": "book"
       }
@@ -1068,7 +1075,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 6,
        "printed": 4,
        "t": "book"
       }
@@ -1114,7 +1121,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 7,
        "printed": 5,
        "t": "book"
       },
@@ -1124,7 +1131,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 9,
        "printed": 7,
        "t": "book"
       }
@@ -1170,7 +1177,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 6,
        "printed": 4,
        "t": "book"
       }
@@ -1216,7 +1223,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 10,
        "printed": 8,
        "t": "book"
       },
@@ -1226,7 +1233,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 86,
        "printed": 80,
        "t": "book"
       }
@@ -1272,7 +1279,7 @@
       },
       {
        "bare": true,
-       "pdf": null,
+       "pdf": 8,
        "printed": 6,
        "t": "book"
       }

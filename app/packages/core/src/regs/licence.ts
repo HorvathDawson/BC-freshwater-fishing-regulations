@@ -12,8 +12,10 @@
  * SELECTS the angler's profile (and, under 16, the stored `under_16` entry of their residency — what the youth buys and
  * who they fish with, never re-derived from the 16+ answer), GROUPS the answer into blocks and WORDS it. Licensing never affects open / closed (memory "licensing rewrite decisions"); the
  * angler is whoever the reader says (D8). The prototype's render-time steelhead-stamp DROP (a stamp removed from the list
- * where the card says steelhead are closed, round 20i O3) DECIDES a requirement and is NOT ported: the pipeline must ship
- * it (decisions D21 (b); conformance exclusions.ts STEELHEAD_DROP).
+ * where the card says steelhead are closed, round 20i O3) DECIDES a requirement and is NOT ported: the pipeline ships it
+ * (licence 7, `stamps.drop_closed_steelhead_stamp`: the stored documents already leave the stamp out; decisions D21 (b)).
+ * An under-16's document is named with its stored alternatives (licence 7 `under_16[].buy[].or`), as the 16+ list names
+ * its own.
  */
 import type { DocumentNeed, Path_, Prices, PrintedRequirement, RequirementPath, When } from "../answers.generated";
 import type { Holds, LicenceValue, ProfileAnswer, RegsInputs } from "./inputs";
@@ -227,7 +229,9 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   // "keeps their own limit by buying" — the "Or buy … yourself" clause and the "Or, for your own limit" item.
   const U = who.age === "u16" ? (F.under_16 ?? []).find((u) => u.residency === who.residency) : undefined;
   if (U?.with_adult && !P.documents.length) {
-    const W = U.with_adult, names = U.buy.map((b) => b.name), byBuying = U.own_limit && !U.none_needed;
+    // a document with its stored alternatives (licence 7 `or`), named as the 16+ list names its own ("… or …")
+    const buyName = (b: (typeof U.buy)[number]): string => cap([b.name, ...(b.or ?? []).map((o) => o.names.join(LIC.PLUS))].join(` ${LIC.OR} `));
+    const W = U.with_adult, names = U.buy.map(buyName), byBuying = U.own_limit && !U.none_needed;
     out.push({ cls: "classbox youth", head: LIC.YOUTH_HEAD, terms: gi(LIC.YOUTH_TERM),
       body: (LIC.YOUTH_WITH(W.who) + (names.length ? LIC.YOUTH_DOCS(names.join(LIC.SEP)) : "") + LIC.STOP + (W.counts ? LIC.YOUTH_COUNTS_S : "")
         + (byBuying ? LIC.YOUTH_BUY(names.length ? LIC.YOUTH_THE(names.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
@@ -281,7 +285,7 @@ function asNeeds(blocks: LicenceBlockVM[], adult: readonly LicenceBlockVM[] | nu
  * (b) the salmon stamp's short line keeps its record's "(not kokanee)" — only when a stored requirement this document
  *     meets says so in its own label; (c) the conditional documents ("Only if …") move under "Also, only if…" unless none
  *     or all are conditional. The prototype's (a) — dropping the steelhead stamp where the card says steelhead are closed —
- *     decides a requirement and is NOT here (owner rule 2026-10-21; a pipeline need).
+ *     decides a requirement and is NOT here (owner rule 2026-10-21): the pipeline's licence 7 documents leave it out.
  */
 export function patchNeeds<T extends NeedItemVM>(items: readonly T[], kokanee: (it: T) => boolean):
   { items: readonly T[]; onlyIf: { label: string; items: readonly T[] } | null } {

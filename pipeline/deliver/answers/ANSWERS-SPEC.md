@@ -98,6 +98,28 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## THE FOUR KEYED EXCLUSIONS (2026-10-21) — rows 32, licence 7, static `export.pdf_pages`: the app decides nothing (owner rule)
+
+The app keyed four golden differences as exclusions until the pipeline shipped the answers; each is now stored and
+compared against the golden oracle (no exclusion left):
+
+1. **licence 7, the steelhead stamp where steelhead are closed** (the prototype's round 20i O3 render-time drop, v33 UR4
+   fix 7): `stamps.drop_closed_steelhead_stamp` — where the card at the same key and segment says steelhead are closed (a
+   group's not-kept line closes steelhead, and nothing on the card lets them be fished: no non-closed row, no kind, no
+   released line holding steelhead), every profile's `documents` leave out the Steelhead Conservation Surcharge Stamp
+   bought only for steelhead (every need names steelhead alone; Babine's "to fish at all in the steelhead period" stays).
+   The requirement stays in `requirements`. Runs after the stamps (a fish's documents are the full answer's). 7 golden
+   states (the Bella Coola and its tributary parts, x15p2).
+2. **licence 7, an under-16's alternatives**: `under_16[].buy[].or` [{need, names}] — the 16+ answer's DocumentNeed `or`
+   (decision L9: "Basic angling licence or Yukon angling licence"), absent where none. 3 golden states (Teslin).
+3. **the page map in the release statics**: the store's export subset carries `pdf_pages` (the export guide's,
+   `pipeline.common.synopsis_pages`; printed = PDF − 2 to p.40, PDF − 6 after), shipped as the water file's static
+   `export.pdf_pages` and read as `Statics.pdfPages` — 735 glossary and 38 hatch sheets link their pages.
+4. **rows 32, a row's documents**: `Row.stamps` (`stamps.row_stamps`, the prototype's round UR7 stampsFor on an Other
+   fish row): the documents the row's fish need by the row's answer — fish-for where it keeps, has no limit or
+   releases; keep where it keeps or has no limit (any size); none on a closed row. 13 golden states draw one (+ klmb's
+   page-v36 keep line, D19).
+
 ## THE KEEP TAB'S LAST CHOICES (2026-10-21) — rows 31, display 18: the app decides nothing (owner rule)
 
 The Keep presenters (T14, T17–T19b) still made five page-v36 choices in TypeScript. Each is now made here, with the

@@ -15,7 +15,7 @@ const RULE = { entry_id: "r1:x", rule_id: "x.r1", type: "retention_limit", famil
   fields: { species: ["RB"], take: 2, period: "daily" }, prov: { rank: 0 } };
 const FACTS = { kind: "limit" };
 const BOOK = { fish: { RB: { name: "Rainbow trout" } }, groups: { ALL_GAME_FISH: { name: "All game fish", members: ["RB"] } } };
-const VERSIONS = { ladder: 1, rows: 31, gear: 12, licence: 6, display: 18 };
+const VERSIONS = { ladder: 1, rows: 32, gear: 12, licence: 7, display: 18 };
 const DICT = Buffer.from(JSON.stringify(RULE));
 const bytes = (o: unknown) => Buffer.from(JSON.stringify(o));
 const zdict = (o: unknown) => Buffer.concat([Buffer.from([0x02]), deflateRawSync(bytes(o), { dictionary: DICT })]);
@@ -35,7 +35,7 @@ function release(ruleBlob: Uint8Array, dicts: Record<string, Uint8Array>, format
   const statics: Record<string, unknown> = { "answers.glossary": { version: 5, terms: [] }, "export.species": BOOK };
   for (const k of ["answers.fish", "answers.moments", "display.strip", "display.reasons", "gear.count_nouns", "gear.moments",
                    "gear.conduct_means", "licence.profiles", "licence.profile_dims", "licence.profile_labels",
-                   "licence.residency_labels", "export.licences", "export.conduct", "ladder.reasons", "ladder.reason_state"])
+                   "licence.residency_labels", "export.licences", "export.conduct", "export.pdf_pages", "ladder.reasons", "ladder.reason_state"])
     statics[k] = [];
   for (const [k, v] of Object.entries(statics)) db.prepare("INSERT INTO static VALUES (?, ?)").run(k, bytes(v));
   db.prepare("INSERT INTO akey VALUES (7, 3)").run();

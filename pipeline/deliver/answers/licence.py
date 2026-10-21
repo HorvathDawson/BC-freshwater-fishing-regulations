@@ -72,9 +72,9 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     """ROUND15 2 (owner): WHAT AN UNDER-16 ANGLER NEEDS, per residency, in one compact list — read off the
     profile answers already decided (not guided, no status), never decided again: [{residency, label,
     none_needed, with_adult {who, counts} | null (fish with a licensed adult; `counts`: what they keep counts
-    toward the adult's limit), buy [{doc, name, prices}] (the documents to buy: the under-16's own, else
+    toward the adult's limit), buy [{doc, name, prices, or?}] (the documents to buy: the under-16's own, else
     what the 16-or-older angler of the same residency buys to fish here, when the record lets the youth fish
-    as one), own_limit (the youth keeps a limit of their own: needing nothing and no companion, or by buying),
+    as one; licence 7: `or` each alternative's documents and names, as the 16+ answer's `or`), own_limit (the youth keeps a limit of their own: needing nothing and no companion, or by buying),
     says}] — ROUND16 4, the book's p.6 said exactly: "Fish with someone 16 or older who holds the licences and
     stamps this fishing needs: what you keep counts toward their limit. Or buy your own basic angling licence
     ($62.87 a year · …) and any supplementary licences and stamps you need, and keep your own limit."; B.C.
@@ -100,7 +100,11 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
                           "counts": acc.get("quota") == "counts_to_companion"}
         own = [b for b in a.get("documents") or [] if b.get("base")]
         src = own or ((adult.get("documents") or []) if as_ is not None else [])
-        buy = [{"doc": b["doc"], "name": common_cap(nm(b["doc"])), "prices": b.get("prices") or {}}
+        # licence 7: a document's alternatives come with it, as the 16+ answer holds them (DocumentNeed `or`, decision
+        # L9: Teslin's "Basic angling licence or Yukon angling licence") — each the documents it needs and their names
+        buy = [{"doc": b["doc"], "name": common_cap(nm(b["doc"])), "prices": b.get("prices") or {},
+                **({"or": [{"need": list(o["need"]), "names": [nm(d) for d in o["need"]]} for o in b["or"]]}
+                   if b.get("or") else {})}
                for b in src if b.get("base")]
         none = bool(a.get("none_needed")) and not buy and with_adult is None
         # ROUND16 4 (owner, the book p.6): an under-16 who needs nothing and no companion keeps their OWN limit

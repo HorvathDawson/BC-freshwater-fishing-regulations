@@ -38,7 +38,7 @@ const page = {
       notKept: [], worked: null, quiet: null, more: { text: "See every regulation line ›", open: "src:r0" },
     }],
     plainRows: [], otherFish: [{ thumb: null, name: "Kokanee", value: "release", tone: "release", week: null, sizeHint: null,
-      open: "other:o0" }],
+      open: "other:o0", stamps: [] }],
     otherFishKey: [{ status: "release", says: "You may fish for it, but every one you catch must go back.", term: "catch_and_release" }],
     caveats: [], possession: null, whereNot: null, outside: null,
   },

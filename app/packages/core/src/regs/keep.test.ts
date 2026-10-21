@@ -53,7 +53,7 @@ describe("otherFishKeyOf: prototype okey", () => {
   const inp = { statics: { glossary: { terms: [
     { id: "catch_and_release", says: "You may fish for it, but every one you catch must go back. " },
     { id: "no_fishing_for", says: "You may not fish for it at all." }] } } } as unknown as RegsInputs;
-  const row = (tone: OtherFishRowVM["tone"]): OtherFishRowVM => ({ thumb: null, name: "X", value: "v", tone, week: null, sizeHint: null, open: "other:o0" });
+  const row = (tone: OtherFishRowVM["tone"]): OtherFishRowVM => ({ thumb: null, name: "X", value: "v", tone, week: null, sizeHint: null, open: "other:o0", stamps: [] });
 
   it("one line per status word a row shows, release first, the glossary's words trimmed", () => {
     expect(otherFishKeyOf([row("closed"), row("keep"), row("release")], inp)).toEqual([

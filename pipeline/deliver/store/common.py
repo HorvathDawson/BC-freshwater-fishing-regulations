@@ -179,6 +179,9 @@ def export_subset(X: dict) -> dict:
         "species": X["species"],
         "conduct": {k: v["means"] if isinstance(v, dict) else v
                     for k, v in X["guide"]["gear"]["conduct"]["acts"].items()},
+        # the ONE printed -> PDF page map of the synopsis (`guide.pdf_pages`, `pipeline.common.synopsis_pages`): a
+        # glossary or rule page links into the PDF through it; the app never computes an offset (T36, contracts §3)
+        "pdf_pages": X["guide"]["pdf_pages"],
         "rulesets": X["rulesets"],
         "licensing_sets": X["licensing_sets"],
         "waters": {wid: {**slim(w, WATER_KEEP), "parts": [slim(p, PART_KEEP) for p in w["parts"]]}
@@ -187,7 +190,7 @@ def export_subset(X: dict) -> dict:
 
 
 #: The export subset's static (whole-value) members.
-EXPORT_STATIC = ("licences", "species", "conduct")
+EXPORT_STATIC = ("licences", "species", "conduct", "pdf_pages")
 
 #: answers keys row (`encode.keys`) steelhead codes -> the bundle's (`part.steelhead`).
 STEELHEAD_CODE: Dict[str, int] = {"known": 1, "possible": 2}

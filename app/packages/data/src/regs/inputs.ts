@@ -32,9 +32,8 @@ export function displayByDay(year: Omit<RegsYear, "displayByDay">, calendarYear:
   return yearSegments(year.segStarts, year.moments, calendarYear).map((s) => year.displayBySeg[s] ?? null);
 }
 
-/** The statics as `RegsInputs` carries them. `pdfPages` is not in the store (contracts.md §3): T36 supplies it; until
- *  then it is empty, and nothing on the Keep tab reads it. */
-const staticsOf = (st: StoreStatics): Statics => ({ ...st, pdfPages: Object.freeze({}) });
+/** The statics as `RegsInputs` carries them: the store's, as read (`pdfPages` the release's printed → PDF page map). */
+const staticsOf = (st: StoreStatics): Statics => st;
 
 /** Every distinct id of one frame family over a key's cells, read once each (a key's segments often share frames). */
 async function byId<T>(cells: readonly CellIds[], fam: keyof CellIds, read: (id: number) => Promise<T>): Promise<T[]> {

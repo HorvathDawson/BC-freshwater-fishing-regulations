@@ -16,7 +16,7 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 31, gear: 12, licence: 6, display: 18 };
+const VERSIONS = { ladder: 1, rows: 32, gear: 12, licence: 7, display: 18 };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {
@@ -25,7 +25,7 @@ const STATICS: Record<string, unknown> = {
   "gear.count_nouns": {}, "gear.moments": [], "gear.conduct_means": {}, "licence.profiles": ["p0"],
   "licence.profile_dims": [], "licence.profile_labels": [], "licence.residency_labels": {},
   "export.species": { fish: {}, groups: {} }, "export.licences": {}, "export.conduct": {},
-  "ladder.reasons": [], "ladder.reason_state": [],
+  "ladder.reasons": [], "ladder.reason_state": [], "export.pdf_pages": { "4": 6, "41": 47 },
   "rows.strips": [[["keep", 150], ["closed", 30], ["keep", 185]], [["none", 365]]],   // rows 30: each distinct strip once
 };
 const RULE = { entry_id: "r2:x@1", rule_id: "x.r1", type: "t", family: "f", label: "L", verbatim: "V", fields: {}, prov: { rank: 0 } };
@@ -170,9 +170,10 @@ describe("reads over water", () => {
     expect(await st.lics()).toEqual(new Map([[0, { entry_id: "e", record_id: "r" }]]));
     const s = await st.statics();
     expect(Object.keys(s).sort()).toEqual(["conductMeans", "countNouns", "exportConduct", "exportLicences", "exportSpecies",
-      "fish", "gearMoments", "glossary", "ladderReasonState", "ladderReasons", "moments", "profileDims", "profileLabels",
-      "profiles", "reasons", "residencyLabels", "strip"]);
+      "fish", "gearMoments", "glossary", "ladderReasonState", "ladderReasons", "moments", "pdfPages", "profileDims",
+      "profileLabels", "profiles", "reasons", "residencyLabels", "strip"]);
     expect(s.fish).toEqual(FISH);
+    expect(s.pdfPages).toEqual({ "4": 6, "41": 47 });            // the release's page map, as stored (printed → PDF)
     expect(s.glossary).toEqual({ version: 5, terms: [] });
   });
 

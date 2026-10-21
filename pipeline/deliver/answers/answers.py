@@ -297,7 +297,9 @@ def _sections() -> Tuple[Section, ...]:
         # `scope.narrow_all` (page narrowAll), a pooled row's `parent` (page parentRow), a deciding record-it rule stored
         # as role `duty` (page ladderHtml), and the licence documents a group kind or released fish needs, `stamps`
         # (the prototype's round UR7 stampsFor, `stamps.py`)
-        Section("rows", 31, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 32 (owner rule 2026-10-21): every row's `stamps` — the licence documents the row's fish need by the row's
+        # answer (the prototype's round UR7 stampsFor on an Other fish row and a page-v36 keep-line row, `stamps.row_stamps`)
+        Section("rows", 32, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -315,7 +317,11 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND15 2: licence 5 (frame `under_16` per residency; statics `residency_labels`, `profile_labels`)
         # ROUND16 4: licence 6 (the under-16 answers say the book's p.6: a resident needs nothing, fishes alone and
         # keeps their own limit; a non-resident's companion holds the licences and stamps the fishing needs)
-        Section("licence", 6, licence.section_scope, prepare=licence.section_prepare,
+        # licence 7 (owner rule 2026-10-21): the steelhead stamp is left out of the documents where the card at the same key
+        # and segment says steelhead are closed (`stamps.drop_closed_steelhead_stamp`, the prototype's round 20i O3); an
+        # under-16 `buy` document carries its alternatives, `or` [{need, names}] ("Basic angling licence or Yukon angling
+        # licence", `licence.under_16_summary`)
+        Section("licence", 7, licence.section_scope, prepare=licence.section_prepare,
                 static=licence.section_static),
         # answers 2.6: rows 7 (F15 the group's lead sentence + `items`), display 5 (`strip` per
         # segment from the rows and gear frames there; `rules[].book` / `applies`; statics
@@ -572,6 +578,13 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         pix = _lic.profile_index(DEFAULT_PROFILE)
         for ki in range(len(keys)):
             out["rows"][ki] = stamp_licence_documents(out["rows"][ki], out["licence"][ki], doc_names, pix)
+    # licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED — the licence answer at a key and segment whose card says
+    # steelhead are closed there leaves the stamp out of its documents (`stamps.drop_closed_steelhead_stamp`, the
+    # prototype's round 20i O3 render-time drop). After the stamps above: the card's fish documents are the full answer's.
+    if "rows" in out and "licence" in out:
+        from pipeline.deliver.answers.stamps import drop_closed_steelhead_stamp
+        for ki in range(len(keys)):
+            out["licence"][ki] = drop_closed_steelhead_stamp(out["rows"][ki], out["licence"][ki])
     # a value finished from other sections' values at the same key and segment (answers 2.6)
     for s in chosen:
         if s.compose is None:

@@ -1068,6 +1068,19 @@ class Row(Model):
     #: pool holds this pooled row's fish (it cross-references them: an `xref` fact) — the card draws no article for
     #: this row; absent on every other row (`rows.parent_of`)
     parent: Optional[Annotated[StrictInt, Field(ge=0)]] = None
+    #: rows 32 (owner rule 2026-10-21; the prototype's round UR7 stampsFor on an Other fish row): the licence documents
+    #: the row's fish need by its answer (`stamps.row_stamps`); absent where none
+    stamps: Optional[Tuple[Stamp, ...]] = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _row_stamps(self):
+        if self.stamps is None:
+            return self
+        if self.kind == "closed":
+            raise ValueError("a closed row's fish may not be fished: no document")
+        if self.kind == "release" and any(x.act == "retaining" for x in self.stamps):
+            raise ValueError("a release row keeps none: no document to keep one")
+        return self
 
     @model_validator(mode="after")
     def _year(self):
@@ -1380,10 +1393,25 @@ class WithAdult(Model):
     counts: StrictBool
 
 
+class BuyOr(Model):
+    """licence 7: another way to meet what an under-16's `buy` document is bought for — the 16+ answer's DocumentNeed
+    `or` (decision L9), with each document's name ("Yukon angling licence"). Draw the document "or" its alternatives."""
+    need: Tuple[StrictStr, ...] = Field(min_length=1)
+    names: Tuple[Annotated[StrictStr, Field(min_length=1)], ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _one_name_each(self):
+        if len(self.names) != len(self.need):
+            raise ValueError("an alternative names each document it needs, once")
+        return self
+
+
 class BuyDoc(Model):
     doc: StrictStr = Field(min_length=1)
     name: StrictStr = Field(min_length=1)
     prices: Prices
+    #: licence 7: the document's alternatives (absent where it has none)
+    or_: Optional[Tuple[BuyOr, ...]] = Field(default=None, alias="or", min_length=1)
 
 
 class UnderSixteen(Model):

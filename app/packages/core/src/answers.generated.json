@@ -1927,6 +1927,22 @@
        "title": "Name",
        "type": "string"
       },
+      "or": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/BuyOr"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Or"
+      },
       "prices": {
        "$ref": "#/$defs/Prices"
       }
@@ -1937,6 +1953,35 @@
       "prices"
      ],
      "title": "BuyDoc",
+     "type": "object"
+    },
+    "BuyOr": {
+     "additionalProperties": false,
+     "description": "licence 7: another way to meet what an under-16's `buy` document is bought for \u2014 the 16+ answer's DocumentNeed\n`or` (decision L9), with each document's name (\"Yukon angling licence\"). Draw the document \"or\" its alternatives.",
+     "properties": {
+      "names": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Names",
+       "type": "array"
+      },
+      "need": {
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "title": "Need",
+       "type": "array"
+      }
+     },
+     "required": [
+      "need",
+      "names"
+     ],
+     "title": "BuyOr",
      "type": "object"
     },
     "DocumentNeed": {
@@ -6818,6 +6863,22 @@
          "type": "null"
         }
        ]
+      },
+      "stamps": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/Stamp"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Stamps"
       },
       "week": {
        "anyOf": [

@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "31",
+            "version": "32",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -465,6 +465,13 @@ SPEC = {
                     "may be fished; one needed to keep it — retaining — where the kind keeps any, over the document's "
                     "size where it names one), in the licence tab's words: draw \"You need <name> › <when>\" "
                     "(\"You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to "
+                    "release them\"). "
+                    "Version 32 (owner rule 2026-10-21: the app decides nothing): every row's `stamps` [{doc, act, name, "
+                    "when}] — the licence documents the row's fish (`members`) need by the row's answer, for the same "
+                    "angler and from the same licence answer as a kind's: a fish-for document where the row keeps, has no "
+                    "limit or releases; a keep document where it keeps or has no limit (any size); none on a closed row; "
+                    "absent where none. Draw them under an Other fish row and under a row drawn without a group "
+                    "(\"You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to "
                     "release them\").",
         },
         "gear": {
@@ -519,12 +526,12 @@ SPEC = {
                     "reader's requirements in force (`read.requirements_in_force`) and, per "
                     "profile, the documents to buy, the requirements that are the angler's, "
                     "exemptions, guiding and other anglers' rules",
-            "version": "6",
+            "version": "7",
             "at": "[[frame index per segment] per key]",
             "frames": "[[holds, documents, under_16?]] — indexes into `holds`, `documents` and `under_16` "
                       "(absent on tidal water)",
             "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
-                        "prices}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
+                        "prices, or? [{need, names}]}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
                         "angler needs here, per residency (not guided, no status), read off the profiles' "
                         "answers: fish with a licensed adult (`counts`: what they keep counts toward the "
                         "adult's limit) or buy `buy` (`own_limit`: and keep a limit of their own); `says` the "
@@ -532,7 +539,13 @@ SPEC = {
                         "stamp needed, and you don’t have to fish with a licence holder. You keep your own limit.\" "
                         "(`own_limit` true); a non-resident \"Fish with someone 16 or older who holds the licences and "
                         "stamps this fishing needs: what you keep counts toward their limit. Or buy your own … and any "
-                        "supplementary licences and stamps you need, and keep your own limit.\"",
+                        "supplementary licences and stamps you need, and keep your own limit.\" Version 7 (owner rule "
+                        "2026-10-21): a `buy` document carries its alternatives as the 16+ answer holds them, `or` [{need, "
+                        "names}] (decision L9: \"Basic angling licence or Yukon angling licence\"; absent where none); "
+                        "and a frame whose card (the rows frame at the same key and segment) says steelhead are closed "
+                        "there — a group's not-kept line closes steelhead and nothing on the card lets them be fished — "
+                        "leaves the Steelhead Conservation Surcharge Stamp out of every profile's `documents` (it is "
+                        "needed only to fish for steelhead); its requirement stays in `requirements`.",
             "holds": "[{tidal: {tidal, note, see, licence}} on TIDAL water (the documented state "
                      "only) | {holds, displaced, wrong_water, waived, not_yet_mapped, also_printed, "
                      "designations, stamp_period, contested, considered}] — licensing refs: the "

@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import type { FishManifest } from "./fish.generated";
 import { drawnRows } from "./grouphead";
+import { plain } from "./line";
 import { groupRows, otherFishOf, shortValue, splitRows, TROUTISH } from "./others";
 import { cardOf, GROUP, INP, kind, rowOf, TROUT_ROW } from "./testing/keepFixtures";
 
@@ -40,10 +41,20 @@ describe("splitRows (page v36 rowsHtml)", () => {
 describe("otherFishOf", () => {
   it("each row's title and one-word answer; the weekday split under its name; the first pictured fish; the size hint", () => {
     expect(otherFishOf(cardOf([TROUT_ROW, KO, BASS, GR, PROT]), INP(), FISH)).toEqual([
-      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0" },
-      { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1" },
-      { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2" },
-      { thumb: null, name: "Protected species", value: "closed", tone: "closed", week: null, sizeHint: null, open: "other:o3" }]);
+      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", stamps: [] },
+      { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1", stamps: [] },
+      { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2", stamps: [] },
+      { thumb: null, name: "Protected species", value: "closed", tone: "closed", week: null, sizeHint: null, open: "other:o3", stamps: [] }]);
+  });
+  it("(rows 32) a row's stored stamps, each worded as a stamp line under it — the store's words, never chosen here", () => {
+    const WSG = rowOf({ kind: "release", win: 3, members: ["WSG"], all_members: ["WSG"], stamps: [{ doc: "white_sturgeon_licence",
+      act: "targeting", name: "White Sturgeon Conservation Licence", when: "Only if you fish for white sturgeon, even to release them" }] });
+    const o = otherFishOf(cardOf([TROUT_ROW, KO, WSG]), INP(), FISH)!;
+    expect(o.map((x) => x.stamps.map(plain))).toEqual([[],
+      ["You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them"]]);
+    // mutation: other stored words come out as they are (the app adds no document and drops none)
+    const mut = rowOf({ ...WSG, stamps: [{ doc: "x", act: "targeting", name: "MUT-DOC", when: "MUT-WHEN" }] });
+    expect(otherFishOf(cardOf([TROUT_ROW, KO, mut]), INP(), FISH)![1]!.stamps.map(plain)).toEqual(["You need MUT-DOC › mUT-WHEN"]);
   });
   it("the size hint rides only a keep count (prototype: it wraps the .k-keep value)", () => {
     const o = otherFishOf(cardOf([TROUT_ROW, { ...GR, kind: "no_limit", daily: null }, { ...GR, kind: "release", daily: null }]), INP(), FISH)!;

@@ -50,48 +50,40 @@ export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
  */
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; lines?: RegExp; reason: string; until?: string }
 
-/** The states whose golden Keep tab (`keep.lines`, any block — a group's kind, Other fish) carries a stamp line. */
-/** The prototype's stamp lines under OTHER FISH rows (no group draws them): the pipeline ships `stamps` on a group's kinds
- *  and not-kept fish since rows 31, not on Other fish rows yet. Measured on the golden: only these two documents. */
+/** The prototype's stamp lines under OTHER FISH rows (and klmb's page-v36 keep line, D19) — COMPARED since rows 32 (the
+ *  store's `Row.stamps`, the pipeline's `stamps.row_stamps`; no longer excluded). Measured on the golden: only these two
+ *  documents. */
 export const OTHER_FISH_STAMP_LINE = /^You need (White Sturgeon Conservation Licence|Conservation Surcharge Stamp for Kootenay Lake rainbow trout) ›/;
-/** The states whose golden Keep tab (`keep.lines`) carries an Other fish stamp line. */
+/** The states whose golden Keep tab (`keep.lines`) carries an Other fish stamp line — computed at load; compared whole. */
 export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().states)
   .filter(([, s]) => ((s.keep as { lines?: string[] } | null)?.lines ?? []).some((l) => OTHER_FISH_STAMP_LINE.test(l))).map(([id]) => id);
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
 /** (T33) the states whose golden licence list lacks the Steelhead Conservation Surcharge Stamp because the PROTOTYPE removed
- *  it at render time (round 20i O3: a card whose not_kept says steelhead are closed here). licence.parity holds this list to
- *  the oracle condition (stored rows not_kept closed ST × a stored steelhead_stamp document), so it cannot drift. */
+ *  it at render time (round 20i O3: a card whose not_kept says steelhead are closed here) — COMPARED since licence 7: the
+ *  pipeline's stored documents leave it out there (`stamps.drop_closed_steelhead_stamp`). licence.parity holds this list to
+ *  the stored condition (rows not_kept closed ST, and no profile lists the stamp), so it cannot drift. */
 export const STEELHEAD_DROP_IDS: readonly string[] = ["bc1_501", "bc0_501", "bc1_1010", "bc0_1010", "ape_501", "ape_1010", "x15p2_1010"];
 export const STEELHEAD_STAMP_ITEM = /^Steelhead Conservation Surcharge Stamp\b/;
 /** (T33) tidal water: the prototype draws an empty Licence section (as on a closed day); page v36 licParts draws its
  *  "Tidal water" box with the stored tidal licence words, which the app keeps (D33 (b): tidal water is not closed). */
 export const TIDAL_LICENCE_IDS: readonly string[] = ["x31p_1010"];
 /** (T33) the under-16 youth box where the 16+ angler's base document has an alternative ("Basic angling licence or Yukon
- *  angling licence"): the stored `licence_frame.under_16[].buy[]` names each document but not its `or` alternatives. */
+ *  angling licence") — COMPARED since licence 7: the stored `under_16[].buy[].or` carries the alternatives' documents and
+ *  names. */
 export const YOUTH_ALT_IDS: readonly string[] = ["x12p_1010", "x30p_1010", "x35p_1010"];
 export const YOUTH_ALT_LINES = /^Under 16: no licence needed if you fish with a licensed adult\b| Or, for your own limit: /;
 export const LICENCE_EXCLUDE: readonly Exclusion[] = [
-  { block: "licence", ids: YOUTH_ALT_IDS, key: /^u16\|non_resident(_alien)?\.blocks$/, lines: YOUTH_ALT_LINES,
-    reason: "PIPELINE NEED (owner rule 2026-10-21): the youth box and its 'Or, for your own limit' item name the 16+ base document with its alternatives ('Basic angling licence or Yukon angling licence'); licence_frame.under_16[].buy[] carries {doc, name, prices} but not the DocumentNeed's `or` alternatives, and the app must not look them up in the 16+ answer. Both lines are dropped from both sides until the pipeline ships them",
-    until: "the pipeline's under_16[].buy[] carries `or` (each alternative's need/names) — licence frame, next version" },
   { block: "licence", ids: TIDAL_LICENCE_IDS,
     reason: "decisions D33 (b): the prototype's empty Licence section on tidal water is the closed-day path over a key that is not closed; the app draws page v36 licParts' tidal box (\"Tidal water\" + the stored tidal licence words) — licence.parity asserts it",
     until: "never — a prototype artefact, not a regulation" },
-  { block: "licence", ids: STEELHEAD_DROP_IDS, key: /^adult\|[a-z_]+\.blocks$/, lines: STEELHEAD_STAMP_ITEM,
-    reason: "PIPELINE NEED (owner rule 2026-10-21; decisions D21 (b)): the prototype's render() drops the steelhead stamp from the list where the card says steelhead are closed — a page-side regulation decision the app must not make. The stored licence answer still lists the stamp; the line is dropped from both sides until the pipeline ships the per-water answer",
-    until: "the pipeline's licence answer omits (or qualifies) the stamp where steelhead are closed (licence 7)" },
 ];
-/** (T21) the whole Keep tab: the Other fish rows' stamp lines (pending in the pipeline), and the D19 row. */
+/** (T21) the whole Keep tab: the D19 row (the Other fish rows' stamp lines are compared since rows 32). */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
     reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
     until: "D19 (a): the pipeline ships a group for that row" },
-  ...(KEEP_STAMP_LINE_IDS.length ? [{
-    block: "keep" as const, ids: KEEP_STAMP_LINE_IDS, key: /^lines$/, lines: OTHER_FISH_STAMP_LINE,
-    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line under an OTHER FISH row ('You need White Sturgeon Conservation Licence › only if …') — rows 31 ships `stamps` on a group's kinds and not-kept fish (drawn and compared), not on Other fish rows yet. Every other line of the tab is compared",
-    until: "the pipeline ships stamps on Other fish rows" }] : []),
 ];
 
 /**
@@ -131,10 +123,8 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "sheets", ids: "*", key: /^rule:/,
     reason: "'Technical detail' fold body (key + fields JSON) is compared by structure, not string: JSON.stringify spacing",
     until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },
-  // (T36) owner rule 2026-10-21: the app reads the page map, it never computes one
-  { block: "sheets", ids: "*", key: /^(gl:|hatch$)/,
-    reason: "PIPELINE NEED: the release's statics carry no printed → PDF page map (contracts §3 Statics.pdfPages, source pipeline.common.synopsis_pages / the export guide's pdf_pages), so a glossary page is drawn unlinked ('p.4', no ↗) where the prototype links it. sheets.parity compares the printed page numbers and every other line; it fails once the map ships (then drop this entry)",
-    until: "the pipeline ships static pdf_pages in the release" },
+  // (T36) owner rule 2026-10-21: the app reads the page map, it never computes one — the release ships it (static
+  // export.pdf_pages, Statics.pdfPages), so the gl: and hatch sheets' pages are compared whole, links and all
   { block: "header", ids: NO_MAP_LABEL_IDS, key: /^place$/,
     reason: "the prototype shows no part label where it had no water map of the water; the app frames every named part (D1) and labels it unless the label is the water's name (T16) — the parity asserts that instead",
     until: "never — prototype map coverage, not a regulation" },

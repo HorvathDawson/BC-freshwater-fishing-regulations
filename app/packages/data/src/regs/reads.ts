@@ -42,8 +42,9 @@ export interface PartRow {
 export interface PlaceRow extends AnswersPlace { readonly place: number }
 export interface RulesetRow { readonly sections: number; readonly reach: readonly number[]; readonly trib: readonly number[] }
 export interface StoredRule { readonly rix: number; readonly export: ExportRule; readonly facts: RuleFacts }
-/** The store's statics (`static` rows). `pdfPages` is not in the store: T36 supplies it (contracts.md §3). */
-export type StoreStatics = Omit<Statics, "pdfPages">;
+/** The store's statics (`static` rows) — `pdfPages` too: the release ships the synopsis's printed → PDF page map
+ *  (`export.pdf_pages`, the export guide's `pdf_pages`, pipeline.common.synopsis_pages); the app never computes one. */
+export type StoreStatics = Statics;
 export interface Frames {
   readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
   readonly licence: LicenceValue; readonly display: DisplayFrame;
@@ -140,6 +141,7 @@ const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
   residencyLabels: "licence.residency_labels",
   exportSpecies: "export.species", exportLicences: "export.licences", exportConduct: "export.conduct",
   ladderReasons: "ladder.reasons", ladderReasonState: "ladder.reason_state",
+  pdfPages: "export.pdf_pages",
 };
 
 type YearStrip = RowsValue["rows"][number]["year"];

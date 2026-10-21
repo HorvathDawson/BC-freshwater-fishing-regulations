@@ -7,7 +7,7 @@
  * in BUILT's test so a kind that lands without a parity run fails here, never passes silently.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { appKeyOf, goldenKeyOf, sheetLines, type Line, type SheetBlock, type SheetKey } from "@app/core";
+import { appKeyOf, goldenKeyOf, sheetLines, type SheetKey } from "@app/core";
 import { eqPlain, type GoldenSheet } from "@app/core/regs/testing";
 import { caseIds, golden, inputsOf, parityGate, requestOf, ADULT_RESIDENT, summary } from "./golden";
 import { buildRegsPage } from "@app/core";
@@ -49,17 +49,6 @@ it(`T36 sheets parity runs against a paired regs store${gate.skip ? ` — SKIPPE
   if (gate.fail) expect.fail(gate.fail);
 });
 
-/** every book run's printed page in a sheet's blocks, linked or not (the glossary pages while the release has no PDF map) */
-function printedOf(bs: readonly SheetBlock[], out: number[] = []): number[] {
-  for (const b of bs) {
-    const ls: readonly Line[] = b.k === "para" || b.k === "example" ? [b.text] : b.k === "pages" || b.k === "source" || b.k === "link" ? [b.line]
-      : b.k === "list" ? b.items : [];
-    for (const l of ls) for (const r of l) if (r.t === "book") out.push(r.printed);
-    if (b.k === "fold" || b.k === "term") printedOf(b.body, out);
-  }
-  return out;
-}
-
 /** the rule sheet's "Technical detail" line: `<key> <fields JSON>` — compared by structure (exclusions: JSON spacing/order) */
 const techSplit = (line: string, key: string): unknown => JSON.parse(line.slice(key.length + 1));
 
@@ -82,20 +71,24 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
         expect(techSplit(gotLines[gi]!, rk), `${id} ${gk}: fields`).toEqual(techSplit(wantLines[wi]!, rk));
         gotLines = gotLines.filter((_, i) => i !== gi); wantLines = wantLines.filter((_, i) => i !== wi);
       }
-      let gotPages: unknown = got.pages, wantPages: unknown = want.pages;
-      if (/^(gl:|hatch$)/.test(gk) && excluded("sheets", id, gk)?.reason.startsWith("PIPELINE NEED: the release's statics")) {
-        // no printed → PDF map in the release: the pages are drawn unlinked; compare the PRINTED numbers and the line sans ↗
-        expect(Object.keys(inp.statics.pdfPages), "the map shipped: drop the exclusion").toEqual([]);
-        gotPages = printedOf(vm!.blocks);
-        wantPages = want.pages.map((p) => +/p\.(\d+)/.exec(p.text)![1]!);
-        wantLines = wantLines.map((l) => (/^Rule book( p\.\d+ ↗)+$/.test(l) ? l.replace(/ ↗/g, "") : l));
-      }
-      expect({ title: got.title, sub: got.sub || null, folds: got.folds, pages: gotPages }, `${id} ${gk}`)
-        .toEqual({ title: want.title, sub: want.sub || null, folds: want.folds, pages: wantPages });
+      // (T36) the gl: and hatch pages are compared whole — printed number, PDF page, the ↗ — over the release's own
+      // printed → PDF map (static export.pdf_pages); no page is drawn unlinked
+      expect({ title: got.title, sub: got.sub || null, folds: got.folds, pages: got.pages }, `${id} ${gk}`)
+        .toEqual({ title: want.title, sub: want.sub || null, folds: want.folds, pages: want.pages });
       expect(eqPlain(gotLines, wantLines), `${id} ${gk}`).toEqual({ ok: true });
       expect(got.nested.map((k) => goldenKeyOf(k as SheetKey, id)), `${id} ${gk} nested`).toEqual(want.nested);
       compared++; byKind[kindOf(gk)] = (byKind[kindOf(gk)] ?? 0) + 1;
     }
     equal++;
+  });
+});
+
+describe.skipIf(gate.skip)("C. (T36) the release's printed → PDF page map", () => {
+  it("vedder_1010: the glossary pages link through the stored map (PDF − 2 to p.40, PDF − 6 after); an empty map would draw them unlinked (mutation)", async () => {
+    const inp = (await inputsOf("vedder_1010"))!, r = requestOf("vedder_1010");
+    expect([inp.statics.pdfPages[4], inp.statics.pdfPages[40], inp.statics.pdfPages[41], inp.statics.pdfPages[80]]).toEqual([6, 42, 47, 86]);
+    const pagesOf = (i: typeof inp) => sheetLines(buildRegsPage(i, { today: r.today, who: ADULT_RESIDENT, pid: "vedder_1010" }).sheet("gl:catch_and_release")!).pages;
+    expect(pagesOf(inp)).toEqual([{ text: "p.4 ↗", pdf: 6 }]);
+    expect(pagesOf({ ...inp, statics: { ...inp.statics, pdfPages: {} } })).toEqual([]);   // unlinked: no PDF page to open
   });
 });

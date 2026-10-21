@@ -40,11 +40,13 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "sheets * ^(gl:|hatch$)", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
+        "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
-        "licence 3 ^u16\\|non_resident(_alien)?\\.blocks$", "licence 1 -", "licence 7 ^adult\\|[a-z_]+\\.blocks$"]);
+        "licence 1 -"]);
+    // the four pipeline needs shipped (rows 32, licence 7, static export.pdf_pages): no entry names them any more
+    expect(EXCLUDE.filter((e) => /PIPELINE NEED|PENDING/.test(e.reason))).toEqual([]);
     expect(SET_LINE_NOTE_IDS).toEqual(["x3p_1010", "x12p_1010", "x30p_1010", "x35p_1010"]);
   });
 });
@@ -94,9 +96,10 @@ describe("(T17–T19 review) dropped golden lines", () => {
 });
 
 describe("(T21) the whole Keep tab", () => {
-  it("the 14 states whose keep.lines carry an OTHER FISH stamp line (group stamps are drawn since rows 31); the D19 row", () => {
+  it("the 14 states whose keep.lines carry an OTHER FISH stamp line — compared since rows 32, never dropped; the D19 row", () => {
     expect(KEEP_STAMP_LINE_IDS.length).toBe(14);
-    expect(droppedLines("keep", "vedder_1010", "lines")).toEqual([OTHER_FISH_STAMP_LINE]);
+    expect(KEEP_STAMP_LINE_IDS.flatMap((id) => droppedLines("keep", id, "lines"))).toEqual([]);
+    expect(OTHER_FISH_STAMP_LINE.test("You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them")).toBe(true);
     // a group's stamp line is never dropped: the 8 group-stamp states keep "You need … Steelhead/Shuswap" compared
     expect(OTHER_FISH_STAMP_LINE.test("You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead")).toBe(false);
     expect(droppedLines("keep", "glenn_501", "lines")).toEqual([]);   // (T21 review) the .gyear line is drawn

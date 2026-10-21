@@ -159,19 +159,25 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
   it("a rows-29 release (before the year strip) is a skip naming the version and the rebuild", () => {
     const d = release("r-rows29", { ...sections, rows: 29 });
     expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null,
-      reason: `release ${d} is rows 29 (this app reads 31): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
+      reason: `release ${d} is rows 29 (this app reads 32): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
   });
 
   it("a rows-30 / display-17 release (before the Keep tab's last choices moved to the pipeline) is a skip naming both", () => {
     const d = release("r-rows30", { ...sections, rows: 30, display: 17 });
-    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 31), `
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 32), `
       + "display 17 (this app reads 18): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
+  });
+
+  it("a rows-31 / licence-6 release (before the four pipeline answers: Other fish stamps, the steelhead stamp, youth alternatives) is a skip naming both", () => {
+    const d = release("r-rows31", { ...sections, rows: 31, licence: 6 });
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 31 (this app reads 32), `
+      + "licence 6 (this app reads 7): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
   });
 
   it("with REGS_STORE_REQUIRED=1 it throws that reason", () => {
     const d = release("r-rows29b", { ...sections, rows: 29 });
     expect(() => liveReleaseAt({ RELEASE_DIR: d, REGS_STORE_REQUIRED: "1" })).toThrow(
-      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 31): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
+      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 32): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
   });
 
   it("no release: the reason says so", () => {
@@ -243,10 +249,9 @@ describe("T12 summary", () => {
       + " · ^bait\\.src\\.who$ not compared (never — the prototype's snapshot is global; the app's level is per part)");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
-      + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)"   // (T21) the whole Keep tab
-      + " · lines /^You need (White Sturgeon Conservation Licence|Conservation Surcharge Stamp for Kootenay Lake rainbow trout) ›/ dropped from ^lines$ in 14 states (the pipeline ships stamps on Other fish rows)");
+      + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)");   // (T21) the whole Keep tab; rows 32: Other fish stamps compared
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
-      + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)"
-      + " · ^(gl:|hatch$) not compared (the pipeline ships static pdf_pages in the release)");   // (T36) PIPELINE NEED
+      + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");   // the gl:/hatch pages compared since the release ships pdf_pages
+    expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 1 excluded (x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
   });
 });

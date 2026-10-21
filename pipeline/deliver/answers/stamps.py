@@ -152,10 +152,26 @@ def group_stamps(group: dict, docs: Sequence[dict], names: Dict[str, str]) -> di
     return {**group, "tree": tree, **({"not_kept": nk} if "not_kept" in group else {})}
 
 
+#: rows 32: a row's answer (`Row.kind`) -> (the fish may be fished, the fish may be kept) — the prototype's
+#: Other-fish / ledger-row stampsFor (`fish: kind keep|release|nolimit, keep: kind keep|nolimit`)
+ROW_ACTS = {"keep": (True, True), "no_limit": (True, True), "release": (True, False), "closed": (False, False)}
+
+
+def row_stamps(row: dict, docs: Sequence[dict], names: Dict[str, str]) -> Optional[List[dict]]:
+    """rows 32 (owner rule 2026-10-21; the prototype's round UR7 stampsFor on an Other fish row and on a row drawn as
+    page v36's own keep line): the documents the row's fish (`members`) need by the row's answer — a fish-for document
+    where its fish may be fished (keep, no limit, release), a keep document where they may be kept (keep, no limit; any
+    size: a row names none). None where none."""
+    fish, keep = ROW_ACTS[row["kind"]]
+    got = pick(docs, row.get("members") or [], fish=fish, keep=keep, max_cm=None)
+    return [stamp_out(x, names) for x in got] or None
+
+
 def stamp_licence_documents(rows_frames: Sequence[dict], licence_frames: Sequence[dict], names: Dict[str, str],
                             profile_ix: int) -> List[dict]:
     """One key's rows frames and licence frames (one per segment, aligned) -> rows frames whose groups carry their
-    stamps. The inputs are not changed (frames are shared between keys and segments)."""
+    stamps, and (rows 32) whose rows carry theirs (`row_stamps`). The inputs are not changed (frames are shared
+    between keys and segments)."""
     if len(rows_frames) != len(licence_frames):
         raise AnswersError(f"stamps: {len(rows_frames)} rows frames for {len(licence_frames)} licence frames")
     out = []
@@ -171,7 +187,73 @@ def stamp_licence_documents(rows_frames: Sequence[dict], licence_frames: Sequenc
         for r in f.get("rows") or []:
             g = r.get("group")
             g2 = group_stamps(g, docs, names) if g else g
-            rows.append(r if g2 is g else {**r, "group": g2})
-            moved |= g2 is not g
+            rs = row_stamps(r, docs, names)
+            if rs is not None and "stamps" in r:
+                raise AnswersError("stamps: a row already carries its stamps")
+            r2 = r if g2 is g and rs is None else {**r, **({"group": g2} if g2 is not g else {}),
+                                                   **({"stamps": rs} if rs is not None else {})}
+            rows.append(r2)
+            moved |= r2 is not r
         out.append({**f, "rows": rows} if moved else f)
+    return out
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED (prototype round 20i, owner O3; v33 UR4 fix 7)
+# ---------------------------------------------------------------------------------------------------------------
+
+STEELHEAD_STAMP = "steelhead_stamp"
+
+
+def _kinds(nodes) -> List[dict]:
+    out = []
+    for n in nodes or []:
+        if n.get("node") == "tier":
+            out += _kinds(n.get("children"))
+        elif n.get("node") == "kind":
+            out.append(n)
+    return out
+
+
+def steelhead_closed(rows_frame: dict) -> bool:
+    """The card says steelhead are CLOSED here today (the prototype's condition: a group's not-kept line of status
+    closed names steelhead) and nothing on the card lets them be fished — no row answering for steelhead other than
+    closed, no group kind of steelhead, no released not-kept steelhead line."""
+    rows = rows_frame.get("rows") or []
+    groups = [r["group"] for r in rows if r.get("group")]
+    if not any(x["status"] == "closed" and "ST" in x["species"] for g in groups for x in g.get("not_kept") or []):
+        return False
+    if any("ST" in (r.get("members") or []) and r["kind"] != "closed" for r in rows):
+        return False
+    if any("ST" in k["species"] for g in groups for k in _kinds(g.get("tree"))):
+        return False
+    return not any(x["status"] == "release" and "ST" in x["species"] for g in groups for x in g.get("not_kept") or [])
+
+
+def _for_steelhead_only(d: dict) -> bool:
+    """The steelhead stamp needed only to fish for (or keep) steelhead: every need it is bought for (its broadest
+    `when` and its narrower `also_when`) names steelhead alone. A stamp needed to fish at all during a steelhead period
+    (Babine: `when` fishing, `on` steelhead_period — no fish named) is the water's, never dropped."""
+    return d["doc"] == STEELHEAD_STAMP and all(
+        list(w.get("species") or []) == ["ST"] for w in [d["when"], *(d.get("also_when") or [])])
+
+
+def drop_closed_steelhead_stamp(rows_frames: Sequence[dict], licence_frames: Sequence[dict]) -> List[dict]:
+    """licence 7 (owner rule 2026-10-21; the prototype's round 20i O3 render-time drop, v33 UR4 fix 7, moved here): one
+    key's rows frames and licence frames (one per segment, aligned) -> licence frames whose profiles' `documents` leave
+    out the steelhead stamp where the card at the same key and segment says steelhead are closed (`steelhead_closed`):
+    "the steelhead stamp is needed only if you fish for steelhead". The requirement itself stays in `requirements`
+    (where each one comes from). A frame shared between keys and segments is never changed: a dropped one is copied."""
+    if len(rows_frames) != len(licence_frames):
+        raise AnswersError(f"steelhead stamp: {len(rows_frames)} rows frames for {len(licence_frames)} licence frames")
+    out = []
+    for f, lic in zip(rows_frames, licence_frames):
+        if "tidal" in (lic.get("holds") or {}) or not steelhead_closed(f):
+            out.append(lic)
+            continue
+        profiles = [p if not any(_for_steelhead_only(d) for d in p.get("documents") or [])
+                    else {**p, "documents": [d for d in p["documents"] if not _for_steelhead_only(d)]}
+                    for p in lic["profiles"]]
+        moved = any(a is not b for a, b in zip(profiles, lic["profiles"]))
+        out.append({**lic, "profiles": profiles} if moved else lic)
     return out
