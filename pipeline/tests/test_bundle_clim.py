@@ -49,18 +49,26 @@ def test_the_writer_still_writes_this_layout():
 
 
 def test_the_app_reads_the_same_offsets():
-    """The reader must use THIS stride and THESE offsets, not its own arithmetic."""
-    ts = ROOT / "app/packages/data/src/bundle/source.ts"   # tracked: app/ is in git
+    """The reader must use THIS stride and THESE offsets, not its own arithmetic.
+
+    The reader lives in `bundle/shared.ts` (`pentadsOf`) since P11, and reads two codecs: clim/1 (this writer:
+    float32, so 1 + 5*4 = 21-byte records) and clim/2 (the release's float16). The pins below hold the clim/1 path
+    to this file's layout: the width it picks for clim/1, the record it derives from that width, the pentad at
+    offset 0, the five values at 1 + k*width, every float little-endian.
+    """
+    ts = ROOT / "app/packages/data/src/bundle/shared.ts"   # tracked: app/ is in git
     src = ts.read_text(encoding="utf-8")
 
-    assert f"o += {STRIDE}" in src and f"o + {STRIDE} <= bytes.byteLength" in src, (
-        f"source.ts no longer walks the envelope in {STRIDE}-byte records")
+    assert 'codec === "clim/1" ? 4 : 2' in src, "pentadsOf no longer reads clim/1 as 4-byte floats"
+    assert "rec = 1 + 5 * w" in src and 1 + 5 * 4 == STRIDE, (
+        f"pentadsOf no longer walks the envelope in 1 + 5*width (= {STRIDE} for clim/1) byte records")
+    assert "o += rec" in src and "o + rec <= bytes.byteLength" in src, "pentadsOf no longer steps record by record"
     assert "dv.getUint8(o)" in src, "the pentad is no longer read from offset 0"
-    # The five float32 offsets, and `true` for little-endian on every one of them. A missing
-    # `true` defaults to BIG-endian in the DataView API — silently, and wrongly.
-    for off in (1, 5, 9, 13, 17):
-        assert f"dv.getFloat32(o + {off}, true)" in src, (
-            f"source.ts does not read a little-endian float32 at offset {off}")
+    # `true` for little-endian on the float32 read. A missing `true` defaults to BIG-endian in the DataView API —
+    # silently, and wrongly.
+    assert "dv.getFloat32(o, true)" in src, "pentadsOf does not read little-endian float32 for clim/1"
+    for off in ("o + 1", "o + 1 + w", "o + 1 + 2 * w", "o + 1 + 3 * w", "o + 1 + 4 * w"):
+        assert f"at({off})" in src, f"pentadsOf does not read a value at {off}"
 
 
 def test_float32_is_below_the_precision_that_matters():
