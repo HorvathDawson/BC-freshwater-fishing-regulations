@@ -21,6 +21,7 @@ import { diff, parseManifest, type Held, type Manifest } from "../manifest";
 import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex } from "../sha256";
 import { VerifyError } from "../fetchVerified";
+import { assetsDir, installAssets, type RawFetch } from "./assets";
 
 export interface ReleaseFs {
   exists(path: string): Promise<boolean>;
@@ -142,11 +143,12 @@ export async function writeHeld(fs: ReleaseFs, path: string, h: Held): Promise<v
  * Download what `m` needs beside `held` (everything when `held` is null) and swap the pointer. `toDisk` streams the
  * tiles and their mask (a test or the web may leave it out: they are then fetched whole through `dl`). `beforeSwap`
  * runs once everything is verified, just before THE SWAP (boot records the set being replaced there, so a launch killed
- * right after the swap still knows what to prune).
+ * right after the swap still knows what to prune). `raw` fetches the map assets (`assets.ts`: held to the manifest's
+ * `files_sha256`, then each file to its sha); a manifest that names assets needs it.
  */
 export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
                               onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
-                              beforeSwap?: () => Promise<void>): Promise<Held> {
+                              beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true };
   const names = Object.keys(m.files).sort();
   const dir = dirOf(m.data_release);
@@ -188,6 +190,15 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
     }
     bytes += b.e.bytes;
     onProgress({ done: ++done, total, file: b.file, bytes, of });
+  }
+  // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
+  // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.
+  const a = m.tiles.assets;
+  if (a) {
+    if (!raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
+    const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
+    await installAssets(fs, raw, base, a, heldA ? assetsDir(heldA) : null);
+    onProgress({ done, total, file: "assets", bytes, of });
   }
   // the manifest the set was installed from: an offline launch opens the set with it (`heldManifest`)
   const mb = new TextEncoder().encode(JSON.stringify(m));

@@ -245,7 +245,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // camera and refetch every tile — a theme toggle would look like a crash and a reload.
     // `initial` is a starting camera, not a controlled one; re-reading it here would yank
     // the map back to it on every render.
-  }, [at.atlas, at.basemap, at.glyphs, at.sprite]);
+  }, [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
 
   /**
    * Confine the BASEMAP's labels to British Columbia, once the mask has arrived.

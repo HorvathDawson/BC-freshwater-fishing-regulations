@@ -48,7 +48,7 @@ export function releaseFetch(base: string, dir: string, log: string[]): typeof f
   return (async (input: string | URL) => {
     const url = String(input);
     log.push(url);
-    const rel = url.startsWith(base) ? url.slice(base.length) : null;
+    const rel = url.startsWith(base) ? decodeURIComponent(url.slice(base.length)) : null;
     const path = rel === "manifest.json" ? join(dir, "manifest.json") : rel ? join(dir, "..", rel) : null;
     if (!path || !existsSync(path)) return new Response("no", { status: 404 });
     const body = readFileSync(path);

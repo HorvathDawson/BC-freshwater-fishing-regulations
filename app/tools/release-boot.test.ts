@@ -23,7 +23,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { bootRelease, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
+import { assetsDigest, bootRelease, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -73,6 +73,12 @@ describe("web: a cold start is the manifest and paint, then each file on first n
       mask: { url: "tiles/v1/bc_outside.geojson", bytes: 1, sha256: "y" } } } };
     expect(releaseTiles(named, DEV_TILES)).toEqual({
       atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: `${BASE}tiles/v1/bc_outside.geojson` });
+    // the map assets (glyphs + sprites) from the release url on the web
+    const assets = { ...named, manifest: { ...named.manifest, tiles: { ...named.manifest.tiles,
+      assets: { id: "map-assets-1", url: "tiles/v1/map-assets-1/", files_sha256: "z" } } } };
+    expect(releaseTiles(assets, DEV_TILES)).toEqual({
+      atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: `${BASE}tiles/v1/bc_outside.geojson`,
+      assets: `${BASE}tiles/v1/map-assets-1/` });
   });
 });
 
@@ -99,7 +105,7 @@ function tileVersion(fx: FixtureRelease, build: string): string {
  * by a manifest that names it. Returns the folder `releaseFetch` serves that manifest from (its data urls are the
  * release's own).
  */
-function withTiles(fx: FixtureRelease, v: string): string {
+function withTiles(fx: FixtureRelease, v: string, assets?: { id: string; body: Record<string, string> }): string {
   const folder = join(fx.root, "tiles", v);
   mkdirSync(folder, { recursive: true });
   const ref = (name: string, body: string) => {
@@ -110,7 +116,19 @@ function withTiles(fx: FixtureRelease, v: string): string {
   const m = JSON.parse(readFileSync(join(fx.dir, "manifest.json"), "utf8")) as Manifest;
   m.tiles.current = { id: v, ...ref(`atlas-${v}.pmtiles`, `atlas ${v}`) };
   m.tiles.mask = ref("bc_outside.geojson", `mask ${v}`);
-  const at = join(fx.root, `manifest-${v}`);
+  if (assets) {
+    // the map assets folder as assets.py writes it: the files, and assets.json listing their sha256
+    const files: Record<string, string> = {};
+    for (const [rel, body] of Object.entries(assets.body)) {
+      const b = new TextEncoder().encode(body);
+      mkdirSync(join(folder, assets.id, rel, ".."), { recursive: true });
+      writeFileSync(join(folder, assets.id, rel), b);
+      files[rel] = sha256Hex(b);
+    }
+    writeFileSync(join(folder, assets.id, "assets.json"), JSON.stringify({ id: assets.id, pin: "p", files }));
+    m.tiles.assets = { id: assets.id, url: `tiles/${v}/${assets.id}/`, files_sha256: assetsDigest(files), pin: "p" };
+  }
+  const at = join(fx.root, `manifest-${v}-${assets?.id ?? "none"}`);
   mkdirSync(at, { recursive: true });
   writeFileSync(join(at, "manifest.json"), JSON.stringify(m));
   return at;
@@ -119,10 +137,20 @@ function withTiles(fx: FixtureRelease, v: string): string {
 const tileFiles = (fs: ReturnType<typeof memFs>, v: string) =>
   [...fs.files.keys()].filter((k) => k.startsWith(`release/tiles/${v}/`)).sort();
 
-/** The phone, over an in-memory disk: files are read from the held set, as source.native.ts does. */
-function phone(fs: ReturnType<typeof memFs>, disk: ReleaseFs = fs): ReleasePlatform {
+/**
+ * The phone, over an in-memory disk: files are read from the held set, as source.native.ts does. `failOpen`: the next
+ * that many SQLite opens throw it (a transient failure: the opener, not the bytes).
+ */
+function phone(fs: ReturnType<typeof memFs>, disk: ReleaseFs = fs,
+               failOpen: { error: Error; times: number } | null = null): ReleasePlatform {
   return {
-    releaseOpener: () => nodeOpener(),
+    releaseOpener: () => {
+      const open = nodeOpener();
+      return async (name, bytes) => {
+        if (failOpen && failOpen.times > 0) { failOpen.times--; throw failOpen.error; }
+        return open(name, bytes);
+      };
+    },
     releaseCache: async () => ({ kind: "none", get: async () => null, put: async () => {} }),
     releaseSource: (m, at) => ({
       bytes: async (name) => fs.read(heldPath(at.held!, m.files[name]!.url)),
@@ -223,6 +251,84 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(fs.files.has("release/previous")).toBe(false);
     });
 
+  const GLYPHS = "fonts/Noto Sans Regular/0-255.pbf", SPRITE = "sprites/v4/light.png";
+  const assetFiles = (fs: ReturnType<typeof memFs>, v: string, id: string) =>
+    [...fs.files.keys()].filter((k) => k.startsWith(`release/tiles/${v}/${id}/`)).sort();
+
+  it("MAP ASSETS are installed (every file verified) and the map reads its glyphs and sprites from the installed folder",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa");
+      const at = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
+      const fs = memFs(), log: string[] = [];
+      const first = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                        platform: phone(fs), fetch: releaseFetch(BASE, at, log), manifestTimeoutMs: 1000 });
+      expect(first.held.assets).toBe("map-assets-1");
+      expect(assetFiles(fs, v1, "map-assets-1")).toEqual([
+        `release/tiles/${v1}/map-assets-1/assets.json`,
+        `release/tiles/${v1}/map-assets-1/${GLYPHS}`,
+        `release/tiles/${v1}/map-assets-1/${SPRITE}`,
+      ]);
+      expect(new TextDecoder().decode(fs.files.get(`release/tiles/${v1}/map-assets-1/${GLYPHS}`))).toBe("glyphs");
+      expect(log.filter((u) => u.includes("map-assets-1"))).toEqual([
+        `${BASE}tiles/${v1}/map-assets-1/assets.json`,
+        `${BASE}tiles/${v1}/map-assets-1/fonts/Noto%20Sans%20Regular/0-255.pbf`,
+        `${BASE}tiles/${v1}/map-assets-1/${SPRITE}`,
+      ]);
+      expect(releaseTiles(first, DEV_TILES)).toEqual({
+        atlas: `file:///doc/release/tiles/${v1}/atlas-${v1}.pmtiles`, basemap: DEV_TILES.basemap,
+        outside: `file:///doc/release/tiles/${v1}/bc_outside.geojson`,
+        assets: `file:///doc/release/tiles/${v1}/map-assets-1/` });
+    });
+
+  it("an ASSETS-ONLY release fetches only the new assets folder, and the old one is pruned at the next launch",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa");
+      const at1 = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
+      const at2 = withTiles(r1, v1, { id: "map-assets-2", body: { [GLYPHS]: "glyphs", [SPRITE]: "png 2" } });
+      const fs = memFs(), log: string[] = [];
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
+                                                       wasmBase: "", platform: phone(fs), fetch: f,
+                                                       manifestTimeoutMs: 1000 });
+      await boot(releaseFetch(BASE, at1, []));
+      const second = await boot(releaseFetch(BASE, at2, log));
+      const next = await second.update;
+      expect(next).toMatchObject({ tiles: v1, assets: "map-assets-2" });
+      // the unchanged glyphs are copied from the held folder; only the list and the changed sprite are fetched
+      expect(log).toEqual([`${BASE}manifest.json`, `${BASE}tiles/${v1}/map-assets-2/assets.json`,
+                           `${BASE}tiles/${v1}/map-assets-2/${SPRITE}`]);
+      expect(assetFiles(fs, v1, "map-assets-1").length).toBe(3);
+
+      const third = await boot(offline);
+      expect(third.held.assets).toBe("map-assets-2");
+      expect(releaseTiles(third, DEV_TILES).assets).toBe(`file:///doc/release/tiles/${v1}/map-assets-2/`);
+      expect(assetFiles(fs, v1, "map-assets-1")).toEqual([]);
+      expect(assetFiles(fs, v1, "map-assets-2")).toEqual([
+        `release/tiles/${v1}/map-assets-2/assets.json`,
+        `release/tiles/${v1}/map-assets-2/${GLYPHS}`,
+        `release/tiles/${v1}/map-assets-2/${SPRITE}`,
+      ]);
+      expect(tileFiles(fs, v1)).toContain(`release/tiles/${v1}/atlas-${v1}.pmtiles`);
+    });
+
+  it("an update whose assets are not the manifest's is refused before the swap: the held set stays in force",
+    async () => {
+      const r1 = buildFixtureRelease(null);
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa");
+      const at1 = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
+      const at2 = withTiles(r1, v1, { id: "map-assets-2", body: { [GLYPHS]: "glyphs", [SPRITE]: "png 2" } });
+      // served bytes changed after the list was written
+      writeFileSync(join(r1.root, "tiles", v1, "map-assets-2", SPRITE), "tampered");
+      const fs = memFs();
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
+                                                       wasmBase: "", platform: phone(fs), fetch: f,
+                                                       manifestTimeoutMs: 1000 });
+      const first = await boot(releaseFetch(BASE, at1, []));
+      await expect((await boot(releaseFetch(BASE, at2, []))).update).rejects.toThrow(/map-assets-2\/sprites\/v4\/light\.png: sha256/);
+      expect(JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!))).toEqual(first.held);
+    });
+
   it("a new set that will not open is ROLLED BACK to the one it replaced, said, pruned, and not installed again",
     async () => {
       const r1 = buildFixtureRelease(null);
@@ -242,8 +348,9 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
       const back = await boot(offline);
       expect(back.held.release).toBe(first.held.release);
+      // a decode failure of verified bytes is a VERIFIED defect: refused for good
       expect(back.rolledBack).toEqual({ refused: m2.data_release, using: first.held.release,
-                                        reason: expect.any(String) as string });
+                                        reason: expect.any(String) as string, retry: false });
       expect(JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!)).release).toBe(first.held.release);
       expect([...fs.files.keys()].some((k) => k.startsWith(`release/${m2.data_release}/`))).toBe(false);
       expect(fs.files.has("release/previous")).toBe(false);
@@ -255,6 +362,65 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(after.rolledBack).toBeNull();
       expect(await after.update).toBeNull();
       expect(log).toEqual([`${BASE}manifest.json`]);
+    });
+
+  /** r1 installed, then r2 installed by an update (not yet used): the state a launch that opens r2 starts from. */
+  async function updated() {
+    const r1 = buildFixtureRelease(null);
+    const r2 = buildFixtureRelease(null, (db) => {
+      db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
+    });
+    const fs = memFs();
+    const boot = (f: typeof fetch, failOpen: { error: Error; times: number } | null = null) => bootRelease({
+      manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs, fs, failOpen),
+      fetch: f, manifestTimeoutMs: 1000 });
+    const first = await boot(releaseFetch(BASE, r1.dir, []));
+    const next = (await (await boot(releaseFetch(BASE, r2.dir, []))).update)!;
+    const m2 = JSON.parse(readFileSync(join(r2.dir, "manifest.json"), "utf8")) as Manifest;
+    return { r2, fs, boot, first, next, m2 };
+  }
+  const pointerOf = (fs: ReturnType<typeof memFs>) =>
+    JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!)) as { release: string };
+  const holds = (fs: ReturnType<typeof memFs>, release: string) =>
+    [...fs.files.keys()].some((k) => k.startsWith(`release/${release}/`));
+
+  it("a TRANSIENT failure opening the new set rolls back for this launch only: nothing refused, nothing pruned, retried",
+    async () => {
+      const { r2, fs, boot, first, m2 } = await updated();
+      // the opener fails (not the bytes): this launch goes back to r1, but r2 stays the pointer's, whole, unrefused
+      const log: string[] = [];
+      const back = await boot(releaseFetch(BASE, r2.dir, log), { error: new Error("database is locked"), times: 1 });
+      expect(back.held.release).toBe(first.held.release);
+      expect(back.rolledBack).toEqual({ refused: m2.data_release, using: first.held.release,
+                                        reason: "database is locked", retry: true });
+      expect(pointerOf(fs).release).toBe(m2.data_release);
+      expect(fs.files.has("release/refused")).toBe(false);
+      expect(fs.files.has("release/previous")).toBe(true);
+      expect(holds(fs, m2.data_release)).toBe(true);
+      expect(holds(fs, first.held.release!)).toBe(true);
+      // the set it will retry is not downloaded again
+      expect(await back.update).toBeNull();
+      expect(log).toEqual([`${BASE}manifest.json`]);
+
+      // the next launch opens r2 after all, and only then prunes r1
+      const again = await boot(offline);
+      expect(again.held.release).toBe(m2.data_release);
+      expect(again.rolledBack).toBeNull();
+      expect(holds(fs, first.held.release!)).toBe(false);
+      expect(fs.files.has("release/previous")).toBe(false);
+    });
+
+  it("an open failure that is not classed is refused only when the set is PROVEN damaged (its bytes fail their sha)",
+    async () => {
+      const { fs, boot, first, next, m2 } = await updated();
+      // core on disk is no longer the bytes the install verified: the opener fails, and the sha proves why
+      fs.files.set(heldPath(next, m2.files.core!.url), new TextEncoder().encode("not a database"));
+      const back = await boot(offline);
+      expect(back.held.release).toBe(first.held.release);
+      expect(back.rolledBack).toMatchObject({ refused: m2.data_release, using: first.held.release, retry: false });
+      expect(pointerOf(fs).release).toBe(first.held.release);
+      expect(fs.files.has("release/refused")).toBe(true);
+      expect(holds(fs, m2.data_release)).toBe(false);
     });
 
   it("a launch killed right after the swap still prunes the set it replaced (PREVIOUS is written before the swap)",
@@ -288,6 +454,15 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
 const LIVE = process.env.RELEASE_DIR ? resolve(__dirname, "../..", process.env.RELEASE_DIR) : null;
 describe.skipIf(!LIVE || !existsSync(LIVE!))("the Vedder on the live release (Tier 2: RELEASE_DIR)", () => {
+  it("the live manifest's assets digest is the one the app computes over the folder's assets.json", () => {
+    const m = JSON.parse(readFileSync(join(LIVE!, "manifest.json"), "utf8")) as Manifest;
+    const a = m.tiles.assets;
+    if (!a) return;                                                      // a release that names no assets yet
+    const list = JSON.parse(readFileSync(join(LIVE!, "..", a.url, "assets.json"), "utf8")) as
+      { files: Record<string, string> };
+    expect(assetsDigest(list.files)).toBe(a.files_sha256);
+  });
+
   it("opening the Vedder adds core + water + regs-2; a Region 5 water then adds regs-5 only", async () => {
     const log: string[] = [];
     const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",

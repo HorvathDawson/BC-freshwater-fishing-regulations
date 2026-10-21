@@ -10,16 +10,22 @@
  *            with the held set — its data files, tiles, mask, basemap and map assets — and only what changed is
  *            downloaded, in the background; the pointer swaps when it is all verified and the swap is USED at the next
  *            launch, when the set it replaced is pruned — never before the new one has opened, decoded its paint and
- *            paired. A new set that will not open ROLLS BACK: the pointer goes back to the set it replaced (still on disk:
- *            nothing is pruned before success), the reader is told (`Booted.rolledBack`), and the refused set is
- *            deleted and not installed again until the manifest names another.
+ *            paired. A new set that will not open ROLLS BACK to the set it replaced (still on disk: nothing is pruned
+ *            before success), and the reader is told (`Booted.rolledBack`). Only a VERIFIED defect — bytes that fail
+ *            their sha, a format or handles mismatch, a decode failure of verified bytes (`provenDefect`) — refuses
+ *            it for good: the pointer goes back, the set is deleted and not installed again until the manifest names
+ *            another. Anything else (an IO or opener failure) is rolled back for THIS launch only: the pointer, the
+ *            set and the set it replaced all stay, and the next launch tries it again.
  */
-import type { Paint } from "@app/core";
-import { compatible, loadManifest, type Held, type Manifest } from "../manifest";
+import { PaintError, StatusIndexError, type Paint } from "@app/core";
+import { VerifyError } from "../fetchVerified";
+import { compatible, loadManifest, ManifestError, type Held, type Manifest } from "../manifest";
+import { sha256Hex } from "../sha256";
 import type { RegsSource } from "../index";
 import type { BundleSourceOptions } from "../bundle/source";
 import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          writeHeld, type Progress, type ReleaseFs } from "./install";
+import { rawFetch } from "./assets";
 import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
 import { makeReleaseSource } from "./source";
@@ -74,8 +80,12 @@ export interface Booted {
   rolledBack: RolledBack | null;
 }
 
-/** Which set was refused, which one is used instead, and why (the error the new set opened with). */
-export interface RolledBack { refused: string | null; using: string | null; reason: string }
+/**
+ * Which set was refused, which one is used instead, and why (the error the new set opened with). `retry`: the failure
+ * proved nothing wrong with the set (IO, the opener), so it stays the pointer's and the next launch tries it again;
+ * false: a verified defect, refused for good.
+ */
+export interface RolledBack { refused: string | null; using: string | null; reason: string; retry: boolean }
 
 export class BootError extends Error {
   constructor(message: string, readonly firstRunOffline = false) { super(message); }
@@ -91,6 +101,33 @@ function timeout<T>(p: Promise<T>, ms: number): Promise<T> {
     const t = setTimeout(() => fail(new Error(`manifest: no answer in ${ms} ms`)), ms);
     p.then((v) => { clearTimeout(t); ok(v); }, (e: unknown) => { clearTimeout(t); fail(e); });
   });
+}
+
+/**
+ * Is `e`, the error a held set `h` opened with, a VERIFIED defect of the set (refuse it for good) rather than a failure
+ * of this launch (IO, the opener: try it again next launch)? The checkers' own errors are (a sha, a format or handles
+ * mismatch, a decode failure of verified bytes); any other error is proven only when the set's bytes on disk no longer
+ * are the ones installed (a file gone, or not its sha) or its manifest no longer reads. A read that fails proves nothing.
+ */
+export async function provenDefect(e: unknown, fs: ReleaseFs, h: Held): Promise<boolean> {
+  if (e instanceof VerifyError || e instanceof ManifestError || e instanceof ReleaseError || e instanceof PaintError
+      || e instanceof StatusIndexError) return true;
+  try {
+    const m = await heldManifest(fs, h).catch((err: unknown) => {
+      if (err instanceof SyntaxError || err instanceof ManifestError) throw new VerifyError("manifest unreadable");
+      throw err;
+    });
+    for (const [name, sha] of Object.entries(h.files)) {
+      const spec = m.files[name];
+      if (!spec) return true;
+      const path = heldPath(h, spec.url);
+      if (!(await fs.exists(path))) return true;
+      if (sha256Hex(await fs.read(path)) !== sha) return true;
+    }
+    return false;
+  } catch (err) {
+    return err instanceof VerifyError;
+  }
 }
 
 export async function bootRelease(o: BootOptions): Promise<Booted> {
@@ -119,7 +156,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   if (!held) {
     if (!latest) throw new BootError("first run: the manifest could not be read", true);
     o.onStage?.("install");
-    held = await install(latest, dev.fs, dev.download, o.releaseBase, null, o.onProgress, dev.toDisk);
+    held = await install(latest, dev.fs, dev.download, o.releaseBase, null, o.onProgress, dev.toDisk, undefined,
+                         rawFetch(f));
   }
   /** Open a held set: its manifest, paint decoded against its handles, core opened and checked, its tiles paired. */
   const cache = await o.platform.releaseCache();
@@ -146,21 +184,30 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
 
   let set: Awaited<ReturnType<typeof openSet>>;
   let rolledBack: RolledBack | null = null;
+  /** A set rolled back for this launch only (not proven defective): kept, and tried again at the next launch. */
+  let retrying: { h: Held; m: Manifest | null } | null = null;
   const previous = await readHeld(dev.fs, PREVIOUS);
   try {
     set = await openSet(held);
   } catch (e) {
-    // ROLLBACK: the set this one replaced is still on disk (nothing is pruned before success); swap back to it
+    // ROLLBACK: the set this one replaced is still on disk (nothing is pruned before success); open it instead
     if (!previous || sameSet(previous, held)) throw e;
     const bad = held, badM = await heldManifest(dev.fs, bad).catch(() => null);
-    await writeHeld(dev.fs, REFUSED, bad);
-    await writeHeld(dev.fs, POINTER_PATH, previous);
+    const defect = await provenDefect(e, dev.fs, bad);
+    if (defect) {
+      await writeHeld(dev.fs, REFUSED, bad);
+      await writeHeld(dev.fs, POINTER_PATH, previous);
+    }
     held = previous;
     set = await openSet(held);
     rolledBack = { refused: bad.release ?? null, using: held.release ?? null,
-                   reason: e instanceof Error ? e.message : String(e) };
-    await prune(dev.fs, bad, badM, held, set.m);
-    await dev.fs.remove(PREVIOUS);
+                   reason: e instanceof Error ? e.message : String(e), retry: !defect };
+    if (defect) {
+      await prune(dev.fs, bad, badM, held, set.m);
+      await dev.fs.remove(PREVIOUS);
+    } else {
+      retrying = { h: bad, m: badM };
+    }
   }
 
   // the set this one replaced is deleted only now: the new one has opened, decoded its paint and paired
@@ -173,10 +220,16 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   const now = held;
   const target = latest ? pointerFor(latest) : null;
   const refused = await readHeld(dev.fs, REFUSED);
-  // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused
+  // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused, or
+  // is the set this launch rolled back from and will retry (already installed, still the pointer's)
   const update = latest && target && !sameSet(target, now) && !(refused && sameSet(target, refused))
-    ? install(latest, dev.fs, dev.download, o.releaseBase, now, () => {}, dev.toDisk,
-              () => writeHeld(dev.fs, PREVIOUS, now))
+      && !(retrying && sameSet(target, retrying.h))
+    ? (async () => {
+        // a newer set replaces the one being retried: what of it the held set does not name goes first
+        if (retrying) await prune(dev.fs, retrying.h, retrying.m, now, set.m);
+        return install(latest, dev.fs, dev.download, o.releaseBase, now, () => {}, dev.toDisk,
+                       () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
+      })()
     : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
@@ -191,11 +244,14 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
  */
 export function releaseTiles(b: Pick<Booted, "manifest" | "locate">,
                              dev: { atlas: string; basemap: string; outside: string }):
-    { atlas: string; basemap: string; outside: string } {
+    { atlas: string; basemap: string; outside: string; assets?: string } {
   const t = b.manifest.tiles;
+  const assets = t.assets ? b.locate(t.assets.url).replace(/\/?$/, "/") : null;
   return {
     atlas: t.current ? b.locate(t.current.url) : dev.atlas,
     basemap: b.manifest.basemap ? b.locate(b.manifest.basemap.url) : dev.basemap,
     outside: t.mask ? b.locate(t.mask.url) : dev.outside,
+    // the glyphs and sprites: the installed folder on a phone, the release url on the web (the style's CDN otherwise)
+    ...(assets ? { assets } : {}),
   };
 }

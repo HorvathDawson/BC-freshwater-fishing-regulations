@@ -30,6 +30,12 @@ export interface TileEndpoints {
   glyphs?: string;
   sprite?: string;
   /**
+   * The release's map assets folder (P11/P18, ending in "/"): `fonts/{fontstack}/{range}.pbf` and
+   * `sprites/v4/<light|dark>` under it. The installed folder on a phone (always offline), the
+   * release url on the web. `glyphs`/`sprite` win when given; absent, the Protomaps CDN.
+   */
+  assets?: string;
+  /**
    * The outside-BC mask: a rectangle with the province punched out, as GeoJSON.
    * ~61 KB, and changing how it looks never needs a tile rebuild.
    */
@@ -208,8 +214,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
 
   return {
     version: 8 as const,
-    glyphs: at.glyphs ?? `${PM_ASSETS}/fonts/{fontstack}/{range}.pbf`,
-    sprite: at.sprite ?? `${PM_ASSETS}/sprites/v4/${theme === "dark" ? "dark" : "light"}`,
+    glyphs: at.glyphs ?? `${at.assets ?? `${PM_ASSETS}/`}fonts/{fontstack}/{range}.pbf`,
+    sprite: at.sprite ?? `${at.assets ?? `${PM_ASSETS}/`}sprites/v4/${theme === "dark" ? "dark" : "light"}`,
     sources: {
       basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, attribution:
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
