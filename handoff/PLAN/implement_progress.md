@@ -96,6 +96,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- OWNER 2026-10-21 ~16:10 on the water map view: keep every part's regulation colour and OUTLINE the current part
+  (no highlight fill); step ▲/▼ across waters when one stream continues directly as another (Vedder from
+  Chilliwack; same watercourse, not tributaries) — pipeline ships a continuation link. Folded into the follow-ups
+  lane water-map-followups; workflow restarted as task wpy391edp, same run id wf_3d498e10-baf.
 - MERGED 2026-10-21 ~16:05: colouring engine (1f3af369 + bfa83326; merge 1 commit: restore re-applies P15 water parts).
   Pans 0 grey frames (was ~500 ms), horizon correct on the first frame, feed-only recolour with no tile bytes; strict
   check 6367, smoke pass. RUNNING follow-ups wf_3d498e10-baf (script engine-and-water-map-followups-wf_3d498e10-baf.js):
@@ -103,7 +107,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   shipped in the release + engine channel; needs a release rebuild after), water-map-followups (P15 b-d below).
 - MERGED 2026-10-21 ~15:45: P15 water map view (088c52c4 + review fix 6af87170: web marks drawn at their point).
   Merge made its exit / Show-regs actions go through openWater() and other-section taps through opener.tap. Strict
-  check 6348, smoke pass. P15 FOLLOW-UPS (after the colouring engine merges): (a) OWNER QUESTION: the Vedder is 1 part
+  check 6348, smoke pass. P15 FOLLOW-UPS (after the colouring engine merges): (a) ANSWERED (continuation link, see above): the Vedder is 1 part
   in the release (the prototype hand-grouped Vedder+Chilliwack, 5 parts); needs a pipeline continuation link/group or
   a chooser over its predecessors; (b) Zymoetz lake part unreachable by ▼/▲; (c) back after stepping returns to the
   part the map opened on, not the stepped part; (d) `water` paint only widens streams (no lake/wetland, no ink
