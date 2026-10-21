@@ -52,6 +52,8 @@ const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
 /** `CAMERA_BOUNDS` (`[[w, s], [e, n]]`) in the binding's flat `[w, s, e, n]`. */
 const MAX_BOUNDS: [number, number, number, number] =
   [CAMERA_BOUNDS[0][0], CAMERA_BOUNDS[0][1], CAMERA_BOUNDS[1][0], CAMERA_BOUNDS[1][1]];
+/** Where the binding's own scale bar is parked: present (see the `scaleBar` prop), never seen. */
+const OFF_SCREEN = { top: -10000, left: -10000 } as const;
 /** The web's `ScaleControl({ maxWidth: 92 })`. */
 const SCALE_MAX_WIDTH = 92;
 
@@ -71,6 +73,13 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   const size = useRef({ width: 0, height: 0 });
   /** A style has finished loading at least once. */
   const [styled, setStyled] = useState(false);
+  /**
+   * The map has DRAWN once (`onDidFinishRenderingMapFully`). Nothing touches feature-state or queries before it: the
+   * renderer does not exist yet, and MapLibre Native dereferences it — `setFeatureState` crashed the app with SIGSEGV
+   * in `MapRenderer::actor()` when a remounted map was handed its status colours straight after its style loaded
+   * (emulator, N2 review), exactly as `queryRenderedFeatures` did (N2).
+   */
+  const [drawn, setDrawn] = useState(false);
   /** Bumped when a style finishes loading (a swap dropped every feature-state) or the atlas source attaches. */
   const [gen, setGen] = useState(0);
   const furniture = useMemo(() => chrome ?? mapChrome(theme), [chrome, theme]);
@@ -131,20 +140,20 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   // STATUS COLOURS (and every other per-feature value a colour mode reads), by feature-state; a value a feature
   // already holds is not sent again (`onceSink`), so re-sending the visible set on every settle costs only the new ones
   useEffect(() => {
-    if (!styled || !atlasRef.current) return;
+    if (!styled || !drawn || !atlasRef.current) return;
     const h = renderer.states(() => []);
     for (const [layerId, values] of Object.entries(sectionData)) {
       try { adapter.current.setData(h, layerId, values); } catch (e) { report(e); }
     }
-  }, [sectionData, gen, styled, report, renderer]);
+  }, [sectionData, gen, styled, drawn, report, renderer]);
 
   // THE SELECTION: only `selected` is cleared, per feature, from the ids lit last time
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
-    if (!styled || !atlasRef.current || !highlight) return;
+    if (!styled || !drawn || !atlasRef.current || !highlight) return;
     adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight]);
     wasLit.current = [...highlight];
-  }, [highlight, gen, styled, report, renderer]);
+  }, [highlight, gen, styled, drawn, report, renderer]);
 
   /*
    * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which
@@ -176,6 +185,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
             [onVisible !== undefined, reportVisible]);
   const onRendered = useCallback(() => {
     rendered.current = true;
+    setDrawn(true);
     void reportVisible();
     void refine.current?.().catch(report);
   }, [reportVisible, report]);
@@ -256,18 +266,22 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
 
   const scale = metricScale(scaleAt.lat, scaleAt.zoom, SCALE_MAX_WIDTH);
   return (
-    <View style={[{ flex: 1 }, style]} onLayout={onLayout}>
+    <>
       <MLMap
         ref={mapRef}
-        style={{ flex: 1 }}
+        style={[{ flex: 1 }, style]}
+        onLayout={onLayout}
         mapStyle={look.style as never}
         // G1: one gesture policy for both maps — pan, pinch, double-tap zoom; no rotate, no tilt, no compass
         {...nativeMapGestures()}
         // a bare map is an illustration: no furniture. Attribution goes with it (the page credits the data, MapProps.bare)
         attribution={!bare}
         logo={false}
-        // ours, below (`metricScale`): the binding's is top-left only on Android, in the device's units
-        scaleBar={false}
+        // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
+        // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
+        // when the map unmounted (emulator, N2 review; bisected to this one prop). So it is on, and parked off screen
+        scaleBar
+        scaleBarPosition={OFF_SCREEN}
         onPress={onPress as never}
         onRegionDidChange={onRegionDidChange as never}
         onDidFinishLoadingStyle={onStyle}
@@ -292,7 +306,10 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       </MLMap>
       {bare ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-right, a heavy rule on three sides, the
-        // distance inside it in our ink, so the bar's LENGTH is the measurement and the number only names it
+        // distance inside it in our ink, so the bar's LENGTH is the measurement and the number only names it.
+        // A SIBLING of the map, positioned in the map's own container — NOT a wrapper View around the map: wrapped,
+        // the map's surface left a black rectangle over the next screen on Android when it unmounted (emulator, N2
+        // review; the unwrapped map does not)
         <View pointerEvents="none" accessibilityLabel="scale"
               style={{ position: "absolute", right: 10, bottom: 24, width: Math.round(scale.width),
                        borderWidth: 2, borderTopWidth: 0, borderColor: furniture.ink,
@@ -302,7 +319,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
                          fontFamily: "Archivo_700Bold", textAlign: "center" }}>{scale.label}</Text>
         </View>
       )}
-    </View>
+    </>
   );
 }
 

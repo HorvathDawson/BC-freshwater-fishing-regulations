@@ -79,6 +79,14 @@ function useOutsideMask(url: string | undefined): unknown {
 }
 
 /**
+ * The maps whose style has loaded once. `isStyleLoaded()` is ALSO false while tiles load (GL JS counts the sources),
+ * but paint, layout and feature-state calls need only the style itself, which never unloads here (the style is set once
+ * per map). Without this a zoom out to the basin field — a long tile burst, exactly when the basin standings arrive —
+ * waited on a `styledata` that never came, and the field stayed blank (N2 review web walk).
+ */
+const styledOnce = new WeakSet<maplibregl.Map>();
+
+/**
  * Run `fn` once the style can take layout and feature-state calls — now, or as soon as it
  * can. Returns the cleanup.
  *
@@ -115,6 +123,17 @@ function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
   };
   m.on("styledata", h);
   return () => { m.off("styledata", h); };
+}
+
+/**
+ * Run `fn` now if this map's style has loaded ONCE, else on its `load` — for the look and the data. Not `whenStyled`:
+ * its `isStyleLoaded()` also waits out every tile burst, and a `styledata` may never come; and not before `load`,
+ * where the pill and hatches are added (adding them earlier raced the load handler: "gauge-pill already exists").
+ */
+function afterLoad(m: maplibregl.Map, fn: () => void): () => void {
+  if (styledOnce.has(m)) { fn(); return () => {}; }
+  m.once("load", fn);
+  return () => { m.off("load", fn); };
 }
 
 export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
@@ -269,6 +288,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
         pill.current?.();
     });
     m.on("load", addPill);
+    m.once("load", () => styledOnce.add(m));
     map.current = m;
     renderer.current = webRenderer(m as never, MAX_ZOOM);
     // The canvas follows its container, not the window (see size.ts): a box that settles after mount — search's
@@ -371,7 +391,10 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       for (const [layerId, values] of Object.entries(data ?? {}))
         adapter.current.setData(handle, layerId, values);
     };
-    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    // `afterLoad`, not `isStyleLoaded() ? apply() : once("load", apply)`: mid tile burst (a zoom out to the basin
+    // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again, so the new data —
+    // the basin standings, which arrive exactly then — was dropped (N2 review web walk)
+    return afterLoad(m, apply);
   }, [view, modes, theme, data, groups, hide, onError]);
 
   useEffect(() => {

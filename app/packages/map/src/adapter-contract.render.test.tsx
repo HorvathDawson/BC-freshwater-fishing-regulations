@@ -26,7 +26,8 @@ let answer: (layers: readonly string[], phone: boolean) => { id?: unknown }[] = 
 // ---- maplibre-gl, recorded -------------------------------------------------------------------------------------------
 type Handler = (e?: unknown) => void;
 const web: { map: FakeGl | null; opts: Record<string, unknown> | null; rotationOff: boolean;
-             keyboardRotationOff: boolean } = { map: null, opts: null, rotationOff: false, keyboardRotationOff: false };
+             keyboardRotationOff: boolean; tilesIn: boolean } =
+  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true };
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
@@ -35,12 +36,15 @@ class FakeGl {
   constructor(opts: Record<string, unknown>) {
     web.opts = opts; web.map = this;
     this.style = opts.style as FakeGl["style"];
+    // the style loads after the constructor returns, as in GL JS
+    queueMicrotask(() => this.fire("load"));
   }
   on(ev: string, fn: Handler) { (this.on_.get(ev) ?? this.on_.set(ev, new Set()).get(ev)!).add(fn); return this; }
   once(ev: string, fn: Handler) { return this.on(ev, fn); }
   off(ev: string, fn: Handler) { this.on_.get(ev)?.delete(fn); return this; }
   fire(ev: string, e?: unknown) { for (const fn of [...(this.on_.get(ev) ?? [])]) fn(e); }
-  isStyleLoaded() { return true; }
+  // GL JS counts the SOURCES too: false through every tile burst, on a map that loaded long ago
+  isStyleLoaded() { return web.tilesIn; }
   getStyle() { return this.style; }
   getLayer(id: string) { return this.style.layers.find((l) => l.id === id); }
   getSource() { return { setData: () => {} }; }
@@ -125,7 +129,7 @@ afterEach(() => {
   cleanup();
   log.length = 0;
   answer = () => [];
-  web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false;
+  web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false;
 });
 
@@ -176,11 +180,12 @@ const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
 describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name, P) => {
   it("status colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
     const r = render(<P.Map {...base()} />);
-    await waitFor(() => expect(log).toEqual([
+    // on mount the status and the selection are independent effects: which lands first is the renderer's business
+    await waitFor(() => expect([...log].sort()).toEqual([
       'set atlas/stream number:311274 {"status":"open"}',
       'set atlas/lake number:1566515 {"status":"closed"}',
       ...selected(311274, true),
-    ]));
+    ].sort()));
     log.length = 0;
     r.rerender(<P.Map {...base({ highlight: [1566515] })} />);
     // the old selection's `selected` key cleared (only that key, per feature: the status colours stay), then the new
@@ -231,6 +236,17 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     P.settle();
     await waitFor(() => expect(seen).toHaveBeenLastCalledWith([311274, 1566515]));
     expect(log.filter((l) => l.startsWith("query"))[0]).toBe("query viewport stream,lake,lake_flowing,wetland_flowing");
+  });
+});
+
+describe("web only", () => {
+  it("data that arrives mid tile burst is applied (the basin field arrives exactly then)", async () => {
+    const r = render(<WebMap {...base({ highlight: undefined })} />);
+    await waitFor(() => expect(log.length).toBe(2));
+    log.length = 0;
+    web.tilesIn = false;                  // zoomed out: a long tile burst, and no `load` will ever fire again
+    r.rerender(<WebMap {...base({ highlight: undefined, data: { ...DATA, basin: { CHWK: { standing: 5 } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/basin string:CHWK {"standing":5}']));
   });
 });
 
@@ -296,6 +312,17 @@ describe("native only", () => {
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
     await waitFor(() => expect(seen.mock.calls).toEqual([[[311274]]]));
   });
+  it("sends no feature-state until the map has drawn (Android SIGSEGVs in MapRenderer::actor() from setFeatureState)", async () => {
+    native.holdRender = true;
+    render(<NativeMap {...base()} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    expect(log).toEqual([]);
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    await waitFor(() => expect([...log].sort()).toEqual([
+      'set atlas/stream number:311274 {"status":"open"}', 'set atlas/lake number:1566515 {"status":"closed"}',
+      ...selected(311274, true)].sort()));
+  });
   it("asks what is on screen once per camera move: our own feature-state redraw asks nothing", async () => {
     const seen = vi.fn();
     answer = () => [{ id: "5" }, { id: "6" }];
@@ -338,7 +365,8 @@ describe("native only", () => {
   it("draws the web's scale bar — metric, bottom-right — not the binding's (top-left, device units on Android)", async () => {
     const r = render(<NativeMap {...base()} />);
     await waitFor(() => expect(native.props).toBeTruthy());
-    expect(native.props!.scaleBar).toBe(false);
+    // the binding's own is ON but parked off screen: off, the map left a black hole over the next screen (Android)
+    expect([native.props!.scaleBar, native.props!.scaleBarPosition]).toEqual([true, { top: -10000, left: -10000 }]);
     // z9 at 49°N: 92 px ≈ 9.2 km → "5 km" (`metricScale`), and it follows the camera
     expect(r.getByLabelText("scale").textContent).toBe("5 km");
     act(() => {

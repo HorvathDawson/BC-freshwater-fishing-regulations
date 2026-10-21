@@ -47,6 +47,7 @@ describe("the native map applies the gesture policy and feature-state by id", ()
             src.includes("nativeStyle({")]).toEqual([true, true, true, true, true, true, true, true, true]);
   });
   it("draws the web's metric scale bar, not the binding's", () => {
-    expect([mapEl.includes("scaleBar={false}"), src.includes("metricScale(")]).toEqual([true, true]);
+    expect([mapEl.includes("scaleBarPosition={OFF_SCREEN}"), mapEl.includes("scaleBar={false}"),
+            src.includes("metricScale(")]).toEqual([true, false, true]);
   });
 });
