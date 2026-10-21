@@ -7,7 +7,10 @@
  *   - every colour mode that reads a per-section label reads the key an engine channel sets — a new mode keyed on
  *     anything else would need a second labeller, which is the parallel mechanism this forbids;
  *   - the web map hands BOTH props to the engine through one function, makes one engine, and sets no label itself;
- *   - the Shell reaches the Conditions colouring only through `useConditionsColour`, never the viewport hooks directly.
+ *   - the Shell reaches the Conditions colouring only through `useConditionsColour`, never the viewport hooks directly;
+ *   - NOTHING PUSHES a status or a standing to a map that labels its own tiles (engine polish, 2026-10-21): the web map
+ *     refuses the engine's keys in `data` on every path into `setData`; each producer of pushed colours is reached only
+ *     off `perTile`; and the Conditions route map (DonorMap → MiniMap) colours through the engine's standing channel.
  *
  * Each assertion was checked to fail against the bypass it names (mutation runs recorded in the colour-latency README).
  */
@@ -15,7 +18,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { STYLE_META } from "../packages/map/src/style";
-import { standingInput, statusInput, type Channel } from "../packages/map/src/colouring";
+import { ENGINE_KEYS, standingInput, statusInput, withoutEngineKeys, type Channel } from "../packages/map/src/colouring";
+import { statusFeed } from "../packages/ui/src/mapModes";
 
 const read = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
 /** The keys the engine's channels label a section with, from the channels themselves — never restated. */
@@ -50,6 +54,48 @@ describe("one colouring engine", () => {
     // no label set past the engine: the only label writes are the engine's target
     expect(src.match(/setFeatureState\([^;]*\{\s*(p|c|standing)\s*:/g)).toBeNull();
     expect(src).not.toMatch(/ProfileColouring|profile-paint/);
+  });
+
+  it("the web map REFUSES the engine's keys in pushed data, on every path into `setData`", () => {
+    // the refused keys are the channels' own, plus the phone's pushed day — never restated
+    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status"]);
+    const why: string[] = [];
+    expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", stocked: 2 }, 2: { standing: 4 } },
+                               basin: { CHWK: { standing: 5 } }, lake: { 3: { survey: "sheet" } } },
+                             (e) => why.push(e.message)))
+      .toEqual({ stream: { 1: { stocked: 2 } }, lake: { 3: { survey: "sheet" } } });
+    expect(why.length).toBe(2);
+    const src = read("packages/map/src/Map.web.tsx");
+    const sets = src.match(/adapter\.current\.setData\(/g)?.length ?? 0;
+    expect(sets).toBeGreaterThan(0);
+    expect(src.match(/of Object\.entries\(withoutEngineKeys\(/g)?.length).toBe(sets);
+  });
+
+  it("every producer of pushed colours is reached only off `perTile`; the per-tile map is pushed none", () => {
+    const ui = (f: string) => read(`packages/ui/src/${f}`);
+    // the day's status: pushed only to a map that does not label its own tiles
+    const index = { profileOf: () => null } as never;
+    expect(statusFeed({ perTile: true, statusOk: true, index, tab: "map", visible: [1, 2], day: new Date(2026, 0, 1) }))
+      .toEqual({ status: { index, day: new Date(2026, 0, 1) }, data: undefined });
+    expect(ui("mapModes.ts").match(/statusData\(/g)?.length).toBe(1);
+    // the whole map's standings
+    const cc = ui("conditionsColour.ts");
+    expect(cc).toContain("const pushed = !perTile && paired;");
+    expect(cc).toContain("const data = useMemo(() => (pushed ? pushedStandings(standings, basins) : {}),");
+    expect(cc.match(/pushedStandings\(/g)?.length).toBe(2);         // its definition, and that one call
+    // the route map's standings
+    const panel = ui("panel.ts");
+    expect(panel).toContain("const route = useMemo<RouteColourVM>(() => (perTile\n"
+      + "    ? { standing: { labels, values: routeValues(labels, standings) }, data: {} }\n"
+      + "    : { standing: null, data: pushedRoute(standings) }), [perTile, labels, standings]);");
+    expect(panel.match(/pushedRoute\(/g)?.length).toBe(1);
+    // and the sheet tells the route which renderer it is on, handing the map both halves of one choice
+    const sheet = read("packages/ui-native/src/ConditionsPanel.tsx");
+    expect(sheet).toContain("perTile: coloursEachTile(Platform.OS)");
+    expect(sheet).toContain("data={vm.route.data} standing={vm.route.standing}");
+    expect(sheet).not.toMatch(/routeData/);
+    for (const f of ["DonorPanel.tsx", "DonorMap.tsx", "MiniMap.tsx"])
+      expect([f, read(`packages/ui-native/src/${f}`).includes("standing={standing}")]).toEqual([f, true]);
   });
 
   it("the Shell takes the Conditions colouring from `useConditionsColour` alone", () => {

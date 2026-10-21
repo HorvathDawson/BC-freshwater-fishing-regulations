@@ -152,6 +152,12 @@ afterEach(() => {
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
 /** One object for the whole test: a NEW data object is new data, and both maps re-apply it (as they should). */
 const DATA = { stream: { 311274: { status: "open" } }, lake: { 1566515: { status: "closed" } } };
+/**
+ * What the WEB map may be pushed: never a section's status or standing — those are the colouring engine's channels there
+ * (one pathway, owner 2026-10-21; `withoutEngineKeys` refuses them). The pushed keys a lake mode reads, which no producer
+ * fills yet (`stocked`, `survey`), carry the same contract through the same `data` path.
+ */
+const WEB_DATA = { stream: { 311274: { stocked: 12 } }, lake: { 1566515: { survey: "sheet" } } };
 const INITIAL = { lon: -122, lat: 49, zoom: 9 };
 const LIT = [311274];
 const base = (p: Partial<MapProps> = {}): MapProps => ({
@@ -162,6 +168,8 @@ const base = (p: Partial<MapProps> = {}): MapProps => ({
 const PLATFORMS = {
   web: {
     Map: WebMap,
+    data: WEB_DATA,
+    pushed: ['set atlas/stream number:311274 {"stocked":12}', 'set atlas/lake number:1566515 {"survey":"sheet"}'],
     tap: (x: number, y: number, lon: number, lat: number) => {
       act(() => web.map!.fire("click", { point: { x, y }, lngLat: { lng: lon, lat } }));
     },
@@ -169,6 +177,8 @@ const PLATFORMS = {
   },
   native: {
     Map: NativeMap,
+    data: DATA,
+    pushed: ['set atlas/stream number:311274 {"status":"open"}', 'set atlas/lake number:1566515 {"status":"closed"}'],
     tap: (x: number, y: number, lon: number, lat: number) => {
       const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
       act(() => { (native.props!.onPress as (e: Press) => void)(e); });
@@ -194,16 +204,12 @@ const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
   .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : `remove atlas/${sl} number:${id} selected`));
 
 describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name, P) => {
-  it("status colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
-    const r = render(<P.Map {...base()} />);
-    // on mount the status and the selection are independent effects: which lands first is the renderer's business
-    await waitFor(() => expect([...log].sort()).toEqual([
-      'set atlas/stream number:311274 {"status":"open"}',
-      'set atlas/lake number:1566515 {"status":"closed"}',
-      ...selected(311274, true),
-    ].sort()));
+  it("pushed colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
+    const r = render(<P.Map {...base({ data: P.data })} />);
+    // on mount the pushed data and the selection are independent effects: which lands first is the renderer's business
+    await waitFor(() => expect([...log].sort()).toEqual([...P.pushed, ...selected(311274, true)].sort()));
     log.length = 0;
-    r.rerender(<P.Map {...base({ highlight: [1566515] })} />);
+    r.rerender(<P.Map {...base({ data: P.data, highlight: [1566515] })} />);
     // the old selection's `selected` key cleared (only that key, per feature: the status colours stay), then the new
     // one set
     await waitFor(() => expect(log).toEqual([...selected(311274, false), ...selected(1566515, true)]));
@@ -279,13 +285,28 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
 });
 
 describe("web only", () => {
-  it("data that arrives mid tile burst is applied (the basin field arrives exactly then)", async () => {
-    const r = render(<WebMap {...base({ highlight: undefined })} />);
+  it("pushed data that arrives mid tile burst is applied (no `load` fires again on a zoom out)", async () => {
+    const r = render(<WebMap {...base({ highlight: undefined, data: WEB_DATA })} />);
     await waitFor(() => expect(log.length).toBe(2));
     log.length = 0;
     web.tilesIn = false;                  // zoomed out: a long tile burst, and no `load` will ever fire again
-    r.rerender(<WebMap {...base({ highlight: undefined, data: { ...DATA, basin: { CHWK: { standing: 5 } } } })} />);
-    await waitFor(() => expect(log).toEqual(['set atlas/basin string:CHWK {"standing":5}']));
+    r.rerender(<WebMap {...base({ highlight: undefined,
+                                  data: { ...WEB_DATA, lake: { 1566515: { survey: "digitised" } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/lake number:1566515 {"survey":"digitised"}']));
+  });
+
+  it("ONE PATHWAY: a pushed status or standing is REFUSED on the web and reported; the rest of the data lands", async () => {
+    const errors: string[] = [];
+    render(<WebMap {...base({ highlight: undefined, onError: (e) => errors.push(e.message), data: {
+      stream: { 311274: { status: "open", stocked: 3 } }, lake: { 1566515: { standing: 40 } },
+      basin: { CHWK: { standing: 5 } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/stream number:311274 {"stocked":3}']));
+    await act(async () => {});
+    expect(log).toEqual(['set atlas/stream number:311274 {"stocked":3}']);
+    const why = "the web map colours sections through the colouring engine only (MapProps.status, MapProps.standing)";
+    expect(errors).toEqual([`pushed p/standing/status on "stream" refused: ${why}`,
+                            `pushed p/standing/status on "lake" refused: ${why}`,
+                            `pushed p/standing/status on "basin" refused: ${why}`]);
   });
 
   it("P15 review: a mark's element is left to GL JS's absolute placement — nothing inline stacks it in normal flow", async () => {

@@ -7,7 +7,7 @@
  *
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { SectionKey, StatusIndex } from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
 import { statusData } from "./hooks";
@@ -122,14 +122,30 @@ export function mapModes(i: MapModeInput): MapModesVM {
   };
 }
 
-/** `mapModes`, memoised on its inputs so the map's effects see a stable `modes` while nothing changed. */
+/**
+ * `mapModes`, memoised on its inputs — and its LOOK (`modes`, `activeGroups`) kept as the same objects while their
+ * content is the same. A horizon change moves the standings, never a layer's mode; handed a new `modes` the map re-ran
+ * its whole look pass (139 `setPaintProperty` per horizon click, measured 2026-10-21). Content-compared rather than
+ * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
+ */
 export function useMapModes(i: MapModeInput): MapModesVM {
   const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake, groups } = i;
   const lakeMode = lake?.mode, lakeGroup = lake?.group;
-  return useMemo(
+  const vm = useMemo(
     () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
                      lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups }),
     [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lakeMode, lakeGroup, groups]);
+  const modes = useSameContent(vm.modes);
+  const activeGroups = useSameContent(vm.activeGroups);
+  return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);
+}
+
+/** The value last returned while its content (a flat record of strings or booleans) is unchanged; else the new one. */
+function useSameContent<T extends Readonly<Record<string, unknown>>>(v: T): T {
+  const kept = useRef<{ key: string; v: T } | null>(null);
+  const key = JSON.stringify(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  if (kept.current?.key !== key) kept.current = { key, v };
+  return kept.current.v;
 }
 
 /**

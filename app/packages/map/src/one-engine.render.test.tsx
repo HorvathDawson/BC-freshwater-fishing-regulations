@@ -146,12 +146,49 @@ describe("one colouring engine in the web map", () => {
     expect(built).toBe(1);                       // the same map: no style rebuilt, no tile source recreated
   });
 
+  it("THE ROUTE MAP (DonorMap → MiniMap) through the same engine: only the route's sections; a horizon relabels them", async () => {
+    // the route as classes (@app/ui `routeLabels`): its sections' places on the chain, nothing else
+    const ROUTE = { classOf: (s: number) => ({ 11: 0, 12: 1 } as Record<number, number>)[s] ?? null };
+    held = [tile({ stream: [10, 11, 13], lake: [12] })];
+    const r = render(<WebMap {...props({ data: undefined, standing: { labels: ROUTE, values: values([55, 7]) } })} />);
+    await waitFor(() => expect(sections()).toEqual(['set atlas/stream 11 {"standing":55}',
+                                                    'set atlas/lake 12 {"standing":7}']));
+    log.length = 0;
+    r.rerender(<WebMap {...props({ data: undefined, standing: { labels: ROUTE, values: values([20]) } })} />);
+    await act(async () => { await Promise.resolve(); });
+    // feature-state only, the route only: a reach with nothing to say now is cleared, no paint, no clear-all
+    expect(log).toEqual(['set atlas/stream 11 {"standing":20}', 'set atlas/lake 12 {"standing":null}']);
+  });
+
   it("before any feed answers nothing is labelled; the status is not held back by it", async () => {
     render(<WebMap {...props({ status: STATUS, standing: { labels: LABELS, values: null } })} />);
     await act(async () => { await Promise.resolve(); });
     log.length = 0;
     act(() => gl!.fire("sourcedata", { sourceId: "atlas", tile: tile({ stream: [10, 12] }) }));
     expect(sections()).toEqual(['set atlas/stream 10 {"p":"p0"}', 'set atlas/stream 12 {"p":"b"}']);
+  });
+
+  it("A HORIZON CHANGE (new values, new-but-equal look props): feature-state only, ZERO paint or layout calls", async () => {
+    held = [tile({ stream: [10, 11, 13], lake: [12] })];
+    // what the Shell hands the map on a horizon click: the same look as fresh objects, and the next standings
+    const look = () => ({ modes: { ...MODES }, groups: { water: true }, hide: [] as string[], show: [] as string[] });
+    const r = render(<WebMap {...props({ ...look(), standing: { labels: LABELS, values: FEED1 } })} />);
+    await waitFor(() => expect(sections().length).toBeGreaterThan(0));
+    await act(async () => { await Promise.resolve(); });
+    log.length = 0;
+    r.rerender(<WebMap {...props({ ...look(), standing: { labels: LABELS, values: FEED2 } })} />);
+    await act(async () => { await Promise.resolve(); });
+    expect(log).toEqual([
+      'set atlas/stream 10 {"standing":80}',
+      'set atlas/stream 11 {"standing":80}',
+      'set atlas/lake 12 {"standing":12}',
+    ]);
+    // and a real look change still repaints
+    log.length = 0;
+    r.rerender(<WebMap {...props({ ...look(), modes: { stream: "plain", lake: "standing" },
+                                   standing: { labels: LABELS, values: FEED2 } })} />);
+    await act(async () => { await Promise.resolve(); });
+    expect(log.filter((x) => x.startsWith("paint stream ")).length).toBeGreaterThan(0);
   });
 
   it("THE GROUND goes with the look: satellite switched on mid tile burst, when no `styledata` may follow", async () => {

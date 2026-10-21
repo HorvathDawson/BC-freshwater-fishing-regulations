@@ -44,7 +44,7 @@ export function routeMapHeight(width: number, larger: boolean): number {
 }
 
 export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLarger,
-                           highlight, data }: {
+                           highlight, data, standing }: {
   vm: DonorMapVM; at: TileEndpoints; theme: string; palette: Palette;
   /** A donor row's tone (grey when quiet), or the accent for null — the panel's own rule. */
   toneOf: (row: number | null) => string;
@@ -52,7 +52,9 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
   larger: boolean;
   onLarger: (on: boolean) => void;
   highlight?: readonly SectionKey[];
+  /** The route's colours: pushed on a phone, the engine's standing channel on the web (`routeColour.ts`). */
   data?: MapProps["data"];
+  standing?: MapProps["standing"];
 }) {
   /*
    * WHAT THE MAP COPIES OUT OF THE TILES. Keyed on the routes alone: a horizon change moves
@@ -77,7 +79,8 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
       <View style={{ height, borderRadius: palette.r.box, overflow: "hidden" }}>
         <MiniMap key={vm.key} at={at} palette={palette} theme={theme} camera={vm.camera}
                  height={height} bare zoomControls view="conditions"
-                 highlight={highlight ?? vm.chain} data={data} trace={trace} fit={fit}
+                 highlight={highlight ?? vm.chain} data={data} standing={standing}
+                 trace={trace} fit={fit}
                  /* WATER ONLY: every other layer competes for the pixels the route needs. */
                  groups={{ water: true, admin: false, protected: false, access: false,
                            ownership: false, depth: false }} />

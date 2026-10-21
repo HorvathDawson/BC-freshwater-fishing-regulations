@@ -37,7 +37,8 @@ import { hereImage } from "./here-mark";
 import { labelShift } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
-import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, type LabelTarget, type TileRenderer,
+import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, withoutEngineKeys, type LabelTarget,
+         type TileRenderer,
          type Channel, type ChannelInput, type TileSections } from "./colouring";
 import { sourceTiles, tileIds } from "./tile-ids.web";
 
@@ -476,10 +477,21 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (m.isStyleLoaded()) apply(); else m.once("load", apply);
   }, [outsideData]);
 
+  /**
+   * THE LOOK, KEYED ON THE LOOK ALONE: its CONTENT, not its props' identities. A caller hands fresh-but-equal objects on
+   * every render (the Map tab's `hide={[]}`, a horizon change's new view model), and each one re-ran the whole pass —
+   * 139 `setPaintProperty` per horizon click, every one a no-op (engine polish, 2026-10-21; one-engine.render.test
+   * "A HORIZON CHANGE").
+   */
+  const lookKey = JSON.stringify([view, theme, modes ?? null, groups ?? null, hide ?? null, show ?? null,
+                                  basemap ?? "map"]);
+  const lookNow = useRef({ view, theme, modes, groups, hide, show, basemap });
+  lookNow.current = { view, theme, modes, groups, hide, show, basemap };
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r) return;
     const apply = () => {
+      const { view, theme, modes, groups, hide, show, basemap } = lookNow.current;
       const handle = layerHandle(m, r);
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
@@ -496,16 +508,27 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         if (m.getLayer(id))
           for (const [prop, value] of Object.entries(paint))
             m.setPaintProperty(id, prop as never, value as never);
-      for (const [layerId, values] of Object.entries(data ?? {}))
-        adapter.current.setData(handle, layerId, values);
     };
     // `afterLoad`, not `isStyleLoaded() ? apply() : once("load", apply)`: mid tile burst (a zoom out to the basin
-    // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again, so the new data —
-    // the basin standings, which arrive exactly then — was dropped (N2 review web walk)
+    // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again (N2 review web walk)
     return afterLoad(m, apply);
     // NOT keyed on `onError`: callers pass an inline arrow, so every render of the screen re-ran the whole look — ~800
-    // paint calls, each a no-op — on every feed refresh and horizon change (the Conditions measurement, 2026-10-21)
-  }, [view, modes, theme, data, groups, hide, show, basemap]);
+    // paint calls, each a no-op — on every feed refresh (the Conditions measurement, 2026-10-21). A ref, below.
+  }, [lookKey]);
+  /*
+   * PUSHED DATA, apart from the look: feature-state a mode reads that no engine channel sets. A section's status or
+   * standing is NEVER pushed on the web — those are the engine's channels (one pathway, tools/one-colouring-engine);
+   * a push of either is refused and reported (`withoutEngineKeys`), so a second pathway cannot creep back in.
+   */
+  useEffect(() => {
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !data) return;
+    return afterLoad(m, () => {
+      const handle = layerHandle(m, r);
+      for (const [layerId, values] of Object.entries(withoutEngineKeys(data, (e) => lookError.current?.(e))))
+        adapter.current.setData(handle, layerId, values);
+    });
+  }, [data]);
   const lookError = useRef(onError);
   lookError.current = onError;
 
@@ -636,7 +659,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     },
     restore: () => {
       adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current]);
-      for (const [layerId, values] of Object.entries(latestData.current ?? {}))
+      for (const [layerId, values] of Object.entries(withoutEngineKeys(latestData.current ?? {}, () => {})))
         adapter.current.setData(layerHandle(m, r), layerId, values);
     },
   });

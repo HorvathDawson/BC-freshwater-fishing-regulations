@@ -266,3 +266,31 @@ export class Colouring {
     if (input) this.adapter.setChannel(h, channel, input.values(), themeName, overrides);
   }
 }
+
+/**
+ * THE KEYS ONLY THE ENGINE WRITES on a section on a map that labels its own tiles: the channels' labels (the
+ * day-profile `p`, the `standing` value) and `status`, which only a pushed-data map (the phone) is handed in their
+ * place. Pushed through `data` to such a map they would be a second pathway beside the engine (owner 2026-10-21: "it
+ * should be a single pathway"): `Map.web.tsx` refuses them, and reports it (tools/one-colouring-engine.test.ts).
+ */
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status"];
+
+type Pushed = Record<string, Record<string, Record<string, unknown>>>;
+
+/** `data` without any value an engine channel owns; a layer that carried one is reported once. */
+export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pushed {
+  const out: Pushed = {};
+  for (const [layerId, values] of Object.entries(data)) {
+    let refused = false;
+    const kept: Pushed[string] = {};
+    for (const [id, state] of Object.entries(values)) {
+      const rest = Object.fromEntries(Object.entries(state).filter(([k]) => !ENGINE_KEYS.includes(k)));
+      if (Object.keys(rest).length !== Object.keys(state).length) refused = true;
+      if (Object.keys(rest).length) kept[id] = rest;
+    }
+    if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the web map colours `
+                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing)"));
+    if (Object.keys(kept).length) out[layerId] = kept;
+  }
+  return out;
+}

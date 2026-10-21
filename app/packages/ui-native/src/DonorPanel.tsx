@@ -40,7 +40,7 @@ import type { SectionKey } from "@app/core";
 import { CONDITIONS_WORDS } from "@app/core";
 import { useState, type ReactNode } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
-import type { TileEndpoints } from "@app/map";
+import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
 import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
@@ -71,7 +71,7 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
 }
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
-                             horizon = 0, onHorizon, chain: chainProp, data,
+                             horizon = 0, onHorizon, chain: chainProp, data, standing,
                              detail, chart, foot }: {
   palette: Palette; value: PanelAnswer;
   /**
@@ -95,7 +95,9 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * and the feed); derived from the routes otherwise.
    */
   chain?: readonly SectionKey[];
+  /** The route's colours: pushed (`data`, a phone) or through the engine (`standing`, the web) — `routeColour.ts`. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
+  standing?: MapProps["standing"];
   /** How far ahead this estimate is for — 0 is now. Only the WORDS change for a forecast. */
   horizon?: Horizon;
   /** Change the horizon from here, when the caller owns it. Absent, no chips. */
@@ -201,7 +203,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           <View style={{ marginBottom: SPACE.s2 }}>
             <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
                       height={mapH} larger={larger} onLarger={setLarger}
-                      highlight={chainProp ?? map.chain} data={data} />
+                      highlight={chainProp ?? map.chain} data={data} standing={standing} />
           </View>
         )}
 

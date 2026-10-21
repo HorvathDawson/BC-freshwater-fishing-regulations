@@ -12,11 +12,11 @@
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
 import { useContext, useState } from "react";
-import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
-import type { TileEndpoints } from "@app/map";
+import { coloursEachTile, type TileEndpoints } from "@app/map";
 import { chartParameter, useChartView, useConditionsView, useGaugeParameters, usePrefetchGauges, useSeries,
          type GaugeChoiceVM, type Horizon, type PanelFeed } from "@app/ui";
 import { ChartControls } from "./ChartControls";
@@ -73,7 +73,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * map was asked for.
    */
   const vm = useConditionsView(source, section, day, horizon,
-                               { feed, quantity: parameter ?? "discharge" });
+                               { feed, quantity: parameter ?? "discharge",
+                                 // THE ROUTE MAP THROUGH THE ENGINE where the map labels its own tiles (one pathway)
+                                 perTile: coloursEachTile(Platform.OS) });
   const station = vm.lead;
   // THE VIEW SWIPE, on this body in a water's views (Regulations · Conditions · Map): the text, the estimate and the
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
@@ -239,7 +241,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     <>
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
-                  chain={vm.chain} data={vm.routeData} onHorizon={onHorizon}
+                  chain={vm.chain} data={vm.route.data} standing={vm.route.standing}
+                  onHorizon={onHorizon}
                   detail={detail} chart={graph}
                   foot={small} />
       {footer}

@@ -5,7 +5,7 @@
  * one of them is not a screen (`captureSpot` freezes an answer into a saved spot), so it
  * cannot live behind a hook.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
@@ -21,6 +21,7 @@ import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
          routeLegend } from "@app/core";
 import { useAsync } from "./async";
 import { useConditions, useGaugeTrace, useStationReading } from "./hooks";
+import { pushedRoute, routeLabels, routeValues, type RouteColourVM } from "./routeColour";
 
 /** Re-exported so a screen has one import for the whole subject. */
 export { answerFrom, HORIZONS } from "@app/data";
@@ -605,9 +606,11 @@ export interface ConditionsVM {
   panel: PanelAnswer;
   /** The reaches between here and every donor. */
   chain: readonly SectionKey[];
-  /** Each of those reaches coloured by its own percentile, for the route map. */
-  routeData: { stream: Record<string, { standing: number }>;
-               lake: Record<string, { standing: number }> };
+  /**
+   * Each of those reaches coloured by its own percentile, for the route map — through the colouring engine on a
+   * per-tile map (`standing`), pushed elsewhere (`data`); see `routeColour.ts`.
+   */
+  route: RouteColourVM;
   /** The station the chart and the reading are about. */
   lead: StationId | null;
   select: (station: StationId) => void;
@@ -637,9 +640,12 @@ export interface ConditionsVM {
  */
 export function useConditionsView(
   source: RegsSource, section: SectionId | null, day: Date | null, horizon: Horizon,
-  opts: { feed: PanelFeed | undefined; quantity: Quantity },
+  opts: { feed: PanelFeed | undefined; quantity: Quantity;
+          /** `coloursEachTile(Platform.OS)`: the route map colours through the engine. Omitted: pushed. */
+          perTile?: boolean },
 ): ConditionsVM {
   const { feed, quantity } = opts;
+  const perTile = opts.perTile ?? false;
   const conditions = useConditions(source, section);
   const traced = useGaugeTrace(source, section);
   const panel = useLastReports(feed, usePanelRoutes(source, section,
@@ -648,12 +654,18 @@ export function useConditionsView(
     () => [...new Set(panel.rows.flatMap((r) => r.route?.path ?? []))], [panel.rows]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
                                       horizon);
-  const routeData = useMemo(() => {
-    const values = Object.fromEntries(
-      [...standings].map(([sec, p]) => [sec, { standing: p * 100 }]));
-    // `standing` is keyed by SECTION, and a lake section is a section.
-    return { stream: values, lake: values };
-  }, [standings]);
+  // THE ROUTE AS THE ENGINE'S CLASSES, kept while the route is. A horizon change re-asks the panel, which answers no rows
+  // while it loads and then the same rows as new objects: the chain goes empty and comes back new-but-equal. New labels
+  // would make the engine clear the route map twice; the last route of THIS section is kept through the gap instead,
+  // and the values (null while the chain is empty: the engine leaves the old colours) relabel when they come.
+  const steady = useRef<{ section: SectionId | null; chain: readonly SectionKey[] }>({ section, chain });
+  if (chain.length || steady.current.section !== section) steady.current = { section, chain };
+  const steadyKey = `${section ?? ""}:${steady.current.chain.join(",")}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const labels = useMemo(() => routeLabels(steady.current.chain as readonly SectionId[]), [steadyKey]);
+  const route = useMemo<RouteColourVM>(() => (perTile
+    ? { standing: { labels, values: routeValues(labels, standings) }, data: {} }
+    : { standing: null, data: pushedRoute(standings) }), [perTile, labels, standings]);
 
   const matched = conditions.state === "ready" ? conditions.value : null;
   /*
@@ -698,7 +710,7 @@ export function useConditionsView(
 
   return {
     loading: conditions.state === "loading",
-    day: today, panel, chain, routeData, lead, select, reading, quiet, refuse: !reading && !row,
+    day: today, panel, chain, route, lead, select, reading, quiet, refuse: !reading && !row,
     noGauge: noGaugeSentence(),
     trace: !panel.answer.ok && traced.state === "ready" && traced.value.station
       ? traced.value : null,

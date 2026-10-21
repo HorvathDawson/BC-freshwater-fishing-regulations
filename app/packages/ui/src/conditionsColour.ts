@@ -19,9 +19,9 @@ import { basinStandings, classStanding, type Horizon, type Parameter, type RegsS
          type StandingClasses } from "@app/data";
 import { useAsync, usePoll } from "./async";
 import { useBasinStandings, usePanelStandings, type PanelFeed } from "./panel";
+import { toRamp } from "./routeColour";
 
-/** The style's ramp is a percentage; every percentile in the app is 0–1. Converted HERE, where data meets the style. */
-export const toRamp = (p: number): number => p * 100;
+export { toRamp };
 
 /** The standing channel's values as the map takes them: per class and per basin, in the ramp's units. */
 export interface StandingValuesVM {
