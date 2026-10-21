@@ -6,6 +6,7 @@ in September is not low in June, and that is the whole reason the app reports a 
 for the date rather than a discharge.
 """
 
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -130,3 +131,99 @@ def test_a_run_of_all_nulls_answers_nothing():
     runs = {"CLEVER": {"series": {"at": [NOW.isoformat()], "mid": [None],
                                   "level_mid": [None]}}}
     assert forecast_percentiles(runs, {"discharge": FLAT}, NOW) == {}
+
+
+# ---------------------------------------------------------------- the ten-day horizon ---
+#
+# OWNER 2026-10-20: "also add 10 day to it". +10 is ranked exactly like +1/+3/+5 — against
+# the envelope for THAT day — and is ABSENT where no run reaches it. ELF runs thirty days
+# daily and always reaches; CLEVER runs ten days hourly and reaches only while its run is
+# fresh. Absent, the app reads null and says so; it never borrows +5.
+
+
+def test_the_horizons_are_one_three_five_and_ten():
+    assert HORIZONS == (1, 3, 5, 10)
+
+
+def test_ten_days_is_ranked_from_the_thirty_day_model():
+    runs = {"ELF": {"series": daily(NOW, 30, 11.0)}}
+    got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
+    assert got["10"] == {"discharge": pytest.approx(0.5), "model": "ELF"}
+
+
+def test_ten_days_falls_back_to_ELF_where_CLEVER_stops_short():
+    """A CLEVER run that ends at day six answers +1/+3/+5 and leaves +10 to ELF — never to
+    CLEVER's last step, which would be day six's water reported as day ten's."""
+    runs = {"CLEVER": {"series": hourly(NOW, 144, lambda h: 5.0)},
+            "ELF": {"series": daily(NOW, 30, 18.0)}}
+    got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
+    assert [got[k]["model"] for k in ("1", "3", "5", "10")] == ["CLEVER", "CLEVER", "CLEVER", "ELF"]
+    assert got["10"]["discharge"] == pytest.approx(0.95)        # 18.0 is at or above p90
+
+
+def test_an_hourly_run_that_stops_hours_short_of_ten_days_does_not_answer_for_it():
+    """THE EDGE. A real CLEVER run ends at 23:00 on day nine of its issue date; a publish
+    early the next morning asks for +10 a few hours past that. The flat 18 h slack let the
+    run's last hour stand in for day ten. Half a step of slack refuses it, and ELF answers."""
+    clever = hourly(NOW, 234, lambda h: 5.0)                    # last step 6 h short of +10
+    assert forecast_at(clever, NOW + timedelta(days=10), "discharge") is None
+    runs = {"CLEVER": {"series": clever}, "ELF": {"series": daily(NOW, 30, 18.0)}}
+    got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
+    assert got["10"]["model"] == "ELF"
+    assert got["5"]["model"] == "CLEVER"
+
+
+def test_a_daily_run_keeps_half_a_day_of_slack():
+    """ELF's steps are dates (midnight). Any instant inside its run is within 12 h of one."""
+    s = daily(NOW, 30, 11.0)
+    assert forecast_at(s, NOW + timedelta(days=10), "discharge") == pytest.approx(11.0)
+
+
+def test_ten_days_is_absent_not_the_five_day_value_when_no_run_reaches():
+    runs = {"CLEVER": {"series": hourly(NOW, 144, lambda h: 11.0)}}  # six days, no ELF
+    got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)
+    assert sorted(got, key=int) == ["1", "3", "5"]
+
+
+def test_ten_days_ranks_against_the_envelope_ten_days_out():
+    """The same value, a season that is drying: +10 ranks higher than +5."""
+    yday = NOW.timetuple().tm_yday
+    env = {}
+    for p in range(73):
+        drop = max(0, p - (yday - 1) // 5) * 1.5
+        env[str(p)] = [5.0 - drop, 8.0 - drop, 11.0 - drop, 14.0 - drop, 18.0 - drop]
+    runs = {"ELF": {"series": daily(NOW, 30, 11.0)}}
+    got = forecast_percentiles(runs, {"discharge": env}, NOW)
+    assert got["10"]["discharge"] > got["5"]["discharge"]
+
+
+def _publish_one(tmp_path, monkeypatch, runs):
+    """`publish` for one station with the network stubbed: the readings, the temperature
+    service and the 30-day backfill. The forecast runs are passed in, as `main` does."""
+    from pipeline.gauges.feed import publish as pub
+    now = datetime.now(timezone.utc)
+    monkeypatch.setattr(pub, "fetch_station", lambda st: {
+        "station": st, "at": now.isoformat(), "level": None, "discharge": 11.0,
+        "recent": [[now.isoformat(), None, 11.0]]})
+    monkeypatch.setattr(pub, "fetch_temperatures", lambda stations, hours=24: {})
+    monkeypatch.setattr(pub, "_get", lambda url: None)
+    clim = {"release": "test", "stations": {"08TEST": {"discharge": FLAT}}}
+    pub.publish(tmp_path, ["08TEST"], clim=clim, forecast={"08TEST": runs(now)})
+    return json.loads((tmp_path / "index.json").read_text())["stations"]["08TEST"]
+
+
+def test_the_index_carries_ten_days_ahead_beside_the_others(tmp_path, monkeypatch):
+    got = _publish_one(tmp_path, monkeypatch,
+                       lambda now: {"ELF": {"series": daily(now, 30, 11.0)}})
+    assert got["ahead"] == {
+        "1": {"discharge": pytest.approx(0.5), "model": "ELF"},
+        "3": {"discharge": pytest.approx(0.5), "model": "ELF"},
+        "5": {"discharge": pytest.approx(0.5), "model": "ELF"},
+        "10": {"discharge": pytest.approx(0.5), "model": "ELF"},
+    }
+
+
+def test_the_index_leaves_ten_days_out_when_no_run_reaches(tmp_path, monkeypatch):
+    got = _publish_one(tmp_path, monkeypatch,
+                       lambda now: {"CLEVER": {"series": hourly(now, 144, lambda h: 11.0)}})
+    assert sorted(got["ahead"], key=int) == ["1", "3", "5"]

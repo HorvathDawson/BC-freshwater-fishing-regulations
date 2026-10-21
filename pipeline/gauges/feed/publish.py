@@ -160,10 +160,16 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # HOW FAR AHEAD THE MAP WILL LOOK.
 #
 # Not a horizon the models publish — CLEVER runs ten days hourly and ELF thirty daily — but
-# the days a person plans a trip around. Beyond about five the bounds on both models are
-# wide enough that the answer is "normal for the season" whatever the model says, which the
-# climatology already tells you without a forecast.
-HORIZONS = (1, 3, 5)
+# the days a person plans a trip around. Mirrored by HORIZONS in
+# `app/packages/core/src/conditions.ts` (with 0 for now).
+#
+# TEN DAYS (owner, 2026-10-20). Past about five the bounds on both models are wide, and the
+# answer often reads "normal for the season"; the owner wants the ten-day view on the map
+# regardless, for planning a trip a week and a half out. +10 sits at CLEVER's edge, so it is
+# usually ELF that answers it (see MODEL_ORDER: per horizon, first model that reaches wins),
+# and where no run reaches ten days the horizon is ABSENT — the app reads that as no
+# forecast, never as the +5 value.
+HORIZONS = (1, 3, 5, 10)
 
 # How far from the requested instant a model step may sit and still answer for it. CLEVER
 # steps hourly and ELF daily, so a day-grained model needs most of a day of slack; more than
@@ -171,7 +177,8 @@ HORIZONS = (1, 3, 5)
 FORECAST_TOLERANCE_H = 18.0
 
 # CLEVER FIRST. It is the short-range model — hourly, ten days, and calibrated against the
-# observed hydrograph — and every horizon here is inside its range. ELF is a thirty-day
+# observed hydrograph — and +1/+3/+5 are inside its range; +10 is at its very end and is
+# answered by CLEVER only while the run is fresh enough to reach it. ELF is a thirty-day
 # seasonal-volume model; it answers a different question and is the fallback, not the peer.
 MODEL_ORDER = ("CLEVER", "ELF")
 
@@ -197,12 +204,23 @@ def forecast_at(series: dict | None, when: datetime,
 
     Returns None past the end of the horizon rather than the last value, which would report
     day thirty's forecast as day five's.
+
+    HALF A STEP OF SLACK, capped at FORECAST_TOLERANCE_H. Inside a run the nearest step is
+    never more than half a step away, so anything further is past the run's end. This
+    matters at +10 days, which sits at CLEVER's last hour: a flat 18 h of slack let an hourly
+    run that stopped six hours short answer for day ten with its last value — day nine's
+    water under day ten's name. A daily model (ELF) keeps its twelve hours.
     """
     if not series:
         return None
     key = "level_mid" if quantity == "level" else "mid"
     vals = series.get(key) or []
     ats = series.get("at") or []
+    times = sorted(t for t in (_parse(str(a)) for a in ats) if t is not None)
+    gaps = sorted(g for g in ((b - a).total_seconds() / 3600.0
+                              for a, b in zip(times, times[1:])) if g > 0)
+    tol = (min(FORECAST_TOLERANCE_H, gaps[len(gaps) // 2] / 2.0) if gaps
+           else FORECAST_TOLERANCE_H)
     best: tuple[float, float] | None = None                 # (hours off, value)
     for at, v in zip(ats, vals):
         if v is None:
@@ -211,7 +229,7 @@ def forecast_at(series: dict | None, when: datetime,
         if t is None:
             continue
         off = abs((t - when).total_seconds()) / 3600.0
-        if off <= FORECAST_TOLERANCE_H and (best is None or off < best[0]):
+        if off <= tol and (best is None or off < best[0]):
             best = (off, float(v))
     return None if best is None else best[1]
 
@@ -589,7 +607,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # the per-station file, which is opened on a tap.
             "forecast": any(run.get("series")
                             for run in (forecast.get(r["station"]) or {}).values()),
-            # WHERE IT IS HEADING, at +1, +3 and +5 days — one percentile per horizon per
+            # WHERE IT IS HEADING, at +1, +3, +5 and +10 days — one percentile per horizon per
             # quantity, and nothing else from the run. This is the same trade as `forecast`
             # above: the map wants to be paintable for a future day from the one file it
             # already fetches, and three numbers a station is affordable where three series

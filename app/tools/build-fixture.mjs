@@ -382,7 +382,7 @@ for (const g of src.gauges) {
     forecast: null,
     /*
      * WHERE IT IS HEADING, at the horizons the publisher ranks — see HORIZONS in
-     * `pipeline/gauges/feed/publish.py`. Without these the Conditions tab's +1 / +3 / +5
+     * `pipeline/gauges/feed/publish.py`. Without these the Conditions tab's +1 / +3 / +5 / +10
      * chips colour NOTHING in dev, and a control that does nothing looks like a bug in the
      * control rather than an absence in the fixture.
      *
@@ -391,7 +391,7 @@ for (const g of src.gauges) {
      * percentiles in [0,1] and must differ from today's, or the tests cannot tell that the
      * horizon was read at all.
      */
-    ...(now === null ? {} : { ahead: Object.fromEntries([1, 3, 5].map((d) => [
+    ...(now === null ? {} : { ahead: Object.fromEntries([1, 3, 5, 10].map((d) => [
       String(d),
       { discharge: Math.min(0.95, Math.max(0.05, now + d * 0.06)), model: "CLEVER" },
     ])) }),

@@ -12,6 +12,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
   it("the Map tab with the day's status in: every water wears the status", () => {
     expect(at({})).toEqual({
       onConditions: false, quantity: "flow", standingParam: "discharge", standingHorizon: 3, fieldOn: false,
+      horizonsShown: false,
       modes: { stream: "status", lake: "status", lake_flowing: "status", wetland_flowing: "status",
                gauges: "standing", basin: "plain" },
       activeGroups: { depth: false, admin: true },
@@ -31,9 +32,10 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
     expect(m.activeGroups).toEqual({ depth: true, admin: true });
   });
 
-  it("Conditions, flow, zoomed out: standings everywhere, the field on", () => {
+  it("Conditions, flow, zoomed out: standings everywhere, the field on, the map's horizons offered", () => {
     expect(at({ tab: "conditions", zoomedOut: true })).toEqual({
       onConditions: true, quantity: "flow", standingParam: "discharge", standingHorizon: 3, fieldOn: true,
+      horizonsShown: true,
       modes: { stream: "standing", lake: "standing", lake_flowing: "standing", wetland_flowing: "standing",
                gauges: "standing", basin: "standing" },
       activeGroups: { depth: false, admin: true },
@@ -46,13 +48,19 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       .toEqual(["level", "level", false, "standing", "standing"]);
   });
 
-  it("Conditions under temperature: the water plain, the dots by band, today only, no field", () => {
+  it("Conditions under temperature: the water plain, the dots by band, today only, no field, no horizons", () => {
     expect(at({ tab: "conditions", flowParam: "temperature", zoomedOut: true })).toEqual({
       onConditions: true, quantity: "temperature", standingParam: "discharge", standingHorizon: 0, fieldOn: false,
+      horizonsShown: false,
       modes: { stream: "plain", lake: "plain", lake_flowing: "plain", wetland_flowing: "plain",
                gauges: "temperature", basin: "plain" },
       activeGroups: { depth: false, admin: true },
     });
+  });
+
+  it("paints the map at the chosen horizon, ten days included (owner 2026-10-20)", () => {
+    expect(at({ tab: "conditions", horizon: 10 }).standingHorizon).toBe(10);
+    expect(at({ tab: "conditions", horizon: 10, flowParam: "level" }).standingHorizon).toBe(10);
   });
 
   it("a pair not PROVEN colours nothing, on either tab — a mixed pair, and one not yet established (P11)", () => {

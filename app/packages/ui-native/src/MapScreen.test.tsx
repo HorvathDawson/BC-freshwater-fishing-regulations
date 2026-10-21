@@ -1,12 +1,16 @@
 /**
- * The chrome over the map — and, since P16, what is NOT there.
+ * The chrome over the map: the forecast HORIZONS in the top-left corner, on the Conditions tab.
  *
- * The map's top-left corner held the forecast HORIZONS on the Conditions tab, a second copy
- * of the control the Conditions panel puts in its header (with its own labels typed in a
- * second time). P16 item 2: one horizon control, in the panel header. The corner is empty.
+ * OWNER 2026-10-20: "the condition 1 3 5 day forecast is gone in condition map?" + "also add
+ * 10 day to it". P16 had removed the corner control as a second copy of the panel header's.
+ * It is back, and the owner's rule is pinned instead of "exactly one": the map has its
+ * control on the Conditions map, the panel has its own in its header, and BOTH draw
+ * `horizonChips` from @app/ui (core's HORIZONS and words) and set ONE horizon state — so
+ * they can never disagree. The shared state is pinned in HorizonShared.test.tsx.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { horizonChips, type Horizon } from "@app/ui";
 import { LIGHT } from "./theme";
 
 /*
@@ -30,30 +34,56 @@ const BASE = {
   camera: { lon: -122, lat: 49, zoom: 8 } as never,
 };
 
+const horizons = (on: Horizon, onPick: (d: Horizon) => void = () => {}) =>
+  ({ chips: horizonChips(on), onPick });
+
 describe("<MapScreen> corner", () => {
-  it("shows nothing in the corner", () => {
+  it("shows nothing in the corner when there are no horizons", () => {
     render(<MapScreen {...BASE} />);
     expect(screen.queryByText("Now")).toBeNull();
     // No date control: it existed for seasonal regulations, which are not integrated.
     expect(screen.queryByLabelText("Change the date")).toBeNull();
   });
 
-  it("offers no horizon control: the Conditions panel's header holds the only one (P16)", () => {
-    // NOT A PROP ANY MORE, so a second control cannot be wired back in by a caller: passing
-    // one is a type error (this line fails `tsc` if `horizons` returns) …
-    const horizons = { days: [0, 1, 3, 5], value: 0, onPick: () => {} };
-    // @ts-expect-error -- the map takes no horizons (P16 item 2)
-    render(<MapScreen {...BASE} horizons={horizons} />);
-    // … and nothing is drawn for one at run time either.
-    for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.queryByText(t)).toBeNull();
-    expect(screen.queryByLabelText("Conditions now")).toBeNull();
-    expect(screen.queryByLabelText("Forecast 1 day ahead")).toBeNull();
+  it("offers now and every forecast day, in core's words, ten days included", () => {
+    render(<MapScreen {...BASE} horizons={horizons(0)} />);
+    for (const t of ["Now", "+1d", "+3d", "+5d", "+10d"]) expect(screen.getByText(t)).toBeTruthy();
+    // In order, left to right: the same order as the panel's header.
+    expect([...document.querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label")))
+      .toEqual(["Conditions now, showing", "Forecast 1 day ahead", "Forecast 3 days ahead",
+                "Forecast 5 days ahead", "Forecast 10 days ahead"]);
+  });
+
+  it("reports which horizon is showing to a screen reader, not only in colour", () => {
+    render(<MapScreen {...BASE} horizons={horizons(10)} />);
+    expect(screen.getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
+    expect(screen.getByLabelText("Conditions now")).toBeTruthy();
+  });
+
+  it("fills the chosen chip rather than only tinting its text", () => {
+    // These sit over a moving map at 13px, and this control repaints the whole map — which
+    // one is on has to be readable from the corner of an eye.
+    render(<MapScreen {...BASE} horizons={horizons(1)} />);
+    const chosen = screen.getByLabelText("Forecast 1 day ahead, showing");
+    const other = screen.getByLabelText("Conditions now");
+    const bg = (el: HTMLElement) =>
+      getComputedStyle(el.firstElementChild as Element).backgroundColor;
+    expect(bg(chosen)).not.toBe(bg(other));
+  });
+
+  it("hands back the day that was tapped, ten included", () => {
+    const onPick = vi.fn();
+    render(<MapScreen {...BASE} horizons={horizons(0, onPick)} />);
+    fireEvent.click(screen.getByLabelText("Forecast 10 days ahead"));
+    expect(onPick).toHaveBeenCalledWith(10);
+    fireEvent.click(screen.getByLabelText("Forecast 5 days ahead"));
+    expect(onPick).toHaveBeenLastCalledWith(5);
   });
 
   it("offers no layers button when the caller gives no handler", () => {
     // The Conditions tab overrides every choice that sheet would offer, so the button
     // would open a sheet whose answers the tab ignores.
-    render(<MapScreen {...BASE} />);
+    render(<MapScreen {...BASE} horizons={horizons(0)} />);
     expect(screen.queryByText("Layers")).toBeNull();
   });
 });

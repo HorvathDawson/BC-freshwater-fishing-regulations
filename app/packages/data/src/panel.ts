@@ -186,6 +186,18 @@ export function answerFrom(panel: Panel | undefined, index: Index,
       contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
                            years: m.years, sameRiver: m.sameRiver });
   }
+  /*
+   * A DAY AHEAD THAT NO RUN REACHES is said as that. With no donor reading at the horizon
+   * the combine would refuse with "no-station" — "no gauge close enough", which is false:
+   * the gauges are there, their forecasts stop short (the +10 day often does, every day
+   * ahead does out of season). Only for a horizon past now, and only where the panel could
+   * otherwise answer (it has gauges and an area).
+   */
+  if (horizon > 0 && !contributions.length && panel.areaKm2 && panel.members.length) {
+    return { answer: { ok: false, why: "no-forecast" },
+             rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
+             areaKm2: panel.areaKm2, routesReady: false };
+  }
   const total = raw.reduce((a, r) => a + r._w, 0) || 1;
   const rows = raw
     .map(({ _w, ...r }) => ({ ...r, weight: _w / total }))

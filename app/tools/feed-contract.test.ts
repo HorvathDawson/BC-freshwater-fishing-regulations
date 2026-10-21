@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
+import { HORIZONS } from "@app/core";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const FEEDS = here("../packages/data/dev/feeds/gauge");
@@ -88,8 +89,10 @@ describe("the feed / bundle contract", () => {
     for (const s of Object.values(idx.stations as Record<string, { ahead?: unknown }>)) {
       if (s.ahead === undefined) continue;
       const ahead = s.ahead as Record<string, Record<string, unknown>>;
-      // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
-      expect(Object.keys(ahead).sort()).toEqual(["1", "3", "5"]);
+      // Mirrors HORIZONS in pipeline/gauges/feed/publish.py (core's, less 0). The fixture
+      // carries every one; a real feed leaves out a day no run reaches (often "10").
+      expect(Object.keys(ahead).sort((a, b) => Number(a) - Number(b)))
+        .toEqual(HORIZONS.filter((d) => d > 0).map(String));
       for (const at of Object.values(ahead))
         for (const [k, v] of Object.entries(at)) {
           expect(["discharge", "level", "model"]).toContain(k);

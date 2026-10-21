@@ -36,6 +36,11 @@ heavy jobs. That acceptance item is still open for a human run.
    "Now" when the Conditions panel closes. **Consequence for you to weigh:** the map can no longer be painted as a
    forecast. A reader sees forecasts only in a section's panel. If you want the map's forecast view back, it should come
    back as one shared control, not as a second copy.
+
+   > **SUPERSEDED (owner, 2026-10-20):** "the condition 1 3 5 day forecast is gone in condition map?" + "also add 10 day
+   > to it". The map's corner control is back, with +10. It is one state shared by two controls (`useHorizon` in
+   > `@app/ui`; both draw `horizonChips`), the reset-on-close is gone, and the "exactly one horizon control" tests now
+   > pin the owner's rule instead. See `../horizons/README.md`.
 3. **One fold, "Notes and sources", closed by default.** It holds, in this order:
    - every row's "Counts this much because…", headed by the station id it belongs to;
    - the **notes**: short record, dam and gauges disagree, in their pre-P16 order, each marked by a rule on its left;
@@ -91,7 +96,8 @@ disagreement, a reading and credits. The no-gauge scene is the second.
   handed back, the fold being shut by default and adding the small print when opened, and the no-gauge order.
 - I also checked by mutation that swapping the reading and chart blocks fails the order test.
 - No horizon control on the map. `MapScreen.test.tsx` passes `horizons` under `@ts-expect-error`, so `tsc` fails if the
-  prop returns. It also checks that no chip is drawn.
+  prop returns. It also checks that no chip is drawn. *(Superseded 2026-10-20: the owner restored the map control; see
+  `../horizons/README.md`.)*
 
 ## Not done / not verified
 

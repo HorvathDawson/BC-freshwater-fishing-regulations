@@ -51,6 +51,12 @@ export interface MapModesVM {
   standingHorizon: Horizon;
   /** The zoomed-out field: on Conditions, not under temperature, below the handover. */
   fieldOn: boolean;
+  /**
+   * The map's own horizon control is offered: on Conditions, not under temperature (which
+   * has no forecast). Restored by the owner (2026-10-20) after P16 removed it; it shares the
+   * panel header's state (`useHorizon`), so the two never disagree.
+   */
+  horizonsShown: boolean;
   modes: MapModes;
   activeGroups: Record<string, boolean>;
 }
@@ -91,6 +97,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
     fieldOn: onConditions && !temperature && i.zoomedOut,
+    horizonsShown: onConditions && !temperature,
     modes, activeGroups,
   };
 }

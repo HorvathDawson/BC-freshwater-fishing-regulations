@@ -18,7 +18,8 @@
  *
  * ONE READING ORDER (P16). The panel is laid out top to bottom as a reader asks:
  *
- *   header     the horizon control — the one place a reader changes "when"
+ *   header     the horizon control — the panel's place to change "when"; the Conditions
+ *              map's corner offers the same chips over the same state (owner 2026-10-20)
  *   headline   what the water is doing, and the range
  *   `detail`   the lead gauge's own reading (the caller's), as the headline's detail rows
  *   `chart`    the lead gauge's hydrograph (the caller's)
@@ -41,7 +42,7 @@ import { useState, type ReactNode } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import type { TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
-import { useDonorView, type Horizon, type PanelAnswer } from "@app/ui";
+import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer } from "@app/ui";
 import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
@@ -104,9 +105,14 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
 
   if (!vm.ok) {
     // THE NO-ESTIMATE CASE IS THE SAME LAYOUT with fewer blocks: the kicker and the reason
-    // stand where the headline stands, and everything else keeps its place.
+    // stand where the headline stands, and everything else keeps its place. The header
+    // stays when the refusal is about the chosen day (`no-forecast`, e.g. +10 past every
+    // run), so the reader can step back from it here.
     return (
       <View style={{ gap: SPACE.s4 }}>
+        {onHorizon && vm.horizons && (
+          <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />
+        )}
         <Block palette={palette} first>
           <Kicker palette={palette}>{vm.heading}</Kicker>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.reason}</Text>
@@ -132,25 +138,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
     // Measured on the ROOT, which renders on the first pass — so the width is known before
     // the map mounts and the map never has to remount to be framed correctly.
     <View style={{ gap: SPACE.s4 }} onLayout={onLayout}>
-      {/* THE PANEL HEADER: the app's one horizon control (P16 item 2 — the map's corner
-          copy is gone), core's HORIZONS. Above the headline it changes, never under it. */}
-      {onHorizon && (
-        <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
-          {vm.horizons.map((h) => (
-            <Pressable key={h.day} onPress={() => onHorizon(h.day)} accessibilityRole="button"
-                       aria-selected={h.on} accessibilityLabel={h.label}
-                       style={{ paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
-                                borderRadius: palette.r.pill, borderWidth: 1,
-                                borderColor: h.on ? palette.accent : palette.line2,
-                                backgroundColor: h.on ? palette.accent : "transparent" }}>
-              <Text style={{ ...TYPE.metaBold,
-                             color: h.on ? palette.onAccent : palette.ink }}>
-                {h.chip}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
+      {/* THE PANEL HEADER: the horizon control, `horizonChips` over the Shell's one state —
+          the Conditions map's corner draws the same chips (owner 2026-10-20). Above the
+          headline it changes, never under it. */}
+      {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
 
       <Block palette={palette} first>
         {/* ONE LINE, ALWAYS: a heading that wraps moves everything under it as the reader
@@ -269,6 +260,28 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.explainer}</Text>
         {foot}
       </Fold>
+    </View>
+  );
+}
+
+/** The panel header's horizon chips — drawn from the VM's `horizons`, decided in @app/ui. */
+function HorizonHeader({ palette, chips, onPick }: {
+  palette: Palette; chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void;
+}) {
+  return (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
+      {chips.map((h) => (
+        <Pressable key={h.day} onPress={() => onPick(h.day)} accessibilityRole="button"
+                   aria-selected={h.on} accessibilityLabel={h.label}
+                   style={{ paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
+                            borderRadius: palette.r.pill, borderWidth: 1,
+                            borderColor: h.on ? palette.accent : palette.line2,
+                            backgroundColor: h.on ? palette.accent : "transparent" }}>
+          <Text style={{ ...TYPE.metaBold, color: h.on ? palette.onAccent : palette.ink }}>
+            {h.chip}
+          </Text>
+        </Pressable>
+      ))}
     </View>
   );
 }

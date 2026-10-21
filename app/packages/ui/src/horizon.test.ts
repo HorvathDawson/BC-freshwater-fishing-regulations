@@ -23,7 +23,26 @@ const idx = (now: number | null, ahead: Ahead = {}) => ({
 describe("forecast horizons", () => {
   it("offers now and the days the publisher ranks", () => {
     // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
-    expect(HORIZONS).toEqual([0, 1, 3, 5]);
+    expect(HORIZONS).toEqual([0, 1, 3, 5, 10]);
+  });
+
+  it("reads ten days ahead by its own key, not by position", () => {
+    const { answer } = answerFrom(PANEL, idx(0.2, { "5": { discharge: 0.3 },
+                                                    "10": { discharge: 0.9 } }), "discharge", 10);
+    expect(answer.ok && answer.value.percentile).toBeCloseTo(0.9, 6);
+  });
+
+  it("says no forecast reaches, never the +5 value, when no run reaches ten days", () => {
+    // THE OWNER'S +10 is usually ELF's to answer, and out of season nothing reaches it.
+    const { answer } = answerFrom(PANEL, idx(0.2, { "1": { discharge: 0.4 }, "3": { discharge: 0.5 },
+                                                    "5": { discharge: 0.8 } }), "discharge", 10);
+    expect(answer).toEqual({ ok: false, why: "no-forecast" });
+  });
+
+  it("keeps the gauges' own reasons now: no-forecast is only ever about a day ahead", () => {
+    // A panel with nobody reporting today is not "no forecast".
+    expect(answerFrom(PANEL, idx(null), "discharge", 0).answer)
+      .toEqual({ ok: false, why: "no-station" });
   });
 
   it("reads today at horizon 0", () => {
@@ -40,7 +59,7 @@ describe("forecast horizons", () => {
     // THE ONE THAT MATTERS. Falling back to today would paint Friday's map with Monday's
     // water and give no sign of it.
     const { answer } = answerFrom(PANEL, idx(0.2, { "1": { discharge: 0.8 } }), "discharge", 5);
-    expect(answer.ok).toBe(false);
+    expect(answer).toEqual({ ok: false, why: "no-forecast" });
   });
 
   it("does not read a forecast level as a forecast flow", () => {

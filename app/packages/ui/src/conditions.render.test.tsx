@@ -14,7 +14,7 @@ import { donorBecause, donorFacts, donorKeyLabel, donorPinTitle, donorReads, don
          readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
-import { clearPanelCache, donorView, useConditionsView, type DonorRow,
+import { clearPanelCache, donorView, horizonChips, useConditionsView, type DonorRow,
          type PanelAnswer } from "./panel";
 
 const row = (station: string, over: Partial<DonorRow> = {}): DonorRow => ({
@@ -39,7 +39,26 @@ describe("donorView", () => {
   it("refuses with the reason, per NoEstimate", () => {
     const vm = donorView({ answer: { ok: false, why: "offline" }, rows: [], areaKm2: null,
                            routesReady: true }, opts);
-    expect(vm).toEqual({ ok: false, heading: "NO ESTIMATE", reason: donorReason("offline") });
+    expect(vm).toEqual({ ok: false, heading: "NO ESTIMATE", reason: donorReason("offline"),
+                         horizons: null });
+  });
+
+  it("keeps the horizons on a refusal that is about the chosen day, so the reader can step back", () => {
+    // +10 is past every run for these gauges. Without the chips the panel would strand the
+    // reader on a day nothing can answer, with no way back to Now from the panel itself.
+    const vm = donorView({ answer: { ok: false, why: "no-forecast" }, rows: [], areaKm2: 50,
+                           routesReady: true }, { ...opts, horizon: 10 });
+    expect(vm).toEqual({
+      ok: false, heading: "NO ESTIMATE",
+      reason: "No forecast for the gauges here reaches this far ahead.",
+      horizons: [
+        { day: 0, chip: "Now", label: "Conditions now", on: false },
+        { day: 1, chip: "+1d", label: "Forecast 1 day ahead", on: false },
+        { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false },
+        { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false },
+        { day: 10, chip: "+10d", label: "Forecast 10 days ahead, showing", on: true },
+      ],
+    });
   });
 
   it("finishes every line of the estimate for the CHOSEN day", () => {
@@ -65,7 +84,16 @@ describe("donorView", () => {
       { day: 1, chip: "+1d", label: horizonChipLabel(1, false), on: false },
       { day: 3, chip: "+3d", label: horizonChipLabel(3, false), on: false },
       { day: 5, chip: "+5d", label: horizonChipLabel(5, false), on: false },
+      { day: 10, chip: "+10d", label: horizonChipLabel(10, false), on: false },
     ]);
+  });
+
+  it("builds the map's chips and the panel's from one function, so they cannot disagree", () => {
+    for (const h of [0, 1, 3, 5, 10] as const) {
+      const vm = donorView(value(), { ...opts, horizon: h });
+      if (!vm.ok) throw new Error("expected an estimate");
+      expect(horizonChips(h)).toEqual(vm.horizons);
+    }
   });
 
   it("gives each row its finished lines and its bar", () => {

@@ -9,7 +9,7 @@
  */
 import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, type SectionKey,
          type TempBand } from "@app/core";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
@@ -17,7 +17,7 @@ import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, ty
 import { useBack, useEdgeBack, useOnLeave, usePartSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
-         type Horizon, type PairingInput, type StatusSource } from "@app/ui";
+         useHorizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
@@ -197,16 +197,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * not a percentile and nothing can carry it to the water yet.
    */
   const [flowParam, setFlowParam] = useState<FlowParam>("discharge");
-  // HOW FAR AHEAD the Conditions panel answers. 0 is now, and is where it opens: a
-  // forecast is what you ask for, never what you are shown without asking.
-  const [horizon, setHorizon] = useState<Horizon>(0);
   /*
-   * BACK TO NOW WHEN THE PANEL CLOSES (P16 item 2). The horizon is chosen in the Conditions
-   * panel's header and nowhere else — the map's corner copy is gone — so the map, which has
-   * no control saying which horizon it paints, must not keep painting one picked in a panel
-   * that is no longer on screen.
+   * HOW FAR AHEAD the Conditions map is painted and the panel answers — ONE state, two
+   * controls (owner 2026-10-20): the map's corner chips and the panel header's both draw
+   * `hz.chips` and call `hz.pick`. 0 is now, and is where it opens. NOT reset when the panel
+   * closes (P16 did, because the map then had no control saying which horizon it painted;
+   * it has one again, showing the same choice).
    */
-  useEffect(() => { if (condSection === null) setHorizon(0); }, [condSection]);
+  const hz = useHorizon();
+  const horizon = hz.horizon;
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   // Streams, lakes and gauges each carry their own colouring, as the design has it — plain rivers while the lakes
@@ -457,7 +456,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                             onRegulations={(sec) => { void onPressFeature("stream", sec); }}
                             onBack={back} feed={feed}
                             credits={attribution} horizon={horizon}
-                            onHorizon={setHorizon} />
+                            onHorizon={hz.pick} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme}
                      camera={camera.current}
@@ -497,8 +496,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The list is the style's; the trigger is this screen's, because the
                      // app drives by mode and never renders the named view.
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
-                     // NO HORIZONS ON THE MAP (P16 item 2): the one horizon control is the
-                     // Conditions panel's header. See the reset by `condSection` above.
+                     // The forecast horizons, on the Conditions tab (owner 2026-10-20, after
+                     // P16 removed them). Temperature has no forecast, so it gets none. The
+                     // SAME state the panel header sets — see `hz` above.
+                     horizons={mm.horizonsShown ? { chips: hz.chips, onPick: hz.pick } : undefined}
                      // NO LAYERS BUTTON IN THE CONDITIONS VIEW. Everything the sheet
                      // offers — how to colour streams and lakes — is decided by the
                      // Showing control here instead, so the button would open a sheet

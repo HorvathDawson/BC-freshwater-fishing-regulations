@@ -9,6 +9,7 @@
 import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
+import type { Horizon, HorizonChipVM } from "@app/ui";
 import { Pill } from "./Chrome";
 import { LayersIcon } from "./icons";
 import { TYPE } from "./type";
@@ -16,7 +17,7 @@ import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
-                            onLayers, onPressFeature, onMoved, onMapPoint,
+                            onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, gauges, onVisible, onError,
                             fit, basemap }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -40,6 +41,11 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   marker?: { lat: number; lon: number } | null;
   camera: Camera;
   onLayers?: () => void;
+  /**
+   * The forecast horizons, on the Conditions tab only: `horizonChips` from @app/ui (core's
+   * days and words) and the Shell's one `pick`, the same pair the panel header draws.
+   */
+  horizons?: { chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void };
   onError?: (e: Error) => void;
   /** Send the camera to a chosen water — see MapProps.fit. */
   fit?: MapProps["fit"];
@@ -56,14 +62,36 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left
-        here is the chrome that is genuinely ours: the layers button, which MapLibre has no
-        opinion about.
+        here is the chrome that is genuinely ours: the forecast horizons and the layers —
+        neither of which MapLibre has an opinion about.
 
-        NO HORIZONS IN THE CORNER (P16 item 2). They sat here on the Conditions tab, a second
-        copy of the control the Conditions panel puts in its header, with its labels typed in
-        a second time. One horizon control, in the panel header; the corner is empty. (It
-        held a date pill before that, for seasonal regulations; it went with them.)
+        The horizons have the top-left corner to themselves, on the Conditions tab only:
+        conditions are NOW, and what a person wants there is where the water is heading.
+        P16 removed them as a second copy of the panel header's control; the owner put them
+        back (2026-10-20) with +10. They are no longer a copy: the chips are `horizonChips`
+        (core's words, the panel header's too) and `onPick` is the Shell's one horizon state,
+        so the map and the panel cannot disagree. (The corner held a date pill before, for
+        seasonal regulations; it went with them.)
       */}
+      {horizons && (
+        <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 6 }}>
+          {horizons.chips.map((h) => (
+            <Pill key={h.day} palette={palette} onPress={() => horizons.onPick(h.day)}
+                  // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map at
+                  // 13px, and a text-colour change alone is not a state a reader notices —
+                  // the whole map is repainted by this control, so which one is on has to
+                  // be readable at a glance and from the corner of an eye.
+                  style={h.on ? { backgroundColor: palette.accent,
+                                  borderColor: palette.accent } : undefined}
+                  label={h.label}>
+              <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
+                             color: h.on ? palette.onAccent : palette.ink }}>
+                {h.chip}
+              </Text>
+            </Pill>
+          ))}
+        </View>
+      )}
 
       {/* NO satellite button here. MapLibre's own control stack lives in this corner and
           ours overlapped it — and the choice already exists in the Layers sheet under

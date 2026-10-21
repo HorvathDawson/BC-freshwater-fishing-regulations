@@ -121,11 +121,27 @@ describe("the donor panel", () => {
   });
 
   const REASONS: NoEstimate[] = ["no-station", "no-record", "regulated", "too-uncertain",
-                                 "offline"];
+                                 "offline", "no-forecast"];
   it.each(REASONS)("explains a refusal (%s) instead of showing a blank", (why) => {
     draw({ value: { answer: { ok: false, why }, rows: [], areaKm2: null, routesReady: true } });
     expect(screen.getByText("NO ESTIMATE")).toBeTruthy();
     expect(screen.getByText(donorReason(why))).toBeTruthy();
+  });
+
+  it("at +10 past every run, says so and keeps the chips so the reader can step back", () => {
+    const onHorizon = vi.fn();
+    draw({ value: { answer: { ok: false, why: "no-forecast" }, rows: [], areaKm2: 50,
+                    routesReady: true }, horizon: 10, onHorizon });
+    expect(screen.getByText("No forecast for the gauges here reaches this far ahead.")).toBeTruthy();
+    expect(screen.getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Conditions now"));
+    expect(onHorizon).toHaveBeenCalledWith(0);
+  });
+
+  it("offers no chips on a refusal another day would not change", () => {
+    draw({ value: { answer: { ok: false, why: "no-station" }, rows: [], areaKm2: 50,
+                    routesReady: true }, horizon: 3, onHorizon: () => {} });
+    expect(screen.queryByText("Now")).toBeNull();
   });
 
   it("counts one gauge as one gauge", () => {
@@ -281,7 +297,7 @@ describe("the donor panel", () => {
 
   it("offers every horizon, above the number they change", () => {
     draw({ value: answer(), horizon: 3, onHorizon: () => {} });
-    for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.getByText(t)).toBeTruthy();
+    for (const t of ["Now", "+1d", "+3d", "+5d", "+10d"]) expect(screen.getByText(t)).toBeTruthy();
     expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
   });
 
@@ -299,8 +315,9 @@ describe("the donor panel", () => {
 
   it("keeps the heading one line at every horizon", () => {
     const HEAD = { 0: "ESTIMATE FOR THIS SPOT", 1: "FORECAST · 1 DAY AHEAD",
-                   3: "FORECAST · 3 DAYS AHEAD", 5: "FORECAST · 5 DAYS AHEAD" } as const;
-    for (const h of [0, 1, 3, 5] as const) {
+                   3: "FORECAST · 3 DAYS AHEAD", 5: "FORECAST · 5 DAYS AHEAD",
+                   10: "FORECAST · 10 DAYS AHEAD" } as const;
+    for (const h of [0, 1, 3, 5, 10] as const) {
       cleanup();
       draw({ value: answer(), horizon: h, onHorizon: () => {} });
       expect(screen.getByText(HEAD[h])).toBeTruthy();

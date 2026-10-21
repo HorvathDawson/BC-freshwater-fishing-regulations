@@ -119,7 +119,8 @@ export type NoEstimate =
   | "no-record"         // stations exist but none has enough history for a percentile
   | "regulated"         // the only candidates are dam-controlled and cannot speak for rain
   | "too-uncertain"     // the interval is wider than MAX_USEFUL_SPREAD
-  | "offline";          // the feed did not answer; say nothing rather than something stale
+  | "offline"           // the feed did not answer; say nothing rather than something stale
+  | "no-forecast";      // a day ahead that no forecast run for these gauges reaches
 
 export type Answer = { ok: true; value: Estimate } | { ok: false; why: NoEstimate };
 

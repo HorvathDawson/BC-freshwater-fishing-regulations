@@ -21,11 +21,16 @@ import { localStamp } from "./day";
  *
  * The values are the days the publisher ranks a forecast for — see HORIZONS in
  * `pipeline/gauges/feed/publish.py`. Beyond about five the model's own bounds are wide
- * enough that the answer is "normal for the season" whatever it says. In core so the words
+ * enough that the answer is often "normal for the season"; TEN DAYS is there because the
+ * owner wants it for planning (2026-10-20), and where no run reaches it the panel says
+ * `no-forecast` and the map draws no reading — never the +5 value. In core so the words
  * for each day can be derived from the one list; `@app/data` re-exports both.
+ *
+ * KEYED BY DAY, NEVER BY POSITION. The feed's `ahead` block is `{"1": …, "10": …}` and is
+ * read by `String(day)`; nothing indexes a horizon by its place in this list.
  */
-export type Horizon = 0 | 1 | 3 | 5;
-export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5];
+export type Horizon = 0 | 1 | 3 | 5 | 10;
+export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5, 10];
 
 export interface HorizonLabel {
   /** The chip: "Now", "+3d". */
@@ -91,6 +96,9 @@ const WHY: Record<NoEstimate, string> = {
   "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "
                  + "low river from a high one.",
   "offline": "The live readings did not arrive.",
+  // A day ahead past every forecast run for these gauges — the +10 day often is, and every
+  // forecast day is out of season. Not "no gauge close enough", which would be false.
+  "no-forecast": "No forecast for the gauges here reaches this far ahead.",
 };
 
 /** Why there is no answer, in words a reader can act on. */

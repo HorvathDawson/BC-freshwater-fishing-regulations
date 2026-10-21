@@ -228,11 +228,12 @@ describe("P16: one reading order", () => {
       + `${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`);
   });
 
-  // ONE IN THE PANEL. That the map offers none of its own is pinned in MapScreen.test.tsx,
-  // where the corner control was; together they are the app's "exactly one".
-  it("has exactly one horizon control", async () => {
+  // ONE SET OF CHIPS IN THE PANEL. The owner's rule (2026-10-20) is not "exactly one control
+  // in the app": the Conditions map has its own in the corner (MapScreen.test.tsx), the panel
+  // has this one in its header, and both set ONE horizon state (HorizonShared.test.tsx).
+  it("has one set of horizon chips in its header, ten days included", async () => {
     await draw("estimate");
-    for (const chip of ["Now", "+1d", "+3d", "+5d"])
+    for (const chip of ["Now", "+1d", "+3d", "+5d", "+10d"])
       expect(screen.getAllByText(chip)).toHaveLength(1);
   });
 

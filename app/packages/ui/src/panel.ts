@@ -349,8 +349,42 @@ export interface DonorMapVM {
 
 export interface HorizonChipVM { day: Horizon; chip: string; label: string; on: boolean }
 
+/**
+ * THE HORIZON CHIPS, for every control that offers them — the map's corner (Conditions tab)
+ * and the panel's header. One function over core's HORIZONS and words, so the two controls
+ * cannot list different days or name one differently (P16's worry about a second copy).
+ */
+export function horizonChips(on: Horizon): HorizonChipVM[] {
+  return HORIZONS.map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip,
+                                label: horizonChipLabel(d, d === on), on: d === on }));
+}
+
+/** The one horizon state the Shell holds and both controls set — see `useHorizon`. */
+export interface HorizonState {
+  horizon: Horizon;
+  chips: readonly HorizonChipVM[];
+  pick: (d: Horizon) => void;
+}
+
+/**
+ * ONE HORIZON, TWO CONTROLS (owner 2026-10-20). The map's corner control and the panel's
+ * header both draw `chips` and call `pick`, so choosing +10 on the map is what the panel
+ * opens on, and stepping back to Now in the panel is what the map then paints. 0 is where
+ * it opens: a forecast is what you ask for, never what you are shown without asking.
+ */
+export function useHorizon(initial: Horizon = 0): HorizonState {
+  const [horizon, pick] = useState<Horizon>(initial);
+  const chips = useMemo(() => horizonChips(horizon), [horizon]);
+  return { horizon, chips, pick };
+}
+
 export type DonorVM =
-  | { ok: false; heading: string; reason: string }
+  | {
+      ok: false; heading: string; reason: string;
+      /** The chips, kept when the refusal is about the CHOSEN DAY (`no-forecast`), so the
+       *  reader can step back from it; null when another day would not change the answer. */
+      horizons: readonly HorizonChipVM[] | null;
+    }
   | {
       ok: true;
       heading: string;
@@ -388,7 +422,8 @@ export interface DonorViewOptions {
 export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const { answer, rows } = value;
   if (!answer.ok)
-    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why) };
+    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why),
+             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon) : null };
   const e = answer.value;
 
   const placed = rows.filter((r) => r.route?.lat != null && r.route?.lon != null);
@@ -425,9 +460,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     headlineSuffix: o.horizon > 0 ? CONDITIONS_WORDS.byThen : null,
     sentence: estimateSentence(e, o.horizon),
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
-    horizons: HORIZONS.map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip,
-                                     label: horizonChipLabel(d, d === o.horizon),
-                                     on: d === o.horizon })),
+    horizons: horizonChips(o.horizon),
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,

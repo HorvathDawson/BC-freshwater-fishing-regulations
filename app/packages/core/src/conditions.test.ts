@@ -29,8 +29,16 @@ const est = (over: Partial<Estimate> = {}): Estimate => ({
 describe("the horizons", () => {
   it("are the publisher's days, and every one has its words", () => {
     // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
-    expect(HORIZONS).toEqual([0, 1, 3, 5]);
+    expect(HORIZONS).toEqual([0, 1, 3, 5, 10]);
+    // Object key order puts integer keys ascending, which is HORIZONS' own order.
     expect(Object.keys(HORIZON_LABELS).map(Number)).toEqual([...HORIZONS]);
+  });
+
+  it("names ten days ahead in full (owner 2026-10-20)", () => {
+    expect(HORIZON_LABELS[10]).toEqual({ chip: "+10d", heading: "FORECAST · 10 DAYS AHEAD",
+                                         accessible: "Forecast 10 days ahead" });
+    expect(horizonChipLabel(10, true)).toBe("Forecast 10 days ahead, showing");
+    expect(horizonChipLabel(10, false)).toBe("Forecast 10 days ahead");
   });
 
   it("names now and each forecast day in full", () => {
@@ -60,6 +68,9 @@ describe("donorReason: why there is no estimate, per reason", () => {
     "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "
                    + "low river from a high one.",
     "offline": "The live readings did not arrive.",
+    // The chosen day is past every forecast run for these gauges (the owner's +10 day often
+    // is). Said as that, not as "no gauge close enough", which would be false.
+    "no-forecast": "No forecast for the gauges here reaches this far ahead.",
   };
   it.each(Object.entries(WHY))("%s", (why, sentence) => {
     expect(donorReason(why as NoEstimate)).toBe(sentence);
