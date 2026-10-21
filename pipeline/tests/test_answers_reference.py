@@ -149,6 +149,130 @@ def test_port_explains_a_shared_count_only_with_its_feature():
     assert classify_row(prow, orow, {**full, "real_daily": {}}) == {"unexplained"}
 
 
+def _kitimat_row(rest_bands):
+    """A Kitimat River-like keep row (Region 6 trout/char, Jul 1-Oct 31): steelhead by
+    cross-reference, lake trout under a sub-limit (a condition naming it), rainbow in a fact group;
+    brook, brown and cutthroat trout named by nothing, so the page lumps them into its `rest` item.
+    `rest_bands` gives our items for those three: {members: bands}."""
+    items = [{"members": ["ST"], "bands": None, "xref": True},
+             {"members": ["LT"], "bands": [[30, None, 3]]},
+             {"members": ["RB"], "bands": [[30, 50, 5], [50, None, 1]]}]
+    items += [{"members": list(ms), "bands": b} for ms, b in rest_bands.items()]
+    return {"members": ["CT", "EB", "GB", "LT", "RB", "ST"],
+            "all_members": ["RB", "ST", "LT", "EB", "GB", "CT"], "daily": 5,
+            "groups": [{"members": ["ST"], "facts": [{"t": "xref", "r": "kitimat.r5", "members": ["ST"]}]},
+                       {"members": ["RB"], "facts": [{"t": "steel", "r": "z6.r9", "members": ["RB"]}]}],
+            "conds": [{"c": "group", "who": ["LT"], "sub": 3}],
+            "everyone": [], "items": items,
+            "real_daily": {"n": 5, "all": False, "sum": None, "capped_sum": 6, "rb": False,
+                           "capped": ["ST", "LT", "GB", "CT"], "open": ["RB", "EB"]}}
+
+
+def test_port_explains_the_pages_rest_item_as_f1_only_where_its_fish_differ():
+    """F1 (rows.DECISIONS): page_v35.js `speciesItems` puts every keepable fish no group or
+    condition names into ONE trailing `rest` item, and `quotaLines` gives it the stream share only
+    when the share covers EVERY member. Kitimat River, Jul 1-Oct 31: rest = brook, brown and
+    cutthroat trout; Region 6's '1 trout from streams' (except char) covers brown and cutthroat but
+    not brook trout, so the page kept 5 for all three (real daily 5, ours 6: brown/cutthroat 1)."""
+    from pipeline.deliver.answers.reference.port import classify_row
+    prow = {"kind": "keep", "pool": "z6.r1", "win": None, "members": ["CT", "EB", "GB", "LT", "RB", "ST"],
+            "all_members": ["RB", "ST", "LT", "EB", "GB", "CT"], "daily": 5,
+            "real_daily": [5, False, None, 5, False], "everyone": [], "groups": []}
+    orow = {**prow, "real_daily": [5, False, None, 6, False]}
+    split = _kitimat_row({("GB", "CT"): [[30, None, 1]], ("EB",): [[30, 50, 5], [50, None, 1]]})
+    assert classify_row(prow, orow, split) == {"F1"}
+    # MUTATION, outside Jul 1-Oct 31: no stream share, the rest fish have the same range (one item)
+    same = _kitimat_row({("EB", "GB", "CT"): [[30, 50, 5], [50, None, 1]]})
+    assert classify_row(prow, orow, same) == {"unexplained"}
+    # MUTATION, the share covers every rest fish (brook trout named by a group, so not in rest):
+    # what is left in the page's rest item has one range, so the rest item is not the cause
+    covered = _kitimat_row({("GB", "CT"): [[30, None, 1]], ("EB",): [[30, 50, 5], [50, None, 1]]})
+    covered["groups"].append({"members": ["EB"], "facts": [{"t": "tnote", "r": "z6.r7", "members": ["EB"]}]})
+    assert classify_row(prow, orow, covered) == {"unexplained"}
+    # MUTATION: fish with different ranges that a group or condition names are not the rest item
+    named = _kitimat_row({("GB", "CT"): [[30, None, 1]], ("EB",): [[30, 50, 5], [50, None, 1]]})
+    named["conds"].append({"c": "group", "who": ["GB", "CT"], "sub": 1})
+    assert classify_row(prow, orow, named) == {"unexplained"}
+
+
+def test_port_explains_an_unread_orphan_count_clause_as_f16_only_with_the_orphan():
+    """F16 (rows.DECISIONS, RULINGS Q2): an ORPHAN count clause (another table's, still speaking)
+    caps its fish's bands like a sub-cap; page_v35.js `quotaLines` caps only from outercap/subcap
+    and never reads `orphan`. Gotchen Lake, 'Trout/char daily quota = 2' under Region 5's
+    '1 Dolly Varden/bull trout': ours caps DV at 1 (real daily [2, F, null, 1, F]), the page none."""
+    from pipeline.deliver.answers.reference.port import PAGE_BUGS, classify_row
+    assert PAGE_BUGS["F16"] == "an orphan count clause (another table's, still speaking) not read as " \
+                               "a cap on its fish (rows.DECISIONS F16, RULINGS Q2)"
+    prow = {"kind": "keep", "pool": "gotchen.r1", "win": None, "members": ["DV", "EB", "RB"],
+            "all_members": ["DV", "EB", "RB"], "daily": 2, "real_daily": None,
+            "everyone": [["orphan", "z5.r4", ["DV"]]], "groups": []}
+    orow = {**prow, "real_daily": [2, False, None, 1, False]}
+    orphan = {"t": "orphan", "r": "z5.r4", "members": ["DV"], "rules": ["z5.r4"], "take": 1}
+    # a fact naming some of the row's fish sits in their fact group (rows.build_model)
+    full = {"members": ["DV", "EB", "RB"], "all_members": ["DV", "EB", "RB"], "daily": 2,
+            "groups": [{"members": ["DV"], "facts": [orphan]}], "conds": [], "everyone": [],
+            "items": [{"members": ["DV"], "bands": [[0, None, 1]]},
+                      {"members": ["EB", "RB"], "bands": [[0, None, 2]]}],
+            "real_daily": {"n": 2, "all": False, "sum": None, "capped_sum": 1, "rb": False,
+                           "capped": ["DV"], "open": ["EB", "RB"]}}
+    assert classify_row(prow, orow, full) == {"F16"}
+    # one naming every fish of the row is said to everyone: the same
+    said = {**full, "everyone": [{**orphan, "members": ["DV", "EB", "RB"]}],
+            "groups": [{"members": ["DV"], "facts": [{"t": "tnote", "r": "z5.r8", "members": ["DV"]}]}]}
+    assert classify_row(prow, orow, said) == {"F16"}
+
+    def with_fact(l):
+        return {**full, "groups": [{"members": ["DV"], "facts": [l]}]}
+    # MUTATION: no orphan fact; an orphan with no take; an orphan on a fish the limit does not cap
+    assert classify_row(prow, orow, with_fact({"t": "tnote", "r": "z5.r8", "members": ["DV"]})) \
+        == {"unexplained"}
+    assert classify_row(prow, orow, with_fact({**orphan, "take": None})) == {"unexplained"}
+    assert classify_row(prow, orow, {**full, "groups": [
+        {"members": ["DV"], "facts": [{"t": "tnote", "r": "z5.r8", "members": ["DV"]}]},
+        {"members": ["EB"], "facts": [{**orphan, "members": ["EB"]}]}]}) == {"unexplained"}
+
+
+def test_port_attributes_polley_lakes_orphan_caps_to_f16_alone():
+    """Polley Lake (the gate fixture that pins DECISIONS F16 on our side,
+    test_answers_28_gate_classes): Region 5's '1 Dolly Varden' and '2 lake trout' under the lake's
+    'trout 8'. The page, not reading orphans, shows no real daily limit; the port puts that on F16
+    and on nothing else (its rest fish share one range, so not F1)."""
+    from pipeline.deliver.answers import cli
+    from pipeline.deliver.answers.reference.port import classify_row, orphan_takes
+    from pipeline.tests.test_answers_28_gate_classes import JUL15, card
+
+    class Ids(dict):
+        def __missing__(self, k):
+            return k
+    out, P = card("polley", JUL15)
+    out = orphan_takes(json.loads(json.dumps(out, default=str)), P.by_key)
+    row = next(r for r in out["rows"] if r.get("pool") == "r5:polley_lake@5-2::polley_lake.r1")
+    ours = cli.row_projection(row, Ids())
+    assert ours["real_daily"] == [8, False, None, 3, False]
+    assert classify_row({**ours, "real_daily": None}, ours, row) == {"F16"}
+    for l in [l for g in row["groups"] for l in g["facts"]] + row["everyone"]:
+        if l["t"] == "orphan":
+            l["take"] = None                                       # MUTATION: no clause number
+    assert classify_row({**ours, "real_daily": None}, ours, row) == {"unexplained"}
+
+
+def test_port_gives_orphan_facts_their_clauses_take():
+    """Our rows ship an orphan fact without a number (the rule holds it): the port reads the take
+    off the rule, so F16 can require one. Other facts are left as they are."""
+    from types import SimpleNamespace
+    from pipeline.deliver.answers.reference.port import orphan_takes
+    by_key = {"z5::r4": SimpleNamespace(f={"take": 1}), "z5::r9": SimpleNamespace(f={})}
+    out = {"rows": [{"everyone": [{"t": "orphan", "r": "z5::r4"}, {"t": "cap", "r": "z5::r4"}],
+                     "groups": [{"members": ["DV"], "facts": [{"t": "orphan", "r": "z5::r9"}]}]},
+                    {"everyone": [], "groups": []}]}
+    orphan_takes(out, by_key)
+    assert out == {"rows": [{"everyone": [{"t": "orphan", "r": "z5::r4", "take": 1},
+                                          {"t": "cap", "r": "z5::r4"}],
+                             "groups": [{"members": ["DV"],
+                                         "facts": [{"t": "orphan", "r": "z5::r9", "take": None}]}]},
+                            {"everyone": [], "groups": []}]}
+
+
 def test_port_keys_our_rows_in_the_pages_word():
     """The page keys a row by ITS kind word ("nolimit"); ours says "no_limit" (cli.row_projection
     maps the value, cli.page_view the key). Keyed raw, every card with a no-limit row read as a row

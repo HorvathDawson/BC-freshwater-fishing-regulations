@@ -30,7 +30,8 @@ from pipeline.deliver.answers.reference import compare as CMP
 #: the page bugs the card's rows correct (rows.DECISIONS), as the port sees them
 PAGE_BUGS = {
     "F1": "items from fact groups: a fish in two items, one range for fish with different ones "
-          "(the real daily limit then reads overlapping items or skips the row)",
+          "(the real daily limit then reads overlapping items or skips the row); every fish no "
+          "group or condition names lumped into one `rest` item",
     "F2": "no origin2 line when the other origin differs only in its keep range "
           "('No wild trout over 50 cm')",
     "F3": "a line for as many OTHER fish as the row has read as everyone's (counts, not sets)",
@@ -40,6 +41,8 @@ PAGE_BUGS = {
     "F6": "a possession limit with a number read as a yearly limit",
     "F11": "a count limit shared by several kinds ('3 Dolly Varden and lake trout combined') "
            "summed per kind in the real daily limit, not given to them together",
+    "F16": "an orphan count clause (another table's, still speaking) not read as a cap on its fish "
+           "(rows.DECISIONS F16, RULINGS Q2)",
     "R15.3": "a rule of the winner's own row saying the very same thing shown as a second "
              "('also') line, not as the same statement agreeing with the winner (rows.py, "
              "ROUND15 3, owner)",
@@ -113,6 +116,41 @@ def _drop_also(page: dict, rules: Set[str]) -> dict:
                                                for ms, fs in page.get("groups") or []) if fs]}
 
 
+def _rest_differs(full: dict) -> bool:
+    """F1, the page's `rest` item: page_v35.js `speciesItems` puts every fish of the row that no
+    fact group or condition names into ONE trailing item, and `quotaLines` gives that item one range
+    (a stream share only when it covers every member). Ours gives each kind its own: the feature is
+    rest fish to which our items give DIFFERENT bands (Kitimat River, Jul 1-Oct 31: brown and
+    cutthroat 1 under '1 trout from streams', brook trout, a char, 5)."""
+    named = {S for g in full.get("groups") or [] for S in g["members"]} | {
+        S for c in full.get("conds") or [] if c.get("who") for S in c["who"]}
+    bands = {S: json.dumps(it.get("bands")) for it in full.get("items") or [] for S in it["members"]}
+    rest = [S for S in full.get("all_members") or full["members"] if S not in named and S in bands]
+    return len({bands[S] for S in rest}) > 1
+
+
+def _orphan_capped(full: dict) -> bool:
+    """F16: a fish the real daily limit caps has an ORPHAN fact with a take (`orphan_takes`) — the
+    count clause our `rows.fish_bands` caps it with and the page's `quotaLines` never reads."""
+    capped = set((full.get("real_daily") or {}).get("capped") or [])
+    facts = list(full.get("everyone") or []) + [l for g in full.get("groups") or []
+                                                for l in g["facts"]]
+    return any(l["t"] == "orphan" and l.get("take") is not None
+               and bool(capped & set(l.get("members") or full["members"])) for l in facts)
+
+
+def orphan_takes(out: dict, by_key) -> dict:
+    """Each orphan fact of `produce`'s rows given its clause's take (`by_key[rule].f`), in place: a
+    fact ships no number (the rule holds it), and F16 needs one. Port tooling only — the row
+    projection compared with the page does not read it."""
+    for row in out["rows"]:
+        for l in list(row.get("everyone") or []) + [l for g in row.get("groups") or []
+                                                     for l in g["facts"]]:
+            if l["t"] == "orphan":
+                l["take"] = by_key[l["r"]].f.get("take")
+    return out
+
+
 def classify_row(page: dict, ours: dict, full: dict, restated_rules: Set[str] = frozenset()
                  ) -> Set[str]:
     """The documented classes that explain a differing row. `full` is our row as shipped (items,
@@ -147,7 +185,7 @@ def classify_row(page: dict, ours: dict, full: dict, restated_rules: Set[str] = 
         page_items = groups + [set(c["who"]) for c in conds
                                if c.get("who") and set(c["who"]) not in groups]
         overlap = any(a & b for i, a in enumerate(page_items) for b in page_items[i + 1:])
-        if overlap or any(c.get("except") == ["RB"] for c in conds):
+        if overlap or any(c.get("except") == ["RB"] for c in conds) or _rest_differs(full):
             feats.add("F1")
         ms = set(full["members"])
         if any(c.get("who") and len(c["who"]) == len(ms) and set(c["who"]) != ms for c in conds):
@@ -162,6 +200,8 @@ def classify_row(page: dict, ours: dict, full: dict, restated_rules: Set[str] = 
             feats.add("F5")
         if rd.get("shared_count"):
             feats.add("F11")
+        if _orphan_capped(full):
+            feats.add("F16")
         why |= feats or {"unexplained"}
         o["real_daily"] = page["real_daily"]
     if o != page:
@@ -245,7 +285,8 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
         at = _page_moment(ctx.store.moments(B.key_ix[rk]))
         P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                     kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md, at), at=at)
-        out = RW.refs(json.loads(json.dumps(RW.produce(P))), rule_index.__getitem__)
+        out = RW.refs(orphan_takes(json.loads(json.dumps(RW.produce(P))), P.by_key),
+                      rule_index.__getitem__)
         stats["cards"] += 1
         if out["spp"] != rec["spp"]:
             stats["spp_differ"] += 1

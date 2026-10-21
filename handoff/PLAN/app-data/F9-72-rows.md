@@ -79,3 +79,16 @@ and as committed it fails on these 72 rows, so Tier 2 ends `FAILED: pytest slow`
 the main checkout also builds the golden into `data/generated/scratch/answers_reference/` (6-10
 min, 2-4 node workers, about 45 MB) before it fails. Step 2 (`pytest -q`, default
 `-m "not slow"`) deselects it, and Tier 1 is unaffected.
+
+## Resolved (2026-10-20): both rulings applied in the port tooling only
+
+`reference/port.py`: F1 now also fires on the page's `rest` item (`_rest_differs`: fish no group or
+condition names, to which our items give different bands), and a new PAGE_BUGS class **F16**
+(`_orphan_capped`: a fish the real daily limit caps has an orphan fact with a take; `orphan_takes`
+reads the take off the clause). No answers code changed. Re-run against the main checkout's data
+(golden `4a98db20e5ed3618`, built in the worktree): `test_port_on_the_pages_own_ladder` passes,
+0 unexplained. Old vs new classifier on every row: exactly 72 rows newly explained, Kitimat 24 as
+F1, Gotchen 24 and Phillipps 24 as F16, nothing else. Already-explained rows that also gain the new
+features: F1 on 82 z6 F11 rows; F16 on 32 z3 + 19 z5 F1 rows and 17 z6 F1+F11 rows. Polley Lake is
+not in the golden sample; on the gate fixture its pool row fires F16 alone (pinned by
+`test_port_attributes_polley_lakes_orphan_caps_to_f16_alone`).
