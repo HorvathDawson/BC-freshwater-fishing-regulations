@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
 import { backDepth, historySync, viewSwipeAction, type HistoryPort } from "./gestures";
-import { HOME, reduce, type Route, type RouteAction } from "./route";
+import { HOME, STACK_CAP, reduce, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
 
@@ -179,6 +179,30 @@ describe("the browser's history stays in step with the route", () => {
     b.port.go(-2); b.flush();
     expect({ frames: a.frames(), history: b.state, pops: a.pops })
       .toEqual({ frames: ["browse:map"], history: { entries: [null, 1, 2], at: 0, left: false }, pops: 2 });
+  });
+});
+
+describe("at the stack cap the history does not grow", () => {
+  it("a push past STACK_CAP drops the oldest frame: the depth holds at the cap and no entry is added", () => {
+    const b = browser(); const a = app(b);
+    const items = Array.from({ length: STACK_CAP + 2 }, (_, i) => `gnis:${9000 + i}` as ItemId);
+    a.go({ type: "openWater", item: items[0]! });
+    for (let i = 1; i < STACK_CAP; i++) a.go({ type: "flowInto", item: items[i]!, part: 0 });
+    const full = { depth: backDepth(a.route), history: b.state };
+    a.go({ type: "flowInto", item: items[STACK_CAP]!, part: 0 });
+    a.go({ type: "flowInto", item: items[STACK_CAP + 1]!, part: 0 });
+    b.flush();
+    const past = { depth: backDepth(a.route), history: b.state, first: a.frames()[0], last: a.frames().at(-1) };
+    b.userBack();
+    const after = { depth: backDepth(a.route), history: b.state, last: a.frames().at(-1), pops: a.pops };
+    const entries = [null, 1, 2, 3, 4, 5, 6, 7, 8];
+    expect({ cap: STACK_CAP, full, past, after }).toEqual({
+      cap: 8,
+      full: { depth: 8, history: { entries, at: 8, left: false } },
+      past: { depth: 8, history: { entries, at: 8, left: false },
+              first: "gnis:9002/regs", last: "gnis:9009/regs" },
+      after: { depth: 7, history: { entries, at: 7, left: false }, last: "gnis:9008/regs", pops: 1 },
+    });
   });
 });
 

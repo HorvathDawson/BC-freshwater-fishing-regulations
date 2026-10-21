@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Animated, Modal, Pressable, Text, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import { useSheetDrag } from "@app/ui";
+import { useBackLayer, useSheetDrag } from "@app/ui";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -26,13 +26,20 @@ export function Sheet({ open, onClose, title, palette, children }: {
   const pull = useMemo(() => Gesture.Pan().runOnJS(true)
     .activeOffsetY(6).failOffsetX([-24, 24])
     .onUpdate((e) => y.setValue(drag.offset(e.translationY)))
-    .onEnd((e) => {
-      if (!drag.release(e.translationY, e.velocityY, height.current))
+    // `success` is false when the system cancelled the drag after it went active: not a release, so it springs back
+    .onEnd((e, success) => {
+      if (!success || !drag.release(e.translationY, e.velocityY, height.current))
         Animated.spring(y, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
     })
     .withTestId("sheet-drag"), [drag, y]);
+  /*
+   * BACK CLOSES AN OPEN SHEET FIRST, on every platform (G1): while open the sheet is a back layer of the one back
+   * (`useBackLayer`) — on the web one history entry, so the browser's back and a phone browser's swipe-back close it
+   * rather than going under it. Android's back reaches the Modal's own `onRequestClose`, which is that same back.
+   */
+  const requestClose = useBackLayer(open, onClose);
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={open} transparent animationType="slide" onRequestClose={requestClose}>
       {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). */}
       <GestureHandlerRootView style={{ flex: 1 }}>
         {/* tapping the map behind closes it — the standard way out of a sheet */}

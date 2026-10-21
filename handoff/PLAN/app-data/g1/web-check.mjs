@@ -1,13 +1,54 @@
-// G1 web check: a phone-sized, touch-emulated Chromium against the worktree's expo web dev server.
+// G1 web check: a phone-sized, touch-emulated Chromium against an expo web dev server.
+//
+// Run from the repo root (any checkout or worktree), with the app's web dev server already up:
+//
+//   node handoff/PLAN/app-data/g1/web-check.mjs <out-dir> [url]      # url defaults to http://localhost:39418/
+//
+// Playwright is found in the repo, never in a machine's npx cache: `playwright` (or `playwright-core`) from
+// app/node_modules if a package there provides it, else the Python Playwright in the repo's .venv — its bundled
+// driver is the `playwright-core` package. The browser is Playwright's own Chromium for that version, from the
+// usual cache; if it is missing, `.venv/bin/python -m playwright install chromium` fetches it. PLAYWRIGHT_CORE
+// overrides the lookup with a path to a playwright(-core) package directory.
 import { createRequire } from "node:module";
-const require = createRequire("/Users/dawson.horvath/.npm/_npx/9833c18b2d85bc59/node_modules/");
-const { chromium } = require("playwright");
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
+
+function playwright() {
+  const tried = [];
+  const attempt = (from, name) => {
+    tried.push(`${name} from ${from}`);
+    try { return createRequire(join(from, "noop.js"))(name); } catch { return null; }
+  };
+  if (process.env.PLAYWRIGHT_CORE) {
+    const p = attempt(dirname(process.env.PLAYWRIGHT_CORE), process.env.PLAYWRIGHT_CORE);
+    if (p) return p;
+  }
+  for (const name of ["playwright", "playwright-core"]) {
+    const p = attempt(join(REPO, "app"), name);
+    if (p) return p;
+  }
+  const lib = join(REPO, ".venv", "lib");
+  for (const py of existsSync(lib) ? readdirSync(lib).filter((d) => d.startsWith("python")) : []) {
+    const driver = join(lib, py, "site-packages", "playwright", "driver", "package");
+    if (existsSync(join(driver, "package.json"))) {
+      const p = attempt(driver, driver);
+      if (p) return p;
+    }
+  }
+  throw new Error(`no Playwright found in the repo; tried:\n  ${tried.join("\n  ")}\n` +
+                  "install the Python one into .venv (pip install playwright) or set PLAYWRIGHT_CORE");
+}
+const { chromium } = playwright();
 
 const OUT = process.argv[2];
+if (!OUT) { console.error("usage: node handoff/PLAN/app-data/g1/web-check.mjs <out-dir> [url]"); process.exit(2); }
+mkdirSync(OUT, { recursive: true });
 const URL = process.argv[3] ?? "http://localhost:39418/";
-const exe = "/Users/dawson.horvath/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 
-const browser = await chromium.launch({ executablePath: exe, headless: true });
+const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true,
                                        deviceScaleFactor: 2 });
 const p = await ctx.newPage();
@@ -31,10 +72,24 @@ const touchDrag = async (x0, y0, x1, y1, steps = 12, ms = 16) => {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 };
 
-try {
+/** The app, freshly loaded at the browse root (a page of its own: no history entries of the app's yet). */
+const home = async () => {
   await p.goto(URL, { waitUntil: "load", timeout: 180000 });
   await p.getByLabel("Search", { exact: true }).first().waitFor({ timeout: 180000 });
   await p.waitForTimeout(3000);
+};
+/** Each check runs on its own, so one whose path through the app has moved on does not hide the others. */
+const section = async (name, body) => {
+  try { await body(); } catch (e) {
+    notes.push({ what: `${name} FAILED: ${String(e).slice(0, 300)}` });
+    await shot(`99-failure-${name}`).catch(() => {});
+  }
+};
+const layers = p.getByLabel("Choose layers").first();
+
+try {
+  await section("water", async () => {
+  await home();
   await shot("01-home"); await note("home (browse root)");
 
   // ---- browser back pops the stack -------------------------------------------------------------------------------
@@ -75,11 +130,11 @@ try {
   await p.getByRole("button", { name: "Back", exact: true }).first().click();
   await p.waitForTimeout(1200);
   await note(`‹ pressed: water still shown = ${(await p.getByText("Regulations are coming").count()) > 0}`);
+  });
 
   // ---- the Layers sheet drags closed -----------------------------------------------------------------------------
-  // the ‹ returned to the Map tab already
-  await p.waitForTimeout(1500);
-  const layers = p.getByLabel("Choose layers").first();
+  await section("sheet-drag", async () => {
+  await home();
   await layers.click();
   await p.getByLabel("Done").waitFor({ timeout: 10000 });
   await p.waitForTimeout(800);
@@ -97,6 +152,29 @@ try {
   const afterLong = await p.getByLabel("Done").isVisible().catch(() => false);
   notes.push({ what: `long drag (400 px): sheet still open = ${afterLong}` });
   await shot("07-sheet-after-long-drag");
+  });
+
+  // ---- the browser's back closes an open sheet first (G1 follow-up) ------------------------------------------------
+  await section("sheet-back", async () => {
+  await home();
+  await note("sheet closed (browse root)");
+  await layers.click();
+  await p.getByLabel("Done").waitFor({ timeout: 10000 });
+  await p.waitForTimeout(800);
+  await note("sheet open: one more history entry");
+  await p.goBack();
+  await p.waitForTimeout(1200);
+  const afterSheetBack = await p.getByLabel("Done").isVisible().catch(() => false);
+  const stillHere = await p.getByLabel("Choose layers").first().isVisible().catch(() => false);
+  await shot("08-sheet-after-browser-back");
+  await note(`browser back with the sheet open: sheet still open = ${afterSheetBack}, app still here = ${stillHere}`);
+  await layers.click();
+  await p.getByLabel("Done").waitFor({ timeout: 10000 });
+  await p.waitForTimeout(800);
+  await p.getByLabel("Done").click();
+  await p.waitForTimeout(1200);
+  await note("sheet opened and closed by Done: its entry dropped (state back to the page's own)");
+  });
 } catch (e) {
   notes.push({ what: `FAILED: ${String(e).slice(0, 300)}` });
   await shot("99-failure").catch(() => {});

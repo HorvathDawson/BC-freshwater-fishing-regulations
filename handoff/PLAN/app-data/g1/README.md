@@ -80,3 +80,36 @@ when dragged whatever `dragRotate` says, is hidden while rotation is off — `ke
   A system back from a dirty edit discards without asking, exactly as the ‹ always has (one back rule).
 - **Part swipe acceptance stays OPEN**: no input can step a part in the shipped app until P15 supplies the part order
   and the Shell dispatches `part`; the browser check of the swipe is owed then.
+
+## Follow-ups (review minors), ported onto the view swipe (2026-10-21)
+Written first as 9b7287fb against `PartSwipe`; that was replaced by `ViewSwipe` (`../view-swipe/README.md`), so the
+items were re-applied to the current code rather than cherry-picked.
+- **Back closes an open sheet first, every platform.** `@app/ui` `useBack` keeps back layers: an open sheet registers
+  (`useBackLayer(open, onClose)`, through `BackLayerContext`, which the Shell provides around LayersSheet), counts as
+  one back step in `depth` (so on the web it holds one history entry) and is closed by back before the route is
+  popped. A sheet closed any other way (Done, scrim, drag) unregisters and its entry is dropped (`go(-1)`), so none is
+  stranded. Android: `BackHandler` closes it the same way, and the Modal's `onRequestClose` is that same back.
+  Tests: `ui/src/gestures.render.test.tsx` "an open sheet: …" (web back closes the sheet, route unchanged, next back
+  pops; at the browse root back closes the sheet instead of leaving; Done drops the entry; Android press order;
+  onRequestClose; no provider → own close) and `ui-native/src/gestures.test.tsx` (Sheet registers while open, its
+  onRequestClose calls the one back). Mutations: dropping the layer from `depth` fails 3; back skipping the layers
+  fails 4; `onRequestClose={onClose}` fails the Sheet one.
+  Browser (`08-sheet-after-browser-back.png`, web-check "sheet-back"): Layers open → state `{"canifishthis.back":1}`;
+  browser back → sheet closed, app still there, state null; open + Done → state null.
+- **ViewSwipe on the web** keeps the page's pinch-zoom (touch-action `pan-y pinch-zoom`, WCAG 1.4.4), text selection
+  (`userSelect="auto"`) and the context menu (`enableContextMenu`): `WEB_PAGE_PROPS` in `ViewSwipe.tsx`, pinned both
+  as the props passed and on the DOM RNGH writes (`gestures.test.tsx` "on the web the body keeps …"). Not checked in
+  a browser on a water (the web-check's path into a water predates the search eye; see below).
+- **Cancelled gestures are not releases**: EdgeBack, Sheet and ViewSwipe `onEnd` commit only on RNGH's `success`;
+  tests fire a CANCELLED end for each, and removing each `success` check fails its test.
+- **STACK_CAP**: already true at HEAD (route.ts `push` slices to the cap); `ui/src/gestures.test.ts` "at the stack
+  cap …" pushes 10 frames — the depth holds at 8, no history entry is added, back pops one. Removing the slice fails it.
+- **`web-check.mjs` runs from the repo**, no machine paths. From the repo root, servers up:
+  `node handoff/PLAN/app-data/g1/web-check.mjs <out-dir> [url]` (url default `http://localhost:39418/`). Playwright
+  comes from `app/node_modules` if present, else the repo `.venv`'s Python Playwright driver (`playwright-core`); the
+  browser is Playwright's own Chromium (`.venv/bin/python -m playwright install chromium` if missing);
+  `PLAYWRIGHT_CORE=<dir>` overrides. Servers: `TILE_PORT=<p> node app/tools/serve-tiles.mjs` (or an existing tile
+  server) and, in `app/apps/mobile`, `EXPO_PUBLIC_DATA_BASE=http://localhost:<p> npx expo start --web --port <q>`.
+  Each check runs on its own from a fresh load ("water", "sheet-drag", "sheet-back"). The "water" check still waits
+  for the old "Regulations are coming" water page reached from a search row; search's eye now shows the water on the
+  main map instead, so that check fails until its path is rewritten — the sheet checks pass.

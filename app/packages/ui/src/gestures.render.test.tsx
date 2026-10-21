@@ -5,9 +5,11 @@
  * `popstate`.
  */
 import { afterEach, describe, expect, it } from "vitest";
+import { useState } from "react";
 import { act, cleanup, render } from "@testing-library/react";
 import type { ItemId } from "@app/data";
-import { historySync, useBack, type Back, type HistoryPort, type SystemBack } from "./gestures";
+import { BackLayerContext, historySync, useBack, useBackLayer, type Back, type HistoryPort,
+         type SystemBack } from "./gestures";
 import { useRoute, type Route, type RouteAction } from "./route";
 
 afterEach(cleanup);
@@ -99,5 +101,109 @@ describe("useBack, mounted", () => {
     act(() => { out.go!({ type: "view", view: "conditions" }); });
     expect({ frames: frames(out.r!), history: b.state() })
       .toEqual({ frames: [`${VEDDER}/conditions`], history: { entries: [null, 1, 2], at: 2 } });
+  });
+});
+
+/**
+ * A SHEET IS A BACK LAYER (G1 follow-up). A sheet (Layers) is not a route frame, but back must close it before it
+ * pops anything: on Android the Modal's own `onRequestClose` did; on the web the browser's back went under it (and
+ * at the browse root left the app with the sheet open). Now an open sheet registers with the one back
+ * (`useBackLayer`), which counts it in the depth (one history entry on the web) and closes it first.
+ */
+interface Out { go?: (a: RouteAction) => void; b?: Back; r?: Route; setOpen?: (o: boolean) => void; open?: boolean;
+                requestClose?: () => void }
+function FakeSheet({ out }: { out: Out }) {
+  const [open, setOpen] = useState(false);
+  out.setOpen = setOpen; out.open = open;
+  out.requestClose = useBackLayer(open, () => setOpen(false));
+  return null;
+}
+function WithSheet({ system, out }: { system: SystemBack; out: Out }) {
+  const [route, go] = useRoute();
+  out.go = go; out.r = route;
+  out.b = useBack(route, go, system);
+  return <BackLayerContext.Provider value={out.b.layers}><FakeSheet out={out} /></BackLayerContext.Provider>;
+}
+const look = (out: Out, b?: ReturnType<typeof browser>) =>
+  ({ frames: frames(out.r!), sheet: out.open, depth: out.b!.depth, ...(b ? { history: b.state() } : {}) });
+
+describe("an open sheet: back closes it first, on every platform", () => {
+  it("web: the browser's back closes the sheet and leaves the route; the next back pops the route", () => {
+    const b = browser();
+    const out: Out = {};
+    render(<WithSheet system={(back) => historySync(b.port, back)} out={out} />);
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); });
+    act(() => { out.setOpen!(true); });
+    const seen = [look(out, b)];
+    b.userBack(); seen.push(look(out, b));
+    b.userBack(); seen.push(look(out, b));
+    expect(seen).toEqual([
+      { frames: [`${VEDDER}/regs`], sheet: true, depth: 2, history: { entries: [null, 1, 2], at: 2 } },
+      { frames: [`${VEDDER}/regs`], sheet: false, depth: 1, history: { entries: [null, 1, 2], at: 1 } },
+      { frames: ["browse:map"], sheet: false, depth: 0, history: { entries: [null, 1, 2], at: 0 } },
+    ]);
+  });
+
+  it("web, at the browse root: the browser's back closes the sheet instead of leaving the app", () => {
+    const b = browser();
+    const out: Out = {};
+    render(<WithSheet system={(back) => historySync(b.port, back)} out={out} />);
+    act(() => { out.setOpen!(true); });
+    b.userBack();
+    expect(look(out, b))
+      .toEqual({ frames: ["browse:map"], sheet: false, depth: 0, history: { entries: [null, 1], at: 0 } });
+  });
+
+  it("web: a sheet closed by Done (or the scrim, or a drag) drops its entry — none stranded", () => {
+    const b = browser();
+    const out: Out = {};
+    render(<WithSheet system={(back) => historySync(b.port, back)} out={out} />);
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); });
+    act(() => { out.setOpen!(true); });
+    act(() => { out.setOpen!(false); }); b.flush();               // Done
+    const closed = look(out, b);
+    act(() => { out.go!({ type: "view", view: "map" }); });      // a push afterwards reuses the dropped entry's slot
+    const pushed = look(out, b);
+    b.userBack();
+    expect([closed, pushed, look(out, b)]).toEqual([
+      { frames: [`${VEDDER}/regs`], sheet: false, depth: 1, history: { entries: [null, 1, 2], at: 1 } },
+      { frames: [`${VEDDER}/map`], sheet: false, depth: 2, history: { entries: [null, 1, 2], at: 2 } },
+      { frames: [`${VEDDER}/regs`], sheet: false, depth: 1, history: { entries: [null, 1, 2], at: 1 } },
+    ]);
+  });
+
+  it("Android: the system back closes the sheet first (and says it handled the press), then pops the route", () => {
+    const a = androidBack();
+    const out: Out = {};
+    render(<WithSheet system={a.system} out={out} />);
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); });
+    act(() => { out.setOpen!(true); });
+    const seen: unknown[] = [];
+    seen.push([a.press(), look(out)]);
+    seen.push([a.press(), look(out)]);
+    seen.push([a.press(), look(out)]);
+    expect(seen).toEqual([
+      [true, { frames: [`${VEDDER}/regs`], sheet: false, depth: 1 }],
+      [true, { frames: ["browse:map"], sheet: false, depth: 0 }],
+      [false, { frames: ["browse:map"], sheet: false, depth: 0 }],
+    ]);
+  });
+
+  it("Android: the Modal's onRequestClose is the same one back — it closes the sheet and pops nothing else", () => {
+    const a = androidBack();
+    const out: Out = {};
+    render(<WithSheet system={a.system} out={out} />);
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); });
+    act(() => { out.setOpen!(true); });
+    act(() => { out.requestClose!(); });
+    expect(look(out)).toEqual({ frames: [`${VEDDER}/regs`], sheet: false, depth: 1 });
+  });
+
+  it("with no back to register with (a sheet outside the shell), its close is its own", () => {
+    const out: Out = {};
+    render(<FakeSheet out={out} />);
+    act(() => { out.setOpen!(true); });
+    act(() => { out.requestClose!(); });
+    expect(out.open).toBe(false);
   });
 });

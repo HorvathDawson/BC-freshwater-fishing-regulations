@@ -10,12 +10,13 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Text, View } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureHandlerRootView, State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
-import { HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type Route } from "@app/ui";
+import { BackLayerContext, HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type BackLayers,
+         type Route } from "@app/ui";
 import { EdgeBack } from "./EdgeBack";
-import { ViewSwipe, useSwipeShield } from "./ViewSwipe";
+import { ViewSwipe, WEB_PAGE_PROPS, useSwipeShield } from "./ViewSwipe";
 import { Sheet } from "./Sheet";
 import { LIGHT } from "./theme";
 
@@ -28,6 +29,8 @@ const pan = (x0: number, dx: number, dy = 0, vx = 0, vy = 0) => [
   { absoluteX: x0 + dx, x: x0 + dx, translationX: dx, translationY: dy, velocityX: vx, velocityY: vy },
 ];
 const fire = (id: string, events: object[]) => act(() => { fireGestureHandler(getByGestureTestId(id), events); });
+/** The same events, the last one CANCELLED: the system took the gesture after it went active (RNGH `success` false). */
+const cancelled = (events: object[]) => [...events.slice(0, -1), { ...events.at(-1)!, state: State.CANCELLED }];
 
 function Edge({ back, os = "ios", depth = 1 }: { back: () => boolean; os?: string; depth?: number }) {
   const drag = useEdgeBack(back, os, depth);
@@ -50,6 +53,17 @@ describe("<EdgeBack> (iOS only)", () => {
     });
     expect(out).toEqual([["edge, 100 px", 1], ["edge, 79 px slow", 0], ["edge, 30 px flicked", 1],
                          ["edge, 30 px at 499 px/s", 0], ["from 30 px in, 150 px", 0], ["edge, dragged left", 0]]);
+  });
+
+  it("a swipe the system cancels after it went active is not a release: no back", () => {
+    const out = [pan(5, 100), pan(5, 30, 0, 600)].map((events) => {
+      const back = vi.fn(() => true);
+      render(<Edge back={back} />);
+      fire("edge-back", cancelled(events));
+      cleanup();
+      return back.mock.calls.length;
+    });
+    expect(out).toEqual([0, 0]);
   });
 
   it("is off with nothing to go back to", () => {
@@ -130,6 +144,28 @@ describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the sec
       .toEqual(["conditions · part 2", "regs · part 2"]);
   });
 
+  it("a swipe the system cancels after it went active is not a release: the view stays", () => {
+    expect([swipe(on("regs"), cancelled(pan(200, -100))), swipe(on("conditions"), cancelled(pan(200, 100, 0, 900)))])
+      .toEqual(["regs · part 2", "conditions · part 2"]);
+  });
+
+  /*
+   * On the web RNGH writes its own touch-action, user-select and context-menu handling onto the wrapped view while the
+   * gesture is enabled — and the wrapped view is a whole Regulations or Conditions body. Its defaults ("none") would
+   * take the page's pinch-zoom (WCAG 1.4.4, resize text) and the reader's selecting and copying of regulation text.
+   */
+  it("on the web the body keeps pinch-zoom, vertical scroll, text selection and the context menu", () => {
+    render(<Views start={on("regs")} />);
+    let el: HTMLElement | null = screen.getByText(/ · part /);
+    while (el && !el.style.touchAction) el = el.parentElement;
+    const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    el?.dispatchEvent(menu);
+    expect({ props: WEB_PAGE_PROPS, touchAction: el?.style.touchAction, userSelect: el?.style.userSelect,
+             menuBlocked: menu.defaultPrevented })
+      .toEqual({ props: { touchAction: "pan-y pinch-zoom", userSelect: "auto", enableContextMenu: true },
+                 touchAction: "pan-y pinch-zoom", userSelect: "auto", menuBlocked: false });
+  });
+
   beforeAll(() => {
     Element.prototype.setPointerCapture ??= () => {};
     Element.prototype.releasePointerCapture ??= () => {};
@@ -185,6 +221,35 @@ describe("the Sheet drag (Layers, and the sheets to come)", () => {
       { translationY: 0 }, { translationY: dy / 2 }, { translationY: dy, velocityY: vy }];
     expect([drag(vpan(40, 900)), drag(vpan(40, 300)), drag(vpan(-60, -900))]).toEqual([1, 0, 0]);
   });
+  it("a drag the system cancels after it went active is not a release: the sheet stays open", () => {
+    expect(drag([{ translationY: 0 }, { translationY: 20 },
+                 { translationY: 40, velocityY: 900, state: State.CANCELLED }])).toBe(0);
+  });
+  it("is a back layer while open: the platform's own back for it (the Modal's onRequestClose) is the one back", () => {
+    const log: string[] = [];
+    const layers: BackLayers = {
+      register: (close) => { log.push("register"); void close; return () => { log.push("unregister"); }; },
+      back: () => { log.push("back"); return true; },
+    };
+    const onClose = () => { log.push("onClose"); };
+    const sheet = (open: boolean) => (
+      <BackLayerContext.Provider value={layers}>
+        <Sheet open={open} onClose={onClose} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet>
+      </BackLayerContext.Provider>);
+    const { rerender } = render(sheet(false));
+    log.push("opened"); rerender(sheet(true));
+    // react-native-web's Modal calls onRequestClose on Escape (Android: the system back while it is up) once its
+    // slide-in has ended — which jsdom never plays, so the animation's end is fired on the portal's animated view
+    let shown: HTMLElement = screen.getByText("choices");
+    while (shown.parentElement && shown.parentElement.parentElement !== document.body) shown = shown.parentElement;
+    // (jsdom has no AnimationEvent, so React listens under the prefixed name; both are sent)
+    for (const t of ["animationend", "webkitAnimationEnd"])
+      act(() => { shown.dispatchEvent(new Event(t, { bubbles: true })); });
+    act(() => { document.dispatchEvent(new KeyboardEvent("keyup", { key: "Escape", bubbles: true })); });
+    log.push("closed"); rerender(sheet(false));
+    expect(log).toEqual(["opened", "register", "back", "closed", "unregister"]);
+  });
+
   it("keeps Done and the scrim: the gesture is an addition", () => {
     const onClose = vi.fn();
     render(<Sheet open onClose={onClose} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet>);

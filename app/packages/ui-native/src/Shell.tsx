@@ -15,7 +15,7 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, waterFrame, type BrowseTab, type FlowParam,
          type LatLon, type Route, type SpotPhotos } from "@app/ui";
-import { REACH_VIEWS, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
+import { BackLayerContext, REACH_VIEWS, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -138,7 +138,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
    */
-  const { back, depth } = useBack(route, go, systemBack);
+  const { back, depth, layers: backLayers } = useBack(route, go, systemBack);
   const edge = useEdgeBack(back, Platform.OS, depth);
   /*
    * A CONDITIONS REACH -> ITS REGULATIONS: the water holding the reach, opened on the regs with the tap kept (the
@@ -710,6 +710,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={toTab} />}
 
+      {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
+      <BackLayerContext.Provider value={backLayers}>
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}
                    theme={themeName} onTheme={onTheme}
@@ -718,6 +720,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
                    attribution={attribution} />
+      </BackLayerContext.Provider>
     </View>
   );
 }

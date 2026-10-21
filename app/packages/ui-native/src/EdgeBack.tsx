@@ -22,8 +22,9 @@ export function EdgeBack({ drag, children }: { drag: EdgeBackDrag; children: Rea
       .activeOffsetX(10).failOffsetY([-20, 20])
       .onBegin((e) => { live = drag.starts(e.absoluteX); })
       .onUpdate((e) => { if (live) x.setValue(drag.offset(e.translationX)); })
-      .onEnd((e) => {
-        if (live && drag.release(e.translationX, e.velocityX)) x.setValue(0);
+      // `success` is false when the system cancelled the swipe after it went active: that is not a release
+      .onEnd((e, success) => {
+        if (live && success && drag.release(e.translationX, e.velocityX)) x.setValue(0);
         else home();
         live = false;
       })
