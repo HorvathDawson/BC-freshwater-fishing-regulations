@@ -4,9 +4,8 @@
  * duty with "Steelhead stamp ›", presence) — built by core `treeOf` over the state's inputs and projected to the golden's
  * shape (keepGroups.ts), against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f).
  *
- * A kind's `lines` (its drawn lines in order) are compared too. Only the prototype's licence stamp lines (round UR7
- * stampsFor: "You need … ›") are dropped from the golden, in the states exclusions.ts STAMP_LINE_IDS names — they pick which
- * document a fish needs, a licence answer this port does not derive (tree.ts header).
+ * A kind's `lines` (its drawn lines in order) are compared too, whole — the prototype's licence stamp lines (round UR7
+ * stampsFor: "You need … ›") included since rows 31: the store's `TreeKind.stamps`, worded by tree.ts `stampLine`.
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { plain, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
@@ -48,7 +47,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   let equal = 0, tiers = 0, kinds = 0;
   afterAll(() => console.info(`${summary("keep", equal, ids.length)} · ${tiers} tiers, ${kinds} kinds (tree)`));
 
-  it.each(ids)("%s: every group's tree equals the golden (kind lines with only the stamp lines dropped)", async (id) => {
+  it.each(ids)("%s: every group's tree equals the golden (kind lines whole, the stamp lines included)", async (id) => {
     const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id);
     expect(k.groups.length).toBe(gold.length);
     k.groups.forEach((g, i) => {
@@ -144,6 +143,23 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
     const k = stored.find((x) => x.species.includes("ST"))!;
     expect([plain(st.presence), k.presence?.says ?? "(via an undrawn row)"]).toEqual([
       "Steelhead rules apply here; steelhead may not be present in this water. ⓘ", "Steelhead rules apply here; steelhead may not be present in this water."]);
+  });
+
+  it("12. x4p_1010 (rows 31): the Shuswap stamps are the store's, each kind its own line; vedder's steelhead stamp is the duty's link only", async () => {
+    const ks: KindVM[] = [];
+    walk(await treeOfGroup("x4p_1010"), (x) => { if (x.t === "kind") ks.push(x); });
+    expect(ks.map((k) => [k.kind, k.stamps.map((l) => norm(plain(l)))])).toEqual([
+      ["Brook trout", []],
+      ["Dolly Varden/bull trout and lake trout", ["You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm"]],
+      ["Rainbow trout", ["You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm"]],
+      ["Brown trout and cutthroat trout", []]]);
+    expect(ks[2]!.stamps[0]![1]).toEqual({ t: "link", s: "Conservation Surcharge Stamp for Shuswap rainbow trout ›", open: { tab: "licence" } });
+    const g = await tree("vedder_1010");
+    const st = find(treeOf(g.env)!, (x) => x.t === "kind" && x.species.includes("ST")) as KindVM;
+    const stored: TreeKind[] = [];
+    const walkStore = (ns: readonly (TreeTier | TreeKind)[]) => ns.forEach((x) => (x.node === "kind" ? stored.push(x) : walkStore(x.children)));
+    walkStore(g.ctx.g.tree);
+    expect([stored.find((x) => x.species.includes("ST"))!.stamps?.map((x) => x.doc), st.stamps]).toEqual([["steelhead_stamp"], []]);
   });
 
   it("11. property (r20b number-once; book once per branch)", async () => {

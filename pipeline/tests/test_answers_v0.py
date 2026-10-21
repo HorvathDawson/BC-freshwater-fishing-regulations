@@ -106,7 +106,7 @@ def built(request):
 def test_round_trip(built):
     data, _, model, wire = built
     assert E.decode(wire, data) == model
-    assert set(wire["sections"]) == {"ladder", "rows"}
+    assert set(wire["sections"]) == {"ladder", "rows", "licence"}   # rows 31: rows are built with the licence they read
     assert not set(wire["sections"]) & set(A.RESERVED)             # reserved: absent, not empty
     assert E.spec_gaps(wire) == []
 

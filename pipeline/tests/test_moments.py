@@ -200,12 +200,15 @@ def test_display_closing_is_the_closed_predicate(shipped):
     from pipeline.deliver.types import GAME_FISH
     wire, _ = shipped
     sec = wire["sections"]["display"]
-    assert sec["version"] == 17                     # UR6 4 paper licence keepable; ROUND20g 3 possession line; UR3 2 buffers in feet; UR1 G record duty "Write each"; ROUND19 2/5 sizes in cm (in); ROUND16 3/Q1 title, caution; ROUND15 8 the_name; ROUND14 1 reason nearer_row; ROUND13 P book title; ROUND11 A3 `inherited` (2.8 `where`; 2.7 `short`; 2.6 `strip`)
+    assert sec["version"] == 18                     # display 18: `closers`; UR6 4 paper licence keepable; ROUND20g 3 possession line; UR3 2 buffers in feet; UR1 G record duty "Write each"; ROUND19 2/5 sizes in cm (in); ROUND16 3/Q1 title, caution; ROUND15 8 the_name; ROUND14 1 reason nearer_row; ROUND13 P book title; ROUND11 A3 `inherited` (2.8 `where`; 2.7 `short`; 2.6 `strip`)
     for f in sec["frames"]:
         if f.get("status") == "tidal":
             continue
         shut = {x for _, fs in f["closing"] for x in fs}
         assert (f["status"] == "closed") == (set(GAME_FISH) <= shut)
+        # display 18: a closed frame names the closures that close the water, a subset of `closing`
+        assert ("closers" in f) == (f["status"] == "closed")
+        assert set(f.get("closers") or []) <= {r for r, _ in f["closing"]}
 
 
 @pytest.mark.needs_bundle

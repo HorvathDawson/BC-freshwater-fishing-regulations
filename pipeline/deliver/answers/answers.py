@@ -293,7 +293,11 @@ def _sections() -> Tuple[Section, ...]:
         # share "(part of the 2 from streams)"; the worked keep-the-share line "they count as your 2 from streams anywhere else")
         # rows 30 (owner rule 2026-10-21): every row's `year` — its year strip, run-length [[status, days]] over the
         # 365 book days, page v36's dayStatus moved from the app to the pipeline (`year.py`)
-        Section("rows", 30, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 31 (owner rule 2026-10-21: the Keep presenters' five page-v36 derivations moved here): the badge's
+        # `scope.narrow_all` (page narrowAll), a pooled row's `parent` (page parentRow), a deciding record-it rule stored
+        # as role `duty` (page ladderHtml), and the licence documents a group kind or released fish needs, `stamps`
+        # (the prototype's round UR7 stampsFor, `stamps.py`)
+        Section("rows", 31, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -334,13 +338,32 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND20g 3: display 16 (a possession rule's `plain` "Possession: 2 days’ quota." with the home exception as its
         # own sentence)
         # ROUND UR6 4: display 17 (a part's `paper_licence` holds only record rules that speak there)
-        Section("display", 17, display.section_scope, prepare=display.section_prepare,
+        # display 18 (owner rule 2026-10-21): a closed frame's `closers` — the closures that close the water, page v36
+        # closersAt's choice of `closing` (`display.closers_of`), read by the banner, never re-chosen by the app
+        Section("display", 18, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )
 
 
 SECTIONS: Tuple[Section, ...] = _sections()
+
+#: The sections a section's build pass reads besides `compose_from` (rows 31: the stamps a fish needs are the licence
+#: answer's at the same key and segment, `stamps.py`) — built with it.
+NEEDS: Dict[str, Tuple[str, ...]] = {"rows": ("licence",)}
+
+def with_needs(chosen: Sequence[Section]) -> List[Section]:
+    """The chosen sections and every section one of them composes from or needs (`NEEDS`), theirs in turn (display ->
+    rows -> licence), in the order found (the build re-orders by `SECTIONS`)."""
+    out = list(chosen)
+    i = 0
+    while i < len(out):
+        for need in out[i].compose_from + NEEDS.get(out[i].name, ()):
+            if all(c.name != need for c in out):
+                out.append(next(c for c in SECTIONS if c.name == need))
+        i += 1
+    return out
+
 
 #: Sections named and reserved for a later version — ABSENT from the file (never present empty).
 RESERVED: Dict[str, str] = {}
@@ -445,11 +468,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     first = len(keys)
     keys, part_key, region_places = common.unnamed_keys(
         B, keys, unnamed if unnamed is not None else (None if items is None else []))
-    chosen = [s for s in SECTIONS if sections is None or s.name in sections]
-    for s in list(chosen):
-        for need in s.compose_from:
-            if all(c.name != need for c in chosen):
-                chosen.append(next(c for c in SECTIONS if c.name == need))
+    chosen = with_needs([s for s in SECTIONS if sections is None or s.name in sections])
     for s in list(chosen):
         if s.derive_from and all(c.name != s.derive_from for c in chosen):
             chosen.insert(0, next(c for c in SECTIONS if c.name == s.derive_from))
@@ -544,6 +563,15 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         from pipeline.deliver.answers.year import stamp_years
         for ki in range(len(keys)):
             out["rows"][ki] = stamp_years(out["rows"][ki], segs[ki], seg_moments[ki])
+    # rows 31: THE LICENCE DOCUMENTS A FISH NEEDS — each group kind and released fish carries the stamps the licence
+    # answer at the same key and segment ties to it (`stamps.py`, the prototype's round UR7 stampsFor)
+    if "rows" in out:
+        from pipeline.deliver.answers import licence as _lic
+        from pipeline.deliver.answers.stamps import DEFAULT_PROFILE, stamp_licence_documents
+        doc_names = _lic.document_names(B.path)
+        pix = _lic.profile_index(DEFAULT_PROFILE)
+        for ki in range(len(keys)):
+            out["rows"][ki] = stamp_licence_documents(out["rows"][ki], out["licence"][ki], doc_names, pix)
     # a value finished from other sections' values at the same key and segment (answers 2.6)
     for s in chosen:
         if s.compose is None:

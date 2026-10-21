@@ -381,6 +381,9 @@ class Badge(Model):
     entry: Optional[StrictStr]                         # the area's or region's entry; None: water
     share: StrictBool
     apart: StrictBool
+    #: rows 31 (owner rule 2026-10-21, page v36 narrowAll): the row's narrowing clause binds every one of its fish
+    #: (false where the row has none) — with `share`, the badge reads "All Region 2 streams", else "Region 2-wide"
+    narrow_all: StrictBool
 
     @model_validator(mode="after")
     def _entry_iff_not_water(self):
@@ -580,6 +583,19 @@ class Bucket(Model):
         return self
 
 
+class Stamp(Model):
+    """rows 31 (owner rule 2026-10-21; the prototype's round UR7 stampsFor, `stamps.py`): a licence document this fish
+    needs here, for the angler the Keep tab answers for (a B.C. resident 16 or older) — `doc` the licence answer's
+    document, `act` what it is needed for (targeting: to fish for the fish, even to release them; retaining: to keep
+    one, over its size where it names one), `name` the document's name ("Conservation Surcharge Stamp for Shuswap
+    rainbow trout"), `when` the licence tab's sentence ("Only if you keep rainbow trout over 50 cm"). Draw "You need
+    <name> › <when>" linking to the licence."""
+    doc: StrictStr = Field(min_length=1)
+    act: Literal["targeting", "retaining"]
+    name: StrictStr = Field(min_length=1)
+    when: StrictStr = Field(min_length=1)
+
+
 class NotKept(Model):
     """ROUND13 S: fish the card's row holds that nobody may keep here, said with whose rule —
     "Steelhead: no fishing for them, not even catch and release — release any you hook by accident" (`status` closed,
@@ -595,11 +611,15 @@ class NotKept(Model):
     rules: Tuple[RuleIx, ...] = Field(min_length=1)
     whose: StrictStr = Field(min_length=1)
     presence: Optional[Presence] = None
+    #: rows 31: the licence documents a released fish needs (to fish for it, even to release it); absent where none
+    stamps: Optional[Tuple[Stamp, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _by_first(self):
         if self.rules[0] != self.by:
             raise ValueError("a not-kept line's `by` is the first of its `rules`")
+        if self.stamps is not None and (self.status != "release" or any(x.act != "targeting" for x in self.stamps)):
+            raise ValueError("a not-kept fish needs a document only to fish for it, and only where it is released")
         if self.presence is not None and "ST" not in self.species:
             raise ValueError("the steelhead presence line sits on the steelhead's own section")
         return self
@@ -804,6 +824,14 @@ class TreeKind(Model):
     #: ROUND20b C1: the kind is the ONLY row of an own tier at the tier's number — the tier line names the fish ("This
     #: river’s rule: up to 4 hatchery rainbow trout a day") and the page draws no sentence under it, the number once
     folded: StrictBool = False
+    #: rows 31: the licence documents this kind needs here (`stamps.py`); absent where none
+    stamps: Optional[Tuple[Stamp, ...]] = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _keep_stamps_keep(self):
+        if self.stamps is not None and self.n == 0 and any(x.act == "retaining" for x in self.stamps):
+            raise ValueError("a kind keeping none needs no document to keep it")
+        return self
 
 
 class TreeTier(Model):
@@ -1036,6 +1064,10 @@ class Row(Model):
     #: permissive of the members' leading answers over each day's moments outside an hours window; page v36
     #: ROUND14 5). Every row has one.
     year: Tuple[YearRun, ...] = Field(min_length=1)
+    #: rows 31 (owner rule 2026-10-21, page v36 parentRow): the index, in this frame's `rows`, of the pooled row whose
+    #: pool holds this pooled row's fish (it cross-references them: an `xref` fact) — the card draws no article for
+    #: this row; absent on every other row (`rows.parent_of`)
+    parent: Optional[Annotated[StrictInt, Field(ge=0)]] = None
 
     @model_validator(mode="after")
     def _year(self):
@@ -1068,6 +1100,10 @@ class Row(Model):
             raise ValueError("the steelhead presence line sits on the steelhead's own row")
         if self.week is not None and not set(self.week.species) <= set(self.all_members):
             raise ValueError("a row's weekday window names only its own fish")
+        if self.parent is not None and not has_pool:
+            raise ValueError("only a pooled row is held by another pool")
+        if self.scope is not None and self.scope.narrow_all and self.narrow is None:
+            raise ValueError("`narrow_all` says the row's narrowing clause binds every fish: the row has one")
         return self
 
 
@@ -1081,6 +1117,15 @@ class RowsFrame(Model):
     fish: Dict[Fish, FishAnswer]
     rows: Tuple[Row, ...]
     steelhead_line: Optional[SteelLineLit]
+
+    @model_validator(mode="after")
+    def _parents(self):
+        for i, r in enumerate(self.rows):
+            if r.parent is None:
+                continue
+            if r.parent == i or r.parent >= len(self.rows) or self.rows[r.parent].pool is None:
+                raise ValueError(f"row {i}'s `parent` {r.parent} is not another pooled row of the frame")
+        return self
 
 
 # --------------------------------------------------------------------------------------------
@@ -1405,11 +1450,23 @@ class StatusFrame(Model):
     #: ROUND11 A3 (display 8): the lifts inherited by the tributary walk this answer relies on, said
     #: on the Keep side; absent where none is (a quota lift the card already names is not repeated)
     inherited: Optional[Tuple[InheritedLift, ...]] = Field(default=None, min_length=1)
+    #: display 18 (owner rule 2026-10-21): the closures that close the water on a closed day — page v36 closersAt's
+    #: choice of `closing` (`display.closers_of`: those closing the most game fish, and any not wholly inside a
+    #: closure of more fish), in `closing`'s order; set <=> status closed. The banner lists these; the app never
+    #: chooses among `closing` itself
+    closers: Optional[Tuple[RuleIx, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _closing_closes(self):
         if any(not fs for _, fs in self.closing):
             raise ValueError("a closing rule closes at least one fish")
+        if (self.closers is not None) != (self.status == "closed"):
+            raise ValueError("`closers` is set <=> the status is closed")
+        if self.closers is not None:
+            order = [r for r, _ in self.closing]
+            if not set(self.closers) <= set(order) or \
+                    list(self.closers) != [r for r in order if r in set(self.closers)]:
+                raise ValueError("`closers` are closing rules, in `closing`'s order")
         if self.unless_opened is not None and \
                 not set(self.unless_opened) <= {r for r, _ in self.closing}:
             raise ValueError("an `unless_opened` rule is one of the closing rules")

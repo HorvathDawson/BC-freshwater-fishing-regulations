@@ -73,7 +73,7 @@ runTxt's `NOW`/`THEN` tables and its sentence frames ("You can keep them until �
 4. **presence** (`presHtml(row.raw.presence)`), **names** (prot / `namedIn(win)` when no members; > 5 → folded WHICH_FISH(n)).
 5. **ladder** (ladderHtml 1078–1112, `members` undefined): items = `rowSources(row)` (every role of every member's H/W verdict, plus
    `settled.lifted` rules for the row's species as role "lifted"; best role per rule, winners first, then by rank); none → `{r: win, role: "governs"}`;
-   `record_retention` winners → role "duty". Sections in LADDER_Q order with roles `[governs,contains,narrows,also]`, `[floor]`, `[limit]`,
+   `record_retention` winners → role "duty" (since rows 31 STORED so by the pipeline, `rows.stored_role`; the app reads it). Sections in LADDER_Q order with roles `[governs,contains,narrows,also]`, `[floor]`, `[limit]`,
    `[season,possession_cap,duty,possession]`; the first carries the result (`RES_*`, or "<daily> a day here…" for a pool row). Steps: items grouped by rank
    high → low, level words = rank 3 → `prov.entry_name || "The region"`, rank 2 → entry name when < 40 chars, else LEVEL_HEAD(k). Line text = the subset
    sentence for a partial fish set (`facts.subsets`) else `say(r)` (`facts.plain`) else `shortLabel(label)`; tag = SAYS[role] (won) / LOSES[role] or

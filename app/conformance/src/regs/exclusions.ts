@@ -34,13 +34,15 @@ const groupLines = (s: { keep?: unknown }): string[] => {
   return out;
 };
 /** The licence-document line the prototype's round UR7 `stampsFor` adds under a fish ("You need Steelhead Conservation
- *  Surcharge Stamp › only if you fish for steelhead, …"). */
+ *  Surcharge Stamp › only if you fish for steelhead, …") — COMPARED since rows 31 (the store's `stamps`, no longer
+ *  excluded). */
 export const STAMP_LINE = /^You need /;
 /** The group's year-window line the prototype lifts from page v36's strip (`.gyear`: "Through the year You can keep them
  *  until Oct 31. …"). */
 export const YEAR_WINDOW_LINE = /^Through the year /;
 const idsWithLine = (re: RegExp): string[] => Object.entries(golden().states).filter(([, s]) => groupLines(s).some((l) => re.test(l))).map(([id]) => id);
-/** The states whose golden Keep groups carry a stamp line (in a kind's lines or the group's) — computed at load. */
+/** The states whose golden Keep groups carry a stamp line (in a kind's lines or the group's) — computed at load; the
+ *  parity compares them whole (rows 31). */
 export const STAMP_LINE_IDS: readonly string[] = idsWithLine(STAMP_LINE);
 /** The states whose golden Keep groups carry a `.gyear` line — computed at load. */
 export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
@@ -70,11 +72,8 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked|lines)$/,
     reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; the group's drawn lines (which contain both) are not compared; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
-  // (T18/T19 review) lines the Keep presenters do not draw: dropped from the golden lines, the rest of the key compared
-  ...(STAMP_LINE_IDS.length ? [{
-    block: "keep" as const, ids: STAMP_LINE_IDS, key: /^groups\.\d+\.(tree|lines)$/, lines: STAMP_LINE,
-    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line under a fish ('You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, …') picks which licence documents a fish needs (data-sp / data-min-cm over the licence answer) — a licence answer, not drawn by T18/T19 and never derived in TS. Every other kind and group line is compared",
-    until: "the pipeline ships the per-fish licence-document line on the group (or a ticket ports it as pure wording)" }] : []),
+  // (T18/T19 review) lines the Keep presenters do not draw: dropped from the golden lines, the rest of the key compared (the
+  // stamp lines are drawn from the store's `stamps` since rows 31 and compared)
   ...(YEAR_WINDOW_IDS.length ? [{
     block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^groups\.\d+\.lines$/, lines: YEAR_WINDOW_LINE,
     reason: "PENDING: the group's year-window line (prototype UR5 `.gyear`: 'Through the year' + page v36 runTxt over the row's year strip) is T19b's runTxt over the STORED HydRow.year; T17–T19 do not draw it. Every other group line is compared",

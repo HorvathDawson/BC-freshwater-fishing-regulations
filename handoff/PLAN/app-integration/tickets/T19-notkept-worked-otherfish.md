@@ -97,3 +97,5 @@ Every numbered case that names a golden state id is a parity case there; cases m
 - Review 2026-10-21: the not-kept "You need Steelhead Conservation Surcharge Stamp › …" line (prototype UR7 stampsFor, a licence
   answer) is not drawn; it lives only in golden `groups[].lines`, which grouplines.parity now compares with that line dropped
   (exclusions.ts STAMP_LINE_IDS — 8 states, reported in the summary line), so the not-kept lines' order and fused pictures/✕ are proved.
+  **RESOLVED (batch 9, rows 31):** the store carries `NotKept.stamps`; tail.ts draws them (tree.ts `stampLine`) and the 8 states'
+  stamp lines are compared.

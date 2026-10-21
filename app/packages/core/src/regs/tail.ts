@@ -6,8 +6,8 @@
  * Owner rule 2026-10-21: what is not kept, its status, the worked counts and the steelhead line are the store's
  * (`group.not_kept`, `group.worked`, `rows_row.elsewhere`, `rows_frame.steelhead_line`); this file words and orders them.
  *
- * NOT ported: prototype `stampsFor` on a release line (the licence documents a released fish needs) — a regulation
- * answer the pipeline must ship (see tree.ts).
+ * A released fish's licence documents (prototype round UR7 stampsFor on a release line) are the store's (rows 31
+ * `NotKept.stamps`); each is drawn as tree.ts `stampLine` words it.
  *
  * Ports (inventory names @ 7fb6809f): prototype buildKeep nk, els/worked, quiet, more; page v36 noRulesLine, STEEL_LINE,
  * summaryHtml's linkrow.
@@ -18,7 +18,7 @@ import { ruleBookLine } from "./book";
 import { text, type Line, type Run } from "./line";
 import type { GroupVM, NotKeptVM } from "./model";
 import type { SheetKey } from "./sheetKey";
-import { fishNames, pictures, presenceLine, type TreeEnv } from "./tree";
+import { fishNames, pictures, presenceLine, stampLine, type TreeEnv } from "./tree";
 import { WORDS } from "./words";
 
 const cap1 = (t: string | null | undefined): string => (t ? t[0]!.toUpperCase() + t.slice(1) : "");
@@ -31,7 +31,7 @@ export function notKeptOf(g: GroupTotal, env: TreeEnv): readonly NotKeptVM[] {
     const whose: Run[] = [text(cap1(x.whose))];
     if (!r.missing) { whose.push(text(WORDS.DOT_SEP)); whose.push(...ruleBookLine(r)); }
     return { status: x.status, says: x.says, whose, mark: x.status === "closed" ? WORDS.CLOSED_MARK as "✕" : null,
-      presence: presenceLine(x.presence), pictures: pictures(x.species, env.fish, names) };
+      presence: presenceLine(x.presence), pictures: pictures(x.species, env.fish, names), stamps: (x.stamps ?? []).map(stampLine) };
   });
 }
 

@@ -135,6 +135,8 @@ num; golden `ofTotal` = `ofTotal ? "of the " + plain(words) : null`; `whyHere`; 
   `all(_covers(nw, S) for S in row["members"])`). `parentRow` (pool nesting from `xref` facts; decides which rows are drawn and
   suppresses "Separate from your N …") likewise needs `rows_row.parent: int | null`. Both stay as faithful page v36 ports, held by
   the parity, until a release carries the fields; then the presenter reads them and the TS derivations are deleted (grouphead.ts).
+  **RESOLVED (batch 9, rows 31):** `scope.narrow_all` and `rows_row.parent` ship; `nar0` / `parentRow` read them; narrowAll and
+  the xref inference are deleted.
 - Review 2026-10-21: golden `groups[].lines` (the whole group's drawn text in order) is compared by
   `conformance/src/regs/grouplines.parity.test.ts`; only the stamp lines (STAMP_LINE_IDS) and the `.gyear` line (YEAR_WINDOW_IDS,
   T19b) are dropped, each a keyed `lines` entry in exclusions.ts that the summary line reports.

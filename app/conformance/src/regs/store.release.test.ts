@@ -32,7 +32,7 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
     expect(st.meta.glossaryVersion).toBe(5);
     expect(st.meta.blobCodec).toBe("zdict");
     expect(st.meta.layout).toEqual({ top: JSON.parse(golden.layout).top, sections: JSON.parse(golden.layout).sections });
-    expect(st.dict("display_frame")!.length).toBe(31462);
+    expect(st.dict("display_frame")!.length).toBe(29499);          // rows 31 / display 18 (the dictionary is trained on the frames)
     expect(st.dict("ladder_verdict")).not.toBeNull();             // the region tables' dictionaries are water's
   });
 

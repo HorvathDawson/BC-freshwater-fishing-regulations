@@ -128,6 +128,16 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
+def document_names(bundle_path: str) -> Dict[str, str]:
+    """Every licence document's name, by id (the bundle's `licence` table: the export's `licences[].name`, the page's
+    DOC) — the words a stamp line names its document by (`stamps.py`)."""
+    db = connect(bundle_path)
+    try:
+        return dict(db.execute("SELECT doc_id, name FROM licence"))
+    finally:
+        db.close()
+
+
 def common_cap(s: str) -> str:
     return s[:1].upper() + s[1:]
 

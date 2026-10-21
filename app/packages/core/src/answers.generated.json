@@ -50,6 +50,23 @@
     "StatusFrame": {
      "additionalProperties": false,
      "properties": {
+      "closers": {
+       "anyOf": [
+        {
+         "items": {
+          "minimum": 0,
+          "type": "integer"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Closers"
+      },
       "closing": {
        "items": {
         "maxItems": 2,
@@ -2856,6 +2873,10 @@
        ],
        "title": "Entry"
       },
+      "narrow_all": {
+       "title": "Narrow All",
+       "type": "boolean"
+      },
       "of": {
        "enum": [
         "water",
@@ -2875,7 +2896,8 @@
       "of",
       "entry",
       "share",
-      "apart"
+      "apart",
+      "narrow_all"
      ],
      "title": "Badge",
      "type": "object"
@@ -6139,6 +6161,22 @@
        "title": "Species",
        "type": "array"
       },
+      "stamps": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/Stamp"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Stamps"
+      },
       "status": {
        "enum": [
         "closed",
@@ -6695,6 +6733,19 @@
        ],
        "title": "Narrow"
       },
+      "parent": {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Parent"
+      },
       "pool": {
        "anyOf": [
         {
@@ -7003,6 +7054,43 @@
       "species"
      ],
      "title": "SizeThen",
+     "type": "object"
+    },
+    "Stamp": {
+     "additionalProperties": false,
+     "description": "rows 31 (owner rule 2026-10-21; the prototype's round UR7 stampsFor, `stamps.py`): a licence document this fish\nneeds here, for the angler the Keep tab answers for (a B.C. resident 16 or older) \u2014 `doc` the licence answer's\ndocument, `act` what it is needed for (targeting: to fish for the fish, even to release them; retaining: to keep\none, over its size where it names one), `name` the document's name (\"Conservation Surcharge Stamp for Shuswap\nrainbow trout\"), `when` the licence tab's sentence (\"Only if you keep rainbow trout over 50 cm\"). Draw \"You need\n<name> \u203a <when>\" linking to the licence.",
+     "properties": {
+      "act": {
+       "enum": [
+        "targeting",
+        "retaining"
+       ],
+       "title": "Act",
+       "type": "string"
+      },
+      "doc": {
+       "minLength": 1,
+       "title": "Doc",
+       "type": "string"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "when": {
+       "minLength": 1,
+       "title": "When",
+       "type": "string"
+      }
+     },
+     "required": [
+      "doc",
+      "act",
+      "name",
+      "when"
+     ],
+     "title": "Stamp",
      "type": "object"
     },
     "SubGroup": {
@@ -7435,6 +7523,22 @@
        "minItems": 1,
        "title": "Species",
        "type": "array"
+      },
+      "stamps": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/Stamp"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Stamps"
       }
      },
      "required": [

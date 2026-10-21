@@ -29,6 +29,16 @@ describe("notKeptOf", () => {
     const [x] = notKeptOf(g, treeEnv(ctx, FISH, new Set([0])));
     expect([x!.mark, plain(x!.whose), plain(x!.presence)]).toEqual(["✕", "The river’s rule", "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ"]);
   });
+  it("a released fish's stored stamps (rows 31) are its lines, in order; none stored, none drawn (golden anderson_1010)", () => {
+    const st = { doc: "steelhead_stamp", act: "targeting" as const, name: "Steelhead Conservation Surcharge Stamp",
+      when: "Only if you fish for steelhead, even to release them" };
+    const g = GROUP({ not_kept: [{ species: ["ST", "DV"], status: "release", says: "Steelhead and Dolly Varden/bull trout: release every one",
+      by: 99, rules: [99], whose: "Region 3’s rule", stamps: [st] }] });
+    const ctx = ctxOf(g);
+    const [x] = notKeptOf(g, treeEnv(ctx, FISH, new Set([0])));
+    expect(x!.stamps.map(plain)).toEqual(["You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them"]);
+    expect(notKeptOf(ctxOf().g, treeEnv(ctxOf(), FISH, new Set([0])))[0]!.stamps).toEqual([]);
+  });
 });
 
 describe("workedOf", () => {

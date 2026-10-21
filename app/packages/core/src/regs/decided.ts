@@ -121,8 +121,9 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const items: LadderItem[] = rowSources(row, card, settled, inp)
     .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S)));
   if (!items.length && row.win) items.push({ r: row.win, role: "governs", by: null, spp: new Set() });
-  // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty";
-  // that placement is the pipeline's to emit in rows_decided.roles. `fields.record_retention` only words the tag.
+  // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty"; the
+  // pipeline stores it so since rows 31 (`rows.stored_role`), so it is read under "Other rules" as stored.
+  // `fields.record_retention` only words the tag.
 
   // the fish a line is listed for when fewer than the row's (or the item's): its sentence for them is the data's (subsets)
   const forFish = (it: LadderItem): string[] | null => {

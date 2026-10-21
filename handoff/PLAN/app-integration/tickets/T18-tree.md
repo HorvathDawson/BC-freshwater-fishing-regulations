@@ -128,5 +128,8 @@ Mapping: tier → `tier, tid, kicker, line = plain(line)` (textContent), `big = 
 - **PIPELINE NEED (review 2026-10-21, owner rule):** "T08 exposes `parentRow`" — it does not; card.ts has no parent field, so
   grouphead.ts infers pool nesting from `xref` facts (`parentRow` → `drawnRows`, used by presOf's undrawn-row presence). The
   store must carry `rows_row.parent: int | null`; until then the port stays, held by the parity (T17 Notes).
+  **RESOLVED (batch 9, rows 31):** the store carries `rows_row.parent` (rows.py `parent_of`); grouphead.ts `parentRow` reads it.
 - Review 2026-10-21: kind `lines` ARE compared (keepGroups.ts kindProj). Only the prototype's UR7 stampsFor lines ("You need … ›",
   2 kinds in x4p_1010) are dropped from the golden — exclusions.ts STAMP_LINE_IDS, a keyed `lines` entry the summary reports.
+  **RESOLVED (batch 9, rows 31):** the store carries `TreeKind.stamps` / `NotKept.stamps` (pipeline `stamps.py`); tree.ts
+  `stampLine` words them; the exclusion is gone and the stamp lines are compared.

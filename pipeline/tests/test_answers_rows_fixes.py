@@ -212,7 +212,7 @@ def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
 def test_tranquille_rainbow_counted_apart_mayer_lake_an_area(built):
     t = card(built, TRANQUILLE, 0, (6, 15))
     rb = row_of(built, t, "tranquille_lake.r1")
-    assert rb["scope"] == {"of": "water", "entry": None, "share": False, "apart": True}
+    assert rb["scope"] == {"of": "water", "entry": None, "share": False, "apart": True, "narrow_all": False}
     hg = row_of(built, card(built, MAYER, 0, (6, 15)), "z1:hg_quota::hg_quota.r1")
     assert hg["scope"]["of"] == "area" and hg["scope"]["entry"] == "z1:hg_quota"   # F8
 

@@ -75,6 +75,26 @@ describe("kindRow", () => {
     const st = kindRow((SHARE.children[0] as typeof SHARE).children[1] as never, envOf());
     expect(plain(st.duty)).toBe("10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away");
   });
+  it("stamps (rows 31): each stored stamp is a line — 'You need' + the document linked to the Licence tab + its when, lower-cased first", () => {
+    const rb = { doc: "shuswap_rainbow_stamp", act: "retaining" as const, name: "Conservation Surcharge Stamp for Shuswap rainbow trout",
+      when: "Only if you keep rainbow trout over 50 cm" };
+    const k = kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 1, says: "Up to 1 may be rainbow trout", stamps: [rb] }), env);
+    expect(k.stamps.map(plain)).toEqual(["You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm"]);
+    expect(k.stamps[0]).toEqual([{ t: "text", s: "You need " },
+      { t: "link", s: "Conservation Surcharge Stamp for Shuswap rainbow trout ›", open: { tab: "licence" } },
+      { t: "text", s: " only if you keep rainbow trout over 50 cm" }]);
+    expect(kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 1, says: "x" }), env).stamps).toEqual([]);   // none stored: none drawn
+  });
+  it("stamps: the steelhead stamp the kind's duty line already links is not drawn twice (the prototype's skip); other stamps stay", () => {
+    const st = { doc: "steelhead_stamp", act: "targeting" as const, name: "Steelhead Conservation Surcharge Stamp",
+      when: "Only if you fish for steelhead, even to release them" };
+    const base = (SHARE.children[0] as typeof SHARE).children[1] as never as ReturnType<typeof kind>;
+    expect(kindRow({ ...base, stamps: [st] }, env).stamps).toEqual([]);                              // duty + stamp link: skipped
+    expect(kindRow({ ...base, stamps: [st] }, envOf()).stamps.map(plain)).toEqual([                  // no stamp link drawn: the line is
+      "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them"]);
+    expect(kindRow({ ...base, duties: [], stamps: [st] }, env).stamps.map(plain)).toEqual([         // no duty line: the line is
+      "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them"]);
+  });
   it("a zero kind: no number, no chip; a folded kind: no sentence (its tier names it)", () => {
     const z = kindRow(kind({ species: ["CT"], name: "Cutthroat trout", n: 0, says: "No cutthroat trout may be kept", detail: "catch and release, 30 cm" }), env);
     expect([plain(z.says), z.says!.some((r) => r.t === "num"), z.size, z.qualifiers, z.zero]).toEqual(["No cutthroat trout may be kept", false, null, "catch and release", true]);

@@ -104,3 +104,6 @@ Every numbered case that names a golden state id is a parity case there; cases m
 - Contract: `BannerVM.{kind, merged}`, `chain[].scope: string`, `chain[].rule: RuleKey`, and `RegsInputs.mergedParts` — applied to contracts.md (marked `// (T14)`). `reopen.day` is the link's day; golden `golink[].day` is null because the prototype stores it as `data-md` — test the day against `nextOpen`.
 - `settledOn(d)` re-settles on another day of the run; T07 must expose settle for an arbitrary day from `inp.year` (status + closing
   are display-frame facts, so `displayByDay` suffices — no ladder needed for closersAt).
+- **RESOLVED (batch 9, display 18, owner rule 2026-10-21):** which closures close the water on a day is the pipeline's — each
+  closed display frame carries `closers` (display.py `closers_of`, page v36 closersAt's choice); banner.ts `closersAt` only reads
+  it.

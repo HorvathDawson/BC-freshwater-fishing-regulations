@@ -4,8 +4,8 @@
  * core VMs the field parities project (keepGroups.ts groupLinesProj), against app/design/regs-v11/port/golden/golden.json.
  * The field parities prove each part's words; this proves their order and which parts share a line.
  *
- * Dropped from the golden (exclusions.ts, reported in the summary): the stamp lines (STAMP_LINE_IDS, a licence answer) and
- * the `.gyear` year-window line (YEAR_WINDOW_IDS, T19b). The 3 Kitimat-ruled states are not compared (their tree and worked
+ * Dropped from the golden (exclusions.ts, reported in the summary): the `.gyear` year-window line (YEAR_WINDOW_IDS, T19b).
+ * The stamp lines are compared (rows 31: the store's `stamps`, drawn by tree.ts / tail.ts `stampLine`). The 3 Kitimat-ruled states are not compared (their tree and worked
  * lines are held to the store by tree.parity / tail.parity).
  */
 import { afterAll, describe, expect, it } from "vitest";
@@ -38,10 +38,13 @@ describe.skipIf(gate.skip)("T17–T19 group lines", () => {
     equal++;
   });
 
-  it("1. anderson_1010: the steelhead stamp line is the only golden line dropped; the rest, in order, is drawn", async () => {
+  it("1. anderson_1010: the released steelhead's stamp line (the store's, rows 31) is drawn under its not-kept line, in order", async () => {
     const gold = goldenGroups("anderson_1010")[0]!.lines, got = groupLinesProj(keepOf((await inputsOf("anderson_1010"))!).groups[0]!);
-    expect(gold.filter((l) => !got.includes(l))).toEqual(["You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them"]);
-    expect(STAMP_LINE.test(gold.find((l) => !got.includes(l))!)).toBe(true);
+    expect(got).toEqual(gold);
+    expect(got.slice(10, 14)).toEqual(["Steelhead and Dolly Varden/bull trout: release every one", "Region 3’s rule · Rule book p.28 ↗",
+      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
+      "You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them"]);
+    expect(got.filter((l) => STAMP_LINE.test(l))).toHaveLength(1);
   });
 
   it("2. glenn_501: the .gyear line is dropped; the moved scope tag, the own tier's relation then its tributary sub, in order", async () => {

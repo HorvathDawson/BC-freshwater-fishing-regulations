@@ -1557,13 +1557,26 @@ def line_out(l: dict) -> dict:
     return out
 
 
-def res_out(res: Optional[dict]) -> Optional[dict]:
+def stored_role(P: "Part", key: str, role: str) -> str:
+    """rows 31 (owner rule 2026-10-21; page v36 ladderHtml): a RECORD-IT RULE THAT DECIDES IS A DUTY. A rule with
+    `record_retention` holding a deciding role (display `WINS`: Kootenay Lake's "Write each rainbow trout over 50 cm
+    on your licence", Shuswap's two stamp records, both `floor`) is stored as `duty`, so a row's "How this was
+    decided" lists it under "Other rules" — page v36 moved it there in the page; the app only reads the role. The
+    computation keeps its own role (sizes, totals); only the stored answer says duty."""
+    from pipeline.deliver.answers.display import WINS
+    if role not in WINS or role == "duty":
+        return role
+    e, r = key.split("::", 1)
+    return "duty" if P.B.rules[(e, r)].get("record_retention") else role
+
+
+def res_out(res: Optional[dict], P: "Part") -> Optional[dict]:
     if res is None:
         return None
     return {"status": res["status"], "win": res["win"].key, "daily": _num(res["daily"]),
             "narrow": res["narrow"].key if res["narrow"] else None,
             "lines": [line_out(l) for l in res["lines"]],
-            "roles": [[k, v["role"], v["by"]] for k, v in res["roles"].items()],
+            "roles": [[k, stored_role(P, k, v["role"]), v["by"]] for k, v in res["roles"].items()],
             "lift_notes": [[n["by"], n["q"]] for n in res["liftNotes"]]}
 
 
@@ -1628,8 +1641,11 @@ def scope_of(P: "Part", row: dict) -> Optional[dict]:
         outer = any(l["t"] == "outer" for l in
                     row["everyone"] + [l for g in row["groups"] for l in g["facts"]])
         apart = any(t is not None and t.k == "pool" and t.rank >= 2 for t in lifts) and not outer
+    # rows 31 (owner rule 2026-10-21; page v36 narrowAll): the narrowing clause binds EVERY fish of the row — the
+    # badge then says "All Region 2 streams", not "Region 2-wide" (the app reads it, never re-derives it)
+    narrow_all = n is not None and all(_covers(n, S) for S in row["members"])
     return {"of": who, "entry": p.entry_id if who != "water" else None, "share": share,
-            "apart": apart}
+            "apart": apart, "narrow_all": narrow_all}
 
 
 # --------------------------------------------------------------------------------------------
@@ -1994,11 +2010,31 @@ def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> Li
     return out
 
 
+def parent_of(rows: Sequence[dict], i: int) -> Optional[int]:
+    """rows 31 (owner rule 2026-10-21; page v36 parentRow): THE POOL ROW THAT HOLDS A POOLED ROW — of the stored rows
+    (`produce`'s, in card order), the first other pooled row holding every fish of row `i` (among its `all_members`,
+    or in one of its fact groups) whose facts cross-reference one of them (an `xref` fact: the other pool counts
+    them, decision F4). The card draws no article for such a row: its fish are said inside that pool's; None for
+    every other row (and every row with no pool)."""
+    o = rows[i]
+    if not o.get("pool"):
+        return None
+    M = o["members"]
+    for j, r in enumerate(rows):
+        if j == i or not r.get("pool"):
+            continue
+        holds = all(S in r["all_members"] or any(S in g["members"] for g in r["groups"]) for S in M)
+        if holds and any(l["t"] == "xref" and any(S in g["members"] for S in M)
+                         for g in r["groups"] for l in g["facts"]):
+            return j
+    return None
+
+
 def produce(P: Part) -> dict:
     """Everything the card's rows show, for one part on one reading: per fish and origin the
     decided answer (`fish`), and the rows with their conditions, items and real daily limit."""
     model = build_model(P)
-    fish = {S: {"hatchery": res_out(v["H"]), "wild": res_out(v["W"])} for S, v in model["R"].items()}
+    fish = {S: {"hatchery": res_out(v["H"], P), "wild": res_out(v["W"], P)} for S, v in model["R"].items()}
     # decision F14: every keep row's total; each total's group on ONE row — the row whose pool it
     # is, else the first row whose fish count toward it
     totals = {id(row): total_of(P, model, row) for row in model["rows"]
@@ -2077,6 +2113,11 @@ def produce(P: Part) -> dict:
     for o in rows:
         if o.get("elsewhere") is not None:
             o["elsewhere"].pop("lines", None)
+    # rows 31 (owner rule 2026-10-21): the pool row that holds a pooled row's fish (page v36 parentRow), decided here
+    for i, o in enumerate(rows):
+        p = parent_of(rows, i)
+        if p is not None:
+            o["parent"] = p
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     line = steelhead_line(P.presence, has_row)

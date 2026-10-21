@@ -33,7 +33,7 @@ const page = {
         children: [{ t: "kind", kind: "Brook trout", species: ["EB"], folded: false, zero: false, says: null,
           size: { text: "keep 30 cm (12 in) or longer", rule: false }, qualifiers: null,
           pictures: [{ code: "EB", name: "Brook trout", caption: "Brook trout ›", open: "sp:EB", sil: false }],
-          also: [], duty: null, presence: null }] }],
+          also: [], duty: null, stamps: [], presence: null }] }],
       notKept: [], worked: null, quiet: null, more: { text: "See every regulation line ›", open: "src:r0" },
     }],
     plainRows: [], otherFish: [{ thumb: null, name: "Kokanee", value: "release", tone: "release", week: null, sizeHint: null,

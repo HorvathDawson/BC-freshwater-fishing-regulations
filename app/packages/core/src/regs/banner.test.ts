@@ -30,15 +30,16 @@ const RULES: Record<number, RuleView> = {
 };
 const R: RuleIndex = { get: (ix) => RULES[ix]!, has: (ix) => ix in RULES, size: 9 };
 const OPEN = { status: "base", closing: [], strip: 0 } as unknown as DisplayFrame;
-const shut = (closing: [number, string[]][], unless: number[] = []) =>
-  ({ status: "closed", closing, unless_opened: unless, strip: 1 }) as unknown as DisplayFrame;
+/** A closed day's stored frame: `closers` is the pipeline's decided choice (display 18), written out per fixture. */
+const shut = (closing: [number, string[]][], unless: number[] = [], closers: number[] = closing.map(([ix]) => ix)) =>
+  ({ status: "closed", closing, closers, unless_opened: unless, strip: 1 }) as unknown as DisplayFrame;
 const ALL = ["RB", "CT", "WSG"];
 /** leap days: Jun 1–15 = 153–167, Jun 16–30 = 168–182, Jul 1–5 = 183–187 */
 function year(): (DisplayFrame | null)[] {
   return Array.from({ length: 366 }, (_, i) => {
     const d = i + 1;
-    if (d >= 153 && d <= 167) return shut([[1, ALL], [6, ALL], [8, ALL], [4, ["WSG"]]]);
-    if (d >= 168 && d <= 182) return shut([[2, ALL], [3, ALL], [4, ["WSG"]]]);
+    if (d >= 153 && d <= 167) return shut([[1, ALL], [6, ALL], [8, ALL], [4, ["WSG"]]], [], [1, 6, 8]);
+    if (d >= 168 && d <= 182) return shut([[2, ALL], [3, ALL], [4, ["WSG"]]], [], [2, 3]);
     if (d >= 183 && d <= 187) return shut([[5, ALL]], [5]);
     return OPEN;
   });
@@ -56,15 +57,13 @@ const settled = (status: DisplayFrame | null, broad: number[] = []): Settled =>
   ({ status, broad: broad.map((ix) => R.get(ix)) }) as unknown as Settled;
 const strip = (...texts: string[]): StripVM => ({ line: texts.map((text) => ({ kind: "status", text })) }) as unknown as StripVM;
 
-describe("closersAt: of a day's stored closing, those naming the most fish, and any not wholly inside a longer one", () => {
-  it("a closure of one fish beside full ones closes nothing more", () => {
-    expect(closersAt(inputs(), shut([[1, ALL], [4, ["WSG"]], [6, ALL]])).map((r) => r.rix)).toEqual([1, 6]);
+describe("closersAt: the day's stored closers (display 18 — the pipeline's choice, never re-chosen here)", () => {
+  it("reads the frame's closers, in their order, as this part's rules", () => {
+    expect(closersAt(inputs(), shut([[1, ALL], [4, ["WSG"]], [6, ALL]], [], [1, 6])).map((r) => r.rix)).toEqual([1, 6]);
   });
-  it("when no one closure names every game fish named, each not inside a longer one stays", () => {
-    expect(closersAt(inputs(), shut([[1, ["RB", "CT"]], [4, ["WSG"]], [2, ["RB"]]])).map((r) => r.rix)).toEqual([1, 4]);
-  });
-  it("a closure of fish that are not game fish is listed only when it names the most", () => {
-    expect(closersAt(inputs(), shut([[1, ALL], [9, ["KO"]]])).map((r) => r.rix)).toEqual([1]);
+  it("lists exactly what is stored — a choice the old species-coverage port would not make is kept as stored", () => {
+    // page v36's own rule would give [1, 6] here; the store says [4]: the app draws the store's answer
+    expect(closersAt(inputs(), shut([[1, ALL], [4, ["WSG"]], [6, ALL]], [], [4])).map((r) => r.rix)).toEqual([4]);
   });
   it("an open frame or no frame: none", () => {
     expect([closersAt(inputs(), OPEN), closersAt(inputs(), null)]).toEqual([[], []]);

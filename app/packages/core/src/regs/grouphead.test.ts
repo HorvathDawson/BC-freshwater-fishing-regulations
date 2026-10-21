@@ -4,7 +4,7 @@
  * (golden meta.misses `[data-share-of]`, `.gtag`) — they are pinned here.
  */
 import { describe, expect, it } from "vitest";
-import { groupHeadOf, headCtx, originOf, rowTitle, scopeBadge, shortOf } from "./grouphead";
+import { drawnRows, groupHeadOf, headCtx, originOf, parentRow, rowTitle, scopeBadge, separateFrom, shortOf } from "./grouphead";
 import { plain } from "./line";
 import { cardOf, GROUP, hyd, INP, OWN, res, ROOT, rowOf, SHARE, tier, TROUT_ROW } from "./testing/keepFixtures";
 
@@ -26,27 +26,32 @@ describe("rowTitle (page v36)", () => {
 });
 
 describe("scopeBadge (page v36 scopeBadge + rowHtml's rewrite)", () => {
-  it("a region share of streams whose narrow binds every fish: 'All Region 2 streams'; one that doesn't: 'Region 2-wide'", () => {
+  it("a region share of streams the store says binds every fish (scope.narrow_all, rows 31): 'All Region 2 streams'; else 'Region 2-wide'", () => {
     const card = cardOf([TROUT_ROW]);
     expect(scopeBadge(card.rows[0]!, card, inp)).toBe("All Region 2 streams");
-    const part = cardOf([{ ...TROUT_ROW, members: ["RB", "KO"] }]);
+    const part = cardOf([{ ...TROUT_ROW, scope: { ...TROUT_ROW.scope!, narrow_all: false } }]);
     expect(scopeBadge(part.rows[0]!, part, inp)).toBe("Region 2-wide");
+  });
+  it("the badge reads the stored narrow_all, never the narrowing rule's species (owner rule 2026-10-21)", () => {
+    // KO is not among the narrowing rule's fish: page v36 narrowAll would say false; the store says true, and wins
+    const stored = cardOf([{ ...TROUT_ROW, members: ["RB", "KO"] }]);
+    expect(scopeBadge(stored.rows[0]!, stored, inp)).toBe("All Region 2 streams");
   });
   it("a lake share keeps page v36's own words; no share: '<region>-wide'; a water's own pool: 'This water'; no badge", () => {
     const lake = cardOf([{ ...TROUT_ROW, narrow: 5 }]);
     const lakeRow = { ...lake.rows[0]!, narrow: { ...lake.rows[0]!.narrow!, f: { water: "lake" } } };
     expect(scopeBadge(lakeRow, lake, inp)).toBe("Region 2 · lakes");
-    const wide = cardOf([{ ...TROUT_ROW, scope: { of: "region", entry: "r2", share: false, apart: false } }]);
+    const wide = cardOf([{ ...TROUT_ROW, scope: { of: "region", entry: "r2", share: false, apart: false, narrow_all: false } }]);
     expect(scopeBadge(wide.rows[0]!, wide, inp)).toBe("Region 2-wide");
-    const here = cardOf([{ ...TROUT_ROW, scope: { of: "water", entry: null, share: false, apart: false } }]);
+    const here = cardOf([{ ...TROUT_ROW, scope: { of: "water", entry: null, share: false, apart: false, narrow_all: false } }]);
     expect(scopeBadge(here.rows[0]!, here, inp)).toBe("This water");
-    const bc = cardOf([{ ...TROUT_ROW, scope: { of: "bc", entry: null, share: false, apart: false } }]);
+    const bc = cardOf([{ ...TROUT_ROW, scope: { of: "bc", entry: null, share: false, apart: false, narrow_all: false } }]);
     expect(scopeBadge(bc.rows[0]!, bc, inp)).toBe("B.C.-wide");
     const rel = cardOf([{ ...TROUT_ROW, kind: "release" }]);
     expect(scopeBadge(rel.rows[0]!, rel, inp)).toBeNull();
   });
   it("a row whose every fish's stored answer names another pool `lifted`: 'Separate from your 4 trout and char' (x25p_1010)", () => {
-    const st = rowOf({ pool: 6, daily: 6, members: ["ST"], all_members: ["ST"], scope: { of: "water", entry: null, share: false, apart: false } });
+    const st = rowOf({ pool: 6, daily: 6, members: ["ST"], all_members: ["ST"], scope: { of: "water", entry: null, share: false, apart: false, narrow_all: false } });
     const card = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "lifted"]]), W: null } } });
     expect(scopeBadge(card.rows[1]!, card, inp)).toBe("Separate from your 4 trout and char");
     const notLifted = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "agrees"]]), W: null } } });
@@ -114,5 +119,19 @@ describe("shortOf (prototype; T28's pin lines, form b)", () => {
       shortOf(tier({ tier: "own", n: 2, whose: "This lake’s rule", replaces: "x" })), shortOf(tier({ tier: "total", n: 5, whose: "The lake" })),
       shortOf(tier({ tier: "share", n: 2, says: "2 a day from this lake" }))]).toEqual([
       "of those, 1 cutthroat or rainbow trout in all", "plus up to 2 under this lake’s rule", "The lake: 5 a day", "2 a day from this lake"]);
+  });
+});
+
+describe("parentRow / drawnRows / separateFrom: the store's rows_row.parent (rows 31), read, never inferred", () => {
+  const rb = rowOf({ pool: 6, daily: 4, members: ["RB"], all_members: ["RB"], scope: { of: "water", entry: null, share: false, apart: false, narrow_all: false } });
+  it("a row the store says is held by row 0 is not drawn, and says no 'Separate from'", () => {
+    const card = cardOf([TROUT_ROW, { ...rb, parent: 0 }], { R: { RB: { H: res([[1, "lifted"]]), W: null } } });
+    expect([parentRow(card, card.rows[1]!) === card.rows[0], parentRow(card, card.rows[0]!), [...drawnRows(card)], separateFrom(card, card.rows[1]!)])
+      .toEqual([true, null, [0], null]);
+  });
+  it("no stored parent: drawn — even where row 0 holds its fish (page v36 parentRow would infer one from an xref fact)", () => {
+    const xref = { ...TROUT_ROW, groups: [{ members: ["RB"], facts: [{ t: "xref", r: 6, daily: 4, members: ["RB"], rules: [6] }] }] } as unknown as typeof TROUT_ROW;
+    const card = cardOf([xref, rb]);
+    expect([parentRow(card, card.rows[1]!), [...drawnRows(card)]]).toEqual([null, [0, 1]]);
   });
 });

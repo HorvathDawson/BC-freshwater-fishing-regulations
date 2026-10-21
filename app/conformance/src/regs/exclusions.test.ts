@@ -41,7 +41,7 @@ describe("EXCLUDE", () => {
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
-        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 8 ^groups\\.\\d+\\.(tree|lines)$", "keep 11 ^groups\\.\\d+\\.lines$"]);
+        "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 11 ^groups\\.\\d+\\.lines$"]);
   });
 });
 
@@ -64,7 +64,7 @@ describe("NO_MAP_LABEL_IDS", () => {
 });
 
 describe("(T17–T19 review) dropped golden lines", () => {
-  it("the 8 states with a stamp line, the 11 with a .gyear line", () => {
+  it("the 8 states with a stamp line (compared since rows 31), the 11 with a .gyear line", () => {
     expect(STAMP_LINE_IDS).toEqual(["anderson_1010", "x4p_1010", "x13p4_1010", "x15p16_1010", "x15p1_1010", "x15p17_1010", "x20p1_1010", "x23p0_1010"]);
     expect(YEAR_WINDOW_IDS).toEqual(["glenn_501", "glenn_615", "glenn_1010", "hamill_615", "hamill_1010", "x9p0_1010", "x9p1_1010", "x9p5_1010",
       "x21p2_1010", "x21p1_1010", "x32p1_1010"]);
@@ -73,13 +73,14 @@ describe("(T17–T19 review) dropped golden lines", () => {
   it("a lines entry never excludes its key; it drops only its lines, only in its states, only from its keys", () => {
     expect(excluded("keep", "anderson_1010", "groups.0.lines")).toBeNull();
     expect(excluded("keep", "x4p_1010", "groups.0.tree")).toBeNull();
-    expect(droppedLines("keep", "anderson_1010", "groups.0.lines")).toEqual([STAMP_LINE]);
-    expect(droppedLines("keep", "x4p_1010", "groups.0.tree")).toEqual([STAMP_LINE]);
+    // rows 31: the stamp lines are the store's `stamps`, drawn and compared — no state drops them
+    expect(STAMP_LINE_IDS.flatMap((id) => [...droppedLines("keep", id, "groups.0.lines"), ...droppedLines("keep", id, "groups.0.tree")])).toEqual([]);
     expect(droppedLines("keep", "glenn_501", "groups.0.lines")).toEqual([YEAR_WINDOW_LINE]);
     expect(droppedLines("keep", "glenn_501", "groups.0.tree")).toEqual([]);
     expect(droppedLines("keep", "vedder_1010", "groups.0.lines")).toEqual([]);
     expect(droppedLines("keep", "anderson_1010", "groups.0.notKept")).toEqual([]);
-    expect(keepLines(["a", "You need X ›", "Through the year b", "c"], [STAMP_LINE])).toEqual(["a", "Through the year b", "c"]);
+    expect(keepLines(["a", "You need X ›", "Through the year b", "c"], [YEAR_WINDOW_LINE])).toEqual(["a", "You need X ›", "c"]);
+    expect(STAMP_LINE.test("You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to release them")).toBe(true);
   });
 
   it("the Kitimat-ruled states' group lines are excluded whole (their tree and worked are held to the store)", () => {

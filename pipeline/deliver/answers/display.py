@@ -1006,6 +1006,21 @@ def unless_opened_here(closing: Dict[str, List[str]], words: Dict[str, Optional[
                   if words.get(r) and not any(set(fs) <= p for p in plain_shut))
 
 
+def closers_of(closing: Sequence[Tuple[int, Sequence[str]]]) -> List[int]:
+    """display 18 (owner rule 2026-10-21): THE CLOSURES THAT CLOSE THE WATER on a closed day — of the decided
+    `closing` ([[rule, [game fish]]], in its order), page v36 closersAt's choice, decided here and only read by the
+    app: those closing the most game fish; and, when no single closure closes every game fish any of them closes,
+    each that is not wholly inside a closure of more fish. A one-fish closure beside a blanket one (the Province's
+    white sturgeon closure under Region 2's spring closure) closes nothing more and is not one of them."""
+    if not closing:
+        return []
+    top = max(len(fs) for _r, fs in closing)
+    every = len({f for _r, fs in closing for f in fs})
+    return [r for r, fs in closing
+            if len(fs) == top or (top < every and not any(
+                len(gs) > len(fs) and set(fs) <= set(gs) for _g, gs in closing))]
+
+
 def closed_all_year(store, key_ix: int) -> bool:
     """Closed to every game fish on all 366 days: every reading of the rule key is closed
     (`reading.closed`, the verdicts' one predicate — the status index's own answer)."""
@@ -1190,6 +1205,9 @@ def section_prepare(scope, ctx):
         v = {"status": "closed" if rd.closed else floor,
              "closing": [[ctx.rule_index[st.rule_ids[r]], fs] for r, fs in sorted(
                  closing.items(), key=lambda p: ctx.rule_index[st.rule_ids[p[0]]])]}
+        if rd.closed:
+            # display 18: the closures that close the water, decided (page v36 closersAt), never re-chosen by the app
+            v["closers"] = closers_of(v["closing"])
         # Z12/Q41: the closing rules printed "unless opened" whose proviso is the answer here
         words = {st.rule_ids[r]: _unless_words(ctx, st.rule_ids[r]) for r in closing}
         sup = [st.rule_ids[r] for r in closing

@@ -7,14 +7,15 @@
  * (`rows_row.group.tree`, `rows_row.presence`); this file WORDS and LAYS THEM OUT (which number is big, which page link is
  * fresh on a branch, whether form a's share says anything the head did not), and decides no regulation.
  *
- * NOT ported: prototype `stampsFor`/`stampLine` (round UR7 — the licence documents a kind needs, e.g. "You need
- * Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm"). It decides which
- * document a fish needs from the licence answer and the kind's sizes — a regulation answer the pipeline must ship per kind.
+ * The licence documents a kind needs (prototype round UR7 stampsFor) are the store's (rows 31 `TreeKind.stamps`, decided by
+ * the pipeline's `stamps.py`); `stampLine` only words one: "You need Conservation Surcharge Stamp for Shuswap rainbow trout ›
+ * only if you keep rainbow trout over 50 cm". The one choice left here is presentation: a kind whose duty line already
+ * links the steelhead stamp does not name it twice (the prototype's skip).
  *
  * Ports (inventory names @ 7fb6809f): prototype buildKeep.{nbsp, boldN, sizeOf, dutyWords, kt, tierWords, pagesOf
- * (tierH, tnode), presOf, presP, pics}, fishBtn, fishName.
+ * (tierH, tnode), presOf, presP, pics}, fishBtn, fishName, stampLine.
  */
-import type { Presence, TreeKind, TreeTier } from "../answers.generated";
+import type { Presence, Stamp, TreeKind, TreeTier } from "../answers.generated";
 import type { CardModel } from "./card";
 import type { FishManifest } from "./fish.generated";
 import { pagesOf, shortOf, type HeadCtx } from "./grouphead";
@@ -106,6 +107,13 @@ export const stampSTOf = (inp: RegsInputs): boolean => (inp.frames?.licence.prof
   "documents" in p && p.documents.some((d) => d.doc === STAMP_DOC || (d.or ?? []).some((o) => o.need.includes(STAMP_DOC))));
 const STAMP_DOC = "steelhead_stamp";
 
+/** prototype stampLine: one stored stamp as its line — "You need " + the document as a link to the Licence tab + its
+ *  `when`, first letter lower-cased ("… › only if you fish for steelhead, even to release them"). */
+export function stampLine(x: Stamp): Line {
+  return [text(WORDS.YOU_NEED), { t: "link", s: WORDS.DOC_LINK(x.name), open: { tab: "licence" } },
+    text(" " + (x.when ? x.when[0]!.toLowerCase() + x.when.slice(1) : ""))];
+}
+
 /** prototype kt: one kind row. */
 export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
   const { size: size0, q } = sizeOf(k.detail), zero = k.n === 0, size = k.size_rule || size0;
@@ -115,10 +123,13 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
     if (k.species.includes("ST") && /\bhatchery steelhead only\b/.test(k.says)) says.push(text(" "), { t: "link", s: WORDS.HOW_TELL, open: "hatch" });
   }
   let duty: Run[] | null = null;
+  const stLinked = !!k.duties.length && env.stampST && k.species.includes("ST");
   if (k.duties.length) {
     duty = [text(k.duties.map((x) => dutyWords(x, env.inp.item?.name ?? env.inp.place?.name ?? "")).join(WORDS.DOT_SEP))];
-    if (env.stampST && k.species.includes("ST")) duty.push(text(" "), { t: "link", s: WORDS.STEELHEAD_STAMP, open: { tab: "licence" } });
+    if (stLinked) duty.push(text(" "), { t: "link", s: WORDS.STEELHEAD_STAMP, open: { tab: "licence" } });
   }
+  // the stored stamps (rows 31), but the steelhead stamp the duty line already links (prototype `skip`)
+  const stamps = (k.stamps ?? []).filter((x) => !(stLinked && x.doc === STAMP_DOC)).map(stampLine);
   const sizeNote = (k as TreeKind & { size_note?: { says: string } | null }).size_note;
   return {
     t: "kind", kind: k.name, species: k.species, folded: !!k.folded, zero, says,
@@ -126,7 +137,7 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
     qualifiers: q.length ? q.join(", ") : null,
     pictures: pictures(k.species, env.fish, fishNames(env.inp, env.fish)),
     also: [...(sizeNote ? [nbsp(cap1(sizeNote.says))] : []), ...(k.also_counts ?? []).map((a) => nbsp(cap1(a.says)))],
-    duty, presence: presenceLine(presOf(k, env.card, env.drawn)),
+    duty, stamps, presence: presenceLine(presOf(k, env.card, env.drawn)),
   };
 }
 

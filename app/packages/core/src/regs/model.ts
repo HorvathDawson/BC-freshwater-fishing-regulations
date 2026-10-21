@@ -142,12 +142,15 @@ export interface KindVM {
   readonly pictures: readonly FishPicVM[];  // FIRST after the sentence + chip
   readonly also: readonly string[];         // also_counts[].says (cap1)
   readonly duty: Line | null;               // duties.map(dutyWords).join(" · ") + link "Steelhead stamp ›" {tab:"licence"}
+  readonly stamps: readonly Line[];         // (rows 31) one per stored stamp: "You need" + link "<name> ›" {tab:"licence"} + when
   readonly presence: Line | null;           // presOf(k).says + ⓘ steelhead
 }
 export interface ReleaseRowVM { readonly t: "release"; readonly names: string; readonly pictures: readonly FishPicVM[] }
 /** caption "Brook trout ›"; sil: no image. name: fishName(c) — a11y "What a <name> looks like". */
 export type FishPicVM = { readonly code: string; readonly name: string; readonly caption: string; readonly open: SheetKey; readonly sil: false } | { readonly code: string; readonly name: string; readonly sil: true };
-export interface NotKeptVM { readonly status: "closed" | "release"; readonly says: string; readonly whose: Line; readonly mark: "✕" | null; readonly presence: Line | null; readonly pictures: readonly FishPicVM[] }
+export interface NotKeptVM { readonly status: "closed" | "release"; readonly says: string; readonly whose: Line; readonly mark: "✕" | null; readonly presence: Line | null; readonly pictures: readonly FishPicVM[];
+  /** (rows 31) one line per stored stamp of a released fish, drawn after its pictures */
+  readonly stamps: readonly Line[] }
 export interface PlainRowVM {                                         // golden keep.plainRows (T19b)
   readonly row: number; readonly title: string;
   readonly pill: { kind: "release" | "closed"; text: string; term: string } | null;

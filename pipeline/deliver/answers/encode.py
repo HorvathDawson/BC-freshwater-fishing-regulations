@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "30",
+            "version": "31",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -452,7 +452,20 @@ SPEC = {
                     "closure never colours the day); none where no member has an answer. The same members in the same "
                     "key carry the same strip on every segment's frame. Draw it as it is; never derive a day's colour. "
                     "ON THE WIRE the row's `year` is not in `rows`: each distinct strip is held once in `strips` and "
-                    "the frame's fifth slot names each row's strip (decoding puts it back as the row's last field).",
+                    "the frame's fifth slot names each row's strip (decoding puts it back as the row's last field). "
+                    "Version 31 (owner rule 2026-10-21: the app decides nothing — the Keep tab's last page-v36 choices "
+                    "made here): a keep row's badge `scope.narrow_all` (the row's narrowing clause binds every one of its "
+                    "fish: with `share` the badge reads \"All Region 2 streams\", else \"Region 2-wide\"); a pooled row's "
+                    "`parent` (the index in the frame's `rows` of the pooled row whose pool holds its fish and "
+                    "cross-references them — draw no section for it; absent elsewhere); a rule with `record_retention` "
+                    "holding a deciding role is stored as role `duty` (\"How this was decided\" lists it under Other "
+                    "rules); and `stamps` [{doc, act, name, when}] on a group tree's kind and a released not-kept line: "
+                    "the licence documents that fish needs here, for a B.C. resident 16 or older (the licence answer at "
+                    "the same key and segment: a document needed to fish for the fish — act targeting — wherever it "
+                    "may be fished; one needed to keep it — retaining — where the kind keeps any, over the document's "
+                    "size where it names one), in the licence tab's words: draw \"You need <name> › <when>\" "
+                    "(\"You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, even to "
+                    "release them\").",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -557,9 +570,9 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "17",
+            "version": "18",
             "at": "[[frame index per segment] per key]",
-            "frames": "[{status, closing, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
+            "frames": "[{status, closing, closers?, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
                       "speaking full closure) | tidal: on TIDAL water `{status: tidal, tidal: true, "
                       "note, see, licence}` all year (no freshwater status). `closing` (version 3, "
@@ -592,7 +605,11 @@ SPEC = {
                       "(the boundary standard, RULINGS P37). Version 14 (UR1 G): a record duty reads \"Write each "
                       "hatchery steelhead on your licence right away\" (title and sentence). Version 15 (UR3 2): a "
                       "no-fishing place rule's `plain` is the book's words with every distance in feet too, \"No "
-                      "fishing within 23 m (75 ft) downstream of …\" (the nearest 5 ft)",
+                      "fishing within 23 m (75 ft) downstream of …\" (the nearest 5 ft). Version 18 (owner rule 2026-10-21): a closed frame's `closers` [rule] — THE CLOSURES "
+                      "THAT CLOSE THE WATER, a subset of `closing` in its order, set exactly when status is closed: those "
+                      "closing the most game fish and, where no one of them closes every game fish any closes, each not "
+                      "wholly inside a closure of more fish (a one-fish white sturgeon closure beside a blanket closure is "
+                      "not one). List these on the closed banner; never choose among `closing` yourself",
             "rules": "[{kind, title, closure?, bands?, plain?, unless_opened?, subsets?}] — aligned with "
                      "the export's `rules`: `title` (version 12, ROUND16 3) every rule's effect in words, "
                      "generated from its fields (\"Release all steelhead\", \"Release lake trout, Oct 1–Nov 30\", "

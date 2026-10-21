@@ -98,6 +98,44 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## THE KEEP TAB'S LAST CHOICES (2026-10-21) — rows 31, display 18: the app decides nothing (owner rule)
+
+The Keep presenters (T14, T17–T19b) still made five page-v36 choices in TypeScript. Each is now made here, with the
+page's (or the prototype's) own rule, and the app only reads it:
+
+* **`display` frame `closers`** (`display.closers_of`; page v36 `closersAt`): on a closed frame, the closures that close
+  the water — of `closing`, in its order, those closing the most game fish and, where no one of them closes every game fish
+  any closes, each not wholly inside a closure of more fish. Region 2's spring closure closes every game fish; the
+  Province's white sturgeon closure beside it closes one and is not listed (cow0_1010). Set exactly when status is closed.
+* **`rows[].scope.narrow_all`** (`rows.scope_of`; page v36 `narrowAll`): the row's narrowing clause binds every one of its
+  fish — the same test `elsewhere_of` asks. With `share` the badge says "All Region 2 streams", else "Region 2-wide".
+* **`rows[].parent`** (`rows.parent_of`; page v36 `parentRow`): the index of the pooled row whose pool holds this pooled
+  row's fish and cross-references them (an `xref` fact). The card draws no section for such a row. Absent elsewhere.
+* **A deciding record-it rule is a duty** (`rows.stored_role`; page v36 `ladderHtml`): a rule with `record_retention`
+  holding a deciding role (`display.WINS`) is stored in `rows_decided.roles` as `duty`, so "How this was decided" lists it
+  under "Other rules" with its "Record it" tag (Kootenay Lake's "Write each rainbow trout over 50 cm (20 in) on your
+  licence right away", klmb_1010; the two Shuswap stamp records). On the live bundle 9 decided answers held such a rule
+  as `floor`; the steelhead record (`zp:steelhead` r4/r4b) was already `duty`. The computation keeps its own role.
+* **`stamps`** on a group tree's kind and a released not-kept line (`stamps.py`; the prototype's round UR7 `stampsFor`):
+  the licence documents that fish needs here, `[{doc, act, name, when}]`, from the licence answer at the same key and
+  segment for the angler the Keep tab answers for (B.C. resident, 16 or older, not guided, no status): a document needed
+  to fish for the fish (act `targeting`) wherever it may be fished; one needed to keep it (`retaining`) where the kind keeps
+  any, over the document's size where it names one (its largest keepable length, `sizes.cm`, is over it). The words are the
+  licence tab's ("Conservation Surcharge Stamp for Shuswap rainbow trout", "Only if you keep rainbow trout over 50 cm").
+  The app draws "You need <name> › <when>" and leaves the steelhead stamp out where the kind's duty line already links it.
+  Rows are built with the licence section (`answers.NEEDS`).
+
+Measured on the live bundle (2026-10-21, answers built from the live bundle and export): nothing else in the file moved —
+ladder, gear, licence and the display frames' every other field are identical, and the rows stripped of the new fields are
+the old 2,509 distinct rows. 874 closed display frames carry `closers` (826 of them fewer than `closing`); 373 keep rows'
+badges say `narrow_all` (1,261 do not); 156 distinct rows carry a `parent`; 80 distinct rows' tree kinds and 238 rows'
+not-kept lines carry `stamps` (steelhead stamp 65 + 238, Shuswap char 7, Shuswap rainbow 8); distinct rows 2,509 -> 2,545,
+rows frames 4,170 -> 4,223. Card gate 0 problems; release 13,711,148 B gzip (gate 14,000,000).
+
+Proved against the golden oracle (page v38 / prototype, 134 states) by the app's parity on a release built from this
+code (banner, group head, tree, group lines; the stamp lines are no longer excluded) and by
+`pipeline/tests/test_answers_keep_answers.py` (no data) / `test_answers_keep_answers_live.py` (the bundle).
+
 ## THE YEAR STRIP (2026-10-21) — rows 30: the app decides nothing (owner rule)
 
 Every rows row carries `year`: run-length `[[status, days]]` over the 365 book days (Jan 1 .. Dec 31 of a year without
@@ -1069,9 +1107,10 @@ the angler's requirements with paths; exempt; others; guiding). Static: `profile
 
 ### `display`
 
-Per (key, segment): `{status, closing}` — base | own | closed, the verdicts' code at the
+Per (key, segment): `{status, closing, closers?}` — base | own | closed, the verdicts' code at the
 segment's moment; `closing` the full closures that speak, unlifted, with the game fish each closes
-(version 3, gap G1). Static: `rules`
+(version 3, gap G1); `closers` (version 18, closed frames only) the ones that close the water, page v36
+closersAt's choice of `closing`. Static: `rules`
 (per export rule: kind, closure, bands, plain sentence) and `waters` (per named water: per export
 part its label, runs, place, hint, km, closed_all_year, paper_licence; the picker; unresolved
 licensing records).

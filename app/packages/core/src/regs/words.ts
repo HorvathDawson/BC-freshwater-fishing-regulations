@@ -153,6 +153,8 @@ export const WORDS = Object.freeze({
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
   // ── T18 tree (tree.ts: prototype buildKeep kt, dutyWords, fishBtn) ──
   STEELHEAD_STAMP: "Steelhead stamp ›",
+  // prototype stampLine (round UR7): "You need <document ›> <when>" — the document and its when are the store's (rows 31 stamps)
+  YOU_NEED: "You need ", DOC_LINK: (name: string) => `${name} ›`,
   CAPTION: (c: string) => `${c}\u00a0›`,   // U+00A0 keeps the › on the caption's line (T20)
   THE_NAME: (name: string) => `the ${name}`,
   // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──

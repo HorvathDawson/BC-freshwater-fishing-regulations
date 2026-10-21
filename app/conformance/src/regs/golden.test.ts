@@ -159,13 +159,19 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
   it("a rows-29 release (before the year strip) is a skip naming the version and the rebuild", () => {
     const d = release("r-rows29", { ...sections, rows: 29 });
     expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null,
-      reason: `release ${d} is rows 29 (this app reads 30): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
+      reason: `release ${d} is rows 29 (this app reads 31): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
+  });
+
+  it("a rows-30 / display-17 release (before the Keep tab's last choices moved to the pipeline) is a skip naming both", () => {
+    const d = release("r-rows30", { ...sections, rows: 30, display: 17 });
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 31), `
+      + "display 17 (this app reads 18): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
   });
 
   it("with REGS_STORE_REQUIRED=1 it throws that reason", () => {
     const d = release("r-rows29b", { ...sections, rows: 29 });
     expect(() => liveReleaseAt({ RELEASE_DIR: d, REGS_STORE_REQUIRED: "1" })).toThrow(
-      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 30): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
+      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 31): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
   });
 
   it("no release: the reason says so", () => {
@@ -234,7 +240,6 @@ describe("T12 summary", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
-      + " · lines /^You need / dropped from ^groups\\.\\d+\\.(tree|lines)$ in 8 states (the pipeline ships the per-fish licence-document line on the group (or a ticket ports it as pure wording))"
       + " · lines /^Through the year / dropped from ^groups\\.\\d+\\.lines$ in 11 states (T19b (runTxt over HydRow.year) draws the .gyear line)");
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");

@@ -57,16 +57,17 @@ export function originProj(o: OriginVM | null) {
 const join = (...xs: (string | null | undefined)[]): string => norm(xs.filter((x) => !!x).join(" "));
 const captions = (ps: readonly { sil: boolean; caption?: string }[]) => ps.flatMap((p) => (p.sil ? [] : [p.caption!]));
 /** golden kind — `lines` the kind row's drawn lines in order: its sentence; the chip, qualifiers and pictures on one line;
- *  each also-count; the duty; the presence line (prototype kt; the golden's `lines(k)`) */
+ *  each also-count; the duty; each licence-document line (rows 31 stamps); the presence line (prototype kt; the golden's
+ *  `lines(k)`) */
 export function kindProj(k: KindVM) {
   const num = (k.says ?? []).find((r) => r.t === "num") as { s: string } | undefined;
   const says = nl(k.says), meta = join(k.size?.text, k.qualifiers, ...captions(k.pictures)), also = k.also.map((a) => norm(a));
-  const duty = nl(k.duty), presence = nl(k.presence);
+  const duty = nl(k.duty), presence = nl(k.presence), stamps = k.stamps.map((l) => nl(l)!);
   return { t: "kind", kind: k.kind, sp: [...k.species], folded: k.folded, zero: k.zero, says, n: num?.s ?? null,
     howtell: hasLink(k.says, WORDS.HOW_TELL), size: n(k.size?.text), q: k.qualifiers,
     pics: k.pictures.flatMap((p) => (p.sil ? [] : [{ code: p.code, caption: n(p.caption) }])), sizeNote: null,
     also, duty, presence, terms: terms(k.says, k.duty, k.presence),
-    lines: [says, meta, ...also, duty, presence].filter((l): l is string => !!l) };
+    lines: [says, meta, ...also, duty, ...stamps, presence].filter((l): l is string => !!l) };
 }
 /** golden tier */
 export function tierProj(t: TierVM): Record<string, unknown> {
@@ -127,7 +128,8 @@ function nodeLines(x: TreeNodeVM): string[] {
 /**
  * golden group `lines` — the whole group as drawn, line by line (prototype buildKeep's article: the pinned head, the origin
  * block, the tree, the not-kept lines, How it adds up, the quiet line, "See every regulation line ›" inline after the last
- * line). Read off the same VMs the field projections read; the draw order and which parts share a line are what it proves.
+ * line; a released fish's licence-document lines under it). Read off the same VMs the field projections read; the draw
+ * order and which parts share a line are what it proves.
  */
 export function groupLinesProj(gr: KeepGroup, tot: "a" | "b" = "a"): string[] {
   const h = groupHeadProj(gr, tot), t = tailProj(gr), out: string[] = [...h.headLines.map((l) => norm(l))];
@@ -135,7 +137,7 @@ export function groupLinesProj(gr: KeepGroup, tot: "a" | "b" = "a"): string[] {
   out.push(...(treeOf(gr.env) ?? []).flatMap(nodeLines));
   for (const r of notKeptOf(gr.ctx.g, gr.env)) {
     const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];
-    out.push(p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]));
+    out.push(p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]), ...r.stamps.map((l) => nl(l)!));
   }
   const w = workedOf(gr.ctx.row, gr.ctx.g);
   if (w) out.push(w.label, ...(w.says ? [norm(w.says)] : []), ...w.lines.map((l) => join(l.q, l.a)));

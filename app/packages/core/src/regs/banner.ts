@@ -4,18 +4,14 @@
  * each sentence once" pass against the year strip — and "Closed all year on N stretches"; and the tidal banner.
  *
  * Owner rule 2026-10-21 (decisions.md): every answer drawn here is the PIPELINE's —
- * - closed on a day, and the closures that close it, are the display frame's `status` and decided `closing` (one frame
- *   per book day: `inp.year.displayByDay`); "unless opened" is the frame's decided `unless_opened`;
+ * - closed on a day is the display frame's `status` (one frame per book day: `inp.year.displayByDay`); the closures that
+ *   close it are the frame's decided `closers` (display 18: page v36 closersAt's choice of `closing`, made by the pipeline,
+ *   `display.closers_of`); "unless opened" is the frame's decided `unless_opened`;
  * - the day it reopens is the first day whose stored frame is not "closed" (T13 `nextOpen`, a read);
  * - each closure's words are its stored facts (`describe`, T06) and `facts.unless_opened`; its level is the part's rank.
- * OPEN PIPELINE NEED (review 2026-10-21, owner rule): `closersAt` picks which of a day's stored `closing` closures "together
- * cover" the run by species coverage (those naming the most game fish, and any not wholly inside a longer one) — that is
- * "which closures apply on a day", the pipeline's answer. Listing every stored `closing` instead breaks 15 banner parity
- * cases (cow0_1010 gains the Province white-sturgeon closure). The display frame must carry a decided `closers`
- * (RuleIx[], a subset of `closing`, page v36 closersAt's choice) and `closersAt` must only read it; until then this port
- * stays as page_v36.js:522-524 and is not to be extended. The chain lists each once, in day order.
+ * The chain lists each stored closer once, in day order.
  *
- * Ports (inventory names @ 7fb6809f): page_v36 closersAt, closedBanner (+ closeTxt), mergedHtml, tidalHtml, waterSegs;
+ * Ports (inventory names @ 7fb6809f): page_v36 closedBanner (+ closeTxt), mergedHtml, tidalHtml, waterSegs;
  * prototype buildKeep's "say each sentence once" pass and the closechain rewrite (with its integration-1 fix: a sentence
  * the rewrite would leave with no words is kept whole).
  */
@@ -24,24 +20,16 @@ import { describe } from "./describe";
 import type { DisplayFrame, RegsInputs, RuleView } from "./inputs";
 import type { Line, Run } from "./line";
 import type { BannerVM, Day, StripVM } from "./model";
-import { gameFish } from "./names";
 import type { Settled } from "./settle";
 import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay, nextOpen, runOf, waterSegs } from "./strip";
 import { rangeTxt } from "./time";
 import { RANK_LEVEL, WORDS } from "./words";
 
 
-/**
- * page closersAt over one day's stored display frame: of its decided `closing`, the ones naming the most fish (`top`) —
- * and, when no one closure names every game fish any of them names, each not wholly inside a longer one.
- */
+/** The closures that close the water on one day: its stored display frame's decided `closers` (display 18, the
+ *  pipeline's page-v36 closersAt choice), as this part's rules; none on a day that is not closed. */
 export function closersAt(inp: RegsInputs, frame: DisplayFrame | null): readonly RuleView[] {
-  const cl = frame && frame.status === "closed" ? frame.closing : [];
-  const top = Math.max(0, ...cl.map(([, fs]) => fs.length));
-  const all = gameFish(inp.statics.exportSpecies).filter((S) => cl.some(([, fs]) => (fs as readonly string[]).includes(S))).length;
-  return cl.filter(([, fs]) => fs.length === top
-      || (top < all && !cl.some(([, gs]) => gs.length > fs.length && fs.every((S) => (gs as readonly string[]).includes(S)))))
-    .map(([ix]) => inp.rules.get(ix));
+  return frame && frame.status === "closed" ? (frame.closers ?? []).map((ix) => inp.rules.get(ix)) : [];
 }
 
 /** The banner before "say each sentence once" (page v36 closedBanner / tidalHtml + the closechain rewrite). */

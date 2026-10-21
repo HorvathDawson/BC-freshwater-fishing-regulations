@@ -31,6 +31,7 @@ from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import gear as G
 from pipeline.deliver.answers import licence as L
 from pipeline.deliver.answers import rows as RW
+from pipeline.deliver.answers import stamps as ST
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
@@ -129,6 +130,7 @@ def test_taps_equal_the_producers(built):
     reps = L.representatives(B.path, {L.section_scope(key, B) for key in model.keys})
     ctx = A.Context(BUNDLE, rix, verdicts=str(Path(BUNDLE).with_name("verdicts.sqlite")))
     rng = random.Random(7)
+    doc_names = L.document_names(B.path)
     checked = 0
     try:
         for k, key in enumerate(model.keys):
@@ -156,6 +158,10 @@ def test_taps_equal_the_producers(built):
                 P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                             kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
                 want = RW.refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
+                # rows 31: the build adds the licence documents each kind / released fish needs, from the licence
+                # frame at the same key and segment (stamps.py) — asked of that frame here
+                want = ST.stamp_licence_documents([want], [model.sections["licence"][k][s]], doc_names,
+                                                  L.profile_index(ST.DEFAULT_PROFILE))[0]
                 # rows 30: the build stamps each row's year strip (the key's year, not one day's: year.py);
                 # the day's producer is everything else
                 got = model.sections["rows"][k][s]
@@ -258,7 +264,7 @@ def test_chilliwack_stream_share_and_hatchery_only(built):
                and _rid(data, r["pool"]) == "trout_char_quota.r1")
     assert row["daily"] == 2 and _rid(data, row["narrow"]) == "trout_char_quota.r4"
     assert row["scope"] == {"of": "region", "entry": "z2:trout_char_quota", "share": True,
-                            "apart": False}
+                            "apart": False, "narrow_all": True}         # rows 31: r4 binds every fish
     origin = [l for l in row["everyone"] if l["t"] == "origin"]
     assert origin and origin[0]["o"] == "wild" and origin[0]["keepO"] == "hatchery"
     rb = t["fish"]["RB"]["hatchery"]

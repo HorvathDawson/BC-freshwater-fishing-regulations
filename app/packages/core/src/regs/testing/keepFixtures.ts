@@ -61,7 +61,7 @@ export const rowOf = (o: Partial<Row>): Row => ({ kind: "keep", pool: null, win:
   everyone: [], groups: [], prot: null, wins: null, lift_notes: [], scope: null, year: [["none", 365]], ...o }) as Row;
 
 export const TROUT_ROW = rowOf({ pool: 1, daily: 4, narrow: 2, members: ["RB", "ST", "CT", "GB", "DV", "LT", "EB"],
-  all_members: ["RB", "ST", "CT", "GB", "DV", "LT", "EB"], scope: { of: "region", entry: "r2", share: true, apart: false },
+  all_members: ["RB", "ST", "CT", "GB", "DV", "LT", "EB"], scope: { of: "region", entry: "r2", share: true, apart: false, narrow_all: true },
   group: GROUP(), elsewhere: { says: "Your own limit, counted across every Region 2 stream you fish today.", ask: [] } });
 
 export function cardOf(rows: Row[], o: { line?: CardModel["line"]; R?: CardModel["R"]; status?: CardModel["status"] } = {}): CardModel {

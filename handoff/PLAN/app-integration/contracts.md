@@ -511,7 +511,7 @@ Store mapping (verified 2026-10-20 on `data/generated/bundle/regs.sqlite`, see T
 | `keep.strip.legend[].text` | `static display.strip[].label` | proto `flagLegend` 942 |
 | `keep.strip.line` | `display_frame.status`, `nextOpen` over the year | v36 `waterStrip0` 459 |
 | `keep.inherited` | `display_frame.inherited[]{says, by, caution}` + `display_rule[by].book` | v36 `inheritedHtml` 611 |
-| `keep.banner` | `display_frame.closing`, `.unless_opened`, `display_rule.plain/unless_opened`, `export.prov.rank` | v36 `closersAt` 517 / `closedBanner` 520 |
+| `keep.banner` | `display_frame.closing`, `.closers` (display 18), `.unless_opened`, `display_rule.plain/unless_opened`, `export.prov.rank` | v36 `closersAt` 517 (the pipeline's since display 18) / `closedBanner` 520 |
 | `keep.groups[].head` | `group.header`, `group.tree[0]`, `group.headline` | proto rootLine 1252–1273 |
 | `keep.groups[].tree` | `group.tree[0].children` | proto `tnode` 1246 |
 | `keep.groups[].notKept` | `group.not_kept[]` | proto `nk` 1181 |
