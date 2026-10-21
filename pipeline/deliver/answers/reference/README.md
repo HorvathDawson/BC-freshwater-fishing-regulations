@@ -24,8 +24,8 @@ or ships it. Never edit `page_v35.js`; a new page version is a new file.
 | `golden.js` | reads what the page shows for every water × part × date × fish × origin × angler profile |
 | `manifest.js` | merges the per-slice manifests |
 | `regenerate.sh` | all of the above, from the live export, into a directory you name (outside the repo) |
-| `compare.py` | the meeting point and the field-by-field diff (`test_answers_reference.py` runs it) |
-| `port.py` | the port isolated: `rows.py` on the page's own golden ladder against the page's card; every difference attributed to a documented page bug (`PAGE_BUGS`, rows.DECISIONS F1-F6) or `unexplained` |
+| `compare.py` | the meeting point and the field-by-field diff (`port.py` projects the page's card through it; `python -m …compare GOLDEN ANSWERS_DIR` diffs a `cli page-view` dump) |
+| `port.py` | the port isolated: `rows.py` on the page's own golden ladder against the page's card; every difference attributed to a documented page bug or ruling (`PAGE_BUGS`: rows.DECISIONS F1-F6, F11 and ROUND15 3) or `unexplained` |
 
 ## Running
 
@@ -33,8 +33,16 @@ or ships it. Never edit `page_v35.js`; a new page version is a new file.
 # from the repo root; node ≥ 18; no credits (nothing calls the claude CLI)
 pipeline/deliver/answers/reference/regenerate.sh /tmp/page-golden
 node pipeline/deliver/answers/reference/checks.js /tmp/page-golden/build28
-ANSWERS_GOLDEN=/tmp/page-golden/golden ANSWERS_DIR=… .venv/bin/python -m pytest pipeline/tests/test_answers_reference.py
+# the port against the page (slow + needs_bundle): makes the golden outputs itself, once per
+# export + tooling vintage, into data/generated/scratch/answers_reference/<stamp>/ (~6.5 min, 4 node
+# workers), then runs port.py on every golden card (~1 min); FAILS when the bundle, its
+# verdicts.sqlite, the export pair or node is missing
+.venv/bin/python -m pytest pipeline/tests/test_answers_reference.py -m slow
 ```
+
+The pinned test is `port.py`'s: zero `unexplained` differences, every card of the golden manifest
+read. The comparison is against **v35**, not v36: v36 renders the answers file and decides
+nothing, so comparing the answers layer with it would compare the file with itself.
 
 ## How the page is run without rewriting it
 
@@ -59,6 +67,9 @@ export's own changes since the page was built.
   decide (the Checks never run them). Its `lic` carries every via, since `licPlace` reads `contested`.
 - `splits` holds the run ends only. §1.2 also names rules' `extents[].splits`, but the page's block
   holds exactly the run ends, and `endName`'s duplicate-name test reads every split it holds.
+- A rule's `caught` condition (answers 2.3, Q38: a snagged fish is released) is handed to the
+  page as `while`: v35 predates `caught`, and read raw the snag rule (`take: 0`, ALL_FIN_FISH) is
+  an outright release of every fish in B.C. (it was `while: [snagging]` when the page was built).
 - A water's `uncertain` is the export's (absent today, so `[]`, as in the page's block).
 - Our 8 cases: remapped to the part of the case's water whose set holds every rule the case names,
   nearest by the old set's `reach` list.

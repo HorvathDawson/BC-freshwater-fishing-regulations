@@ -5,7 +5,10 @@ What differs here is the arrangement, never the ladder. v1 matched the page on e
 cards, 376,518 answers, 89,463 rows). The rows fixes (rows.DECISIONS F1-F8) correct the page where
 it contradicts the book, so the port now differs from the page EXACTLY where a documented page bug
 shows; `classify_answer` / `classify_row` attribute every difference to one, and anything else is
-`unexplained` (a port error).
+`unexplained` (a port error, or a finding about the answers layer).
+
+The rows read the STORED verdicts (`rows.open_states`), so BUNDLE needs its `verdicts.sqlite` beside
+it. `pipeline/tests/test_answers_reference.py` pins this at zero unexplained (slow, needs_bundle).
 
   python -m pipeline.deliver.answers.reference.port BUNDLE EXPORT_DIR GOLDEN_DIR [N|all]
 
@@ -35,6 +38,11 @@ PAGE_BUGS = {
     "F5": "keep bands without slots, outer size caps or the steelhead 50 cm; only the first shared "
           "cap",
     "F6": "a possession limit with a number read as a yearly limit",
+    "F11": "a count limit shared by several kinds ('3 Dolly Varden and lake trout combined') "
+           "summed per kind in the real daily limit, not given to them together",
+    "R15.3": "a rule of the winner's own row saying the very same thing shown as a second "
+             "('also') line, not as the same statement agreeing with the winner (rows.py, "
+             "ROUND15 3, owner)",
 }
 
 
@@ -52,12 +60,28 @@ def _norm_answer(a: Optional[dict]) -> Optional[dict]:
     return a
 
 
+def restated(page: Optional[dict], ours: Optional[dict]) -> Set[str]:
+    """ROUND15 3: the rules our answer has AGREE with its winner where the page says `also`."""
+    if not page or not ours:
+        return set()
+    return {r for r, v in ours["roles"].items()
+            if v == ["agrees", ours["winner"]] and page["roles"].get(r) == ["also", None]}
+
+
 def classify_answer(page: Optional[dict], ours: Optional[dict]) -> Set[str]:
     """The documented classes that explain a differing decided answer (empty: identical)."""
     if page == ours:
         return set()
-    if _norm_answer(ours) == page:
+    n = _norm_answer(ours)
+    if n == page:
         return {"F6"}
+    rs = restated(page, ours)
+    if rs:
+        for r in rs:
+            n["roles"][r] = ["also", None]
+        if n == {**page, "lines": [l for l in page["lines"]
+                                   if not (l.get("t") == "also" and l.get("r") in rs)]}:
+            return {"R15.3"} | ({"F6"} if _norm_answer(ours) != ours else set())
     return {"unexplained"}
 
 
@@ -81,13 +105,30 @@ def _norm_row(page: dict, ours: dict) -> dict:
     return o
 
 
-def classify_row(page: dict, ours: dict, full: dict) -> Set[str]:
+def _drop_also(page: dict, rules: Set[str]) -> dict:
+    """The page's row without its `also` facts for `rules` (ROUND15 3: said once, by the winner)."""
+    keep = lambda t, r: not (t == "also" and r in rules)
+    return {**page, "everyone": [l for l in page.get("everyone") or [] if keep(l[0], l[1])],
+            "groups": [[ms, fs] for ms, fs in ([ms, [f for f in fs if keep(f[0], f[1])]]
+                                               for ms, fs in page.get("groups") or []) if fs]}
+
+
+def classify_row(page: dict, ours: dict, full: dict, restated_rules: Set[str] = frozenset()
+                 ) -> Set[str]:
     """The documented classes that explain a differing row. `full` is our row as shipped (items,
-    conds, real_daily) — each class needs its own feature on the row, so a difference without
-    one stays `unexplained`."""
+    conds, real_daily); `restated_rules` the card's ROUND15 3 rules (`restated`, read on its
+    answers) — each class needs its own feature on the row, so a difference without one stays
+    `unexplained`."""
     if page == ours:
         return set()
     why: Set[str] = set()
+    if restated_rules:
+        dropped = _drop_also(page, set(restated_rules))
+        if dropped != page:
+            why.add("R15.3")
+            page = dropped
+            if page == ours:
+                return why
     o = _norm_row(page, ours)
     if o["everyone"] != ours["everyone"] or o["groups"] != ours["groups"]:
         if any(l[0] == "possession_cap" for l in ours["everyone"]) or any(
@@ -119,6 +160,8 @@ def classify_row(page: dict, ours: dict, full: dict) -> Set[str]:
                 "RB" in it["members"] and (it.get("bands") or [[0, None]])[-1][1] == 50
                 for it in full.get("items") or []):
             feats.add("F5")
+        if rd.get("shared_count"):
+            feats.add("F11")
         why |= feats or {"unexplained"}
         o["real_daily"] = page["real_daily"]
     if o != page:
@@ -126,14 +169,36 @@ def classify_row(page: dict, ours: dict, full: dict) -> Set[str]:
     return why
 
 
+def row_key(r: dict, rule_ids: list) -> tuple:
+    """Our row's key in the page's words: (kind, pool or winner rule id); the page says "nolimit"
+    where we say "no_limit" (as `cli.page_view` keys it)."""
+    kind = "nolimit" if r["kind"] == "no_limit" else r["kind"]
+    return (kind, rule_ids[r["pool"] if r["pool"] is not None else r["win"]])
+
+
+def _page_moment(moments: list):
+    """The moment the page's card is read at. The page knew no moments: a key that reads by weekday
+    or hour (answers 2.1) is read on a Monday, outside any hours window — as `cli.page_view` does;
+    a key with one moment is read at none (None)."""
+    if len(moments) == 1:
+        return None
+    for m in moments:
+        if m.weekdays & 1 and not m.inside:            # Monday = bit 0 (calendar.weekday_mask)
+            return m
+    raise ValueError(f"port: no moment holds a Monday outside the hours window: {moments}")
+
+
 def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
         only_water: Optional[str] = None) -> dict:
     """Every golden card (or a seeded sample of `n`) through rows.py on the page's own ladder."""
     from pipeline.deliver.answers import cli, common
     from pipeline.deliver.answers import rows as RW
-    B = common.load(bundle)
+    from pipeline.deliver.answers.answers import Context
     data, guide = common.load_export(Path(export_dir))
-    rule_index = common.check_export(B, data, guide)
+    # the rows read the STORED verdicts (open_states: `ctx.store`), as the answers build does
+    ctx = Context(bundle, {}, verdicts=str(Path(bundle).with_name("verdicts.sqlite")))
+    B = ctx.B
+    rule_index = ctx.rule_index = common.check_export(B, data, guide)
     keys, parts = common.part_keys(B, data)
     pk2pi = {}
     for item, w in data["waters"].items():
@@ -151,11 +216,6 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
     if n not in (None, "all"):
         random.Random(5).shuffle(recs)
         recs = recs[:int(n)]
-
-    class Ctx:
-        pass
-    ctx = Ctx()
-    ctx.B, ctx.sets, ctx.rules, ctx.bundle, ctx.cache = B, B.sets, B.rules, B.path, {}
 
     def page_ladder(rec):
         md = rec["md"]
@@ -182,18 +242,21 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
         ladder = page_ladder(rec)
         for S in rec["spp"]:
             ladder.setdefault(S, {"hatchery": {}, "wild": {}})
+        at = _page_moment(ctx.store.moments(B.key_ix[rk]))
         P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
-                    kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
+                    kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md, at), at=at)
         out = RW.refs(json.loads(json.dumps(RW.produce(P))), rule_index.__getitem__)
         stats["cards"] += 1
         if out["spp"] != rec["spp"]:
             stats["spp_differ"] += 1
+        card_restated: Set[str] = set()
         for S, a in rec["answers"].items():
             for o in ("hatchery", "wild"):
                 want = CMP._answer(a[o])
                 got = cli.decided_projection(out["fish"][S][o], data["rule_ids"])
                 stats["answers"] += 1
                 why = classify_answer(want, got)
+                card_restated |= restated(want, got)
                 for c in why:
                     classes["answer " + c] += 1
                     if len(examples["answer " + c]) < 5:
@@ -214,7 +277,7 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
                            for g in row.get("groups") or []]}
         ov, full = {}, {}
         for r in out["rows"]:
-            k = (r["kind"], data["rule_ids"][r["pool"] if r["pool"] is not None else r["win"]])
+            k = row_key(r, data["rule_ids"])
             ov[k] = cli.row_projection(r, data["rule_ids"])
             full[k] = r
         stats["rows"] += len(gv)
@@ -225,7 +288,7 @@ def run(bundle: str, export_dir: str, golden: str, n: Optional[str] = "all",
         for k in gv:
             if k not in ov:
                 continue
-            why = classify_row(gv[k], ov[k], full[k])
+            why = classify_row(gv[k], ov[k], full[k], card_restated)
             if why:
                 stats["rows_differ"] += 1
             for c in why:

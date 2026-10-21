@@ -49,6 +49,15 @@ def _slim(d: dict, keep) -> dict:
 def rule_out(r: dict) -> dict:
     y = _slim(r, RULE_KEEP)
     y["prov"] = _slim(r["provenance"], RULE_PROV_KEEP)
+    f = y.get("fields") or {}
+    if "caught" in f:
+        # v35 predates `caught` (answers 2.3, Q38): it reads a take-0 rule with no condition it
+        # knows as an outright release. `while` is the page's word for a condition on the catch
+        # (its `n.release` test); the snag rule was `while: [snagging]` when the page was built.
+        if "while" in f:
+            raise ValueError(f"convert: {r.get('entry_id')}::{r.get('rule_id')} holds both "
+                             "`caught` and `while`; the page has one word for both")
+        y["fields"] = {("while" if k == "caught" else k): v for k, v in f.items()}
     return y
 
 
