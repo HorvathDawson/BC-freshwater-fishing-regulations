@@ -15,7 +15,7 @@ import type { Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
                           hint, data, highlight, marker, pins, bare, groups, fit,
-                          basemap, style }: {
+                          basemap, style, trace, zoomControls }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;
   data?: Record<string, Record<string, Record<string, unknown>>>;
@@ -30,6 +30,10 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   /** Send the camera to a subject — the search map opens on the best match. */
   fit?: MapProps["fit"];
   basemap?: MapProps["basemap"];
+  /** The route overlay — see MapProps.trace. */
+  trace?: MapProps["trace"];
+  /** Zoom buttons on a bare map — see MapProps.zoomControls. */
+  zoomControls?: boolean;
   /** Replaces the fixed height — e.g. `{ flexGrow: 1 }` to take what the list leaves. */
   style?: object;
 }) {
@@ -38,7 +42,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
                   { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
-           fit={fit} basemap={basemap} />
+           fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,
                        paddingVertical: 7, paddingHorizontal: 13,

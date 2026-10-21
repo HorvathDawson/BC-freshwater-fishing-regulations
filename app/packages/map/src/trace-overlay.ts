@@ -1,0 +1,189 @@
+/**
+ * THE ROUTE OVERLAY — how the gauges reach the place being read, drawn over the map.
+ *
+ * Owner 2026-10-21, on the Conditions map:
+ *
+ *   · UPSTREAM AND DOWNSTREAM APART. A gauge downstream of you is drawn SOLID along the
+ *     water from you to it; a gauge upstream DASHED, from it down to you. Both in the
+ *     donor's own tone, so a route, its gauge's dot and its row in the panel are one colour.
+ *   · YOU ARE HERE IS A DIFFERENT SHAPE. Gauges are round dots; the spot is a pin
+ *     (`here-mark.ts`) in the accent, with its words under it.
+ *   · EACH GAUGE SAYS WHAT IT CONTRIBUTES — its share of the estimate ("62%") in a label
+ *     beside the dot. The words are handed in finished (from `donorShare`, the panel's own),
+ *     never computed here. Labels take whichever side is free (`text-variable-anchor-offset`)
+ *     and the heaviest gauge places first (`symbol-sort-key`), so a crowded valley moves a
+ *     label rather than drawing two on top of each other.
+ *   · IT DRAWS AT EVERY ZOOM, because its lines are copied out of the tiles once
+ *     (`trace-geometry.ts`) instead of being lit on whatever the current zoom's tile holds.
+ *
+ * Runtime GeoJSON sources, like the gauges: the style declares them empty and the adapter's
+ * `setTrace` fills them (both renderers, one contract). Colours come from the theme's tokens
+ * or, for a donor's tone, from the feature (the app's palette, itself built from tokens).
+ */
+import { resolveTheme } from "./style";
+import type { TraceCollection, TraceRoute } from "./trace-geometry";
+
+export const TRACE_SOURCE = "trace";
+export const TRACE_PINS_SOURCE = "trace-pins";
+export const HERE_IMAGE = "trace-here";
+
+/** A marked point on the route map. */
+export interface TracePin {
+  lat: number;
+  lon: number;
+  /** A gauge's dot, or the spot's pin. */
+  kind: "here" | "gauge";
+  /** A gauge's donor tone; the spot's is the accent and ignores this. */
+  tone: string;
+  /** Drawn beside it: a gauge's share ("62%"), the spot's words. Null draws no label. */
+  label: string | null;
+  /** 0 is the heaviest gauge: places its label first. */
+  rank: number;
+}
+
+/** What a screen hands the map: the routes to copy out of the tiles, and the pins. */
+export interface TraceProp {
+  /** Changes when the routes do — the overlay is refetched on a new key and at no other time. */
+  key: string;
+  routes: readonly TraceRoute[];
+  pins: readonly TracePin[];
+}
+
+export const EMPTY_TRACE: TraceCollection = { type: "FeatureCollection", features: [] };
+
+export interface PinCollection {
+  type: "FeatureCollection";
+  features: { type: "Feature";
+              properties: { kind: TracePin["kind"]; tone: string; rank: number; label?: string };
+              geometry: { type: "Point"; coordinates: [number, number] } }[];
+}
+
+/** The pins as GeoJSON. A null label is LEFT OUT, so the label layers' `has` skips it. */
+export function pinCollection(pins: readonly TracePin[]): PinCollection {
+  return {
+    type: "FeatureCollection",
+    features: pins.map(({ lat, lon, label, kind, tone, rank }) => ({
+      type: "Feature",
+      properties: label === null ? { kind, tone, rank } : { kind, tone, rank, label },
+      geometry: { type: "Point", coordinates: [lon, lat] },
+    })),
+  };
+}
+
+/**
+ * The theme-dependent paint of every overlay layer — written into the style on the first
+ * frame and re-applied on a theme change (the style is not rebuilt for one).
+ */
+export function tracePaint(theme: string): Record<string, Record<string, unknown>> {
+  const t = resolveTheme(theme);
+  const paper = t["color.outside"] as string;
+  const ink = t["color.ui.ink"] as string;
+  return {
+    "trace-casing": { "line-color": paper },
+    "trace-arrows": { "text-color": ["get", "tone"], "text-halo-color": paper },
+    "trace-gauge-halo": { "circle-color": ink },
+    "trace-gauge": { "circle-color": ["get", "tone"], "circle-stroke-color": paper },
+    "trace-here-label": { "text-color": t["color.ui.accent"] as string, "text-halo-color": paper },
+    "trace-label": { "text-color": ink },
+  };
+}
+
+/** The overlay's layer ids, in draw order. */
+export const TRACE_LAYER_IDS = ["trace-area", "trace-casing", "trace-down", "trace-up",
+  "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
+
+/** Line width over zoom: present but quiet at a province, a clear ribbon at a valley. */
+const width = (k: number) => ["interpolate", ["linear"], ["zoom"], 5, 2.2 * k, 10, 3.6 * k, 14, 5 * k];
+
+/**
+ * The overlay's layers. Appended LAST to the style, so the route and its marks sit on top
+ * of every river and every gauge dot — at a zoom where the Conditions view stands the
+ * rivers down, the overlay is the only water drawn, which is the point.
+ */
+export function traceLayers(theme: string):
+    { id: string; type: string; source: string; [k: string]: unknown }[] {
+  const p = tracePaint(theme);
+  const line = (kind: string) => ["==", ["get", "kind"], kind];
+  return [
+    // A lake (or a stream drawn as a polygon) the route passes through: a wash of its tone.
+    { id: "trace-area", type: "fill", source: TRACE_SOURCE,
+      filter: line("area"),
+      paint: { "fill-color": ["get", "tone"], "fill-opacity": 0.3 } },
+    // The paper under every route line, so a tone reads over water, land and imagery alike.
+    { id: "trace-casing", type: "line", source: TRACE_SOURCE,
+      filter: line("line"),
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { ...p["trace-casing"], "line-width": width(1.9), "line-opacity": 0.92 } },
+    // A GAUGE DOWNSTREAM: your water flows on to it — solid.
+    { id: "trace-down", type: "line", source: TRACE_SOURCE,
+      filter: ["all", line("line"), ["==", ["get", "role"], "down"]],
+      layout: { "line-cap": "round", "line-join": "round", "line-sort-key": ["get", "order"] },
+      paint: { "line-color": ["get", "tone"], "line-width": width(1) } },
+    // A GAUGE UPSTREAM: its water flows down to you — dashed.
+    { id: "trace-up", type: "line", source: TRACE_SOURCE,
+      filter: ["all", line("line"), ["==", ["get", "role"], "up"]],
+      layout: { "line-cap": "butt", "line-join": "round", "line-sort-key": ["get", "order"] },
+      paint: { "line-color": ["get", "tone"], "line-width": width(1),
+               "line-dasharray": [1.4, 1] } },
+    /*
+     * WHICH WAY THE WATER GOES — as on the atlas's own `route-arrows`: FWA lines run mouth
+     * to source, so the line's direction points UPSTREAM and the glyph is turned round to
+     * point downstream; `keep-upright: false` stops MapLibre flipping it back.
+     */
+    { id: "trace-arrows", type: "symbol", source: TRACE_SOURCE,
+      filter: line("line"),
+      layout: { "symbol-placement": "line", "symbol-spacing": 90, "text-field": "▲",
+                "text-font": ["Noto Sans Medium"], "text-size": 10, "text-rotate": 180,
+                "text-keep-upright": false, "text-allow-overlap": true,
+                "text-ignore-placement": true, "text-rotation-alignment": "map" },
+      paint: { ...p["trace-arrows"], "text-halo-width": 1.2 } },
+    /*
+     * A FAINT INK RING under every dot. The paper ring alone vanishes on a dark map, and a
+     * quiet gauge's tone is the palette's dark grey there — a dot drawn in the map's own
+     * colours. The ink ring is the one edge that contrasts with the map in either theme.
+     */
+    { id: "trace-gauge-halo", type: "circle", source: TRACE_PINS_SOURCE,
+      filter: ["==", ["get", "kind"], "gauge"],
+      paint: { ...p["trace-gauge-halo"], "circle-radius": 10.5, "circle-opacity": 0.6 } },
+    // EVERY GAUGE A ROUND DOT in its donor tone.
+    { id: "trace-gauge", type: "circle", source: TRACE_PINS_SOURCE,
+      filter: ["==", ["get", "kind"], "gauge"],
+      paint: { ...p["trace-gauge"], "circle-radius": 7, "circle-stroke-width": 2.5 } },
+    // ITS SHARE beside it, on whichever side is free; the heaviest places first.
+    { id: "trace-label", type: "symbol", source: TRACE_PINS_SOURCE,
+      filter: ["all", ["==", ["get", "kind"], "gauge"], ["has", "label"]],
+      layout: {
+        "text-field": ["get", "label"], "text-font": ["Noto Sans Medium"], "text-size": 12.5,
+        "symbol-sort-key": ["get", "rank"],
+        "text-variable-anchor-offset": ["literal", ["left", [1.1, 0], "right", [-1.1, 0],
+                                                    "top", [0, 0.95], "bottom", [0, -0.95]]],
+        "icon-image": "gauge-pill", "icon-text-fit": "both",
+        "icon-text-fit-padding": [3, 7, 3, 7],
+        "text-allow-overlap": false, "icon-allow-overlap": false,
+        // The share is the point of the label: other labels on the map yield to it.
+        "text-ignore-placement": false,
+      },
+      paint: { ...p["trace-label"] } },
+    // YOU ARE HERE: a pin standing on the place, its words beneath.
+    { id: "trace-here", type: "symbol", source: TRACE_PINS_SOURCE,
+      filter: ["==", ["get", "kind"], "here"],
+      layout: { "icon-image": HERE_IMAGE, "icon-anchor": "bottom",
+                "icon-allow-overlap": true,
+                // It still TAKES its place: the gauges' labels move off the pin, not under it.
+                "icon-ignore-placement": false } },
+    { id: "trace-here-label", type: "symbol", source: TRACE_PINS_SOURCE,
+      filter: ["all", ["==", ["get", "kind"], "here"], ["has", "label"]],
+      layout: { "text-field": ["get", "label"], "text-font": ["Noto Sans Medium"],
+                "text-size": 12, "text-anchor": "top", "text-offset": [0, 0.35],
+                "text-optional": true },
+      paint: { ...p["trace-here-label"], "text-halo-width": 1.6 } },
+  ];
+}
+
+/** The overlay's sources, declared empty: the adapter fills them. */
+export function traceSources(): Record<string, unknown> {
+  return {
+    [TRACE_SOURCE]: { type: "geojson", data: EMPTY_TRACE },
+    [TRACE_PINS_SOURCE]: { type: "geojson", data: pinCollection([]) },
+  };
+}

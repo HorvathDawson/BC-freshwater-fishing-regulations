@@ -13,10 +13,12 @@
  * `@app/core/trace`; this file only lays them out.
  */
 import { Text, View } from "react-native";
-import { distanceWord, onTheReach, reachCount, routeCamera, shareWord, traceSentence,
-         tracePath, trustWord, type AnyTrace as Trace } from "@app/core";
+import { CONDITIONS_WORDS, distanceWord, hereMapLabel, onTheReach, reachCount, routeCamera,
+         shareWord, traceSentence, tracePath, trustWord,
+         type AnyTrace as Trace } from "@app/core";
 import type { TileEndpoints } from "@app/map";
 import { MiniMap } from "./MiniMap";
+import { DotGlyph, HereGlyph } from "./DonorMap";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -78,23 +80,42 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
                  // the pixels this map exists to spend on the route.
                  groups={{ water: true, admin: false, protected: false, access: false,
                            ownership: false, depth: false }}
-                 pins={[
-                   // TWO ENDS, TWO COLOURS, and each says which it is when tapped. One
-                   // marker on a route map is worse than none: the reader cannot tell
-                   // whether the dot is where they are or where the gauge is.
-                   ...(from ? [{ lat: from.lat, lon: from.lon, tone: palette.accent,
-                                 title: "you are here" }] : []),
-                   ...(trace.lat !== null && trace.lon !== null
-                     ? [{ lat: trace.lat, lon: trace.lon, tone: palette.live,
-                          title: trace.stationName ?? trace.station ?? "the gauge" }]
-                     : []),
-                 ]}
+                 zoomControls
+                 /*
+                  * TWO ENDS, TWO SHAPES (owner 2026-10-21): the spot a pin, the gauge a dot,
+                  * on the route overlay — whose line is copied out of the tiles so it still
+                  * draws when the camera is too far out for the atlas to carry the reach.
+                  * The water drains THROUGH this station, so the route is a downstream one.
+                  */
+                 trace={{
+                   key: tracePath(trace).join(","),
+                   routes: trace.lat !== null && trace.lon !== null && tracePath(trace).length
+                     ? [{ role: "down", tone: palette.live, path: tracePath(trace),
+                          from: from ? { lat: from.lat, lon: from.lon } : null,
+                          to: { lat: trace.lat, lon: trace.lon } }]
+                     : [],
+                   pins: [
+                     ...(trace.lat !== null && trace.lon !== null
+                       ? [{ lat: trace.lat, lon: trace.lon, kind: "gauge" as const,
+                            tone: palette.live, label: trace.station, rank: 0 }]
+                       : []),
+                     ...(from ? [{ lat: from.lat, lon: from.lon, kind: "here" as const,
+                                   tone: palette.accent, label: hereMapLabel(), rank: -1 }]
+                       : []),
+                   ],
+                 }}
                  />
       )}
       {at && theme && camera && (
         <View style={{ flexDirection: "row", gap: SPACE.s4, marginTop: -SPACE.s1 }}>
-          {from && <Dot palette={palette} tone={palette.accent} label="you are here" />}
-          <Dot palette={palette} tone={palette.live} label="the gauge" />
+          {from && (
+            <Dot palette={palette} label={CONDITIONS_WORDS.youAreHere}>
+              <HereGlyph fill={palette.accent} edge={palette.card} />
+            </Dot>
+          )}
+          <Dot palette={palette} label="the gauge">
+            <DotGlyph tone={palette.live} edge={palette.card} />
+          </Dot>
         </View>
       )}
 
@@ -125,11 +146,13 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
 }
 
 
-/** One entry in the route map's key — a coloured dot and what it means. */
-function Dot({ palette, tone, label }: { palette: Palette; tone: string; label: string }) {
+/** One entry in the route map's key — the mark as the map draws it, and what it means. */
+function Dot({ palette, label, children }: {
+  palette: Palette; label: string; children: React.ReactNode;
+}) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1 }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
+      {children}
       <Text style={{ ...TYPE.meta, color: palette.sub }}>{label}</Text>
     </View>
   );

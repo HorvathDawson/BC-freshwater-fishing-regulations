@@ -18,6 +18,7 @@
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
 import { paintFor } from "./adapters/contract";
+import { traceLayers, traceSources } from "./trace-overlay";
 
 export interface TileEndpoints {
   /** Where the two archives are served from, with byte-range support. */
@@ -271,6 +272,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
               prop,
             ])),
       },
+      // THE ROUTE OVERLAY's two sources, empty until a panel fills them — see trace-overlay.ts.
+      ...traceSources(),
     },
     layers: [
       /**
@@ -586,6 +589,12 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
             "text-color": resolveTheme(theme)["color.gauge.dot"] as string,
           } },
       ] : []),
+      /*
+       * THE ROUTE OVERLAY, LAST OF ALL — over every river and every gauge dot. Present in
+       * every view and empty unless a route map fills it (`setTrace`), so declaring it costs
+       * a frame nothing and a route never needs the style rebuilt to appear.
+       */
+      ...traceLayers(theme),
     ],
   };
 }

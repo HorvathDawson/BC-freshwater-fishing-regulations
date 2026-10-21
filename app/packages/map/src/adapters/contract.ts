@@ -7,6 +7,8 @@
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
 import type { SectionKey } from "@app/core";
+import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
+import type { TraceCollection } from "../trace-geometry";
 import {
   MAP_STYLE, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
   resolveTheme, type Tokens,
@@ -20,6 +22,11 @@ export interface MapHandle {
   setPaint(layerId: string, prop: string, value: unknown): void;
   setFeatureState(layerId: string, featureId: SectionKey, state: Record<string, unknown>): void;
   clearFeatureStates(layerId: string): void;
+  /**
+   * Replace a runtime GeoJSON source's contents (the route overlay). Optional so a handle
+   * built for one job (a highlight, the basemap switch) need not stub it.
+   */
+  setSourceData?(sourceId: string, data: unknown): void;
 }
 
 export interface MapAdapter {
@@ -53,6 +60,13 @@ export interface MapAdapter {
   setBasemap(h: MapHandle, kind: "map" | "satellite"): void;
   /** Push the per-feature data a colour mode reads (status, discharge, …). */
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
+  /**
+   * THE ROUTE OVERLAY (owner 2026-10-21): the routes' lines, copied out of the tiles by
+   * `traceOverlay` (the shared helper both renderers call), and the pins. `lines` null
+   * leaves the drawn lines as they are — the pins land at once and the lines follow when
+   * their tiles are read. On the contract so the native map owes the same overlay.
+   */
+  setTrace(h: MapHandle, pins: readonly TracePin[], lines: TraceCollection | null): void;
 }
 
 /** The MapLibre paint property that carries colour, per layer type. */
@@ -344,6 +358,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       if (!STYLE_META.colorModes[layerId]) throw new Error(`unknown layer "${layerId}"`);
       for (const [featureId, state] of Object.entries(values))
         h.setFeatureState(layerId, featureId, state);
+    },
+
+    setTrace(h, pins, lines) {
+      h.setSourceData?.(TRACE_PINS_SOURCE, pinCollection(pins));
+      if (lines) h.setSourceData?.(TRACE_SOURCE, lines);
     },
   };
 }

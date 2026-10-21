@@ -29,6 +29,10 @@ import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
          unionBbox, type Bbox } from "@app/core";
+import type { MapHandle } from "./adapters/contract";
+import { hereImage } from "./here-mark";
+import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
+import { collectionBbox, traceOverlay } from "./trace-geometry";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -91,13 +95,33 @@ function whenStyled(m: maplibregl.Map, fn: () => void): () => void {
   return () => { m.off("styledata", h); m.off("load", h); };
 }
 
+/**
+ * Run `fn` once the route overlay's sources exist — now, almost always.
+ *
+ * NOT `whenStyled`: a GeoJSON source takes `setData` whenever it exists, and
+ * `isStyleLoaded()` is false for as long as ANY tile is loading — a route map whose lines
+ * arrived mid-burst waited for a `styledata` that a settled map never sends again, and the
+ * route was never drawn (measured: the pins landed, the lines did not).
+ */
+function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
+  if (m.getSource("trace")) { fn(); return () => {}; }
+  const h = () => {
+    if (!m.getSource("trace")) return;
+    m.off("styledata", h);
+    fn();
+  };
+  m.on("styledata", h);
+  return () => { m.off("styledata", h); };
+}
+
 /** The layers a searched water can be drawn in — what `fit.refine` measures. */
 const WATER_LAYERS = ["stream", "lake", "wetland"] as const;
 
 export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
-                      gauges, onVisible, pins, bare, fit, basemap }: MapProps) {
+                      gauges, onVisible, pins, bare, fit, basemap, trace,
+                      zoomControls }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef(baseAdapter("web"));
@@ -171,10 +195,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
      * actually worth writing.
      */
     // See MapProps.bare — an illustration, not something you drive.
-    if (!bare)
+    // A bare map may still ask for the zoom buttons (`zoomControls`) — never the compass.
+    if (!bare || zoomControls)
       m.addControl(new maplibregl.NavigationControl({
         // the compass turns the map when dragged; with rotation off north is always up (G1)
-        showCompass: compassShown(), visualizePitch: false,
+        showCompass: compassShown() && !bare, visualizePitch: false,
       }), "top-right");
     /*
      * BOTTOM-RIGHT, above the attribution.
@@ -228,10 +253,15 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
         if (m.hasImage(id)) m.removeImage(id);
         m.addImage(id, img2 as unknown as ImageData, { pixelRatio: img2.pixelRatio });
       }
+      // AND THE "YOU ARE HERE" PIN of the route overlay — the accent on this theme's paper.
+      const here = hereImage(colour(theme, "color.ui.accent"), colour(theme, "color.outside"));
+      if (m.hasImage(HERE_IMAGE)) m.removeImage(HERE_IMAGE);
+      m.addImage(HERE_IMAGE, here as unknown as ImageData, { pixelRatio: here.pixelRatio });
     };
     pill.current = addPill;
     m.on("styleimagemissing", (e: { id: string }) => {
-      if (e.id === "gauge-pill" || e.id.endsWith("-hatch")) pill.current?.();
+      if (e.id === "gauge-pill" || e.id === HERE_IMAGE || e.id.endsWith("-hatch"))
+        pill.current?.();
     });
     m.on("load", addPill);
     map.current = m;
@@ -346,6 +376,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       if (m.getLayer("gauge-dot"))
         m.setPaintProperty("gauge-dot", "circle-color",
                            gaugeDotColour(theme, (modes ?? {}).gauges) as never);
+      // The route overlay's paper and ink, likewise runtime layers outside the catalogue.
+      for (const [id, paint] of Object.entries(tracePaint(theme)))
+        if (m.getLayer(id))
+          for (const [prop, value] of Object.entries(paint))
+            m.setPaintProperty(id, prop as never, value as never);
       for (const [id, mode] of Object.entries(modes ?? {})) {
         if (!m.getLayer(id)) continue;
         try { adapter.current.setLayerMode(handle, id, mode, theme); }
@@ -492,6 +527,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   lit.current = highlight;
   /** Re-frame the current subject after the container changed size — unless the reader has moved off it. */
   const refit = useRef<(() => void) | null>(null);
+  /** The drawn route overlay's extent, once its tiles are in — see the trace effects below. */
+  const traceBox = useRef<Bbox | null>(null);
   useEffect(() => {
     const m = map.current;
     if (!m || !fit) return;
@@ -513,7 +550,12 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
                   { padding: Math.max(pad, 8), maxZoom: MAX_ZOOM, duration: 450 });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
-    if (fit.bbox) go(fit.bbox);
+    // A route overlay already drawn is part of the subject: "fit" frames the routes' own
+    // shapes as well as their ends, so a river that bends outside its gauges stays on screen.
+    const withTrace = (b: Bbox | null) =>
+      (traceBox.current ? unionBbox(b, traceBox.current) : b);
+    const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
+    if (first) go(first);
     if (!fit.refine) return done;
     const measure = () => {
       if (!alive) return;
@@ -568,6 +610,59 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     if (!done) m.on("styledata", apply);
     return () => { m.off("styledata", apply); };
   }, [gauges]);
+
+  /**
+   * THE ROUTE OVERLAY — see `trace-overlay.ts` and `trace-geometry.ts`.
+   *
+   * TWO EFFECTS, two lifetimes. The LINES are copied out of the atlas tiles when the routes
+   * change (`trace.key`) and at no other time — a horizon change re-labels the gauges and
+   * must not refetch a single tile. The PINS follow every change of their own content (a
+   * share moves with the horizon), and land at once: the reader sees where the gauges are
+   * while their routes are still being read.
+   */
+  const traceHandle = (m: maplibregl.Map): MapHandle => ({
+    setVisibility: () => {}, setPaint: () => {}, setFeatureState: () => {},
+    clearFeatureStates: () => {},
+    setSourceData: (id, d) =>
+      (m.getSource(id) as { setData?: (x: unknown) => void } | undefined)?.setData?.(d),
+  });
+  const tracePins = useRef(trace?.pins ?? []);
+  tracePins.current = trace?.pins ?? [];
+  const pinKey = JSON.stringify(trace?.pins ?? []);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    return whenTraced(m, () =>
+      adapter.current.setTrace(traceHandle(m), tracePins.current, null));
+  }, [pinKey]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    let alive = true;
+    traceBox.current = null;
+    // The previous route goes the moment the subject changes, never lingering under a new one.
+    // ONE PENDING WRITE AT A TIME: a clear still waiting on `styledata` when the lines arrive
+    // must be cancelled, or it fires afterwards and wipes the route it was clearing the way for.
+    let pending = whenTraced(m, () =>
+      adapter.current.setTrace(traceHandle(m), tracePins.current, EMPTY_TRACE));
+    const routes = (trace?.routes ?? []).filter((r) => r.path.length > 0);
+    if (routes.length) {
+      traceOverlay(at.atlas, routes).then(({ fc, missing, fetched, tiles, ms }) => {
+        if (!alive) return;
+        traceBox.current = collectionBbox(fc);
+        pending();
+        pending = whenTraced(m, () =>
+          adapter.current.setTrace(traceHandle(m), tracePins.current, fc));
+        // Development only: the measured cost, for the record and for the screenshots' README.
+        if (typeof __DEV__ !== "undefined" && __DEV__)
+          ((globalThis as { __traceCost?: unknown[] }).__traceCost ??= []).push(
+            { key: trace?.key, sections: new Set(routes.flatMap((r) => r.path)).size,
+              missing: missing.length, fetched, tiles, ms, features: fc.features.length });
+      }).catch((e) => onError?.(e instanceof Error ? e : new Error(String(e))));
+    }
+    return () => { alive = false; pending(); };
+  }, [trace?.key, at.atlas]);
 
   // Held in a ref so a caller passing an inline arrow cannot make this effect thrash: the
   // listener registers once and reads the latest callback when it fires.

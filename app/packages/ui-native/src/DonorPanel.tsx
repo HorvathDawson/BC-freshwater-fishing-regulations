@@ -43,12 +43,9 @@ import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import type { TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
 import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer } from "@app/ui";
-import { MiniMap } from "./MiniMap";
+import { DonorMap, routeMapHeight } from "./DonorMap";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
-
-/** The route map's height. Read by the camera as well as by the map, so they agree. */
-const MAP_H = 210;
 
 /** The bullet's inset, so a row's detail lines align under its name and not its dot. */
 const INSET = 9 + SPACE.s2;
@@ -115,6 +112,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * column, and the camera has to know which axis is the tight one.
    */
   const [mapWidth, setMapWidth] = useState(360);
+  // The route map's height, read by the camera as well as by the map so they agree — see
+  // `routeMapHeight` (the conditions map owns it, with the "Larger map" switch).
+  const [larger, setLarger] = useState(false);
+  const mapH = routeMapHeight(mapWidth, larger);
   const onMapLayout = (e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0 && w !== mapWidth) setMapWidth(w);
@@ -127,7 +128,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   };
   const wide = width >= WIDE_PANEL;
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
-                                   size: { width: mapWidth, height: MAP_H },
+                                   size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect });
 
   if (!vm.ok) {
@@ -194,27 +195,13 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         {/* THE MAP WAITS FOR THE ROUTES (`map` is null until they are in): a MapLibre map
             reads its opening camera once, on mount, and a map mounted early stays framed on
             the tap alone. Keyed on the camera for the same reason. */}
+        {/* THE ROUTE MAP and its key — `DonorMap` (owner 2026-10-21: routes up and down
+            apart, the spot its own pin, each gauge's share on the map, zoom and fit). */}
         {at && theme && map && (
-          <View style={{ gap: SPACE.s2, marginBottom: SPACE.s2 }}>
-            <MiniMap key={map.key}
-                     at={at} palette={palette} theme={theme} camera={map.camera} height={MAP_H}
-                     bare view="conditions" highlight={chainProp ?? map.chain} data={data}
-                     /* WATER ONLY: at 210 px every other layer competes for the same pixels. */
-                     groups={{ water: true, admin: false, protected: false, access: false,
-                               ownership: false, depth: false }}
-                     pins={map.pins.map((p) => ({ lat: p.lat, lon: p.lon, tone: toneOf(p.row),
-                                                  title: p.title }))}
-                     />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: SPACE.s3,
-                           rowGap: SPACE.s1 }}>
-              {map.keys.map((k) => (
-                <Key key={k.label} palette={palette} tone={toneOf(k.row)} label={k.label} />
-              ))}
-            </View>
-            {/* A DONOR WITH NO ROUTE IS SAID SO, not quietly dropped from the key. */}
-            {map.unplaced && (
-              <Text style={{ ...TYPE.meta, color: palette.faint }}>{map.unplaced}</Text>
-            )}
+          <View style={{ marginBottom: SPACE.s2 }}>
+            <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
+                      height={mapH} larger={larger} onLarger={setLarger}
+                      highlight={chainProp ?? map.chain} data={data} />
           </View>
         )}
 
@@ -393,12 +380,3 @@ export function Fold({ palette, children }: { palette: Palette; children: ReactN
   );
 }
 
-/** One entry in the map's key — a coloured dot and what it means. */
-function Key({ palette, tone, label }: { palette: Palette; tone: string; label: string }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1 }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
-      <Text style={{ ...TYPE.meta, color: palette.sub }}>{label}</Text>
-    </View>
-  );
-}

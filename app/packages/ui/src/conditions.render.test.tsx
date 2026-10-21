@@ -115,7 +115,9 @@ describe("donorView", () => {
     expect(vm.regulated).not.toBeNull();
   });
 
-  it("places the donors, absorbing 'you are here' into a gauge at the spot", () => {
+  it("places the donors, and marks the spot with its own pin even at a gauge", () => {
+    // Owner 2026-10-21: the spot is a different SHAPE from a gauge, so a gauge at the spot no
+    // longer absorbs it — the gauge keeps the "you are here" words on its own title.
     const route = (station: string, lat: number | null) => ({
       station: station as never, name: "VEDDER", lat, lon: lat === null ? null : -122,
       role: "up" as const, path: ["a", "b"] as never });
@@ -124,11 +126,45 @@ describe("donorView", () => {
     const vm = donorView(v, { ...opts, from: { lat: 49, lon: -122 } });
     if (!vm.ok || !vm.map) throw new Error("expected a map");
     expect(vm.map.pins).toEqual([
-      { lat: 49, lon: -122, row: 0, title: donorPinTitle(v.rows[0]!, true) },
+      { lat: 49, lon: -122, row: 0, kind: "gauge", title: donorPinTitle(v.rows[0]!, true),
+        label: "60%", rank: 0 },
+      { lat: 49, lon: -122, row: null, kind: "here", title: "you are here",
+        label: "you are here", rank: -1 },
     ]);
-    expect(vm.map.keys).toEqual([{ row: 0, label: donorKeyLabel(v.rows[0]!, true) }]);
+    expect(vm.map.keys).toEqual([{ row: null, label: "you are here" },
+                                 { row: 0, label: "08MH001 · 60%" }]);
     expect(vm.map.unplaced).toBe(unplacedNote(1));
     expect(vm.map.chain).toEqual(["a", "b"]);
+  });
+
+  it("hands the overlay each placed donor's route, its role, and both ends", () => {
+    const route = (station: string, lat: number, role: "up" | "down", path: string[]) => ({
+      station: station as never, name: null, lat, lon: -121.5, role, path: path as never });
+    const v = value({ rows: [
+      row("08MH001", { route: route("08MH001", 49.2, "up", ["s", "a"]) }),
+      row("08MH024", { weight: 0.4, role: "down", percentile: null,
+                       route: route("08MH024", 49.0, "down", ["s", "b", "c"]) }),
+      // Placed but with no walkable chain: a dot, no line, no key line for its role.
+      row("08MF005", { weight: 0, route: { ...route("08MF005", 49.1, "up", []) } }),
+    ] });
+    const vm = donorView(v, { ...opts, from: { lat: 49.1, lon: -122 } });
+    if (!vm.ok || !vm.map) throw new Error("expected a map");
+    expect(vm.map.routes).toEqual([
+      { row: 0, role: "up", path: ["s", "a"], from: { lat: 49.1, lon: -122 },
+        to: { lat: 49.2, lon: -121.5 } },
+      { row: 1, role: "down", path: ["s", "b", "c"], from: { lat: 49.1, lon: -122 },
+        to: { lat: 49.0, lon: -121.5 } },
+    ]);
+    expect(vm.map.legend).toEqual([
+      { role: "down", label: "gauge downstream: your water flows on to it" },
+      { role: "up", label: "gauge upstream: its water flows down to you" },
+    ]);
+    // The share on the map is the panel's: a quiet gauge says so, it never reads "0%".
+    expect(vm.map.pins.map((p) => p.label))
+      .toEqual(["60%", "not reporting", "0%", "you are here"]);
+    expect(vm.map.bbox).toEqual([-122, 49.0, -121.5, 49.2]);
+    expect(vm.map.words).toEqual({ fit: "Fit", fitLabel: "Fit the map to you and the gauges",
+                                   larger: "Larger map", smaller: "Smaller map" });
   });
 
   it("has no map until the routes are in", () => {

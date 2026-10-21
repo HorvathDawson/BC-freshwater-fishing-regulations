@@ -25,3 +25,6 @@ export { colour, amount, translucent, mapChrome } from "./chrome";
 /** G1: the one gesture policy as each renderer's switches (`Map.web.tsx` now; `Map.native.tsx` at N1). */
 export { maplibreGestures, nativeMapGestures, touchRotation,
          type MaplibreGestureOptions, type NativeMapGestureProps } from "./gestures";
+/** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */
+export { type TracePin, type TraceProp } from "./trace-overlay";
+export { traceOverlay, type TraceRoute } from "./trace-geometry";

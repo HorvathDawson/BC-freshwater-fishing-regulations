@@ -1,0 +1,46 @@
+/**
+ * The words ON and UNDER the route map — how the gauges reach the place being read.
+ *
+ * Owner 2026-10-21: upstream and downstream gauges drawn apart, with a key that says which
+ * is which; each gauge's share of the estimate on the map itself; a map you can zoom, pan
+ * and fit back. The shares are `donorShare` — the panel's own words for the same number —
+ * so the map and the rows under it cannot disagree about what a gauge contributed.
+ */
+import { CONDITIONS_WORDS, donorShare, type DonorFacts } from "./conditions";
+
+export const ROUTE_MAP_WORDS = {
+  /** The key's two line samples. Role is where the GAUGE sits (`PanelRoute.role`). */
+  down: "gauge downstream: your water flows on to it",
+  up: "gauge upstream: its water flows down to you",
+  /** Beside a gauge that is not reporting — it counts for nothing today. */
+  quiet: "not reporting",
+  fit: "Fit",
+  fitLabel: "Fit the map to you and the gauges",
+  larger: "Larger map",
+  smaller: "Smaller map",
+} as const;
+
+/** What a gauge's dot says on the map: its share of the estimate, or that it is quiet. */
+export function donorMapLabel(r: Pick<DonorFacts, "weight" | "percentile">): string {
+  return r.percentile === null ? ROUTE_MAP_WORDS.quiet : donorShare(r);
+}
+
+/** A gauge's entry in the map's key: its station and the same words its dot carries. */
+export function donorMapKey(r: Pick<DonorFacts, "station" | "weight" | "percentile">): string {
+  return `${r.station} · ${donorMapLabel(r)}`;
+}
+
+/** The spot's own label on the map — the same words as its key entry. */
+export const hereMapLabel = (): string => CONDITIONS_WORDS.youAreHere;
+
+/**
+ * The key's line entries for the roles actually drawn — downstream first (the water you are
+ * standing in goes there), and nothing for a role no route has: a key entry with no line on
+ * the map is a promise the map does not keep.
+ */
+export function routeLegend(roles: readonly ("up" | "down")[]):
+    { role: "up" | "down"; label: string }[] {
+  const has = new Set(roles);
+  return (["down", "up"] as const).filter((r) => has.has(r))
+    .map((role) => ({ role, label: ROUTE_MAP_WORDS[role] }));
+}

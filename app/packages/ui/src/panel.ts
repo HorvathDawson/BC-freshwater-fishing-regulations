@@ -21,6 +21,8 @@ import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel
          readingAgeLine, readingHeading, readingStandingLine, regulatedNote, SAME_PLACE_M,
          shortRecordNote, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
          type Standing } from "@app/core";
+import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
+         routeLegend } from "@app/core";
 import { useAsync } from "./async";
 import { useConditions, useGaugeTrace, useStationReading } from "./hooks";
 
@@ -373,9 +375,28 @@ export interface DonorRowVM {
   label: string;
 }
 
-/** A pin or key entry: `row` is the donor's index, null for "you are here". */
-export interface DonorPinVM { lat: number; lon: number; row: number | null; title: string }
+/**
+ * A mark on the route map: `row` is the donor's index, null for "you are here".
+ *
+ * `kind` is the SHAPE (owner 2026-10-21: the spot must not look like a gauge); `label` is
+ * what is written beside it on the map — a gauge's share, the spot's words; `rank` orders
+ * the labels, heaviest gauge first, so a crowded valley keeps the label that matters most.
+ */
+export interface DonorPinVM {
+  lat: number; lon: number; row: number | null; title: string;
+  kind: "here" | "gauge"; label: string | null; rank: number;
+}
 export interface DonorKeyVM { row: number | null; label: string }
+
+/** One donor's route, for the overlay: its chain of reaches, spot first, and both ends. */
+export interface DonorRouteVM {
+  row: number;
+  /** Where the GAUGE sits: downstream is drawn solid, upstream dashed. */
+  role: "up" | "down";
+  path: readonly SectionKey[];
+  from: { lat: number; lon: number } | null;
+  to: { lat: number; lon: number };
+}
 
 export interface DonorMapVM {
   camera: { lon: number; lat: number; zoom: number };
@@ -386,6 +407,13 @@ export interface DonorMapVM {
   unplaced: string | null;
   /** The reaches between here and the gauges, unioned. */
   chain: readonly SectionKey[];
+  /** Each placed donor's route, in weight order — what the overlay copies out of the tiles. */
+  routes: readonly DonorRouteVM[];
+  /** The key's line samples: only the roles drawn. */
+  legend: readonly { role: "up" | "down"; label: string }[];
+  /** Every mark's extent [w, s, e, n] — what "fit" returns to. */
+  bbox: readonly [number, number, number, number];
+  words: { fit: string; fitLabel: string; larger: string; smaller: string };
 }
 
 export interface HorizonChipVM { day: Horizon; chip: string; label: string; on: boolean }
@@ -478,22 +506,43 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     ? placed.find((r) => metresApart(from, { lat: r.route!.lat!, lon: r.route!.lon! })
                          <= SAME_PLACE_M)
     : undefined;
-  const showFrom = from && !atSpot ? from : null;
   const here = CONDITIONS_WORDS.youAreHere;
+  /*
+   * THE SPOT IS ALWAYS MARKED NOW, gauge at the spot or not. It used to be absorbed into a
+   * gauge within `SAME_PLACE_M`, because both were the same teardrop and two on one pixel
+   * read as one lost. The spot is a pin STANDING on the place and a gauge a dot lying on it
+   * (owner 2026-10-21: different icons), so both show: the dot at the pin's point. The
+   * absorbing words stay on the gauge's own title — it IS the gauge you are standing at.
+   */
+  const pts = [...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
+               ...(from ? [from] : [])];
+  const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
   const map: DonorMapVM | null = value.routesReady && camera ? {
     camera,
     key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
     pins: [
-      ...(showFrom ? [{ lat: showFrom.lat, lon: showFrom.lon, row: null, title: here }] : []),
-      ...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon!, row: rows.indexOf(r),
-                              title: donorPinTitle(r, r === atSpot) })),
+      ...placed.map((r): DonorPinVM => {
+        const row = rows.indexOf(r);
+        return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
+                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r), rank: row };
+      }),
+      // LAST, so it draws over a gauge at the same place.
+      ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
+                    label: hereMapLabel(), rank: -1 }] : []),
     ],
     keys: [
-      ...(showFrom ? [{ row: null, label: here }] : []),
-      ...placed.map((r) => ({ row: rows.indexOf(r), label: donorKeyLabel(r, r === atSpot) })),
+      ...(from ? [{ row: null, label: here }] : []),
+      ...placed.map((r) => ({ row: rows.indexOf(r), label: donorMapKey(r) })),
     ],
     unplaced: unplacedNote(rows.length - placed.length),
     chain: [...new Set(rows.flatMap((r) => r.route?.path ?? []))],
+    routes: drawn.map((r) => ({ row: rows.indexOf(r), role: r.role, path: r.route!.path,
+                                from, to: { lat: r.route!.lat!, lon: r.route!.lon! } })),
+    legend: routeLegend(drawn.map((r) => r.role)),
+    bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
+           Math.max(...pts.map((p) => p.lon)), Math.max(...pts.map((p) => p.lat))],
+    words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
+             larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
   } : null;
 
   return {

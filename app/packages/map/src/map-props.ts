@@ -7,6 +7,7 @@
 import type { SectionKey } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
+import type { TraceProp } from "./trace-overlay";
 
 export interface Camera {
   lon: number;
@@ -74,6 +75,19 @@ export interface MapProps {
    * credits, which are not the basemap's and were never in that control anyway.
    */
   bare?: boolean;
+  /**
+   * The zoom buttons, even on a `bare` map. For a small map a reader is invited to EXPLORE
+   * — the Conditions route map (owner 2026-10-21: "the gauge map should have the ability to
+   * zoom and look at data better") — where pinch and wheel alone are undiscoverable on a
+   * desktop and a sheet's scroll competes with them on a phone. No compass: north is up.
+   */
+  zoomControls?: boolean;
+  /**
+   * THE ROUTE OVERLAY: how the gauges reach the place being read — routes copied out of the
+   * tiles so they draw at every zoom, upstream and downstream drawn apart, a pin for the spot
+   * and a labelled dot per gauge. See `trace-overlay.ts`. Refetched when `key` changes.
+   */
+  trace?: TraceProp | null;
   at: TileEndpoints;
   /**
    * Any theme the style defines, not just light/dark. It used to be the pair, so the app
