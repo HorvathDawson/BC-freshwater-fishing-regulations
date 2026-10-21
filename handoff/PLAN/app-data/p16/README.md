@@ -67,10 +67,12 @@ heavy jobs. That acceptance item is still open for a human run.
 
 ## Deviations from the ticket text
 
-None left after the review fixes. The first pass kept the chart disclaimer and the three notes outside the fold. They are
-now in it, as the ticket says. You have one call to make: the Centre's code said its disclaimer must appear "wherever a
-forecast appears". It is still on the same screen as the forecast, but behind the fold. If you want it visible, move
-`disclaimer` back under the chart in `ConditionsPanel.tsx`. That is a one-line change.
+The review fixes folded the chart disclaimer and the three notes, as the ticket says. **The lead (2026-10-20) moved the
+Centre's disclaimer back under the chart**, visible with the fold shut: the Province requires it verbatim "wherever a
+forecast appears" (see the attribution in `App.tsx` and `pipeline/hydro/forecast.py`), and folding a required notice is
+the riskier reading. The after shots above were taken before that move, so they show it in the fold. If you are sure
+the fold satisfies the requirement, folding it again is a one-block change in `ConditionsPanel.tsx` (and the
+`ConditionsLayout.test.tsx` case that pins it visible).
 
 ## Same content: how it is guarded
 

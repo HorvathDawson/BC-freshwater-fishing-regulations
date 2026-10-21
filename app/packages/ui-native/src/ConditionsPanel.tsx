@@ -91,6 +91,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const forecast = chart.state === "ready" ? chart.value?.forecast : null;
   const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
   const run = (series.state === "ready" ? series.value?.forecast : null) ?? null;
+  // The Centre's disclaimer, verbatim, while its forecast is drawn (the same condition the chart draws it under).
+  const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
 
   if (vm.loading)
     return (
@@ -158,7 +160,6 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
         </View>
       )}
-      {/* The chart's disclaimer is in the fold (P16 item 3) — see `small` below. */}
       {chart.state === "ready" && chart.value && (
         <Hydrograph shape={chart.value} palette={palette} colour={tint}
                     unit={UNIT[shown]}
@@ -176,24 +177,18 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                              horizonDays: run.horizonDays })}
         </Text>
       )}
+      {/* THE CENTRE'S DISCLAIMER STAYS IN VIEW, under the forecast it is about: the Province requires it verbatim
+          "wherever a forecast appears" (App.tsx attribution, pipeline/hydro/forecast.py). A fold would hide a required
+          notice, so it is not folded unless the owner rules otherwise (p16/README). */}
+      {disclaimer && <Text style={{ ...TYPE.meta, color: palette.faint }}>{disclaimer}</Text>}
     </View>
   ) : null;
 
-  /*
-   * THE FOLD'S FOOT: the Centre's disclaimer, verbatim, while its forecast is drawn — the
-   * same condition the chart drew it under — then the credits. In the fold and still on
-   * the screen the forecast is on (P16 item 3; the owner's call, see p16/README).
-   */
-  const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
-  const small = disclaimer || credits?.length ? (
-    <>
-      {disclaimer && <Text style={{ ...TYPE.meta, color: palette.faint }}>{disclaimer}</Text>}
-      {credits?.length ? <Credits palette={palette} lines={credits} /> : null}
-    </>
-  ) : undefined;
+  /* THE FOLD'S FOOT: the credits. (The Centre's disclaimer is under the chart, never folded — see above.) */
+  const small = credits?.length ? <Credits palette={palette} lines={credits} /> : undefined;
 
   /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
-     donors → the fold (which holds the disclaimer and the credits). */
+     donors → the fold (which holds the credits; the disclaimer stays under the chart). */
   const body = (
     <>
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}

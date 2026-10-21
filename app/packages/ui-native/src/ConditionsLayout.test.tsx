@@ -203,23 +203,19 @@ describe("P16: one reading order", () => {
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
   });
 
-  it("folds the chart's disclaimer too, and says the run's time local and labelled", async () => {
+  it("keeps the chart's disclaimer in view under the forecast, and says the run's time local and labelled", async () => {
     await draw("forecast");
     const DISCLAIMER = "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND "
       + "INTERPRETATION.";
     // The forecast IS drawn (its run line is under the chart) …
     await waitFor(() => expect(screen.getByText(forecastRunLine(
       { model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 }))).toBeTruthy());
-    expect(screen.getByText(
-      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook`))
-      .toBeTruthy();
-    // … and its disclaimer is in the fold, not under the chart.
-    expect(screen.queryByText(DISCLAIMER)).toBeNull();
-    openFold();
+    const runLine = screen.getByText(
+      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook`);
+    // … and its disclaimer is on screen with the fold SHUT (required wherever a forecast appears), right after it.
     const disclaimer = screen.getByText(DISCLAIMER);
-    expect(precedes(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }), disclaimer))
-      .toBe(true);
-    expect(precedes(disclaimer, screen.getByText("SOURCES"))).toBe(true);
+    expect(precedes(runLine, disclaimer)).toBe(true);
+    expect(precedes(disclaimer, screen.getByRole("button", { name: CONDITIONS_WORDS.fold }))).toBe(true);
   });
 
   it("re-says only the record's UTC times, and each as the same instant", () => {
