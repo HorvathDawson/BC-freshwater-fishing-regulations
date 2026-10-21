@@ -239,7 +239,7 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
             continue
         row = []
         for f in R["at"][k]:
-            spp, fish, rs, line = R["frames"][f]
+            spp, fish, rs, line, ys = R["frames"][f]          # rows 30: + each row's strip in R["strips"]
             nf = {}
             for code, (h, w) in fish.items():
                 pair = []
@@ -251,9 +251,9 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
                         pair.append(decided.add(R["decided"][i]))
                 nf[code] = pair
             nrs = []
-            for i in rs:
+            for i, y in zip(rs, ys):
                 _rule_refs_rows(R["rows"][i], rrefs)
-                nrs.append(rows.add(R["rows"][i]))
+                nrs.append(rows.add({**R["rows"][i], "year": R["strips"][y]}))     # the page's rows as decoded
             row.append(frames.add([spp, nf, nrs, line]))
         at.append(row)
     out["rows"] = {"version": R["version"], "decided": decided.rows, "rows": rows.rows,

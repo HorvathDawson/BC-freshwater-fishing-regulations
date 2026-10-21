@@ -185,11 +185,17 @@ SPEC = {
                     "keep range and band numbers, and the real daily limit",
             "version": "30",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
+            "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
                       "hatchery and wild answers (indexes into `decided`, null: no rule in scope "
                       "speaks); the rows in card order (indexes into `rows`); `steelhead_line` "
-                      "possible_with_rules | known_with_rules | known_no_rules | null (5.6)",
+                      "possible_with_rules | known_with_rules | known_no_rules | null (5.6); "
+                      "version 30: per row, in the same order, its year strip (an index into `strips`) — "
+                      "the decoded row is the `rows` entry with `year` = that strip, last",
+            "strips": "[[[status, days]]] — version 30: every DISTINCT year strip, once (run-length over the 365 "
+                      "book days, status keep | release | closed | none, the days summing to 365; see `rows[].year`). "
+                      "A row is stored without its strip and the frame names the strip, so rows that differ only by "
+                      "their strip are one row",
             "decided": "[{status: keep|no_limit|release|closed, win, daily, narrow, lines, roles, "
                        "lift_notes}] — `daily` the number after the winner's clauses (null for "
                        "no limit, release, closed), `narrow` the clause that lowered it; `lines` "
@@ -444,7 +450,9 @@ SPEC = {
                     "the wild one if it keeps, else hatchery, else wild) over every segment of the day's start whose "
                     "moment is not inside an hours window (a weekday split day reads all its weekday classes; a night "
                     "closure never colours the day); none where no member has an answer. The same members in the same "
-                    "key carry the same strip on every segment's frame. Draw it as it is; never derive a day's colour.",
+                    "key carry the same strip on every segment's frame. Draw it as it is; never derive a day's colour. "
+                    "ON THE WIRE the row's `year` is not in `rows`: each distinct strip is held once in `strips` and "
+                    "the frame's fifth slot names each row's strip (decoding puts it back as the row's last field).",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
@@ -729,22 +737,37 @@ class RowsCodec:
     static_keys: Tuple[str, ...] = ()
 
     def encode(self, values, rix, fix):
-        decided, rows, frames = Table(), Table(), Table()
+        # rows 30: a row's year strip is held ONCE per distinct strip (`strips`), the row WITHOUT it (`rows`), and the
+        # frame's fifth slot names each row's strip — a row that differs only by its strip stays one row (the strip
+        # in the row made 3794 rows of 2512 and crossed the release size gate)
+        decided, rows, strips, frames = Table(), Table(), Table(), Table()
         refs = []
         for v in values:
             fish = {S: [None if r is None else decided.add(r) for r in (x["hatchery"], x["wild"])]
                     for S, x in v["fish"].items()}
-            refs.append(frames.add([v["spp"], fish, [rows.add(r) for r in v["rows"]],
-                                    v["steelhead_line"]]))
-        return {"decided": decided.rows, "rows": rows.rows, "frames": frames.rows}, refs
+            rs, ys = [], []
+            for r in v["rows"]:
+                if "year" not in r:
+                    raise AnswersError("answers: a rows row has no year strip (year.stamp_years runs before encoding)")
+                rs.append(rows.add({k: x for k, x in r.items() if k != "year"}))
+                ys.append(strips.add(r["year"]))
+            refs.append(frames.add([v["spp"], fish, rs, v["steelhead_line"], ys]))
+        return {"decided": decided.rows, "rows": rows.rows, "strips": strips.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        spp, fs, rs, line = sec["frames"][ref]
+        spp, fs, rs, line, ys = sec["frames"][ref]
+        if len(ys) != len(rs):
+            raise AnswersError(f"answers: rows frame {ref} has {len(rs)} rows and {len(ys)} strips")
+        strips = sec["strips"]
+        for y in ys:
+            if not 0 <= y < len(strips):
+                raise AnswersError(f"answers: rows frame {ref} names strip {y}, which is not in `strips` "
+                                   f"({len(strips)})")
         return {"spp": spp,
                 "fish": {S: {"hatchery": None if h is None else sec["decided"][h],
                              "wild": None if w is None else sec["decided"][w]}
                          for S, (h, w) in fs.items()},
-                "rows": [sec["rows"][i] for i in rs], "steelhead_line": line}
+                "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line}
 
 
 class LicenceCodec:

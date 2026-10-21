@@ -115,6 +115,13 @@ Rows with the same members in a key carry the same strip on every segment's fram
 weekdays, so no day depends on the calendar year. Proved 134/134 against hydrate.json `dayStatus`
 (`pipeline/tests/test_answers_year_strip_live.py`; no-data `test_answers_year_strip.py`). The app reads `HydRow.year`.
 
+**Stored once (2026-10-21, the release size gate).** With the strip inside each row, rows that differ only by their strip
+were distinct rows: 2512 -> 3794 rows (~5 KB each) for 254 distinct strips, and the release crossed its 14,000,000 B gzip
+gate (14,139,967 on the live bundle). On the wire the row is stored WITHOUT `year`; `rows.strips` holds each distinct strip
+once and the rows frame's fifth slot names each row's strip (store: the static `rows.strips`, in `water`, not per region).
+The decoded row — and the model check (365 days, no repeated status side by side) — is unchanged; the app's data layer
+puts the strip back on the row (`reads.rows`), so `HydRow.year` is as before. `test_answers_strips.py`.
+
 ## ROUND UR7 (2026-10-20) — rows 29: the owner's final prototype round before the app port
 
 A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hatchery rainbow trout" where every lifting rule's
@@ -1015,7 +1022,8 @@ fish. Field dictionary: the file's `spec`. The decided answer is `rows`' (`decid
 
 ### `rows` (Stages 5.1-5.8): today's card
 
-Per (key, segment): `[spp, {fish: [hatchery, wild]}, [row], steelhead_line]`.
+Per (key, segment): `[spp, {fish: [hatchery, wild]}, [row], steelhead_line, [strip]]` — the fifth slot (rows 30) names
+each row's year strip in `strips` (every distinct strip held once; the stored row has no `year`, decoding puts it back).
 
 - `spp`: the fish the card asks about (5.1), in the page's order.
 - `decided` (per fish and origin, or null): `status` (keep | no_limit | release | closed), `win`,

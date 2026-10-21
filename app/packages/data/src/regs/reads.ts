@@ -2,7 +2,8 @@
  * THE STORE READS (T04): every question the Regulations page asks of the release, each one or two keyed SQL reads on
  * the file that holds its table, returning the answers-file values exactly as `pipeline/deliver/answers/encode.py`'s
  * codecs decode them — so the TS side sees the same `RowsValue` / `LicenceValue` / `StatusFrame` the Python reference
- * and page v36 see. The per-family interning is undone here, never in core.
+ * and page v36 see. The per-family interning is undone here, never in core (rows 30: a row's year strip, held once
+ * per distinct strip in the static `rows.strips` and named by the rows frame's fifth slot, goes back on its row here).
  *
  *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08)
  *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart
@@ -118,6 +119,7 @@ const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
   ladderReasons: "ladder.reasons", ladderReasonState: "ladder.reason_state",
 };
 
+type YearStrip = RowsValue["rows"][number]["year"];
 const damaged = (what: string) => new RegsStoreError("damaged", `regs store: ${what}`);
 const n = (c: Cell): number => Number(c);
 const nn = (c: Cell): number | null => (c === null || c === undefined ? null : Number(c));
@@ -145,6 +147,9 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   /** One blob of a family, by id, from the region file holding the key's frames. */
   const blob = <T>(t: Family, akey: number, id: number): Promise<T> =>
     once(t, id, async () => base.val<T>(t, (await row(base.region(akey), `SELECT j FROM ${t} WHERE id = ?`, id, t)).j));
+  /** rows 30: every distinct year strip, once (water static `rows.strips`; a rows frame names its rows' strips). */
+  const yearStrips = (): Promise<readonly YearStrip[]> => once("strips", 0, async () =>
+    base.val<YearStrip[]>("static", (await row(base.water(), "SELECT j FROM static WHERE k = ?", "rows.strips", "static")).j));
 
   const reads: RegsReads = {
     itemOrd: (itemId) => once("itemOrd", itemId, async () => {
@@ -239,13 +244,21 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     }),
 
     rows: (akey, id) => once("rows", id, async () => {
-      const [spp, fs, rs, line] = await blob<[string[], Record<string, [number | null, number | null]>, number[], RowsValue["steelhead_line"]]>(
-        FAMILY.rowsFrame, akey, id);
+      // rows 30: the frame's fifth slot names each row's year strip in the static `rows.strips` (each distinct strip
+      // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame
+      const [[spp, fs, rs, line, ys], strips] = await Promise.all([
+        blob<[string[], Record<string, [number | null, number | null]>, number[], RowsValue["steelhead_line"], number[]]>(
+          FAMILY.rowsFrame, akey, id),
+        yearStrips()]);
+      if (!Array.isArray(ys) || ys.length !== rs.length) throw damaged(`rows frame ${id} has ${rs.length} rows and ${ys?.length ?? 0} strips`);
+      for (const y of ys) {
+        if (!(y >= 0 && y < strips.length)) throw damaged(`rows frame ${id} names strip ${y}, which is not in rows.strips (${strips.length})`);
+      }
       const decided = (d: number | null) => (d === null ? Promise.resolve(null) : blob<NonNullable<RowsValue["fish"][string]["hatchery"]>>(FAMILY.rowsDecided, akey, d));
       const fish: Record<string, RowsValue["fish"][string]> = {};
       for (const [S, [h, w]] of Object.entries(fs)) fish[S] = { hatchery: await decided(h), wild: await decided(w) };
-      return { spp, fish, rows: await Promise.all(rs.map((r) => blob<RowsValue["rows"][number]>(FAMILY.rowsRow, akey, r))),
-               steelhead_line: line };
+      const rows = await Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)));
+      return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line };
     }),
 
     gear: (akey, id) => blob<GearValue>(FAMILY.gearFrame, akey, id),

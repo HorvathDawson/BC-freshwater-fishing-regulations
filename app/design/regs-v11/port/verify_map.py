@@ -50,7 +50,7 @@ def main():
         R["strip.runs"] += ok; ok or bad.append(("strip.runs", sid))
         closed = val("display_frame", t["cell"]["display"]).get("status") == "closed"
         R["strip.status"] += (not g["strip"]) or ((g["strip"]["statusClass"] == "closed") == closed)
-        spp, fs, rs, line = val("rows_frame", t["cell"]["rows"])
+        spp, fs, rs, line, _strips = val("rows_frame", t["cell"]["rows"])   # rows 30: + each row's strip
         rows = [val("rows_row", i) for i in rs]
         main_ = [r for r in rows if any(m in TROUTISH for m in (r.get("all_members") or r["members"]))]
         rest = [r for r in rows if r not in main_]

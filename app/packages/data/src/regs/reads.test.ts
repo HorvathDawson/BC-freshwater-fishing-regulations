@@ -26,6 +26,7 @@ const STATICS: Record<string, unknown> = {
   "licence.profile_dims": [], "licence.profile_labels": [], "licence.residency_labels": {},
   "export.species": { fish: {}, groups: {} }, "export.licences": {}, "export.conduct": {},
   "ladder.reasons": [], "ladder.reason_state": [],
+  "rows.strips": [[["keep", 150], ["closed", 30], ["keep", 185]], [["none", 365]]],   // rows 30: each distinct strip once
 };
 const RULE = { entry_id: "r2:x@1", rule_id: "x.r1", type: "t", family: "f", label: "L", verbatim: "V", fields: {}, prov: { rank: 0 } };
 const FACTS = { kind: "gate", closure: true, book: [[22, 24]] };
@@ -33,7 +34,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean } = {}) {
+function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -95,8 +96,8 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean } = {
     INSERT INTO ladder_frame VALUES (5, ${X([10, [[2, 11], [1, 12, 13, 14]]])});
     INSERT INTO ladder_verdict VALUES (10, ${X([[0], [], [], [], [], []])}), (11, ${X([[1], [], [], [], [[1, [0]]], []])}),
       (12, ${X([[], [1], [], [], [], []])}), (13, ${X([[], [], [1], [], [], []])}), (14, ${X([[], [], [], [], [], [[1, 0, 0]]])});
-    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null], CT: [null, 8] }, [3, 4, 3], "known_with_rules"])}),
-      (6, ${X([[], {}, [], null])});
+    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null], CT: [null, 8] }, [3, 4, 3], "known_with_rules", [0, 1, 1]])}),
+      (6, ${X([[], {}, [], null, []])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2]])}), (10, ${X([[], {}, [3, 4], null, [0]])})` : ""};
     INSERT INTO rows_decided VALUES (7, ${X({ status: "keep", win: 0 })}), (8, ${X({ status: "release", win: 1 })});
     INSERT INTO rows_row VALUES (3, ${X({ kind: "keep", pool: 0 })}), (4, ${X({ kind: "closed", pool: null })});
     INSERT INTO gear_frame VALUES (5, ${X({ summary: "g", counts: {} })});
@@ -228,12 +229,24 @@ describe("cells and frames: routed to the key's region file", () => {
     });
   });
 
-  it("rows: decided and rows joined back in (RowsCodec.decode_frame)", async () => {
+  it("rows: decided and rows joined back in, each row with the strip its frame names (RowsCodec.decode_frame)", async () => {
     const st = await openRegsStore(seed().loader);
-    expect(await st.rows(2, 5)).toEqual({ spp: ["RB", "CT"],
+    const SPLIT = [["keep", 150], ["closed", 30], ["keep", 185]], NONE = [["none", 365]];
+    const got = await st.rows(2, 5);
+    expect(got).toEqual({ spp: ["RB", "CT"],
       fish: { RB: { hatchery: { status: "keep", win: 0 }, wild: null }, CT: { hatchery: null, wild: { status: "release", win: 1 } } },
-      rows: [{ kind: "keep", pool: 0 }, { kind: "closed", pool: null }, { kind: "keep", pool: 0 }],
+      // row 3 twice, with two strips: the stored row has no year, the frame's fifth slot names it (rows 30)
+      rows: [{ kind: "keep", pool: 0, year: SPLIT }, { kind: "closed", pool: null, year: NONE }, { kind: "keep", pool: 0, year: NONE }],
       steelhead_line: "known_with_rules" });
+    expect(got.rows.map((r) => Object.keys(r))).toEqual([["kind", "pool", "year"], ["kind", "pool", "year"], ["kind", "pool", "year"]]);
+    expect(got.rows[1]!.year).toBe(got.rows[2]!.year);              // one strip, one value: identical strips share
+  });
+
+  it("rows: a frame naming a strip the store does not hold, or one strip short, is damaged", async () => {
+    const st = await openRegsStore(seed({ badStrip: true }).loader);
+    await expect(st.rows(2, 9)).rejects.toThrow(
+      new RegsStoreError("damaged", "regs store: rows frame 9 names strip 2, which is not in rows.strips (2)"));
+    await expect(st.rows(2, 10)).rejects.toThrow(new RegsStoreError("damaged", "regs store: rows frame 10 has 2 rows and 1 strips"));
   });
 
   it("licence: holds, the document's answers in order, under_16 only when the frame has it", async () => {

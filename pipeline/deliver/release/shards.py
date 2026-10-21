@@ -54,7 +54,7 @@ def frame_refs(name: str, frame) -> Dict[str, List[int]]:
         common, rows = frame
         return {"ladder_verdict": [common] + [r for row in rows for r in row[1:]]}
     if name == "rows_frame":
-        _spp, fish, rows, _line = frame
+        _spp, fish, rows, _line, _strips = frame          # rows 30: the strips are a static (water), not a shard row
         return {"rows_decided": [r for hw in fish.values() for r in hw if r is not None], "rows_row": list(rows)}
     if name == "licence_frame":
         h, d, *u = frame
