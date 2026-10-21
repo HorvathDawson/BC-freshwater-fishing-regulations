@@ -88,7 +88,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Regs<->Conditions<->Map with chart/minimap shielded; Kitimat +1 like the Vedder; T05 leap rule from the calendar
   spec) + merge fixes 663939f0; batch 7: rows 30 YEAR STRIP from the pipeline (year.py, page ROUND14 rule) + T12
   harness (+6e9e0443). SKIPPED 8cc353a4 (T05 parity over openRegsStore: collided with batch 6's golden.ts) — redo
-  on HEAD. Colour study DONE (recommend AP web / E1P native) — implement next. Kitimat ruling (a) applied in curated
+  on HEAD. Colour study DONE + merged b021f25d (web AP verified: 0 grey frames, ~0.1 ms/pan; native E1P NOT supported —
+  verifier found the E numbers 4.6-6x low; native colouring decided after N2). Workflow colour-ap-web-and-t05 RUNNING
+  (wf_d0e2368f-253): AP on web with the verifier's 4 conditions + the T05 parity redo. Kitimat ruling (a) applied in curated
   region-6.json (r5 no longer exempts r7). `deliver all` RUNNING via heavy.sh (both rulings + rows 30); after it:
   taps.py re-cut (sync goldens), `pnpm -C app regs-fixture`, flip the Kitimat test DEC1 hatchery ST to release,
   pnpm check with REGS_STORE_REQUIRED=1, then Tier 2.
