@@ -20,8 +20,33 @@ export const WORDS = Object.freeze({
   LINK_OUT: "↗",
   TERMS_MANY: "What these words mean",   // plain() of a term run with 2+ ids
   TERM_ONE: "ⓘ",
-  // describe() (T06 fills: FROM_STREAMS " from streams", FROM_LAKES " from lakes", NO_FISHING_FOR "No fishing for ", …)
-  // missing / refusal (T03/T06 fill: MISSING "Missing from the answers file:", NO_WORDS "(no words in the answers for ", …)
+  // species words (names.ts: page v36 join, lcNames, lc, writtenName)
+  AND: " and ", OR: " or ",
+  MORE: (n: number) => ` + ${n} more`,
+  /** page v36 lc(): a name starting with one of these proper nouns keeps its capital. A match key, never said. */
+  LC_KEEP: Object.freeze(["Dolly", "Arctic", "Nooksack", "Salish", "Cultus", "Enos", "Coastal", "Westslope", "Misty", "Vananda",
+    "Paxton", "Hadley", "Morrison", "Rocky", "Speckled", "Charlotte"]) as readonly string[],
+  TROUT: "trout", FISH: "fish",
+  // time words (time.ts: page v36 timeCond)
+  MIN_BEFORE: "min before ", MIN_AFTER: "min after ",
+  // describe() (describe.ts: page v36 describe, bandTxt)
+  FROM_STREAMS: " from streams", FROM_LAKES: " from lakes",
+  NO_FISHING_FOR: "No fishing for ",
+  ALL_GAME: "all game fish",      // the written name describe() replaces, only when it is the WHOLE name …
+  ANY_GAME: "any game fish",      // … with this
+  RELEASE_EVERY: "Release every ", NO_LIMIT_ON: "No limit on ", KEEP: "Keep ", A_DAY: " a day", SHARED: ", shared",
+  NONE: ", none ", NONE_BARE: "none ",
+  INSIDE: "Inside the day’s total: ", AT_MOST: "at most ", RELEASE_ANY: "release any ",
+  PER: " a ", A_MONTH: "month", A_YEAR: "year", SMALLER: ". Smaller fish don’t count",
+  UNDER: (b: number) => `under ${b} cm`,
+  OVER: (a: number) => `over ${a} cm`,
+  CM: " cm",
+  // rule notes (rules.ts: page v36 RULES decode)
+  UNCERTAIN: "Uncertain placement: ", NO_REASON: "no reason given", CURATOR: "Curator still to settle: ",
+  // missing / refusal (T03 fills: MISSING "Missing from the answers file:", …)
+  NO_WORDS: (key: string) => `(no words in the answers for ${key})`,
+  MISSING_RULE: (ix: number) => `(rule ${ix}: missing from the page’s data)`,
+  MISSING_DATA: (ix: number) => `Missing from the page’s data: rule ${ix}`,
 } as const);
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */
@@ -29,8 +54,15 @@ export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
 export const MONTH1: readonly string[] = MONTHS.map((m) => m[0]!);
 
+/** A function word's fixed fragments: what is left of its output once the data put into it is taken out. */
+function fragments(f: (x: never) => string): string[] {
+  const HOLE = "\u0000";
+  return f(HOLE as never).split(HOLE).filter((s) => s.length > 0);
+}
+
 export const ALL_WORDS: ReadonlySet<string> = new Set([
-  ...(Object.values(WORDS) as unknown[]).filter((v): v is string => typeof v === "string"),   // function words add their fragments
+  ...(Object.values(WORDS) as unknown[]).filter((v): v is string => typeof v === "string"),
+  ...(Object.values(WORDS) as unknown[]).filter((v): v is (x: never) => string => typeof v === "function").flatMap(fragments),
   ...WD3, ...MONTH1,
 ]);
 

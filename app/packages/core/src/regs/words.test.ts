@@ -8,10 +8,11 @@ import { MONTHS, WEEKDAYS } from "../calendar.generated";
 import { ALL_WORDS, MONTH1, WD3, WORDS, wordsIn } from "./words";
 
 describe("WORDS", () => {
-  it("is frozen, and every value is a non-empty string or a function", () => {
+  it("is frozen, and every value is a non-empty string, a function or a frozen list", () => {
     expect(Object.isFrozen(WORDS)).toBe(true);
     for (const [k, v] of Object.entries(WORDS)) {
       if (typeof v === "string") expect(v.length, k).toBeGreaterThan(0);
+      else if (Array.isArray(v)) expect(Object.isFrozen(v), k).toBe(true);
       else expect(typeof v, k).toBe("function");
     }
   });
@@ -29,6 +30,25 @@ describe("ALL_WORDS", () => {
     expect(ALL_WORDS.has("Fri")).toBe(true);
     expect(ALL_WORDS.has("J")).toBe(true);
     for (const v of Object.values(WORDS)) if (typeof v === "string") expect(ALL_WORDS.has(v), v).toBe(true);
+  });
+
+  it("holds the fixed fragments of every function word, never the data put into it (T06)", () => {
+    for (const w of ["under ", " cm", "over ", " + ", " more", "(no words in the answers for ", ")", "(rule ",
+      ": missing from the page’s data)", "Missing from the page’s data: rule "]) expect(ALL_WORDS.has(w), w).toBe(true);
+    expect(ALL_WORDS.has("")).toBe(false);
+    expect([...ALL_WORDS].some((w) => w.includes("\u0000"))).toBe(false);
+  });
+
+  it("says describe()'s words (T06)", () => {
+    expect(WORDS.UNDER(50)).toBe("under 50 cm");
+    expect(WORDS.OVER(50)).toBe("over 50 cm");
+    expect(WORDS.MORE(3)).toBe(" + 3 more");
+    expect(WORDS.NO_WORDS("z2:a::a.r1")).toBe("(no words in the answers for z2:a::a.r1)");
+    expect(WORDS.MISSING_RULE(7)).toBe("(rule 7: missing from the page’s data)");
+    expect(WORDS.MISSING_DATA(7)).toBe("Missing from the page’s data: rule 7");
+    expect(WORDS.LC_KEEP).toEqual(["Dolly", "Arctic", "Nooksack", "Salish", "Cultus", "Enos", "Coastal", "Westslope", "Misty",
+      "Vananda", "Paxton", "Hadley", "Morrison", "Rocky", "Speckled", "Charlotte"]);
+    expect(ALL_WORDS.has("Dolly")).toBe(false);   // a proper-noun prefix is a match key, not a word the page says
   });
 
   it("derives the short weekdays and month initials from the generated calendar", () => {
