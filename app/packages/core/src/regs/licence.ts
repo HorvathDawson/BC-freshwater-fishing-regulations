@@ -9,8 +9,8 @@
  *
  * OWNER RULE 2026-10-21: nothing here decides a regulation. Which documents an angler needs, every requirement, exemption,
  * designation, price and path is the stored licence answer (`licence_frame` → holds / profiles / under_16); this module
- * SELECTS the angler's profile (and, for the under-16 "as a 16+ angler" path, the stored profile that path names), GROUPS
- * the answer into blocks and WORDS it. Licensing never affects open / closed (memory "licensing rewrite decisions"); the
+ * SELECTS the angler's profile (and, under 16, the stored `under_16` entry of their residency — what the youth buys and
+ * who they fish with, never re-derived from the 16+ answer), GROUPS the answer into blocks and WORDS it. Licensing never affects open / closed (memory "licensing rewrite decisions"); the
  * angler is whoever the reader says (D8). The prototype's render-time steelhead-stamp DROP (a stamp removed from the list
  * where the card says steelhead are closed, round 20i O3) DECIDES a requirement and is NOT ported: the pipeline must ship
  * it (decisions D21 (b); conformance exclusions.ts STEELHEAD_DROP).
@@ -38,13 +38,6 @@ export function keyOf(who: Who): ProfileKey {
 export function profileOf(who: Who, s: RegsInputs["statics"]): number {
   return profileIndex(who, s.profileDims, s.profiles);
 }
-
-/** page v36's `state.who`: the four licence dimensions of an app `Who`. */
-const dimsOf = (who: Who): Record<string, string> => ({ residency: who.residency, age: AGE_DIM[who.age], guidance: "non_guided", status: "none" });
-
-/** page v36 profileIx over any dims object (the under-16 `as` path names another stored profile); -1 when absent. */
-const profileIxOf = (dims: Record<string, string>, s: RegsInputs["statics"]): number =>
-  s.profiles.indexOf(s.profileDims.map(([d]) => dims[d]).join("/"));
 
 // ── the export licensing words ──────────────────────────────────────────────────────────────────────────────────────
 
@@ -228,29 +221,19 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
       price: priceTxt(b.prices ?? {}) || null };
   });
 
-  // under 16: no document of their own, and a fishing requirement met with a licensed adult or as an adult
-  const youthReq = !P.documents.length && P.requirements.find((x) => x.when.act === "fishing" && x.paths.some((p) => p.accompanied_by || p.as));
-  if (youthReq) {
-    const asP = youthReq.paths.find((p) => p.as), acc = youthReq.paths.find((p) => p.accompanied_by);
-    let adult: ProfileAnswer | null = null;
-    if (asP) {
-      const me = dimsOf(who), as = asP.as as Record<string, string | readonly string[]>;
-      const dims = { ...me, ...Object.fromEntries(Object.entries(as).map(([k, v]) => {
-        const vs = Array.isArray(v) ? v as readonly string[] : [v as string];
-        return [k, vs.includes(me[k]!) ? me[k]! : vs[0]!];
-      })) };
-      const a = F.profiles[profileIxOf(dims, inp.statics)];
-      adult = isAnswer(a) ? a : null;
-    }
-    const adocs = (adult?.documents ?? []).filter((b) => b.base).map((b) => cap([DOC(b.doc), ...altsOf(b)].join(` ${LIC.OR} `)));
-    const counts = acc?.quota === "counts_to_companion";
+  // under 16: the stored under_16 entry for this residency (pipeline licence.under_16_summary: with_adult, buy, own_limit).
+  // The box is drawn where the youth's own answer lists no document and the entry lets them fish with a licensed adult
+  // (x9p3: a youth who buys their own permit gets the plain list, as the golden). `own_limit` without `none_needed` is
+  // "keeps their own limit by buying" — the "Or buy … yourself" clause and the "Or, for your own limit" item.
+  const U = who.age === "u16" ? (F.under_16 ?? []).find((u) => u.residency === who.residency) : undefined;
+  if (U?.with_adult && !P.documents.length) {
+    const W = U.with_adult, names = U.buy.map((b) => b.name), byBuying = U.own_limit && !U.none_needed;
     out.push({ cls: "classbox youth", head: LIC.YOUTH_HEAD, terms: gi(LIC.YOUTH_TERM),
-      body: ((acc ? LIC.YOUTH_WITH(whoTxt((acc.accompanied_by!.who ?? {}) as Record<string, unknown>)) + (adocs.length ? LIC.YOUTH_DOCS(adocs.join(LIC.SEP)) : "")
-        + LIC.STOP + (counts ? LIC.YOUTH_COUNTS_S : "") : "")
-        + (asP ? LIC.YOUTH_BUY(adocs.length ? LIC.YOUTH_THE(adocs.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
-    buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null });
-    if (asP && adocs.length) buy.push({ name: adocs.join(LIC.PLUS), docs: [], terms: [], when: LIC.YOUTH_OWN,
-      price: priceTxt(adult!.documents.find((b) => b.base)?.prices ?? {}) || null });
+      body: (LIC.YOUTH_WITH(W.who) + (names.length ? LIC.YOUTH_DOCS(names.join(LIC.SEP)) : "") + LIC.STOP + (W.counts ? LIC.YOUTH_COUNTS_S : "")
+        + (byBuying ? LIC.YOUTH_BUY(names.length ? LIC.YOUTH_THE(names.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
+    buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: W.counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null });
+    if (byBuying && names.length) buy.push({ name: names.join(LIC.PLUS), docs: [], terms: [], when: LIC.YOUTH_OWN,
+      price: priceTxt(U.buy[0]!.prices) || null });
   }
   if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null, priceNote: buy.some((b) => b.price) ? LIC.PRICE_NOTE : null });
 
@@ -324,7 +307,7 @@ const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes
 
 /**
  * The Licence tab for `who`. Null outside B.C. (no key). A closed day draws the prototype's empty section (D16 (a)); a
- * tidal key, page v36's "Tidal water" box with the stored tidal licence words.
+ * tidal key, page v36's "Tidal water" box with the stored tidal licence words (decisions D33 (b)).
  */
 export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: boolean; readonly glossary: ReadonlySet<string> }): LicenceVM | null {
   if (!inp.key) return null;

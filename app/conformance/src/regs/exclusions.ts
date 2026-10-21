@@ -70,11 +70,18 @@ export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 export const STEELHEAD_DROP_IDS: readonly string[] = ["bc1_501", "bc0_501", "bc1_1010", "bc0_1010", "ape_501", "ape_1010", "x15p2_1010"];
 export const STEELHEAD_STAMP_ITEM = /^Steelhead Conservation Surcharge Stamp\b/;
 /** (T33) tidal water: the prototype draws an empty Licence section (as on a closed day); page v36 licParts draws its
- *  "Tidal water" box with the stored tidal licence words, which the app keeps (D20 (b): tidal water is not closed). */
+ *  "Tidal water" box with the stored tidal licence words, which the app keeps (D33 (b): tidal water is not closed). */
 export const TIDAL_LICENCE_IDS: readonly string[] = ["x31p_1010"];
+/** (T33) the under-16 youth box where the 16+ angler's base document has an alternative ("Basic angling licence or Yukon
+ *  angling licence"): the stored `licence_frame.under_16[].buy[]` names each document but not its `or` alternatives. */
+export const YOUTH_ALT_IDS: readonly string[] = ["x12p_1010", "x30p_1010", "x35p_1010"];
+export const YOUTH_ALT_LINES = /^Under 16: no licence needed if you fish with a licensed adult\b| Or, for your own limit: /;
 export const LICENCE_EXCLUDE: readonly Exclusion[] = [
+  { block: "licence", ids: YOUTH_ALT_IDS, key: /^u16\|non_resident(_alien)?\.blocks$/, lines: YOUTH_ALT_LINES,
+    reason: "PIPELINE NEED (owner rule 2026-10-21): the youth box and its 'Or, for your own limit' item name the 16+ base document with its alternatives ('Basic angling licence or Yukon angling licence'); licence_frame.under_16[].buy[] carries {doc, name, prices} but not the DocumentNeed's `or` alternatives, and the app must not look them up in the 16+ answer. Both lines are dropped from both sides until the pipeline ships them",
+    until: "the pipeline's under_16[].buy[] carries `or` (each alternative's need/names) — licence frame, next version" },
   { block: "licence", ids: TIDAL_LICENCE_IDS,
-    reason: "decisions D20 (b): the prototype's empty Licence section on tidal water is the closed-day path over a key that is not closed; the app draws page v36 licParts' tidal box (\"Tidal water\" + the stored tidal licence words) — licence.parity asserts it",
+    reason: "decisions D33 (b): the prototype's empty Licence section on tidal water is the closed-day path over a key that is not closed; the app draws page v36 licParts' tidal box (\"Tidal water\" + the stored tidal licence words) — licence.parity asserts it",
     until: "never — a prototype artefact, not a regulation" },
   { block: "licence", ids: STEELHEAD_DROP_IDS, key: /^adult\|[a-z_]+\.blocks$/, lines: STEELHEAD_STAMP_ITEM,
     reason: "PIPELINE NEED (owner rule 2026-10-21; decisions D21 (b)): the prototype's render() drops the steelhead stamp from the list where the card says steelhead are closed — a page-side regulation decision the app must not make. The stored licence answer still lists the stamp; the line is dropped from both sides until the pipeline ships the per-water answer",

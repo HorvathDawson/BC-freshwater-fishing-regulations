@@ -44,7 +44,7 @@ describe("EXCLUDE", () => {
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
         "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
-        "licence 1 -", "licence 7 ^adult\\|[a-z_]+\\.blocks$"]);
+        "licence 3 ^u16\\|non_resident(_alien)?\\.blocks$", "licence 1 -", "licence 7 ^adult\\|[a-z_]+\\.blocks$"]);
     expect(SET_LINE_NOTE_IDS).toEqual(["x3p_1010", "x12p_1010", "x30p_1010", "x35p_1010"]);
   });
 });

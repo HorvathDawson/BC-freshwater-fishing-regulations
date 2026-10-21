@@ -53,13 +53,20 @@ const U16_NON: ProfileAnswer = { documents: [], none_needed: false, guiding: ADU
     { as: { age: ["16_plus"], residency: ["non_resident", "non_resident_alien"] }, quota: "own" }] }] };
 const U16_RES: ProfileAnswer = { documents: [], none_needed: true, requirements: [] };
 
+/** the stored under-16 summary (pipeline licence.under_16_summary over the profiles above) */
+const U16: LicenceValue["under_16"] = [
+  { residency: "resident", label: "B.C. resident", none_needed: true, with_adult: null, buy: [], own_limit: true, says: "No licence or stamp needed …" },
+  { residency: "non_resident", label: "Canadian, other province", none_needed: false, with_adult: { who: "16 or older", counts: true },
+    buy: [{ doc: "basic_licence", name: "Basic angling licence", prices: { year: 62.87, day: [22.86], eight_days: [41.15] } }], own_limit: true, says: "Fish with …" },
+  { residency: "non_resident_alien", label: "From outside Canada", none_needed: false, with_adult: null, buy: [], own_limit: false, says: "No licence needed." }];
+
 const frame = (over: Partial<Record<keyof typeof WHO, ProfileAnswer>> = {}): LicenceValue => {
   const ps: ProfileAnswer[] = PROFILES.map(() => ({ documents: [], none_needed: false, requirements: [] }));
   const at = (k: keyof typeof WHO, p: ProfileAnswer) => { ps[PROFILES.indexOf(`${WHO[k]!.residency}/${WHO[k]!.age === "u16" ? "under_16" : "16_plus"}/non_guided/none`)] = p; };
   at("adult", ADULT); at("adult_non", ADULT_NON); at("u16_res", U16_RES); at("u16_non", U16_NON);
   for (const [k, p] of Object.entries(over)) at(k as keyof typeof WHO, p!);
   return { holds: { holds: [], designations: [], stamp_period: false, contested: false, considered: [], wrong_water: [], waived: [], not_yet_mapped: [],
-    displaced: {}, also_printed: { "3": [9] } }, profiles: ps };
+    displaced: {}, also_printed: { "3": [9] } }, profiles: ps, under_16: U16 };
 };
 const RULE = { f: { species: ["CH"], life_stage: "adult" } } as unknown as RuleView;
 const INP = (o: { licence?: LicenceValue; key?: unknown; paper?: number[]; lics?: Map<number, unknown> } = {}): RegsInputs => ({
@@ -177,7 +184,7 @@ describe("buildLicence", () => {
   it("no paper line without the part's paper_licence rules", () => {
     expect(lines(buildLicence(INP({ paper: [] }), WHO.adult!, { closed: false, glossary: GLOSS })).map((l) => l[0])).toEqual(["needs", "lostlist lopen"]);
   });
-  it("under 16, non-resident: the youth box names the stored 16+ non-resident profile's base documents and price", () => {
+  it("under 16, non-resident: the youth box words the stored under_16 entry (who, counts, buy names, first price)", () => {
     const vm = buildLicence(INP(), WHO.u16_non!, { closed: false, glossary: GLOSS })!;
     expect(lines(vm).slice(0, 2)).toEqual([
       ["classbox youth", "Under 16: no licence needed if you fish with a licensed adult ⓘ Fish with someone 16 or older who holds what this fishing needs (Basic angling licence). What you keep counts toward their limit. Or buy the Basic angling licence yourself to have your own limit."],

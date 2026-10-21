@@ -10,7 +10,8 @@ import { afterAll, describe, expect, it } from "vitest";
 import { licenceBlockLines, licenceSourceLines, licenceSources, profileOf, settle, makePlace, type LicenceVM, type Who } from "@app/core";
 import type { Holds, ProfileAnswer } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
-import { licenceDropped, LICENCE_PROFILES, STEELHEAD_DROP_IDS, TIDAL_LICENCE_IDS } from "./exclusions";
+import { licenceDropped, LICENCE_PROFILES, STEELHEAD_DROP_IDS, TIDAL_LICENCE_IDS, YOUTH_ALT_IDS } from "./exclusions";
+import type { RegsInputs } from "@app/core";
 import { buildRegsPage } from "@app/core";
 
 const gate = await parityGate();
@@ -141,7 +142,36 @@ describe.skipIf(gate.skip)("T33 Licence", () => {
     for (const k of LICENCE_PROFILES) expect(await licOf("vedder_615", whoOf(k))).toEqual({ question: null, questionTerms: [], axes: [], label: "", blocks: [], src: null });
   });
 
-  it("tidal x31p_1010 (excluded, D20 (b)), all six: page v36's tidal box with the stored tidal licence words, no source line", async () => {
+  it("the youth box and its two items are WORDED from the stored under_16 entry, never from the 16+ answer (mutation)", async () => {
+    const inp = (await inputsOf("vedder_1010"))!, F = inp.frames!.licence, r = requestOf("vedder_1010");
+    const u16 = F.under_16!.map((u) => u.residency !== "non_resident" ? u : { ...u,
+      with_adult: { who: "MUT-WHO", counts: false },
+      buy: [{ doc: "basic_licence", name: "MUT-DOC", prices: { year: 1 } }, { doc: "x", name: "MUT-TWO", prices: { year: 2 } }] });
+    // the 16+ answers emptied: a derivation from them would lose the documents
+    const profiles = F.profiles.map((p) => "documents" in p && p.documents.length ? { ...p, documents: [] } : p);
+    const mut: RegsInputs = { ...inp, frames: { ...inp.frames!, licence: { ...F, under_16: u16, profiles } } };
+    const b = buildRegsPage(mut, { today: r.today, who: { age: "u16", residency: "non_resident" }, pid: "vedder_1010" }).licence!.blocks
+      .map((x) => ({ cls: x.cls, lines: [...licenceBlockLines(x)] }));
+    expect(b.slice(0, 2)).toEqual([
+      { cls: "classbox youth", lines: ["Under 16: no licence needed if you fish with a licensed adult ⓘ Fish with someone MUT-WHO who holds what this fishing needs (MUT-DOC, MUT-TWO). Or buy the MUT-DOC + MUT-TWO yourself to have your own limit."] },
+      { cls: "needs", lines: ["You need", "Nothing, if you fish with a licensed adult (16 or older) They must hold what this fishing needs",
+        "MUT-DOC + MUT-TWO Or, for your own limit: what a 16+ angler buys $1.00 a year",
+        "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"] }]);
+  });
+
+  it("the youth-alternative exclusion is exactly where a 16+ base document the youth may buy has stored `or` alternatives", async () => {
+    const hit: string[] = [];
+    for (const id of caseIds("licence")) {
+      const inp = (await inputsOf(id))!, F = inp.frames?.licence;
+      if (!F?.under_16 || settle(inp, makePlace(inp)).status?.status === "closed") continue;
+      const alt = F.under_16.some((u) => u.buy.some((b) => F.profiles.some((p) => "documents" in p
+        && p.documents.some((d) => d.doc === b.doc && d.base && (d.or ?? []).length))));
+      if (alt) hit.push(id);
+    }
+    expect(hit).toEqual(YOUTH_ALT_IDS);
+  });
+
+  it("tidal x31p_1010 (excluded, D33 (b)), all six: page v36's tidal box with the stored tidal licence words, no source line", async () => {
     expect(TIDAL_LICENCE_IDS).toEqual(["x31p_1010"]);
     for (const k of LICENCE_PROFILES) {
       const x = await L("x31p_1010", k);
