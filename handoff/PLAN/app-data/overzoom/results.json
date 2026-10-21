@@ -1,0 +1,139 @@
+{
+ "places": {
+  "river": {
+   "found": {
+    "d": 34.17517127699325,
+    "at": [
+     -121.98475241661072,
+     49.09771424165598
+    ],
+    "id": 313838,
+    "layer": "stream"
+   },
+   "rows": {
+    "14": {
+     "zoom": 14,
+     "drawn": 3,
+     "coloured": 3,
+     "underFinger": 1,
+     "underId": 313838,
+     "underState": {
+      "p": "p47"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "16": {
+     "zoom": 16,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 313838,
+     "underState": {
+      "p": "p47"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "17": {
+     "zoom": 17,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 313838,
+     "underState": {
+      "p": "p47"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "18": {
+     "zoom": 18,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 313838,
+     "underState": {
+      "p": "p47"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "tapText": "\u2039  Map\nRegulations\nConditions\nMap\nVedder River\nRegulations are coming\nThis app does not show fishing regulations yet. Check the current BC Freshwater Fishing Regulations Synopsis before you fish \u2014 the general rules for this region apply to every water in it."
+   }
+  },
+  "lake": {
+   "found": {
+    "d": 360.1152739477176,
+    "at": [
+     -121.986243724823,
+     49.07068900582911
+    ],
+    "id": 1359186,
+    "layer": "lake"
+   },
+   "rows": {
+    "14": {
+     "zoom": 14,
+     "drawn": 3,
+     "coloured": 3,
+     "underFinger": 1,
+     "underId": 1359186,
+     "underState": {
+      "p": "p111"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "16": {
+     "zoom": 16,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 1359186,
+     "underState": {
+      "p": "p111"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "17": {
+     "zoom": 17,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 1359186,
+     "underState": {
+      "p": "p111"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "18": {
+     "zoom": 18,
+     "drawn": 1,
+     "coloured": 1,
+     "underFinger": 1,
+     "underId": 1359186,
+     "underState": {
+      "p": "p111"
+     },
+     "atlasMaxzoom": 14,
+     "basemapMaxzoom": 14,
+     "imageryMaxzoom": 13
+    },
+    "tapText": "\u2039  Map\nRegulations\nConditions\nMap\nCultus Lake\nRegulations are coming\nThis app does not show fishing regulations yet. Check the current BC Freshwater Fishing Regulations Synopsis before you fish \u2014 the general rules for this region apply to every water in it."
+   }
+  }
+ },
+ "errors": [],
+ "askedFor20": 18,
+ "maxRasterZoom": 13
+}
