@@ -83,6 +83,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- 2026-10-21 late morning: KEEP CARD presenters MERGED (lane A T13 strip/T14 banner/T16 header; lane B T15/T15b/
+  T19b; lane C T17/T18/T19; parity 134/134, Kitimat 3 states keyed by the ruling) + merge fixes 0b99102a (one
+  ruleBookLine; THE_REGION_LC). REGS_STORE_REQUIRED=1 pnpm check 4787 pass / 19 skip; smoke pass. Owner rule found 5
+  answers still derived in TS (closers, narrow_all, parent, record duty, stamps) -> batch 9 moves them into the
+  pipeline (version bump, then lead runs deliver all) + T21 Keep tab wired into the water screen with screenshots vs
+  the prototype (handoff/PLAN/app-integration/keep-shots/). OWNER Q: T16 now labels one-part waters ("Whole water",
+  "Mouth -> Source") where the prototype showed nothing (D1 frames every part) — keep or hide?
 - 2026-10-21 morning: deliver all OK -> release r-7b6e802bf22b PROMOTED (13.85 MB gz; card gate 0 problems; both
   Kitimat rulings live: hatchery ST keep 2 Jul 1-Oct 31, release Nov 1-Jun 30; +1 over 50 like the Vedder). taps.json
   re-cut, regs fixture r-d3b990efee47, Kitimat + year-strip + card parity pin the ruling (3 Kitimat states differ
