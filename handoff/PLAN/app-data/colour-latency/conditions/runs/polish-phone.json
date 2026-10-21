@@ -1,0 +1,115 @@
+{
+ "path": "state",
+ "size": "390x844",
+ "net": "4g",
+ "cpu": 4.0,
+ "byZoom": {},
+ "changes": [
+  {
+   "label": "Forecast 1 day ahead",
+   "fsCalls": 226,
+   "fsMs": 1.1,
+   "paintCalls": 0,
+   "layoutCalls": 0,
+   "colourCost": [
+    [
+     "standing",
+     3.6,
+     100
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 411,
+   "sectionsChanged": 3,
+   "rendered": 30,
+   "frames": 39,
+   "longtasks": 53
+  },
+  {
+   "label": "Forecast 3 days ahead",
+   "fsCalls": 228,
+   "fsMs": 1.2,
+   "paintCalls": 0,
+   "layoutCalls": 0,
+   "colourCost": [
+    [
+     "standing",
+     4.1,
+     100
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 79,
+   "sectionsChanged": 3,
+   "rendered": 30,
+   "frames": 1,
+   "longtasks": 0
+  },
+  {
+   "label": "Conditions now",
+   "fsCalls": 230,
+   "fsMs": 0.2,
+   "paintCalls": 0,
+   "layoutCalls": 0,
+   "colourCost": [
+    [
+     "standing",
+     2.5,
+     100
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 77,
+   "sectionsChanged": 3,
+   "rendered": 30,
+   "frames": 2,
+   "longtasks": 0
+  },
+  {
+   "label": "quantity Level",
+   "fsCalls": 230,
+   "fsMs": 0.2,
+   "paintCalls": 0,
+   "layoutCalls": 0,
+   "colourCost": [
+    [
+     "standing",
+     2.6,
+     100
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 710,
+   "sectionsChanged": 3,
+   "rendered": 30,
+   "frames": 74,
+   "longtasks": 75
+  },
+  {
+   "label": "quantity Flow",
+   "fsCalls": 230,
+   "fsMs": 0.7,
+   "paintCalls": 0,
+   "layoutCalls": 0,
+   "colourCost": [
+    [
+     "standing",
+     1.4,
+     100
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 417,
+   "sectionsChanged": 3,
+   "rendered": 30,
+   "frames": 39,
+   "longtasks": 69
+  }
+ ],
+ "heapMB": {
+  "start": 79,
+  "afterPans": 79,
+  "end": 75
+ },
+ "pans": []
+}

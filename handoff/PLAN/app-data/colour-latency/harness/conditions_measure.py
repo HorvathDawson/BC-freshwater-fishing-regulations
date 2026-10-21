@@ -28,6 +28,11 @@ INSTALL = """(path) => {
     .observe({ type: 'longtask', buffered: false });
   const orig = m.setFeatureState.bind(m);
   m.setFeatureState = (f, s) => { const t = T(); const r = orig(f, s); A.fs.ms += T() - t; A.fs.n++; return r; };
+  // the look's cost: every paint and layout property set (a horizon change should set none — engine polish)
+  A.paint = { paint: 0, layout: 0 };
+  const sp = m.setPaintProperty.bind(m), sl = m.setLayoutProperty.bind(m);
+  m.setPaintProperty = (...x) => { A.paint.paint++; return sp(...x); };
+  m.setLayoutProperty = (...x) => { A.paint.layout++; return sl(...x); };
   m.on('idle', () => A.idles.push(Math.round(T())));
   // the class path's tables, read out of the paint the map is drawing (the stream's, and the field's)
   const cache = {};
@@ -132,7 +137,8 @@ PANS = """async ([lon, lat, z, label]) => {
 
 def timed_change(pg, label, act):
     """Do `act`, then follow frames until every colour has settled: sync work, calls, ms to the last colour change."""
-    pg.evaluate("() => { const A = window.A; A.c0 = { ...A.fs, k: (globalThis.__colourCost ?? []).length }; "
+    pg.evaluate("() => { const A = window.A; A.c0 = { ...A.fs, k: (globalThis.__colourCost ?? []).length, "
+                "p: A.paint.paint, l: A.paint.layout }; "
                 "A.frames.length = 0; A.t0 = performance.now(); A.h0 = A.values(); }")
     act()
     pg.wait_for_timeout(4000)
@@ -145,6 +151,7 @@ def timed_change(pg, label, act):
         const now = A.values(); A.dumps[label] = now;
         const changed = Object.keys(now).filter(k => now[k] !== A.h0[k]).length;
         return { label, fsCalls: A.fs.n - A.c0.n, fsMs: +(A.fs.ms - A.c0.ms).toFixed(1),
+                 paintCalls: A.paint.paint - A.c0.p, layoutCalls: A.paint.layout - A.c0.l,
                  colourCost: cost.map(c => [c.kind, +c.ms.toFixed(2), c.calls]),
                  settledMs: last === null ? 0 : Math.round(last - A.t0),
                  idleMs: idle === undefined ? null : Math.round(idle - A.t0),
@@ -164,6 +171,7 @@ def main():
     ap.add_argument("--shots")
     ap.add_argument("--dump")
     ap.add_argument("--at", default="-121.85,49.15", help="lon,lat of the pans (default: the app's HOME, the Fraser Valley)")
+    ap.add_argument("--changes-only", action="store_true", help="skip the pans: only the horizon and quantity changes")
     a = ap.parse_args()
     w, h = map(int, a.size.split("x"))
     lon, lat = map(float, a.at.split(","))
@@ -190,7 +198,7 @@ def main():
         if a.cpu > 1:
             cdp.send("Emulation.setCPUThrottlingRate", {"rate": a.cpu})
         pg.evaluate("() => window.A.mark('start')")
-        for z in (8, 11, 13):
+        for z in (() if a.changes_only else (8, 11, 13)):
             pg.evaluate(PANS, [lon, lat, z, f"z{z}"])
             if a.shots:
                 Path(a.shots).mkdir(parents=True, exist_ok=True)
@@ -213,6 +221,8 @@ def main():
     by_z = {}
     for z in ("z8", "z11", "z13"):
         rs = [r for r in A["pans"] if r["label"].startswith(z + "/")]
+        if not rs:
+            continue
         lat = [r["colouredMs"] for r in rs if r["colouredMs"] is not None]
         by_z[z] = {"pansGreyMoving": sum(1 for r in rs if r["movingGrey"]),
                    "pansGreyAfter": sum(1 for r in rs if r["afterGrey"]),

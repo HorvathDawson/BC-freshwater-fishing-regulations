@@ -381,8 +381,8 @@ choice); hidden `mu`/`region` and shown flow arrows (the style's `views[].hide/s
 search fit (Map tab only — Conditions must not inherit a search); the tap (opens a water vs. a Conditions section, none
 below the handover); the Layers button (Map tab) vs. the Showing control and horizon chips (Conditions). The route
 overlay, up/down gauges and 'here' pin are on the Conditions sheet's route map (`DonorMap` → `MiniMap`, `trace`), which
-colours ONLY the route's sections from pushed `data` (`usePanelStandings` over the chain — the same `sectionStanding`):
-an illustration of one route, deliberately not the engine's whole-map colouring.
+colours ONLY the route's sections — since the engine polish (below) through the SAME engine's `standing` channel, with
+the route as its classes; it was pushed `data` before.
 
 ### Lake modes (Stocked, Depth) and the basemap toggle
 
@@ -401,7 +401,7 @@ PIPELINE NEED: a per-section (or per-item) stocking date and survey state in the
 channel like `standing` (label = the static fact, e.g. last-stocked day or `digitised`/`sheet`; the band by day in
 the style, or a daily relabel) — no adapter code, no tile rebuild.
 
-### Native (N2)
+### Native (N2) — superseded by "Native: the engine on a phone" below
 
 Unchanged in kind: `Map.native.tsx` gets the visible sections' standings pushed as `data` in the `standing` mode, now
 through `useConditionsColour` (the same `sectionStanding`), and the marsh a stream flows through (`wetland_flowing`)
@@ -420,3 +420,75 @@ loaded event, or a bulk feature-state call, from the binding (open, as above); t
 - At mount (and a release swap) the two channels install in turn, so a held tile's sections get two state calls, not one.
 - The style-table variant is measured and NOT shipped (`runs/table-*`, `shots/table-*`, from the paused run).
 
+## Engine polish (2026-10-21): the look keyed on the look, one pathway on the web, the phone's plan
+
+**(1) A horizon change no longer re-runs the look.** `useMapModes` memoised on the horizon, so a horizon click handed
+the map a new `modes` object, and `Map.web`'s look effect (keyed on prop identities, `hide={[]}` among them) re-ran the
+whole pass: 139 `setPaintProperty` per click, every one a no-op. Now `useMapModes` keeps `modes` / `activeGroups` as
+the same objects while their content is the same, and the look effect is keyed on the look's CONTENT (`lookKey`). Pushed
+`data` moved to an effect of its own. Pinned: `ui/src/mapModes.render.test.tsx` (same objects across a horizon change;
+a real mode change is a new object), `one-engine.render.test.tsx` "A HORIZON CHANGE" (through the real `Map.web.tsx`:
+the next standings as feature-state ONLY, zero paint and layout calls; a real mode change still repaints).
+
+**(2) One pathway on the web.** The Conditions route map now colours through the engine: `ui/src/routeColour.ts` hands
+the map the route as the standing channel's classes (a chain section's class is its place on the chain, any other
+section has none, so the engine leaves it alone) and `usePanelStandings`' values over the chain (the same
+`sectionStanding`). The labels are kept through a horizon change (the panel answers no rows while it reloads; the last
+route of the section is kept), so a horizon is a relabel of the route's sections, never a clear. Pushed route `data` is
+the phone's alone (`useConditionsView(..., { perTile })`, from `coloursEachTile(Platform.OS)` in `ConditionsPanel`).
+`Map.web.tsx` now REFUSES `p` / `standing` / `status` in pushed `data` (`withoutEngineKeys` in `colouring.ts`, on both
+paths into `setData`: the data effect and the engine's restore), reporting each refused layer through `onError`.
+`tools/one-colouring-engine.test.ts` now also pins: the refused keys are the channels' own plus `status`; every
+`setData` in `Map.web.tsx` goes through `withoutEngineKeys`; each producer of pushed colours (`statusData`,
+`pushedStandings`, `pushedRoute`) is called once, only off `perTile`; the sheet passes `perTile` and both halves.
+
+**Re-measured on the final code** (`harness/conditions_measure.py --path state --changes-only`, which now also counts
+`setPaintProperty` / `setLayoutProperty` per step; own servers :39660 data / :39661 expo web, release r-7b6e802bf22b,
+live tiles and feed, HOME at z11; `conditions/runs/polish-desktop.json`, `polish-phone.json`):
+
+| change | desktop 1280×800: paint / layout calls | engine (ms, states) | long tasks | phone 390×844, 4G, 4× CPU: paint / layout | engine (ms, states) | long tasks |
+|---|---|---|---|---|---|---|
+| +1 day | **0 / 0** (was 139 paint) | 0.9, 209 | 0 | **0 / 0** | 3.6, 100 | 53 ms |
+| +3 days | **0 / 0** | 0.7, 209 | 0 | **0 / 0** | 4.1, 100 | 0 |
+| Now | **0 / 0** | 0.5, 209 | 0 | **0 / 0** | 2.5, 100 | 0 |
+| Level | 0 / 0 | 0.8, 209 | 0 | 0 / 0 | 2.6, 100 | 75 ms |
+| Flow | 0 / 0 | 0.5, 209 | 0 | 0 / 0 | 1.4, 100 | 69 ms |
+
+Every change drew its new colours on the first frame (`settledMs` 0). The phone's long tasks are React re-rendering the
+sheet, legend and gauge dots (the engine's own work is the 1.4–4.1 ms column); the first +1d on the phone also takes
+the first forecast table. Feature-state calls per change were 335–339 desktop / 226–230 phone — more than the engine's
+own (209 / 100): the remainder are the map's other per-feature states (not traced in this pass; no paint among them).
+
+**(3) Native: the engine on a phone — NOT implemented, the plan.** `@maplibre/maplibre-react-native` 11.5.0 offers only
+`VectorSource.setFeatureState(featureId, sourceLayer, state)` — one async bridge call per feature — with no tile-loaded
+event and no bulk call, so the engine cannot label a tile before its first frame there, and a JS-side engine pushing
+per feature would be the pushed path again. The phone stays on push (`useConditionsColour` with `perTile: false`) and
+is HELD TO THE ENGINE'S VALUES: `ui-native/src/NativeAgrees.test.tsx` renders both paths over one fixture release and
+feed and requires, for every section on every pushed source-layer and every basin, at every quantity and horizon, that
+the phone's pushed `standing` is exactly the web engine's label (`standingInput`) — absent where the engine leaves it
+unlabelled, the sentinel where it is the sentinel (mutation: a pushed value clamped at 0 fails it). The plan, for when
+an emulator run is allowed:
+
+1. A small native module beside the binding (Expo module, Android + iOS), `ColouringModule`, holding per source-layer
+   the CHANNEL INPUT the engine holds: the labelling as a typed array `classOf[handle] -> class` (int32, the release's
+   `StandingClasses` / the day-profile index — shipped once per release, ~8 MB for 1.96M handles, from the same release
+   file the web reads) and the values as `Float32Array` per class (status: the day's profile table; standing: the class
+   table), set from JS with one call each (`setLabels`, `setValues`).
+2. In the module, a tile-loaded hook: Android `MapView.addOnDidFinishLoadingTileListener`-equivalent via the core's
+   `MapObserver::onTileAction(TileOperation::EndParse)` (believed present in the MapLibre Native core the binding ships —
+NOT verified against 11.5.0's native sources in this pass); on it, walk
+   the tile's features of `stream` / `lake` / `wetland` and call the core's `setFeatureState` for each, natively —
+   no bridge per feature, before the tile's first frame where the observer fires on the render thread's parse.
+3. A values change (horizon, feed, day): the module relabels the loaded tiles' features from the new table, one native
+   pass (the web engine's `set` with `relabels`); a labelling change: clear + relabel, the web sequence
+   (`colouring.ts` steps 1–5), the `selected` / `water` highlight put back by the module's restore callback into JS.
+4. `Map.native.tsx` then takes `status` / `standing` exactly as `Map.web.tsx` does, through the same `toChannel`
+   shape, and `coloursEachTile` returns true for it; the push producers become dead and are deleted with
+   `withoutEngineKeys` applied on native too, and `NativeAgrees.test.tsx` becomes the module's contract test.
+5. Measure on the emulator with the N2 harness: grey frames after a pan, the cost of a horizon change, bridge calls.
+   Risk to check first: whether `onTileAction` is reachable from the binding's map view without forking the binding
+   (if not, a patch-package on 11.5.0, or an upstream PR adding a tile event).
+
+**Not done / not verified (polish):** the route map was not driven in a browser in this pass (pinned through the real
+`Map.web.tsx` by `one-engine.render.test.tsx` "THE ROUTE MAP" and the hook tests); the pans were not re-run (only the
+look changed, which a pan does not touch); the extra non-engine feature-state calls per change were not traced.
