@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
-import { HOME, STACK_CAP, bottomBarShown, reduce, type Route, type RouteAction } from "./route";
+import { HOME, STACK_CAP, bottomBarShown, reduce, waterFrame, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
 const run = (r: Route, ...as: RouteAction[]) => as.reduce(reduce, r);
@@ -56,5 +56,27 @@ describe("route (P13): one value, one back rule", () => {
     expect(r).toEqual(HOME);
     expect(reduce(HOME, { type: "view", view: "map" })).toBe(HOME);
     expect(reduce(HOME, { type: "part", part: 2 })).toBe(HOME);
+  });
+});
+
+describe("waterFrame (T01): what the water screen is handed — the water, its part, the section TAPPED", () => {
+  it("null while browsing", () => {
+    expect(waterFrame(HOME)).toBeNull();
+  });
+
+  it("a map tap keeps its section; a search open has none; a water flowed into has none, at its part", () => {
+    const tap = reduce(HOME, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId });
+    expect(waterFrame(tap)).toEqual({ item: VEDDER, part: null, tapSid: 77, view: "regs" });
+    expect(waterFrame(reduce(HOME, { type: "openWater", item: VEDDER }))).toEqual({ item: VEDDER, part: null, tapSid: null, view: "regs" });
+    const flowed = reduce(tap, { type: "flowInto", item: FRASER, part: 4 });
+    expect(waterFrame(flowed)).toEqual({ item: FRASER, part: 4, tapSid: null, view: "regs" });
+    // back to the first water: its own tap again, never the second water's
+    expect(waterFrame(reduce(flowed, { type: "back" }))).toEqual({ item: VEDDER, part: null, tapSid: 77, view: "regs" });
+  });
+
+  it("a tap on another water from inside water mode is that water's tap", () => {
+    const w = run(HOME, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId },
+                  { type: "openWater", item: HARRISON, tapSid: 12 as SectionId });
+    expect(waterFrame(w)).toEqual({ item: HARRISON, part: null, tapSid: 12, view: "regs" });
   });
 });

@@ -82,6 +82,15 @@ export function reduce(r: Route, a: RouteAction): Route {
   }
 }
 
+/**
+ * The water on screen, or null while browsing (T01): its item, the part it was opened at and the section the reader
+ * TAPPED to open it (null from search, a list or a flow) — what the Regulations page opens on. A new water is a new
+ * frame, so a tap kept for one water never names the part of another.
+ */
+export function waterFrame(r: Route): WaterFrame | null {
+  return r.mode === "water" ? top(r) : null;
+}
+
 /** The bottom bar: shown while browsing, hidden in water mode and while a spot is being added. */
 export function bottomBarShown(r: Route): boolean {
   return r.mode === "browse" && !r.adding;

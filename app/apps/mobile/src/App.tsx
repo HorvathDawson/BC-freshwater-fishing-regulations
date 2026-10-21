@@ -25,6 +25,7 @@ import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
 import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, type RegsSource } from "@app/data";
+import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
@@ -88,18 +89,22 @@ export default function App() {
   const dev = useDevBundle(!RELEASE);
 
   const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
-                             tiles: MapTiles } | null => {
+                             tiles: MapTiles; loader: ReleaseLoader | null } | null => {
     if (RELEASE) {
       if (boot.state !== "ready") return null;
       const b = boot.booted;
       // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
       // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
-      return { source: b.source, status: releaseStatus(b.loader), ...releaseMapInput(b, ENDPOINTS.tiles) };
+      // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
+      // through it (no regs store file of its own)
+      return { source: b.source, status: releaseStatus(b.loader), ...releaseMapInput(b, ENDPOINTS.tiles),
+               loader: b.loader };
     }
     if (!dev.bundle) return null;
     const source = makeBundleSource(dev.bundle, { feed });
     return { source, status: devStatus(source, ENDPOINTS.tiles.atlas),
-             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas }, tiles: ENDPOINTS.tiles };
+             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas }, tiles: ENDPOINTS.tiles,
+             loader: null };      // the dev bundle holds no regulations
   }, [boot, dev.bundle, feed]);
 
   const failed = RELEASE ? (boot.state === "failed" ? boot.error.message : null) : dev.failed;
@@ -149,7 +154,7 @@ export default function App() {
             {rolledBackLine(rolledBack)}
           </Text>
         )}
-        <Shell source={data.source} palette={palette}
+        <Shell source={data.source} palette={palette} loader={data.loader}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
                status={data.status} pairing={data.pairing}

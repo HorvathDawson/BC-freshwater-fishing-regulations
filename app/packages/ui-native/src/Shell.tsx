@@ -12,7 +12,8 @@ import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, type
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
-import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
+import type { ReleaseLoader } from "@app/data/release";
+import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, waterFrame, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
 import { useBack, useEdgeBack, useOnLeave, usePartSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
@@ -62,7 +63,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, photos, status = null, pairing = null,
-                       systemBack = null }: {
+                       systemBack = null, loader = null }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -101,6 +102,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   photos?: SpotPhotos;
   /** G1: the platform's own back (Android `BackHandler`, the browser's history), from the app. Absent -> ‹ only. */
   systemBack?: SystemBack | null;
+  /** T01: the release loader (P11), handed to the water screen for its Regulations page. null: the dev bundle. */
+  loader?: ReleaseLoader | null;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -119,7 +122,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const [route, go] = useRoute();
   const browse = route.mode === "browse" ? route : route.from;
   const tab: TabKey = browse.tab;
-  const item: ItemId | null = route.mode === "water" ? route.stack[route.stack.length - 1]!.item : null;
+  const frame = waterFrame(route);
+  const item: ItemId | null = frame?.item ?? null;
   // the water's regulations read (P11): on the release, opening it opens core, water and its region's file — a water in
   // another region fetches that region's. The page that draws them is T01/T03's; until then the placeholder stands.
   useRegulationKeys(source, item);
@@ -400,6 +404,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
 
   const body = item !== null
     ? <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
+                   // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
+                   loader={loader} day={mapDay} onDay={setMapDay} section={frame?.tapSid ?? null}
+                   part={frame?.part ?? null}
                    // NO `feed`. The sheet quotes no number, so it reads no gauge data —
                    // see the note in WaterScreen about why the hooks came out with the UI.
                    // The toggle LEAVES for the one conditions screen rather than rendering

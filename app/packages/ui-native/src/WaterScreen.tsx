@@ -20,6 +20,7 @@
  */
 import { Pressable, ScrollView, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ReleaseLoader } from "@app/data/release";
 import { useWater } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
@@ -30,8 +31,25 @@ import type { Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
 
-export function WaterScreen({ source, item, palette, onBack, onConditions }: {
+export function WaterScreen({ source, item, palette, onBack, onConditions,
+                              loader: _loader = null, day: _day = null, onDay: _onDay, section: _section = null,
+                              part: _part = null }: {
   source: RegsSource; item: ItemId;
+  /**
+   * T01: everything the Regulations page will read, handed down and NOT read yet (T11 `useRegsStore(loader)` opens the
+   * store on the first water; T23 draws it). Nothing here opens a file: until T11 lands the placeholder stands.
+   *
+   * The release loader (P11): the page's water / regs-<region> / regs-sid files come through it (README §0, D22), never
+   * a `/regs.sqlite` of their own. null on the dev-bundle path, which holds no regulations.
+   */
+  loader?: ReleaseLoader | null;
+  /** THE ONE DAY: the map's day (null = today). The page's date pill moves it for the map too (D7). */
+  day?: Date | null;
+  onDay?: (d: Date | null) => void;
+  /** The section the reader tapped to open this water (null: from search, a list or a flow) — picks the part (T09). */
+  section?: SectionId | null;
+  /** The part the water was opened at (a flow into it names one), else null. */
+  part?: number | null;
   palette: Palette; onBack?: () => void;
   /**
    * Leave for the Conditions screen, on this water's first reach.
