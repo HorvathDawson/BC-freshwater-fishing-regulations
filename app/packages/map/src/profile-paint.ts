@@ -23,6 +23,16 @@ export interface ProfileStatus {
 }
 
 /**
+ * Whether the map on this platform (`Platform.OS`) colours each tile as it arrives from `MapProps.status` — the
+ * `profile` mode. Only the web map: `Map.native.tsx` (N2) has no per-tile load event, does not read `status`, and
+ * colours only from pushed `data` in the `status` mode, so a phone handed `profile` painted every water plain with no
+ * error (colour-ap review). How the native map colours per tile is open (the study's README) — flip this then.
+ */
+export function coloursEachTile(platform: string): boolean {
+  return platform === "web";
+}
+
+/**
  * The source-layers whose sections wear a profile. Feature-state is per source-layer, so a stream's polygon
  * (`lake_flowing`, `wetland_flowing`) reads the label set on `lake` / `wetland`.
  */

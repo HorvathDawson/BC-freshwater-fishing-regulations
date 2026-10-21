@@ -4,7 +4,8 @@
  *
  *   useBack       the ONE back function. The ‹ button, Android's system back (button and edge gesture, through
  *                 `BackHandler`), the browser's back button and a phone browser's own swipe-back (through the History
- *                 API) and the iOS left-edge swipe all call it, and it dispatches `{type: "back"}` (APP-PREP §0 rule 1).
+ *                 API) and the iOS left-edge swipe all call it, and it dispatches `{type: "back"}` (APP-PREP §0 rule 1)
+ *                 — unless a sheet is open (`useBackLayer`), which it closes first.
  *   historySync   keeps the browser's history and the route in step: one history entry per back step the route holds,
  *                 so the browser's back pops exactly one frame and the ‹ button never leaves a stranded entry.
  *   useViewSwipe  a sideways swipe on a water → `{type: "view"}` on the neighbouring view (Regulations · Conditions ·
@@ -14,7 +15,7 @@
  * No react-native here (layers.json): the platform glue — `BackHandler`, `window.history` — lives in the app shell and
  * reaches this file as a `SystemBack`, and the gesture recognisers are `@app/ui-native`'s.
  */
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { EDGE_BACK, WATER_VIEWS, classifySwipe, edgeBackCommits, edgeBackEnabled, edgeBackStarts, follow, sheetDismiss,
          stepView, viewSwipeStarts, type SwipeStep, type WaterView } from "@app/core";
 import type { SectionId } from "@app/data";
@@ -48,19 +49,65 @@ export interface SystemBackBinding {
 }
 
 export interface Back {
-  /** Pop one frame. False when there was nothing to pop (the browse root): Android then leaves the app as usual. */
+  /**
+   * Close the top back layer (an open sheet) or, with none open, pop one frame. False when there was nothing to do
+   * (the browse root, no sheet): Android then leaves the app as usual.
+   */
   back: () => boolean;
+  /** The back steps held: the route's own (`backDepth`) plus one per open back layer. */
   depth: number;
+  /** Where an open sheet registers (`BackLayerContext` / `useBackLayer`). */
+  layers: BackLayers;
+}
+
+/**
+ * BACK LAYERS: what back closes before it pops the route. A sheet (Layers) is not a route frame — it does not belong
+ * in the route, a reload or a link — but back must close it first on every platform: Android's Modal did so through
+ * `onRequestClose`, while the browser's back went under it (and at the browse root left the app with the sheet open).
+ * An open sheet registers here; it counts as one back step (so on the web it holds one history entry, dropped again
+ * when it closes any other way), and back closes the most recent one before anything else.
+ */
+export interface BackLayers {
+  /** An open layer and how to close it; returns its removal (the layer closed some other way: Done, scrim, drag). */
+  register(close: () => void): () => void;
+  /** The one back (`Back.back`), for a layer's own platform back — Android's Modal `onRequestClose`. */
+  back: () => boolean;
+}
+
+export const BackLayerContext = createContext<BackLayers | null>(null);
+
+/**
+ * A sheet's registration while `open`. Returns what the platform's own back for the sheet calls (the Modal's
+ * `onRequestClose`): the one back where there is one to register with, else the sheet's own close.
+ */
+export function useBackLayer(open: boolean, close: () => void): () => void {
+  const layers = useContext(BackLayerContext);
+  const latest = useRef(close);
+  latest.current = close;
+  useEffect(() => {
+    if (!open || !layers) return;
+    return layers.register(() => latest.current());
+  }, [open, layers]);
+  return useCallback(() => { if (layers) layers.back(); else latest.current(); }, [layers]);
 }
 
 /**
  * THE ONE BACK. `back()` reads the latest route through a ref, so two backs before a re-render (the browser going
- * back two entries at once) pop two frames rather than the same one twice.
+ * back two entries at once) pop two frames rather than the same one twice; a layer leaves the list as it is closed,
+ * for the same reason.
  */
 export function useBack(route: Route, go: (a: RouteAction) => void, system?: SystemBack | null): Back {
   const latest = useRef(route);
   latest.current = route;
+  const open = useRef<{ close: () => void }[]>([]);
+  const [layerCount, setLayerCount] = useState(0);
   const back = useCallback(() => {
+    const top = open.current.pop();
+    if (top) {
+      setLayerCount(open.current.length);
+      top.close();
+      return true;
+    }
     const r = latest.current;
     const next = reduce(r, BACK);
     if (next === r) return false;
@@ -68,7 +115,21 @@ export function useBack(route: Route, go: (a: RouteAction) => void, system?: Sys
     go(BACK);
     return true;
   }, [go]);
-  const depth = backDepth(route);
+  const layers = useMemo<BackLayers>(() => ({
+    back,
+    register: (close) => {
+      const layer = { close };
+      open.current.push(layer);
+      setLayerCount(open.current.length);
+      return () => {
+        const i = open.current.indexOf(layer);
+        if (i < 0) return;                  // back closed it, and already took it off
+        open.current.splice(i, 1);
+        setLayerCount(open.current.length);
+      };
+    },
+  }), [back]);
+  const depth = backDepth(route) + layerCount;
 
   const binding = useRef<SystemBackBinding | null>(null);
   const depthNow = useRef(depth);
@@ -81,7 +142,7 @@ export function useBack(route: Route, go: (a: RouteAction) => void, system?: Sys
     return () => { binding.current = null; b.dispose(); };
   }, [system, back]);
   useEffect(() => { binding.current?.sync(depth); }, [depth]);
-  return { back, depth };
+  return { back, depth, layers };
 }
 
 /**

@@ -82,6 +82,18 @@ describe("web: a cold start is the manifest and paint, then each file on first n
       atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: `${BASE}tiles/v1/bc_outside.geojson`,
       assets: `${BASE}tiles/v1/map-assets-1/` });
   });
+
+  it("N2: a release that names its map assets gives the map their folder (glyphs + sprites, no CDN)", async () => {
+    const fx = buildFixtureRelease(null);
+    const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                  platform: web, fetch: releaseFetch(BASE, fx.dir, []) });
+    const named = { ...b, manifest: { ...b.manifest, tiles: { ...b.manifest.tiles,
+      current: { id: "v1", url: "tiles/v1/atlas-v1.pmtiles", bytes: 1, sha256: "x" },
+      assets: { id: "map-assets-1", url: "tiles/v1/map-assets-1/", files_sha256: "z", pin: "p" } } } };
+    expect(releaseTiles(named as never, DEV_TILES)).toEqual({
+      atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: DEV_TILES.outside,
+      assets: `${BASE}tiles/v1/map-assets-1/` });
+  });
 });
 
 function memFs(): ReleaseFs & { files: Map<string, Uint8Array> } {

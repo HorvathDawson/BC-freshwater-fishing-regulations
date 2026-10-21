@@ -23,7 +23,10 @@ import { pillImage } from "./pill";
 import { hatchImage } from "./hatch";
 import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
-import { gaugeDotColour, runtimeStyle } from "./runtime-style";
+import { runtimeStyle } from "./runtime-style";
+import { applyLook } from "./look";
+import { webRenderer, type WebRenderer } from "./adapters/web";
+import type { MapRenderer } from "./adapters/contract";
 import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
@@ -79,6 +82,14 @@ function useOutsideMask(url: string | undefined): unknown {
 }
 
 /**
+ * The maps whose style has loaded once. `isStyleLoaded()` is ALSO false while tiles load (GL JS counts the sources),
+ * but paint, layout and feature-state calls need only the style itself, which never unloads here (the style is set once
+ * per map). Without this a zoom out to the basin field — a long tile burst, exactly when the basin standings arrive —
+ * waited on a `styledata` that never came, and the field stayed blank (N2 review web walk).
+ */
+const styledOnce = new WeakSet<maplibregl.Map>();
+
+/**
  * Run `fn` once the style can take layout and feature-state calls — now, or as soon as it
  * can. Returns the cleanup.
  *
@@ -117,8 +128,16 @@ function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
   return () => { m.off("styledata", h); };
 }
 
-/** The layers a searched water can be drawn in — what `fit.refine` measures. */
-const WATER_LAYERS = ["stream", "lake", "wetland"] as const;
+/**
+ * Run `fn` now if this map's style has loaded ONCE, else on its `load` — for the look and the data. Not `whenStyled`:
+ * its `isStyleLoaded()` also waits out every tile burst, and a `styledata` may never come; and not before `load`,
+ * where the pill and hatches are added (adding them earlier raced the load handler: "gauge-pill already exists").
+ */
+function afterLoad(m: maplibregl.Map, fn: () => void): () => void {
+  if (styledOnce.has(m)) { fn(); return () => {}; }
+  m.once("load", fn);
+  return () => { m.off("load", fn); };
+}
 
 /** Development only: where the colouring's cost is recorded, for the colour-latency measurements. */
 type ColourCost = { t: number; ms: number; calls: number; kind: string };
@@ -130,10 +149,14 @@ const devCost = (c: ColourCost) => {
 const forcePublic = () => typeof __DEV__ !== "undefined" && __DEV__
   && (globalThis as { __colourPublic?: boolean }).__colourPublic === true;
 
-/** Feature-state on the atlas, by source-layer: the target the profile colouring writes to. */
-const atlasTarget = (m: maplibregl.Map): ProfileTarget => ({
+/**
+ * Feature-state on the atlas, by source-layer: the target the profile colouring writes to. The labels go straight to
+ * the map (a section's label is set once per index, so the renderer's de-dupe has nothing to add); the release swap's
+ * clear goes THROUGH the renderer, so its sink forgets what it held there and the highlight put back is really sent.
+ */
+const atlasTarget = (m: maplibregl.Map, r: WebRenderer): ProfileTarget => ({
   setState: (sourceLayer, id, s) => m.setFeatureState({ source: "atlas", sourceLayer, id }, s),
-  clearAll: (sourceLayer) => m.removeFeatureState({ source: "atlas", sourceLayer }),
+  clearAll: (sourceLayer) => r.clearSourceLayer("atlas", sourceLayer),
 });
 
 /**
@@ -152,9 +175,14 @@ function publicSections(m: maplibregl.Map): TileSections {
   return out;
 }
 
-/** The adapter's handle on this map's layers: paint, visibility, zoom range and per-layer feature-state. */
-function layerHandle(m: maplibregl.Map): MapHandle {
+/**
+ * The adapter's handle on this map's layers: paint, visibility, zoom range, and feature-state through the renderer
+ * (`r.states`, N2) — clearing there removes only `selected`, per feature, and here nothing is lit, so a mode change
+ * never takes the profile labels with it.
+ */
+function layerHandle(m: maplibregl.Map, r: MapRenderer): MapHandle {
   return {
+    ...r.states(() => []),
     /*
      * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
      * stands the rivers down below z9 so the basin field can answer instead; every other
@@ -171,40 +199,6 @@ function layerHandle(m: maplibregl.Map): MapHandle {
     },
     setPaint: (id: string, prop: string, value: unknown) => {
       if (m.getLayer(id)) m.setPaintProperty(id, prop as never, value as never);
-    },
-    setFeatureState: (layerId: string, featureId: SectionKey, s: Record<string, unknown>) => {
-      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-      if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, s);
-    },
-    clearFeatureStates: (layerId: string) => {
-      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-      if (src) m.removeFeatureState({ source: src, sourceLayer: layerId });
-    },
-  };
-}
-
-/**
- * The highlight's handle: `selected` set per id, and cleared ONLY from the ids this map lit last time (`wasLit`).
- * Dropping every feature-state would take the status labels with it, so selecting a river would un-colour the map.
- */
-function highlightHandle(m: maplibregl.Map, wasLit: readonly SectionKey[]): MapHandle {
-  return {
-    setVisibility: () => {},
-    setPaint: () => {},
-    setFeatureState: (layerId: string, featureId: SectionKey, st: Record<string, unknown>) => {
-      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-      if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, st);
-    },
-    clearFeatureStates: (layerId: string) => {
-      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-      // PER FEATURE, from the ids this map lit last time. MapLibre refuses to remove
-      // one KEY from a whole source-layer ("A feature id is required to remove its
-      // specific state property") — so the old call threw on every clear, the old
-      // highlight stayed lit, and it only went unnoticed because nothing had ever
-      // changed a highlight on a mounted map until search did.
-      if (!src) return;
-      for (const id of wasLit)
-        m.removeFeatureState({ source: src, sourceLayer: layerId, id }, "selected");
     },
   };
 }
@@ -228,6 +222,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
                       zoomControls, status }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  /**
+   * The contract's renderer over this map (`adapters/web.ts`): feature-state, taps, the visible set, the fit — the
+   * same calls `Map.native.tsx` makes of its own, which `parity.test.ts` holds to the same command log.
+   */
+  const renderer = useRef<WebRenderer | null>(null);
   const adapter = useRef(baseAdapter("web"));
   /** The profile colouring of this map (colour-latency AP) — made with the map, fed by its tiles' load events. */
   const colouring = useRef<ProfileColouring | null>(null);
@@ -370,7 +369,10 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
         pill.current?.();
     });
     m.on("load", addPill);
+    m.once("load", () => styledOnce.add(m));
     map.current = m;
+    const r0 = webRenderer(m as never, MAX_ZOOM);
+    renderer.current = r0;
     /*
      * EACH TILE COLOURED IN ITS OWN LOAD EVENT (colour-latency AP).
      *
@@ -385,7 +387,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
      */
     const c = new ProfileColouring(adapter.current);
     colouring.current = c;
-    const target = atlasTarget(m);
+    const target = atlasTarget(m, r0);
     let scanQueued = false;
     const scan = (kind: string) => {
       scanQueued = false;
@@ -420,7 +422,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       (globalThis as { __map?: unknown }).__map = m;
     return () => {
       m.off("sourcedata", onTile); m.off("moveend", onMoveEnd);
-      unfollow(); m.remove(); map.current = null; colouring.current = null;
+      unfollow(); m.remove(); map.current = null; colouring.current = null; renderer.current = null;
     };
     // Deliberately keyed on the ARCHIVES only. `theme` and `view` are recoloured by the
     // effect below rather than by rebuilding the map, because remounting would drop the
@@ -473,62 +475,31 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   }, [outsideData]);
 
   useEffect(() => {
-    const m = map.current;
-    if (!m) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
     const apply = () => {
-      const handle = layerHandle(m);
+      const handle = layerHandle(m, r);
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
       pill.current?.();
-      adapter.current.applyView(handle, view, theme);
-      // A bad mode or group name is a CALLER bug, and it used to throw from inside this
-      // effect — which unmounts the tree and shows a blank screen. Report it and keep the
-      // map alive: a map still showing the previous colouring is recoverable, a white
-      // screen is not.
-      // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet
-      // ground, every other mode wants the map legible as a map. 0.42 rather than the
-      // 0.58 it shipped at — enough that roads and landcover stop competing with a 1.4 px
-      // coloured line, little enough that a reader can still find the town they launched
-      // from. A wash heavy enough to guarantee the ramp is a wash that hides the map.
-      if (m.getLayer("basemap-wash"))
-        m.setPaintProperty("basemap-wash", "background-opacity",
-                           (modes ?? {}).stream === "standing" ? 0.42 : 0);
-      // The gauge dots are a runtime layer, so the loop below cannot find them by id —
-      // see `gaugeDotColour`. Repainted explicitly, or a switch to temperature leaves the
-      // right stations painted on the flow scale.
-      if (m.getLayer("gauge-dot"))
-        m.setPaintProperty("gauge-dot", "circle-color",
-                           gaugeDotColour(theme, (modes ?? {}).gauges) as never);
-      // The route overlay's paper and ink, likewise runtime layers outside the catalogue.
+      // THE LOOK — view, wash, gauge scale, per-layer modes, hidden layers, groups — is one sequence shared with the
+      // native map (`applyLook`); a bad mode or group name is reported, never thrown (a blank screen is not
+      // recoverable, a map in its previous colouring is).
+      applyLook(adapter.current, handle, (id) => m.getLayer(id) !== undefined,
+                { view, theme, modes, hide, groups },
+                (e) => onError?.(e));
+      // The route overlay's paper and ink: runtime layers outside the catalogue, web only (the overlay lives here).
       for (const [id, paint] of Object.entries(tracePaint(theme)))
         if (m.getLayer(id))
           for (const [prop, value] of Object.entries(paint))
             m.setPaintProperty(id, prop as never, value as never);
-      for (const [id, mode] of Object.entries(modes ?? {})) {
-        if (!m.getLayer(id)) continue;
-        try { adapter.current.setLayerMode(handle, id, mode, theme); }
-        catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
-      }
-      /*
-       * The view's own layers, hidden here rather than through `groups`.
-       *
-       * Every layer the style CAN hide is set explicitly each pass — not just the ones in
-       * `hide` — because leaving Conditions has to put them back, and a one-way toggle is
-       * how a boundary disappears for the rest of the session.
-       */
-      for (const v of STYLE_META.views)
-        for (const id of v.hide ?? [])
-          if (m.getLayer(id))
-            m.setLayoutProperty(id, "visibility",
-                                (hide ?? []).includes(id) ? "none" : "visible");
-      for (const [id, on] of Object.entries(groups ?? {})) {
-        try { adapter.current.setGroupVisible(handle, id, on); }
-        catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
-      }
       for (const [layerId, values] of Object.entries(data ?? {}))
         adapter.current.setData(handle, layerId, values);
     };
-    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    // `afterLoad`, not `isStyleLoaded() ? apply() : once("load", apply)`: mid tile burst (a zoom out to the basin
+    // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again, so the new data —
+    // the basin standings, which arrive exactly then — was dropped (N2 review web walk)
+    return afterLoad(m, apply);
   }, [view, modes, theme, data, groups, hide, onError]);
 
   useEffect(() => {
@@ -586,12 +557,14 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
 
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
-    const m = map.current;
-    if (!m || !highlight) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !highlight) return;
     // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
-      adapter.current.highlight(highlightHandle(m, wasLit.current), [...highlight]);
+      // Clears ONLY `selected`, per feature, from the ids this map lit last time — see `stateHandle`.
+      const handle = r.states(() => wasLit.current);
+      adapter.current.highlight(handle, [...highlight]);
       wasLit.current = [...highlight];
     };
     return whenStyled(m, apply);
@@ -609,23 +582,23 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   latestTheme.current = theme;
   const statusDay = status ? dayOfYear(status.day) : 0;
   useEffect(() => {
-    const m = map.current, c = colouring.current;
-    if (!m || !c) return;
-    const renderer: ProfileRenderer = {
+    const m = map.current, c = colouring.current, r = renderer.current;
+    if (!m || !c || !r) return;
+    const tiles: ProfileRenderer = {
       loaded: () => {
-        const tiles = forcePublic() ? null : sourceTiles(m, "atlas");
-        const read = tiles?.map((t) => tileIds(t, PROFILE_SOURCE_LAYERS));
+        const held = forcePublic() ? null : sourceTiles(m, "atlas");
+        const read = held?.map((t) => tileIds(t, PROFILE_SOURCE_LAYERS));
         return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
       },
       restore: () => {
-        adapter.current.highlight(highlightHandle(m, []), [...wasLit.current]);
+        adapter.current.highlight(r.states(() => []), [...wasLit.current]);
         for (const [layerId, values] of Object.entries(latestData.current ?? {}))
-          adapter.current.setData(layerHandle(m), layerId, values);
+          adapter.current.setData(layerHandle(m, r), layerId, values);
       },
     };
     return whenAtlas(m, () => {
       const t0 = performance.now(), c0 = c.calls;
-      c.set(layerHandle(m), atlasTarget(m), renderer, status ?? null, latestTheme.current);
+      c.set(layerHandle(m, r), atlasTarget(m, r), tiles, status ?? null, latestTheme.current);
       devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind: `status:${statusDay}` });
     });
   }, [status?.index, statusDay, at.atlas]);
@@ -664,8 +637,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   /** The drawn route overlay's extent, once its tiles are in — see the trace effects below. */
   const traceBox = useRef<Bbox | null>(null);
   useEffect(() => {
-    const m = map.current;
-    if (!m || !fit) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !fit) return;
     let rounds = 0;
     let alive = true;
     let last: Bbox | null = null;
@@ -680,8 +653,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       syncSize(m);
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
-      m.fitBounds([[b[0], b[1]], [b[2], b[3]]],
-                  { padding: Math.max(pad, 8), maxZoom: MAX_ZOOM, duration: 450 });
+      r.fitBounds(b, { padding: Math.max(pad, 8), duration: 450 });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
     // A route overlay already drawn is part of the subject: "fit" frames the routes' own
@@ -691,18 +663,12 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
     if (first) go(first);
     if (!fit.refine) return done;
-    const measure = () => {
+    const measure = async () => {
+      const ids = (lit.current ?? []).map(Number).filter(Number.isFinite);
+      if (!alive || !ids.length) return;
+      const found = await r.waterBox(ids);
+      const next = refineFit(await r.bounds(), found, rounds);
       if (!alive) return;
-      const ids = new Set((lit.current ?? []).map(String));
-      if (!ids.size) return;
-      let found: Bbox | null = null;
-      for (const layer of WATER_LAYERS)
-        for (const f of m.querySourceFeatures("atlas", { sourceLayer: layer }))
-          if (f.id !== undefined && ids.has(String(f.id)))
-            found = unionBbox(found, bboxOfGeometry(f.geometry as never));
-      const vb = m.getBounds();
-      const next = refineFit([vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()],
-                             found, rounds);
       if (next) { rounds += 1; go(padBbox(next, 0.4)); }
       else m.off("idle", measure);
     };
@@ -803,8 +769,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   const visibleCb = useRef(onVisible);
   visibleCb.current = onVisible;
   useEffect(() => {
-    const m = map.current;
-    if (!m) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
     const report = () => {
       const cb = visibleCb.current;
       if (!cb) return;
@@ -832,13 +798,9 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * A Set of numbers de-duplicates exactly as well as a Set of strings, so passing the
        * id through unchanged costs nothing and removes the conversion that could be wrong.
        */
-      const seen = new Set<SectionKey>();
-      for (const f of m.queryRenderedFeatures())
-        if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"
-            // a slough drawn as a wetland polygon is a stream (`wetland_flowing`): coloured
-            || (f.sourceLayer === "wetland" && f.properties?.water === "stream")))
-          seen.add(f.id as SectionKey);
-      if (seen.size) cb([...seen]);
+      // `VISIBLE_LAYERS` (shared with the native map): streams, lakes, and the lake/wetland polygons a stream flows
+      // through — a slough drawn as a wetland polygon is a stream (`wetland_flowing`), and coloured
+      void r.visible().then((seen) => { if (seen.length) visibleCb.current?.(seen); });
     };
     m.on("idle", report);
     // `idle` may already have passed by the time this registers — on a tab switch the map
@@ -855,8 +817,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   }, [onVisible !== undefined]);
 
   useEffect(() => {
-    const m = map.current;
-    if (!m || !onPressFeature) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !onPressFeature) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       /**
        * A BOX, not a point.
@@ -866,47 +828,24 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * which is what "hard to click things" is. 12 px each way is roughly a fingertip at
        * this density and still small enough that two rivers rarely both qualify.
        */
-      const T = 12;
-      const box: [maplibregl.PointLike, maplibregl.PointLike] = [
-        [e.point.x - T, e.point.y - T], [e.point.x + T, e.point.y + T],
-      ];
       /*
-       * ONLY LAYERS THAT CAN NAME WHAT WAS HIT.
+       * ONLY THE SECTION LAYERS, IN `TAP_GROUPS` ORDER (`MapRenderer.press`, shared with the native map).
        *
-       * `featureIds` says which tile property a layer promotes into `feature.id`; a layer
-       * with no entry has no id to hand back, so a hit on it resolves to nothing. That is
-       * every label, and it is the under-lake route — the dotted thread through a lake is
-       * the topology's path, not water anybody fishes, and a person aiming at it means the
-       * LAKE. The route used to rank SECOND in the order below, so a tap on a lake with a
-       * river through it answered with the route.
-       *
-       * Derived rather than listed so the two cannot drift: dropping a layer's id in the
-       * style source takes it out of the tap order in the same commit.
+       * A label, the under-lake route (the topology's path through a lake, not water anybody fishes: a person aiming
+       * at it means the LAKE) and the area layers name no section, so they are not asked — every caller turns the id
+       * into a SECTION (`Number(id)`), and a park's `area_id` used to come back as NaN. The stream group comes
+       * first — a river and the polygons a stream flows through — then still water: tapping a creek inside a lake
+       * returns both, and a person aiming at a creek means the creek. The first argument is the group ("stream" or
+       * "lake"), the same on both maps: a native feature does not say which style layer it came from.
        */
-      const layers = adapter.current.layerIds()
-        .filter((id) => m.getLayer(id) && STYLE_META.featureIds[id] !== undefined);
-      const hits = m.queryRenderedFeatures(box, { layers });
-
-      /**
-       * Prefer the SMALLEST water under the finger.
-       *
-       * Tapping a creek inside a lake inside a management unit returns all three, and
-       * taking the first would hand back whichever MapLibre happened to order first —
-       * usually the biggest, because the big polygons draw underneath. A person aiming at
-       * a creek means the creek.
-       */
-      // A stream's polygon (`lake_flowing`, `wetland_flowing`) IS the stream a finger aims at.
-      const rank = (layerId: string) =>
-        layerId === "stream" || layerId === "lake_flowing" || layerId === "wetland_flowing" ? 0
-        : layerId === "lake" || layerId === "wetland" ? 1 : 2;
-      const best = hits
-        .filter((f) => f.id !== undefined && f.layer?.id)
-        .sort((a, b) => rank(a.layer!.id) - rank(b.layer!.id))[0];
-      // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
-      // long and the answer to "how does this spot reach the gauge" starts at the point
-      // under the finger — without it the route panel can mark the station and nothing
-      // else. The coordinate is snapped to nothing: it is where the person tapped.
-      if (best) onPressFeature(best.layer!.id, String(best.id), e.lngLat.lat, e.lngLat.lng);
+      const { lat, lng } = e.lngLat;
+      void r.press(e.point.x, e.point.y).then((hit) => {
+        // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
+        // long and the answer to "how does this spot reach the gauge" starts at the point
+        // under the finger — without it the route panel can mark the station and nothing
+        // else. The coordinate is snapped to nothing: it is where the person tapped.
+        if (hit) onPressFeature(hit.layer, hit.id, lat, lng);
+      }).catch((err: unknown) => onError?.(err instanceof Error ? err : new Error(String(err))));
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };

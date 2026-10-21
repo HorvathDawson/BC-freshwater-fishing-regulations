@@ -85,6 +85,15 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   two together, never one alone. Imported by exactly one file
   (`packages/map/src/Map.web.tsx`); `layers.json` bans it everywhere else, because an app
   that can reach the SDK can define its own layers and the two apps drift apart visually.
+- `@maplibre/maplibre-react-native` — **11.5.0, exact** (N1 → N2): the native map renderer, MapLibre Native
+  Android 13.6.1 / iOS 6.31.0 (fetched by SPM in the plugin's Podfile hook), reading the SAME `atlas.pmtiles` /
+  `basemap.pmtiles` from local `pmtiles://file:///` paths with the same `runtimeStyle()`. Native code: it needs a
+  development build (`expo prebuild`), not Expo Go, and its Expo config plugin is in `apps/mobile/app.json`, which is
+  why `apps/mobile` lists it too (autolinking reads the app's dependencies; `layers.json` still bans importing it
+  there). Imported by exactly one file, `packages/map/src/Map.native.tsx`. **Android `nativeVariant: "vulkan"` is
+  PROVISIONAL**: N1 measured 51–60 fps against the default OpenGL ES's 21–35 fps at z9–11, on the EMULATOR only (its
+  GLES runs through a GLES→Metal translator); it must be A/B'd on a real mid Android phone before it is kept. Cost: the
+  native library per ABI plus ~1 MB of JS. Results: `handoff/PLAN/app-data/N1-SPIKE.md`, `n2/README.md`.
 - `pmtiles` — registers the `pmtiles://` protocol so maplibre reads a single archive by
   byte range instead of needing 20 million tile files on a server. This is what makes the
   same 835 MB file work from R2 on the web and from local storage offline.

@@ -3960,11 +3960,6 @@
        "target": "trout_char_quota.r4",
        "entry_id": "z6:trout_char_quota",
        "note": "hatchery steelhead quota = 2"
-      },
-      {
-       "target": "trout_char_quota.r7",
-       "entry_id": "z6:trout_char_quota",
-       "note": "hatchery steelhead quota = 2"
       }
      ]
     },

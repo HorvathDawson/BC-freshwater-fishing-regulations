@@ -198,6 +198,29 @@ export interface MapAdapter {
 From here on every new map or UI ticket is accepted **on native first, then web parity** (the same tree through Expo
 web).
 
+## Status (2026-10-21, after review) — evidence in `n2/` (`n2/README.md`)
+| acceptance | state | evidence |
+|---|---|---|
+| `pnpm -C app check` | **met** | exit 0, unfiltered |
+| Device run, Android: BC map, status colours, a tap opens a water | **met (emulator)** | `n2/android-review-00…05`: offline launch from the installed release; status by feature-state on MVT ids; a tap's id lights exactly the reach under the 24 dp box (`-02`) and opens the Fraser (`-03`); Map → Conditions → Map style swaps put status/standing back (`-01`); Conditions standings from the feed. Emulator (n1_pixel, Vulkan), not a phone. |
+| Device run, Android: pan frame time within N1's budget | **met, at the edge (emulator)** | map SurfaceView presents (N1's method), 12 one-finger pans: Map tab median 16.7 / p95 19.8–20.3 / max 73 ms; Conditions 16.7 / 18.7–18.9 / 48 ms. N1 (Vulkan, feature-state): 16.7 / 18.5–19.6 / 64–68. |
+| Device run, Android: no rotate, no tilt | **partly shown** | props pinned by tests; on the emulator a two-finger rotate left north up and a two-finger downward drag panned without pitch (`-06`) — but injected two-finger input (sendevent; adb has no multi-touch) did not register a pinch either, so it is not proof. |
+| Device run, iOS | **open** | not built: CocoaPods is not installed on this machine (Expo's iOS build needs it), and the owner deferred iOS at N1. |
+| Web run: no change in behaviour (Playwright walk) | **met** | `n2/web-walk/` run against this branch and against main (pre-N2 map code) on the same release: same ids (numbers), 32/32 visible streams coloured, Chilliwack Creek and Cultus Lake taps open the same sheets, an area-only tap opens nothing on both, Conditions 43/51 streams and 8/9 basins coloured, no console errors (`n2/web-*`). The walk found and fixed a web regression first (basin field blank after a zoom-out). |
+| `deps.md` lines | **met** | binding 11.5.0 exact; Vulkan provisional pending a real phone |
+
+Deviations, deliberate: the renderer adapter (`MapRenderer`: `states`, `fitBounds`, `press`, `visible`, `waterBox`,
+`bounds`) has no `setStyle` or `setPoints` — the native style and the gauge points are declarative props on a phone
+(`nativeStyle` / `<GeoJSONSource data>`), and a contract that pretended otherwise would be the tautology F14 named.
+`onPressFeature`'s first argument is the tap group (`"stream"` / `"lake"`) on both maps; no caller reads it.
+
+## N2-F1 (follow-up) — hatches and the gauge pill on native
+The closure/marsh hatches (`no_access`, `no_access_permit`, `eco_reserve`, `park_closed`, `wetland`) and the gauge
+label's pill are images made at run time (`hatch.ts`, `pill.ts`) and added with `addImage` on the web; the RN binding
+has no raw-pixel image API. On a phone those layers draw their plain fill and the label wears a paper halo instead
+(`native-style.test.ts` names the five). Route: write the generated images as PNGs into the release's map assets (or a
+sprite) at build time and register them through the binding's `Images`. Size ½ day. Blocks nothing; P15 should know.
+
 ---
 
 # P01 — spots store: no silent loss, atomic save, serialised writes, awaited UI

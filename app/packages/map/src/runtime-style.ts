@@ -252,16 +252,19 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           '<a href="https://www2.gov.bc.ca/gov/content/data/open-data">Province of British ' +
           "Columbia</a> \u00b7 Freshwater Atlas &amp; Freshwater Fishing Synopsis",
         /**
-         * WITHOUT THIS NOTHING WORKS, and nothing says so.
+         * WITHOUT AN ID NOTHING WORKS, and nothing says so.
          *
-         * MapLibre does not lift a tile property into `feature.id` on its own. Our ids are
-         * strings (`{blk}:{measure}`, an area name), which is what `promoteId` is for.
-         * Absent it, `feature.id` is `undefined` — so `setFeatureState` addresses nothing
-         * and every colour-by-rule silently fails, and `queryRenderedFeatures(...)[0].id`
-         * is undefined so a TAP NEVER OPENS A SHEET. No error is raised at any point.
+         * A feature with no `feature.id` cannot take feature-state — every colour-by-rule silently fails — and a tap
+         * on it returns no id, so a TAP NEVER OPENS A SHEET. No error is raised at any point.
          *
-         * Built from `STYLE_META.featureIds` rather than typed here, so the property named
-         * in `layers.source.json` and the property MapLibre promotes cannot disagree.
+         * MapLibre does not lift a tile property into `feature.id` on its own, which is what `promoteId` is for. Built
+         * from `STYLE_META.featureIds` rather than typed here, so the property named in `layers.source.json` and the
+         * property MapLibre promotes cannot disagree.
+         *
+         * THE SECTIONS ARE PROMOTED TOO, ON PURPOSE (N2 review). The tiles also carry `section_id` as each section's MVT
+         * feature id (P18, `pipeline/tests/test_tile_mvt_ids.py`), because MapLibre Native ignores `promoteId` — that id
+         * is the only one a phone sees, and `nativeStyle` drops this object. The web keeps promoting the property: the
+         * value is the same integer, and an atlas of an older vintage (no MVT ids) still colours and taps on the web.
          */
         promoteId: Object.fromEntries(
           Object.entries(STYLE_META.featureIds)

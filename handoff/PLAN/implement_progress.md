@@ -83,6 +83,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- 2026-10-21 night (cont.): N2 MERGED (84b3b357 3a53ecdd 8f959fc3 465595fe): native map behind the shared
+  MapRenderer contract, MapLibre RN 11.5.0 (vulkan, provisional), feature-state by MVT id on native, web keeps
+  promoteId, metric scale bar, basin field on native; Android emulator verified (shots handoff/PLAN/app-data/n2/).
+  OPEN device-only: iOS (no CocoaPods; owner deferred), two-finger rotate/tilt, basin <z9, hatches/gauge pill on
+  native (no runtime-image API). G1 follow-ups PORTED onto ViewSwipe and merged edb338e6 (back closes an open sheet
+  first on web + Android; view swipe keeps pinch-zoom + text selection; cancelled gestures never commit). Kitimat (a) committed cc775df3. deliver all: first attempt refused (reach run older than the
+  curated entries) -> reach rerun OK (786 s); deliver all passed bundle/answers/CARD GATE 0 problems/store, then the
+  RELEASE SIZE GATE refused it: 14,156,995 B gz > 14,000,000 (year strip +~270 KB). Nothing promoted; live data
+  unchanged. Workflow year-strip-size RUNNING (dedupe strips, gate NOT raised); then re-run deliver all.
 - 2026-10-21 night MERGED: conditions-and-nav (layout: switch by plot, full-width chart, desktop 2 columns, last
   report, zoomable chart; map: up/down apart, here pin, share labels, trace geometry from tiles, zoom; view swipe
   Regs<->Conditions<->Map with chart/minimap shielded; Kitimat +1 like the Vedder; T05 leap rule from the calendar

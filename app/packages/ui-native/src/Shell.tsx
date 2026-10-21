@@ -15,13 +15,13 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, waterFrame, type BrowseTab, type FlowParam,
          type LatLon, type Route, type SpotPhotos } from "@app/ui";
-import { REACH_VIEWS, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
+import { BackLayerContext, REACH_VIEWS, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex,
+         NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
-         type Camera, type TileEndpoints } from "@app/map";
+         type Camera, type TileEndpoints, coloursEachTile } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { MapDay } from "./MapDay";
@@ -138,7 +138,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
    */
-  const { back, depth } = useBack(route, go, systemBack);
+  const { back, depth, layers: backLayers } = useBack(route, go, systemBack);
   const edge = useEdgeBack(back, Platform.OS, depth);
   /*
    * A CONDITIONS REACH -> ITS REGULATIONS: the water holding the reach, opened on the regs with the tap kept (the
@@ -265,7 +265,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
    */
-  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, lake: lakeChoice, groups });
+  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native). */
+  const perTile = coloursEachTile(Platform.OS);
+  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake: lakeChoice,
+                           groups });
   const { onConditions, quantity, modes, activeGroups } = mm;
   // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
   // grey for its whole length because the station matched to those reaches had gone quiet,
@@ -316,14 +319,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const camera = useRef<Camera>(HOME);
   /*
-   * THE DAY'S STATUS, handed to the map itself (colour-latency AP): the index and the day, ONLY on a proven pair with an
-   * index that matched (`statusOk`). The map labels each section's profile as its tile arrives and carries the day in
-   * its style — no waiting for `idle`, no round trip through here per pan. On both tabs, so a tab switch is not a
-   * withdrawal (which clears every label); the Conditions modes simply do not read it.
+   * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`), and the way this platform's map
+   * takes it (`statusFeed`): the web map is handed the index and the day and labels each tile as it arrives
+   * (colour-latency AP — no `idle`, no round trip through here per pan); the native map is pushed the visible
+   * sections' status as `data` (N2 reads only that, in the `status` mode — colour-ap review).
    */
-  const mapStatus = useMemo(
-    () => (statusOk && statusIndex ? { index: statusIndex, day: mapDay ?? new Date() } : null),
-    [statusOk, statusIndex, mapDay]);
+  const { status: mapStatus, data: statusMapData } = useMemo(
+    () => statusFeed({ perTile, statusOk, index: statusIndex, tab: mapTab, visible, day: mapDay ?? new Date() }),
+    [perTile, statusOk, statusIndex, mapTab, visible, mapDay]);
   /** The water's map view: the water framed and lit (the search's framing; P15 adds its parts). */
   const waterFocus = usePickFocus(source, frame?.view === "map" ? item : null);
   /** Its own camera, so leaving water mode puts the browse map back where the reader left it (APP-PREP §0 rule 1). */
@@ -435,6 +438,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        basemap={layers.basemap}
                        fit={waterFocus ? { key: waterFocus.key, bbox: waterFocus.bbox, refine: waterFocus.refine } : null}
                        highlight={waterFocus?.highlight ?? NONE}
+                       data={statusMapData}
                        status={mapStatus}
                        onVisible={noteVisible}
                        onMoved={(at) => { waterCamera.current = at; }}
@@ -502,7 +506,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine }
                        : null}
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
-                     data={tab === "conditions" ? conditionData : undefined}
+                     data={tab === "conditions" ? conditionData : statusMapData}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
@@ -717,6 +721,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={toTab} />}
 
+      {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
+      <BackLayerContext.Provider value={backLayers}>
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}
                    theme={themeName} onTheme={onTheme}
@@ -725,6 +731,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
                    attribution={attribution} />
+      </BackLayerContext.Provider>
     </View>
   );
 }

@@ -6,7 +6,7 @@
  * Layers come from the generated catalog; colours come from tokens; the active
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
-import type { DayProfiles, SectionKey } from "@app/core";
+import type { Bbox, DayProfiles, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
 import {
@@ -27,6 +27,39 @@ export interface MapHandle {
    * built for one job (a highlight, the basemap switch) need not stub it.
    */
   setSourceData?(sourceId: string, data: unknown): void;
+}
+
+/**
+ * WHAT EACH RENDERER OWES THE CONTRACT (N2, audit F14): the platform half, behind one signature, so `Map.web.tsx` and
+ * `Map.native.tsx` drive their SDKs through the same calls and `parity.test.ts` can run one op script against both and
+ * compare what each SDK was asked to do. `./web.ts` (maplibre-gl) and `./native.ts` (MapLibre Native through the RN
+ * binding) implement it; everything they share — the tap box, the tap order, the id conversion, where a layer's
+ * feature-state lives — comes from `../sections.ts`, so the two cannot differ in what a section is.
+ *
+ * Two things are NOT here, on purpose, because the binding makes them declarative on a phone:
+ *   the style   the web restyles a live map (`applyLook` on a `MapHandle`); the native map is handed a whole style
+ *               (`nativeStyle`, the binding's `mapStyle`), so a look change is a style swap.
+ *   the points  the gauges are a GeoJSON source: `setData` on the web, the `<GeoJSONSource data>` prop on a phone.
+ * Both ends of each are tested where they live (`native-style.test.ts`, `adapter-contract.render.test.tsx`).
+ */
+export interface MapRenderer {
+  readonly platform: "native" | "web";
+  /**
+   * Feature-state through the adapter's `MapHandle` (`setData`, `highlight`): the layer's own source-layer, the
+   * section's NUMBER id; clearing removes only `selected`, per feature, from `lit()`. On a phone only the section
+   * source-layers take it (no MVT id elsewhere; their values are in the style).
+   */
+  states(lit: () => readonly SectionKey[]): MapHandle;
+  /** Frame a box: `[w, s, e, n]`, padding in px, animated over `duration` ms. */
+  fitBounds(b: Bbox, opts: { padding: number; duration: number }): void;
+  /** The section under a tap at screen `(x, y)`: the 24 px box, `TAP_GROUPS` order; the group names the hit. */
+  press(x: number, y: number): Promise<{ layer: string; id: number } | null>;
+  /** The sections on screen (`VISIBLE_LAYERS`), as numbers, once each. */
+  visible(): Promise<number[]>;
+  /** The box of the given sections' features the tiles have delivered (a searched water's own shape), or null. */
+  waterBox(ids: readonly number[]): Promise<Bbox | null>;
+  /** The camera's box, `[w, s, e, n]`. */
+  bounds(): Promise<Bbox>;
 }
 
 export interface MapAdapter {
@@ -376,10 +409,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     },
 
     highlight(h, featureIds) {
-      for (const { id } of STYLE_META.highlightable) {
-        h.clearFeatureStates(id);
+      // EVERY layer cleared before ANY is set: several layers draw one source-layer (`lake`, `lake_flowing`), so a
+      // clear for the second would otherwise take back what the first just set
+      for (const { id } of STYLE_META.highlightable) h.clearFeatureStates(id);
+      for (const { id } of STYLE_META.highlightable)
         for (const f of featureIds) h.setFeatureState(id, f, { selected: true });
-      }
     },
 
     setBasemap(h, kind) {

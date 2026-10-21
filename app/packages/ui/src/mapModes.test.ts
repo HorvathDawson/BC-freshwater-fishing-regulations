@@ -1,9 +1,9 @@
 /** P12 (c): which layer is coloured by what, decided once here and drawn by the Shell. */
 import { describe, expect, it } from "vitest";
-import { mapModes, type MapModeInput } from "./mapModes";
+import { mapModes, statusFeed, type MapModeInput } from "./mapModes";
 
 const base: MapModeInput = {
-  tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, paired: true, statusOk: true,
+  tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, paired: true, statusOk: true, perTile: true,
   lake: { mode: "plain" }, groups: { depth: false, admin: true },
 };
 const at = (over: Partial<MapModeInput>) => mapModes({ ...base, ...over });
@@ -17,6 +17,15 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
                gauges: "standing", basin: "plain" },
       activeGroups: { depth: false, admin: true },
     });
+  });
+
+  it("a renderer that cannot colour each tile (the phone, until N2's follow-up) keeps the pushed 'status' mode", () => {
+    // colour-ap review: N2's native map reads only `data` in the `status` mode and ignores `status`; told 'profile' it
+    // painted every water plain with no error
+    expect(at({ perTile: false }).modes).toEqual({
+      stream: "status", lake: "status", lake_flowing: "status", wetland_flowing: "status", gauges: "standing",
+      basin: "plain" });
+    expect(at({ perTile: false, statusOk: false }).modes.stream).toBe("plain");
   });
 
   it("the Map tab before the index is in: plain, never 'base'", () => {
@@ -70,5 +79,31 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       expect(at({ tab, paired: false, zoomedOut: true }).modes).toEqual({
         stream: "plain", lake: "plain", lake_flowing: "plain", wetland_flowing: "plain", gauges: "standing",
         basin: "plain" });
+  });
+});
+
+describe("statusFeed: how the day's status reaches the map, per renderer (colour-ap review)", () => {
+  const index = {} as never;
+  const day = new Date(2026, 9, 21);
+  it("per-tile (web): the index and the day as MapProps.status, on both tabs; nothing pushed", () => {
+    expect(statusFeed({ perTile: true, statusOk: true, index, tab: "map", visible: [5], day }))
+      .toEqual({ status: { index, day }, data: undefined });
+    expect(statusFeed({ perTile: true, statusOk: true, index, tab: "conditions", visible: [5], day }).status)
+      .toEqual({ index, day });
+  });
+  it("no per-tile event (native): the visible sections pushed as `data` on the Map tab, no status prop", () => {
+    const f = statusFeed({ perTile: false, statusOk: true, index, tab: "map", visible: [], day });
+    expect(f.status).toBeNull();
+    expect(f.data).toEqual({ stream: {}, lake: {}, wetland: {} });
+    expect(statusFeed({ perTile: false, statusOk: true, index, tab: "conditions", visible: [], day }).data)
+      .toBeUndefined();
+  });
+  it("not a proven pair, or no index: nothing either way", () => {
+    for (const perTile of [true, false]) {
+      expect(statusFeed({ perTile, statusOk: false, index, tab: "map", visible: [], day }))
+        .toEqual({ status: null, data: undefined });
+      expect(statusFeed({ perTile, statusOk: true, index: null, tab: "map", visible: [], day }))
+        .toEqual({ status: null, data: undefined });
+    }
   });
 });

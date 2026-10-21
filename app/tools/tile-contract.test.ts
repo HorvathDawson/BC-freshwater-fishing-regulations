@@ -238,6 +238,15 @@ describe("the runtime uses the feature id, not just names it", () => {
     layers: { id: string; "source-layer"?: string; source?: string }[];
   };
 
+  /*
+   * EVERY LAYER THAT DECLARES AN ID IS PROMOTED ON THE WEB — the sections included (N2 review).
+   *
+   * The pipeline writes `section_id` twice on every section feature: as a property AND as the MVT feature id
+   * (`pipeline/tests/test_tile_mvt_ids.py`), so "the web style's promoteId keeps working unchanged". The phone reads the
+   * MVT id (MapLibre Native ignores `promoteId`; `nativeStyle` drops it); the web keeps promoting the property, so a
+   * served atlas of an older vintage — one with no MVT ids — still colours and taps on the web. Both name a section by
+   * the same integer: the next test holds the MVT id to exactly the promoted section property.
+   */
   it("promotes a property for every atlas layer that declares one", () => {
     const promote = style.sources.atlas?.promoteId ?? {};
     for (const [layerId, prop] of Object.entries(STYLE_META.featureIds)) {
@@ -247,6 +256,17 @@ describe("the runtime uses the feature id, not just names it", () => {
       expect(promote[sourceLayer],
              `${layerId}: nothing promotes "${prop}", so feature.id is undefined — ` +
              `setFeatureState addresses nothing and a tap returns no id`).toBe(prop);
+    }
+  });
+
+  it("the sections' MVT id is the property the web promotes: section_id, on exactly these source-layers", () => {
+    const promote = style.sources.atlas?.promoteId ?? {};
+    const mvt = Object.entries(contract.layers)
+      .filter(([, l]) => (l as { mvtId?: boolean }).mvtId).map(([n]) => n).sort();
+    expect(mvt).toEqual(["lake", "stream", "wetland"]);
+    for (const n of mvt) {
+      expect(contract.layers[n]!.featureId, n).toBe("section_id");
+      expect(promote[n], n).toBe("section_id");
     }
   });
 

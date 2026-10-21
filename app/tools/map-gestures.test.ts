@@ -19,3 +19,35 @@ describe("the web map applies the gesture policy", () => {
             /showCompass: compassShown\(\)/.test(src), /showCompass: true/.test(src)]).toEqual([true, true, false]);
   });
 });
+
+/**
+ * N2: the NATIVE map is mounted with the same policy (`nativeMapGestures()`, spread onto MapLibre Native's `Map`) and
+ * colours sections by feature-state on the tiles' MVT id, through the handle both maps share. The behaviour is proved
+ * against a recording binding in `packages/map/src/adapter-contract.render.test.tsx`; this holds the wiring in the file
+ * that ships, so a later edit cannot quietly route around it.
+ */
+describe("the native map applies the gesture policy and feature-state by id", () => {
+  const src = readFileSync(new URL("../packages/map/src/Map.native.tsx", import.meta.url), "utf8");
+  const mapEl = src.slice(src.indexOf("<MLMap"), src.indexOf("</MLMap>"));
+  it("spreads the policy onto the map element (no switch set beside it), and says the tap slop is MapLibre's own", () => {
+    expect([mapEl.includes("{...nativeMapGestures()}"), /touchRotate|touchPitch|compass=|dragPan|touchZoom/.test(mapEl),
+            src.includes("The 8 px TAP SLOP is MapLibre Native's own here")]).toEqual([true, false, true]);
+  });
+  it("sets feature-state on the atlas source by { id, sourceLayer }, through the contract's native renderer", () => {
+    const adapter = readFileSync(new URL("../packages/map/src/adapters/native.ts", import.meta.url), "utf8");
+    expect([src.includes("nativeRenderer({"),
+            src.includes("renderer.states("),
+            adapter.includes("stateHandle(sink, lit)"),
+            adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, s)"),
+            adapter.includes("src.removeFeatureState({ id, sourceLayer: t.sourceLayer }, key)"),
+            // only where a phone has an id: the section source-layers (MVT ids); area values go into the style
+            adapter.includes("SECTION_SOURCE_LAYERS.includes(t.sourceLayer)"),
+            src.includes("areaLayer(layerId) ? area : sec"),
+            src.includes('<VectorSource id="atlas" ref={atlasAttached} />'),
+            src.includes("nativeStyle({")]).toEqual([true, true, true, true, true, true, true, true, true]);
+  });
+  it("draws the web's metric scale bar, not the binding's", () => {
+    expect([mapEl.includes("scaleBarPosition={OFF_SCREEN}"), mapEl.includes("scaleBar={false}"),
+            src.includes("metricScale(")]).toEqual([true, false, true]);
+  });
+});

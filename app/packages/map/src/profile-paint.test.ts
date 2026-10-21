@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { dayOfYear, type StatusCode, type StatusIndex } from "@app/core";
 import { baseAdapter, paintFor, type MapHandle } from "./adapters/contract";
-import { ProfileColouring, type ProfileRenderer, type ProfileTarget, type TileSections } from "./profile-paint";
+import { ProfileColouring, coloursEachTile, type ProfileRenderer, type ProfileTarget, type TileSections } from "./profile-paint";
 import { resolveTheme } from "./style";
 
 /** A status index with the given profile per section and code per profile per day (default: the profile's first). */
@@ -160,5 +160,12 @@ describe("profile colouring: what each change does to the map", () => {
       "paint stream plain", "paint lake plain", "paint lake__edge plain",
       "paint lake day:[p0]|[p1]|[b]", "paint lake__edge day:[p0]|[p1]|[b]",
     ]);
+  });
+});
+
+describe("coloursEachTile: which renderer takes the profile mode (colour-ap review)", () => {
+  it("the web map does; the native map (N2: no per-tile event, reads only pushed data) does not, nor anything unknown", () => {
+    expect(coloursEachTile("web")).toBe(true);
+    for (const p of ["android", "ios", "native", "windows"]) expect(coloursEachTile(p)).toBe(false);
   });
 });

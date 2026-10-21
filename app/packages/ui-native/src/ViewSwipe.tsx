@@ -5,7 +5,8 @@
  *
  * Measures and draws only — `swipe` (`@app/ui` `useViewSwipe`) decides where a swipe may start (never in the 24 px
  * edge zones), how far the view follows and whether a release moves. Vertical scrolling is never taken: the recogniser
- * fails on a vertical move (direction lock) and, on the web, leaves `pan-y` to the browser.
+ * fails on a vertical move (direction lock) and, on the web, leaves `pan-y` and pinch-zoom to the browser (and the
+ * reader's text selection and context menu: see WEB_PAGE_PROPS).
  *
  * WHERE IT LISTENS is the caller's: a map canvas pans, so on the Map view only the header (the back row and the view
  * strip) takes the swipe; `WaterViews` carries the swipe to the header (`FaceBar`) of whatever screen is drawn.
@@ -14,7 +15,7 @@
  * minimap and chart), those things wear a shield. A press that lands on one claims the drag for it: the swipe does not
  * follow and does not move, however sideways the drag. The text, the estimate and the reading around them still swipe.
  */
-import { createContext, useContext, useMemo, useRef } from "react";
+import { createContext, useContext, useMemo, useRef, type ComponentProps } from "react";
 import { Animated, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { WaterView } from "@app/core";
@@ -46,18 +47,34 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
       .activeOffsetX([-15, 15]).failOffsetY([-12, 12])
       .onBegin((e) => { begun = Date.now(); live = swipe.starts(e.absoluteX, width.current); })
       .onUpdate((e) => { if (live && held()) live = false; if (live) x.setValue(swipe.offset(e.translationX)); })
-      .onEnd((e) => { if (live && !held()) swipe.release(e.translationX, e.translationY, e.velocityX); })
+      // `success` is false when the system cancelled the swipe after it went active: that is not a release
+      .onEnd((e, success) => { if (live && success && !held()) swipe.release(e.translationX, e.translationY, e.velocityX); })
       .onFinalize(() => { live = false; home(); })
       .withTestId(testId);
   }, [swipe, x, testId]);
   return (
-    <GestureDetector gesture={gesture} touchAction="pan-y">
+    <GestureDetector gesture={gesture} {...WEB_PAGE_PROPS}>
       <Animated.View style={[fill ? { flex: 1 } : null, { transform: [{ translateX: x }] }, style]}>
         <ShieldContext.Provider value={shield}>{children}</ShieldContext.Provider>
       </Animated.View>
     </GestureDetector>
   );
 }
+
+/**
+ * WEB: RNGH writes these onto the wrapped view (a whole Regulations or Conditions body) while the swipe is enabled, and
+ * its defaults (touch-action "none", user-select "none", the context menu suppressed) would take the reader's
+ * pinch-zoom (WCAG 1.4.4) and the selecting and copying of regulation text. The browser keeps vertical scroll and
+ * pinch-zoom; the swipe takes only the sideways pan. Ignored on native.
+ *
+ * "pan-y pinch-zoom" is a valid CSS list, which RNGH's `TouchAction` type (single keywords only) does not spell, so it
+ * is widened through string.
+ */
+export const WEB_PAGE_PROPS = {
+  touchAction: "pan-y pinch-zoom" as string as ComponentProps<typeof GestureDetector>["touchAction"],
+  userSelect: "auto",
+  enableContextMenu: true,
+} as const satisfies Partial<ComponentProps<typeof GestureDetector>>;
 
 type Shield = () => void;
 const SHIELD_MS = 400;

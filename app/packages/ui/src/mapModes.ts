@@ -8,7 +8,9 @@
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
 import { useMemo } from "react";
+import type { SectionKey, StatusIndex } from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
+import { statusData } from "./hooks";
 import type { GaugeQuantity } from "./gaugePoints";
 import type { BrowseTab } from "./route";
 
@@ -35,6 +37,13 @@ export interface MapModeInput {
   paired: boolean;
   /** The day's status index is in and matches this atlas. */
   statusOk: boolean;
+  /**
+   * The renderer colours each tile as it arrives from the index it is handed (`MapProps.status`, the `profile` mode —
+   * colour-latency AP). The web map does; the native map (N2) has no per-tile event and reads only pushed `data` in
+   * the `status` mode — told `profile` it painted every water plain with no error (colour-ap review). REQUIRED, so
+   * no caller can forget which renderer it draws on: `coloursEachTile(Platform.OS)` from @app/map.
+   */
+  perTile: boolean;
   /** The Layers sheet's lake choice: its colour mode, and a layer group it switches on. */
   lake: { mode: string; group?: string } | undefined;
   /** The Layers sheet's group toggles. */
@@ -76,16 +85,17 @@ export function mapModes(i: MapModeInput): MapModesVM {
    * and carries the day in the style, so a new tile is coloured on its first frame instead of after `idle`.
    * A STREAM'S POLYGON IS A STREAM — `lake_flowing` / `wetland_flowing` wear the rivers' colouring in every view.
    */
+  const statusMode = i.perTile ? "profile" : "status";
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
-    : i.statusOk ? "profile" : "plain";
+    : i.statusOk ? statusMode : "plain";
   const modes: MapModes = {
     stream: river,
     // Lakes answer the same question as the rivers on Conditions (`lake_gauge`, a station IN the lake). On the Map tab
     // a lake left "plain" in Layers wears the day's status; Stocked and Depth are questions the reader asked instead.
     lake: !i.paired ? "plain"
       : onConditions ? (temperature ? "plain" : "standing")
-      : lakeMode === "plain" && i.statusOk ? "profile" : lakeMode,
+      : lakeMode === "plain" && i.statusOk ? statusMode : lakeMode,
     lake_flowing: river,
     wetland_flowing: river,
     gauges: temperature ? "temperature" : "standing",
@@ -106,10 +116,31 @@ export function mapModes(i: MapModeInput): MapModesVM {
 
 /** `mapModes`, memoised on its inputs so the map's effects see a stable `modes` while nothing changed. */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, lake, groups } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake, groups } = i;
   const lakeMode = lake?.mode, lakeGroup = lake?.group;
   return useMemo(
-    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk,
+    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
                      lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, lakeMode, lakeGroup, groups]);
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lakeMode, lakeGroup, groups]);
+}
+
+/**
+ * HOW THE DAY'S STATUS REACHES THE MAP, per renderer — the other half of `mapModes`' `perTile` choice, so the mode
+ * and its feed are decided together (colour-ap review).
+ *
+ *   per-tile (web)   `status`: the index and the day, on BOTH tabs (a tab switch is not a withdrawal, which would
+ *                    clear every label); the map labels each tile itself. Nothing pushed.
+ *   otherwise        `data`: every visible section's status on `day`, pushed through `setData` on the Map tab — the
+ *                    pre-AP path, which N2's native map reads in the `status` mode.
+ *
+ * Both only on a proven pair with an index that matched (`statusOk`); otherwise nothing.
+ */
+export function statusFeed(i: { perTile: boolean; statusOk: boolean; index: StatusIndex | null; tab: BrowseTab;
+                                visible: readonly SectionKey[]; day: Date }): {
+  status: { index: StatusIndex; day: Date } | null;
+  data: ReturnType<typeof statusData> | undefined;
+} {
+  if (!i.statusOk || !i.index) return { status: null, data: undefined };
+  if (i.perTile) return { status: { index: i.index, day: i.day }, data: undefined };
+  return { status: null, data: i.tab === "map" ? statusData(i.index, i.visible, i.day) : undefined };
 }
