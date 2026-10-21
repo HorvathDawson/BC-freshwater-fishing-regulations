@@ -87,8 +87,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   MapRenderer contract, MapLibre RN 11.5.0 (vulkan, provisional), feature-state by MVT id on native, web keeps
   promoteId, metric scale bar, basin field on native; Android emulator verified (shots handoff/PLAN/app-data/n2/).
   OPEN device-only: iOS (no CocoaPods; owner deferred), two-finger rotate/tilt, basin <z9, hatches/gauge pill on
-  native (no runtime-image API). G1 follow-ups 9b7287fb SKIPPED (written for the removed PartSwipe) -> workflow
-  g1f-port RUNNING. Kitimat (a) committed cc775df3. deliver all: first attempt refused (reach run older than the
+  native (no runtime-image API). G1 follow-ups PORTED onto ViewSwipe and merged edb338e6 (back closes an open sheet
+  first on web + Android; view swipe keeps pinch-zoom + text selection; cancelled gestures never commit). Kitimat (a) committed cc775df3. deliver all: first attempt refused (reach run older than the
   curated entries) -> reach rerun OK (786 s); deliver all passed bundle/answers/CARD GATE 0 problems/store, then the
   RELEASE SIZE GATE refused it: 14,156,995 B gz > 14,000,000 (year strip +~270 KB). Nothing promoted; live data
   unchanged. Workflow year-strip-size RUNNING (dedupe strips, gate NOT raised); then re-run deliver all.
