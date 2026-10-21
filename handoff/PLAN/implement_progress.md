@@ -83,6 +83,17 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- PAUSED 2026-10-20 ~23:xx (owner out of credit; resets Wed 1:30 AM). MERGED before pause: search placement + preview
+  (32ee103b 94c2f5d3 1f065176; 19,641/19,641 placeable; eye -> main map, back -> search). pnpm check 1597; smoke pass.
+  STOPPED workflows — RESUME each with Workflow({scriptPath, resumeFromRunId}); completed agents replay from cache,
+  their worktrees under .claude/worktrees/ keep any commits:
+    N2 + G1 follow-ups   run wf_67dab776-5a7  script /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/n2-native-map-wf_67dab776-5a7.js
+    colour latency study run wf_9ac4524f-637  script /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/map-colour-latency-wf_2c5dbf14-b47.js
+    conditions-and-nav   run wf_fd35cebb-60b  script /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/conditions-and-nav-wf_fd35cebb-60b.js
+    batch 6 hydrate      run wf_1f0c1772-d15  script /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/workflows/scripts/batch-6-hydrate-chain-wf_1f0c1772-d15.js
+  Before resuming: check each stopped worktree (git -C <wt> log redesign/stream-sections..HEAD) for partial commits.
+  AFTER the Kitimat +1 merges: apply ruling (a) (drop r7 from r5 exempts; flip the test) then ONE deliver all.
+  OPEN owner items: whole "Kootenay Lake" not a search result (only its 3 areas); search memory now persists across tabs.
 - Batch 6 RUNNING (toward the regulations CARD): T09 -> T07 -> T08 (one chain), T10 + T11. Then T12, then the Keep tab
   card T13-T21, then T23-T37, then T39-T43. Owner rule (decisions.md 2026-10-21) enforced in every prompt/review.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
