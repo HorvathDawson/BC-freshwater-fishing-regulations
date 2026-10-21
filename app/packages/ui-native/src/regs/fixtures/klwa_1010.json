@@ -3,7 +3,93 @@
   "day": 10,
   "month": 10
  },
- "gear": null,
+ "gear": {
+  "bait": null,
+  "closed": null,
+  "closedMore": [],
+  "day": "Today, Oct 10",
+  "lines": [
+   {
+    "changes": [],
+    "k": "lines",
+    "label": "Lines",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r1"
+     ],
+     "open": "srcs:gl|lines",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "1 line (2 while alone in a boat)"
+    ]
+   },
+   {
+    "changes": [],
+    "k": "hook",
+    "label": "Hooks",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r6"
+     ],
+     "open": "srcs:gl|hook",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "One hook, lure or fly"
+    ]
+   },
+   {
+    "changes": [],
+    "k": "weight",
+    "label": "Weight on the line",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r4"
+     ],
+     "open": "srcs:gl|weight",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "Up to 1 kg (2.2 lb)"
+    ]
+   }
+  ],
+  "mode": null
+ },
  "header": {
   "action": {
    "aria": "View on map: where these rules apply, Kootenay Lake — Lower West Arm",

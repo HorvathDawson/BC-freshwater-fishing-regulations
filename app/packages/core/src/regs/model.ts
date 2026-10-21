@@ -183,12 +183,16 @@ export interface WhereNotVM { readonly heading: string; readonly scope: string |
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────
 export interface GearVM {
   readonly closed: string | null;           // closedUntil() — then nothing else
+  /** (T30, D20 b) on a water the strip does not govern (tidal): the Keep banner's paragraphs under `closed` (its headline) */
+  readonly closedMore: readonly string[];
   readonly day: string | null;              // dayLine() (golden gear.day; null on a closed day)
   readonly mode: { value: string; terms: readonly string[]; changes: readonly ChangeVM[]; src: SourceLineVM | null } | null;
   readonly lines: readonly GearLineVM[];    // Lines · Hooks · Weight on the line, only parts the summary sentence names
   readonly bait: BaitVM | null;
 }
-export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null }
+export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null;
+  /** (T30) the ⓘ after each value (`terms` is their union): one id an ⓘ, two or more one "What these words mean" */
+  readonly valueTerms: readonly (readonly string[])[] }
 export interface ChangeVM { readonly chip: "Now" | "Next"; readonly when: string; readonly says: string; readonly inForce: boolean }
 export interface SourceLineVM {
   readonly who: string;                     // includes the trailing " ›" exactly as golden
@@ -204,6 +208,7 @@ export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowe
 // ── 2.4 Methods tab ────────────────────────────────────────────────────────────────────────────────────────────────
 export interface MethodsVM {
   readonly closed: string | null;
+  readonly closedMore: readonly string[];   // (T30/T32) as GearVM.closedMore
   readonly ways: { label: string; list: YesNoVM; src: SourceLineVM | null } | null;
   readonly boats: { label: string; items: readonly string[]; src: SourceLineVM | null } | null;
   readonly reference: { label: "Reference"; title: string; sub: string; groups: readonly { head: string; items: readonly string[] }[]; src: SourceLineVM | null } | null;

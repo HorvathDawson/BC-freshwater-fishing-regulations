@@ -198,6 +198,35 @@ export const LEVEL_HEAD: Readonly<Record<string, string>> = Object.freeze({ "4":
 export const RUN_NOW: Readonly<Record<string, string>> = Object.freeze({ release: "Release only", closed: "Closed", keep: "You can keep them", none: "No rule" });
 export const RUN_THEN: Readonly<Record<string, string>> = Object.freeze({ release: "release only", closed: "closed", keep: "you can keep them", none: "no rule" });
 
+// ── T30 the Gear tab (prototype dayLine, closedUntil, levelOf, learnChipWords, itemSrc, gnote, buildGear GLAB; page v36
+//    levelTag). Verbatim. The chip words are RANK_LEVEL (page v36 RANK[rank].t). ──
+/** prototype buildGear GLAB: the gear lines in draw order — key, label, the summary part kinds each line draws. */
+export const GEAR_LINES: readonly (readonly ["lines" | "hook" | "weight", string, readonly ("lines" | "attach" | "hook" | "weight")[]])[] = Object.freeze([
+  Object.freeze(["lines", "Lines", Object.freeze(["lines"] as const)] as const),
+  Object.freeze(["hook", "Hooks", Object.freeze(["attach", "hook"] as const)] as const),
+  Object.freeze(["weight", "Weight on the line", Object.freeze(["weight"] as const)] as const),
+]);
+export const GEAR = Object.freeze({
+  CHIP_NOW: "Now", CHIP_NEXT: "Next", IN_FORCE: "· in force today", ALL_YEAR: "All year",
+  SOURCES: "Sources", SOURCES_ARIA: "Sources: ", SOURCES_RULES: "rules", SRC_ARROW: "›",
+  CLOSED_UNTIL: (mon3: string, d: number) => `No fishing here until ${mon3} ${d}.`,
+  CLOSED_ALL_YEAR: "No fishing here on any day of the year.",
+  /** page v36 levelTag: the rule sheet's level ("Region 2 rule"); `RULE_SUB` joins it to the rule's entry name */
+  LEVEL_TAG: Object.freeze({ "4": "B.C. rule", "2": "Named area rule", "1": "Downstream rule", "-1": "Federal or park rule", "0": "This water’s rule" }) as Readonly<Record<string, string>>,
+  REGION_N_RULE: (n: string) => `Region ${n} rule`, REGION_RULE: "Region rule",
+  RULE_SUB: " rule · ", SUB_SEP: " · ",
+  /** prototype learnChipWords: the chip word that is never learned (a match key) */
+  CHIP_NOT_LEARNED: "Region",
+});
+
+/** Every string and function-word fragment of a (nested, frozen) word table (a function of n parameters gets n holes). */
+function deepWords(t: object): string[] {
+  const HOLE = "\u0000";
+  return Object.values(t).flatMap((v: unknown): string[] => typeof v === "string" ? (v.length ? [v] : [])
+    : typeof v === "function" ? String((v as (...x: string[]) => string)(...Array<string>(v.length).fill(HOLE))).split(HOLE).filter((s) => s.length > 0)
+    : v && typeof v === "object" && !(v instanceof RegExp) ? deepWords(v) : []);
+}
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
@@ -216,6 +245,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...Object.values(RANK_LEVEL),
   // (T19b) the ladder / run tables
   ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN].flatMap((t) => Object.values(t)),
+  // (T30) the Gear tab
+  ...GEAR_LINES.map(([, label]) => label), ...deepWords(GEAR),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

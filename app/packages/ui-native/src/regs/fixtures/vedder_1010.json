@@ -3,7 +3,120 @@
   "day": 10,
   "month": 10
  },
- "gear": null,
+ "gear": {
+  "bait": null,
+  "closed": null,
+  "closedMore": [],
+  "day": "Today, Oct 10",
+  "lines": [
+   {
+    "changes": [],
+    "k": "lines",
+    "label": "Lines",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r1"
+     ],
+     "open": "srcs:gl|lines",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "1 line"
+    ]
+   },
+   {
+    "changes": [
+     {
+      "chip": "Next",
+      "inForce": false,
+      "says": "fly fishing only",
+      "when": "May 1–31"
+     }
+    ],
+    "k": "hook",
+    "label": "Hooks",
+    "src": {
+     "aria": "Sources: Province, Region 2, This water’s",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r6",
+      "z2:single_barbless_hook::single_barbless_hook.r1",
+      "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r4"
+     ],
+     "open": "srcs:gl|hook",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      },
+      {
+       "pdf": 23,
+       "printed": 21
+      },
+      {
+       "pdf": 24,
+       "printed": 22
+      }
+     ],
+     "who": "Province · Region 2 · This water’s ›"
+    },
+    "terms": [
+     "single_barbless_hook"
+    ],
+    "valueTerms": [
+     [],
+     [
+      "single_barbless_hook"
+     ]
+    ],
+    "values": [
+     "One hook, lure or fly",
+     "Single barbless hook, no trebles"
+    ]
+   },
+   {
+    "changes": [],
+    "k": "weight",
+    "label": "Weight on the line",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r4"
+     ],
+     "open": "srcs:gl|weight",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [
+     "fly_fishing"
+    ],
+    "valueTerms": [
+     [
+      "fly_fishing"
+     ]
+    ],
+    "values": [
+     "Up to 1 kg (2.2 lb)"
+    ]
+   }
+  ],
+  "mode": null
+ },
  "header": {
   "action": {
    "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",

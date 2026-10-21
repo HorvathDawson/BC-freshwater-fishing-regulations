@@ -41,8 +41,8 @@ const page = {
     otherFishKey: [{ status: "release", says: "You may fish for it, but every one you catch must go back.", term: "catch_and_release" }],
     caveats: [], possession: null, whereNot: null, outside: null,
   },
-  gear: { closed: null, day: "Fri, May 15", mode: null, lines: [], bait: null },
-  methods: { closed: null, ways: null, boats: null, reference: null },
+  gear: { closed: null, closedMore: [], day: "Fri, May 15", mode: null, lines: [], bait: null },
+  methods: { closed: null, closedMore: [], ways: null, boats: null, reference: null },
   licence: null,
   sheet: () => null,
 } satisfies RegsPage;

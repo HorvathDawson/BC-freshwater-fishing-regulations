@@ -3,7 +3,104 @@
   "day": 1,
   "month": 5
  },
- "gear": null,
+ "gear": {
+  "bait": null,
+  "closed": null,
+  "closedMore": [],
+  "day": "Fri, May 1",
+  "lines": [
+   {
+    "changes": [],
+    "k": "lines",
+    "label": "Lines",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r1"
+     ],
+     "open": "srcs:gl|lines",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "1 line"
+    ]
+   },
+   {
+    "changes": [],
+    "k": "hook",
+    "label": "Hooks",
+    "src": {
+     "aria": "Sources: Province, Region 5",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r6",
+      "z5:single_barbless_hook::single_barbless_hook.r1"
+     ],
+     "open": "srcs:gl|hook",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      },
+      {
+       "pdf": 48,
+       "printed": 42
+      }
+     ],
+     "who": "Province · Region 5 ›"
+    },
+    "terms": [
+     "single_barbless_hook"
+    ],
+    "valueTerms": [
+     [],
+     [
+      "single_barbless_hook"
+     ]
+    ],
+    "values": [
+     "One hook, lure or fly",
+     "Single barbless hook, no trebles"
+    ]
+   },
+   {
+    "changes": [],
+    "k": "weight",
+    "label": "Weight on the line",
+    "src": {
+     "aria": "Sources: Province",
+     "keys": [
+      "zp:terminal_tackle::terminal_tackle.r4"
+     ],
+     "open": "srcs:gl|weight",
+     "pages": [
+      {
+       "pdf": 10,
+       "printed": 8
+      }
+     ],
+     "who": "Province ›"
+    },
+    "terms": [],
+    "valueTerms": [
+     []
+    ],
+    "values": [
+     "Up to 1 kg (2.2 lb)"
+    ]
+   }
+  ],
+  "mode": null
+ },
  "header": {
   "action": {
    "aria": "View on map: where these rules apply, 4 side channels, joining 55–59.1 km from the mouth",

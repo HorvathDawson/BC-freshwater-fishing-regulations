@@ -3,7 +3,14 @@
   "day": 15,
   "month": 6
  },
- "gear": null,
+ "gear": {
+  "bait": null,
+  "closed": "No fishing here until Jul 1.",
+  "closedMore": [],
+  "day": null,
+  "lines": [],
+  "mode": null
+ },
  "header": {
   "action": {
    "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",

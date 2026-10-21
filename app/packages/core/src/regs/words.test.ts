@@ -51,6 +51,11 @@ describe("ALL_WORDS", () => {
     expect(ALL_WORDS.has("Dolly")).toBe(false);   // a proper-noun prefix is a match key, not a word the page says
   });
 
+  it("holds the Gear tab's words and fragments (T30)", () => {
+    for (const w of ["Lines", "Hooks", "Weight on the line", "Next", "Now", "· in force today", "Sources", "›", "No fishing here until ",
+      ".", "No fishing here on any day of the year.", "B.C. rule", "Region ", " rule", " · "]) expect(ALL_WORDS.has(w), w).toBe(true);
+  });
+
   it("derives the short weekdays and month initials from the generated calendar", () => {
     expect(WD3).toEqual(WEEKDAYS.map((w) => w.slice(0, 3)));
     expect(WD3.join(" ")).toBe("Mon Tue Wed Thu Fri Sat Sun");

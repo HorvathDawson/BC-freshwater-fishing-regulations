@@ -282,12 +282,14 @@ when ≥ 2; `week` ← `Row.week.status`. `WhereNotVM` ← page v36 `whereHtml` 
 ```ts
 export interface GearVM {
   readonly closed: string | null;           // closedUntil(): "No fishing here until Jul 1." — then nothing else
+  readonly closedMore: readonly string[];   // (T30, CONTRACT CHANGE) tidal (D20 b, prototype buildGear "ungoverned"): `closed` = the Keep banner's headline, these its paragraphs; else []
   readonly day: string | null;              // dayLine(): "Today, Oct 10" / "Fri, May 15"   (golden gear.day; null on a closed day)   // (T30)
   readonly mode: { value: string; terms: readonly string[]; changes: readonly ChangeVM[]; src: SourceLineVM | null } | null;
   readonly lines: readonly GearLineVM[];    // Lines · Hooks · Weight on the line (GLAB), only parts the summary sentence names
   readonly bait: BaitVM | null;
 }
-export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null }
+export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null;
+  readonly valueTerms: readonly (readonly string[])[] }   // (T30, CONTRACT CHANGE) the ⓘ after each value (golden lines_ draw it per value); `terms` is their union
 export interface ChangeVM { readonly chip: "Now" | "Next"; readonly when: string; readonly says: string; readonly inForce: boolean }  // plain: "<when>: <says>[ · in force today]"
 export interface SourceLineVM {                                       // "Province · Region 2 · This water’s ›" + "Rule book p.N ↗"…   // (T30)
   readonly who: string;                     // includes the trailing " ›" exactly as golden   // (T30)
@@ -308,6 +310,7 @@ rule level (export `prov.rank` → words.LEVEL: "Province", "Region 2", "This wa
 ```ts
 export interface MethodsVM {
   readonly closed: string | null;
+  readonly closedMore: readonly string[];   // (T30, CONTRACT CHANGE) as GearVM.closedMore
   readonly ways: { label: string; list: YesNoVM; src: SourceLineVM | null } | null;
   readonly boats: { label: string; items: readonly string[]; src: SourceLineVM | null } | null;
   readonly reference: { label: "Reference"; title: string; sub: string; groups: readonly { head: string; items: readonly string[] }[]; src: SourceLineVM | null } | null;

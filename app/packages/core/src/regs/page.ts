@@ -8,6 +8,7 @@
  * status (never the status index).
  */
 import { buildModel } from "./card";
+import { buildGearTop, gearCtxOf } from "./gear";
 import { FISH, type FishManifest } from "./fish.generated";
 import { headerOf } from "./header";
 import type { RegsInputs } from "./inputs";
@@ -36,13 +37,16 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const keep = keepOf(inp, { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" });
   const status: RegsPage["status"] = inp.key == null ? "outside" : inp.key.tidal || settled.status?.status === "tidal" ? "tidal"
     : keep.strip ? keep.strip.status : "unknown";
+  // (T30) the Gear tab: none outside B.C. (no key: the tab is not drawn)
+  const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
+  const gear = gctx && { ...buildGearTop(inp, gctx), bait: null };
   return {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
     header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true }),
     keep,
-    gear: null, methods: null, licence: null,   // T30–T35
+    gear, methods: null, licence: null,         // T31–T35
     sheet: () => null,                           // T36
   };
 }
