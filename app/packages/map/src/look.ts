@@ -16,6 +16,8 @@ export interface Look {
   theme: string;
   modes?: Record<string, string>;
   hide?: readonly string[];
+  /** The view's own layers to draw (`shownLayers`); every other view-only layer stays hidden. */
+  show?: readonly string[];
   groups?: Record<string, boolean>;
 }
 
@@ -42,6 +44,10 @@ export function applyLook(adapter: MapAdapter, h: MapHandle, has: (layerId: stri
   for (const v of STYLE_META.views)
     for (const id of v.hide ?? [])
       if (has(id)) h.setVisibility(id, !(look.hide ?? []).includes(id));
+  // AND EVERY LAYER ANY VIEW ALONE DRAWS, both ways for the same reason: on only while the look names it.
+  for (const v of STYLE_META.views)
+    for (const id of v.show ?? [])
+      if (has(id)) h.setVisibility(id, (look.show ?? []).includes(id));
   for (const [id, on] of Object.entries(look.groups ?? {})) {
     try { adapter.setGroupVisible(h, id, on); } catch (e) { report(asError(e)); }
   }

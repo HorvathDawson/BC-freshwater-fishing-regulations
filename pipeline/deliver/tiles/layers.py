@@ -56,6 +56,17 @@ class LayerSpec:
     Setting this obliges the app to match: the layer must be out of the tap query, out of
     `highlightable`, and out of `featureIds`. `app/tools/tile-contract.test.ts` checks it.
     """
+    flows: str | None = None
+    """Which way a LINE layer's geometry runs relative to the water: "mouth_to_source", or None
+    where the direction means nothing. The app draws flow arrows from it (`stream__arrows`), so
+    it is a claim about every feature, not a habit: FWA digitises blue lines mouth first
+    (`graph.cutting.line_coords_2d`: coords[0] = mouth), the added streams are oriented mouth
+    first by ground elevation (`waters.added_streams.build_dataset._orient_mouth_first`), a
+    sectionizer cut is a `substring` of its chain and keeps it, and tippecanoe never reverses
+    a line. Measured on the live atlas 2026-10-21: 342/347 junctions mouth-first on the
+    Chilliwack/Vedder (z13), 539/542 on the lower Fraser (z9), 62/62 on the Burnaby/Port Moody
+    municipal streams (z14) — every exception a side channel meeting its own river at its
+    upstream end. An export that reversed a line would turn its arrows upstream."""
     mvt_id: bool = False
     """The feature id (`attrs[0]`, the section handle) is ALSO written as the tile feature's
     own MVT id, and stays a property too.
@@ -70,6 +81,7 @@ class LayerSpec:
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", maxzoom=14, mvt_id=True,
+        flows="mouth_to_source",
         attrs=("section_id", "name", "ord"),
         why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "
             "river's wide reach, a slough: the registry's kind) under that polygon's section id, "
@@ -352,6 +364,8 @@ def contract() -> dict:
                 "minzoom": s.minzoom,
                 "maxzoom": s.maxzoom,
                 "ladder": s.ladder,
+                # Which way a line runs — the flow arrows read it (see `LayerSpec.flows`).
+                "flows": s.flows,
             }
             for s in ALL
         },

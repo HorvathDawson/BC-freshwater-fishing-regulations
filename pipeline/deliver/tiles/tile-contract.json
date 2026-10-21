@@ -13,7 +13,8 @@
       "mvtId": true,
       "minzoom": 4,
       "maxzoom": 14,
-      "ladder": "magnitude"
+      "ladder": "magnitude",
+      "flows": "mouth_to_source"
     },
     "lake": {
       "geometry": "polygon",
@@ -28,7 +29,8 @@
       "mvtId": true,
       "minzoom": 4,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "under_lake": {
       "geometry": "line",
@@ -38,7 +40,8 @@
       "mvtId": false,
       "minzoom": 10,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "wetland": {
       "geometry": "polygon",
@@ -52,7 +55,8 @@
       "mvtId": true,
       "minzoom": 9,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "contour": {
       "geometry": "line",
@@ -66,7 +70,8 @@
       "mvtId": false,
       "minzoom": 11,
       "maxzoom": 14,
-      "ladder": "contour"
+      "ladder": "contour",
+      "flows": null
     },
     "park": {
       "geometry": "polygon",
@@ -80,7 +85,8 @@
       "mvtId": false,
       "minzoom": 6,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "eco_reserve": {
       "geometry": "polygon",
@@ -93,7 +99,8 @@
       "mvtId": false,
       "minzoom": 7,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "sign_zone": {
       "geometry": "polygon",
@@ -107,7 +114,8 @@
       "mvtId": false,
       "minzoom": 9,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "wma": {
       "geometry": "polygon",
@@ -120,7 +128,8 @@
       "mvtId": false,
       "minzoom": 7,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "indigenous_land": {
       "geometry": "polygon",
@@ -135,7 +144,8 @@
       "mvtId": false,
       "minzoom": 8,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "no_access": {
       "geometry": "polygon",
@@ -149,7 +159,8 @@
       "mvtId": false,
       "minzoom": 9,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "watershed": {
       "geometry": "polygon",
@@ -162,7 +173,8 @@
       "mvtId": false,
       "minzoom": 5,
       "maxzoom": 14,
-      "ladder": "area"
+      "ladder": "area",
+      "flows": null
     },
     "parcel": {
       "geometry": "polygon",
@@ -172,7 +184,8 @@
       "mvtId": false,
       "minzoom": 12,
       "maxzoom": 14,
-      "ladder": "none"
+      "ladder": "none",
+      "flows": null
     },
     "region": {
       "geometry": "polygon",
@@ -185,7 +198,8 @@
       "mvtId": false,
       "minzoom": 4,
       "maxzoom": 11,
-      "ladder": "none"
+      "ladder": "none",
+      "flows": null
     },
     "mu": {
       "geometry": "polygon",
@@ -197,7 +211,8 @@
       "mvtId": false,
       "minzoom": 7,
       "maxzoom": 14,
-      "ladder": "none"
+      "ladder": "none",
+      "flows": null
     },
     "basin": {
       "geometry": "polygon",
@@ -209,7 +224,8 @@
       "mvtId": false,
       "minzoom": 4,
       "maxzoom": 8,
-      "ladder": "none"
+      "ladder": "none",
+      "flows": null
     }
   },
   "magnitudeLadder": [

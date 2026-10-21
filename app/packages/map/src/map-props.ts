@@ -118,6 +118,12 @@ export interface MapProps {
    * refused the call and the screen quietly kept the layers it meant to hide.
    */
   hide?: readonly string[];
+  /**
+   * Layers only this screen's view draws — from `shownLayers(viewId)` (the Conditions flow
+   * arrows). The mirror of `hide`: absent, every view-only layer stays hidden, so a map that
+   * asks for nothing (the mini map, the spot picker) draws none of them.
+   */
+  show?: readonly string[];
   /** Which toggleable layer groups are on. Absent means "leave the style's default". */
   groups?: Record<string, boolean>;
   initial: Camera;

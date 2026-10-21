@@ -67,8 +67,8 @@ function surveyedEdgeExpr(theme: string): unknown {
 }
 
 describe("a lake's outline follows its fill", () => {
-  it("the style names exactly one follower: the lake's edge follows the lake", () => {
-    expect(STYLE_META.follows).toEqual({ lake__edge: "lake" });
+  it("the style names two followers: the lake's edge follows the lake, the flow arrows their stream", () => {
+    expect(STYLE_META.follows).toEqual({ lake__edge: "lake", stream__arrows: "stream" });
   });
 
   it("status: the edge is painted from the SAME feature-state expression as the lake's status colour", () => {

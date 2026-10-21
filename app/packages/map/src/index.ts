@@ -17,7 +17,7 @@ export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./ad
 /** The catalogue a Layers menu is built from. Groups and views come from the generated
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */
-export { toggleableGroups, views, hiddenLayers, STYLE_META, resolveTheme, themeNames,
+export { toggleableGroups, views, hiddenLayers, shownLayers, STYLE_META, resolveTheme, themeNames,
          waterStatusColour,
          type LayerGroup, type MapView, type Tokens } from "./style";
 export { pillImage, type PillImage } from "./pill";

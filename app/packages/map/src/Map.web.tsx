@@ -215,7 +215,7 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
   return () => { m.off("styledata", h); };
 }
 
-export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
@@ -487,7 +487,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       // native map (`applyLook`); a bad mode or group name is reported, never thrown (a blank screen is not
       // recoverable, a map in its previous colouring is).
       applyLook(adapter.current, handle, (id) => m.getLayer(id) !== undefined,
-                { view, theme, modes, hide, groups },
+                { view, theme, modes, hide, show, groups },
                 (e) => onError?.(e));
       // The route overlay's paper and ink: runtime layers outside the catalogue, web only (the overlay lives here).
       for (const [id, paint] of Object.entries(tracePaint(theme)))
@@ -501,7 +501,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again, so the new data —
     // the basin standings, which arrive exactly then — was dropped (N2 review web walk)
     return afterLoad(m, apply);
-  }, [view, modes, theme, data, groups, hide, onError]);
+  }, [view, modes, theme, data, groups, hide, show, onError]);
 
   useEffect(() => {
     const m = map.current;

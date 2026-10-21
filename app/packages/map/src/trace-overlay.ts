@@ -127,14 +127,19 @@ export function traceLayers(theme: string):
       paint: { "line-color": ["get", "tone"], "line-width": width(1),
                "line-dasharray": [1.4, 1] } },
     /*
-     * WHICH WAY THE WATER GOES — as on the atlas's own `route-arrows`: FWA lines run mouth
-     * to source, so the line's direction points UPSTREAM and the glyph is turned round to
-     * point downstream; `keep-upright: false` stops MapLibre flipping it back.
+     * WHICH WAY THE WATER GOES — as on the Conditions map's `stream__arrows`: stream lines
+     * run mouth to source (the tile contract's `flows`; the copy keeps vertex order), so a
+     * line-placed ◀ points DOWNSTREAM; `keep-upright: false` stops MapLibre flipping it.
+     *
+     * ◀ IN REGULAR, NOT ▲ IN MEDIUM TURNED 180 (2026-10-21). Protomaps' Medium stack has no
+     * geometric shapes, so these arrows were silently never drawn; a line-placed ▲ points
+     * ACROSS the line, not along it; and a 180° `text-rotate` pivots the glyph off the line
+     * (`tools/flow-arrows.test.ts`).
      */
     { id: "trace-arrows", type: "symbol", source: TRACE_SOURCE,
       filter: line("line"),
-      layout: { "symbol-placement": "line", "symbol-spacing": 90, "text-field": "▲",
-                "text-font": ["Noto Sans Medium"], "text-size": 10, "text-rotate": 180,
+      layout: { "symbol-placement": "line", "symbol-spacing": 90, "text-field": "◀",
+                "text-font": ["Noto Sans Regular"], "text-size": 11,
                 "text-keep-upright": false, "text-allow-overlap": true,
                 "text-ignore-placement": true, "text-rotation-alignment": "map" },
       paint: { ...p["trace-arrows"], "text-halo-width": 1.2 } },

@@ -88,11 +88,15 @@
         "lake__label": "plain",
         "stream__label": "plain",
         "region__label": "plain",
-        "mu__label": "plain"
+        "mu__label": "plain",
+        "stream__arrows": "standing"
       },
       "hide": [
         "mu",
         "region"
+      ],
+      "show": [
+        "stream__arrows"
       ],
       "$comment": "HIDE, NOT A GROUP TOGGLE. Management-unit and region boundaries answer \"which table of regulations governs here\", which is not a question the Conditions map is asking — over a flow field they are lines a reader has to learn to ignore. The app tried to turn them off by passing `admin: false` in `groups`, and the `admin` group is deliberately NOT toggleable, so the adapter refused it: the boundaries kept drawing and the console filled with \"layer group admin is not toggleable\". Which layers a VIEW draws is a property of the view, so it is stated here rather than asserted by a screen."
     },
@@ -136,7 +140,8 @@
         "lake__label": "plain",
         "stream__label": "plain",
         "region__label": "plain",
-        "mu__label": "plain"
+        "mu__label": "plain",
+        "stream__arrows": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -180,7 +185,8 @@
         "lake__label": "plain",
         "stream__label": "plain",
         "region__label": "plain",
-        "mu__label": "plain"
+        "mu__label": "plain",
+        "stream__arrows": "plain"
       }
     },
     {
@@ -224,7 +230,8 @@
         "lake__label": "plain",
         "stream__label": "plain",
         "region__label": "plain",
-        "mu__label": "plain"
+        "mu__label": "plain",
+        "stream__arrows": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }
@@ -300,10 +307,12 @@
     "lake__label": "water",
     "stream__label": "water",
     "region__label": "admin",
-    "mu__label": "admin"
+    "mu__label": "admin",
+    "stream__arrows": "water"
   },
   "follows": {
-    "lake__edge": "lake"
+    "lake__edge": "lake",
+    "stream__arrows": "stream"
   },
   "highlightable": [
     {
@@ -1383,6 +1392,128 @@
           "token": "color.mu.edge"
         }
       }
+    },
+    "stream__arrows": {
+      "plain": {
+        "label": "Plain",
+        "scale": "static",
+        "color": {
+          "token": "color.water.mapped"
+        }
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            -1,
+            {
+              "token": "color.water.ungauged"
+            }
+          ],
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
+      },
+      "status": {
+        "label": "Status for the date",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "water_status",
+        "categories": {
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "own": {
+            "token": "color.status.own"
+          },
+          "base": {
+            "token": "color.status.base"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "status",
+          "field": "status"
+        },
+        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
+      },
+      "profile": {
+        "label": "Status for the date",
+        "scale": "profile",
+        "property": "p",
+        "enum": "water_status",
+        "categories": {
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "own": {
+            "token": "color.status.own"
+          },
+          "base": {
+            "token": "color.status.base"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "status",
+          "field": "profile"
+        },
+        "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+      }
     }
   },
   "featureIds": {
@@ -1581,6 +1712,10 @@
     "mu__label": {
       "color": "color.outside",
       "width": 2
+    },
+    "stream__arrows": {
+      "color": "color.outside",
+      "width": 1.2
     }
   },
   "patterns": {

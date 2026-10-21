@@ -16,7 +16,7 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 
-export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
+export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, status, gauges, onVisible, onError,
                             fit, basemap, onBack }: {
@@ -24,6 +24,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
   hide?: readonly string[];
+  /** Layers only this view draws — see `shownLayers`. Absent: none of them. */
+  show?: readonly string[];
   modes?: Record<string, string>;
   onPressFeature?: (layerId: string, featureId: SectionKey,
                     lat?: number, lon?: number) => void;
@@ -58,7 +60,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
-      <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide}
+      <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
            highlight={highlight} marker={marker} data={data} status={status} gauges={gauges}

@@ -1495,6 +1495,50 @@
         "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 — at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
         "priority": 0
       },
+      "arrows": {
+        "follow": true,
+        "minzoom": 9,
+        "by": "ord",
+        "showAbove": [
+          [
+            9,
+            6
+          ],
+          [
+            10,
+            5
+          ],
+          [
+            11,
+            4
+          ],
+          [
+            12,
+            3
+          ]
+        ],
+        "showAll": 13,
+        "size": [
+          [
+            9,
+            10
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            14,
+            15
+          ]
+        ],
+        "spacing": 140,
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.2,
+        "$comment": "WHICH WAY THE WATER GOES, on the Conditions map (owner 2026-10-21). A glyph laid along the line and CHOSEN to point DOWNSTREAM by the tile contract's `flows` (stream lines run mouth to source, measured on the live atlas), in the stream's own colour with a paper halo, drawn only where a view shows it (`views[].show`: Conditions). From z9, where the Conditions rivers come back after the basin field; big water first (Strahler order 6+ at z9, everything from z13) so a valley is not a field of chevrons, and placed after every name so a name never loses its spot to an arrow. A glyph, not an `addImage` icon: the phone has no runtime-image API (N2-F1) and the fonts ship with every release."
+      },
       "minzoomByMode": {
         "standing": 9
       }
@@ -1651,6 +1695,9 @@
       "hide": [
         "mu",
         "region"
+      ],
+      "show": [
+        "stream__arrows"
       ],
       "$comment": "HIDE, NOT A GROUP TOGGLE. Management-unit and region boundaries answer \"which table of regulations governs here\", which is not a question the Conditions map is asking — over a flow field they are lines a reader has to learn to ignore. The app tried to turn them off by passing `admin: false` in `groups`, and the `admin` group is deliberately NOT toggleable, so the adapter refused it: the boundaries kept drawing and the console filled with \"layer group admin is not toggleable\". Which layers a VIEW draws is a property of the view, so it is stated here rather than asserted by a screen."
     },

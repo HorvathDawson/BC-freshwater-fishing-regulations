@@ -291,6 +291,36 @@ const labels = new Map();
  * the layer happens to sit in the source. Lower goes first and therefore wins.
  */
 const labelLayers = [];
+/** Generated flow-arrow symbol layers: arrow layer id -> the line layer it marks. */
+const arrows = new Map();
+/**
+ * WHICH WAY EACH TILE LAYER'S LINES RUN — the pipeline's word for it, never ours.
+ *
+ * A flow arrow is a glyph laid along the line in the direction the line was DIGITISED, so
+ * whether it points downstream depends entirely on the tiles. `pipeline/deliver/tiles/
+ * layers.py` declares it per layer (`flows`, measured on the live atlas) and writes it into
+ * the tile contract; the glyph's turn is derived from that here, so the style cannot claim a
+ * direction the tiles do not carry — and a layer whose lines have no stated direction
+ * cannot have arrows at all.
+ */
+const tileContract = JSON.parse(readFileSync(
+  new URL("../../pipeline/deliver/tiles/tile-contract.json", import.meta.url), "utf8"));
+/**
+ * The glyph, by the contract's `flows`. A line-placed ▶ points along the line as digitised,
+ * so a line running mouth to source takes ◀. CHOSEN, NOT TURNED: `text-rotate: 180` on a ▶
+ * turns it about a point off the glyph's centre, and every arrow sat a glyph-height beside
+ * its river instead of on it (seen on the Vedder at z12, 2026-10-21).
+ */
+const ARROW_GLYPH = { mouth_to_source: "◀", source_to_mouth: "▶" };
+/**
+ * THE ONE STACK THAT HAS THE GLYPH. Protomaps' "Noto Sans Medium" ships a 9472-9727 range
+ * with ONE glyph in it and no ▶ or ▲ — a symbol whose glyph is missing is silently not
+ * placed, so an arrow in Medium draws nothing and says nothing (measured 2026-10-21: 0
+ * rendered in Medium, 20+ in Regular on the same view). "Noto Sans Regular" carries the
+ * geometric shapes and is packed with every release (`tiles/assets.py` BASEMAP_FONTS). Not
+ * a source option: a font is part of the glyph choice, not a look to vary.
+ */
+const ARROW_FONT = ["Noto Sans Regular"];
 
 for (const l of src.layers ?? []) {
   const where = `layer "${l.id}"`;
@@ -554,6 +584,72 @@ for (const l of src.layers ?? []) {
     });
     labels.set(id, l);
   }
+
+  /**
+   * FLOW ARROWS — a companion symbol layer that says which way the water goes (owner
+   * 2026-10-21, the Conditions map).
+   *
+   * A GLYPH, NOT AN IMAGE. The hatches and the gauge pill are pixels added with `addImage`,
+   * which MapLibre Native has no API for (N2-F1: they do not draw on a phone). A glyph comes
+   * from the font the labels already use, shipped with every release (`tiles/assets.py`
+   * packs all 256 ranges), so the web and the phone draw the same arrow from one layer.
+   *
+   * DOWNSTREAM BY CONSTRUCTION. A line-placed glyph lies along the line as digitised (▶ points
+   * from the first vertex to the last), so the glyph is CHOSEN from the tile contract
+   * (`ARROW_GLYPH`), and `text-keep-upright: false` stops MapLibre flipping a
+   * glyph on a line that runs right-to-left on screen — which would make every west-flowing
+   * river's arrows lie.
+   *
+   * THE STREAM'S OWN COLOUR (`follow`): the arrow takes the line's colour mode, so it is
+   * one expression over one feature-state and cannot disagree with the water it sits on.
+   * The paper halo cuts it out of the line so the shape reads at a 1.4 px width.
+   *
+   * HIDDEN UNTIL A VIEW ASKS (`views[].show`). The arrows answer a Conditions question —
+   * where does this water go, which gauge is downstream — and on the Map tab, the mini map
+   * and the spot picker they would be noise over the regulations. Visibility "none" in the
+   * style, so a map that never asks never draws them.
+   */
+  if (l.arrows) {
+    const a = l.arrows;
+    const id = `${l.id}__arrows`;
+    const aw = `${where} arrows`;
+    if (l.geometry !== "line") err(`${aw}: only a line has a direction to point along`);
+    const flows = tileContract.layers?.[l.sourceLayer]?.flows;
+    if (!(flows in ARROW_GLYPH))
+      err(`${aw}: the tile contract gives "${l.sourceLayer}" no direction (flows: ${JSON.stringify(flows)}) — ` +
+          `an arrow on a line of unknown direction is a guess drawn as a fact`);
+    if (a.follow !== true) err(`${aw}: must follow its line's colour ("follow": true)`);
+    tokenValue(a.halo, `${aw} halo`);
+    const ladder = a.showAbove
+      ? ["any", [">=", ["zoom"], a.showAll ?? (a.minzoom ?? 0)],
+         ...a.showAbove.map(([z, min]) => ["all", [">=", ["zoom"], z], [">=", ["get", a.by], min]])]
+      : null;
+    if (a.showAbove && !a.by) err(`${aw}: showAbove needs "by", the tile attribute it ranks on`);
+    labelLayers.push({
+      // AFTER every name: a name placed first keeps its spot, and an arrow that would sit on
+      // it is dropped (`text-ignore-placement` keeps the arrow from blocking anything).
+      $priority: 1000,
+      id, type: "symbol", ...geom,
+      ...(a.minzoom !== undefined ? { minzoom: a.minzoom } : {}),
+      ...(l.filter || ladder ? { filter: ["all", ...(l.filter ? [l.filter] : []), ...(ladder ? [ladder] : [])] } : {}),
+      layout: {
+        visibility: "none",
+        "symbol-placement": "line",
+        "symbol-spacing": a.spacing ?? 150,
+        "text-field": ARROW_GLYPH[flows] ?? "▶",
+        "text-font": ARROW_FONT,
+        "text-size": ["interpolate", ["linear"], ["zoom"], ...(a.size ?? []).flat()],
+        "text-keep-upright": false,
+        "text-rotation-alignment": "map",
+        "text-pitch-alignment": "map",
+        "text-max-angle": a.maxAngle ?? 30,
+        "text-allow-overlap": false,
+        "text-ignore-placement": true,
+        "text-padding": a.padding ?? 2,
+      },
+    });
+    arrows.set(id, l);
+  }
 }
 
 
@@ -659,6 +755,38 @@ for (const [id, l] of labels) {
   });
   for (const v of src.views ?? []) v.modes[id] = "plain";
 }
+/**
+ * AN ARROW IS ITS LINE'S COLOUR — every mode of the line, verbatim, and each view maps it to
+ * the line's own mode. Registered as a follower, so setting the stream's mode paints the
+ * arrows in the same call (`setLayerMode`), exactly as a lake's outline follows its fill.
+ */
+for (const [id, l] of arrows) {
+  layersById.set(id, { ...l, id, geometry: "symbol", colorModes: l.colorModes ?? {} });
+  follows[id] = l.id;
+  for (const v of src.views ?? []) v.modes[id] = v.modes[l.id] ?? "plain";
+}
+
+/*
+ * A VIEW'S OWN LAYERS (`show`) — drawn by that view and by no other, the mirror of `hide`.
+ *
+ * Every layer named here is emitted hidden; the app turns it on by naming the view
+ * (`shownLayers`), so a screen that asks for nothing draws nothing. The listed layer must
+ * exist and must actually start hidden, or "only this view" is a claim the style breaks on
+ * every other screen. And a layer that only ever draws when a view shows it must be shown
+ * by SOME view, or it is a layer nothing can ever see.
+ */
+const outById = new Map(outLayers.concat(labelLayers).map((x) => [x.id, x]));
+const shownAnywhere = new Set();
+for (const v of src.views ?? [])
+  for (const id of v.show ?? []) {
+    shownAnywhere.add(id);
+    const out = outById.get(id);
+    if (!out) err(`view "${v.id}": shows unknown layer "${id}"`);
+    else if (out.layout?.visibility !== "none")
+      err(`view "${v.id}": shows "${id}", which the style already draws everywhere — a view's own layer must start hidden`);
+  }
+for (const id of arrows.keys())
+  if (!shownAnywhere.has(id)) err(`layer "${id}": no view shows it, so it can never draw`);
 
 /*
  * LAYERS THE RUNTIME ADDS, which a view may still switch.
@@ -706,6 +834,8 @@ const meta = {
     ...[...edges].map(([id, l]) => [id, l.group]),
     // and a name belongs to the water it names, for exactly the same reason
     ...[...labels].map(([id, l]) => [id, l.group]),
+    // and an arrow to the line it marks
+    ...[...arrows].map(([id, l]) => [id, l.group]),
   ]),
   follows,
   highlightable: (src.layers ?? []).filter((l) => l.highlightable)
@@ -714,6 +844,7 @@ const meta = {
     ...(src.layers ?? []).map((l) => [l.id, l.colorModes]),
     ...[...edges].map(([id]) => [id, layersById.get(id).colorModes]),
     ...[...labels].map(([id]) => [id, layersById.get(id).colorModes]),
+    ...[...arrows].map(([id]) => [id, layersById.get(id).colorModes]),
   ]),
   // WHICH PROPERTY carries the feature id, per layer. The style knew a property had been
   // named; nothing knew which one, so nothing could tell MapLibre to promote it.
@@ -776,8 +907,11 @@ const meta = {
   // A label's HALO — the only paint property no other layer type has. Text colour rides
   // the ordinary colorModes rail; the halo needs its own entry or a name is legible on
   // open ground and invisible the moment it crosses a road.
-  labelHalos: Object.fromEntries([...labels].map(([id, l]) =>
-    [id, { color: l.label.halo.token, width: l.label.haloWidth ?? 1.2 }])),
+  labelHalos: Object.fromEntries([
+    ...[...labels].map(([id, l]) => [id, { color: l.label.halo.token, width: l.label.haloWidth ?? 1.2 }]),
+    // An arrow wears the same paper ring, which is what cuts it out of the line it sits on.
+    ...[...arrows].map(([id, l]) => [id, { color: l.arrows.halo.token, width: l.arrows.haloWidth ?? 1.2 }]),
+  ]),
   /*
    * A FILL PATTERN, by layer. The token names the COLOUR the pattern is woven from, not
    * an image: the image is generated at runtime from the resolved theme (src/hatch.ts),

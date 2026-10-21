@@ -128,8 +128,13 @@ describe("the style and the tiles agree", () => {
     for (const l of labelled)
       expect(built.has(`${l.id}__label`), `${l.id} declares a label but has no symbol layer`)
         .toBe(true);
+    // And one FLOW-ARROW symbol layer per line that declares arrows (the Conditions view's).
+    const arrowed = source.layers.filter((l) => (l as { arrows?: unknown }).arrows);
+    for (const l of arrowed)
+      expect(built.has(`${l.id}__arrows`), `${l.id} declares arrows but has no arrow layer`).toBe(true);
+    expect(arrowed.map((l) => l.id)).toEqual(["stream"]);
     expect(Object.keys(STYLE_META.colorModes).length)
-      .toBe(source.layers.length + outlined.length + labelled.length);
+      .toBe(source.layers.length + outlined.length + labelled.length + arrowed.length);
   });
 
   it("the layers that say where you may not go cannot be switched off", () => {
@@ -177,14 +182,19 @@ describe("the style and the tiles agree", () => {
     const ids = MAP_STYLE.layers.map((l) => l.id);
     const firstLabel = ids.findIndex((id) => id.endsWith("__label"));
     expect(firstLabel, "no label layer in the built style").toBeGreaterThan(-1);
+    // The flow arrows are symbols too, and come after EVERY name: a name placed first keeps
+    // its spot, and an arrow that would land on it is the one dropped.
+    const firstArrow = ids.findIndex((id) => id.endsWith("__arrows"));
     for (const id of ids.slice(firstLabel))
-      expect(id.endsWith("__label"), `${id} is drawn after a label`).toBe(true);
+      expect(id.endsWith("__label") || id.endsWith("__arrows"), `${id} is drawn after a label`).toBe(true);
+    expect(ids.slice(firstArrow).every((id) => id.endsWith("__arrows")), "an arrow is drawn before a name")
+      .toBe(true);
 
     // And among themselves, in DECLARED priority order — not in whatever order the source
     // happens to list the geometry. A river name beats a lake name, as v1 had it.
     const prio = new Map(source.layers.filter((l) => l.label)
       .map((l) => [`${l.id}__label`, (l.label as { priority?: number }).priority ?? 0]));
-    const drawn = ids.slice(firstLabel).map((id) => prio.get(id) ?? 0);
+    const drawn = ids.slice(firstLabel, firstArrow).map((id) => prio.get(id) ?? 0);
     expect(drawn, "labels are not in priority order")
       .toEqual([...drawn].sort((a, b) => a - b));
   });

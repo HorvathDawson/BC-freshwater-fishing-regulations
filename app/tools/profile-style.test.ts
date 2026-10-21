@@ -28,9 +28,9 @@ const expected = (theme: string, d: DayProfiles): unknown[] => {
 };
 
 describe("the profile colour mode", () => {
-  it("is declared on every layer the status colours, and on the lake's outline, over water_status", () => {
+  it("is declared on every layer the status colours, and on its followers (lake outline, flow arrows), over water_status", () => {
     const has = Object.entries(STYLE_META.colorModes).filter(([, m]) => m["profile"]).map(([id]) => id).sort();
-    expect(has).toEqual(["lake", "lake__edge", "lake_flowing", "stream", "wetland_flowing"]);
+    expect(has).toEqual(["lake", "lake__edge", "lake_flowing", "stream", "stream__arrows", "wetland_flowing"]);
     for (const id of has)
       expect(JSON.stringify({ ...STYLE_META.colorModes[id]!["profile"], $comment: undefined }), id).toBe(JSON.stringify({
         label: "Status for the date", scale: "profile", property: "p", enum: "water_status",
@@ -41,7 +41,7 @@ describe("the profile colour mode", () => {
 
   it("paints the day as one match over its labels — closed, own, base; anything unplaced is unmapped grey", () => {
     for (const theme of themeNames())
-      for (const layer of ["stream", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]) {
+      for (const layer of ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]) {
         expect(colorExpression(layer, "profile", resolveTheme(theme), DAY), `${theme} ${layer}`)
           .toEqual(expected(theme, DAY));
         expect(colorExpression(layer, "profile", resolveTheme(theme), NO_CLOSURES), `${theme} ${layer}`)
@@ -83,7 +83,7 @@ describe("the profile colour mode", () => {
           unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
         let patched = 0;
         for (const l of style.layers) if (paint[l.id]) { l.paint = { ...l.paint, ...paint[l.id] }; patched++; }
-        expect(patched).toBe(5);
+        expect(patched).toBe(6);   // the four, the lake's edge and the stream's flow arrows (followers)
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

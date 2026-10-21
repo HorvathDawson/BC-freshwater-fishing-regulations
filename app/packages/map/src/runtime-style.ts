@@ -475,9 +475,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        *
        * FWA BLUE LINES RUN MOUTH TO SOURCE — verified against the Fraser, whose first
        * vertex is at Vancouver and whose last is above Prince George — so the line's own
-       * direction points UPSTREAM. `text-rotate: 180` turns the arrowhead around to point
-       * downstream, and `text-keep-upright: false` stops MapLibre helpfully flipping it
-       * back on west-flowing rivers, which would make half the province's arrows lie.
+       * direction points UPSTREAM, and a line-placed ◀ points downstream. `text-keep-upright:
+       * false` stops MapLibre helpfully flipping it on west-flowing rivers, which would make
+       * half the province's arrows lie. ◀ in Regular, not ▲ in Medium turned 180
+       * (2026-10-21): Medium has no geometric shapes, so the arrows were never drawn; a
+       * line-placed ▲ points across the line; and the 180° turn pivots it off the line.
        *
        * Drawn from feature-state rather than a filter: a `filter` cannot read feature
        * state, so the layer covers every stream and its opacity is 0 unless selected.
@@ -489,10 +491,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         layout: {
           "symbol-placement": "line" as const,
           "symbol-spacing": 70,
-          "text-field": "▲",
-          "text-font": ["Noto Sans Medium"],
+          "text-field": "◀",
+          "text-font": ["Noto Sans Regular"],
           "text-size": 11,
-          "text-rotate": 180,
           "text-keep-upright": false,
           "text-allow-overlap": true,
           "text-ignore-placement": true,

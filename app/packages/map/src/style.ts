@@ -24,6 +24,12 @@ export interface MapView {
    * and trying produced a refused call and a boundary that kept drawing.
    */
   hide?: string[];
+  /**
+   * Layers this view ALONE draws — the mirror of `hide`. The style emits them hidden, so a
+   * screen that does not name the view (the Map tab, the mini map, the spot picker) never
+   * draws them: the Conditions view's flow arrows.
+   */
+  show?: string[];
 }
 export type TokenRef = { token: string };
 export type ColorMode =
@@ -146,6 +152,9 @@ export const views = (): MapView[] => STYLE_META.views;
  */
 export const hiddenLayers = (viewId: string): readonly string[] =>
   STYLE_META.views.find((v) => v.id === viewId)?.hide ?? [];
+/** Layers only this view draws (`MapView.show`). The list is the style's; the trigger, as with `hiddenLayers`, the app's. */
+export const shownLayers = (viewId: string): readonly string[] =>
+  STYLE_META.views.find((v) => v.id === viewId)?.show ?? [];
 export const defaultView = (): MapView => {
   const v = STYLE_META.views.find((x) => x.default);
   if (!v) throw new Error("no default view");

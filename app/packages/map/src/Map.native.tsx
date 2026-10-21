@@ -63,7 +63,7 @@ type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: num
 type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number } | null };
 type Data = NonNullable<MapProps["data"]>;
 
-export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature, chrome, onError,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
                       onMoved, onMapPoint, highlight, marker, style, gauges, onVisible, pins, bare, fit,
                       basemap }: MapProps) {
   const adapter = useRef(baseAdapter("native"));
@@ -117,11 +117,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
   const look = useMemo(
-    () => nativeStyle({ at, theme, view, modes, hide, groups, basemap: basemap ?? "map",
+    () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map",
                         gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(groups ?? {}), basemap, areaKey]);
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey]);
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);

@@ -20,7 +20,7 @@ import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
-import { hiddenLayers, toggleableGroups,
+import { hiddenLayers, shownLayers, toggleableGroups,
          type Camera, type TileEndpoints, coloursEachTile } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
@@ -534,6 +534,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The list is the style's; the trigger is this screen's, because the
                      // app drives by mode and never renders the named view.
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
+                     // And the layers only that view draws: the flow arrows.
+                     show={tab === "conditions" ? shownLayers("conditions") : []}
                      // The forecast horizons, on the Conditions tab (owner 2026-10-20, after
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — see `hz` above.

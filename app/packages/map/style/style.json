@@ -998,6 +998,129 @@
           ""
         ]
       ]
+    },
+    {
+      "id": "stream__arrows",
+      "type": "symbol",
+      "source": "atlas",
+      "source-layer": "stream",
+      "layout": {
+        "visibility": "none",
+        "symbol-placement": "line",
+        "symbol-spacing": 140,
+        "text-field": "◀",
+        "text-font": [
+          "Noto Sans Regular"
+        ],
+        "text-size": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          9,
+          10,
+          12,
+          13,
+          14,
+          15
+        ],
+        "text-keep-upright": false,
+        "text-rotation-alignment": "map",
+        "text-pitch-alignment": "map",
+        "text-max-angle": 30,
+        "text-allow-overlap": false,
+        "text-ignore-placement": true,
+        "text-padding": 2
+      },
+      "minzoom": 9,
+      "filter": [
+        "all",
+        [
+          "any",
+          [
+            ">=",
+            [
+              "zoom"
+            ],
+            13
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              9
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              6
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              10
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              5
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              11
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              4
+            ]
+          ],
+          [
+            "all",
+            [
+              ">=",
+              [
+                "zoom"
+              ],
+              12
+            ],
+            [
+              ">=",
+              [
+                "get",
+                "ord"
+              ],
+              3
+            ]
+          ]
+        ]
+      ]
     }
   ]
 }
