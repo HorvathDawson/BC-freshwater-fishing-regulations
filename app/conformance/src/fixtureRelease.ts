@@ -4,12 +4,13 @@
  * `fetch` that serves the release folder as R2 / `pnpm tiles` would, and a node:sqlite opener.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
-import type { Opener } from "@app/data/release";
+import { parseManifest, verify } from "@app/data";
+import { releaseLoader, type Opener, type ReleaseLoader, type ReleaseSource } from "@app/data/release";
 import { DEV_BUNDLE, openBundle } from "@app/data/bundle/node";
 
 const REPO = resolve(__dirname, "../../..");
@@ -55,6 +56,44 @@ export function releaseFetch(base: string, dir: string, log: string[]): typeof f
     return new Response(rel === "manifest.json" ? body : new Uint8Array(path.endsWith(".gz") ? body : gzipSync(body)),
                         { status: 200 });
   }) as unknown as typeof fetch;
+}
+
+/**
+ * THE LIVE RELEASE on this machine (`python -m pipeline.deliver release` → data/release/r-*, not in git): $RELEASE_DIR
+ * (relative to the repo root, or absolute), else the newest release folder in this checkout, else — in a
+ * `.claude/worktrees/<name>` checkout — the main checkout's (read only: its files are read, never written). null: none.
+ */
+export function liveRelease(): string | null {
+  if (process.env.RELEASE_DIR) {
+    const d = resolve(REPO, process.env.RELEASE_DIR);
+    return existsSync(join(d, "manifest.json")) ? d : null;
+  }
+  const main = /\/\.claude\/worktrees\/[^/]+\/?$/.test(REPO) ? REPO.replace(/\/\.claude\/worktrees\/[^/]+\/?$/, "") : null;
+  for (const root of [REPO, main]) {
+    if (!root) continue;
+    const rel = join(root, "data/release");
+    if (!existsSync(rel)) continue;
+    const dirs = readdirSync(rel).filter((n) => /^r-/.test(n) && existsSync(join(rel, n, "manifest.json")))
+      .map((n) => join(rel, n)).sort((a, b) => statSync(join(b, "manifest.json")).mtimeMs - statSync(join(a, "manifest.json")).mtimeMs);
+    if (dirs.length) return dirs[0]!;
+  }
+  return null;
+}
+
+/**
+ * A `ReleaseLoader` over a release folder, the way the app reads one: each file's bytes held to the manifest
+ * (`verify`: the decoded length and sha256) and opened in node:sqlite from a temp copy.
+ */
+export function openReleaseDir(dir: string): ReleaseLoader {
+  const m = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")));
+  const source: ReleaseSource = {
+    async bytes(name) {
+      const f = m.files[name];
+      if (!f) throw new Error(`release ${m.data_release} has no file ${name}`);
+      return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
+    },
+  };
+  return releaseLoader(m, source, nodeOpener());
 }
 
 /** node:sqlite over a verified file: the bytes written to a temp file and opened read-only. */

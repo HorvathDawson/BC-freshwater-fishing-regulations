@@ -537,6 +537,9 @@ export interface RegsSource {
   regulationKeys(id: ItemId): Promise<readonly number[]>;
 }
 
+/** The driver seam (`Db`: four methods), for the layers that hand one to `@app/data` (T03). */
+export type { Db, Row, Cell } from "./bundle/db";
+
 /** User pins — a separate store with a separate lifecycle. See pins.ts. */
 export type { Pin, PinPhoto, PinStore } from "./pins";
 
