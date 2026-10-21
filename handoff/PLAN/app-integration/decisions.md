@@ -39,6 +39,14 @@ display. The app DECODES and PRESENTS them; it never decides a regulation. Concr
   derive it in TS. A reviewer treats regulation logic in app code as a blocker.
 - A regulation fix (e.g. the Kitimat rulings) is a pipeline change + `deliver all`; no app change should be needed.
 
+## OWNER RULE 2026-10-21 — one water screen, whichever map you tapped
+Tapping a stream on the Conditions map and tapping it on the Map tab (regulations) must open the EXACT SAME water screen —
+same route, same header, same parts, same section kept — differing ONLY in which view is in front (Conditions vs
+Regulations). "That should be impossible" to diverge: both maps' taps call ONE function (e.g.
+openWater(item, tapSid, at, view)); the browse-mode Conditions reach panel is folded into the water screen's
+Conditions view (no second Conditions screen); a test pins that the same tap from either map yields routes that are
+equal except `view`. Applies to search's open action and saved spots too where they open a water.
+
 ## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY
 The satellite basemap is shown only when the device is online; it is never packaged or cached for offline use. Offline,
 the drawn basemap is the ground (the Layers toggle says why satellite is unavailable). This lifts the offline-caching

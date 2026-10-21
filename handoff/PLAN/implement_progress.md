@@ -83,6 +83,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- OWNER RULE 2026-10-21: a stream tapped on the Conditions map or the Map tab opens the EXACT SAME water screen, only
+  the front view differs (decisions.md). Today they diverge (browse Conditions reach panel vs water mode). QUEUED: start
+  the unification as soon as batch 9 (T21 Keep tab, which wires WaterScreen/Shell) merges.
 - OWNER 2026-10-21 (SPEC ONLY, do not build): downloadable high-res imagery CORRIDOR around a stream or one section,
   for offline use (the offline exception to online-only satellite); find free sources that legally allow offline
   storage. Workflow stream-imagery-corridor-spec RUNNING -> handoff/PLAN/app-data/stream-imagery/SPEC.md.
