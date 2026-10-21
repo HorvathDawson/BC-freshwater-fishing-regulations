@@ -65,6 +65,23 @@ def test_1b_weekday_split_with_no_keep_takes_release_over_closed():
     assert years(Y.stamp_years(fs, starts, at)) == [[[["release", 365]]], [[["release", 365]]]]
 
 
+def test_1e_the_most_permissive_moment_colours_the_day_wherever_it_sits_first():
+    # the best moment is the day's FIRST, not its last: neither "last moment" nor "first moment" both pass 1/1b/1e
+    starts = [1, 1]
+    at = [WEEKEND, WEEK]
+    fs = [frame({"KO": ("keep", "keep")}, [["KO"]]), frame({"KO": ("release", "release")}, [["KO"]])]
+    assert years(Y.stamp_years(fs, starts, at)) == [[[["keep", 365]]], [[["keep", 365]]]]
+
+
+def test_1f_the_most_permissive_moment_colours_the_day_wherever_it_sits_middle():
+    # three weekday classes, the best in the MIDDLE: neither the first (closed) nor the last (release) moment
+    starts = [1, 1, 1]
+    at = [{"weekdays": ALL[:3], "hours": None}, {"weekdays": ALL[3:5], "hours": None}, WEEKEND]
+    fs = [frame({"KO": ("closed", "closed")}, [["KO"]]), frame({"KO": ("keep", "keep")}, [["KO"]]),
+          frame({"KO": ("release", "release")}, [["KO"]])]
+    assert years(Y.stamp_years(fs, starts, at)) == [[[["keep", 365]]]] * 3
+
+
 def test_1c_an_hours_window_never_colours_the_day():
     # a night closure: outside the window keep, inside it closed — the day is the outside's answer
     starts = [1, 1, 182, 182]
