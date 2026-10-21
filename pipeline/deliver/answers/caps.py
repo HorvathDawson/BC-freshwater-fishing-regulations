@@ -261,7 +261,9 @@ def _caps(E, kinds: List[dict]) -> List[dict]:
                 away = bool(cn["stream"] or cn["lake"])
                 raw.append({"take": cap["take"], "kinds": {"here": ck["here"], "stream": cn["stream"],
                                                            "lake": cn["lake"]},
-                            "by": r.key, "if_kept_here": away, "range": _joined(cap["ranges"])})
+                            "by": r.key, "if_kept_here": away, "range": _joined(cap["ranges"]),
+                            # rows F17: a raised tally is encoded as its quota's rule, worded as itself
+                            "rule": r})
     zero = {(p, k) for c in raw if c["take"] == 0 for p in PLACES for k in c["kinds"][p]}
     out: List[dict] = []
     for c in raw:
@@ -324,7 +326,7 @@ def _union(ks: List[dict]) -> Optional[Tuple[float, float]]:
 def _said(E, c: dict, kinds: List[dict]) -> dict:
     """The cap in words: its scope and one sentence — the rule's own fish, the kinds' origin and size."""
     from pipeline.deliver.answers.display import written_name
-    r = E.P.by_key[c["by"]]
+    r = c.get("rule") or E.P.by_key[c["by"]]
     by_id = {k["id"]: k for k in kinds}
     ks = c["kinds"]
     region = "B.C." if r.entry_id.startswith("zp") else (r.x.get("entry_name") or "the region")

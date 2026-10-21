@@ -400,10 +400,16 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
     # -- size caps, smallest size first ---------------------------------------------------------------
     said: List[Tuple[dict, List[str], dict]] = []          # (cap, its kinds over the size, its note)
     covered: Dict[float, set] = {}
+    # rows F17 (owner ruling 2026-10-21): a tally a water's steelhead quota raises a size clause to is said WITH
+    # that clause — the steelhead it lifted named as not counting toward the clause's number, the tree's size
+    # tier "… — 2 if one is a hatchery steelhead" (`tree.py`, its `extra`) — never as a cap of its own
+    from pipeline.deliver.answers.rows import raise_of
+    raising = [(s, raise_of(grp, s)) for s in grp["subcaps"]]
+    raising = [(t, o) for t, o in raising if o is not None]
     for sc in sorted(sizes, key=lambda s: (s["over_cm"], s["take"])):
         cm = sc["over_cm"]
         over = [S for S in kinds if S in sc["of"] and info[S]["hi"] > cm]
-        if not over or sc["r"] in stated:
+        if not over or sc["r"] in stated or any(sc is t for t, _o in raising):
             continue
         if any(o["over_cm"] <= cm and o["take"] <= sc["take"] and set(over) <= set(ov) for o, ov, _n in said):
             continue                                       # implied by a cap already said
@@ -442,6 +448,10 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
             # a cap on a few of the kinds (Region 4's "rainbow and cutthroat trout, no more than 1 over 50
             # cm"): it claims nothing of the rest (another region's cap may hold them on a boundary water)
             aside = []
+        for t, o in raising:                               # rows F17: the steelhead a raise lifted out of it
+            if o is sc:
+                aside += [S for S in t["of"] if S not in sc["of"] and S in info and info[S]["hi"] > cm
+                          and S not in aside]
         # ROUND15 1 (owner): a size cap is a BOXED GROUP like the count groups, naming EXACTLY the kinds it
         # can bind today — kept and able to pass the size (Bella Coola May 1: brown trout, Dolly Varden/bull
         # trout, lake trout and brook trout; never cutthroat ≤33 cm, rainbow ≤50 cm or a closed steelhead)

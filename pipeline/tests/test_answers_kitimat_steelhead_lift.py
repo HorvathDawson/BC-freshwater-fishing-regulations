@@ -39,18 +39,33 @@ The row prints NO dates on the steelhead quota, so r5 has no window of its own; 
 below are in and out of the zone windows it meets: Aug 15 (r4's Jul 1-Oct 31) and Dec 1 (r7's
 Nov 1-Jun 30). On both, r2 is lifted for hatchery steelhead and for nothing else.
 
-WHERE THE TEXT IS AMBIGUOUS (pinned as CURRENT behaviour, awaiting an owner ruling, in
-`test_..._awaiting_owner_ruling` below — not in the text-decided test):
+WHERE THE TEXT IS AMBIGUOUS:
   (a) Dec 1, hatchery steelhead under r7 "Trout of any size from streams, Nov 1-June 30": the
       Kitimat's RAINBOW line says "all year" and its STEELHEAD line does not. Current: r7 lifted
-      by r5 (keep 2 on Dec 1) — the curated `exempts` of kitimat_river.r5 name r7.
+      by r5 (keep 2 on Dec 1) — the curated `exempts` of kitimat_river.r5 name r7. STILL AWAITING
+      AN OWNER RULING (the owner is checking it, 2026-10-21): pinned as CURRENT behaviour in
+      `test_..._awaiting_owner_ruling` below.
   (b) whether the 2 hatchery steelhead still count toward r2's 1-over-50 for the OTHER trout
-      (keep 2 hatchery steelhead, then may you keep 1 cutthroat over 50?). Current: the pool's
-      general cap carries `except: ["ST"]` (rows._not_counted) — they do not count.
+      (keep 2 hatchery steelhead, then may you keep 1 cutthroat over 50?). OWNER RULING
+      2026-10-21: "no you can't. look at the prototype vedder it is similar. it is more a +1 for
+      steelhead." THE VEDDER (Region 2, printed p.21): "1 over 50 cm (2 hatchery steelhead over 50
+      cm allowed)" — in the data z2 trout_char_quota.r2 "1 over 50 cm" for trout/char OTHER than
+      steelhead and .r2b "no more than 2 over 50 cm" for every trout/char, steelhead included; the
+      prototype's card (regs-v11 `tierWords`, the size tier's `extra`) says it "Of these, only 1 may
+      be over 50 cm (20 in) — 2 if one is a hatchery steelhead", and its kept-elsewhere line "at most
+      2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery
+      steelhead". So "+1 for steelhead" is, in data terms: the other trout/char stay at r2's 1 over
+      50 cm (r2 keeps `except: ["ST"]`), and EVERY fish over 50 cm, the hatchery steelhead included,
+      counts toward one tally of r5's 2 (`rows.raises`: r5's lift of r2 RAISES it for the steelhead,
+      it does not take them out of it). Keep 2 hatchery steelhead and no other trout over 50 cm;
+      keep 1 and 1 other may be over 50 cm. The Vedder is the parity witness (`test_..._plus_one_..`):
+      the same baskets, the same card words, from its own data.
 
 MUTATION PINS: the text-decided check FAILS if r5 no longer lifts r2, and if it lifts r2 for wild
 steelhead too (the reader's cached r5 `exempts` mutated, the Kitimat's verdicts rebuilt into
-tmp_path, the answers rebuilt from them). An unmutated rebuild passes it (control).
+tmp_path, the answers rebuilt from them). An unmutated rebuild passes it (control). The ruling's
+check FAILS on the Kitimat — never on the Vedder — when the raise is gone (the steelhead taken out
+of the tally, as before the ruling) and when it lets one more past (r5's 2 + 1).
 
 `UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
 """
@@ -236,9 +251,13 @@ DEC1_HATCHERY_ST_CURRENT = {
     "roles": [[STOP, "replaced", K7], [Z2, "lifted", K5], [Z7, "lifted", K5]] + HATCHERY_ST_TAIL,
     "lift_notes": []}
 
-#: ambiguity (b): the pool's general cap (r2) does not count steelhead — CURRENT behaviour
-CAP_COND_CURRENT = {"c": "cap", "r": Z2, "sub": 1, "a": 50, "b": None, "take": 1, "of": None,
-                    "general": True, "except": ["ST"]}
+#: ambiguity (b), OWNER RULING 2026-10-21 ("+1 for steelhead"): the pool's general cap (r2) still holds the OTHER
+#: trout/char to 1 over 50 cm (steelhead excepted, as the Vedder's), and r5 raises it to one tally of 2 over 50 cm that
+#: counts every fish, the hatchery steelhead included (the Vedder's "2 over 50 cm" r2b, here r5's own number)
+CAP_CONDS_RULING = [{"c": "cap", "r": Z2, "sub": 1, "a": 50, "b": None, "take": 1, "of": None,
+                     "general": True, "except": ["ST"]},
+                    {"c": "cap", "r": K5, "sub": 2, "a": 50, "b": None, "take": 2, "of": None,
+                     "general": True}]
 
 LIFTED_BY_R5 = ["lifted", None, "lifted", f"{ROW}::kitimat_river.r5"]
 
@@ -269,22 +288,151 @@ def test_kitimat_hatchery_steelhead_quota_lifts_region_6s_one_over_50_for_hatche
 
 
 @pytest.mark.needs_bundle
-def test_kitimat_hatchery_steelhead_in_the_nov_jun_release_and_the_cap_except_awaiting_owner_ruling(shipped):
-    """AWAITING AN OWNER RULING — pins CURRENT behaviour only (module docstring, (a) and (b)).
-    (a) Dec 1: hatchery steelhead keep 2, r7 "Trout of any size from streams, Nov 1-June 30"
-        lifted by r5, although the row's steelhead line (unlike its rainbow line) prints no
-        "all year". (b) the pool's general 1-over-50 cap excepts steelhead, so the 2 hatchery
-        steelhead do not use up the 1 over 50 cm of the other trout. A ruling either way updates
-        this test; `test_kitimat_hatchery_steelhead_quota_lifts_...` does not depend on it."""
+def test_kitimat_hatchery_steelhead_in_the_nov_jun_release_awaiting_owner_ruling(shipped):
+    """AWAITING AN OWNER RULING — pins CURRENT behaviour only (module docstring, (a)).
+    Dec 1: hatchery steelhead keep 2, r7 "Trout of any size from streams, Nov 1-June 30" lifted
+    by r5, although the row's steelhead line (unlike its rainbow line) prints no "all year". A
+    ruling either way updates this test; `test_kitimat_hatchery_steelhead_quota_lifts_...` does
+    not depend on it."""
     data, model = shipped
     assert _answer(data, model, DEC1, "ST", "hatchery") == DEC1_HATCHERY_ST_CURRENT
     assert _rung(data, model, DEC1, "ST", "hatchery", "r7") == LIFTED_BY_R5
+
+
+@pytest.mark.needs_bundle
+def test_kitimat_pool_says_the_hatchery_steelhead_count_toward_a_2_over_50_tally(shipped):
+    """OWNER RULING 2026-10-21 on (b) (module docstring): the pool's conditions keep r2's 1 over
+    50 cm for the other trout/char (steelhead excepted) and add r5's one tally of 2 over 50 cm,
+    every fish counted — on both dates r5 lifts r2 for hatchery steelhead."""
+    data, model = shipped
     for md in (AUG15, DEC1):
         rows, _ = _at(data, model, md)
         (pool,) = [r for r in rows["rows"] if r.get("pool") is not None and
                    data["rule_ids"][r["pool"]] == "z6:trout_char_quota::trout_char_quota.r1"]
         caps = [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
-        assert caps == [CAP_COND_CURRENT], md
+        assert caps == CAP_CONDS_RULING, md
+
+
+# ---- the ruling, with the Vedder as its parity witness ---------------------------------------
+
+VEDDER = "gnis:3062"
+OCT10 = (10, 10)
+#: (water, the day, the trout/char total, the origin of the cutthroat it keeps): the Vedder on the
+#: prototype's own day (regs-v11 `vedder_1010`), where Region 2 keeps hatchery trout only from
+#: streams; the Kitimat in August, where Region 6 keeps either origin
+PARITY = ((VEDDER, OCT10, "z2:trout_char_quota::trout_char_quota.r1", "hatchery"),
+          (KITIMAT, AUG15, "z6:trout_char_quota::trout_char_quota.r1", "wild"))
+
+
+def _baskets(origin):
+    """What may be kept over 50 cm on one day: hatchery steelhead (all over 50 cm) and a cutthroat
+    over 50 cm, here and — the kept-elsewhere line — on a lake of the region first."""
+    st, ct = ("ST", "hatchery", 60.0, "here"), ("CT", origin, 55.0, "here")
+    lake = ("CT", origin, 55.0, "lake")
+    return {"2 hatchery steelhead": [st, st],
+            "1 hatchery steelhead, then 1 cutthroat over 50 cm": [st, ct],
+            "1 cutthroat over 50 cm, then 1 hatchery steelhead": [ct, st],
+            "2 hatchery steelhead, then 1 cutthroat over 50 cm": [st, st, ct],
+            "1 cutthroat over 50 cm between 2 hatchery steelhead": [st, ct, st],
+            "2 cutthroat over 50 cm": [ct, ct],
+            "a cutthroat over 50 cm kept at a lake, then 1 hatchery steelhead": [lake, st],
+            "a cutthroat over 50 cm kept at a lake, then 2 hatchery steelhead": [lake, st, st]}
+
+
+#: "+1 for steelhead": 1 over 50 cm, 2 if one is a hatchery steelhead — never 2 steelhead AND another
+PLUS_ONE = {"2 hatchery steelhead": True,
+            "1 hatchery steelhead, then 1 cutthroat over 50 cm": True,
+            "1 cutthroat over 50 cm, then 1 hatchery steelhead": True,
+            "2 hatchery steelhead, then 1 cutthroat over 50 cm": False,
+            "1 cutthroat over 50 cm between 2 hatchery steelhead": False,
+            "2 cutthroat over 50 cm": False,
+            "a cutthroat over 50 cm kept at a lake, then 1 hatchery steelhead": True,
+            "a cutthroat over 50 cm kept at a lake, then 2 hatchery steelhead": False}
+
+SIZE_TIER = {"tier": "size", "n": 1, "over_cm": 50,
+             "says": "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
+             "extra": {"n": 1, "species": ["ST"]}}
+OVER_50_ELSEWHERE = {
+    "q": "Kept trout or char over 50 cm (20 in) elsewhere today?",
+    "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything "
+         "other than a hatchery steelhead."}
+
+
+def _walk(nodes):
+    for n in nodes or []:
+        yield n
+        yield from _walk(n.get("children"))
+
+
+def _check_plus_one(data, model):
+    """The ruling on each water of PARITY: the card gate's engine (`card_check.Engine`, the rules and
+    the reader's verdicts) keeps exactly the PLUS_ONE baskets, and the card says it in the Vedder's
+    words — its size tier and its kept-elsewhere line."""
+    from pipeline.deliver.answers import card_check as CC
+    from pipeline.deliver.answers import rows as RW
+    B = C.load(BUNDLE)
+    for item, md, total, origin in PARITY:
+        if item == KITIMAT:
+            k = model.parts[KITIMAT][part_at(data, KITIMAT, "mouth")]
+        else:
+            (k,) = [k for k in model.parts[item] if k is not None]
+        i = E.segment_index(model.segments[k], CAL.day_of(md))
+        rk, kd = C.rule_key(model.keys[k]), C.key_dict(model.keys[k])
+        P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
+                    model.sections["ladder"][k][i], md, {})
+        eng = CC.Engine(P, total)
+        got = {name: eng.legal(b) for name, b in _baskets(origin).items()}
+        assert got == PLUS_ONE, item
+        (g,) = [r["group"] for r in model.sections["rows"][k][i]["rows"]
+                if r.get("group") and data["rule_ids"][r["group"]["pool"]] == total]
+        sizes = [{**{x: t[x] for x in ("tier", "n", "over_cm", "says")},
+                  "extra": {x: t["extra"][x] for x in ("n", "species")} if t.get("extra") else None}
+                 for t in _walk(g["tree"]) if t.get("tier") == "size"]
+        assert sizes == [SIZE_TIER], item
+        over = [{"q": w["q"], "a": w["a"]} for w in g["worked"] if w.get("over_cm") == 50]
+        assert over == [OVER_50_ELSEWHERE], item
+
+
+def _build_pair(data, guide):
+    return A.build(BUNDLE, EXPORT_DIR, workers=1, items=[KITIMAT, VEDDER], sections=["rows", "ladder"],
+                   export=(data, guide), log=lambda *_: None)
+
+
+@pytest.fixture(scope="module")
+def pair(request):
+    """The Kitimat's and the Vedder's answers, built by the code from the SHIPPED verdicts."""
+    data, guide = _export(request)
+    return data, _build_pair(data, guide)
+
+
+@pytest.mark.needs_bundle
+def test_kitimat_hatchery_steelhead_are_plus_one_over_50_like_the_vedders(pair):
+    """OWNER RULING 2026-10-21 on (b): on the Kitimat, as on the Vedder, the hatchery steelhead are
+    "+1" over 50 cm: keep 2 and no other trout over 50 cm; keep 1 and 1 other may be."""
+    _check_plus_one(*pair)
+
+
+def _no_raise(orig):
+    return lambda P: []
+
+
+def _raise_by_one_more(orig):
+    from pipeline.deliver.answers import rows as RW
+    return lambda P: [RW.raised(x.clause, x.lifter, x.lifted, x.f["take"] + 1) for x in orig(P)]
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("mutate", [_no_raise, _raise_by_one_more], ids=["no-raise", "raise-by-one-more"])
+def test_the_ruling_check_fails_on_the_kitimat_only_when_the_raise_is_mutated(request, monkeypatch, mutate):
+    """MUTATION PINS: the steelhead taken out of the tally (the behaviour before the ruling) and a
+    tally one larger than r5's 2 each FAIL the ruling's check — on the Kitimat's baskets, never on
+    the Vedder, whose "+1" is its own data (r2b)."""
+    from pipeline.deliver.answers import rows as RW
+    data, guide = _export(request)
+    monkeypatch.setattr(RW, "raises", mutate(RW.raises))
+    with pytest.raises(AssertionError) as got:
+        _check_plus_one(data, _build_pair(data, guide))
+    assert str(got.value).splitlines()[0] == KITIMAT, str(got.value)[:400]
 
 
 @pytest.mark.needs_bundle

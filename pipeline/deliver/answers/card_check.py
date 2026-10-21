@@ -88,6 +88,13 @@ class Engine:
         self.zone = [r for r in self.rules if r.entry_id.startswith("z")
                      and read.in_force(r.f.get("when"), P.md, P.at) != "no"]
         self._zone = {id(r) for r in self.zone}
+        # rows decision F17 (owner ruling 2026-10-21): the tally a water's steelhead quota raises a lifted size
+        # clause to — every fish over the size, the steelhead included, toward the quota's number (a water's
+        # own: it counts the fish kept elsewhere today). Not where the clause's lifts are set aside (`unlift`:
+        # the steelhead are the clause's own fish again)
+        from pipeline.deliver.answers import rows as RW
+        here = {id(r) for r in self.rules}
+        self.rules += [x for x in RW.raises(P) if id(x.clause) in here and x.clause.key not in self.unlift]
         self._state: Dict[Tuple[str, str, str], str] = {}
         self._bands_of: Dict[int, list] = {}
         self._needs: Dict[Fish, Optional[frozenset]] = {}
@@ -100,12 +107,17 @@ class Engine:
 
     def state(self, r, S: str, o: str) -> Optional[str]:
         """The reader's state of `r` for this fish and origin here (speaks / lifted / …)."""
-        k = (r.key, S, o)
+        k = (id(r), S, o)
         if k not in self._state:
-            v = (self.P.ladder.get(S) or {}).get(o) or {}
-            st = (v.get(r.key) or [None])[0]
-            if st == "lifted" and r.key in self.unlift:
-                st = "speaks"
+            clause = getattr(r, "clause", None)
+            if clause is not None:
+                # a raised tally (rows F17): it speaks for the fish the clause was lifted for, else as the clause
+                st = "speaks" if (S, o) in r.lifted else self.state(clause, S, o)
+            else:
+                v = (self.P.ladder.get(S) or {}).get(o) or {}
+                st = (v.get(r.key) or [None])[0]
+                if st == "lifted" and r.key in self.unlift:
+                    st = "speaks"
             self._state[k] = st
         return self._state[k]
 

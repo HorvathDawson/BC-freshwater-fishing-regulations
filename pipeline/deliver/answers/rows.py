@@ -149,6 +149,17 @@ DECISIONS = [
     "Coquitlam's 'Hatchery trout 2 (20-30 cm only)' on a steelhead water (no steelhead). Before, the "
     "card said '1' and '2'. An ORPHAN count clause (another table's, still speaking: Region 5's '1 Dolly "
     "Varden' under Polley Lake's 'trout 8', RULINGS Q2) caps the fish's bands like a sub-cap.",
+    # owner ruling 2026-10-21 (the Kitimat, ambiguity (b) of pipeline/tests/test_answers_kitimat_steelhead_lift.py)
+    "F17 A STEELHEAD QUOTA THAT LIFTS A SIZE CLAUSE RAISES IT ('+1 for steelhead', `raises`): Region 6's "
+    "'1 over 50 cm (quota includes hatchery steelhead)' (p.49) lifted for hatchery steelhead by the Kitimat's "
+    "'Hatchery steelhead (>50 cm) daily quota = 2' (p.51) holds the other trout/char to 1 over 50 cm and "
+    "counts EVERY fish over 50 cm, the steelhead included, toward one tally of the quota's 2 — the Vedder's "
+    "'1 over 50 cm (2 hatchery steelhead over 50 cm allowed)' (p.21, Region 2's r2 + r2b), which the owner "
+    "named as the same ('look at the prototype vedder it is similar'). Keep 2 hatchery steelhead and no other "
+    "trout over 50 cm; keep 1 and 1 other may be. Before, the steelhead left the clause altogether "
+    "(`except: [ST]` and nothing else) and 2 hatchery steelhead + 1 cutthroat over 50 cm was legal. The "
+    "tally is said as the quota's (a row condition, a group sub-cap, the card's size tier 'Of these, only 1 "
+    "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead', the gate's engine and the cap system).",
 ]
 
 
@@ -900,6 +911,65 @@ def _not_counted(P: "Part", model: dict, row: dict, r: R) -> List[str]:
     return out
 
 
+class Raised(R):
+    """Decision F17 (owner ruling 2026-10-21, the Kitimat): a size clause of a zone's total that a water's
+    quota of steelhead LIFTED for them, RAISED to that quota for every fish over the size — the tally
+    `raises` reads. Its key is the lifting rule's (the number is that rule's; it is said, and encoded,
+    as that rule), its fields the clause's with the quota's take, its entry the water's (a water's own
+    number: it counts the fish kept elsewhere today, rows F9, and never stops one kept elsewhere).
+    `lifted` the (fish, origin) the clause was lifted for — they count toward the tally here."""
+    __slots__ = ("clause", "lifter", "lifted")
+
+
+def raised(c: R, L: R, lifted, take) -> Raised:
+    """The tally of size clause `c` that `L`'s lift for `lifted` raises to `take` (`raises`)."""
+    fish = {S for S, _o in lifted}
+    x = {**c.x, "take": take, "entry": L.entry_id, "entry_id": L.entry_id,
+         "entry_name": L.x.get("entry_name"),
+         "species_except": [s for s in c.x.get("species_except") or [] if s not in fish]}
+    out = Raised(L.key, x, L.via)
+    out.clause, out.lifter, out.lifted = c, L, frozenset(lifted)
+    return out
+
+
+def raises(P: "Part") -> List[Raised]:
+    """Decision F17 (owner ruling 2026-10-21 on the Kitimat; RULINGS Q16's Region 2 shape). A zone size clause
+    over X cm with a number K ("1 over 50 cm", Region 6's trout_char_quota.r2, "quota includes hatchery
+    steelhead") that the reader says a water's own steelhead quota LIFTED for steelhead (the Kitimat's
+    r5 "Hatchery steelhead (>50 cm) daily quota = 2"), where every steelhead that quota keeps is over X and
+    its number M is larger than K, is not left behind for the steelhead: it is "+1 for steelhead" (the
+    owner: "look at the prototype vedder it is similar"). The other fish stay at K over X; every fish over X,
+    the steelhead included, counts toward ONE tally of M — the Vedder's "1 over 50 cm (2 hatchery steelhead
+    over 50 cm allowed)", which Region 2 prints as two rules (r2 not steelhead, r2b every fish). Keep 2
+    hatchery steelhead and no other trout over 50 cm; keep 1 and 1 other may be. Read off the rules and the
+    reader's verdicts (`ladder` [state, partly, reason, by]); one per (clause, lifting rule)."""
+    st_cm = read._steelhead_min_cm()
+    found: Dict[Tuple[str, str], list] = {}
+    for c in P.cands:
+        if c.k not in ("sizecap", "subcap") or not _covers(c, "ST"):
+            continue
+        band = next(((a, b, t) for a, b, t in _bands(c) if t and a and b == INF), None)
+        if band is None:
+            continue
+        X, K = band[0], band[2]
+        for o, v in sorted((P.ladder.get("ST") or {}).items()):
+            got = (v or {}).get(c.key)
+            if not got or got[0] != "lifted" or got[3] not in P.by_key:
+                continue
+            L = P.by_key[got[3]]
+            M = L.f.get("take")
+            lo = _keep_range(L)[0]
+            if not isinstance(M, (int, float)) or L.f.get("unlimited") or M <= K \
+                    or not (lo >= X or (P.steelhead_water and st_cm >= X)):
+                continue
+            found.setdefault((c.key, L.key), [c, L, M, []])[3].append(("ST", o))
+    return [raised(c, L, lifted, M) for c, L, M, lifted in found.values()]
+
+
+def _raise_of(P: "Part", c: R) -> List[Raised]:
+    return [x for x in raises(P) if x.clause.key == c.key]
+
+
 def _limit_take(l: dict):
     return l.get("take") if l.get("take") is not None else l["r"].f.get("take")
 
@@ -1007,10 +1077,14 @@ def row_conds(P: "Part", model: dict, row: dict) -> dict:
                 w = None
             e["of"] = w                         # the fish the cap is written for (page: "(…)")
             e["general"] = w is None and l["a"] > 0 and l["b"] == INF
+        raised_by = []
         if l["t"] in ("cap", "outersize") and w is None and not e.get("except"):
             ex = _not_counted(P, model, row, l["r"])       # decision F12
             if ex:
                 e["except"] = ex
+                # decision F17: the steelhead a water's quota took out of the cap still count toward the
+                # tally it raises the cap to ("+1 for steelhead", the Kitimat)
+                raised_by = [x for x in _raise_of(P, l["r"]) if {S for S, _o in x.lifted} <= set(ex)]
         if l["t"] == "origin2":
             e.update(o=l["o"], daily=l["daily"], min=l["min"], max=l["max"])
             if w is not None:                   # decision F2: whose other origin it is
@@ -1018,6 +1092,9 @@ def row_conds(P: "Part", model: dict, row: dict) -> dict:
         if l["t"] == "subcap":
             e["members"] = list(l["members"])
         conds.append(e)
+        for x in raised_by:
+            conds.append({"c": "cap", "r": x.lifter, "sub": x.f["take"], "a": l["a"], "b": l["b"],
+                          "take": x.f["take"], "of": None, "general": e.get("general")})
     return {"conds": conds, "n": n, "hw": any(l["t"] == "origin" for l in back),
             "extra": [l for l in allf if l["t"] in ("annual", "possession_cap", "outer")]}
 
@@ -1707,9 +1784,28 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                         for o in subcaps):
             continue
         subcaps.append(sc)
+        # decision F17: the tally a water's steelhead quota raises the clause to, over every fish the clause
+        # holds AND the steelhead it lifted ("+1 for steelhead"; the Vedder's r2b beside its r2), as that
+        # quota's — a sub-cap the card says with the clause (`raise_of`), never on its own
+        if band and band[1] == INF:
+            for x in _raise_of(P, c):
+                fish = [S for S in kinds if S in held or (S in {F for F, _o in x.lifted}
+                                                          and S in lifted.get(x.lifter.key, []))]
+                if set(fish) - set(held):
+                    subcaps.append({"r": x.lifter.key, "take": _num(x.f["take"]), "water": None,
+                                    "over_cm": sc["over_cm"], "under_cm": None, "of": fish, "lifted": []})
     if len(kinds) < 2 and not subcaps:
         return None
     return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps}
+
+
+def raise_of(grp: dict, s: dict) -> Optional[dict]:
+    """Decision F17: the size sub-cap of `grp` that sub-cap `s` RAISES — the clause at the same size whose
+    fish `s`'s rule lifted out of it (`s` the tally over them all) — or None where `s` raises none."""
+    return next((o for o in grp["subcaps"] if o is not s and o["over_cm"] is not None
+                 and o["over_cm"] == s["over_cm"] and o["under_cm"] == s["under_cm"]
+                 and any(L["by"] == s["r"] and set(L["members"]) <= set(s["of"]) for L in o["lifted"])
+                 and set(o["of"]) < set(s["of"])), None)
 
 
 def written_name_of(r: R) -> str:
@@ -1884,7 +1980,8 @@ def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> Li
         # ROUND UR5 (D1): the fish the clause holds HERE — Region 4's "rainbow trout or cutthroat trout" clause reaches the
         # Kootenay Lake main body's trout and char only for cutthroat (rainbow has its own row there); naming rainbow read as a
         # daily cap on big rainbows. The rule's own words where the clause holds every fish it names.
-        rx = P.by_key[big["r"]].x
+        # decision F17: a tally a water's quota raises a clause to is said in the clause's words (its fish)
+        rx = P.by_key[(small if raise_of(grp, big) is small else big)["r"]].x
         rsp = list(rx.get("species") or [])
         narrower = rsp and all(c not in common._species().SPECIES_GROUPS for c in rsp) and set(rsp) - set(big["of"]) and set(big["of"]) <= set(rsp)
         who = _names([c for c in rsp if c in big["of"]]) if narrower else written_name(rx, " or ").replace(" and ", " or ")
