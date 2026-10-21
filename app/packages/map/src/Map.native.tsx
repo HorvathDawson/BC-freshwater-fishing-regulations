@@ -137,17 +137,28 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     wasLit.current = [...highlight];
   }, [highlight, gen, styled, report]);
 
-  /** Which sections are on screen — after movement settles, never per frame. */
+  /*
+   * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which
+   * does not exist until the map has drawn: asked straight after the style loaded, the app died with SIGSEGV in
+   * `MapRenderer::actor()` (measured on the emulator, N2). `rendered` opens the gate on `onDidFinishRenderingMapFully`,
+   * which is also this map's `idle`: the moment the tiles on screen are in, so the visible set is the whole one.
+   */
+  const rendered = useRef(false);
+  /** The visible set last reported, so a re-render caused by our own feature-state does not report it again. */
+  const lastSeen = useRef("");
+  /** Which sections are on screen — after the map settles and has drawn, never per frame. */
   const reportVisible = useCallback(async () => {
     const m = mapRef.current;
-    if (!cb.current.onVisible || !m) return;
+    if (!cb.current.onVisible || !m || !rendered.current) return;
     try {
       const seen = visibleSections(await m.queryRenderedFeatures({ layers: [...VISIBLE_LAYERS] }));
-      if (seen.length) cb.current.onVisible?.(seen);
+      const key = seen.join(",");
+      if (seen.length && key !== lastSeen.current) { lastSeen.current = key; cb.current.onVisible?.(seen); }
     } catch (e) { report(e); }
   }, [report]);
-  // asked once as soon as someone listens and the style is there: a settled map does not move again by itself
-  useEffect(() => { if (styled) void reportVisible(); }, [styled, onVisible !== undefined, reportVisible]);
+  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch)
+  useEffect(() => { lastSeen.current = ""; void reportVisible(); }, [onVisible !== undefined, reportVisible]);
+  const onRendered = useCallback(() => { rendered.current = true; void reportVisible(); }, [reportVisible]);
 
   /*
    * SEND THE CAMERA to a subject, then let the water's own shape frame it (as on the web): after each move settles,
@@ -174,7 +185,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     refine.current = async () => {
       const src = atlasRef.current, m = mapRef.current;
       const ids = (lit.current ?? []).map(Number).filter(Number.isFinite);
-      if (!alive || !src || !m || !ids.length) return;
+      if (!alive || !src || !m || !ids.length || !rendered.current) return;
       let found: Bbox | null = null;
       for (const sourceLayer of WATER_SOURCE_LAYERS)
         for (const f of await src.querySourceFeatures({ sourceLayer, filter: ["in", ["id"], ["literal", ids]] }))
@@ -196,7 +207,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     cb.current.onMapPoint?.(lat, lon);
     const press = cb.current.onPressFeature;
     const m = mapRef.current;
-    if (!press || !m) return;
+    if (!press || !m || !rendered.current) return;       // no renderer to query yet (see `rendered`)
     const box = tapBox(x, y);
     try {
       for (const g of TAP_GROUPS) {
@@ -234,6 +245,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       onPress={onPress as never}
       onRegionDidChange={onRegionDidChange as never}
       onDidFinishLoadingStyle={onStyle}
+      onDidFinishRenderingMapFully={onRendered}
       // an empty map and a map whose tiles failed look the same: say so
       onDidFailLoadingMap={() => report(new Error("map failed to load"))}
     >

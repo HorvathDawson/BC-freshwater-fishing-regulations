@@ -77,7 +77,8 @@ vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 // ---- @maplibre/maplibre-react-native, recorded ----------------------------------------------------------------------
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
-                geojson: Record<string, unknown> } = { props: null, camera: null, geojson: {} };
+                geojson: Record<string, unknown>; holdRender: boolean } =
+  { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
     native.props = props;
@@ -92,7 +93,8 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
     }));
     // a style finishes loading after the view mounts, and again after every style swap, as on a phone
     const loaded = props.onDidFinishLoadingStyle as (() => void) | undefined;
-    useEffect(() => { loaded?.(); }, [props.mapStyle]);
+    const drawn = props.onDidFinishRenderingMapFully as (() => void) | undefined;
+    useEffect(() => { loaded?.(); if (!native.holdRender) drawn?.(); }, [props.mapStyle]);
     return <>{children}</>;
   },
   Camera: ({ ref, ...props }: { ref?: unknown } & Record<string, unknown>) => {
@@ -124,7 +126,7 @@ afterEach(() => {
   log.length = 0;
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false;
-  native.props = null; native.camera = null; native.geojson = {};
+  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false;
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -275,6 +277,34 @@ describe("native only", () => {
       ...[0, 1, 2, 3, 4].flatMap((i) => [selected(311274, false)[i]!, selected(311274, true)[i]!]),
     ]));
     expect(native.props!.mapStyle).not.toBe(style1);
+  });
+  it("queries nothing until the map has drawn (Android SIGSEGVs in MapRenderer::actor() before that)", async () => {
+    native.holdRender = true;
+    const press = vi.fn();
+    const seen = vi.fn();
+    answer = () => [{ id: "311274" }];
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressFeature: press, onVisible: seen })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    PLATFORMS.native.tap(100, 200, -122.3, 49.1);
+    PLATFORMS.native.settle();
+    await act(async () => {});
+    expect({ queries: log.filter((l) => l.startsWith("query")), press: press.mock.calls.length,
+             seen: seen.mock.calls.length }).toEqual({ queries: [], press: 0, seen: 0 });
+    // the first full render opens the gate, and reports what is on screen
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    await waitFor(() => expect(seen.mock.calls).toEqual([[[311274]]]));
+  });
+  it("does not report the same visible set twice (our own feature-state redraws the map)", async () => {
+    const seen = vi.fn();
+    answer = () => [{ id: "5" }, { id: "6" }];
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: seen })} />);
+    await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]]]));
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    PLATFORMS.native.settle();
+    await act(async () => {});
+    answer = () => [{ id: "7" }];
+    PLATFORMS.native.settle();
+    await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]], [[7]]]));
   });
   it("reports where the camera settled, read off the event before anything else", async () => {
     const moved = vi.fn();
