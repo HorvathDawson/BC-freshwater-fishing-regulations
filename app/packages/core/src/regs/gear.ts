@@ -12,12 +12,12 @@
  *
  * Ports (inventory names, regs v38 @ 7fb6809f): prototype dayLine, closedUntil, levelOf, learnChipWords, downWater,
  * wordOf_, itemSrc, gnote (the "Next"/"Now" chip form; the `chg=a` ◷ variant is not ported), buildGear (the summary half:
- * sm, val, rowOf, notesFor, citesAt, tipFor, the rest-terms splice; the ungoverned/closed branches); page v36 levelTag,
- * openRule's sub (levelTag + " · " + entry_name), gearParts' gRow chip rule set (RANK[rank].t, for the learned chip words).
+ * sm, val, rowOf, notesFor, citesAt, tipFor, the rest-terms splice; the ungoverned/closed branches); gearParts' gRow chip rule set (RANK[rank].t, for the learned chip words).
  */
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
 import type { GearAnswer, GearValue, RegsInputs, RuleIndex, RuleView } from "./inputs";
 import type { BannerVM, ChangeVM, Day, GearLineVM, GearVM, SourceLineVM, Weekday } from "./model";
+import { ruleSub } from "./level";
 import { cap } from "./names";
 import type { SheetKey } from "./sheetKey";
 import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay } from "./strip";
@@ -53,29 +53,14 @@ export function gearCtxOf(inp: RegsInputs, o: { readonly today: Day; readonly ba
 
 // ── who says so ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** page v36 levelTag over the part's view of the rule: "B.C. rule", "Region 2 rule", "Downstream rule", … */
-export function levelTag(r: RuleView): string {
-  if (r.rank === 3) {
-    const m = /^z(\d+)/.exec(r.export.entry_id || "");
-    return m ? GEAR.REGION_N_RULE(m[1]!) : GEAR.REGION_RULE;
-  }
-  return GEAR.LEVEL_TAG[String(r.rank)] ?? GEAR.LEVEL_TAG["0"]!;
-}
-
-/** The rule sheet's sub (page v36 openRule): its level, then " · " and the rule's entry name when it has one. */
-export function ruleSheetSub(r: RuleView): string {
-  const name = r.export.prov?.entry_name;
-  return levelTag(r) + (name ? GEAR.SUB_SEP + name : "");
-}
-
-/** prototype levelOf: the rule sheet's sub before " rule · " ("B.C.", "Region 2", "This water’s"). */
+/** prototype levelOf: the rule sheet's sub (level.ts ruleSub, page v36 levelTag) before " rule · " ("B.C.", "Region 2", "This water’s"). */
 export function levelWord(r: RuleView): string {
-  return ruleSheetSub(r).split(GEAR.RULE_SUB)[0]!;
+  return ruleSub(r).split(GEAR.RULE_SUB)[0]!;
 }
 
 /** prototype downWater (round UR6): a rule reached from a water downstream is named by that water ("Duncan River"). */
 export function downWater(r: RuleView): string {
-  return r.rank === 1 ? (ruleSheetSub(r).split(GEAR.RULE_SUB)[1] ?? "").trim() : "";
+  return r.rank === 1 ? (ruleSub(r).split(GEAR.RULE_SUB)[1] ?? "").trim() : "";
 }
 
 /**

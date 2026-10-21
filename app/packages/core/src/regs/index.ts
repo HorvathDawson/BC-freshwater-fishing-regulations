@@ -32,6 +32,7 @@ export * from "./tail";
 export * from "./others";
 export * from "./keep";
 export * from "./page";
+export * from "./level";
 export * from "./gear";
 export * from "./yesno";
 export * from "./bait";

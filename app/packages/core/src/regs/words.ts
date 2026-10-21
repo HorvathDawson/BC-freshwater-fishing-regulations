@@ -165,6 +165,10 @@ export const WORDS = Object.freeze({
   STEEL_KNOWN: "Steelhead are known to be in this water.",
   STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
+  // page v36 levelTag (level.ts): the level a rule speaks at, by the part's rank (Region N from the rule's own entry id)
+  LEVEL_TAG_BC: "B.C. rule", LEVEL_TAG_REGION: (n: string) => `Region ${n} rule`, LEVEL_TAG_REGION_ANY: "Region rule",
+  LEVEL_TAG_AREA: "Named area rule", LEVEL_TAG_DOWN: "Downstream rule", LEVEL_TAG_FED: "Federal or park rule",
+  LEVEL_TAG_WATER: "This water’s rule",
   // ── T21 the Keep composition (keep.ts: page v36 renderCard's outside-B.C. foot) ──
   OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
   /** a fish picture's accessible name (prototype fishBtn aria-label) */
@@ -198,8 +202,8 @@ export const LEVEL_HEAD: Readonly<Record<string, string>> = Object.freeze({ "4":
 export const RUN_NOW: Readonly<Record<string, string>> = Object.freeze({ release: "Release only", closed: "Closed", keep: "You can keep them", none: "No rule" });
 export const RUN_THEN: Readonly<Record<string, string>> = Object.freeze({ release: "release only", closed: "closed", keep: "you can keep them", none: "no rule" });
 
-// ── T30 the Gear tab (prototype dayLine, closedUntil, levelOf, learnChipWords, itemSrc, gnote, buildGear GLAB; page v36
-//    levelTag). Verbatim. The chip words are RANK_LEVEL (page v36 RANK[rank].t). ──
+// ── T30 the Gear tab (prototype dayLine, closedUntil, levelOf, learnChipWords, itemSrc, gnote, buildGear GLAB; the level
+//    words are WORDS.LEVEL_TAG_*, level.ts). Verbatim. The chip words are RANK_LEVEL (page v36 RANK[rank].t). ──
 /** prototype buildGear GLAB: the gear lines in draw order — key, label, the summary part kinds each line draws. */
 export const GEAR_LINES: readonly (readonly ["lines" | "hook" | "weight", string, readonly ("lines" | "attach" | "hook" | "weight")[]])[] = Object.freeze([
   Object.freeze(["lines", "Lines", Object.freeze(["lines"] as const)] as const),
@@ -211,9 +215,7 @@ export const GEAR = Object.freeze({
   SOURCES: "Sources", SOURCES_ARIA: "Sources: ", SOURCES_RULES: "rules", SRC_ARROW: "›",
   CLOSED_UNTIL: (mon3: string, d: number) => `No fishing here until ${mon3} ${d}.`,
   CLOSED_ALL_YEAR: "No fishing here on any day of the year.",
-  /** page v36 levelTag: the rule sheet's level ("Region 2 rule"); `RULE_SUB` joins it to the rule's entry name */
-  LEVEL_TAG: Object.freeze({ "4": "B.C. rule", "2": "Named area rule", "1": "Downstream rule", "-1": "Federal or park rule", "0": "This water’s rule" }) as Readonly<Record<string, string>>,
-  REGION_N_RULE: (n: string) => `Region ${n} rule`, REGION_RULE: "Region rule",
+  /** prototype levelOf's split of the rule sheet's sub (level.ts ruleSub) */
   RULE_SUB: " rule · ", SUB_SEP: " · ",
   /** prototype learnChipWords: the chip word that is never learned (a match key) */
   CHIP_NOT_LEARNED: "Region",

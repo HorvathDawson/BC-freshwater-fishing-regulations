@@ -6,8 +6,9 @@
 import { describe, expect, it } from "vitest";
 import type { ExportRule, GearAnswer, RuleFacts, RuleIndex, RuleView } from "./inputs";
 import {
-  changeVM, closedUntil, dayLine, downWater, gearLines, learnChipWords, levelTag, levelWord, sourceLine, whoWord, type GearCtx,
+  changeVM, closedUntil, dayLine, downWater, gearLines, learnChipWords, levelWord, sourceLine, whoWord, type GearCtx,
 } from "./gear";
+import { levelTag } from "./level";
 import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
 
