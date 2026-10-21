@@ -110,7 +110,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   handoff/PLAN/app-data/overzoom/); research 8f80fd13 + verified corrections 80d3935d (handoff/PLAN/app-data/satellite/
   README.md + local compare.html). Recommendation: online Esri World Imagery (0.3-0.5 m rural BC, z17-18, 2M tiles/mo
   free then $0.15/1k, client key) over the 10 m base; runner-up Stadia ($80/mo). OWNER Qs: client key + usage billing
-  OK? Esri or Stadia? Build a 10 m Sentinel-2 offline base (2-3 GB)? NOTE: tippe.py simplifies z14 at ~4 m, so z18
+  OK? [OWNER: ESRI World Imagery online, like the original app — QUEUED to implement after the colouring engine merges]
+  Build a 10 m Sentinel-2 offline base (2-3 GB)? [open] NOTE: tippe.py simplifies z14 at ~4 m, so z18
   overzoom shows corner-cutting on bends (a tile-build trade-off; size vs fidelity).
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
   OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +

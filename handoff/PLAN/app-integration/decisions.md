@@ -47,11 +47,15 @@ openWater(item, tapSid, at, view)); the browse-mode Conditions reach panel is fo
 Conditions view (no second Conditions screen); a test pins that the same tap from either map yields routes that are
 equal except `view`. Applies to search's open action and saved spots too where they open a water.
 
-## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY
+## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY, from Esri World Imagery
 The satellite basemap is shown only when the device is online; it is never packaged or cached for offline use. Offline,
 the drawn basemap is the ground (the Layers toggle says why satellite is unavailable). This lifts the offline-caching
 constraint from the imagery choice; a provider still needs terms that allow MapLibre use, an acceptable cost/key model,
 and BC coverage at high zoom (research: handoff/PLAN/app-data/satellite/README.md).
+The owner chose **Esri World Imagery** for the online layer, as the original app used (0.3-0.5 m over rural BC, z17-18).
+Its terms (ArcGIS Location Platform: client key, free tier then usage billing) are the owner's to set up; the 10 m base
+stays underneath and shows through offline. The BC 1 m 1995-2004 colour mosaic is "Access Only" — the owner may request
+permission (https://forms.gov.bc.ca/copyright-permission-request/).
 
 ## OWNER 2026-10-21 — one-part waters show their part label
 A water with no part picker shows its part's label in the header ("Whole water", "Mouth → Source") wherever the label
