@@ -10,20 +10,24 @@
  *   machine: `rule.j`, `display_rule.j`, `static export.species`, and a state's via from `ruleset.j` of its `akey`.
  *   Looked for at $REGS_STORE, then this checkout's data/, then (in a `.claude/worktrees/<name>` checkout) the main
  *   checkout's data/ — read-only. Absent: null, and the store-backed tests report themselves skipped.
+ *   Blobs go through `@app/data/regs` `unpackBlob` (T02's codec, `meta.blob_codec` "zdict") with the table's `zdict.d`
+ *   or null — so a 0x02 blob in a table with no dictionary, an empty blob or non-JSON bytes throw RegsBlobError.
  *
- * Blobs are inflated with node:zlib (raw DEFLATE with the table's preset dictionary = T02's codec, `meta.blob_codec`
- * "zdict"); `@app/data` does not export its codec yet (T03/T04).
+ * And one oracle for inputs hydrate.json does not cover: `pageDecode(src)` runs page v36's OWN decode layer
+ * (page_v36.js up to `function segBar`, as port/hydrate.mjs does) over a source's rules, so a store-backed case is
+ * checked against the page's code, not against a re-reading of it.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
-import { inflateRawSync } from "node:zlib";
 import type { ExportRule, RuleFacts, SpeciesBook } from "@app/core";
+import { unpackBlob } from "@app/data/regs";
 
 const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
 export const HYDRATE = `${REPO}app/design/regs-v11/port/golden/hydrate.json`;
 export const TAPS = `${REPO}app/design/regs-v11/port/golden/taps.json`;
-const PAGE = `${REPO}pipeline/deliver/answers/reference/page_v36.html`;
+const REF = `${REPO}pipeline/deliver/answers/reference/`;
+const PAGE = `${REF}page_v36.html`;
 
 export interface RuleSource {
   readonly name: string;
@@ -34,14 +38,15 @@ export interface RuleSource {
 }
 export interface TapState { readonly item: string; readonly partIx: number; readonly akey: number }
 
+export interface OracleMeta { readonly generator: string; readonly ref: string; readonly sha: string; readonly golden: string; readonly version: string }
 export interface Hydrate {
-  readonly meta: { readonly ref: string; readonly version: string };
+  readonly meta: OracleMeta;
   readonly describe: Readonly<Record<string, string>>;
   readonly rules: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   readonly states: Readonly<Record<string, { readonly via: Readonly<Record<string, "trib">>; readonly ranks: Readonly<Record<string, number>> }>>;
 }
 export const hydrate = (): Hydrate => JSON.parse(readFileSync(HYDRATE, "utf8")) as Hydrate;
-export const taps = (): { readonly states: Readonly<Record<string, TapState>> } => JSON.parse(readFileSync(TAPS, "utf8"));
+export const taps = (): { readonly meta: OracleMeta; readonly states: Readonly<Record<string, TapState>> } => JSON.parse(readFileSync(TAPS, "utf8"));
 
 interface PageData {
   readonly rules: Readonly<Record<string, ExportRule>>; readonly rid: Readonly<Record<string, string>>; readonly species: SpeciesBook;
@@ -77,20 +82,13 @@ function storePath(): string | null {
   return null;
 }
 
-export function storeSource(): RuleSource | null {
-  const path = storePath();
+/** The regs store at `path` (default: the one found on this machine; none: null). Throws RegsBlobError on a bad blob. */
+export function storeSource(path: string | null = storePath()): RuleSource | null {
   if (!path) return null;
   const db = new DatabaseSync(path, { readOnly: true });
-  const dicts = new Map<string, Buffer>();
-  for (const r of db.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]) dicts.set(r.tbl, Buffer.from(r.d));
-  const unpack = (tbl: string, b: Uint8Array): unknown => {
-    const buf = Buffer.from(b);
-    const head = buf[0];
-    const bytes = head === 0x01 ? inflateRawSync(buf.subarray(1))
-      : head === 0x02 ? inflateRawSync(buf.subarray(1), { dictionary: dicts.get(tbl)! })
-      : buf;
-    return JSON.parse(bytes.toString("utf8"));
-  };
+  const dicts = new Map<string, Uint8Array>();
+  for (const r of db.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]) dicts.set(r.tbl, r.d);
+  const unpack = (tbl: string, b: Uint8Array): unknown => unpackBlob(b, dicts.get(tbl) ?? null);
   const facts = new Map<number, RuleFacts>();
   for (const r of db.prepare("SELECT id, j FROM display_rule").all() as { id: number; j: Uint8Array }[]) facts.set(r.id, unpack("display_rule", r.j) as RuleFacts);
   const stored = new Map<number, { export: ExportRule; facts: RuleFacts | null }>();
@@ -106,6 +104,48 @@ export function storeSource(): RuleSource | null {
       if (!r) throw new Error(`regs store: no ruleset for akey ${t.akey}`);
       const j = unpack("ruleset", r.j) as { reach: number[]; trib?: number[] };
       return { reach: j.reach, trib: j.trib ?? [] };   // the store leaves out an empty trib list (T04: `trib ?? []`)
+    },
+  };
+}
+
+/** What page v36's RULES decode leaves on a rule (the fields describe.parity compares). */
+export interface PageRule {
+  readonly ix: number; readonly key: string; readonly k: string | null; readonly baseRank: number;
+  readonly species: readonly string[]; readonly speciesExcept: readonly string[];
+  readonly wins: readonly (readonly [number, number])[]; readonly tcond: string; readonly part: string | null; readonly notes: readonly string[];
+}
+
+/**
+ * page v36's own decode over `src`'s rules: page_v36.js (this checkout's copy) up to `function segBar`, with
+ * calendar.generated.js ahead of it, fed a `#data`/`#answers` built from `src` (rule key = page_data.py's
+ * `entry_id::rule_id`; no waters). Returns the page's decoded rules by rix and its describe().
+ */
+export function pageDecode(src: RuleSource): { readonly rules: ReadonlyMap<number, PageRule>; describe(rix: number): string } {
+  const rules: Record<string, ExportRule> = {}, rid: Record<string, string> = {}, dr: Record<string, RuleFacts> = {};
+  for (const [ix, s] of src.stored) {
+    const k = `${s.export.entry_id}::${s.export.rule_id}`;
+    rules[k] = structuredClone(s.export) as ExportRule; rid[ix] = k;   // the page writes onto its rules: never onto src's
+    if (s.facts) dr[ix] = s.facts;
+  }
+  const blocks: Record<string, unknown> = {
+    data: { about: {}, rules, rid, species: src.book, waters: [] },
+    answers: { about: { format: "answers/2" }, sections: { display: { rules: dr, waters: {} } } },
+    cases: { about: {} },
+  };
+  const js = readFileSync(`${REF}page_v36.js`, "utf8").split("\n");
+  const end = js.findIndex((l) => /^function segBar\(/.test(l));
+  if (end < 0) throw new Error("page_v36.js: no `function segBar` — the decode layer moved; update pageDecode (and port/hydrate.mjs)");
+  const body = `${readFileSync(`${REF}calendar.generated.js`, "utf8")}\n${js.slice(0, end).join("\n")}\nreturn { RULES, describe };`;
+  const P = new Function("document", body)({ getElementById: (id: string) => ({ textContent: JSON.stringify(blocks[id]) }) }) as
+    { RULES: Record<string, PageRule>; describe(r: PageRule): string };
+  const byIx = new Map<number, PageRule>();
+  for (const r of Object.values(P.RULES)) byIx.set(r.ix, r);
+  return {
+    rules: byIx,
+    describe(rix) {
+      const r = byIx.get(rix);
+      if (!r) throw new Error(`pageDecode: no rule ${rix}`);
+      return P.describe(r);
     },
   };
 }

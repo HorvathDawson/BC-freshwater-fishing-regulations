@@ -17,7 +17,8 @@
     "./bundle/open": "./src/bundle/drivers/open.ts",
     "./spots": "./src/spots/index.ts",
     "./release": "./src/release/index.ts",
-    "./release/platform": "./src/release/drivers/platform.ts"
+    "./release/platform": "./src/release/drivers/platform.ts",
+    "./regs": "./src/regs/index.ts"
   },
   "peerDependencies": {
     "expo-file-system": "*",

@@ -1,12 +1,12 @@
 {
  "meta": {
   "generator": "app/design/regs-v11/port/hydrate.mjs",
-  "ref": "7fb6809f",
-  "sha": "7fb6809f",
-  "golden": "d4a0ccd9",
-  "version": "v37",
+  "ref": "HEAD",
+  "sha": "e18aabee",
+  "golden": "bdda3586",
+  "version": "v38",
   "year": 2026,
-  "decodeLines": "1-242"
+  "decodeLines": "1-246"
  },
  "describe": {
   "6": "Keep 2 trout and char a day, shared",

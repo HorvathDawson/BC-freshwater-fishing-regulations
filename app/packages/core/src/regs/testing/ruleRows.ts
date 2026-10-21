@@ -1,9 +1,10 @@
 /**
  * Real `rule.j` (the export rule) and `display_rule.j` (the answers' RuleFacts) of the rules T06's store-free tests
  * describe, copied from the regs store's data (page_v36.html's #data/#answers slice at port target 7fb6809f, the same
- * rows the store holds). Trimmed: `fields.extents`/`extent_text`, `prov.who/authority/binds_to` and the facts' `subsets`/
- * `applies_trib` are left out — describe() and ruleView() read none of them.
- * Regenerate rather than edit: the rows are data.
+ * rows the store holds). Trimmed to a subset of each row's keys — e.g. `fields.extents`/`extent_text`, `prov.who/
+ * authority/binds_to`, `binds`/`dimension`/`parts`/`not_yet_mapped`, the facts' `subsets`/`applies_trib`; describe() and
+ * ruleView() read none of them. Copy rather than edit: the rows are data, and app/tools/regs-fixtures.test.ts fails if
+ * any kept key's value differs from page_v36.html's row for that rix.
  */
 import type { ExportRule, RuleFacts } from "../inputs";
 

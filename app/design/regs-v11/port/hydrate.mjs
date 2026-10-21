@@ -14,6 +14,7 @@ import { stage, args, REPO, HERE } from './stage.mjs';
 const A = args(); fs.mkdirSync(A.out, { recursive: true });
 const S = stage(A.ref);
 const REF = 'pipeline/deliver/answers/reference/';
+const INPUTS = ['page_v36.js', 'page_v36.html', 'calendar.generated.js'].map(f => REF + f);
 const atRef = f => A.ref === 'WORKTREE' ? fs.readFileSync(path.join(REPO, f), 'utf8')
   : execFileSync('git', ['-C', REPO, 'show', `${A.ref}:${f}`], { encoding: 'utf8', maxBuffer: 1 << 30 });
 
@@ -66,8 +67,11 @@ try {
       dayStatus: m.rows.map(r => P.strip(w, r.members)),
     };
   }
-  const sha = execFileSync('git', ['-C', REPO, 'rev-parse', '--short', A.ref === 'WORKTREE' ? 'HEAD' : A.ref], { encoding: 'utf8' }).trim();
-  const out = { meta: { generator: 'app/design/regs-v11/port/hydrate.mjs', ref: A.ref, sha: A.ref === 'WORKTREE' ? 'WORKTREE' : sha,
+  // meta.sha: the last commit of the files this oracle is computed from (at --ref), not the ref's tip — so regenerating at
+  // HEAD after an unrelated commit (including the one that commits this file) rewrites nothing.
+  const sha = A.ref === 'WORKTREE' ? 'WORKTREE' : execFileSync('git', ['-C', REPO, 'log', '-1', '--format=%h', A.ref, '--',
+    ...INPUTS], { encoding: 'utf8' }).trim();
+  const out = { meta: { generator: 'app/design/regs-v11/port/hydrate.mjs', ref: A.ref, sha,
     golden: taps.meta.golden, version: taps.meta.version, year: YEAR, decodeLines: `1-${end}` }, describe, rules, states };
   fs.writeFileSync(path.join(A.out, 'hydrate.json'), JSON.stringify(out, null, 1));
   const n = Object.keys(taps.states).length;

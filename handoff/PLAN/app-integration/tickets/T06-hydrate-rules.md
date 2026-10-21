@@ -192,3 +192,11 @@ pnpm -C app exec vitest run --project logic packages/core/src/regs/names package
     hydrate.mjs (:18) BEFORE taps.py, so hydrate copies the meta of the PREVIOUS taps.json. The committed hydrate.json is one sync behind
     in `meta` only. With `meta` removed, the regenerated file equals the committed one, and that is what describe.parity reads.
   - Fix, in the regs-v11 lane (T06 may not edit it): run hydrate.mjs after taps.py in sync.mjs, then re-sync golden/hydrate.json.
+  - FIXED (T06 follow-up, 2026-10-20): sync.mjs runs hydrate.mjs after taps.py; hydrate.mjs's `meta.sha` is now the last commit of
+    its inputs (page_v36.js/.html, calendar.generated.js) at `--ref`, not the ref's tip, so a HEAD regeneration is stable across
+    unrelated commits; hydrate.json regenerated at HEAD (meta only: ref HEAD, sha e18aabee, golden bdda3586, version v38,
+    decodeLines 1-246; describe/rules/states byte-identical). Line 1 passes as written. describe.parity no longer pins
+    `meta.ref`: it checks `regs-${meta.version}` against core's `RegsPage["version"]` and meta.golden/version against taps.json's.
+  - Follow-up also added: parity 10 (store-backed: the store rules with notes, 33 today, against page v36's own decode run over
+    the store rows — `pageDecode()`), storeSource() on `@app/data/regs` `unpackBlob` (+ ruleSources.test.ts), and
+    app/tools/regs-fixtures.test.ts (ruleRows.ts / speciesBook.ts are key-subsets of page_v36.html's data).

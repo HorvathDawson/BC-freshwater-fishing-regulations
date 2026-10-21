@@ -11,19 +11,27 @@
  *      ruleIndex(…, via, …).get(rix).rank — and (the pin) NOT what the view says without the via.
  */
 import { describe as group, expect, it } from "vitest";
-import { describe, ruleIndex, viaOf, type RuleView } from "@app/core";
-import { hydrate, pageSource, storeSource, taps, type RuleSource } from "./ruleSources";
+import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
+import { hydrate, pageDecode, pageSource, storeSource, taps, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
 const T = taps();
 const store = storeSource();
 
+/** The port target core's contract names (model.ts `RegsPage.version`): typed, so a contract bump fails tsc here. */
+const TARGET: RegsPage["version"] = "regs-v38";
+
 const factsOf = (r: RuleView) => ({ key: r.key, kind: r.kind, baseRank: r.baseRank, species: r.species, speciesExcept: r.speciesExcept,
   wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
 
 function parity(src: () => RuleSource) {
-  it("the oracle is page v38's 726 rules over 134 states", () => {
-    expect(H.meta.ref).toBe("7fb6809f");
+  it("the oracle is page v38's 726 rules over 134 states, written after this sync's taps.json", () => {
+    // provenance of the CONTENT, not of the run: the prototype version is the port target, and the golden/version are
+    // the ones taps.json carries — hydrate.mjs copies them from the taps.json it read, so a hydrate.json written before
+    // taps.py (the old sync.mjs order: golden d4a0ccd9 / v37 beside taps' bdda3586 / v38) fails here.
+    expect(H.meta.generator).toBe("app/design/regs-v11/port/hydrate.mjs");
+    expect(`regs-${H.meta.version}`).toBe(TARGET);
+    expect({ golden: H.meta.golden, version: H.meta.version }).toEqual({ golden: T.meta.golden, version: T.meta.version });
     expect(Object.keys(H.describe).length).toBe(726);
     expect(Object.keys(H.states).length).toBe(134);
   });
@@ -71,4 +79,21 @@ group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, 
     expect(store!.stored.size).toBeGreaterThanOrEqual(Object.keys(H.describe).length);
   });
   parity(() => store!);
+
+  // hydrate.json's 726 rules all have empty notes; the store's rules with prov.uncertain (or a review_reason) are the only
+  // ones that exercise the UNCERTAIN / CURATOR wording. The oracle is page v36's own decode run over the same store rows.
+  it("10. every store rule with notes has page v36's notes (and its facts and describe())", () => {
+    const page = pageDecode(store!);
+    const ix = ruleIndex(store!.stored, new Map(), store!.book);
+    const noted = [...page.rules.values()].filter((r) => r.notes.length > 0);
+    expect(noted.length, "store rules with notes").toBeGreaterThan(0);
+    for (const r of noted) {
+      const v = ix.get(r.ix);
+      expect(v.notes, `rix ${r.ix} notes`).toEqual(r.notes);
+      expect(factsOf(v), `rix ${r.ix}`).toEqual({ key: r.key, kind: r.k, baseRank: r.baseRank, species: r.species,
+        speciesExcept: r.speciesExcept, wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
+      expect(describe(v, store!.book), `rix ${r.ix} describe`).toBe(page.describe(r.ix));
+    }
+    console.log(`T06 parity 10: ${noted.length} store rules with notes match page v36's decode`);
+  });
 });

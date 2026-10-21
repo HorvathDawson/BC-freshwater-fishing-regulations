@@ -2,7 +2,8 @@
  * A literal subset of the store's `static export.species` (regs store, rule ids sha 16be720be08b0fca) for the
  * store-free regs tests: the fish and groups T06's cases name. Copied from the data, not written: names, members and
  * the open flags are the export's. `SA` (and its members) is the one hand-built group — the export has no `SA` today, and page v36's
- * groupFor skips it by code; the test that pins that skip needs one to exist.
+ * groupFor skips it by code; the test that pins that skip needs one to exist. app/tools/regs-fixtures.test.ts holds every
+ * other entry to page_v36.html's export.species (each kept key equal) and SA to being absent from it.
  */
 import type { SpeciesBook } from "../names";
 
