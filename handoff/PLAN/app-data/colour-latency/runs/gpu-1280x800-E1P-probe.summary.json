@@ -1,0 +1,320 @@
+{
+ "mode": "E1P",
+ "probe": true,
+ "errors": [],
+ "notes": [],
+ "start": {
+  "firstRender": 47,
+  "indexFetchMs": 9,
+  "indexDecodeMs": 13,
+  "indexReady": 250,
+  "setupMs": 23,
+  "longtasks": {
+   "n": 0,
+   "sum": 0,
+   "max": 0
+  },
+  "latency": {
+   "wrongMoving": 3,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 1.0,
+   "frames": 37
+  }
+ },
+ "pans": [
+  {
+   "label": "pan1(1,0)",
+   "calls": 819,
+   "idleMs": 511,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 111,
+   "colourMs": 2.1,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan2(0,1)",
+   "calls": 1475,
+   "idleMs": 516,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 111,
+   "colourMs": 1.8,
+   "colourMaxMs": 0.3,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan3(-1,0)",
+   "calls": 1001,
+   "idleMs": 508,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 110,
+   "colourMs": 2.7,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan4(-1,0)",
+   "calls": 1778,
+   "idleMs": 516,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 112,
+   "colourMs": 3.1,
+   "colourMaxMs": 0.4,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan5(0,-1)",
+   "calls": 223,
+   "idleMs": 517,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 112,
+   "colourMs": 2.0,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan6(0,-1)",
+   "calls": 4002,
+   "idleMs": 515,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 112,
+   "colourMs": 1.8,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan7(1,0)",
+   "calls": 280,
+   "idleMs": 508,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 110,
+   "colourMs": 1.5,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan8(1,0)",
+   "calls": 2068,
+   "idleMs": 517,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 111,
+   "colourMs": 2.6,
+   "colourMaxMs": 0.3,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan9(0,1)",
+   "calls": 135,
+   "idleMs": 517,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 111,
+   "colourMs": 1.6,
+   "colourMaxMs": 0.1,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "zoom-out",
+   "calls": 7515,
+   "idleMs": 307,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 74,
+   "colourMs": 3.7,
+   "colourMaxMs": 0.5,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "zoom-in",
+   "calls": 3570,
+   "idleMs": 303,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 75,
+   "colourMs": 3.2,
+   "colourMaxMs": 0.5,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "flick",
+   "calls": 4294,
+   "idleMs": 400,
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 111,
+   "colourMs": 3.4,
+   "colourMaxMs": 0.3,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  }
+ ],
+ "panSummary": {
+  "idleMs": {
+   "median": 513.0,
+   "max": 517
+  },
+  "colourMs": {
+   "median": 2.35,
+   "max": 3.7
+  },
+  "colourMaxMs": {
+   "median": 0.25,
+   "max": 0.5
+  },
+  "calls": {
+   "median": 1626.5,
+   "max": 7515
+  },
+  "longtaskSum": 0,
+  "longtaskMax": 0,
+  "colouredMs": {
+   "median": 0.0,
+   "max": 0
+  },
+  "pansWithWrongAfter": 0,
+  "pansWithWrongMoving": 0,
+  "wrongFrames": 0
+ },
+ "day": {
+  "diff": 543424,
+  "calls": 0,
+  "syncMs": 11,
+  "workMs": 0.4,
+  "settleMs": 321,
+  "longtasks": {
+   "n": 0,
+   "sum": 0,
+   "max": 0
+  },
+  "latency": {
+   "wrongMoving": 0,
+   "wrongAfter": 0,
+   "colouredMs": 0,
+   "maxWrongFrac": 0.0,
+   "frames": 37
+  }
+ },
+ "setup": [
+  [
+   285,
+   0.5,
+   0,
+   "day294"
+  ],
+  [
+   303,
+   1.2,
+   4296,
+   "E-start"
+  ],
+  [
+   19229,
+   0.4,
+   0,
+   "day120"
+  ]
+ ],
+ "expr": {
+  "day294": {
+   "labels": 4.5,
+   "bytes": 443,
+   "buildMs": 0,
+   "setPaintMs": 0.5
+  },
+  "day120": {
+   "labels": 4.5,
+   "bytes": 455,
+   "buildMs": 0,
+   "setPaintMs": 0.4
+  }
+ },
+ "mem": {
+  "afterSetup": 29,
+  "afterPans": 68,
+  "afterDay": 68
+ },
+ "totalCalls": 31456,
+ "missingCells": 0,
+ "wall": 20.2,
+ "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)"
+}

@@ -1,0 +1,235 @@
+{
+ "mode": "AP",
+ "probe": false,
+ "errors": [],
+ "notes": [],
+ "start": {
+  "firstRender": 37,
+  "indexFetchMs": 7,
+  "indexDecodeMs": 15,
+  "indexReady": 478,
+  "setupMs": 6,
+  "longtasks": {
+   "n": 1,
+   "sum": 233,
+   "max": 233
+  }
+ },
+ "pans": [
+  {
+   "label": "pan1(1,0)",
+   "calls": 0,
+   "idleMs": 529,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan2(0,1)",
+   "calls": 34,
+   "idleMs": 512,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan3(-1,0)",
+   "calls": 72,
+   "idleMs": 504,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan4(-1,0)",
+   "calls": 156,
+   "idleMs": 505,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan5(0,-1)",
+   "calls": 137,
+   "idleMs": 511,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan6(0,-1)",
+   "calls": 114,
+   "idleMs": 506,
+   "colourMs": 0.1,
+   "colourMaxMs": 0.1,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan7(1,0)",
+   "calls": 44,
+   "idleMs": 520,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan8(1,0)",
+   "calls": 0,
+   "idleMs": 513,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "pan9(0,1)",
+   "calls": 0,
+   "idleMs": 503,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "zoom-out",
+   "calls": 202,
+   "idleMs": 317,
+   "colourMs": 0.3,
+   "colourMaxMs": 0.2,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "zoom-in",
+   "calls": 0,
+   "idleMs": 629,
+   "colourMs": 0,
+   "colourMaxMs": 0,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  },
+  {
+   "label": "flick",
+   "calls": 94,
+   "idleMs": 397,
+   "colourMs": 0.1,
+   "colourMaxMs": 0.1,
+   "longtasks": {
+    "n": 0,
+    "sum": 0,
+    "max": 0
+   }
+  }
+ ],
+ "panSummary": {
+  "idleMs": {
+   "median": 508.5,
+   "max": 629
+  },
+  "colourMs": {
+   "median": 0.0,
+   "max": 0.3
+  },
+  "colourMaxMs": {
+   "median": 0.0,
+   "max": 0.2
+  },
+  "calls": {
+   "median": 58.0,
+   "max": 202
+  },
+  "frameGapP95": 13,
+  "frameGapMax": 83,
+  "longtaskSum": 0,
+  "longtaskMax": 0
+ },
+ "day": {
+  "diff": 543424,
+  "calls": 0,
+  "syncMs": 14,
+  "workMs": 0.6,
+  "settleMs": 322,
+  "longtasks": {
+   "n": 0,
+   "sum": 0,
+   "max": 0
+  }
+ },
+ "setup": [
+  [
+   520,
+   0.6,
+   0,
+   "day294"
+  ],
+  [
+   19771,
+   0.5,
+   0,
+   "day120"
+  ]
+ ],
+ "expr": {
+  "day294": {
+   "labels": 4.5,
+   "bytes": 443,
+   "buildMs": 0,
+   "setPaintMs": 0.6
+  },
+  "day120": {
+   "labels": 4.5,
+   "bytes": 455,
+   "buildMs": 0,
+   "setPaintMs": 0.5
+  }
+ },
+ "mem": {
+  "afterSetup": 31,
+  "afterPans": 29,
+  "afterDay": 45
+ },
+ "totalCalls": 1321,
+ "missingCells": 0,
+ "wall": 21.2,
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
+}
