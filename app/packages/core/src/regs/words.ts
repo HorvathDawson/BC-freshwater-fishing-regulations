@@ -107,7 +107,6 @@ export const WORDS = Object.freeze({
   PILL_RELEASE: "↩ Release", PILL_CLOSED: "⊘ Closed", PILL_NOLIMIT: "No limit",
   SUM_CLOSED: (until: string) => "Don’t fish for them" + until + ". If one bites, carefully release it.",
   SUM_RELEASE: (until: string) => "You can fish for them, but release every one" + until + ".",
-  UNTIL: (d: string) => " until " + d,
   NEVER_KEEP: "No keeping at any time of year. ",
   ALL_YEAR_SENT: "All year.",
   WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
@@ -145,7 +144,7 @@ export const WORDS = Object.freeze({
   SCOPE_HERE: "This water", SCOPE_WIDE: (s: string) => `${s}-wide`, SCOPE_ALL_STREAMS: (s: string) => `All ${s} streams`,
   SCOPE_MISSING: "scope missing", PLURAL_S: "s",
   SEPARATE_FROM: "Separate from your ",
-  HOW_TELL: "How to tell ›", BC: "B.C.", THE_REGION: "the region", THE_AREA: "the area",
+  HOW_TELL: "How to tell ›", BC: "B.C.", THE_REGION_LC: "the region", THE_AREA: "the area",
   PROTECTED: "Protected species", TROUT_TITLE: "Trout", DOT_SEP: " · ",
   // prototype shortOf (form b's "↳ 2 of them from streams"; T28's pin lines)
   SHORT_ACROSS: " a day across ", SHORT_DAY: " a day", SHORT_OF_THEM_FROM: " of them from ", SHORT_DAY_FROM: " a day from ",

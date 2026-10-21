@@ -19,6 +19,7 @@
  * prototype buildKeep's "say each sentence once" pass and the closechain rewrite (with its integration-1 fix: a sentence
  * the rewrite would leave with no words is kept whole).
  */
+import { ruleBookLine } from "./book";
 import { describe } from "./describe";
 import type { DisplayFrame, RegsInputs, RuleView } from "./inputs";
 import type { Line, Run } from "./line";
@@ -29,15 +30,6 @@ import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay, nextOpen, runOf, waterS
 import { rangeTxt } from "./time";
 import { RANK_LEVEL, WORDS } from "./words";
 
-/** A rule's Rule book pages as book runs, one space apart (prototype bookLinks). */
-export function bookLine(r: RuleView | null): Line {
-  const out: Run[] = [];
-  for (const [printed, pdf] of r?.facts?.book ?? []) {
-    if (out.length) out.push({ t: "text", s: " " });
-    out.push({ t: "book", printed, pdf });
-  }
-  return out;
-}
 
 /**
  * page closersAt over one day's stored display frame: of its decided `closing`, the ones naming the most fish (`top`) —
@@ -80,7 +72,7 @@ export function mergedOf(inp: RegsInputs): BannerVM["merged"] {
     items: inp.mergedParts.map((p) => ({
       text: `${p.label}${WORDS.DOT}${p.sections} ${p.sections > 1 ? WORDS.SECTIONS : WORDS.SECTION}`,
       level: p.broad ? levelOf(p.broad) : null,
-      rule: p.broad?.key ?? null, book: bookLine(p.broad),
+      rule: p.broad?.key ?? null, book: ruleBookLine(p.broad),
     })),
   };
 }
@@ -130,7 +122,7 @@ export function rawBanner(inp: RegsInputs, settled: Settled): RawBanner | null {
     big: reopen ? WORDS.CLOSED_OPENS_AGAIN(fmtDay(reopen)) : WORDS.CLOSED_ALL_YEAR,
     para: reopen && run ? WORDS.NO_FISHING_RUN(rangeTxt(md(run.from), md(run.until))) + (list.length > 1 ? WORDS.TOGETHER : "") : null,
     golink: reopen ? WORDS.OPENS_AGAIN_LINK(fmtDay(reopen)) : null,
-    chain: list.map((r) => ({ text: chainText(closeTxt(r)), scope: levelOf(r), rule: r.key, book: bookLine(r) })),
+    chain: list.map((r) => ({ text: chainText(closeTxt(r)), scope: levelOf(r), rule: r.key, book: ruleBookLine(r) })),
     reopen, merged,
   };
 }

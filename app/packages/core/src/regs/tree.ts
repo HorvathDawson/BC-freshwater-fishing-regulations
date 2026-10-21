@@ -17,7 +17,8 @@
 import type { Presence, TreeKind, TreeTier } from "../answers.generated";
 import type { CardModel } from "./card";
 import type { FishManifest } from "./fish.generated";
-import { bookLine, pagesOf, shortOf, type HeadCtx } from "./grouphead";
+import { pagesOf, shortOf, type HeadCtx } from "./grouphead";
+import { ruleBookLine } from "./book";
 import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
 import type { FishPicVM, KindVM, OriginVM, TierVM, TreeNodeVM } from "./model";
@@ -137,7 +138,7 @@ const foldsShare = (t: TreeTier, env: TreeEnv): boolean => t === env.ctx.relTier
 export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: ReadonlySet<number>): TierVM {
   const key = env.inp.rules.get(t.by), hasKey = !key.missing;
   const pg = hasKey ? pagesOf(key) : new Set<number>(), fresh = [...pg].some((p) => !seen.has(p));
-  const bk: Line = hasKey && fresh ? bookLine(key) : [];
+  const bk: Line = hasKey && fresh ? ruleBookLine(key) : [];
   const g = env.ctx.g;
   const torg = (extra: Line): OriginVM | null => t.origin
     ? { says: [text(t.origin)], tag: null, howtell: env.ctx.howtell,

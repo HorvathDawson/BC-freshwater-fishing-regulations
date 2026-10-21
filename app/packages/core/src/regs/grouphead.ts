@@ -12,6 +12,7 @@
  * "· streams" rewrite, A0 "Separate from", parentRow), narrowAll, nar0; prototype buildKeep (moveTag/tagShare, hdrRoot,
  * relTier, bigWords, rootLine, rootBook, rootPages, tierOrg, orig, orig2) and shortOf (T28 re-uses it).
  */
+import { ruleBookLine } from "./book";
 import type { GroupTotal, TreeKind, TreeTier } from "../answers.generated";
 /** The store's group shapes the Keep presenters read (`rows_row.group`), for their callers and tests. */
 export type { GroupTotal, Presence, TreeKind, TreeTier } from "../answers.generated";
@@ -77,7 +78,7 @@ export function scopeOf(row: HydRow): string | null {
   const s = row.scope;
   if (!s) return null;
   if (s.of === "bc") return WORDS.BC;
-  if (s.of === "region" || s.of === "area") return row.pool?.export.prov.entry_name || (s.of === "area" ? WORDS.THE_AREA : WORDS.THE_REGION);
+  if (s.of === "region" || s.of === "area") return row.pool?.export.prov.entry_name || (s.of === "area" ? WORDS.THE_AREA : WORDS.THE_REGION_LC);
   return null;
 }
 
@@ -112,15 +113,6 @@ export function scopeBadge(row: HydRow, card: CardModel, inp: RegsInputs): strin
   return s ? WORDS.SCOPE_WIDE(s) : WORDS.SCOPE_HERE;
 }
 
-/** A rule's printed pages, each a Rule book link, separated by one space (prototype bookLinks). [] when it has none. */
-export function bookLine(r: RuleView | null): Line {
-  const out: Run[] = [];
-  for (const [printed, pdf] of r?.facts?.book ?? []) {
-    if (out.length) out.push(text(" "));
-    out.push({ t: "book", printed, pdf });
-  }
-  return out;
-}
 /** prototype pagesOf: the printed pages of a rule's Rule book links. */
 export const pagesOf = (r: RuleView | null): ReadonlySet<number> => new Set((r?.facts?.book ?? []).map(([p]) => p));
 
@@ -160,7 +152,7 @@ export function headCtx(rowIx: number, card: CardModel, inp: RegsInputs): HeadCt
   const key = hdrRoot ? inp.rules.get(hdrRoot.by) : null;
   return {
     row, rowIx, card, inp, g, title: rowTitle(row, inp), tag, scope: moveTag ? null : tag, hdrRoot, relTier, moveTag, tagShare,
-    rootBook: key && !key.missing ? bookLine(key) : [], rootPages: key && !key.missing ? pagesOf(key) : new Set(),
+    rootBook: key && !key.missing ? ruleBookLine(key) : [], rootPages: key && !key.missing ? pagesOf(key) : new Set(),
     tierOrg: !g.origin && hasTierOrigin(g.tree),
     howtell: !!g.origin || hasTierOrigin(g.tree),
   };

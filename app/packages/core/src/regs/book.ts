@@ -20,6 +20,9 @@ export function bookLine(pages: readonly (readonly [number, number])[]): Line {
 /** A rule's book runs (`facts.book`); a rule with no facts (the noRule stand-in) has none. */
 export const ruleBook = (r: RuleView): Line => bookLine(r.facts?.book ?? []);
 
+/** A rule's book runs, or none for no rule (the banner's and group head's "Rule book p.N ↗"). */
+export const ruleBookLine = (r: RuleView | null): Line => bookLine(r?.facts?.book ?? []);
+
 /** `[...line, " ", ...book]` — a sentence and its book links as separate elements (contracts.md §1: one space); no book: the line. */
 export function withBook(line: Line, book: Line): Line {
   return book.length ? [...line, text(" "), ...book] : line;

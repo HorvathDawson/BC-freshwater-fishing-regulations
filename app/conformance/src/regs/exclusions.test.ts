@@ -4,11 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-<<<<<<< HEAD
-import { EXCLUDE, excluded, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, TROUT_LINE_IDS } from "./exclusions";
-=======
-import { droppedLines, EXCLUDE, excluded, keepLines, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS, YEAR_WINDOW_IDS, YEAR_WINDOW_LINE } from "./exclusions";
->>>>>>> cbea9e98 (T17-T19 review fixes: compare golden kind lines and whole-group lines; stamp and .gyear lines dropped by keyed exclusions the summary reports; narrowAll/parentRow recorded as PIPELINE NEEDs (rows_row.scope.narrow_all, rows_row.parent))
+import { droppedLines, EXCLUDE, excluded, keepLines, NO_MAP_LABEL_IDS, PINS_ERROR_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+         YEAR_WINDOW_IDS, YEAR_WINDOW_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
 const G = golden(), T = taps();
@@ -43,13 +40,8 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-<<<<<<< HEAD
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
-        "keep 3 ^groups\\.\\d+\\.(tree|worked)$"]);
-=======
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$", "keep 11 ^strip\\.lines?$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$", "keep 8 ^groups\\.\\d+\\.(tree|lines)$", "keep 11 ^groups\\.\\d+\\.lines$"]);
->>>>>>> cbea9e98 (T17-T19 review fixes: compare golden kind lines and whole-group lines; stamp and .gyear lines dropped by keyed exclusions the summary reports; narrowAll/parentRow recorded as PIPELINE NEEDs (rows_row.scope.narrow_all, rows_row.parent))
   });
 });
 
@@ -61,7 +53,6 @@ describe("TROUT_LINE_IDS", () => {
   });
 });
 
-<<<<<<< HEAD
 describe("NO_MAP_LABEL_IDS", () => {
   it("the 22 golden states with no part label and no Map action (the prototype had no water map of the water)", () => {
     expect(NO_MAP_LABEL_IDS).toEqual(["wilkes_1010", "anderson_1010", "ape_501", "ape_1010", "glenn_501", "glenn_615", "glenn_1010", "hamill_615", "hamill_1010",
@@ -69,7 +60,9 @@ describe("NO_MAP_LABEL_IDS", () => {
       "x34p_1010", "x35p_1010", "x41p_1010"]);
     expect(excluded("header", "wilkes_1010", "place")?.reason).toMatch(/no water map/);
     expect(excluded("header", "vedder_1010", "place")).toBeNull();
-=======
+  });
+});
+
 describe("(T17–T19 review) dropped golden lines", () => {
   it("the 8 states with a stamp line, the 11 with a .gyear line", () => {
     expect(STAMP_LINE_IDS).toEqual(["anderson_1010", "x4p_1010", "x13p4_1010", "x15p16_1010", "x15p1_1010", "x15p17_1010", "x20p1_1010", "x23p0_1010"]);
@@ -92,7 +85,6 @@ describe("(T17–T19 review) dropped golden lines", () => {
   it("the Kitimat-ruled states' group lines are excluded whole (their tree and worked are held to the store)", () => {
     expect(excluded("keep", "x14p0_1010", "groups.0.lines")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     expect(excluded("keep", "vedder_1010", "groups.0.lines")).toBeNull();
->>>>>>> cbea9e98 (T17-T19 review fixes: compare golden kind lines and whole-group lines; stamp and .gyear lines dropped by keyed exclusions the summary reports; narrowAll/parentRow recorded as PIPELINE NEEDs (rows_row.scope.narrow_all, rows_row.parent))
   });
 });
 
