@@ -86,7 +86,8 @@ export const WORDS = Object.freeze({
   INPART_SOME: "Some spots have their own rules",
   INPART_IC: "ⓘ",
   CALM_HOT: "Everywhere else, follow this page.",
-  CALM_BOAT: (kind: string) => "Fishing rules are the same everywhere on this " + (kind === "lake" ? "lake" : "river") + ".",
+  CALM_BOAT: (noun: string) => "Fishing rules are the same everywhere on this " + noun + ".",
+  WATER_LAKE: "lake", WATER_RIVER: "river",   // page v36: PLACE.kind === "lake" ? "lake" : "river"
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
   WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
