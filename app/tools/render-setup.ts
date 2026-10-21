@@ -53,3 +53,9 @@ if (typeof URL.createObjectURL !== "function") {
   URL.createObjectURL = () => "blob:jsdom/00000000-0000-0000-0000-000000000000";
   URL.revokeObjectURL = () => {};
 }
+
+/**
+ * Metro defines `__DEV__` for every React Native bundle, and react-native-gesture-handler (G1) reads it at module
+ * load. False here: what it guards is dev-only warnings, and every other reader treats a missing one as false too.
+ */
+(globalThis as { __DEV__?: boolean }).__DEV__ ??= false;

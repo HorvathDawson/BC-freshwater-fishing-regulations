@@ -11,5 +11,7 @@ import "@expo/metro-runtime";
 import { registerRootComponent } from "expo";
 
 import App from "./src/App";
+import { withGestureRoot } from "./src/gestureRoot";
 
-registerRootComponent(App);
+// Gestures (G1) need their root view above everything.
+registerRootComponent(withGestureRoot(App));

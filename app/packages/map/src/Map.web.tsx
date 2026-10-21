@@ -25,6 +25,7 @@ import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
 import { toExpression } from "./legacy-filter";
+import { maplibreGestures, touchRotation } from "./gestures";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
          unionBbox, type Bbox } from "@app/core";
 
@@ -129,7 +130,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       maxZoom: MAX_ZOOM,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
       attributionControl: bare ? false : { compact: true },
+      // G1: one gesture policy for both maps — pan, pinch, double-tap and wheel zoom; no rotate, no tilt; a press
+      // that moves 8 px or more is a pan, never a tap (`@app/core` MAP_GESTURES)
+      ...maplibreGestures(),
     });
+    if (!touchRotation()) m.touchZoomRotate.disableRotation();
 
     /*
      * COLLAPSED ON ARRIVAL.

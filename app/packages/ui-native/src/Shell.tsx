@@ -9,10 +9,11 @@
  */
 import { dayLabel, TEMP_LEGEND, WATER_STATUS, WATER_STATUSES, type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
+import { useBack, useEdgeBack, usePartSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -31,6 +32,8 @@ import { ConditionsScreen } from "./ConditionsScreen";
 import { SpotScreen } from "./SpotScreen";
 import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
+import { EdgeBack } from "./EdgeBack";
+import { PartSwipe } from "./PartSwipe";
 import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
@@ -57,7 +60,8 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       spotsError, attribution, fishImages, photos, status = null, pairing = null }: {
+                       spotsError, attribution, fishImages, photos, status = null, pairing = null,
+                       systemBack = null }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -94,6 +98,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   fishImages?: FishImages;
   /** S1: a spot's photographs — the store and the platform's picker (the app's). Absent -> no photos offered. */
   photos?: SpotPhotos;
+  /** G1: the platform's own back (Android `BackHandler`, the browser's history), from the app. Absent -> ‹ only. */
+  systemBack?: SystemBack | null;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -121,6 +127,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const condSection: SectionId | null = route.mode === "browse" ? route.cond?.section ?? null : null;
   const condAt = route.mode === "browse" ? route.cond?.at ?? null : null;
   const toTab = (k: BrowseTab) => { setPicked(null); go({ type: "tab", tab: k }); };
+  /*
+   * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe — and the sideways part swipe.
+   * The part order is the water map's (P15 `useWaterMap`), not read yet: until it is, the swipe is off.
+   */
+  const { back, depth } = useBack(route, go, systemBack);
+  const edge = useEdgeBack(back, Platform.OS, depth);
+  const partSwipe = usePartSwipe(route, go, null);
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(null);
   /**
@@ -312,7 +325,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           || photoEdit.refs.join("\n") !== viewing.photos.join("\n"));
     // an unsaved edit's added photos go with it; after a save there are none left to delete
     const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); };
-    const close = () => { endEdit(); setSpotError(null); setPendingTab(null); go({ type: "back" }); };
+    const close = () => { endEdit(); setSpotError(null); setPendingTab(null); back(); };
     const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
     return (
       <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -375,7 +388,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    // not just the matched station's own number.
                    feed={feed}
                    theme={theme} camera={camera.current}
-                   onCancel={() => go({ type: "back" })}
+                   onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
                    onSaved={async (s) => { await onSaveSpot(s); toTab("spots"); }} />
     );
@@ -402,7 +415,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      go({ type: "back" });
                      go({ type: "condSection", section: kept?.section ?? sec, at: kept?.at ?? null });
                    }}
-                   onBack={() => go({ type: "back" })} />
+                   onBack={back} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} status={status}
                       onPick={(id) => {
@@ -436,7 +449,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                              * which reads as two different screens.
                              */
                             onRegulations={(sec) => { void onPressFeature("stream", sec); }}
-                            onBack={() => go({ type: "back" })} feed={feed}
+                            onBack={back} feed={feed}
                             credits={attribution} horizon={horizon}
                             onHorizon={setHorizon} />
       : tab === "map" || tab === "conditions"
@@ -553,7 +566,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           </Text>
         </View>
       )}
-      <View style={{ flex: 1 }}>{body}</View>
+      <View style={{ flex: 1 }}>
+        <EdgeBack drag={edge}>{item !== null ? <PartSwipe swipe={partSwipe}>{body}</PartSwipe> : body}</EdgeBack>
+      </View>
       {showLegend && (
         <LegendStrip palette={palette} full={onConditions}>
           {onConditions && (

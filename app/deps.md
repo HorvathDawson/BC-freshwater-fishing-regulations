@@ -57,6 +57,16 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   Also draws the fish loader. Animation is plain `Animated` with `useNativeDriver` rather than
   reanimated: a transform-only loop already runs off the JS thread on native, and a second
   animation library with its own babel plugin is not worth one spinner.
+- `react-native-gesture-handler` — **2.32.0, the version Expo SDK 57 names** (`bundledNativeModules.json`:
+  `~2.32.0`, of which 2.32.0 is the only release; pinned in the root `overrides` like react-native-svg, because it
+  ships native code). G1's gestures: the iOS left-edge back swipe (`<EdgeBack>`), the part swipe (`<PartSwipe>`) and
+  the sheet's drag to dismiss, on the phone AND on mobile web from one recogniser API — RN's own `PanResponder` has
+  no direction lock against a scroll view and no web touch-action, which is the whole difficulty here. Callbacks run
+  on JS (`runOnJS(true)`): no reanimated, no worklets babel plugin. Cost: ~3.3 MB unpacked, most of it native
+  sources; its JS (plus `@egjs/hammerjs`, `hoist-non-react-statics`) is what reaches a bundle. Used by
+  `@app/ui-native` (the recognisers, which only measure — every threshold is `@app/core` `gestures.ts`) and by
+  `apps/mobile` for `GestureHandlerRootView` at the root. Test renders use its `jest-utils` (`fireGestureHandler`)
+  under vitest through the ES-module build (`vitest.config.ts`).
 - `expo-font` — registers the three typefaces the design specifies. Loaded in `apps/mobile`
   only: it is an asset loader, and the app shell is the one layer that may register assets.
   `@app/ui-native/type.ts` names the faces and never loads them, which is what keeps that

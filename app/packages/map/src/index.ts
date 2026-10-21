@@ -22,3 +22,6 @@ export { toggleableGroups, views, hiddenLayers, STYLE_META, resolveTheme, themeN
 export { pillImage, type PillImage } from "./pill";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
 export { colour, amount, translucent, mapChrome } from "./chrome";
+/** G1: the one gesture policy as each renderer's switches (`Map.web.tsx` now; `Map.native.tsx` at N1). */
+export { maplibreGestures, nativeMapGestures, touchRotation,
+         type MaplibreGestureOptions, type NativeMapGestureProps } from "./gestures";

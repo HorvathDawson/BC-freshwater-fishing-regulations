@@ -20,6 +20,8 @@ export { SpotScreen } from "./SpotScreen";
 export { TabBar, TABS, type TabKey } from "./TabBar";
 export { Pill, LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
+export { EdgeBack } from "./EdgeBack";
+export { PartSwipe } from "./PartSwipe";
 export { LayersSheet, STOCK_BANDS, lakeChoices,
          type LayersState, type LayerChoice } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";

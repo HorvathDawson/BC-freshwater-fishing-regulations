@@ -31,6 +31,14 @@ const alias = [
   { find: /^react-native-svg$/,
     replacement: fileURLToPath(new URL(
       "node_modules/react-native-svg/lib/module/ReactNativeSVG.web.js", import.meta.url)) },
+  // G1: the ES-module build, not `main` (CommonJS, whose `require("react-native")` no alias reaches). Its `.web.js`
+  // siblings are picked by `extensions` below, as Metro picks them for mobile web.
+  { find: /^react-native-gesture-handler\/jest-utils$/,
+    replacement: fileURLToPath(new URL(
+      "node_modules/react-native-gesture-handler/lib/module/jestUtils/index.js", import.meta.url)) },
+  { find: /^react-native-gesture-handler$/,
+    replacement: fileURLToPath(new URL(
+      "node_modules/react-native-gesture-handler/lib/module/index.js", import.meta.url)) },
   { find: "@app/core", replacement: pkg("core") },
   { find: "@app/data/fixture", replacement: pkg("data", "src/fixture.ts") },
   // Subpath exports need their own alias: vitest resolves through these, not through the
@@ -60,6 +68,9 @@ const inline = [
   // dependency, so inlining it is cheap and precise.
   "react-native-web",
   "react-native-svg",
+  // G1: react-native-gesture-handler imports `react-native`; inlined so the alias above hands it react-native-web
+  // and `.web.js` resolution picks its DOM implementation — the one mobile web runs.
+  "react-native-gesture-handler",
 ];
 
 /**

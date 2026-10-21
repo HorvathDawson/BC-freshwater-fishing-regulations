@@ -68,3 +68,4 @@ export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: s
     : `last checked ${agoWords(f.ageMs)}, may be out of date`);
   return parts.join(" · ");
 }
+export * from "./gestures";

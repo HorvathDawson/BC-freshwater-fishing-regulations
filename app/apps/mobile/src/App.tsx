@@ -33,6 +33,7 @@ import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { devStatus, releaseStatus, useReleaseBoot, useSpots, type PairingInput, type SpotPhotos,
          type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
+import { systemBack } from "./systemBack";
 
 import { DATA_SOURCE, ENDPOINTS } from "./config";
 import { FISH_IMAGES } from "./fishImages.generated";
@@ -158,6 +159,7 @@ export default function App() {
                status={data.status} pairing={data.pairing}
                spots={spots}
                fishImages={FISH_IMAGES}
+               systemBack={systemBack}
                weather={weather}
                photos={photos}
                onSaveSpot={spotsHook.save}

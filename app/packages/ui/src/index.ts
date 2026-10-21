@@ -33,3 +33,4 @@ export function formFactorFor(widthPx: number): FormFactor {
 }
 export { gaugeGeoJSON, gaugeLabel, type GaugePoint, type GaugeQuantity }
   from "./gaugePoints";
+export * from "./gestures";
