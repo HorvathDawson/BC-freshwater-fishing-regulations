@@ -83,6 +83,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- OWNER 2026-10-21: (1) Conditions chart flickers when switching gauges -> prefetch every donor series; (2) flow-
+  direction arrows on Conditions streams (verify tile line orientation first); (3) "this year" flow gaps -> LEAD
+  FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
+  backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
+  research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - OWNER 2026-10-21: satellite imagery is too low-res (today EOX Sentinel-2 cloudless 2016, 10 m) -> research +
   verification of higher-res sources (licence, cost, offline) -> OWNER PICKS; and allow OVERZOOM past the pmtiles
   max (camera max up, every source keeps its own maxzoom). Workflow satellite-and-overzoom RUNNING.
