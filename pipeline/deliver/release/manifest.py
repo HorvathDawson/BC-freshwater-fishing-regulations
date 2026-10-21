@@ -25,18 +25,29 @@ def manifest(data_release: str, files: Dict[str, dict], handles16: str, *, tiles
             "regulations": {"valid_until": valid_until, "versions": regs_versions}}
 
 
-def tiles_block(release_root, handles16: str) -> Optional[dict]:
-    """`tiles.current/assets/mask` from the newest tile version folder of this sid space, or None (not built yet)."""
+def tiles_block(release_root, handles16: str, tiles_meta) -> Optional[dict]:
+    """`tiles.current/assets/mask` from the tile set the PROMOTED tiles are, or None (unstamped or not built yet).
+
+    Which set is current is what `tiles_meta` (data/generated/tiles/atlas.meta.json) says it is, never "the last folder
+    by name": the build half of a version is a hash, so name order is arbitrary. A stamped version from another sid
+    space, or one whose release folder is missing, is refused — the release would otherwise name tiles the app cannot
+    pair or cannot fetch.
+    """
     import hashlib
     import json
     from pathlib import Path
-    root = Path(release_root) / "tiles"
-    if not root.exists():
+    meta = Path(tiles_meta)
+    if not meta.exists():
         return None
-    versions = sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith(handles16 + "."))
-    if not versions:
+    version = json.loads(meta.read_text()).get("tile_version")
+    if not version:
         return None
-    v = versions[-1]
+    if not version.startswith(handles16 + "."):
+        raise SystemExit(f"release: the promoted tiles are {version}, not this sid space ({handles16}.*)")
+    v = Path(release_root) / "tiles" / version
+    if not (v / f"atlas-{version}.pmtiles").exists():
+        raise SystemExit(f"release: the promoted tiles are {version} but {v} holds no atlas — "
+                         "run the tile step's release copy (python -m pipeline.deliver.tiles) first")
 
     def entry(p: Path) -> dict:
         return {"url": f"tiles/{v.name}/{p.relative_to(v)}", "bytes": p.stat().st_size,

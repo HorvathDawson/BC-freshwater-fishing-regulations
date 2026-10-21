@@ -152,8 +152,6 @@ def _features(data: bytes, layer: str):
 
 @pytest.mark.slow
 @pytest.mark.needs_tiles
-@pytest.mark.xfail(strict=True, reason="atlas.pmtiles predates P18 tile ids; passes after the tiles-only "
-                                       "rebuild — then DELETE this marker (strict, so an XPASS fails)")
 def test_the_built_archive_carries_section_id_as_the_stream_feature_id(request):
     """Lower Mainland tiles that hold streams: z8 (top of the low band), z9 (bottom of the high
     band) and z14 — so the id is proven on BOTH sides of the tile-join."""

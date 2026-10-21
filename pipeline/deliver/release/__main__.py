@@ -29,7 +29,7 @@ def main(argv=None) -> int:
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, tiles=tiles_block(GENERATED.release, handles))
+                out_root=a.out_root, data_release=a.data_release, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"))
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     bad = B.gate_problems(d)
