@@ -20,3 +20,5 @@ export * from "./card";
 export * from "./strip";
 export * from "./banner";
 export * from "./header";
+export * from "./book";
+export * from "./standing";
