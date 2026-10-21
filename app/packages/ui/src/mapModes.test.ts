@@ -9,11 +9,11 @@ const base: MapModeInput = {
 const at = (over: Partial<MapModeInput>) => mapModes({ ...base, ...over });
 
 describe("mapModes (P12): the Shell's colouring decision, pure", () => {
-  it("the Map tab with the day's status in: every water wears the status", () => {
+  it("the Map tab with the day's status in: every water wears it, through the profile mode (colour-latency AP)", () => {
     expect(at({})).toEqual({
       onConditions: false, quantity: "flow", standingParam: "discharge", standingHorizon: 3, fieldOn: false,
       horizonsShown: false,
-      modes: { stream: "status", lake: "status", lake_flowing: "status", wetland_flowing: "status",
+      modes: { stream: "profile", lake: "profile", lake_flowing: "profile", wetland_flowing: "profile",
                gauges: "standing", basin: "plain" },
       activeGroups: { depth: false, admin: true },
     });
@@ -28,7 +28,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
   it("a lake choice the reader asked for beats the status, and switches its group on", () => {
     const m = at({ lake: { mode: "surveyed", group: "depth" } });
     expect(m.modes.lake).toBe("surveyed");
-    expect(m.modes.stream).toBe("status");
+    expect(m.modes.stream).toBe("profile");
     expect(m.activeGroups).toEqual({ depth: true, admin: true });
   });
 

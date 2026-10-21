@@ -63,6 +63,44 @@ export function statusOn(index: StatusIndex | null | undefined, section: Section
 }
 
 /**
+ * THE MAP'S STATUS, SPLIT INTO WHAT NEVER CHANGES AND WHAT CHANGES WITH THE DAY (colour-latency study, AP).
+ *
+ * The index is base + deltas already: every listed section points at one of ~115 day-profiles, and only the profile's
+ * code moves with the day. So the map stores each section's PROFILE once (`profileLabel`, as feature-state `p`) and
+ * carries the day in its style (`dayProfiles`, one match over the labels). A day change is one paint property and no
+ * per-section call; a newly loaded tile is coloured from a lookup with no React and no wait for `idle`.
+ *
+ * Both halves are HERE, beside `statusOfCode`, so the map's colour is still the one answer (AGENTS 23): a label is in
+ * the `closed` set on a day exactly when `statusOn` says closed for every section wearing it. The renderer only applies
+ * them. LABELS ARE STRINGS ("p17") because Android's `<Layer paint>` rejects numeric `match` labels, and a style
+ * `match` takes one label type.
+ */
+
+/** The label of a section the index does not list — base every day, so it sits in every day's `base` set. */
+export const UNLISTED_PROFILE = "b";
+
+/** A section's profile label: `p<n>` for the profile it reads, `UNLISTED_PROFILE` for one the index does not list. */
+export function profileLabel(index: StatusIndex, section: SectionKey): string {
+  const p = index.profileOf(section);
+  return p === null ? UNLISTED_PROFILE : `p${p}`;
+}
+
+/** Each status's profile labels on one day; `none` is a label whose code is not a status (tidal, outside B.C.). */
+export type DayProfiles = Readonly<Record<WaterStatus | "none", readonly string[]>>;
+
+/**
+ * THE DAY, as label sets: which profile labels are closed, own, base and none on `on`. Every label the index can hand
+ * out is in exactly one set, `UNLISTED_PROFILE` always in `base` (absent is base — the pipeline's claim, not a guess).
+ * A label in no set (no state yet, or one from another release) is in none of them, and the map paints it "not asked".
+ */
+export function dayProfiles(index: StatusIndex, on: Date): DayProfiles {
+  const out: Record<WaterStatus | "none", string[]> = { closed: [], own: [], base: [UNLISTED_PROFILE], none: [] };
+  for (let p = 0; p < index.profiles; p++)
+    out[statusOfCode(index.profileCodeOn(p, on)) ?? "none"].push(`p${p}`);
+  return out;
+}
+
+/**
  * A WATER'S STATUS ON A DAY — what a search row or a "water near a town" row wears. Its parts
  * rolled up by the pipeline: closed only when every part is, own when any part has a row of its
  * own, base otherwise. Null when there is no index (not asked).

@@ -498,7 +498,11 @@ export function loadStatusIndex(url: string, handles: string | null,
 }
 
 /**
- * The map's per-feature values for the status colouring: every section on screen, on `on`.
+ * The map's per-feature values for the `status` colouring: every section on screen, on `on`.
+ *
+ * NO LONGER THE WEB MAP'S PATH (colour-latency AP): the Shell hands the map the index itself (`MapProps.status`) and the
+ * map colours each tile as it arrives through the `profile` mode. Kept for a renderer with no per-tile event — how the
+ * native map colours is open until N2 — and it reads the same `statusOn`, so the two cannot disagree.
  *
  * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
  * section that was closed yesterday and is base today must be told so, not left red. A

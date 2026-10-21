@@ -12,7 +12,7 @@ declare const __DEV__: boolean | undefined;
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import type { SectionKey } from "@app/core";
+import { dayOfYear, type SectionKey } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
@@ -33,6 +33,9 @@ import type { MapHandle } from "./adapters/contract";
 import { hereImage } from "./here-mark";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
+import { PROFILE_SOURCE_LAYERS, ProfileColouring, type ProfileRenderer, type ProfileTarget,
+         type TileSections } from "./profile-paint";
+import { sourceTiles, tileIds } from "./tile-ids.web";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -117,14 +120,117 @@ function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
 /** The layers a searched water can be drawn in — what `fit.refine` measures. */
 const WATER_LAYERS = ["stream", "lake", "wetland"] as const;
 
+/** Development only: where the colouring's cost is recorded, for the colour-latency measurements. */
+type ColourCost = { t: number; ms: number; calls: number; kind: string };
+const devCost = (c: ColourCost) => {
+  if (typeof __DEV__ !== "undefined" && __DEV__)
+    ((globalThis as { __colourCost?: ColourCost[] }).__colourCost ??= []).push(c);
+};
+/** Development only: take the public route even where 5.24's internals are there — to measure what it costs. */
+const forcePublic = () => typeof __DEV__ !== "undefined" && __DEV__
+  && (globalThis as { __colourPublic?: boolean }).__colourPublic === true;
+
+/** Feature-state on the atlas, by source-layer: the target the profile colouring writes to. */
+const atlasTarget = (m: maplibregl.Map): ProfileTarget => ({
+  setState: (sourceLayer, id, s) => m.setFeatureState({ source: "atlas", sourceLayer, id }, s),
+  clearAll: (sourceLayer) => m.removeFeatureState({ source: "atlas", sourceLayer }),
+});
+
+/**
+ * THE PUBLIC ROUTE to the sections the map holds: `querySourceFeatures` per source-layer, over every tile it has
+ * rendered. Heavier than reading one tile's ids (`tile-ids.web.ts`), and blind to tiles in the out-of-view cache, but it
+ * uses nothing private — it is what runs when 5.24's internals are not there.
+ */
+function publicSections(m: maplibregl.Map): TileSections {
+  const out: Record<string, number[]> = {};
+  for (const layer of PROFILE_SOURCE_LAYERS) {
+    const ids: number[] = [];
+    for (const f of m.querySourceFeatures("atlas", { sourceLayer: layer }))
+      if (typeof f.id === "number") ids.push(f.id);
+    out[layer] = ids;
+  }
+  return out;
+}
+
+/** The adapter's handle on this map's layers: paint, visibility, zoom range and per-layer feature-state. */
+function layerHandle(m: maplibregl.Map): MapHandle {
+  return {
+    /*
+     * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
+     * stands the rivers down below z9 so the basin field can answer instead; every other
+     * view resets them to the style's own floor, which is why this is called on every
+     * view change and not once at load.
+     */
+    setZoomRange: (id: string, minzoom: number, maxzoom?: number) => {
+      if (!m.getLayer(id)) return;
+      const spec = m.getLayer(id) as { maxzoom?: number };
+      m.setLayerZoomRange(id, minzoom, maxzoom ?? spec.maxzoom ?? 24);
+    },
+    setVisibility: (id: string, v: boolean) => {
+      if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
+    },
+    setPaint: (id: string, prop: string, value: unknown) => {
+      if (m.getLayer(id)) m.setPaintProperty(id, prop as never, value as never);
+    },
+    setFeatureState: (layerId: string, featureId: SectionKey, s: Record<string, unknown>) => {
+      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
+      if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, s);
+    },
+    clearFeatureStates: (layerId: string) => {
+      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
+      if (src) m.removeFeatureState({ source: src, sourceLayer: layerId });
+    },
+  };
+}
+
+/**
+ * The highlight's handle: `selected` set per id, and cleared ONLY from the ids this map lit last time (`wasLit`).
+ * Dropping every feature-state would take the status labels with it, so selecting a river would un-colour the map.
+ */
+function highlightHandle(m: maplibregl.Map, wasLit: readonly SectionKey[]): MapHandle {
+  return {
+    setVisibility: () => {},
+    setPaint: () => {},
+    setFeatureState: (layerId: string, featureId: SectionKey, st: Record<string, unknown>) => {
+      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
+      if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, st);
+    },
+    clearFeatureStates: (layerId: string) => {
+      const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
+      // PER FEATURE, from the ids this map lit last time. MapLibre refuses to remove
+      // one KEY from a whole source-layer ("A feature id is required to remove its
+      // specific state property") — so the old call threw on every clear, the old
+      // highlight stayed lit, and it only went unnoticed because nothing had ever
+      // changed a highlight on a mounted map until search did.
+      if (!src) return;
+      for (const id of wasLit)
+        m.removeFeatureState({ source: src, sourceLayer: layerId, id }, "selected");
+    },
+  };
+}
+
+/** Run `fn` once the atlas source exists — the moment feature-state and paint calls can land on it. */
+function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
+  if (m.getSource("atlas")) { fn(); return () => {}; }
+  const h = () => {
+    if (!m.getSource("atlas")) return;
+    m.off("styledata", h);
+    fn();
+  };
+  m.on("styledata", h);
+  return () => { m.off("styledata", h); };
+}
+
 export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
-                      zoomControls }: MapProps) {
+                      zoomControls, status }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef(baseAdapter("web"));
+  /** The profile colouring of this map (colour-latency AP) — made with the map, fed by its tiles' load events. */
+  const colouring = useRef<ProfileColouring | null>(null);
   const pin = useRef<maplibregl.Marker | null>(null);
   const pinned = useRef<maplibregl.Marker[]>([]);
   /** Re-adds the label pill in the current theme. Set once the map exists. */
@@ -265,6 +371,45 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     });
     m.on("load", addPill);
     map.current = m;
+    /*
+     * EACH TILE COLOURED IN ITS OWN LOAD EVENT (colour-latency AP).
+     *
+     * GL JS fires `sourcedata` with the tile right after initialising the tile's feature-state and before it is ever
+     * drawn; state set here is applied in the next frame's source update, so the tile's FIRST frame wears its status.
+     * The status used to arrive after `idle` (every tile in, the 300 ms symbol fade over) and a React round trip —
+     * half a second of grey on every new tile. Synchronous, no React, ids already seen skipped: about 0.1 ms a pan.
+     *
+     * The ids come from 5.24's internals (`tile-ids.web.ts`, pinned by a test). Where they are not there, the PUBLIC
+     * route: one `querySourceFeatures` scan per burst of tile events, in a microtask — still before the next frame —
+     * and on `moveend` as well, because the public route cannot see a cached tile coming back into view.
+     */
+    const c = new ProfileColouring(adapter.current);
+    colouring.current = c;
+    const target = atlasTarget(m);
+    let scanQueued = false;
+    const scan = (kind: string) => {
+      scanQueued = false;
+      if (!c.active || !m.getSource("atlas")) return;
+      const t0 = performance.now();
+      const calls = c.label(target, publicSections(m));
+      devCost({ t: t0, ms: performance.now() - t0, calls, kind });
+    };
+    const onTile = (e: maplibregl.MapSourceDataEvent & { tile?: unknown }) => {
+      if (e.sourceId !== "atlas" || !e.tile || !c.active) return;
+      const ids = forcePublic() ? null : tileIds(e.tile, PROFILE_SOURCE_LAYERS);
+      if (ids === null) {
+        if (!scanQueued) { scanQueued = true; queueMicrotask(() => scan("public-tile")); }
+        return;
+      }
+      const t0 = performance.now();
+      const calls = c.label(target, ids);
+      devCost({ t: t0, ms: performance.now() - t0, calls, kind: "tile" });
+    };
+    const onMoveEnd = () => {
+      if (c.active && (forcePublic() || sourceTiles(m, "atlas") === null)) scan("public-moveend");
+    };
+    m.on("sourcedata", onTile);
+    m.on("moveend", onMoveEnd);
     // The canvas follows its container, not the window (see size.ts): a box that settles after mount — search's
     // preview map on the way back from the eye — would otherwise keep the first size and every fit would frame it.
     const unfollow = followSize(m, () => refit.current?.());
@@ -273,7 +418,10 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // instance. Never present in a production bundle.
     if (typeof __DEV__ !== "undefined" && __DEV__)
       (globalThis as { __map?: unknown }).__map = m;
-    return () => { unfollow(); m.remove(); map.current = null; };
+    return () => {
+      m.off("sourcedata", onTile); m.off("moveend", onMoveEnd);
+      unfollow(); m.remove(); map.current = null; colouring.current = null;
+    };
     // Deliberately keyed on the ARCHIVES only. `theme` and `view` are recoloured by the
     // effect below rather than by rebuilding the map, because remounting would drop the
     // camera and refetch every tile — a theme toggle would look like a crash and a reload.
@@ -328,32 +476,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     const m = map.current;
     if (!m) return;
     const apply = () => {
-      const handle = {
-        /*
-       * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
-       * stands the rivers down below z9 so the basin field can answer instead; every other
-       * view resets them to the style's own floor, which is why this is called on every
-       * view change and not once at load.
-       */
-      setZoomRange: (id: string, minzoom: number, maxzoom?: number) => {
-        if (!m.getLayer(id)) return;
-        const spec = m.getLayer(id) as { maxzoom?: number };
-        m.setLayerZoomRange(id, minzoom, maxzoom ?? spec.maxzoom ?? 24);
-      },
-      setVisibility: (id: string, v: boolean) => {
-          if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
-        },
-        setPaint: (id: string, prop: string, value: unknown) =>
-          m.getLayer(id) && m.setPaintProperty(id, prop as never, value as never),
-        setFeatureState: (layerId: string, featureId: SectionKey, s: Record<string, unknown>) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, s);
-        },
-        clearFeatureStates: (layerId: string) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.removeFeatureState({ source: src, sourceLayer: layerId });
-        },
-      };
+      const handle = layerHandle(m);
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
       pill.current?.();
@@ -468,33 +591,44 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
-      const handle = {
-        setVisibility: () => {},
-        setPaint: () => {},
-        setFeatureState: (layerId: string, featureId: string, st: Record<string, unknown>) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, st);
-        },
-        clearFeatureStates: (layerId: string) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          // Clear ONLY `selected`. Dropping every feature-state would take the status
-          // values with it, so selecting a river would un-colour the map.
-          //
-          // PER FEATURE, from the ids this map lit last time. MapLibre refuses to remove
-          // one KEY from a whole source-layer ("A feature id is required to remove its
-          // specific state property") — so the old call threw on every clear, the old
-          // highlight stayed lit, and it only went unnoticed because nothing had ever
-          // changed a highlight on a mounted map until search did.
-          if (!src) return;
-          for (const id of wasLit.current)
-            m.removeFeatureState({ source: src, sourceLayer: layerId, id }, "selected");
-        },
-      };
-      adapter.current.highlight(handle, [...highlight]);
+      adapter.current.highlight(highlightHandle(m, wasLit.current), [...highlight]);
       wasLit.current = [...highlight];
     };
     return whenStyled(m, apply);
   }, [highlight]);
+
+  /**
+   * THE DAY'S STATUS (colour-latency AP): the index and the day go to the profile colouring, which labels the tiles
+   * already loaded and installs the day in the style. A new day is one paint property; a new index, or none, is the
+   * release-swap sequence in `ProfileColouring.set` — and what it clears that is not ours (the selected highlight, the
+   * active mode's pushed data) is put back here.
+   */
+  const latestData = useRef(data);
+  latestData.current = data;
+  const latestTheme = useRef(theme);
+  latestTheme.current = theme;
+  const statusDay = status ? dayOfYear(status.day) : 0;
+  useEffect(() => {
+    const m = map.current, c = colouring.current;
+    if (!m || !c) return;
+    const renderer: ProfileRenderer = {
+      loaded: () => {
+        const tiles = forcePublic() ? null : sourceTiles(m, "atlas");
+        const read = tiles?.map((t) => tileIds(t, PROFILE_SOURCE_LAYERS));
+        return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
+      },
+      restore: () => {
+        adapter.current.highlight(highlightHandle(m, []), [...wasLit.current]);
+        for (const [layerId, values] of Object.entries(latestData.current ?? {}))
+          adapter.current.setData(layerHandle(m), layerId, values);
+      },
+    };
+    return whenAtlas(m, () => {
+      const t0 = performance.now(), c0 = c.calls;
+      c.set(layerHandle(m), atlasTarget(m), renderer, status ?? null, latestTheme.current);
+      devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind: `status:${statusDay}` });
+    });
+  }, [status?.index, statusDay, at.atlas]);
 
   /**
    * THE GROUND — drawn basemap or satellite. Through the adapter, so the native map owes

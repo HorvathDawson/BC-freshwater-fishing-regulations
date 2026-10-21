@@ -71,19 +71,21 @@ export function mapModes(i: MapModeInput): MapModesVM {
    * COLOURED FOR FLOW AND FOR LEVEL; PLAIN ONLY UNDER TEMPERATURE. A level question is answered from level donors or
    * not at all (see `Quantity` in @app/data), so a reach with nothing to say arrives with no standing and draws as
    * unmeasured. Temperature stays plain: nothing carries a temperature between waters, so colouring a river from a
-   * gauge 40 km away would invent a reading. On the Map tab: the day's status once the index has loaded and matched.
+   * gauge 40 km away would invent a reading. On the Map tab: the day's status once the index has loaded and matched —
+   * through the `profile` mode (colour-latency AP): the map labels each section with its profile as its tile arrives
+   * and carries the day in the style, so a new tile is coloured on its first frame instead of after `idle`.
    * A STREAM'S POLYGON IS A STREAM — `lake_flowing` / `wetland_flowing` wear the rivers' colouring in every view.
    */
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
-    : i.statusOk ? "status" : "plain";
+    : i.statusOk ? "profile" : "plain";
   const modes: MapModes = {
     stream: river,
     // Lakes answer the same question as the rivers on Conditions (`lake_gauge`, a station IN the lake). On the Map tab
     // a lake left "plain" in Layers wears the day's status; Stocked and Depth are questions the reader asked instead.
     lake: !i.paired ? "plain"
       : onConditions ? (temperature ? "plain" : "standing")
-      : lakeMode === "plain" && i.statusOk ? "status" : lakeMode,
+      : lakeMode === "plain" && i.statusOk ? "profile" : lakeMode,
     lake_flowing: river,
     wetland_flowing: river,
     gauges: temperature ? "temperature" : "standing",

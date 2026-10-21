@@ -6,7 +6,7 @@
  * Layers come from the generated catalog; colours come from tokens; the active
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
-import type { SectionKey } from "@app/core";
+import type { DayProfiles, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
 import {
@@ -58,6 +58,13 @@ export interface MapAdapter {
    * adapter owes the same behaviour the web one has.
    */
   setBasemap(h: MapHandle, kind: "map" | "satellite"): void;
+  /**
+   * THE DAY a `profile` colour mode paints (colour-latency AP): the label sets of @app/core `dayProfiles`, or null
+   * when there is no proven pair or no index — every profile-mode layer then paints its plain mode. Repaints the layers
+   * now in a profile mode, and is remembered, so a later theme or mode change paints the same day. Zero feature-state
+   * calls: the sections' profile labels are the renderer's to set (`ProfileColouring`), once per session.
+   */
+  setStatusDay(h: MapHandle, day: DayProfiles | null, themeName: string, overrides?: Tokens): void;
   /** Push the per-feature data a colour mode reads (status, discharge, …). */
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
   /**
@@ -84,8 +91,15 @@ function colourPropFor(type: string | undefined): string {
  * MapLibre's defaults — black lines over the basemap — before snapping to the palette.
  * One function means the first frame and every frame after it are painted the same way.
  */
-export function paintFor(layerId: string, mode: string, tokens: Tokens):
-    Record<string, unknown> {
+export function paintFor(layerId: string, mode: string, tokens: Tokens,
+                         day: DayProfiles | null = null): Record<string, unknown> {
+  /*
+   * A PROFILE MODE WITH NO DAY IS THE PLAIN MAP. The day is installed only on a proven pair whose index passed its digest
+   * checks (`setStatusDay`); without one there is no answer to draw, and the app's rule is that "not asked" stays plain
+   * rather than going grey or — worse — keeping another release's colours.
+   */
+  if (day === null && STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile")
+    return paintFor(layerId, "plain", tokens);
   const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
     ?.type;
   /**
@@ -101,7 +115,7 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
    * expression would be one more place for the two to drift apart.
    */
   const selected = ["boolean", ["feature-state", "selected"], false];
-  const base = colorExpression(layerId, mode, tokens);
+  const base = colorExpression(layerId, mode, tokens, day);
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
   const out: Record<string, unknown> = {
     [colourPropFor(type)]: isHighlightable && tokens["color.highlight"] !== undefined
@@ -278,14 +292,28 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const typeOf = (layerId: string) =>
     (MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined)?.type;
 
+  /*
+   * WHAT THIS MAP IS PAINTING, remembered — the one piece of state an adapter keeps (colour-latency AP). A `profile`
+   * mode needs the day, and the day arrives on its own schedule: a theme toggle or a mode change must paint the day
+   * already installed, and a day change must repaint exactly the layers now in a profile mode. Without it either order
+   * of arrival leaves a layer painted from a day it was never given (verifier's design risk: "any theme or view toggle
+   * silently turns every section to the missing grey").
+   */
+  const modeOf: Record<string, string> = {};
+  let day: DayProfiles | null = null;
+  const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
+    modeOf[layerId] = mode;
+    for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens, day)))
+      h.setPaint(layerId, prop, value);
+  };
+
   const apply = (h: MapHandle, viewId: string, themeName: string, overrides: Tokens = {}) => {
     const view = STYLE_META.views.find((v) => v.id === viewId);
     if (!view) throw new Error(`unknown view "${viewId}"`);
     const tokens = resolveTheme(themeName, overrides);
     for (const [layerId, mode] of Object.entries(view.modes)) {
       if (isRuntimeLayer(layerId)) continue;   // drawn from a feed; see style.ts
-      for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
-        h.setPaint(layerId, prop, value);
+      paint(h, layerId, mode, tokens);
       /*
        * AND THE ZOOM RANGE THIS VIEW GIVES IT.
        *
@@ -322,8 +350,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         throw new Error(`layer "${layerId}" has no colour mode "${mode}" ` +
                         `(has ${Object.keys(modes).join(", ")})`);
       const tokens = resolveTheme(themeName, overrides);
-      for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
-        h.setPaint(layerId, prop, value);
+      paint(h, layerId, mode, tokens);
       // THE ZOOM GOES WITH THE COLOUR. This is the path the app actually uses — it renders
       // one view and sets each layer's mode — so a rule applied only in `applyView` would
       // never fire in the running app.
@@ -336,10 +363,16 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
        */
       for (const follower of followersOf(layerId)) {
         const m = followerMode(follower, mode);
-        for (const [prop, value] of Object.entries(paintFor(follower, m, tokens)))
-          h.setPaint(follower, prop, value);
+        paint(h, follower, m, tokens);
         zoomFor(h, follower, m);
       }
+    },
+
+    setStatusDay(h, next, themeName, overrides = {}) {
+      day = next;
+      const tokens = resolveTheme(themeName, overrides);
+      for (const [layerId, mode] of Object.entries(modeOf))
+        if (STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile") paint(h, layerId, mode, tokens);
     },
 
     highlight(h, featureIds) {

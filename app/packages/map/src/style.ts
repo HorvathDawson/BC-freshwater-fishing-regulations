@@ -3,7 +3,7 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
-import { WATER_STATUS, type WaterStatus } from "@app/core";
+import { WATER_STATUS, type DayProfiles, type WaterStatus } from "@app/core";
 import style from "../style/style.json" with { type: "json" };
 import meta from "../style/style.meta.json" with { type: "json" };
 
@@ -31,7 +31,10 @@ export type ColorMode =
   | { label: string; scale: "categorical"; property: string; enum?: string;
       categories: Record<string, TokenRef>; missing?: TokenRef }
   | { label: string; scale: "continuous"; property: string;
-      stops: [number, TokenRef][]; missing: TokenRef };
+      stops: [number, TokenRef][]; missing: TokenRef }
+  /** Categorical one step removed: feature-state holds a profile LABEL, the day says which labels are which member. */
+  | { label: string; scale: "profile"; property: string; enum: string;
+      categories: Record<string, TokenRef>; missing: TokenRef };
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
 
@@ -169,12 +172,33 @@ export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
  * resolved. Categorical and continuous modes read from FEATURE-STATE, so switching
  * view or theme never refetches a tile.
  */
-export function colorExpression(layerId: string, modeName: string, t: Tokens): unknown {
+export function colorExpression(layerId: string, modeName: string, t: Tokens,
+                                day: DayProfiles | null = null): unknown {
   const mode = STYLE_META.colorModes[layerId]?.[modeName];
   if (!mode) throw new Error(`layer "${layerId}" has no colour mode "${modeName}"`);
   const val = (r: TokenRef) => t[r.token];
 
   if (mode.scale === "static") return val(mode.color);
+
+  if (mode.scale === "profile") {
+    /*
+     * THE DAY, IN THE STYLE (colour-latency AP). One match over the profile labels the day places — the sets come from
+     * @app/core `dayProfiles`, never worked out here (AGENTS 23). A label in no set, or no label at all, is `missing`.
+     * `coalesce` to "" so a feature with no state yet is a string like every label (a match takes one label type —
+     * the reason the labels are strings, which Android's paint needs anyway). Empty sets are left out: MapLibre refuses
+     * an empty label list. With no day there is nothing to place, so every feature is `missing` — and `paintFor` never
+     * gets that far, it paints the plain mode instead.
+     */
+    if (day === null) return val(mode.missing);
+    const out: unknown[] = ["match", ["coalesce", ["feature-state", mode.property], ""]];
+    for (const [member, ref] of Object.entries(mode.categories)) {
+      const labels = day[member as keyof DayProfiles];
+      if (labels === undefined) throw new Error(`profile mode "${modeName}" colours "${member}", which no day places`);
+      if (labels.length) out.push([...labels], val(ref));
+    }
+    out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
+    return out.length > 3 ? out : val(mode.missing);
+  }
 
   const read = ["feature-state", mode.property];
   if (mode.scale === "categorical") {

@@ -17,6 +17,7 @@ describe("a water's status — one answer for the map and every list", () => {
     // the not-integrated flag: a second definition of "own" beside the pipeline's (AGENTS 23).
     expect("waterStatus" in status).toBe(false);
     expect(Object.keys(status).sort()).toEqual(
-      ["WATER_STATUS", "WATER_STATUSES", "statusOfCode", "statusOn", "waterStatusOn"]);
+      ["UNLISTED_PROFILE", "WATER_STATUS", "WATER_STATUSES", "dayProfiles", "profileLabel", "statusOfCode",
+       "statusOn", "waterStatusOn"]);
   });
 });
