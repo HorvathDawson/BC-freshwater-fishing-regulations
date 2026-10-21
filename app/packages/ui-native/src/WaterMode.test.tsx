@@ -20,11 +20,12 @@ vi.mock("@app/map", async (orig) => ({
 }));
 // the panel is not under test: it says which reach and which "you are here" it was handed, and it takes the body swipe
 // the Shell hands it the way the real panel does (ConditionsPanel.test pins that the real one does)
-vi.mock("./ConditionsPanel", async () => {
+vi.mock("./ConditionsPanel", async (importOriginal) => {
+  const real = await importOriginal<typeof import("./ConditionsPanel")>();
   const { useContext } = await import("react");
   const { Text } = await import("react-native");
   const { ViewSwipe, WaterViewsContext } = await import("./ViewSwipe");
-  return { ConditionsPanel: ({ section, from }: { section: number; from?: { lat: number } | null }) => {
+  return { ...real, ConditionsPanel: ({ section, from }: { section: number; from?: { lat: number } | null }) => {
     const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
     const text = <Text>{`panel for ${section} at ${from?.lat ?? "nowhere"}`}</Text>;
     return swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-conditions">{text}</ViewSwipe> : text;
@@ -61,7 +62,7 @@ async function mount() {
   const source = makeFixtureSource();
   const water = await source.water(CHILLIWACK);
   const sid = water!.sections[1] ?? water!.sections[0]!;
-  const start: Route = { mode: "browse", tab: "conditions", cond: { section: sid, at: AT }, spot: null, adding: false };
+  const start: Route = { mode: "browse", tab: "conditions", cond: { section: sid, at: AT }, spot: null, adding: false, shown: null };
   render(
     <GestureHandlerRootView>
       <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}

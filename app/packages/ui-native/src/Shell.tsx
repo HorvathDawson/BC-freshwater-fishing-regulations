@@ -147,7 +147,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const toRegulations = useCallback(async (sid: SectionId, at: LatLon | null) => {
     const found = await source.itemForSection(sid);
-    if (found) { setPicked(null); go({ type: "openWater", item: found, tapSid: sid, at }); }
+    if (found) { go({ type: "openWater", item: found, tapSid: sid, at }); }
   }, [source, go]);
   /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
   const viewSwipe = useViewSwipe(route, go, toRegulations);
