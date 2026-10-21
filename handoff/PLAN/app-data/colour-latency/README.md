@@ -14,9 +14,13 @@ GPU-accelerated? This is a measurement report. No production code changed: the p
 - **Store the section's PROFILE in the feature-state, and put the day in the style (the P variants).** This is
   base+deltas as the paint index already holds it. A section's state is set once per session. A day change is one
   `setPaintProperty` with a match of about 115 labels (443 bytes, 0.5–3 ms) and **zero** feature-state calls.
-- **Native: the binding has no per-tile event, so colour a ring around the user (E1P).** The ring is one viewport on
-  each side, read from a section→cell index and set ahead of the camera. It also gave 0 grey pans on web.
-  **One approach for both platforms:** E1P with P state everywhere, plus A on web as a safety net (E1AP).
+- **Native: OPEN — decide after N2.** The binding has no per-tile event. The ring around the user (E1P) proposed here
+  is **not supported as stated**: the independent verification found the E numbers **4.6–6× too low** (see
+  "Corrections" below). Options for N2 to settle: a native tile-loaded event or a bulk feature-state module (AP on
+  native, no index), or E with a zoom floor. The "one approach for both platforms (E1AP)" line is withdrawn.
+
+**SHIPPED (web), 2026-10-21: AP** — see "AP in the real app" at the end: 0 grey frames after a pan at z8, z11 and z13,
+desktop and phone, against 8 of 9 pans grey for ~0.5 s before.
 
 ## Today, in the real app (expo web dev build, `app_run.py`)
 
@@ -107,6 +111,18 @@ Tables: `harness/table.py runs/ results.json`. Per-run summaries are in `runs/`.
 
 ## E: a ring around the user (the owner's idea)
 
+> **CORRECTION (independent verification, 2026-10-21).** Every E row in the tables above, and the E costs below, used
+> a cell index built from **z11 tiles only** (`build-cell-index.mjs`), and z11 tiles are thinned: one z11 cell
+> (335/676) carries 94 ids in its own tile but 444 in its z14 children. The harness index held 67k (cell, id) pairs
+> for the test area; a complete one holds **431k** — the E figures are **4.6–6× too low**. Re-run with the complete
+> index: E1P calls per step **9,446 / 2,809** median (desktop / phone; was 1,627 / 671), **42,415 / 12,982** max (was
+> 7,515 / 2,389), start-up 19.6k calls (was 4.3k). "No long tasks" no longer holds: E1P **256 ms** of long tasks on
+> desktop (max 193 ms, the zoom-in), 62 ms on the phone; E1 357 ms. Still 0 grey steps. On native at N1's 0.1 ms per
+> call that is **~280 ms median and ~1.3 s max per step** at z11 (not 67 / 240 ms), ~0.5 s at start-up, and at z9 /
+> z8 a phone ring is ~57k / ~230k calls (~5.7 s / ~23 s). **Native E1P is not supported as stated**; it would need a
+> zoom floor or a zoom-split index (hard: tippecanoe drops by density, not by section). The province index size below
+> (~2.1M pairs, 1.11 cells per section) was right.
+
 - **The buffer MapLibre gives you is about none.** GL JS requests only the tiles that cover the viewport. It keeps
   recently seen tiles in an LRU cache but does not prefetch a ring, so `querySourceFeatures` cannot see ahead. Native
   adds only `prefetchZoomDelta`, which fetches LOWER-zoom parents; those carry the big rivers, not the small streams.
@@ -141,16 +157,18 @@ the cheap way to get a tile's ids uses GL JS internals (`tile.latestFeatureIndex
 through `harness/mvt-ids.js`). Those must be pinned to 5.24 behind a test. The public route,
 `querySourceFeatures` per source-layer, is heavier and was not measured.
 
-**Native: E1P** (ring of one viewport on each side, P state, day in the style), from the province section → cell
-index shipped with the tiles. Estimate from N1's 0.1 ms per call: **about 67 ms median and 240 ms max** of async
-TurboModule work per pan for a phone viewport. A day change costs one paint-property set (N1 measured style
+**Native: OPEN — decide after N2** (a native tile event or bulk state, or a zoom floor). The text below is the
+original proposal, kept for the record; its numbers are corrected above (E is 4.6–6× costlier than stated).
+
+~~**Native: E1P**~~ (ring of one viewport on each side, P state, day in the style), from the province section → cell
+index shipped with the tiles. Estimate from N1's 0.1 ms per call: ~~about 67 ms median and 240 ms max~~ (corrected:
+~280 ms median, ~1.3 s max at z11) of async TurboModule work per pan for a phone viewport. A day change costs one paint-property set (N1 measured style
 operations at about 225 ms for a whole style swap; a single paint property should cost less) and **no**
 feature-state calls. Without P, a day change would be about 2.6k calls, about 260 ms. Native reads the atlas from
 local disk, so a tile arrives in tens of ms. The ring has to be set before that, which is why the margin matters more
 on native than on web.
 
-**If one approach must serve both: E1P**, plus A on web as a safety net (E1AP: 0 grey frames, 2.6 / 4.1 ms per pan
-on desktop / phone, 0 day-change calls).
+~~**If one approach must serve both: E1P**, plus A on web as a safety net (E1AP).~~ Withdrawn: see the correction.
 
 ### What needs the emulator (N2) to confirm
 - That MapLibre Native applies a feature-state set **before** a feature's tile loads (GL JS does: `SourceFeatureState`
@@ -180,3 +198,62 @@ on desktop / phone, 0 day-change calls).
   `build-cell-index.mjs` + `mvt-ids.js` (E's index), `table.py`.
 - `count_overrides.py` → `overrides_by_day.json`; `count_region_overrides.py` → `region_overrides_by_day.json` (C);
   `cell_index_size.py` (E index size); `results.json` and `runs/` (per-run summaries).
+- `harness/app_measure.py` + `harness/app_table.py` (before/after in the real app, below); `after/` (runs + shots).
+
+## Other corrections from the verification
+- **A day change under P reloads every atlas tile.** In 5.24, setting a paint property that reads feature-state marks
+  the source for reload (`Style._updateLayer`). The 0.5–3 ms `setPaintProperty` is the sync part only; `idle` comes
+  ~320–360 ms later (today's path: 12–43 ms). The verifier's pixel test: the picture settles 45–55 ms after the change,
+  so it is not a stale window, but it grows with the number of loaded tiles.
+- **The probe cannot see a P day change** (it derives "want" and "effective" from the same table), and skips tidal /
+  outside sections. Day changes are pinned instead by unit tests (core `dayProfiles` ≡ `statusOn` on the pipeline's
+  fixture; the profile expression whole) and, in the real app below, by the settled pixels.
+- The recommended expression mixed a numeric fallback with string labels; the shipped one coalesces to `""` (a match
+  takes one label type), and labels are strings (`p17`, `b` for unlisted) for Android.
+
+## AP in the real app (shipped, web) — before / after
+
+Commit 1340c7b7. `harness/app_measure.py` on the expo web dev build of this branch (release r-6960fe8201e3, tiles
+d768d6e135e62b99.c9f9604f12bf, own servers on :39471/:39472, Metal), 9 one-viewport pans at (−121.0, 52.0) at each of
+z8, z11 and z13, then three day changes ("One month earlier") and a theme change (Layers → Palette → Dark). "Grey" = a
+rendered frame with a visible stream / lake / lake_flowing / wetland_flowing section that has no colour state
+(`status` before, `p` after). Work = the time inside the colouring per pan (`setFeatureState` time, or the map's own
+`__colourCost` record of id extraction + labelling, whichever is larger). Before = 1014fec7, the idle → React path.
+
+| run | zoom | pans grey moving / after | grey frames after | pan end → all coloured ms, median / max | work per pan ms, median / max | setFeatureState per pan, median / max | long tasks ms |
+|---|---|---|---|---|---|---|---|
+| before, desktop 1280×800 | z8 | 8 / 8 of 9 | 484 | 504 / 578 | 0.7 / 1.2 | 2,853 / 4,905 | 0 |
+| before, desktop | z11 | 8 / 8 | 490 | 527 / 563 | 0.4 / 1.1 | 855 / 1,629 | 0 |
+| before, desktop | z13 | 8 / 8 | 481 | 510 / 552 | 0.1 / 0.3 | 315 / 486 | 0 |
+| **after, desktop** | z8 | **0 / 0** | **0** | **0** | 0.2 / 2.1 | 308 / 574 | 0 |
+| **after, desktop** | z11 | **0 / 0** | **0** | **0** | 0.2 / 1.3 | 245 / 898 | 0 |
+| **after, desktop** | z13 | **0 / 0** | **0** | **0** | 0.2 / 0.3 | 96 / 135 | 0 |
+| before, phone 390×844, 4G + 4× CPU | z8 | 8 / 8 | 624 | 574 / 889 | 2.0 / 4.0 | 1,620 / 3,000 | 108 |
+| before, phone | z11 | 8 / 8 | 504 | 536 / 867 | 0.6 / 1.4 | 528 / 900 | 0 |
+| before, phone | z13 | 8 / 8 | 398 | 490 / 565 | 0 / 0.8 | 132 / 168 | 0 |
+| **after, phone** | z8 | **0 / 0** | **0** | **0** | 0.8 / 1.7 | 180 / 321 | 0 |
+| **after, phone** | z11 | **0 / 0** | **0** | **0** | 0.2 / 1.1 | 42 / 152 | 0 |
+| **after, phone** | z13 | **0 / 0** | **0** | **0** | 0.8 / 1.6 | 28 / 73 | 0 |
+| after, PUBLIC route, desktop | z8 / z11 / z13 | 0 / 0 each | 0 | 0 | 2.6 / 6.4 · 2.6 / 4.6 · 0.9 / 2.2 | as above | 0 |
+| after, PUBLIC route, phone | z8 / z11 / z13 | 0 / 0 each | 0 | 0 | 6.1 / 13.1 · 2.6 / 5.8 · 2.4 / 3.8 | as above | 0 |
+
+(The 9th pan returns to an area already coloured, hence 8 of 9 before. After AP a section is labelled once per
+session, so the per-pan calls are only the sections never seen before.)
+
+- **Day change** (×3): before 2,190 (desktop) / 705 (phone) `setFeatureState` calls, 0.5–1.8 ms; after **0 calls**,
+  0.1–0.3 ms (desktop) / 0.7–1.4 ms (phone) sync for the new expression on 5 layers; idle +370–560 ms after (the
+  tile reload above; before: 390–590 ms, which includes the next idle push); 0 grey frames; 0 long tasks.
+- **Theme change** (Dark): before re-pushed 2,190 / 705 states; after **0 calls**, the rivers keep the profile paint
+  (`paint profile` checked after the change — the day is remembered by the adapter, not lost to grey or plain).
+- **Same picture.** The settled screenshots after the pans, the day changes and the theme change are **byte-identical**
+  before and after (`after/status-*.png` vs `after/p-*.png`, 8 of 8 pairs): the profile path draws exactly the
+  colours the status path drew.
+- **Heap** (JS, with the per-frame probe running, so noisy): desktop start/after pans/after day/end 95 / 101 / 80 /
+  193 MB after vs 94 / 106 / 89 / 83 before; phone 53 / 99 / 67 / 103 vs 43 / 78 / 118 / 150. No growth trend
+  attributable to the labels; the de-dupe is a ~245 KB bitset per source-layer.
+- **The public route** (`querySourceFeatures`, used where GL 5.24's internals are absent; forced with the dev flag
+  `__colourPublic`): still 0 grey, at ~2.5–6 ms of work per pan (up to 13 ms on the throttled phone at z8) — a sound
+  fallback, ~10× the internals route. It cannot see tiles revived from GL's out-of-view cache, so it also rescans on
+  `moveend`.
+- **Not measured here:** a real phone (4× CPU + 4G on an M5 Pro), a release swap in the running app (pinned by
+  `profile-paint.test.ts`, call by call), native (open until N2).

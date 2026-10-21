@@ -1,0 +1,1031 @@
+{
+ "state": "p",
+ "public": false,
+ "size": "390x844",
+ "net": "4g",
+ "cpu": 4.0,
+ "byZoom": {
+  "z8": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.8,
+    "max": 1.7
+   },
+   "fsCalls": {
+    "median": 180,
+    "max": 321
+   },
+   "longtasksMs": 0
+  },
+  "z11": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.2,
+    "max": 1.1
+   },
+   "fsCalls": {
+    "median": 42,
+    "max": 152
+   },
+   "longtasksMs": 0
+  },
+  "z13": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.8,
+    "max": 1.6
+   },
+   "fsCalls": {
+    "median": 28,
+    "max": 73
+   },
+   "longtasksMs": 0
+  }
+ },
+ "changes": [
+  {
+   "label": "day-1",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:265",
+     1.4,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 429,
+   "greyFrames": 0,
+   "frames": 294,
+   "longtasks": 0
+  },
+  {
+   "label": "day-2",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:234",
+     0.7,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 531,
+   "greyFrames": 0,
+   "frames": 291,
+   "longtasks": 0
+  },
+  {
+   "label": "day-3",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "status:203",
+     0.9,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 380,
+   "greyFrames": 0,
+   "frames": 290,
+   "longtasks": 0,
+   "paint": "profile"
+  },
+  {
+   "label": "theme-dark",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "idleMs": 482,
+   "greyFrames": 0,
+   "frames": 284,
+   "longtasks": 0,
+   "paint": "profile"
+  }
+ ],
+ "heapMB": {
+  "start": 53,
+  "afterPans": 99,
+  "afterDay": 67,
+  "end": 103
+ },
+ "rows": [
+  {
+   "label": "z8/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.1,
+   "fsMs": 1.0,
+   "fsCalls": 195,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.6,
+   "fsMs": 0,
+   "fsCalls": 195,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.1,
+   "fsMs": 0.9,
+   "fsCalls": 138,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 189,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.7,
+   "fsMs": 1.0,
+   "fsCalls": 321,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.8,
+   "fsMs": 0.6,
+   "fsCalls": 180,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.1,
+   "fsMs": 0,
+   "fsCalls": 60,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.9,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.5,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.2,
+   "fsMs": 0.1,
+   "fsCalls": 31,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.2,
+   "fsMs": 0,
+   "fsCalls": 71,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.6,
+   "fsMs": 0.1,
+   "fsCalls": 152,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.1,
+   "fsMs": 0.1,
+   "fsCalls": 133,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.1,
+   "fsMs": 0.1,
+   "fsCalls": 112,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.9,
+   "fsMs": 0,
+   "fsCalls": 42,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.4,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan1",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.8,
+   "fsMs": 0.7,
+   "fsCalls": 39,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan2",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.1,
+   "fsMs": 0.1,
+   "fsCalls": 39,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan3",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan4",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 1.6,
+   "fsMs": 0.1,
+   "fsCalls": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan5",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.8,
+   "fsMs": 0,
+   "fsCalls": 14,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan6",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.6,
+   "fsMs": 0,
+   "fsCalls": 73,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan7",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan8",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0.9,
+   "fsMs": 0,
+   "fsCalls": 68,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan9",
+   "greyMoving": 0,
+   "greyAfter": 0,
+   "colouredMs": 0,
+   "maxGreyFrac": 0.0,
+   "workMs": 0,
+   "fsMs": 0,
+   "fsCalls": 0,
+   "longtasks": 0
+  }
+ ]
+}
