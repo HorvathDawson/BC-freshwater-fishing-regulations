@@ -400,6 +400,10 @@ Satellite toggle was DROPPED in this run (`imagery` stayed `none`). Pan colourin
 PIPELINE NEED: a per-section (or per-item) stocking date and survey state in the release; then each is an engine
 channel like `standing` (label = the static fact, e.g. last-stocked day or `digitised`/`sheet`; the band by day in
 the style, or a daily relabel) — no adapter code, no tile rebuild.
+**DONE 2026-10-21** (`handoff/PLAN/app-data/lake-values/README.md`): the release file `lakes` (`lake_facts.bin`, per lake
+section: sheet / digitised, last stocked day; FFSBC roster + both sheet rosters) and two engine channels, `survey` and
+`stocked` (the band for today, relabelled on a new day), handed in as `MapProps.lakes`. Live on the web: the lakes carry
+`stocked` / `survey` from a release that ships the file and nothing from one that does not, on the same tiles.
 
 ### Native (N2) — superseded by "Native: the engine on a phone" below
 

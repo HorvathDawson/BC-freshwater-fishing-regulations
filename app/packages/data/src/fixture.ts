@@ -290,6 +290,8 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async basinMembers() { return new Map(); },
     // No panel, no lake station, no basin: every section is unmeasured, which is what the viewport path answers too.
     async standingClasses() { return buildStandingClasses("fixture", [], new Map(), new Map(), new Map()); },
+    // No survey sheets or stocking roster in the design fixture: the lake modes have nothing to colour.
+    async lakeFacts() { return null; },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

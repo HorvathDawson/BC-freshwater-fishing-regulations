@@ -9,9 +9,10 @@
  * a feed refresh that touches a section.
  */
 import { describe, expect, it } from "vitest";
-import { dayOfYear, type StatusCode, type StatusIndex } from "@app/core";
+import { dayOfYear, type LakeFacts, type StatusCode, type StatusIndex, type SurveyState } from "@app/core";
 import { baseAdapter, paintFor, type MapHandle } from "./adapters/contract";
-import { Colouring, coloursEachTile, standingInput, statusInput, type LabelTarget, type StandingFeed,
+import { Colouring, coloursEachTile, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
+         type StandingFeed,
          type TileRenderer, type TileSections } from "./colouring";
 import { resolveTheme, type StandingValues } from "./style";
 
@@ -275,6 +276,76 @@ describe("the standing channel: the same engine, the Conditions map's values", (
     r.adapter.setLayerMode(r.h, "stream", "standing", "light");
     r.adapter.setLayerMode(r.h, "stream", "plain", "light");
     expect(r.take().filter((x) => x.startsWith("dash"))).toEqual(["dash on", "dash off"]);
+  });
+});
+
+describe("the lake channels: survey and stocked, the Depth and Stocked modes' values (owner 2026-10-21)", () => {
+  const TODAY = 46314;                 // 2026-10-21, days since 1900-01-01
+  const lakeFacts = (name: string, survey: Record<number, SurveyState>, stocked: Record<number, number>): LakeFacts =>
+    ({ handles: name, asof: TODAY, sections: 3, survey: (s) => survey[s] ?? null, stockedDay: (s) => stocked[s] ?? null });
+  /** 12 a sheet stocked 30 days ago, 14 digitised and never stocked, 15 stocked 400 days ago; 16 nothing. */
+  const F1 = lakeFacts("F1", { 12: "sheet", 14: "digitised" }, { 12: TODAY - 30, 15: TODAY - 400 });
+  /** The next release: 15 has been surveyed. */
+  const F2 = lakeFacts("F2", { 12: "sheet", 14: "digitised", 15: "sheet" }, { 12: TODAY - 30, 15: TODAY - 400 });
+  const lakes = (facts: LakeFacts, day = TODAY) => ({ facts, day });
+
+  it("each labels the loaded lakes with its own key — and paints NOTHING: the values are the labels", () => {
+    const r = rig({ lake: "stocked" });
+    r.take();
+    r.setTiles([{ stream: [10, 11], lake: [12, 14, 15, 16] }]);
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F1)), "light");
+    r.c.set(r.h, r.target, r.renderer, "stocked", stockedInput(lakes(F1)), "light");
+    expect(r.take()).toEqual([
+      'state lake 12 {"survey":"sheet"}', 'state lake 14 {"survey":"digitised"}',
+      'state lake 12 {"stocked":"season"}', 'state lake 15 {"stocked":"recent"}',
+    ]);
+    // a tile arriving after: ONE call per lake, carrying both keys
+    expect(r.c.label(r.target, { lake: [22, 12] })).toBe(0);
+    const r2 = rig({ lake: "surveyed" });
+    r2.c.set(r2.h, r2.target, r2.renderer, "survey", surveyInput(lakes(F1)), "light");
+    r2.c.set(r2.h, r2.target, r2.renderer, "stocked", stockedInput(lakes(F1)), "light");
+    r2.take();
+    expect(r2.c.label(r2.target, { lake: [12, 14, 15, 16] })).toBe(3);
+    expect(r2.take()).toEqual(['state lake 12 {"survey":"sheet","stocked":"season"}',
+                               'state lake 14 {"survey":"digitised"}', 'state lake 15 {"stocked":"recent"}']);
+  });
+
+  it("A NEW DAY: the stocked bands relabelled on the loaded lakes — feature-state only; the survey untouched", () => {
+    const r = rig({ lake: "stocked" });
+    r.setTiles([{ lake: [12, 14, 15] }]);
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F1)), "light");
+    r.c.set(r.h, r.target, r.renderer, "stocked", stockedInput(lakes(F1)), "light");
+    r.take();
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F1, TODAY + 100)), "light");
+    r.c.set(r.h, r.target, r.renderer, "stocked", stockedInput(lakes(F1, TODAY + 100)), "light");
+    expect(r.take()).toEqual(['state lake 12 {"stocked":"year"}', 'state lake 15 {"stocked":"recent"}']);
+    r.c.set(r.h, r.target, r.renderer, "stocked", stockedInput(lakes(F1, TODAY + 100)), "light");
+    expect(r.take()).toEqual([]);
+  });
+
+  it("A NEW RELEASE ALONE (same tiles): the lakes relabelled from it — no paint; the status put back", () => {
+    const r = rig({ stream: "profile", lake: "stocked" });
+    r.setTiles([{ stream: [10], lake: [12, 15] }]);
+    r.c.set(r.h, r.target, r.renderer, "status", statusInput({ index: A, day: JUN1 }), "light");
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F1)), "light");
+    r.c.set(r.h, r.target, r.renderer, "stocked", stockedInput(lakes(F1)), "light");
+    r.take();
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F2)), "light");
+    expect(r.take()).toEqual([
+      "clear stream", "clear lake", "clear wetland", "restore",
+      'state stream 10 {"p":"p0"}', 'state lake 12 {"p":"p2","stocked":"season","survey":"sheet"}',
+      'state lake 15 {"p":"b","stocked":"recent","survey":"sheet"}',
+    ]);
+  });
+
+  it("WITHDRAWN (the pair no longer proven): cleared and restored — the lakes wear nothing, so the modes paint `missing`", () => {
+    const r = rig({ lake: "surveyed" });
+    r.setTiles([{ lake: [12] }]);
+    r.c.set(r.h, r.target, r.renderer, "survey", surveyInput(lakes(F1)), "light");
+    r.take();
+    r.c.set(r.h, r.target, r.renderer, "survey", null, "light");
+    expect(r.take()).toEqual(["clear stream", "clear lake", "clear wetland", "restore"]);
+    expect(r.c.active).toBe(false);
   });
 });
 

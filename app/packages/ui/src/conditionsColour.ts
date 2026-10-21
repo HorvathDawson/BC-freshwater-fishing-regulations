@@ -46,7 +46,7 @@ export interface ConditionsColourVM {
 /** A source's identity as a cache key: a new source (a release swap) is a new set of classes. */
 const sources = new WeakMap<object, number>();
 let nextSource = 0;
-const sourceKey = (s: object): number => {
+export const sourceKey = (s: object): number => {
   let k = sources.get(s);
   if (k === undefined) sources.set(s, (k = ++nextSource));
   return k;

@@ -506,6 +506,12 @@ export interface RegsSource {
    * Read once per source; the same panels, lakes and basins `panelsFor`, `lakeStationsFor` and `basinMembers` answer.
    */
   standingClasses(): Promise<import("./standing").StandingClasses>;
+  /**
+   * THE LAKE MODES' VALUES, for the whole release (`lakes`, @app/core `decodeLakeFacts`): per lake section, whether it
+   * was surveyed and when it was last stocked — what the map's Depth and Stocked modes colour by, through the colouring
+   * engine. Null where the release ships none (an older release, a bundle, the fixture): the lakes then stay plain.
+   */
+  lakeFacts(): Promise<import("@app/core").LakeFacts | null>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

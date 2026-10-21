@@ -9,13 +9,14 @@
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
-import { decodePaint, decodeFlowArea, type Paint } from "@app/core";
+import { decodeLakeFacts, decodePaint, decodeFlowArea, type LakeFacts, type Paint } from "@app/core";
 import type { Db } from "../bundle/db";
 import type { Manifest } from "../manifest";
 import { REGIONS, type Region } from "../pack.generated";
 
-export type FileName = "paint" | "flow-area" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid" | "conditions";
-export type DbName = Exclude<FileName, "paint" | "flow-area">;
+export type FileName = "paint" | "flow-area" | "lakes" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+  | "conditions";
+export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes">;
 
 export interface ReleaseSource {
   /** The RAW (decoded, verified) bytes of a release file. */
@@ -38,6 +39,8 @@ export interface ReleaseLoader {
   paint(): Promise<Paint>;
   /** The target areas, in paint section order (opened with Conditions). */
   flowArea(): Promise<Float64Array>;
+  /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
+  lakes(): Promise<LakeFacts | null>;
   /** The regions an answer key's frames are in (water.akey_region; loaded with water). */
   regionsOf(akey: number): Promise<Region[]>;
   /** The region file holding an akey's frames (the first of its regions; every one of them holds them). */
@@ -51,6 +54,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   const dbs = new Map<DbName, Promise<Db>>();
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
+  let lakes: Promise<LakeFacts | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
 
@@ -93,6 +97,15 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         area.catch(() => { area = null; });
       }
       return area;
+    },
+    lakes() {
+      if (!lakes) {
+        if (!m.files.lakes) return Promise.resolve(null);
+        touch("lakes");
+        lakes = source.bytes("lakes").then((b) => decodeLakeFacts(b, handles));
+        lakes.catch(() => { lakes = null; });
+      }
+      return lakes;
     },
     async regionsOf(akey) {
       if (!regions) {

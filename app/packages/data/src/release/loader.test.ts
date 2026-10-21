@@ -42,6 +42,20 @@ describe("releaseLoader", () => {
     await L.regionDb(9);                                   // a key in 5 and 7a, neither open: the first, only
     expect(L.opened()).toEqual(["core", "water", "regs-2", "regs-5"]);
   });
+  it("the lake facts: decoded once on first ask against the release's handles; null when the release has none", async () => {
+    const lakes = Uint8Array.from([0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 2, 0]);
+    const asked: string[] = [];
+    const L = releaseLoader(manifest({ core: "c", lakes: "l" }), { bytes: async (n) => { asked.push(n); return lakes; } },
+                            fakeOpen());
+    const f = await L.lakes();
+    expect([f?.survey(12), f?.survey(11), await L.lakes() === f, asked, L.opened()])
+      .toEqual(["digitised", null, true, ["lakes"], ["lakes"]]);
+    expect(await releaseLoader(m, src, fakeOpen()).lakes()).toBeNull();
+    // another atlas's file is refused
+    const other = lakes.slice(); other[5] = 0;
+    const R = releaseLoader(manifest({ lakes: "l" }), { bytes: async () => other }, fakeOpen());
+    await expect(R.lakes()).rejects.toThrow("lake facts: built for handles 0068d6e135e62b99, not d768d6e135e62b99");
+  });
   it("refuses a file whose meta is not the manifest's, and does not cache the failure", async () => {
     const L = releaseLoader(m, src, fakeOpen("core/0"));
     await expect(L.db("core")).rejects.toBeInstanceOf(ReleaseError);

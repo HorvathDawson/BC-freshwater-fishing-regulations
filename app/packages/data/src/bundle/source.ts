@@ -249,6 +249,9 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return out;
     },
 
+    // the bundle carries no lake facts (they are the release's `lakes`): the lakes stay plain
+    async lakeFacts() { return null; },
+
     standingClasses() {
       // the whole tables, once: the same rows `panelsFor` and `lakeStationsFor` read a viewport of
       return (classes ??= (async () => {

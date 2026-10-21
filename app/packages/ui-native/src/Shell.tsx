@@ -16,7 +16,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { useConditionsColour, useDataFacts, useGaugeGeoJSON,
+import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
@@ -272,6 +272,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
                                      horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible });
+  // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
+  const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });
   const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
@@ -450,6 +452,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : statusMapData}
                      standing={cond.standing}
+                     lakes={lakeFeed}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so

@@ -14,7 +14,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import type { StatusIndex } from "@app/core";
+import type { LakeFacts, StatusIndex, SurveyState } from "@app/core";
 import type { MapProps } from "./map-props";
 import type { StandingValues } from "./style";
 
@@ -189,6 +189,38 @@ describe("one colouring engine in the web map", () => {
                                    standing: { labels: LABELS, values: FEED2 } })} />);
     await act(async () => { await Promise.resolve(); });
     expect(log.filter((x) => x.startsWith("paint stream ")).length).toBeGreaterThan(0);
+  });
+
+  it("A NEW RELEASE ALONE recolours the lakes (Stocked / Depth): feature-state only — no paint, no tile, no rebuild", async () => {
+    const TODAY = 46314;
+    const facts = (survey: Record<number, SurveyState>, stocked: Record<number, number>): LakeFacts =>
+      ({ handles: "0".repeat(16), asof: TODAY, sections: 2, survey: (s) => survey[s] ?? null,
+         stockedDay: (s) => stocked[s] ?? null });
+    const R1 = facts({ 12: "sheet" }, { 12: TODAY - 30 });
+    const R2 = facts({ 12: "sheet", 15: "digitised" }, { 12: TODAY - 400, 15: TODAY - 5 });
+    const LAKE_MODES = { stream: "plain", lake: "stocked" };
+    held = [tile({ stream: [10], lake: [12, 15] })];
+    const r = render(<WebMap {...props({ modes: LAKE_MODES, lakes: { facts: R1, day: TODAY } })} />);
+    await waitFor(() => expect(sections()).toEqual([
+      'set atlas/lake 12 {"survey":"sheet"}', 'set atlas/lake 12 {"stocked":"season"}',
+    ]));
+    // a tile arriving: the lake labels in its own load event, both keys in one call
+    log.length = 0;
+    act(() => gl!.fire("sourcedata", { sourceId: "atlas", tile: tile({ lake: [16, 12] }) }));
+    expect(sections()).toEqual([]);
+    log.length = 0;
+    r.rerender(<WebMap {...props({ modes: LAKE_MODES, lakes: { facts: R2, day: TODAY } })} />);
+    await act(async () => { await Promise.resolve(); });
+    // each lake channel swaps in turn (clear the three source-layers, put back what is not ours, relabel)
+    const clear = ["remove atlas/stream undefined *", "remove atlas/lake undefined *", "remove atlas/wetland undefined *"];
+    expect(log.filter((x) => !x.startsWith("remove") || clear.includes(x))).toEqual([
+      ...clear,
+      'set atlas/lake 12 {"stocked":"season","survey":"sheet"}', 'set atlas/lake 15 {"survey":"digitised"}',
+      ...clear,
+      'set atlas/lake 12 {"survey":"sheet","stocked":"recent"}', 'set atlas/lake 15 {"survey":"digitised","stocked":"season"}',
+    ]);
+    expect(log.filter((x) => /^(paint|layout|source|querySourceFeatures)/.test(x))).toEqual([]);
+    expect(built).toBe(1);                       // the same map: no style rebuilt, no tile source recreated
   });
 
   it("THE GROUND goes with the look: satellite switched on mid tile burst, when no `styledata` may follow", async () => {

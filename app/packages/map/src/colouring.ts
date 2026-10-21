@@ -17,6 +17,11 @@
  *              the phone profile (measured, colour-latency README "Conditions"). A new table instead RELABELS the tiles
  *              already loaded (feature-state only: no reload) and is read by every tile that loads after. The basins'
  *              values go on the basins by id (`setChannel`), 190 states.
+ *   survey     label `survey`: a lake's survey state (`sheet` / `digitised`), and
+ *   stocked    label `stocked`: its `stock_recency` band for today — both from the release's lake facts (@app/core
+ *              `LakeFacts`, the file `lakes`), the Depth and Stocked modes' values (owner 2026-10-21: the lake modes go
+ *              through the same pathway, and nothing about them is in the tiles). The values ARE the labels: a new
+ *              release relabels, a new day relabels the stocked bands; neither touches the style.
  *
  * The engine owns, for every channel alike: labelling a tile (one feature-state call per section, carrying every
  * channel's label it lacks), the de-dupe (a bitset per channel and source-layer), the release-swap / withdraw sequence,
@@ -26,7 +31,7 @@
  * Platform-free on purpose: the renderer hands in each tile's ids per source-layer and a target that sets state, so
  * every sequence is tested as plain code (`colouring.test.ts`), not through a browser.
  */
-import { dayOfYear, dayProfiles, profileLabel, type StatusIndex } from "@app/core";
+import { dayOfYear, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
 
@@ -46,8 +51,18 @@ export interface StandingFeed {
   readonly values: StandingValues | null;
 }
 
+/**
+ * The lake modes' values as the map is told them — ONLY on a proven pair: the release's lake facts (per lake section,
+ * surveyed and last stocked; @app/core `LakeFacts`) and TODAY as a day number (days since 1900-01-01, `dayNumber`), which
+ * the stocked bands are counted from.
+ */
+export interface LakeFeed {
+  readonly facts: LakeFacts;
+  readonly day: number;
+}
+
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing";
+export type Channel = "status" | "standing" | "stocked" | "survey";
 
 /**
  * What a channel labels a section with. `of` is the labelling's identity (the index, the classes): another object is
@@ -103,6 +118,35 @@ export function standingInput(s: StandingFeed): ChannelInput {
     valuesKey: v,
     relabels: true,
     values: () => v,
+  };
+}
+
+/**
+ * The Depth mode's channel: each lake's survey state in feature-state `survey` (the key the `surveyed` mode has always
+ * read) — `sheet` or `digitised`; a lake never surveyed gets no key (the mode's `missing`, plain water). Fixed for the
+ * release: the values ARE the labels, so nothing goes in the style.
+ */
+export function surveyInput(l: LakeFeed): ChannelInput {
+  const f = l.facts;
+  return {
+    labels: { key: "survey", of: f, label: (id) => f.survey(id) ?? undefined },
+    valuesKey: f,
+    values: () => f.sections,
+  };
+}
+
+/**
+ * The Stocked mode's channel: each lake's `stock_recency` band in feature-state `stocked` (the key the `stocked` mode has
+ * always read), counted from the day. A new DAY relabels the loaded lakes (a band may move on); a lake never stocked
+ * gets no key (the mode's `missing`, which is the `never` colour).
+ */
+export function stockedInput(l: LakeFeed): ChannelInput {
+  const f = l.facts, day = l.day;
+  return {
+    labels: { key: "stocked", of: f, label: (id) => stockRecency(f.stockedDay(id), day) ?? undefined },
+    valuesKey: day,
+    relabels: true,
+    values: () => day,
   };
 }
 

@@ -11,7 +11,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { STYLE_META } from "@app/map";
-import { lakeChoices } from "./LayersSheet";
+import { STOCK_RECENCY } from "@app/core";
+import { STOCK_BANDS, lakeChoices } from "./LayersSheet";
 import { LIGHT } from "./theme";
 
 const modesFor = (layer: string) => Object.keys(STYLE_META.colorModes[layer] ?? {});
@@ -37,6 +38,12 @@ describe("Layers choices", () => {
     // near-empty map, because most of the 2,741 sheets were never traced into vectors
     expect(modesFor("lake"), `Depth -> mode "${depth!.mode}"`).toContain(depth!.mode);
     expect(depth!.mode).not.toBe("plain");
+  });
+
+  it("the Stocked legend's bands are the ones the map colours by (@app/core STOCK_RECENCY), in the style's order", () => {
+    expect(STOCK_BANDS.map((b) => b.days)).toEqual(STOCK_RECENCY.map((b) => b.days));
+    expect(STOCK_RECENCY.map((b) => b.band)).toEqual(
+      (STYLE_META as unknown as { enums: Record<string, string[]> }).enums.stock_recency!.filter((x) => x !== "never"));
   });
 
   it("gives every choice three swatches, because the swatches are the label", () => {

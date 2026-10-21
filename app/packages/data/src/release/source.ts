@@ -12,7 +12,9 @@
  *   single-file reads    `RELEASE_QUERIES` (`./queries.ts`), each on the file the contract says holds its table
  *   cross-file reads     two KEYED reads joined in code (`CROSS`), never a join across files
  *   panels, basins       paint's decoded arrays (`Paint.panelOf`, `members`, `basins`) + flow-area's target areas
- *   charts, stocking     no producer ships them: `lakeInfo` null, `stockingHistory` empty, `stocked` false
+ *   lake modes           `lakes` (`lakeFacts`): per lake section, surveyed and last stocked — the map's Depth / Stocked
+ *   charts, stocking     no per-lake sheet or release list is shipped: `lakeInfo` null, `stockingHistory` empty,
+ *                        search's `stocked` false
  *   regulations          `regulationKeys`: core → water → the key's region file (`loader.regionDb`)
  *
  * What it opens, and when, is the loader's to say: paint at start, core on the first tap or search, near on the first
@@ -280,6 +282,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
 
     async basinMembers() {
       return basinsOf();
+    },
+
+    lakeFacts() {
+      return loader.lakes();
     },
 
     standingClasses() {

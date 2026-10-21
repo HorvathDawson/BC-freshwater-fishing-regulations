@@ -37,7 +37,8 @@ import { hereImage } from "./here-mark";
 import { labelShift } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
-import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, withoutEngineKeys, type LabelTarget,
+import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+         type LabelTarget,
          type TileRenderer,
          type Channel, type ChannelInput, type TileSections } from "./colouring";
 import { sourceTiles, tileIds } from "./tile-ids.web";
@@ -221,7 +222,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
-                      zoomControls, status, standing, marks, onPressMark }: MapProps) {
+                      zoomControls, status, standing, lakes, marks, onPressMark }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   /**
@@ -678,6 +679,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             [status?.index, statusDay, at.atlas]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),
             [standing?.labels, standing?.values, at.atlas]);
+  // the lake modes (Depth, Stocked): the release's lake facts — a new release relabels both, a new day the stocked bands
+  useEffect(() => toChannel("survey", lakes ? surveyInput(lakes) : null, "survey"), [lakes?.facts, at.atlas]);
+  useEffect(() => toChannel("stocked", lakes ? stockedInput(lakes) : null, `stocked:${lakes?.day ?? ""}`),
+            [lakes?.facts, lakes?.day, at.atlas]);
 
 
   /**

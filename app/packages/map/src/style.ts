@@ -62,8 +62,12 @@ export interface StandingValues {
 export interface ChannelValues {
   status: DayProfiles | null;
   standing: StandingValues | null;
+  /** The lake channels' values are their labels, so the style reads nothing here: the day the bands count from, */
+  stocked: number | null;
+  /** and how many lake sections the release's facts list — a record, not a colour. */
+  survey: number | null;
 }
-export const NO_VALUES: ChannelValues = { status: null, standing: null };
+export const NO_VALUES: ChannelValues = { status: null, standing: null, stocked: null, survey: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;

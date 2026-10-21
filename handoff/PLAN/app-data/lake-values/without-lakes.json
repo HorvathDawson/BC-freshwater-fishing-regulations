@@ -1,0 +1,25 @@
+{
+ "release": "r-1bb06fa28daf",
+ "Stocked": {
+  "rendered": 95,
+  "stocked": {},
+  "survey": {},
+  "keys": {
+   "p": 95
+  },
+  "fill": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c21"
+ },
+ "Depth": {
+  "rendered": 93,
+  "stocked": {},
+  "survey": {},
+  "keys": {
+   "p": 93
+  },
+  "fill": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c21"
+ },
+ "release_files_fetched": [
+  "core",
+  "paint"
+ ]
+}

@@ -8,7 +8,7 @@ import type { SectionKey } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
-import type { ProfileStatus, StandingFeed } from "./colouring";
+import type { LakeFeed, ProfileStatus, StandingFeed } from "./colouring";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
 export interface MapMark {
@@ -166,6 +166,16 @@ export interface MapProps {
    * a release swap) clears every label the map set.
    */
   standing?: StandingFeed | null;
+  /**
+   * THE LAKE MODES' VALUES, for the lakes in the `stocked` and `surveyed` colour modes (Stocked, Depth) — the same engine
+   * again (`colouring.ts`, the `stocked` and `survey` channels): the release's lake facts and today. Each lake section is
+   * labelled with its survey state and its stocked band as its tile arrives; a new release (new facts) or a new day
+   * relabels the loaded lakes (feature-state only). Nothing about a lake's survey or stocking is in the tiles, so a new
+   * release alone recolours them. Handed over in every lake mode, so a mode switch is one paint change.
+   *
+   * ONLY ON A PROVEN PAIR (P11), like `status`: absent or null otherwise, and taking it away clears every label set.
+   */
+  lakes?: LakeFeed | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *
