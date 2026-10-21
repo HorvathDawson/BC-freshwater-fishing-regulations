@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
-import { AGE_DIM, daySegments, profileIndex, segmentIndex, tapDay, TapError } from "./tap";
+import { AGE_DIM, daySegments, profileIndex, segmentIndex, tapDay, TapError, yearSegments } from "./tap";
 
 const ALL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 const MON_THU = ["Monday", "Tuesday", "Wednesday", "Thursday"] as const;
@@ -137,5 +137,27 @@ describe("profileIndex (static licence.profiles)", () => {
       .toThrow(new TapError('regs: status "veteran" is not one of ["none","indian_bc_resident","metis","disabled","aged_65_plus"]'));
     expect(() => profileIndex({ age: "adult", residency: "resident" }, DIMS, PROFILES.slice(1)))
       .toThrow(new TapError("regs: no licence profile resident/16_plus/non_guided/none"));
+  });
+});
+
+describe("yearSegments (T09 displayByDay): every leap-calendar day's segment, each on its own weekday", () => {
+  it("a key without moments: the bisect of each day, 366 long (the Vedder: Jun 1–30 is segment 2)", () => {
+    const y = yearSegments(VEDDER, null, 2026);
+    expect(y.length).toBe(366);
+    expect([y[0], y[120], y[121], y[151], y[152], y[181], y[182], y[365]]).toEqual([0, 0, 1, 1, 2, 2, 3, 3]);
+  });
+  it("weekday moments read each day's weekday in the year asked (Kalamalka: Sat Oct 10 2026 → 1, Mon Oct 12 → 0)", () => {
+    const y26 = yearSegments(KLWA.starts, KLWA.moments, 2026), y27 = yearSegments(KLWA.starts, KLWA.moments, 2027);
+    expect([y26[283], y26[284], y26[285]]).toEqual([1, 1, 0]);      // Oct 10 Sat, Oct 11 Sun, Oct 12 Mon 2026
+    expect([y27[283], y27[284], y27[285]]).toEqual([1, 0, 0]);      // Oct 10 Sun, Oct 11 Mon, Oct 12 Tue 2027
+  });
+  it("day 60 (no date reads it) is at its first moment, not at Mar 1's weekday", () => {
+    const y = yearSegments(KLWA.starts, KLWA.moments, 2026);
+    expect(y[59]).toBe(0);
+    expect(y[60]).toBe(1);                                         // Sun Mar 1 2026
+    expect(segmentIndex(KLWA.starts, 60, KLWA.moments, "Sunday")).toBe(1);   // pin: a weekday for day 60 would say 1
+  });
+  it("hours windows read outside the window (x15p7: segment 4 of Oct 10, not 5)", () => {
+    expect(yearSegments(X15P7.starts, X15P7.moments, 2026)[283]).toBe(4);
   });
 });

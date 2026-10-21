@@ -13,7 +13,7 @@
  * day (59) on its OWN real weekday — Fri 2036-02-29 on the Zymoetz below Limonite Creek reads Feb 28's regulations on a
  * Friday. `readingDay`/`weekdayOf` are that module's; this file only refuses a date that does not exist.
  */
-import { CALENDAR_DAYS, COMMON_YEAR_MONTH_LAST_DAY, MONTH_LAST_DAY, readingDay, weekdayOf, type Weekday } from "../calendar.generated";
+import { CALENDAR_DAYS, COMMON_YEAR_MONTH_LAST_DAY, DAYS_BEFORE_MONTH, LEAP_DAY, MONTH_LAST_DAY, readingDay, weekdayOf, type Weekday } from "../calendar.generated";
 import type { Moment } from "../answers.generated";
 import type { Day, Who } from "./model";
 
@@ -71,6 +71,23 @@ export function daySegments(starts: readonly number[], day: number): readonly nu
   const s = bisect(starts, day);
   const out: number[] = [];
   for (let j = starts.indexOf(starts[s]!); j <= s; j++) out.push(j);
+  return out;
+}
+
+/**
+ * The segment of every leap-calendar day 1..366 (index d-1) over `year` — what T09's `displayByDay` reads each day's
+ * display frame from, as taps.py regenerated taps.json: each day at ITS OWN weekday in `year`, outside any hours window;
+ * day 60 (the leap calendar's Feb 29 slot, which no date reads: Feb 29 reads 59) at its first moment.
+ */
+export function yearSegments(starts: readonly number[], moments: readonly Moment[] | null, year: number): number[] {
+  const out: number[] = [];
+  for (let d = 1; d <= CALENDAR_DAYS; d++) {
+    if (moments === null) { out.push(segmentIndex(starts, d, null, null)); continue; }
+    if (d === LEAP_DAY) { out.push(daySegments(starts, d)[0]!); continue; }
+    let m = 11;
+    while (DAYS_BEFORE_MONTH[m]! >= d) m--;
+    out.push(segmentIndex(starts, d, moments, weekdayOf(year, m + 1, d - DAYS_BEFORE_MONTH[m]!), false));
+  }
   return out;
 }
 

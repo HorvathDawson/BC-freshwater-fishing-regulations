@@ -5,3 +5,4 @@
 export * from "./blob";
 export * from "./store";
 export * from "./reads";
+export * from "./inputs";

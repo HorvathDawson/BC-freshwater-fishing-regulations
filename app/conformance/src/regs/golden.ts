@@ -12,8 +12,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
-import type { Moment, Weekday } from "@app/core";
-import { unpackBlob } from "@app/data/regs";
+import type { Day, Moment, RegsInputs, RegsTarget, Weekday } from "@app/core";
+import { loadRegsInputs, openRegsStore, unpackBlob, type RegsStore } from "@app/data/regs";
+import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
 const GOLDEN_DIR = `${REPO}app/design/regs-v11/port/golden/`;
@@ -38,10 +39,13 @@ export function golden(): { meta: { sha: string; ref: string; version: string };
   return (G ??= JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")));
 }
 
-export function taps(): { meta: TapsMeta; states: Record<string, Tap>; unnamed: { handle: number; akey: number; place: number; name: string }[];
-  leap: LeapTap[] } {
+type Taps = { meta: TapsMeta; states: Record<string, Tap>; unnamed: { handle: number; akey: number; place: number; name: string }[];
+  leap: LeapTap[] };
+export function taps(): Taps {
   return JSON.parse(readFileSync(`${GOLDEN_DIR}taps.json`, "utf8"));
 }
+let TP: Taps | undefined;
+const tapsOnce = (): Taps => (TP ??= taps());
 
 /** The store reads the tap parity needs (T04's `akey`/`segStarts`/`segMoments`/`cell`, by the same names). */
 export interface TapStore {
@@ -123,4 +127,60 @@ export async function provinceStore(): Promise<TapStore | null> {
     cell: (k, s) => ({ ...one<Cell>("SELECT ladder, rows, gear, licence, display FROM cell WHERE akey = ? AND s = ?", k, s) }),
     statics,
   };
+}
+
+/** golden id → the app's request (tests.md §1.2): the tap's item, part, date and weekday as taps.json gives them (never
+ *  recomputed from another year); `today` is Oct 10 2026 for every state (the prototype's "today" is d=1010). */
+export function requestOf(id: string): { target: RegsTarget; day: Day; weekday: Weekday; today: Day } {
+  const t = tapsOnce().states[id];
+  if (!t) throw new Error(`taps.json has no state ${id}`);
+  const [, m, d] = t.date.split("-").map(Number);
+  return { target: { kind: "part", item: t.item, partIx: t.partIx }, day: { month: m!, day: d! }, weekday: t.weekday,
+           today: { month: 10, day: 10 } };
+}
+
+/**
+ * The regs store the app reads — the LIVE RELEASE (`openRegsStore` over its water / regs-<region> / regs-sid files, D22) —
+ * paired with the oracles: the province store the goldens were cut from (`provinceStoreAt`, taps.json `store_digest`) must
+ * exist and carry the same `answers_sha256` as the release's water file. Else a skip with the reason: a release delivered
+ * after the goldens (a pipeline answers change) would make every parity a stale comparison. REGS_STORE_REQUIRED=1 turns
+ * the skip into a failure (`paritySkip`).
+ */
+export async function releasePairing(): Promise<{ path: string; reason: null } | { path: null; reason: string }> {
+  const at = provinceStoreAt();
+  if (at.path === null) return { path: null, reason: at.reason };
+  const dir = liveRelease();
+  if (!dir) return { path: null, reason: "no release on this machine (data/release/r-*)" };
+  const db = new DatabaseSync(at.path, { readOnly: true });
+  let want: string | undefined;
+  try { want = (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v; }
+  finally { db.close(); }
+  const got = (await regsStoreAt(dir)).meta.answersSha256;
+  return got === want ? { path: dir, reason: null }
+    : { path: null, reason: `release ${dir} carries answers ${got.slice(0, 12)}, the oracles' store ${String(want).slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs` };
+}
+
+const STORES = new Map<string, Promise<RegsStore>>();
+const regsStoreAt = (dir: string): Promise<RegsStore> => {
+  let p = STORES.get(dir);
+  if (!p) STORES.set(dir, p = openRegsStore(openReleaseDir(dir)));
+  return p;
+};
+
+/** The paired release's store, or null (skip; `releasePairing()` says why). One store per test file. */
+export async function regsStore(): Promise<RegsStore | null> {
+  const at = await releasePairing();
+  return at.path === null ? null : regsStoreAt(at.path);
+}
+
+const INPUTS = new Map<string, Promise<RegsInputs | null>>();
+/** The memoised `RegsInputs` of one golden state (T09 `loadRegsInputs` over the paired release; calendar year = taps.json
+ *  meta.year, 2026), or null when there is no paired release (skip). */
+export function inputsOf(id: string): Promise<RegsInputs | null> {
+  let p = INPUTS.get(id);
+  if (!p) {
+    const r = requestOf(id);
+    INPUTS.set(id, p = regsStore().then((st) => st && loadRegsInputs(st, r.target, r.day, r.weekday, tapsOnce().meta.year)));
+  }
+  return p;
 }

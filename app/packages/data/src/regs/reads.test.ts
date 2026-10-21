@@ -58,6 +58,8 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean } = {
       NULL, NULL, NULL, 0, 1, 0);
     CREATE TABLE picker (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO picker VALUES (0, ${X({ choices: [], headed: false })});
+    CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
+    INSERT INTO part_section VALUES (3, 4097, 1), (3, 4098, 0);
     CREATE TABLE akey (akey INTEGER PRIMARY KEY, ruleset INTEGER, licensing_set INTEGER, steelhead_water INTEGER, steelhead INTEGER,
       steelhead_rules INTEGER, province_except INTEGER, home_region INTEGER, kind INTEGER, tidal INTEGER, seg INTEGER, mom INTEGER,
       nseg INTEGER);
@@ -190,6 +192,15 @@ describe("reads over water", () => {
     expect(await st.itemOrd("gnis:1")).toBe(3);
     expect(await st.itemOrd("nope")).toBeNull();
     expect(asked).toEqual(["core: item", "core: item"]);
+  });
+
+  it("sectionPart: water part_section (ord = the item_ord, sid) → part_ix; null for a section not the item's", async () => {
+    const { loader, asked } = seed();
+    const st = await openRegsStore(loader);
+    asked.length = 0;
+    expect([await st.sectionPart(3, 4097), await st.sectionPart(3, 4098), await st.sectionPart(3, 1), await st.sectionPart(4, 4097)])
+      .toEqual([1, 0, null, null]);
+    expect(asked).toEqual(["water: part_section", "water: part_section", "water: part_section", "water: part_section"]);
   });
 });
 

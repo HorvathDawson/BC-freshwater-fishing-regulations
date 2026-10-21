@@ -5,7 +5,7 @@
  * and page v36 see. The per-family interning is undone here, never in core.
  *
  *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08)
- *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place
+ *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart
  *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
  *              id is the store's, the same in every region file that holds it, but only those files hold it; so every
  *              frame read is asked with the key it was reached from (`ladder(akey, id)`, not `ladder(id)`)
@@ -82,6 +82,9 @@ export interface RegsReads {
   place(ix: number): Promise<PlaceRow>;
   /** An unnamed section's whole name ("Unnamed stream · Region 5"); null outside B.C. */
   unnamedName(handle: number): Promise<string | null>;
+  /** The part of item `itemOrd` section `sid` belongs to (water `part_section`, P09; its `ord` is the item_ord);
+   *  null: the section is not one of the item's. */
+  sectionPart(itemOrd: number, sid: number): Promise<number | null>;
 }
 
 /** What the reads stand on (store.ts hands them its own). */
@@ -321,6 +324,11 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const r = await row(base.water(), "SELECT place, regions, label, names FROM place WHERE place = ?", ix, "place");
       return { place: n(r.place), regions: json<PlaceRow["regions"]>(r.regions), label: await reads.str(n(r.label)),
                names: json<PlaceRow["names"]>(r.names) };
+    }),
+
+    sectionPart: (ord, sid) => once("sectionPart", `${ord}:${sid}`, async () => {
+      const r = await (await base.water()).get("SELECT part_ix FROM part_section WHERE ord = ? AND sid = ?", ord, sid);
+      return r ? n(r.part_ix) : null;
     }),
 
     async unnamedName(h) {
