@@ -63,6 +63,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - OWNER 2026-10-20: the Conditions map's 1/3/5-day control is GONE (P16 review fix 2d784837 removed it) -> restore it
   AND add +10 days end to end (publisher + app): workflow horizons-10day RUNNING. Owner OK (2026-10-20): the LEAD runs the
   live feed republish after the merge, then checks +10 is in index.json.
+- OWNER 2026-10-20: "Kooryet Lake — the map cannot place it yet": locate() built extents only from gauges + town
+  rings; part_geo has bboxes for 19,638/19,641 items (missing: Williston, Kootenay, Shannon lakes, 0 sections). Plus
+  search PREVIEW MAP (open it; tap a result -> preview; eye -> navigate). Workflow search-place-preview RUNNING.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
