@@ -26,3 +26,5 @@ export * from "./caveats";
 export * from "./decided";
 export * from "./plainrow";
 export * from "./fish.generated";
+export * from "./grouphead";
+export * from "./others";

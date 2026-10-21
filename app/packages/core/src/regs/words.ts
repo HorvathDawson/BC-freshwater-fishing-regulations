@@ -140,6 +140,18 @@ export const WORDS = Object.freeze({
   MISSING_SUBSET: (key: string, fish: string) => "Missing from the answers file: the sentence for " + key + " said for " + fish + " (display.rules[].subsets)",
   // page v36 shortLabel's rewrites (the label shortened for the ladder; the exact words stay in the rule sheet)
   SHORT_A_DAY: " a day", SHORT_CM_PLUS: "$1 cm+", SHORT_MAX_OVER: ": max $1 over $2 cm", SHORT_HOLD: "hold up to 2 days’ limits", SHORT_COLON: ": ",
+  // ── T17 group head (grouphead.ts: page v36 rowTitle, scopeOf, scopeBadge, rowHtml; prototype buildKeep rootLine) ──
+  OF_THE: "of the", SHARE_ARROW: "↳ ",
+  SCOPE_HERE: "This water", SCOPE_WIDE: (s: string) => `${s}-wide`, SCOPE_ALL_STREAMS: (s: string) => `All ${s} streams`,
+  SCOPE_MISSING: "scope missing", PLURAL_S: "s",
+  SEPARATE_FROM: "Separate from your ",
+  HOW_TELL: "How to tell ›", BC: "B.C.", THE_REGION: "the region", THE_AREA: "the area",
+  PROTECTED: "Protected species", TROUT_TITLE: "Trout", DOT_SEP: " · ",
+  // prototype shortOf (form b's "↳ 2 of them from streams"; T28's pin lines)
+  SHORT_ACROSS: " a day across ", SHORT_DAY: " a day", SHORT_OF_THEM_FROM: " of them from ", SHORT_DAY_FROM: " a day from ",
+  SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
+  SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
+  OPEN_PAREN: " (", CLOSE_PAREN: ")",
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
