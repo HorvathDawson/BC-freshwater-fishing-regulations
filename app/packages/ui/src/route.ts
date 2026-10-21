@@ -19,7 +19,8 @@
  * the reach panel. Every water is opened by `openWater` (openWater.ts), the one place a tap's item is resolved.
  *
  * AN UNNAMED REACH (no registry item: most gauged reaches) has no regulations page of its own, so its frame has
- * `item: null` and offers the Conditions view only (`frameViews`); the reducer refuses any other view for it.
+ * `item: null` and offers the Conditions view only (`frameViews`). `openWater` puts Conditions in front for it from
+ * either map, so both maps open the same frame; the reducer refuses any other view for it.
  *
  * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
  * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,

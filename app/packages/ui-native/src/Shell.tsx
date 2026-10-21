@@ -330,7 +330,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * Tapping a map. A tile carries a `section_id`, and a section is not something a person asked about — they tapped a
    * river. `opener.tap` resolves it to the water and opens the water screen (`@app/ui` openWater.ts): with Regulations
    * in front from the Map tab, Conditions in front from the Conditions map. An unnamed reach has no page of rules, so
-   * from the Map tab nothing opens; from the Conditions map it opens on its Conditions.
+   * from either map it opens the same Conditions-only frame.
    *
    * NOTHING IS TAPPABLE ON THE CONDITIONS MAP BELOW THE HANDOVER. Down there it is catchments, and the only thing under
    * a finger is a shape the size of a valley — a reach panel for it would answer a question about one river with a

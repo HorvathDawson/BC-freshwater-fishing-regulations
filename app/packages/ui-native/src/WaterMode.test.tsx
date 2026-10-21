@@ -163,7 +163,7 @@ describe("one water screen, whichever map you tapped", () => {
     expect(look()).toBe("no back | no strip | no title | the map | Map* Search Conditions Spots");
   });
 
-  it("an unnamed reach: on the Conditions map it opens on Conditions alone; on the Map tab nothing opens", async () => {
+  it("an unnamed reach: the same Conditions-only screen from the Conditions map and the Map tab", async () => {
     await mount("conditions", UNNAMED);
     await tapMap();
     await until(() => panel() !== "no panel");
@@ -175,10 +175,15 @@ describe("one water screen, whichever map you tapped", () => {
     cleanup();
     await mount("map", UNNAMED);
     await tapMap();
-    expect([opened, swiped, backed, look()]).toEqual([
+    await until(() => panel() !== "no panel");
+    const mapOpened = look();
+    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    expect([opened, swiped, backed, mapOpened, look()]).toEqual([
       `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "no back | no strip | no title | the map | Map Search Conditions* Spots",
+      // the Map tab opens the very same screen; only where back goes differs
+      `‹  Map | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "no back | no strip | no title | the map | Map* Search Conditions Spots",
     ]);
   });

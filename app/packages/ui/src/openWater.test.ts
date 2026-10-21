@@ -27,9 +27,32 @@ describe("openTap: a map tap, resolved in one place", () => {
     expect([reduce(fromCond, { type: "back" }), reduce(fromMap, { type: "back" })]).toEqual([condMap, mapTab]);
   });
 
-  it("an unnamed reach opens on Conditions only; from the Map tab nothing opens (it has no page of rules)", async () => {
-    expect([await openTap(source, 501 as SectionId, AT, "conditions"), await openTap(source, 501 as SectionId, AT, "regs")])
-      .toEqual([{ type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" }, null]);
+  it("an unnamed reach: the same reach-only frame from either map (Conditions is its only view)", async () => {
+    const [cond, map] = [await openTap(source, 501 as SectionId, AT, "conditions"),
+                         await openTap(source, 501 as SectionId, AT, "regs")];
+    expect([cond, map]).toEqual([
+      { type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" },
+      { type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" },
+    ]);
+    const fromCond = reduce(condMap, cond!);
+    const fromMap = reduce(mapTab, map!);
+    // both open (neither map is a dead end for it), the same frame, and back returns each to its own map
+    expect([waterFrame(fromCond), waterFrame(fromMap)]).toEqual([
+      { item: null, part: null, tapSid: 501, at: AT, view: "conditions" },
+      { item: null, part: null, tapSid: 501, at: AT, view: "conditions" },
+    ]);
+    expect([reduce(fromCond, { type: "back" }), reduce(fromMap, { type: "back" })]).toEqual([condMap, mapTab]);
+  });
+
+  it("whatever the tapped section resolves to, both maps open a frame and the frames differ at most in `view`",
+     async () => {
+    for (const sid of [77, 501] as SectionId[]) {
+      const a = waterFrame(reduce(condMap, (await openTap(source, sid, AT, "conditions"))!));
+      const b = waterFrame(reduce(mapTab, (await openTap(source, sid, AT, "regs"))!));
+      expect(a).not.toBeNull();
+      expect(b).not.toBeNull();
+      expect({ ...a!, view: null }).toEqual({ ...b!, view: null });
+    }
   });
 
   it("a tap on the water already on screen (its own map) opens nothing; another water opens on top", async () => {
@@ -40,6 +63,11 @@ describe("openTap: a map tap, resolved in one place", () => {
 });
 
 describe("openWater: the one builder", () => {
+  it("an unnamed reach has only Conditions: the builder puts it in front whatever view was asked", () => {
+    expect(openWater({ item: null, tapSid: 501 as SectionId, at: AT, view: "regs" }))
+      .toEqual({ type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" });
+  });
+
   it("a water by id opens on its Regulations unless told; nothing tapped", () => {
     const rows: RouteAction[] = [openWater({ item: VEDDER }), openWater({ item: VEDDER, view: "conditions" })];
     expect(rows).toEqual([

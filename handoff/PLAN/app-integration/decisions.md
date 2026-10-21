@@ -50,8 +50,9 @@ IMPLEMENTED (one-water-screen workflow, 2026-10-21): `@app/ui` openWater.ts (`op
 only builder of an openWater action and the only caller of `itemForSection`; `ConditionsScreen` and the browse `cond`
 drill are gone (the panel is drawn only by `WaterConditions`). Two consequences for the owner to confirm: (1) BACK IS
 LATERAL — back from any view leaves the water (to the map it was tapped on), no longer Map/Conditions -> Regulations
-first; (2) an UNNAMED reach (no registry item; ~90k of 108k gauged sections) opens from the Conditions map as a frame
-with `item: null` offering Conditions only; from the Map tab it opens nothing (no page of rules), as before.
+first; (2) an UNNAMED reach (no registry item; ~90k of 108k gauged sections) opens as a frame with `item: null` offering
+Conditions only — the SAME frame from the Conditions map and from the Map tab (review fix: the Map tab used to open
+nothing for it, so most streams still diverged; `openWater` now puts Conditions in front whatever view was asked).
 
 ## OWNER 2026-10-21 — satellite imagery is ONLINE-ONLY, from Esri World Imagery
 The satellite basemap is shown only when the device is online; it is never packaged or cached for offline use. Offline,

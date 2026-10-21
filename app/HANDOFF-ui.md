@@ -14,7 +14,7 @@ typecheck → test).
 Conditions view (`WaterConditions`). One water screen, whichever map you tapped (owner rule
 2026-10-21): a tap on the Conditions map and on the Map tab both go through `@app/ui`
 `openWater`/`openTap` and open the same frame, differing only in the view in front; back leaves
-the water for the map it was tapped on. An unnamed reach opens on its Conditions view alone.
+the water for the map it was tapped on. An unnamed reach opens on its Conditions view alone, from either map.
 
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is
