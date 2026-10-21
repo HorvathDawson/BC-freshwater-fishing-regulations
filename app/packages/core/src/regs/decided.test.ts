@@ -69,7 +69,7 @@ describe("ladderOf, the Keep tab's form", () => {
       water = rule(3, { rank: 0, kind: "gate", closure: true }), size = rule(4, { rank: 3, name: "Region 4" }), pos = rule(5, { rank: 3, name: "Region 4", book: [[34, 36]] }),
       rec = rule(6, { rank: 0, fields: { record_retention: true } }), stop = rule(7, { rank: 4, type: "stop_fishing_after_quota" });
     const e = env([region, area, water, size, pos, rec, stop], { RB: { H: [[3, "governs", null], [1, "contains", null], [2, "narrows", null], [4, "floor", null],
-      [5, "possession", null], [6, "limit", null], [7, "duty", null]] } });
+      [5, "possession", null], [6, "duty", null], [7, "duty", null]] } });
     expect(flat(ladderOf(row({ kind: "closed" }), e))).toEqual([
       "Q What you can keep", "= Closed here.",
       "L Region 4", "Sentence 1. | Daily limit | Rule book p.13 ↗",
@@ -78,8 +78,13 @@ describe("ladderOf, the Keep tab's form", () => {
       "Q Size", "= null", "L Region 4", "Sentence 4. | Size | Rule book p.13 ↗",
       "Q Other rules", "= null", "L All of B.C.", "Sentence 7. | Stop fishing | Rule book p.13 ↗",
       "L Region 4", "Sentence 5. | Carry limit | Rule book p.34 ↗",
-      "L Elk River", "Sentence 6. | Record it | Rule book p.13 ↗",   // record_retention: a deciding rule becomes a duty
+      "L Elk River", "Sentence 6. | Record it | Rule book p.13 ↗",   // the pipeline's role "duty"; record_retention words the tag
     ]);
+  });
+  it("a record_retention rule keeps its STORED role (owner rule 2026-10-21: the app never re-classifies a role)", () => {
+    const rec = rule(6, { rank: 0, fields: { record_retention: true } });
+    const e = env([rec], { RB: { H: [[6, "limit", null]] } });
+    expect(flat(ladderOf(row(), e))).toEqual(["Q Other limits", "= null", "L Elk River", "Sentence 6. | Record it | Rule book p.13 ↗"]);
   });
   it("a short named-area name is its level; rank 3 with no name is 'The region'; a release gate says Release", () => {
     const a = rule(1, { rank: 2, name: "Fraser River" }), b = rule(2, { rank: 3, kind: "gate" });

@@ -118,10 +118,11 @@ type StepLine = LadderStepVM["lines"][number];
 export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[], res?: string): LadderVM {
   const { inp, card, settled, seams } = env;
   const title = seams.rowTitle(row, inp);
-  const items: { r: RuleView; role: string; by: RuleView | null; spp: ReadonlySet<string> }[] = rowSources(row, card, settled, inp)
-    .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S))).map((it) => ({ ...it }));
+  const items: LadderItem[] = rowSources(row, card, settled, inp)
+    .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S)));
   if (!items.length && row.win) items.push({ r: row.win, role: "governs", by: null, spp: new Set() });
-  items.forEach((it) => { if (it.r.f.record_retention && WINS.includes(it.role)) it.role = "duty"; });
+  // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty";
+  // that placement is the pipeline's to emit in rows_decided.roles. `fields.record_retention` only words the tag.
 
   // the fish a line is listed for when fewer than the row's (or the item's): its sentence for them is the data's (subsets)
   const forFish = (it: LadderItem): string[] | null => {
