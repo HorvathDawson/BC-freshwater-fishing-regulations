@@ -60,15 +60,11 @@ export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().st
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
-/** (T21) the whole Keep tab: the same pending stamp lines, wherever the tab draws them, and the D19 row. */
+/** (T21) the whole Keep tab: the D19 row (stamp lines are the store's `stamps` since rows 31, drawn and compared). */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
     reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
     until: "D19 (a): the pipeline ships a group for that row" },
-  ...(KEEP_STAMP_LINE_IDS.length ? [{
-    block: "keep" as const, ids: KEEP_STAMP_LINE_IDS, key: /^lines$/, lines: STAMP_LINE,
-    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line (under a group's fish and under an Other fish row: 'You need White Sturgeon Conservation Licence › only if …') is a licence answer the pipeline lane is moving into the store; the Keep presenters draw none. Every other line of the tab is compared",
-    until: "the pipeline ships the per-fish licence-document line" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [

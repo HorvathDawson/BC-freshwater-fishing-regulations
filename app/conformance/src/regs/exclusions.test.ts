@@ -42,7 +42,7 @@ describe("EXCLUDE", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
       .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "keep 1 ^plainRows\\.0$", "keep 19 ^lines$"]);
+        "keep 1 ^plainRows\\.0$"]);
   });
 });
 
