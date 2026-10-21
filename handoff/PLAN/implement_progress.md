@@ -35,6 +35,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   data unchanged): manifest now names tiles.current/mask/assets; basemap still null (P18 gap). Slow tile tests 2/2,
   test_tiles+vintage 46, test_release 29, release-boot 5, release-perf 13 all pass.
 - Batch 3 RUNNING (wf_5c95925e-a40): p11-fix, p16, f9-rows (investigation, ruling for owner), t06-followup.
+- G1 GESTURES (owner 2026-10-20; ticket handoff/PLAN/app-data/G1-gestures.md) RUNNING (wf_ba76b522-0c1): RNGH; back
+  everywhere via one route back (Android BackHandler, web History API, edge swipe only where no system back); one map
+  gesture policy; sheets drag to dismiss; sideways swipe on a water's Regs/Conditions/Map steps the part (owner "maybe").
 - N1 resumed (agent a8261f149d43eead6) after the outage; told to rebase onto HEAD and use heavy.sh for gradle.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
