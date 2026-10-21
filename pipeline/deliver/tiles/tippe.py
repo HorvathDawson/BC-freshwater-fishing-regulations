@@ -81,7 +81,7 @@ from pathlib import Path
 
 import orjson
 
-from pipeline.deliver.tiles.layers import ALL
+from pipeline.deliver.tiles.layers import ALL, BY_NAME
 
 #: The last zoom built from a pre-filtered input. See the module docstring for why 8.
 LOW_BAND_MAX = 8
@@ -143,22 +143,59 @@ def _common(minzoom: int, maxzoom: int, simplify_at_max: int, verbose: bool) -> 
     return cmd
 
 
-def _filter_to(src: Path, dst: Path, max_minzoom: int) -> int:
-    """Copy the features that are DRAWN at or below `max_minzoom`. Returns how many.
+def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str | None) -> int:
+    """Copy a layer file's features into `dst`. Returns how many were written.
 
-    A feature with no `tippecanoe.minzoom` is drawn at every zoom, so it is kept. Nothing
-    in this pipeline emits one today — the ladder covers every layer — but reading the
-    absence as "z14 only" would silently drop a whole layer out of the low band.
+    `max_minzoom`: keep only the features DRAWN at or below it (None keeps all). A feature
+    with no `tippecanoe.minzoom` is drawn at every zoom, so it is kept. Nothing in this
+    pipeline emits one today — the ladder covers every layer — but reading the absence as
+    "z14 only" would silently drop a whole layer out of the low band.
+
+    `id_attr`: write that property's value as the GeoJSON feature `id`, which tippecanoe
+    carries through as the MVT feature id, AND leave the property where it is. This is
+    the section layers' `section_id` (see `LayerSpec.mvt_id`). It is done here, per
+    feature, rather than with `--use-attribute-for-id`, because that flag DELETES the
+    attribute from the properties (measured, tippecanoe 2.79) and the web style's
+    `promoteId` reads the property. A section feature with no id is a bug upstream and
+    stops the build: it would be a reach nobody can colour or tap.
     """
     kept = 0
     with src.open("rb") as fin, dst.open("wb") as fout:
         for line in fin:
             if not line.strip():
                 continue
-            if orjson.loads(line).get("tippecanoe", {}).get("minzoom", 0) <= max_minzoom:
-                fout.write(line)
-                kept += 1
+            f = orjson.loads(line)
+            if max_minzoom is not None and f.get("tippecanoe", {}).get("minzoom", 0) > max_minzoom:
+                continue
+            if id_attr is not None:
+                v = f.get("properties", {}).get(id_attr)
+                if not isinstance(v, int) or isinstance(v, bool) or v < 0:
+                    raise SystemExit(f"{src.name}: a feature's {id_attr} is {v!r}; an MVT id "
+                                     f"must be a non-negative integer")
+                f["id"] = v
+                line = orjson.dumps(f) + b"\n"
+            fout.write(line if line.endswith(b"\n") else line + b"\n")
+            kept += 1
     return kept
+
+
+def _inputs(files: list[Path], tmp: Path, max_minzoom: int | None) -> tuple[list[Path], int]:
+    """The files one tippecanoe pass reads: each layer copied into `tmp` when the pass needs
+    it filtered (`max_minzoom`) or id-stamped (`LayerSpec.mvt_id`), otherwise the file as it
+    is. Returns the non-empty inputs and the feature count of the copied ones."""
+    out, total = [], 0
+    for f in files:
+        spec = BY_NAME[f.stem]
+        id_attr = spec.attrs[0] if spec.mvt_id else None
+        if max_minzoom is None and id_attr is None:
+            out.append(f)
+            continue
+        dst = tmp / f.name
+        n = _copy_layer(f, dst, max_minzoom=max_minzoom, id_attr=id_attr)
+        total += n
+        if n:
+            out.append(dst)
+    return out, total
 
 
 def _run(cmd: list[str]) -> None:
@@ -179,26 +216,29 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
     out.parent.mkdir(parents=True, exist_ok=True)
 
     # A band needs at least one zoom on each side of the split to be worth the join.
+    # Every pass reads COPIES of the section layers, with `section_id` stamped as the MVT
+    # feature id (see `_copy_layer`). tile-join keeps feature ids as they are, so the ids
+    # written by both bands survive the join.
     if not (minzoom <= LOW_BAND_MAX < maxzoom):
-        print(f"  tippecanoe -> {out.name}  ({len(files)} layers, single pass)")
-        _run(["tippecanoe", "-o", str(out), "--force", f"--name={name}",
-              f"--attribution={attribution}",
-              *_common(minzoom, maxzoom, SIMPLIFICATION, verbose),
-              *[str(f) for f in files]])
+        with tempfile.TemporaryDirectory(prefix="tiles-ids-") as tmp:
+            inputs, _ = _inputs(files, Path(tmp), None)
+            print(f"  tippecanoe -> {out.name}  ({len(inputs)} layers, single pass)")
+            _run(["tippecanoe", "-o", str(out), "--force", f"--name={name}",
+                  f"--attribution={attribution}",
+                  *_common(minzoom, maxzoom, SIMPLIFICATION, verbose),
+                  *[str(f) for f in inputs]])
         return out
 
     with tempfile.TemporaryDirectory(prefix="tiles-lowband-") as tmp:
-        low_dir = Path(tmp)
-        low_files, kept_total = [], 0
-        for f in files:
-            dst = low_dir / f.name
-            kept = _filter_to(f, dst, LOW_BAND_MAX)
-            kept_total += kept
-            if kept:
-                low_files.append(dst)
+        low_dir = Path(tmp) / "low"
+        high_dir = Path(tmp) / "high"
+        low_dir.mkdir()
+        high_dir.mkdir()
+        low_files, kept_total = _inputs(files, low_dir, LOW_BAND_MAX)
+        high_files, _ = _inputs(files, high_dir, None)
 
-        low = low_dir / "low.mbtiles"
-        high = low_dir / "high.mbtiles"
+        low = Path(tmp) / "low.mbtiles"
+        high = Path(tmp) / "high.mbtiles"
 
         print(f"  tippecanoe -> z{minzoom}-{LOW_BAND_MAX}  "
               f"({len(low_files)} layers, {kept_total:,} features drawn there)")
@@ -210,14 +250,14 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
               *_common(minzoom, LOW_BAND_MAX, SIMPLIFICATION, verbose),
               *[str(f) for f in low_files]])
 
-        print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(files)} layers, all features)")
+        print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(high_files)} layers, all features)")
         # SIMPLIFICATION here too, not 1 — see the constant. The band's maximum IS the
         # archive's maximum, and the camera cannot go past it, so there is nothing to hold
         # detail in reserve for.
         _run(["tippecanoe", "-o", str(high), "--force", f"--name={name}",
               f"--attribution={attribution}",
               *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION, verbose),
-              *[str(f) for f in files]])
+              *[str(f) for f in high_files]])
 
         # tile-join names the output after its inputs unless told otherwise, so the name
         # and attribution are restated here rather than inherited.

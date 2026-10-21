@@ -56,11 +56,20 @@ class LayerSpec:
     Setting this obliges the app to match: the layer must be out of the tap query, out of
     `highlightable`, and out of `featureIds`. `app/tools/tile-contract.test.ts` checks it.
     """
+    mvt_id: bool = False
+    """The feature id (`attrs[0]`, the section handle) is ALSO written as the tile feature's
+    own MVT id, and stays a property too.
+
+    MapLibre Native ignores the style's `promoteId` (N1 spike), so on a device a feature's
+    id is empty unless the tile carries one, and `setFeatureState` addresses nothing. MVT
+    ids are unsigned integers, so only the section layers can do this; the area layers'
+    ids are strings and keep property-based styling. `tippe.py` stamps it per feature.
+    """
 
 
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
-        name="stream", geometry="line", ladder="magnitude", maxzoom=14,
+        name="stream", geometry="line", ladder="magnitude", maxzoom=14, mvt_id=True,
         attrs=("section_id", "name", "ord"),
         why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "
             "river's wide reach, a slough: the registry's kind) under that polygon's section id, "
@@ -72,7 +81,7 @@ WATER: tuple[LayerSpec, ...] = (
             "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
     LayerSpec(
-        name="lake", geometry="polygon", ladder="area",
+        name="lake", geometry="polygon", ladder="area", mvt_id=True,
         attrs=("section_id", "name", "water", "area_m2"),
         why="Standing water big enough to fish — and a stream's polygon (a river's wide reach, "
             "a slough's). Same identity fields as stream. `water` is THE WATER KIND, the "
@@ -104,7 +113,7 @@ WATER: tuple[LayerSpec, ...] = (
             "lake's own outline carries the size.",
     ),
     LayerSpec(
-        name="wetland", geometry="polygon", ladder="area", minzoom=9,
+        name="wetland", geometry="polygon", ladder="area", minzoom=9, mvt_id=True,
         attrs=("section_id", "name", "water"),
         why="Marsh and swamp. `water` is the registry's kind (stream | wetland: a slough drawn as "
             "a wetland is a stream, `wetland_flowing`). Drawn, occasionally regulated, never searched for by name — "
@@ -337,6 +346,9 @@ def contract() -> dict:
                 # only name a featureIdProperty where the tile actually has one.
                 "featureId": None if s.decorative else s.attrs[0],
                 "decorative": s.decorative,
+                # true: `featureId` is ALSO the MVT feature id (MapLibre Native ignores
+                # `promoteId`). The property stays, so promoteId readers are unaffected.
+                "mvtId": s.mvt_id,
                 "minzoom": s.minzoom,
                 "maxzoom": s.maxzoom,
                 "ladder": s.ladder,
