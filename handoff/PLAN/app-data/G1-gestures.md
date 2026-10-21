@@ -53,3 +53,8 @@ into the views that do; list the rest.
   part swipe steps the part. Screenshots/notes in handoff/PLAN/app-data/g1/README.md for the owner.
 - Android: an `expo export --platform android` bundle builds. On-device feel is for the owner/N1 later (no emulator
   while heavy jobs run).
+
+## Owner, 2026-10-20 (later)
+Feel uses the defaults in `core/src/gestures.ts` (edge 24 px / 80 px or flick, tap slop 8 px, swipe distance and
+velocity, sheet third-of-height). They are tuned during real-device testing; nothing waits on a feel review. The part
+swipe turns on when P15 supplies the part order.
