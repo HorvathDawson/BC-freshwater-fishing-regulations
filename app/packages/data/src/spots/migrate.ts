@@ -32,5 +32,8 @@ export function fromDisk(raw: unknown): Spot {
   }
   const panel = spot.panel;
   if (isObj(panel) && Array.isArray(panel.rows)) spot.panel = stripRoutes(panel as unknown as PanelAnswer);
+  // S1: `photos` is read as a list everywhere (the store deletes the ones a save drops), so a record without one reads
+  // as having none. `leadUp` is NOT added: absent reads as "not recorded", which is what it is, and a refresh fills it.
+  if ("photos" in spot && !Array.isArray(spot.photos)) spot.photos = [];
   return spot as unknown as Spot;
 }

@@ -60,7 +60,8 @@ describe("refresh", () => {
     expect(needsRefresh(spot())).toBe(true);
     expect(needsRefresh(spot({ weather: { window: null, tempC: 12, windKph: null, windDir: null,
                                           rain3h: null, pressureHpa: null, code: null,
-                                          at: null } }))).toBe(false);
+                                          at: null },
+                               leadUp: { weather: [], station: null, gauge: null } }))).toBe(false);
   });
 
   it("fetches for the day the spot was PINNED, not today", async () => {
@@ -144,5 +145,59 @@ describe("the cloud window", () => {
   it("marks an archive answer as backfilled", async () => {
     const w = await archive({ hourly: HOURLY }).at(49, -121, at9);
     expect(w!.backfilled).toBe(true);
+  });
+});
+
+describe("openMeteo: the week before a visit, DAILY (S1)", () => {
+  const WEEK = ["2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29"];
+  const DAILY = {
+    time: WEEK.filter((d) => d !== "2026-08-26"),
+    temperature_2m_max: [16, 17, 18, 20, 21, null],
+    temperature_2m_min: [8, 9, 9, 10, 11, 12],
+    precipitation_sum: [0, 4.2, 0, 0, 12, 3],
+    wind_speed_10m_max: [10, 22, 15, 9, 31, 18],
+    weather_code: [1, 61, 3, 0, 63, 80],
+  };
+  const FIELDS = "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code";
+
+  it("asks the ARCHIVE for a week long past, for exactly those days, in the place's own time", async () => {
+    const fetchImpl = ok({ daily: DAILY });
+    await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
+    expect(String(fetchImpl.mock.calls[0]![0])).toBe(
+      "https://archive-api.open-meteo.com/v1/archive?latitude=49.1&longitude=-121.9" +
+      "&start_date=2026-08-23&end_date=2026-08-29" + FIELDS + "&timezone=auto");
+  });
+
+  it("asks the FORECAST with past_days for a recent week, which the archive does not have yet", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 31, 12));
+    try {
+      const fetchImpl = ok({ daily: DAILY });
+      await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
+      expect(String(fetchImpl.mock.calls[0]![0])).toBe(
+        "https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.9" + FIELDS +
+        "&timezone=auto&past_days=8&forecast_days=1");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reads each day it was given and leaves the missing one out, and a null value null", async () => {
+    const got = await openMeteo(ok({ daily: DAILY }) as never).days!(49.1, -121.9, WEEK);
+    expect(got).toEqual([
+      { date: "2026-08-23", maxC: 16, minC: 8, precipMm: 0, windMaxKph: 10, code: 1 },
+      { date: "2026-08-24", maxC: 17, minC: 9, precipMm: 4.2, windMaxKph: 22, code: 61 },
+      { date: "2026-08-25", maxC: 18, minC: 9, precipMm: 0, windMaxKph: 15, code: 3 },
+      { date: "2026-08-27", maxC: 20, minC: 10, precipMm: 0, windMaxKph: 9, code: 0 },
+      { date: "2026-08-28", maxC: 21, minC: 11, precipMm: 12, windMaxKph: 31, code: 63 },
+      { date: "2026-08-29", maxC: null, minC: 12, precipMm: 3, windMaxKph: 18, code: 80 },
+    ]);
+  });
+
+  it("is null offline, on a bad response, or with no daily series — never a plausible week", async () => {
+    expect(await openMeteo(vi.fn(async () => { throw new Error("offline"); }) as never).days!(49, -122, WEEK))
+      .toBeNull();
+    expect(await openMeteo(vi.fn(async () => ({ ok: false })) as never).days!(49, -122, WEEK)).toBeNull();
+    expect(await openMeteo(ok({ hourly: {} }) as never).days!(49, -122, WEEK)).toBeNull();
   });
 });

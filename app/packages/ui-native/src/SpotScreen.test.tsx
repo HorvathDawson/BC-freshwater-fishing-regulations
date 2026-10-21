@@ -7,7 +7,8 @@
  * because the reader will wade on it.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
+import type { PhotoEdit } from "@app/ui";
 import { SpotScreen } from "./SpotScreen";
 import type { Spot } from "@app/data/spots";
 import { LIGHT } from "./theme";
@@ -67,6 +68,8 @@ describe("<SpotScreen>", () => {
                    code: 3, at: "2026-08-30T09:00", backfilled: false },
         reading: { station: "08MH016", discharge: 41.2, level: null, percentile: null,
                    at: "2026-08-30T09:00", backfilled: false },
+        // S1: the week before is part of what a fresh spot has
+        leadUp: { weather: [], station: null, gauge: null },
       })} />);
     expect(fresh.queryByLabelText("Refresh this spot")).toBeNull();
     cleanup();
@@ -409,5 +412,119 @@ describe("<SpotScreen> never drops a spot silently (P01)", () => {
     const b = render(<SpotScreen {...props} />);
     fireEvent.click(b.getByText("Discard"));
     expect(discard).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("<SpotScreen> the week before (S1)", () => {
+  const WEEK = ["2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29"];
+  const leadUp = {
+    weather: WEEK.map((date, i) => ({ date, maxC: 16 + i, minC: 8, precipMm: i === 1 ? 6 : 0, windMaxKph: 10,
+                                      code: i === 1 ? 61 : 1 })),
+    station: "08MH001",
+    gauge: WEEK.map((date, i) => ({ date, discharge: i === 2 ? null : 50 - i * 5, level: null,
+                                    dischargePlace: i === 2 ? null : i === 6 ? "below" as const : 0.5,
+                                    levelPlace: null })),
+  };
+
+  it("draws seven days of weather, each said whole, with the week's rain and its source", () => {
+    const { getByLabelText, getByTestId } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
+    expect(getByLabelText("Mon Aug 24: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h").textContent)
+      .toBe("Mon 24Rain17° / 8°6 mm");
+    expect(getByTestId("leadup-rain").textContent).toBe("6 mm of rain in the week before, on 1 day.");
+    expect(getByTestId("leadup-weather-source").textContent).toBe("Weather from Open-Meteo.com (CC BY 4.0)");
+  });
+
+  it("draws the station's daily means with their place, a gap as a dash, and the week's direction", () => {
+    const { getByLabelText, getByTestId } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
+    expect(getByLabelText("Sun Aug 23: 50.0 m³/s, the 50th percentile for the day").textContent).toBe("50.0p50th");
+    expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("—");
+    expect(getByLabelText("Sat Aug 29: 20.0 m³/s, below the 10th percentile for the day").textContent)
+      .toBe("20.0<p10");
+    expect(getByTestId("leadup-unit").textContent).toBe("m³/s");
+    expect(getByTestId("leadup-trend").textContent).toBe("Flow fell over the week: 50.0 → 20.0 m³/s");
+    expect(getByTestId("leadup-gauge-meta").textContent).toBe("08MH001 · daily means");
+  });
+
+  it("says why a half is missing, and draws no strip for it", () => {
+    const { getByTestId, queryByTestId } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}}
+                  spot={spot({ leadUp: { weather: null, station: "08MH001", gauge: null } })} />);
+    expect(getByTestId("leadup-weather-note").textContent).toBe("The week's weather was not recorded.");
+    expect(getByTestId("leadup-gauge-note").textContent)
+      .toBe("The station's daily means for the week could not be read.");
+    expect(queryByTestId("leadup-trend")).toBeNull();
+  });
+
+  it("offers a refresh for a spot saved before the week was recorded, and says why whole", () => {
+    const { getByLabelText, getByText, queryByText } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} onRefresh={() => {}} spot={spot({
+        weather: { window: null, tempC: 14, windKph: 8, windDir: 210, rain3h: 0, pressureHpa: 1014, code: 3,
+                   at: "2026-08-30T09:00", backfilled: false },
+      })} />);
+    expect(getByLabelText("Refresh this spot")).toBeTruthy();
+    expect(getByText("The week before this visit was not recorded — it can be filled in from the days themselves."))
+      .toBeTruthy();
+    expect(queryByText("The week before")).toBeNull();
+  });
+});
+
+describe("<SpotScreen> photographs (S1)", () => {
+  const store = { uri: async (ref: string) => (ref === "photos/s1-1.jpg" ? "file:///doc/spots/photos/s1-1.jpg" : null) };
+  const settle = () => act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
+  const edit = (over: Partial<PhotoEdit> = {}): PhotoEdit => ({
+    refs: ["photos/s1-1.jpg", "photos/s1-2.jpg"], sources: ["library", "camera"], busy: false, error: null,
+    begin: vi.fn(), add: vi.fn(async () => {}), remove: vi.fn(async () => {}), discard: vi.fn(async () => {}),
+    committed: vi.fn(), ...over,
+  });
+
+  it("draws a saved spot's photos from their references, and says so when one is gone from the device", async () => {
+    const { container, getByText } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} photoStore={store}
+                  spot={spot({ photos: ["photos/s1-1.jpg", "photos/s1-9.jpg"] })} />);
+    await settle();
+    expect([...container.querySelectorAll("img")].map((i) => i.getAttribute("src")))
+      .toEqual(["file:///doc/spots/photos/s1-1.jpg"]);
+    expect(getByText("This photo is no longer on this device.")).toBeTruthy();
+  });
+
+  it("offers no add or remove until the spot is being edited", () => {
+    const { queryByLabelText } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} photoStore={store} photoEdit={edit()}
+                  spot={spot({ photos: ["photos/s1-1.jpg"] })} />);
+    expect(queryByLabelText("Add from photos")).toBeNull();
+    expect(queryByLabelText("Remove photo 1")).toBeNull();
+  });
+
+  it("adds from the library or the camera, and removes one photo, while editing", () => {
+    const pe = edit();
+    const { getByLabelText } = render(
+      <SpotScreen palette={LIGHT} mode="edit" title="t" notes="" onTitle={() => {}} onNotes={() => {}}
+                  onSave={() => {}} onDiscard={() => {}} photoStore={store} photoEdit={pe}
+                  spot={spot({ photos: ["photos/s1-1.jpg"] })} />);
+    fireEvent.click(getByLabelText("Add from photos"));
+    fireEvent.click(getByLabelText("Take a photo"));
+    fireEvent.click(getByLabelText("Remove photo 2"));
+    expect([(pe.add as ReturnType<typeof vi.fn>).mock.calls, (pe.remove as ReturnType<typeof vi.fn>).mock.calls])
+      .toEqual([[["library"], ["camera"]], [["photos/s1-2.jpg"]]]);
+  });
+
+  it("offers adding in the draft, before there is any photo", () => {
+    const { getByLabelText } = render(
+      <SpotScreen palette={LIGHT} mode="draft" title="t" notes="" onTitle={() => {}} onNotes={() => {}}
+                  onSave={() => {}} onBack={() => {}} photoEdit={edit({ refs: [], sources: ["library"] })}
+                  spot={spot()} />);
+    expect(getByLabelText("Add from photos")).toBeTruthy();
+  });
+
+  it("says a photo that could not be added, whole", () => {
+    const { getByRole } = render(
+      <SpotScreen palette={LIGHT} mode="edit" title="t" notes="" onTitle={() => {}} onNotes={() => {}}
+                  onSave={() => {}} onDiscard={() => {}}
+                  photoEdit={edit({ error: "The photo was not added (camera permission refused). Nothing else changed." })}
+                  spot={spot()} />);
+    expect(getByRole("alert").textContent)
+      .toBe("The photo was not added (camera permission refused). Nothing else changed.");
   });
 });

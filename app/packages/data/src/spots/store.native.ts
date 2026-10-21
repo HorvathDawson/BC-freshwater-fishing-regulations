@@ -13,6 +13,7 @@
  */
 import { Directory, File, Paths } from "expo-file-system";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
+import { openPhotos } from "./photoStore.native";
 
 const NAME = "spots.spots";
 
@@ -29,5 +30,6 @@ export function openSpots(): SpotsStore {
     rename: (a, b) => { const to = at(b); if (to.exists) to.delete(); at(a).move(to); },
     remove: (n) => { const f = at(n); if (f.exists) f.delete(); },
   };
-  return openSpotsWith(fs, NAME);
+  // a spot deleted takes its photos with it (S1)
+  return openSpotsWith(fs, NAME, Date.now, openPhotos());
 }

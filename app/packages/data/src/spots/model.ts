@@ -78,6 +78,55 @@ export interface SpotReading {
   backfilled?: boolean;
 }
 
+/**
+ * One day of the week before a visit, from Open-Meteo's DAILY series (S1).
+ *
+ * Every field nullable, and a day the service did not return is a day of nulls — never its neighbour's values.
+ */
+export interface DailyWeather {
+  /** The LOCAL day, "2026-08-29". */
+  date: string;
+  maxC: number | null;
+  minC: number | null;
+  precipMm: number | null;
+  /** The day's strongest 10 m wind, km/h. */
+  windMaxKph: number | null;
+  /** Open-Meteo's daily WMO code: the most significant weather of the day. The words pick from it. */
+  code: number | null;
+}
+
+/** Where a day's mean sat in the station's envelope: a percentile (0–1), or which side of the envelope it fell off. */
+export type DayPlace = number | "below" | "above";
+
+/** One day of the matched station's daily means (S1). A day the feed has no mean for stays null. */
+export interface DailyGauge {
+  date: string;
+  /** m³/s */
+  discharge: number | null;
+  /** m */
+  level: number | null;
+  /** Against the bundle's envelope for that day of the year; null where there is no envelope or no value. */
+  dischargePlace: DayPlace | null;
+  levelPlace: DayPlace | null;
+}
+
+/**
+ * THE WEEK BEFORE THE VISIT, frozen with the rest of the spot (S1).
+ *
+ * The visit's own hour says what the sky and the river were doing; a week says how they GOT there — three dry days
+ * and a falling river is a different afternoon from the same reading the day after a storm.
+ */
+export interface LeadUp {
+  /** Seven days, oldest first. Null when the weather could not be fetched (offline): a refresh retries it. */
+  weather: DailyWeather[] | null;
+  /** The station the gauge days are from; null when no gauge speaks for the water (nothing to retry). */
+  station: string | null;
+  /** Seven days, oldest first; null when the station's days could not be read (a refresh retries it). */
+  gauge: DailyGauge[] | null;
+  /** Filled in after the visit was saved. */
+  backfilled?: boolean;
+}
+
 export interface Spot {
   id: string;
   /** When the record was made. Bookkeeping — not when the person was at the water. */
@@ -113,7 +162,13 @@ export interface Spot {
   /** May be empty. `spotLabel()` decides what to show; never render this raw. */
   title: string;
   notes: string;
-  /** Local file references. Photographs are FILES; only the reference lives in the store. */
+  /**
+   * RELATIVE references to the spot's photographs, "photos/<spot id>-<n>.<ext>" (S1, `./photos`).
+   *
+   * Photographs are FILES (a phone) or blobs (IndexedDB on the web); only the reference lives in the spot. Relative,
+   * never a `file://` path: an app's document directory moves between installs and OS updates, and a stored absolute
+   * path would point at nothing. The user's own data — never in a release, never uploaded.
+   */
   photos: string[];
 
   /** Frozen at capture. Null where the app could not know — never faked. */
@@ -134,6 +189,11 @@ export interface Spot {
    * screen shows the reading alone in that case, which is what it always did.
    */
   panel: PanelAnswer | null;
+  /**
+   * The week before the visit: daily weather and the station's daily means (S1). Absent on a spot saved before this
+   * existed, which reads exactly as null — not recorded — and a refresh fills it in.
+   */
+  leadUp?: LeadUp | null;
 }
 
 /** Where spots live. One file on a phone, browser storage on the web. */

@@ -11,7 +11,8 @@ import { dayLabel, TEMP_LEGEND, WATER_STATUS, WATER_STATUSES, type SectionKey, t
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
-import { bottomBarShown, spotSaveFailed, useMapModes, useRoute, type BrowseTab, type FlowParam } from "@app/ui";
+import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
+         type SpotPhotos } from "@app/ui";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, useStatusIndex, useVintage, statusData,
          type Horizon } from "@app/ui";
@@ -56,7 +57,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       spotsError, attribution, fishImages }: {
+                       spotsError, attribution, fishImages, photos }: {
   source: RegsSource; palette: Palette;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
@@ -84,6 +85,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   attribution?: readonly string[];
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */
   fishImages?: FishImages;
+  /** S1: a spot's photographs — the store and the platform's picker (the app's). Absent -> no photos offered. */
+  photos?: SpotPhotos;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -123,6 +126,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
   const [edit, setEdit] = useState<{ title: string; notes: string } | null>(null);
+  // S1: the photos of the spot being edited; files added in an edit that is not saved are deleted with it
+  const photoEdit = usePhotoEdit(photos);
   // P01: a failed save or delete, said on the spot's screen; and a tab change asked for while an edit is unsaved
   const [spotError, setSpotError] = useState<string | null>(null);
   const [pendingTab, setPendingTab] = useState<TabKey | null>(null);
@@ -281,29 +286,37 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   if (viewing) {
     const dirty = edit !== null
-      && (edit.title !== viewing.title || edit.notes !== viewing.notes);
-    const close = () => { setEdit(null); setSpotError(null); setPendingTab(null); go({ type: "back" }); };
-    const goTab = (k: TabKey) => { setEdit(null); setSpotError(null); setPendingTab(null); toTab(k); };
+      && (edit.title !== viewing.title || edit.notes !== viewing.notes
+          || photoEdit.refs.join("\n") !== viewing.photos.join("\n"));
+    // an unsaved edit's added photos go with it; after a save there are none left to delete
+    const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); };
+    const close = () => { endEdit(); setSpotError(null); setPendingTab(null); go({ type: "back" }); };
+    const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
     return (
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
           <SpotScreen spot={viewing} palette={palette}
                       mode={edit ? "edit" : "view"}
+                      photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                       title={edit?.title} notes={edit?.notes}
                       onTitle={edit ? (t) => setEdit({ ...edit, title: t }) : undefined}
                       onNotes={edit ? (n) => setEdit({ ...edit, notes: n }) : undefined}
                       dirty={dirty}
                       onBack={close}
-                      onEdit={onSaveSpot &&
-                        (() => setEdit({ title: viewing.title, notes: viewing.notes }))}
-                      onDiscard={() => { setEdit(null); if (pendingTab) goTab(pendingTab); }}
+                      onEdit={onSaveSpot && (() => {
+                        setEdit({ title: viewing.title, notes: viewing.notes });
+                        photoEdit.begin(viewing.id, viewing.photos);
+                      })}
+                      onDiscard={() => { endEdit(); if (pendingTab) goTab(pendingTab); }}
                       error={spotError}
                       askToDiscard={pendingTab !== null}
                       onKeepEditing={() => setPendingTab(null)}
                       onSave={edit && onSaveSpot ? async () => {
                         try {
                           await onSaveSpot({ ...viewing, title: edit.title || viewing.title,
-                                             notes: edit.notes, updatedAt: Date.now() });
+                                             notes: edit.notes, photos: [...photoEdit.refs],
+                                             updatedAt: Date.now() });
+                          photoEdit.committed();
                           setEdit(null);
                           setSpotError(null);
                           if (pendingTab) goTab(pendingTab);
@@ -335,7 +348,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
 
   if (adding && onSaveSpot)
     return (
-      <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette}
+      <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
                    feed={feed}
@@ -474,7 +487,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          }
                        : onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
-        : <SpotsScreen palette={palette} spots={spots} error={spotsError ?? null}
+        : <SpotsScreen palette={palette} spots={spots} error={spotsError ?? null} photoStore={photos?.store}
                        onOpen={(id) => go({ type: "openSpot", id })}
                        onAdd={() => go({ type: "addSpot" })}
                        onRefresh={onRefreshSpots} refreshing={refreshing} />;

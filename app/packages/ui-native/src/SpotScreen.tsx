@@ -22,8 +22,10 @@
  */
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { isUntitled, needsRefresh, observedLine, refreshReason, spotHeadline, spotLabel, weatherTrend,
-  type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
+import { isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
+  spotLabel, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
+import { leadUpView, usePhotoUris, type PhotoEdit } from "@app/ui";
+import { LeadUpStrip } from "./LeadUpStrip";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { percentileLabel } from "@app/core";
@@ -59,6 +61,10 @@ export interface SpotScreenProps {
   /** The shell asks before dropping an unsaved edit (a tab change, P01); `onKeepEditing` answers "keep". */
   askToDiscard?: boolean;
   onKeepEditing?: () => void;
+  /** S1: where the photos are drawn from (their references resolved). Absent -> a reference cannot be drawn. */
+  photoStore?: Pick<PhotoStore, "uri">;
+  /** S1, draft and edit: the photos being edited, with add and remove (`usePhotoEdit`). */
+  photoEdit?: PhotoEdit;
 }
 
 export function SpotScreen(p: SpotScreenProps) {
@@ -68,6 +74,11 @@ export function SpotScreen(p: SpotScreenProps) {
 
   const r = spot.reading;
   const w = spot.weather;
+  // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
+  const lead = leadUpView(spot.leadUp);
+  const pe = editable ? p.photoEdit : undefined;
+  const photos = pe ? pe.refs : spot.photos;
+  const uris = usePhotoUris(p.photoStore, photos);
 
   // Edit with nothing changed is not a decision worth interrupting someone for.
   const leaveEdit = () => (p.dirty ? setConfirm("discard") : p.onDiscard?.());
@@ -258,6 +269,12 @@ export function SpotScreen(p: SpotScreenProps) {
         </Block>
 
 
+        {lead && (
+          <Block palette={palette} title={lead.heading}>
+            <LeadUpStrip view={lead} palette={palette} />
+          </Block>
+        )}
+
         <Block palette={palette} title="Notes">
           {editable && p.onNotes ? (
             <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline
@@ -273,15 +290,48 @@ export function SpotScreen(p: SpotScreenProps) {
           )}
         </Block>
 
-        {spot.photos.length > 0 && (
-          <Block palette={palette} title="Photographs">
+        {(photos.length > 0 || (pe && pe.sources.length > 0)) && (
+          <Block palette={palette} title={PHOTO_WORDS.heading}>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {spot.photos.map((uri) => (
-                <Image key={uri} source={{ uri }} accessibilityLabel=""
-                       style={{ width: 104, height: 104, borderRadius: palette.r.box }}
-                       resizeMode="cover" />
-              ))}
+              {photos.map((ref, i) => {
+                const uri = uris.get(ref);
+                return (
+                  <View key={ref} style={{ width: 104, height: 104, borderRadius: palette.r.box,
+                                           overflow: "hidden", backgroundColor: palette.tint,
+                                           alignItems: "center", justifyContent: "center" }}>
+                    {uri ? (
+                      <Image source={{ uri }} accessibilityLabel=""
+                             style={{ width: 104, height: 104 }} resizeMode="cover" />
+                    ) : uri === null ? (
+                      <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, padding: 8,
+                                     textAlign: "center" }}>{PHOTO_WORDS.missing}</Text>
+                    ) : null}
+                    {pe && (
+                      <Pressable onPress={() => { void pe.remove(ref); }} accessibilityRole="button"
+                                 accessibilityLabel={removePhotoLabel(i + 1)}
+                                 style={{ position: "absolute", top: 4, right: 4, width: 28, height: 28,
+                                          borderRadius: 14, alignItems: "center", justifyContent: "center",
+                                          backgroundColor: palette.card }}>
+                        <Text style={{ ...TYPE.bodyStrong, fontSize: 15, color: palette.ink }}>×</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                );
+              })}
             </View>
+            {pe && pe.sources.length > 0 && (
+              <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                {pe.sources.map((from) => (
+                  <Button key={from} palette={palette} kind="ghost" grow={false}
+                          label={from === "camera" ? PHOTO_WORDS.camera : PHOTO_WORDS.library}
+                          onPress={pe.busy ? undefined : () => { void pe.add(from); }} />
+                ))}
+              </View>
+            )}
+            {pe?.busy ? <Text style={{ ...TYPE.small, color: palette.sub }}>{PHOTO_WORDS.adding}</Text> : null}
+            {pe?.error ? (
+              <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{pe.error}</Text>
+            ) : null}
           </Block>
         )}
       </ScrollView>

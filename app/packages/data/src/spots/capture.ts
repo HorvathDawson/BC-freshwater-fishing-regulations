@@ -8,11 +8,12 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import { freezeTrace, type FrozenTrace } from "@app/core";
+import { freezeTrace, leadUpDays, type FrozenTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
 import type { ItemId, RegsSource, SectionId } from "../index";
-import type { Spot, SpotReading, SpotWeather } from "./model";
+import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
+import { leadUpFor } from "./leadup";
 
 /**
  * Weather, from wherever weather comes from.
@@ -23,6 +24,11 @@ import { stripRoutes } from "./migrate";
  */
 export interface WeatherSource {
   at(lat: number, lon: number, when: Date): Promise<SpotWeather | null>;
+  /**
+   * S1: the DAILY weather for these local days ("2026-08-23" …), for the week before a visit. Null when it could not
+   * be fetched. Optional: a source without it records no lead-up weather, said as unknown.
+   */
+  days?(lat: number, lon: number, days: readonly string[]): Promise<DailyWeather[] | null>;
 }
 
 /** The honest default: no service, so no weather, said out loud. */
@@ -79,13 +85,15 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
 
   // Everything in parallel: this runs while a person is looking at a "saving" spinner, and
   // three round trips in series is three times as long to look at it.
-  const [reading, trace, weather, panel] = await Promise.all([
+  const [reading, trace, weather, panel, leadUp] = await Promise.all([
     readingFor(source, section),
     traceFor(source, section),
     (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt)),
     // THE ANSWER THE APP WAS SHOWING, through the same function the map and the sheet use.
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
     panelFor(source, section, input.feed),
+    // S1: the seven days before the visit — daily weather and the station's daily means.
+    leadUpOf(source, input.weather, at, section, visitedAt),
   ]);
 
   return {
@@ -99,8 +107,16 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
     // to be a name. The list falls back to the water or the coordinates, which are true.
     title: input.title || waterName || "",
     notes: "", photos: [],
-    reading, weather, trace,
+    reading, weather, trace, leadUp,
   };
+}
+
+/** The week before the visit. A failed station lookup is "no station", never a failed capture: a spot must save. */
+async function leadUpOf(source: RegsSource, weather: WeatherSource | undefined, at: { lat: number; lon: number },
+                        section: SectionId | null, visitedAt: number): Promise<LeadUp> {
+  let station: string | null = null;
+  try { station = section ? (await source.gaugeForSection(section))?.station ?? null : null; } catch { /* none */ }
+  return leadUpFor(source, weather, at, station, leadUpDays(visitedAt));
 }
 
 async function readingFor(source: RegsSource, section: SectionId | null):

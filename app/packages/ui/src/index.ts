@@ -18,6 +18,8 @@ export * from "./sprite";
 export * from "./search";
 export * from "./spots";
 export * from "./capture";
+export * from "./photos";
+export * from "./leadUp";
 export * from "./route";
 export * from "./mapModes";
 

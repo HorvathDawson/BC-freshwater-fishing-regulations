@@ -8,7 +8,7 @@
  *
  * https://open-meteo.com — CC-BY-4.0, attribution carried in the Layers panel.
  */
-import type { SpotWeather, WeatherSample } from "./model";
+import type { DailyWeather, SpotWeather, WeatherSample } from "./model";
 import type { WeatherSource } from "./capture";
 
 const CURRENT = "https://api.open-meteo.com/v1/forecast";
@@ -23,8 +23,63 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 /** Yesterday, in UTC. The archive lags real time; asking it for today returns nothing. */
 const isHistoric = (when: Date) => Date.now() - when.getTime() > 36 * 3600_000;
 
+/** S1: the week before a visit, one row per day. */
+const DAILY = "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code";
+
+/**
+ * How far behind real time the archive's DAILY rows are complete. Open-Meteo documents its reanalysis as days behind;
+ * a week inside that window is asked of the forecast endpoint with `past_days`, which carries the recent past.
+ */
+const ARCHIVE_LAG_MS = 5 * 86_400_000;
+
+/** Midnight at the start of a local "YYYY-MM-DD". */
+const localMidnight = (d: string): number => {
+  const [y, m, day] = d.split("-").map(Number) as [number, number, number];
+  return new Date(y, m - 1, day).getTime();
+};
+
 export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
   return {
+    /**
+     * The week before a visit (S1), DAILY: max/min temperature, precipitation, strongest wind and the day's WMO code.
+     *
+     * `timezone=auto` makes a day the PLACE's day, which for this province is the reader's. The archive for a week
+     * past its lag, the forecast endpoint with `past_days` for a recent one. Only the days asked for are returned, and
+     * a day the service did not send is left out — the caller holds it as a day of nulls.
+     */
+    async days(lat, lon, days): Promise<DailyWeather[] | null> {
+      try {
+        const first = days[0], last = days[days.length - 1];
+        if (!first || !last) return null;
+        const endOfLast = localMidnight(last) + 86_400_000;
+        const where = `latitude=${lat}&longitude=${lon}`;
+        const archived = Date.now() - endOfLast > ARCHIVE_LAG_MS;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const pastDays = Math.min(92, Math.max(1, Math.round((today.getTime() - localMidnight(first)) / 86_400_000)));
+        const url = archived
+          ? `${ARCHIVE}?${where}&start_date=${first}&end_date=${last}&daily=${DAILY}&timezone=auto`
+          : `${CURRENT}?${where}&daily=${DAILY}&timezone=auto&past_days=${pastDays}&forecast_days=1`;
+        const res = await fetchImpl(url);
+        if (!res.ok) return null;
+        const body = await res.json() as { daily?: Record<string, (number | null)[] | string[]> };
+        const d = body.daily;
+        const time = (d?.time ?? []) as string[];
+        if (!d || !time.length) return null;
+        const col = (k: string, i: number): number | null => {
+          const v = (d[k] as (number | null)[] | undefined)?.[i];
+          return typeof v === "number" && Number.isFinite(v) ? v : null;
+        };
+        const wanted = new Set(days);
+        return time.flatMap((date, i) => (wanted.has(date) ? [{
+          date, maxC: col("temperature_2m_max", i), minC: col("temperature_2m_min", i),
+          precipMm: col("precipitation_sum", i), windMaxKph: col("wind_speed_10m_max", i),
+          code: col("weather_code", i),
+        }] : []));
+      } catch {
+        return null;
+      }
+    },
+
     async at(lat, lon, when): Promise<SpotWeather | null> {
       try {
         const historic = isHistoric(when);

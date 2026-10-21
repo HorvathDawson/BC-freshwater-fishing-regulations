@@ -191,6 +191,32 @@ export function bandAt(pentads: readonly (Band | null)[], dayOfYear: number): Ba
   return [0, 1, 2, 3, 4].map((i) => a[i]! + (b[i]! - a[i]!) * f) as unknown as Band;
 }
 
+/** Where a value sits in an envelope: a percentile (0–1), or which side of the envelope it fell off. */
+export type BandPlace = number | "below" | "above";
+
+/** The percentiles of the five knots of a `Band`. */
+const KNOTS = [0.10, 0.25, 0.50, 0.75, 0.90] as const;
+
+/**
+ * Where one value sits in one day's envelope (S1: a spot's lead-up days).
+ *
+ * Linear between the knots, rounded to a thousandth. OUTSIDE p10..p90 IT SAYS ONLY WHICH SIDE: the envelope has no knot
+ * below the 10th or above the 90th to measure by, and "the 3rd" made up from a straight line past the end is a number
+ * the record never held. Null with no value or no envelope.
+ */
+export function placeInBand(v: number | null, band: Band | null): BandPlace | null {
+  if (v === null || !Number.isFinite(v) || !band) return null;
+  if (v < band[0]) return "below";
+  if (v > band[4]) return "above";
+  for (let i = 0; i < 4; i++) {
+    const lo = band[i]!, hi = band[i + 1]!;
+    if (v > hi) continue;
+    const p = hi === lo ? KNOTS[i]! : KNOTS[i]! + (KNOTS[i + 1]! - KNOTS[i]!) * (v - lo) / (hi - lo);
+    return Math.round(p * 1000) / 1000;
+  }
+  return KNOTS[4];
+}
+
 /**
  * How much of a gauge's watershed this reach actually is, by FWA stream magnitude.
  *

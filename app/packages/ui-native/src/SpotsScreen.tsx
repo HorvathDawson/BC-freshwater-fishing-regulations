@@ -11,7 +11,8 @@
  * case, not a degraded one: 97.6% of BC's water carries no registry item at all.
  */
 import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { needsRefresh, type Spot, spotLabel, spotRowLines } from "@app/data/spots";
+import { needsRefresh, staleSpotsLine, type PhotoStore, type Spot, spotLabel, spotRowLines } from "@app/data/spots";
+import { usePhotoUris } from "@app/ui";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
@@ -20,7 +21,7 @@ import { Button } from "./Button";
 // flow writes. A second, thinner shape meant two definitions of what a spot IS, and the
 // two had already drifted (one had `tags`, the other did not) before either was used.
 
-export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshing, error = null }: {
+export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshing, error = null, photoStore }: {
   palette: Palette;
   spots: readonly Spot[];
   onOpen: (id: string) => void;
@@ -30,6 +31,8 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
   refreshing?: boolean;
   /** The spots could not be read (P01): said, so an unreadable file never looks like "No spots yet". */
   error?: string | null;
+  /** S1: where a spot's first photo is drawn from. Absent -> the row says NO PHOTO. */
+  photoStore?: Pick<PhotoStore, "uri">;
 }) {
   const stale = spots.filter(needsRefresh);
   if (error) {
@@ -70,9 +73,8 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
         onRefresh && stale.length > 0 ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12,
                          padding: 16, backgroundColor: palette.tint }}>
-            <Text style={{ ...TYPE.small, flex: 1, color: palette.sub }}>
-              {stale.length} {stale.length === 1 ? "spot is" : "spots are"} missing the
-              weather from the day {stale.length === 1 ? "it was" : "they were"} pinned.
+            <Text testID="spots-stale" style={{ ...TYPE.small, flex: 1, color: palette.sub }}>
+              {staleSpotsLine(stale.length)}
             </Text>
             <Pressable onPress={onRefresh} disabled={refreshing}
                        accessibilityRole="button" accessibilityLabel="Refresh spots"
@@ -88,7 +90,7 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
       }
       keyExtractor={(s) => s.id}
       renderItem={({ item }) => (
-        <SpotRow spot={item} palette={palette} onPress={() => onOpen(item.id)} />
+        <SpotRow spot={item} palette={palette} photoStore={photoStore} onPress={() => onOpen(item.id)} />
       )}
       ListFooterComponent={
         <View style={{ padding: 16, paddingHorizontal: 20, alignItems: "flex-start" }}>
@@ -100,8 +102,11 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
   );
 }
 
-function SpotRow({ spot, palette, onPress }:
-  { spot: Spot; palette: Palette; onPress: () => void }) {
+function SpotRow({ spot, palette, onPress, photoStore }:
+  { spot: Spot; palette: Palette; onPress: () => void; photoStore?: Pick<PhotoStore, "uri"> }) {
+  // S1: a photo is a relative reference; the store says where it can be drawn from
+  const first = spot.photos.slice(0, 1);
+  const thumb = usePhotoUris(photoStore, first).get(first[0] ?? "") ?? null;
   // The LOCAL day of the visit and what was recorded then, composed whole in @app/data/spots (P12b).
   const [recorded, where] = spotRowLines(spot);
   return (
@@ -113,8 +118,8 @@ function SpotRow({ spot, palette, onPress }:
                })}>
       <View style={{ width: 56, height: 56, borderRadius: palette.r.box, backgroundColor: palette.tint,
                      overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
-        {spot.photos[0] ? (
-          <Image source={{ uri: spot.photos[0] }} style={{ width: "100%", height: "100%" }}
+        {thumb ? (
+          <Image source={{ uri: thumb }} style={{ width: "100%", height: "100%" }}
                  resizeMode="cover" accessibilityLabel="" />
         ) : (
           <Text style={{ ...TYPE.micro, fontSize: 10, fontWeight: "700", letterSpacing: 0.6,

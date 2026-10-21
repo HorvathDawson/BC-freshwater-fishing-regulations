@@ -15,6 +15,7 @@
 import type { Spot, SpotStore } from "./model";
 import { fromDisk } from "./migrate";
 import { serialised } from "./queue";
+import { photosDropped, type PhotoStore } from "./photos";
 
 /** What a platform must provide: whole-file text by name, in one directory. `write` throws when it cannot store. */
 export interface SpotsFs {
@@ -46,9 +47,19 @@ const parse = (text: string): Spot[] => {
   return v.map(fromDisk);
 };
 
-export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Date.now): SpotsStore {
+/**
+ * `photos`: where a spot's photographs are deleted from (S1). A spot deleted takes its photos with it, and a spot saved
+ * without a photo it had deletes that photo — AFTER the list is saved, so a save that fails deletes nothing. A photo
+ * that will not delete is left behind rather than failing a save that already happened: an orphaned file costs space,
+ * a failed save costs a record.
+ */
+export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Date.now,
+                              photos?: Pick<PhotoStore, "remove">): SpotsStore {
   const writing = `${name}.writing`, bak = `${name}.bak`;
   const queue = serialised();
+  const drop = async (refs: readonly string[]) => {
+    for (const r of refs) { try { await photos?.remove(r); } catch { /* left behind; see above */ } }
+  };
 
   const load = (): Spot[] => {
     if (fs.exists(writing)) {
@@ -78,10 +89,17 @@ export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Dat
     put: (spot) => queue(async () => {
       const all = load();
       const i = all.findIndex((s) => s.id === spot.id);
+      const before = (i >= 0 ? all[i]!.photos : null) ?? [];
       if (i >= 0) all[i] = spot; else all.unshift(spot);
       save(all);
+      await drop(photosDropped(before, spot.photos ?? []));
     }),
-    remove: (id) => queue(async () => { save(load().filter((s) => s.id !== id)); }),
+    remove: (id) => queue(async () => {
+      const all = load();
+      const gone = all.find((s) => s.id === id);
+      save(all.filter((s) => s.id !== id));
+      await drop(photosDropped(gone?.photos ?? [], []));
+    }),
     patch: (id, change) => queue(async () => {
       const all = load();
       const i = all.findIndex((s) => s.id === id);

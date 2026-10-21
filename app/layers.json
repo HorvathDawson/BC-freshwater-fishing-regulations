@@ -70,6 +70,7 @@
         "expo",
         "@app/ui-native",
         "expo-font",
+        "expo-image-picker",
         "@expo-google-fonts/bricolage-grotesque",
         "@expo-google-fonts/archivo",
         "@expo-google-fonts/jetbrains-mono"
@@ -78,7 +79,7 @@
         "maplibre-gl",
         "@maplibre/maplibre-react-native"
       ],
-      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else."
+      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. expo-image-picker is here for the same reason (S1): picking a photo opens the platform's own picker or camera — a platform service the app shell wires and hands down (`src/pickPhoto.native.ts` / `.web.ts`), so @app/ui-native draws the buttons and never names a native module. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else."
     },
     "apps/web": {
       "purpose": "Web app shell. Views only.",

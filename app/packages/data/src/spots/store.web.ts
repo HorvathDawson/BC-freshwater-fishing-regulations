@@ -10,6 +10,7 @@
  * The phone writes a real file (`store.native.ts`). Nothing above this line can tell.
  */
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
+import { openPhotos } from "./photoStore.web";
 
 const KEY = "canifishthis.spots.v1";
 
@@ -30,5 +31,6 @@ export function openSpots(): SpotsStore {
     rename: (a, b) => { const s = ls(), v = s.getItem(a); if (v === null) throw new Error(`no ${a}`); s.setItem(b, v); s.removeItem(a); },
     remove: (n) => { ls().removeItem(n); },
   };
-  return openSpotsWith(fs, KEY);
+  // a spot deleted takes its photos with it (S1); the photos themselves are in IndexedDB
+  return openSpotsWith(fs, KEY, Date.now, openPhotos());
 }

@@ -6,6 +6,16 @@
     "orientation": "portrait",
     "scheme": "canifishthis",
     "platforms": ["ios", "android", "web"],
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to add your photos to a spot you saved. They stay on this device.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to take a photo for a spot you saved. It stays on this device.",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
       "supportsTablet": false

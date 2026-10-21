@@ -44,6 +44,17 @@ export function localDateTime(ms: number): string {
   return `${localDate(ms)} at ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+/**
+ * The `n` LOCAL days before a visit, oldest first — "the week leading up to it" (S1).
+ *
+ * The visit day itself is NOT one of them: its hour already has the weather window and the reading, and half a day
+ * of daily totals would read as a whole one.
+ */
+export function leadUpDays(visitedAt: number, n = 7): string[] {
+  const day = new Date(visitedAt);
+  return Array.from({ length: n }, (_, i) => localDate(shiftDay(day, i - n).getTime()));
+}
+
 const startOfDay = (ms: number): number => new Date(ms).setHours(0, 0, 0, 0);
 
 /**

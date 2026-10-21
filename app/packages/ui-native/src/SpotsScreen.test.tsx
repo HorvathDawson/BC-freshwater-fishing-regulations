@@ -6,7 +6,7 @@
  * "nothing here" gets a feature ignored forever.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { SpotsScreen } from "./SpotsScreen";
 import type { Spot } from "@app/data/spots";
 import { LIGHT } from "./theme";
@@ -75,5 +75,26 @@ describe("<SpotsScreen>", () => {
       <SpotsScreen palette={LIGHT} spots={[spot()]} onOpen={onOpen} onAdd={() => {}} />);
     getByLabelText("Tamihi run").click();
     expect(onOpen).toHaveBeenCalledWith("s1");
+  });
+});
+
+describe("<SpotsScreen> S1", () => {
+  it("draws a spot's first photo from its reference, through the photo store", async () => {
+    const store = { uri: async (ref: string) => `file:///doc/spots/${ref}` };
+    const { container, queryByText } = render(
+      <SpotsScreen palette={LIGHT} onOpen={() => {}} onAdd={() => {}} photoStore={store}
+                   spots={[spot({ photos: ["photos/s1-1.jpg", "photos/s1-2.jpg"] })]} />);
+    await act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
+    expect([...container.querySelectorAll("img")].map((i) => i.getAttribute("src")))
+      .toEqual(["file:///doc/spots/photos/s1-1.jpg"]);
+    expect(queryByText("NO PHOTO")).toBeNull();
+  });
+
+  it("counts the spots with something still to fill in — the visit's weather, or the week before", () => {
+    const { getByTestId } = render(
+      <SpotsScreen palette={LIGHT} onOpen={() => {}} onAdd={() => {}} onRefresh={() => {}}
+                   spots={[spot(), spot({ id: "s2", weather: { at: "x" } as never })]} />);
+    expect(getByTestId("spots-stale").textContent)
+      .toBe("2 spots are missing the weather from the day they were pinned, or the week before it.");
   });
 });

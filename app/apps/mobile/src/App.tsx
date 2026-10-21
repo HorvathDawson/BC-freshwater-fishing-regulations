@@ -21,10 +21,11 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed } from "@app/data";
-import { openMeteo, openSpots, refreshSpot, type Spot } from "@app/data/spots";
+import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { useSpots } from "@app/ui";
+import { useSpots, type SpotPhotos } from "@app/ui";
+import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 
 
 import { ENDPOINTS } from "./config";
@@ -58,6 +59,10 @@ export default function App() {
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
+  // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
+  // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
+  const photos = useMemo<SpotPhotos>(
+    () => ({ store: openPhotos(), pick: pickPhoto, sources: PHOTO_SOURCES }), []);
   const [refreshing, setRefreshing] = useState(false);
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
@@ -108,6 +113,7 @@ export default function App() {
                spots={spots}
                fishImages={FISH_IMAGES}
                weather={weather}
+               photos={photos}
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
@@ -116,7 +122,8 @@ export default function App() {
                onRefreshSpots={async () => {
                  setRefreshing(true);
                  // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
-                 try { await spotsHook.refresh((s) => refreshSpot(s, weather)); }
+                 // the source reads the station's daily means for a spot's week before (S1)
+                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, source ?? undefined)); }
                  catch { /* said by spotsHook.error; the list keeps what was saved */ }
                  finally { setRefreshing(false); }
                }}

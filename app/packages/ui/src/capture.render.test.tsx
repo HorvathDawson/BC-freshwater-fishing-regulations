@@ -88,3 +88,54 @@ describe("useCaptureSpot", () => {
       `${new Date(NOW).toDateString()} 14:00|0|Chilliwack River|This spot was not saved (disk full). It is still on screen; try again.`);
   });
 });
+
+describe("useCaptureSpot: the draft's photographs (S1)", () => {
+  const photos = () => {
+    const removed: string[] = [];
+    return {
+      removed,
+      photos: {
+        sources: ["library"] as const,
+        pick: async () => ({ uri: "file:///cache/a.jpg", mimeType: "image/jpeg" }),
+        store: {
+          add: async (id: string, _p: unknown, taken: readonly string[]) => `photos/${id}-${taken.length + 1}.jpg`,
+          remove: async (ref: string) => { removed.push(ref); },
+          uri: async () => null,
+        },
+      },
+    };
+  };
+
+  it("saves the photos added to the draft, as relative references, with no section id", async () => {
+    const f = photos();
+    const { out } = mount({ photos: f.photos });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    const id = out.api!.draft!.id;
+    await act(async () => { await out.api!.photos.add("library"); });
+    const saved: Spot[] = [];
+    await act(async () => { await out.api!.save("", "", async (s) => { saved.push(s); }); });
+    expect(saved[0]!.photos).toEqual([`photos/${id}-1.jpg`]);
+    expect(JSON.stringify(saved[0])).not.toMatch(/"section"|file:\/\//);
+  });
+
+  it("keeps the photos when the visit is changed and the water read again", async () => {
+    const f = photos();
+    const { out } = mount({ photos: f.photos });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    await act(async () => { await out.api!.photos.add("library"); });
+    const refs = [...out.api!.photos.refs];
+    act(() => out.api!.shiftDay(-1));
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    expect(out.api!.photos.refs).toEqual(refs);
+  });
+
+  it("cancelling the draft deletes the photos it added", async () => {
+    const f = photos();
+    const { out } = mount({ photos: f.photos });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    await act(async () => { await out.api!.photos.add("library"); });
+    const refs = [...out.api!.photos.refs];
+    await act(async () => { await out.api!.cancel(); });
+    expect(f.removed).toEqual(refs);
+  });
+});
