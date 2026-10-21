@@ -78,6 +78,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Conditions <-> Map), not sections; Kitimat (b) ruled "+1 for steelhead, like the Vedder" (no other trout over 50).
   Workflow conditions-and-nav RUNNING (5 groups incl. T05 follow-up). After kitimat-plus1 merges the lead runs
   `deliver all` (answers change) and reruns the Kitimat/reference tests.
+- OWNER RULING (a) 2026-10-21: Kitimat r5 does NOT lift z6 trout_char_quota.r7 — hatchery ST catch-and-release
+  Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
+  answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
+  _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
 - The owner's data server (pnpm tiles, :39217) had stopped; restarted 2026-10-20. Agents must never stop it.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
