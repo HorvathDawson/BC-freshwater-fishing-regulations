@@ -6,8 +6,8 @@
 import { describe, expect, it, vi } from "vitest";
 import * as efs from "expo-file-system";
 import { nextPhotoRef, openPhotosWith, photoExt, photosDropped, type PhotoFiles } from "./photos";
-import { nativePhotoFiles, openPhotos as openNativePhotos } from "./photoStore.native";
-import { idbPhotoFiles, openPhotos as openWebPhotos } from "./photoStore.web";
+import { photoFiles as nativePhotoFiles, openPhotos as openNativePhotos } from "./photoStore.native";
+import { photoFiles as idbPhotoFiles, openPhotos as openWebPhotos } from "./photoStore.web";
 
 /** No clock stamp, so a reference can be pinned exactly. */
 const PINNED = () => "";

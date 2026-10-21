@@ -173,10 +173,12 @@ describe("the release reader answers like the bundle reader (P11)", () => {
         const [r, b] = [await release.gaugeSeries(st, span), await bundle.gaugeSeries(st, span)];
         expect([st, span, r === null]).toEqual([st, span, b === null]);
         if (!r || !b) continue;
-        const { band: rb, ...rv } = r.value, { band: bb, ...bv } = b.value;
+        const { band: rb, yearBand: ry, ...rv } = r.value, { band: bb, yearBand: by, ...bv } = b.value;
         expect(rv).toEqual(bv);
-        rb.forEach((x, i) => x?.forEach((v, k) =>
-          expect(Math.abs(v - bb[i]![k]!)).toBeLessThanOrEqual(Math.max(Math.abs(bb[i]![k]!) * 1e-3, 1e-4))));
+        expect([ry === undefined, ry?.length]).toEqual([by === undefined, by?.length]);
+        for (const [got, want] of [[rb, bb], [ry ?? [], by ?? []]] as const)
+          got.forEach((x, i) => x?.forEach((v, k) =>
+            expect(Math.abs(v - want[i]![k]!)).toBeLessThanOrEqual(Math.max(Math.abs(want[i]![k]!) * 1e-3, 1e-4))));
       }
   });
 

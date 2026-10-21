@@ -11,7 +11,7 @@ import { Directory, File, Paths } from "expo-file-system";
 import { openPhotosWith, type PhotoFiles, type PhotoStore } from "./photos";
 
 /** "photos/<name>" -> the file in `documentDirectory/spots/photos/`. */
-export function nativePhotoFiles(): PhotoFiles {
+export function photoFiles(): PhotoFiles {
   const dir = new Directory(Paths.document, "spots", "photos");
   const at = (ref: string) => new File(dir, ref.slice(ref.indexOf("/") + 1));
   return {
@@ -29,5 +29,5 @@ export function nativePhotoFiles(): PhotoFiles {
 
 /** `stamp` is for a test that pins exact references; the app leaves it to the clock. */
 export function openPhotos(stamp?: () => string): PhotoStore {
-  return openPhotosWith(nativePhotoFiles(), stamp);
+  return openPhotosWith(photoFiles(), stamp);
 }

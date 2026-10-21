@@ -18,7 +18,7 @@ const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
 });
 
 /** Bytes by reference in one IndexedDB object store. A browser with no IndexedDB says so when it is used. */
-export function idbPhotoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): PhotoFiles {
+export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): PhotoFiles {
   let db: Promise<IDBDatabase> | null = null;
   const open = (): Promise<IDBDatabase> => (db ??= (() => {
     if (!idb) return Promise.reject(new Error("This browser is not letting the app store photos."));
@@ -77,7 +77,7 @@ async function bytesOf(picked: PickedPhoto): Promise<Blob> {
  * wherever that cannot be done cheaply. A canvas that cannot write the type (HEIC) hands back null, and that is the
  * original too.
  */
-export async function downscale(blob: Blob, max = PHOTO_MAX_EDGE): Promise<Blob> {
+async function downscale(blob: Blob, max = PHOTO_MAX_EDGE): Promise<Blob> {
   try {
     if (typeof createImageBitmap !== "function" || typeof document === "undefined") return blob;
     const bmp = await createImageBitmap(blob);
@@ -101,5 +101,5 @@ export async function downscale(blob: Blob, max = PHOTO_MAX_EDGE): Promise<Blob>
 
 /** `stamp` is for a test that pins exact references; the app leaves it to the clock. */
 export function openPhotos(stamp?: () => string): PhotoStore {
-  return openPhotosWith(idbPhotoFiles(), stamp);
+  return openPhotosWith(photoFiles(), stamp);
 }
