@@ -25,7 +25,8 @@ import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
 import { runtimeStyle } from "./runtime-style";
 import { applyLook } from "./look";
-import { TAP_GROUPS, VISIBLE_LAYERS, firstSection, stateHandle, tapBox, visibleSections } from "./sections";
+import { webRenderer } from "./adapters/web";
+import type { MapRenderer } from "./adapters/contract";
 import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
@@ -116,17 +117,6 @@ function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
   return () => { m.off("styledata", h); };
 }
 
-/** Feature-state on the live map, through the handle both maps share (`stateHandle`: source-layer, number ids). */
-function glStates(m: maplibregl.Map, lit: () => readonly SectionKey[]) {
-  return stateHandle({
-    set: (t, id, s) => m.setFeatureState({ source: t.source, sourceLayer: t.sourceLayer, id }, s),
-    remove: (t, id, key) => m.removeFeatureState({ source: t.source, sourceLayer: t.sourceLayer, id }, key),
-  }, lit);
-}
-
-/** The layers a searched water can be drawn in — what `fit.refine` measures. */
-const WATER_LAYERS = ["stream", "lake", "wetland"] as const;
-
 export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
@@ -134,6 +124,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
                       zoomControls }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  /**
+   * The contract's renderer over this map (`adapters/web.ts`): feature-state, taps, the visible set, the fit — the
+   * same calls `Map.native.tsx` makes of its own, which `parity.test.ts` holds to the same command log.
+   */
+  const renderer = useRef<MapRenderer | null>(null);
   const adapter = useRef(baseAdapter("web"));
   const pin = useRef<maplibregl.Marker | null>(null);
   const pinned = useRef<maplibregl.Marker[]>([]);
@@ -275,6 +270,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     });
     m.on("load", addPill);
     map.current = m;
+    renderer.current = webRenderer(m as never, MAX_ZOOM);
     // The canvas follows its container, not the window (see size.ts): a box that settles after mount — search's
     // preview map on the way back from the eye — would otherwise keep the first size and every fit would frame it.
     const unfollow = followSize(m, () => refit.current?.());
@@ -283,7 +279,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // instance. Never present in a production bundle.
     if (typeof __DEV__ !== "undefined" && __DEV__)
       (globalThis as { __map?: unknown }).__map = m;
-    return () => { unfollow(); m.remove(); map.current = null; };
+    return () => { unfollow(); m.remove(); map.current = null; renderer.current = null; };
     // Deliberately keyed on the ARCHIVES only. `theme` and `view` are recoloured by the
     // effect below rather than by rebuilding the map, because remounting would drop the
     // camera and refetch every tile — a theme toggle would look like a crash and a reload.
@@ -335,11 +331,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   }, [outsideData]);
 
   useEffect(() => {
-    const m = map.current;
-    if (!m) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
     const apply = () => {
       const handle = {
-        ...glStates(m, () => []),
+        ...r.states(() => []),
         /*
        * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
        * stands the rivers down below z9 so the basin field can answer instead; every other
@@ -433,13 +429,13 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
 
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
-    const m = map.current;
-    if (!m || !highlight) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !highlight) return;
     // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
       // Clears ONLY `selected`, per feature, from the ids this map lit last time — see `stateHandle`.
-      const handle = glStates(m, () => wasLit.current);
+      const handle = r.states(() => wasLit.current);
       adapter.current.highlight(handle, [...highlight]);
       wasLit.current = [...highlight];
     };
@@ -480,8 +476,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   /** The drawn route overlay's extent, once its tiles are in — see the trace effects below. */
   const traceBox = useRef<Bbox | null>(null);
   useEffect(() => {
-    const m = map.current;
-    if (!m || !fit) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !fit) return;
     let rounds = 0;
     let alive = true;
     let last: Bbox | null = null;
@@ -496,8 +492,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       syncSize(m);
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
-      m.fitBounds([[b[0], b[1]], [b[2], b[3]]],
-                  { padding: Math.max(pad, 8), maxZoom: MAX_ZOOM, duration: 450 });
+      r.fitBounds(b, { padding: Math.max(pad, 8), duration: 450 });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
     // A route overlay already drawn is part of the subject: "fit" frames the routes' own
@@ -507,18 +502,12 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
     if (first) go(first);
     if (!fit.refine) return done;
-    const measure = () => {
+    const measure = async () => {
+      const ids = (lit.current ?? []).map(Number).filter(Number.isFinite);
+      if (!alive || !ids.length) return;
+      const found = await r.waterBox(ids);
+      const next = refineFit(await r.bounds(), found, rounds);
       if (!alive) return;
-      const ids = new Set((lit.current ?? []).map(String));
-      if (!ids.size) return;
-      let found: Bbox | null = null;
-      for (const layer of WATER_LAYERS)
-        for (const f of m.querySourceFeatures("atlas", { sourceLayer: layer }))
-          if (f.id !== undefined && ids.has(String(f.id)))
-            found = unionBbox(found, bboxOfGeometry(f.geometry as never));
-      const vb = m.getBounds();
-      const next = refineFit([vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()],
-                             found, rounds);
       if (next) { rounds += 1; go(padBbox(next, 0.4)); }
       else m.off("idle", measure);
     };
@@ -619,8 +608,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   const visibleCb = useRef(onVisible);
   visibleCb.current = onVisible;
   useEffect(() => {
-    const m = map.current;
-    if (!m) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
     const report = () => {
       const cb = visibleCb.current;
       if (!cb) return;
@@ -650,9 +639,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        */
       // `VISIBLE_LAYERS` (shared with the native map): streams, lakes, and the lake/wetland polygons a stream flows
       // through — a slough drawn as a wetland polygon is a stream (`wetland_flowing`), and coloured
-      const layers = VISIBLE_LAYERS.filter((id) => m.getLayer(id) !== undefined);
-      const seen = visibleSections(m.queryRenderedFeatures({ layers }));
-      if (seen.length) cb(seen);
+      void r.visible().then((seen) => { if (seen.length) visibleCb.current?.(seen); });
     };
     m.on("idle", report);
     // `idle` may already have passed by the time this registers — on a tab switch the map
@@ -669,8 +656,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
   }, [onVisible !== undefined]);
 
   useEffect(() => {
-    const m = map.current;
-    if (!m || !onPressFeature) return;
+    const m = map.current, r = renderer.current;
+    if (!m || !r || !onPressFeature) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       /**
        * A BOX, not a point.
@@ -680,25 +667,24 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * which is what "hard to click things" is. 12 px each way is roughly a fingertip at
        * this density and still small enough that two rivers rarely both qualify.
        */
-      const box = tapBox(e.point.x, e.point.y);
       /*
-       * ONLY THE SECTION LAYERS, IN `TAP_GROUPS` ORDER (shared with the native map).
+       * ONLY THE SECTION LAYERS, IN `TAP_GROUPS` ORDER (`MapRenderer.press`, shared with the native map).
        *
        * A label, the under-lake route (the topology's path through a lake, not water anybody fishes: a person aiming
-       * at it means the LAKE) and the area layers name no section, so they are not asked. The stream group comes
+       * at it means the LAKE) and the area layers name no section, so they are not asked — every caller turns the id
+       * into a SECTION (`Number(id)`), and a park's `area_id` used to come back as NaN. The stream group comes
        * first — a river and the polygons a stream flows through — then still water: tapping a creek inside a lake
-       * returns both, and a person aiming at a creek means the creek.
+       * returns both, and a person aiming at a creek means the creek. The first argument is the group ("stream" or
+       * "lake"), the same on both maps: a native feature does not say which style layer it came from.
        */
-      for (const g of TAP_GROUPS) {
-        const layers = g.layers.filter((id) => m.getLayer(id) !== undefined);
-        if (!layers.length) continue;
-        const id = firstSection(m.queryRenderedFeatures(box, { layers }));
+      const { lat, lng } = e.lngLat;
+      void r.press(e.point.x, e.point.y).then((hit) => {
         // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
         // long and the answer to "how does this spot reach the gauge" starts at the point
         // under the finger — without it the route panel can mark the station and nothing
         // else. The coordinate is snapped to nothing: it is where the person tapped.
-        if (id !== null) { onPressFeature(g.as, id, e.lngLat.lat, e.lngLat.lng); return; }
-      }
+        if (hit) onPressFeature(hit.layer, hit.id, lat, lng);
+      }).catch((err: unknown) => onError?.(err instanceof Error ? err : new Error(String(err))));
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };

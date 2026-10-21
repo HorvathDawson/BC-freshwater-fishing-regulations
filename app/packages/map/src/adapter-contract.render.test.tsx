@@ -154,21 +154,24 @@ const PLATFORMS = {
       act(() => { (native.props!.onPress as (e: Press) => void)(e); });
       e.nativeEvent = null;              // React Native recycles the event once the handler yields (N1 §3)
     },
+    // a camera that stopped, then the frame with the tiles in: the order a phone reports them
     settle: () => {
       act(() => {
         (native.props!.onRegionDidChange as (e: unknown) => void)(
           { nativeEvent: { center: [-122, 49], zoom: 9, bearing: 0, pitch: 0, bounds: [-123, 48, -121, 50],
                            animated: false, userInteraction: true } });
+        (native.props!.onDidFinishRenderingMapFully as () => void)();
       });
     },
   },
 } as const;
 
-/** The selection on every highlightable layer, through its own SOURCE-layer (lake_flowing is lake's). */
-const selected = (id: number, on: boolean) => [
-  ["wetland", "wetland"], ["wetland_flowing", "wetland"], ["lake", "lake"], ["lake_flowing", "lake"],
-  ["stream", "stream"],
-].map(([, sl]) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : `remove atlas/${sl} number:${id} selected`));
+/**
+ * The selection, once per SOURCE-layer (lake_flowing draws the lake features, wetland_flowing the wetland ones, and a
+ * value a feature holds is not sent twice: `onceSink`).
+ */
+const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
+  .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : `remove atlas/${sl} number:${id} selected`));
 
 describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name, P) => {
   it("status colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
@@ -180,10 +183,9 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     ]));
     log.length = 0;
     r.rerender(<P.Map {...base({ highlight: [1566515] })} />);
-    // per layer: the old selection's `selected` key cleared (only that key, per feature: the status colours stay),
-    // then the new one set
-    await waitFor(() => expect(log).toEqual(
-      [0, 1, 2, 3, 4].flatMap((i) => [selected(311274, false)[i]!, selected(1566515, true)[i]!])));
+    // the old selection's `selected` key cleared (only that key, per feature: the status colours stay), then the new
+    // one set
+    await waitFor(() => expect(log).toEqual([...selected(311274, false), ...selected(1566515, true)]));
   });
 
   it("a tap asks a 24 px box, streams first, and answers the section as a number (Android sends a string)", async () => {
@@ -272,10 +274,8 @@ describe("native only", () => {
     const style1 = native.props!.mapStyle;
     log.length = 0;
     r.rerender(<NativeMap {...base({ theme: "dark" })} />);
-    await waitFor(() => expect(log).toEqual([
-      ...status,
-      ...[0, 1, 2, 3, 4].flatMap((i) => [selected(311274, false)[i]!, selected(311274, true)[i]!]),
-    ]));
+    // nothing to remove: the swap took every state with it (`forget`), so the selection is simply set again
+    await waitFor(() => expect(log).toEqual([...status, ...selected(311274, true)]));
     expect(native.props!.mapStyle).not.toBe(style1);
   });
   it("queries nothing until the map has drawn (Android SIGSEGVs in MapRenderer::actor() before that)", async () => {
@@ -286,7 +286,9 @@ describe("native only", () => {
     render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressFeature: press, onVisible: seen })} />);
     await waitFor(() => expect(native.props).toBeTruthy());
     PLATFORMS.native.tap(100, 200, -122.3, 49.1);
-    PLATFORMS.native.settle();
+    act(() => {
+      (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 9 } });
+    });
     await act(async () => {});
     expect({ queries: log.filter((l) => l.startsWith("query")), press: press.mock.calls.length,
              seen: seen.mock.calls.length }).toEqual({ queries: [], press: 0, seen: 0 });
@@ -294,17 +296,57 @@ describe("native only", () => {
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
     await waitFor(() => expect(seen.mock.calls).toEqual([[[311274]]]));
   });
-  it("does not report the same visible set twice (our own feature-state redraws the map)", async () => {
+  it("asks what is on screen once per camera move: our own feature-state redraw asks nothing", async () => {
     const seen = vi.fn();
     answer = () => [{ id: "5" }, { id: "6" }];
     render(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: seen })} />);
     await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]]]));
+    const queries = () => log.filter((l) => l.startsWith("query viewport")).length;
+    const before = queries();
+    // the map redraws (status colours landed): no camera moved, so no query and no report
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
-    PLATFORMS.native.settle();
     await act(async () => {});
+    expect(queries()).toBe(before);
     answer = () => [{ id: "7" }];
     PLATFORMS.native.settle();
     await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]], [[7]]]));
+    expect(queries()).toBe(before + 1);
+  });
+  it("a status value already on a feature is not sent again (one bridge call per feature, per value)", async () => {
+    const r = render(<NativeMap {...base({ highlight: undefined })} />);
+    await waitFor(() => expect(log.filter((l) => l.startsWith("set")).length).toBe(2));
+    log.length = 0;
+    // the same statuses, as a new object (every settle re-sends the visible set), plus one new section
+    r.rerender(<NativeMap {...base({ highlight: undefined,
+                                     data: { ...DATA, stream: { ...DATA.stream, 42: { status: "open" } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/stream number:42 {"status":"open"}']));
+  });
+  it("the basin field (keyed by basin_id, no MVT id) goes into the style, never to feature-state", async () => {
+    const basin = { "B-1": { standing: 30 } };
+    const r = render(<NativeMap {...base({ view: "conditions", modes: { stream: "standing", basin: "standing" },
+                                           highlight: undefined, data: { basin } })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    await act(async () => {});
+    const fill = () => JSON.stringify((native.props!.mapStyle as { layers: { id: string; paint?: unknown }[] })
+      .layers.find((l) => l.id === "basin")!.paint);
+    expect(fill()).toContain('["literal",{"B-1":30}]');
+    expect(log.filter((l) => l.includes("basin"))).toEqual([]);
+    r.rerender(<NativeMap {...base({ view: "conditions", modes: { stream: "standing", basin: "standing" },
+                                     highlight: undefined, data: { basin: { "B-1": { standing: 70 } } } })} />);
+    await waitFor(() => expect(fill()).toContain('["literal",{"B-1":70}]'));
+  });
+  it("draws the web's scale bar — metric, bottom-right — not the binding's (top-left, device units on Android)", async () => {
+    const r = render(<NativeMap {...base()} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    expect(native.props!.scaleBar).toBe(false);
+    // z9 at 49°N: 92 px ≈ 9.2 km → "5 km" (`metricScale`), and it follows the camera
+    expect(r.getByLabelText("scale").textContent).toBe("5 km");
+    act(() => {
+      (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 14 } });
+    });
+    expect(r.getByLabelText("scale").textContent).toBe("200 m");
+    r.rerender(<NativeMap {...base({ bare: true })} />);
+    expect(r.queryByLabelText("scale")).toBeNull();
   });
   it("reports where the camera settled, read off the event before anything else", async () => {
     const moved = vi.fn();

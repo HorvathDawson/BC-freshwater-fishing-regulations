@@ -257,16 +257,17 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * A feature with no `feature.id` cannot take feature-state — every colour-by-rule silently fails — and a tap
          * on it returns no id, so a TAP NEVER OPENS A SHEET. No error is raised at any point.
          *
-         * THE SECTIONS ARE NOT PROMOTED (N2): the tiles carry `section_id` as each section feature's own MVT id
-         * (P18, N1), which GL JS reads when a source-layer is not promoted — and which is the ONLY id MapLibre Native
-         * sees, because it ignores `promoteId`. Promoting them here would name a section by a property on the web and
-         * by the MVT id on a phone. The area layers' ids (`area_id`, `basin_id`, …) are strings or otherwise not MVT
-         * ids, so they are still promoted, from `STYLE_META.featureIds` rather than typed here, so the property named
-         * in `layers.source.json` and the property MapLibre promotes cannot disagree. (`nativeStyle` drops this.)
+         * MapLibre does not lift a tile property into `feature.id` on its own, which is what `promoteId` is for. Built
+         * from `STYLE_META.featureIds` rather than typed here, so the property named in `layers.source.json` and the
+         * property MapLibre promotes cannot disagree.
+         *
+         * THE SECTIONS ARE PROMOTED TOO, ON PURPOSE (N2 review). The tiles also carry `section_id` as each section's MVT
+         * feature id (P18, `pipeline/tests/test_tile_mvt_ids.py`), because MapLibre Native ignores `promoteId` — that id
+         * is the only one a phone sees, and `nativeStyle` drops this object. The web keeps promoting the property: the
+         * value is the same integer, and an atlas of an older vintage (no MVT ids) still colours and taps on the web.
          */
         promoteId: Object.fromEntries(
           Object.entries(STYLE_META.featureIds)
-            .filter(([, prop]) => prop !== "section_id")
             .filter(([layerId]) => MAP_STYLE.layers.some((l) => l.id === layerId))
             .map(([layerId, prop]) => [
               (MAP_STYLE.layers.find((l) => l.id === layerId) as

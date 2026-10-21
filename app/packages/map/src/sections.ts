@@ -114,3 +114,44 @@ export function stateHandle(sink: StateSink, lit: () => readonly (string | numbe
     },
   };
 }
+
+/**
+ * The source-layers whose features carry a section's MVT id (`stream`, `lake`, `wetland`): the only ones a phone can
+ * address by feature-state, because MapLibre Native ignores `promoteId`.
+ */
+export const SECTION_SOURCE_LAYERS: readonly string[] =
+  [...new Set(SECTION_LAYERS.map((id) => stateTarget(id)?.sourceLayer).filter((x): x is string => !!x))].sort();
+
+/** The source-layers a searched water can be drawn in — what a fit's refinement measures (`MapRenderer.waterBox`). */
+export const WATER_SOURCE_LAYERS: readonly string[] = ["stream", "lake", "wetland"];
+
+/**
+ * A sink that pushes each feature-state value ONCE (N2 review). Several style layers draw one source-layer (`lake` and
+ * `lake_flowing` are both the `lake` features), so the adapter addresses each feature once per layer; and the status
+ * set is re-sent on every settle. On a phone each push is one TurboModule call per (feature, source-layer), so a value
+ * already held is not sent again, and a key never set is not removed. `forget()` when the renderer has dropped them all
+ * (a native style swap).
+ */
+export function onceSink(sink: StateSink): StateSink & { forget(): void } {
+  /** `<source>/<source-layer>/<id>` → key → JSON of the value held. */
+  const held = new Map<string, Map<string, string>>();
+  const at = (t: { source: string; sourceLayer: string }, id: string | number) => `${t.source}/${t.sourceLayer}/${id}`;
+  return {
+    forget: () => held.clear(),
+    set: (t, id, state) => {
+      const has = held.get(at(t, id)) ?? new Map<string, string>();
+      const fresh = Object.entries(state).filter(([k, v]) => has.get(k) !== JSON.stringify(v ?? null));
+      if (!fresh.length) return;
+      for (const [k, v] of fresh) has.set(k, JSON.stringify(v ?? null));
+      held.set(at(t, id), has);
+      sink.set(t, id, Object.fromEntries(fresh));
+    },
+    remove: (t, id, key) => {
+      // THE SINK IS THE WHOLE TRUTH: a renderer's feature-state is only ever set through it (a fresh map, or a style
+      // swap and `forget()`), so a key it does not hold is not on the map, and there is nothing to remove
+      const has = held.get(at(t, id));
+      if (!has?.delete(key)) return;
+      sink.remove(t, id, key);
+    },
+  };
+}

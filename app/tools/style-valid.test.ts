@@ -24,6 +24,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { STYLE_META, runtimeStyle } from "@app/map";
+import { nativeStyle } from "../packages/map/src/native-style";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const MAP_STYLE = JSON.parse(readFileSync(
@@ -65,4 +66,26 @@ describe("MapLibre will accept what we hand it", () => {
     const covered = Object.keys(STYLE_META.colorModes).filter((id) => drawn.has(id));
     expect(covered.length).toBeGreaterThan(3);
   });
+});
+
+/*
+ * THE PHONE'S STYLE TOO (N2). MapLibre Native is handed `nativeStyle`: the same layers with no `promoteId`, no
+ * fill-pattern, no gauge pill, and the basin field's values written in as a lookup by `basin_id` — the one expression
+ * the web never sends. A style that fails to parse on a phone is dropped layer by layer, silently.
+ */
+describe("MapLibre Native will accept what we hand it", () => {
+  for (const theme of Object.keys(STYLE_META.themes)) {
+    it(`validates in the ${theme} theme, in every colour mode, with basin values`, () => {
+      const problems: string[] = [];
+      for (const modes of modeMatrix()) {
+        const { style } = nativeStyle({
+          at: AT, theme, view: "plain", modes, basemap: "map", gauges: AT.gauges,
+          areaData: { basin: { "B-1": { standing: 30 }, "7": { standing: -100 } } },
+        });
+        for (const e of validateStyleMin(style as never))
+          problems.push(`${JSON.stringify(modes)}: ${e.message}`);
+      }
+      expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
+    });
+  }
 });

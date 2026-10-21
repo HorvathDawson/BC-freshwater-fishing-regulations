@@ -2,11 +2,18 @@
  * MAP PARITY. The failure this prevents: a layer, colour or highlight is tweaked for
  * one platform and the two apps quietly render different maps. Nobody notices, because
  * nobody opens both at once.
+ *
+ * THIS USED TO COMPARE ONE OBJECT WITH ITSELF (audit F14): `nativeAdapter()` and `webAdapter()` were both
+ * `baseAdapter()`, so "the two issue identical calls" could not fail. Since N2 the renderers are real
+ * (`adapters/web.ts` over maplibre-gl, `adapters/native.ts` over the RN binding), and the first block below runs ONE
+ * op script against both, each over a recorder shaped like its SDK — the web one answering ids as numbers, the native
+ * one as Android does (strings, `""` for none, every call async) — and compares the two command logs.
+ * The style half (`baseAdapter`) is platform-free by construction; it is tested once, for what it does.
  */
 import { describe, expect, it } from "vitest";
-import { nativeAdapter } from "./adapters/native";
-import { webAdapter } from "./adapters/web";
-import type { MapHandle } from "./adapters/contract";
+import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
+import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
+import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -14,7 +21,7 @@ import {
 import { runtimeStyle } from "./runtime-style";
 import { colour } from "./chrome";
 
-/** Records every call, so two adapters can be compared on what they DO. */
+/** Records every call, so an adapter can be checked on what it DOES. */
 function recorder() {
   const calls: string[] = [];
   const h: MapHandle = {
@@ -26,90 +33,220 @@ function recorder() {
   return { h, calls };
 }
 
-describe("map parity", () => {
-  const native = nativeAdapter();
-  const web = webAdapter();
+// ---- the two renderers over recorders shaped like their SDKs ------------------------------------------------------
+type Hit = { id: number | null; geometry?: unknown };
+/** What the "tiles" hold: by layer (rendered queries) and by source-layer (source queries). */
+const WORLD: { rendered: Record<string, Hit[]>; source: Record<string, Hit[]> } = {
+  rendered: {
+    stream: [{ id: null }, { id: 311274 }], lake: [{ id: 1566515 }], lake_flowing: [], wetland_flowing: [],
+    wetland: [],
+  },
+  source: {
+    stream: [{ id: 311274, geometry: { type: "LineString", coordinates: [[-122, 49], [-121.5, 49.2]] } },
+             { id: 9, geometry: { type: "Point", coordinates: [-100, 40] } }],
+    lake: [{ id: 1566515, geometry: { type: "Point", coordinates: [-121.9, 49.4] } }],
+    wetland: [],
+  },
+};
+const fmt = (id: unknown) => `${typeof id}:${String(id)}`;
+const asked = (layers: readonly string[]) => layers.flatMap((l) => WORLD.rendered[l] ?? []);
 
-  it("both serve the identical style object", () => {
-    expect(native.style()).toBe(web.style());
-    expect(native.style()).toBe(MAP_STYLE);
+function glRecorder(log: string[]): GlMapSlice {
+  const layers = new Set(MAP_STYLE.layers.map((l) => l.id));
+  return {
+    getLayer: (id) => (layers.has(id) ? { id } : undefined),
+    setFeatureState: (t, st) => log.push(`set ${t.source}/${t.sourceLayer} ${fmt(t.id)} ${JSON.stringify(st)}`),
+    removeFeatureState: (t, key) => log.push(`remove ${t.source}/${t.sourceLayer} ${fmt(t.id)} ${key}`),
+    queryRenderedFeatures: (...a: unknown[]) => {
+      const box = Array.isArray(a[0]) ? a[0] : null;
+      const ls = ((box ? a[1] : a[0]) as { layers: string[] }).layers;
+      log.push(`query ${box ? JSON.stringify(box) : "viewport"} ${ls.join(",")}`);
+      return asked(ls).map((h) => (h.id === null ? {} : { id: h.id }));     // GL JS: a number, or no id at all
+    },
+    querySourceFeatures: (_src, o) => (WORLD.source[o.sourceLayer] ?? []).map((h) => ({ ...h })),
+    fitBounds: (b, o) => log.push(`fit ${JSON.stringify(b.flat())} pad ${o.padding} ${o.duration}ms`),
+    getBounds: () => ({ getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }),
+  };
+}
+
+function bindingRecorder(log: string[]): NativeRefs {
+  const tick = () => Promise.resolve();
+  return {
+    map: () => ({
+      queryRenderedFeatures: async (...a: unknown[]) => {
+        await tick();
+        const box = Array.isArray(a[0]) ? a[0] : null;
+        const ls = ((box ? a[1] : a[0]) as { layers: string[] }).layers;
+        log.push(`query ${box ? JSON.stringify(box) : "viewport"} ${ls.join(",")}`);
+        return asked(ls).map((h) => ({ id: h.id === null ? "" : String(h.id) }));   // Android: strings, "" for none
+      },
+      getBounds: async () => [-123, 48, -121, 50],
+    }),
+    atlas: () => ({
+      setFeatureState: async (f, st) => { log.push(`set atlas/${f.sourceLayer} ${fmt(f.id)} ${JSON.stringify(st)}`); },
+      removeFeatureState: async (f, key) => { log.push(`remove atlas/${f.sourceLayer} ${fmt(f.id)} ${key}`); },
+      querySourceFeatures: async (o) => {
+        const ids = ((o.filter as unknown[])[2] as [string, number[]])[1];
+        return (WORLD.source[o.sourceLayer] ?? []).filter((h) => ids.includes(h.id!)).map((h) => ({ ...h }));
+      },
+    }),
+    camera: () => ({
+      fitBounds: (b, o) => log.push(`fit ${JSON.stringify(b)} pad ${(o.padding as { top: number }).top} ${o.duration}ms`),
+    }),
+  };
+}
+
+/** THE OP SCRIPT: what a session does to a map, in the order it does it. Returns the log and the answers. */
+async function script(r: MapRenderer, log: string[]) {
+  const style = baseAdapter(r.platform);
+  const out: unknown[] = [];
+  // status for what is on screen, a stream and a lake section; data arrives keyed by STRINGS (JSON object keys)
+  style.setData(r.states(() => []), "stream", { "311274": { status: "open" } });
+  style.setData(r.states(() => []), "lake", { "1566515": { status: "closed", standing: 40 } });
+  // select a river, then move the selection to a lake: only `selected` is cleared, per feature
+  style.highlight(r.states(() => []), [311274]);
+  style.highlight(r.states(() => [311274]), [1566515]);
+  out.push(await r.press(100, 200));
+  out.push(await r.visible());
+  out.push(await r.waterBox([311274, 1566515]));
+  out.push(await r.bounds());
+  r.fitBounds([-123, 49, -122, 50], { padding: 24, duration: 450 });
+  await Promise.resolve();
+  return { log, out };
+}
+
+describe("map parity: one op script, both renderers, the same commands", () => {
+  it("issues the identical command log and answers identically (ids as NUMBERS on both)", async () => {
+    const wlog: string[] = [];
+    const w = await script(webRenderer(glRecorder(wlog), 14), wlog);
+    const nlog: string[] = [];
+    const n = await script(nativeRenderer(bindingRecorder(nlog), (e) => { throw e; }), nlog);
+    expect(n.log).toEqual(w.log);
+    expect(n.out).toEqual(w.out);
+    // and the log is the one the contract describes, not merely the same on both: each feature addressed ONCE per
+    // source-layer (lake_flowing draws the lake features, wetland_flowing the wetland ones: `onceSink`), the selection
+    // moved by removing only `selected`, per feature
+    const sel = (id: number, sl: string) => `set atlas/${sl} number:${id} {"selected":true}`;
+    const unsel = (id: number, sl: string) => `remove atlas/${sl} number:${id} selected`;
+    expect(w.log).toEqual([
+      'set atlas/stream number:311274 {"status":"open"}',
+      'set atlas/lake number:1566515 {"status":"closed","standing":40}',
+      sel(311274, "wetland"), sel(311274, "lake"), sel(311274, "stream"),
+      unsel(311274, "wetland"), unsel(311274, "lake"), unsel(311274, "stream"),
+      sel(1566515, "wetland"), sel(1566515, "lake"), sel(1566515, "stream"),
+      "query [[88,188],[112,212]] stream,lake_flowing,wetland_flowing",
+      "query viewport stream,lake,lake_flowing,wetland_flowing",
+      "fit [-123,49,-122,50] pad 24 450ms",
+    ]);
+    expect(w.out).toEqual([{ layer: "stream", id: 311274 }, [311274, 1566515], [-122, 49, -121.5, 49.4],
+                           [-123, 48, -121, 50]]);
   });
 
-  it("both expose identical layer ids in the same order", () => {
-    expect(native.layerIds()).toEqual(web.layerIds());
-    expect(native.layerIds()).toEqual(layerIds());
+  it("a tap with no stream under it falls through to still water, the same way on both", async () => {
+    const saved = WORLD.rendered.stream!;
+    WORLD.rendered.stream = [{ id: null }];
+    try {
+      const wlog: string[] = [], nlog: string[] = [];
+      const w = await webRenderer(glRecorder(wlog), 14).press(10, 10);
+      const n = await nativeRenderer(bindingRecorder(nlog), () => {}).press(10, 10);
+      expect({ n, nlog }).toEqual({ n: w, nlog: wlog });
+      expect(w).toEqual({ layer: "lake", id: 1566515 });
+    } finally { WORLD.rendered.stream = saved; }
+  });
+
+  it("the phone pushes a feature-state once: the same value again is no call; forget() after a style swap re-sends", async () => {
+    const log: string[] = [];
+    const r = nativeRenderer(bindingRecorder(log), () => {});
+    const push = () => baseAdapter("native").setData(r.states(() => []), "stream", { "5": { status: "open" } });
+    push(); push();
+    await Promise.resolve();
+    expect(log).toEqual(['set atlas/stream number:5 {"status":"open"}']);
+    r.forget(); push();
+    await Promise.resolve();
+    expect(log.length).toBe(2);
+  });
+
+  it("an area layer (basin, by property) takes feature-state on the web only — a phone has no id for it", async () => {
+    const wlog: string[] = [], nlog: string[] = [];
+    baseAdapter("web").setData(webRenderer(glRecorder(wlog), 14).states(() => []), "basin", { B1: { standing: 4 } });
+    baseAdapter("native").setData(nativeRenderer(bindingRecorder(nlog), () => {}).states(() => []), "basin",
+                                  { B1: { standing: 4 } });
+    await Promise.resolve();
+    expect({ wlog, nlog }).toEqual({ wlog: ['set atlas/basin string:B1 {"standing":4}'], nlog: [] });
+  });
+
+  it("each platform's style adapter is the one style adapter", () => {
+    expect(Object.keys(nativeAdapter()).sort()).toEqual(Object.keys(baseAdapter("native")).sort());
+    expect(Object.keys(webAdapter()).sort()).toEqual(Object.keys(baseAdapter("web")).sort());
+  });
+});
+
+describe("the style adapter (platform-free: one implementation, tested for what it does)", () => {
+  const a = baseAdapter("web");
+
+  it("serves the generated style and its layer ids", () => {
+    expect(a.style()).toBe(MAP_STYLE);
+    expect(a.layerIds()).toEqual(layerIds());
   });
 
   it("layer ids are unique — a duplicate silently shadows on one renderer", () => {
     expect(new Set(layerIds()).size).toBe(layerIds().length);
   });
 
-  it("a group toggle issues the identical calls on both", () => {
+  it("a group toggle sets visibility on exactly that group's layers", () => {
     const g = toggleableGroups()[0];
     if (!g) return;
-    const a = recorder(), b = recorder();
-    native.setGroupVisible(a.h, g.id, true);
-    web.setGroupVisible(b.h, g.id, true);
-    expect(a.calls).toEqual(b.calls);
-    expect(a.calls.length).toBeGreaterThan(0);
+    const r = recorder();
+    a.setGroupVisible(r.h, g.id, true);
+    const want = Object.entries(STYLE_META.layerGroup).filter(([, gid]) => gid === g.id).map(([l]) => `vis ${l} true`);
+    expect(r.calls).toEqual(want);
+    expect(r.calls.length).toBeGreaterThan(0);
   });
 
-  it("the basemap switch issues the identical calls on both, and only on imagery", () => {
+  it("the basemap switch touches only imagery", () => {
     for (const kind of ["satellite", "map"] as const) {
-      const a = recorder(), b = recorder();
-      native.setBasemap(a.h, kind);
-      web.setBasemap(b.h, kind);
-      expect(a.calls).toEqual(b.calls);
-      expect(a.calls.length).toBeGreaterThan(0);
-      for (const c of a.calls)
+      const r = recorder();
+      a.setBasemap(r.h, kind);
+      expect(r.calls.length).toBeGreaterThan(0);
+      for (const c of r.calls)
         expect(c, "setBasemap touched a layer outside the imagery group")
           .toBe(`vis imagery ${kind === "satellite"}`);
     }
   });
 
-  it("every view x every theme produces the identical paint calls on both", () => {
+  it("every view x every theme paints, and the same call twice paints the same", () => {
     for (const view of STYLE_META.views)
       for (const theme of Object.keys(STYLE_META.themes)) {
-        const a = recorder(), b = recorder();
-        native.applyView(a.h, view.id, theme);
-        web.applyView(b.h, view.id, theme);
-        expect(a.calls, `view=${view.id} theme=${theme}`).toEqual(b.calls);
-        expect(a.calls.length).toBeGreaterThan(0);
+        const r1 = recorder(), r2 = recorder();
+        a.applyView(r1.h, view.id, theme);
+        baseAdapter("native").applyView(r2.h, view.id, theme);
+        expect(r1.calls, `view=${view.id} theme=${theme}`).toEqual(r2.calls);
+        expect(r1.calls.length).toBeGreaterThan(0);
       }
   });
 
-  it("a user palette override changes colour identically on both", () => {
-    const a = recorder(), b = recorder();
+  it("a user palette override reaches the paint", () => {
+    const r = recorder();
     // Any value that is not light's own: the dark theme's closed red will do.
     const other = colour("dark", "color.status.closed");
-    const o = { "color.status.closed": other };
     // The closed-area hatch (national parks, no-access land) draws in this token.
-    native.applyView(a.h, "plain", "light", o);
-    web.applyView(b.h, "plain", "light", o);
-    expect(a.calls).toEqual(b.calls);
-    expect(a.calls.join(" ")).toContain(other);
+    a.applyView(r.h, "plain", "light", { "color.status.closed": other });
+    expect(r.calls.join(" ")).toContain(other);
   });
 
-  it("feature data pushes identically on both", () => {
-    const a = recorder(), b = recorder();
-    const v = { "380887781:11988": { standing: 42 } };
-    native.setData(a.h, "stream", v);
-    web.setData(b.h, "stream", v);
-    expect(a.calls).toEqual(b.calls);
+  it("feature data is one feature-state call per feature", () => {
+    const r = recorder();
+    a.setData(r.h, "stream", { "380887781": { standing: 42 } });
+    expect(r.calls).toEqual(['state stream 380887781 {"standing":42}']);
   });
 
-  it("a highlight issues the identical feature-state calls on both", () => {
-    const a = recorder(), b = recorder();
-    native.highlight(a.h, ["356355331:50921", "356355331:67438"]);
-    web.highlight(b.h, ["356355331:50921", "356355331:67438"]);
-    expect(a.calls).toEqual(b.calls);
-    expect(a.calls.length).toBeGreaterThan(0);
-  });
-
-  it("adapters differ ONLY in platform", () => {
-    const { platform: _n, ...n } = native;
-    const { platform: _w, ...w } = web;
-    expect(Object.keys(n).sort()).toEqual(Object.keys(w).sort());
+  it("a highlight clears and sets `selected` on every highlightable layer", () => {
+    const r = recorder();
+    a.highlight(r.h, [356355331, 356355332]);
+    expect(r.calls).toEqual([
+      ...STYLE_META.highlightable.map(({ id }) => `clear ${id}`),
+      ...STYLE_META.highlightable.flatMap(({ id }) => [
+        `state ${id} 356355331 {"selected":true}`, `state ${id} 356355332 {"selected":true}`])]);
   });
 });
 
