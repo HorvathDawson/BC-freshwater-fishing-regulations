@@ -203,7 +203,14 @@
    "scope": null
   }
  },
- "licence": null,
+ "licence": {
+  "axes": [],
+  "blocks": [],
+  "label": "",
+  "question": null,
+  "questionTerms": [],
+  "src": null
+ },
  "methods": {
   "boats": null,
   "closed": "No fishing here until Jul 1.",

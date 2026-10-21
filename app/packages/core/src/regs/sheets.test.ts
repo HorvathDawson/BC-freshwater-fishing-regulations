@@ -8,7 +8,8 @@ import type { GroupPossession } from "../answers.generated";
 import type { GlossaryTerm, RegsInputs, RuleFacts } from "./inputs";
 import type { PossessionVM, SheetCtx, SheetVM } from "./model";
 import { ruleIndex } from "./rules";
-import { levelTag, sheetLines, sheetOf } from "./sheets";
+import { levelTag } from "./level";
+import { sheetLines, sheetOf } from "./sheets";
 import { RULE_ROWS } from "./testing/ruleRows";
 import { BOOK } from "./testing/speciesBook";
 

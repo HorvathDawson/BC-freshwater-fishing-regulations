@@ -696,7 +696,105 @@
    "scope": null
   }
  },
- "licence": null,
+ "licence": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": true,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": false,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": true,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "cls": "needs",
+    "items": [
+     {
+      "name": "Basic angling licence",
+      "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
+      "terms": [],
+      "when": "Needed to fish at all"
+     }
+    ],
+    "label": "You need",
+    "onlyIf": {
+     "items": [
+      {
+       "name": "Conservation Surcharge Stamp for salmon",
+       "price": "$17.14 a year",
+       "terms": [
+        "conservation_surcharge"
+       ],
+       "when": "Only if you keep salmon (not kokanee)"
+      }
+     ],
+     "label": "Also, only if…"
+    },
+    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
+   },
+   {
+    "cls": "paper",
+    "lead": "Keep an adult chinook? ",
+    "strong": "Carry your paper licence",
+    "tail": " (16 and over) and record it right away."
+   },
+   {
+    "cards": [
+     {
+      "forWho": "For every angler:",
+      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
+      "paths": [
+       "angling guide licence",
+       "assistant angling guide licence"
+      ]
+     }
+    ],
+    "cls": "lostlist lopen",
+    "label": "If you are guiding other anglers"
+   }
+  ],
+  "label": "B.C. resident, 16 or older",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": {
+   "aria": "Sources: Province",
+   "open": "licsrc:adult",
+   "who": "Province ›"
+  }
+ },
  "methods": {
   "boats": null,
   "closed": null,
