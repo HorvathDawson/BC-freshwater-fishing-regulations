@@ -43,7 +43,14 @@ export function rowTitle(row: HydRow, inp: RegsInputs): string {
 }
 
 /** page v36 parentRow: a pooled row another pooled row cross-references (its `xref` fact) and holds; page v36 draws no
- *  article for it (rowHtml returns ''). */
+ *  article for it (rowHtml returns '').
+ *
+ *  PIPELINE NEED (T17/T18 review 2026-10-21, owner rule): which pool holds a pooled row's fish is structural regulation
+ *  information, and this infers it from `xref` facts. It decides which rows are drawn at all (`drawnRows`), suppresses
+ *  "Separate from your N …" (`separateFrom`) and feeds tree.ts presOf's undrawn-row presence. The store must answer it:
+ *  `rows_row.parent: int | null` — the index of the pooled row whose pool counts this row's fish (rows.py adds the `xref`
+ *  line at that point, `keep_rows[k]["xref"]`). Until it ships this stays a faithful page v36 port, held by the parity;
+ *  when it ships, read `row.raw.parent` and delete this. */
 export function parentRow(card: CardModel, row: HydRow): HydRow | null {
   if (!row.pool) return null;
   return card.rows.find((r) => r !== row && !!r.pool
@@ -74,7 +81,13 @@ export function scopeOf(row: HydRow): string | null {
   return null;
 }
 
-/** page v36 narrowAll: the narrow rule binds every fish of the row. */
+/** page v36 narrowAll: the narrow rule binds every fish of the row.
+ *
+ *  PIPELINE NEED (T17 review 2026-10-21, owner rule): whether the narrowing rule binds every fish of the row is a
+ *  rule-coverage answer, decided here from the rule's species sets; it picks the kicker ("All Region 2 streams" vs "Region
+ *  2-wide"). The store must answer it: `rows_row.scope.narrow_all: bool` (rows.py `scope_of`; `elsewhere_of` already
+ *  computes the same `all(_covers(nw, S) for S in row["members"])`). Until it ships this stays a faithful page v36 port,
+ *  held by the parity; when it ships, `nar0` reads `row.scope.narrow_all` and this is deleted. */
 export const narrowAll = (row: HydRow): boolean => !!row.narrow
   && row.members.every((S) => row.narrow!.species.includes(S) && !row.narrow!.speciesExcept.includes(S));
 /** page v36 nar0: a stream (or lake) share of a regional total holds here and binds every fish of the row. */

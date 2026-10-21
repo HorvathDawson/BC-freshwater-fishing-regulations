@@ -4,15 +4,15 @@
  * duty with "Steelhead stamp ›", presence) — built by core `treeOf` over the state's inputs and projected to the golden's
  * shape (keepGroups.ts), against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f).
  *
- * Not compared: a kind's `lines` — they carry the prototype's licence stamp lines (round UR7 stampsFor), which decide
- * which document a fish needs; that is a pipeline answer this port does not derive (tree.ts header). Every other kind
- * field is compared, so a kind's words are still proved.
+ * A kind's `lines` (its drawn lines in order) are compared too. Only the prototype's licence stamp lines (round UR7
+ * stampsFor: "You need … ›") are dropped from the golden, in the states exclusions.ts STAMP_LINE_IDS names — they pick which
+ * document a fish needs, a licence answer this port does not derive (tree.ts header).
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { plain, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
 import { norm } from "./eq";
-import { excluded } from "./exclusions";
+import { droppedLines, excluded } from "./exclusions";
 import { goldenTree, keepOf, nodeProj, treeProj } from "./keepGroups";
 
 const gate = await parityGate();
@@ -48,7 +48,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   let equal = 0, tiers = 0, kinds = 0;
   afterAll(() => console.info(`${summary("keep", equal, ids.length)} · ${tiers} tiers, ${kinds} kinds (tree)`));
 
-  it.each(ids)("%s: every group's tree equals the golden (kind lines aside)", async (id) => {
+  it.each(ids)("%s: every group's tree equals the golden (kind lines with only the stamp lines dropped)", async (id) => {
     const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id);
     expect(k.groups.length).toBe(gold.length);
     k.groups.forEach((g, i) => {
@@ -60,7 +60,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
         storeWalk(treeOf(g.env) ?? [], g.ctx.hdrRoot ? g.ctx.hdrRoot.children : g.ctx.g.tree, id);
         return;
       }
-      expect(got).toEqual({ tree: goldenTree(gold[i]!.tree), treeRoot: gold[i]!.treeRoot });
+      expect(got).toEqual({ tree: goldenTree(gold[i]!.tree, droppedLines("keep", id, `groups.${i}.tree`)), treeRoot: gold[i]!.treeRoot });
       JSON.stringify(got.tree, (key, v) => { if (key === "t" && v === "tier") tiers++; if (key === "t" && v === "kind") kinds++; return v; });
     });
     equal++;

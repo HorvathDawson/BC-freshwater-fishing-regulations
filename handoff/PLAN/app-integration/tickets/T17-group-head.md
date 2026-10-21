@@ -129,3 +129,12 @@ num; golden `ofTotal` = `ofTotal ? "of the " + plain(words) : null`; `whyHere`; 
 - golden `meta.misses` lists `.gtag` and `[data-share-of]`: no v33 state draws an origin tag or form b — form b and the tag branch are
   covered by unit fixtures only (build a `GroupTotal` from vedder_1010's data with `tot:"b"`; expect shareOf "↳ 2 of them from streams"
   once T28's `shortOf` exists).
+- **PIPELINE NEED (review 2026-10-21, owner rule):** `narrowAll` / `nar0` decide in TS whether the stored narrowing rule binds
+  every fish of a row (rule species sets), and that answer picks the kicker ("All Region 2 streams" vs "Region 2-wide"). The store
+  must carry it: `rows_row.scope.narrow_all: bool` (rows.py `scope_of`; `elsewhere_of` already computes
+  `all(_covers(nw, S) for S in row["members"])`). `parentRow` (pool nesting from `xref` facts; decides which rows are drawn and
+  suppresses "Separate from your N …") likewise needs `rows_row.parent: int | null`. Both stay as faithful page v36 ports, held by
+  the parity, until a release carries the fields; then the presenter reads them and the TS derivations are deleted (grouphead.ts).
+- Review 2026-10-21: golden `groups[].lines` (the whole group's drawn text in order) is compared by
+  `conformance/src/regs/grouplines.parity.test.ts`; only the stamp lines (STAMP_LINE_IDS) and the `.gyear` line (YEAR_WINDOW_IDS,
+  T19b) are dropped, each a keyed `lines` entry in exclusions.ts that the summary line reports.

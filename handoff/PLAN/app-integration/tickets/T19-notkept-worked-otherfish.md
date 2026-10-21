@@ -94,3 +94,6 @@ Every numbered case that names a golden state id is a parity case there; cases m
 - Contract: `GroupVM.quiet: Line | null`, `GroupVM.more: {text, open}`, `GroupVM.worked` (`label`, q with its colon), `OtherFishRowVM.sizeHint` — applied to contracts.md (`// (T19)`).
   `week` stays separate from `name` in the VM; the golden fuses them ("KokaneeWeekends: keep 5 · Weekdays: release").
 - Plain rows (25 states, page v36 rows without a card) are **T19b** (`tickets/T19b-plain-rows.md`).
+- Review 2026-10-21: the not-kept "You need Steelhead Conservation Surcharge Stamp › …" line (prototype UR7 stampsFor, a licence
+  answer) is not drawn; it lives only in golden `groups[].lines`, which grouplines.parity now compares with that line dropped
+  (exclusions.ts STAMP_LINE_IDS — 8 states, reported in the summary line), so the not-kept lines' order and fused pictures/✕ are proved.

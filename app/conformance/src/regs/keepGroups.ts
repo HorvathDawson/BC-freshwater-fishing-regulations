@@ -10,6 +10,7 @@ import {
   type Line, type NotKeptVM, type OriginVM, type OtherFishRowVM, type RegsInputs, type TierVM, type TreeEnv, type TreeNodeVM,
 } from "@app/core";
 import { norm } from "./eq";
+import { keepLines } from "./exclusions";
 
 export interface KeepGroup { readonly ctx: HeadCtx; readonly env: TreeEnv }
 export interface Keep { readonly card: CardModel; readonly drawn: ReadonlySet<number>; readonly groups: readonly KeepGroup[] }
@@ -52,13 +53,20 @@ export function originProj(o: OriginVM | null) {
   return { lines: [norm(plainAll([o.tag ? [text(o.tag)] : null, o.says, o.howtell ? [text(WORDS.HOW_TELL)] : null, o.book]))],
     tag: o.tag, howtell: o.howtell, pages: books(o.book) };
 }
-/** golden kind (minus `lines`: they carry the licence stamp lines this port does not draw — tree.ts) */
+/** the elements of one DOM line, one space between them (golden.mjs `gap`); null/empty parts drawn nothing */
+const join = (...xs: (string | null | undefined)[]): string => norm(xs.filter((x) => !!x).join(" "));
+const captions = (ps: readonly { sil: boolean; caption?: string }[]) => ps.flatMap((p) => (p.sil ? [] : [p.caption!]));
+/** golden kind — `lines` the kind row's drawn lines in order: its sentence; the chip, qualifiers and pictures on one line;
+ *  each also-count; the duty; the presence line (prototype kt; the golden's `lines(k)`) */
 export function kindProj(k: KindVM) {
   const num = (k.says ?? []).find((r) => r.t === "num") as { s: string } | undefined;
-  return { t: "kind", kind: k.kind, sp: [...k.species], folded: k.folded, zero: k.zero, says: nl(k.says), n: num?.s ?? null,
+  const says = nl(k.says), meta = join(k.size?.text, k.qualifiers, ...captions(k.pictures)), also = k.also.map((a) => norm(a));
+  const duty = nl(k.duty), presence = nl(k.presence);
+  return { t: "kind", kind: k.kind, sp: [...k.species], folded: k.folded, zero: k.zero, says, n: num?.s ?? null,
     howtell: hasLink(k.says, WORDS.HOW_TELL), size: n(k.size?.text), q: k.qualifiers,
     pics: k.pictures.flatMap((p) => (p.sil ? [] : [{ code: p.code, caption: n(p.caption) }])), sizeNote: null,
-    also: k.also.map((a) => norm(a)), duty: nl(k.duty), presence: nl(k.presence), terms: terms(k.says, k.duty, k.presence) };
+    also, duty, presence, terms: terms(k.says, k.duty, k.presence),
+    lines: [says, meta, ...also, duty, presence].filter((l): l is string => !!l) };
 }
 /** golden tier */
 export function tierProj(t: TierVM): Record<string, unknown> {
@@ -72,11 +80,11 @@ export function tierProj(t: TierVM): Record<string, unknown> {
 export const nodeProj = (x: TreeNodeVM): Record<string, unknown> =>
   x.t === "tier" ? tierProj(x) : x.t === "kind" ? kindProj(x) : { t: "release", names: x.names, pics: x.pictures.flatMap((p) => (p.sil ? [] : [{ code: p.code, caption: p.caption }])) };
 
-/** golden kind nodes without `lines` (see kindProj) */
-export function goldenTree(nodes: unknown): unknown {
+/** the golden tree with the lines an exclusion drops (exclusions.ts `droppedLines`) removed from each kind's `lines` */
+export function goldenTree(nodes: unknown, drop: readonly RegExp[] = []): unknown {
   return (nodes as Record<string, unknown>[] | null)?.map((x) => {
-    const { lines: _l, ...rest } = x as { lines?: unknown; children?: unknown };
-    return x.t === "tier" ? { ...rest, children: goldenTree((x as { children: unknown }).children) } : rest;
+    if (x.t === "tier") return { ...x, children: goldenTree(x.children, drop) };
+    return x.t === "kind" ? { ...x, lines: keepLines(x.lines as string[], drop) } : x;
   }) ?? null;
 }
 
@@ -105,3 +113,33 @@ export const tailProj = (gr: KeepGroup) => ({
 export const othersProj = (inp: RegsInputs) => otherFishOf(keepOf(inp).card, inp, FISH)?.map(otherProj) ?? null;
 /** golden open key `other:<state>|o<i>` → the app's `other:o<i>` (keys carry no state id, contracts §6 #1) */
 export const appOpen = (k: string | null) => (k == null ? null : k.replace(/^other:.*\|/, "other:"));
+
+/** one tree node's drawn lines in order (prototype tnode / tierH / kt / krel28; the golden's `lines(article)` over it): a tier
+ *  its moved scope tag, its line (a folded share draws none, or its Rule book page alone), its relation, its sub, its origin;
+ *  then its children */
+function nodeLines(x: TreeNodeVM): string[] {
+  if (x.t === "kind") return kindProj(x).lines;
+  if (x.t === "release") return [join(x.names, ...captions(x.pictures))];
+  const o = tierProj(x).origin as { text: string } | null;
+  return [x.kicker, x.line.length ? nl(x.line) : null, n(x.relation), n(x.sub), o?.text ?? null]
+    .filter((l): l is string => !!l).concat(x.children.flatMap(nodeLines));
+}
+/**
+ * golden group `lines` — the whole group as drawn, line by line (prototype buildKeep's article: the pinned head, the origin
+ * block, the tree, the not-kept lines, How it adds up, the quiet line, "See every regulation line ›" inline after the last
+ * line). Read off the same VMs the field projections read; the draw order and which parts share a line are what it proves.
+ */
+export function groupLinesProj(gr: KeepGroup, tot: "a" | "b" = "a"): string[] {
+  const h = groupHeadProj(gr, tot), t = tailProj(gr), out: string[] = [...h.headLines.map((l) => norm(l))];
+  if (h.origin) out.push(...h.origin.lines);
+  out.push(...(treeOf(gr.env) ?? []).flatMap(nodeLines));
+  for (const r of notKeptOf(gr.ctx.g, gr.env)) {
+    const p = notKeptProj(r), tail = [...p.pics.map((x) => x.caption), p.mark];
+    out.push(p.says, ...(p.presence ? [p.whose!, join(p.presence, ...tail)] : [join(p.whose, ...tail)]));
+  }
+  const w = workedOf(gr.ctx.row, gr.ctx.g);
+  if (w) out.push(w.label, ...(w.says ? [norm(w.says)] : []), ...w.lines.map((l) => join(l.q, l.a)));
+  if (t.quiet) out.push(t.quiet);
+  if (t.more) out.push(join(out.pop(), t.more));
+  return out.filter((l) => !!l);
+}

@@ -270,12 +270,15 @@ export async function* cases(block: Block): AsyncIterable<Case> {
 
 /**
  * The afterAll line: "<block> parity: P/T states equal", then " · N excluded (ids)" for whole-state exclusions and
- * " · <key> not compared (<until>)" for each keyed one.
+ * " · <key> not compared (<until>)" for each keyed one, and " · lines /<re>/ dropped from <key> (<until>)" for each entry that
+ * drops golden lines from a key it still compares.
  */
 export function summary(block: Block, passed: number, total: number): string {
   const ids = Object.keys(tapsOnce().states).filter((id) => excluded(block, id) !== null);
   const keyed = EXCLUDE.filter((e) => e.block === block && e.key);
   return `${block} parity: ${passed}/${total} states equal`
     + (ids.length ? ` · ${ids.length} excluded (${ids.join(", ")})` : "")
-    + keyed.map((e) => ` · ${e.key!.source} not compared (${e.until ?? "permanent"})`).join("");
+    + keyed.map((e) => e.lines
+      ? ` · lines /${e.lines.source}/ dropped from ${e.key!.source} in ${e.ids === "*" ? "every state" : `${e.ids.length} states`} (${e.until ?? "permanent"})`
+      : ` · ${e.key!.source} not compared (${e.until ?? "permanent"})`).join("");
 }

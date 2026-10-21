@@ -26,7 +26,30 @@ export const NO_MAP_LABEL_IDS: readonly string[] = Object.entries(golden().state
 /** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
 export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
 
-export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; reason: string; until?: string }
+/** Every golden Keep group line (`groups.N.lines`, and each tree kind's `lines`), state by state. */
+const groupLines = (s: { keep?: unknown }): string[] => {
+  const out: string[] = [];
+  const walk = (ns: unknown): void => { for (const x of (ns as { lines?: string[]; children?: unknown }[] | null) ?? []) { out.push(...(x.lines ?? [])); walk(x.children); } };
+  for (const g of ((s.keep as { groups?: { lines?: string[]; tree?: unknown }[] } | null)?.groups ?? [])) { out.push(...(g.lines ?? [])); walk(g.tree); }
+  return out;
+};
+/** The licence-document line the prototype's round UR7 `stampsFor` adds under a fish ("You need Steelhead Conservation
+ *  Surcharge Stamp › only if you fish for steelhead, …"). */
+export const STAMP_LINE = /^You need /;
+/** The group's year-window line the prototype lifts from page v36's strip (`.gyear`: "Through the year You can keep them
+ *  until Oct 31. …"). */
+export const YEAR_WINDOW_LINE = /^Through the year /;
+const idsWithLine = (re: RegExp): string[] => Object.entries(golden().states).filter(([, s]) => groupLines(s).some((l) => re.test(l))).map(([id]) => id);
+/** The states whose golden Keep groups carry a stamp line (in a kind's lines or the group's) — computed at load. */
+export const STAMP_LINE_IDS: readonly string[] = idsWithLine(STAMP_LINE);
+/** The states whose golden Keep groups carry a `.gyear` line — computed at load. */
+export const YEAR_WINDOW_IDS: readonly string[] = idsWithLine(YEAR_WINDOW_LINE);
+
+/**
+ * `lines`: the entry does not exclude its key — the key IS compared, with only the golden lines matching `lines` removed
+ * (`droppedLines`); `excluded` never returns such an entry.
+ */
+export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; lines?: RegExp; reason: string; until?: string }
 
 export const EXCLUDE: readonly Exclusion[] = [
   ...(PINS_ERROR_IDS.length ? [{
@@ -44,14 +67,30 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
   // (T18/T19) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design
-  { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked)$/,
-    reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; never 'fix' the data to match the page",
+  { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked|lines)$/,
+    reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; the group's drawn lines (which contain both) are not compared; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
+  // (T18/T19 review) lines the Keep presenters do not draw: dropped from the golden lines, the rest of the key compared
+  ...(STAMP_LINE_IDS.length ? [{
+    block: "keep" as const, ids: STAMP_LINE_IDS, key: /^groups\.\d+\.(tree|lines)$/, lines: STAMP_LINE,
+    reason: "PENDING (owner rule 2026-10-21): the prototype's round UR7 stampsFor line under a fish ('You need Steelhead Conservation Surcharge Stamp › only if you fish for steelhead, …') picks which licence documents a fish needs (data-sp / data-min-cm over the licence answer) — a licence answer, not drawn by T18/T19 and never derived in TS. Every other kind and group line is compared",
+    until: "the pipeline ships the per-fish licence-document line on the group (or a ticket ports it as pure wording)" }] : []),
+  ...(YEAR_WINDOW_IDS.length ? [{
+    block: "keep" as const, ids: YEAR_WINDOW_IDS, key: /^groups\.\d+\.lines$/, lines: YEAR_WINDOW_LINE,
+    reason: "PENDING: the group's year-window line (prototype UR5 `.gyear`: 'Through the year' + page v36 runTxt over the row's year strip) is T19b's runTxt over the STORED HydRow.year; T17–T19 do not draw it. Every other group line is compared",
+    until: "T19b (runTxt over HydRow.year) draws the .gyear line" }] : []),
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */
 export function excluded(block: Block, id: string, key?: string): { reason: string } | null {
-  const e = EXCLUDE.find((x) => x.block === block && (x.ids === "*" || x.ids.includes(id))
+  const e = EXCLUDE.find((x) => !x.lines && x.block === block && (x.ids === "*" || x.ids.includes(id))
     && (x.key === undefined || (key !== undefined && x.key.test(key))));
   return e ? { reason: e.reason } : null;
 }
+
+/** The golden-line patterns a `lines` entry drops from this state's key (empty when the key is compared whole). */
+export function droppedLines(block: Block, id: string, key: string): readonly RegExp[] {
+  return EXCLUDE.filter((x) => !!x.lines && x.block === block && (x.ids === "*" || x.ids.includes(id)) && !!x.key?.test(key)).map((x) => x.lines!);
+}
+/** golden lines with the dropped ones removed */
+export const keepLines = (lines: readonly string[], drop: readonly RegExp[]): string[] => lines.filter((l) => !drop.some((re) => re.test(l)));

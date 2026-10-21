@@ -232,8 +232,15 @@ describe("T12 chooseSource", () => {
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
+<<<<<<< HEAD
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal"
       + " · ^groups\\.\\d+\\.(tree|worked)$ not compared (never — a re-synced prototype on the ruled data removes it)");   // T13 trout line compared; (T18) the Kitimat ruling
+=======
+    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal · ^strip\\.lines?$ not compared (the pipeline year strip (batch 7) is in the release)"
+      + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling
+      + " · lines /^You need / dropped from ^groups\\.\\d+\\.(tree|lines)$ in 8 states (the pipeline ships the per-fish licence-document line on the group (or a ticket ports it as pure wording))"
+      + " · lines /^Through the year / dropped from ^groups\\.\\d+\\.lines$ in 11 states (T19b (runTxt over HydRow.year) draws the .gyear line)");
+>>>>>>> cbea9e98 (T17-T19 review fixes: compare golden kind lines and whole-group lines; stamp and .gyear lines dropped by keyed exclusions the summary reports; narrowAll/parentRow recorded as PIPELINE NEEDs (rows_row.scope.narrow_all, rows_row.parent))
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });
