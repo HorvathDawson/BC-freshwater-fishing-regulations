@@ -13,4 +13,9 @@ describe("the web map applies the gesture policy", () => {
     expect([ctor.includes("...maplibreGestures(),"),
             src.includes("if (!touchRotation()) m.touchZoomRotate.disableRotation();")]).toEqual([true, true]);
   });
+  it("turns keyboard rotation off and shows the compass only where the map may turn", () => {
+    const src = readFileSync(new URL("../packages/map/src/Map.web.tsx", import.meta.url), "utf8");
+    expect([src.includes("if (!keyboardRotation()) m.keyboard.disableRotation();"),
+            /showCompass: compassShown\(\)/.test(src), /showCompass: true/.test(src)]).toEqual([true, true, false]);
+  });
 });

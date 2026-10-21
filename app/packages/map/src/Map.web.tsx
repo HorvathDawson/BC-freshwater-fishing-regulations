@@ -25,7 +25,7 @@ import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
 import { toExpression } from "./legacy-filter";
-import { maplibreGestures, touchRotation } from "./gestures";
+import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
          unionBbox, type Bbox } from "@app/core";
 
@@ -135,6 +135,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       ...maplibreGestures(),
     });
     if (!touchRotation()) m.touchZoomRotate.disableRotation();
+    if (!keyboardRotation()) m.keyboard.disableRotation();
 
     /*
      * COLLAPSED ON ARRIVAL.
@@ -171,7 +172,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // See MapProps.bare — an illustration, not something you drive.
     if (!bare)
       m.addControl(new maplibregl.NavigationControl({
-        showCompass: true, visualizePitch: false,
+        // the compass turns the map when dragged; with rotation off north is always up (G1)
+        showCompass: compassShown(), visualizePitch: false,
       }), "top-right");
     /*
      * BOTTOM-RIGHT, above the attribution.

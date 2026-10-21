@@ -37,7 +37,9 @@ Conditions view whole.
 
 ## Map
 `Map.web.tsx` is constructed with `...maplibreGestures()`: pan, pinch, double-tap and wheel zoom on; rotate and tilt
-off (`dragRotate`, `pitchWithRotate`, `touchPitch` false, and `touchZoomRotate.disableRotation()`); `clickTolerance`
+off (`dragRotate`, `pitchWithRotate`, `touchPitch` false, `touchZoomRotate.disableRotation()`, and
+`keyboard.disableRotation()` so Shift+arrows neither turn nor tilt; the NavigationControl compass, which turns the map
+when dragged whatever `dragRotate` says, is hidden while rotation is off — `keyboardRotation()` / `compassShown()`); `clickTolerance`
 8 px, so a press that moves 8 px or more is a pan and selects nothing. `Map.native.tsx` (N1's) is untouched;
 `nativeMapGestures()` returns `{scrollEnabled, zoomEnabled, rotateEnabled: false, pitchEnabled: false}` for it.
 
@@ -68,3 +70,13 @@ off (`dragRotate`, `pitchWithRotate`, `touchPitch` false, and `touchZoomRotate.d
 - The Sheet's "drag when the content is at its top" path is not built: the drag starts from the grabber and title row
   only, which keeps scrolling content scrolling.
 - The spot screen and the add-spot flow are full-screen returns outside the `<EdgeBack>` wrapper (iOS later).
+
+## Review fixes
+- **Spot edit vs. system back**: the ‹ on the spot screen ended the edit before popping; Android's and the browser's
+  back popped the route directly, so the edit outlived its spot (the next spot opened in edit mode with the old text,
+  and Save wrote it there). The cleanup now follows the route: `@app/ui` `useOnLeave(openSpot, …)` in the Shell ends
+  the edit (discarding its added photos), the error and a pending tab whenever the open spot changes, by any input.
+  `ui/src/leave.render.test.tsx` drives Android's back from an editing spot (and pins the defect without the hook).
+  A system back from a dirty edit discards without asking, exactly as the ‹ always has (one back rule).
+- **Part swipe acceptance stays OPEN**: no input can step a part in the shipped app until P15 supplies the part order
+  and the Shell dispatches `part`; the browser check of the swipe is owed then.

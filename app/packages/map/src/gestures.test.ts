@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { MAP_GESTURES, type MapGestures } from "@app/core";
-import { maplibreGestures, nativeMapGestures, touchRotation } from "./gestures";
+import { compassShown, keyboardRotation, maplibreGestures, nativeMapGestures, touchRotation } from "./gestures";
 
 const FLIPPED: MapGestures = { pan: false, pinch: false, doubleTapZoom: false, wheel: false, rotate: true,
                                tilt: true, tapSlop: 3 };
@@ -25,6 +25,14 @@ describe("the map's gestures", () => {
       touchRotation: false,
     });
     expect(touchRotation({ ...MAP_GESTURES, rotate: true })).toBe(true);
+  });
+  it("web: no rotate and no tilt reaches the map by the keyboard or the compass either", () => {
+    // maplibre's keyboard handler turns with Shift+Left/Right and tilts with Shift+Up/Down unless disableRotation() is
+    // called; NavigationControl's compass turns the map by drag whatever dragRotate says (MouseRotateWrapper)
+    const at = (g: MapGestures) => ({ keyboardRotation: keyboardRotation(g), compass: compassShown(g) });
+    expect([at(MAP_GESTURES), at({ ...MAP_GESTURES, rotate: true }), at({ ...MAP_GESTURES, tilt: true }), at(FLIPPED)])
+      .toEqual([{ keyboardRotation: false, compass: false }, { keyboardRotation: true, compass: true },
+                { keyboardRotation: true, compass: false }, { keyboardRotation: true, compass: true }]);
   });
   it("native: the same policy as MapLibre Native's switches", () => {
     expect([nativeMapGestures(), nativeMapGestures(FLIPPED)]).toEqual([

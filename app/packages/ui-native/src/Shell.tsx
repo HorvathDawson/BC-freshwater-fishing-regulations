@@ -13,7 +13,7 @@ import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
-import { useBack, useEdgeBack, usePartSwipe, type SystemBack } from "@app/ui";
+import { useBack, useEdgeBack, useOnLeave, usePartSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -157,6 +157,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // P01: a failed save or delete, said on the spot's screen; and a tab change asked for while an edit is unsaved
   const [spotError, setSpotError] = useState<string | null>(null);
   const [pendingTab, setPendingTab] = useState<TabKey | null>(null);
+  // G1: however the spot is left (‹, Android's back, the browser's back, a tab), its edit ends with it — else the next
+  // spot opens in edit mode with this one's text and Save writes it there
+  useOnLeave(openSpot, () => { if (edit) void photoEdit.discard(); setEdit(null); setSpotError(null); setPendingTab(null); });
   // A pin dropped on the map when you ask to see a spot there. Cleared when you pan away
   // to something else, so it never lingers as a mystery dot.
   const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(null);

@@ -33,7 +33,7 @@ export function maplibreGestures(g: MapGestures = MAP_GESTURES): MaplibreGesture
     dragRotate: g.rotate,
     pitchWithRotate: g.tilt,
     touchPitch: g.tilt,
-    // the arrow keys pan and +/- zoom; Shift+arrows would rotate, which the keyboard handler drops with the rest
+    // the arrow keys pan and +/- zoom; Shift+arrows turn and tilt unless `keyboardRotation` below turns that off
     keyboard: g.pan,
     clickTolerance: g.tapSlop,
   };
@@ -42,6 +42,23 @@ export function maplibreGestures(g: MapGestures = MAP_GESTURES): MaplibreGesture
 /** After construction: maplibre-gl turns two-finger ROTATION off on its pinch handler, not in the options. */
 export function touchRotation(g: MapGestures = MAP_GESTURES): boolean {
   return g.pinch && g.rotate;
+}
+
+/**
+ * After construction: maplibre-gl's keyboard handler turns the map with Shift+Left/Right and tilts it with
+ * Shift+Up/Down until `keyboard.disableRotation()` is called (one switch for both), whatever `dragRotate` says.
+ */
+export function keyboardRotation(g: MapGestures = MAP_GESTURES): boolean {
+  return g.rotate || g.tilt;
+}
+
+/**
+ * NavigationControl's compass turns the map when dragged (maplibre's MouseRotateWrapper calls `setBearing` itself,
+ * ignoring `dragRotate`), and with no rotation north is always up, so there is nothing for it to show: it is shown
+ * only where the map may turn.
+ */
+export function compassShown(g: MapGestures = MAP_GESTURES): boolean {
+  return g.rotate;
 }
 
 /** MapLibre Native (`@maplibre/maplibre-react-native` `MapView`) switches — for `Map.native.tsx` at N1. */
