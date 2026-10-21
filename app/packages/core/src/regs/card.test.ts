@@ -13,7 +13,7 @@ const R: RuleIndex = {
   has: () => true, size: 0,
 };
 const row = (o: Partial<Row>): Row => ({ kind: "keep", pool: null, win: null, members: [], all_members: [], daily: null, narrow: null,
-  everyone: [], groups: [], prot: null, wins: null, lift_notes: [], scope: null, ...o }) as Row;
+  everyone: [], groups: [], prot: null, wins: null, lift_notes: [], scope: null, year: [["none", 365]], ...o }) as Row;
 const KEEP = row({ kind: "keep", pool: 3091, daily: 2, members: ["RB", "CT"], all_members: ["RB", "CT"], narrow: 3095, wins: [7] });
 const NOLIMIT = row({ kind: "no_limit", pool: 1362, members: ["LMB"], all_members: ["LMB"] });
 const CLOSED = row({ kind: "closed", win: 3080 });
@@ -120,6 +120,20 @@ describe("rowsAt / buildModel", () => {
     const openWithClosing = inputs({ display: [{ status: "own", closing: [[3080, ["RB"]]], strip: 1 } as unknown as DisplayFrame, SHUT_F] });
     const q = makePlace(openWithClosing), c = settle(openWithClosing, q);
     expect([c.broad.length, buildModel(openWithClosing, q, c).broad]).toEqual([1, []]);
+  });
+});
+
+describe("the year strip is the store's (rows 30): hydRow hands it on, nothing derives a day", () => {
+  it("each row's stored `year` is HydRow.year, the same runs, even where the frame's answers would colour a day otherwise", () => {
+    // the frame's RB keeps all year, yet the stored strip says closed for 30 days: the app draws the store's answer
+    const y: Row["year"] = [["keep", 150], ["closed", 30], ["keep", 185]];
+    const k = hydRow(R, row({ ...KEEP, year: y }));
+    expect(k.year).toBe(y);
+    expect(k.year).toEqual([["keep", 150], ["closed", 30], ["keep", 185]]);
+    expect(hydRow(R, CLOSED).year).toEqual([["none", 365]]);
+    const I = inputs({ rows: [{ ...FRAME, rows: [row({ ...KEEP, year: y }), NOLIMIT, CLOSED] }, null] }), q = makePlace(I);
+    const m = buildModel(I, q, settle(I, q));
+    expect(m.rows.map((r) => r.year)).toEqual([[["keep", 150], ["closed", 30], ["keep", 185]], [["none", 365]], [["none", 365]]]);
   });
 });
 

@@ -156,7 +156,12 @@ def test_taps_equal_the_producers(built):
                 P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"],
                             kd["steelhead"], ladder, md, RW.open_states(ctx, rk, md))
                 want = RW.refs(json.loads(json.dumps(RW.produce(P))), rix.__getitem__)
-                assert model.sections["rows"][k][s] == want, (key, day)
+                # rows 30: the build stamps each row's year strip (the key's year, not one day's: year.py);
+                # the day's producer is everything else
+                got = model.sections["rows"][k][s]
+                assert all(len(r["year"]) >= 1 for r in got["rows"]), (key, day)
+                assert {**got, "rows": [{x: v for x, v in r.items() if x != "year"} for r in got["rows"]]} \
+                    == want, (key, day)
                 checked += 1
     finally:
         db.close()

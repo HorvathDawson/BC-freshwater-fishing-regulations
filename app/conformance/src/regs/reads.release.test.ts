@@ -21,6 +21,10 @@ const T = taps() as unknown as {
   unnamed: { handle: number; akey: number; place: number; name: string }[];
 };
 
+/** The Vedder's rows frame ids on May 15 / Jun 15 (taps.json, the Python reference decoder's): rows frames are re-interned
+ *  whenever the rows layout moves (rows 30 added `rows[].year`); the ticket's other ids stay literal. */
+const V515 = T.states.vedder_515!.cell.rows, V615 = T.states.vedder_615!.cell.rows;
+
 describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, () => {
   let st: RegsStore;
   beforeAll(async () => { st = await openRegsStore(openReleaseDir(LIVE!)); });
@@ -54,8 +58,8 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
   });
 
   it("5–6. cells and display frames", async () => {
-    expect(await st.cell(886, 1)).toEqual({ ladder: 1057, rows: 1723, gear: 320, licence: 1, display: 64 });
-    expect(await st.cell(886, 2)).toEqual({ ladder: 2457, rows: 1724, gear: 146, licence: 1, display: 305 });
+    expect(await st.cell(886, 1)).toEqual({ ladder: 1057, rows: V515, gear: 320, licence: 1, display: 64 });
+    expect(await st.cell(886, 2)).toEqual({ ladder: 2457, rows: V615, gear: 146, licence: 1, display: 305 });
     expect((await st.cells(886)).length).toBe(4);
     expect(await st.display(886, 64)).toEqual({ status: "own", closing: [], strip: 20 });
     const d = await st.display(886, 305) as unknown as { status: string; closing: [number, unknown][] };
@@ -63,8 +67,8 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     expect(d.closing[0]![0]).toBe(529);
   });
 
-  it("7. rows(1723), the Vedder on May 15", async () => {
-    const r = await st.rows(886, 1723);
+  it("7. rows(vedder_515's frame), the Vedder on May 15", async () => {
+    const r = await st.rows(886, V515);
     expect(r.spp).toEqual(["RB", "CT", "LMB", "SMB", "BCB", "CRA", "KO", "LW", "MW", "WSG", "ST", "GB", "DV", "LT", "EB"]);
     expect(r.steelhead_line).toBe("known_with_rules");
     expect(r.rows.map((x) => x.kind)).toEqual(["keep", "release", "keep", "keep", "keep", "release", "keep", "closed"]);
@@ -72,6 +76,12 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     const lmb = r.fish.LMB!.hatchery!;
     expect({ status: lmb.status, daily: lmb.daily, win: lmb.win }).toEqual({ status: "keep", daily: 20, win: 3083 });
     expect({ h: r.fish.RB!.hatchery!.win, w: r.fish.RB!.wild!.win }).toEqual({ h: 527, w: 3098 });
+    // rows 30: each row's stored year strip — page v36's own dayStatus for vedder_515 (hydrate.json), read, not derived
+    expect(r.rows.map((x) => x.year)).toEqual([
+      [["keep", 151], ["closed", 30], ["keep", 184]], [["release", 151], ["closed", 30], ["release", 184]],
+      [["keep", 151], ["closed", 30], ["keep", 184]], [["keep", 151], ["closed", 30], ["keep", 184]],
+      [["keep", 151], ["closed", 30], ["keep", 184]], [["release", 151], ["closed", 30], ["release", 184]],
+      [["keep", 151], ["closed", 30], ["keep", 184]], [["none", 365]]]);
   });
 
   it("8. ladder(1057): wire verdicts, fish codes from statics.fish", async () => {

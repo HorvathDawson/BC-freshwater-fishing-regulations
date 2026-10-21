@@ -19,7 +19,8 @@ ROW = {"kind": "keep", "pool": 3, "win": None, "members": ["RB"], "all_members":
        "daily": 2, "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None,
        "lift_notes": [], "scope": {"of": "water", "entry": None, "share": False, "apart": False},
        "conds": [], "items": [], "real_daily": None, "group": None,
-       "elsewhere": {"says": "This river’s own limit.", "ask": []}}     # answers 2.5 (rows 6)
+       "elsewhere": {"says": "This river’s own limit.", "ask": []},     # answers 2.5 (rows 6)
+       "year": [["keep", 365]]}                                          # rows 30: the year strip
 FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": DECIDED, "wild": DECIDED}}, "rows": [ROW],
          "steelhead_line": None}
 

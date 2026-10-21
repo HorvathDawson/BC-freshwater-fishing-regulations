@@ -9,6 +9,7 @@ import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
+import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
 import { DEV_BUNDLE } from "@app/data/bundle/node";
 
 const REPO = resolve(__dirname, "../../..");
@@ -59,11 +60,37 @@ export function releaseFetch(base: string, dir: string, log: string[]): typeof f
 /**
  * THE LIVE RELEASE on this machine (`python -m pipeline.deliver release` → data/release/r-*, not in git): $RELEASE_DIR
  * (relative to the repo root, or absolute), else the newest release folder in this checkout, else — in a
- * `.claude/worktrees/<name>` checkout — the main checkout's (read only: its files are read, never written). null: none.
+ * `.claude/worktrees/<name>` checkout — the main checkout's (read only: its files are read, never written). null: none,
+ * or one this app refuses by its section versions (`liveReleaseAt` says why).
  */
 export function liveRelease(): string | null {
-  if (process.env.RELEASE_DIR) {
-    const d = resolve(REPO, process.env.RELEASE_DIR);
+  return liveReleaseAt().dir;
+}
+
+/**
+ * The live release, or why there is none to test against. A release whose manifest says other section versions than
+ * core `KNOWN_VERSIONS` was built for another port — the app refuses it (`openRegsStore`), so every live suite over it
+ * would only test that refusal: it is a SKIP with the reason (a store-format bump lands before `deliver all` rebuilds the
+ * release), never passed over for an older folder — unless REGS_STORE_REQUIRED=1 (a machine meant to prove parity),
+ * where it throws.
+ */
+export function liveReleaseAt(env: Readonly<Record<string, string | undefined>> = process.env):
+  { dir: string; reason: null } | { dir: null; reason: string } {
+  const dir = findRelease(env);
+  if (!dir) return { dir: null, reason: "no release on this machine (data/release/r-*)" };
+  const said = (JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as
+    { regulations?: { versions?: Record<string, number> } }).regulations?.versions ?? {};
+  const off = SECTION_NAMES.filter((n) => said[n] !== KNOWN_VERSIONS[n])
+    .map((n) => `${n} ${said[n] ?? "absent"} (this app reads ${KNOWN_VERSIONS[n]})`);
+  if (!off.length) return { dir, reason: null };
+  const reason = `release ${dir} is ${off.join(", ")}: rebuild it (deliver all), then re-cut the goldens (sync.mjs)`;
+  if (env.REGS_STORE_REQUIRED && env.REGS_STORE_REQUIRED !== "0") throw new Error(`REGS_STORE_REQUIRED is set: ${reason}`);
+  return { dir: null, reason };
+}
+
+function findRelease(env: Readonly<Record<string, string | undefined>>): string | null {
+  if (env.RELEASE_DIR) {
+    const d = resolve(REPO, env.RELEASE_DIR);
     return existsSync(join(d, "manifest.json")) ? d : null;
   }
   for (const root of ROOTS()) {

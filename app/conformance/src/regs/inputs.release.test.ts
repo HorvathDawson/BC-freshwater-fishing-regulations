@@ -13,6 +13,9 @@ import { golden, inputsOf, paritySkip, regsStore, releasePairing, requestOf, tap
 
 const T = taps();
 const ids = Object.keys(T.states);
+/** A golden state's rows frame id (taps.json, the Python reference decoder's): rows frames are re-interned whenever the rows
+ *  layout moves (rows 30 added `rows[].year`), so the ticket's other literals stay and this one is the oracle's. */
+const rowsOf = (id: string): number => (T.states[id] as unknown as { cell: { rows: number } }).cell.rows;
 const at = await releasePairing();
 const pairing = paritySkip(at);
 
@@ -35,7 +38,7 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     const inp = await load(st, "gnis:3062", 0, 5, 15, "Friday");
     const it_ = inp.item!;
     expect([it_.ord, it_.name, it_.kind, it_.sections, it_.id]).toEqual([7670, "Vedder River", "stream", 5, "gnis:3062"]);
-    expect([inp.key!.akey, inp.s, inp.cell]).toEqual([886, 1, { ladder: 1057, rows: 1723, gear: 320, licence: 1, display: 64 }]);
+    expect([inp.key!.akey, inp.s, inp.cell]).toEqual([886, 1, { ladder: 1057, rows: rowsOf("vedder_515"), gear: 320, licence: 1, display: 64 }]);
     expect([inp.year!.cells.length, inp.year!.segStarts]).toEqual([4, [1, 122, 153, 183]]);
     expect(inp.frames!.display).toEqual({ status: "own", closing: [], strip: 20 });
     expect(inp.year!.displayByDay[166]!.status).toBe("closed");              // day 167, Jun 15
@@ -46,14 +49,14 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
 
   it("2. vedder_615 and vedder_1010: the segment and cell of the day", async () => {
     const jun = await load(st, "gnis:3062", 0, 6, 15, "Monday"), oct = await load(st, "gnis:3062", 0, 10, 10, "Saturday");
-    expect([jun.s, jun.cell]).toEqual([2, { ladder: 2457, rows: 1724, gear: 146, licence: 1, display: 305 }]);
-    expect([oct.s, oct.cell]).toEqual([3, { ladder: 1056, rows: 1722, gear: 146, licence: 1, display: 1 }]);
+    expect([jun.s, jun.cell]).toEqual([2, { ladder: 2457, rows: rowsOf("vedder_615"), gear: 146, licence: 1, display: 305 }]);
+    expect([oct.s, oct.cell]).toEqual([3, { ladder: 1056, rows: rowsOf("vedder_1010"), gear: 146, licence: 1, display: 1 }]);
   });
 
   it("3. klwa_1010 (Sat) and klwa_1012 (Mon): a weekday split — two moments, two ladder frames", async () => {
     const sat = await load(st, "wbk:-22", 0, 10, 10, "Saturday"), mon = await load(st, "wbk:-22", 0, 10, 12, "Monday");
-    expect([sat.s, sat.cell]).toEqual([1, { ladder: 3452, rows: 2381, gear: 433, licence: 2, display: 111 }]);
-    expect([mon.s, mon.cell]).toEqual([0, { ladder: 3451, rows: 2380, gear: 433, licence: 2, display: 111 }]);
+    expect([sat.s, sat.cell]).toEqual([1, { ladder: 3452, rows: rowsOf("klwa_1010"), gear: 433, licence: 2, display: 111 }]);
+    expect([mon.s, mon.cell]).toEqual([0, { ladder: 3451, rows: rowsOf("klwa_1012"), gear: 433, licence: 2, display: 111 }]);
     expect([sat.year!.moments!.length, sat.year!.ladderBySeg.length, sat.year!.cells.map((c) => c.ladder)]).toEqual([2, 2, [3451, 3452]]);
     expect(sat.year!.ladderBySeg[0]).not.toEqual(sat.year!.ladderBySeg[1]);
   });

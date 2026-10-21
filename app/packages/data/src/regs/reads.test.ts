@@ -16,7 +16,7 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 29, gear: 12, licence: 6, display: 17 };
+const VERSIONS = { ladder: 1, rows: 30, gear: 12, licence: 6, display: 17 };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {

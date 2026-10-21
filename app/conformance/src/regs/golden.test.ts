@@ -3,11 +3,13 @@
  * reason (never a silent pass, never a fail), and REGS_STORE_REQUIRED=1 must turn that skip into a failure, so a machine that
  * is meant to prove parity cannot exit 0 on a rebuilt store.
  */
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterAll, describe, expect, it } from "vitest";
+import { KNOWN_VERSIONS } from "@app/core";
+import { liveReleaseAt } from "../fixtureRelease";
 import { paritySkip, provinceStoreAt, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
@@ -74,5 +76,36 @@ describe("paritySkip: a skip is announced, and REGS_STORE_REQUIRED makes it a fa
   it("REGS_STORE_REQUIRED=0 or empty does not require", () => {
     expect(paritySkip(stale, { REGS_STORE_REQUIRED: "0" }).fail).toBeNull();
     expect(paritySkip(stale, { REGS_STORE_REQUIRED: "" }).fail).toBeNull();
+  });
+});
+
+describe("liveReleaseAt: a release built for another port is a skip with its reason, never tested as if paired", () => {
+  const release = (name: string, versions: Record<string, number>): string => {
+    const d = join(dir, name);
+    mkdirSync(d, { recursive: true });
+    writeFileSync(join(d, "manifest.json"), JSON.stringify({ regulations: { valid_until: null, versions } }));
+    return d;
+  };
+  const { glossary: _g, ...sections } = KNOWN_VERSIONS;
+
+  it("a release at this app's section versions is the live release", () => {
+    const d = release("r-now", { ...sections });
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: d, reason: null });
+  });
+
+  it("a rows-29 release (before the year strip) is a skip naming the version and the rebuild", () => {
+    const d = release("r-rows29", { ...sections, rows: 29 });
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null,
+      reason: `release ${d} is rows 29 (this app reads 30): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
+  });
+
+  it("with REGS_STORE_REQUIRED=1 it throws that reason", () => {
+    const d = release("r-rows29b", { ...sections, rows: 29 });
+    expect(() => liveReleaseAt({ RELEASE_DIR: d, REGS_STORE_REQUIRED: "1" })).toThrow(
+      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 30): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
+  });
+
+  it("no release: the reason says so", () => {
+    expect(liveReleaseAt({ RELEASE_DIR: join(dir, "nowhere") })).toEqual({ dir: null, reason: "no release on this machine (data/release/r-*)" });
   });
 });

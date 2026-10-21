@@ -1004,6 +1004,12 @@ class Restated(Model):
     says: StrictStr = Field(min_length=1)
 
 
+YearStatus = Literal["keep", "release", "closed", "none"]
+#: rows 30: one run of a row's year strip, [status, days] (`year.py`)
+YearRun = Tuple[YearStatus, Positive]
+BOOK_YEAR_DAYS = 365
+
+
 class Row(Model):
     kind: Decided_
     pool: Optional[RuleIx]
@@ -1026,6 +1032,18 @@ class Row(Model):
     presence: Optional[Presence] = None               # ROUND14 4: on the steelhead's own row
     week: Optional[Week] = None                       # ROUND14 5: its fish's weekday window in words
     restates: Optional[Tuple[Restated, ...]] = None   # ROUND15 3: same-row restatements, as notes
+    #: rows 30: THE YEAR STRIP — run-length [[status, days]] over the 365 book days (`year.py`: the most
+    #: permissive of the members' leading answers over each day's moments outside an hours window; page v36
+    #: ROUND14 5). Every row has one.
+    year: Tuple[YearRun, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _year(self):
+        if sum(n for _s, n in self.year) != BOOK_YEAR_DAYS:
+            raise ValueError(f"a row's year strip covers {sum(n for _s, n in self.year)} days, not 365")
+        if any(a[0] == b[0] for a, b in zip(self.year, self.year[1:])):
+            raise ValueError("a row's year strip repeats a status in two runs side by side")
+        return self
 
     @model_validator(mode="after")
     def _pool_rows(self):

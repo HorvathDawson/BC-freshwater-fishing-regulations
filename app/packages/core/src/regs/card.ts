@@ -10,11 +10,11 @@
  * v36's and is kept exactly: `mainRes` (which of a fish's two stored origin answers a one-line view leads with — the
  * keepable one).
  *
- * NOT PORTED (owner rule, review 2026-10-21): page v36's `dayStatus` / `strip` / `RANKSTAT` coloured a row's year strip with
- * the most permissive of the members' answers over the day's weekday moments — a per-day status no stored row holds (it
- * coloured Kalamalka kokanee "keep" on a Monday the store answers "release"). A row's per-day status is the PIPELINE's
- * answer to add (a run-length [[status, days]] over the 365 book days per rows_row, the shape hydrate.json `dayStatus`
- * carries); T13 reads it from the store.
+ * THE YEAR STRIP IS THE STORE'S (rows 30): page v36's `dayStatus` / `strip` / `RANKSTAT` (the most permissive of the
+ * members' answers over the day's weekday moments) is NOT ported — it is a per-day decision, and the pipeline makes it
+ * (`pipeline/deliver/answers/year.py`, the page's rule). Each wire row carries `year`, run-length [[status, days]] over the
+ * 365 book days (the shape hydrate.json `dayStatus` carries); `hydRow` hands it on as it is (`HydRow.year`) and T13 draws
+ * it. Nothing here ranks, merges or recomputes a day.
  *
  * Ports (page_v36.js @ 7fb6809f, inventory names): KEEPISH, st_, hydLine, hydRes, hydFact, hydRow, rowsAt, mainRes,
  * buildModel. Hidden globals replaced: SEC.rows.{frames, decided, rows, at} (→ `inp.year.rowsBySeg`, joined by T04),
@@ -27,6 +27,8 @@ import type { RegsPlace } from "./place";
 import type { Settled } from "./settle";
 
 export type CardStatus = "keep" | "nolimit" | "release" | "closed";
+/** One run of a row's stored year strip (rows 30 `rows[].year`): a status and how many book days it holds. */
+export type YearRun = Row["year"][number];
 type WireStatus = "keep" | "no_limit" | "release" | "closed";
 
 /** page KEEPISH: a fish that may be kept (with or without a limit). */
@@ -73,6 +75,8 @@ export interface HydRow {
   readonly scope: Badge | null;
   readonly conds: readonly (Readonly<Record<string, unknown>> & { readonly r: RuleView | null; readonly b: number })[] | null;
   readonly items: Row["items"] | null; readonly real: RealDaily | null;
+  /** The row's year strip as the store holds it (rows 30): [[keep | release | closed | none, days]] over the 365 book days. */
+  readonly year: readonly YearRun[];
   /** The wire row: group, elsewhere, week, restates, presence are read from it (T15–T19). */
   readonly raw: Row;
 }
@@ -137,7 +141,7 @@ export function hydRow(R: RuleIndex, x: Row): HydRow {
       const w = c as Readonly<Record<string, unknown>> & { r: number | null };
       return { ...w, r: w.r == null ? null : R.get(w.r), b: (w.b === null ? Infinity : w.b) as number };
     }) : null,
-    items: x.items || null, real: x.real_daily ?? null, raw: x,
+    items: x.items || null, real: x.real_daily ?? null, year: x.year, raw: x,
   };
 }
 

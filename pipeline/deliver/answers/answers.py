@@ -291,7 +291,9 @@ def _sections() -> Tuple[Section, ...]:
         # the total)
         # ROUND UR7: rows 29 (the share says no lifted fish where the own tier's relation says them; a kind directly under the
         # share "(part of the 2 from streams)"; the worked keep-the-share line "they count as your 2 from streams anywhere else")
-        Section("rows", 29, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 30 (owner rule 2026-10-21): every row's `year` — its year strip, run-length [[status, days]] over the
+        # 365 book days, page v36's dayStatus moved from the app to the pipeline (`year.py`)
+        Section("rows", 30, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -536,6 +538,12 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
                 if k > j:
                     out["rows"][ki][j:k + 1] = say_weekdays(out["rows"][ki][j:k + 1], at[j:k + 1])
                 j = k + 1
+    # rows 30: THE YEAR STRIP — every row of every rows frame carries its year (`year.py`, page v36 ROUND14 5:
+    # the most permissive of its fish's answers over each book day's moments outside an hours window)
+    if "rows" in out:
+        from pipeline.deliver.answers.year import stamp_years
+        for ki in range(len(keys)):
+            out["rows"][ki] = stamp_years(out["rows"][ki], segs[ki], seg_moments[ki])
     # a value finished from other sections' values at the same key and segment (answers 2.6)
     for s in chosen:
         if s.compose is None:

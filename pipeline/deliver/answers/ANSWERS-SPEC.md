@@ -98,6 +98,23 @@ top of the river)"); 26 parts, labels and `runs` only.
 **The export's tidal note (review B17).** `waters[].tidal.guide` holds angler words only (it equals
 `common.TIDAL_NOTE`); how to show it is in the field dictionary, never in the data.
 
+## THE YEAR STRIP (2026-10-21) — rows 30: the app decides nothing (owner rule)
+
+Every rows row carries `year`: run-length `[[status, days]]` over the 365 book days (Jan 1 .. Dec 31 of a year without
+Feb 29 — a Feb 29 reads Feb 28's run, P06), status `keep | release | closed | none`, the days summing to 365. It was page
+v36's `dayStatus` / `strip` (ROUND14 5), ported to TypeScript in T08 and removed there under the owner rule of 2026-10-21
+(a per-day status no stored frame holds is a decision); `year.py` makes it here with THE PAGE'S RULE:
+
+* a row's fish are its `members`, each answering with its leading origin answer (page `mainRes`: the hatchery answer if it
+  keeps, else the wild one if it keeps, else hatchery, else wild);
+* a day reads every segment of its start whose moment is not inside an hours window — a weekday split day all its weekday
+  classes (the Lower West Arm's kokanee: keep, as Sat–Sun keeps; `rows[].week` says the weekdays), an hours window never;
+* the day's status is the most permissive (keep / no_limit, then release, then closed); `none` where no member answers.
+
+Rows with the same members in a key carry the same strip on every segment's frame. No hours window is limited to some
+weekdays, so no day depends on the calendar year. Proved 134/134 against hydrate.json `dayStatus`
+(`pipeline/tests/test_answers_year_strip_live.py`; no-data `test_answers_year_strip.py`). The app reads `HydRow.year`.
+
 ## ROUND UR7 (2026-10-20) — rows 29: the owner's final prototype round before the app port
 
 A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hatchery rainbow trout" where every lifting rule's

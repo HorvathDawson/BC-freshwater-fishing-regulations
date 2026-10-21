@@ -5,9 +5,9 @@
  * failure under REGS_STORE_REQUIRED=1). Every expected value is the oracle's except the ticket's literals (page v36's
  * output, quoted by the ticket). Infinity ↔ the oracle's "Infinity".
  *
- * Ticket item 6 (`strip` vs the oracle's `dayStatus` runs) is not run: page v36's dayStatus ranks the members' answers over
- * the day's weekday moments — a per-day status the store does not hold — and the owner rule keeps that out of TS. The
- * pipeline must ship each rows_row's year strip; its parity belongs to that answer (and T13), not to a TS re-derivation.
+ * Ticket item 6 (the year strip vs the oracle's `dayStatus` runs) reads the STORE's strip (rows 30 `rows[].year`, decided
+ * by the pipeline with page v36's rule — `pipeline/deliver/answers/year.py`); TS derives nothing: each drawn row's
+ * `HydRow.year` is the stored runs, and they must equal page v36's dayStatus on every golden state.
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -59,6 +59,12 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
     const { m } = await model(id);
     expect(m.ctx.s).toBe(H.states[id]!.s);
     expect(project(m)).toEqual(H.states[id]!.model);
+  });
+
+  it.each(ids)("6. %s: every row's STORED year strip (rows[].year) equals page v36's dayStatus runs (365 book days)", async (id) => {
+    const { m } = await model(id);
+    expect(m.rows.map((r) => r.year)).toEqual(H.states[id]!.dayStatus);
+    for (const r of m.rows) expect(r.year.reduce((a, [, n]) => a + n, 0)).toBe(365);
   });
 
   it("5. the ticket's literals (page v36's own output)", async () => {

@@ -14,7 +14,7 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import type { Day, Moment, RegsInputs, RegsTarget, Weekday } from "@app/core";
 import { loadRegsInputs, openRegsStore, unpackBlob, type RegsStore } from "@app/data/regs";
-import { liveRelease, openReleaseDir } from "../fixtureRelease";
+import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 
 const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
 const GOLDEN_DIR = `${REPO}app/design/regs-v11/port/golden/`;
@@ -149,8 +149,8 @@ export function requestOf(id: string): { target: RegsTarget; day: Day; weekday: 
 export async function releasePairing(): Promise<{ path: string; reason: null } | { path: null; reason: string }> {
   const at = provinceStoreAt();
   if (at.path === null) return { path: null, reason: at.reason };
-  const dir = liveRelease();
-  if (!dir) return { path: null, reason: "no release on this machine (data/release/r-*)" };
+  const live = liveReleaseAt(), dir = live.dir;
+  if (!dir) return { path: null, reason: live.reason! };
   const db = new DatabaseSync(at.path, { readOnly: true });
   let want: string | undefined;
   try { want = (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v; }

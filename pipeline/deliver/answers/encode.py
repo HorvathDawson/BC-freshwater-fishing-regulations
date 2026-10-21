@@ -183,7 +183,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "29",
+            "version": "30",
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -435,7 +435,16 @@ SPEC = {
                     "(\"Up to 2 hatchery rainbow trout (part of the 2 from streams)\", \"Only 1 of the 2 from streams may be …\"); "
                     "the worked keep-the-share line \"If you keep 2 hatchery rainbow trout here\" / \"they don’t use up your 2 from "
                     "streams here, but on other streams they count as them: none from other streams today — up to 2 more of any "
-                    "kind, from here or from lakes.\"",
+                    "kind, from here or from lakes.\" "
+                    "Version 30 (owner rule 2026-10-21: the app decides nothing): every row carries `year` — THE YEAR "
+                    "STRIP, run-length [[status, days]] over the 365 book days (Jan 1 .. Dec 31 of a year without Feb 29; "
+                    "a Feb 29 reads Feb 28's run), status keep | release | closed | none, the days summing to 365. A "
+                    "day's status is page v36's rule (ROUND14 5), decided here: the most permissive (keep, then release, "
+                    "then closed) of the row's `members`' leading answers (per fish the hatchery answer if it keeps, else "
+                    "the wild one if it keeps, else hatchery, else wild) over every segment of the day's start whose "
+                    "moment is not inside an hours window (a weekday split day reads all its weekday classes; a night "
+                    "closure never colours the day); none where no member has an answer. The same members in the same "
+                    "key carry the same strip on every segment's frame. Draw it as it is; never derive a day's colour.",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "
