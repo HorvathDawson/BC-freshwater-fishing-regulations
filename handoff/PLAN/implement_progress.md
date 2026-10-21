@@ -83,6 +83,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- Tier 2 on r-7b6e802bf22b: everything green (fast 3839, slow 266, card gate, release parity, placeable, checks)
+  except 2 fast tests pinned to the pre-ruling Kitimat; fixed (feb release names ST; exemption inventory). OPEN: the
+  page-bug "count comparison drops a 2-fish release" mutation lost its Kitimat witness — find another water.
 - 2026-10-21 late morning: KEEP CARD presenters MERGED (lane A T13 strip/T14 banner/T16 header; lane B T15/T15b/
   T19b; lane C T17/T18/T19; parity 134/134, Kitimat 3 states keyed by the ruling) + merge fixes 0b99102a (one
   ruleBookLine; THE_REGION_LC). REGS_STORE_REQUIRED=1 pnpm check 4787 pass / 19 skip; smoke pass. Owner rule found 5
