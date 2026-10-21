@@ -40,7 +40,7 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "sheets * ^(gl:|hatch$)", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
         "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "keep 14 ^lines$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,

@@ -131,6 +131,10 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "sheets", ids: "*", key: /^rule:/,
     reason: "'Technical detail' fold body (key + fields JSON) is compared by structure, not string: JSON.stringify spacing",
     until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },
+  // (T36) owner rule 2026-10-21: the app reads the page map, it never computes one
+  { block: "sheets", ids: "*", key: /^(gl:|hatch$)/,
+    reason: "PIPELINE NEED: the release's statics carry no printed → PDF page map (contracts §3 Statics.pdfPages, source pipeline.common.synopsis_pages / the export guide's pdf_pages), so a glossary page is drawn unlinked ('p.4', no ↗) where the prototype links it. sheets.parity compares the printed page numbers and every other line; it fails once the map ships (then drop this entry)",
+    until: "the pipeline ships static pdf_pages in the release" },
   { block: "header", ids: NO_MAP_LABEL_IDS, key: /^place$/,
     reason: "the prototype shows no part label where it had no water map of the water; the app frames every named part (D1) and labels it unless the label is the water's name (T16) — the parity asserts that instead",
     until: "never — prototype map coverage, not a regulation" },

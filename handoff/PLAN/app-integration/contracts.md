@@ -350,7 +350,7 @@ designations ← `lic[lix]` export words. Golden `needs[].items[].text` is deriv
 ```ts
 export interface SheetVM { readonly key: SheetKey; readonly title: string; readonly sub: string | null; readonly blocks: readonly SheetBlock[] }   // (T36) key
 export type SheetBlock =                                              // (T36) replaces the v32 list
-  | { k: "para"; text: Line; tone?: "plain" | "small" | "note" }        // note = "⚑ …" rule notes
+  | { k: "para"; text: Line; tone?: "plain" | "small" | "note" | "mono" }   // note = "⚑ …" rule notes; mono (T36 as built) = the rule sheet's key + fields JSON
   | { k: "example"; text: Line }                                        // "For example: …" (bold lead in the run list)
   | { k: "head"; text: string }                                         // .lbl: "The exact words", "What to look for", "How this was decided", "These decide it (12)"
   | { k: "quote"; text: string }                                        // blockquote.exact
@@ -468,7 +468,7 @@ export interface RuleView {                                // widened; a view is
   readonly notes: readonly string[];                       // WORDS.UNCERTAIN + why | WORDS.NO_REASON ; WORDS.CURATOR + review_reason   // (T06)
   readonly missing: boolean;                               // the NORULE stand-in (noRule(rix): key "#<rix>", rank 4)   // (T06)
 }
-export interface RuleIndex { get(rix: number): RuleView; has(rix: number): boolean; readonly size: number }   // (T06)
+export interface RuleIndex { get(rix: number): RuleView; has(rix: number): boolean; readonly size: number; byKey?(key: RuleKey): RuleView | null }   // (T06); byKey (T36 as built): a rule: sheet key → its view, null if the store lacks it
 export interface ExportRule { entry_id: string; rule_id: string; type: string; family: string; label: string; verbatim: string; fields: Record<string, unknown>; parts?: Record<string, string>; prov: { rank: number; entry_name?: string; who?: string; why?: string }; dimension?: string; binds?: string }   // (T00) dimension, binds
 export interface Statics {
   glossary: { version: number; terms: readonly GlossaryTerm[] };

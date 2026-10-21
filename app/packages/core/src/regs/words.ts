@@ -171,6 +171,14 @@ export const WORDS = Object.freeze({
   LEVEL_TAG_BC: "B.C. rule", LEVEL_TAG_REGION: (n: string) => `Region ${n} rule`, LEVEL_TAG_REGION_ANY: "Region rule",
   LEVEL_TAG_AREA: "Named area rule", LEVEL_TAG_DOWN: "Downstream rule", LEVEL_TAG_FED: "Federal or park rule",
   LEVEL_TAG_WATER: "This water’s rule",
+  // ── T36 sheets (sheets.ts: prototype sheetHtml / glossBody / head; page v36 openRule, adiposeHtml, openSheet titles) ──
+  SHEET_RULE: "Rule", SHEET_EXACT: "The exact words", SHEET_TECH: "Technical detail", SHEET_NOTE: "⚑ ",
+  SHEET_BOOK_WORDS: "In the book’s words", SHEET_RULE_BOOK_WORDS: "In the rule book’s words", SHEET_FOR_EXAMPLE: "For example:",
+  SHEET_SOURCE_LINK: "Source ›",
+  SHEET_HATCH_TITLE: "Hatchery or wild?", SHEET_HATCH_SUB: "The adipose fin",
+  SHEET_HATCH_WILD: "Wild", SHEET_HATCH_WILD_CAP: " · adipose fin there",
+  SHEET_HATCH_CLIPPED: "Hatchery", SHEET_HATCH_CLIPPED_CAP: " · clipped, a healed scar instead",
+  SHEET_HATCH_LOOK: "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
   // ── T21 the Keep composition (keep.ts: page v36 renderCard's outside-B.C. foot) ──
   OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
   /** a fish picture's accessible name (prototype fishBtn aria-label) */

@@ -4,6 +4,16 @@ opens `pos:`), T19 (other-fish rows open `other:`), T20 (fish manifest + tips), 
 Blocks T37, T38, T42 · Decisions D5 (frozen target v33 @ 04765ab5), D6 (book links), D13 (fixture store) · Size 1 day
 (+½ if the ladder port from T19 is not reusable — see Notes)
 
+> **T36 AS BUILT, part 1 (regs v38 @ 7fb6809f):** `sheetKey.ts` (`parseSheetKey`, `appKeyOf`, `goldenKeyOf`,
+> `profileKeyOf`; all 7,184 golden per-state keys round-trip) and `sheets.ts` (`sheetOf`, `sheetLines`, `levelTag`,
+> `ruleSub`, `glossBlocks`) build **`rule:`, `gl:` (one or several terms), `pos:pos`, `hatch`** — sheets.parity 134/134
+> states, 3,594 sheets (rule 2,714 · gl 735 · pos 107 · hatch 38). `page.sheet(key)` is wired; every other key returns null.
+> NOT built yet: `src:` (129), `other:` (788) — core, next; `srcs:` (659) needs T30's `page.gear.*.src.keys`; `licsrc:` (642)
+> needs T33's licence `from` groups; `sp:` (1,274) needs T20's `FISH_TIPS` (not generated yet); `parts` (98) needs each
+> part's status on the day, which `RegsInputs` does not carry. PIPELINE NEED: the release has no printed → PDF page map
+> (`Statics.pdfPages` is `{}`), so glossary pages draw unlinked — keyed in exclusions.ts until the pipeline ships it.
+> Contract additions: `SheetBlock` para `tone: "mono"`; `RuleIndex.byKey?`.
+
 ## Goal
 `buildRegsPage(...).sheet(key)` returns the finished sheet for every key a page can open — rule, glossary term(s),
 possession, item sources, licence sources, row sources, other-fish (incl. the weekday story and "How this was decided"),

@@ -80,7 +80,10 @@ export interface RuleView {
   readonly notes: readonly string[];                       // WORDS.UNCERTAIN + why | NO_REASON ; WORDS.CURATOR + review_reason
   readonly missing: boolean;                               // the noRule stand-in
 }
-export interface RuleIndex { get(rix: number): RuleView; has(rix: number): boolean; readonly size: number }
+export interface RuleIndex { get(rix: number): RuleView; has(rix: number): boolean; readonly size: number;
+  /** (T36) the stored rule whose key is `${entry_id}::${rule_id}`, viewed through this part; null: no such rule (a sheet key
+   *  naming a rule the store lacks opens nothing). Optional so hand-built test indexes need not carry it. */
+  byKey?(key: RuleKey): RuleView | null }
 
 export interface ExportRule { entry_id: string; rule_id: string; type: string; family: string; label: string; verbatim: string; fields: Record<string, unknown>; parts?: Record<string, string>; prov: { rank: number; entry_name?: string; who?: string; uncertain?: boolean; why?: string | null }; dimension?: string; binds?: string }
 

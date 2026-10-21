@@ -246,6 +246,7 @@ describe("T12 summary", () => {
       + " · ^plainRows\\.0$ not compared (D19 (a): the pipeline ships a group for that row)"   // (T21) the whole Keep tab
       + " · lines /^You need (White Sturgeon Conservation Licence|Conservation Surcharge Stamp for Kootenay Lake rainbow trout) ›/ dropped from ^lines$ in 14 states (the pipeline ships stamps on Other fish rows)");
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
-      + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
+      + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)"
+      + " · ^(gl:|hatch$) not compared (the pipeline ships static pdf_pages in the release)");   // (T36) PIPELINE NEED
   });
 });

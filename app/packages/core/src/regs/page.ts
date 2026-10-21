@@ -19,6 +19,8 @@ import { buildLicence } from "./licence";
 import type { Day, RegsPage, Who } from "./model";
 import { makePlace } from "./place";
 import { settle } from "./settle";
+import { sheetOf } from "./sheets";
+import type { SheetKey } from "./sheetKey";
 
 export interface RegsPageOpts {
   readonly today: Day; readonly who: Who;
@@ -44,7 +46,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
   const gear = gctx && { ...buildGearTop(inp, gctx), bait: buildBait(inp, gctx) };
   const methods = gctx && buildMethods(inp, gctx);
-  return {
+  const page: Omit<RegsPage, "sheet"> = {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
@@ -53,6 +55,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     gear, methods,
     licence: buildLicence(inp, opts.who, { closed: settled.status?.status === "closed",   // (T33)
       glossary: new Set(inp.statics.glossary.terms.map((t) => t.id)) }),
-    sheet: () => null,                           // T36
   };
+  // T36: lazy and pure over the same inputs (a sheet is built when it is opened)
+  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today }, key) };
 }

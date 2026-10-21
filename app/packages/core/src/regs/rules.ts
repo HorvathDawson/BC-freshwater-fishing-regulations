@@ -70,6 +70,7 @@ export function viaOf(ruleset: { readonly reach: readonly number[]; readonly tri
 export function ruleIndex(stored: ReadonlyMap<number, { readonly export: ExportRule; readonly facts: RuleFacts | null }>,
   via: ReadonlyMap<number, Via>, sp: SpeciesBook): RuleIndex {
   const cache = new Map<number, RuleView>();
+  let keys: Map<string, number> | undefined;   // key → rix, built on the first byKey (a sheet open), once per part
   return {
     get(rix: number): RuleView {
       let v = cache.get(rix);
@@ -82,5 +83,10 @@ export function ruleIndex(stored: ReadonlyMap<number, { readonly export: ExportR
     },
     has: (rix: number) => stored.has(rix),
     get size() { return stored.size; },
+    byKey(key: string): RuleView | null {
+      keys ??= new Map([...stored].map(([rix, s]) => [`${s.export.entry_id}::${s.export.rule_id}`, rix] as const));
+      const rix = keys.get(key);
+      return rix === undefined ? null : this.get(rix);
+    },
   };
 }

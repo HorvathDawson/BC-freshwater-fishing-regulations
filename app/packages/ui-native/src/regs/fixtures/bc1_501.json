@@ -991,13 +991,368 @@
   }
  },
  "sheets": {
-  "gl:bait_ban": null,
-  "gl:catch_and_release": null,
-  "gl:conservation_surcharge": null,
-  "gl:no_fishing_for": null,
-  "gl:single_barbless_hook": null,
-  "gl:steelhead": null,
-  "gl:under_16": null,
+  "gl:bait_ban": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No natural bait of any kind — worms, roe, insects, fish parts — for any fish, while the ban runs. Lures and flies are fine.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "Bait Ban: the use of natural bait is prohibited in waters with a bait ban. Bait may be banned year round or seasonally. During the period when bait is banned it is banned for all angling and for all species."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 4,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 8,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:bait_ban",
+   "sub": null,
+   "title": "Bait ban"
+  },
+  "gl:catch_and_release": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "Catch and Release: You may fish for the named species, but you must release any that you catch."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 4,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:catch_and_release",
+   "sub": null,
+   "title": "Catch and release (release)"
+  },
+  "gl:conservation_surcharge": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "An add-on to your basic licence that pays for conservation; you need one only for what it names: Kootenay Lake rainbow trout, Shuswap Lake char, Shuswap rainbow trout, salmon, Steelhead. Keeping some of these fish also means recording them on your licence right away.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "Your basic angling licence can be validated with up to five annual Conservation Surcharge Stamps, plus a White Sturgeon Conservation Licence."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 5,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 7,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:conservation_surcharge",
+   "sub": null,
+   "title": "Conservation Surcharge Stamp"
+  },
+  "gl:no_fishing_for": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "You may not fish for it at all, not even to release it. If you catch one by accident, release it at once.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "No fishing for: you may not deliberately fish for the species named even if your intention is to release any fish that you may catch. If you accidentally catch a fish of the species named, you must release it as quickly and carefully as possible."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 4,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:no_fishing_for",
+   "sub": null,
+   "title": "No fishing for (closed)"
+  },
+  "gl:single_barbless_hook": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A hook with one point (no treble) and no barb — you may pinch the barb flat. Every river, stream, creek and slough in B.C. requires it; on a lake only where its row says so.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "barbless hook: a hook without a barb on any part of the hook, including both the point and shank. Existing tackle may be modified by completely removing the barb, or by crimping the barb down so that its point is flush against the shaft. single hook: a hook having only one point. (In contrast, a treble hook is a hook having three points on a common shaft.) Note: use of a treble hook is permitted unless \"single hook\" is specified. It is unlawful to use barbed hooks or a hook with more than one point in any river, stream, creek or slough in B.C. (Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables)."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 80,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:single_barbless_hook",
+   "sub": null,
+   "title": "Single barbless hook"
+  },
+  "gl:steelhead": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A rainbow trout that went to sea and came back: on waters where they run, any rainbow over 50 cm is a steelhead and follows the steelhead rules. Every wild steelhead must be released; you may keep at most 10 hatchery steelhead a licence year in all of B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "steelhead: a rainbow trout longer than 50 cm in waters where anadromous rainbow trout are found. Both hatchery and wild steelhead may be found in B.C. waters. The annual province-wide quota for hatchery steelhead is 10. All wild steelhead must be released. Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch). You must immediately record your retention of hatchery steelhead on your basic angling licence."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 6,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 80,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:steelhead",
+   "sub": null,
+   "title": "Steelhead"
+  },
+  "gl:under_16": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "B.C. residents under 16 need no licence or stamp and have their own quota. Under-16s from elsewhere need no licence either, but must fish with someone 16 or older who holds the licences and stamps the fishing needs — and what they keep counts toward that person's quota. To have their own quota, they buy the licences a 16+ angler would.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "If you are under 16 and NOT a resident of B.C.: You do not require any licence or stamp, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps. Any fish you keep must be counted as part of the catch and possession of your accompanying licence holder."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": null,
+       "printed": 6,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "gl:under_16",
+   "sub": null,
+   "title": "Anglers under 16"
+  },
   "licsrc:adult": null,
   "licsrc:adult_alien": null,
   "licsrc:adult_non": null,
@@ -1011,30 +1366,1563 @@
   "other:o4": null,
   "other:o5": null,
   "parts": null,
-  "pos:pos": null,
-  "rule:zp:conduct::conduct.r1": null,
-  "rule:zp:conduct::conduct.r10": null,
-  "rule:zp:conduct::conduct.r2": null,
-  "rule:zp:conduct::conduct.r3": null,
-  "rule:zp:conduct::conduct.r4": null,
-  "rule:zp:conduct::conduct.r5": null,
-  "rule:zp:conduct::conduct.r6": null,
-  "rule:zp:conduct::conduct.r7": null,
-  "rule:zp:conduct::conduct.r9": null,
-  "rule:zp:further_prohibitions::further_prohibitions.r1": null,
-  "rule:zp:further_prohibitions::further_prohibitions.r2": null,
-  "rule:zp:further_prohibitions::further_prohibitions.r3": null,
-  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,
-  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": null,
-  "rule:zp:preparing_catch::preparing_catch.r1": null,
-  "rule:zp:preparing_catch::preparing_catch.r2": null,
-  "rule:zp:prohibited_methods::prohibited_methods.r3": null,
-  "rule:zp:transporting_catch::transporting_catch.r1": null,
-  "rule:zp:transporting_catch::transporting_catch.r2": null,
-  "rule:zp:transporting_catch::transporting_catch.r3": null,
-  "rule:zp:transporting_catch::transporting_catch.r4": null,
-  "rule:zp:transporting_catch::transporting_catch.r5": null,
-  "rule:zp:transporting_catch::transporting_catch.r6": null,
+  "pos:pos": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "The fish you have with you at any time — in camp, a cooler or a vehicle.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "example",
+     "text": [
+      {
+       "s": "For example:",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "items": [
+      [
+       {
+        "s": "With 5 trout and char a day you may have 10: 2 days’ fish.",
+        "t": "text"
+       },
+       {
+        "s": " ",
+        "t": "text"
+       },
+       {
+        "s": "Possession doubles the 5 a day, not the 2 from streams.",
+        "t": "text"
+       }
+      ],
+      [
+       {
+        "s": "With 15 whitefish a day you may have 30: 2 days’ fish.",
+        "t": "text"
+       }
+      ]
+     ],
+     "k": "list"
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "possession quota: the number of fish of any species that an angler may have in their possession at any given time, EXCEPT at place of ordinary residence. In most instances, the possession quota is two times the daily quota. See Tables for exceptions."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the rule book’s words"
+    },
+    {
+     "k": "source",
+     "line": [
+      {
+       "open": "rule:z5:possession_quota::possession_quota.r1",
+       "s": "Source ›",
+       "t": "link"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 48,
+       "printed": 42,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "pos:pos",
+   "sub": null,
+   "title": "Possession"
+  },
+  "rule:zp:conduct::conduct.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Waste the fish you catch."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_waste_catch\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not waste the fish you catch"
+  },
+  "rule:zp:conduct::conduct.r10": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "\"High-grading\" is illegal."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r10",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_high_grade\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r10",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not high-grade"
+  },
+  "rule:zp:conduct::conduct.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Release fish in a harmful manner if you are not going to keep your catch."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_release_harmfully\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not release fish in a harmful manner"
+  },
+  "rule:zp:conduct::conduct.r3": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r3",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_buy_sell_or_barter_catch\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r3",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not buy, sell or barter your catch"
+  },
+  "rule:zp:conduct::conduct.r4": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r4",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_possess_or_move_live_fish\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r4",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not possess or move live fish or invertebrates"
+  },
+  "rule:zp:conduct::conduct.r5": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Leave the head, tail, and all fins on your catch until you get them to your permanent (ordinary) residence."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r5",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"leave_head_tail_and_fins_until_residence\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"species\": [\n  \"ALL_FIN_FISH\"\n ],\n \"species_except\": [\n  \"SALMON\"\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r5",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Leave the head, tail and fins on your catch until your residence"
+  },
+  "rule:zp:conduct::conduct.r6": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r6",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_enter_land_without_permission\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r6",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, without permission"
+  },
+  "rule:zp:conduct::conduct.r7": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Do not keep angled fish alive in a \"livewell\" or other device, or on stringers"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r7",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_keep_catch_alive\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r7",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not hold your catch alive (livewell, other device or stringer)"
+  },
+  "rule:zp:conduct::conduct.r9": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "release your aquarium fish to the wild"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:conduct::conduct.r9",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_release_aquarium_fish\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:conduct::conduct.r9",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not release your aquarium fish to the wild"
+  },
+  "rule:zp:further_prohibitions::further_prohibitions.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "place any fishing gear in any water during a No Fishing period"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:further_prohibitions::further_prohibitions.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"no_gear_in_water_during_closure\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:further_prohibitions::further_prohibitions.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not place gear in the water during a No Fishing period"
+  },
+  "rule:zp:further_prohibitions::further_prohibitions.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "damage or interfere with a trap set for furbearers"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:further_prohibitions::further_prohibitions.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_interfere_with_furbearer_trap\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:further_prohibitions::further_prohibitions.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not damage or interfere with a furbearer trap"
+  },
+  "rule:zp:further_prohibitions::further_prohibitions.r3": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "If your fish is not suitable for eating or if possession is illegal because of quotas, size limits or closed seasons, return the fish quickly and gently to the water."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:further_prohibitions::further_prohibitions.r3",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"return_unfit_fish_gently\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:further_prohibitions::further_prohibitions.r3",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Return a fish you cannot keep gently to the water"
+  },
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap."
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"extent_text\": \"within 23 m downstream of any fishway, canal, obstacle or leap\",\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"may_target\": false,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_GAME_FISH\"\n ],\n \"standing\": true,\n \"take\": 0\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:no_fishing_buffers::no_fishing_buffers.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "No fishing — within 23 m downstream of any fishway, canal, obstacle or leap"
+  },
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated."
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No fishing within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"extent_text\": \"within 100 m of any government fish counting, passing or rearing facility\",\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"may_target\": false,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_GAME_FISH\"\n ],\n \"standing\": true,\n \"take\": 0\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:no_fishing_buffers::no_fishing_buffers.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "No fishing — within 100 m of any government fish counting, passing or rearing facility"
+  },
+  "rule:zp:preparing_catch::preparing_catch.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Do not can, bottle or fillet fish caught by sport fishing in non-tidal waters except at your permanent residence."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:preparing_catch::preparing_catch.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_can_bottle_or_fillet_away_from_residence\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"species\": [\n  \"ALL_FIN_FISH\"\n ],\n \"species_except\": [\n  \"SALMON\"\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:preparing_catch::preparing_catch.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not can, bottle or fillet your catch away from your residence"
+  },
+  "rule:zp:preparing_catch::preparing_catch.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Do not freeze fish together in an unrecognizable block."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:preparing_catch::preparing_catch.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"do_not_freeze_in_unrecognizable_block\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"species\": [\n  \"ALL_FIN_FISH\"\n ],\n \"species_except\": [\n  \"SALMON\"\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:preparing_catch::preparing_catch.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not freeze fish in an unrecognizable block"
+  },
+  "rule:zp:prohibited_methods::prohibited_methods.r3": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "any fish willfully or accidentally snagged must be released immediately"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Any fish snagged — even by accident — must be released.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:prohibited_methods::prohibited_methods.r3",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"caught\": [\n  \"foul_hooked\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"may_target\": true,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_FIN_FISH\"\n ],\n \"take\": 0\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:prohibited_methods::prohibited_methods.r3",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "All fish — release all, if snagged, even by accident"
+  },
+  "rule:zp:transporting_catch::transporting_catch.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Keep your angling licence handy while travelling."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"keep_licence_handy_while_travelling\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Have your angling licence at hand when you travel with fish"
+  },
+  "rule:zp:transporting_catch::transporting_catch.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Transport or possess no more than your legal limit."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"transport_no_more_than_legal_limit\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Do not transport or possess more than your legal limit"
+  },
+  "rule:zp:transporting_catch::transporting_catch.r3": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Ensure your fish can be identified, counted and measured if necessary"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r3",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"keep_catch_identifiable\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r3",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Make sure your fish can be identified, counted and measured"
+  },
+  "rule:zp:transporting_catch::transporting_catch.r4": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "If you are transporting fish for someone else: Obtain and carry a signed letter from that person"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r4",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"carry_signed_letter_when_transporting_for_another\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r4",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Carry a signed letter from the angler when you transport fish for someone else"
+  },
+  "rule:zp:transporting_catch::transporting_catch.r5": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "If you will be exporting the fish from B.C., carry the letter and ensure that it is available for inspection by fishery enforcement and/or customs officers if requested to do so."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r5",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"show_letter_when_exporting\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r5",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Carry the letter and show it on request when you export the fish from B.C."
+  },
+  "rule:zp:transporting_catch::transporting_catch.r6": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Keep in your possession a signed letter from the angler until you have eaten the fish."
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:transporting_catch::transporting_catch.r6",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"conduct\": [\n  \"keep_signed_letter_for_gifted_fish\"\n ],\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ]\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 12,
+       "printed": 10,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:transporting_catch::transporting_catch.r6",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "Keep a signed letter from the angler until you have eaten fish given to you"
+  },
   "sp:BB": null,
   "sp:CT": null,
   "sp:DV": null,

@@ -212,9 +212,222 @@
   "ways": null
  },
  "sheets": {
-  "rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8": null,
-  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": null,
-  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": null
+  "rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Inherited from Chilliwack River: its row covers its tributaries.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "No Fishing June 1-30"
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No fishing, Jun 1–30.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"extents\": [\n  {\n   \"op\": \"downstream_of\",\n   \"splits\": [\n    \"chilliwack_vedder_rivers__vedder_crossing_bridge\"\n   ]\n  }\n ],\n \"may_target\": false,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_GAME_FISH\"\n ],\n \"take\": 0,\n \"when\": {\n  \"dates\": [\n   {\n    \"from_day\": 1,\n    \"from_month\": 6,\n    \"to_day\": 30,\n    \"to_month\": 6\n   }\n  ]\n }\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 24,
+       "printed": 22,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8",
+   "sub": "This water’s rule · Chilliwack River",
+   "title": "No fishing, Jun 1-Jun 30 — downstream of Vedder Crossing Bridge"
+  },
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap."
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"extent_text\": \"within 23 m downstream of any fishway, canal, obstacle or leap\",\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"may_target\": false,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_GAME_FISH\"\n ],\n \"standing\": true,\n \"take\": 0\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:no_fishing_buffers::no_fishing_buffers.r1",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "No fishing — within 23 m downstream of any fishway, canal, obstacle or leap"
+  },
+  "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": {
+   "blocks": [
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "A B.C.-wide rule — everywhere in B.C.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "The exact words"
+    },
+    {
+     "k": "quote",
+     "text": "Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated."
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "No fishing within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+       "t": "text"
+      }
+     ],
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+         "t": "text"
+        },
+        {
+         "s": " ",
+         "t": "text"
+        },
+        {
+         "s": "{\n \"extent_text\": \"within 100 m of any government fish counting, passing or rearing facility\",\n \"extents\": [\n  {\n   \"area_kind\": \"region\",\n   \"op\": \"within\"\n  }\n ],\n \"may_target\": false,\n \"period\": \"daily\",\n \"species\": [\n  \"ALL_GAME_FISH\"\n ],\n \"standing\": true,\n \"take\": 0\n}",
+         "t": "text"
+        }
+       ],
+       "tone": "mono"
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Technical detail"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "key": "rule:zp:no_fishing_buffers::no_fishing_buffers.r2",
+   "sub": "B.C. rule · Everywhere in B.C.",
+   "title": "No fishing — within 100 m of any government fish counting, passing or rearing facility"
+  }
  },
  "status": "closed",
  "target": {

@@ -32,6 +32,7 @@ export * from "./tail";
 export * from "./others";
 export * from "./keep";
 export * from "./pins";
+export * from "./sheets";
 export * from "./page";
 export * from "./level";
 export * from "./gear";

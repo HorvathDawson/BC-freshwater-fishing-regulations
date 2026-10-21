@@ -239,7 +239,7 @@ export type LicenceBlockVM =
 // ── 2.6 Sheets ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export interface SheetVM { readonly key: SheetKey; readonly title: string; readonly sub: string | null; readonly blocks: readonly SheetBlock[] }
 export type SheetBlock =
-  | { k: "para"; text: Line; tone?: "plain" | "small" | "note" }        // note = "⚑ …" rule notes
+  | { k: "para"; text: Line; tone?: "plain" | "small" | "note" | "mono" }   // mono (T36): the rule sheet's key + fields JSON        // note = "⚑ …" rule notes
   | { k: "example"; text: Line }
   | { k: "head"; text: string }
   | { k: "quote"; text: string }
