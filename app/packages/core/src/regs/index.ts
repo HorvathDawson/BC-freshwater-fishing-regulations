@@ -16,3 +16,4 @@ export * from "./tap";
 export * from "./ladder";
 export * from "./place";
 export * from "./settle";
+export * from "./card";
