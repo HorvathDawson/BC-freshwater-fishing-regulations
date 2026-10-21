@@ -15,6 +15,7 @@ import { FISH, type FishManifest } from "./fish.generated";
 import { headerOf } from "./header";
 import type { RegsInputs } from "./inputs";
 import { keepOf } from "./keep";
+import { buildLicence } from "./licence";
 import type { Day, RegsPage, Who } from "./model";
 import { makePlace } from "./place";
 import { settle } from "./settle";
@@ -49,7 +50,9 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     status,
     header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true }),
     keep,
-    gear, methods, licence: null,               // T33–T35
+    gear, methods,
+    licence: buildLicence(inp, opts.who, { closed: settled.status?.status === "closed",   // (T33)
+      glossary: new Set(inp.statics.glossary.terms.map((t) => t.id)) }),
     sheet: () => null,                           // T36
   };
 }

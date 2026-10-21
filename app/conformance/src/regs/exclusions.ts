@@ -64,6 +64,22 @@ export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().st
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
+/** (T33) the states whose golden licence list lacks the Steelhead Conservation Surcharge Stamp because the PROTOTYPE removed
+ *  it at render time (round 20i O3: a card whose not_kept says steelhead are closed here). licence.parity holds this list to
+ *  the oracle condition (stored rows not_kept closed ST × a stored steelhead_stamp document), so it cannot drift. */
+export const STEELHEAD_DROP_IDS: readonly string[] = ["bc1_501", "bc0_501", "bc1_1010", "bc0_1010", "ape_501", "ape_1010", "x15p2_1010"];
+export const STEELHEAD_STAMP_ITEM = /^Steelhead Conservation Surcharge Stamp\b/;
+/** (T33) tidal water: the prototype draws an empty Licence section (as on a closed day); page v36 licParts draws its
+ *  "Tidal water" box with the stored tidal licence words, which the app keeps (D20 (b): tidal water is not closed). */
+export const TIDAL_LICENCE_IDS: readonly string[] = ["x31p_1010"];
+export const LICENCE_EXCLUDE: readonly Exclusion[] = [
+  { block: "licence", ids: TIDAL_LICENCE_IDS,
+    reason: "decisions D20 (b): the prototype's empty Licence section on tidal water is the closed-day path over a key that is not closed; the app draws page v36 licParts' tidal box (\"Tidal water\" + the stored tidal licence words) — licence.parity asserts it",
+    until: "never — a prototype artefact, not a regulation" },
+  { block: "licence", ids: STEELHEAD_DROP_IDS, key: /^adult\|[a-z_]+\.blocks$/, lines: STEELHEAD_STAMP_ITEM,
+    reason: "PIPELINE NEED (owner rule 2026-10-21; decisions D21 (b)): the prototype's render() drops the steelhead stamp from the list where the card says steelhead are closed — a page-side regulation decision the app must not make. The stored licence answer still lists the stamp; the line is dropped from both sides until the pipeline ships the per-water answer",
+    until: "the pipeline's licence answer omits (or qualifies) the stamp where steelhead are closed (licence 7)" },
+];
 /** (T21) the whole Keep tab: the Other fish rows' stamp lines (pending in the pipeline), and the D19 row. */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
@@ -132,6 +148,8 @@ export const EXCLUDE: readonly Exclusion[] = [
     block: "methods" as const, ids: SET_LINE_NOTE_IDS, key: /^ways\.list\.0\.items\.\d+\.note$/,
     reason: "prototype DOM artifact: page v36 nests the set_line ⓘ <button> inside the Set lines way's <button>, so the parser ends the way at the ⓘ and its <small> conditions are not read (golden note null); the app shows the pipeline's conditions — the parity asserts golden null and an app note, and compares everything else",
     until: "never — a prototype markup bug, not a regulation" }] : []),
+  // (T33) the Licence tab
+  ...LICENCE_EXCLUDE,
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */
@@ -147,3 +165,12 @@ export function droppedLines(block: Block, id: string, key: string): readonly Re
 }
 /** golden lines with the dropped ones removed */
 export const keepLines = (lines: readonly string[], drop: readonly RegExp[]): string[] => lines.filter((l) => !drop.some((re) => re.test(l)));
+
+// ── (T33) the Licence tab ──────────────────────────────────────────────────────────────────────────────────────────
+/** The six anglers the golden snapshots per state, in the prototype's order (golden `licence` keys). */
+export const LICENCE_PROFILES = ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident", "u16|non_resident_alien"] as const;
+/** The golden licence lines a `lines` entry names, dropped from BOTH sides of the state's blocks: the golden LACKS a line
+ *  the stored answer carries (the opposite of the Keep entries, which drop golden lines the app does not draw). */
+export function licenceDropped(id: string, profile: string): readonly RegExp[] {
+  return droppedLines("licence", id, `${profile}.blocks`);
+}

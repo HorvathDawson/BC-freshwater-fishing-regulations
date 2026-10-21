@@ -37,4 +37,5 @@ export * from "./gear";
 export * from "./yesno";
 export * from "./bait";
 export * from "./methods";
+export * from "./licence";
 export * from "./fish.generated";

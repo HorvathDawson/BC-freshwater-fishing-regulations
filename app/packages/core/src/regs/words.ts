@@ -285,6 +285,98 @@ export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
 export const MONTH1: readonly string[] = MONTHS.map((m) => m[0]!);
 
+/**
+ * (T33) The Licence tab's words (licence.ts), verbatim from page v36 licParts / AXES / whoTxt / actTxt / priceTxt / srcOf /
+ * pathHtml / reqCard / otherCard (@ 7fb6809f) and the prototype's licence() / render() (regs v38). Data strings (licence
+ * names, requirement labels, period / waiver sentences, prices) are never here.
+ */
+export const LIC = Object.freeze({
+  QUESTION: "Who is fishing?", Q_TERM: "under_16",
+  AXES: Object.freeze({
+    residency: Object.freeze([["resident", "B.C. resident"], ["non_resident", "Canadian, other province"], ["non_resident_alien", "From outside Canada"]] as const),
+    age: Object.freeze([["16_plus", "16 or older"], ["under_16", "Under 16"]] as const),
+    guidance: Object.freeze([["non_guided", "Not guided"], ["guided", "Guided"]] as const),
+    status: Object.freeze([["none", "No status"], ["indian_bc_resident", "Status First Nations, living in B.C."], ["metis", "Métis"],
+      ["disabled", "Disabled"], ["aged_65_plus", "65 or older"]] as const),
+  }),
+  /** page v36 whoTxt: the status word mid-sentence, and the empty `who` */
+  WHO_STATUS_FN: "a status First Nations person living in B.C.", EVERY_ANGLER: "every angler",
+  // actTxt
+  ACT_FISHING: "To fish here", ACT_TARGETING: (sp: string) => `To fish for ${sp}`, ACT_RETAINING: (sp: string) => `To keep ${sp}`,
+  ACT_RECORDED: "When you keep a fish you must record", ACT_GUIDING: "To guide anglers",
+  LEN_RANGE: (a: number, b: number) => `${a}–${b} cm`, LEN_OVER: (a: number) => `over ${a} cm`, LEN_UNDER: (b: number) => `under ${b} cm`,
+  // priceTxt
+  PER_YEAR: (p: string) => `$${p} a year`, PER_DAY: (p: string) => `$${p} a day`, PER_8_DAYS: (p: string) => `$${p} for 8 days`, DOT: " · ",
+  // licParts whenTxt / alsoTxt
+  NEEDED_AT_ALL: "Needed to fish at all", WHATEVER: ", whatever you fish for",
+  WHILE_CLASSIFIED: (period: string) => `Needed while it’s classified: ${period}`,
+  ONLY_IF: (act: string) => `Only if you ${act}`, EVEN_RELEASE: ", even to release them",
+  OTHER_TIME: (act: string) => `at any other time only if you ${act}`, EITHER: ". Either one does", ALSO_SEP: "; ",
+  // designation classbox
+  CLASS_HEAD: (c: string) => `Class ${c} Classified Water`, CLASS_TERM: "classified_waters",
+  UNIT: (u: string) => `Licence unit: ${u}`,
+  STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
+  STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",
+  STAMP_WAIVED: ". Steelhead Stamp not needed here unless you fish for steelhead", STOP: ".", SEP: ", ",
+  SOURCE: "Source", FLAG: "?",
+  CONTESTED: "Check: part of this water is also marked “not a Classified Water”.",
+  EXEMPT_FROM: (docs: string) => `You’re exempt from: ${docs}.`,
+  // none needed
+  NONE_HEAD: "No licence needed to fish here", NONE_U16: "Anglers under 16 who live in B.C. don’t need a basic angling licence.",
+  NONE_EXEMPT: "You’re exempt from the basic angling licence.", NONE_ANY: "No licence rule applies to this angler.",
+  NONE_TAIL: "The fishing rules and limits still apply.",
+  // under 16
+  YOUTH_HEAD: "Under 16: no licence needed if you fish with a licensed adult", YOUTH_TERM: "under_16",
+  YOUTH_WITH: (who: string) => `Fish with someone ${who} who holds what this fishing needs`, YOUTH_DOCS: (docs: string) => ` (${docs})`,
+  YOUTH_COUNTS_S: " What you keep counts toward their limit.",
+  YOUTH_BUY: (docs: string) => ` Or buy ${docs} yourself to have your own limit.`, YOUTH_THE: (docs: string) => `the ${docs}`,
+  YOUTH_ADULT_NEEDS: "what a 16+ angler needs", PLUS: " + ",
+  YOUTH_NOTHING: "Nothing, if you fish with a licensed adult (16 or older)",
+  YOUTH_COUNTS: "What you keep counts toward their limit", YOUTH_HOLD: "They must hold what this fishing needs",
+  YOUTH_OWN: "Or, for your own limit: what a 16+ angler buys",
+  // the needs list (prototype render: the "Also, only if…" split; the kokanee words)
+  YOU_NEED: "You need", ONLY_IF_HEAD: "Also, only if…",
+  PRICE_NOTE: "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence",
+  NOT_KOKANEE: "(not kokanee)",
+  // the paper licence
+  PAPER_LEAD: (a: string, fish: string) => `Keep ${a} ${fish}? `, A: "a", AN: "an", PAPER_STRONG: "Carry your paper licence",
+  PAPER_TAIL: " (16 and over) and record it right away.",
+  ADULT: "adult ",
+  // not yet mapped
+  NYM_HEAD: "In one part of this water", NYM_SAYS: (part: string, need: string, doing: string) => `${part}: you need ${need} ${doing}.`,
+  NYM_DOING: "to fish", NYM_NOTE: "That part isn’t drawn on the map yet. It doesn’t apply to the rest of the water.",
+  NOTHING: "Nothing is required of this angler here.",
+  // folds and cards (otherCard / reqCard / pathHtml)
+  GUIDING: "If you are guiding other anglers", FOR: (who: string) => `For ${who}:`, NOT_WHO: (who: string) => ` (not ${who})`, OR: "or",
+  SOURCES_HEAD: "Where each one comes from",
+  PATH_EXEMPT: "Nothing to buy: you’re exempt",
+  PATH_WITH: (who: string) => `be with someone who is ${who} and holds what this fishing needs`,
+  PATH_COUNTS: " (fish you keep count toward their limit)", PATH_AS: (who: string) => `meet the rules as ${who}`,
+  PATH_ALT: " (also accepted here)",
+  DISPLACED: "Not valid here: a federal or park authority’s requirement replaces provincial licences.",
+  FREED: "Not for you: you don’t need the licence this is about", NOT_IF: (who: string) => `Not needed if you are ${who}.`,
+  // the source line (srcOf; the prototype's licence source button)
+  SRC: Object.freeze({ province: "Province", on_designation: "Classified water", superior: "Federal / parks", water: "This water" }),
+  SRC_MORE: (n: number) => ` +${n}`, SRC_SEP: " · ", SRC_GO: " ›", SOURCES: "Sources", SRC_ARIA: (who: string) => `Sources: ${who}`,
+  // tidal (page v36 licParts on a tidal key)
+  TIDAL: "Tidal water",
+  MISSING_LIC: (ix: number) => `(licensing record ${ix}: missing from the page’s data)`,
+});
+/** LIC's sayable words: every string, every function's fixed fragments (each argument a hole), the axes' labels (their
+ *  values and the glossary ids are keys, never said). */
+const licWords = (): string[] => {
+  const HOLE = "\u0000", out: string[] = [];
+  const walk = (v: unknown): void => {
+    if (typeof v === "string") out.push(v);
+    else if (typeof v === "function") out.push(...String((v as (...a: string[]) => string)(...Array<string>(v.length).fill(HOLE))).split(HOLE).filter(Boolean));
+    else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  const { AXES, Q_TERM: _q, CLASS_TERM: _c, YOUTH_TERM: _y, ...rest } = LIC;
+  walk(rest);
+  Object.values(AXES).forEach((xs) => xs.forEach(([, t]) => out.push(t)));
+  return out;
+};
+
 /** A function word's fixed fragments: what is left of its output once the data put into it is taken out. */
 function fragments(f: (x: never) => string): string[] {
   const HOLE = "\u0000";
@@ -304,6 +396,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...[ELEM, BAIT, YESNO].flatMap(deepWords),
   // (T32) the Methods tab
   ...deepWords(METHODS),
+  // (T33) the licence words
+  ...licWords(),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are
