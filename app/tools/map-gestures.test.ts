@@ -19,3 +19,25 @@ describe("the web map applies the gesture policy", () => {
             /showCompass: compassShown\(\)/.test(src), /showCompass: true/.test(src)]).toEqual([true, true, false]);
   });
 });
+
+/**
+ * N2: the NATIVE map is mounted with the same policy (`nativeMapGestures()`, spread onto MapLibre Native's `Map`) and
+ * colours sections by feature-state on the tiles' MVT id, through the handle both maps share. The behaviour is proved
+ * against a recording binding in `packages/map/src/adapter-contract.render.test.tsx`; this holds the wiring in the file
+ * that ships, so a later edit cannot quietly route around it.
+ */
+describe("the native map applies the gesture policy and feature-state by id", () => {
+  const src = readFileSync(new URL("../packages/map/src/Map.native.tsx", import.meta.url), "utf8");
+  const mapEl = src.slice(src.indexOf("<MLMap"), src.indexOf("</MLMap>"));
+  it("spreads the policy onto the map element (no switch set beside it), and says the tap slop is MapLibre's own", () => {
+    expect([mapEl.includes("{...nativeMapGestures()}"), /touchRotate|touchPitch|compass=|dragPan|touchZoom/.test(mapEl),
+            src.includes("The 8 px TAP SLOP is MapLibre Native's own here")]).toEqual([true, false, true]);
+  });
+  it("sets feature-state on the atlas source by { id, sourceLayer } through the shared state handle", () => {
+    expect([src.includes("return stateHandle({"),
+            src.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, s as never)"),
+            src.includes("src.removeFeatureState({ id, sourceLayer: t.sourceLayer }, key)"),
+            src.includes('<VectorSource id="atlas" ref={atlasAttached} />'),
+            src.includes("nativeStyle({")]).toEqual([true, true, true, true, true]);
+  });
+});

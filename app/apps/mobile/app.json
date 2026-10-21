@@ -14,7 +14,8 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to take a photo for a spot you saved. It stays on this device.",
           "microphonePermission": false
         }
-      ]
+      ],
+      ["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",

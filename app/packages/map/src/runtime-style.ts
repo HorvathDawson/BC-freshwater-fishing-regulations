@@ -252,19 +252,21 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           '<a href="https://www2.gov.bc.ca/gov/content/data/open-data">Province of British ' +
           "Columbia</a> \u00b7 Freshwater Atlas &amp; Freshwater Fishing Synopsis",
         /**
-         * WITHOUT THIS NOTHING WORKS, and nothing says so.
+         * WITHOUT AN ID NOTHING WORKS, and nothing says so.
          *
-         * MapLibre does not lift a tile property into `feature.id` on its own. Our ids are
-         * strings (`{blk}:{measure}`, an area name), which is what `promoteId` is for.
-         * Absent it, `feature.id` is `undefined` — so `setFeatureState` addresses nothing
-         * and every colour-by-rule silently fails, and `queryRenderedFeatures(...)[0].id`
-         * is undefined so a TAP NEVER OPENS A SHEET. No error is raised at any point.
+         * A feature with no `feature.id` cannot take feature-state — every colour-by-rule silently fails — and a tap
+         * on it returns no id, so a TAP NEVER OPENS A SHEET. No error is raised at any point.
          *
-         * Built from `STYLE_META.featureIds` rather than typed here, so the property named
-         * in `layers.source.json` and the property MapLibre promotes cannot disagree.
+         * THE SECTIONS ARE NOT PROMOTED (N2): the tiles carry `section_id` as each section feature's own MVT id
+         * (P18, N1), which GL JS reads when a source-layer is not promoted — and which is the ONLY id MapLibre Native
+         * sees, because it ignores `promoteId`. Promoting them here would name a section by a property on the web and
+         * by the MVT id on a phone. The area layers' ids (`area_id`, `basin_id`, …) are strings or otherwise not MVT
+         * ids, so they are still promoted, from `STYLE_META.featureIds` rather than typed here, so the property named
+         * in `layers.source.json` and the property MapLibre promotes cannot disagree. (`nativeStyle` drops this.)
          */
         promoteId: Object.fromEntries(
           Object.entries(STYLE_META.featureIds)
+            .filter(([, prop]) => prop !== "section_id")
             .filter(([layerId]) => MAP_STYLE.layers.some((l) => l.id === layerId))
             .map(([layerId, prop]) => [
               (MAP_STYLE.layers.find((l) => l.id === layerId) as

@@ -51,6 +51,7 @@
         "@app/ui",
         "react",
         "maplibre-gl",
+        "@maplibre/maplibre-react-native",
         "pmtiles",
         "@protomaps/basemaps",
         "react-native"

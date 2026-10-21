@@ -105,7 +105,9 @@ export default defineConfig({
                 // mounted to be proved, and the one bug that reached a browser was a render
                 // loop no unit test could see.
                 include: ["packages/ui-native/**/*.test.{ts,tsx}",
-                          "packages/ui/**/*.render.test.tsx"] },
+                          "packages/ui/**/*.render.test.tsx",
+                          // N2: both map adapters, mounted over their SDKs mocked at the module boundary
+                          "packages/map/**/*.render.test.tsx"] },
         resolve: { alias, extensions },
       },
     ],

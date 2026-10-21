@@ -238,16 +238,35 @@ describe("the runtime uses the feature id, not just names it", () => {
     layers: { id: string; "source-layer"?: string; source?: string }[];
   };
 
-  it("promotes a property for every atlas layer that declares one", () => {
+  /*
+   * N2: A SECTION'S ID IS THE TILE'S OWN MVT FEATURE ID, not a promoted property. The pipeline writes `section_id` as
+   * the MVT id of every section feature (`pipeline/tests/test_tile_mvt_ids.py`: exactly the layers whose id attribute
+   * is `section_id`), because MapLibre Native ignores `promoteId` — so the phone could only ever address sections by the
+   * MVT id, and GL JS reads that same id when a source-layer is not promoted. Promoting the section layers on the web
+   * alone would make the two maps name sections by different means. The area layers (`area_id`, `basin_id`, …) carry
+   * string or non-id properties that cannot be MVT ids, so they keep their promoteId (web) and property styling.
+   */
+  it("promotes a property for every atlas layer that declares one, except the sections", () => {
     const promote = style.sources.atlas?.promoteId ?? {};
+    const got: Record<string, string | undefined> = {};
+    const want: Record<string, string | undefined> = {};
     for (const [layerId, prop] of Object.entries(STYLE_META.featureIds)) {
       const layer = MAP_STYLE.layers.find((l) => l.id === layerId);
       if (!layer) continue;                       // declared but not drawn
       const sourceLayer = (layer as { "source-layer"?: string })["source-layer"] ?? layerId;
-      expect(promote[sourceLayer],
-             `${layerId}: nothing promotes "${prop}", so feature.id is undefined — ` +
-             `setFeatureState addresses nothing and a tap returns no id`).toBe(prop);
+      got[layerId] = promote[sourceLayer];
+      want[layerId] = prop === "section_id" ? undefined : prop;
     }
+    expect(got, "an area layer with nothing promoted has no feature.id on the web; a promoted section layer is " +
+                "named by a property on the web and by the MVT id on a phone").toEqual(want);
+  });
+
+  it("the sections read the MVT id: the tiles carry section_id as the feature id of exactly these", () => {
+    const promote = style.sources.atlas?.promoteId ?? {};
+    const sectionSourceLayers = Object.entries(contract.layers)
+      .filter(([, l]) => l.featureId === "section_id").map(([n]) => n).sort();
+    expect(sectionSourceLayers).toEqual(["lake", "stream", "wetland"]);
+    expect(sectionSourceLayers.filter((n) => n in promote)).toEqual([]);
   });
 
   it("promotes by SOURCE-LAYER, which is what MapLibre keys promoteId on", () => {

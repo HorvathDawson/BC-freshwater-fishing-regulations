@@ -241,6 +241,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
 /**
  * The map's three files from the release when the manifest names them, else the development endpoints (`ENDPOINTS.tiles`)
  * — until the human-run tile rebuild writes a tile version folder (P18), the release names no tiles and no mask.
+ * N2: and the map ASSETS folder (glyphs + sprites) when the manifest names one, so labels come from the release — the
+ * installed `file://` folder on a phone — and not from a CDN. Absent, the map keeps its own default.
  */
 export function releaseTiles(b: Pick<Booted, "manifest" | "locate">,
                              dev: { atlas: string; basemap: string; outside: string }):

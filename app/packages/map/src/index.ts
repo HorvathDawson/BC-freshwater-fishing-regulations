@@ -22,7 +22,7 @@ export { toggleableGroups, views, hiddenLayers, STYLE_META, resolveTheme, themeN
 export { pillImage, type PillImage } from "./pill";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
 export { colour, amount, translucent, mapChrome } from "./chrome";
-/** G1: the one gesture policy as each renderer's switches (`Map.web.tsx` now; `Map.native.tsx` at N1). */
+/** G1: the one gesture policy as each renderer's switches (`Map.web.tsx`; `Map.native.tsx` since N2). */
 export { maplibreGestures, nativeMapGestures, touchRotation,
          type MaplibreGestureOptions, type NativeMapGestureProps } from "./gestures";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */

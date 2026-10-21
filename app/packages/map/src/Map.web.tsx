@@ -23,7 +23,9 @@ import { pillImage } from "./pill";
 import { hatchImage } from "./hatch";
 import { STYLE_META } from "./style";
 import { colour, mapChrome } from "./chrome";
-import { gaugeDotColour, runtimeStyle } from "./runtime-style";
+import { runtimeStyle } from "./runtime-style";
+import { applyLook } from "./look";
+import { TAP_GROUPS, VISIBLE_LAYERS, firstSection, stateHandle, tapBox, visibleSections } from "./sections";
 import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
@@ -112,6 +114,14 @@ function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
   };
   m.on("styledata", h);
   return () => { m.off("styledata", h); };
+}
+
+/** Feature-state on the live map, through the handle both maps share (`stateHandle`: source-layer, number ids). */
+function glStates(m: maplibregl.Map, lit: () => readonly SectionKey[]) {
+  return stateHandle({
+    set: (t, id, s) => m.setFeatureState({ source: t.source, sourceLayer: t.sourceLayer, id }, s),
+    remove: (t, id, key) => m.removeFeatureState({ source: t.source, sourceLayer: t.sourceLayer, id }, key),
+  }, lit);
 }
 
 /** The layers a searched water can be drawn in — what `fit.refine` measures. */
@@ -329,6 +339,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     if (!m) return;
     const apply = () => {
       const handle = {
+        ...glStates(m, () => []),
         /*
        * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
        * stands the rivers down below z9 so the basin field can answer instead; every other
@@ -343,65 +354,24 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
       setVisibility: (id: string, v: boolean) => {
           if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
         },
-        setPaint: (id: string, prop: string, value: unknown) =>
-          m.getLayer(id) && m.setPaintProperty(id, prop as never, value as never),
-        setFeatureState: (layerId: string, featureId: SectionKey, s: Record<string, unknown>) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, s);
-        },
-        clearFeatureStates: (layerId: string) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.removeFeatureState({ source: src, sourceLayer: layerId });
+        setPaint: (id: string, prop: string, value: unknown) => {
+          if (m.getLayer(id)) m.setPaintProperty(id, prop as never, value as never);
         },
       };
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
       pill.current?.();
-      adapter.current.applyView(handle, view, theme);
-      // A bad mode or group name is a CALLER bug, and it used to throw from inside this
-      // effect — which unmounts the tree and shows a blank screen. Report it and keep the
-      // map alive: a map still showing the previous colouring is recoverable, a white
-      // screen is not.
-      // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet
-      // ground, every other mode wants the map legible as a map. 0.42 rather than the
-      // 0.58 it shipped at — enough that roads and landcover stop competing with a 1.4 px
-      // coloured line, little enough that a reader can still find the town they launched
-      // from. A wash heavy enough to guarantee the ramp is a wash that hides the map.
-      if (m.getLayer("basemap-wash"))
-        m.setPaintProperty("basemap-wash", "background-opacity",
-                           (modes ?? {}).stream === "standing" ? 0.42 : 0);
-      // The gauge dots are a runtime layer, so the loop below cannot find them by id —
-      // see `gaugeDotColour`. Repainted explicitly, or a switch to temperature leaves the
-      // right stations painted on the flow scale.
-      if (m.getLayer("gauge-dot"))
-        m.setPaintProperty("gauge-dot", "circle-color",
-                           gaugeDotColour(theme, (modes ?? {}).gauges) as never);
-      // The route overlay's paper and ink, likewise runtime layers outside the catalogue.
+      // THE LOOK — view, wash, gauge scale, per-layer modes, hidden layers, groups — is one sequence shared with the
+      // native map (`applyLook`); a bad mode or group name is reported, never thrown (a blank screen is not
+      // recoverable, a map in its previous colouring is).
+      applyLook(adapter.current, handle, (id) => m.getLayer(id) !== undefined,
+                { view, theme, modes, hide, groups },
+                (e) => onError?.(e));
+      // The route overlay's paper and ink: runtime layers outside the catalogue, web only (the overlay lives here).
       for (const [id, paint] of Object.entries(tracePaint(theme)))
         if (m.getLayer(id))
           for (const [prop, value] of Object.entries(paint))
             m.setPaintProperty(id, prop as never, value as never);
-      for (const [id, mode] of Object.entries(modes ?? {})) {
-        if (!m.getLayer(id)) continue;
-        try { adapter.current.setLayerMode(handle, id, mode, theme); }
-        catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
-      }
-      /*
-       * The view's own layers, hidden here rather than through `groups`.
-       *
-       * Every layer the style CAN hide is set explicitly each pass — not just the ones in
-       * `hide` — because leaving Conditions has to put them back, and a one-way toggle is
-       * how a boundary disappears for the rest of the session.
-       */
-      for (const v of STYLE_META.views)
-        for (const id of v.hide ?? [])
-          if (m.getLayer(id))
-            m.setLayoutProperty(id, "visibility",
-                                (hide ?? []).includes(id) ? "none" : "visible");
-      for (const [id, on] of Object.entries(groups ?? {})) {
-        try { adapter.current.setGroupVisible(handle, id, on); }
-        catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
-      }
       for (const [layerId, values] of Object.entries(data ?? {}))
         adapter.current.setData(handle, layerId, values);
     };
@@ -468,28 +438,8 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
     // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
-      const handle = {
-        setVisibility: () => {},
-        setPaint: () => {},
-        setFeatureState: (layerId: string, featureId: string, st: Record<string, unknown>) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, st);
-        },
-        clearFeatureStates: (layerId: string) => {
-          const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
-          // Clear ONLY `selected`. Dropping every feature-state would take the status
-          // values with it, so selecting a river would un-colour the map.
-          //
-          // PER FEATURE, from the ids this map lit last time. MapLibre refuses to remove
-          // one KEY from a whole source-layer ("A feature id is required to remove its
-          // specific state property") — so the old call threw on every clear, the old
-          // highlight stayed lit, and it only went unnoticed because nothing had ever
-          // changed a highlight on a mounted map until search did.
-          if (!src) return;
-          for (const id of wasLit.current)
-            m.removeFeatureState({ source: src, sourceLayer: layerId, id }, "selected");
-        },
-      };
+      // Clears ONLY `selected`, per feature, from the ids this map lit last time — see `stateHandle`.
+      const handle = glStates(m, () => wasLit.current);
       adapter.current.highlight(handle, [...highlight]);
       wasLit.current = [...highlight];
     };
@@ -698,13 +648,11 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * A Set of numbers de-duplicates exactly as well as a Set of strings, so passing the
        * id through unchanged costs nothing and removes the conversion that could be wrong.
        */
-      const seen = new Set<SectionKey>();
-      for (const f of m.queryRenderedFeatures())
-        if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"
-            // a slough drawn as a wetland polygon is a stream (`wetland_flowing`): coloured
-            || (f.sourceLayer === "wetland" && f.properties?.water === "stream")))
-          seen.add(f.id as SectionKey);
-      if (seen.size) cb([...seen]);
+      // `VISIBLE_LAYERS` (shared with the native map): streams, lakes, and the lake/wetland polygons a stream flows
+      // through — a slough drawn as a wetland polygon is a stream (`wetland_flowing`), and coloured
+      const layers = VISIBLE_LAYERS.filter((id) => m.getLayer(id) !== undefined);
+      const seen = visibleSections(m.queryRenderedFeatures({ layers }));
+      if (seen.length) cb(seen);
     };
     m.on("idle", report);
     // `idle` may already have passed by the time this registers — on a tab switch the map
@@ -732,47 +680,25 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * which is what "hard to click things" is. 12 px each way is roughly a fingertip at
        * this density and still small enough that two rivers rarely both qualify.
        */
-      const T = 12;
-      const box: [maplibregl.PointLike, maplibregl.PointLike] = [
-        [e.point.x - T, e.point.y - T], [e.point.x + T, e.point.y + T],
-      ];
+      const box = tapBox(e.point.x, e.point.y);
       /*
-       * ONLY LAYERS THAT CAN NAME WHAT WAS HIT.
+       * ONLY THE SECTION LAYERS, IN `TAP_GROUPS` ORDER (shared with the native map).
        *
-       * `featureIds` says which tile property a layer promotes into `feature.id`; a layer
-       * with no entry has no id to hand back, so a hit on it resolves to nothing. That is
-       * every label, and it is the under-lake route — the dotted thread through a lake is
-       * the topology's path, not water anybody fishes, and a person aiming at it means the
-       * LAKE. The route used to rank SECOND in the order below, so a tap on a lake with a
-       * river through it answered with the route.
-       *
-       * Derived rather than listed so the two cannot drift: dropping a layer's id in the
-       * style source takes it out of the tap order in the same commit.
+       * A label, the under-lake route (the topology's path through a lake, not water anybody fishes: a person aiming
+       * at it means the LAKE) and the area layers name no section, so they are not asked. The stream group comes
+       * first — a river and the polygons a stream flows through — then still water: tapping a creek inside a lake
+       * returns both, and a person aiming at a creek means the creek.
        */
-      const layers = adapter.current.layerIds()
-        .filter((id) => m.getLayer(id) && STYLE_META.featureIds[id] !== undefined);
-      const hits = m.queryRenderedFeatures(box, { layers });
-
-      /**
-       * Prefer the SMALLEST water under the finger.
-       *
-       * Tapping a creek inside a lake inside a management unit returns all three, and
-       * taking the first would hand back whichever MapLibre happened to order first —
-       * usually the biggest, because the big polygons draw underneath. A person aiming at
-       * a creek means the creek.
-       */
-      // A stream's polygon (`lake_flowing`, `wetland_flowing`) IS the stream a finger aims at.
-      const rank = (layerId: string) =>
-        layerId === "stream" || layerId === "lake_flowing" || layerId === "wetland_flowing" ? 0
-        : layerId === "lake" || layerId === "wetland" ? 1 : 2;
-      const best = hits
-        .filter((f) => f.id !== undefined && f.layer?.id)
-        .sort((a, b) => rank(a.layer!.id) - rank(b.layer!.id))[0];
-      // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
-      // long and the answer to "how does this spot reach the gauge" starts at the point
-      // under the finger — without it the route panel can mark the station and nothing
-      // else. The coordinate is snapped to nothing: it is where the person tapped.
-      if (best) onPressFeature(best.layer!.id, String(best.id), e.lngLat.lat, e.lngLat.lng);
+      for (const g of TAP_GROUPS) {
+        const layers = g.layers.filter((id) => m.getLayer(id) !== undefined);
+        if (!layers.length) continue;
+        const id = firstSection(m.queryRenderedFeatures(box, { layers }));
+        // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
+        // long and the answer to "how does this spot reach the gauge" starts at the point
+        // under the finger — without it the route panel can mark the station and nothing
+        // else. The coordinate is snapped to nothing: it is where the person tapped.
+        if (id !== null) { onPressFeature(g.as, id, e.lngLat.lat, e.lngLat.lng); return; }
+      }
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };

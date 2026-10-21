@@ -34,10 +34,22 @@ describe("the map's gestures", () => {
       .toEqual([{ keyboardRotation: false, compass: false }, { keyboardRotation: true, compass: true },
                 { keyboardRotation: true, compass: false }, { keyboardRotation: true, compass: true }]);
   });
-  it("native: the same policy as MapLibre Native's switches", () => {
+  it("native: the same policy as MapLibre Native's switches (@maplibre/maplibre-react-native 11.5 `Map` props)", () => {
+    // no tap slop here: the binding exposes none, MapLibre Native's own detector decides a tap (N1 §8, N2)
     expect([nativeMapGestures(), nativeMapGestures(FLIPPED)]).toEqual([
-      { scrollEnabled: true, zoomEnabled: true, rotateEnabled: false, pitchEnabled: false },
-      { scrollEnabled: false, zoomEnabled: false, rotateEnabled: true, pitchEnabled: true },
+      { dragPan: true, touchZoom: true, doubleTapZoom: true, doubleTapHoldZoom: true, touchRotate: false,
+        touchPitch: false, compass: false },
+      { dragPan: false, touchZoom: false, doubleTapZoom: false, doubleTapHoldZoom: false, touchRotate: true,
+        touchPitch: true, compass: true },
+    ]);
+  });
+  it("native: double-tap-hold zoom follows double-tap zoom, the compass follows rotation", () => {
+    expect([nativeMapGestures({ ...MAP_GESTURES, doubleTapZoom: false }),
+            nativeMapGestures({ ...MAP_GESTURES, rotate: true })]).toEqual([
+      { dragPan: true, touchZoom: true, doubleTapZoom: false, doubleTapHoldZoom: false, touchRotate: false,
+        touchPitch: false, compass: false },
+      { dragPan: true, touchZoom: true, doubleTapZoom: true, doubleTapHoldZoom: true, touchRotate: true,
+        touchPitch: false, compass: true },
     ]);
   });
 });

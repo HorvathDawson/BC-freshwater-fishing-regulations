@@ -5,8 +5,8 @@
  *
  *   maplibreGestures    maplibre-gl's constructor options (`Map.web.tsx`). `clickTolerance` is the tap slop: a press
  *                       that moved further is a pan and never fires a click, so a small pan never selects a section.
- *   nativeMapGestures   MapLibre Native's `MapView` switches, for `Map.native.tsx` when N1 lands (that file is the
- *                       spike's; this is its typed hook-up point, and nothing here names the native SDK).
+ *   nativeMapGestures   MapLibre Native's `Map` props (`@maplibre/maplibre-react-native` 11.5), spread onto the map in
+ *                       `Map.native.tsx` (N2). Nothing here names the native SDK.
  */
 import { MAP_GESTURES, type MapGestures } from "@app/core";
 
@@ -61,15 +61,27 @@ export function compassShown(g: MapGestures = MAP_GESTURES): boolean {
   return g.rotate;
 }
 
-/** MapLibre Native (`@maplibre/maplibre-react-native` `MapView`) switches — for `Map.native.tsx` at N1. */
+/**
+ * MapLibre Native's switches: the `Map` props of `@maplibre/maplibre-react-native` 11.5 (N1 §8), spread onto the map in
+ * `Map.native.tsx`. Plain values, so this file still names no SDK.
+ *
+ * NO TAP SLOP HERE, and that is not an omission: the binding exposes none. MapLibre Native's own gesture detector decides
+ * what is a tap (on Android the system touch slop, ~8 dp on a typical phone), so the "< 8 px" rule is MapLibre's on
+ * native and can only be checked there, not set. One-finger double-tap-and-drag zoom (`doubleTapHoldZoom`) goes with
+ * double-tap zoom: both are the policy's "double tap zooms". The compass is shown only where the map may turn, as on
+ * the web (`compassShown`).
+ */
 export interface NativeMapGestureProps {
-  scrollEnabled: boolean;
-  zoomEnabled: boolean;
-  rotateEnabled: boolean;
-  pitchEnabled: boolean;
+  dragPan: boolean;
+  touchZoom: boolean;
+  doubleTapZoom: boolean;
+  doubleTapHoldZoom: boolean;
+  touchRotate: boolean;
+  touchPitch: boolean;
+  compass: boolean;
 }
 
 export function nativeMapGestures(g: MapGestures = MAP_GESTURES): NativeMapGestureProps {
-  return { scrollEnabled: g.pan, zoomEnabled: g.pinch || g.doubleTapZoom, rotateEnabled: g.rotate,
-           pitchEnabled: g.tilt };
+  return { dragPan: g.pan, touchZoom: g.pinch, doubleTapZoom: g.doubleTapZoom, doubleTapHoldZoom: g.doubleTapZoom,
+           touchRotate: g.rotate, touchPitch: g.tilt, compass: compassShown(g) };
 }
