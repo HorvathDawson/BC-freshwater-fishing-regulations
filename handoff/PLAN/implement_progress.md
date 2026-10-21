@@ -41,15 +41,18 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   under DECISIONS F1 / F16), T06 follow-up. Lead change 92c3b8fe: Centre disclaimer kept VISIBLE under the chart
   (legal: "wherever a forecast appears"); owner may fold it. pnpm check 1089 pass; smoke pass. OPEN: P16 native
   screenshots (need emulator); Kitimat ladder question for owner (r2 lifted for hatchery ST by kitimat r5).
-- Batch 4 RUNNING: F9 detectors (F1 rest item, F16 orphan) so Tier 2 is green; P11 minors (native map assets
-  download, transient vs permanent refusal, unproven pairing words, App wiring test, live colour screenshot).
+- Batch 4 MERGED: F9 detectors (port.py: F1 rest item; new PAGE_BUGS F16, narrowed in review so it fires only where
+  the orphan IS the cap) -> test_answers_reference 0 unexplained; P11 minors (native installs map-assets and the style
+  reads glyphs/sprites from them; only a verified defect refuses a set; unproven pair says why; App map input tested;
+  live colours shot handoff/PLAN/app-data/p11/live-colours.png). pnpm check 1154 pass. Old tile folder ffac… deleted.
+  Tier 2 (test-full.sh) running via heavy.sh to confirm green.
 - G1 GESTURES MERGED (30c7d35c + 6b9e7bf3): RNGH 2.32.0; useBack (Android BackHandler, web History API,
   EdgeBack iOS-only), map policy (web: no touch/keyboard rotation, compass hidden), Sheet drag-to-dismiss, PartSwipe
   wired but OFF until P15 supplies the part order (acceptance "part swipe in browser" OPEN). Review fix: spot edit
   ends on ANY back (useOnLeave). pnpm check 1133 pass, smoke pass. Shots: handoff/PLAN/app-data/g1/.
 - Tiles with MVT ids LIVE: tile_version d768d6e135e62b99.c9f9604f12bf promoted (atlas + meta), release manifest names
   it. Fix a9da3f75: the release names the PROMOTED tile version (atlas.meta.json), not the last folder by name
-  (hash order). Old tile folder data/release/tiles/d768d6e135e62b99.ffac7c1eb56e can be deleted once nothing serves it.
+  (hash order). Old tile folder deleted.
 - N2 + G1 follow-ups RUNNING (wf n2-native-map): N2 = native map behind the adapter contract, emulator via heavy.sh.
 - N1 DONE (12713069, doc + shots only; spike commits eeef439b/9138c896 on worktree-agent-a8261f149d43eead6 are
   SPIKE-ONLY, never merge): binding @maplibre/maplibre-react-native 11.5.0; offline pmtiles + glyphs from file://;
