@@ -1,0 +1,77 @@
+{
+ "size": "1280x800",
+ "net": "none",
+ "cpu": 1,
+ "steps": [
+  {
+   "label": "lakes Stocked",
+   "paintCalls": 146,
+   "settledMs": 0,
+   "idleMs": 394,
+   "longtasks": 0,
+   "lakeMode": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c2187a\",[\"match\",[\"feature-state\"",
+   "lakesRendered": 13,
+   "lakeStateKeys": {
+    "p": 13
+   },
+   "imagery": "none",
+   "contour": "none"
+  },
+  {
+   "label": "lakes Depth",
+   "paintCalls": 146,
+   "settledMs": 0,
+   "idleMs": 330,
+   "longtasks": 0,
+   "lakeMode": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c2187a\",[\"match\",[\"feature-state\"",
+   "lakesRendered": 13,
+   "lakeStateKeys": {
+    "p": 13
+   },
+   "imagery": "none",
+   "contour": "visible"
+  },
+  {
+   "label": "lakes Plain",
+   "paintCalls": 146,
+   "settledMs": 0,
+   "idleMs": 336,
+   "longtasks": 0,
+   "lakeMode": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c2187a\",[\"match\",[\"coalesce\",[\"fe",
+   "lakesRendered": 13,
+   "lakeStateKeys": {
+    "p": 13
+   },
+   "imagery": "none",
+   "contour": "none"
+  },
+  {
+   "label": "basemap Satellite",
+   "paintCalls": 146,
+   "settledMs": 0,
+   "idleMs": 1934,
+   "longtasks": 0,
+   "lakeMode": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c2187a\",[\"match\",[\"coalesce\",[\"fe",
+   "lakesRendered": 13,
+   "lakeStateKeys": {
+    "p": 13
+   },
+   "imagery": "visible",
+   "contour": "none"
+  },
+  {
+   "label": "basemap Map",
+   "paintCalls": 146,
+   "settledMs": 0,
+   "idleMs": 329,
+   "longtasks": 0,
+   "lakeMode": "[\"case\",[\"boolean\",[\"feature-state\",\"selected\"],false],\"#c2187a\",[\"match\",[\"coalesce\",[\"fe",
+   "lakesRendered": 13,
+   "lakeStateKeys": {
+    "p": 13
+   },
+   "imagery": "none",
+   "contour": "none"
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "secondsToRecolour": 295,
+ "renderedWithValue": 76,
+ "changed": 53,
+ "flippedExactly": 76,
+ "requestsAfterSwap": [
+  "/feeds/live/index.json"
+ ],
+ "tileOrReleaseBytesAfterSwap": [],
+ "paintReplaced": false,
+ "setPaintPropertyAfterSwap": [],
+ "colourCost": [
+  [
+   "standing",
+   1.6,
+   146
+  ]
+ ]
+}

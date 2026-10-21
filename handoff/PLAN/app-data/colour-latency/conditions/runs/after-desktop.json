@@ -1,0 +1,856 @@
+{
+ "path": "state",
+ "size": "1280x800",
+ "net": "none",
+ "cpu": 1,
+ "byZoom": {
+  "z8": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.4,
+    "max": 1
+   },
+   "fsCalls": {
+    "median": 195,
+    "max": 739
+   },
+   "settledWithValue": {
+    "median": 7
+   },
+   "longtasksMs": 0
+  },
+  "z11": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.2,
+    "max": 0.4
+   },
+   "fsCalls": {
+    "median": 28,
+    "max": 94
+   },
+   "settledWithValue": {
+    "median": 30
+   },
+   "longtasksMs": 0
+  },
+  "z13": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0,
+    "max": 0.3
+   },
+   "fsCalls": {
+    "median": 16,
+    "max": 28
+   },
+   "settledWithValue": {
+    "median": 7
+   },
+   "longtasksMs": 0
+  }
+ },
+ "changes": [
+  {
+   "label": "Forecast 1 day ahead",
+   "fsCalls": 548,
+   "fsMs": 0.4,
+   "colourCost": [
+    [
+     "standing",
+     1.5,
+     422
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 353,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 38,
+   "longtasks": 0
+  },
+  {
+   "label": "Forecast 3 days ahead",
+   "fsCalls": 232,
+   "fsMs": 0.2,
+   "colourCost": [
+    [
+     "standing",
+     0.7,
+     104
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 338,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 38,
+   "longtasks": 0
+  },
+  {
+   "label": "Conditions now",
+   "fsCalls": 234,
+   "fsMs": 0.3,
+   "colourCost": [
+    [
+     "standing",
+     0.6,
+     104
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 326,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 38,
+   "longtasks": 0
+  },
+  {
+   "label": "quantity Level",
+   "fsCalls": 234,
+   "fsMs": 0.1,
+   "colourCost": [
+    [
+     "standing",
+     0.6,
+     104
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 657,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 75,
+   "longtasks": 0
+  },
+  {
+   "label": "quantity Flow",
+   "fsCalls": 234,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "standing",
+     0.6,
+     104
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 0,
+   "idleMs": 664,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 76,
+   "longtasks": 0
+  }
+ ],
+ "heapMB": {
+  "start": 81,
+  "afterPans": 90,
+  "end": 124
+ },
+ "pans": [
+  {
+   "label": "z8/pan1",
+   "tStart": 5788,
+   "tEnd": 6193,
+   "tNext": 8221,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 7,
+   "rendered": 7,
+   "maxGreyFrac": 0,
+   "costMs": 0.6000000238418579,
+   "costCalls": 252,
+   "fsMs": 0.19999992847442627,
+   "fsN": 252,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan2",
+   "tStart": 8222,
+   "tEnd": 8625,
+   "tNext": 10339,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 74,
+   "settledWithValue": 0,
+   "rendered": 0,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan3",
+   "tStart": 10339,
+   "tEnd": 10742,
+   "tNext": 12763,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 1,
+   "rendered": 2,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan4",
+   "tStart": 12763,
+   "tEnd": 13166,
+   "tNext": 15195,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 1,
+   "rendered": 2,
+   "maxGreyFrac": 0,
+   "costMs": 0.2999999523162842,
+   "costCalls": 74,
+   "fsMs": 0.09999990463256836,
+   "fsN": 74,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan5",
+   "tStart": 15195,
+   "tEnd": 15601,
+   "tNext": 17621,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 9,
+   "rendered": 10,
+   "maxGreyFrac": 0,
+   "costMs": 0.40000009536743164,
+   "costCalls": 195,
+   "fsMs": 0,
+   "fsN": 195,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan6",
+   "tStart": 17621,
+   "tEnd": 18026,
+   "tNext": 20050,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 14,
+   "rendered": 16,
+   "maxGreyFrac": 0,
+   "costMs": 1,
+   "costCalls": 739,
+   "fsMs": 0.3999999761581421,
+   "fsN": 739,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan7",
+   "tStart": 20050,
+   "tEnd": 20460,
+   "tNext": 22490,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 18,
+   "rendered": 18,
+   "maxGreyFrac": 0,
+   "costMs": 0.7999999523162842,
+   "costCalls": 613,
+   "fsMs": 0.19999992847442627,
+   "fsN": 613,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan8",
+   "tStart": 22490,
+   "tEnd": 22893,
+   "tNext": 24942,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 15,
+   "rendered": 16,
+   "maxGreyFrac": 0,
+   "costMs": 0.6999998092651367,
+   "costCalls": 527,
+   "fsMs": 0,
+   "fsN": 527,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan9",
+   "tStart": 24942,
+   "tEnd": 25351,
+   "tNext": 27370,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 7,
+   "rendered": 7,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan1",
+   "tStart": 31047,
+   "tEnd": 31451,
+   "tNext": 33482,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 35,
+   "rendered": 72,
+   "maxGreyFrac": 0,
+   "costMs": 0.20000004768371582,
+   "costCalls": 94,
+   "fsMs": 0,
+   "fsN": 94,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan2",
+   "tStart": 33482,
+   "tEnd": 33884,
+   "tNext": 35907,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 27,
+   "rendered": 55,
+   "maxGreyFrac": 0,
+   "costMs": 0.19999992847442627,
+   "costCalls": 28,
+   "fsMs": 0.09999990463256836,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan3",
+   "tStart": 35907,
+   "tEnd": 36309,
+   "tNext": 38328,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 42,
+   "rendered": 47,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 8,
+   "fsMs": 0,
+   "fsN": 8,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan4",
+   "tStart": 38328,
+   "tEnd": 38734,
+   "tNext": 40754,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 10,
+   "rendered": 18,
+   "maxGreyFrac": 0,
+   "costMs": 0.3999999761581421,
+   "costCalls": 44,
+   "fsMs": 0.10000002384185791,
+   "fsN": 44,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan5",
+   "tStart": 40754,
+   "tEnd": 41160,
+   "tNext": 43186,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 30,
+   "rendered": 60,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 27,
+   "fsMs": 0,
+   "fsN": 27,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan6",
+   "tStart": 43186,
+   "tEnd": 43592,
+   "tNext": 45617,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 17,
+   "rendered": 60,
+   "maxGreyFrac": 0,
+   "costMs": 0.19999992847442627,
+   "costCalls": 51,
+   "fsMs": 0,
+   "fsN": 51,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan7",
+   "tStart": 45617,
+   "tEnd": 46026,
+   "tNext": 48050,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 39,
+   "rendered": 82,
+   "maxGreyFrac": 0,
+   "costMs": 0.2999999523162842,
+   "costCalls": 55,
+   "fsMs": 0.09999990463256836,
+   "fsN": 55,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan8",
+   "tStart": 48050,
+   "tEnd": 48459,
+   "tNext": 50487,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 25,
+   "rendered": 58,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 25,
+   "fsMs": 0,
+   "fsN": 25,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan9",
+   "tStart": 50488,
+   "tEnd": 50893,
+   "tNext": 52923,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 35,
+   "rendered": 72,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan1",
+   "tStart": 56593,
+   "tEnd": 57001,
+   "tNext": 59029,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 12,
+   "rendered": 19,
+   "maxGreyFrac": 0,
+   "costMs": 0.29999983310699463,
+   "costCalls": 20,
+   "fsMs": 0,
+   "fsN": 20,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan2",
+   "tStart": 59029,
+   "tEnd": 59434,
+   "tNext": 61460,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 21,
+   "rendered": 21,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 17,
+   "fsMs": 0,
+   "fsN": 17,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan3",
+   "tStart": 61461,
+   "tEnd": 61869,
+   "tNext": 63894,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 9,
+   "rendered": 12,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 3,
+   "fsMs": 0,
+   "fsN": 3,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan4",
+   "tStart": 63894,
+   "tEnd": 64301,
+   "tNext": 66330,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 6,
+   "rendered": 14,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 16,
+   "fsMs": 0,
+   "fsN": 16,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan5",
+   "tStart": 66330,
+   "tEnd": 66734,
+   "tNext": 68761,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 3,
+   "rendered": 12,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 6,
+   "fsMs": 0,
+   "fsN": 6,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan6",
+   "tStart": 68761,
+   "tEnd": 69168,
+   "tNext": 71188,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 110,
+   "settledWithValue": 7,
+   "rendered": 25,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 28,
+   "fsMs": 0,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan7",
+   "tStart": 71188,
+   "tEnd": 71593,
+   "tNext": 73617,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 3,
+   "rendered": 41,
+   "maxGreyFrac": 0,
+   "costMs": 0.20000004768371582,
+   "costCalls": 28,
+   "fsMs": 0,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan8",
+   "tStart": 73617,
+   "tEnd": 74026,
+   "tNext": 76047,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 3,
+   "rendered": 33,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 15,
+   "fsMs": 0,
+   "fsN": 15,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan9",
+   "tStart": 76047,
+   "tEnd": 76451,
+   "tNext": 78476,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 12,
+   "rendered": 19,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  }
+ ]
+}

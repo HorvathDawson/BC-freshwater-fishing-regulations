@@ -1,0 +1,2096 @@
+{
+ "path": "classed",
+ "size": "1280x800",
+ "net": "none",
+ "cpu": 1,
+ "byZoom": {
+  "z8": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.2,
+    "max": 0.6
+   },
+   "fsCalls": {
+    "median": 195,
+    "max": 739
+   },
+   "settledWithValue": {
+    "median": 7
+   },
+   "longtasksMs": 0
+  },
+  "z11": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.2,
+    "max": 0.4
+   },
+   "fsCalls": {
+    "median": 28,
+    "max": 94
+   },
+   "settledWithValue": {
+    "median": 30
+   },
+   "longtasksMs": 0
+  },
+  "z13": {
+   "pansGreyMoving": 0,
+   "pansGreyAfter": 0,
+   "greyFramesAfter": 0,
+   "colouredMs": {
+    "median": 0,
+    "max": 0
+   },
+   "workMs": {
+    "median": 0.1,
+    "max": 0.2
+   },
+   "fsCalls": {
+    "median": 16,
+    "max": 28
+   },
+   "settledWithValue": {
+    "median": 7
+   },
+   "longtasksMs": 0
+  }
+ },
+ "changes": [
+  {
+   "label": "Forecast 1 day ahead",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "standing",
+     7.3,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 85,
+   "idleMs": 634,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 481,
+   "longtasks": 60
+  },
+  {
+   "label": "Forecast 3 days ahead",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "standing",
+     7.2,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 75,
+   "idleMs": 532,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 476,
+   "longtasks": 52
+  },
+  {
+   "label": "Conditions now",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "standing",
+     7.2,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ]
+   ],
+   "settledMs": 86,
+   "idleMs": 393,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 482,
+   "longtasks": 61
+  },
+  {
+   "label": "quantity Level",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "standing",
+     7.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 116,
+   "idleMs": 895,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 487,
+   "longtasks": 78
+  },
+  {
+   "label": "quantity Flow",
+   "fsCalls": 0,
+   "fsMs": 0,
+   "colourCost": [
+    [
+     "standing",
+     7.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0.1,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ],
+    [
+     "tile",
+     0,
+     0
+    ]
+   ],
+   "settledMs": 94,
+   "idleMs": 711,
+   "sectionsChanged": 11,
+   "rendered": 84,
+   "frames": 481,
+   "longtasks": 67
+  }
+ ],
+ "heapMB": {
+  "start": 113,
+  "afterPans": 174,
+  "end": 153
+ },
+ "pans": [
+  {
+   "label": "z8/pan1",
+   "tStart": 7427,
+   "tEnd": 7834,
+   "tNext": 9858,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 7,
+   "rendered": 7,
+   "maxGreyFrac": 0,
+   "costMs": 0.29999983310699463,
+   "costCalls": 252,
+   "fsMs": 0.19999980926513672,
+   "fsN": 252,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan2",
+   "tStart": 9858,
+   "tEnd": 10266,
+   "tNext": 12001,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 75,
+   "settledWithValue": 0,
+   "rendered": 0,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan3",
+   "tStart": 12001,
+   "tEnd": 12408,
+   "tNext": 14450,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 1,
+   "rendered": 2,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan4",
+   "tStart": 14450,
+   "tEnd": 14857,
+   "tNext": 16877,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 1,
+   "rendered": 2,
+   "maxGreyFrac": 0,
+   "costMs": 0.19999992847442627,
+   "costCalls": 74,
+   "fsMs": 0,
+   "fsN": 74,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan5",
+   "tStart": 16877,
+   "tEnd": 17283,
+   "tNext": 19325,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 111,
+   "settledWithValue": 9,
+   "rendered": 10,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 195,
+   "fsMs": 0,
+   "fsN": 195,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan6",
+   "tStart": 19325,
+   "tEnd": 19733,
+   "tNext": 21755,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 14,
+   "rendered": 16,
+   "maxGreyFrac": 0,
+   "costMs": 0.5999999046325684,
+   "costCalls": 739,
+   "fsMs": 0.2999999523162842,
+   "fsN": 739,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan7",
+   "tStart": 21755,
+   "tEnd": 22159,
+   "tNext": 24206,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 18,
+   "rendered": 18,
+   "maxGreyFrac": 0,
+   "costMs": 0.5,
+   "costCalls": 613,
+   "fsMs": 0.30000007152557373,
+   "fsN": 613,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan8",
+   "tStart": 24206,
+   "tEnd": 24609,
+   "tNext": 26658,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 15,
+   "rendered": 16,
+   "maxGreyFrac": 0,
+   "costMs": 0.5,
+   "costCalls": 527,
+   "fsMs": 0.30000007152557373,
+   "fsN": 527,
+   "longtasks": 0
+  },
+  {
+   "label": "z8/pan9",
+   "tStart": 26658,
+   "tEnd": 27066,
+   "tNext": 29108,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 112,
+   "settledWithValue": 7,
+   "rendered": 7,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan1",
+   "tStart": 32932,
+   "tEnd": 33342,
+   "tNext": 35397,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 295,
+   "settledWithValue": 35,
+   "rendered": 72,
+   "maxGreyFrac": 0,
+   "costMs": 0.39999985694885254,
+   "costCalls": 94,
+   "fsMs": 0,
+   "fsN": 94,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan2",
+   "tStart": 35397,
+   "tEnd": 35800,
+   "tNext": 37839,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 293,
+   "settledWithValue": 27,
+   "rendered": 55,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 28,
+   "fsMs": 0,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan3",
+   "tStart": 37839,
+   "tEnd": 38242,
+   "tNext": 40329,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 299,
+   "settledWithValue": 42,
+   "rendered": 47,
+   "maxGreyFrac": 0,
+   "costMs": 0.2999999523162842,
+   "costCalls": 8,
+   "fsMs": 0,
+   "fsN": 8,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan4",
+   "tStart": 40329,
+   "tEnd": 40733,
+   "tNext": 42752,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 290,
+   "settledWithValue": 10,
+   "rendered": 18,
+   "maxGreyFrac": 0,
+   "costMs": 0.30000007152557373,
+   "costCalls": 44,
+   "fsMs": 0.10000002384185791,
+   "fsN": 44,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan5",
+   "tStart": 42752,
+   "tEnd": 43158,
+   "tNext": 45226,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 297,
+   "settledWithValue": 30,
+   "rendered": 60,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 27,
+   "fsMs": 0,
+   "fsN": 27,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan6",
+   "tStart": 45227,
+   "tEnd": 45633,
+   "tNext": 47675,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 294,
+   "settledWithValue": 17,
+   "rendered": 60,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 51,
+   "fsMs": 0,
+   "fsN": 51,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan7",
+   "tStart": 47676,
+   "tEnd": 48084,
+   "tNext": 50161,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 293,
+   "settledWithValue": 39,
+   "rendered": 82,
+   "maxGreyFrac": 0,
+   "costMs": 0.20000004768371582,
+   "costCalls": 55,
+   "fsMs": 0,
+   "fsN": 55,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan8",
+   "tStart": 50161,
+   "tEnd": 50566,
+   "tNext": 52595,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 292,
+   "settledWithValue": 25,
+   "rendered": 58,
+   "maxGreyFrac": 0,
+   "costMs": 0.30000007152557373,
+   "costCalls": 25,
+   "fsMs": 0.10000002384185791,
+   "fsN": 25,
+   "longtasks": 0
+  },
+  {
+   "label": "z11/pan9",
+   "tStart": 52595,
+   "tEnd": 53000,
+   "tNext": 55047,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 294,
+   "settledWithValue": 35,
+   "rendered": 72,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan1",
+   "tStart": 58587,
+   "tEnd": 58991,
+   "tNext": 60786,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 264,
+   "settledWithValue": 12,
+   "rendered": 19,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 20,
+   "fsMs": 0,
+   "fsN": 20,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan2",
+   "tStart": 60787,
+   "tEnd": 61191,
+   "tNext": 62928,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 257,
+   "settledWithValue": 21,
+   "rendered": 21,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 17,
+   "fsMs": 0,
+   "fsN": 17,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan3",
+   "tStart": 62928,
+   "tEnd": 63333,
+   "tNext": 65441,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 302,
+   "settledWithValue": 9,
+   "rendered": 12,
+   "maxGreyFrac": 0,
+   "costMs": 0,
+   "costCalls": 3,
+   "fsMs": 0,
+   "fsN": 3,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan4",
+   "tStart": 65441,
+   "tEnd": 65849,
+   "tNext": 67906,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 295,
+   "settledWithValue": 6,
+   "rendered": 14,
+   "maxGreyFrac": 0,
+   "costMs": 0.09999990463256836,
+   "costCalls": 16,
+   "fsMs": 0,
+   "fsN": 16,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan5",
+   "tStart": 67906,
+   "tEnd": 68308,
+   "tNext": 70384,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 297,
+   "settledWithValue": 3,
+   "rendered": 12,
+   "maxGreyFrac": 0,
+   "costMs": 0.20000004768371582,
+   "costCalls": 6,
+   "fsMs": 0,
+   "fsN": 6,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan6",
+   "tStart": 70384,
+   "tEnd": 70791,
+   "tNext": 72770,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 281,
+   "settledWithValue": 7,
+   "rendered": 25,
+   "maxGreyFrac": 0,
+   "costMs": 0.19999992847442627,
+   "costCalls": 28,
+   "fsMs": 0,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan7",
+   "tStart": 72770,
+   "tEnd": 73174,
+   "tNext": 75230,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 295,
+   "settledWithValue": 3,
+   "rendered": 41,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 28,
+   "fsMs": 0.10000002384185791,
+   "fsN": 28,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan8",
+   "tStart": 75230,
+   "tEnd": 75633,
+   "tNext": 77687,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 295,
+   "settledWithValue": 3,
+   "rendered": 33,
+   "maxGreyFrac": 0,
+   "costMs": 0.20000004768371582,
+   "costCalls": 15,
+   "fsMs": 0,
+   "fsN": 15,
+   "longtasks": 0
+  },
+  {
+   "label": "z13/pan9",
+   "tStart": 77687,
+   "tEnd": 78091,
+   "tNext": 80166,
+   "movingGrey": 0,
+   "afterGrey": 0,
+   "colouredMs": 0,
+   "frames": 298,
+   "settledWithValue": 12,
+   "rendered": 19,
+   "maxGreyFrac": 0,
+   "costMs": 0.10000002384185791,
+   "costCalls": 0,
+   "fsMs": 0,
+   "fsN": 0,
+   "longtasks": 0
+  }
+ ]
+}

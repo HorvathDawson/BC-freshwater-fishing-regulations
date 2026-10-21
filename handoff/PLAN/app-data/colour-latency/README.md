@@ -257,3 +257,166 @@ session, so the per-pan calls are only the sections never seen before.)
   `moveend`.
 - **Not measured here:** a real phone (4× CPU + 4G on an M5 Pro), a release swap in the running app (pinned by
   `profile-paint.test.ts`, call by call), native (open until N2).
+
+## Conditions: the same engine (2026-10-21)
+
+Owner: "the painting for regulations is way faster now very good. but we need to do the same painting speed up for the
+conditions map too" — and "it should be a single pathway ideally".
+
+**What shipped (web).** `profile-paint.ts` became `colouring.ts`: ONE engine (`Colouring`) with two CHANNELS. Both share
+the per-tile labelling in `sourcedata` (one feature-state call per section carrying every channel's label it lacks), the
+bitset de-dupe, the release-swap / withdraw sequence (plain → clear → restore highlight + pushed data → forget →
+relabel → install), the proven-pair gate (no input, no label) and the public-route fallback.
+
+| channel | static label (per release) | what changes | how a change reaches the map |
+|---|---|---|---|
+| `status` (Map tab) | `p` = the section's day-profile (`@app/core` `profileLabel`) | the day | the style: one `match` over ~115 labels (`dayProfiles`), one paint property, 0 feature-state |
+| `standing` (Conditions) | the section's CLASS (`@app/data` `StandingClasses.classOf`) | the feed, the horizon, the quantity | one `Colouring.set`: the loaded tiles' sections relabelled with their class's value in feature-state `standing` (the key the `standing` mode always read); the basins by id |
+
+- **Classes, not panels.** A section's standing is `answerFrom(panel, feed, quantity, horizon)`, and the weights depend
+  on the section's own target area, so a per-panel value is the wrong answer for most of a panel's sections. On
+  r-7b6e802bf22b: 249,415 panelled sections, 3,281 panels, **18,548 (panel, target area) classes** (+ a class per gauged
+  lake station no panel speaks for). The one reading is `sectionStanding` (`panelStanding` = `answerFrom`'s
+  contributions and `estimate` without the sheet's rows); the native path's `usePanelStandings` / `useBasinStandings`
+  call the same functions; `conformance/src/release.test.ts` holds every class value to `answerFrom` for every section
+  of the fixture release, both readers, every horizon and quantity. (The estimate stays in `@app/data` beside
+  `answerFrom`, where it was — core holds `estimate` and `basinStanding`, data the join.)
+- **Why the values are not in the style.** Measured (the paused run on 8ff6c170, `conditions/runs/table-*.json`,
+  `shots/table-*`): a style table (`["at", class, ["literal", 18,548 values]]`, ~227 KB per paint, 6 layers) gave 0 grey
+  pans too, but a horizon change cost **52–61 ms of long tasks on desktop and 280–315 ms on the phone profile**, settled
+  +75–116 / +376–671 ms: GL 5.24 re-lays out every loaded tile on any data-driven paint change (`_updateLayer`;
+  `setGlobalStateProperty` takes the same path). A per-panel feature-state set is not possible (state is per feature).
+  Relabelling the loaded sections costs 0.6–1.5 ms desktop / 1.8–4.3 ms phone for 104–422 states (below), so it wins.
+  Values are computed lazily per class (a horizon change asks the classes the loaded sections use) and memoised per
+  (feed index, quantity, horizon).
+- **The classes' build** (once, first Conditions visit; paint + flow-area + the lake road from conditions/core): rewritten
+  to typed arrays with no per-section string, tuple or Set — 10–11 ms vs 42–57 ms for 249k synthetic sections (node,
+  M5); the same 22,050 classes and lookups.
+- **Feed independent of tiles.** Tiles carry geometry + section ids; the classes come from the release; the feed's
+  standings are applied at run time and the map re-asks the feed on its own schedule (`FEED_POLL_MS` = the feed's 5-minute
+  cache) — the old path re-read the feed only on the next pan.
+
+### Measured — `harness/conditions_measure.py`, Conditions tab, the app's HOME (−121.85, 49.15)
+
+Before = 09232f48 (idle → `onVisible` → React → `usePanelStandings` → `setData`), after = this change; same live tiles
+(d768d6e135e62b99.c9f9604f12bf), release r-7b6e802bf22b and feed; own servers :39640 (data, read-only) / :39641 / :39642;
+expo web dev build, Metal. Phone = 390×844 @2x, 4G + 4× CPU. 9 one-viewport pans per zoom, then the horizon chips (+1d,
++3d, Now) and the quantity (Level, Flow). "Grey" = a rendered frame drawing a section WITHOUT the value it has once the
+map settles (sections nothing speaks for are never counted). The after runs predate one later edit (the ground moved
+into `applyLook`; `CI=1` Metro does not watch files), which touches only the look effect; the lake-mode run below is on
+the final code.
+
+| run | zoom | pans grey moving / after | grey frames after | pan end → coloured ms, median / max | work per pan ms, median / max | state calls per pan, median / max |
+|---|---|---|---|---|---|---|
+| before, desktop | z8 (field) | 0 / 0 of 9 | 0 | 0 | 0.2 / 0.7 | 195 / 739 |
+| before, desktop | z11 | **8 / 8** | 493 | **517 / 559** | 0.1 / 0.3 | 62 / 142 |
+| before, desktop | z13 | **6 / 6** | 375 | **525 / 553** | 0 / 0.2 | 20 / 51 |
+| **after, desktop** | z8 | **0 / 0** | **0** | **0** | 0.4 / 1.0 | 195 / 739 |
+| **after, desktop** | z11 | **0 / 0** | **0** | **0** | 0.2 / 0.4 | 28 / 94 |
+| **after, desktop** | z13 | **0 / 0** | **0** | **0** | 0 / 0.3 | 16 / 28 |
+| before, phone | z8 | 0 / 0 | 0 | 0 | 0 / 2.1 | 0 / 365 |
+| before, phone | z11 | **8 / 8** | 486 | **591 / 635** | 0 / 1.1 | 21 / 55 |
+| before, phone | z13 | **3 / 3** | 229 | 0 / 885 | 0 / 0.7 | 5 / 23 |
+| **after, phone** | z8 | **0 / 0** | **0** | **0** | 0 / 3.5 | 0 / 365 |
+| **after, phone** | z11 | **0 / 0** | **0** | **0** | 0 / 1.0 | 8 / 39 |
+| **after, phone** | z13 | **0 / 0** | **0** | **0** | 0 / 0.6 | 5 / 17 |
+
+(z8 is the basin field: both paths set 190 basin states by id, so it was never grey. No long tasks during any pan.)
+
+| change | before, desktop | after, desktop | before, phone | after, phone |
+|---|---|---|---|---|
+| horizon (+1d, +3d, Now): last colour change after the click | +26–35 ms (22 calls) | **first frame** (104–422 states, engine 0.6–1.5 ms) | +111–180 ms (6 calls) | **first frame** (61–297 states, engine 1.8–4.3 ms) |
+| horizon: long tasks | 0 | 0 | 58–80 ms | **0** |
+| quantity (Level, Flow) | +33–35 ms, 0 long tasks | first frame, 0 | +130–200 ms, 92–102 ms long tasks | first frame, 72–75 ms long tasks (React: the gauge dots, the legend) |
+
+"First frame" = the first frame GL drew after the click already had the new values (the engine runs before GL's next
+render). The after path sets more states than the old visible push (every loaded tile, cached ones too) and is still
+sub-5 ms of work.
+
+**Correct, not just non-grey** (`harness/conditions_compare.py`, every rendered section's value at settle after every
+pan and change, before vs after): desktop **568 / 568 equal** (650 with no value on both), phone **245 / 245 equal**
+(243 none on both). No section changed value, gained or lost one. Screenshots: `conditions/shots/before-*` /
+`after-*` (same steps).
+
+**The feed alone** (`harness/conditions_feed_swap.py`, `conditions/runs/feed-swap.json`): the data server served ONLY a
+modified `/feeds/live/index.json` (every percentile p → 1 − p); nothing republished. The map recoloured on the app's own schedule (295 s: the feed's 5-minute cache, then the poll):
+**76 / 76** rendered sections took exactly 100 − their value (53 visibly changed; the rest sit at 50 or on the −1
+sentinel, which the flip leaves alone); the ONLY request after the swap was `/feeds/live/index.json` — **no tile, no
+release byte**; **0** `setPaintProperty` calls and the stream's paint unchanged; the colouring's record shows ONE
+`standing` relabel (146 states, 1.6 ms). Unit-pinned in `colouring.test.ts` and, through the real `Map.web.tsx` over a
+recording maplibre-gl, `one-engine.render.test.tsx` ("A NEW FEED ALONE": feature-state on the loaded sections only, no
+paint, no clear, the same map instance).
+
+**Idle** (`harness/idle_paints.py`, 45 s left alone on each tab after settling): 0 paint, 0 layout, 0 feature-state
+calls on both tabs. (The paused run's feed-swap record held 71,940 `setPaintProperty` calls over five minutes on
+Conditions; its cause was not re-traced here. The likely one — the look effect re-running on every Shell render with an
+inline `onError` in its deps — is gone: that dep is now a ref, and the swap below made 0 paint calls.)
+
+### Mutation runs (each made the named test fail, then reverted)
+- standing labelled by a second `Colouring` instance in `Map.web.tsx` → `one-engine.render.test` "labelled ONCE … in one
+  call" fails (two calls per section / no standing at the tile event).
+- the standing channel's `relabels` off → "A NEW FEED ALONE" fails (no recolour).
+- the ground back in its own `whenStyled` effect → "THE GROUND goes with the look" fails (the toggle is dropped).
+- `tools/one-colouring-engine.test.ts` pins the source shape (one `new Colouring(`, one `c.set(`, both channels through
+  `toChannel`, the Shell only through `useConditionsColour`) and that every section colour mode reads a key an engine
+  channel sets or a known pushed key.
+
+### The two map views, audited for one pathway
+
+| | Map tab | Conditions | now |
+|---|---|---|---|
+| section colouring | engine, `status` channel | idle → React → `setData` | **engine, `standing` channel** |
+| basin field | — | `setData` after a React round trip | engine `setChannel("standing")`, by id |
+| lake outline follows the lake | `followersOf` in the contract | same | same (one `setLayerMode`) |
+| flow arrows follow the stream | follower | same | same |
+| wash | `applyLook` by the stream's mode | same | same |
+| "no baseline" dash | built only if the map was CREATED in `standing` (a map opened on the Map tab never dashed on Conditions) | | **always built, painted by the adapter with the stream's mode** |
+| the look re-run | every Shell render (inline `onError` in deps: ~800 no-op paints per feed tick / horizon) | same | keyed on the look alone |
+| basemap / satellite | own effect behind `whenStyled`: **dropped when toggled mid tile burst** (found here: the radio said Satellite, `imagery` stayed `none`) | same | **part of `applyLook`** on both maps (native already applied it after the look) |
+| idle → `onVisible` | every pan re-rendered the Shell for nothing (web) | colouring | web: Conditions only, for the legend's marks (`mapModes.asksVisible`); native: both tabs (its pushed colours) |
+| scale, compass, gestures | one `Map` component | same | same |
+
+Remaining differences, each a property of the view, not of a pathway: the gauge dots (Conditions, or the temperature
+choice); hidden `mu`/`region` and shown flow arrows (the style's `views[].hide/show`); the selected highlight and the
+search fit (Map tab only — Conditions must not inherit a search); the tap (opens a water vs. a Conditions section, none
+below the handover); the Layers button (Map tab) vs. the Showing control and horizon chips (Conditions). The route
+overlay, up/down gauges and 'here' pin are on the Conditions sheet's route map (`DonorMap` → `MiniMap`, `trace`), which
+colours ONLY the route's sections from pushed `data` (`usePanelStandings` over the chain — the same `sectionStanding`):
+an illustration of one route, deliberately not the engine's whole-map colouring.
+
+### Lake modes (Stocked, Depth) and the basemap toggle
+
+They switch through the same pathway as status and standing: the Layers sheet's choice → `mapModes` → `applyLook` →
+`setLayerMode` (the lake's edge follows) + the `depth` group; the basemap now inside `applyLook` too. **Their values
+come from nowhere today, and nothing is baked into the tiles**: the lake features carry `section_id, name, water,
+area_m2` (`pipeline/deliver/tiles/tile-contract.json`), so no tile change is needed; the release ships no stocking or
+chart data (`release/source.ts`: "charts, stocking — no producer ships them"; `lakeInfo` null, `stockingHistory` empty);
+no code sets feature-state `stocked` or `survey`. Measured on the live map (`harness/lake_modes_measure.py`,
+`conditions/runs/lake-modes-desktop.json`): after Stocked or Depth the rendered lakes hold only `p` — both modes paint
+`missing` (plain water-blue, the edge with it). Switch cost (desktop, after the fix): Stocked / Depth / Plain drawn on
+the first frame, 146 paint + layout calls (one look pass), 0 long tasks, idle +330–394 ms; Satellite / Map 0 long tasks,
+imagery visible on the first frame, idle +1.9 s / +0.3 s (the imagery tiles from the network). Before the fix the
+Satellite toggle was DROPPED in this run (`imagery` stayed `none`). Pan colouring for them is nil (nothing to label).
+PIPELINE NEED: a per-section (or per-item) stocking date and survey state in the release; then each is an engine
+channel like `standing` (label = the static fact, e.g. last-stocked day or `digitised`/`sheet`; the band by day in
+the style, or a daily relabel) — no adapter code, no tile rebuild.
+
+### Native (N2)
+
+Unchanged in kind: `Map.native.tsx` gets the visible sections' standings pushed as `data` in the `standing` mode, now
+through `useConditionsColour` (the same `sectionStanding`), and the marsh a stream flows through (`wetland_flowing`)
+is pushed too — the Shell never had, so a slough drawn as a wetland polygon stayed unmeasured on a phone. The ground
+is set by `applyLook` (it was a separate call after it). For the engine on a phone it needs what AP needs: a per-tile
+loaded event, or a bulk feature-state call, from the binding (open, as above); then `coloursEachTile` flips.
+
+### Files (Conditions)
+`harness/data_server.mjs` (live tiles + release + feed, read-only, with a feed-index override), `conditions_measure.py`,
+`conditions_compare.py`, `conditions_feed_swap.py`, `lake_modes_measure.py`, `idle_paints.py`, `conditions_table.py`;
+`conditions/runs/` (before/after per profile, the settle dumps, feed-swap, lake modes, the table variant) and
+`conditions/shots/` (before-*, after-*, feed-*, table-*).
+
+### Not done / not verified
+- A real phone, native (emulator), a release swap in the running app (pinned call by call in `colouring.test.ts`).
+- At mount (and a release swap) the two channels install in turn, so a held tile's sections get two state calls, not one.
+- The style-table variant is measured and NOT shipped (`runs/table-*`, `shots/table-*`, from the paused run).
+
