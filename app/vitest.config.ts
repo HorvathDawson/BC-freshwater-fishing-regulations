@@ -39,6 +39,8 @@ const alias = [
   { find: /^react-native-gesture-handler$/,
     replacement: fileURLToPath(new URL(
       "node_modules/react-native-gesture-handler/lib/module/index.js", import.meta.url)) },
+  // T12: the test-only subpath, ABOVE @app/core (a string alias matches the prefix, so "@app/core" would take it first).
+  { find: "@app/core/regs/testing", replacement: pkg("core", "src/regs/testing/index.ts") },
   { find: "@app/core", replacement: pkg("core") },
   { find: "@app/data/fixture", replacement: pkg("data", "src/fixture.ts") },
   // Subpath exports need their own alias: vitest resolves through these, not through the

@@ -10,7 +10,7 @@ import { DatabaseSync } from "node:sqlite";
 import { afterAll, describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS } from "@app/core";
 import { liveReleaseAt } from "../fixtureRelease";
-import { paritySkip, provinceStoreAt, taps } from "./golden";
+import { chooseSource, fixtureVerdict, paritySkip, parityMode, provinceStoreAt, summary, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -107,5 +107,53 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
 
   it("no release: the reason says so", () => {
     expect(liveReleaseAt({ RELEASE_DIR: join(dir, "nowhere") })).toEqual({ dir: null, reason: "no release on this machine (data/release/r-*)" });
+  });
+});
+
+describe("T12 parityMode: REGS_PARITY, default auto, a typo refused", () => {
+  it("reads the three modes; unset is auto; anything else throws", () => {
+    expect([parityMode({}), parityMode({ REGS_PARITY: "province" }), parityMode({ REGS_PARITY: "fixture" }), parityMode({ REGS_PARITY: "auto" })])
+      .toEqual(["auto", "province", "fixture", "auto"]);
+    expect(() => parityMode({ REGS_PARITY: "fixtures" })).toThrow("REGS_PARITY=fixtures: expected province, fixture or auto");
+  });
+});
+
+describe("T12 fixtureVerdict: the committed fixture is the oracles' store, or why not", () => {
+  const store = { section_handles: "h", reach_digest: "r", rule_ids_sha256: "u" };
+  const fx = { sectionHandles: "h", reachDigest: "r", ruleIdsSha256: "u", answersSha256: "a".repeat(64) };
+  it("paired on the three digests; answers checked only when the province store is here", () => {
+    expect(fixtureVerdict(fx, store, null)).toBeNull();
+    expect(fixtureVerdict(fx, store, "a".repeat(64))).toBeNull();
+    expect(fixtureVerdict(fx, store, "b".repeat(64)))
+      .toBe("the regs fixture release carries answers aaaaaaaaaaaa, the oracles' store bbbbbbbbbbbb: run pnpm -C app regs-fixture");
+  });
+  it("each digest names itself", () => {
+    expect(fixtureVerdict({ ...fx, sectionHandles: "H" }, store, null))
+      .toBe("the regs fixture release has section_handles H, the oracles' store h: run pnpm -C app regs-fixture (after port/sync.mjs)");
+    expect(fixtureVerdict({ ...fx, reachDigest: "R" }, store, null)).toMatch(/^the regs fixture release has reach_digest R, the oracles' store r:/);
+    expect(fixtureVerdict({ ...fx, ruleIdsSha256: "U" }, store, null)).toMatch(/^the regs fixture release has rule_ids_sha256 U, the oracles' store u:/);
+  });
+});
+
+describe("T12 chooseSource", () => {
+  it("auto: province first, then the fixture, else both reasons", () => {
+    expect(chooseSource("auto", null, null)).toEqual({ label: "province", reason: null });
+    expect(chooseSource("auto", "p", null)).toEqual({ label: "fixture", reason: null });
+    expect(chooseSource("auto", "p", "f")).toEqual({ label: null, reason: "no paired regs store: province — p; fixture — f" });
+  });
+  it("a named mode takes only that store", () => {
+    expect(chooseSource("fixture", null, null)).toEqual({ label: "fixture", reason: null });
+    expect(chooseSource("fixture", null, "f")).toEqual({ label: null, reason: "REGS_PARITY=fixture: f" });
+    expect(chooseSource("province", null, null)).toEqual({ label: "province", reason: null });
+    expect(chooseSource("province", "p", null)).toEqual({ label: null, reason: "REGS_PARITY=province: p" });
+  });
+});
+
+describe("T12 summary", () => {
+  it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
+    expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
+    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal · ^strip$ not compared (the pipeline year strip (batch 7) is in the release)");
+    expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
+      + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });
 });

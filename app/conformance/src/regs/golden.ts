@@ -1,51 +1,31 @@
 /**
- * The golden oracles, read from app/design/regs-v11/port/golden/ (tests.md §1.2). T05 starts this file with `golden()`,
- * `taps()`, `provinceStore()` and their types; T12 adds `requestOf`, `inputsOf`, `cases`, `writeVmFixtures`.
+ * The golden parity harness (tests.md §1.2; T05 → T09 → T12): the oracles (oracles.ts: golden.json, taps.json,
+ * hydrate.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases(block)`.
  *
- * `provinceStore()` is the built regs store the oracles were cut from (`taps.json` `meta.store.store_digest`), read here
- * over node:sqlite with T02's blob codec until T03/T04's store reads land and replace it. Looked for at $REGS_STORE, then
- * this checkout's data/generated/bundle/regs.sqlite, then (in a `.claude/worktrees/<name>` checkout) the main checkout's —
- * read-only. Absent, or a store whose digest is not the oracles' (a stale pairing), is a SKIP with its reason, never a fail —
- * unless REGS_STORE_REQUIRED=1 (`paritySkip`). Not yet tests.md §1.2's `Promise<RegsStore | null>` over the release: T03/T04
- * are not on this base, so this reads the bundle store with hand-written SQL; replace it with T04's reads when they land.
+ * WHICH STORE (`paritySource`, REGS_PARITY=province|fixture|auto, default auto):
+ * - province: the LIVE RELEASE on this machine (`releasePairing`): the province regs.sqlite the oracles were cut from
+ *   (taps.json `meta.store.store_digest`) must be here and carry the release's `answers_sha256`.
+ * - fixture: the COMMITTED regs fixture release (T10, packages/data/dev/regs-release; all 134 golden states), held to
+ *   taps.json's section_handles / reach_digest / rule_ids_sha256 — and, when the province store is on this machine, to its
+ *   answers_sha256 too. This is the CI path.
+ * - auto: province when paired, else the fixture when paired, else none.
+ * None is a SKIP with its reason, never a wall of false failures — unless REGS_STORE_REQUIRED=1 (`paritySkip`).
+ *
+ * `provinceStore()` is still T05's hand-SQL reader of the province regs.sqlite (`TapStore`, tap.parity.test.ts reads it);
+ * the harness's store is `parityStore()` — the ticket's `provinceStore(): Promise<RegsStore | null>` under another name.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
-import { fileURLToPath } from "node:url";
-import type { Day, Moment, RegsInputs, RegsTarget, Weekday } from "@app/core";
+import { buildRegsPage, type Day, type Moment, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
+import type { Block, Cell, GoldenState, Tap } from "@app/core/regs/testing";
 import { loadRegsInputs, openRegsStore, unpackBlob, type RegsStore } from "@app/data/regs";
-import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
+import { regsFixtureDir } from "@app/data/release/node";
+import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
+import { EXCLUDE, excluded } from "./exclusions";
+import { golden, REPO, taps, tapsOnce } from "./oracles";
 
-const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
-const GOLDEN_DIR = `${REPO}app/design/regs-v11/port/golden/`;
-
-export interface GoldenSheet { title: string | null; sub: string | null; folds: { summary: string; open: boolean }[];
-  pages: { text: string; pdf: number | null }[]; lines: string[]; nested: string[] }
-export interface GoldenState { id: string; w: string; d: number; p: number; water: string; header: unknown; keep: unknown;
-  gear: unknown; methods: unknown; licence: Record<`${"adult" | "u16"}|${string}`, unknown>; sheets: Record<string, GoldenSheet | "@">; pins: unknown }
-export interface Cell { ladder: number; rows: number; gear: number; licence: number; display: number }
-export interface Tap { item: string; partIx: number; md: number; date: string /* "2026-05-15" */; weekday: Weekday;
-  item_ord: number; akey: number; seg: number; mom: number | null; nseg: number; starts: number[]; moments: Moment[] | null;
-  s: number; cell: Cell; displayByDay: number[] }
-/** A Feb 29 case (P06/D31): the date reads `readingDay` (59) on its own `weekday`, as `encode.tap_key` taps it. */
-export interface LeapTap { id: string; item: string; partIx: number; date: string; weekday: Weekday; readingDay: number; akey: number;
-  starts: number[]; moments: Moment[] | null; s: number; cell: Cell }
-export interface TapsMeta { generator: string; store: { format: string; section_handles: string; reach_digest: string;
-  rule_ids_sha256: string; store_digest: string; layout: string }; golden: string; version: string; year: number }
-
-let G: ReturnType<typeof golden> | undefined;
-/** golden.json (8.6 MB), read once per test file. */
-export function golden(): { meta: { sha: string; ref: string; version: string }; states: Record<string, GoldenState>; sheets: Record<string, GoldenSheet> } {
-  return (G ??= JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")));
-}
-
-type Taps = { meta: TapsMeta; states: Record<string, Tap>; unnamed: { handle: number; akey: number; place: number; name: string }[];
-  leap: LeapTap[] };
-export function taps(): Taps {
-  return JSON.parse(readFileSync(`${GOLDEN_DIR}taps.json`, "utf8"));
-}
-let TP: Taps | undefined;
-const tapsOnce = (): Taps => (TP ??= taps());
+export { golden, hydrate, taps } from "./oracles";
+export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
 
 /** The store reads the tap parity needs (T04's `akey`/`segStarts`/`segMoments`/`cell`, by the same names). */
 export interface TapStore {
@@ -173,14 +153,153 @@ export async function regsStore(): Promise<RegsStore | null> {
   return at.path === null ? null : regsStoreAt(at.path);
 }
 
+// ── T12: the parity store (province, else the committed fixture) ─────────────────────────────────────────────────────
+
+export type ParityMode = "province" | "fixture" | "auto";
+type Env = Readonly<Record<string, string | undefined>>;
+
+/** REGS_PARITY, default auto; anything else is a typo that must not silently mean auto. */
+export function parityMode(env: Env = process.env): ParityMode {
+  const v = env.REGS_PARITY ?? "auto";
+  if (v === "province" || v === "fixture" || v === "auto") return v;
+  throw new Error(`REGS_PARITY=${v}: expected province, fixture or auto`);
+}
+
+/** What the fixture release's water meta must agree with: taps.json's store digests, and the province store's answers. */
+export interface FixtureFacts { readonly sectionHandles: string; readonly reachDigest: string; readonly ruleIdsSha256: string; readonly answersSha256: string }
+
+/**
+ * Why the fixture is NOT the oracles' store, or null when it is: its section_handles / reach_digest / rule_ids_sha256 must be
+ * taps.json's, and — when the paired province store is on this machine (`provinceAnswers` non-null) — its answers_sha256 the
+ * province store's (the release meta carries no store_digest; answers are what a pipeline change moves).
+ */
+export function fixtureVerdict(fx: FixtureFacts, store: { section_handles: string; reach_digest: string; rule_ids_sha256: string },
+                               provinceAnswers: string | null): string | null {
+  const bad = ([["section_handles", fx.sectionHandles, store.section_handles], ["reach_digest", fx.reachDigest, store.reach_digest],
+                ["rule_ids_sha256", fx.ruleIdsSha256, store.rule_ids_sha256]] as const).find(([, a, b]) => a !== b);
+  if (bad) return `the regs fixture release has ${bad[0]} ${bad[1]}, the oracles' store ${bad[2]}: run pnpm -C app regs-fixture (after port/sync.mjs)`;
+  if (provinceAnswers !== null && provinceAnswers !== fx.answersSha256)
+    return `the regs fixture release carries answers ${fx.answersSha256.slice(0, 12)}, the oracles' store ${provinceAnswers.slice(0, 12)}: run pnpm -C app regs-fixture`;
+  return null;
+}
+
+/** The mode's choice between the two pairings (each a reason or null = paired). */
+export function chooseSource(mode: ParityMode, province: string | null, fixture: string | null):
+  { label: "province" | "fixture"; reason: null } | { label: null; reason: string } {
+  if (mode === "province") return province === null ? { label: "province", reason: null } : { label: null, reason: `REGS_PARITY=province: ${province}` };
+  if (mode === "fixture") return fixture === null ? { label: "fixture", reason: null } : { label: null, reason: `REGS_PARITY=fixture: ${fixture}` };
+  if (province === null) return { label: "province", reason: null };
+  if (fixture === null) return { label: "fixture", reason: null };
+  return { label: null, reason: `no paired regs store: province — ${province}; fixture — ${fixture}` };
+}
+
+const provinceAnswers = (): string | null => {
+  const at = provinceStoreAt();
+  if (at.path === null) return null;
+  const db = new DatabaseSync(at.path, { readOnly: true });
+  try { return (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v ?? null; }
+  finally { db.close(); }
+};
+
+let SOURCE: Promise<{ label: "province" | "fixture"; dir: string; reason: null } | { label: null; dir: null; reason: string }> | undefined;
+/** The store the harness reads (REGS_PARITY), decided once per test file. */
+export function paritySource(env: Env = process.env): NonNullable<typeof SOURCE> {
+  return (SOURCE ??= (async () => {
+    const mode = parityMode(env);
+    const province = mode === "fixture" ? "not asked" : (await releasePairing()).reason;
+    let fixture: string | null = "not asked";
+    if (mode !== "province" && province !== null) {
+      const dir = regsFixtureDir();
+      fixture = existsSync(`${dir}/manifest.json`)
+        ? fixtureVerdict((await regsStoreAt(dir)).meta, tapsOnce().meta.store, provinceAnswers())
+        : `no regs fixture release at ${dir}: run pnpm -C app regs-fixture`;
+    }
+    const c = chooseSource(mode, province, fixture);
+    if (c.label === null) return { label: null, dir: null, reason: c.reason };
+    return { label: c.label, dir: c.label === "province" ? liveRelease()! : regsFixtureDir(), reason: null };
+  })());
+}
+
+/** The harness's regs store (one per test file), or null — `paritySource()` says why. */
+export async function parityStore(): Promise<RegsStore | null> {
+  const s = await paritySource();
+  return s.dir === null ? null : regsStoreAt(s.dir);
+}
+export async function storeLabel(): Promise<"province" | "fixture" | null> {
+  return (await paritySource()).label;
+}
+/** `paritySkip` over the harness's store: describe.skipIf(gate.skip); gate.fail under REGS_STORE_REQUIRED=1. */
+export async function parityGate(env: Env = process.env): Promise<ReturnType<typeof paritySkip>> {
+  const s = await paritySource(env);
+  return paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
+}
+
 const INPUTS = new Map<string, Promise<RegsInputs | null>>();
-/** The memoised `RegsInputs` of one golden state (T09 `loadRegsInputs` over the paired release; calendar year = taps.json
- *  meta.year, 2026), or null when there is no paired release (skip). */
+/** The memoised `RegsInputs` of one golden state (T09 `loadRegsInputs` over `parityStore()`; calendar year = taps.json
+ *  meta.year, 2026), or null when there is no paired store (skip). The same promise for the same id, per test file. */
 export function inputsOf(id: string): Promise<RegsInputs | null> {
   let p = INPUTS.get(id);
   if (!p) {
     const r = requestOf(id);
-    INPUTS.set(id, p = regsStore().then((st) => st && loadRegsInputs(st, r.target, r.day, r.weekday, tapsOnce().meta.year)));
+    INPUTS.set(id, p = parityStore().then((st) => st && loadRegsInputs(st, r.target, r.day, r.weekday, tapsOnce().meta.year)));
   }
   return p;
+}
+
+// ── T12: cases ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export const ADULT_RESIDENT: Who = { age: "adult", residency: "resident" };
+
+export interface Case {
+  readonly id: string; readonly g: GoldenState; readonly tap: Tap;
+  /** = inputsOf(id), never null inside cases */
+  inputs(): Promise<RegsInputs>;
+  /** buildRegsPage(inputs, {today: requestOf(id).today, who, tot, pid: id}) — throws "buildRegsPage: T21" until T21 */
+  page(who?: Who, tot?: "a" | "b"): Promise<RegsPage>;
+}
+
+/** The state ids for it.each (sync): every taps.json state minus the block's whole-state exclusions (keyed ones stay). */
+export function caseIds(block: Block): readonly string[] {
+  return Object.keys(tapsOnce().states).filter((id) => excluded(block, id) === null);
+}
+
+const caseOf = (id: string, g: GoldenState): Case => ({
+  id, g, tap: tapsOnce().states[id]!,
+  async inputs() {
+    const inp = await inputsOf(id);
+    if (!inp) throw new Error(`inputsOf(${id}): no paired regs store`);
+    return inp;
+  },
+  async page(who = ADULT_RESIDENT, tot) {
+    return buildRegsPage(await this.inputs(), { today: requestOf(id).today, who, tot, pid: id });
+  },
+});
+
+const warned = new Set<string>();
+/**
+ * Every case for a block (`caseIds`), with its golden state. Yields nothing when there is no paired store — the reason
+ * printed once; under REGS_STORE_REQUIRED=1 that throws instead (a parity machine must not pass on zero cases).
+ */
+export async function* cases(block: Block): AsyncIterable<Case> {
+  const gate = await parityGate();
+  if (gate.fail) throw new Error(gate.fail);
+  if (gate.skip) {
+    const msg = `${block} parity skipped: ${"reason" in gate ? gate.reason : ""}`;
+    if (!warned.has(msg)) { warned.add(msg); console.warn(msg); }
+    return;
+  }
+  const G = golden();
+  for (const id of caseIds(block)) yield caseOf(id, G.states[id]!);
+}
+
+/**
+ * The afterAll line: "<block> parity: P/T states equal", then " · N excluded (ids)" for whole-state exclusions and
+ * " · <key> not compared (<until>)" for each keyed one.
+ */
+export function summary(block: Block, passed: number, total: number): string {
+  const ids = Object.keys(tapsOnce().states).filter((id) => excluded(block, id) !== null);
+  const keyed = EXCLUDE.filter((e) => e.block === block && e.key);
+  return `${block} parity: ${passed}/${total} states equal`
+    + (ids.length ? ` · ${ids.length} excluded (${ids.join(", ")})` : "")
+    + keyed.map((e) => ` · ${e.key!.source} not compared (${e.until ?? "permanent"})`).join("");
 }
