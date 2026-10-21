@@ -83,6 +83,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
+- 2026-10-21 early morning: MERGED strip dedupe ad0252d4 (254 distinct strips; release 13.90 MB, ~99 KB under the
+  14.0 MB gate, gate untouched; lossless over 9175 cells); colour-latency AP on WEB merged 8af5dcd1 (0 grey frames after
+  pans at z8/z11/z13, ~0.2 ms/pan, day change 0 state calls; native keeps the old 'status' path — native per-tile
+  colouring still OPEN); T05 redo 46ccd2d0. pnpm check 2358 pass; smoke pass. deliver all RE-RUNNING (b25dhsb2x).
+  AFTER IT: taps.py re-cut (goldens), pnpm -C app regs-fixture, flip Kitimat test DEC1 hatchery ST -> release,
+  REGS_STORE_REQUIRED=1 pnpm check, live pytest (regs_store, kitimat), Tier 2.
 - 2026-10-21 night (cont.): N2 MERGED (84b3b357 3a53ecdd 8f959fc3 465595fe): native map behind the shared
   MapRenderer contract, MapLibre RN 11.5.0 (vulkan, provisional), feature-state by MVT id on native, web keeps
   promoteId, metric scale bar, basin field on native; Android emulator verified (shots handoff/PLAN/app-data/n2/).
