@@ -83,7 +83,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   Nov 1-Jun 30, quota 2 outside. GOTCHAS.md entry added (696529f0). TODO after kitimat-plus1 merges (same test file +
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
-- PAUSED 2026-10-20 ~23:xx (owner out of credit; resets Wed 1:30 AM). MERGED before pause: search placement + preview
+- RESUMED 2026-10-21 ~01:45 by the scheduled restart: all four workflows resumed with the same run ids (below);
+  stale worktrees wf_7703a540-b9f-4 and wf_2c5dbf14-b47-1 removed. Was PAUSED 2026-10-20 ~23:00 (owner out of credit). MERGED before pause: search placement + preview
   (32ee103b 94c2f5d3 1f065176; 19,641/19,641 placeable; eye -> main map, back -> search). pnpm check 1597; smoke pass.
   STOPPED workflows — RESUME each with Workflow({scriptPath, resumeFromRunId}); completed agents replay from cache,
   their worktrees under .claude/worktrees/ keep any commits:
