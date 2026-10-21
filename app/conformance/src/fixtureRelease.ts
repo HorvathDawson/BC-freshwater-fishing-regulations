@@ -68,14 +68,32 @@ export function liveRelease(): string | null {
     const d = resolve(REPO, process.env.RELEASE_DIR);
     return existsSync(join(d, "manifest.json")) ? d : null;
   }
-  const main = /\/\.claude\/worktrees\/[^/]+\/?$/.test(REPO) ? REPO.replace(/\/\.claude\/worktrees\/[^/]+\/?$/, "") : null;
-  for (const root of [REPO, main]) {
-    if (!root) continue;
+  for (const root of ROOTS()) {
     const rel = join(root, "data/release");
     if (!existsSync(rel)) continue;
     const dirs = readdirSync(rel).filter((n) => /^r-/.test(n) && existsSync(join(rel, n, "manifest.json")))
       .map((n) => join(rel, n)).sort((a, b) => statSync(join(b, "manifest.json")).mtimeMs - statSync(join(a, "manifest.json")).mtimeMs);
     if (dirs.length) return dirs[0]!;
+  }
+  return null;
+}
+
+/** This checkout's root, and — in a `.claude/worktrees/<name>` checkout — the main checkout's (read only). */
+const ROOTS = (): string[] => {
+  const main = /\/\.claude\/worktrees\/[^/]+\/?$/.test(REPO) ? REPO.replace(/\/\.claude\/worktrees\/[^/]+\/?$/, "") : null;
+  return main ? [REPO, main] : [REPO];
+};
+
+/**
+ * The regs store `python -m pipeline.deliver store` writes (data/generated/bundle/regs.sqlite, not in git): the PORT
+ * TOOLING's file (taps.py, hydrate.mjs) until P20, and the Python reference decoder's input — never the app's data, which
+ * is the release. $REGS_STORE, else this checkout's, else the main checkout's. null: none.
+ */
+export function liveRegsStore(): string | null {
+  if (process.env.REGS_STORE) return existsSync(process.env.REGS_STORE) ? process.env.REGS_STORE : null;
+  for (const root of ROOTS()) {
+    const p = join(root, "data/generated/bundle/regs.sqlite");
+    if (existsSync(p)) return p;
   }
   return null;
 }

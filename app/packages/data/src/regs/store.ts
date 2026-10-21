@@ -26,13 +26,10 @@ import { BLOB_CODECS, KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES, type SectionN
 import type { Cell, Db } from "../bundle/db";
 import type { ReleaseLoader } from "../release/loader";
 import { unpackBlob } from "./blob";
+import { asBytes, RegsStoreError } from "./errors";
+import { makeReads, type RegsReads } from "./reads";
 
-export type RefusalWhy = "format" | "codec" | "version" | "digest" | "missing" | "damaged";
-
-export class RegsStoreError extends Error {
-  override name = "RegsStoreError";
-  constructor(readonly why: RefusalWhy, message: string) { super(message); }
-}
+export { asBytes, RegsStoreError, type RefusalWhy } from "./errors";
 
 /** What the store is opened through: the release loader (P11), or any object with its shape (tests). */
 export type RegsLoader = Pick<ReleaseLoader, "release" | "manifest" | "db" | "regionsOf" | "regionDb">;
@@ -56,7 +53,8 @@ export interface RegsMeta {
   readonly layout: { readonly top: readonly string[]; readonly sections: Readonly<Record<string, readonly string[]>> };
 }
 
-export interface RegsStore {
+/** The store: T03's open surface and T04's reads (reads.ts), routed by table to the file that holds it. */
+export interface RegsStore extends RegsReads {
   readonly meta: RegsMeta;
   /** The water file (keys, segments, items, parts, rules, statics, dictionaries). */
   water(): Promise<Db>;
@@ -64,6 +62,8 @@ export interface RegsStore {
   region(akey: number): Promise<Db>;
   /** regs-sid (section → key / place), checked against water on its first open. */
   sid(): Promise<Db>;
+  /** core (the release's names file): only `itemOrd` reads it. */
+  core(): Promise<Db>;
   /** The table's preset dictionary (water `zdict`, loaded once at open; region tables' are there too). */
   dict(table: string): Uint8Array | null;
   /** `unpackBlob` with the table's dictionary. */
@@ -71,13 +71,6 @@ export interface RegsStore {
   /** The refusal found after open (a region or sid file from another build), else null. */
   refused(): RegsStoreError | null;
   close(): void;
-}
-
-/** A blob cell as bytes: Uint8Array as is; any other value is a damaged store. */
-export function asBytes(c: Cell): Uint8Array {
-  if (c instanceof Uint8Array) return c;
-  if ((c as unknown) instanceof ArrayBuffer) return new Uint8Array(c as unknown as ArrayBuffer);
-  throw new RegsStoreError("damaged", `regs store: a blob column holds ${c === null ? "null" : typeof c} — refused`);
 }
 
 const metaOf = async (d: Db): Promise<Map<string, string>> =>
@@ -172,10 +165,9 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
     layout: { top: layout.top ?? [], sections: layout.sections ?? {} },
   };
 
-  return {
-    meta,
-    async water() { live(); return water; },
-    async region(akey) {
+  const files = {
+    async water(): Promise<Db> { live(); return water; },
+    async region(akey: number): Promise<Db> {
       live();
       const regions = await loader.regionsOf(akey);
       if (!regions.length) throw new RegsStoreError("damaged", `regs store: akey ${akey} is in no region file`);
@@ -184,10 +176,14 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
         (regions as readonly string[]).includes(fm.get("region") ?? "")
           ? null : `the region file opened for akey ${akey} is region ${fm.get("region")}, not ${regions.join(" / ")}`);
     },
-    async sid() { live(); return hold("regs-sid", await loader.db("regs-sid"), REGS_FORMATS.sid); },
-    dict,
-    val,
+    async sid(): Promise<Db> { live(); return hold("regs-sid", await loader.db("regs-sid"), REGS_FORMATS.sid); },
+    /** core: only `itemOrd` (item_id -> ord, its UNIQUE index); the loader holds it to the manifest. */
+    async core(): Promise<Db> { live(); return loader.db("core"); },
+  };
+  const { clear, ...reads } = makeReads({ ...files, val });
+  return {
+    meta, ...files, ...reads, dict, val,
     refused: () => refusal,
-    close() { dicts.clear(); },
+    close() { clear(); dicts.clear(); },
   };
 }

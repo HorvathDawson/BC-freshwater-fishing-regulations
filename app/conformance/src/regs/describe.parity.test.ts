@@ -3,8 +3,8 @@
  * hydrate.json, written by port/hydrate.mjs running page_v36.js lines 1–242 in node). Nothing here is a hand-copied string:
  * every expected value is read from the oracle.
  *
- * Run over two inputs (ruleSources.ts): page_v36.html's own #data/#answers (always — the oracle's inputs), and the built
- * regs store when it is on this machine (skipped otherwise).
+ * Run over two inputs (ruleSources.ts): page_v36.html's own #data/#answers (always — the oracle's inputs), and the live
+ * release when it is on this machine, read through `openRegsStore(loader)` as the app reads it (skipped otherwise).
  *   7. every rix the oracle describes: describe(ruleIndex(stored, new Map(), book).get(rix), book) === oracle
  *   8. every rix: {key, kind, baseRank, species, speciesExcept, wins, tcond, part, notes} deep-equal the oracle's
  *   9. every state: via = viaOf(the part's ruleset); every oracle `via` entry is "trib" there, every `ranks[rix]` equals
@@ -16,7 +16,7 @@ import { hydrate, pageDecode, pageSource, storeSource, taps, type RuleSource } f
 
 const H = hydrate();
 const T = taps();
-const store = storeSource();
+const store = await storeSource();
 
 /** The port target core's contract names (model.ts `RegsPage.version`): typed, so a contract bump fails tsc here. */
 const TARGET: RegsPage["version"] = "regs-v38";
