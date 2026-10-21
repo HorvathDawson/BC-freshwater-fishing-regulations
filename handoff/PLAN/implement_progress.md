@@ -86,7 +86,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
   OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +
   standing; audit other Map-vs-Conditions divergences), and colours must update from a NEW FEED ALONE (no tile
-  change, no data release). Workflow conditions-colour-ap RESTARTED with both as requirements.
+  change, no data release); ALSO the lake modes (stocked, depth/surveyed + contour toggle, plain) and the basemap
+  toggle through the same engine, and stocked/surveyed values must not be baked into tiles. Workflow
+  conditions-colour-ap RESTARTED with all three as requirements.
 - Tier 2 on r-7b6e802bf22b: everything green (fast 3839, slow 266, card gate, release parity, placeable, checks)
   except 2 fast tests pinned to the pre-ruling Kitimat; fixed (feb release names ST; exemption inventory). OPEN: the
   page-bug "count comparison drops a 2-fish release" mutation lost its Kitimat witness — find another water.
