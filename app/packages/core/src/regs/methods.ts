@@ -77,6 +77,10 @@ export function wayChips(g: GearAnswer, ctx: GearCtx & { readonly species: Speci
   });
 }
 
+/** (T35, owner wave A) page v36 gearParts ways: an allowed way's ⓘ after its name (set lining → the glossary's set_line); the
+ *  prototype dropped it (it read only the <b>). Glossary ids — keys, never said. */
+const WAY_TERMS: Readonly<Record<string, readonly string[]>> = Object.freeze({ set_lining: Object.freeze(["set_line"]) });
+
 /** prototype WAYS: ✓ ways (name + "— not for trout or other game fish" when limited; conditions under it), then ✕ ways;
  *  the source line names the ✓ ways' rules, then the ✕ ways'. */
 export function waysVM(chips: readonly WayChip[], ctx: GearCtx): MethodsVM["ways"] {
@@ -84,7 +88,8 @@ export function waysVM(chips: readonly WayChip[], ctx: GearCtx): MethodsVM["ways
   const name = (m: string) => ELEM[m] ?? m;
   return {
     label: METHODS.WAYS,
-    list: yesNo(ok.map((c) => [name(c.method) + (METHODS_TEST.NOT_GAME.test(c.info) ? METHODS.NOT_GAME : ""), c.info] as const),
+    list: yesNo(ok.map((c) => [name(c.method) + (METHODS_TEST.NOT_GAME.test(c.info) ? METHODS.NOT_GAME : ""), c.info,
+                               (WAY_TERMS[c.method] ?? []).filter((t) => ctx.glossary.has(t))] as const),
                 no.map((c) => [cap(lc(name(c.method))), ""] as const)),
     src: sourceLine("srcs:ways", [...ok, ...no].flatMap((c) => (c.rix == null ? [] : [c.rix])), ctx),
   };

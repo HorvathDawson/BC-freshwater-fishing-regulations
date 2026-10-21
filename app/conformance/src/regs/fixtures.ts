@@ -4,7 +4,7 @@
  * otherwise (harness.parity.test.ts). The page is `buildRegsPage` over the parity store's inputs — never hand-edited.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { buildRegsPage, type RegsPage, type SheetKey, type SheetVM } from "@app/core";
+import { buildRegsPage, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
 import { ADULT_RESIDENT, inputsOf, requestOf } from "./golden";
 import { golden, REPO } from "./oracles";
 
@@ -52,13 +52,46 @@ export async function frozenJson(id: string): Promise<string> {
   return stableJson(freezePage(page, Object.keys(golden().states[id]!.sheets).map((k) => appSheetKey(k, id))));
 }
 
+/** (T35) The state whose Licence tab the render test mounts for all six anglers (golden `licence["<age>|<res>"]`). */
+export const LICENCE_FIXTURE_STATE = "vedder_1010";
+export const LICENCE_FIXTURE_PROFILES = ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident",
+  "u16|non_resident_alien"] as const;
+
+/** (T35) `licence_<id>.json`: "<age>|<res>" → that angler's `LicenceVM` (buildRegsPage with that `who`), as JSON text. */
+export async function licenceJson(id: string): Promise<string> {
+  const inp = await inputsOf(id);
+  if (!inp) throw new Error(`frozen licence ${id}: no paired regs store`);
+  return stableJson(Object.fromEntries(LICENCE_FIXTURE_PROFILES.map((k) => {
+    const [age, residency] = k.split("|") as [Who["age"], Who["residency"]];
+    return [k, buildRegsPage(inp, { today: requestOf(id).today, who: { age, residency }, pid: id }).licence];
+  })));
+}
+
+/**
+ * (T34/T35) `golden_lines.json`: the golden's drawn lines of the Gear / Methods / Licence tabs for the fixture states,
+ * copied verbatim from golden.json (a render test may not read files: layers.json) — the oracle the render mounts compare.
+ */
+export function goldenLinesJson(): string {
+  const G = golden().states;
+  return stableJson(Object.fromEntries(FIXTURE_STATES.map((id) => {
+    const s = G[id]!;
+    return [id, { gear: (s.gear as { lines_: string[] }).lines_, methods: (s.methods as { lines: string[] }).lines,
+      licence: Object.fromEntries(Object.entries(s.licence).map(([k, l]) => [k, (l as { lines: string[] }).lines])) }];
+  })));
+}
+
 /** UPDATE_REGS_FIXTURES=1: write <FIXTURE_DIR>/<id>.json for each state; otherwise every committed file must equal a fresh one. */
 export async function syncFixtures(env: Readonly<Record<string, string | undefined>> = process.env): Promise<void> {
   const write = env.UPDATE_REGS_FIXTURES === "1";
   if (write) mkdirSync(FIXTURE_DIR, { recursive: true });
   const stale: string[] = [];
-  for (const id of FIXTURE_STATES) {
-    const path = `${FIXTURE_DIR}/${id}.json`, fresh = await frozenJson(id);
+  const files: [string, string, () => Promise<string>][] = [
+    ...FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
+    [`licence_${LICENCE_FIXTURE_STATE}`, `${FIXTURE_DIR}/licence_${LICENCE_FIXTURE_STATE}.json`, () => licenceJson(LICENCE_FIXTURE_STATE)],
+    ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
+  ];
+  for (const [id, path, make] of files) {
+    const fresh = await make();
     if (write) writeFileSync(path, fresh);
     else if (!existsSync(path) || readFileSync(path, "utf8") !== fresh) stale.push(id);
   }

@@ -22,22 +22,26 @@
       {
        "mark": "✕",
        "name": "Worms",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Roe (fish eggs)",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null
+       "note": null,
+       "terms": []
       }
      ]
     }
@@ -1029,7 +1033,8 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "fly fishing only: nothing but the fly on the line, no float, sinker or attractor"
+       "note": "fly fishing only: nothing but the fly on the line, no float, sinker or attractor",
+       "terms": []
       }
      ]
     },
@@ -1040,32 +1045,38 @@
       {
        "mark": "✕",
        "name": "Set lines",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Spear or bow",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Crayfish traps",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Nets",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Snagging",
-       "note": null
+       "note": null,
+       "terms": []
       },
       {
        "mark": "✕",
        "name": "Chumming",
-       "note": null
+       "note": null,
+       "terms": []
       }
      ]
     }

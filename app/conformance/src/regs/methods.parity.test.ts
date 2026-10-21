@@ -73,7 +73,7 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
     expect(eq(v)).toBe(true);
     const ways = v.ways!, [ok, no] = ways.list as [YesNoVM[number], YesNoVM[number]], ref = v.reference!;
     const mut: Record<string, MethodsVM> = {
-      moved: { ...v, ways: { ...ways, list: [{ ...ok, items: ok.items.slice(1) }, { ...no, items: [...no.items, { mark: "✕", name: ok.items[0]!.name, note: null }] }] } },
+      moved: { ...v, ways: { ...ways, list: [{ ...ok, items: ok.items.slice(1) }, { ...no, items: [...no.items, { mark: "✕", name: ok.items[0]!.name, note: null, terms: [] }] }] } },
       note: { ...v, ways: { ...ways, list: [{ ...ok, items: ok.items.map((i, k) => (k === 0 ? { ...i, note: null } : i)) }, no] } },
       suffix: { ...v, ways: { ...ways, list: [{ ...ok, items: ok.items.map((i) => ({ ...i, name: i.name.replace(" — not for trout or other game fish", "") })) }, no] } },
       groups: { ...v, reference: { ...ref, groups: [...ref.groups].reverse() } },
@@ -88,10 +88,10 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
     const v = await methodsOf("bc1_501");
     expect(v.ways!.list).toEqual([
       { col: "ok", head: "Allowed", items: [
-        { mark: "✓", name: "Angling (rod and line)", note: "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook" },
-        { mark: "✓", name: "Spear or bow — not for trout or other game fish", note: "not for game fish, salmon or protected species · burbot allowed" },
-        { mark: "✓", name: "Crayfish traps", note: "release anything in the trap that isn’t a crayfish" }] },
-      { col: "no", head: "Not allowed", items: ["Set lines", "Nets", "Snagging", "Chumming"].map((name) => ({ mark: "✕", name, note: null })) },
+        { mark: "✓", name: "Angling (rod and line)", note: "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook", terms: [] },
+        { mark: "✓", name: "Spear or bow — not for trout or other game fish", note: "not for game fish, salmon or protected species · burbot allowed", terms: [] },
+        { mark: "✓", name: "Crayfish traps", note: "release anything in the trap that isn’t a crayfish", terms: [] }] },
+      { col: "no", head: "Not allowed", items: ["Set lines", "Nets", "Snagging", "Chumming"].map((name) => ({ mark: "✕", name, note: null, terms: [] })) },
     ]);
     expect([v.ways!.src?.who, v.ways!.src?.open, v.ways!.src?.pages]).toEqual(["Province ›", "srcs:ways", [{ printed: 8, pdf: 10 }]]);
     expect([v.boats!.items, v.boats!.src?.who, v.boats!.src?.pages]).toEqual([
@@ -116,6 +116,15 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
     expect([at("When you catch a fish"), at("When you release a fish"), at("Never").length, at("Never")[0]]).toEqual([
       ["Any fish snagged — even by accident — must be released."], ["Gently, back in the water", "Without harming it"], 6, "Sell, buy or trade your catch"]);
     expect([r.src?.open, r.src?.pages]).toEqual(["srcs:always", [{ printed: 8, pdf: 10 }, { printed: 10, pdf: 12 }]]);
+  });
+
+  it("(T35, owner wave A) an allowed Set lines way carries the store glossary's set_line ⓘ; no other way does", async () => {
+    const withTerms: string[] = [];
+    for (const id of ids) for (const c of (await methodsOf(id)).ways?.list ?? []) for (const i of c.items)
+      if (i.terms.length) withTerms.push(`${id} ${i.mark} ${i.name} ${i.terms.join(",")}`);
+    // exactly the four golden states whose Ways to fish allow set lines (golden methods.lines "✓ Set lines …")
+    expect(withTerms.sort()).toEqual(["x12p_1010 ✓ Set lines set_line", "x30p_1010 ✓ Set lines set_line", "x35p_1010 ✓ Set lines set_line",
+      "x3p_1010 ✓ Set lines set_line"]);
   });
 
   it("6. vedder_615 (closed): the Gear tab's sentence and nothing else", async () => {

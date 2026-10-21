@@ -86,9 +86,9 @@ describe.skipIf(gate.skip)("T31 bait vs golden gear.bait (and the whole Gear tab
     expect(b.notes).toEqual([]);
     expect(b.dated).toEqual([{ chip: "Next", when: "May 1–31", says: "bait ban", inForce: false }]);
     expect(b.list).toEqual([
-      { col: "ok", head: "Allowed", items: [{ mark: "✓", name: "Worms", note: null }, { mark: "✓", name: "Roe (fish eggs)", note: "the fish or fish parts ban excepts it" },
-        { mark: "✓", name: "Water insects and crayfish", note: "on streams" }] },
-      { col: "no", head: "Not allowed", items: [{ mark: "✕", name: "Fish or fish parts", note: null }] },
+      { col: "ok", head: "Allowed", items: [{ mark: "✓", name: "Worms", note: null, terms: [] }, { mark: "✓", name: "Roe (fish eggs)", note: "the fish or fish parts ban excepts it", terms: [] },
+        { mark: "✓", name: "Water insects and crayfish", note: "on streams", terms: [] }] },
+      { col: "no", head: "Not allowed", items: [{ mark: "✕", name: "Fish or fish parts", note: null, terms: [] }] },
     ]);
     expect((await proj("vedder_1010"))!.src).toEqual({ who: "Province ›", open: "srcs:bait|vedder_1010", pages: [{ text: "Rule book p.8 ↗", pdf: 10 }] });
     expect(b.src?.open).toBe("srcs:bait");

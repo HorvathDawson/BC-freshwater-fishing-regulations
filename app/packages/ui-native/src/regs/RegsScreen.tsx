@@ -28,6 +28,9 @@ import { RegsHeader } from "./RegsHeader";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import type { FishImages } from "./types";
 
+/** A section slot: a node, or a node drawn with this screen's actions. */
+export type Slot = React.ReactNode | ((actions: KeepActions) => React.ReactNode);
+
 export interface RegsScreenProps {
   page: RegsPage;
   palette: Palette;
@@ -43,8 +46,9 @@ export interface RegsScreenProps {
   onMap?: () => void;
   /** the Parts button (T37's sheet). Absent → not drawn. */
   onParts?: () => void;
-  /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed */
-  gear?: React.ReactNode; methods?: React.ReactNode; licence?: React.ReactNode;
+  /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed. A function is handed
+   *  this screen's actions (its tab links scroll to the section, like the Keep tab's). */
+  gear?: Slot; methods?: Slot; licence?: Slot;
   /** the last child of the scroll */
   footer?: React.ReactNode;
   /** a test injects its store (golden anchors); the app makes its own */
@@ -97,7 +101,8 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
                   onAction={onAction} onTab={toTab} />
     </View>
   );
-  const sec = (tab: "gear" | "methods" | "licence", node: React.ReactNode) => {
+  const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
+    const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
     const s = section(tab);
     return <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>{node}</View>;

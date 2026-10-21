@@ -83,6 +83,22 @@ describe("wayChips + waysVM (page v36 gearParts ways, prototype WAYS)", () => {
   });
 });
 
+describe("(T35, owner wave A) the set_line ⓘ on an allowed Set lines way", () => {
+  const rules = index([rule(0)]);
+  const g = ga({ ways: [{ method: "set_lining", allowed: true, by: [0, 0] }, { method: "netting", allowed: true, by: [0, 0] },
+    { method: "set_lining", allowed: false, by: [0, 0] }] });
+  const terms = (glossary: string[]) => {
+    const ctx = { ...ctxOf(rules), glossary: new Set(glossary), species: BOOK, exportConduct: {} };
+    return waysVM(wayChips(g, ctx), ctx)!.list.map((c) => c.items.map((i) => [i.mark, i.name, i.terms]));
+  };
+  it("the allowed Set lines item carries the glossary's set_line id; a not-allowed one and other ways carry none", () => {
+    expect(terms(["set_line"])).toEqual([[["✓", "Set lines", ["set_line"]], ["✓", "Nets", []]], [["✕", "Set lines", []]]]);
+  });
+  it("a glossary without the term draws no ⓘ", () => {
+    expect(terms([])).toEqual([[["✓", "Set lines", []], ["✓", "Nets", []]], [["✕", "Set lines", []]]]);
+  });
+});
+
 describe("boatsVM, referenceVM", () => {
   const rules = index([rule(0), rule(4, { label: "No powered *boats*", rank: 0, book: [[43, 49]] }), rule(5, { label: "Speed  8 km/h", rank: 0, book: [[43, 49]] }),
     rule(6, { plain: "Any fish snagged — even by accident — must be released.", book: [[10, 12]] }), rule(7)]);

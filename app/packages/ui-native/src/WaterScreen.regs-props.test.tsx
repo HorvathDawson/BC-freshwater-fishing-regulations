@@ -46,8 +46,9 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.queryByRole("heading", { name: "Regulations are coming" })).toBeNull();
     expect(screen.getByTestId("keep-strip").textContent).toMatch(/^✕Closed/);
     expect(screen.getByTestId("keep-banner").textContent).toMatch(/^Closed all year/);
-    // one scroll: Keep, then the three sections T34/T35 will fill, each saying it is not in the app yet
-    expect(screen.getAllByTestId("regs-tab-pending").map((e) => e.textContent)).toEqual(["Gear", "Methods", "Licence"].map((t) =>
+    // one scroll: Keep, then the sections; (T34) Gear draws its VM — on a closed-all-year part, its one sentence
+    expect(screen.getByTestId("gear-tab").textContent).toBe("No fishing here on any day of the year.");
+    expect(screen.getAllByTestId("regs-tab-pending").map((e) => e.textContent)).toEqual(["Methods", "Licence"].map((t) =>
       `${t}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`));
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence"]);

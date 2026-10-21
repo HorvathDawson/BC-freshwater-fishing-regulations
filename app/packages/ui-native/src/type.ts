@@ -87,6 +87,9 @@ export const TYPE = {
   regsBodyBold: { fontFamily: FACE.textBold,  fontSize: 15, lineHeight: 21.3 },    // values (.orow b, .posrow b), .golink
   regsChip:     { fontFamily: FACE.textHeavy, fontSize: 15, lineHeight: 19.5 },    // .szc (1.3); [data-size-rule] uses textBold
   duty:         { fontFamily: FACE.textBold,  fontSize: 15, lineHeight: 20.25 },   // .k28 .duty (--t3/1.35, 700)
+  /** (T34) a Gear line's value (.gline .gval: 700 --t2/1.35) and a changes line's chip (.chg .chgi: 700 .69rem/1.6, caps, .4). */
+  value:        { fontFamily: FACE.textBold,  fontSize: 17, lineHeight: 22.95 },
+  chip:         { fontFamily: FACE.textBold,  fontSize: 11.04, lineHeight: 17.66, letterSpacing: 0.4, textTransform: "uppercase" },
   /** Meta, --t4. `meta` = /1.42 (notes, legend, captions); the /1.3 forms for labels and short lines. */
   meta:        { fontFamily: FACE.text,      fontSize: 12.48, lineHeight: 17.72 },
   metaSemi:    { fontFamily: FACE.textSemi,  fontSize: 12.48, lineHeight: 16.22 },

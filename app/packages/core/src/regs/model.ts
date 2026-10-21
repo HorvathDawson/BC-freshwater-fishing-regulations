@@ -207,7 +207,9 @@ export interface SourceLineVM {
 }
 export interface BaitVM { readonly label: string; readonly notes: readonly Line[];
   readonly dated: readonly ChangeVM[]; readonly list: YesNoVM; readonly src: SourceLineVM | null }
-export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowed"; items: readonly { mark: "✓" | "✕"; name: string; note: string | null }[] }[];
+export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowed";
+  /** (T35) terms: glossary ids for an ⓘ after the name (the set_line ⓘ on an allowed "Set lines"); [] for none */
+  items: readonly { mark: "✓" | "✕"; name: string; note: string | null; terms: readonly string[] }[] }[];
 
 // ── 2.4 Methods tab ────────────────────────────────────────────────────────────────────────────────────────────────
 export interface MethodsVM {

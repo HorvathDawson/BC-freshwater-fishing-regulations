@@ -16,7 +16,7 @@
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
 import { useContext, useMemo } from "react";
-import { Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { bookUrl, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -27,6 +27,7 @@ import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { FishImages } from "./regs/types";
 import { RegsScreen, TabPending } from "./regs/RegsScreen";
+import { GearTab } from "./regs/GearTab";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 
@@ -99,10 +100,11 @@ export function WaterScreen({ source, item, palette, onBack,
                   actions={{
                     onSheet: () => {},                                   // the sheets are T36/T37
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
-                    onBook: (pdf) => { void Linking.openURL(bookUrl(pdf)); },
+                    onBook: (pdf) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); },   // D6 a: native opens the bare PDF
                   }}
                   // Gear / Methods / Licence: T34/T35 draw them; until then each says it is not in the app yet
-                  gear={<TabPending label={label("gear")} palette={palette} />}
+                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} />
+                    : <TabPending label={label("gear")} palette={palette} />}
                   methods={<TabPending label={label("methods")} palette={palette} />}
                   licence={<TabPending label={label("licence")} palette={palette} />} />
     );
