@@ -10,12 +10,13 @@ import { useMemo, useRef } from "react";
 import { Animated } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { EdgeBackDrag } from "@app/ui";
+import { NATIVE_DRIVER } from "./motion";
 
 export function EdgeBack({ drag, children }: { drag: EdgeBackDrag; children: React.ReactNode }) {
   const x = useRef(new Animated.Value(0)).current;
   const gesture = useMemo(() => {
     let live = false;
-    const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+    const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
     return Gesture.Pan().runOnJS(true).enabled(drag.enabled)
       // only a press that starts in the edge zone is ours: everything else (the map's pan) never sees this handler
       .hitSlop({ left: 0, width: drag.zone })

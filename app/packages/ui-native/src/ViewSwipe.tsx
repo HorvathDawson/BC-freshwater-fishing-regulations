@@ -20,6 +20,7 @@ import { Animated, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { WaterView } from "@app/core";
 import type { ViewSwipe as ViewSwipeState } from "@app/ui";
+import { NATIVE_DRIVER } from "./motion";
 
 export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true }: {
   swipe: ViewSwipeState; children: React.ReactNode;
@@ -42,7 +43,7 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
     // the shield's press and the recogniser's begin arrive in either order (on the web the detector's own listener runs
     // first, React's after; on a device it is not promised), so a press within a moment of the begin counts
     const held = () => heldAt.current >= begun - SHIELD_MS;
-    const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
+    const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 4 }).start();
     return Gesture.Pan().runOnJS(true).enabled(swipe.enabled)
       .activeOffsetX([-15, 15]).failOffsetY([-12, 12])
       .onBegin((e) => { begun = Date.now(); live = swipe.starts(e.absoluteX, width.current); })

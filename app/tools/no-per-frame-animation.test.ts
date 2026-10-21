@@ -42,6 +42,13 @@ describe("the phone components cannot stutter", () => {
     expect(all.every((d) => d.endsWith("true"))).toBe(true);
   });
 
+  it("asks for the native driver everywhere but the web (motion.ts NATIVE_DRIVER), never a literal false", () => {
+    const viaConst = sources.filter(([, s]) => /useNativeDriver:\s*NATIVE_DRIVER/.test(s)).map(([n]) => n);
+    expect(viaConst.length).toBeGreaterThan(0);
+    for (const [name, src] of sources)
+      expect(src, name).not.toMatch(/useNativeDriver:\s*(?!true\b|NATIVE_DRIVER\b)\w+/);
+  });
+
   it("drives only transform and opacity — the two a platform driver can run without JS", () => {
     for (const [name, src] of sources) {
       const animated = src.match(/^\s*(\w+):\s*\w+\.interpolate\(/gm) ?? [];

@@ -9,6 +9,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-g
 import { useBackLayer, useSheetDrag } from "@app/ui";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { NATIVE_DRIVER } from "./motion";
 
 export function Sheet({ open, onClose, title, palette, children }: {
   open: boolean; onClose: () => void; title: string;
@@ -29,7 +30,7 @@ export function Sheet({ open, onClose, title, palette, children }: {
     // `success` is false when the system cancelled the drag after it went active: not a release, so it springs back
     .onEnd((e, success) => {
       if (!success || !drag.release(e.translationY, e.velocityY, height.current))
-        Animated.spring(y, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+        Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
     })
     .withTestId("sheet-drag"), [drag, y]);
   /*
