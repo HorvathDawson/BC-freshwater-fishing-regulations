@@ -15,7 +15,8 @@ const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").rep
  * WHICH DATA THE APP OPENS (P11): the release (manifest → paint → each file on first need; installed on native), or —
  * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20 retires it — the development bundle path (`province.sqlite`,
  * `status_index.bin`, `atlas.meta.json`). Until the human-run tile rebuild writes a tile version folder (P18) the release
- * names no tiles, so the release path draws the development tiles and colours nothing (the pair cannot be proven).
+ * names no tiles, so the release path draws the development tiles, and colours them only when their sidecar's stamped
+ * `tile_version` is in the manifest's `tiles.compatible` (`pairingOf`); unstamped tiles stay unproven and uncoloured.
  */
 export const DATA_SOURCE: "release" | "bundle" = process.env.EXPO_PUBLIC_DATA_SOURCE === "bundle" ? "bundle" : "release";
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseManifest, type Held, type Manifest } from "@app/data";
 import type { StatusIndex } from "@app/core";
 import { loadStatusIndex } from "./hooks";
-import { pairingView, releaseStatus, statusOf, type StatusSource } from "./release";
+import { pairingOf, pairingView, releaseStatus, statusOf, type StatusSource } from "./release";
 
 const H = "d768d6e135e62b99";
 const index = { handles: H } as unknown as StatusIndex;
@@ -50,8 +50,8 @@ describe("pairingView: colour only on a proven pair", () => {
     expect(pairingView({ manifest: M(`${H}.aaa`), held: held(null) }))
       .toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa` });
   });
-  it("tiles held from another atlas: refused, and both named", () => {
-    expect(pairingView({ manifest: M(null), held: held("0123456789abcdef.bbb") }))
+  it("the drawn tiles from another atlas: refused, and both named", () => {
+    expect(pairingView({ manifest: M(null), held: held(null) }, "0123456789abcdef.bbb"))
       .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.bbb" });
   });
   it("no tile version known anywhere (a dev server before the tile rebuild): not established — no colour, no alarm",
@@ -59,4 +59,43 @@ describe("pairingView: colour only on a proven pair", () => {
       expect(pairingView({ manifest: M(null), held: held(null) }))
         .toEqual({ ok: null, data: "r-2", tiles: null });
     });
+});
+
+/** A server holding `meta` as the drawn atlas's sidecar (null: none), recording every url asked. */
+function sidecar(meta: object | null) {
+  const asked: string[] = [];
+  const fetcher = (async (u: string | URL) => {
+    asked.push(String(u));
+    return meta ? new Response(JSON.stringify(meta), { status: 200 }) : new Response("no", { status: 404 });
+  }) as unknown as typeof fetch;
+  return { asked, fetcher };
+}
+const DRAWN = "http://dev.test/atlas.pmtiles";
+const STAMP = `${H}.0123456789ab`;
+
+describe("the release path with no tile set named proves the pair against the tiles it DRAWS (their tile_version)", () => {
+  const input = (tiles: string | null = null) =>
+    ({ kind: "release" as const, manifest: M(tiles), held: held(null), atlasUrl: DRAWN });
+  it("drawn tiles stamped in the manifest's sid space: paired — status and flow may colour", async () => {
+    const s = sidecar({ section_handles: H, build: "full", registry: "8c77ba1cd2dc3929", tile_version: STAMP });
+    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: STAMP });
+    expect(s.asked).toEqual(["http://dev.test/atlas.meta.json"]);
+  });
+  it("drawn tiles that are not stamped (the sidecar as it is today: section_handles only): not proven", async () => {
+    const s = sidecar({ section_handles: H, build: "full", registry: "8c77ba1cd2dc3929" });
+    expect(await pairingOf(input(), s.fetcher)).toEqual({ ok: null, data: "r-2", tiles: null });
+  });
+  it("drawn tiles stamped in another sid space: refused, and both named", async () => {
+    const s = sidecar({ section_handles: "0123456789abcdef", tile_version: "0123456789abcdef.0123456789ab" });
+    expect(await pairingOf(input(), s.fetcher))
+      .toEqual({ ok: false, data: "r-2", tiles: "0123456789abcdef.0123456789ab" });
+  });
+  it("no sidecar beside the drawn tiles: not proven", async () => {
+    expect(await pairingOf(input(), sidecar(null).fetcher)).toEqual({ ok: null, data: "r-2", tiles: null });
+  });
+  it("a manifest that names its tiles is the version drawn: the sidecar is never read", async () => {
+    const s = sidecar({ tile_version: "0123456789abcdef.0123456789ab" });
+    expect(await pairingOf(input(`${H}.aaa`), s.fetcher)).toEqual({ ok: true, data: "r-2", tiles: `${H}.aaa` });
+    expect(s.asked).toEqual([]);
+  });
 });

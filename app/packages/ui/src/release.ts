@@ -62,7 +62,8 @@ export function useStatusIndex(status: StatusSource | null): StatusIndex | null 
 
 /** What the pairing is checked from. */
 export type PairingInput =
-  | { kind: "release"; manifest: Manifest; held: Held }
+  /** `atlasUrl`: the atlas the map DRAWS when the manifest names no tile set (`releaseTiles` → the dev endpoint). */
+  | { kind: "release"; manifest: Manifest; held: Held; atlasUrl?: string }
   /** The dev bundle path (until P20): the bundle's section_handles against the tiles' `atlas.meta.json`. */
   | { kind: "dev"; source: RegsSource; atlasUrl: string | undefined };
 
@@ -78,36 +79,61 @@ const UNKNOWN: PairingView = { ok: null, data: null, tiles: null };
 /**
  * The release's pairing as the Shell shows it. A section is an integer handle that means a different river in another
  * atlas, so data and tiles from two atlases do not miss each other — they agree on the wrong water. P10's `pair` says
- * whether the manifest's data pairs with the tiles in use (the manifest's own, else the ones held). When NO tile version
- * is known at all (a dev server before the tile rebuild writes a version folder) nothing has been proven either way:
- * `ok` is null, which colours nothing and shows no "out of step" banner.
+ * whether the manifest's data pairs with the tiles DRAWN: the manifest's own when it names them, else `drawn`, the
+ * version of the tiles the map draws instead (`tileVersionAt` their sidecar). When no tile version is known at all
+ * (tiles the rebuild has not stamped yet) nothing has been proven either way: `ok` is null, which colours nothing and
+ * shows no "out of step" banner.
  */
-export function pairingView(input: { manifest: Manifest; held: Held }): PairingView {
+export function pairingView(input: { manifest: Manifest; held: Held }, drawn: string | null = null): PairingView {
   const { manifest: m, held } = input;
-  const tiles = m.tiles.current?.id ?? held.tiles ?? null;
+  const tiles = m.tiles.current?.id ?? drawn;
   if (tiles === null) return { ok: null, data: m.data_release, tiles: null };
-  const p = pair(m, held);
+  const p = pair(m, { ...held, tiles });
   return { ok: p.ok, data: m.data_release, tiles };
+}
+
+type Sidecar = { section_handles?: string; tile_version?: string };
+
+/** The tile sidecar beside an atlas (`pipeline/deliver/tiles/__main__.py` `_write_sidecar`), or null when it has none. */
+async function sidecarOf(atlasUrl: string, fetcher: typeof fetch): Promise<Sidecar | null> {
+  const res = await fetcher(atlasUrl.replace(/[^/]*$/, "atlas.meta.json"));
+  return res.ok ? ((await res.json()) as Sidecar) : null;
+}
+
+/**
+ * The version of the tiles at `atlasUrl` ("<handles16>.<tilebuild12>", stamped by `pipeline/deliver/tiles/version.py`
+ * and written to the sidecar as `tile_version`), or null: no sidecar, or tiles built before versions were stamped.
+ */
+export async function tileVersionAt(atlasUrl: string, fetcher: typeof fetch = fetch): Promise<string | null> {
+  const v = (await sidecarOf(atlasUrl, fetcher).catch(() => null))?.tile_version;
+  return typeof v === "string" && v ? v : null;
+}
+
+/** Whether the map may be coloured, and the two sides' names for the banner when it may not (`usePairing`'s answer). */
+export async function pairingOf(input: PairingInput | null, fetcher: typeof fetch = fetch): Promise<PairingView> {
+  if (!input) return UNKNOWN;
+  if (input.kind === "release") {
+    // the tiles drawn are the manifest's own when it names them; else the ones at `atlasUrl`, proven by their stamp
+    const drawn = !input.manifest.tiles.current && input.atlasUrl ? await tileVersionAt(input.atlasUrl, fetcher) : null;
+    return pairingView(input, drawn);
+  }
+  // THE DEV PATH: the tile sidecar, a ~100-byte JSON both map renderers' hosts can read. A sidecar that will not load
+  // leaves this null rather than false — an old deployment has none, and that is not evidence of a mismatch.
+  const info = await input.source.info();
+  const data = info.sectionHandles;
+  if (!input.atlasUrl) return { ok: null, data, tiles: null };
+  const meta = await sidecarOf(input.atlasUrl, fetcher);
+  if (!meta) return { ok: null, data, tiles: null };
+  const tiles = meta.section_handles ?? null;
+  if (!data || !tiles) return { ok: null, data, tiles };
+  return { ok: data === tiles, data, tiles };
 }
 
 /** Whether the map may be coloured, and the two sides' names for the banner when it may not. */
 export function usePairing(input: PairingInput | null): PairingView {
   const key = !input ? "none" : input.kind === "release"
-    ? `release:${input.manifest.data_release}:${input.manifest.tiles.current?.id ?? input.held.tiles ?? ""}`
+    ? `release:${input.manifest.data_release}:${input.manifest.tiles.current?.id ?? ""}:${input.atlasUrl ?? ""}`
     : `dev:${input.atlasUrl ?? ""}`;
-  const got = useAsync(async (): Promise<PairingView> => {
-    if (!input) return UNKNOWN;
-    if (input.kind === "release") return pairingView(input);
-    // THE DEV PATH: the tile sidecar, a ~100-byte JSON both map renderers' hosts can read. A sidecar that will not load
-    // leaves this null rather than false — an old deployment has none, and that is not evidence of a mismatch.
-    const info = await input.source.info();
-    const data = info.sectionHandles;
-    if (!input.atlasUrl) return { ok: null, data, tiles: null };
-    const res = await fetch(input.atlasUrl.replace(/[^/]*$/, "atlas.meta.json"));
-    if (!res.ok) return { ok: null, data, tiles: null };
-    const tiles = ((await res.json()) as { section_handles?: string }).section_handles ?? null;
-    if (!data || !tiles) return { ok: null, data, tiles };
-    return { ok: data === tiles, data, tiles };
-  }, `pairing:${key}`);
+  const got = useAsync(() => pairingOf(input), `pairing:${key}`);
   return got.state === "ready" ? got.value : UNKNOWN;
 }

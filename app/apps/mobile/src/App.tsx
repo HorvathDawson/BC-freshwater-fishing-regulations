@@ -8,8 +8,9 @@
  * THE DATA IS THE RELEASE (P11): the manifest, then paint, then the Shell (`useReleaseBoot` → `bootRelease`). On the
  * phone the first run downloads the whole release with progress and every later launch opens it from disk, checking for
  * a newer one in the background; on the web each file is fetched on first need into Cache Storage. Nothing on this path
- * reads `/province.sqlite`, `/status_index.bin` or `atlas.meta.json`: those belong to the development bundle path,
- * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20.
+ * reads `/province.sqlite` or `/status_index.bin`: those belong to the development bundle path,
+ * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20. `atlas.meta.json` is read only while the manifest names no tile set: the
+ * map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
 import { useEffect, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, Text, View, useColorScheme } from "react-native";
@@ -91,10 +92,12 @@ export default function App() {
     if (RELEASE) {
       if (boot.state !== "ready") return null;
       const b = boot.booted;
+      // the mask (and tiles, basemap) from the release's tile folder when it names one, else the dev server's
+      const tiles = releaseTiles(b, ENDPOINTS.tiles);
       return { source: b.source, status: releaseStatus(b.loader),
-               pairing: { kind: "release", manifest: b.manifest, held: b.held },
-               // the mask (and tiles, basemap) from the release's tile folder when it names one, else the dev server's
-               tiles: releaseTiles(b, ENDPOINTS.tiles) };
+               // the pair is proven against the tiles DRAWN: when the manifest names none, the stamp of those it draws
+               pairing: { kind: "release", manifest: b.manifest, held: b.held, atlasUrl: tiles.atlas },
+               tiles };
     }
     if (!dev.bundle) return null;
     const source = makeBundleSource(dev.bundle, { feed });
