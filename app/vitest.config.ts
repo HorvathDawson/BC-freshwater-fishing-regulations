@@ -92,7 +92,10 @@ export default defineConfig({
   test: {
     projects: [
       {
-        test: { name: "logic", environment: "node", server: { deps: { inline } },
+        // 30 s, not vitest's 5: the regs parity suites walk all 134 golden states over the live release in one test,
+        // ~1-3 s alone and past 5 s when the machine is busy (several worktree checks at once) — a timeout there is
+        // load, not a regression. A hung test still fails, just later.
+        test: { name: "logic", environment: "node", server: { deps: { inline } }, testTimeout: 30_000,
                 include: ["packages/core/**/*.test.ts", "packages/data/**/*.test.ts",
                           "packages/ui/**/*.test.ts", "packages/map/**/*.test.ts",
                           "conformance/**/*.test.ts", "tools/**/*.test.ts"] },
