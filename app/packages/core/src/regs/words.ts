@@ -70,6 +70,11 @@ export const WORDS = Object.freeze({
   MERGED: (n: number, sections: number) => `Closed all year on ${n} stretches (${sections} sections)`,
   DOT: " · ", SECTION: "section", SECTIONS: "sections",
   TIDAL_WATER: "Tidal water",
+  // T16 the header (prototype hdr / placeGo; page v36 subtitle)
+  DATE_ARIA: (date: string) => `Change date, now ${date}`,
+  MAP_ARIA: (full: string) => `View on map: where these rules apply${full ? `, ${full}` : ""}`,
+  PARTS_ARIA: (full: string) => `Other parts${full ? ` — now ${full}` : ""}`,
+  SUB_CLOSED_ALL_YEAR: "closed all year",
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
