@@ -13,10 +13,14 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   T20 803bc30d, T00 40b2c67d, T02 53ea8298, spots-no-sid 2e92ddee, P12b 22ba0b08 + review fix 9c56fa3a, P12a 386fa5bb,
   P12c 3a8ed83d, search debounce 200 ms 3f1602d0. All passed adversarial review (one major fixed: a saved spot's
   estimate named today's season). Worktrees removed.
-- Workflow `spots-photos-leadup` RUNNING (wf_bd378f50-817): ticket S1 (owner 2026-10-20): spots get PHOTOS (native:
-  expo-image-picker, copied into documentDirectory/spots/photos; web: IndexedDB blobs) and the ONE-WEEK LEAD-UP (7 daily
-  weather days from Open-Meteo + the station's 7 daily means with percentiles from the feed), frozen at capture,
-  backfilled by refresh. Defaults chosen by me; owner may override.
+- S1 DONE (owner 2026-10-20 ask): aa1012ad S1 (photos: expo-image-picker 57.0.20 -> documentDirectory/spots/photos,
+  web IndexedDB; lead-up: 7 days Open-Meteo + station daily means placed in band, frozen at capture, refresh backfills)
+  + ab0f8ba1 review fixes (last December reaches a January lead-up: feed keeps Dec through Jan, prior years whole +
+  yearBand; photo refs clock-stamped). pnpm check 953 pass; smoke pass. Open minors (not fixed): draft photos named
+  after the first draft id; web picker hangs where the input has no "cancel" event (Safari <16.4); unit words "m",
+  "m3/s" in ui/leadUp.ts not words.ts; two web photo-store instances (an object URL not revoked on delete); 5-day
+  archive lag and "most severe" weather code are disclosed deviations. Not verified on a device: picking, downscale
+  (needs expo-image-manipulator), real IndexedDB, live Open-Meteo.
 - Workflow `tickets-batch-2` RUNNING (wf_7703a540-b9f): P11 integration (web first, Android-portable), T06, the
   test_answers_reference fix, P16 (before/after shots for the owner). On completion: cherry-pick, Tier 1, record.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
