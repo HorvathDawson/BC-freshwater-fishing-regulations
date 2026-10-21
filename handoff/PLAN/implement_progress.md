@@ -21,8 +21,16 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   "m3/s" in ui/leadUp.ts not words.ts; two web photo-store instances (an object URL not revoked on delete); 5-day
   archive lag and "most severe" weather code are disclosed deviations. Not verified on a device: picking, downscale
   (needs expo-image-manipulator), real IndexedDB, live Open-Meteo.
-- Workflow `tickets-batch-2` RUNNING (wf_7703a540-b9f): P11 integration (web first, Android-portable), T06, the
-  test_answers_reference fix, P16 (before/after shots for the owner). On completion: cherry-pick, Tier 1, record.
+- Batch 2 MERGED (wf_7703a540-b9f; a network outage killed implement:p16 and fix:p11): T06 fc69e20a + c764595b,
+  F9 68016392 (test_answers_reference RUNS, slow+needs_bundle, and FAILS on purpose: 72 unexplained real_daily rows on
+  Kitimat River / Gotchen Lake / Phillipps Lake, needs an answers-lane ruling), P11 e635eed7 c820ea00 7a4da843 (release
+  adapters, makeReleaseSource, App boots manifest -> paint -> Shell), merge fixes de2f697b. pnpm check 1076 pass, smoke
+  pass. P11 review majors OPEN (see follow-up workflow): no status colours on the default path (manifest names no tiles,
+  so the pair is never proven); a tile-only release never updates on native; prune leaves old tiles; no rollback when
+  the new set fails to open; the app's regs reads bypass openRegsFor. Full findings: scratchpad b2_*.json (session
+  368da779).
+- Tile rebuild: was deadlocked (heavy.sh 70% free gate vs N1's 2.3 GB headless emulator); emulator killed 2026-10-20,
+  rebuild proceeds into scratchpad tiles_next. N1 agent died in the outage; resume it after the tiles.
 - N1 spike agent (worktree) → handoff/PLAN/app-data/N1-SPIKE.md. REDIRECTED by the owner: ANDROID emulator + WEB
   (react-native-web); iOS deferred, code kept platform-neutral so iOS is a build later.
 
