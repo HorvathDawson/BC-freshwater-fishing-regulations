@@ -11,6 +11,7 @@
     "color.status.base": "#0072B2",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
+    "width.stream.water": 2.4,
     "opacity.overlay": 0.55,
     "color.water.route": "#2E62A8",
     "color.lake.fill": "#64B5F6",

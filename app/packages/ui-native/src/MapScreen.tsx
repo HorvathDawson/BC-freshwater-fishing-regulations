@@ -19,7 +19,7 @@ import type { Palette } from "./theme";
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, status, gauges, onVisible, onError,
-                            fit, basemap, onBack }: {
+                            fit, basemap, onBack, water, marks, onPressMark }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -34,6 +34,11 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   onMapPoint?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. */
   highlight?: readonly SectionKey[];
+  /** The rest of the selected part's water (P15) — see MapProps.water. */
+  water?: MapProps["water"];
+  /** A water's boundary marks (P15) — see MapProps.marks. */
+  marks?: MapProps["marks"];
+  onPressMark?: MapProps["onPressMark"];
   /** Per-feature values a colour mode reads. The map's own channel — see MapProps.data. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
   /** The day's status, on a proven pair only — see MapProps.status. */
@@ -63,7 +68,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
-           highlight={highlight} marker={marker} data={data} status={status} gauges={gauges}
+           highlight={highlight} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} />
 
       {/*

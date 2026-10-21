@@ -1777,6 +1777,7 @@
       "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.stream.water": 2.4,
       "opacity.overlay": 0.55,
       "color.water.route": "#A3AEB4",
       "color.lake.fill": "#94C9E0",
@@ -1871,6 +1872,7 @@
       "color.status.restricted": "#e8a733",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.stream.water": 2.4,
       "opacity.overlay": 0.45,
       "color.status.closed": "#FC4164",
       "color.status.own": "#F0E442",
@@ -1971,6 +1973,7 @@
       "color.status.base": "#0072B2",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
+      "width.stream.water": 2.4,
       "opacity.overlay": 0.55,
       "color.water.route": "#2E62A8",
       "color.lake.fill": "#64B5F6",
@@ -2128,6 +2131,10 @@
       "themeable": false
     },
     "width.stream.highlight": {
+      "type": "number",
+      "themeable": false
+    },
+    "width.stream.water": {
       "type": "number",
       "themeable": false
     },

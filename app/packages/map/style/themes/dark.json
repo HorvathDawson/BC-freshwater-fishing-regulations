@@ -8,6 +8,7 @@
     "color.status.restricted": "#e8a733",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
+    "width.stream.water": 2.4,
     "opacity.overlay": 0.45,
     "color.status.closed": "#FC4164",
     "color.status.own": "#F0E442",

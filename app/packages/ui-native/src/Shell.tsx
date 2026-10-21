@@ -13,7 +13,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, usePhotoEdit, useRoute, waterFrame,
+import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
@@ -36,6 +36,7 @@ import { WaterScreen } from "./WaterScreen";
 import { EdgeBack } from "./EdgeBack";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { WaterConditions, WaterMap } from "./WaterViews";
+import { WaterMapView } from "./water/WaterMapView";
 import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
@@ -321,9 +322,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const { status: mapStatus, data: statusMapData } = useMemo(
     () => statusFeed({ perTile, statusOk, index: statusIndex, tab: mapTab, visible, day: mapDay ?? new Date() }),
     [perTile, statusOk, statusIndex, mapTab, visible, mapDay]);
-  /** The water's map view: the water framed and lit (the search's framing; P15 adds its parts). */
-  const waterFocus = usePickFocus(source, frame?.view === "map" ? item : null);
-  /** Its own camera, so leaving water mode puts the browse map back where the reader left it (APP-PREP §0 rule 1). */
+  /**
+   * The water's map view (P15, `WaterMapView`) has its own camera, so leaving water mode puts the browse map back where
+   * the reader left it (APP-PREP §0 rule 1).
+   */
   const waterCamera = useRef<Camera | null>(null);
 
   /**
@@ -434,20 +436,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          onHorizon={hz.pick} />
       : frame.view === "map"
         ? <WaterMap source={source} item={item} palette={palette}>
-            <MapScreen at={tiles} palette={palette} theme={theme}
-                       camera={waterCamera.current ?? camera.current}
-                       basemap={layers.basemap}
-                       fit={waterFocus ? { key: waterFocus.key, bbox: waterFocus.bbox, refine: waterFocus.refine } : null}
-                       highlight={waterFocus?.highlight ?? NONE}
-                       data={statusMapData}
-                       status={mapStatus}
-                       onVisible={noteVisible}
-                       onMoved={(at) => { waterCamera.current = at; }}
-                       view="plain" modes={modes} groups={activeGroups}
-                       // another water opens on top (back returns here); a tap on this one changes nothing yet (P15)
-                       onPressFeature={(_l, id, lat, lon) => opener.tap(Number(id) as SectionId,
-                         lat !== undefined && lon !== undefined ? { lat, lon } : null, "regs", item)}
-                       onError={(e) => console.error("map:", e.message)} />
+            {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
+            <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
+                          map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
+                                 basemap: layers.basemap, data: statusMapData, status: mapStatus,
+                                 onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
+                                 view: "plain", modes, groups: activeGroups,
+                                 onError: (e) => console.error("map:", e.message) }}
+                          onOpenWater={(id, p) => go(exitAction(id, p))}
+                          onShowRegs={(id, p) => { for (const a of showRegsActions(item, id, p)) go(a); }}
+                          // another water opens on top (back returns here)
+                          onOtherSection={(sid) => opener.tap(sid, null, "regs", item)} />
           </WaterMap>
         : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
                        // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped

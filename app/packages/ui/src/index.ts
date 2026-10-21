@@ -28,6 +28,7 @@ export * from "./mapModes";
 export * from "./release";
 export * from "./boot";
 export * from "./regs";
+export * from "./waterMap";
 
 export type FormFactor = "phone" | "desktop";
 

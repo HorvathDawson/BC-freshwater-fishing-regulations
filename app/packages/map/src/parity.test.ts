@@ -13,7 +13,7 @@
 import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
-import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
+import { baseAdapter, paintFor, type MapHandle, type MapRenderer } from "./adapters/contract";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -260,6 +260,26 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const r = recorder();
     a.setData(r.h, "stream", { "380887781": { standing: 42 } });
     expect(r.calls).toEqual(['state stream 380887781 {"standing":42}']);
+  });
+
+  it("P15: a water's part is `selected`, the rest of its water `water`, in the one highlight call", () => {
+    const r = recorder();
+    a.highlight(r.h, [60210], [1235781, 1235785]);
+    expect(r.calls).toEqual([
+      ...STYLE_META.highlightable.map(({ id }) => `clear ${id}`),
+      ...STYLE_META.highlightable.flatMap(({ id }) => [
+        `state ${id} 60210 {"selected":true}`, `state ${id} 1235781 {"water":true}`, `state ${id} 1235785 {"water":true}`])]);
+  });
+
+  it("P15: the stream's width floor — the part at the highlight width, the rest of its water at the water width", () => {
+    const t = resolveTheme("light");
+    const w = paintFor("stream", "plain", t)["line-width"] as unknown[];
+    const floor = ["case", ["boolean", ["feature-state", "selected"], false], 3.2,
+                   ["boolean", ["feature-state", "water"], false], 2.4, 0];
+    // inside the zoom curve, on every output
+    expect((w.slice(3) as unknown[]).filter((_, i) => i % 2 === 1).every((v) => JSON.stringify((v as unknown[])[2]) === JSON.stringify(floor)))
+      .toBe(true);
+    expect([t["width.stream.highlight"], t["width.stream.water"]]).toEqual([3.2, 2.4]);
   });
 
   it("a highlight clears and sets `selected` on every highlightable layer", () => {

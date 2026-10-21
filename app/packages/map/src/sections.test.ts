@@ -43,7 +43,7 @@ describe("the layers a section is read from", () => {
   it("visible water is streams, lakes and the polygons a stream flows through — not marsh", () => {
     expect(VISIBLE_LAYERS).toEqual(["stream", "lake", "lake_flowing", "wetland_flowing"]);
   });
-  it("the shared state handle: numbers for section keys, other keys as given, and a clear removes only `selected`", () => {
+  it("the shared state handle: numbers for section keys, other keys as given, and a clear removes only the highlight's keys", () => {
     const log: string[] = [];
     const h = stateHandle({
       set: (t, id, s) => log.push(`set ${t.source}/${t.sourceLayer} ${typeof id}:${id} ${JSON.stringify(s)}`),
@@ -57,7 +57,9 @@ describe("the layers a section is read from", () => {
       'set atlas/lake number:311274 {"status":"open"}',
       'set atlas/basin string:08MF-a {"standing":2}',
       "remove atlas/stream number:7 selected",
+      "remove atlas/stream number:7 water",
       "remove atlas/stream number:8 selected",
+      "remove atlas/stream number:8 water",
     ]);
   });
   it("feature-state goes to the layer's own source and SOURCE-layer", () => {

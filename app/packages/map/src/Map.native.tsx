@@ -33,7 +33,7 @@
  *   - Markers are native view annotations (`Marker`), not maplibre-gl's DOM markers.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Text, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
   Camera, GeoJSONSource, Map as MLMap, Marker, VectorSource,
   type CameraRef, type MapRef, type VectorSourceRef,
@@ -64,8 +64,8 @@ type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number } |
 type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
-                      onMoved, onMapPoint, highlight, marker, style, gauges, onVisible, pins, bare, fit,
-                      basemap }: MapProps) {
+                      onMoved, onMapPoint, highlight, water, marker, style, gauges, onVisible, pins, bare, fit,
+                      basemap, marks, onPressMark }: MapProps) {
   const adapter = useRef(baseAdapter("native"));
   const mapRef = useRef<MapRef | null>(null);
   const camRef = useRef<CameraRef | null>(null);
@@ -148,13 +148,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     }
   }, [sectionData, gen, styled, drawn, report, renderer]);
 
-  // THE SELECTION: only `selected` is cleared, per feature, from the ids lit last time
+  // THE SELECTION: only the highlight's keys (`selected`, and the rest of the water's `water`) are cleared, per
+  // feature, from the ids lit last time
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
     if (!styled || !drawn || !atlasRef.current || !highlight) return;
-    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight]);
-    wasLit.current = [...highlight];
-  }, [highlight, gen, styled, drawn, report, renderer]);
+    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])]);
+    wasLit.current = [...highlight, ...(water ?? [])];
+  }, [highlight, water, gen, styled, drawn, report, renderer]);
 
   /*
    * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which
@@ -303,6 +304,25 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         {(pins ?? []).map((p, i) => (
           <Marker key={`${i}:${p.lon},${p.lat}`} id={`pin-${i}`} lngLat={[p.lon, p.lat]}>
             <View style={dot(p.tone ?? furniture.accent, furniture.card, 12)} accessibilityLabel={p.title} />
+          </Marker>
+        ))}
+        {/* THE BOUNDARY MARKS (P15): the web's `markElement` as a view annotation — a 44 px target, a 16 px ring
+            (filled when open), the label above it */}
+        {(marks ?? []).map((k, i) => (
+          <Marker key={`mark-${i}:${k.lon},${k.lat}`} id={`mark-${i}`} lngLat={[k.lon, k.lat]}>
+            <Pressable onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}
+                       style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+              {k.label ? (
+                <Text numberOfLines={3}
+                      style={{ position: "absolute", bottom: 38, maxWidth: 180, paddingHorizontal: 7, paddingVertical: 3,
+                               backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
+                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: "Archivo_700Bold" }}>
+                  {k.label}
+                </Text>
+              ) : null}
+              <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 3, borderColor: furniture.ink,
+                             backgroundColor: k.on ? furniture.ink : furniture.card }} />
+            </Pressable>
           </Marker>
         ))}
       </MLMap>

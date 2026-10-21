@@ -10,6 +10,15 @@ import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
 import type { ProfileStatus } from "./profile-paint";
 
+/** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
+export interface MapMark {
+  lon: number;
+  lat: number;
+  label: string | null;
+  a11y: string;
+  on: boolean;
+}
+
 export interface Camera {
   lon: number;
   lat: number;
@@ -167,6 +176,19 @@ export interface MapProps {
   onMapPoint?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
   highlight?: readonly SectionKey[];
+  /**
+   * THE REST OF THE WATER whose part is `highlight` (P15, the water's Map view): feature-state `water`, drawn in its own
+   * colour at a width floor so the river reads as one water around the selected part. Set and cleared with
+   * `highlight`, by the adapter's one `highlight` call.
+   */
+  water?: readonly SectionKey[];
+  /**
+   * BOUNDARY MARKS (P15): the release's `part_mark` places between a water's parts — a finger-sized ring, labelled
+   * where `label` is given (the current part's two ends, or the mark that is open). `on`: the mark that is open.
+   */
+  marks?: readonly MapMark[];
+  /** A mark was tapped: its index in `marks`. */
+  onPressMark?: (index: number) => void;
   /**
    * Take the camera to a subject — a searched water, a town.
    *

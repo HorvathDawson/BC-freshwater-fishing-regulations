@@ -34,6 +34,7 @@ import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, bboxOfGeometry,
          unionBbox, type Bbox } from "@app/core";
 import type { MapHandle } from "./adapters/contract";
 import { hereImage } from "./here-mark";
+import { labelShift } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
 import { PROFILE_SOURCE_LAYERS, ProfileColouring, type ProfileRenderer, type ProfileTarget,
@@ -42,7 +43,7 @@ import { sourceTiles, tileIds } from "./tile-ids.web";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
-import type { MapProps } from "./map-props";
+import type { MapMark, MapProps } from "./map-props";
 
 /**
  * `pmtiles://` has to be registered on maplibre ONCE per page, not per map. Registering it
@@ -217,9 +218,9 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
-                      onError, onMoved, onMapPoint, highlight, marker, style,
+                      onError, onMoved, onMapPoint, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
-                      zoomControls, status }: MapProps) {
+                      zoomControls, status, marks, onPressMark }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   /**
@@ -557,19 +558,53 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")]);
 
   const wasLit = useRef<SectionKey[]>([]);
+  /** The `highlight` and `water` ids lit last, apart — what a release swap puts back (below). */
+  const lastLit = useRef<{ sel: SectionKey[]; water: SectionKey[] }>({ sel: [], water: [] });
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
     // `whenStyled`, not `once("load")`: a search lights a water on a map that loaded long
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
-      // Clears ONLY `selected`, per feature, from the ids this map lit last time — see `stateHandle`.
+      // Clears ONLY the highlight's keys, per feature, from the ids this map lit last time — see `stateHandle`.
       const handle = r.states(() => wasLit.current);
-      adapter.current.highlight(handle, [...highlight]);
-      wasLit.current = [...highlight];
+      adapter.current.highlight(handle, [...highlight], [...(water ?? [])]);
+      lastLit.current = { sel: [...highlight], water: [...(water ?? [])] };
+      wasLit.current = [...highlight, ...(water ?? [])];
     };
     return whenStyled(m, apply);
-  }, [highlight]);
+  }, [highlight, water]);
+
+  /**
+   * THE BOUNDARY MARKS (P15): DOM markers, so a ring stays finger-sized at any zoom and a label sits over it — the
+   * prototype's `.mk` (a 44 px button, a 16 px ring, the label above). Rebuilt when any mark changes: a water has a few.
+   */
+  const marked = useRef<maplibregl.Marker[]>([]);
+  const pressMark = useRef(onPressMark);
+  pressMark.current = onPressMark;
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    for (const mk of marked.current) mk.remove();
+    marked.current = (marks ?? []).map((k, i) =>
+      new maplibregl.Marker({ element: markElement(k, furniture, () => pressMark.current?.(i)) })
+        .setLngLat([k.lon, k.lat]).addTo(m));
+    // KEEP EACH LABEL INSIDE THE MAP (the prototype's `--dx`): shifted sideways by what would hang over an edge
+    const inside = () => {
+      const w = m.getContainer().clientWidth;
+      for (const mk of marked.current) {
+        const span = mk.getElement().querySelector("span");
+        if (span) span.style.transform = `translateX(calc(-50% + ${labelShift(m.project(mk.getLngLat()).x, w)}px))`;
+      }
+    };
+    inside();
+    m.on("move", inside);
+    return () => {
+      m.off("move", inside);
+      for (const mk of marked.current) mk.remove();
+      marked.current = [];
+    };
+  }, [JSON.stringify(marks ?? []), furniture.ink, furniture.card]);
 
   /**
    * THE DAY'S STATUS (colour-latency AP): the index and the day go to the profile colouring, which labels the tiles
@@ -592,7 +627,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
       },
       restore: () => {
-        adapter.current.highlight(r.states(() => []), [...wasLit.current]);
+        adapter.current.highlight(r.states(() => []), lastLit.current.sel, lastLit.current.water);
         for (const [layerId, values] of Object.entries(latestData.current ?? {}))
           adapter.current.setData(layerHandle(m, r), layerId, values);
       },
@@ -876,4 +911,28 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   return <div ref={host}
               style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;
+}
+
+/** One boundary mark's element: a 44 px button holding a 16 px ring (filled when open), its label above it. */
+function markElement(k: MapMark, c: { ink: string; card: string }, press: () => void): HTMLElement {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.setAttribute("aria-label", k.a11y);
+  b.setAttribute("data-mark", k.on ? "on" : "");
+  b.style.cssText = "width:44px;height:44px;padding:0;border:0;background:transparent;display:flex;"
+    + "align-items:center;justify-content:center;cursor:pointer;position:relative";
+  const ring = document.createElement("i");
+  ring.style.cssText = `width:16px;height:16px;border-radius:50%;box-sizing:border-box;border:3px solid ${c.ink};`
+    + `background:${k.on ? c.ink : c.card}`;
+  b.appendChild(ring);
+  if (k.label) {
+    const t = document.createElement("span");
+    t.textContent = k.label;
+    t.style.cssText = "position:absolute;bottom:38px;left:50%;transform:translateX(-50%);max-width:180px;"
+      + `width:max-content;padding:3px 7px;background:${c.card};color:${c.ink};border:1.5px solid ${c.ink};`
+      + "font:700 12px/1.25 Archivo,sans-serif;white-space:normal;pointer-events:none";
+    b.appendChild(t);
+  }
+  b.addEventListener("click", (e) => { e.stopPropagation(); press(); });
+  return b;
 }

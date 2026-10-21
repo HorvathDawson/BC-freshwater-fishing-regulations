@@ -11,7 +11,7 @@
  * Not proven here: the renderers themselves (no WebGL, no MapLibre Native). That is the emulator run (n2/README.md).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
 import { MAP_GESTURES } from "@app/core";
 import type { MapProps } from "./map-props";
@@ -54,6 +54,8 @@ class FakeGl {
   getCanvas() { return { style: { width: "400px", height: "800px" } }; }
   resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }
+  /** Screen x: a degree of longitude east of -122.2 is 1000 px (so -121.83788 sits at 362 of the 400 px map). */
+  project(l: { lng: number; lat: number }) { return { x: Math.round((l.lng + 122.2) * 1000), y: 400 }; }
   getZoom() { return 9; }
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { return []; }
@@ -73,8 +75,15 @@ class FakeGl {
 }
 class Control { constructor(_o?: unknown) {} }
 class Marker {
-  constructor(_o?: unknown) {}
-  setLngLat() { return this; } addTo() { return this; } remove() {} setPopup() { return this; }
+  /** A custom element (the boundary marks, P15) is put in the document, as GL JS puts it over the map. */
+  private el: HTMLElement | null;
+  private at: { lng: number; lat: number } = { lng: 0, lat: 0 };
+  constructor(o?: { element?: HTMLElement }) { this.el = o?.element ?? null; }
+  setLngLat(l: [number, number]) { this.at = { lng: l[0], lat: l[1] }; return this; } setPopup() { return this; }
+  getLngLat() { return this.at; }
+  getElement() { return this.el!; }
+  addTo() { if (this.el) document.body.appendChild(this.el); return this; }
+  remove() { this.el?.remove(); }
 }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control, Marker,
                                 Popup: class { setText() { return this; } }, addProtocol: () => {} }));
@@ -121,7 +130,8 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
     return null;
   },
   GeoJSONSource: ({ id, data }: { id: string; data: unknown }) => { native.geojson[id] = data; return null; },
-  Marker: () => null,
+  // a view annotation draws its children over the map
+  Marker: ({ children }: { children?: ReactNode }) => <>{children}</>,
 }));
 
 const { Map: WebMap } = await import("./Map.web");
@@ -196,6 +206,29 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     await waitFor(() => expect(log).toEqual([...selected(311274, false), ...selected(1566515, true)]));
   });
 
+  it("P15: the rest of the water is `water`, set and cleared with the selection", async () => {
+    const water = (id: number, on: boolean) => ["wetland", "lake", "stream"]
+      .map((sl) => (on ? `set atlas/${sl} number:${id} {"water":true}` : `remove atlas/${sl} number:${id} water`));
+    const r = render(<P.Map {...base({ data: undefined, water: [1235781] })} />);
+    await waitFor(() => expect([...log].sort()).toEqual([...selected(311274, true), ...water(1235781, true)].sort()));
+    log.length = 0;
+    r.rerender(<P.Map {...base({ data: undefined, highlight: [1235781], water: [311274] })} />);
+    // every key of the last highlight cleared, per feature (a key a feature does not hold is not sent), then the new
+    await waitFor(() => expect([...log].sort()).toEqual([
+      ...selected(311274, false), ...water(1235781, false), ...selected(1235781, true), ...water(311274, true)].sort()));
+  });
+
+  it("P15: a boundary mark is a finger-sized button with its label, and a tap names it", async () => {
+    const press = vi.fn();
+    render(<P.Map {...base({ data: undefined, onPressMark: press, marks: [
+      { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false },
+      { lon: -121.710609, lat: 49.078392, label: null, a11y: "Boundary: Slesse", on: true }] })} />);
+    const b = await screen.findByLabelText("Boundary: Tamihi Rapids Bridge");
+    expect([b.textContent, screen.getByLabelText("Boundary: Slesse").textContent]).toEqual(["Tamihi Rapids Bridge", ""]);
+    fireEvent.click(screen.getByLabelText("Boundary: Slesse"));
+    expect(press.mock.calls).toEqual([[1]]);
+  });
+
   it("a tap asks a 24 px box, streams first, and answers the section as a number (Android sends a string)", async () => {
     const press = vi.fn();
     const point = vi.fn();
@@ -250,6 +283,17 @@ describe("web only", () => {
     web.tilesIn = false;                  // zoomed out: a long tile burst, and no `load` will ever fire again
     r.rerender(<WebMap {...base({ highlight: undefined, data: { ...DATA, basin: { CHWK: { standing: 5 } } } })} />);
     await waitFor(() => expect(log).toEqual(['set atlas/basin string:CHWK {"standing":5}']));
+  });
+
+  it("P15: a mark's label near the map's edge is moved in, and again when the map moves", async () => {
+    render(<WebMap {...base({ data: undefined, marks: [
+      { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }] })} />);
+    const span = () => screen.getByLabelText("Boundary: Tamihi Rapids Bridge").querySelector("span")!;
+    await waitFor(() => expect(span().style.transform).toBe("translateX(calc(-50% + -62px))"));    // x 362 of 400
+    const project = web.map!.project.bind(web.map);
+    web.map!.project = (l) => ({ ...project(l), x: 30 });
+    act(() => web.map!.fire("move"));
+    expect(span().style.transform).toBe("translateX(calc(-50% + 70px))");
   });
 });
 

@@ -1,0 +1,549 @@
+{
+ "log": [
+  {
+   "water": "proto-vedder",
+   "what": "mp=0",
+   "where": "Part 1 of 5",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Vedder Crossing Bridge [Vedder Crossing Bridge]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-vedder",
+   "what": "mp=1",
+   "where": "Part 2 of 5 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Vedder Crossing Bridge [Vedder Crossing Bridge]",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-vedder",
+   "what": "mp=2",
+   "where": "Part 3 of 5 · Chilliwack River",
+   "name": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-vedder",
+   "what": "mp=3",
+   "where": "Part 4 of 5 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]",
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-vedder",
+   "what": "mp=4",
+   "where": "Part 5 of 5 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-cowichan",
+   "what": "mp=0",
+   "where": "Part 1 of 4 · Cowichan River",
+   "name": "Mouth → CNR Mile 66 Trestle",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle [CNR Mile 66 Trestle]",
+    "Boundary: CNR Bridge (mile 70.2)",
+    "Boundary: Greendale Trestle"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-cowichan",
+   "what": "mp=1",
+   "where": "Part 2 of 4 · Cowichan River",
+   "name": "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle [CNR Mile 66 Trestle]",
+    "Boundary: CNR Bridge (mile 70.2) [CNR Bridge (mile 70.2)]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-cowichan",
+   "what": "mp=2",
+   "where": "Part 3 of 4 · Cowichan River",
+   "name": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: CNR Bridge (mile 70.2) [CNR Bridge (mile 70.2)]",
+    "Boundary: Greendale Trestle [Greendale Trestle]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-cowichan",
+   "what": "mp=3",
+   "where": "Part 4 of 4 · Cowichan River",
+   "name": "Greendale Trestle → Cowichan Lake outlet",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "marks": [
+    "Boundary: Greendale Trestle [Greendale Trestle]"
+   ],
+   "whole": "⤢ Whole river"
+  },
+  {
+   "water": "proto-klwa",
+   "what": "mp=0",
+   "where": "Part 1 of 3",
+   "name": "Kootenay Lake — Lower West Arm",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Lower West Arm / Upper West Arm [Lower West Arm / Upper West Arm]"
+   ],
+   "whole": "⤢ Whole lake"
+  },
+  {
+   "water": "proto-klwa",
+   "what": "mp=1",
+   "where": "Part 2 of 3",
+   "name": "Kootenay Lake — Upper West Arm",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "marks": [
+    "Boundary: Lower West Arm / Upper West Arm [Lower West Arm / Upper West Arm]",
+    "Boundary: Upper West Arm / Main Body [Upper West Arm / Main Body]"
+   ],
+   "whole": "⤢ Whole lake"
+  },
+  {
+   "water": "proto-klwa",
+   "what": "mp=2",
+   "where": "Part 3 of 3",
+   "name": "Kootenay Lake — Main Body",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "marks": [
+    "Boundary: Lower West Arm / Upper West Arm",
+    "Boundary: Upper West Arm / Main Body [Upper West Arm / Main Body]"
+   ],
+   "whole": "⤢ Whole lake"
+  },
+  {
+   "water": "chilliwack",
+   "what": "opened",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "at the mouth part",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 1",
+   "where": "Part 2 of 4 · Chilliwack River",
+   "name": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 2",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 3",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "a mark tapped",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary] (open)",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": "Chilliwack River Ecological Reserve boundary✕UpstreamChilliwack River Ecological Reserve boundary → SourceChilliwack RiverDownstream100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundaryChilliwack River",
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "⤢ whole river",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "This part",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "back at the mouth",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "after Flows into",
+   "title": "Vedder River"
+  },
+  {
+   "water": "vedder",
+   "what": "opened",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "Highest part (off)"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "vedder",
+   "what": "one part",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "Highest part (off)"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "opened",
+   "where": "Part 3 of 4 · Cowichan River",
+   "name": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle",
+    "Boundary: CNR Bridge (mile 70.2) [CNR Bridge (mile 70.2)]",
+    "Boundary: Greendale Trestle [Greendale Trestle]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "at the mouth part",
+   "where": "Part 1 of 4 · Cowichan River",
+   "name": "Mouth → CNR Mile 66 Trestle",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle [CNR Mile 66 Trestle]",
+    "Boundary: CNR Bridge (mile 70.2)",
+    "Boundary: Greendale Trestle"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 1",
+   "where": "Part 2 of 4 · Cowichan River",
+   "name": "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle [CNR Mile 66 Trestle]",
+    "Boundary: CNR Bridge (mile 70.2) [CNR Bridge (mile 70.2)]",
+    "Boundary: Greendale Trestle"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 2",
+   "where": "Part 3 of 4 · Cowichan River",
+   "name": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle",
+    "Boundary: CNR Bridge (mile 70.2) [CNR Bridge (mile 70.2)]",
+    "Boundary: Greendale Trestle [Greendale Trestle]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 3",
+   "where": "Part 4 of 4 · Cowichan River",
+   "name": "Greendale Trestle → Cowichan Lake outlet",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: CNR Mile 66 Trestle",
+    "Boundary: CNR Bridge (mile 70.2)",
+    "Boundary: Greendale Trestle [Greendale Trestle]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "cowichan",
+   "what": "Show regulations for this part",
+   "tabs": "Regulations* · Conditions · Map"
+  },
+  {
+   "water": "klwa",
+   "what": "opened",
+   "where": "Part 3 of 3",
+   "name": "Kootenay Lake — Main Body",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole lake",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "klwa",
+   "what": "▼ 1",
+   "where": "Part 2 of 3",
+   "name": "Kootenay Lake — Upper West Arm",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole lake",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "klwa",
+   "what": "▼ 2",
+   "where": "Part 1 of 3",
+   "name": "Kootenay Lake — Lower West Arm",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Kootenay River ›",
+   "whole": "⤢ Whole lake",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "klwa",
+   "what": "⤢ whole lake",
+   "where": "Part 1 of 3",
+   "name": "Kootenay Lake — Lower West Arm",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Kootenay River ›",
+   "whole": "This part",
+   "status": null,
+   "marks": [],
+   "pop": null,
+   "chooser": null
+  }
+ ],
+ "errors": []
+}

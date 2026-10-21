@@ -81,8 +81,12 @@ export interface MapAdapter {
                overrides?: Tokens): void;
   /** Re-apply colours after a theme or user-palette change, keeping the current view. */
   applyTheme(h: MapHandle, viewId: string, themeName: string, overrides?: Tokens): void;
-  /** Highlight by id via feature-state — never by mutating paint. */
-  highlight(h: MapHandle, featureIds: SectionKey[]): void;
+  /**
+   * Highlight by id via feature-state — never by mutating paint: `selected` on `featureIds`, and `water` on `water`
+   * (P15: the other parts of the water whose part is selected — drawn at a width floor in their own colour, so the
+   * river reads as one water around the part you are on). Every key of both is cleared first.
+   */
+  highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[]): void;
   /**
    * The ground: the drawn basemap, or satellite imagery over it.
    *
@@ -208,8 +212,11 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
      * `tools/style-valid.test.ts` now runs the spec's own validator over this.
      */
     if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined) {
-      const floor: unknown =
-        ["case", selected, Number(tokens["width.stream.highlight"]), 0];
+      // P15: the water's other parts (`water`) take their own, lower floor — after `selected`, which wins
+      const floor: unknown = tokens["width.stream.water"] !== undefined
+        ? ["case", selected, Number(tokens["width.stream.highlight"]),
+           ["boolean", ["feature-state", "water"], false], Number(tokens["width.stream.water"]), 0]
+        : ["case", selected, Number(tokens["width.stream.highlight"]), 0];
       out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
     }
   }
@@ -408,12 +415,14 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         if (STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile") paint(h, layerId, mode, tokens);
     },
 
-    highlight(h, featureIds) {
+    highlight(h, featureIds, water = []) {
       // EVERY layer cleared before ANY is set: several layers draw one source-layer (`lake`, `lake_flowing`), so a
       // clear for the second would otherwise take back what the first just set
       for (const { id } of STYLE_META.highlightable) h.clearFeatureStates(id);
-      for (const { id } of STYLE_META.highlightable)
+      for (const { id } of STYLE_META.highlightable) {
         for (const f of featureIds) h.setFeatureState(id, f, { selected: true });
+        for (const f of water) h.setFeatureState(id, f, { water: true });
+      }
     },
 
     setBasemap(h, kind) {

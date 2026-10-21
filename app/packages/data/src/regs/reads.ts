@@ -86,6 +86,29 @@ export interface RegsReads {
   /** The part of item `itemOrd` section `sid` belongs to (water `part_section`, P09; its `ord` is the item_ord);
    *  null: the section is not one of the item's. */
   sectionPart(itemOrd: number, sid: number): Promise<number | null>;
+  /**
+   * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (rank,
+   * box, midpoint — microdegrees as degrees), `part_mark` (boundaries: down part, up parts), `part_section` (the sids of
+   * each part) and `water_exit` (the receiving item, named from core; null name when core does not hold it).
+   */
+  navRows(itemOrd: number): Promise<NavRows>;
+  /**
+   * The ords of the items `part_of` the same water as `itemOrd` (a split lake's closure areas), itself included; for
+   * the split lake itself (it owns no part), itself and its closure areas.
+   */
+  siblingOrds(itemOrd: number): Promise<readonly number[]>;
+}
+
+/** `navRows`: what the water map reads of one item beyond its `item` / `part` rows. */
+export interface NavRows {
+  readonly geo: readonly { readonly partIx: number; readonly rank: number; readonly midSid: number;
+                           readonly mid: readonly [number, number];
+                           readonly box: readonly [number, number, number, number] | null }[];
+  readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
+                             readonly down: number; readonly up: readonly number[] }[];
+  readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
+  readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
+                   readonly name: string | null } | null;
 }
 
 /** What the reads stand on (store.ts hands them its own). */
@@ -124,6 +147,8 @@ const damaged = (what: string) => new RegsStoreError("damaged", `regs store: ${w
 const n = (c: Cell): number => Number(c);
 const nn = (c: Cell): number | null => (c === null || c === undefined ? null : Number(c));
 const json = <T>(c: Cell): T => JSON.parse(String(c)) as T;
+/** A microdegree column (`PACK_UNITS` water.part_geo / part_mark) in degrees. */
+const micro = (c: Cell): number => Number(c) / 1e6;
 
 export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   const caches = new Map<string, Map<string | number, Promise<unknown>>>();
@@ -342,6 +367,38 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     sectionPart: (ord, sid) => once("sectionPart", `${ord}:${sid}`, async () => {
       const r = await (await base.water()).get("SELECT part_ix FROM part_section WHERE ord = ? AND sid = ?", ord, sid);
       return r ? n(r.part_ix) : null;
+    }),
+
+    navRows: (ord) => once("navRows", ord, async () => {
+      const w = await base.water();
+      const [geo, marks, sections, exit] = await Promise.all([
+        w.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
+        w.all("SELECT mark_ix, lon, lat, label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
+        w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
+        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
+      const down = exit ? await (await base.core()).get("SELECT item_id, name FROM item WHERE ord = ?", n(exit.down_ord)) : null;
+      const none = (c: Cell) => c === null || c === undefined;
+      return {
+        geo: geo.map((g) => ({
+          partIx: n(g.part_ix), rank: n(g.rank), midSid: n(g.mid_sid), mid: [micro(g.mid_lon), micro(g.mid_lat)] as const,
+          box: none(g.w) || none(g.s) || none(g.e) || none(g.n) ? null
+            : [micro(g.w), micro(g.s), micro(g.e), micro(g.n)] as const })),
+        marks: marks.map((m) => ({ lon: micro(m.lon), lat: micro(m.lat), label: none(m.label) ? null : String(m.label),
+                                   down: n(m.down_part), up: json<number[]>(m.up_parts) })),
+        sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
+        exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part),
+                       item: down ? String(down.item_id) : null, name: down ? String(down.name) : null } : null,
+      };
+    }),
+
+    siblingOrds: (ord) => once("siblingOrds", ord, async () => {
+      // the water's own parent (a closure area of a split lake) else the water itself (the lake, opened whole): its
+      // children by the `item_by_parent` index; the item itself is always one of the answer
+      const rs = await (await base.core()).all(
+        "SELECT ord FROM item WHERE part_of = (SELECT COALESCE(part_of, item_id) FROM item WHERE ord = ?) ORDER BY ord",
+        ord);
+      const out = rs.map((r) => n(r.ord));
+      return out.includes(ord) ? out : [ord, ...out];
     }),
 
     async unnamedName(h) {

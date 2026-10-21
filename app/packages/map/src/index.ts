@@ -10,7 +10,7 @@
  * style spec can express belongs in the style, not here.
  */
 export { Map } from "./Map";
-export type { MapProps, Camera, MapChrome } from "./map-props";
+export type { MapProps, Camera, MapChrome, MapMark } from "./map-props";
 export { coloursEachTile, type ProfileStatus } from "./profile-paint";
 export { runtimeStyle, type TileEndpoints } from "./runtime-style";
 export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./adapters/contract";
