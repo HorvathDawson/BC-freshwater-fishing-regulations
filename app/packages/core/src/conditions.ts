@@ -12,6 +12,7 @@
 import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plainStanding,
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
+import { localStamp } from "./day";
 
 /* ------------------------------------------------------------------- horizons ---- */
 
@@ -321,14 +322,15 @@ export function noChartSentence(span: ChartSpan): string {
 export interface ForecastRunFacts { model: string; horizonDays: number }
 
 /**
- * When the run was made, beside what it says — IN LABELLED UTC. It printed the ISO
- * string's own clock unlabelled, which for an offset time is not UTC and not said to be
- * anything. A time that does not parse is left out rather than guessed.
+ * When the run was made, beside what it says — LOCAL AND LABELLED (P16), in the same form as
+ * the reading's "observed" (`localStamp`). It printed the ISO string's own clock unlabelled,
+ * then labelled UTC; neither is the reader's clock. A time that does not parse is left out
+ * rather than guessed. `zone` is for tests; left out, it is the device's.
  */
-export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string }): string {
+export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
+                                zone?: string): string {
   const t = Date.parse(run.issuedAt);
-  const when = Number.isFinite(t)
-    ? ` issued ${new Date(t).toISOString().replace("T", " ").slice(0, 16)} UTC` : "";
+  const when = Number.isFinite(t) ? ` issued ${localStamp(t, zone)}` : "";
   return `${run.model} run${when} · ${run.horizonDays}-day outlook`;
 }
 

@@ -21,17 +21,19 @@ describe("freshness", () => {
 
 describe("readingAgeLine (P02): the finished sentence, whole (AGENTS 33)", () => {
   const at = "2026-09-01T11:30:00Z";
+  // LOCAL AND LABELLED (P16): said in a named zone so the test does not depend on the host's.
+  const VAN = "America/Vancouver";
   it("live", () => {
-    expect(readingAgeLine(freshness(NOW - 10 * MIN, NOW), at))
-      .toBe("This gauge's own reading · observed 2026-09-01 11:30 UTC · checked 10 min ago");
+    expect(readingAgeLine(freshness(NOW - 10 * MIN, NOW), at, VAN))
+      .toBe("This gauge's own reading · observed 2026-09-01 at 04:30 PDT · checked 10 min ago");
   });
   it("stale says so", () => {
-    expect(readingAgeLine(freshness(NOW - 180 * MIN, NOW), at))
-      .toBe("This gauge's own reading · observed 2026-09-01 11:30 UTC · last checked 3 h ago, may be out of date");
+    expect(readingAgeLine(freshness(NOW - 180 * MIN, NOW), at, VAN))
+      .toBe("This gauge's own reading · observed 2026-09-01 at 04:30 PDT · last checked 3 h ago, may be out of date");
   });
   it("unknown never reads as live", () => {
-    expect(readingAgeLine(freshness(null, NOW), at))
-      .toBe("This gauge's own reading · observed 2026-09-01 11:30 UTC · age unknown");
+    expect(readingAgeLine(freshness(null, NOW), at, VAN))
+      .toBe("This gauge's own reading · observed 2026-09-01 at 04:30 PDT · age unknown");
   });
   it("a missing or malformed observation time is left out, not invented", () => {
     expect(readingAgeLine(freshness(null, NOW), null)).toBe("This gauge's own reading · age unknown");

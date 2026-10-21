@@ -106,8 +106,9 @@ describe("the donor panel", () => {
     expect(screen.getByText("Not reporting today.")).toBeTruthy();
   });
 
-  it("warns in words when the gauges disagree", () => {
+  it("warns in words when the gauges disagree, in the fold (P16)", () => {
     draw({ value: answer({ spread: 44 }) });
+    openFold();
     expect(screen.getByText("These gauges disagree by 44 points. That is a catchment doing "
       + "more than one thing, and the range above is the honest answer rather than their "
       + "average.")).toBeTruthy();
@@ -115,6 +116,7 @@ describe("the donor panel", () => {
 
   it("stays quiet about disagreement when there is none", () => {
     draw({ value: answer({ spread: 4 }) });
+    openFold();     // opened, or the silence would be the fold's and prove nothing
     expect(text()).not.toContain("disagree");
   });
 
@@ -225,8 +227,10 @@ describe("the donor panel", () => {
     + "release schedule as much as the weather — a low river here can mean the gate is shut "
     + "rather than that the country is dry.";
 
-  it("says when the water is dam-controlled, above the working and not only in it", () => {
+  it("says when the water is dam-controlled: on the row, and in words in the fold (P16)", () => {
     draw({ value: { ...answer(), rows: [row("08PA004", { regulated: true })] } });
+    expect(screen.queryByText(DAM)).toBeNull();
+    openFold();
     expect(screen.getByText(DAM)).toBeTruthy();
     expect(screen.getByText("upstream · drains 120 km² · 2.4× apart · dam-controlled"))
       .toBeTruthy();
@@ -234,11 +238,13 @@ describe("the donor panel", () => {
 
   it("says nothing about dams when no donor is on regulated water", () => {
     draw({ value: answer() });
+    openFold();
     expect(screen.queryByText(DAM)).toBeNull();
   });
 
   it("does not warn about a dam on a gauge that is not reporting", () => {
     draw({ value: { ...answer(), rows: [row("08PA004", { regulated: true, percentile: null })] } });
+    openFold();
     expect(screen.queryByText(DAM)).toBeNull();
   });
 
@@ -251,6 +257,7 @@ describe("the donor panel", () => {
       row("08A", { years: 6, weight: 0.8, factors: { share: 0.4, role: 1, record: 0.3 } }),
       row("08B", { years: 60, weight: 0.2 }),
     ] } });
+    openFold();
     expect(screen.getByText(SHORT(6))).toBeTruthy();
   });
 
@@ -259,6 +266,7 @@ describe("the donor panel", () => {
       row("08A", { years: 6, weight: 0.2 }),
       row("08B", { years: 60, weight: 0.8 }),
     ] } });
+    openFold();
     expect(screen.queryByText(SHORT(6))).toBeNull();
   });
 
@@ -271,7 +279,7 @@ describe("the donor panel", () => {
       + "on this very water; it has only 6 years of record, so it counts 30%.")).toBeTruthy();
   });
 
-  it("offers the same horizons the map does, beside the number they change", () => {
+  it("offers every horizon, above the number they change", () => {
     draw({ value: answer(), horizon: 3, onHorizon: () => {} });
     for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.getByText(t)).toBeTruthy();
     expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();

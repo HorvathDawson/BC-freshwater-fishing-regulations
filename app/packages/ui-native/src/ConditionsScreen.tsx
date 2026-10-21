@@ -39,7 +39,7 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
   feed?: PanelFeed;
   /** Data credits for the foot of the screen — see ConditionsPanel. */
   credits?: readonly string[];
-  /** Kept in step with the map's forecast horizon — see ConditionsPanel. */
+  /** The forecast horizon, set from the panel's header — see ConditionsPanel. */
   horizon?: Horizon;
   onHorizon?: (d: Horizon) => void;
 }) {

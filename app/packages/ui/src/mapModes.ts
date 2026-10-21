@@ -51,8 +51,6 @@ export interface MapModesVM {
   standingHorizon: Horizon;
   /** The zoomed-out field: on Conditions, not under temperature, below the handover. */
   fieldOn: boolean;
-  /** The forecast horizon picker is offered (Conditions, not temperature). */
-  horizonsShown: boolean;
   modes: MapModes;
   activeGroups: Record<string, boolean>;
 }
@@ -93,7 +91,6 @@ export function mapModes(i: MapModeInput): MapModesVM {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
     fieldOn: onConditions && !temperature && i.zoomedOut,
-    horizonsShown: onConditions && !temperature,
     modes, activeGroups,
   };
 }

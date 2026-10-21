@@ -6,7 +6,7 @@
  * not the 31st in UTC.
  */
 import { describe, expect, it } from "vitest";
-import { dayLabel, localDate, localDateTime, setVisitHour, shiftDay, shiftVisitDay, visitSteps,
+import { dayLabel, localDate, localDateTime, localStamp, setVisitHour, shiftDay, shiftVisitDay, visitSteps,
          VISIT_QUICK_DAYS } from "./day";
 
 const at = (d: number, h = 9, m = 0) => new Date(2026, 7, d, h, m).getTime();   // August 2026, local
@@ -29,6 +29,27 @@ describe("local dates", () => {
   });
   it("names the local day and minute", () => {
     expect(localDateTime(at(30, 7, 5))).toBe("2026-08-30 at 07:05");
+  });
+});
+
+describe("a stamped time (P16): local, and labelled with its zone", () => {
+  // AN INSTANT, NOT LOCAL PARTS: these are the feed's own UTC times, said in a named zone so
+  // the expectation does not depend on where the suite runs.
+  const t = Date.parse("2026-09-01T11:30:00Z");
+  it("says the zone's own clock and names the zone", () => {
+    expect(localStamp(t, "America/Vancouver")).toBe("2026-09-01 at 04:30 PDT");
+    expect(localStamp(Date.parse("2026-01-15T08:05:00Z"), "America/Vancouver"))
+      .toBe("2026-01-15 at 00:05 PST");
+    expect(localStamp(t, "UTC")).toBe("2026-09-01 at 11:30 UTC");
+  });
+  it("crosses midnight into the local day", () => {
+    expect(localStamp(Date.parse("2026-09-04T06:00:00Z"), "America/Vancouver"))
+      .toBe("2026-09-03 at 23:00 PDT");
+  });
+  it("is the same day-and-minute form as every other local time, plus its label", () => {
+    // Left to the device, the clock part is exactly `localDateTime` — one format everywhere.
+    expect(localStamp(t).startsWith(`${localDateTime(t)} `)).toBe(true);
+    expect(localStamp(t).length).toBeGreaterThan(localDateTime(t).length + 1);
   });
 });
 

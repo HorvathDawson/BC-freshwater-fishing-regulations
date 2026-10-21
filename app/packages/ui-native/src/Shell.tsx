@@ -8,12 +8,12 @@
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
 import { dayLabel, TEMP_LEGEND, WATER_STATUS, WATER_STATUSES, type SectionKey, type TempBand } from "@app/core";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { bottomBarShown, spotSaveFailed, useMapModes, usePhotoEdit, useRoute, type BrowseTab, type FlowParam,
          type SpotPhotos } from "@app/ui";
-import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
+import { useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusData,
          type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
@@ -180,9 +180,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * not a percentile and nothing can carry it to the water yet.
    */
   const [flowParam, setFlowParam] = useState<FlowParam>("discharge");
-  // HOW FAR AHEAD the Conditions map is painted. 0 is now, and is where it opens: a
+  // HOW FAR AHEAD the Conditions panel answers. 0 is now, and is where it opens: a
   // forecast is what you ask for, never what you are shown without asking.
   const [horizon, setHorizon] = useState<Horizon>(0);
+  /*
+   * BACK TO NOW WHEN THE PANEL CLOSES (P16 item 2). The horizon is chosen in the Conditions
+   * panel's header and nowhere else — the map's corner copy is gone — so the map, which has
+   * no control saying which horizon it paints, must not keep painting one picked in a panel
+   * that is no longer on screen.
+   */
+  useEffect(() => { if (condSection === null) setHorizon(0); }, [condSection]);
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   // Streams, lakes and gauges each carry their own colouring, as the design has it — plain rivers while the lakes
@@ -471,12 +478,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The list is the style's; the trigger is this screen's, because the
                      // app drives by mode and never renders the named view.
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
-                     // The forecast horizons, on the Conditions tab. Temperature has no
-                     // forecast, so it gets none.
-                     horizons={mm.horizonsShown
-                       ? { days: HORIZONS, value: horizon,
-                           onPick: (d) => setHorizon(d as Horizon) }
-                       : undefined}
+                     // NO HORIZONS ON THE MAP (P16 item 2): the one horizon control is the
+                     // Conditions panel's header. See the reset by `condSection` above.
                      // NO LAYERS BUTTON IN THE CONDITIONS VIEW. Everything the sheet
                      // offers — how to colour streams and lakes — is decided by the
                      // Showing control here instead, so the button would open a sheet

@@ -15,8 +15,10 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { CONDITIONS_WORDS, donorReason, noGaugeSentence, readingHeading } from "@app/core";
+import { CONDITIONS_WORDS, donorReason, forecastRunLine, localStamp, noGaugeSentence,
+         readingHeading } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
+import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { BEFORE_P16 } from "./ConditionsLayout.before";
@@ -68,19 +70,34 @@ const NOW = { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
 const CREDITS = ["Hydrometric data: Environment and Climate Change Canada",
                  "Forecast data provided by the BC River Forecast Centre"];
 
+/**
+ * A third scene, NOT in the record: the lead gauge with a forecast running, so the chart
+ * carries the Centre's disclaimer. The record's scenes have no series (the chart says so),
+ * and adding one there would change what they drew before.
+ */
+const FIXTURE = makeFixtureSource();
+const forecasting = () => ({
+  ...(sourceWith(PANEL, NOW) as unknown as Record<string, unknown>),
+  gaugeSeries: (_st: string, span: "72h" | "year", p?: never, m?: string) =>
+    FIXTURE.gaugeSeries("08MH001" as never, span, p, m),
+}) as unknown as RegsSource;
+
 const SCENES = {
   estimate: () => sourceWith(PANEL, NOW),
   none: () => sourceWith(null, null),
+  forecast: forecasting,
 } as const;
 type Scene = keyof typeof SCENES;
+/** The scenes the pre-P16 record was made from. */
+const RECORDED = ["estimate", "none"] as const;
 
 async function draw(scene: Scene) {
   const onHorizon = vi.fn();
   render(<ConditionsPanel source={SCENES[scene]()} section={SEC} palette={LIGHT} feed={feed}
                           scroll={false} day={DAY} credits={CREDITS}
                           onHorizon={onHorizon} />);
-  await waitFor(() => expect(screen.queryByText(scene === "estimate"
-    ? readingHeading("Lead Creek near Town") : noGaugeSentence())).toBeTruthy());
+  await waitFor(() => expect(screen.queryByText(scene === "none"
+    ? noGaugeSentence() : readingHeading("Lead Creek near Town"))).toBeTruthy());
   return { onHorizon };
 }
 
@@ -105,22 +122,31 @@ const precedes = (a: Element, b: Element) =>
   (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
 
+/**
+ * THE ONE DECLARED FORMAT CHANGE (P16 item 5): a time the record printed in UTC is now said
+ * in the reader's clock with its zone named. The record stays verbatim; this re-says each of
+ * its UTC stamps through core's `localStamp` — the same instant, so the same fact.
+ */
+const UTC_STAMP = /(\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/g;
+const retime = (l: string) =>
+  l.replace(UTC_STAMP, (_m, d: string, t: string) => localStamp(Date.parse(`${d}T${t}:00Z`)));
+
 describe("P16: the same content", () => {
   // RECORD MODE ran once, on the pre-P16 panel; it is left here so the record can be
   // re-made from a checkout of that commit (`P16_RECORD=1 pnpm -C app test ConditionsLayout`).
   it.runIf(process.env.P16_RECORD === "1")("records the pre-P16 text set", async () => {
     const rec: Record<string, string[]> = {};
-    for (const s of Object.keys(SCENES) as Scene[]) {
+    for (const s of RECORDED) {
       await draw(s); rec[s] = [...new Set(lines())]; cleanup(); clearPanelCache();
     }
     // Printed, not written: ui-native may not touch the filesystem (layers.json).
     console.log(JSON.stringify(rec, null, 2));
   });
 
-  for (const s of Object.keys(SCENES) as Scene[]) {
+  for (const s of RECORDED) {
     it.skipIf(process.env.P16_RECORD === "1")(
       `every line drawn before P16 is still drawn (${s})`, async () => {
-        const before = BEFORE_P16[s];
+        const before = BEFORE_P16[s].map(retime);
         // NOT EMPTY, or the guard passes vacuously.
         expect(before.length).toBeGreaterThan(s === "estimate" ? 30 : 3);
         await draw(s);
@@ -157,20 +183,57 @@ describe("P16: one reading order", () => {
       expect(precedes(order[i - 1]!, order[i]!), `block ${i} after block ${i - 1}`).toBe(true);
   });
 
-  it("puts the caveats with the headline they qualify, above the reading", async () => {
+  it("folds the notes with the rest of the small print, closed by default", async () => {
     await draw("estimate");
-    const head = screen.getByText("ESTIMATE FOR THIS SPOT");
-    const disagree = screen.getByText("These gauges disagree by 46 points. That is a "
-      + "catchment doing more than one thing, and the range above is the honest answer "
-      + "rather than their average.");
-    const dam = screen.getByText("This water is controlled by a dam. The reading is real, "
-      + "but it follows a release schedule as much as the weather — a low river here can "
-      + "mean the gate is shut rather than that the country is dry.");
-    const reading = screen.getByText(readingHeading("Lead Creek near Town"));
-    for (const [a, b] of [[head, disagree], [disagree, dam], [dam, reading]] as const)
-      expect(precedes(a, b)).toBe(true);
+    const DISAGREE = "These gauges disagree by 46 points. That is a catchment doing more than "
+      + "one thing, and the range above is the honest answer rather than their average.";
+    const DAM = "This water is controlled by a dam. The reading is real, but it follows a "
+      + "release schedule as much as the weather — a low river here can mean the gate is "
+      + "shut rather than that the country is dry.";
+    // SHUT: the notes are not on screen.
+    expect(screen.queryByText(DISAGREE)).toBeNull();
+    expect(screen.queryByText(DAM)).toBeNull();
+    // OPEN: under the donor list, in the order they were said before P16, above the explainer.
+    openFold();
+    const fold = screen.getByRole("button", { name: CONDITIONS_WORDS.fold });
+    const order = [screen.getByText(CONDITIONS_WORDS.tapToChart), fold,
+                   screen.getByText(DAM), screen.getByText(DISAGREE),
+                   screen.getByText(CONDITIONS_WORDS.explainer), screen.getByText("SOURCES")];
+    for (let i = 1; i < order.length; i++)
+      expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
   });
 
+  it("folds the chart's disclaimer too, and says the run's time local and labelled", async () => {
+    await draw("forecast");
+    const DISCLAIMER = "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND "
+      + "INTERPRETATION.";
+    // The forecast IS drawn (its run line is under the chart) …
+    await waitFor(() => expect(screen.getByText(forecastRunLine(
+      { model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 }))).toBeTruthy());
+    expect(screen.getByText(
+      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook`))
+      .toBeTruthy();
+    // … and its disclaimer is in the fold, not under the chart.
+    expect(screen.queryByText(DISCLAIMER)).toBeNull();
+    openFold();
+    const disclaimer = screen.getByText(DISCLAIMER);
+    expect(precedes(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }), disclaimer))
+      .toBe(true);
+    expect(precedes(disclaimer, screen.getByText("SOURCES"))).toBe(true);
+  });
+
+  it("re-says only the record's UTC times, and each as the same instant", () => {
+    // The declared change touches the time lines and nothing else …
+    const changed = BEFORE_P16.estimate.filter((l) => retime(l) !== l);
+    expect(changed).toEqual(["This gauge's own reading · observed 2026-09-04 06:00 UTC · "
+                             + "checked 5 min ago"]);
+    // … and prints no UTC of its own unless the reader's zone is UTC.
+    expect(retime(changed[0]!)).toBe("This gauge's own reading · observed "
+      + `${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`);
+  });
+
+  // ONE IN THE PANEL. That the map offers none of its own is pinned in MapScreen.test.tsx,
+  // where the corner control was; together they are the app's "exactly one".
   it("has exactly one horizon control", async () => {
     await draw("estimate");
     for (const chip of ["Now", "+1d", "+3d", "+5d"])

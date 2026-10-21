@@ -263,14 +263,15 @@ describe("the chart's words", () => {
     expect(noChartSentence("72h")).toBe("This station published no recent readings.");
   });
 
-  it("names a forecast run, its issue time in labelled UTC", () => {
+  it("names a forecast run, its issue time local and labelled (P16)", () => {
+    const VAN = "America/Vancouver";
     expect(forecastRunLine({ model: "CLEVER", issuedAt: "2026-09-04T06:00:00Z",
-                             horizonDays: 10 }))
-      .toBe("CLEVER run issued 2026-09-04 06:00 UTC · 10-day outlook");
-    // An offset is converted, not printed as if it were UTC.
-    expect(forecastRunLine({ model: "ELF", issuedAt: "2026-09-04T06:00:00-07:00",
-                             horizonDays: 30 }))
-      .toBe("ELF run issued 2026-09-04 13:00 UTC · 30-day outlook");
+                             horizonDays: 10 }, VAN))
+      .toBe("CLEVER run issued 2026-09-03 at 23:00 PDT · 10-day outlook");
+    // An offset is converted to the reader's zone, not printed as if it were theirs.
+    expect(forecastRunLine({ model: "ELF", issuedAt: "2026-09-04T06:00:00-04:00",
+                             horizonDays: 30 }, VAN))
+      .toBe("ELF run issued 2026-09-04 at 03:00 PDT · 30-day outlook");
     expect(forecastRunLine({ model: "ELF", issuedAt: "garbage", horizonDays: 30 }))
       .toBe("ELF run · 30-day outlook");
     expect(forecastChartLabel({ model: "CLEVER", horizonDays: 10 })).toBe("CLEVER · 10 days");

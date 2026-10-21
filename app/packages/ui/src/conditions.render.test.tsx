@@ -6,11 +6,12 @@
  * components used to make inline — which row is the lead station, which sentences appear,
  * the chosen day rather than the clock — and that every string arrives finished.
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { donorBecause, donorFacts, donorKeyLabel, donorPinTitle, donorReads, donorReason,
          donorRowLabel, donorWeightLine, estimateHeadline, estimateRange, estimateSentence,
-         HORIZON_LABELS, horizonChipLabel, noGaugeSentence, readingHeading,
+         freshness, HORIZON_LABELS, horizonChipLabel, localStamp, noGaugeSentence,
+         readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache, donorView, useConditionsView, type DonorRow,
@@ -153,9 +154,23 @@ describe("useConditionsView", () => {
       stage: stageLine(1.2),
       standing: readingStandingLine(0.15, "below"),
     });
-    expect(vm.reading?.age).toMatch(/^This gauge's own reading · observed 2026-09-04 06:00 UTC · checked \d+ min ago$/);
+    // LOCAL AND LABELLED (P16): the same instant, in the reader's clock with its zone named.
+    expect(vm.reading?.age).toBe(readingAgeLine(freshness(Date.now() - 5 * 60_000, Date.now()),
+                                                "2026-09-04T06:00:00Z"));
+    expect(vm.reading?.age).toContain(`observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · `);
     expect(vm.noGauge).toBe(noGaugeSentence());
     expect(vm.trace).toBeNull();          // the panel answered, so no single-station fallback
+  });
+
+  it("reads no series for the reading: the chart asks for its own (P16, the unused fetch)", async () => {
+    // `useConditions` and `useStationReading` each fetched the station's 72-hour series for a
+    // `forecast` field nothing read — the chart has `useSeries`. A reading is a reading.
+    const gaugeSeries = vi.fn(async () => null);
+    const { result } = renderHook(() =>
+      useConditionsView({ ...source, gaugeSeries } as RegsSource, SEC, DAY, 0,
+                        { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
+    expect(gaugeSeries).not.toHaveBeenCalled();
   });
 
   it("moves to a station the reader picks", async () => {

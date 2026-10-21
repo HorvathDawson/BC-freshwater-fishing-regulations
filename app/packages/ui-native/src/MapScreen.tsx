@@ -16,7 +16,7 @@ import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, camera,
-                            onLayers, onPressFeature, onMoved, onMapPoint, horizons,
+                            onLayers, onPressFeature, onMoved, onMapPoint,
                             highlight, marker, data, gauges, onVisible, onError,
                             fit, basemap }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -40,8 +40,6 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
   marker?: { lat: number; lon: number } | null;
   camera: Camera;
   onLayers?: () => void;
-  /** Forecast horizons. Present only on the Conditions tab. */
-  horizons?: { days: readonly number[]; value: number; onPick: (d: number) => void };
   onError?: (e: Error) => void;
   /** Send the camera to a chosen water — see MapProps.fit. */
   fit?: MapProps["fit"];
@@ -58,38 +56,14 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, camer
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left
-        here is the chrome that is genuinely ours: the forecast horizons and the layers —
-        neither of which MapLibre has an opinion about.
+        here is the chrome that is genuinely ours: the layers button, which MapLibre has no
+        opinion about.
 
-        The horizons have the top-left corner to themselves, on the Conditions tab only:
-        conditions are NOW, and what a person wants there is where the water is heading.
-        (The corner used to hold a date pill, which existed for seasonal regulations; it went
-        with them.)
+        NO HORIZONS IN THE CORNER (P16 item 2). They sat here on the Conditions tab, a second
+        copy of the control the Conditions panel puts in its header, with its labels typed in
+        a second time. One horizon control, in the panel header; the corner is empty. (It
+        held a date pill before that, for seasonal regulations; it went with them.)
       */}
-      {horizons && (
-        <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 6 }}>
-          {horizons.days.map((d) => {
-            const on_ = d === horizons.value;
-            return (
-              <Pill key={d} palette={palette} onPress={() => horizons.onPick(d)}
-                    // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map
-                    // at 13px, and a text-colour change alone is not a state a reader
-                    // notices — the whole map is repainted by this control, so which one
-                    // is on has to be readable at a glance and from the corner of an eye.
-                    style={on_ ? { backgroundColor: palette.accent,
-                                   borderColor: palette.accent } : undefined}
-                    label={(d === 0 ? "Conditions now"
-                                    : `Forecast ${d} day${d === 1 ? "" : "s"} ahead`)
-                           + (on_ ? ", showing" : "")}>
-                <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
-                               color: on_ ? palette.onAccent : palette.ink }}>
-                  {d === 0 ? "Now" : `+${d}d`}
-                </Text>
-              </Pill>
-            );
-          })}
-        </View>
-      )}
 
       {/* NO satellite button here. MapLibre's own control stack lives in this corner and
           ours overlapped it — and the choice already exists in the Layers sheet under

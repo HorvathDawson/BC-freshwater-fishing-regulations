@@ -45,6 +45,34 @@ export function localDateTime(ms: number): string {
 }
 
 /**
+ * "2026-09-03 at 23:00 PDT" — an instant in the reader's own clock, NAMED (P16).
+ *
+ * Every time on the Conditions screen is said this one way: the same day-and-minute as `localDateTime`, plus the
+ * zone it is in, so a reading's "observed" and a forecast's "issued" can be read against each other and against the
+ * reader's watch. They printed UTC, which is right and which nobody standing on a river is keeping.
+ *
+ * `zone` is for tests (an IANA name); left out, it is the device's own. Where the runtime has no `Intl` time zone
+ * names the label falls back to the offset ("UTC−7") — still labelled, never bare.
+ */
+export function localStamp(ms: number, zone?: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZoneName: "short",
+    }).formatToParts(new Date(ms));
+    const part = (t: string) => parts.find((p) => p.type === t)?.value;
+    const [y, mo, d, h, mi, tz] = ["year", "month", "day", "hour", "minute", "timeZoneName"].map(part);
+    if (y && mo && d && h && mi && tz) return `${y}-${mo}-${d} at ${h}:${mi} ${tz}`;
+  } catch {
+    // No Intl, or no zone data: the device's own clock and its offset, below.
+  }
+  const off = -new Date(ms).getTimezoneOffset();
+  const hh = Math.floor(Math.abs(off) / 60), mm = Math.abs(off) % 60;
+  const label = off === 0 ? "UTC" : `UTC${off < 0 ? "−" : "+"}${hh}${mm ? `:${pad2(mm)}` : ""}`;
+  return `${localDateTime(ms)} ${label}`;
+}
+
+/**
  * The `n` LOCAL days before a visit, oldest first — "the week leading up to it" (S1).
  *
  * The visit day itself is NOT one of them: its hour already has the weather window and the reading, and half a day

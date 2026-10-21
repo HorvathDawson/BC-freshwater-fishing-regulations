@@ -9,6 +9,8 @@
  * a stale answer must never be rendered as a live one (13-build-plan §5).
  */
 
+import { localStamp } from "./day";
+
 export * from "./flow";
 export * from "./trace";
 export * from "./ladder";
@@ -56,10 +58,11 @@ const agoWords = (ms: number): string => {
  * The line under a gauge reading (P02): when it was observed, and how old our copy is. An unknown age says so; it
  * is never shown as live. `observedAt` is the reading's own ISO time, left out when missing or malformed.
  */
-export function readingAgeLine(f: Freshness, observedAt: string | null): string {
+export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: string): string {
   const parts = ["This gauge's own reading"];
   const t = observedAt ? Date.parse(observedAt) : NaN;
-  if (Number.isFinite(t)) parts.push(`observed ${new Date(t).toISOString().replace("T", " ").slice(0, 16)} UTC`);
+  // LOCAL AND LABELLED (P16): the reader's clock, with its zone named — see `localStamp`.
+  if (Number.isFinite(t)) parts.push(`observed ${localStamp(t, zone)}`);
   parts.push(f.state === "unknown" ? "age unknown"
     : f.state === "live" ? `checked ${agoWords(f.ageMs)}`
     : `last checked ${agoWords(f.ageMs)}, may be out of date`);

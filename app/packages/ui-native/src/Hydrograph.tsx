@@ -12,12 +12,10 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 export function Hydrograph({ shape, palette, colour, label, caption, unit,
-                             disclaimer, forecastLabel }:
+                             forecastLabel }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
     /** What this chart is actually showing. Never a fixed sentence — see below. */
     caption?: string; unit?: string;
-    /** The forecast provider's own disclaimer, verbatim. Shown only with a forecast. */
-    disclaimer?: string | null;
     /** e.g. "ELF · 30 days" — which model is drawing the dashes. */
     forecastLabel?: string }) {
   const { box } = shape;
@@ -141,13 +139,8 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
         {unit ? ` Values in ${unit}.` : ""}
       </Text>
 
-      {/* THE CENTRE'S OWN WORDS, verbatim, out of the CSV header — required wherever a
-          forecast appears and not ours to paraphrase. Shown only when one is on screen. */}
-      {shape.forecast && disclaimer && (
-        <Text style={{ fontSize: 10.5, color: palette.faint, marginTop: 6, lineHeight: 15 }}>
-          {disclaimer}
-        </Text>
-      )}
+      {/* THE CENTRE'S OWN WORDS (the CSV header's disclaimer) are drawn by the caller, in
+          the Conditions fold, while a forecast is on screen (P16 item 3). */}
     </View>
   );
 }

@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
 import { decodeStatusIndex, monthAbbr, statusOn } from "@app/core";
 import type {
-  BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
+  BundleCounts, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
@@ -78,11 +78,6 @@ export interface Conditions {
   fetchedAt: number | null;
   /** The reading's own observation time (ISO), or null when the feed does not say (P02). */
   observedAt: string | null;
-  /**
-   * The model run behind the chart's ribbon — for the issue time, the model's name and its
-   * provider's disclaimer, none of which belong to the reading beside it.
-   */
-  forecast: Forecast | null;
   /** The reaches between here and the station that measures it. */
   trace: readonly SectionId[];
 }
@@ -92,7 +87,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
     async (): Promise<Conditions> => {
       const empty: Conditions = {
         station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [], forecast: null,
+        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
       };
       if (!section) return empty;
       const link = await source.gaugeForSection(section);
@@ -101,12 +96,11 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
       // "none" band to test for, and testing for one implied the row existed and was
       // labelled. Returning its number anyway is the failure this path exists to prevent.
       if (!link) return empty;
-      const [now, trace, series] = await Promise.all([
+      // NO SERIES HERE (P16). This fetched the station's 72-hour series for the model run
+      // behind it, and nothing read the answer: the chart asks for its own (`useSeries`).
+      const [now, trace] = await Promise.all([
         source.gaugeNow(link.station),
         source.traceToGauge(section),
-        // Asked for the STATION's own quantity, because this is about the run rather than
-        // about a chart: which model, issued when, under whose disclaimer.
-        source.gaugeSeries(link.station, "72h"),
       ]);
       return {
         station: link.station, stationName: link.name, trust: link.trust, trace,
@@ -116,7 +110,6 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
         standing: now?.value.standing ?? null,
         fetchedAt: now?.fetchedAt ?? null,
         observedAt: now?.value.at || null,
-        forecast: series?.value.forecast ?? null,
       };
     },
     `conditions:${section}`,
@@ -163,13 +156,11 @@ export function useStationReading(
     async (): Promise<Conditions> => {
       const empty: Conditions = {
         station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [], forecast: null,
+        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
       };
       if (!station) return empty;
-      const [now, series] = await Promise.all([
-        source.gaugeNow(station),
-        source.gaugeSeries(station, "72h"),
-      ]);
+      // The reading only — see `useConditions`: the chart reads its own series.
+      const now = await source.gaugeNow(station);
       if (!now) return { ...empty, station };
       return {
         // `trust` and `trace` belong to a reach-to-station RELATIONSHIP, and there is none
@@ -182,7 +173,7 @@ export function useStationReading(
         station, stationName: null, trust: null, trace: [],
         discharge: now.value.discharge, level: now.value.level,
         percentile: now.value.percentile, standing: now.value.standing,
-        fetchedAt: now.fetchedAt, observedAt: now.value.at || null, forecast: series?.value.forecast ?? null,
+        fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
       };
     },
     `reading:${station ?? ""}#${tick}`,
@@ -417,8 +408,10 @@ function axisLabels(at: readonly string[], ahead: readonly string[],
   const hours = (t1 - t0) / 3_600_000;
   const fmt = (t: number): string => {
     const d = new Date(t);
-    const day = `${d.getUTCDate()} ${monthAbbr(d.getUTCMonth())}`;
-    return hours <= 72 ? `${day} ${String(d.getUTCHours()).padStart(2, "0")}h` : day;
+    // THE READER'S CLOCK (P16), as every other time on the Conditions screen: a tick at
+    // "06h" in UTC is 11 p.m. the evening before in BC.
+    const day = `${d.getDate()} ${monthAbbr(d.getMonth())}`;
+    return hours <= 72 ? `${day} ${String(d.getHours()).padStart(2, "0")}h` : day;
   };
   return [0, 0.25, 0.5, 0.75, 1].map((f) => fmt(t0 + (t1 - t0) * f));
 }

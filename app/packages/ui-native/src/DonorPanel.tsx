@@ -19,12 +19,13 @@
  * ONE READING ORDER (P16). The panel is laid out top to bottom as a reader asks:
  *
  *   header     the horizon control — the one place a reader changes "when"
- *   headline   what the water is doing, the range, and the caveats that qualify it
+ *   headline   what the water is doing, and the range
  *   `detail`   the lead gauge's own reading (the caller's), as the headline's detail rows
  *   `chart`    the lead gauge's hydrograph (the caller's)
  *   donors     the map, its key, and one row per gauge
- *   fold       "Counts this much because…", the explainer, and `foot` (the credits) —
- *              closed by default, the words unchanged
+ *   fold       "Counts this much because…", the notes (a short record, a dam, a
+ *              disagreement), the explainer, and `foot` (the chart's disclaimer and the
+ *              credits) — closed by default, the words unchanged
  *
  * The caller's blocks are SLOTS rather than siblings so the order is decided here, once:
  * stacked as siblings, the reading and the trace sat between the donor list and the chart
@@ -85,7 +86,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   detail?: ReactNode;
   /** Drawn between the headline and the donor list: the lead gauge's chart. */
   chart?: ReactNode;
-  /** Drawn last, inside the fold: the data credits. */
+  /** Drawn last, inside the fold: the chart's disclaimer and the data credits. */
   foot?: ReactNode;
 }) {
   /*
@@ -131,8 +132,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
     // Measured on the ROOT, which renders on the first pass — so the width is known before
     // the map mounts and the map never has to remount to be framed correctly.
     <View style={{ gap: SPACE.s4 }} onLayout={onLayout}>
-      {/* THE PANEL HEADER: the one horizon control, in the same days and order as the
-          map's own corner control. Above the headline it changes, never under it. */}
+      {/* THE PANEL HEADER: the app's one horizon control (P16 item 2 — the map's corner
+          copy is gone), core's HORIZONS. Above the headline it changes, never under it. */}
       {onHorizon && (
         <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
           {vm.horizons.map((h) => (
@@ -166,15 +167,6 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         </Text>
         <Text style={{ ...TYPE.body, color: palette.ink }}>{vm.sentence}</Text>
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.range}</Text>
-        {/* THE CAVEATS ON THE HEADLINE — a disagreement, a dam, a short record — sit with
-            the number they qualify, for the reader deciding whether to trust it. */}
-        {(vm.disagree || vm.regulated || vm.shortRecord) && (
-          <View style={{ gap: SPACE.s2, marginTop: SPACE.s1 }}>
-            {vm.disagree && <Caveat palette={palette} tone={palette.restricted}>{vm.disagree}</Caveat>}
-            {vm.regulated && <Caveat palette={palette} tone={palette.line2}>{vm.regulated}</Caveat>}
-            {vm.shortRecord && <Caveat palette={palette} tone={palette.line2}>{vm.shortRecord}</Caveat>}
-          </View>
-        )}
       </Block>
 
       {detail && <Block palette={palette}>{detail}</Block>}
@@ -259,8 +251,9 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         </View>
       </Block>
 
-      {/* THE WORKING'S WORKING, closed: why each gauge counts what it counts, how the
-          answer is carried, and whose data it is. Every word as before, one tap away. */}
+      {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
+          the notes that qualify the answer, how it is carried, and whose data it is. Every
+          word as before, in the order it was said before, one tap away. */}
       <Fold palette={palette}>
         {because.map((r) => (
           <View key={r.station} style={{ gap: SPACE.s1 }}>
@@ -268,6 +261,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
             <Text style={{ ...TYPE.meta, color: palette.sub }}>{r.because}</Text>
           </View>
         ))}
+        {/* A SHORT RECORD, A DAM, A DISAGREEMENT — each said once, plainly, marked by a rule
+            on its left; a disagreement in the restricted tone, the others a hairline. */}
+        {vm.shortRecord && <Caveat palette={palette} tone={palette.line2}>{vm.shortRecord}</Caveat>}
+        {vm.regulated && <Caveat palette={palette} tone={palette.line2}>{vm.regulated}</Caveat>}
+        {vm.disagree && <Caveat palette={palette} tone={palette.restricted}>{vm.disagree}</Caveat>}
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.explainer}</Text>
         {foot}
       </Fold>
@@ -301,7 +299,7 @@ export function Block({ palette, children, first }: {
   );
 }
 
-/** A note that qualifies the headline, marked by a rule on its left. */
+/** A note that qualifies the answer, marked by a rule on its left. */
 function Caveat({ palette, tone, children }: {
   palette: Palette; tone: string; children: ReactNode;
 }) {

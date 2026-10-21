@@ -56,7 +56,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   from?: { lat: number; lon: number } | null;
   scroll?: boolean;
   footer?: React.ReactNode;
-  /** How far ahead the estimate is for — 0 is now. Kept in step with the map's control. */
+  /** How far ahead the estimate is for — 0 is now. The caller (Shell) holds it. */
   horizon?: Horizon;
   /** Set the horizon from the sheet — see DonorPanel. Absent, the chips are not offered. */
   onHorizon?: (d: Horizon) => void;
@@ -158,12 +158,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
         </View>
       )}
-      {/* The chart's disclaimer stays WITH the chart (inside `Hydrograph`), not in the
-          fold: the Province's notice belongs wherever its forecast is drawn. */}
+      {/* The chart's disclaimer is in the fold (P16 item 3) — see `small` below. */}
       {chart.state === "ready" && chart.value && (
         <Hydrograph shape={chart.value} palette={palette} colour={tint}
                     unit={UNIT[shown]}
-                    disclaimer={run?.disclaimer ?? null}
                     forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
                     label={chartLabel(span)}
                     caption={chartCaption(span)} />
@@ -171,7 +169,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {chart.state === "ready" && !chart.value && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
       )}
-      {/* WHEN the run was made, beside what it says — in labelled UTC. */}
+      {/* WHEN the run was made, beside what it says — local and labelled (core). */}
       {run?.series && run.issuedAt && (
         <Text style={{ ...TYPE.meta, color: palette.faint }}>
           {forecastRunLine({ model: run.model, issuedAt: run.issuedAt,
@@ -181,16 +179,28 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     </View>
   ) : null;
 
+  /*
+   * THE FOLD'S FOOT: the Centre's disclaimer, verbatim, while its forecast is drawn — the
+   * same condition the chart drew it under — then the credits. In the fold and still on
+   * the screen the forecast is on (P16 item 3; the owner's call, see p16/README).
+   */
+  const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
+  const small = disclaimer || credits?.length ? (
+    <>
+      {disclaimer && <Text style={{ ...TYPE.meta, color: palette.faint }}>{disclaimer}</Text>}
+      {credits?.length ? <Credits palette={palette} lines={credits} /> : null}
+    </>
+  ) : undefined;
+
   /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
-     donors → the fold (which holds the credits). */
+     donors → the fold (which holds the disclaimer and the credits). */
   const body = (
     <>
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
                   chain={vm.chain} data={vm.routeData} onHorizon={onHorizon}
                   detail={detail} chart={graph}
-                  foot={credits?.length
-                          ? <Credits palette={palette} lines={credits} /> : undefined} />
+                  foot={small} />
       {footer}
     </>
   );
