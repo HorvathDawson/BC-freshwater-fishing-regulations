@@ -84,8 +84,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   answers): drop r7 from r5's curated `exempts` (find where the export reads them: pipeline/deliver/bundle/read.py
   _rules_of), flip test DEC1_HATCHERY_ST_CURRENT to the ruling, then ONE `deliver all` for both rulings.
 - OWNER 2026-10-21: the Map tab's faster painting (AP) is "very good" — do the same for the CONDITIONS map.
-  Workflow conditions-colour-ap RUNNING (per-tile static labels: panel/basin; the changing standings+horizon in the
-  style or a small per-panel set; measured before/after; native path kept).
+  OWNER: ONE colouring pathway for both map views (generalise ProfileColouring into one engine, modes status +
+  standing; audit other Map-vs-Conditions divergences), and colours must update from a NEW FEED ALONE (no tile
+  change, no data release). Workflow conditions-colour-ap RESTARTED with both as requirements.
 - Tier 2 on r-7b6e802bf22b: everything green (fast 3839, slow 266, card gate, release parity, placeable, checks)
   except 2 fast tests pinned to the pre-ruling Kitimat; fixed (feb release names ST; exemption inventory). OPEN: the
   page-bug "count comparison drops a 2-fish release" mutation lost its Kitimat witness — find another water.
