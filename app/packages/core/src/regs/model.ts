@@ -149,14 +149,15 @@ export interface PlainRowVM {                                         // golden 
   readonly row: number; readonly title: string;
   readonly pill: { kind: "release" | "closed"; text: string; term: string } | null;
   readonly scope: string | null; readonly sum: string | null;
-  readonly week: { says: string; parts: readonly { days: string; says: string; today: boolean; book: Line }[] } | null;
+  readonly week: { status: string | null; says: string; parts: readonly { days: string; says: string; today: boolean; book: Line }[]; notes: readonly Line[] } | null;   // (T19b) + status, notes (page v36 weekHtml)
   readonly presence: Line | null; readonly names: string | null;
+  readonly whichFish: string | null;        // (T19b) the folded "Which fish (N)" label when the names are > 5, else null
   readonly release: { names: string; pictures: readonly FishPicVM[] } | null;   // prototype krel28
   readonly ladder: LadderVM; readonly more: { text: string; open: SheetKey };
 }
 export interface LadderVM {                                           // "How this was decided" (page v36 ladderHtml)
   readonly label: string;
-  readonly sections: readonly { q: string; result: string | null; steps: readonly LadderStepVM[] }[];
+  readonly sections: readonly { q: string | null; result: string | null; steps: readonly LadderStepVM[] }[];   // q null: the members form (T36's other: sheet)
   readonly lost: readonly { text: string; status: string; rule: RuleKey; book: Line }[];
 }
 export interface CaveatVM {                                           // page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (T15b)
@@ -242,6 +243,7 @@ export type SheetBlock =
   | { k: "link"; line: Line }
   | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] };
 export interface LadderStepVM { readonly level: string;
-  readonly lines: readonly { text: Line; tag: string | null; rule: RuleKey | null; won: boolean; applies: readonly string[]; book: Line; today?: boolean; days?: string }[] }
+  readonly lines: readonly { text: Line; tag: string | null; rule: RuleKey | null; won: boolean; applies: readonly string[]; book: Line; today?: boolean; days?: string;
+    notes?: readonly string[] }[] }   // (T19b) notes: the data's restates notes under a winning line (prototype buildKeep rnote)
 export interface SourceRowVM { readonly key: RuleKey | null; readonly title: string | null; readonly quote: string; readonly role: string; readonly book: Line }
 export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day }

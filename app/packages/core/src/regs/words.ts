@@ -103,12 +103,67 @@ export const WORDS = Object.freeze({
   NO_RULE: "no rule", ANSWER_NOLIMIT: "no limit", ANSWER_RELEASE: "release", ANSWER_CLOSED: "closed",
   OTHER_HOURS: "other hours",
   MISSING_CLOSER: (when: string) => "Missing from the answers file: the closure that closes it " + when,
+  // T19b plainrow.ts: page v36 rowHtml / valueHtml (the pill), summaryHtml (!pool), runTxt, closedRuns, weekHtml, namedIn
+  PILL_RELEASE: "↩ Release", PILL_CLOSED: "⊘ Closed", PILL_NOLIMIT: "No limit",
+  SUM_CLOSED: (until: string) => "Don’t fish for them" + until + ". If one bites, carefully release it.",
+  SUM_RELEASE: (until: string) => "You can fish for them, but release every one" + until + ".",
+  UNTIL: (d: string) => " until " + d,
+  NEVER_KEEP: "No keeping at any time of year. ",
+  ALL_YEAR_SENT: "All year.",
+  WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
+  CLOSED_RANGE: (r: string) => "Closed " + r + ".",
+  NEXT_YEAR: " next year",
+  KEEP_UNTIL_THEN: (until: string, then: string, next: string) => "You can keep them until " + until + ". Then " + then + " from " + next + ".",
+  NOW_UNTIL: (now: string, until: string) => now + " until " + until + ".",
+  THEN_WHOLE: (r: string) => " Then the whole water is closed " + r + ".",
+  THEN_RANGE: (then: string, r: string) => " Then " + then + " " + r + ".",
+  KEEP_FROM: (next: string) => " You can keep them from " + next + ".",
+  NO_KEEP_TAIL: " No keeping at any time of year.",
+  NAMES_SEP: " · ",
+  WHICH_FISH: (n: number) => "Which fish (" + n + ")",
+  TODAY_MARK: "(today)",
+  // T19b decided.ts: page v36 ladderHtml / rowSources / levelHead / byName / shortLabel ("How this was decided")
+  DECIDED: "How this was decided",
+  CHECK: "✓ ",
+  RES_CLOSED: "Closed here.", RES_RELEASE: "Release every one here.", RES_NOLIMIT: "No daily limit here.",
+  RES_POOL: (daily: string) => daily + " a day here",
+  RES_COUNT_TOWARD: (take: string, scope: string) => ", and they count toward " + take + " a day in " + scope,
+  RES_ALL_OF: (scope: string) => ", for all of " + scope + " together",
+  RULES_NOT_APPLY: (n: number) => "Rules that don’t apply here (" + n + ")",
+  DOESNT_APPLY: "Doesn’t apply",
+  REPLACED_BY: (by: string) => "Replaced by " + by,
+  RECORD_IT: "Record it", STOP_FISHING: "Stop fishing", TAG_CLOSED: "Closed", TAG_RELEASE: "Release",
+  BY_WATER: (noun: string) => "this " + noun + "’s rule",
+  BY_REGION: (name: string) => "the " + name + " rule",
+  REGION: "region", BY_BC: "a B.C.-wide rule", BY_ABOVE: "a rule above",
+  THE_REGION: "The region", THIS_WATER: "This water",
+  MISSING_SUBSET: (key: string, fish: string) => "Missing from the answers file: the sentence for " + key + " said for " + fish + " (display.rules[].subsets)",
+  // page v36 shortLabel's rewrites (the label shortened for the ladder; the exact words stay in the rule sheet)
+  SHORT_A_DAY: " a day", SHORT_CM_PLUS: "$1 cm+", SHORT_MAX_OVER: ": max $1 over $2 cm", SHORT_HOLD: "hold up to 2 days’ limits", SHORT_COLON: ": ",
 } as const);
 
 /** page v36 RANK[rank].t: the level a rule speaks at (the part's rank). */
 export const RANK_LEVEL: Readonly<Record<string, string>> = Object.freeze({
   "-1": "Federal / parks", "0": "This water", "1": "From downstream", "2": "Named area", "3": "Region", "4": "Province",
 });
+/** "How this was decided" tables (page v36 ladderHtml SAYS / LOSES, levelHead, the four questions), verbatim. */
+export const LADDER_Q: readonly (readonly [string, readonly string[]])[] = Object.freeze([
+  Object.freeze(["What you can keep", Object.freeze(["governs", "contains", "narrows", "also"])] as const),
+  Object.freeze(["Size", Object.freeze(["floor"])] as const),
+  Object.freeze(["Other limits", Object.freeze(["limit"])] as const),
+  Object.freeze(["Other rules", Object.freeze(["season", "possession_cap", "duty", "possession"])] as const),
+]);
+export const SAYS: Readonly<Record<string, string>> = Object.freeze({ governs: "Daily limit", contains: "Daily limit", narrows: "Lower daily limit",
+  also: "Also applies", floor: "Size", limit: "Extra cap", season: "Yearly limit", possession_cap: "Possession limit", duty: "Must do",
+  possession: "Carry limit" });
+export const LOSES: Readonly<Record<string, string>> = Object.freeze({ replaced: "Replaced", agrees: "Same as another rule",
+  falls: "Not needed here", moot: "Doesn’t matter today", lifted: "Replaced" });
+/** page v36 levelHead for ranks 4, 3, 2, 1, -1 (rank 0 is the water's name). */
+export const LEVEL_HEAD: Readonly<Record<string, string>> = Object.freeze({ "4": "All of B.C.", "3": "The region", "2": "A named area",
+  "1": "Downstream waters", "-1": "Federal law" });
+/** page v36 runTxt's NOW / THEN tables. */
+export const RUN_NOW: Readonly<Record<string, string>> = Object.freeze({ release: "Release only", closed: "Closed", keep: "You can keep them", none: "No rule" });
+export const RUN_THEN: Readonly<Record<string, string>> = Object.freeze({ release: "release only", closed: "closed", keep: "you can keep them", none: "no rule" });
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
@@ -126,6 +181,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...(Object.values(WORDS) as unknown[]).filter((v): v is (x: never) => string => typeof v === "function").flatMap(fragments),
   ...WD3, ...MONTH1,
   ...Object.values(RANK_LEVEL),
+  // (T19b) the ladder / run tables
+  ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN].flatMap((t) => Object.values(t)),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

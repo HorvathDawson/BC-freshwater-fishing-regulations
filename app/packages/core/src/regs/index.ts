@@ -23,3 +23,6 @@ export * from "./header";
 export * from "./book";
 export * from "./standing";
 export * from "./caveats";
+export * from "./decided";
+export * from "./plainrow";
+export * from "./fish.generated";
