@@ -118,8 +118,10 @@ the spec's mapping, not the app, must change first):
 `REGS_PARITY=province|fixture|auto` (default auto) picks the live release paired via the province regs.sqlite's
 `answers_sha256`, else the committed fixture release held to taps.json's section_handles/reach_digest/rule_ids_sha256 (+ the
 province answers when that store is here — the release meta has no `store_digest`). Use `parityGate()` for `describe.skipIf`.
-Golden is v38 @ bdda3586: `PINS_ERROR_IDS` is empty (the pins exclusion appears only when non-empty). `keep.strip` is excluded
-as PENDING until the pipeline ships the per-row year strip (owner rule 2026-10-21: read it from the store, never derive it).
+Golden is v38 @ bdda3586: `PINS_ERROR_IDS` is empty (the pins exclusion appears only when non-empty). `keep.strip` is
+compared (bar/legend/months/today/status are `display_frame.strip`, a store answer); only `strip.line`/`strip.lines` of the 11
+states with a "Trout …" line (`TROUT_LINE_IDS`) are excluded as PENDING until the pipeline ships the per-row year strip
+(owner rule 2026-10-21: read it from the store, never derive it).
 `writeVmFixtures` is `syncFixtures()` in `conformance/src/regs/fixtures.ts` (from T21). Loaders live in `oracles.ts`.
 
 **Run**: `pnpm -C app test -- regs` (all three layers' regs files); one block: `pnpm -C app vitest run conformance/src/regs/sheets.parity`.

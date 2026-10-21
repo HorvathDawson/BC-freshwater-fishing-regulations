@@ -10,6 +10,11 @@ import { golden } from "./oracles";
 export const PINS_ERROR_IDS: readonly string[] = Object.entries(golden().states)
   .filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
 
+/** The states whose golden keep.strip.line carries a "Trout …" line — the one strip part that needs a row's year strip. */
+export const TROUT_LINE_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => ((s.keep as { strip?: { line?: { text: string }[] } } | null)?.strip?.line ?? []).some((l) => /^Trout /.test(l.text)))
+  .map(([id]) => id);
+
 export interface Exclusion { block: Block; ids: readonly string[] | "*"; key?: RegExp; reason: string; until?: string }
 
 export const EXCLUDE: readonly Exclusion[] = [
@@ -24,9 +29,10 @@ export const EXCLUDE: readonly Exclusion[] = [
     until: "never — T36 test asserts the fold exists, closed, and that its first line starts with the key" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
-  { block: "keep", ids: "*", key: /^strip$/,
-    reason: "PENDING (owner rule 2026-10-21): the year strip (a row's per-day status) is the pipeline's answer — per rows_row a run-length [[status, days]] over the 365 book days — and is not in the store yet; it is read from the store, never derived in TS",
-    until: "the pipeline year strip (batch 7) is in the release" },
+  ...(TROUT_LINE_IDS.length ? [{
+    block: "keep" as const, ids: TROUT_LINE_IDS, key: /^strip\.lines?$/,
+    reason: "PENDING (owner rule 2026-10-21): the 'Trout …' line (page v36 runOf over speciesYear) is read from the pipeline's per-rows_row year strip — a run-length [[status, days]] over the 365 book days — which is not in the store yet; the rest of keep.strip (bar, legend, months, today, status) is display_frame.strip and IS compared; never derived in TS",
+    until: "the pipeline year strip (batch 7) is in the release" }] : []),
 ];
 
 /** The entry that excludes this state (and key), or null. A keyed entry never excludes a whole state. */

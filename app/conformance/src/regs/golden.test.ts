@@ -10,7 +10,7 @@ import { DatabaseSync } from "node:sqlite";
 import { afterAll, describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS } from "@app/core";
 import { liveReleaseAt } from "../fixtureRelease";
-import { chooseSource, fixtureVerdict, paritySkip, parityMode, provinceStoreAt, summary, taps } from "./golden";
+import { chooseSource, fixtureVerdict, paritySkip, parityMode, provinceStoreAt, resolveSource, summary, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -135,6 +135,23 @@ describe("T12 fixtureVerdict: the committed fixture is the oracles' store, or wh
   });
 });
 
+describe("T12 resolveSource: the committed fixture is held to the oracles' digests through the harness's own path", () => {
+  const store = taps().meta.store;
+  const facts = { section_handles: store.section_handles, reach_digest: store.reach_digest, rule_ids_sha256: store.rule_ids_sha256 };
+  it("REGS_PARITY=fixture over the committed fixture, paired: the fixture", async () => {
+    expect(await resolveSource({ REGS_PARITY: "fixture" }, { store: facts, provinceAnswers: () => null }))
+      .toEqual({ label: "fixture", dir: expect.stringMatching(/\/regs-release\/r-[0-9a-f]+$/), reason: null });
+  });
+  it("a digest the fixture does not carry is a refusal naming it, never a pairing", async () => {
+    expect(await resolveSource({ REGS_PARITY: "fixture" }, { store: { ...facts, reach_digest: "stale" }, provinceAnswers: () => null }))
+      .toEqual({ label: null, dir: null, reason: expect.stringMatching(/^REGS_PARITY=fixture: the regs fixture release has reach_digest .*, the oracles' store stale:/) });
+  });
+  it("province answers the fixture does not carry are a refusal", async () => {
+    expect(await resolveSource({ REGS_PARITY: "fixture" }, { store: facts, provinceAnswers: () => "f".repeat(64) }))
+      .toEqual({ label: null, dir: null, reason: expect.stringMatching(/^REGS_PARITY=fixture: the regs fixture release carries answers .*, the oracles' store ffffffffffff:/) });
+  });
+});
+
 describe("T12 chooseSource", () => {
   it("auto: province first, then the fixture, else both reasons", () => {
     expect(chooseSource("auto", null, null)).toEqual({ label: "province", reason: null });
@@ -152,7 +169,7 @@ describe("T12 chooseSource", () => {
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal");
-    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal · ^strip$ not compared (the pipeline year strip (batch 7) is in the release)");
+    expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal · ^strip\\.lines?$ not compared (the pipeline year strip (batch 7) is in the release)");
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal · ^parts$ not compared (permanent)"
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");
   });

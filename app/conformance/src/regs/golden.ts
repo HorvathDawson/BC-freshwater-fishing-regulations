@@ -201,23 +201,34 @@ const provinceAnswers = (): string | null => {
   finally { db.close(); }
 };
 
-let SOURCE: Promise<{ label: "province" | "fixture"; dir: string; reason: null } | { label: null; dir: null; reason: string }> | undefined;
-/** The store the harness reads (REGS_PARITY), decided once per test file. */
-export function paritySource(env: Env = process.env): NonNullable<typeof SOURCE> {
-  return (SOURCE ??= (async () => {
-    const mode = parityMode(env);
-    const province = mode === "fixture" ? "not asked" : (await releasePairing()).reason;
-    let fixture: string | null = "not asked";
-    if (mode !== "province" && province !== null) {
-      const dir = regsFixtureDir();
-      fixture = existsSync(`${dir}/manifest.json`)
-        ? fixtureVerdict((await regsStoreAt(dir)).meta, tapsOnce().meta.store, provinceAnswers())
-        : `no regs fixture release at ${dir}: run pnpm -C app regs-fixture`;
-    }
-    const c = chooseSource(mode, province, fixture);
-    if (c.label === null) return { label: null, dir: null, reason: c.reason };
-    return { label: c.label, dir: c.label === "province" ? liveRelease()! : regsFixtureDir(), reason: null };
-  })());
+type Source = { label: "province" | "fixture"; dir: string; reason: null } | { label: null; dir: null; reason: string };
+/** What the fixture is held to: taps.json's store digests, and the province store's answers (null when it is not here). */
+export interface SourceFacts {
+  readonly store: { section_handles: string; reach_digest: string; rule_ids_sha256: string };
+  readonly provinceAnswers: () => string | null;
+}
+
+/** The store the harness reads (REGS_PARITY), unmemoised: a fixture is paired only when `fixtureVerdict` says so. */
+export async function resolveSource(env: Env = process.env,
+                                    facts: SourceFacts = { store: tapsOnce().meta.store, provinceAnswers }): Promise<Source> {
+  const mode = parityMode(env);
+  const province = mode === "fixture" ? "not asked" : (await releasePairing()).reason;
+  let fixture: string | null = "not asked";
+  if (mode !== "province" && province !== null) {
+    const dir = regsFixtureDir();
+    fixture = existsSync(`${dir}/manifest.json`)
+      ? fixtureVerdict((await regsStoreAt(dir)).meta, facts.store, facts.provinceAnswers())
+      : `no regs fixture release at ${dir}: run pnpm -C app regs-fixture`;
+  }
+  const c = chooseSource(mode, province, fixture);
+  if (c.label === null) return { label: null, dir: null, reason: c.reason };
+  return { label: c.label, dir: c.label === "province" ? liveRelease()! : regsFixtureDir(), reason: null };
+}
+
+let SOURCE: Promise<Source> | undefined;
+/** The store the harness reads (REGS_PARITY), decided once per test file (`resolveSource`). */
+export function paritySource(env: Env = process.env): Promise<Source> {
+  return (SOURCE ??= resolveSource(env));
 }
 
 /** The harness's regs store (one per test file), or null — `paritySource()` says why. */

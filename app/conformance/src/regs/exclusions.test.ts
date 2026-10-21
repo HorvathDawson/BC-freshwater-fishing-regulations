@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { EXCLUDE, excluded, PINS_ERROR_IDS } from "./exclusions";
+import { EXCLUDE, excluded, PINS_ERROR_IDS, TROUT_LINE_IDS } from "./exclusions";
 import { golden, taps } from "./oracles";
 
 const G = golden(), T = taps();
@@ -39,7 +39,15 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$", "keep * ^strip$"]);
+      .toEqual(["sheets * ^parts$", "sheets * ^rule:", "header * ^place\\.shown$", "keep 11 ^strip\\.lines?$"]);
+  });
+});
+
+describe("TROUT_LINE_IDS", () => {
+  it("the 11 golden states whose keep.strip.line carries a 'Trout …' line (the only strip part a per-row year strip answers)", () => {
+    expect(TROUT_LINE_IDS).toEqual(["x5p1_1010", "x11p1_1010", "x15p8_1010", "x15p5_1010", "x15p13_1010", "x15p4_1010",
+                                    "x15p14_1010", "x15p15_1010", "x15p6_1010", "x21p0_1010", "x32p0_1010"]);
+    expect(Object.values(G.states).filter((s) => (s.keep as { strip?: unknown } | null)?.strip).length).toBe(133);
   });
 });
 
@@ -59,9 +67,14 @@ describe("excluded", () => {
     expect(excluded("header", "vedder_515", "place.full")).toBeNull();
   });
 
-  it("the year strip is PENDING on the pipeline, with that reason", () => {
-    expect(excluded("keep", "vedder_515", "strip")?.reason).toMatch(/^PENDING \(owner rule 2026-10-21\): the year strip .* never derived in TS$/);
+  it("keep.strip is compared (the water's display strip is a store answer); only the trout line of 11 states is PENDING", () => {
+    expect(excluded("keep", "x5p1_1010", "strip.line")?.reason).toMatch(/^PENDING \(owner rule 2026-10-21\): the 'Trout …' line .* never derived in TS$/);
+    expect(excluded("keep", "x5p1_1010", "strip.lines")?.reason).toMatch(/^PENDING/);
+    for (const k of ["strip", "strip.bar", "strip.legend", "strip.months", "strip.today", "strip.status", "strip.statusClass"])
+      expect(excluded("keep", "x5p1_1010", k), k).toBeNull();
+    expect(excluded("keep", "vedder_515", "strip.line")).toBeNull();
+    expect(excluded("keep", "vedder_515", "strip")).toBeNull();
     expect(excluded("keep", "vedder_515", "groups")).toBeNull();
-    expect(excluded("keep", "vedder_515")).toBeNull();
+    expect(excluded("keep", "x5p1_1010")).toBeNull();
   });
 });

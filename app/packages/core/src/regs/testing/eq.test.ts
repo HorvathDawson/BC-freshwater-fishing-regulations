@@ -32,6 +32,16 @@ describe("eqPlain", () => {
     ].join("\n") });
   });
 
+  it("actual a strict prefix of expected (a presenter that drops trailing lines) is a failure", () => {
+    expect(eqPlain(["a"], ["a", "b"])).toEqual({ ok: false, diff: [
+      "@@ line 2 @@",
+      '    "a"',
+      '  - "b"   (expected)',
+      'first difference at line 2 char 1: expected "b", got end-of-lines',
+    ].join("\n") });
+    expect(eqPlain([], ["a"]).ok).toBe(false);
+  });
+
   it("an extra expected line and a changed word", () => {
     expect(eqPlain(["x", "open"], ["x", "closed", "y"])).toEqual({ ok: false, diff: [
       "@@ line 2 @@",
