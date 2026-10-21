@@ -1,0 +1,107 @@
+/**
+ * The golden oracles, read from app/design/regs-v11/port/golden/ (tests.md §1.2). T05 starts this file with `golden()`,
+ * `taps()`, `provinceStore()` and their types; T12 adds `requestOf`, `inputsOf`, `cases`, `writeVmFixtures`.
+ *
+ * `provinceStore()` is the built regs store the oracles were cut from (`taps.json` `meta.store.store_digest`), read here
+ * over node:sqlite with T02's blob codec until T03/T04's store reads land and replace it. Looked for at $REGS_STORE, then
+ * this checkout's data/generated/bundle/regs.sqlite, then (in a `.claude/worktrees/<name>` checkout) the main checkout's —
+ * read-only. Absent, or a store whose digest is not the oracles' (a stale pairing), is a SKIP with its reason, never a fail.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
+import { fileURLToPath } from "node:url";
+import type { Moment, Weekday } from "@app/core";
+import { unpackBlob } from "@app/data/regs";
+
+const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
+const GOLDEN_DIR = `${REPO}app/design/regs-v11/port/golden/`;
+
+export interface GoldenSheet { title: string | null; sub: string | null; folds: { summary: string; open: boolean }[];
+  pages: { text: string; pdf: number | null }[]; lines: string[]; nested: string[] }
+export interface GoldenState { id: string; w: string; d: number; p: number; water: string; header: unknown; keep: unknown;
+  gear: unknown; methods: unknown; licence: Record<`${"adult" | "u16"}|${string}`, unknown>; sheets: Record<string, GoldenSheet | "@">; pins: unknown }
+export interface Cell { ladder: number; rows: number; gear: number; licence: number; display: number }
+export interface Tap { item: string; partIx: number; md: number; date: string /* "2026-05-15" */; weekday: Weekday;
+  item_ord: number; akey: number; seg: number; mom: number | null; nseg: number; starts: number[]; moments: Moment[] | null;
+  s: number; cell: Cell; displayByDay: number[] }
+/** A Feb 29 case (P06/D31): the date reads `readingDay` (59) on its own `weekday`, as `encode.tap_key` taps it. */
+export interface LeapTap { id: string; item: string; partIx: number; date: string; weekday: Weekday; readingDay: number; akey: number;
+  starts: number[]; moments: Moment[] | null; s: number; cell: Cell }
+export interface TapsMeta { generator: string; store: { format: string; section_handles: string; reach_digest: string;
+  rule_ids_sha256: string; store_digest: string; layout: string }; golden: string; version: string; year: number }
+
+let G: ReturnType<typeof golden> | undefined;
+/** golden.json (8.6 MB), read once per test file. */
+export function golden(): { meta: { sha: string; ref: string; version: string }; states: Record<string, GoldenState>; sheets: Record<string, GoldenSheet> } {
+  return (G ??= JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")));
+}
+
+export function taps(): { meta: TapsMeta; states: Record<string, Tap>; unnamed: { handle: number; akey: number; place: number; name: string }[];
+  leap: LeapTap[] } {
+  return JSON.parse(readFileSync(`${GOLDEN_DIR}taps.json`, "utf8"));
+}
+
+/** The store reads the tap parity needs (T04's `akey`/`segStarts`/`segMoments`/`cell`, by the same names). */
+export interface TapStore {
+  readonly path: string;
+  /** The part's akey (`part.akey` of the item's `item_ord`), or null for a part with no rule set. */
+  partAkey(item: string, partIx: number): number | null;
+  akey(akey: number): { seg: number; mom: number | null; nseg: number };
+  segStarts(seg: number): number[];
+  /** The key's moments (`segmom.ix` → `static answers.moments`), null when `mom` is null. */
+  segMoments(mom: number | null): Moment[] | null;
+  cell(akey: number, s: number): Cell;
+  statics(k: string): unknown;
+}
+
+/** Where the province store is, or why there is none to test against. */
+export function provinceStoreAt(): { path: string; reason: null } | { path: null; reason: string } {
+  const here = `${REPO}data/generated/bundle/regs.sqlite`;
+  const main = /\/\.claude\/worktrees\/[^/]+\/$/.test(REPO) ? `${REPO.replace(/\.claude\/worktrees\/[^/]+\/$/, "")}data/generated/bundle/regs.sqlite` : null;
+  const path = [process.env.REGS_STORE, here, main].find((p): p is string => !!p && existsSync(p));
+  if (!path) return { path: null, reason: "no regs store on this machine (REGS_STORE, data/generated/bundle/regs.sqlite)" };
+  const db = new DatabaseSync(path, { readOnly: true });
+  try {
+    const got = (db.prepare("SELECT v FROM meta WHERE k = 'store_digest'").get() as { v: string } | undefined)?.v;
+    const want = taps().meta.store.store_digest;
+    return got === want ? { path, reason: null }
+      : { path: null, reason: `${path} is store ${got}, the oracles were cut from ${want}: re-run app/design/regs-v11/port/taps.py` };
+  } finally { db.close(); }
+}
+export const hasProvinceRegs = (): boolean => provinceStoreAt().path !== null;
+
+/** The paired regs store, or null (skip; `provinceStoreAt().reason` says why). */
+export async function provinceStore(): Promise<TapStore | null> {
+  const at = provinceStoreAt();
+  if (!at.path) return null;
+  const db = new DatabaseSync(at.path, { readOnly: true });
+  const dicts = new Map<string, Uint8Array>();
+  for (const r of db.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]) dicts.set(r.tbl, r.d);
+  const statics = (k: string): unknown => {
+    const r = db.prepare("SELECT j FROM static WHERE k = ?").get(k) as { j: Uint8Array } | undefined;
+    if (!r) throw new Error(`regs store: no static ${k}`);
+    return unpackBlob(r.j, dicts.get("static") ?? null);
+  };
+  const moments = statics("answers.moments") as Moment[];
+  const one = <T>(sql: string, ...args: (number | string)[]): T => {
+    const r = db.prepare(sql).get(...args) as T | undefined;
+    if (r === undefined) throw new Error(`regs store: nothing for ${sql} ${JSON.stringify(args)}`);
+    return r;
+  };
+  const partQ = db.prepare("SELECT p.akey AS akey FROM item i JOIN str s ON s.id = i.item_id JOIN part p ON p.item_ord = i.item_ord " +
+    "WHERE s.text = ? AND p.part_ix = ?");
+  return {
+    path: at.path,
+    partAkey(item, partIx) {
+      const r = partQ.get(item, partIx) as { akey: number | null } | undefined;
+      if (!r) throw new Error(`regs store: no part ${item}#${partIx}`);
+      return r.akey;
+    },
+    akey: (k) => one("SELECT seg, mom, nseg FROM akey WHERE akey = ?", k),
+    segStarts: (seg) => JSON.parse(one<{ starts: string }>("SELECT starts FROM seglist WHERE seg = ?", seg).starts) as number[],
+    segMoments: (mom) => mom === null ? null
+      : (JSON.parse(one<{ ix: string }>("SELECT ix FROM segmom WHERE mom = ?", mom).ix) as number[]).map((i) => moments[i]!),
+    cell: (k, s) => ({ ...one<Cell>("SELECT ladder, rows, gear, licence, display FROM cell WHERE akey = ? AND s = ?", k, s) }),
+    statics,
+  };
+}

@@ -12,3 +12,4 @@ export * from "./time";
 export * from "./rules";
 export * from "./describe";
 export * from "./versions";
+export * from "./tap";
