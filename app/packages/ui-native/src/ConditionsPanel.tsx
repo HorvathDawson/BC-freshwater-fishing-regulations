@@ -22,11 +22,11 @@ import { useConditionsView, useGaugeParameters, useHydrograph, useSeries,
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
-import { DonorPanel } from "./DonorPanel";
+import { DonorPanel, Kicker } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { GUTTER, SPACE, type Palette } from "./theme";
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -100,100 +100,105 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     );
 
   const reading = vm.reading;
-  const body = (
-    <>
-      {/* THE ANSWER FIRST, THE EVIDENCE UNDER IT: the estimate for the spot is the answer
-          to the question asked; one gauge's reading below it is the working. */}
-      <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
-                  from={from} selected={station} onSelect={vm.select} horizon={horizon}
-                  chain={vm.chain} data={vm.routeData} onHorizon={onHorizon} />
 
+  /*
+   * THE HEADLINE'S DETAIL ROWS (P16): the lead gauge's own reading — or, where no gauge
+   * may speak, the sentence that says so — and the single-station trace where the panel
+   * could not answer (`vm.trace` is null otherwise). They used to stack under the donor
+   * list as two more answer-shaped blocks; here they are the working under the answer.
+   */
+  const detail = (
+    <>
       {reading ? (
-        <View style={{ gap: 6 }}>
+        <View style={{ gap: SPACE.s1 }}>
           {/* WHOSE READING THIS IS, before the number rather than under it. */}
-          <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                         color: palette.faint }}>
-            {reading.heading}
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10,
+          <Kicker palette={palette}>{reading.heading}</Kicker>
+          {/* ONE NUMBER STYLE: the figure and its unit in the figure face, side by side. */}
+          <View style={{ flexDirection: "row", alignItems: "baseline", columnGap: SPACE.s2,
                          flexWrap: "wrap" }}>
-            <Text style={{ ...TYPE.figureBig, fontSize: 34, color: tint }}>
-              {reading.figure}
-            </Text>
+            <Text style={{ ...TYPE.figureBig, color: tint }}>{reading.figure}</Text>
             <Text style={{ ...TYPE.figure, color: palette.sub }}>{reading.unit}</Text>
             {/* BOTH NUMBERS WHERE THERE ARE BOTH. */}
             {reading.stage && (
-              <Text style={{ ...TYPE.figure, fontSize: 13, color: palette.faint }}>
-                {reading.stage}
-              </Text>
+              <Text style={{ ...TYPE.figure, color: palette.sub }}>{reading.stage}</Text>
             )}
           </View>
-          <Text style={{ ...TYPE.body, color: palette.ink }}>{reading.standing}</Text>
-          <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-            {reading.age}
-          </Text>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.standing}</Text>
+          <Text style={{ ...TYPE.meta, color: palette.faint }}>{reading.age}</Text>
         </View>
       ) : (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{vm.noGauge}</Text>
       )}
-
-      {station && (
-        <View style={{ gap: 10 }}>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            <ChartControls<Parameter> palette={palette} value={shown}
-                                      label={W.controls.quantity} onPick={pick}
-                                      options={available.map((p) =>
-                                        [p, W.quantity[p]] as const)} />
-            <ChartControls<Span> palette={palette} value={span} label={W.controls.span}
-                                 onPick={setSpan}
-                                 options={[["72h", W.span["72h"]],
-                                           ["year", W.span.year]] as const} />
-            {/* THE MODEL, when more than one is running: they answer different questions,
-                and in the shoulder months both are in season and disagree. */}
-            <ChartControls<string> palette={palette} label={W.controls.model}
-                                   value={run?.model ?? ""} onPick={setModel}
-                                   options={runs.map((f) =>
-                                     [f.model, forecastModelOption(f)] as const)} />
-          </View>
-          {chart.state === "loading" && (
-            <View style={{ alignItems: "center", paddingVertical: 22 }}>
-              <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
-            </View>
-          )}
-          {chart.state === "ready" && chart.value && (
-            <Hydrograph shape={chart.value} palette={palette} colour={tint}
-                        unit={UNIT[shown]}
-                        disclaimer={run?.disclaimer ?? null}
-                        forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
-                        label={chartLabel(span)}
-                        caption={chartCaption(span)} />
-          )}
-          {chart.state === "ready" && !chart.value && (
-            <Text style={{ ...TYPE.small, color: palette.sub }}>{noChartSentence(span)}</Text>
-          )}
-          {/* WHEN the run was made, beside what it says — in labelled UTC. */}
-          {run?.series && run.issuedAt && (
-            <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint }}>
-              {forecastRunLine({ model: run.model, issuedAt: run.issuedAt,
-                                 horizonDays: run.horizonDays })}
-            </Text>
-          )}
-        </View>
-      )}
-
-      {/* THE SINGLE-STATION TRACE IS THE FALLBACK, shown only where the panel could not
-          answer (`vm.trace` is null otherwise). */}
       {vm.trace && (
         <GaugeTrace trace={vm.trace} palette={palette} at={tiles} theme={theme} from={from} />
       )}
+    </>
+  );
+
+  const graph = station ? (
+    <View style={{ gap: SPACE.s3 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
+        <ChartControls<Parameter> palette={palette} value={shown}
+                                  label={W.controls.quantity} onPick={pick}
+                                  options={available.map((p) =>
+                                    [p, W.quantity[p]] as const)} />
+        <ChartControls<Span> palette={palette} value={span} label={W.controls.span}
+                             onPick={setSpan}
+                             options={[["72h", W.span["72h"]],
+                                       ["year", W.span.year]] as const} />
+        {/* THE MODEL, when more than one is running: they answer different questions,
+            and in the shoulder months both are in season and disagree. */}
+        <ChartControls<string> palette={palette} label={W.controls.model}
+                               value={run?.model ?? ""} onPick={setModel}
+                               options={runs.map((f) =>
+                                 [f.model, forecastModelOption(f)] as const)} />
+      </View>
+      {chart.state === "loading" && (
+        <View style={{ alignItems: "center", paddingVertical: SPACE.s4 }}>
+          <FishSpinner palette={palette} size={72} label={W.loadingRecord} />
+        </View>
+      )}
+      {/* The chart's disclaimer stays WITH the chart (inside `Hydrograph`), not in the
+          fold: the Province's notice belongs wherever its forecast is drawn. */}
+      {chart.state === "ready" && chart.value && (
+        <Hydrograph shape={chart.value} palette={palette} colour={tint}
+                    unit={UNIT[shown]}
+                    disclaimer={run?.disclaimer ?? null}
+                    forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
+                    label={chartLabel(span)}
+                    caption={chartCaption(span)} />
+      )}
+      {chart.state === "ready" && !chart.value && (
+        <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
+      )}
+      {/* WHEN the run was made, beside what it says — in labelled UTC. */}
+      {run?.series && run.issuedAt && (
+        <Text style={{ ...TYPE.meta, color: palette.faint }}>
+          {forecastRunLine({ model: run.model, issuedAt: run.issuedAt,
+                             horizonDays: run.horizonDays })}
+        </Text>
+      )}
+    </View>
+  ) : null;
+
+  /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
+     donors → the fold (which holds the credits). */
+  const body = (
+    <>
+      <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
+                  from={from} selected={station} onSelect={vm.select} horizon={horizon}
+                  chain={vm.chain} data={vm.routeData} onHorizon={onHorizon}
+                  detail={detail} chart={graph}
+                  foot={credits?.length
+                          ? <Credits palette={palette} lines={credits} /> : undefined} />
       {footer}
-      <Credits palette={palette} lines={credits} />
     </>
   );
 
   return scroll
-    ? <ScrollView contentContainerStyle={{ padding: 18, gap: 22, paddingBottom: 40 }}>
+    ? <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3,
+                                           paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 }}>
         {body}
       </ScrollView>
-    : <View style={{ gap: 22 }}>{body}</View>;
+    : <View style={{ gap: SPACE.s4 }}>{body}</View>;
 }

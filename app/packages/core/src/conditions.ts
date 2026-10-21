@@ -63,6 +63,8 @@ export const CONDITIONS_WORDS = {
   youAreHere: "you are here",
   byThen: "by then",
   readingWater: "Reading the water",
+  /** The one fold under the donor list (P16): the working's working and the credits. */
+  fold: "Notes and sources",
   loadingRecord: "Loading the record",
   controls: { quantity: "Quantity", span: "Span", model: "Forecast model" },
   quantity: { discharge: "Flow", level: "Level" },

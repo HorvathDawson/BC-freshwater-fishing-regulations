@@ -18,7 +18,7 @@ import { distanceWord, onTheReach, reachCount, routeCamera, shareWord, traceSent
 import type { TileEndpoints } from "@app/map";
 import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { SPACE, type Palette } from "./theme";
 
 export function GaugeTrace({ trace, palette, title = "How this spot reaches the gauge",
                              at, theme, from }:
@@ -48,13 +48,11 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
   ];
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={{ gap: SPACE.s3 }}>
       <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-        <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                       color: palette.faint }}>{title.toUpperCase()}</Text>
+        <Text style={{ ...TYPE.kicker, color: palette.faint }}>{title.toUpperCase()}</Text>
         {reachCount(trace) > 0 && (
-          <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                         color: palette.faint, marginLeft: "auto" }}>
+          <Text style={{ ...TYPE.kicker, color: palette.faint, marginLeft: "auto" }}>
             {reachCount(trace)} {reachCount(trace) === 1 ? "REACH" : "REACHES"}
           </Text>
         )}
@@ -94,7 +92,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
                  />
       )}
       {at && theme && camera && (
-        <View style={{ flexDirection: "row", gap: 16, marginTop: -4 }}>
+        <View style={{ flexDirection: "row", gap: SPACE.s4, marginTop: -SPACE.s1 }}>
           {from && <Dot palette={palette} tone={palette.accent} label="you are here" />}
           <Dot palette={palette} tone={palette.live} label="the gauge" />
         </View>
@@ -104,14 +102,13 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
         {facts.map(([label, value], i) => (
           <View key={label}
                 style={{ flexDirection: "row", justifyContent: "space-between",
-                         alignItems: "baseline", paddingVertical: 10, gap: 16,
+                         alignItems: "baseline", paddingVertical: SPACE.s2, gap: SPACE.s4,
                          borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line }}>
-            <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.2,
-                           color: palette.faint }}>{label.toUpperCase()}</Text>
+            <Text style={{ ...TYPE.kicker, color: palette.faint }}>{label.toUpperCase()}</Text>
             {/* A missing value says so. An empty cell reads as zero, and "0% of the
                 gauge's watershed" is a very different claim from "we have not worked
                 it out". */}
-            <Text style={{ ...TYPE.figure, fontSize: 12,
+            <Text style={{ ...TYPE.figure,
                            color: value === null ? palette.faint : palette.sub,
                            textAlign: "right", flexShrink: 1 }}>
               {value ?? "not known"}
@@ -120,7 +117,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
         ))}
       </View>
 
-      <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 17, color: palette.faint }}>
+      <Text style={{ ...TYPE.meta, color: palette.sub }}>
         {traceSentence(trace)}
       </Text>
     </View>
@@ -131,9 +128,9 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
 /** One entry in the route map's key — a coloured dot and what it means. */
 function Dot({ palette, tone, label }: { palette: Palette; tone: string; label: string }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s1 }}>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
-      <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{label}</Text>
+      <Text style={{ ...TYPE.meta, color: palette.sub }}>{label}</Text>
     </View>
   );
 }

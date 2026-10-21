@@ -12,7 +12,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { donorReason, type NoEstimate } from "@app/core";
+import { CONDITIONS_WORDS, donorReason, type NoEstimate } from "@app/core";
 import { donorView, type DonorRow, type PanelAnswer } from "@app/ui";
 import { DonorPanel } from "./DonorPanel";
 import { LIGHT } from "./theme";
@@ -43,6 +43,13 @@ const draw = (p: Props) => render(<DonorPanel palette={LIGHT} day={DAY} {...p} /
 
 const text = () => document.body.textContent ?? "";
 
+/**
+ * Open the one fold (P16). "Counts this much because…" and the explainer live in it,
+ * closed by default; a test about those words opens it as a reader would.
+ */
+const openFold = () =>
+  fireEvent.click(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }));
+
 describe("the donor panel", () => {
   it("draws the view model it is given, every line of it", () => {
     // THE VM IS DRAWN, NOT RE-DECIDED: every string `donorView` finished is on screen.
@@ -52,6 +59,7 @@ describe("the donor panel", () => {
                               pickable: false });
     if (!vm.ok) throw new Error("expected an estimate");
     draw({ value: v });
+    openFold();
     for (const s of [vm.heading, vm.headline, vm.sentence, vm.range, vm.disagree!,
                      vm.explainer])
       expect(screen.getByText(s)).toBeTruthy();
@@ -142,6 +150,7 @@ describe("the donor panel", () => {
     draw({ value: { ...v, rows: [
       row("08MH001", { factors: { share: 0.42, role: 0.85, record: 0.5 }, years: 10 }),
     ] } });
+    openFold();
     expect(screen.getByText("Counts this much because it is 42% as informative as a gauge "
       + "on this very water; it sits downstream, so it carries extra water; it has only 10 "
       + "years of record, so it counts 50%.")).toBeTruthy();
@@ -257,6 +266,7 @@ describe("the donor panel", () => {
     draw({ value: { ...answer(), rows: [
       row("08A", { years: 6, factors: { share: 0.4, role: 1, record: 0.3 } }),
     ] } });
+    openFold();
     expect(screen.getByText("Counts this much because it is 40% as informative as a gauge "
       + "on this very water; it has only 6 years of record, so it counts 30%.")).toBeTruthy();
   });
