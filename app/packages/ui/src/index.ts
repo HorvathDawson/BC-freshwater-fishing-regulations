@@ -24,6 +24,7 @@ export * from "./route";
 export * from "./mapModes";
 export * from "./release";
 export * from "./boot";
+export * from "./regs";
 
 export type FormFactor = "phone" | "desktop";
 

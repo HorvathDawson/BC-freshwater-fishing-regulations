@@ -12,15 +12,38 @@
  * $TMPDIR (node:os is not a driver import).
  */
 import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
 import { parseManifest } from "../../manifest";
 import { releaseLoader, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
-import { openBundle } from "./node";
 
-/** Where the committed regs fixture release lives (the folder holds exactly one `r-*` release). */
-export const REGS_FIXTURE_ROOT = fileURLToPath(new URL("../../../dev/regs-release", import.meta.url));
+/**
+ * Where the committed regs fixture release lives (the folder holds exactly one `r-*` release). `__dirname`, not
+ * `import.meta.url`: under the render project's jsdom the latter is an http URL.
+ */
+export const REGS_FIXTURE_ROOT = resolve(__dirname, "../../../dev/regs-release");
+
+/**
+ * A row with every blob as THIS realm's Uint8Array. node:sqlite hands back node's; under the render project's jsdom the
+ * global `Uint8Array` is another realm's, so the regs layer's `instanceof Uint8Array` (errors.ts `asBytes`) would call
+ * every blob damaged. Copying costs nothing at fixture sizes.
+ */
+const realm = (r: Record<string, unknown>): Row => {
+  for (const k in r) { const v = r[k]; if (ArrayBuffer.isView(v) && !(v instanceof Uint8Array)) r[k] = Uint8Array.from(v as Uint8Array); }
+  return r as Row;
+};
+
+/** node:sqlite, read-only, as `Db` (./node's `openBundle`, which this does not import: its module-level URL breaks under jsdom). */
+function openFile(path: string): Db {
+  const db = new DatabaseSync(path, { readOnly: true });
+  return {
+    all: async (sql, ...params) => (db.prepare(sql).all(...params) as Record<string, unknown>[]).map(realm),
+    get: async (sql, ...params) => { const r = db.prepare(sql).get(...params) as Record<string, unknown> | undefined; return r && realm(r); },
+    close: () => db.close(),
+  };
+}
 
 /** The committed fixture release's folder (`<root>/<release id>`); throws when it is missing or not alone. */
 export function regsFixtureDir(root: string = REGS_FIXTURE_ROOT): string {
@@ -37,7 +60,7 @@ export function nodeOpener(): Opener {
   return async (name, bytes) => {
     const p = join(tmp, `${name}.sqlite`);
     writeFileSync(p, await bytes());
-    return openBundle(p);
+    return openFile(p);
   };
 }
 
