@@ -1,0 +1,322 @@
+"""KITIMAT RIVER (gnis:3225, Region 6): the river's hatchery steelhead quota lifts Region 6's
+"1 over 50 cm" for hatchery steelhead only (ticket "add test", owner 2026-10-20; F9 found the lift
+in handoff/PLAN/app-data/F9-72-rows.md and nothing tested it).
+
+THE TEXT (synopsis 2025-2027; PRINTED pages, the repo PDF is not byte-identical: printed = PDF-6
+after p.40).
+
+  Region 6 Daily Quotas, printed p.49 (PDF p.55), "(See tables for exceptions)":
+    "Trout/char: 5, but not more than
+       • 1 over 50 cm (quota includes hatchery steelhead)          <- z6 trout_char_quota.r2
+       • 3 Dolly Varden/bull trout and/or lake trout combined
+       • 1 trout from streams July 1-Oct 31                        <- z6 trout_char_quota.r4
+     And you must release: ...
+       • Trout under 30 cm from any stream                         <- z6 trout_char_quota.r6
+       • Trout of any size from streams, Nov 1-June 30             <- z6 trout_char_quota.r7
+       • all wild steelhead"                                       <- z6 trout_char_quota.r9
+
+  KITIMAT RIVER (6-3) table row, printed p.51 (PDF p.57):
+    "Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year"
+                                                                   <- r6 kitimat_river.r4
+    "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead
+     annual quota = 10. When you have caught and retained your daily steelhead quota from the
+     Kitimat, you must stop fishing the Kitimat for the remainder of that day"
+                                                                   <- r6 kitimat_river.r5 (+ .r7)
+
+THE READING. r2 is one clause: at most 1 trout/char over 50 cm a day, and it says in so many
+words that hatchery steelhead count toward it. Every hatchery steelhead the Kitimat row lets you
+keep is over 50 cm ("adipose clipped, >50 cm"), and the row lets you keep 2. Both cannot hold, and
+the box sends you to the table for exceptions — so on the Kitimat r2 is LIFTED for hatchery
+steelhead (replaced by the row's 2), and only for them:
+  * wild steelhead: the row says nothing about them; "all wild steelhead" (r9) still releases them,
+    and r2 is NOT lifted for them (it simply falls with the pool they are released from);
+  * other trout (cutthroat): r2 still speaks — 1 over 50 cm;
+  * r1, the 5 trout/char a day, is NOT lifted: the row raises the steelhead count, it never takes
+    hatchery steelhead out of the 5 ("quota includes hatchery steelhead");
+  * r4 ("1 trout from streams July 1-Oct 31") cannot hold beside "2 hatchery steelhead" either:
+    lifted for hatchery steelhead in its window.
+The row prints NO dates on the steelhead quota, so r5 has no window of its own; the two dates
+below are in and out of the zone windows it meets: Aug 15 (r4's Jul 1-Oct 31) and Dec 1 (r7's
+Nov 1-Jun 30). On both, r2 is lifted for hatchery steelhead and for nothing else.
+
+WHERE THE TEXT IS AMBIGUOUS (pinned as CURRENT behaviour, awaiting an owner ruling, in
+`test_..._awaiting_owner_ruling` below — not in the text-decided test):
+  (a) Dec 1, hatchery steelhead under r7 "Trout of any size from streams, Nov 1-June 30": the
+      Kitimat's RAINBOW line says "all year" and its STEELHEAD line does not. Current: r7 lifted
+      by r5 (keep 2 on Dec 1) — the curated `exempts` of kitimat_river.r5 name r7.
+  (b) whether the 2 hatchery steelhead still count toward r2's 1-over-50 for the OTHER trout
+      (keep 2 hatchery steelhead, then may you keep 1 cutthroat over 50?). Current: the pool's
+      general cap carries `except: ["ST"]` (rows._not_counted) — they do not count.
+
+MUTATION PINS: the text-decided check FAILS if r5 no longer lifts r2, and if it lifts r2 for wild
+steelhead too (the reader's cached r5 `exempts` mutated, the Kitimat's verdicts rebuilt into
+tmp_path, the answers rebuilt from them). An unmutated rebuild passes it (control).
+
+`UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
+"""
+from __future__ import annotations
+
+import copy
+import os
+from pathlib import Path
+
+import pytest
+
+from pipeline.deliver import calendar as CAL
+from pipeline.deliver.answers import answers as A
+from pipeline.deliver.answers import common as C
+from pipeline.deliver.answers import encode as E
+from pipeline.deliver.bundle import read as R
+from pipeline.deliver.verdicts import build as VB
+from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+
+BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+
+KITIMAT = "gnis:3225"
+ROW = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
+R5 = (ROW, "kitimat_river.r5")
+AUG15, DEC1 = (8, 15), (12, 1)
+
+# short names: "<entry head> <rule>"
+K4, K5, K7 = "r6 kitimat_river.r4", "r6 kitimat_river.r5", "r6 kitimat_river.r7"
+Z1, Z2, Z4, Z6, Z7, Z9 = (f"z6 trout_char_quota.r{n}" for n in (1, 2, 4, 6, 7, 9))
+STOP, POSS = "z6 hatchery_steelhead_stop.r1", "z6 possession_quota.r1"
+DEFAULT_POSS = "zp quota_defaults.r1"
+ANNUAL, WILD_ST, RECORD = "zp steelhead.r1", "zp steelhead.r2", "zp steelhead.r4"
+
+
+# ---- building -------------------------------------------------------------------------------
+
+def _export(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, guide = C.load_export(EXPORT_DIR)
+    if KITIMAT not in data["waters"]:
+        pytest.fail(f"{KITIMAT} (Kitimat River) is missing from this export")
+    return data, guide
+
+
+def _build(data, guide, verdicts=None):
+    return A.build(BUNDLE, EXPORT_DIR, workers=1, items=[KITIMAT], sections=["rows", "ladder"],
+                   export=(data, guide), verdicts=verdicts, log=lambda *_: None)
+
+
+@pytest.fixture(scope="module")
+def shipped(request):
+    """The Kitimat's answers from the SHIPPED verdicts (the bundle's sibling verdicts.sqlite)."""
+    data, guide = _export(request)
+    return data, _build(data, guide)
+
+
+def _rebuilt(data, guide, tmp_path, monkeypatch, mutate=None):
+    """The Kitimat's answers from verdicts REBUILT for its rule keys, with the reader's cached
+    kitimat_river.r5 `exempts` passed through `mutate` first (restored by monkeypatch)."""
+    B = C.load(BUNDLE)
+    keys, parts = C.part_keys(B, data)
+    kix = sorted({B.key_ix[C.rule_key(keys[k])] for k in parts[KITIMAT] if k is not None})
+    r5 = R._rules_of(BUNDLE)[R5]
+    if mutate is not None:
+        monkeypatch.setitem(r5, "exempts", mutate(copy.deepcopy(r5["exempts"])))
+    out = tmp_path / "verdicts.sqlite"
+    VB.build(BUNDLE, out, workers=1, keys=kix, log=lambda *_: None)
+    return _build(data, guide, verdicts=str(out))
+
+
+# ---- reading --------------------------------------------------------------------------------
+
+def _name(ids, i):
+    if i is None:
+        return None
+    e, r = ids[i].split("::")
+    return f"{e.split(':')[0]} {r}"
+
+
+def _named(ids, a):
+    """A decided answer with its rule indices as short names."""
+    return {**a, "win": _name(ids, a["win"]), "narrow": _name(ids, a["narrow"]),
+            "lines": [{k: (_name(ids, v) if k in ("r", "outer") else v) for k, v in L.items()}
+                      for L in a["lines"]],
+            "roles": [[_name(ids, x), role, _name(ids, y)] for x, role, y in a["roles"]]}
+
+
+def _at(data, model, md):
+    """(rows, ladder) on the mouth part (Hwy 37 bridge to the mouth) on the day."""
+    k = model.parts[KITIMAT][part_at(data, KITIMAT, "mouth")]
+    i = E.segment_index(model.segments[k], CAL.day_of(md))
+    return model.sections["rows"][k][i], model.sections["ladder"][k][i]
+
+
+def _answer(data, model, md, fish, origin):
+    rows, _ = _at(data, model, md)
+    return _named(data["rule_ids"], rows["fish"][fish][origin])
+
+
+def _rung(data, model, md, fish, origin, rule):
+    """The reader's verdict on one zone rule: [state, partly lifted by, reason, by]."""
+    _, ladder = _at(data, model, md)
+    return ladder[fish][origin][f"z6:trout_char_quota::trout_char_quota.{rule}"]
+
+
+# ---- the expected answers, from the text (module docstring) ---------------------------------
+
+HATCHERY_ST_LINES = [{"t": "outer", "r": Z1}, {"t": "annual", "r": ANNUAL}, {"t": "duty", "r": K7},
+                     {"t": "duty", "r": RECORD}, {"t": "record", "r": RECORD}]
+HATCHERY_ST_TAIL = [[DEFAULT_POSS, "replaced", POSS], [K5, "governs", None], [Z1, "contains", None],
+                    [Z6, "floor", None], [ANNUAL, "season", None], [K7, "duty", None],
+                    [RECORD, "duty", None], [POSS, "possession", None]]
+
+EXPECTED = {
+    AUG15: {
+        # keep 2 (over 50 cm); r2 and r4 lifted by r5; still inside the 5 trout/char (r1)
+        ("ST", "hatchery"): {
+            "status": "keep", "win": K5, "daily": 2, "narrow": None, "lines": HATCHERY_ST_LINES,
+            "roles": [[STOP, "replaced", K7], [Z2, "lifted", K5], [Z4, "lifted", K5]] + HATCHERY_ST_TAIL,
+            "lift_notes": []},
+        # released ("all wild steelhead"); r2 NOT lifted — it falls with the pool
+        ("ST", "wild"): {
+            "status": "release", "win": Z9, "daily": None, "narrow": None, "lines": [],
+            "roles": [[DEFAULT_POSS, "replaced", POSS], [WILD_ST, "replaced", Z9], [Z9, "governs", None],
+                      [Z1, "moot", Z9], [POSS, "possession", None], [Z2, "falls", Z1],
+                      [Z4, "falls", Z1], [Z6, "moot", Z9]],
+            "lift_notes": []},
+        # the row's own 5, "no minimum size, all year": lifts r4 and r6, never r2
+        ("RB", "hatchery"): {
+            "status": "keep", "win": K4, "daily": 5, "narrow": None,
+            "lines": [{"t": "steel", "r": K4}, {"t": "outer", "r": Z1}],
+            "roles": [[Z4, "lifted", K4], [Z6, "lifted", K4], [DEFAULT_POSS, "replaced", POSS],
+                      [K4, "governs", None], [Z1, "contains", None], [POSS, "possession", None]],
+            "lift_notes": []},
+        ("RB", "wild"): {
+            "status": "keep", "win": Z1, "daily": 1, "narrow": Z4,
+            "lines": [{"t": "rel", "r": Z6, "a": 0, "b": 30}, {"t": "steel", "r": Z1},
+                      {"t": "tnote", "r": Z1, "only": False}],
+            "roles": [[DEFAULT_POSS, "replaced", POSS], [Z1, "governs", None], [Z4, "narrows", None],
+                      [Z6, "floor", None], [POSS, "possession", None]],
+            "lift_notes": []},
+        # the positive control: for another trout r2 still speaks — 1 over 50 cm
+        ("CT", "wild"): {
+            "status": "keep", "win": Z1, "daily": 1, "narrow": Z4,
+            "lines": [{"t": "cap", "r": Z2, "a": 50, "b": None, "take": 1},
+                      {"t": "rel", "r": Z6, "a": 0, "b": 30}, {"t": "tnote", "r": Z1, "only": False}],
+            "roles": [[DEFAULT_POSS, "replaced", POSS], [Z1, "governs", None], [Z4, "narrows", None],
+                      [Z2, "limit", None], [Z6, "floor", None], [POSS, "possession", None]],
+            "lift_notes": []},
+    },
+    DEC1: {
+        # Nov 1-Jun 30: every trout released from streams (r7), except what the row keeps
+        ("ST", "wild"): {
+            "status": "release", "win": Z7, "daily": None, "narrow": None, "lines": [],
+            "roles": [[Z1, "replaced", Z7], [Z2, "replaced", Z7], [Z6, "moot", Z7],
+                      [DEFAULT_POSS, "replaced", POSS], [WILD_ST, "replaced", Z9], [Z7, "governs", None],
+                      [Z9, "agrees", Z7], [POSS, "possession", None]],
+            "lift_notes": []},
+        ("RB", "hatchery"): {
+            "status": "keep", "win": K4, "daily": 5, "narrow": None,
+            "lines": [{"t": "steel", "r": K4}, {"t": "outer", "r": Z1}],
+            "roles": [[Z6, "lifted", K4], [Z7, "lifted", K4], [DEFAULT_POSS, "replaced", POSS],
+                      [K4, "governs", None], [Z1, "contains", None], [POSS, "possession", None]],
+            "lift_notes": []},
+        ("RB", "wild"): {
+            "status": "release", "win": Z7, "daily": None, "narrow": None, "lines": [],
+            "roles": [[Z1, "replaced", Z7], [Z6, "moot", Z7], [DEFAULT_POSS, "replaced", POSS],
+                      [Z7, "governs", None], [POSS, "possession", None]],
+            "lift_notes": []},
+        ("CT", "wild"): {
+            "status": "release", "win": Z7, "daily": None, "narrow": None, "lines": [],
+            "roles": [[Z1, "replaced", Z7], [Z2, "replaced", Z7], [Z6, "moot", Z7],
+                      [DEFAULT_POSS, "replaced", POSS], [Z7, "governs", None], [POSS, "possession", None]],
+            "lift_notes": []},
+    },
+}
+
+#: Dec 1, hatchery steelhead — ambiguity (a): CURRENT behaviour, awaiting an owner ruling
+DEC1_HATCHERY_ST_CURRENT = {
+    "status": "keep", "win": K5, "daily": 2, "narrow": None, "lines": HATCHERY_ST_LINES,
+    "roles": [[STOP, "replaced", K7], [Z2, "lifted", K5], [Z7, "lifted", K5]] + HATCHERY_ST_TAIL,
+    "lift_notes": []}
+
+#: ambiguity (b): the pool's general cap (r2) does not count steelhead — CURRENT behaviour
+CAP_COND_CURRENT = {"c": "cap", "r": Z2, "sub": 1, "a": 50, "b": None, "take": 1, "of": None,
+                    "general": True, "except": ["ST"]}
+
+LIFTED_BY_R5 = ["lifted", None, "lifted", f"{ROW}::kitimat_river.r5"]
+
+
+def _check_text_decided(data, model):
+    """Everything the text decides (module docstring), on Aug 15 and Dec 1."""
+    for md, want in EXPECTED.items():
+        for (fish, origin), answer in want.items():
+            assert _answer(data, model, md, fish, origin) == answer, (md, fish, origin)
+    # r2 for hatchery steelhead is lifted by r5 on BOTH dates — the reader's own verdict
+    for md in (AUG15, DEC1):
+        assert _rung(data, model, md, "ST", "hatchery", "r2") == LIFTED_BY_R5, md
+        assert [r for x, r, by in _answer(data, model, md, "ST", "hatchery")["roles"]
+                if x == Z2] == ["lifted"], md
+    # ... and never for wild steelhead: it speaks in Aug (then falls with the released pool) and
+    # is displaced by the Nov-Jun release in Dec — never lifted
+    assert _rung(data, model, AUG15, "ST", "wild", "r2") == ["speaks", None, None, None]
+    assert _rung(data, model, DEC1, "ST", "wild", "r2") == \
+        ["displaced", None, "zone_release", "z6:trout_char_quota::trout_char_quota.r7"]
+
+
+# ---- the tests ------------------------------------------------------------------------------
+
+@pytest.mark.needs_bundle
+def test_kitimat_hatchery_steelhead_quota_lifts_region_6s_one_over_50_for_hatchery_steelhead_only(shipped):
+    data, model = shipped
+    _check_text_decided(data, model)
+
+
+@pytest.mark.needs_bundle
+def test_kitimat_hatchery_steelhead_in_the_nov_jun_release_and_the_cap_except_awaiting_owner_ruling(shipped):
+    """AWAITING AN OWNER RULING — pins CURRENT behaviour only (module docstring, (a) and (b)).
+    (a) Dec 1: hatchery steelhead keep 2, r7 "Trout of any size from streams, Nov 1-June 30"
+        lifted by r5, although the row's steelhead line (unlike its rainbow line) prints no
+        "all year". (b) the pool's general 1-over-50 cap excepts steelhead, so the 2 hatchery
+        steelhead do not use up the 1 over 50 cm of the other trout. A ruling either way updates
+        this test; `test_kitimat_hatchery_steelhead_quota_lifts_...` does not depend on it."""
+    data, model = shipped
+    assert _answer(data, model, DEC1, "ST", "hatchery") == DEC1_HATCHERY_ST_CURRENT
+    assert _rung(data, model, DEC1, "ST", "hatchery", "r7") == LIFTED_BY_R5
+    for md in (AUG15, DEC1):
+        rows, _ = _at(data, model, md)
+        (pool,) = [r for r in rows["rows"] if r.get("pool") is not None and
+                   data["rule_ids"][r["pool"]] == "z6:trout_char_quota::trout_char_quota.r1"]
+        caps = [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
+        assert caps == [CAP_COND_CURRENT], md
+
+
+@pytest.mark.needs_bundle
+def test_an_unmutated_rebuild_of_the_kitimats_verdicts_passes_the_check(request, tmp_path, monkeypatch):
+    """CONTROL for the mutation pins below: rebuilding the Kitimat's verdicts is not, by itself,
+    what makes them fail."""
+    data, guide = _export(request)
+    _check_text_decided(data, _rebuilt(data, guide, tmp_path, monkeypatch))
+
+
+def _no_r2_lift(ex):
+    return [e for e in ex if e["rule_id"] != "trout_char_quota.r2"]
+
+
+def _r2_lift_for_every_origin(ex):
+    for e in ex:
+        if e["rule_id"] == "trout_char_quota.r2":
+            assert e.pop("origin") == "hatchery"
+    return ex
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("mutate, first_wrong", [
+    (_no_r2_lift, "((8, 15), 'ST', 'hatchery')"),
+    (_r2_lift_for_every_origin, "((8, 15), 'ST', 'wild')"),
+], ids=["the-lift-removed", "the-lift-also-for-wild-steelhead"])
+def test_the_check_fails_when_the_lift_is_mutated(request, tmp_path, monkeypatch, mutate, first_wrong):
+    """MUTATION PINS: r5 no longer lifting r2 (hatchery steelhead get r2's 1-over-50 back), and
+    r5 lifting r2 for wild steelhead too, each FAIL the text-decided check — at the answer the
+    mutation is about, not somewhere else."""
+    data, guide = _export(request)
+    mutated = _rebuilt(data, guide, tmp_path, monkeypatch, mutate)
+    with pytest.raises(AssertionError) as got:
+        _check_text_decided(data, mutated)
+    assert str(got.value).splitlines()[0] == first_wrong, str(got.value)[:400]
