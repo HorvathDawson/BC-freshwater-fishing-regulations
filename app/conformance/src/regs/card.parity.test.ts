@@ -1,13 +1,17 @@
 /**
- * T08 parity: core's card model — `buildModel(inp, place, settle(…))` and `strip` per row — against page v36's OWN
- * buildModel() / strip() (app/design/regs-v11/port/golden/hydrate.json, port/hydrate.mjs, YEAR 2026) on all 134 golden
+ * T08 parity: core's card model — `buildModel(inp, place, settle(…))` — against page v36's OWN buildModel()
+ * (app/design/regs-v11/port/golden/hydrate.json, port/hydrate.mjs, YEAR 2026) on all 134 golden
  * states, inputs from T09 `inputsOf` over the live release paired with the oracles (skipped with the reason otherwise; a
  * failure under REGS_STORE_REQUIRED=1). Every expected value is the oracle's except the ticket's literals (page v36's
  * output, quoted by the ticket). Infinity ↔ the oracle's "Infinity".
+ *
+ * Ticket item 6 (`strip` vs the oracle's `dayStatus` runs) is not run: page v36's dayStatus ranks the members' answers over
+ * the day's weekday moments — a per-day status the store does not hold — and the owner rule keeps that out of TS. The
+ * pipeline must ship each rows_row's year strip; its parity belongs to that answer (and T13), not to a TS re-derivation.
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { buildModel, makePlace, settle, strip, type CardModel, type HydRes } from "@app/core";
+import { buildModel, makePlace, settle, type CardModel, type HydRes } from "@app/core";
 import { inputsOf, paritySkip, releasePairing } from "./golden";
 import { HYDRATE } from "./ruleSources";
 
@@ -36,7 +40,7 @@ const project = (m: CardModel): OracleModel => ({
 });
 const rowLine = (m: CardModel) => m.rows.map((r) => [r.kind, r.pool?.rix ?? null, r.daily, r.members]);
 
-it("the oracle: page v38's buildModel and strip over the 134 golden states, YEAR 2026", () => {
+it("the oracle: page v38's buildModel over the 134 golden states, YEAR 2026", () => {
   expect([H.meta.version, YEAR, ids.length]).toEqual(["v38", 2026, 134]);
 });
 
@@ -55,13 +59,6 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
     const { m } = await model(id);
     expect(m.ctx.s).toBe(H.states[id]!.s);
     expect(project(m)).toEqual(H.states[id]!.model);
-  });
-
-  it.each(ids)("6. %s: strip() of every row's members equals page v36's dayStatus runs (365 days)", async (id) => {
-    const { inp, place, m } = await model(id);
-    const got = m.rows.map((r) => strip(inp, place, r.members, YEAR));
-    expect(got).toEqual(H.states[id]!.dayStatus);
-    for (const runs of got) expect(runs.reduce((a, [, n]) => a + n, 0)).toBe(365);
   });
 
   it("5. the ticket's literals (page v36's own output)", async () => {

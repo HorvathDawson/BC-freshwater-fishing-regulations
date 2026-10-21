@@ -1,29 +1,30 @@
 /**
  * The card's rows model (T08): the PIPELINE's rows answers for a segment (answers `rows`: rows_frame → rows_decided per
  * fish × origin, rows_row per drawn row — T04 joined them into a `RowsValue`) with every rule reference resolved to the
- * part's `RuleView`, the day's `CardModel` the Keep tab reads, and per-day status over the year for a row's members.
+ * part's `RuleView`, and the day's `CardModel` the Keep tab reads.
  *
  * Owner rule 2026-10-21 (decisions.md): every keep / release / closed, every daily take, every winning and narrowing rule,
  * every role and lift note here is the store's (`Decided.status/win/daily/narrow/roles/lift_notes`, `Row.kind/pool/win/
  * daily/…`). This file DECODES them (rix → RuleView, `no_limit` → "nolimit", a null cap → Infinity as page v36 reads it),
- * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. Two display selections are
- * page v36's and are kept exactly: `mainRes` (which of a fish's two stored origin answers a one-line view leads with —
- * the keepable one) and `dayStatus` (the colour a row's members give a day on the year strip: the most permissive of
- * their stored answers, over the day's weekday moments, as page v36's ROUND14 5 draws it — a weekday window is said in
- * words, `rows[].week`, never as single days).
+ * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. One display selection is page
+ * v36's and is kept exactly: `mainRes` (which of a fish's two stored origin answers a one-line view leads with — the
+ * keepable one).
+ *
+ * NOT PORTED (owner rule, review 2026-10-21): page v36's `dayStatus` / `strip` / `RANKSTAT` coloured a row's year strip with
+ * the most permissive of the members' answers over the day's weekday moments — a per-day status no stored row holds (it
+ * coloured Kalamalka kokanee "keep" on a Monday the store answers "release"). A row's per-day status is the PIPELINE's
+ * answer to add (a run-length [[status, days]] over the 365 book days per rows_row, the shape hydrate.json `dayStatus`
+ * carries); T13 reads it from the store.
  *
  * Ports (page_v36.js @ 7fb6809f, inventory names): KEEPISH, st_, hydLine, hydRes, hydFact, hydRow, rowsAt, mainRes,
- * buildModel, RANKSTAT, dayStatus, strip (DAYS, daySegs, segOf). Hidden globals replaced: SEC.rows.{frames, decided,
- * rows, at} (→ `inp.year.rowsBySeg`, joined by T04), w._seg['R'+s] (→ WeakMap), YEAR (→ `year`), PLACE (→ `place`).
+ * buildModel. Hidden globals replaced: SEC.rows.{frames, decided, rows, at} (→ `inp.year.rowsBySeg`, joined by T04),
+ * w._seg['R'+s] (→ WeakMap), PLACE (→ `place`).
  */
-import { COMMON_YEAR_MONTH_LAST_DAY, DAYS_BEFORE_MONTH, weekdayOf } from "../calendar.generated";
 import type { Badge, Decided, RealDaily, Row, RowsValue } from "../answers.generated";
 import type { RegsInputs, RuleIndex, RuleView } from "./inputs";
 import type { RuleKey } from "./line";
 import type { RegsPlace } from "./place";
 import type { Settled } from "./settle";
-import { daySegments, segmentIndex } from "./tap";
-import type { Md } from "./time";
 
 export type CardStatus = "keep" | "nolimit" | "release" | "closed";
 type WireStatus = "keep" | "no_limit" | "release" | "closed";
@@ -32,8 +33,6 @@ type WireStatus = "keep" | "no_limit" | "release" | "closed";
 export const KEEPISH = (s: CardStatus): boolean => s === "keep" || s === "nolimit";
 /** page st_: the wire's `no_limit` as the page names it. */
 export function st_(s: WireStatus): CardStatus { return s === "no_limit" ? "nolimit" : s; }
-/** page RANKSTAT: how permissive a status is (the strip's "best" of a day). */
-export const RANKSTAT: Readonly<Record<CardStatus, number>> = Object.freeze({ keep: 3, nolimit: 3, release: 2, closed: 1 });
 
 type WireLine = Decided["lines"][number];
 type WireFact = Row["everyone"][number];
@@ -172,45 +171,4 @@ export function buildModel(inp: RegsInputs, place: RegsPlace, settled: Settled):
     R: r?.R ?? {}, rows: r?.rows ?? [], spp: r?.spp ?? [], line: r?.line ?? null, missingRows: !r,
     broad: settled.status?.status === "closed" ? settled.broad : [], status: settled.status?.status ?? null, ctx: settled,
   };
-}
-
-/** The leap-calendar day of a book day MMDD (page dayOf). */
-const leap = (md: Md): number => DAYS_BEFORE_MONTH[Math.floor(md / 100) - 1]! + (md % 100);
-
-/** page dayStatus on a book day (MMDD), `year` naming its weekday (page YEAR): the most permissive of the members' stored
- *  answers (`mainRes` per fish) over the day's weekday moments (else the day's own segment); "none" where no segment
- *  has rows. */
-export function dayStatus(inp: RegsInputs, place: RegsPlace, md: Md, members: readonly string[], year: number):
-  "keep" | "release" | "closed" | "none" {
-  const M = place.moments, d = leap(md);
-  if (!place.starts.length) return "none";
-  const wk = M ? daySegments(place.starts, d).filter((j) => !M[j]!.hours) : [];
-  const segs = wk.length > 1 ? wk
-    : [segmentIndex(place.starts, d, M, weekdayOf(year, Math.floor(md / 100), md % 100), false)];
-  let best: "keep" | "release" | "closed" | "none" = "none", bv = 0, any = false;
-  for (const s of segs) {
-    const r = rowsAt(inp, place, s);
-    if (!r) continue;
-    any = true;
-    for (const S of members) {
-      const f = r.R[S], m = f ? mainRes(f.H, f.W) : null;
-      if (m && RANKSTAT[m.status] > bv) { bv = RANKSTAT[m.status]; best = m.status === "nolimit" ? "keep" : m.status; }
-    }
-  }
-  return any ? best : "none";
-}
-
-/** The 365 book days MMDD (page DAYS: the printed year, no Feb 29). */
-const DAYS: readonly Md[] = Object.freeze(COMMON_YEAR_MONTH_LAST_DAY.flatMap((n, m) => Array.from({ length: n }, (_, i) => (m + 1) * 100 + i + 1)));
-
-/** page strip: run-length [[status, days]] of `dayStatus` over the 365 book days. */
-export function strip(inp: RegsInputs, place: RegsPlace, members: readonly string[], year: number):
-  readonly (readonly ["keep" | "release" | "closed" | "none", number])[] {
-  const out: ["keep" | "release" | "closed" | "none", number][] = [];
-  for (const md of DAYS) {
-    const b = dayStatus(inp, place, md, members, year), last = out[out.length - 1];
-    if (last && last[0] === b) last[1]++;
-    else out.push([b, 1]);
-  }
-  return out;
 }

@@ -1,10 +1,10 @@
 /**
  * card.ts, store-free, over a hand-built rows frame and a RuleIndex stub. The 134-state parity against page v36's own
- * buildModel() / strip() is app/conformance/src/regs/card.parity.test.ts.
+ * buildModel() is app/conformance/src/regs/card.parity.test.ts.
  */
 import { describe, expect, it } from "vitest";
 import type { Decided, DisplayFrame, Moment, RegsInputs, Row, RowsValue, RuleIndex, RuleView } from "./inputs";
-import { buildModel, dayStatus, hydFact, hydLine, hydRes, hydRow, KEEPISH, mainRes, RANKSTAT, rowsAt, st_, strip, type HydRes } from "./card";
+import { buildModel, hydFact, hydLine, hydRes, hydRow, KEEPISH, mainRes, rowsAt, st_, type HydRes } from "./card";
 import { makePlace } from "./place";
 import { settle, settleAt } from "./settle";
 
@@ -24,8 +24,6 @@ const FRAME: RowsValue = { spp: ["RB", "CT", "LMB"], steelhead_line: "known_with
   RB: { hatchery: dec("keep", 3091, 2), wild: dec("release", 3098, null) },
   CT: { hatchery: dec("release", 528, null), wild: dec("release", 3098, null) },
   LMB: { hatchery: dec("no_limit", 1362, null), wild: null } } };
-const RELEASE_ALL: RowsValue = { spp: ["RB"], steelhead_line: null, rows: [row({ kind: "release", win: 9, members: ["RB"] })],
-  fish: { RB: { hatchery: dec("release", 9, null), wild: dec("release", 9, null) } } };
 
 const OPEN_F = { status: "own", closing: [], strip: 1 } as unknown as DisplayFrame;
 const SHUT_F = { status: "closed", closing: [[3080, ["RB"]]], strip: 2 } as unknown as DisplayFrame;
@@ -40,11 +38,10 @@ function inputs(o: { rows?: (RowsValue | null)[]; starts?: number[]; moments?: M
   } as unknown as RegsInputs;
 }
 
-describe("st_, KEEPISH, RANKSTAT", () => {
-  it("1. st_ names no_limit nolimit; KEEPISH is keep or nolimit; RANKSTAT ranks them", () => {
+describe("st_, KEEPISH", () => {
+  it("1. st_ names no_limit nolimit; KEEPISH is keep or nolimit", () => {
     expect([st_("no_limit"), st_("keep"), st_("release"), st_("closed")]).toEqual(["nolimit", "keep", "release", "closed"]);
     expect((["keep", "nolimit", "release", "closed"] as const).map(KEEPISH)).toEqual([true, true, false, false]);
-    expect(RANKSTAT).toEqual({ keep: 3, nolimit: 3, release: 2, closed: 1 });
   });
 });
 
@@ -126,26 +123,9 @@ describe("rowsAt / buildModel", () => {
   });
 });
 
-describe("dayStatus / strip", () => {
-  it("the most permissive stored answer of the members (nolimit counts as keep); none where the day has no rows", () => {
-    const inp = inputs(), p = makePlace(inp);
-    expect([dayStatus(inp, p, 515, ["RB", "CT"], 2026), dayStatus(inp, p, 515, ["CT"], 2026), dayStatus(inp, p, 515, ["LMB"], 2026),
-      dayStatus(inp, p, 615, ["RB"], 2026), dayStatus(inp, p, 515, ["XX"], 2026)]).toEqual(["keep", "release", "keep", "none", "none"]);
-  });
-
-  it("weekday moments: the best over the day's weekday segments (a weekday window is said in words, not as days)", () => {
-    const wk = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }] as unknown as Moment[];
-    const inp = inputs({ starts: [1, 1], moments: wk, rows: [RELEASE_ALL, FRAME], display: [OPEN_F, OPEN_F] }), p = makePlace(inp);
-    expect(dayStatus(inp, p, 1012, ["RB"], 2026)).toBe("keep");   // a Monday, yet the Sunday segment keeps
-    const hrs = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Monday"], hours: { in: true } }] as unknown as Moment[];
-    const inp2 = inputs({ starts: [1, 1], moments: hrs, rows: [RELEASE_ALL, FRAME], display: [OPEN_F, OPEN_F] }), p2 = makePlace(inp2);
-    expect(dayStatus(inp2, p2, 1012, ["RB"], 2026)).toBe("release");   // an hours window is not a weekday split: the day's own segment
-  });
-
-  it("strip: run-length over the 365 book days", () => {
-    const inp = inputs(), p = makePlace(inp);
-    const s = strip(inp, p, ["RB"], 2026);
-    expect(s).toEqual([["keep", 151], ["none", 214]]);
-    expect(s.reduce((a, [, n]) => a + n, 0)).toBe(365);
+describe("no per-day status is derived in TS (owner rule 2026-10-21)", () => {
+  it("card exports no dayStatus / strip / RANKSTAT: a row's year strip is the pipeline's answer, not a ranking of stored answers", async () => {
+    const mod = (await import("./card")) as Record<string, unknown>;
+    expect(["dayStatus", "strip", "RANKSTAT"].filter((k) => k in mod)).toEqual([]);
   });
 });
