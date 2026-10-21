@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>River Imagery Compare</title>
+<!--
+  LOCAL EVALUATION PAGE — open this file in a browser (double-click). Every map loads LIVE from the provider's own
+  service, so nothing here copies or re-hosts imagery: the BC Government layers are "Access Only" (viewing through
+  their WMS is the permitted use; reproduction is not). Do not publish this page or screenshots of the BC layers
+  without the Province's written permission. Sources, licences: handoff/PLAN/app-data/stream-imagery/SPEC.md.
+-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --bg: #eef2f1; --panel: #ffffff; --ink: #18211f; --sub: #55625e; --line: #c9d3d0; --accent: #1f6f78;
+    --ok: #1d7a46; --warn: #a3620a; --no: #a12a2a;
+    --display: "Archivo", system-ui, sans-serif; --body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111716; --panel: #1a2220; --ink: #e5ece9; --sub: #9fb0ab; --line: #2e3a37; --accent: #5fb7c0;
+            --ok: #5cc48a; --warn: #e0a54a; --no: #ef7b7b; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--body); }
+  header { padding: 14px max(16px, env(safe-area-inset-left, 0px)) 10px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+  h1 { font: 700 18px/1.2 var(--display); margin: 0; letter-spacing: .01em; }
+  .note { color: var(--sub); max-width: 70ch; margin: 0; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  button, select { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--accent); }
+  button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 max(16px, env(safe-area-inset-left, 0px)) 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .cell { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+  .bar select { max-width: 100%; }
+  .map { height: 42vh; min-height: 260px; }
+  .facts { padding: 7px 9px 9px; display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 12.5px; color: var(--sub); }
+  .chip { border-radius: 999px; padding: 1px 8px; border: 1px solid currentColor; font-weight: 600; white-space: nowrap; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .no { color: var(--no); }
+  .z { font-variant-numeric: tabular-nums; color: var(--sub); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 650; color: var(--sub); }
+  .tablewrap { overflow-x: auto; padding: 0 max(16px, env(safe-area-inset-left, 0px)) 24px; }
+  .leaflet-container { background: var(--bg); }
+</style>
+</head>
+<body>
+<header>
+  <h1>River Imagery Compare</h1>
+  <p class="note">Four maps move together. Pick a source on each and a river below. Zoom past each source's sharpest level to see where it goes soft. Everything loads live from the provider.</p>
+  <div class="presets" id="presets"></div>
+  <span class="z" id="zoom"></span>
+</header>
+<div class="grid" id="grid"></div>
+<div class="tablewrap">
+  <table>
+    <thead><tr><th>Source</th><th>Sharpness</th><th>Vintage</th><th>Covers</th><th>Licence</th><th>Keep offline / ship in app?</th></tr></thead>
+    <tbody id="facts"></tbody>
+  </table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const BCWMS = "https://openmaps.gov.bc.ca/imagex/ecw_wms.dll";
+const NRCAN = "https://datacube.services.geo.ca/ows/elevation";
+const SOURCES = [
+  { id: "eox2016", name: "EOX Sentinel-2 cloudless 2016 (in the app today)", kind: "xyz",
+    url: "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg", max: 14,
+    sharp: "10 m (soft past z13)", vintage: "2016", covers: "All of BC", licence: "CC BY 4.0",
+    offline: ["ok", "Yes, with attribution"], attr: "Sentinel-2 cloudless 2016 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016)" },
+  { id: "eox2024", name: "EOX Sentinel-2 cloudless 2024", kind: "xyz",
+    url: "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg", max: 14,
+    sharp: "10 m", vintage: "2024", covers: "All of BC", licence: "CC BY-NC-SA 4.0 (paid licence for commercial use)",
+    offline: ["warn", "Only if non-commercial; otherwise buy EOX licence"], attr: "Sentinel-2 cloudless 2024 by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)" },
+  { id: "bc1m", name: "BC 1 m provincial mosaic 1995–2004", kind: "wms", url: BCWMS, layer: "bc_bc_bc_xc1m_bcalb_1995_2004", fmt: "image/jpeg", max: 19,
+    sharp: "1 m (z17)", vintage: "1995–2004", covers: "All of BC", licence: "BC 'Access Only' — view via the WMS; no reproduction or re-serving without written permission",
+    offline: ["no", "No — only with the Province's written permission (worth asking?)"], attr: "Imagery © Province of British Columbia (Access Only)" },
+  { id: "bcfraser", name: "BC Fraser River 0.5 m (2001)", kind: "wms", url: BCWMS, layer: "regional_mosaics_bc_fraserriver_xb500mm_bcalb_2001", fmt: "image/jpeg", max: 19,
+    sharp: "0.5 m (z18)", vintage: "2001", covers: "Lower Fraser corridor", licence: "BC 'Access Only'",
+    offline: ["no", "No — permission needed"], attr: "Imagery © Province of British Columbia (Access Only)" },
+  { id: "bclowermainland", name: "BC Lower Mainland 0.5 m (1999)", kind: "wms", url: BCWMS, layer: "regional_mosaics_bc_lowermainland_xc500mm_bcalb_1999", fmt: "image/jpeg", max: 19,
+    sharp: "0.5 m (z18)", vintage: "1999", covers: "Lower Mainland", licence: "BC 'Access Only'",
+    offline: ["no", "No — permission needed"], attr: "Imagery © Province of British Columbia (Access Only)" },
+  { id: "bcokanagan", name: "BC Okanagan Lake 0.2 m (2013)", kind: "wms", url: BCWMS, layer: "regional_mosaics_bc_okanagan_lake_xc200mm_2013_bcalb", fmt: "image/jpeg", max: 20,
+    sharp: "0.2 m (z19)", vintage: "2013", covers: "Okanagan Lake shore", licence: "BC 'Access Only'",
+    offline: ["no", "No — permission needed"], attr: "Imagery © Province of British Columbia (Access Only)" },
+  { id: "lidardtm", name: "Lidar bare-earth hillshade (NRCan HRDEM)", kind: "wms", url: NRCAN, layer: "dtm-hillshade", fmt: "image/png", max: 19,
+    sharp: "1–2 m relief (z17)", vintage: "Flight year varies", covers: "Where lidar was flown (patchy; measure)", licence: "Open Government Licence – Canada",
+    offline: ["ok", "Yes, with attribution"], attr: "Contains information licensed under the Open Government Licence – Canada (NRCan HRDEM)" },
+  { id: "lidardsm", name: "Lidar surface hillshade, trees kept (NRCan HRDEM)", kind: "wms", url: NRCAN, layer: "dsm-hillshade", fmt: "image/png", max: 19,
+    sharp: "1–2 m relief (z17)", vintage: "Flight year varies", covers: "Where lidar was flown", licence: "Open Government Licence – Canada",
+    offline: ["ok", "Yes, with attribution"], attr: "Contains information licensed under the Open Government Licence – Canada (NRCan HRDEM)" },
+  { id: "esri", name: "Esri World Imagery (online reference)", kind: "xyz",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", max: 19,
+    sharp: "0.3–1 m (z18–19)", vintage: "Recent, varies", covers: "All of BC", licence: "Esri terms (ArcGIS account / licence for apps)",
+    offline: ["no", "No (online only, under Esri terms)"], attr: "Imagery © Esri, Maxar, Earthstar Geographics, and the GIS User Community" },
+];
+const PRESETS = [
+  { name: "Vedder Crossing", c: [49.0975, -121.968], z: 15 },
+  { name: "Chilliwack canyon", c: [49.087, -121.79], z: 15 },
+  { name: "Fraser near Hope", c: [49.383, -121.45], z: 14 },
+  { name: "Cowichan at Skutz", c: [48.783, -123.88], z: 15 },
+  { name: "Kitimat River", c: [54.05, -128.65], z: 14 },
+  { name: "Babine River", c: [55.32, -126.62], z: 14 },
+  { name: "Mission Creek, Kelowna", c: [49.865, -119.46], z: 15 },
+];
+const DEFAULTS = ["eox2016", "bc1m", "lidardtm", "esri"];
+
+function layerOf(s) {
+  if (s.kind === "xyz") return L.tileLayer(s.url, { maxNativeZoom: s.max, maxZoom: 20, attribution: s.attr, crossOrigin: false });
+  return L.tileLayer.wms(s.url, { layers: s.layer, format: s.fmt, transparent: false, version: "1.3.0",
+                                  maxNativeZoom: s.max, maxZoom: 20, attribution: s.attr });
+}
+
+const grid = document.getElementById("grid");
+const maps = [];
+let syncing = false;
+DEFAULTS.forEach((def, i) => {
+  const cell = document.createElement("div"); cell.className = "cell";
+  const bar = document.createElement("div"); bar.className = "bar";
+  const sel = document.createElement("select"); sel.id = "src" + i; sel.setAttribute("aria-label", "Imagery source for map " + (i + 1));
+  SOURCES.forEach((s) => { const o = document.createElement("option"); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+  sel.value = def;
+  bar.appendChild(sel);
+  const mapEl = document.createElement("div"); mapEl.className = "map";
+  const facts = document.createElement("div"); facts.className = "facts";
+  cell.append(bar, mapEl, facts); grid.appendChild(cell);
+  const m = L.map(mapEl, { zoomControl: i === 0, maxZoom: 20 }).setView(PRESETS[0].c, PRESETS[0].z);
+  let cur = null;
+  const show = (id) => {
+    const s = SOURCES.find((x) => x.id === id);
+    if (cur) m.removeLayer(cur);
+    cur = layerOf(s).addTo(m);
+    facts.innerHTML = `<span class="chip ${s.offline[0]}">${s.offline[1]}</span><span>${s.sharp}</span><span>${s.vintage}</span>`;
+  };
+  sel.addEventListener("change", () => show(sel.value));
+  show(def);
+  m.on("move zoom", () => {
+    if (syncing) return; syncing = true;
+    maps.forEach((o) => { if (o !== m) o.setView(m.getCenter(), m.getZoom(), { animate: false }); });
+    document.getElementById("zoom").textContent = "zoom " + m.getZoom().toFixed(1);
+    syncing = false;
+  });
+  maps.push(m);
+});
+const pre = document.getElementById("presets");
+PRESETS.forEach((p) => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = p.name;
+  b.addEventListener("click", () => maps[0].setView(p.c, p.z));
+  pre.appendChild(b);
+});
+document.getElementById("facts").innerHTML = SOURCES.map((s) =>
+  `<tr><td>${s.name}</td><td>${s.sharp}</td><td>${s.vintage}</td><td>${s.covers}</td><td>${s.licence}</td>` +
+  `<td><span class="chip ${s.offline[0]}">${s.offline[1]}</span></td></tr>`).join("");
+document.getElementById("zoom").textContent = "zoom " + maps[0].getZoom().toFixed(1);
+</script>
+</body>
+</html>
