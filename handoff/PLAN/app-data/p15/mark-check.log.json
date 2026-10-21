@@ -1,0 +1,221 @@
+{
+ "log": [
+  {
+   "water": "chilliwack",
+   "what": "opened",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "at the mouth part",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "marks at the mouth part",
+   "marks": [
+    {
+     "label": "Boundary: Chilliwack River Ecological Reserve boundary",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: Tamihi Rapids Bridge",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    }
+   ]
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 1",
+   "where": "Part 2 of 4 · Chilliwack River",
+   "name": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary",
+    "Boundary: Tamihi Rapids Bridge [Tamihi Rapids Bridge]",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "marks ▲ 1",
+   "marks": [
+    {
+     "label": "Boundary: Chilliwack River Ecological Reserve boundary",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: Tamihi Rapids Bridge",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    }
+   ]
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 2",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence [fishing boundary signs 100 m below the Slesse Creek confluence]"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "marks ▲ 2",
+   "marks": [
+    {
+     "label": "Boundary: Chilliwack River Ecological Reserve boundary",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: Tamihi Rapids Bridge",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    }
+   ]
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 3",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary]",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": null,
+   "chooser": null
+  },
+  {
+   "water": "chilliwack",
+   "what": "marks ▲ 3",
+   "marks": [
+    {
+     "label": "Boundary: Chilliwack River Ecological Reserve boundary",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: Tamihi Rapids Bridge",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    },
+    {
+     "label": "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence",
+     "rootPosition": "absolute",
+     "offsetTop": 0,
+     "centreMinusTranslateY": 136
+    }
+   ]
+  },
+  {
+   "water": "chilliwack",
+   "what": "a mark tapped",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "whole": "⤢ Whole river",
+   "status": null,
+   "marks": [
+    "Boundary: Chilliwack River Ecological Reserve boundary [Chilliwack River Ecological Reserve boundary] (open)",
+    "Boundary: Tamihi Rapids Bridge",
+    "Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"
+   ],
+   "pop": "Chilliwack River Ecological Reserve boundary✕UpstreamChilliwack River Ecological Reserve boundary → SourceChilliwack RiverDownstream100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundaryChilliwack River",
+   "chooser": null
+  }
+ ],
+ "errors": []
+}

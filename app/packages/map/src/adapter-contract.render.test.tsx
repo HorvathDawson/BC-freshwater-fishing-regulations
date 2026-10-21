@@ -78,7 +78,10 @@ class Marker {
   /** A custom element (the boundary marks, P15) is put in the document, as GL JS puts it over the map. */
   private el: HTMLElement | null;
   private at: { lng: number; lat: number } = { lng: 0, lat: 0 };
-  constructor(o?: { element?: HTMLElement }) { this.el = o?.element ?? null; }
+  constructor(o?: { element?: HTMLElement }) {
+    this.el = o?.element ?? null;
+    this.el?.classList.add("maplibregl-marker");          // as GL JS does: its stylesheet then places it absolutely
+  }
   setLngLat(l: [number, number]) { this.at = { lng: l[0], lat: l[1] }; return this; } setPopup() { return this; }
   getLngLat() { return this.at; }
   getElement() { return this.el!; }
@@ -283,6 +286,27 @@ describe("web only", () => {
     web.tilesIn = false;                  // zoomed out: a long tile burst, and no `load` will ever fire again
     r.rerender(<WebMap {...base({ highlight: undefined, data: { ...DATA, basin: { CHWK: { standing: 5 } } } })} />);
     await waitFor(() => expect(log).toEqual(['set atlas/basin string:CHWK {"standing":5}']));
+  });
+
+  it("P15 review: a mark's element is left to GL JS's absolute placement — nothing inline stacks it in normal flow", async () => {
+    // maplibre-gl.css: `.maplibregl-marker{position:absolute;top:0;left:0}`; GL JS then only sets a translate. An inline
+    // `position` on the element beats the class, so the marks stacked 44 px apart (a mark drawn 44 px × its index low).
+    const css = document.createElement("style");
+    css.textContent = ".maplibregl-marker{position:absolute;top:0;left:0}";
+    document.head.appendChild(css);
+    try {
+      render(<WebMap {...base({ data: undefined, marks: [
+        { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false },
+        { lon: -121.70, lat: 49.02, label: "Slesse Creek", a11y: "Boundary: Slesse Creek", on: true }] })} />);
+      await waitFor(() => expect(document.querySelectorAll(".maplibregl-marker").length).toBe(2));
+      for (const root of document.querySelectorAll<HTMLElement>(".maplibregl-marker")) {
+        expect(root.style.position).toBe("");
+        expect(getComputedStyle(root).position).toBe("absolute");
+      }
+      // the label still sits over its own ring: its containing block is the 44 px button inside the root
+      const b = screen.getByLabelText("Boundary: Slesse Creek");
+      expect([b.style.position, b.querySelector("span")!.style.position]).toEqual(["relative", "absolute"]);
+    } finally { css.remove(); }
   });
 
   it("P15: a mark's label near the map's edge is moved in, and again when the map moves", async () => {

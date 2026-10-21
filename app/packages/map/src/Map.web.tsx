@@ -557,9 +557,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     };
   }, [(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")]);
 
+  /**
+   * The ids lit `selected` last, and apart from them the ids lit `water` (P15) — cleared by id on the next highlight,
+   * and what a release swap puts back (below). Kept apart, and `wasLit` meaning what it meant before P15 (the selected
+   * ids only), so the one colouring engine's `restore` (colouring.ts, branch wf_b01b27c4) can never put the water's
+   * other parts back as `selected`: absorbing P15 there is adding `[...wasWater.current]` to its one highlight call.
+   */
   const wasLit = useRef<SectionKey[]>([]);
-  /** The `highlight` and `water` ids lit last, apart — what a release swap puts back (below). */
-  const lastLit = useRef<{ sel: SectionKey[]; water: SectionKey[] }>({ sel: [], water: [] });
+  const wasWater = useRef<SectionKey[]>([]);
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
@@ -567,10 +572,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // ago, often mid-tile-burst, and a missed `load` meant the river never lit.
     const apply = () => {
       // Clears ONLY the highlight's keys, per feature, from the ids this map lit last time — see `stateHandle`.
-      const handle = r.states(() => wasLit.current);
+      const handle = r.states(() => [...wasLit.current, ...wasWater.current]);
       adapter.current.highlight(handle, [...highlight], [...(water ?? [])]);
-      lastLit.current = { sel: [...highlight], water: [...(water ?? [])] };
-      wasLit.current = [...highlight, ...(water ?? [])];
+      wasLit.current = [...highlight];
+      wasWater.current = [...(water ?? [])];
     };
     return whenStyled(m, apply);
   }, [highlight, water]);
@@ -627,7 +632,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
       },
       restore: () => {
-        adapter.current.highlight(r.states(() => []), lastLit.current.sel, lastLit.current.water);
+        adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current]);
         for (const [layerId, values] of Object.entries(latestData.current ?? {}))
           adapter.current.setData(layerHandle(m, r), layerId, values);
       },
@@ -913,9 +918,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
               style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;
 }
 
-/** One boundary mark's element: a 44 px button holding a 16 px ring (filled when open), its label above it. */
+/**
+ * One boundary mark's element: a 44 px button holding a 16 px ring (filled when open), its label above it. The ROOT
+ * is a bare wrapper GL JS owns: `.maplibregl-marker{position:absolute;top:0;left:0}` places it and a translate moves
+ * it. Nothing inline may set its `position` — an inline `relative` beat the class and stacked the marks in normal
+ * flow, each drawn 44 px × its index below its point (P15 review). The button inside is the label's containing block.
+ */
 function markElement(k: MapMark, c: { ink: string; card: string }, press: () => void): HTMLElement {
+  const root = document.createElement("div");
   const b = document.createElement("button");
+  root.appendChild(b);
   b.type = "button";
   b.setAttribute("aria-label", k.a11y);
   b.setAttribute("data-mark", k.on ? "on" : "");
@@ -934,5 +946,5 @@ function markElement(k: MapMark, c: { ink: string; card: string }, press: () => 
     b.appendChild(t);
   }
   b.addEventListener("click", (e) => { e.stopPropagation(); press(); });
-  return b;
+  return root;
 }

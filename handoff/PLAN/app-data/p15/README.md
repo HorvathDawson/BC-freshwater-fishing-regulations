@@ -34,7 +34,29 @@ These were also checked:
   and the chip was left out.
 
 ## Seen, not resolved
-- Some marks sit a little off the lit line at about z12 (Tamihi Rapids Bridge, the Slesse signs). The mark coordinates
-  are the release's `part_mark.lon/lat`, so this is worth checking in the pipeline.
+- ~~Some marks sit a little off the lit line at about z12, which pointed at the pipeline's `part_mark.lon/lat`.~~ The
+  cause was an APP bug, fixed in the review round. The mark's element set `position:relative` inline. That overrode
+  `.maplibregl-marker{position:absolute;top:0;left:0}`, so the marks stacked in normal flow and mark *i* was drawn
+  44 px × *i* below its point. The coordinates were right: Tamihi (-121.83788, 49.07184) is at the west edge of part 1.
+  The element is now a bare wrapper that GL JS places, with the 44 px button inside it. This is pinned in
+  `adapter-contract.render.test.tsx` ("P15 review: a mark's element is left to GL JS's absolute placement"). The
+  check was run again on the web (`node mark-check.mjs <out> <app url>`, log in `mark-check.log.json`). Every mark's
+  root is now `position:absolute` with `offsetTop` 0, and its centre minus its translate is 136 for all three marks.
+  Before the fix it was 136 / 180 / 224. These screenshots were retaken after the fix: `app-chilliwack-2-mouth`,
+  `-3-up1..3` and `-4-mark`. In them the Tamihi and Slesse rings sit on the two ends of the lit part.
 - Feature-state `water` (the other parts of the water) only raises the stream line width floor
   (`width.stream.water` 2.4). Lake fills of the other parts do not change.
+
+## The colouring engine (review round)
+The first report said no branch was generalising `profile-paint.ts`. That was wrong. The engine is `ad3898d5`
+("conditions colour: one colouring engine", `profile-paint.ts` → `colouring.ts`, branch `worktree-wf_b01b27c4-44c-1`),
+and it is NOT on `redesign/stream-sections` yet. P15 therefore lights the parts through the existing adapter contract:
+one `MapAdapter.highlight(h, selected, water)` call through `stateHandle`, which is the same call the engine's
+`restore` makes. A merge with `ad3898d5` conflicts in three places:
+- `Map.web.tsx`: the destructured props, and the `restore` block. Take ad3898d5's block, then add the water ids to its
+  one highlight call: `adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current])`.
+  `wasLit` still means only the selected ids, as it did before P15, so the engine's unmodified restore line can never
+  put the other parts back as `selected`. Left unmerged, those parts would only lose their `water` floor after a
+  release swap.
+- `map/src/index.ts`: keep both, `MapMark` and the `./colouring` export.
+- `ui-native/src/MapScreen.tsx`: keep both prop sets (`standing` and `water`/`marks`/`onPressMark`).
