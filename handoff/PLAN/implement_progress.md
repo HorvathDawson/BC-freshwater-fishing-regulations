@@ -96,6 +96,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- OWNER 2026-10-21 ~16:20 asks, RUNNING wf_5f5e25c3-271 (script map-chrome-menu-back-wf_5f5e25c3-271.js): lanes
+  map-rail-spots (long-press -> Add a spot here / Cancel -> existing spot flow; spots + layers buttons on a map side
+  rail, Fish Washington style; spots menu), menu-info (top-left hamburger: glossary, about, contact [placeholder
+  config], report a problem [user-visible diagnostics, sent only by share/mailto], data sources + dates from the
+  manifest; report link on each Regs tab; sync slot later), android-back (whole-app audit, one mechanism, tests).
+  Species sheet (sp:) and "How this was decided" (other:) are wave B sheets lane T36 part 2 + T37 — verify on merge.
 - OWNER 2026-10-21 ~16:10 on the water map view: keep every part's regulation colour and OUTLINE the current part
   (no highlight fill); step ▲/▼ across waters when one stream continues directly as another (Vedder from
   Chilliwack; same watercourse, not tributaries) — pipeline ships a continuation link. Folded into the follow-ups
