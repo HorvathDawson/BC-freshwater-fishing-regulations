@@ -120,3 +120,22 @@ def test_the_release_cli_dates_the_sources_from_the_fetched_data_dir():
     from pipeline.deliver.release import __main__ as CLI
     assert ('sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules")'
             in inspect.getsource(CLI.main))
+
+
+def test_the_release_id_covers_the_manifest_not_only_the_files(tmp_path):
+    # An app keeps a release by its id: a manifest-only change (valid_until stamped, a source date, the tiles pairing)
+    # under the SAME id is never fetched. r-98ded5f443e1 shipped twice, once without valid_until and once with it.
+    from pipeline.deliver.release.build import ship
+
+    def rid(name, **kw):
+        work = tmp_path / name
+        work.mkdir()
+        raw = work / "core.sqlite"
+        raw.write_bytes(b"core")
+        return ship(work, {"core": raw}, "d768d6e135e62b99", tmp_path / f"out-{name}", **kw).name
+    base = rid("a")
+    assert rid("b") == base                                         # identical inputs, identical id
+    changed = [rid("c", valid_until="2027-03-31"), rid("d", sources={"hydat": {"date": "2026-07-17"}}),
+               rid("e", tiles={"build": "x"}), rid("f", basemap={"date": "2026-03-05"}),
+               rid("g", regs_versions={"gear": 12})]
+    assert all(c != base for c in changed) and len(set(changed)) == len(changed)

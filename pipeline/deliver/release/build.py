@@ -338,8 +338,13 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
                          "format": FORMATS[name], "section_handles": handles}
         raw.unlink()
+    # The id covers EVERYTHING the manifest says, not only the files: an app keeps a release by its id, so a
+    # manifest-only change (valid_until, a source date, the tiles pairing) under the same id would never be fetched.
+    said = {"tiles": tiles, "basemap": basemap, "valid_until": valid_until, "regs_versions": regs_versions,
+            "sources": sources}
     rid = data_release or "r-" + hashlib.sha256(
-        json.dumps({k: v["sha256"] for k, v in sorted(entries.items())}).encode()).hexdigest()[:12]
+        json.dumps({"files": {k: v["sha256"] for k, v in sorted(entries.items())}, "said": said},
+                   sort_keys=True).encode()).hexdigest()[:12]
     for e in entries.values():
         e["url"] = f"{rid}/{e['url']}"
     man = MAN.manifest(rid, entries, handles, tiles=tiles, basemap=basemap, valid_until=valid_until,
