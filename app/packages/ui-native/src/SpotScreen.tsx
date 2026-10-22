@@ -32,6 +32,7 @@ import { percentileLabel } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
+import { Icon, IconText, type IconName } from "./icons";
 
 export type SpotMode = "draft" | "view" | "edit";
 
@@ -107,8 +108,8 @@ export function SpotScreen(p: SpotScreenProps) {
         {mode === "edit" ? (
           <Link palette={palette} label="Cancel editing" text="Cancel" onPress={leaveEdit} />
         ) : p.onBack ? (
-          <Link palette={palette} label="Back"
-                text={mode === "draft" ? "‹  Back" : "‹  Spots"} onPress={p.onBack} />
+          <Link palette={palette} label="Back" icon="back"
+                text={mode === "draft" ? "Back" : "Spots"} onPress={p.onBack} />
         ) : <View />}
 
         <View style={{ flexDirection: "row", gap: 18 }}>
@@ -248,7 +249,7 @@ export function SpotScreen(p: SpotScreenProps) {
             <Text style={{ ...TYPE.bodyStrong, flex: 1, color: palette.ink }}>
               Show on map
             </Text>
-            <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>›</Text>
+            <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
         )}
 
@@ -327,7 +328,7 @@ export function SpotScreen(p: SpotScreenProps) {
                                  style={{ position: "absolute", top: 4, right: 4, width: 28, height: 28,
                                           borderRadius: 14, alignItems: "center", justifyContent: "center",
                                           backgroundColor: palette.card }}>
-                        <Text style={{ ...TYPE.bodyStrong, fontSize: 15, color: palette.ink }}>×</Text>
+                        <Icon name="close" colour={palette.ink} size={16} />
                       </Pressable>
                     )}
                   </View>
@@ -508,14 +509,13 @@ function Block({ palette, title, children }: {
   );
 }
 
-function Link({ palette, label, text, onPress, tone }: {
-  palette: Palette; label: string; text: string; onPress: () => void; tone?: string;
+function Link({ palette, label, text, onPress, tone, icon }: {
+  palette: Palette; label: string; text: string; onPress: () => void; tone?: string; icon?: IconName;
 }) {
+  const style = { ...TYPE.micro, fontSize: 13, color: tone ?? palette.accent };
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-      <Text style={{ ...TYPE.micro, fontSize: 13, color: tone ?? palette.accent }}>
-        {text}
-      </Text>
+      {icon ? <IconText name={icon} text={text} style={style} /> : <Text style={style}>{text}</Text>}
     </Pressable>
   );
 }

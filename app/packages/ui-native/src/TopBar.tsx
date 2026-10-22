@@ -72,12 +72,12 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
           {open ? (
             <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.close} hitSlop={4}
                        style={{ width: 40, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ ...TYPE.bodyStrong, fontSize: 22, lineHeight: 24, color: palette.ink }}>‹</Text>
+              <Icon name="back" colour={palette.ink} size={22} />
             </Pressable>
           ) : (
             <View importantForAccessibility="no-hide-descendants" aria-hidden
                   style={{ width: 40, alignItems: "center", justifyContent: "center" }}>
-              <Icon name="search" colour={palette.sub} size={18} />
+              <Icon name="search" colour={palette.sub} size={20} />
             </View>
           )}
           <TextInput ref={ref}
@@ -96,7 +96,7 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
           {query.length > 0 && (
             <Pressable onPress={() => onQuery("")} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.clear}
                        style={{ width: 40, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ ...TYPE.bodyStrong, color: palette.faint }}>✕</Text>
+              <Icon name="close" colour={palette.sub} size={18} />
             </Pressable>
           )}
         </View>

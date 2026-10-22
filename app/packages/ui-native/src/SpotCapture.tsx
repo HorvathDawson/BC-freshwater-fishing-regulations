@@ -35,6 +35,7 @@ import { Confirm, SpotScreen } from "./SpotScreen";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
+import { Icon, IconText, type IconName } from "./icons";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
@@ -203,7 +204,7 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card, padding: 20, gap: 26 }}>
       <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-        <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>‹  Back</Text>
+        <IconText name="back" text="Back" style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }} />
       </Pressable>
       {error ? <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{error}</Text> : null}
 
@@ -234,11 +235,11 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
           ))}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14, paddingTop: 4 }}>
-          <Step palette={palette} label="Earlier day" glyph="‹" onPress={() => onShiftDay(-1)} />
+          <Step palette={palette} label="Earlier day" icon="back" onPress={() => onShiftDay(-1)} />
           <Text style={{ ...TYPE.bodyStrong, flex: 1, textAlign: "center", color: palette.ink }}>
             {steps.dayText}
           </Text>
-          <Step palette={palette} label="Later day" glyph="›" onPress={() => onShiftDay(1)}
+          <Step palette={palette} label="Later day" icon="next" onPress={() => onShiftDay(1)}
                 disabled={!steps.laterDay} />
         </View>
       </View>
@@ -247,13 +248,13 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
                        color: palette.faint }}>HOUR</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-          <Step palette={palette} label="Earlier hour" glyph="‹"
+          <Step palette={palette} label="Earlier hour" icon="back"
                 onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />
           <Text style={{ ...TYPE.figureBig, fontSize: 30, flex: 1, textAlign: "center",
                          color: palette.ink }}>
             {steps.hourLabel}
           </Text>
-          <Step palette={palette} label="Later hour" glyph="›"
+          <Step palette={palette} label="Later hour" icon="next"
                 onPress={() => onHour(hour + 1)} disabled={!steps.laterHour} />
         </View>
       </View>
@@ -268,8 +269,8 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
   );
 }
 
-function Step({ palette, label, glyph, onPress, disabled }: {
-  palette: Palette; label: string; glyph: string; onPress: () => void; disabled?: boolean;
+function Step({ palette, label, icon, onPress, disabled }: {
+  palette: Palette; label: string; icon: IconName; onPress: () => void; disabled?: boolean;
 }) {
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
@@ -277,7 +278,7 @@ function Step({ palette, label, glyph, onPress, disabled }: {
                style={{ width: 44, height: 44, borderRadius: palette.r.box, alignItems: "center",
                         justifyContent: "center", borderWidth: 1, borderColor: palette.line2,
                         opacity: disabled ? 0.35 : 1 }}>
-      <Text style={{ ...TYPE.bodyStrong, fontSize: 19, color: palette.ink }}>{glyph}</Text>
+      <Icon name={icon} colour={palette.ink} size={22} />
     </Pressable>
   );
 }

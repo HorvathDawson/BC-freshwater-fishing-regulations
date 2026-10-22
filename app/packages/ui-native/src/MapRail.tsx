@@ -1,26 +1,28 @@
 /**
  * THE MAP RAIL (owner 2026-10-21, after Fish Washington's side stack): the browse maps' own buttons, stacked on the
  * right — Layers ALONE since T48 (owner 2026-10-22: Spots went back to the bottom bar as a tab; one place for each
- * kind of thing). A stack of one keeps the rail's shape, so a later map tool joins it without a new place. Drawn as riffle's `.tr .stack`
- * (`design/riffle.html`): one card column, a hairline between buttons, the lift; square, like everything here.
+ * kind of thing). A stack of one keeps the rail's shape, so a later map tool joins it without a new place. One card
+ * column, a hairline between buttons, the lift; square, like everything here. Its icon is the app's one set (`icons.tsx`).
  *
  * Under MapLibre's zoom stack on the web (top-right, `@app/map` controls.css); at the top on a phone, where the map
  * has none. An icon alone is a guess, so every button says its name aloud; the words are `@app/core` `MAP_RAIL`.
  */
 import { LAYER_WORDS, MAP_RAIL } from "@app/core";
 import { Platform, Pressable, Text, View } from "react-native";
-import { LayersIcon } from "./icons";
+import { Icon } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-/** One button of the stack: 40 px square (riffle's 36, raised for a thumb), reaching 48 with its slop. */
+/** One button of the stack: 40 px square, reaching 48 with its slop (a thumb's target). */
 const SIZE = 40;
+/** (N1) the rail's icon: 20 px, the bar's size, so Layers and the tabs are one set at one weight. */
+const RAIL_ICON = 20;
 /**
  * How far under the map's top bar (`top`) the rail starts: clear of MapLibre's zoom stack on the web (two 28 px buttons
  * from 10 px in, then 16 px), 8 px on a phone, whose map draws none.
  */
 export const RAIL_BELOW = Platform.OS === "web" ? 84 : 8;
-/** On the web its right edge lines up with that zoom stack's (MapLibre's 10 px control margin); riffle's 14 elsewhere. */
+/** On the web its right edge lines up with that zoom stack's (MapLibre's 10 px control margin); 14 elsewhere. */
 export const RAIL_RIGHT = Platform.OS === "web" ? 10 : 14;
 
 export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
@@ -37,7 +39,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
 }) {
   const buttons = [
     onLayers && { k: "layers", label: LAYER_WORDS.railLabel(layersChanged), onPress: onLayers,
-                  icon: <LayersIcon colour={palette.ink} size={18} />, badge: layersChanged },
+                  icon: <Icon name="layers" colour={palette.ink} size={RAIL_ICON} />, badge: layersChanged },
   ].filter((b): b is Exclude<typeof b, undefined> => !!b);
   if (buttons.length === 0) return null;
   return (

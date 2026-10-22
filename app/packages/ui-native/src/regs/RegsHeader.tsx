@@ -14,13 +14,13 @@
  */
 import { useState, useSyncExternalStore } from "react";
 import { Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import { WORDS, type HeaderVM, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
+import { Icon } from "../icons";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
@@ -37,11 +37,8 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
   return measuredHeight <= lineHeight * 2 + 1 ? place.full : place.short;
 }
 
-/** The prototype's own glyphs (placeGo): a folded map; the Parts list. */
-const GLYPH = {
-  map: ["M2.5 5.5 8 3l7 2.5 5.5-2.5v15L15 20.5 8 18l-5.5 2.5Z", "M8 3v15", "M15 5.5v15"],
-  parts: ["M4 6h15M4 11.5h15M4 17h15"],
-} as const;
+/** (N1) the action's glyph, from the app's one set (`icons.tsx`): Map is the bar's own map; Parts is a list. */
+const GLYPH = { map: "map", parts: "parts" } as const;
 
 export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, side = false }: {
   header: HeaderVM; palette: Palette;
@@ -67,11 +64,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, 
             <RegsPress testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
                        accessibilityLabel={h.action.aria} box={{ w: 44, h: 44 }}
                        style={{ minWidth: 44, minHeight: 44, paddingHorizontal: 4, gap: 1, alignItems: "center", justifyContent: "center" }}>
-              <Svg width={20} height={20} viewBox="0 0 23 23" fill="none">
-                {GLYPH[h.action.kind].map((d) => (
-                  <Path key={d} d={d} stroke={palette.accent} strokeWidth={1.7} strokeLinejoin="round" />
-                ))}
-              </Svg>
+              <Icon name={GLYPH[h.action.kind]} colour={palette.accent} size={20} />
               <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaBold, { lineHeight: 13.73, color: palette.accent }]}>{h.action.label}</Text>
             </RegsPress>
           )}

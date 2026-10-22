@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
-import { CalendarIcon } from "./icons";
+import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
 
@@ -39,7 +39,7 @@ export function MapDayButton({ palette, day, onPress, now }: {
                  marginTop: -7, marginBottom: -5, marginLeft: -8,
                  backgroundColor: pressed ? palette.tint : day ? palette.accent : "transparent",
                })}>
-      <CalendarIcon colour={day ? palette.onAccent : palette.ink} size={17} />
+      <Icon name="calendar" colour={day ? palette.onAccent : palette.ink} size={18} />
       <Text testID="map-day" style={{ ...TYPE.bodyStrong, fontSize: 13, color: day ? palette.onAccent : palette.ink }}>
         {vm.text}
       </Text>
@@ -51,8 +51,8 @@ export function MapDayButton({ palette, day, onPress, now }: {
  * A month or day-step button. AT MODULE SCOPE, never inside `DayCalendar`'s render: a component declared there is a new
  * type every render, so React would remount the button on each press and a keyboard user's focus would fall to the page.
  */
-function Btn({ palette, text, label, onPress, enabled = true, strong = false }:
-  { palette: Palette; text: string; label: string; onPress: () => void; enabled?: boolean; strong?: boolean }) {
+function Btn({ palette, text, icon, label, onPress, enabled = true, strong = false }:
+  { palette: Palette; text?: string; icon?: IconName; label: string; onPress: () => void; enabled?: boolean; strong?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={!enabled} accessibilityRole="button" accessibilityLabel={label}
                aria-disabled={!enabled}
@@ -61,7 +61,8 @@ function Btn({ palette, text, label, onPress, enabled = true, strong = false }:
                  justifyContent: "center", backgroundColor: pressed ? palette.tint : "transparent",
                  borderWidth: strong ? 1.5 : 0, borderColor: palette.accent, opacity: enabled ? 1 : 0.35,
                })}>
-      <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{text}</Text>
+      {icon ? <Icon name={icon} colour={palette.accent} size={20} />
+        : <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{text}</Text>}
     </Pressable>
   );
 }
@@ -138,9 +139,9 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
     <View testID="day-calendar" style={{ width: "100%", maxWidth: 380, alignSelf: "center", gap: 6 }}>
       <Text style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{showingLine(day, now)}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Btn palette={palette} text="‹" label={DAY_PICKER.prevMonth} onPress={() => moveMonth(-1)} enabled={m.prev} />
+        <Btn palette={palette} icon="back" label={DAY_PICKER.prevMonth} onPress={() => moveMonth(-1)} enabled={m.prev} />
         <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, fontSize: 16, color: palette.ink }}>{m.title}</Text>
-        <Btn palette={palette} text="›" label={DAY_PICKER.nextMonth} onPress={() => moveMonth(1)} enabled={m.next} />
+        <Btn palette={palette} icon="next" label={DAY_PICKER.nextMonth} onPress={() => moveMonth(1)} enabled={m.next} />
       </View>
       <View style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
         {m.weekdays.map((w) => (

@@ -34,6 +34,7 @@ import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
 import { isSelected, resultGroups, rowStatus, useBackLayer,
          type SearchAction, type SearchPick, type SearchSession, type SearchTarget } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
+import { Icon, IconText } from "./icons";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TOP_BAR, searchPanelWidth } from "./TopBar";
 import { TYPE } from "./type";
@@ -60,7 +61,7 @@ export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
   const place = pick.town;
   if (place) {
     const near = s.town.state === "ready" && s.town.value ? s.town.value.near : [];
-    rows.push({ t: "head", key: "back", label: "← All results", back: true,
+    rows.push({ t: "head", key: "back", label: "All results", back: true,
                 right: s.town.state === "ready" ? nearCount(near.length) : "" });
     rows.push({ t: "head", key: "near-h", label: `Water near ${place.name}`, place: true });
     if (s.town.state === "failed")
@@ -184,7 +185,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                     {r.back ? (
                       <Pressable onPress={() => act({ t: "back" })} accessibilityRole="button"
                                  accessibilityLabel="Back to all results">
-                        <Text style={{ ...TYPE.section, color: palette.accent }}>{r.label}</Text>
+                        <IconText name="back" text={r.label} size={14} gap={2}
+                                  style={{ ...TYPE.section, color: palette.accent }} />
                       </Pressable>
                     ) : (
                       <Text accessibilityRole="header"
@@ -345,11 +347,7 @@ function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, 
                        backgroundColor: pressed ? tone : palette.card,
                        ...(focus === "go" ? { ...ring, outlineColor: palette.ink, outlineOffset: 2 } : null),
                      })}>
-            {({ pressed }) => (
-              <Text style={{ ...TYPE.bodyStrong, fontSize: 24, lineHeight: 26, color: pressed ? palette.card : tone }}>
-                ›
-              </Text>
-            )}
+            {({ pressed }) => <Icon name="next" colour={pressed ? palette.card : tone} size={24} />}
           </Pressable>
         </View>
       ) : null}

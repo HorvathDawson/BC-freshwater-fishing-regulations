@@ -132,11 +132,11 @@ export interface WaterMapVM {
   readonly down: WaterMapStepVM;
   readonly up: WaterMapStepVM;
   /** ▲ or ▼ at a fork: which way, the main stem first. */
-  readonly chooser: { readonly title: string; readonly close: string; readonly closeGlyph: string; readonly options: readonly WaterMapPartVM[] } | null;
+  readonly chooser: { readonly title: string; readonly close: string; readonly options: readonly WaterMapPartVM[] } | null;
   readonly marks: readonly WaterMapMarkVM[];
   /** The open mark: its words, the parts above it and the part below it. */
   readonly pop: {
-    readonly title: string; readonly close: string; readonly closeGlyph: string;
+    readonly title: string; readonly close: string;
     readonly upLabel: string; readonly up: readonly WaterMapPartVM[];
     readonly downLabel: string; readonly down: WaterMapPartVM;
   } | null;
@@ -189,10 +189,10 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     down: step("down", downs, crossDown(g, at)),
     up: step("up", ups, crossUp(g, at)),
     chooser: choice.length > 1
-      ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close, closeGlyph: W.closeGlyph,
+      ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close,
           options: choice.map((i) => partVM(g, i)) } : null,
     marks,
-    pop: open ? { title: markLabel(g, open), close: W.close, closeGlyph: W.closeGlyph,
+    pop: open ? { title: markLabel(g, open), close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,
     exit: !downs.length && at === 0 && g.exit

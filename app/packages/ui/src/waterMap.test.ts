@@ -76,7 +76,7 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
     const g = await loadWaterGroup(st, "gnis:8634");
     const s = run(g, waterMapStart(0), { type: "mark", ix: 2 });
     expect(view(g, s).pop).toEqual({
-      title: "fishing boundary signs 100 m below the Slesse Creek confluence", close: "Close", closeGlyph: "✕",
+      title: "fishing boundary signs 100 m below the Slesse Creek confluence", close: "Close",
       upLabel: "Upstream", up: [{ ix: 2, item: "gnis:8634", partIx: 0, note: "Chilliwack River",
         name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary" }],
       downLabel: "Downstream", down: { ix: 1, item: "gnis:8634", partIx: 2, note: "Chilliwack River",
@@ -122,7 +122,7 @@ describe("a side channel: the Zymoetz's canyon", () => {
     expect(view(g, canyon).up).toEqual({ label: "▲ Upstream", aria: "▲ Upstream", disabled: false, fork: true, cross: null });
     const open = run(g, canyon, { type: "up" });
     expect(open).toEqual({ ...canyon, choosing: "up" });
-    expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", closeGlyph: "✕", options: [
+    expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
       { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
       { ix: 2, item: "gnis:3137", partIx: 5, name: "Side channel", note: "Zymoetz River" }] });
     expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
@@ -166,7 +166,7 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
                                            cross: null });
     const open = run(g, source, { type: "down" });
     expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
-      closeGlyph: "✕", options: [
+      options: [
         { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
         { ix: 4, item: "gnis:3137", partIx: 2, name: "A lake → McDonell Lake outlet", note: "Zymoetz River" }] }]);
     expect(run(g, open, { type: "choose", to: 4 })).toEqual(waterMapStart(4));

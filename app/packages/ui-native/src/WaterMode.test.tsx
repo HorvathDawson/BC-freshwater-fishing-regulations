@@ -127,13 +127,13 @@ describe("one water screen, whichever map you tapped", () => {
     seen.condRegulations = look();
 
     expect(seen).toEqual({
-      mapFront: "‹  Map | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
-      mapConditions: `‹  Map | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
-      condFront: `‹  Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
-      condRegulations: "‹  Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
+      mapFront: "Map | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
+      mapConditions: `Map | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
+      condFront: `Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
+      condRegulations: "Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
     });
     // the same screen: strip, title and body equal view for view — only where back goes (each map) differs
-    const strip = (s: string) => s.replace(/^‹ {2}\w+ \| /, "");
+    const strip = (s: string) => s.replace(/^\w+ \| /, "");
     expect([strip(seen.mapFront!), strip(seen.mapConditions!)])
       .toEqual([strip(seen.condRegulations!), strip(seen.condFront!)]);
   });
@@ -153,10 +153,10 @@ describe("one water screen, whichever map you tapped", () => {
     seen.push(look());
     expect(seen).toEqual([
       "no back | no strip | no title | the map | Map Conditions* Spots More",
-      `‹  Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
-      "‹  Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
-      `‹  Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
-      "‹  Conditions | Regulations · Conditions · Map* | Chilliwack River | the map | no bar",
+      `Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
+      "Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
+      `Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
+      "Conditions | Regulations · Conditions · Map* | Chilliwack River | the map | no bar",
       // back from any view leaves the water: the Conditions map, as it was
       "no back | no strip | no title | the map | Map Conditions* Spots More",
     ]);
@@ -187,11 +187,11 @@ describe("one water screen, whichever map you tapped", () => {
     const mapOpened = look();
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     expect([opened, swiped, backed, mapOpened, look()]).toEqual([
-      `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
-      `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+      `Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+      `Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "no back | no strip | no title | the map | Map Conditions* Spots More",
       // the Map tab opens the very same screen; only where back goes differs
-      `‹  Map | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+      `Map | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       "no back | no strip | no title | the map | Map* Conditions Spots More",
     ]);
   });

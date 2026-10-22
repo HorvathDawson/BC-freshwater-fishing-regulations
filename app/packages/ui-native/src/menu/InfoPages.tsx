@@ -40,7 +40,8 @@ export function AboutPage({ vm, palette }: { vm: AboutVM; palette: Palette }) {
 }
 
 export function SourcesPage({ vm, palette }: {
-  vm: { intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM }; palette: Palette;
+  vm: { intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM; icons: SourcesPicturesVM };
+  palette: Palette;
 }) {
   return (
     <>
@@ -58,6 +59,8 @@ export function SourcesPage({ vm, palette }: {
       <Text style={{ ...TYPE.small, color: palette.ink }}>{vm.footnote}</Text>
       {/* (T43) every fish picture the app can show, credited once (the regs page's foot lists its own) */}
       <Credits palette={palette} ink={palette.sub} lines={vm.pictures.lines} label={vm.pictures.label} testID="sources-fish-credits" />
+      {/* (N1) the icon set's ISC notice: the licence asks every copy to carry it */}
+      <Credits palette={palette} ink={palette.sub} lines={vm.icons.lines} label={vm.icons.label} testID="sources-icon-credits" />
     </>
   );
 }

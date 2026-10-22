@@ -1,116 +1,128 @@
 /**
- * The tab icons, as paths. Four shapes on a 24 grid at stroke width 2, MITRED AND BUTTED.
+ * THE APP'S ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"): every chrome glyph
+ * — the bottom bar, the map rail, search, back, close, the calendar, the regs header's Map / Parts — is drawn HERE and
+ * nowhere else (`tools/one-icon-set.test.ts` refuses a hand-drawn one beside it).
  *
- * Hand-drawn rather than pulled from an icon set: four icons is not worth a dependency
- * (deps.md exists because v1 grew chart.js, pdf-lib, pdfjs, fuse and suncalc without anyone
- * deciding to), and an icon font cannot be tinted per-state the way these can.
+ * The drawings are Lucide's, copied verbatim from lucide-static@0.460.0 (`ICON_SET` in `@app/core`, ISC licence; the
+ * notice is on the menu's Data sources page and in `app/LICENSES/lucide.txt`). Copied, not installed: eleven icons are
+ * not worth a runtime dependency (deps.md, "minimal prod packages"). Drawn as Lucide draws them — a 24 px grid, round
+ * caps and joins, no fill — at the owner's 1.75 stroke rather than Lucide's 2, which sits with the bar's 9.5 px labels.
  *
- * TWO THINGS CHANGED HERE, and they are the same change.
+ * The app's name for each icon is what it MEANS here; `LUCIDE_NAME` says which Lucide icon draws it, so a re-copy from a
+ * newer release knows what to fetch. Conditions is `waves` (the audit: `activity` reads as a heartbeat at 20 px), More
+ * is `ellipsis` (a hamburger promises a drawer, and More is a tab), Spots is `map-pin`.
  *
- * The first is the drawing style. These were round-capped and round-joined at 1.75, which
- * is the house style of every icon set shipped in the last decade — soft, friendly, and at
- * odds with an app whose corners are cut square and whose shadows are offset slabs. Butt
- * caps and mitre joins at 2.0 make a stroke end in a flat edge instead of a lozenge, which
- * is what makes a line read as drawn rather than extruded.
- *
- * The second is WHAT they draw. They were the four most generic shapes available — a folded
- * tourist map, a magnifying glass, three ripples, a teardrop pin — none of which says
- * anything about this app. A fishing regulations map for British Columbia is about rivers,
- * their confluences, and how much water is in them against the record. So:
- *
- *   map         a confluence inside a frame — two streams joining, which is the unit of
- *               geography this whole atlas is built on, not a paper roadmap
- *   search      a SQUARE lens. A round lens over square chrome is the one circle on the
- *               screen, and it looked like it had wandered in from another app
- *   conditions  a hydrograph: a baseline, a plotted trace and the reading marked on it.
- *               Literally the picture the Conditions screen draws, rather than "water"
- *   spots       a square-headed pin over its own ground mark. A pin is a place you stood;
- *               the teardrop is the Google Maps glyph and reads as somebody else's product
- *   more        (T48) three square stops: the More tab, where the menu's pages live
+ * react-native-svg draws them on the web and on a phone alike; the colour is always a palette token, passed in.
  */
-import Svg, { Path, Rect, Line } from "react-native-svg";
+import { Text, View, type TextStyle } from "react-native";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
-export type IconName = "map" | "search" | "conditions" | "spots" | "more";
+export type IconName =
+  | "map" | "conditions" | "spots" | "more" | "layers"
+  | "search" | "back" | "next" | "close" | "calendar" | "parts";
 
-/**
- * Two weights of the same drawing.
- *
- * `frame` is the outline — the container or the ground. `mark` is the thing inside it that
- * carries the meaning, drawn a little heavier so the icon still reads at 22px when the two
- * are the same colour.
- */
-const SHAPES: Record<IconName, { frame: string[]; mark: string[] }> = {
-  map: {
-    frame: ["M3 3.5H21V20.5H3Z"],
-    // A tributary meeting a mainstem, then leaving the frame at the bottom: the join is the
-    // point. Straight segments with hard angles, the way a schematic draws a channel.
-    mark: ["M8 3.5V9L12.5 13.5V20.5", "M17.5 3.5V7L12.5 13.5"],
-  },
-  search: {
-    frame: ["M4 4.5H16V16.5H4Z"],
-    mark: ["M16.5 17L21 21.5"],
-  },
-  conditions: {
-    // The axis: a baseline and one tick, so the trace has something to be measured against.
-    frame: ["M3.5 19.5H21", "M3.5 19.5V5"],
-    // The trace, and the reading standing on it.
-    mark: ["M3.5 15L8 10.5L12 14L16 6.5L21 11", "M16 6.5V19.5"],
-  },
-  spots: {
-    frame: ["M7 3.5H17V12.5H7Z"],
-    mark: ["M12 12.5V20.5", "M7.5 20.5H16.5"],
-  },
-  // (T48) the More tab: three square stops in a row — the "and the rest" mark, squared like everything else
-  more: {
-    frame: [],
-    mark: ["M4 10.9H7.2V13.1H4Z", "M10.4 10.9H13.6V13.1H10.4Z", "M16.8 10.9H20V13.1H16.8Z"],
-  },
+/** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
+export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
+  map: "map",
+  conditions: "waves",
+  spots: "map-pin",
+  more: "ellipsis",
+  layers: "layers",
+  search: "search",
+  back: "chevron-left",
+  next: "chevron-right",
+  close: "x",
+  calendar: "calendar",
+  parts: "list",
 };
 
-export function Icon({ name, colour, size = 22 }:
-  { name: IconName; colour: string; size?: number }) {
-  const { frame, mark } = SHAPES[name];
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {frame.map((d, i) => (
-        <Path key={`f${i}`} d={d} stroke={colour} strokeWidth={1.8}
-              strokeLinecap="butt" strokeLinejoin="miter" />
-      ))}
-      {mark.map((d, i) => (
-        <Path key={`m${i}`} d={d} stroke={colour} strokeWidth={2.2}
-              strokeLinecap="butt" strokeLinejoin="miter" />
-      ))}
-    </Svg>
-  );
-}
+/** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
+export const ICON_STROKE = 1.75;
 
-/** The layers stack, for the map's own control. Three flat plates, seen edge-on. */
-export function LayersIcon({ colour, size = 16 }: { colour: string; size?: number }) {
+type Shape =
+  | { readonly path: string }
+  | { readonly circle: readonly [cx: number, cy: number, r: number] }
+  | { readonly rect: readonly [x: number, y: number, w: number, h: number, rx: number] };
+
+/** THE TABLE: the only path data for a chrome glyph in the app. Each entry is its Lucide file's elements, in order. */
+export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
+  map: [
+    { path: "M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" },
+    { path: "M15 5.764v15" },
+    { path: "M9 3.236v15" },
+  ],
+  conditions: [
+    { path: "M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" },
+    { path: "M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" },
+    { path: "M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" },
+  ],
+  spots: [
+    { path: "M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" },
+    { circle: [12, 10, 3] },
+  ],
+  more: [
+    { circle: [12, 12, 1] },
+    { circle: [19, 12, 1] },
+    { circle: [5, 12, 1] },
+  ],
+  layers: [
+    { path: "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" },
+    { path: "m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" },
+    { path: "m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" },
+  ],
+  search: [
+    { circle: [11, 11, 8] },
+    { path: "m21 21-4.3-4.3" },
+  ],
+  back: [{ path: "m15 18-6-6 6-6" }],
+  next: [{ path: "m9 18 6-6-6-6" }],
+  close: [
+    { path: "M18 6 6 18" },
+    { path: "m6 6 12 12" },
+  ],
+  calendar: [
+    { path: "M8 2v4" },
+    { path: "M16 2v4" },
+    { rect: [3, 4, 18, 18, 2] },
+    { path: "M3 10h18" },
+  ],
+  parts: [
+    { path: "M3 12h.01" },
+    { path: "M3 18h.01" },
+    { path: "M3 6h.01" },
+    { path: "M8 12h13" },
+    { path: "M8 18h13" },
+    { path: "M8 6h13" },
+  ],
+};
+
+/** One icon from the table, `size` px square, stroked in `colour` (a palette token). Decorative: its button speaks. */
+export function Icon({ name, colour, size = 24 }: { name: IconName; colour: string; size?: number }) {
+  const line = { stroke: colour, strokeWidth: ICON_STROKE, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" } as const;
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Squared off to match the tab icons: the diamond stack every mapping library ships
-          is the same borrowed glyph problem as the teardrop pin. */}
-      <Rect x={3} y={3.5} width={18} height={5} stroke={colour} strokeWidth={2}
-            strokeLinejoin="miter" />
-      <Line x1={3} y1={12} x2={21} y2={12} stroke={colour} strokeWidth={2} />
-      <Line x1={3} y1={16.5} x2={21} y2={16.5} stroke={colour} strokeWidth={2} />
-      <Line x1={3} y1={21} x2={21} y2={21} stroke={colour} strokeWidth={2} />
-    </Svg>
+    <View testID={`icon-${name}`} aria-hidden importantForAccessibility="no-hide-descendants"
+          style={{ width: size, height: size }}>
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        {ICONS[name].map((s, i) =>
+          "path" in s ? <Path key={i} d={s.path} {...line} />
+          : "circle" in s ? <Circle key={i} cx={s.circle[0]} cy={s.circle[1]} r={s.circle[2]} {...line} />
+          : <Rect key={i} x={s.rect[0]} y={s.rect[1]} width={s.rect[2]} height={s.rect[3]} rx={s.rect[4]} {...line} />)}
+      </Svg>
+    </View>
   );
 }
 
 /**
- * The calendar, for the map's day button (T49). Squared like the rest: a frame, its header rule and two binding posts,
- * and one filled day — the day the map is coloured for.
+ * An icon before its words, on one line — the way back ("‹ Map"), "‹ All results": the chevron is the set's, not a
+ * typed "‹". `text` is drawn in `style`; the icon takes the text's colour and sits a hair under its line height.
  */
-export function CalendarIcon({ colour, size = 18 }: { colour: string; size?: number }) {
+export function IconText({ name, text, style, size = 16, gap = 4 }: {
+  name: IconName; text: string; style: TextStyle & { color: string }; size?: number; gap?: number;
+}) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={5} width={18} height={16} stroke={colour} strokeWidth={1.8} strokeLinejoin="miter" />
-      <Line x1={3} y1={10} x2={21} y2={10} stroke={colour} strokeWidth={1.8} />
-      <Line x1={8} y1={2.5} x2={8} y2={7} stroke={colour} strokeWidth={2.2} />
-      <Line x1={16} y1={2.5} x2={16} y2={7} stroke={colour} strokeWidth={2.2} />
-      <Rect x={13} y={14} width={4} height={4} fill={colour} />
-    </Svg>
+    <View style={{ flexDirection: "row", alignItems: "center", gap }}>
+      <View style={{ marginLeft: -3 }}><Icon name={name} colour={style.color} size={size} /></View>
+      <Text style={style}>{text}</Text>
+    </View>
   );
 }

@@ -9,6 +9,15 @@
  * Smaller than it was (owner: "we could make the bar smaller"): a 20 px icon over its label with tighter padding — four
  * targets still 44 px tall and a quarter of the width each. Hidden in water mode and while a spot is added (`route.ts`
  * `bottomBarShown`).
+ *
+ * (N1, owner 2026-10-22) The icons are the app's one set, Lucide at 1.75 (`icons.tsx`): map, waves, map-pin, ellipsis.
+ *
+ * THE SECOND "SELECTED" CUE IS THE INK UNDERSCORE, NOT A FILLED PILL (the audit's open point, delegated; Claude
+ * 2026-10-22). Colour alone (ink against sub) carries the state nowhere a reader is colour-blind or the phone is in
+ * sunlight, so the selected tab needs a shape too. The underscore already is one, and it is the app's ONE way of
+ * saying "this one": the water's view strip and the regs header's tabs mark theirs with the same ink rule. A pill
+ * would be a second selection language beside it, a rounded tile against square chrome, and a new filled colour under
+ * an ink icon — one more pair for the palette gate (T39) to hold in light, dark and the colour-blind palette.
  */
 import { Pressable, Text, View } from "react-native";
 import { Icon, type IconName } from "./icons";

@@ -1,0 +1,77 @@
+{
+  "url": "http://localhost:39612/",
+  "at": "2026-10-22T20:34:09.617Z",
+  "shots": [
+    "390-light-01-map-bar-rail.png",
+    "390-light-01b-bar-crop.png",
+    "390-light-02-search-back-clear.png",
+    "390-light-03-water-back-regs-map.png",
+    "390-light-04-conditions-tab.png",
+    "390-light-05-spots-tab.png",
+    "390-light-06-more-tab.png",
+    "390-light-07-sources-icon-credit.png",
+    "390-dark-01-map-bar-rail.png",
+    "390-dark-01b-bar-crop.png",
+    "390-dark-02-search-back-clear.png",
+    "390-dark-03-water-back-regs-map.png",
+    "390-dark-04-conditions-tab.png",
+    "390-dark-05-spots-tab.png",
+    "390-dark-06-more-tab.png",
+    "390-dark-07-sources-icon-credit.png",
+    "desktop-light-01-map-bar-rail.png",
+    "desktop-light-01b-bar-crop.png",
+    "desktop-light-02-search-back-clear.png",
+    "desktop-light-03-water-back-regs-map.png",
+    "desktop-light-04-conditions-tab.png",
+    "desktop-light-05-spots-tab.png",
+    "desktop-light-06-more-tab.png",
+    "desktop-light-07-sources-icon-credit.png",
+    "desktop-dark-01-map-bar-rail.png",
+    "desktop-dark-01b-bar-crop.png",
+    "desktop-dark-02-search-back-clear.png",
+    "desktop-dark-03-water-back-regs-map.png",
+    "desktop-dark-04-conditions-tab.png",
+    "desktop-dark-05-spots-tab.png",
+    "desktop-dark-06-more-tab.png",
+    "desktop-dark-07-sources-icon-credit.png"
+  ],
+  "errors": [],
+  "icons": {
+    "390-light": [
+      "icon-layers",
+      "icon-search",
+      "icon-calendar",
+      "icon-map",
+      "icon-conditions",
+      "icon-spots",
+      "icon-more"
+    ],
+    "390-dark": [
+      "icon-layers",
+      "icon-search",
+      "icon-calendar",
+      "icon-map",
+      "icon-conditions",
+      "icon-spots",
+      "icon-more"
+    ],
+    "desktop-light": [
+      "icon-layers",
+      "icon-search",
+      "icon-calendar",
+      "icon-map",
+      "icon-conditions",
+      "icon-spots",
+      "icon-more"
+    ],
+    "desktop-dark": [
+      "icon-layers",
+      "icon-search",
+      "icon-calendar",
+      "icon-map",
+      "icon-conditions",
+      "icon-spots",
+      "icon-more"
+    ]
+  }
+}

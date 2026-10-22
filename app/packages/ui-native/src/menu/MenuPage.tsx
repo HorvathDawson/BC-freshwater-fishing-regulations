@@ -7,6 +7,7 @@
 import { Modal, Pressable, SafeAreaView, ScrollView, Text, View } from "react-native";
 import { MENU_WORDS } from "@app/core";
 import { useBackLayer } from "@app/ui";
+import { IconText } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";
 
@@ -44,7 +45,7 @@ function MenuPageHead({ title, onBack, palette, backLabel = MENU_WORDS.back }: {
                    borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={8}
                  style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
-        <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`‹  ${backLabel}`}</Text>
+        <IconText name="back" text={backLabel} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
       </Pressable>
       <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{title}</Text>
     </View>

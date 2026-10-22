@@ -29,7 +29,7 @@ describe("<DayCalendar>", () => {
   it("draws the month of the day shown: its line, the month, the week heads and every day in words", () => {
     mount(new Date(2026, 9, 10, 12));
     expect(screen.getByTestId("day-calendar").textContent).toBe(
-      "Showing Saturday, October 10" + "‹October 2026›" + "SunMonTueWedThuFriSat"
+      "Showing Saturday, October 10" + "October 2026" + "SunMonTueWedThuFriSat"
       + Array.from({ length: 31 }, (_, i) => i + 1).join("") + "‹ Day beforeTodayDay after ›");
     expect([...cells()].map((c) => c.getAttribute("aria-label")).slice(8, 11))
       .toEqual(["Friday, October 9", "Saturday, October 10, chosen", "Sunday, October 11"]);

@@ -20,6 +20,7 @@
  */
 import { monthAbbr } from "./flow";
 import { FISH_CREDITS } from "./regs/fish.generated";
+import { ICON_CREDIT } from "./iconSet";
 import { WORDS } from "./regs/words";
 import type { GlossaryTerm } from "./regs/inputs";
 import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
@@ -306,6 +307,8 @@ export interface SourcesPicturesVM { readonly label: string; readonly lines: rea
 
 export function sourcesVM(s: SourcesInput): {
   intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM;
+  /** (N1) the icon set's credit: Lucide's ISC notice, which every copy must carry */
+  icons: SourcesPicturesVM;
 } {
   const w = MENU_WORDS.sources;
   const dated = (f: SourceDate | undefined) => {
@@ -341,6 +344,7 @@ export function sourcesVM(s: SourcesInput): {
     footnote: w.checkFirst,
     // (T43) the regs page's foot lists only its own pictures' lines; this is the whole list, once
     pictures: { label: WORDS.FISH_PICTURES, lines: FISH_CREDITS },
+    icons: ICON_CREDIT,
   };
 }
 

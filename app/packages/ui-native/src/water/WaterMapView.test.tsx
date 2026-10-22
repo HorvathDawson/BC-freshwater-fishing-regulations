@@ -101,7 +101,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const pop = within(screen.getByRole("dialog", { name: "fishing boundary signs 100 m below the Slesse Creek confluence" }));
     expect(screen.getByTestId("water-map-mark").textContent).toBe(
-      "fishing boundary signs 100 m below the Slesse Creek confluence✕"
+      "fishing boundary signs 100 m below the Slesse Creek confluence"
       + "Upstream100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundaryChilliwack River"
       + "DownstreamTamihi Rapids Bridge → 100 m below the Slesse Creek confluenceChilliwack River");
     expect(seen.props?.marks?.[2]?.on).toBe(true);

@@ -22,6 +22,7 @@ import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
 import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
+import { IconText } from "./icons";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
@@ -49,7 +50,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
         // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
         <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back"
                    {...hitProps({ w: 36, h: 32 })} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
-          <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`‹  ${label}`}</Text>
+          <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
         </Pressable>
       )}
       <ViewTabs palette={palette} views={views} on={on} onView={pick} />

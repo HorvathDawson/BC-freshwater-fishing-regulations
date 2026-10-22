@@ -31,6 +31,7 @@ export * from "./temperature";
 export * from "./install";
 export * from "./pairing";
 export * from "./menu";
+export * from "./iconSet";
 export * from "./imagery";
 
 export type Freshness =

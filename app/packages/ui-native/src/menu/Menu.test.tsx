@@ -172,6 +172,12 @@ describe("a page", () => {
     // (T43) the app's one list of fish picture credits, every line whole, after the sources
     const pics = screen.getByTestId("sources-fish-credits");
     expect([...pics.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["FISH PICTURES", ...FISH_CREDITS]);
+    // (N1) the icon set's ISC notice, which every copy must carry: name, version, licence, then the copyright verbatim
+    const icons = screen.getByTestId("sources-icon-credits");
+    expect([...icons.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["ICONS",
+      "Lucide v0.460.0 (https://lucide.dev), ISC licence.",
+      "Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). "
+      + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
   });
 });
 

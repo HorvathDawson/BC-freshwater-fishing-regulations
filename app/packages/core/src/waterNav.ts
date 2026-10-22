@@ -312,9 +312,8 @@ export const WATER_MAP_WORDS = {
   thisPart: "This part",
   upstreamSide: "Upstream",
   downstreamSide: "Downstream",
+  /** The close button's label; its glyph is the icon set's `close` (N1). */
   close: "Close",
-  /** The close button's glyph (its label is `close`). */
-  closeGlyph: "✕",
   chooser: "Which way upstream?",
   chooserDown: "Which way downstream?",
   loading: "Loading the parts of this water",

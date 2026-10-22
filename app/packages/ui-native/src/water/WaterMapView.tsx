@@ -21,6 +21,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { useBackLayer, useRegsStore, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
+import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 
@@ -158,15 +159,15 @@ const card = (palette: Palette) => ({
   paddingRight: 6, backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink, ...palette.lift,
 });
 
-function Head({ title, close, glyph, palette, onClose }: {
-  title: string; close: string; glyph: string; palette: Palette; onClose: () => void;
+function Head({ title, close, palette, onClose }: {
+  title: string; close: string; palette: Palette; onClose: () => void;
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
       <Text style={{ ...TYPE.bodyStrong, fontFamily: TYPE.name.fontFamily, flex: 1, color: palette.ink }}>{title}</Text>
       <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={close}
                  style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{glyph}</Text>
+        <Icon name="close" colour={palette.ink} size={20} />
       </Pressable>
     </View>
   );
@@ -185,7 +186,7 @@ function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: 
   );
   return (
     <View style={card(palette)} role="dialog" aria-label={pop.title} testID="water-map-mark">
-      <Head title={pop.title} close={pop.close} glyph={pop.closeGlyph} palette={palette} onClose={() => act({ type: "mark", ix: null })} />
+      <Head title={pop.title} close={pop.close} palette={palette} onClose={() => act({ type: "mark", ix: null })} />
       {side(pop.upLabel, pop.up)}
       {side(pop.downLabel, [pop.down])}
     </View>
@@ -199,7 +200,7 @@ function Chooser({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: 
   useBackLayer(true, () => act({ type: "closeChooser" }));
   return (
     <View style={card(palette)} role="dialog" aria-label={c.title} testID="water-map-chooser">
-      <Head title={c.title} close={c.close} glyph={c.closeGlyph} palette={palette} onClose={() => act({ type: "closeChooser" })} />
+      <Head title={c.title} close={c.close} palette={palette} onClose={() => act({ type: "closeChooser" })} />
       {c.options.map((p) => (
         <Pressable key={p.ix} onPress={() => act({ type: "choose", to: p.ix })} accessibilityRole="button"
                    accessibilityLabel={p.name}
