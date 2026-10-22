@@ -40,7 +40,7 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets * ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual(["sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
         "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
@@ -126,7 +126,7 @@ describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
 
 describe("excluded", () => {
   it("a keyed entry excludes its key only, never the whole state", () => {
-    expect(excluded("sheets", "vedder_515", "parts")?.reason).toMatch(/^PIPELINE NEED \(owner rule 2026-10-21\): the parts sheet/);
+    expect(excluded("sheets", "vedder_515", "parts")).toBeNull();   // built (T36: choicesOnDay); its D1 note is a SHEET_SUBST
     expect(excluded("sheets", "x22p1_1010", "other:x22p1_1010|o1")?.reason).toMatch(/^decisions D19: /);
     expect(excluded("sheets", "x22p1_1010", "other:x22p1_1010|o0")).toBeNull();
     expect(excluded("sheets", "vedder_515", "rule:r2:x::y.r1")?.reason).toMatch(/^'Technical detail'/);

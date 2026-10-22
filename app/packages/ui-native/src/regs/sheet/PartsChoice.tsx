@@ -1,7 +1,7 @@
 /**
  * The parts sheet's rows (prototype sheetHtml parts: each part's label, its status on the day, its long label, a ✓ on
- * the one read). Pressing a row reads that part. Drawn only when core builds a `choice` block — today it does not: the
- * parts sheet waits on the pipeline (each part's status on the day; T36 PIPELINE NEED). No logic.
+ * the one read). Pressing a row reads that part. Drawn when core builds the parts sheet's `choice` block (each choice's
+ * stored display status on the day, T09 `choicesOnDay`). No logic.
  */
 import { Pressable, Text, View } from "react-native";
 import { WORDS } from "@app/core";

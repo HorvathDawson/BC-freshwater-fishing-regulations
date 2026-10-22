@@ -10,8 +10,8 @@
  * possession sentence); this file only selects them for a key and orders them as the prototype's sheet does.
  *
  * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1); `srcs:`, `licsrc:`, `src:`, `sp:`, `other:`
- * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts). Not built: `parts` — it needs each part's status on the day,
- * which the inputs (one part's answers) do not carry; `sheetOf` returns null for it (never a guess).
+ * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts), `parts` (sheets/parts.ts: each picker choice's STORED display
+ * status on the day, read by T09 as `choicesOnDay`; null when the inputs do not carry it — never a guess).
  */
 import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView } from "./inputs";
@@ -24,6 +24,7 @@ import { clean } from "./names";
 import { licsrcSheet, srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
+import { partsSheet } from "./sheets/parts";
 
 const para = (s: string, tone?: "small" | "note" | "mono"): SheetBlock => (tone ? { k: "para", text: [text(s)], tone } : { k: "para", text: [text(s)] });
 
@@ -119,7 +120,8 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
-  return null;   // parts — see the header
+  if (key === "parts") return partsSheet(key, ctx.inp);
+  return null;
 }
 
 // ── the golden comparison form ────────────────────────────────────────────────────────────────────────────────────────
@@ -238,7 +240,8 @@ export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
           out.lines.push(...opts.groupLines(b.titled ? b.group : { ...b.group, title: "" }));
           keysDeep(b.group, nested); booksDeep(b.group, out.pages);
           break;
-        case "choice": b.items.forEach((i) => parts(i.text, i.status, i.long)); break;
+        // the prototype's rows are inline buttons in one body: one line, each row's label, word, long label and its ✓
+        case "choice": parts(...b.items.flatMap((i) => [i.text, i.status, i.long, i.checked ? WORDS.CHECK : null])); break;
       }
     }
   };

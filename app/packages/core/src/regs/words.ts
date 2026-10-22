@@ -14,6 +14,8 @@ export const WORDS = Object.freeze({
   TAB_KEEP: "What you can keep", TAB_GEAR: "Gear", TAB_METHODS: "Methods", TAB_LICENCE: "Licence",
   // header
   TODAY: "Today", MAP: "Map", PARTS: "Parts",
+  // (T36) the Parts sheet: its title and each row's day word (prototype sheetHtml parts + statusOf)
+  PARTS_TITLE: "Parts of this water", PART_OPEN: "open", PART_CLOSED: "closed", PART_UNKNOWN: "unknown",
   // rich text (line.ts plain()): `${BOOK} ${PAGE}<printed> ${LINK_OUT}`
   BOOK: "Rule book",
   PAGE: "p.",

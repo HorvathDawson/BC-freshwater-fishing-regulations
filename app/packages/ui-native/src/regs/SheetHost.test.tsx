@@ -15,6 +15,7 @@ import { RegsScreen } from "./RegsScreen";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
+import bc1501 from "./fixtures/bc1_501.json";
 import golden from "../../../../design/regs-v11/port/golden/golden.json";
 
 afterEach(cleanup);
@@ -55,6 +56,17 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByRole("heading", { name: "Do not waste the fish you catch" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Possession" })).toBeNull();
     expect(screen.getAllByLabelText("Done")).toHaveLength(1);
+  });
+
+  it("the Parts sheet (bc1_501): each choice's label, its day word and long label, ✓ on the part read; a row reads its part", () => {
+    const onPart = vi.fn();
+    render(<SheetHost page={sheetPage(bc1501)} open="parts" onOpen={() => {}} onClose={() => {}} onPart={onPart} palette={LIGHT} />);
+    expect(screen.getByRole("heading", { name: "Parts of this water" })).toBeTruthy();
+    const rows = screen.getAllByRole("radio");
+    expect(rows.map((r) => [r.getAttribute("aria-label"), r.getAttribute("aria-checked")]))
+      .toEqual([["4 side channels · open", "true"], ["Mouth → Talchako River confluence · open", "false"]]);
+    act(() => { rows[1]!.click(); });
+    expect(onPart).toHaveBeenCalledWith(0);
   });
 
   it("4. Done and the scrim each close it once", () => {
@@ -149,7 +161,6 @@ describe("C. golden mount: every vedder_1010 sheet draws every golden line, in o
   it(`all ${keys.length} sheet keys`, () => {
     const missing: string[] = [];
     for (const [gk, v] of keys) {
-      if (gk === "parts") continue;                                 // T36: a pipeline need (no parts sheet)
       const want = v === "@" ? G.sheets[gk]! : v;
       const r = host(appKeyOf(gk, "vedder_1010"));
       // open every fold, nested ones too (a closed fold draws no body)
@@ -170,5 +181,5 @@ describe("C. golden mount: every vedder_1010 sheet draws every golden line, in o
       r.r.unmount();
     }
     expect(missing).toEqual([]);
-  });
+  }, 30_000);   // 65 mounts in one test: under the full suite's load the default 5 s is too short
 });

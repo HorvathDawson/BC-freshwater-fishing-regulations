@@ -221,6 +221,45 @@ describe("sheetLines: the golden join of the part 2 blocks", () => {
   });
 });
 
+describe("parts (prototype sheetHtml parts; the status is each choice's STORED display status on the day, T09 choicesOnDay)", () => {
+  // the Bella Coola on May 1 (golden bc1_501 parts): two picker choices, the tapped part (1) the first
+  const facts = (short: string) => ({ order: 0, label: short, short, runs: "", place: null, hint: "", km: null, closed_all_year: false, paper_licence: [] });
+  const bc = (o: { partIx?: number; days?: RegsInputs["choicesOnDay"] } = {}): SheetCtx => ({ today: { month: 10, day: 10 }, page: {} as SheetCtx["page"],
+    inp: { partIx: o.partIx ?? 1, item: { name: "Bella Coola River", parts: [facts("Mouth → Talchako River confluence"), facts("4 side channels")],
+      picker: { headed: false, choices: [
+        { parts: [1], closed: false, sections: 6, heading: "", text: "4 side channels, joining 55–59.1 km from the mouth" },
+        { parts: [0], closed: false, sections: 44, heading: "", text: "From the mouth up to the Talchako River confluence" }] } },
+      choicesOnDay: o.days === undefined ? [{ partIx: 1, status: "own" }, { partIx: 0, status: "base" }] : o.days } as unknown as RegsInputs });
+
+  it("20. each choice: its short label, its day status word, its long label, ✓ on the part read (golden bc1_501, sans the prototype's D1 note)", () => {
+    const vm = sheetOf(bc(), "parts")!;
+    expect([vm.title, vm.sub, lines(vm).lines]).toEqual(["Parts of this water", null,
+      ["4 side channels open 4 side channels, joining 55–59.1 km from the mouth ✓ Mouth → Talchako River confluence open From the mouth up to the Talchako River confluence"]]);
+    expect(vm.blocks).toEqual([{ k: "choice", items: [
+      { text: "4 side channels", sub: null, status: "open", long: "4 side channels, joining 55–59.1 km from the mouth", checked: true, part: 1 },
+      { text: "Mouth → Talchako River confluence", sub: null, status: "open", long: "From the mouth up to the Talchako River confluence", checked: false, part: 0 }] }]);
+  });
+  it("the word is the stored frame's: closed → closed, base/own → open, no key (or tidal) → unknown; the ✓ follows the part read", () => {
+    const vm = sheetOf(bc({ partIx: 0, days: [{ partIx: 1, status: "closed" }, { partIx: 0, status: null }] }), "parts")!;
+    const it = (vm.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items;
+    expect(it.map((x) => [x.status, x.checked])).toEqual([["closed", false], ["unknown", true]]);
+    const tidal = sheetOf(bc({ days: [{ partIx: 1, status: "tidal" }, { partIx: 0, status: "own" }] }), "parts")!;
+    expect((tidal.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items[0]!.status).toBe("unknown");
+  });
+  it("rows follow the picker's options: under their headings, each heading where it first appears (page v36 renderParts)", () => {
+    const c = (heading: string, part: number) => ({ parts: [part], closed: false, sections: 1, heading, text: `p${part}` });
+    const choices = [c("Down", 6), c("Down", 4), c("", 0), c("Up", 1), c("", 2)];
+    const inp = { partIx: 6, item: { name: "K", parts: [], picker: { headed: true, choices } },
+      choicesOnDay: choices.map((x) => ({ partIx: x.parts[0], status: "own" })) } as unknown as RegsInputs;
+    const order = (headed: boolean) => (sheetOf({ ...bc(), inp: { ...inp, item: { ...inp.item!, picker: { headed, choices } } } }, "parts")!
+      .blocks[0] as Extract<SheetBlock, { k: "choice" }>).items.map((x) => x.part);
+    expect([order(true), order(false)]).toEqual([[6, 4, 0, 2, 1], [6, 4, 0, 1, 2]]);
+  });
+  it("no rows loaded (a hand-built input, or a picker of one choice): no sheet, never a guess", () => {
+    expect([sheetOf(bc({ days: null }), "parts"), sheetOf({ ...bc(), inp: { ...bc().inp, choicesOnDay: undefined } }, "parts")]).toEqual([null, null]);
+  });
+});
+
 describe("every key", () => {
   it("19. an unknown key, or one this page has nothing for, opens nothing (never throws)", () => {
     for (const k of ["date", "other:o99", "other:o0", "src:r0", "srcs:bait", "licsrc:adult", "parts", "kind:o0"])

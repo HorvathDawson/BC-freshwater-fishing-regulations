@@ -23,9 +23,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
 }) {
   const { height: windowHeight } = useWindowDimensions();
   /*
-   * DRAG TO DISMISS (G1), from the grabber and the title row only, so content that scrolls keeps scrolling. The sheet
-   * follows the finger downward; past a third of its height or on a downward flick it closes (`useSheetDrag`), and
-   * otherwise springs back. An addition: Done and the scrim still close it.
+   * DRAG TO DISMISS (G1), from the grabber and the title row, or — with a scrolling body — from the content when it
+   * is scrolled to its top. The sheet follows the finger downward; past a third of its height or on a downward flick it
+   * closes (`useSheetDrag`), and otherwise springs back. An addition: Done and the scrim still close it.
    */
   const drag = useSheetDrag(onClose);
   const y = useRef(new Animated.Value(0)).current;
@@ -40,6 +40,31 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
         Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
     })
     .withTestId("sheet-drag"), [drag, y]);
+  /*
+   * THE CONTENT-AT-TOP DRAG (G1 "or when the content is at its top"). The body's own scroll is a native gesture that
+   * runs alongside this pan (`simultaneousWithExternalGesture`), so neither cancels the other. The pan only activates
+   * downward (`activeOffsetY(6)`), and it moves the sheet only when the content was at its top when the finger went
+   * down: a drag that starts scrolled down scrolls the content and never the sheet, so content keeps scrolling. Upward
+   * from the top, the pan never activates and the content scrolls as usual.
+   */
+  const scrollTop = useRef(0);
+  useEffect(() => { if (open) scrollTop.current = 0; }, [open]);
+  const scrollNative = useMemo(() => Gesture.Native(), []);
+  const bodyPull = useMemo(() => {
+    let armed = false;
+    return Gesture.Pan().runOnJS(true)
+      .activeOffsetY(6).failOffsetX([-24, 24])
+      .simultaneousWithExternalGesture(scrollNative)
+      .onBegin(() => { armed = scrollTop.current <= 0; })
+      .onUpdate((e) => { if (armed) y.setValue(drag.offset(e.translationY)); })
+      .onEnd((e, success) => {
+        if (!armed) return;
+        armed = false;
+        if (!success || !drag.release(e.translationY, e.velocityY, height.current))
+          Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
+      })
+      .withTestId("sheet-body-drag");
+  }, [drag, y, scrollNative]);
   /*
    * BACK CLOSES AN OPEN SHEET FIRST, on every platform (G1): while open the sheet is a back layer of the one back
    * (`useBackLayer`) — on the web one history entry, so the browser's back and a phone browser's swipe-back close it
@@ -85,8 +110,15 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           {scroll
             // 0.68, not the ticket's 0.82: with the title row and a sub line on top, 0.82 covered the water's header on a
             // 390 × 844 phone (howtell-current-water: the header stays visible above the scrim)
-            ? <ScrollView ref={scrollRef} style={{ maxHeight: windowHeight * 0.68 }} keyboardShouldPersistTaps="handled"
-                          contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
+            // `bounces={false}`: at the top a downward pull moves the sheet, not an iOS overscroll of the content
+            ? <GestureDetector gesture={bodyPull}>
+                <GestureDetector gesture={scrollNative}>
+                  <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * 0.68 }}
+                              keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
+                              onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
+                </GestureDetector>
+              </GestureDetector>
             : children}
         </Animated.View>
       </GestureHandlerRootView>

@@ -3,8 +3,8 @@
  * projected by `sheetLines`, against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f): title, sub, folds,
  * linked pages, body lines and nested keys. A per-state "@" is the global `golden.sheets[key]`.
  *
- * Built: every kind but `parts` (rule:, gl:, pos:, hatch, srcs:, licsrc:, src:, sp:, other:). `parts` is a PIPELINE NEED
- * (each part's status on the day) — `page.sheet("parts")` is null and the 98 golden parts sheets are counted, not compared.
+ * Built: every kind (rule:, gl:, pos:, hatch, srcs:, licsrc:, src:, sp:, other:, parts). `parts` reads each picker choice's
+ * STORED display status on the day (T09 `choicesOnDay`); the prototype's D1 note about its missing map is substituted away.
  * The keyed exclusions (exclusions.ts) and the whole-line substitutions (SHEET_SUBST) are counted in the summary line.
  * An Other fish row drawn as a Keep group is worded by the Keep tab's own projection (keepPage.ts `groupLines`).
  */
@@ -13,15 +13,15 @@ import { appKeyOf, goldenKeyOf, sheetLines, type SheetKey } from "@app/core";
 import { eqPlain, type GoldenSheet } from "@app/core/regs/testing";
 import { caseIds, golden, inputsOf, parityGate, requestOf, ADULT_RESIDENT, summary } from "./golden";
 import { buildRegsPage } from "@app/core";
-import { droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST } from "./exclusions";
+import { droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
 import { groupLines } from "./keepPage";
 
 const G = golden();
 const gate = await parityGate();
 const ids = caseIds("sheets");
 
-/** the sheet kinds T36 builds (the key's prefix); `parts` waits for the pipeline */
-const BUILT = ["rule", "gl", "pos", "hatch", "srcs", "licsrc", "src", "sp", "other"] as const;
+/** the sheet kinds T36 builds (the key's prefix): every kind the golden holds */
+const BUILT = ["rule", "gl", "pos", "hatch", "srcs", "licsrc", "src", "sp", "other", "parts"] as const;
 const kindOf = (k: string) => k.split(/[:|]/)[0]!;
 const sheetsOf = (id: string): [string, GoldenSheet][] =>
   Object.entries(G.states[id]!.sheets as Record<string, GoldenSheet | "@">).map(([k, v]) => [k, v === "@" ? G.sheets[k] as GoldenSheet : v]);
@@ -41,14 +41,14 @@ describe("A. sheet keys: golden ⇄ app", () => {
       "sp:*", "src:SID|rN", "srcs:always|SID", "srcs:bait|SID", "srcs:boats|SID", "srcs:gl|SID|hook", "srcs:gl|SID|lines",
       "srcs:gl|SID|mode", "srcs:gl|SID|weight", "srcs:ways|SID"].filter((s) => shapes.has(s)));
   });
-  it("what is not built, by kind (golden per-state sheets): only `parts` (a pipeline need); a kind that lands must join BUILT", () => {
+  it("what is not built, by kind (golden per-state sheets): nothing; a kind the golden gains must join BUILT", () => {
     const by: Record<string, number> = {};
     for (const id of Object.keys(G.states)) for (const [k] of sheetsOf(id)) if (!(BUILT as readonly string[]).includes(kindOf(k))) by[kindOf(k)] = (by[kindOf(k)] ?? 0) + 1;
-    expect(by).toEqual({ parts: 98 });
+    expect(by).toEqual({});
   });
   it("the legacy pooled rows (D19) and the substitutions are named golden keys", () => {
     for (const x of LEGACY_POOL_SHEETS) { const [id, k] = x.split(" "); expect(G.states[id!]!.sheets, x).toHaveProperty([k!]); }
-    for (const s of SHEET_SUBST) expect(s.ids.some((id) => Object.keys(G.states[id]!.sheets).some((k) => s.key.test(k))), s.from).toBe(true);
+    for (const s of SHEET_SUBST) expect(Object.keys(G.states).some((id) => substIn(s, id) && Object.keys(G.states[id]!.sheets).some((k) => s.key.test(k))), s.from).toBe(true);
   });
 });
 
@@ -117,7 +117,7 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
       }
       const got = sheetLines(vm!, { groupLines });
       let gotLines = got.lines, wantLines = keepLines(want.lines, droppedLines("sheets", id, gk));
-      for (const s of SHEET_SUBST.filter((x) => x.ids.includes(id) && x.key.test(gk))) {
+      for (const s of SHEET_SUBST.filter((x) => substIn(x, id) && x.key.test(gk))) {
         expect(wantLines.filter((l) => l.startsWith(s.from)).length, `${id} ${gk}: substitution ${s.from}`).toBe(1);
         wantLines = wantLines.map((l) => (l.startsWith(s.from) ? s.to + l.slice(s.from.length) : l)); substituted++;
       }

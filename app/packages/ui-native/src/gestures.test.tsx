@@ -250,6 +250,28 @@ describe("the Sheet drag (Layers, and the sheets to come)", () => {
     expect(log).toEqual(["opened", "register", "back", "closed", "unregister"]);
   });
 
+  it("a scrolling body: the drag also starts from the content, but only while it is scrolled to its top (G1)", async () => {
+    const flick = [{ translationY: 0 }, { translationY: 20 }, { translationY: 40, velocityY: 900 }];
+    // react-native-web throttles scroll ticks and reports the last position when the scroll settles (100 ms later)
+    const settle = () => act(() => new Promise((r) => setTimeout(r, 150)));
+    const run = async (scrolls: number[]) => {
+      const onClose = vi.fn();
+      render(<Sheet open scroll onClose={onClose} title="Possession" palette={LIGHT}><Text>rows</Text></Sheet>);
+      const body = screen.getByTestId("sheet-scroll");
+      for (const top of scrolls) { body.scrollTop = top; fireEvent.scroll(body); await settle(); }
+      fire("sheet-body-drag", flick);
+      cleanup();
+      return onClose.mock.calls.length;
+    };
+    // never scrolled · scrolled down (the content scrolls, the sheet stays) · scrolled down then back to the top
+    expect([await run([]), await run([120]), await run([120, 0])]).toEqual([1, 0, 1]);
+  });
+
+  it("a sheet without a scrolling body has no body drag (its content is short; the handle is the drag)", () => {
+    render(<Sheet open onClose={() => {}} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet>);
+    expect(() => getByGestureTestId("sheet-body-drag")).toThrow();
+  });
+
   it("keeps Done and the scrim: the gesture is an addition", () => {
     const onClose = vi.fn();
     render(<Sheet open onClose={onClose} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet>);

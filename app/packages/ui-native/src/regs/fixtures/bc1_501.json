@@ -2928,7 +2928,34 @@
    "sub": null,
    "title": "Protected species"
   },
-  "parts": null,
+  "parts": {
+   "blocks": [
+    {
+     "items": [
+      {
+       "checked": true,
+       "long": "4 side channels, joining 55–59.1 km from the mouth",
+       "part": 1,
+       "status": "open",
+       "sub": null,
+       "text": "4 side channels"
+      },
+      {
+       "checked": false,
+       "long": "From the mouth up to the Talchako River confluence",
+       "part": 0,
+       "status": "open",
+       "sub": null,
+       "text": "Mouth → Talchako River confluence"
+      }
+     ],
+     "k": "choice"
+    }
+   ],
+   "key": "parts",
+   "sub": null,
+   "title": "Parts of this water"
+  },
   "pos:pos": {
    "blocks": [
     {

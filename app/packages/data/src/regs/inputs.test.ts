@@ -133,13 +133,35 @@ describe("loadRegsInputs: a part", () => {
     expect((await loadRegsInputs(fake().store, { kind: "part", item: "gnis:1", partIx: 2 }, JUN15, "Monday", 2026)).mergedParts).toBeNull();
   });
 
+  it("choicesOnDay (T36 parts sheet): each picker choice's STORED display status on the day, through its first part's key", async () => {
+    const { store, asked } = fake({ openGroup: true });
+    const inp = await loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 1 }, JUN15, "Monday", 2026);
+    // choice 0 → part 0 (key 2, Jun 15 = segment 1 → display 21 SHUT); choice 1 → part 2 (outside B.C.: no key, no status)
+    expect(inp.choicesOnDay).toEqual([{ partIx: 0, status: "closed" }, { partIx: 2, status: null }]);
+    expect(asked).toContain("cell 2 1");
+    // the tapped part's own key is not read twice: its day frame is the one already loaded
+    const again = fake({ openGroup: true });
+    const own = await loadRegsInputs(again.store, { kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026);
+    expect(own.choicesOnDay).toEqual([{ partIx: 0, status: "closed" }, { partIx: 2, status: null }]);
+    expect(again.asked.filter((a) => a === "display 2 21")).toHaveLength(1);
+  });
+
+  it("choicesOnDay is null for a water without a picker of ≥ 2 choices (no Parts sheet to fill), and for a section", async () => {
+    const one = await loadRegsInputs(fake().store, { kind: "part", item: "gnis:2", partIx: 1 }, JUN15, "Monday", 2026);
+    expect(one.choicesOnDay).toBeNull();
+    const sec = await loadRegsInputs(fake().store, { kind: "section", handle: 4097 }, JUN15, "Monday", 2026);
+    expect(sec.choicesOnDay).toBeNull();
+  });
+
   it("a part outside B.C. (no akey): no key, segment, cell, frames, year or ruleset — the item and rules still there", async () => {
     const { store, asked } = fake();
     const inp = await loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 2 }, JUN15, "Monday", 2026);
     expect([inp.key, inp.s, inp.cell, inp.frames, inp.year, inp.ruleset, inp.place, inp.mergedParts])
       .toEqual([null, null, null, null, null, null, null, null]);
     expect([inp.item?.id, inp.partIx, inp.rules.get(101).via]).toEqual(["gnis:1", 2, "reach"]);
-    expect(asked.some((a) => a.startsWith("akey"))).toBe(false);
+    // its own key is never read; the only key read is the other choice's, for the Parts sheet's status on the day
+    expect(asked.filter((a) => a.startsWith("akey"))).toEqual(["akey 2"]);
+    expect(inp.choicesOnDay).toEqual([{ partIx: 0, status: "closed" }, { partIx: 2, status: null }]);
   });
 
   it("refuses a water the store does not hold, and a part the water does not have", async () => {

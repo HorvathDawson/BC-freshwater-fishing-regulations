@@ -28,6 +28,9 @@ export type VerdictWire = readonly [speaks: readonly number[], beside: readonly 
   nym: readonly number[], partly: readonly (readonly [number, readonly number[]])[], lost: readonly (readonly [number, number, number])[]];
 export interface LadderFrameWire { readonly common: VerdictWire; readonly rows: readonly (readonly [fish: string, none: VerdictWire, hatchery: VerdictWire, wild: VerdictWire])[] }
 /** page mergedHtml: only when the part's picker group is closed and has ≥ 2 parts (T09/T14). */
+/** (T36 parts sheet) one picker choice's stored display status on the inputs' day, read through the choice's first part's
+ *  key — the same frame that part's own page reads for its header and strip (`settled.status`); null: the part has no key. */
+export interface ChoiceDay { readonly partIx: number; readonly status: DisplayFrame["status"] | null }
 export interface MergedPart { readonly partIx: number; readonly label: string; readonly sections: number; readonly broad: RuleView | null }
 
 export interface RegsYear {
@@ -60,6 +63,9 @@ export interface RegsInputs {
   readonly lics: ReadonlyMap<number, unknown>;              // export licensing words by lix
   readonly statics: Statics;
   readonly mergedParts: readonly MergedPart[] | null;
+  /** (T36) the Parts sheet's rows: one per picker choice, in the picker's order — only for a water whose picker offers ≥ 2
+   *  choices (else null); absent = not loaded (a hand-built input), and the Parts sheet is then not built. */
+  readonly choicesOnDay?: readonly ChoiceDay[] | null;
 }
 
 export interface AkeyRow { akey: number; ruleset: number; licensingSet: number | null; steelheadWater: boolean; steelhead: 1 | 2 | null; steelheadRules: boolean; kind: string; tidal: boolean; seg: number; mom: number | null; nseg: number }
