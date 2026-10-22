@@ -40,7 +40,15 @@ vi.mock("./ConditionsPanel", async (importOriginal) => {
     return swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-conditions">{text}</ViewSwipe> : text;
   } };
 });
+// the Regulations view is the real one; beside it, the water and part it was handed (what the page opens on)
+vi.mock("./WaterScreen", async (importOriginal) => {
+  const real = await importOriginal<typeof import("./WaterScreen")>();
+  const { Text } = await import("react-native");
+  return { ...real, WaterScreen: (p: Parameters<typeof real.WaterScreen>[0]) =>
+    <><real.WaterScreen {...p} /><Text testID="regs-on">{`regs on ${p.item} part ${p.part}`}</Text></> };
+});
 const { Shell } = await import("./Shell");
+const { openRegsFixture } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -187,4 +195,60 @@ describe("one water screen, whichever map you tapped", () => {
       "no back | no strip | no title | the map | Map* Search Conditions",
     ]);
   });
+});
+
+describe("the water's Map view and the rest of the water screen agree (P15 follow-ups, on the regs fixture release)", () => {
+  /** The water screen opened straight on a water's Map view, on the release (the map's parts come from it). */
+  async function onMap(item: string, part: number) {
+    const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
+                           stack: [{ item: item as ItemId, part, tapSid: null, at: null, view: "map" }] };
+    render(
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={openRegsFixture()} />
+      </GestureHandlerRootView>);
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+  }
+  const where = () => `${screen.getByTestId("water-map-where").textContent} | ${screen.getByTestId("water-map-name").textContent}`;
+
+  it("ONE WATER SCREEN: ▲ twice on the map, then Regulations — the page is on the STEPPED part, and so is the map again", async () => {
+    await onMap(CHILLIWACK, 1);
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    const stepped = where();
+    fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
+    await until(() => screen.queryByTestId("regs-on") !== null);
+    const regs = screen.getByTestId("regs-on").textContent;
+    fireEvent.click(screen.getByRole("tab", { name: "Map" }));
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    expect([stepped, regs, where()]).toEqual([
+      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+      // part_ix 0 is the third part mouth first (rank 2)
+      "regs on gnis:8634 part 0",
+      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
+  }, 40_000);
+
+  it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part; ▼ there opens the Vedder; back returns", async () => {
+    await onMap("gnis:3062", 0);
+    const seen = [where()];
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
+    await until(() => where().startsWith("Part 1 of 4 · Chilliwack River"));
+    seen.push(where());
+    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
+    await until(() => where().startsWith("Part 1 of 1"));
+    seen.push(where());
+    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    await until(() => where().startsWith("Part 1 of 4"));
+    seen.push(where());
+    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    await until(() => where().startsWith("Part 1 of 1"));
+    seen.push(where());
+    expect(seen).toEqual([
+      "Part 1 of 1 | Vedder River",
+      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge",
+      "Part 1 of 1 | Vedder River",
+      // back walks the waters opened on top, newest first
+      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge",
+      "Part 1 of 1 | Vedder River"]);
+  }, 40_000);
 });

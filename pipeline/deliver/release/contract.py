@@ -70,6 +70,7 @@ FILES = {
         "segmom": ["mom", "ix"],
         "static": ["k", "j"],
         "str": ["id", "text"],
+        "water_continue": ["ord", "part", "next_ord", "next_part"],
         "water_exit": ["ord", "down_ord", "down_part"],
         "xpart": _FRAME,
         "zdict": ["tbl", "d"]}},

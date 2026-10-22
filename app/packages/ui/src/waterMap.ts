@@ -4,20 +4,28 @@
  * the release (`@app/data/regs` `loadWaterGroup`: `part_geo`, `part_mark`, `part_section`, `water_exit`), stepped by
  * `@app/core` waterNav. NAVIGATION, not a regulation: nothing here decides what is open or kept.
  *
- *   waterMapStep   the pure reducer: ▼, ▲ (a fork opens the chooser), choose, tap a part, tap a mark, ⤢ whole
+ *   waterMapStep   the pure reducer: ▼, ▲ (a fork either way opens the chooser), choose, tap a part, tap a mark, ⤢
  *   waterMapView   the pure view model a component draws (every string finished here, AGENTS rule 33)
  *   useWaterMap    the store → group read (one keyed read per table per item), the start part, the state
  *
  * THE START PART is the regulations view's: the frame's part, else the part `targetFor` picks for the tapped section
  * (`useRegsTarget`, the same read the Regulations view makes) — so the map opens on the part the page was showing.
+ * AND THE STEPPED PART IS THE FRAME'S (one water screen): every move to another part is handed to the caller
+ * (`onPart`), which makes it the frame's part (the route's `part` action), so the Regulations and Conditions views of
+ * the water are on the part the map is on — the map never holds a part the rest of the screen does not.
+ *
+ * ACROSS WATERS: ▲ on the top of a water that goes on from another (the Vedder, from the Chilliwack), or ▼ on the
+ * mouth part of one that goes on as another, is not a step in this group — the view model says which water and part
+ * (`up.cross` / `down.cross`), and the caller opens it (`crossAction`, through `openWater`, Map in front).
  *
  * NO GEOMETRY: the tiles draw the water; the release says which sections are which part (lit by feature-state through
  * the map adapter's one `highlight` call: `selected` on this part, `water` on the rest) and each part's box.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
-  exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds, partName, partOfSection,
-  partWhere, stepDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox, type WaterGroup,
+  crossAria, crossDown, crossUp, exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
+  partName, partOfSection, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  type NavCross, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import { loadWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
@@ -35,8 +43,8 @@ export interface WaterMapState {
   readonly whole: boolean;
   /** The boundary mark that is open (its index in the group's `marks`), or null. */
   readonly mark: number | null;
-  /** ▲ at a fork: the chooser is open. */
-  readonly choosing: boolean;
+  /** ▲ or ▼ at a fork: the chooser is open, for that way; null when it is not. */
+  readonly choosing: "up" | "down" | null;
 }
 
 export type WaterMapAction =
@@ -50,26 +58,24 @@ export type WaterMapAction =
   | { type: "mark"; ix: number | null }
   | { type: "whole" };
 
-export const waterMapStart = (at: number): WaterMapState => ({ at, whole: false, mark: null, choosing: false });
+export const waterMapStart = (at: number): WaterMapState => ({ at, whole: false, mark: null, choosing: null });
 
 const go = (at: number): WaterMapState => waterMapStart(at);
+const ways = (g: WaterGroup, at: number, dir: "up" | "down") => (dir === "up" ? stepsUp(g, at) : stepsDown(g, at));
 
 /** One step of the water map. Pure: an end, a stray index or a tap off the water leaves the state as it was. */
 export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction): WaterMapState {
   const ok = (i: number) => Number.isInteger(i) && i >= 0 && i < g.parts.length;
   switch (a.type) {
-    case "down": {
-      const to = stepDown(g, s.at);
-      return to === null ? s : go(to);
-    }
+    case "down":
     case "up": {
-      const ups = stepsUp(g, s.at);
-      if (!ups.length) return s;
-      // a fork (a side channel, a lake split): the reader picks which way, the main stem first
-      return ups.length > 1 ? { ...s, choosing: true, mark: null } : go(ups[0]!);
+      const to = ways(g, s.at, a.type);
+      if (!to.length) return s;
+      // a fork (a side channel, a lake split, two parts below one): the reader picks which way, the main stem first
+      return to.length > 1 ? { ...s, choosing: a.type, mark: null } : go(to[0]!);
     }
-    case "choose": return stepsUp(g, s.at).includes(a.to) ? go(a.to) : s;
-    case "closeChooser": return s.choosing ? { ...s, choosing: false } : s;
+    case "choose": return ways(g, s.at, s.choosing ?? "up").includes(a.to) ? go(a.to) : s;
+    case "closeChooser": return s.choosing ? { ...s, choosing: null } : s;
     case "part": return ok(a.ix) ? go(a.ix) : s;
     case "section": {
       const i = partOfSection(g, a.sid);
@@ -78,8 +84,8 @@ export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction)
     case "mark":
       if (a.ix === null) return s.mark === null ? s : { ...s, mark: null };
       if (!g.marks[a.ix]) return s;
-      return { ...s, mark: s.mark === a.ix ? null : a.ix, choosing: false };       // a second tap closes it
-    case "whole": return { ...s, whole: !s.whole, mark: null, choosing: false };
+      return { ...s, mark: s.mark === a.ix ? null : a.ix, choosing: null };        // a second tap closes it
+    case "whole": return { ...s, whole: !s.whole, mark: null, choosing: null };
   }
 }
 
@@ -108,14 +114,24 @@ export interface WaterMapMarkVM {
   readonly on: boolean;
 }
 
+export interface WaterMapStepVM {
+  readonly label: string;
+  readonly aria: string;
+  readonly disabled: boolean;
+  readonly fork: boolean;
+  readonly cross: { readonly item: string; readonly part: number } | null;
+}
+
 export interface WaterMapVM {
   readonly parts: readonly WaterMapPartVM[];
   readonly current: WaterMapPartVM;
   /** "Part 2 of 4 · Chilliwack River". */
   readonly where: string;
-  readonly down: { readonly label: string; readonly disabled: boolean };
-  readonly up: { readonly label: string; readonly disabled: boolean; readonly fork: boolean };
-  /** ▲ at a fork: which way, the main stem first. */
+  /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, whether it is a fork, and — where it
+   *  steps into ANOTHER water (`water_continue`) — that water and its part, for the caller to open (`crossAction`). */
+  readonly down: WaterMapStepVM;
+  readonly up: WaterMapStepVM;
+  /** ▲ or ▼ at a fork: which way, the main stem first. */
   readonly chooser: { readonly title: string; readonly close: string; readonly closeGlyph: string; readonly options: readonly WaterMapPartVM[] } | null;
   readonly marks: readonly WaterMapMarkVM[];
   /** The open mark: its words, the parts above it and the part below it. */
@@ -148,7 +164,14 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
   if (!g.parts.length) return null;
   const at = Math.min(Math.max(0, s.at), g.parts.length - 1);
   const W = WATER_MAP_WORDS;
-  const down = stepDown(g, at), ups = stepsUp(g, at);
+  const downs = stepsDown(g, at), ups = stepsUp(g, at);
+  const step = (dir: "up" | "down", to: readonly number[], cross: NavCross | null): WaterMapStepVM => {
+    const fwd = dir === "up" ? W.up : W.down, end = dir === "up" ? W.highest : W.lowest;
+    const label = to.length || cross ? fwd : end;
+    return { label, aria: cross ? crossAria(dir, cross) : label, disabled: !to.length && !cross, fork: to.length > 1,
+             cross: cross ? { item: cross.item, part: cross.part } : null };
+  };
+  const choice = s.choosing === null ? [] : s.choosing === "up" ? ups : downs;
   const current = partVM(g, at);
   const { selected, water } = navSections(g, at);
   const open = s.mark !== null ? g.marks[s.mark] ?? null : null;
@@ -163,15 +186,16 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     parts: g.parts.map((_, i) => partVM(g, i)),
     current,
     where: partWhere(g, at),
-    down: { label: down === null ? W.lowest : W.down, disabled: down === null },
-    up: { label: ups.length ? W.up : W.highest, disabled: !ups.length, fork: ups.length > 1 },
-    chooser: s.choosing && ups.length > 1
-      ? { title: W.chooser, close: W.close, closeGlyph: W.closeGlyph, options: ups.map((i) => partVM(g, i)) } : null,
+    down: step("down", downs, crossDown(g, at)),
+    up: step("up", ups, crossUp(g, at)),
+    chooser: choice.length > 1
+      ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close, closeGlyph: W.closeGlyph,
+          options: choice.map((i) => partVM(g, i)) } : null,
     marks,
     pop: open ? { title: markLabel(g, open), close: W.close, closeGlyph: W.closeGlyph,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,
-    exit: down === null && at === 0 && g.exit
+    exit: !downs.length && at === 0 && g.exit
       ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part } : null,
     whole: { label: wholeLabel(g, at, s.whole), aria: wholeAria(g, at, s.whole), on: s.whole },
     bounds: s.whole ? groupBounds(g) : partBounds(g, at),
@@ -195,6 +219,20 @@ export function showRegsActions(onScreen: ItemId, item: ItemId, partIx: number):
 /** "Flows into …": the receiving water, opened on top at the part the mouth meets (the one `openWater` path). */
 export function exitAction(item: ItemId, part: number | null): RouteAction {
   return openWater({ item, part, view: "regs" });
+}
+
+/** ▲ / ▼ into the water this one goes on from or as: that water on top, its Map in front, on the part it meets this
+ *  one (the one `openWater` path; back returns here). */
+export function crossAction(item: ItemId, part: number): RouteAction {
+  return openWater({ item, part, view: "map" });
+}
+
+/**
+ * A part stepped to on the map, as the frame's part (one water screen): this water's part, or — a split lake's other
+ * closure area — that area, which then becomes the frame's water.
+ */
+export function partAction(onScreen: ItemId, item: ItemId, partIx: number): RouteAction {
+  return item === onScreen ? { type: "part", part: partIx } : { type: "part", part: partIx, item };
 }
 
 // ── the hook ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -223,17 +261,27 @@ export interface WaterMap {
 /**
  * The water map of `item` on the regs store: `part` the frame's part (null: the part the Regulations view opens for
  * `tapSid`, through the same `useRegsTarget`). Loading while the group or the start part is read; ready(null) for a
- * water with no parts.
+ * water with no parts. `onPart`: every step to another part, handed to the caller to make it the frame's part
+ * (`partAction`) — the map then starts there again, so nothing it shows disagrees with the frame.
+ *
+ * A frame moved to a SIBLING of the group (a split lake's other closure area) keeps the group already read: it is the
+ * same water, so the map does not go back to loading.
  */
 export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: number | null,
-                            tapSid: SectionId | null): Async<WaterMap | null> {
-  const group = useWaterGroup(store, item);
+                            tapSid: SectionId | null,
+                            onPart?: (item: ItemId, partIx: number) => void): Async<WaterMap | null> {
+  const read = useRef<{ item: ItemId; g: WaterGroup } | null>(null);
+  const inRead = !!item && !!read.current && read.current.g.parts.some((p) => p.item === item);
+  const group = useWaterGroup(store, inRead ? read.current!.item : item);
+  if (group.state === "ready" && group.value && item && !inRead) read.current = { item, g: group.value };
   const target = useRegsTarget(part === null ? store : null, item, tapSid);
   const startPart = part ?? (target.value?.kind === "part" ? target.value.partIx : null);
   const waiting = part === null && target.state === "loading" && store !== null;
   const g = group.value;
   const key = `${group.state}:${item ?? ""}:${startPart ?? ""}`;
   const [held, setHeld] = useState<{ key: string; s: WaterMapState } | null>(null);
+  // the state as the last step left it, ahead of the render, so two taps before a render are two steps
+  const latest = useRef<{ key: string; s: WaterMapState } | null>(null);
   const s = held && held.key === key ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart)) : null;
   const vm = useMemo(() => (g && s ? waterMapView(g, s) : null), [g, s]);
   // no store (no release, or not open yet: the caller says which) or no water: nothing to walk
@@ -241,7 +289,13 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   if (group.state === "failed") return group;
   if (group.state === "loading" || waiting) return { state: "loading", value: null, error: null };
   if (!g || !s || !vm) return { state: "ready", value: null, error: null };
-  // from the state as it is when the step lands, so two taps before a render are two steps
-  const act = (a: WaterMapAction) => setHeld((h) => ({ key, s: waterMapStep(g, h && h.key === key ? h.s : s, a) }));
+  const act = (a: WaterMapAction) => {
+    const from = latest.current && latest.current.key === key ? latest.current.s : s;
+    const next = waterMapStep(g, from, a);
+    if (next === from) return;
+    latest.current = { key, s: next };
+    setHeld(latest.current);
+    if (onPart && next.at !== from.at) onPart(g.parts[next.at]!.item as ItemId, g.parts[next.at]!.partIx);
+  };
   return { state: "ready", value: { vm, act }, error: null };
 }

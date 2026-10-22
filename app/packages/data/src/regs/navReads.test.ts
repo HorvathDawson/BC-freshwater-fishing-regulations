@@ -19,13 +19,24 @@ const water = openInMemory(`
   CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, lat INTEGER NOT NULL,
     label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, PRIMARY KEY (ord, mark_ix));
   CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
-  CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER);`, `
+  CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER);
+  CREATE TABLE water_continue (ord INTEGER PRIMARY KEY, part INTEGER NOT NULL, next_ord INTEGER NOT NULL UNIQUE,
+    next_part INTEGER NOT NULL);`, `
   INSERT INTO part_geo VALUES (1, 1, 0, 7, -121500000, 49250000, -121600000, 49200000, -121400000, 49300000),
                               (1, 0, 1, 9, -121000000, 49000000, NULL, NULL, NULL, NULL);
   INSERT INTO part_mark VALUES (1, 0, -121450000, 49280000, 'The bridge', 1, '[0, 2]'), (1, 1, -121, 49, NULL, 0, '[2]');
   INSERT INTO part_section VALUES (1, 9, 0), (1, 7, 1), (1, 8, 1);
-  INSERT INTO water_exit VALUES (1, 2, 3), (2, 99, NULL);`);
+  INSERT INTO water_exit VALUES (1, 2, 3), (2, 99, NULL);
+  INSERT INTO water_continue VALUES (1, 1, 2, 0), (98, 4, 1, 0);`);
 const reads = () => makeReads({ core: async () => core, water: async () => water } as unknown as ReadBase);
+/** A release cut before `water_continue` (r-1bb06fa28daf and older): the same tables without it. */
+const older = openInMemory(`
+  CREATE TABLE part_geo (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL,
+    mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, s INTEGER, e INTEGER, n INTEGER, PRIMARY KEY (ord, part_ix));
+  CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, lat INTEGER NOT NULL,
+    label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, PRIMARY KEY (ord, mark_ix));
+  CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
+  CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER);`, "");
 
 describe("the water map's reads", () => {
   it("siblingOrds: a closure area -> its lake's areas; the lake itself -> itself and its areas; a river -> itself", async () => {
@@ -41,9 +52,24 @@ describe("the water map's reads", () => {
               { lon: -0.000121, lat: 0.000049, label: null, down: 0, up: [2] }],
       sections: [{ sid: 7, partIx: 1 }, { sid: 8, partIx: 1 }, { sid: 9, partIx: 0 }],
       exit: { ord: 2, part: 3, item: "gnis:2", name: "Receiving River" },
+      continuesAs: { ord: 2, part: 1, otherPart: 0, item: "gnis:2", name: "Receiving River" },
+      continuesFrom: { ord: 98, part: 0, otherPart: 4, item: null, name: null },
     });
     // a receiving water core does not hold: its ord and part, no id or name (no exit to open); none stored: null
     expect([(await reads().navRows(2)).exit, (await reads().navRows(10)).exit]).toEqual([
       { ord: 99, part: null, item: null, name: null }, null]);
+  });
+
+  it("navRows: `water_continue` both ways — the water it goes on as, the one it goes on from, none", async () => {
+    const r = reads();
+    expect([(await r.navRows(2)).continuesFrom, (await r.navRows(2)).continuesAs, (await r.navRows(10)).continuesAs,
+            (await r.navRows(10)).continuesFrom]).toEqual([
+      { ord: 1, part: 0, otherPart: 1, item: "gnis:1", name: "River" }, null, null, null]);
+  });
+
+  it("navRows on a release cut before `water_continue`: no continuation, everything else as before", async () => {
+    const r = makeReads({ core: async () => core, water: async () => older } as unknown as ReadBase);
+    expect(await r.navRows(1)).toEqual({ geo: [], marks: [], sections: [], exit: null, continuesAs: null,
+                                         continuesFrom: null });
   });
 });

@@ -7,7 +7,9 @@ writes paint, derives three per-water flags for search, converts the climatology
   core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place  bundle
   near           place_water                                                      bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
-                 part_section, part_geo, part_mark, water_exit
+                 part_section, part_geo, part_mark, water_exit,
+                 water_continue (continuation.py: which stream goes on as
+                 another, from the atlas's section ids)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
@@ -35,6 +37,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from pipeline.deliver import lake_facts as LF
+from pipeline.deliver.release import continuation as CONT
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -197,12 +200,26 @@ def gate_problems(release_dir: Path) -> List[str]:
     return out
 
 
+def atlas_ids(bmeta: Dict[str, str], atlas: Optional[Path] = None) -> List[str]:
+    """The section ids of the atlas the bundle was built on (`section_handles.txt`; `ids[h-1]` names handle `h`), from
+    `atlas` or the bundle's own `meta.build` — refused unless its digest is the bundle's `section_handles`."""
+    from pipeline.common import section_handles as SHD
+    d = Path(atlas or bmeta.get("build") or "")
+    if not (d / SHD.FILENAME).exists():
+        raise ReleaseError(f"release: no {SHD.FILENAME} in {d} (the bundle's atlas); pass --atlas")
+    if SHD.digest_for(d) != bmeta.get("section_handles"):
+        raise ReleaseError(f"release: {d / SHD.FILENAME} is not the atlas the bundle was built on "
+                           f"({SHD.digest_for(d)} != {bmeta.get('section_handles')})")
+    return list(SHD.read(d)[0])
+
+
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None, sources: Optional[dict] = None) -> Path:
+          lakes: Optional[Path] = None, sources: Optional[dict] = None, atlas: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
-    are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file
-    (pipeline/deliver/lake_facts.py), shipped as the file `lakes`; None (the default, and `deliver all`) ships none."""
+    are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
+    as the file `lakes`; None (the default, and `deliver all`) ships none. `atlas`: the atlas build the bundle was made
+    from (default its `meta.build`), read for its section ids only (`water_continue`)."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -218,6 +235,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         raise ReleaseError("release: the regs store holds other answers than the card gate proved")
     base = {"section_handles": bmeta["section_handles"], "reach_digest": bmeta["reach_digest"]}
     regs = {**base, "rule_ids_sha256": smeta["rule_ids_sha256"]}
+    continues = CONT.rows(b, atlas_ids(bmeta, atlas))
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
@@ -252,6 +270,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             con.execute("INSERT INTO water_exit_k SELECT ord, down_ord, down_part FROM water_exit ORDER BY ord")
             con.execute("DROP TABLE water_exit")
             con.execute("ALTER TABLE water_exit_k RENAME TO water_exit")
+            # which stream goes on as another (the Chilliwack as the Vedder): keyed both ways, for ▲ and ▼
+            con.execute("CREATE TABLE water_continue (ord INTEGER PRIMARY KEY, part INTEGER NOT NULL, "
+                        "next_ord INTEGER NOT NULL UNIQUE, next_part INTEGER NOT NULL)")
+            con.executemany("INSERT INTO water_continue VALUES (?, ?, ?, ?)", sorted(continues))
             con.execute("CREATE TABLE akey_region (akey INTEGER NOT NULL, region TEXT NOT NULL, "
                         "PRIMARY KEY (akey, region)) WITHOUT ROWID")
             con.executemany("INSERT INTO akey_region VALUES (?, ?)",

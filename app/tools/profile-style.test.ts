@@ -63,11 +63,10 @@ describe("the profile colour mode", () => {
           .toEqual(paintFor(layer, "plain", resolveTheme(theme)));
   });
 
-  it("keeps the selected highlight on top of the day, and the line's own width", () => {
+  it("keeps the DAY'S colour on a selected stream (owner 2026-10-21: outlined, never recoloured), and the line's own width", () => {
     const t = resolveTheme("light");
     const p = paintFor("stream", "profile", t, day(DAY));
-    expect(p["line-color"]).toEqual(
-      ["case", ["boolean", ["feature-state", "selected"], false], t["color.highlight"], expected("light", DAY)]);
+    expect(p["line-color"]).toEqual(expected("light", DAY));
     expect(p["line-width"]).toEqual(paintFor("stream", "plain", t)["line-width"]);
   });
 
@@ -86,7 +85,9 @@ describe("the profile colour mode", () => {
           unknown as { layers: { id: string; paint?: Record<string, unknown> }[] };
         let patched = 0;
         for (const l of style.layers) if (paint[l.id]) { l.paint = { ...l.paint, ...paint[l.id] }; patched++; }
-        expect(patched).toBe(7);   // the four, the lake's edge, the stream's flow arrows (followers) and its "no baseline" dash (off)
+        // the four, the lake's edge, the stream's flow arrows (followers), its "no baseline" dash (off) and the selection's
+        // outline (the stream's casing, the lake and wetland rings) — all validated with the real paint
+        expect(patched).toBe(10);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

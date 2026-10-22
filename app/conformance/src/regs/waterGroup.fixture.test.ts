@@ -5,7 +5,7 @@
  * copies). The fixture's core holds only its 43 waters, so a mouth into a water it dropped is no exit here.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { markLabel, navSections, partName, stepDown, stepsUp, type WaterGroup } from "@app/core";
+import { crossDown, crossUp, markLabel, navSections, partName, stepsDown, stepsUp, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, RegsInputsError, type RegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 
@@ -14,7 +14,8 @@ beforeAll(async () => { st = await openRegsStore(openRegsFixture()); });
 
 const names = (g: WaterGroup) => g.parts.map((_, i) => partName(g, i));
 const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m)}: ${m.down} → ${m.up.join(",")}`);
-const steps = (g: WaterGroup) => g.parts.map((_, i) => `${stepDown(g, i) ?? "-"}|${stepsUp(g, i).join(",") || "-"}`);
+const steps = (g: WaterGroup) =>
+  g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
 
 describe("the water map's group from the fixture release", () => {
   it("Chilliwack: four parts by rank, its three boundaries, the mouth into the Vedder at its part 0", async () => {
@@ -62,7 +63,24 @@ describe("the water map's group from the fixture release", () => {
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",
       "Side channel", "Zymoetz Canyon upper entrance → Limonite Creek confluence",
       "A lake → McDonell Lake outlet", "Limonite Creek confluence → Source"]);
-    expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1|5", "3|5", "3|-"]);
+    // ▼ from the source is a fork: the main stem, then "A lake → McDonell Lake outlet" — its only way in (P15 review)
+    expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1,2|5", "3|5", "3,4|-"]);
+  });
+
+  it("water_continue: the Vedder goes on from the Chilliwack — ▲ from the Vedder, ▼ from the Chilliwack's lowest part", async () => {
+    const [ved, chw] = await Promise.all([loadWaterGroup(st, "gnis:3062"), loadWaterGroup(st, "gnis:8634")]);
+    expect([ved.prev, ved.next, crossUp(ved, 0), crossDown(ved, 0)]).toEqual([
+      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null,
+      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null]);
+    expect([chw.next, chw.prev, chw.parts.map((_, i) => crossDown(chw, i)?.item ?? "-")]).toEqual([
+      { item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null, ["gnis:3062", "-", "-", "-"]]);
+  });
+
+  it("no other fixture water crosses: the Cowichan, the Zymoetz and the KLWA lake", async () => {
+    for (const id of ["gnis:12227", "gnis:3137", "wbk:-20"]) {
+      const g = await loadWaterGroup(st, id);
+      expect([id, g.next, g.prev]).toEqual([id, null, null]);
+    }
   });
 
   it("selected is exactly the part's part_section rows, for every part of every fixture water", async () => {

@@ -110,6 +110,19 @@ describe("one colouring engine", () => {
       expect([f, read(`packages/ui-native/src/${f}`).includes("standing={standing}")]).toEqual([f, true]);
   });
 
+  it("SELECTION IS AN OUTLINE, NEVER A COLOUR (owner 2026-10-21): `color.highlight` is read by the selection's outline and the route arrows only", () => {
+    // the one paint path (contract.ts) and the style composer; nothing else in the map package names the token
+    const contract = read("packages/map/src/adapters/contract.ts");
+    expect(contract.match(/tokens\["color\.highlight"\]/g)?.length).toBe(2);           // casingPaint, ringPaint
+    expect(contract).not.toMatch(/\["case", selected, tokens\["color\.highlight"\]/);
+    const rs = read("packages/map/src/runtime-style.ts");
+    expect(rs.match(/color\.highlight/g)?.length).toBe(1);                             // the route arrows' text
+    expect(rs).toContain('ring(SELECTION_RINGS.lake, "lake")');
+    expect(rs).toContain('ring(SELECTION_RINGS.wetland, "wetland")');
+    for (const f of ["Map.web.tsx", "Map.native.tsx", "colouring.ts", "look.ts"])
+      expect([f, read(`packages/map/src/${f}`).includes("color.highlight")]).toEqual([f, false]);
+  });
+
   it("the Shell takes the Conditions colouring from `useConditionsColour` alone, the lake values from `useLakeColour`", () => {
     const shell = read("packages/ui-native/src/Shell.tsx");
     expect(shell).toMatch(/useConditionsColour\(/);

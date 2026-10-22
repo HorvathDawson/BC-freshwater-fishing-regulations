@@ -18,7 +18,7 @@
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
-import { nobaselineOpacity, paintFor } from "./adapters/contract";
+import { casingPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
 
 export interface TileEndpoints {
@@ -397,7 +397,23 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * It was also on EVERY view, so the Regulations map was lit by flow it was not
          * showing a legend for.
          */
+        /*
+         * THE SELECTION'S OUTLINE (owner 2026-10-21): what is selected keeps its colour and is ringed — a ring over a
+         * lake's / wetland's own polygons (after the last layer drawing that source-layer), a casing directly UNDER the
+         * stream line so the line's colour stays on top. Shown by feature-state `selected` only; see `SELECTION_CASING`.
+         */
+        const ring = (id: string, sourceLayer: string) => ({
+          id, type: "line" as const, source: "atlas", "source-layer": sourceLayer,
+          layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
+        if (l.id === "lake_flowing") return [painted, ring(SELECTION_RINGS.lake, "lake")];
+        if (l.id === "wetland_flowing") return [painted, ring(SELECTION_RINGS.wetland, "wetland")];
         if (l.id !== "stream") return [painted];
+        const casing = {
+          id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
+          layout: { "line-cap": "round" as const, "line-join": "round" as const },
+          paint: casingPaint((painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
+                             ?? paintFor("stream", "plain", resolveTheme(theme))["line-width"], resolveTheme(theme)),
+        };
         /*
          * ONLY IN THE MODE THAT MEANS ANYTHING BY IT.
          *
@@ -415,7 +431,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
          * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
          */
-        return [painted,
+        return [casing, painted,
         /*
          * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
          *

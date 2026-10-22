@@ -23,6 +23,36 @@ export type { ChannelValues } from "../style";
  */
 export const NOBASELINE_LAYER = "stream-nobaseline";
 
+/**
+ * WHAT IS SELECTED IS OUTLINED, NEVER RECOLOURED (owner 2026-10-21, on the water map's parts: "we should have the color
+ * there still but add outline for the current selected one"). The selected sections keep the colour their mode gives
+ * them — the regulation status on the Map tab, the standing on Conditions — and are ringed in `color.highlight` (the
+ * water you tapped or searched for; held apart from every status colour by tools/water-status-cvd.test.ts, and read on
+ * the light and dark grounds and on satellite): a CASING under the stream line, a RING on a lake's or a wetland's
+ * outline. Runtime layers (`runtime-style.ts`) on the sections' own source-layers, shown by the same feature-state
+ * `selected` the one `highlight` call sets — no second mechanism — and painted with the stream (`paint` below), so a
+ * theme or mode change repaints them in the same call.
+ */
+export const SELECTION_CASING = "selection-casing";
+export const SELECTION_RINGS = { lake: "selection-ring-lake", wetland: "selection-ring-wetland" } as const;
+/** The outline each side of a selected stream line, and a selected polygon's ring, in px. */
+export const CASING_PX = 2.5;
+export const RING_PX = 3;
+const SELECTED = ["boolean", ["feature-state", "selected"], false];
+const OUTLINE_SHOWN = ["case", SELECTED, 1, 0];
+
+/** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
+export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
+  return { "line-color": tokens["color.highlight"],
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * CASING_PX]),
+           "line-opacity": OUTLINE_SHOWN };
+}
+
+/** A selected lake's or wetland's ring. */
+export function ringPaint(tokens: Tokens): Record<string, unknown> {
+  return { "line-color": tokens["color.highlight"], "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
+}
+
 /** The dash's opacity for the stream layer in `mode`: 1 where the stream's standing is the -1 sentinel, else 0. */
 export function nobaselineOpacity(mode: string): unknown {
   return mode === "standing" ? ["case", ["==", ["to-number", ["feature-state", "standing"], 0], -1], 1, 0] : 0;
@@ -158,25 +188,16 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
   const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
     ?.type;
   /**
-   * SELECTION IS A PAINT RULE, and it was not one.
+   * SELECTION IS A PAINT RULE — BUT NOT A COLOUR (owner 2026-10-21).
    *
-   * `highlight()` has always written `{selected: true}` into feature-state, and nothing
-   * anywhere read it — so every "show me this route" and every tap highlight set a flag
-   * into the void. The route panel drew its two end markers over a map where the water
-   * between them was the same colour as all the other water.
-   *
-   * Wrapped here rather than in the style so it applies to EVERY mode automatically: a
-   * highlight has to survive whichever colouring the layer happens to be in, and a per-mode
-   * expression would be one more place for the two to drift apart.
+   * `highlight()` writes `{selected: true}` into feature-state. It used to swap the colour here for `color.highlight`,
+   * so the part you were on lost the very thing the map is for — its regulation status — and read as "magenta". The
+   * colour is now the mode's, always; what is selected is OUTLINED by the selection layers (`SELECTION_CASING`,
+   * `SELECTION_RINGS`), and a selected stream is drawn at least `width.stream.highlight` wide (below).
    */
-  const selected = ["boolean", ["feature-state", "selected"], false];
-  const base = colorExpression(layerId, mode, tokens, values);
+  const selected = SELECTED;
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
-  const out: Record<string, unknown> = {
-    [colourPropFor(type)]: isHighlightable && tokens["color.highlight"] !== undefined
-      ? ["case", selected, tokens["color.highlight"], base]
-      : base,
-  };
+  const out: Record<string, unknown> = { [colourPropFor(type)]: colorExpression(layerId, mode, tokens, values) };
 
   const spec = STYLE_META.widths[layerId];
   const widthKey = type === "line" ? "line-width" : type === "circle" ? "circle-radius" : null;
@@ -341,6 +362,8 @@ function zoomFor(h: MapHandle, layerId: string, mode: string): void {
   const base = (MAP_STYLE.layers.find((x) => x.id === layerId) as
                 { minzoom?: number } | undefined)?.minzoom;
   h.setZoomRange(layerId, byMode[mode] ?? base ?? 0);
+  // the selection's casing is drawn where its stream is, never as an outline round nothing
+  if (layerId === "stream") h.setZoomRange(SELECTION_CASING, byMode[mode] ?? base ?? 0);
 }
 
 /** The style group holding satellite imagery — see `layers.source.json`. */
@@ -363,12 +386,17 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const basinsHeld = new Set<string>();
   const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
     modeOf[layerId] = mode;
-    for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens, values)))
-      h.setPaint(layerId, prop, value);
+    const out = paintFor(layerId, mode, tokens, values);
+    for (const [prop, value] of Object.entries(out)) h.setPaint(layerId, prop, value);
     // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
     if (layerId === "stream") {
       h.setPaint(NOBASELINE_LAYER, "line-opacity", nobaselineOpacity(mode));
       h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
+      // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
+      for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
+        h.setPaint(SELECTION_CASING, prop, value);
+      for (const ring of Object.values(SELECTION_RINGS))
+        for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
     }
   };
   /** The channel a layer's mode reads its values from, if any. */

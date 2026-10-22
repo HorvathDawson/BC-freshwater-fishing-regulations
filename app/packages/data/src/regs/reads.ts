@@ -22,8 +22,8 @@
  * `store/common.py` `BLOCK_BITS = 12`.
  */
 import type {
-  AkeyRow, AnswersPlace, CellIds, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue, Moment, PartFacts,
-  Picker, RowsValue, RuleFacts, Statics, VerdictWire,
+  AkeyRow, AnswersPlace, CellIds, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
+  Moment, PartFacts, Picker, RowsValue, RuleFacts, Statics, VerdictWire,
 } from "@app/core";
 import type { Cell, Db, Row } from "../bundle/db";
 import { RegsStoreError } from "./errors";
@@ -90,7 +90,9 @@ export interface RegsReads {
   /**
    * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (rank,
    * box, midpoint — microdegrees as degrees), `part_mark` (boundaries: down part, up parts), `part_section` (the sids of
-   * each part) and `water_exit` (the receiving item, named from core; null name when core does not hold it).
+   * each part) and `water_exit` (the receiving item, named from core; null name when core does not hold it), and
+   * `water_continue` both ways (the stream this one goes on as, and the one it goes on from — the same watercourse
+   * under another name; pipeline `continuation.py`). A release cut before `water_continue` has none: no continuation.
    */
   navRows(itemOrd: number): Promise<NavRows>;
   /**
@@ -110,6 +112,10 @@ export interface NavRows {
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
                    readonly name: string | null } | null;
+  /** `water_continue`: the other water (named from core; null where core does not hold it), this water's part at the
+   *  junction (`part`) and the other's (`otherPart`). */
+  readonly continuesAs: ContinueRow | null;
+  readonly continuesFrom: ContinueRow | null;
 }
 
 /** What the reads stand on (store.ts hands them its own). */
@@ -378,7 +384,22 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         w.all("SELECT mark_ix, lon, lat, label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
         w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
-      const down = exit ? await (await base.core()).get("SELECT item_id, name FROM item WHERE ord = ?", n(exit.down_ord)) : null;
+      const core = await base.core();
+      const named = async (o: number) => core.get("SELECT item_id, name FROM item WHERE ord = ?", o);
+      const down = exit ? await named(n(exit.down_ord)) : null;
+      // `water_continue`, both ways, each on its key (ord, the primary key; next_ord, UNIQUE); absent from an older cut
+      const hasContinue = await once("hasContinue", 0, async () =>
+        !!(await w.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'water_continue'")));
+      const [as, from] = hasContinue ? await Promise.all([
+        w.get("SELECT part, next_ord AS other, next_part AS other_part FROM water_continue WHERE ord = ?", ord),
+        w.get("SELECT next_part AS part, ord AS other, part AS other_part FROM water_continue WHERE next_ord = ?", ord),
+      ]) : [undefined, undefined];
+      const cont = async (r: Row | undefined): Promise<ContinueRow | null> => {
+        if (!r) return null;
+        const it = await named(n(r.other));
+        return { ord: n(r.other), part: n(r.part), otherPart: n(r.other_part),
+                 item: it ? String(it.item_id) : null, name: it ? String(it.name) : null };
+      };
       const none = (c: Cell) => c === null || c === undefined;
       return {
         geo: geo.map((g) => ({
@@ -390,6 +411,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
         exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part),
                        item: down ? String(down.item_id) : null, name: down ? String(down.name) : null } : null,
+        continuesAs: await cont(as), continuesFrom: await cont(from),
       };
     }),
 

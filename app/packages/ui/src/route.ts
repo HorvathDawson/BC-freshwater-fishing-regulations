@@ -73,7 +73,12 @@ export type RouteAction =
   /** Search's eye: show this water on the main map, and come back to search on back. */
   | { type: "show"; item: ItemId }
   | { type: "view"; view: View }
-  | { type: "part"; part: number }
+  /**
+   * The frame's part (the water map's step, "Show regulations for this part"). `item`: a split lake's OTHER closure
+   * area — a sibling of the same water — which becomes the frame's water; the tap it was opened by was on another water,
+   * so the frame forgets it.
+   */
+  | { type: "part"; part: number; item?: ItemId }
   | { type: "flowInto"; item: ItemId; part: number }
   | { type: "back" }
   | { type: "openSpot"; id: SpotId }
@@ -128,7 +133,10 @@ export function reduce(r: Route, a: RouteAction): Route {
   }
   switch (a.type) {
     case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view }) : r;
-    case "part": return top(r).item === null ? r : withTop(r, { part: a.part });
+    case "part":
+      if (top(r).item === null) return r;
+      return a.item === undefined || a.item === top(r).item ? withTop(r, { part: a.part })
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null });
     case "flowInto": {
       const f = opened({ type: "openWater", item: a.item, part: a.part });
       return f === null ? r : push(r, f);

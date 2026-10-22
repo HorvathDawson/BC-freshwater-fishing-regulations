@@ -13,7 +13,9 @@
 import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
-import { baseAdapter, paintFor, type MapHandle, type MapRenderer } from "./adapters/contract";
+import {
+  baseAdapter, CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS, type MapHandle, type MapRenderer,
+} from "./adapters/contract";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -280,6 +282,58 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     expect((w.slice(3) as unknown[]).filter((_, i) => i % 2 === 1).every((v) => JSON.stringify((v as unknown[])[2]) === JSON.stringify(floor)))
       .toBe(true);
     expect([t["width.stream.highlight"], t["width.stream.water"]]).toEqual([3.2, 2.4]);
+  });
+
+  it("OWNER 2026-10-21: the selected part KEEPS its regulation colour — no layer's colour reads `selected`", () => {
+    const recoloured: string[] = [];
+    for (const theme of ["light", "dark", "cvd"])
+      for (const { id } of STYLE_META.highlightable)
+        for (const mode of Object.keys(STYLE_META.colorModes[id]!)) {
+          const p = paintFor(id, mode, resolveTheme(theme));
+          const colour = Object.entries(p).filter(([k]) => k.endsWith("-color") || k.endsWith("-pattern"));
+          if (JSON.stringify(colour).includes('"selected"')) recoloured.push(`${theme} ${id} ${mode}`);
+        }
+    expect(recoloured).toEqual([]);
+    // the plain stream, whole: exactly its mode's colour
+    expect(paintFor("stream", "plain", resolveTheme("light"))["line-color"])
+      .toEqual(colorExpression("stream", "plain", resolveTheme("light")));
+  });
+
+  it("…and is OUTLINED: a casing under the stream line, a ring on a lake or wetland, in `color.highlight`, by feature-state", () => {
+    const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "profile" });
+    const ids = style.layers.map((l: { id: string }) => l.id);
+    const at = (id: string) => ids.indexOf(id);
+    // under the stream line (its colour on top), over the lakes; each ring over its own polygons
+    expect([at(SELECTION_CASING) === at("stream") - 1, at(SELECTION_CASING) > at("lake_flowing"),
+            at(SELECTION_RINGS.lake) === at("lake_flowing") + 1, at(SELECTION_RINGS.wetland) === at("wetland_flowing") + 1])
+      .toEqual([true, true, true, true]);
+    const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
+      { type: string; "source-layer": string; paint: Record<string, unknown> };
+    const shown = ["case", ["boolean", ["feature-state", "selected"], false], 1, 0];
+    for (const theme of ["light", "dark", "cvd"]) {
+      const tk = resolveTheme(theme);
+      const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
+      const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as { paint: Record<string, unknown> };
+      expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]]).toEqual([theme, tk["color.highlight"], shown]);
+    }
+    expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
+      [layer(id).type, layer(id)["source-layer"], layer(id).paint["line-opacity"]])).toEqual([
+      ["line", "stream", shown], ["line", "lake", shown], ["line", "wetland", shown]]);
+    // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve
+    const w = paintFor("stream", "plain", resolveTheme("light"))["line-width"] as unknown[];
+    const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
+    expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
+      w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);
+  });
+
+  it("a theme or mode change repaints the outline with the stream (one paint path)", () => {
+    const r = recorder();
+    a.setLayerMode(r.h, "stream", "plain", "dark");
+    const t = resolveTheme("dark");
+    expect(r.calls.filter((c) => c.startsWith(`paint ${SELECTION_CASING} line-color`)
+                                 || c.startsWith(`paint ${SELECTION_RINGS.lake} line-color`)))
+      .toEqual([`paint ${SELECTION_CASING} line-color ${t["color.highlight"]}`,
+                `paint ${SELECTION_RINGS.lake} line-color ${t["color.highlight"]}`]);
   });
 
   it("a highlight clears and sets `selected` on every highlightable layer", () => {

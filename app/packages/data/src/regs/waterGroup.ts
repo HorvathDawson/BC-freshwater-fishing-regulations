@@ -1,6 +1,7 @@
 /**
  * THE WATER MAP'S GROUP (P15): a water's parts, boundaries, section ids and mouth, read from the release through the
- * regs store's keyed reads (`navRows`, `siblingOrds`, `item`, `parts`) and put in order by `@app/core` `waterGroup` —
+ * regs store's keyed reads (`navRows` — with `water_continue`, the stream it goes on as or from —, `siblingOrds`, `item`,
+ * `parts`) and put in order by `@app/core` `waterGroup` —
  * the navigation is core's, over this stored graph. No geometry is read: the tiles draw the water; the release says
  * which sections are which part, and where each part's box is.
  */
@@ -17,6 +18,7 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
     ord, item: item.id, name: item.name, kind: item.kind,
     parts: parts.map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name })),
     geo: nav.geo, marks: nav.marks, sections: nav.sections, exit: nav.exit,
+    continuesAs: nav.continuesAs, continuesFrom: nav.continuesFrom,
   };
 }
 

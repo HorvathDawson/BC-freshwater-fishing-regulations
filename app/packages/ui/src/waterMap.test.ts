@@ -10,7 +10,8 @@ import { openRegsFixture } from "@app/data/release/node";
 import type { ItemId } from "@app/data";
 import { HOME, reduce, type Route } from "./route";
 import {
-  exitAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView, type WaterMapAction,
+  crossAction, exitAction, partAction, showRegsActions, waterMapStart, waterMapStartIx, waterMapStep, waterMapView,
+  type WaterMapAction,
   type WaterMapState,
 } from "./waterMap";
 
@@ -35,7 +36,8 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
     let s = waterMapStart(waterMapStartIx(g, "gnis:8634", 1));     // part_ix 1 is the mouth part (rank 0)
     expect(s.at).toBe(0);
     expect(bar(g, s)).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
-      + " | Lowest part (off) | ▲ Upstream | Flows into Vedder River ›");
+      // ▼ at the mouth part goes on into the Vedder (`water_continue`); "Flows into" stays
+      + " | ▼ Downstream | ▲ Upstream | Flows into Vedder River ›");
     expect(view(g, s).exit).toEqual({ label: "Flows into Vedder River ›", item: "gnis:3062", part: 0 });
     const seen = [bar(g, s)];
     for (let k = 0; k < 4; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
@@ -117,9 +119,9 @@ describe("a side channel: the Zymoetz's canyon", () => {
   it("▲ below the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
     const canyon = waterMapStart(1);
-    expect(view(g, canyon).up).toEqual({ label: "▲ Upstream", disabled: false, fork: true });
+    expect(view(g, canyon).up).toEqual({ label: "▲ Upstream", aria: "▲ Upstream", disabled: false, fork: true, cross: null });
     const open = run(g, canyon, { type: "up" });
-    expect(open).toEqual({ ...canyon, choosing: true });
+    expect(open).toEqual({ ...canyon, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", closeGlyph: "✕", options: [
       { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
       { ix: 2, item: "gnis:3137", partIx: 5, name: "Side channel", note: "Zymoetz River" }] });
@@ -133,6 +135,77 @@ describe("a side channel: the Zymoetz's canyon", () => {
   });
 });
 
+describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake part was not)", () => {
+  /** Every state one press of ▼ or ▲ (and, at a fork, each choice) leads to from part `at`. */
+  const presses = (g: WaterGroup, at: number): number[] => (["down", "up"] as const).flatMap((type) => {
+    const s = waterMapStep(g, waterMapStart(at), { type });
+    if (s.choosing) return view(g, s).chooser!.options.map((o) => waterMapStep(g, s, { type: "choose", to: o.ix }).at);
+    return [s.at];
+  }).filter((j) => j !== at);
+
+  it("over every fixture water, each part is stepped INTO from another, and all are reached from the mouth", async () => {
+    const missed: string[] = [];
+    for (const id of ["gnis:8634", "gnis:3062", "gnis:12227", "wbk:-20", "gnis:3137"]) {
+      const g = await loadWaterGroup(st, id);
+      const into = new Set(g.parts.flatMap((_, i) => presses(g, i)));
+      const seen = new Set([0]);
+      const queue = [0];
+      while (queue.length) for (const j of presses(g, queue.shift()!)) if (!seen.has(j)) { seen.add(j); queue.push(j); }
+      g.parts.forEach((_, j) => {
+        if (g.parts.length > 1 && !into.has(j)) missed.push(`${id} part ${j} (${view(g, waterMapStart(j)).current.name})`);
+        if (!seen.has(j)) missed.push(`${id} part ${j}: not reached from the mouth`);
+      });
+    }
+    expect(missed).toEqual([]);
+  });
+
+  it("the Zymoetz's source part: ▼ is a fork, the main stem first, then the lake part (its only way in)", async () => {
+    const g = await loadWaterGroup(st, "gnis:3137");
+    const source = waterMapStart(5);
+    expect(view(g, source).down).toEqual({ label: "▼ Downstream", aria: "▼ Downstream", disabled: false, fork: true,
+                                           cross: null });
+    const open = run(g, source, { type: "down" });
+    expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
+      closeGlyph: "✕", options: [
+        { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
+        { ix: 4, item: "gnis:3137", partIx: 2, name: "A lake → McDonell Lake outlet", note: "Zymoetz River" }] }]);
+    expect(run(g, open, { type: "choose", to: 4 })).toEqual(waterMapStart(4));
+    // a way UP is not a choice going down
+    expect(run(g, open, { type: "choose", to: 5 })).toBe(open);
+  });
+});
+
+describe("across waters: the Vedder goes on from the Chilliwack (`water_continue`)", () => {
+  it("the Vedder: ▲ is live and names the Chilliwack's lowest part; ▼ is its end", async () => {
+    const g = await loadWaterGroup(st, "gnis:3062");
+    const v = view(g, waterMapStart(0));
+    expect([v.up, v.down, bar(g, waterMapStart(0))]).toEqual([
+      { label: "▲ Upstream", aria: "▲ Upstream into Chilliwack River", disabled: false, fork: false,
+        cross: { item: "gnis:8634", part: 1 } },
+      { label: "Lowest part", aria: "Lowest part", disabled: true, fork: false, cross: null },
+      "Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream"]);
+    // ▲ is not a step inside the group: the state does not move (the caller opens the Chilliwack)
+    expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(0));
+  });
+
+  it("the Chilliwack: ▼ at its lowest part names the Vedder's part 0, and 'Flows into' stays; no other part crosses", async () => {
+    const g = await loadWaterGroup(st, "gnis:8634");
+    expect([view(g, waterMapStart(0)).down, view(g, waterMapStart(0)).exit?.label]).toEqual([
+      { label: "▼ Downstream", aria: "▼ Downstream into Vedder River", disabled: false, fork: false,
+        cross: { item: "gnis:3062", part: 0 } }, "Flows into Vedder River ›"]);
+    expect(g.parts.map((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross]))
+      .toEqual([[{ item: "gnis:3062", part: 0 }, null], [null, null], [null, null], [null, null]]);
+  });
+
+  it("a water with no continuation gets no cross-water step (the Cowichan, the KLWA lake, the Zymoetz)", async () => {
+    for (const id of ["gnis:12227", "wbk:-20", "gnis:3137"]) {
+      const g = await loadWaterGroup(st, id);
+      expect([id, g.parts.flatMap((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross])
+        .filter((c) => c !== null)]).toEqual([id, []]);
+    }
+  });
+});
+
 describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
   it("Cowichan: four parts in a line; at the mouth no exit (the sea)", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
@@ -143,9 +216,9 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
       "Part 4 of 4 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | ▼ Downstream | Highest part (off)"]);
   });
 
-  it("Vedder: one part, both ends disabled", async () => {
+  it("Vedder: one part; its mouth is its end (its ▲ goes on into the Chilliwack, above)", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
-    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | Highest part (off)");
+    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream");
   });
 
   it("KLWA: the lake's three closure areas in the prototype's order, stepped by their exits, out into the Kootenay River; no placed marks", async () => {
@@ -183,5 +256,27 @@ describe("leaving the map, through the route (P13)", () => {
     expect([top(r), reduce(r, { type: "back" })]).toEqual([
       { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "regs" }, onMap]);
     expect(top(reduce(onMap, exitAction("gnis:3062" as ItemId, null)))?.part).toBeNull();
+  });
+
+  it("ONE WATER SCREEN: a step on the map is the frame's part, so Regulations opens on the stepped part", () => {
+    const stepped = reduce(onMap, partAction(CHW, CHW, 2));
+    expect(stepped).toEqual({ ...onMap, stack: [{ item: CHW, part: 2, tapSid: null, at: null, view: "map" }] });
+    expect(top(reduce(stepped, { type: "view", view: "regs" }))).toEqual(
+      { item: CHW, part: 2, tapSid: null, at: null, view: "regs" });
+    // a tap kept: same water, the tap stays; a split lake's other area: that area becomes the water, the tap goes
+    const tapped: Route = { ...onMap, stack: [{ item: CHW, part: 1, tapSid: 62453 as never, at: { lat: 49, lon: -121 }, view: "map" }] };
+    expect([top(reduce(tapped, partAction(CHW, CHW, 2))), top(reduce(tapped, partAction(CHW, "wbk:-21" as ItemId, 0)))])
+      .toEqual([{ item: CHW, part: 2, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" },
+                { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" }]);
+  });
+
+  it("across waters: ▲ from the Vedder opens the Chilliwack's lowest part with its Map in front; back returns", () => {
+    const onVedder: Route = { mode: "water", from: HOME,
+                              stack: [{ item: "gnis:3062" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
+    const r = reduce(onVedder, crossAction(CHW, 1));
+    expect([top(r), reduce(r, { type: "back" })]).toEqual([
+      { item: CHW, part: 1, tapSid: null, at: null, view: "map" }, onVedder]);
+    expect(top(reduce(onMap, crossAction("gnis:3062" as ItemId, 0)))).toEqual(
+      { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "map" });
   });
 });

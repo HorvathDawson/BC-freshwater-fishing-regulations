@@ -6,8 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName, partOfSection, partWhere,
-  stepDown, stepsUp, waterGroup, wholeLabel, type ItemNavRows,
+  crossAria, crossDown, crossUp, exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName,
+  partOfSection, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeLabel, type ItemNavRows,
 } from "./waterNav";
 
 const deg = (u: number) => u / 1e6;
@@ -129,6 +129,13 @@ export const ZYMOETZ: ItemNavRows = {
 };
 
 const order = (g: ReturnType<typeof waterGroup>) => g.parts.map((p, i) => `${i}: ${partName(g, i)}`);
+/** Each part's ways ▼ | ▲ ("-": none), as the conformance test prints them. */
+const steps = (g: ReturnType<typeof waterGroup>) =>
+  g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
+
+/** The release's `water_continue` row 11095|1|7670|0: the Chilliwack (its part 1) goes on as the Vedder (its part 0). */
+const CHW_AS_VEDDER = { ord: 7670, part: 1, otherPart: 0, item: "gnis:3062", name: "Vedder River" };
+const VEDDER_FROM_CHW = { ord: 11095, part: 0, otherPart: 1, item: "gnis:8634", name: "Chilliwack River" };
 
 describe("the group's parts, mouth first (the release's rank)", () => {
   it("Chilliwack: the four parts by rank, each named by its short name, its water beside it", () => {
@@ -207,15 +214,82 @@ describe("▼ / ▲ over the marks", () => {
     expect(stepDown(g, main)).toBe(canyon);
   });
 
-  it("where the marks say nothing, the order does — so every part is reachable", () => {
+  it("where the marks say nothing, the order does", () => {
     const g = waterGroup([ZYMOETZ]);
     const lake = partAt(g, "gnis:3137", 2);       // "A lake → McDonell Lake outlet": no mark below it
     expect([lake, stepDown(g, lake), stepsUp(g, lake)]).toEqual([4, 3, [5]]);
   });
 
+  it("a fork going DOWN: below the Zymoetz's source part are the main stem and the lake part, main stem first", () => {
+    // the lake part's own mark says it sits below the source (`down 2, up [3]`), and nothing else leads into it
+    const g = waterGroup([ZYMOETZ]);
+    const source = partAt(g, "gnis:3137", 3), main = partAt(g, "gnis:3137", 0), lake = partAt(g, "gnis:3137", 2);
+    expect([stepsDown(g, source), stepDown(g, source)]).toEqual([[main, lake], main]);
+    // and above the canyon, ▼ offers the canyon first and the side channel that rejoins there
+    expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1,2|5", "3|5", "3,4|-"]);
+  });
+
+  it("EVERY part of every water is stepped INTO by ▼ or ▲ from another part, and all are reached from the mouth", () => {
+    const waters = { CHILLIWACK: [CHILLIWACK], VEDDER: [VEDDER], COWICHAN: [COWICHAN], KLWA: [KL_MAIN, KL_UPPER, KL_LOWER],
+                     ZYMOETZ: [ZYMOETZ] };
+    const missed: string[] = [];
+    for (const [name, rows] of Object.entries(waters)) {
+      const g = waterGroup(rows);
+      const into = new Set(g.parts.flatMap((_, i) => [...stepsDown(g, i), ...stepsUp(g, i)].filter((j) => j !== i)));
+      const seen = new Set([0]);
+      const queue = [0];
+      while (queue.length) {
+        const i = queue.shift()!;
+        for (const j of [...stepsDown(g, i), ...stepsUp(g, i)]) if (!seen.has(j)) { seen.add(j); queue.push(j); }
+      }
+      g.parts.forEach((p, j) => {
+        if (g.parts.length > 1 && !into.has(j)) missed.push(`${name} ${j} (${p.short}): nothing steps into it`);
+        if (!seen.has(j)) missed.push(`${name} ${j} (${p.short}): not reached from the mouth`);
+      });
+    }
+    expect(missed).toEqual([]);
+  });
+
   it("KLWA: the sibling boundaries are steps; the ends stop", () => {
     const g = waterGroup([KL_MAIN, KL_UPPER, KL_LOWER]);
     expect([0, 1, 2].map((i) => [stepDown(g, i), stepsUp(g, i)])).toEqual([[null, [1]], [0, [2]], [1, []]]);
+  });
+});
+
+describe("across waters: a stream that goes on as another (`water_continue`)", () => {
+  const chw = waterGroup([{ ...CHILLIWACK, continuesAs: CHW_AS_VEDDER }]);
+  const ved = waterGroup([{ ...VEDDER, continuesFrom: VEDDER_FROM_CHW }]);
+
+  it("the Vedder: ▲ from its part into the Chilliwack's lowest part (its part 1, Vedder Crossing → Tamihi)", () => {
+    expect([ved.prev, ved.next, crossUp(ved, 0), crossDown(ved, 0)]).toEqual([
+      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null,
+      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null]);
+    expect(crossAria("up", crossUp(ved, 0)!)).toBe("▲ Upstream into Chilliwack River");
+  });
+
+  it("the Chilliwack: ▼ at its lowest part into the Vedder's part 0; nowhere else crosses", () => {
+    expect([chw.next, chw.prev]).toEqual([{ item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null]);
+    expect([0, 1, 2, 3].map((i) => [crossDown(chw, i), crossUp(chw, i)])).toEqual([
+      [{ item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null], [null, null], [null, null], [null, null]]);
+    expect(crossAria("down", chw.next!)).toBe("▼ Downstream into Vedder River");
+    // the mouth's exit is still there (the "Flows into" link stays)
+    expect(chw.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
+  });
+
+  it("a tributary-only water gets no cross-water step: the Cowichan, the KLWA lake, and a water with only an exit", () => {
+    for (const g of [waterGroup([COWICHAN]), waterGroup([KL_MAIN, KL_UPPER, KL_LOWER]), waterGroup([CHILLIWACK]),
+                     waterGroup([VEDDER])])
+      expect([g.next, g.prev, ...g.parts.flatMap((_, i) => [crossDown(g, i), crossUp(g, i)])].every((x) => x === null))
+        .toBe(true);
+  });
+
+  it("a cross only where this water has no step that way, and only into a water the release names", () => {
+    // the junction on a part with a part above it: ▲ stays inside the water
+    const mid = waterGroup([{ ...CHILLIWACK, continuesFrom: { ...VEDDER_FROM_CHW, ord: 1, part: 1 } }]);
+    expect([mid.prev?.at, crossUp(mid, 0)]).toEqual([0, null]);
+    expect(waterGroup([{ ...VEDDER, continuesFrom: { ...VEDDER_FROM_CHW, item: null, name: null } }]).prev).toBeNull();
+    // a junction part the water does not have
+    expect(waterGroup([{ ...VEDDER, continuesFrom: { ...VEDDER_FROM_CHW, part: 7 } }]).prev).toBeNull();
   });
 });
 

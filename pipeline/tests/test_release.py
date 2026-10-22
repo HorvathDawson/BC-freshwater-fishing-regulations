@@ -190,6 +190,34 @@ def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
             assert got == spec["tables"], name
 
 
+@pytest.mark.needs_bundle
+def test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does(rel, tmp_path):
+    """`water_continue` (continuation.py) on the real atlas: the Chilliwack (blue line 380887781 from measure 0) goes on
+    as the Vedder (356363467, whose line ends at 12723 where the Chilliwack begins) — the Chilliwack's mouth part (1,
+    Vedder Crossing Bridge -> Tamihi) into the Vedder's part 0. Nothing else is linked to the Vedder: its sloughs flow
+    into it through no section of their own; a tributary joining mid-river (Slesse Creek into the Chilliwack, the North
+    Thompson into the Thompson) is not the river going on."""
+    d, _, bundle, _, _ = rel
+    w, core = _open(d, "water", tmp_path), _open(d, "core", tmp_path)
+    ordof = dict(core.execute("SELECT item_id, ord FROM item"))
+    named = lambda n: {o for (o,) in core.execute("SELECT ord FROM item WHERE name = ?", (n,))}  # noqa: E731
+    rows = w.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
+    chw, ved = ordof["gnis:8634"], ordof["gnis:3062"]
+    assert [r for r in rows if ved in (r[0], r[2]) or chw in (r[0], r[2])] == [(chw, 1, ved, 0)]
+    b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    preds = {n for (n,) in b.execute("SELECT i.name FROM item_down d JOIN item i ON i.ord = d.ord WHERE d.down_ord = ?",
+                                     (ved,))}
+    assert preds == {"Chilliwack River", "Stewart Slough", "Street Creek", "McGillivray Slough", "Lewis Slough"}
+    linked = {r[0] for r in rows} | {r[2] for r in rows}
+    for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek"):
+        assert named(trib) and not named(trib) & linked, trib
+    # both ends keyed: a water continues as at most one and is continued by at most one; every part named is real
+    assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
+    parts = set(w.execute("SELECT item_ord, part_ix FROM part"))
+    assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
+    print("water_continue rows:", len(rows))
+
+
 def test_the_apps_pack_contract_is_current():
     from pipeline.tools import emit_pack
     assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit_pack"

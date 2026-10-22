@@ -11,7 +11,8 @@ formats the app reads. What it keeps:
 
   water          every rule, display_rule, static, str, zdict, entry, ruleset, lset, picker, runs, xpart, seglist,
                  segmom, place, lic — whole (the app's `rules()` sees all of them); `item`, `part`, `part_section`,
-                 `part_geo`, `part_mark`, `water_exit` of the kept waters; `akey` + `akey_region` of the kept keys
+                 `part_geo`, `part_mark`, `water_exit` of the kept waters; `water_continue` where BOTH waters are
+                 kept (the app opens the other one); `akey` + `akey_region` of the kept keys
   regs-<region>  the cells of the kept keys in that region and every frame row they reach (the shard rule of
                  `pipeline.deliver.release.shards`: ladder → verdicts; rows → decided + rows; licence → holds,
                  documents, under-16, the documents' answers), only for regions holding a kept key
@@ -139,6 +140,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         for t in wtables:
             if t in WATER_BY_ORD:
                 plan.append(("s", t, f"WHERE {WATER_BY_ORD[t]} IN ({_ids(kept_ords)})"))
+            elif t == "water_continue":
+                plan.append(("s", t, f"WHERE ord IN ({_ids(kept_ords)}) AND next_ord IN ({_ids(kept_ords)})"))
             elif t in WATER_BY_AKEY:
                 plan.append(("s", t, f"WHERE akey IN ({_ids(akeys)})"))
             else:

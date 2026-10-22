@@ -11,10 +11,19 @@
  * another is a boundary mark with no place (the release draws none between items) and no label: its words are the two
  * parts' names without what they share (`markLabel`, the prototype's).
  *
- * THE STEP. ▲ takes the parts above the current one by the marks (a fork: a mark with two upper parts); ▼ the part
- * below it. Where the marks say nothing the order (`rank`) does, so every part stays reachable. At a fork the MAIN
- * stem goes first: a side channel is a branch from which the other branch is reachable going on in the same direction
- * (it rejoins), and the main stem is not — the Zymoetz's side channel rejoins above the canyon (`up_parts [0, 5]`).
+ * THE STEP. ▲ takes the parts above the current one by the marks (a fork: a mark with two upper parts); ▼ the parts
+ * below it (a fork too: two parts whose marks both say they sit below this one — the Zymoetz's source part has the main
+ * stem and "A lake → McDonell Lake outlet" below it, and that lake part is reached ONLY that way). Where the marks say
+ * nothing the order (`rank`) does, so every part stays reachable. At a fork the MAIN stem goes first: a side channel is
+ * a branch from which the other branch is reachable going on in the same direction (it rejoins), and the main stem is
+ * not — the Zymoetz's side channel rejoins above the canyon (`up_parts [0, 5]`).
+ *
+ * ACROSS WATERS (owner 2026-10-21: "navigate up if one stream comes directly from another, like vedder from
+ * chilliwack"). The release's `water_continue` says which stream goes on as another — the same watercourse under a new
+ * name (pipeline `continuation.py`; never a tributary). On the part where this water meets the one it goes on from
+ * (`prev`), ▲ with nothing above it in this water steps into that water's part; on the part where it goes on as the
+ * next (`next`), ▼ with nothing below steps into the next one's part. The step is the caller's to take: it opens the
+ * other water (`crossUp` / `crossDown` say which, and where).
  */
 import type { Bbox } from "./search";
 
@@ -49,11 +58,26 @@ export interface NavMark {
 /** Where the group's mouth flows: the receiving water and the part of it the mouth meets (null: not stored). */
 export interface NavExit { readonly item: string; readonly name: string; readonly part: number | null }
 
+/** The same watercourse going on as another water (`water_continue`): that water, its part there, and where — `at`,
+ *  the index in this group's `parts` — this water meets it. */
+export interface NavCross { readonly item: string; readonly name: string; readonly part: number; readonly at: number }
+
 export interface WaterGroup {
   /** Mouth-first. */
   readonly parts: readonly NavPart[];
   readonly marks: readonly NavMark[];
   readonly exit: NavExit | null;
+  /** The water this one goes on as, below its mouth (the Chilliwack's: the Vedder), or null. */
+  readonly next: NavCross | null;
+  /** The water this one goes on from, above its top (the Vedder's: the Chilliwack), or null. */
+  readonly prev: NavCross | null;
+}
+
+/** One `water_continue` row as an item's rows carry it: the other water (its ord, id and name — null where the
+ *  release's core does not hold it), `part` this item's part at the junction and `otherPart` the other water's. */
+export interface ContinueRow {
+  readonly ord: number; readonly part: number; readonly otherPart: number;
+  readonly item: string | null; readonly name: string | null;
 }
 
 /** One item's rows from the release, as the data layer reads them (degrees, not microdegrees). */
@@ -71,6 +95,9 @@ export interface ItemNavRows {
   /** `water_exit`: the receiving item's ord, the part it is met at, and — when the release names it — its id and name. */
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
                    readonly name: string | null } | null;
+  /** `water_continue`: the water this one goes on as (`continuesAs`) and the one it goes on from (`continuesFrom`). */
+  readonly continuesAs?: ContinueRow | null;
+  readonly continuesFrom?: ContinueRow | null;
 }
 
 /**
@@ -129,7 +156,14 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   const low = placed[0];
   const exit = low?.exit && !byOrd.has(low.exit.ord) && low.exit.item !== null && low.exit.name !== null
     ? { item: low.exit.item, name: low.exit.name, part: low.exit.part } : null;
-  return { parts, marks, exit };
+  // across waters: only into a water outside the group that the release names, from a part this group holds
+  const cross = (i: ItemNavRows | undefined, c: ContinueRow | null | undefined): NavCross | null => {
+    if (!i || !c || byOrd.has(c.ord) || c.item === null || c.name === null) return null;
+    const at = ix(i.ord, c.part);
+    return at === undefined ? null : { item: c.item, name: c.name, part: c.otherPart, at };
+  };
+  const top = placed.find((i) => i.continuesFrom);
+  return { parts, marks, exit, next: cross(low, low?.continuesAs), prev: cross(top, top?.continuesFrom) };
 }
 
 /** An item's lowest part (`rank` 0, else its first). */
@@ -184,9 +218,24 @@ export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[
   return [...marked].sort((a, b) => Number(side(a)) - Number(side(b)) || a - b);
 }
 
-/** ▼: the part below, or null at the lowest part. */
+/** ▼: the part below, main stem first, or null at the lowest part (`stepsDown`: every way down at a fork). */
 export function stepDown(g: WaterGroup, at: number): number | null {
   return stepsFrom(g, at, "down")[0] ?? null;
+}
+
+/** ▼: the parts below, main stem first (two or more: a fork, offered as a choice); empty at the lowest part. */
+export function stepsDown(g: WaterGroup, at: number): readonly number[] {
+  return stepsFrom(g, at, "down");
+}
+
+/** ▼ off the end of this water into the one it goes on as: only on the part that meets it, with nothing below. */
+export function crossDown(g: WaterGroup, at: number): NavCross | null {
+  return g.next && g.next.at === at && !stepsDown(g, at).length ? g.next : null;
+}
+
+/** ▲ off the top of this water into the one it goes on from: only on the part that meets it, with nothing above. */
+export function crossUp(g: WaterGroup, at: number): NavCross | null {
+  return g.prev && g.prev.at === at && !stepsUp(g, at).length ? g.prev : null;
 }
 
 /** ▲: the parts above, main stem first (two or more: a fork, offered as a choice); empty at the highest part. */
@@ -264,6 +313,7 @@ export const WATER_MAP_WORDS = {
   /** The close button's glyph (its label is `close`). */
   closeGlyph: "✕",
   chooser: "Which way upstream?",
+  chooserDown: "Which way downstream?",
   loading: "Loading the parts of this water",
   /** No release to read the parts from (the dev bundle), or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",
@@ -284,6 +334,11 @@ export function wholeLabel(g: WaterGroup, i: number, whole: boolean): string {
 export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   if (whole) return WATER_MAP_WORDS.thisPart;
   return g.parts[i]?.kind === "lake" ? "Whole lake" : "Whole river";
+}
+
+/** ▲ / ▼ into another water, as a screen reader says it: "▲ Upstream into Chilliwack River". */
+export function crossAria(dir: "up" | "down", c: NavCross): string {
+  return `${dir === "up" ? WATER_MAP_WORDS.up : WATER_MAP_WORDS.down} into ${c.name}`;
 }
 
 /** The link at the lowest part to the water its mouth flows into. */

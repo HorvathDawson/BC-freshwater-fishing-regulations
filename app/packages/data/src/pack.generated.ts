@@ -890,6 +890,12 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "text"
       ],
+      "water_continue": [
+        "ord",
+        "part",
+        "next_ord",
+        "next_part"
+      ],
       "water_exit": [
         "ord",
         "down_ord",

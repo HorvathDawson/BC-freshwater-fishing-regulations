@@ -29,7 +29,9 @@ function mount(item: string, part: number | null, tapSid: number | null = null, 
                        tapSid={tapSid as SectionId | null} palette={LIGHT} map={MAP}
                        onOpenWater={(i, p) => calls.push(`open ${i} at ${p}`)}
                        onShowRegs={(i, p) => calls.push(`regs ${i} part ${p}`)}
-                       onOtherSection={(s) => calls.push(`other ${s}`)} />);
+                       onOtherSection={(s) => calls.push(`other ${s}`)}
+                       onCross={(i, p) => calls.push(`cross ${i} at ${p}`)}
+                       onPart={(i, p) => calls.push(`part ${i} ${p}`)} />);
   return calls;
 }
 
@@ -47,7 +49,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:8634", 1);
     await ready();
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
-      + " | Lowest part (off) | ▲ Upstream | Flows into Vedder River ›");
+      + " | ▼ Downstream | ▲ Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       highlight: [60210, 60211, 60212, 62453, 62571, 62823, 1235779, 1235780, 1235825],
       water: [1235781, 1235826, 1235827, 59894, 59900, 61178, 62859, 1235782, 1235783, 1235784, 1235785] });
@@ -74,7 +76,8 @@ describe("<WaterMapView>", () => {
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
     expect(screen.queryByTestId("water-map-exit")).toBeNull();           // only at the lowest part
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
-    expect(calls).toEqual(["open gnis:3062 at 0", "regs gnis:8634 part 2"]);
+    // the step is handed on as the frame's part (one water screen), before Show regulations names it
+    expect(calls).toEqual(["open gnis:3062 at 0", "part gnis:8634 2", "regs gnis:8634 part 2"]);
   }, 30_000);
 
   it("⤢ frames the whole river and back to the part", async () => {
@@ -102,7 +105,8 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressFeature!("stream", 1235785));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
     act(() => seen.props!.onPressFeature!("stream", 62410));
-    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River", ["other 62410"]]);
+    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
+      ["part gnis:8634 3", "other 62410"]]);
   }, 30_000);
 
   it("a side channel: ▲ below the Zymoetz's canyon fork opens the chooser, the main stem first", async () => {
@@ -152,6 +156,33 @@ describe("<WaterMapView>", () => {
       "Which way upstream? · water",
       "true -> nothing open · water",
     ]);
+  });
+
+  it("across waters: ▲ on the Vedder opens the Chilliwack at its lowest part; ▼ on the Chilliwack's mouth part the Vedder", async () => {
+    const calls = mount("gnis:3062", 0);
+    await ready();
+    // (the fixture's core does not hold the Sumas River, so the Vedder's mouth has no exit here)
+    expect(bar()).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream");
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
+    cleanup();
+    const more = mount("gnis:8634", 1);
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
+    // the map did not move inside the water: each is the caller's to open (through openWater, Map in front)
+    expect([screen.getByTestId("water-map-where").textContent, [...calls, ...more]]).toEqual([
+      "Part 1 of 4 · Chilliwack River", ["cross gnis:8634 at 1", "cross gnis:3062 at 0"]]);
+  }, 30_000);
+
+  it("a fork going down: ▼ on the Zymoetz's source part offers the main stem, then the lake part", async () => {
+    const calls = mount("gnis:3137", 3);
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream" }));
+    const chooser = within(screen.getByRole("dialog", { name: "Which way downstream?" }));
+    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Close", "Zymoetz Canyon upper entrance → Limonite Creek confluence", "A lake → McDonell Lake outlet"]);
+    fireEvent.click(chooser.getByRole("button", { name: "A lake → McDonell Lake outlet" }));
+    expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent, calls]).toEqual([
+      null, "A lake → McDonell Lake outlet", ["part gnis:3137 2"]]);
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
@@ -169,7 +200,7 @@ describe("<WaterMapView>", () => {
     fireEvent.click(screen.getByRole("button", { name: "▼ Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
     expect([bar(), calls]).toEqual(["Part 2 of 3 | Kootenay Lake — Upper West Arm | ▼ Downstream | ▲ Upstream",
-                                    ["regs wbk:-21 part 0"]]);
+                                    ["part wbk:-21 0", "regs wbk:-21 part 0"]]);
   }, 30_000);
 
   it("no release (the dev bundle): the map is drawn unlit and the bar says the parts are not available", async () => {

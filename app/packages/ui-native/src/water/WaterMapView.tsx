@@ -9,7 +9,9 @@
  * geometry is the tiles' only; the part's section ids and box come from the release.
  *
  * What leaves the water map is the caller's (the Shell's route): the exit opens the receiving water, "Show regulations"
- * returns to the Regulations view on the part, a tap on another water opens it.
+ * returns to the Regulations view on the part, a tap on another water opens it, ▲ / ▼ off the end into the water this
+ * one goes on from or as opens that water's map (`onCross`), and every step to another part is the frame's part
+ * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
 import type { ComponentProps } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -25,7 +27,8 @@ import { SPACE, type Palette } from "../theme";
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
   "palette" | "highlight" | "water" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
-export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection }: {
+export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
+                               onCross, onPart }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
@@ -39,9 +42,13 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   onShowRegs: (item: ItemId, partIx: number) => void;
   /** A tap on a section that is not this water's. */
   onOtherSection: (sid: SectionId) => void;
+  /** ▲ / ▼ into the water this one goes on from or as (`water_continue`), at its part there. */
+  onCross: (item: ItemId, part: number) => void;
+  /** A step to another part: the frame's part from now on (a split lake's other area: that water). */
+  onPart?: (item: ItemId, partIx: number) => void;
 }) {
   const store = useRegsStore(loader);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
@@ -82,10 +89,10 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, color: palette.ink, marginTop: 2 }}
                   testID="water-map-name" numberOfLines={3}>{vm.current.name}</Text>
             <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
-              <Step palette={palette} label={vm.down.label} disabled={vm.down.disabled}
-                    onPress={() => act({ type: "down" })} />
-              <Step palette={palette} label={vm.up.label} disabled={vm.up.disabled}
-                    onPress={() => act({ type: "up" })} />
+              {([["down", vm.down], ["up", vm.up]] as const).map(([dir, st]) => (
+                <Step key={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
+                      onPress={() => (st.cross ? onCross(st.cross.item as ItemId, st.cross.part) : act({ type: dir }))} />
+              ))}
             </View>
             {vm.exit && (
               <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
@@ -111,13 +118,14 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   );
 }
 
-/** ▼ / ▲: a 52 px button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). */
-function Step({ palette, label, disabled, onPress }: {
-  palette: Palette; label: string; disabled: boolean; onPress: () => void;
+/** ▼ / ▲: a 52 px button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
+ *  water its words say which ("▲ Upstream into Chilliwack River"). */
+function Step({ palette, label, aria, disabled, onPress }: {
+  palette: Palette; label: string; aria: string; disabled: boolean; onPress: () => void;
 }) {
   return (
     <Pressable onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
-               accessibilityLabel={label} aria-disabled={disabled}
+               accessibilityLabel={aria} aria-disabled={disabled}
                style={{ flex: 1, minHeight: 52, alignItems: "center", justifyContent: "center", borderWidth: 1.5,
                         borderColor: palette.ink, borderStyle: disabled ? "dashed" : "solid" }}>
       <Text style={{ ...TYPE.bodyStrong, fontFamily: disabled ? TYPE.bodyStrong.fontFamily : TYPE.metaBold.fontFamily,
@@ -175,7 +183,7 @@ function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: 
   );
 }
 
-/** ▲ at a fork: which way, the main stem first. */
+/** ▲ or ▼ at a fork: which way, the main stem first. */
 function Chooser({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void }) {
   const c = vm.chooser!;
   // back closes the chooser (no way taken) before it leaves the water

@@ -13,7 +13,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
+import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, crossAction, exitAction, partAction,
+         showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { spotsMenu, useMapRail, type Locate } from "@app/ui";
@@ -449,6 +450,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                                  onError: (e) => console.error("map:", e.message) }}
                           onOpenWater={(id, p) => go(exitAction(id, p))}
                           onShowRegs={(id, p) => { for (const a of showRegsActions(item, id, p)) go(a); }}
+                          // P15 follow-ups: a step is the frame's part (one water screen); ▲ / ▼ into the water this
+                          // one goes on from or as opens it, Map in front (back returns here)
+                          onPart={(id, p) => go(partAction(item, id, p))}
+                          onCross={(id, p) => go(crossAction(id, p))}
                           // another water opens on top (back returns here)
                           onOtherSection={(sid) => opener.tap(sid, null, "regs", item)} />
           </WaterMap>
