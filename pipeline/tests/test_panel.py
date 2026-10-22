@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pipeline.atlas.gauges.panel import (
-    MAX_AREA_RATIO, MIN_RECORD_YEARS, MAX_MEMBERS, combine, eligible, panel_for,
+    MAX_AREA_RATIO, MIN_RECORD_YEARS, MEMBERS_PER_QUANTITY, combine, eligible, panel_for,
     share_of, trust_of, weight_of,
 )
 
@@ -116,11 +116,11 @@ def test_a_thin_record_votes_at_less_than_full_strength():
 
 
 def test_the_panel_keeps_the_best_and_caps_its_size():
-    """Past a few donors the extra ones are redundant with each other rather than
-    independent, and this estimator does not model that redundancy yet."""
+    """A ranked reserve, `MEMBERS_PER_QUANTITY` deep (test_live_panels.py): deep enough that silent members leave an
+    answer, bounded because every member is a row in the paint file."""
     cand = [(f"S{i}", "up", 100.0, 40, False, False) for i in range(10)]
     got = panel_for(cand, 100.0)
-    assert len(got) == MAX_MEMBERS
+    assert len(got) == MEMBERS_PER_QUANTITY
     assert [d.weight for d in got] == sorted((d.weight for d in got), reverse=True)
 
 

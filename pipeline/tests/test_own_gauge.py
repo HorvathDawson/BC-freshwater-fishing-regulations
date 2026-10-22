@@ -23,7 +23,7 @@ import pytest
 from pipeline.atlas.gauges import panel as P
 from pipeline.atlas.gauges.build_panels import build
 from pipeline.atlas.gauges.panel import (
-    MAX_MEMBERS, OWN_AREA_TRUST, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_LEAD_SHARE, OWN_LEADS_PER_QUANTITY,
+    MEMBERS_PER_QUANTITY, OWN_AREA_TRUST, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_LEAD_SHARE, OWN_LEADS_PER_QUANTITY,
     OWN_SMALLER_RATIO, area_scale, far_limit_km, lead_shares,
     leader_of, may_lead, river_length_km,
 )
@@ -257,32 +257,21 @@ def test_without_the_water_map_nothing_leads():
 
 
 def test_the_own_gauge_survives_the_member_cap():
-    """MAX_MEMBERS keeps the heaviest; an own gauge that may lead is kept whatever its weight — a 3-year record
-    counts 3/20 of a long one and would otherwise lose its seat to four longer-lived neighbours. It rides ON TOP of
+    """MEMBERS_PER_QUANTITY keeps the heaviest; an own gauge that may lead is kept whatever its weight — a 3-year
+    record counts 3/20 of a long one and would otherwise lose its seat to longer-lived neighbours. It rides ON TOP of
     the cap: every donor the panel held without the rule is still there (a level-only own gauge taking a seat cost
     125 real sections their Flow answer)."""
     graph, water = _river(n=2)
     donors = [("OWN", "s0", 3, False)]
-    for i in range(MAX_MEMBERS):
+    for i in range(MEMBERS_PER_QUANTITY):
         graph.nodes[f"t{i}"] = N(f"t{i}", 100, blk=f"T{i}", length_m=1_000.0)
         graph.edges.append(E(f"t{i}", "s1"))
         donors.append((f"AUX{i}", f"t{i}", 60, False))
     panels = build(graph, MODEL, donors, water_of=water)
     got = _leads(panels, "s1")
-    assert got == {"OWN": 1, **{f"AUX{i}": 0 for i in range(MAX_MEMBERS)}}
+    assert got == {"OWN": 1, **{f"AUX{i}": 0 for i in range(MEMBERS_PER_QUANTITY)}}
     unled = build(graph, MODEL, donors)
-    assert _leads(unled, "s1") == {f"AUX{i}": 0 for i in range(MAX_MEMBERS)}
-
-
-def test_only_a_gauge_that_reports_in_real_time_may_lead():
-    """The feed carries real-time stations only, so a historic own gauge could never lead — and kept on top of the
-    member cap it would only crowd the panel (on the lower Fraser at Mission 15 own gauges are near and big enough; 12
-    are real-time stations, 5 of them in the feed of 2026-10-21). With `live` given, the others are ordinary members again; the next real-time one leads."""
-    graph, water = _river(n=5)
-    donors = [("HISTORIC", "s2", 40, False), ("LIVE", "s0", 40, False)]
-    panels = build(graph, MODEL, donors, water_of=water, live={"LIVE"})
-    assert _leads(panels, "s3") == {"HISTORIC": 0, "LIVE": 1}
-    assert _leads(build(graph, MODEL, donors, water_of=water), "s3") == {"HISTORIC": 1, "LIVE": 2}
+    assert _leads(unled, "s1") == {f"AUX{i}": 0 for i in range(MEMBERS_PER_QUANTITY)}
 
 
 def test_each_quantity_keeps_only_its_nearest_few_candidates():
@@ -296,14 +285,18 @@ def test_each_quantity_keeps_only_its_nearest_few_candidates():
     measures = {**{f"G{i}": {"level"} for i in range(1, 6)}, "G0": {"discharge"}}
     panels = build(graph, MODEL, donors, water_of=water, measures=measures)
     # G5 is nearest s6 (0 km) ... G0 farthest (5 km). Level keeps G5..G2; discharge keeps G0. G1 is neither: an
-    # ordinary donor, still in the panel (all six weigh alike here, and candidates beyond the cap ride on top).
+    # ordinary donor, still in the panel (it is among Level's best MEMBERS_PER_QUANTITY).
     assert _leads(panels, "s6") == {"G5": 1, "G4": 2, "G3": 3, "G2": 4, "G1": 0, "G0": 5}
 
 
 def test_a_station_with_no_record_in_any_quantity_never_leads():
+    """Nor is it a member at all: the panel keeps each quantity's best (test_live_panels.py), and it has none."""
     graph, water = _river(n=2)
     panels = build(graph, MODEL, [("OWN", "s0", 40, False)], water_of=water, measures={})
-    assert _leads(panels, "s1") == {"OWN": 0}
+    assert panels.by_section == {} and panels.members == {}
+    beside = build(graph, MODEL, [("OWN", "s0", 40, False), ("REC", "s0", 40, False)], water_of=water,
+                   measures={"REC": {"discharge"}})
+    assert _leads(beside, "s1") == {"REC": 1}
 
 
 def test_the_lead_is_part_of_the_interned_panel():
@@ -398,16 +391,9 @@ def test_the_published_tie_break_is_what_holds_the_chilliwack_test():
     assert _leads(got, "s0") == {"A_LAKE": 1, "B_SLESSE": 2}
 
 
-def test_the_real_time_condition_is_what_holds_the_real_time_test():
-    mutant = _build_mutant("(live is None or st in live)", "True")
-    graph, water = _river(n=5)
-    donors = [("HISTORIC", "s2", 40, False), ("LIVE", "s0", 40, False)]
-    assert _leads(mutant(graph, MODEL, donors, water_of=water, live={"LIVE"}), "s3") == {"HISTORIC": 1, "LIVE": 2}
-
-
 def test_riding_on_top_of_the_cap_is_what_holds_the_cap_test():
-    mutant = _mutant(P.panel_for, "capped += [d for d in out[MAX_MEMBERS:] if d.station in wanted]", "pass")
+    mutant = _mutant(P.panel_for, " or d.station in wanted]", "]")
     cand = [("OWN", "up", 100.0, 3, False, False, True)] + [
-        (f"AUX{i}", "up", 100.0, 60, False, False, False) for i in range(MAX_MEMBERS)]
+        (f"AUX{i}", "up", 100.0, 60, False, False, False) for i in range(MEMBERS_PER_QUANTITY)]
     assert "OWN" in {d.station for d in P.panel_for(cand, 101.0, keep=["OWN"])}
     assert "OWN" not in {d.station for d in mutant(cand, 101.0, keep=["OWN"])}

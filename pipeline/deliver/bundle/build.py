@@ -714,13 +714,14 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
                   for st in matched
                   if years_by_station.get(st, 0) >= MIN_RECORD_YEARS]
         # `owner` (section -> water) is what makes a donor a section's OWN gauge, which then
-        # leads its answer — owner 2026-10-22, "a water's own gauge comes first" (panel.py) —
-        # if it reports in real time: the feed carries nothing else.
+        # leads its answer — owner 2026-10-22, "a water's own gauge comes first" (panel.py).
+        # NO `realtime` FLAG (owner 2026-10-22, "chosen live"): every donor with a record is a
+        # member or lead candidate, ranked as ever; which of them answers is the feed's business,
+        # at read time. The roster's flag is a snapshot that drifts — see build_panels.build.
         measures: dict[str, set[str]] = collections.defaultdict(set)
         for st, param in db.execute("SELECT station, parameter FROM gauge_stats"):
             measures[st].add(param)
         panels = build_panels(graph, model, donors, water_of=owner,
-                              live={s["station"] for s in stations if s.get("realtime")},
                               measures=measures,
                               published={s["station"]: s["area_km2"] for s in stations
                                          if s.get("area_km2")})

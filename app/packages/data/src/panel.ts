@@ -200,12 +200,19 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    * ahead does out of season). Only for a horizon past now, and only where the panel could
    * otherwise answer (it has gauges and an area).
    */
-  if (horizon > 0 && !contributions.length && panel.areaKm2 && panel.members.length) {
-    return { answer: { ok: false, why: "no-forecast" },
+  /*
+   * EVERY MEMBER SILENT TODAY is said as that, too (owner 2026-10-22, "chosen live"): the panel is a ranked reserve of
+   * every station that could describe this water, live or not, and which of them answers is the feed's business. With
+   * none reporting the asked quantity the gauges are still there — "no-station" ("no gauge close enough") would be
+   * false — so it is "no-record": none has a reading to rank. Nothing outside the panel is borrowed.
+   */
+  if (!contributions.length && panel.areaKm2 && panel.members.length) {
+    return { answer: { ok: false, why: horizon > 0 ? "no-forecast" : "no-record" },
              rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
              areaKm2: panel.areaKm2, routesReady: false };
   }
-  // THE SAME SHARES `estimate` USES: the usual weights, with the leading own gauge (if one reports) raised to its
+  // THE SAME SHARES `estimate` USES: the usual weights of the members REPORTING now (a quiet one weighs 0, so the rest
+  // re-normalise among themselves), with the leading own gauge — the best-ranked own one reporting — raised to its
   // share. A table that showed the plain weights under a led answer would contradict the number above it.
   const ws = raw.map((r) => r._w);
   const shares = leadShares(ws, leaderOf(panel.members.map((m) => m.lead ?? 0), ws));

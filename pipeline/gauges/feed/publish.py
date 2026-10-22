@@ -183,8 +183,9 @@ def roster_drift(roster: list[dict], listed: set[str] | None) -> dict | None:
     """How far the roster's `realtime` flag is from ECCC's list today. None without the list.
 
     `joined`: listed now, not live in the roster. `left`: live in the roster, no longer
-    listed. The BUNDLE reads the roster flag (only a live station may lead a panel), so drift
-    here is a bundle that leads water with a silent gauge — said every run, like a stale HYDAT.
+    listed. The donor panels no longer read the roster flag (owner 2026-10-22, "chosen live":
+    which members answer is decided from this feed at read time), so drift here costs only the
+    roster's own accuracy — said every run, like a stale HYDAT.
     """
     if listed is None:
         return None

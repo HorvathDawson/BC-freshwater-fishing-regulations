@@ -35,6 +35,9 @@ const RIVERS = [true, false] as const;   // same blue line, or a tributary
 /**
  * A water's own gauge comes first (owner 2026-10-22): `(lead ranks, usual weights)` per panel. Covers a leader below
  * the floor, one above it, a quiet rank 1 handing over to rank 2, a lone own gauge, no leader, and nothing reporting.
+ * And the panel as a RANKED RESERVE chosen live (owner 2026-10-22, "chosen live"): eight members, the first two own
+ * gauges and some others silent (weight 0) — rank 3 leads and the reporting rest re-normalise; and a reserve with no
+ * own gauge reporting.
  */
 const LEADS: [number[], number[]][] = [
   [[1, 0, 0], [1, 1, 1]],
@@ -47,6 +50,8 @@ const LEADS: [number[], number[]][] = [
   [[0, 0, 0], [0.4, 0.3, 0.2]],
   [[1, 0], [0, 0.4]],
   [[0, 0], [0, 0]],
+  [[1, 2, 3, 0, 0, 0, 0, 0], [0, 0, 0.5, 0.9, 0, 0.3, 0.2, 0]],
+  [[1, 0, 0, 0, 2, 0, 0, 0], [0, 0.1, 0, 0.4, 0, 0, 0.05, 0.3]],
 ];
 
 /** The same cases, evaluated by the pipeline's own code. */
@@ -111,7 +116,7 @@ describe.skipIf(!has)("one formula, two languages", () => {
     expect(py.weights.length)
       .toBe(RATIOS.length * ROLES.length * YEARS.length * RIVERS.length);
     expect(new Set(py.weights).size).toBeGreaterThan(5);
-    expect(py.leaders).toEqual([0, 0, 0, 1, 2, 0, 0, null, null, null]);
+    expect(py.leaders).toEqual([0, 0, 0, 1, 2, 0, 0, null, null, null, 2, null]);
     expect(py.shares.length).toBe(LEADS.length);
   });
 });

@@ -40,9 +40,10 @@ describe("forecast horizons", () => {
   });
 
   it("keeps the gauges' own reasons now: no-forecast is only ever about a day ahead", () => {
-    // A panel with nobody reporting today is not "no forecast".
+    // A panel with nobody reporting today is not "no forecast" — and not "no-station" either: the gauge is there and
+    // silent, so it is "no-record" (owner 2026-10-22, "chosen live"; data/src/livePanel.test.ts).
     expect(answerFrom(PANEL, idx(null), "discharge", 0).answer)
-      .toEqual({ ok: false, why: "no-station" });
+      .toEqual({ ok: false, why: "no-record" });
   });
 
   it("reads today at horizon 0", () => {

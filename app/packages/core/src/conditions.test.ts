@@ -62,8 +62,8 @@ describe("the horizons", () => {
 describe("donorReason: why there is no estimate, per reason", () => {
   const WHY: Record<NoEstimate, string> = {
     "no-station": "No gauge on this water is close enough in size to speak for it.",
-    "no-record": "The gauges here are reporting, but none has enough history to rank today "
-               + "against.",
+    "no-record": "None of the gauges that speak for this spot has a reading today that can be "
+               + "ranked against its record.",
     "regulated": "The only gauges within reach are on regulated water, where a reading "
                + "describes a release schedule rather than rainfall.",
     "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "

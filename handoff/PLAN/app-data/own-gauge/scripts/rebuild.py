@@ -58,7 +58,9 @@ def main(out):
     if os.environ.get("OWN_LEADS_PER_QUANTITY"):         # experiments only: the shipped value is in panel.py
         bp.OWN_LEADS_PER_QUANTITY = int(os.environ["OWN_LEADS_PER_QUANTITY"])
     published = {s["station"]: s["area_km2"] for s in stations if s.get("area_km2")}
-    panels = bp.build(graph, model, donors, water_of=water, live=live, measures=measures, published=published)
+    # `live` is no longer a build input (owner 2026-10-22, "chosen live"); kept above only for the report's history
+    del live
+    panels = bp.build(graph, model, donors, water_of=water, measures=measures, published=published)
     got = {}
     for sec, (pid, area) in panels.by_section.items():
         ms = tuple((m.station, m.role, round(m.area_km2, 3), m.years, int(m.regulated), int(m.same_river), m.lead)

@@ -98,8 +98,10 @@ export type ChartSpan = keyof typeof CONDITIONS_WORDS.span;
 
 const WHY: Record<NoEstimate, string> = {
   "no-station": "No gauge on this water is close enough in size to speak for it.",
-  "no-record": "The gauges here are reporting, but none has enough history to rank today "
-             + "against.",
+  // Every gauge in the panel quiet in the asked quantity, or reporting with no record to rank against (owner
+  // 2026-10-22, "chosen live": the panel holds every station that could speak here; the feed says which do today).
+  "no-record": "None of the gauges that speak for this spot has a reading today that can be "
+             + "ranked against its record.",
   "regulated": "The only gauges within reach are on regulated water, where a reading "
              + "describes a release schedule rather than rainfall.",
   "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "

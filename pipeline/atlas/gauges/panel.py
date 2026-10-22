@@ -143,9 +143,26 @@ MIN_RECORD_YEARS = 3
 #: percentile, and each one individually passing a gate says nothing about the sum.
 MIN_TOTAL_WEIGHT = 0.05
 
-#: How many donors a panel keeps. Past a few the extra ones are redundant with each other
-#: rather than independent, and this estimator does not yet model that redundancy.
-MAX_MEMBERS = 4
+#: The quantities a donor is ranked in, as `gauge_stats.parameter` names them and the app's Flow / Level views ask.
+QUANTITIES = ("discharge", "level")
+
+#: How many donors a panel keeps PER QUANTITY, best weight first — of every station with a record in that quantity,
+#: live or not.
+#:
+#: OWNER 2026-10-22, "estimates use every gauge that could inform a section, chosen live": WHICH of them answers is
+#: decided at READ time from the feed (the app re-weights the members reporting the asked quantity), so a station
+#: joining or leaving ECCC's real-time list changes the answer on the next feed, with no rebuild. The panel used to be
+#: the best 4 OVERALL — historic and live, flow and level mixed — so where those 4 were silent in the asked quantity
+#: the section said nothing while a reporting gauge stood fifth. The panel is now a ranked reserve, deep enough per
+#: quantity that losing a few members still leaves an answer.
+#:
+#: EIGHT, MEASURED (handoff/PLAN/app-data/live-panels/scripts, live graph, feed 2026-10-21T18:00Z, against the shipped
+#: panels): 4 / 6 / 8 / 12 per quantity give 12,417 / 14,194 / 15,050 / 16,990 member rows (10,589 shipped) and a
+#: paint file of +3.9 / +6.9 / +8.2 / +11.2 KB gzip against a 66 KB margin under its 1 MB gate. Flow gains an answer
+#: on 69 / 75 / 75 / 75 sections. Past 6 nothing more answers TODAY — 168k of 247k sections have a single candidate
+#: at all, so the walk, not this cap, bounds most panels — but where many gauges are in reach (the lower Fraser, the
+#: Liard) the deeper reserve is what still answers when several go quiet, for 1.4 KB more than 6.
+MEMBERS_PER_QUANTITY = 8
 
 #: How close two catchments must be before a REGULATED station may speak.
 #:
@@ -317,9 +334,10 @@ OWN_FAR_MIN_KM = 10.0
 #: "much smaller" bound again; 95% of real-time gauges sit within 0.62-3.66x.
 OWN_AREA_TRUST = 10.0
 
-#: How many own gauges per quantity a section keeps as lead candidates, nearest first. They ride on top of
-#: `MAX_MEMBERS` (`panel_for`), so this bounds how big a panel can grow; the app leads with the best-ranked one that
-#: is reporting, so a quiet first choice still has a few behind it.
+#: How many own gauges per quantity a section keeps as lead candidates, nearest first — live or not (owner
+#: 2026-10-22, "chosen live"): the app leads with the best-ranked one REPORTING the quantity asked for, so a quiet
+#: first choice hands over to the next. They ride on top of `MEMBERS_PER_QUANTITY` (`panel_for`), so this bounds how
+#: big a panel can grow.
 OWN_LEADS_PER_QUANTITY = 4
 
 #: Hack's law, L = c * A^h — a river's mainstem length from its catchment. Hack (1957) gives 1.4 * A^0.6 in miles and
@@ -462,7 +480,8 @@ def _norm_cdf(z: float) -> float:
 
 def panel_for(candidates: list[tuple],
               area_target: float | None,
-              keep: list[str] | None = None) -> list[Donor]:
+              keep: list[str] | None = None,
+              measures: dict[str, set[str]] | None = None) -> list[Donor]:
     """Gates, weights and a cap, over
     `(station, role, area, years, regulated, lake[, same_river])`.
 
@@ -472,6 +491,12 @@ def panel_for(candidates: list[tuple],
 
     Sorted by weight so the cap keeps the best, and so the screen can list them in the order
     they actually mattered.
+
+    THE CAP IS PER QUANTITY (`MEMBERS_PER_QUANTITY`): `measures` is each station's quantities with a record
+    (`gauge_stats` parameters), and each quantity keeps its own best few among the stations that have one. The app
+    answers Flow from discharge and Level from level, never mixed, so a seat held by a level-only gauge is a seat Flow
+    cannot use. A station measuring both sits in both lists and in the panel once. A station with a record in neither
+    can answer nothing and is not kept. None (synthetic callers): every station counts in both.
 
     `keep` names the own gauges that may lead this section: they pass the same gates, and ride ON TOP of the cap
     rather than inside it. A three-year own gauge weighs 3/20 of a long-lived neighbour and would otherwise lose its
@@ -489,8 +514,9 @@ def panel_for(candidates: list[tuple],
         sh = share_of(area_target, area_donor)
         out.append(Donor(station, role, sh, weight_of(sh, role, years, same_river)))
     out.sort(key=lambda d: -d.weight)
-    capped = out[:MAX_MEMBERS]
-    if keep:
-        wanted = set(keep)
-        capped += [d for d in out[MAX_MEMBERS:] if d.station in wanted]
-    return capped
+    chosen: set[int] = set()
+    for q in QUANTITIES:
+        chosen.update([i for i, d in enumerate(out)
+                       if measures is None or q in measures.get(d.station, ())][:MEMBERS_PER_QUANTITY])
+    wanted = set(keep or ())
+    return [d for i, d in enumerate(out) if i in chosen or d.station in wanted]
