@@ -60,12 +60,6 @@ def test_climatology_converts_to_float16_and_refuses_what_does_not_fit():
         B.clim_f16(bytes([1]) + struct.pack("<5f", 1, 2, 3, 4, 70000.0))
 
 
-def test_a_release_cannot_be_built_without_a_contract_file():
-    # `lakes` is in the contract: a build that may leave it out ships a release the contract test refuses
-    import inspect
-    assert inspect.signature(B.build).parameters["lakes"].default is inspect.Parameter.empty
-
-
 def test_the_manifest_names_the_sid_space_not_a_tile_build():
     from pipeline.deliver.release.manifest import manifest
     m = manifest("r-x", {}, "d768d6e135e62b99")

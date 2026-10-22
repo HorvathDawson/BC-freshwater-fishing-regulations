@@ -42,8 +42,8 @@ sections carry a fact (3,523 before the review fix); 15,417 B raw.
 
 ## Size
 
-After the review fix, against the current live bundle / store / status index / export (the release tests' inputs,
-`lakes` now required by `release.build`): scratch `data/generated/scratch_lakes/release2/r-89afadd26893` totals
+After the review fix, against the current live bundle / store / status index / export (the release tests' inputs;
+their fixture now passes `lake_facts.bin`): scratch `data/generated/scratch_lakes/release2/r-89afadd26893` totals
 **13,677,305 B gz** with `lakes` = **8,962 B gz** (gate 14,000,000; 322,695 left). Before the fix (figures below, kept
 for the record) it was 8,967 B gz.
 
