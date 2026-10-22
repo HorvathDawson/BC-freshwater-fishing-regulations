@@ -196,7 +196,12 @@ def test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does(rel, tmp_p
     as the Vedder (356363467, whose line ends at 12723 where the Chilliwack begins) — the Chilliwack's mouth part (1,
     Vedder Crossing Bridge -> Tamihi) into the Vedder's part 0. Nothing else is linked to the Vedder: its sloughs flow
     into it through no section of their own; a tributary joining mid-river (Slesse Creek into the Chilliwack, the North
-    Thompson into the Thompson) is not the river going on."""
+    Thompson into the Thompson) is not the river going on.
+
+    REVIEW 2026-10-21: and no confluence or lake outlet is either — the first cut (read from the gauge-shed-only
+    `section_down`) linked Oliver Creek to the Cowichan (Cowichan Lake's outlet is the Cowichan's top), the Sproat to the
+    Somass (the Stamp joins 64 m away), the South Thompson to the Thompson (the North Thompson 145 m away), Chase Creek to
+    the South Thompson (Little Shuswap Lake), the Puntledge to the Courtenay (the Tsolum): 89 of its 92 rows."""
     d, _, bundle, _, _ = rel
     w, core = _open(d, "water", tmp_path), _open(d, "core", tmp_path)
     ordof = dict(core.execute("SELECT item_id, ord FROM item"))
@@ -209,12 +214,19 @@ def test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does(rel, tmp_p
                                      (ved,))}
     assert preds == {"Chilliwack River", "Stewart Slough", "Street Creek", "McGillivray Slough", "Lewis Slough"}
     linked = {r[0] for r in rows} | {r[2] for r in rows}
-    for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek"):
+    for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek",
+                 "Oliver Creek", "Sproat River", "Stamp River", "South Thompson River", "Chase Creek", "Puntledge River",
+                 "Tsolum River", "Fairmont Creek", "Poquette Creek", "Swift River", "Atnarko River"):
         assert named(trib) and not named(trib) & linked, trib
     # both ends keyed: a water continues as at most one and is continued by at most one; every part named is real
     assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
     parts = set(w.execute("SELECT item_ord, part_ix FROM part"))
     assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
+    # the name changes the rule finds besides (the list and its review: handoff/PLAN/app-data/p15/continuations.md)
+    name = dict(core.execute("SELECT ord, name FROM item"))
+    pairs = {(name[a], name[n]) for a, _, n, _ in rows}
+    assert {("Hatzis Slough", "Lower Hatzic Slough"), ("Chilqua Creek", "Chilqua Slough"),
+            ("Page Creek", "Matsqui Slough")} <= pairs
     print("water_continue rows:", len(rows))
 
 

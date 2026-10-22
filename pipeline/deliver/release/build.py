@@ -9,7 +9,7 @@ writes paint, derives three per-water flags for search, converts the climatology
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_geo, part_mark, water_exit,
                  water_continue (continuation.py: which stream goes on as
-                 another, from the atlas's section ids)
+                 another, from the atlas's section ids + graph)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
@@ -34,7 +34,7 @@ import sqlite3
 import struct
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import continuation as CONT
@@ -200,8 +200,8 @@ def gate_problems(release_dir: Path) -> List[str]:
     return out
 
 
-def atlas_ids(bmeta: Dict[str, str], atlas: Optional[Path] = None) -> List[str]:
-    """The section ids of the atlas the bundle was built on (`section_handles.txt`; `ids[h-1]` names handle `h`), from
+def atlas_ids(bmeta: Dict[str, str], atlas: Optional[Path] = None) -> Tuple[Path, List[str]]:
+    """The atlas the bundle was built on and its section ids (`section_handles.txt`; `ids[h-1]` names handle `h`), from
     `atlas` or the bundle's own `meta.build` — refused unless its digest is the bundle's `section_handles`."""
     from pipeline.common import section_handles as SHD
     d = Path(atlas or bmeta.get("build") or "")
@@ -210,7 +210,24 @@ def atlas_ids(bmeta: Dict[str, str], atlas: Optional[Path] = None) -> List[str]:
     if SHD.digest_for(d) != bmeta.get("section_handles"):
         raise ReleaseError(f"release: {d / SHD.FILENAME} is not the atlas the bundle was built on "
                            f"({SHD.digest_for(d)} != {bmeta.get('section_handles')})")
-    return list(SHD.read(d)[0])
+    return d, list(SHD.read(d)[0])
+
+
+def continues_rows(b: sqlite3.Connection, bmeta: Dict[str, str], atlas: Optional[Path] = None) -> List[tuple]:
+    """`water_continue` (continuation.py) from the bundle and its atlas: the section ids and the GRAPH (`graph.pkl`,
+    every inflow — the bundle's `section_down` holds gauge sheds only). The graph is loaded for this and dropped."""
+    import gc
+    import pickle
+    d, ids = atlas_ids(bmeta, atlas)
+    if not (d / "graph.pkl").exists():
+        raise ReleaseError(f"release: no graph.pkl in {d} (the bundle's atlas); water_continue needs it")
+    with (d / "graph.pkl").open("rb") as fh:
+        graph = pickle.load(fh)
+    try:
+        return CONT.rows(b, ids, graph)
+    finally:
+        del graph
+        gc.collect()
 
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
@@ -219,7 +236,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
     are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
     as the file `lakes`; None (the default, and `deliver all`) ships none. `atlas`: the atlas build the bundle was made
-    from (default its `meta.build`), read for its section ids only (`water_continue`)."""
+    from (default its `meta.build`), read for its section ids and graph only (`water_continue`)."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -235,7 +252,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         raise ReleaseError("release: the regs store holds other answers than the card gate proved")
     base = {"section_handles": bmeta["section_handles"], "reach_digest": bmeta["reach_digest"]}
     regs = {**base, "rule_ids_sha256": smeta["rule_ids_sha256"]}
-    continues = CONT.rows(b, atlas_ids(bmeta, atlas))
+    continues = continues_rows(b, bmeta, atlas)
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
