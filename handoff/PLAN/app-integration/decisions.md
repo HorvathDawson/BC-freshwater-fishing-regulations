@@ -494,3 +494,18 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   4. THE APP PICKS IT UP LIKE A RELEASE: it already re-reads the feed while in service, so a new envelope reaches
      readers with no app change. The More "HYDAT" line reads the notice ("Newer release out · update pending") instead
      of guessing by age. No sync dot: a reader cannot fix it.
+
+## OWNER 2026-10-22 (late) — back must leave a water, not replay every move inside it
+- Owner: moving around sections and then hitting back takes many presses, "undoing" each move, before you reach the
+  main view (Map · Conditions · Spots · More). Getting from a water's Regulations / Conditions / map page back to the
+  main view is "extremely hard".
+- Claude's rule (owner delegated the details): BACK STEPS OUT ONE LAYER, it does not undo moves.
+  - Moving WITHIN one water (another section of it, its Regulations / Conditions / map tab, a sheet's own tabs)
+    REPLACES the current history entry; it never adds one. Back from anywhere in a water goes to where the water was
+    opened from (the main tab, a search, a spot).
+  - Opening a DIFFERENT water from inside a water (a tributary, a receiving river) is a new layer: back returns to the
+    first water once, then out.
+  - Every water screen has a one-tap way out to the main view (a close control in its header), so even a deep chain
+    is never more than one tap from the main tabs.
+  - Same on the web (browser back), the in-app back control, and Android's system back (T50). The back-layers check
+    holds this as a rule.
