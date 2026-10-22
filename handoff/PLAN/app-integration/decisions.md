@@ -320,3 +320,9 @@ sheet has slid away (and fades in in place on open).
   permission first; on native via the location module when present) and PICK ON THE MAP (go to the map with a short
   "Tap where your spot is" banner + Cancel; a tap drops the pin and opens the existing drop sheet → the one capture flow).
   "Add a spot here" (map centre) is removed. Long-press on the map stays as the shortcut.
+
+## CLAUDE 2026-10-22 (owner delegated) — the selected tab cue
+Icons merged (Lucide v0.460.0, ISC; credited under More › Data sources; app/LICENSES/lucide.txt). The selected bottom-bar
+tab keeps the ink underscore as its second cue besides colour, and gets no filled pill: the underscore already works
+without colour, it is the app's one "selected" style (the water view strip and the regs tabs use it), and a pill would add
+a second selection style and a new fill to gate. Ask to change it if it reads weakly on the phone.
