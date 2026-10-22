@@ -93,3 +93,13 @@ had no water map of those waters); the 22 golden states stay keyed in exclusions
 - **Prototype bug** (T14): a closed-all-year chain line is rewritten to "." (chw0_1010 and the other closed-all-year states); ported for parity, flagged.
 - **Prototype bug** `pinUpdate` throws on 25/134 states (a ledger row without `group`); the app's `pinChain` skips such a
   row. Owner/prototype agent: fix in the prototype so the goldens cover those states (re-run `sync.mjs` after).
+
+## OWNER 2026-10-21 — lake Stocked / Depth modes: prepared, not fed yet
+"we dont have the stocking and bathy map data in a feed yet. but we just want it prepared for it when we do have the feed.
+we even might want the toggles grey/disabled for now."
+- Keep the plumbing: the release's optional per-lake values slot (contract + reader), the colouring engine's stocked and
+  survey channels, and the tests that a release carrying values recolours lakes with no tile change.
+- Do NOT fetch or ship stocking or survey data now: no stocking download in the deliver chain; the release slot ships
+  empty (or absent).
+- The Stocked and Depth lake-mode toggles are DISABLED (greyed, with a short "no data yet" note) while the release carries
+  no lake values; they enable themselves when a release does — no app change needed when the feed arrives.

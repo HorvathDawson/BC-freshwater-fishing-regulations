@@ -96,6 +96,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- OWNER 2026-10-21: lake Stocked/Depth = PREPARED, NOT FED (decisions.md). When follow-ups wgw0lg80t finishes, run a
+  correction pass on lake-values (worktree-wf_3d498e10-baf-2 + wip/lake-values): keep slot/reader/engine channels,
+  drop the stocking fetch + shipping from deliver, toggles disabled while the release has no lake values. Then merge.
 - MERGED (after restart): WAVE B COMPLETE — T36 part 2 (src:/srcs:/licsrc:/sp:/other: sheets), T37 SheetHost (moved
   into RegsScreen: one sheet over the whole page, Parts button opens the parts sheet), review fix (parts sheet from
   stored day status; drag from content at top). Sheets parity 134/134, 7181 sheets incl. gl/hatch linked (pdf_pages)
