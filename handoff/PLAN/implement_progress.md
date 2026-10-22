@@ -96,6 +96,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- RUNNING wf_199d0858-41a (task wxllnpqcb; script layers-b-fixes-conditions-sidechannels-wf_199d0858-41a.js): lanes
+  layers-b (B with owner changes: one water colouring for all features, sources/credits/palette to the hamburger,
+  coming soon greyed, always-on incl Indigenous land), small-fixes (crossing label, reversed continuations rule,
+  keyless Esri recorded, netinfo), sidechannel-conditions (INVESTIGATION: Widgeon Slough, Klesilkwa; report only).
+  After small-fixes merges: release-only rebuild via heavy.sh (water_continue). Owner answers in decisions.md c2482b7d.
 - MERGED: Esri online imagery 388e5e08 (World_Imagery, maxzoom 19, overzoom; offline -> drawn map + reason, comes back by
   itself; credit switches). Strict 6996, smoke pass. MUST NOT SHIP without an ArcGIS Location Platform key
   (EXPO_PUBLIC_ARCGIS_API_KEY): the token-free URL is dev-only. OWNER QUESTIONS: create the key (tile vs session
