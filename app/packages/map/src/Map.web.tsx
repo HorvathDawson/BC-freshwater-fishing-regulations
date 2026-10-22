@@ -222,8 +222,11 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, marker, style,
-                      gauges, onVisible, pins, bare, fit, basemap, trace,
+                      gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, marks, onPressMark }: MapProps) {
+  // read by the map's one `error` handler, which is bound once at construction
+  const imageryError = useRef(onImageryError);
+  imageryError.current = onImageryError;
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   /**
@@ -325,8 +328,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                    "bottom-right");
     // A map that fails silently is the worst outcome this app can produce: an empty map
     // looks exactly like water with no regulations on it. Surface every renderer error.
-    m.on("error", (e) => onError?.(
-      e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error")));
+    //
+    // EXCEPT THE SATELLITE IMAGERY'S, when the caller handles it (`onImageryError`): imagery is online-only, so an
+    // offline device fails every imagery tile, and the caller answers that by drawing the map's own ground. The status
+    // travels (GL JS's AJAXError carries it; a network failure has none).
+    m.on("error", (e) => {
+      const ev = e as { sourceId?: string; error?: Error & { status?: number } };
+      if (ev.sourceId === "imagery" && imageryError.current) {
+        imageryError.current(typeof ev.error?.status === "number" ? ev.error.status : undefined);
+        return;
+      }
+      onError?.(e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error"));
+    });
     /**
      * THE GAUGE LABEL'S PILL, as pixels.
      *

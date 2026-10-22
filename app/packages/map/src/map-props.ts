@@ -245,6 +245,16 @@ export interface MapProps {
    * switch for it, so a screen cannot turn it on while the drawn ground stays underneath.
    */
   basemap?: "map" | "satellite";
+  /**
+   * AN IMAGERY TILE FAILED, with its HTTP status (undefined: no response — the network). Satellite is online-only
+   * (owner 2026-10-21): the caller decides whether that is an outage (`isImageryOutage`; GL JS never reports a 404)
+   * and hands the map the drawn ground instead. Routed here INSTEAD of `onError` when given, because an offline
+   * device fails every imagery tile and that is handled, not a renderer fault.
+   *
+   * THE WEB MAP ONLY reports it: MapLibre Native's binding has no per-tile error event, so on a phone the same answer
+   * comes from `useImageryReach`'s probe. Accepted on both, so the two maps take the same props.
+   */
+  onImageryError?: (status: number | undefined) => void;
   /** Gauge points as GeoJSON, drawn as a dot plus its reading. Replaced per feed tick. */
   gauges?: string;
   /**

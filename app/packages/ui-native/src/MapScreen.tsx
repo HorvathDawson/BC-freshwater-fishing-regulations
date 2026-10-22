@@ -20,7 +20,7 @@ import type { Palette } from "./theme";
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, onSpots, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, status, standing, lakes, gauges, onVisible, onError,
-                            fit, basemap, onBack, water, marks, onPressMark }: {
+                            fit, basemap, onImageryError, onBack, water, marks, onPressMark }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -69,6 +69,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   fit?: MapProps["fit"];
   /** Drawn ground or satellite — the Layers sheet's Basemap choice. */
   basemap?: MapProps["basemap"];
+  /** An imagery tile failed (satellite is online-only) — see MapProps.onImageryError. */
+  onImageryError?: MapProps["onImageryError"];
   /** Present while the map shows a water search's eye sent it to: a pill back to search. */
   onBack?: () => void;
 }) {
@@ -79,7 +81,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
-           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} />
+           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left

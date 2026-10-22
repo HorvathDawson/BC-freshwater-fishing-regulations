@@ -8,7 +8,7 @@
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
 import { useMemo, useRef } from "react";
-import type { SectionKey, StatusIndex } from "@app/core";
+import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type SectionKey, type StatusIndex } from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
 import { statusData } from "./hooks";
 import type { GaugeQuantity } from "./gaugePoints";
@@ -48,6 +48,13 @@ export interface MapModeInput {
   lake: { mode: string; group?: string } | undefined;
   /** The Layers sheet's group toggles. */
   groups: Readonly<Record<string, boolean>>;
+  /** The Layers sheet's ground: the READER'S CHOICE, kept whatever the connection does. */
+  basemap: Basemap;
+  /**
+   * Can the satellite imagery be reached (`useImageryReach`)? Satellite is ONLINE-ONLY (owner 2026-10-21): while it
+   * cannot be, the map draws its own ground and the sheet says why. REQUIRED, so no map is handed the choice raw.
+   */
+  imageryUp: boolean;
 }
 
 export interface MapModesVM {
@@ -75,6 +82,10 @@ export interface MapModesVM {
   asksVisible: boolean;
   modes: MapModes;
   activeGroups: Record<string, boolean>;
+  /** The ground ACTUALLY drawn — what every map is handed. Not the choice: satellite offline draws the map. */
+  basemap: Basemap;
+  /** Why the ground drawn is not the one chosen (the Layers sheet's line), else null. */
+  basemapNote: string | null;
 }
 
 export function mapModes(i: MapModeInput): MapModesVM {
@@ -119,6 +130,9 @@ export function mapModes(i: MapModeInput): MapModesVM {
     horizonsShown: onConditions && !temperature,
     asksVisible: !i.perTile || onConditions,
     modes, activeGroups,
+    // THE GROUND IS NOT A COLOURING: it moves no mode and no group (one colouring pathway), only what is under them
+    basemap: basemapInUse(i.basemap, i.imageryUp),
+    basemapNote: i.basemap === "satellite" && !i.imageryUp ? SATELLITE_OFFLINE : null,
   };
 }
 
@@ -129,12 +143,13 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake, groups } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake, groups, basemap, imageryUp } = i;
   const lakeMode = lake?.mode, lakeGroup = lake?.group;
   const vm = useMemo(
     () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
-                     lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lakeMode, lakeGroup, groups]);
+                     lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups,
+                     basemap, imageryUp }),
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lakeMode, lakeGroup, groups, basemap, imageryUp]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);

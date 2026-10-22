@@ -63,7 +63,13 @@ describe("each source stops where its archive stops", () => {
         { sources: Record<string, Src> }).sources.imagery.maxzoom;
       const want = { atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, imagery };
       expect({ web: tiled(web), phone: tiled(phone) }).toEqual({ web: want, phone: want });
-      for (const z of Object.values(want)) expect(z).toBeLessThan(CAMERA_MAX_ZOOM);
+      // OUR ARCHIVES stop short of the camera. The satellite imagery is Esri's live service (owner 2026-10-21), not an
+      // archive of ours: its maxzoom is Esri's (z19; its tiles are 256 px, so the z18 camera asks for z19 tiles —
+      // measured in the web check, handoff/PLAN/app-data/satellite/esri/results.json), and where it has none the source's `blankTile=false` answers 404 and MapLibre overzooms the parent
+      // (tools/imagery.test.ts pins the URL).
+      expect({ atlas: want.atlas < CAMERA_MAX_ZOOM, basemap: want.basemap < CAMERA_MAX_ZOOM,
+               imagery: imagery >= CAMERA_MAX_ZOOM })
+        .toEqual({ atlas: true, basemap: true, imagery: true });
     });
 
   it("a fit stops at the atlas's deepest zoom; the camera goes four past it", () => {

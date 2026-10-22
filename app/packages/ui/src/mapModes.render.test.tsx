@@ -10,7 +10,7 @@ import { useMapModes, type MapModeInput } from "./mapModes";
 const GROUPS = { water: true };
 const base: MapModeInput = {
   tab: "conditions", flowParam: "discharge", horizon: 0, zoomedOut: false, paired: true, statusOk: true,
-  perTile: true, lake: undefined, groups: GROUPS,
+  perTile: true, lake: undefined, groups: GROUPS, basemap: "satellite", imageryUp: true,
 };
 
 describe("useMapModes", () => {
@@ -42,5 +42,17 @@ describe("useMapModes", () => {
     expect(r.result.current.activeGroups).toBe(first);
     r.rerender({ ...base, groups: { water: false } });
     expect(r.result.current.activeGroups).toEqual({ water: false });
+  });
+
+  it("losing the imagery moves only the ground: the same `modes` and `activeGroups`, the drawn map, the reason", () => {
+    const r = renderHook((i: MapModeInput) => useMapModes(i), { initialProps: base });
+    const first = r.result.current;
+    r.rerender({ ...base, imageryUp: false });
+    const next = r.result.current;
+    expect({ modes: next.modes === first.modes, groups: next.activeGroups === first.activeGroups,
+             before: first.basemap, after: next.basemap }).toEqual({ modes: true, groups: true, before: "satellite",
+                                                                    after: "map" });
+    r.rerender({ ...base, imageryUp: true });
+    expect(r.result.current.basemap).toBe("satellite");
   });
 });

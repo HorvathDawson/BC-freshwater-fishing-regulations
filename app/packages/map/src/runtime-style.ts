@@ -51,6 +51,26 @@ export interface TileEndpoints {
    * handed over on each refresh rather than diffed.
    */
   gauges?: string;
+  /**
+   * The satellite imagery's tile template (`imageryTiles`), when the build names one: an ArcGIS Location Platform key
+   * makes it Esri's keyed endpoint. Absent, the style's own (`layers.source.json`, source `imagery`).
+   */
+  imagery?: string;
+}
+
+/** Esri's keyed World Imagery tiles (ArcGIS Location Platform), the same MapServer tile scheme under a token. */
+const ESRI_KEYED = "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+
+/**
+ * THE SATELLITE TILE TEMPLATE for a build: the style's own (Esri's ArcGIS Online MapServer, as the original app used)
+ * with no key, or the Location Platform endpoint with the build's key (`EXPO_PUBLIC_ARCGIS_API_KEY`, set by the owner
+ * in the build environment and restricted by referrer/app in the ArcGIS dashboard — never written into the code).
+ */
+export function imageryTiles(key: string | null): string {
+  const own = (MAP_STYLE.sources as unknown as Record<string, { tiles?: string[] }>).imagery?.tiles?.[0] ?? "";
+  if (!key) return own;
+  const query = own.includes("?") ? own.slice(own.indexOf("?")) : "";
+  return `${ESRI_KEYED}${query}${query ? "&" : "?"}token=${encodeURIComponent(key)}`;
 }
 
 const PM_ASSETS = "https://protomaps.github.io/basemaps-assets";
@@ -189,18 +209,22 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1]) {
 }
 
 /**
- * THE EXTERNAL RASTER SOURCES the generated style declares — the satellite imagery.
+ * THE EXTERNAL RASTER SOURCES the generated style declares — the satellite imagery (Esri World Imagery, online-only).
  *
  * Copied from `style.json` rather than restated here, so the URL, tile size and the
- * attribution EOX requires live in ONE place (`layers.source.json`), where the builder
+ * attribution Esri requires live in ONE place (`layers.source.json`), where the builder
  * refuses an external source without a credit. Our own authoring keys (`external`,
  * `$comment`) are stripped: MapLibre's validator rejects properties it does not know.
+ * `imagery` (a keyed template, `imageryTiles`) replaces the imagery source's tiles and nothing else.
  */
-function externalRasters(): Record<string, Record<string, unknown>> {
+function externalRasters(imagery?: string): Record<string, Record<string, unknown>> {
   return Object.fromEntries(Object.entries(MAP_STYLE.sources)
     .filter(([, v]) => (v as { type?: string }).type === "raster")
-    .map(([id, v]) => [id, Object.fromEntries(Object.entries(v as Record<string, unknown>)
-      .filter(([k]) => k !== "external" && !k.startsWith("$")))]));
+    .map(([id, v]) => [id, {
+      ...Object.fromEntries(Object.entries(v as Record<string, unknown>)
+        .filter(([k]) => k !== "external" && !k.startsWith("$"))),
+      ...(id === "imagery" && imagery ? { tiles: [imagery] } : {}),
+    }]));
 }
 
 /** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
@@ -227,7 +251,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // `loadTileJson`), and `tools/overzoom.test.ts` holds both numbers to the archives the pipeline writes.
       basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, maxzoom: BASEMAP_MAX_ZOOM, attribution:
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
-      ...externalRasters(),
+      ...externalRasters(at.imagery),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
       // itself, so it has to be parsed. See `geojsonData` below for why that distinction
       // cost us an error on every map mount.

@@ -10,13 +10,13 @@
     "imagery": {
       "type": "raster",
       "tiles": [
-        "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false"
       ],
       "tileSize": 256,
-      "maxzoom": 13,
+      "maxzoom": 19,
       "external": true,
-      "attribution": "<a href=\"https://cloudless.eox.at\">EOxCloudless 2016</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016) · CC BY 4.0",
-      "$comment": "SATELLITE IMAGERY — EOxCloudless (Sentinel-2 cloudless), the 2016 mosaic ONLY. EOX licenses the 2016 layer CC BY 4.0 and says to use its WMTS endpoints directly in an application (cloudless.eox.at/pricing, read 2026-09-29); every later year (2018–2025) is CC BY-NC-SA 4.0, which a commercial use of this app could not meet, so do not 'upgrade' the year without a licence. The attribution string is EOX's required form and must stay visible on the map, which is why it rides on the source (MapLibre's attribution control shows it while the layer is on). Tiles send Access-Control-Allow-Origin for the requesting origin, which WebGL needs to read the image. 10 m pixels: past z13 MapLibre overzooms, so the source stops there rather than asking for tiles that do not exist. Not a Google/Esri/Mapbox layer: those need an account key or forbid use outside their own SDKs."
+      "attribution": "Powered by <a href=\"https://www.esri.com\">Esri</a> · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community",
+      "$comment": "SATELLITE IMAGERY — Esri World Imagery, ONLINE-ONLY (owner 2026-10-21, handoff/PLAN/app-integration/decisions.md; research and terms: handoff/PLAN/app-data/satellite/README.md). The URL is Esri's own ArcGIS Online World_Imagery MapServer tile endpoint, as the original app used it (2026-03); a build with an ArcGIS Location Platform key swaps it whole at run time (`imageryTiles`, EXPO_PUBLIC_ARCGIS_API_KEY) — never a key in this file. `blankTile=false`: where Esri has no imagery at a zoom (rural BC stops at z17-18) it answers 404 instead of a grey 'Map data not yet available' tile, and the renderer overzooms the parent. maxzoom 19 is Esri's (urban BC goes deeper); its tiles are 256 px, so the z18 camera asks for z19 tiles, and rural holes 404 to the parent. Never stored or packaged: Esri's item terms say the layer is 'not intended to be used to export tiles for offline'. The attribution is Esri's required form ('Powered by Esri' + the service's copyrightText, read 2026-10-21) and rides on the source so MapLibre's control shows it exactly while the layer is drawn; @app/core IMAGERY_CREDIT holds the same words for the app's credit list (tools/imagery.test.ts). Tiles send Access-Control-Allow-Origin: *, which WebGL needs."
     }
   },
   "groups": [

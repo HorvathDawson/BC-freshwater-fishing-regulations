@@ -34,6 +34,7 @@ export * from "./boot";
 export * from "./regs";
 export * from "./waterMap";
 export * from "./mapRail";
+export * from "./imagery";
 
 export type FormFactor = "phone" | "desktop";
 

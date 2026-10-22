@@ -77,7 +77,7 @@ export const lakeChoices = (p: Palette): LayerChoice[] => [
 ];
 
 export function LayersSheet({ open, onClose, palette, state, onState, theme, onTheme,
-                             reaches, surveyed, stations, fetchedAt, attribution, ready }: {
+                             reaches, surveyed, stations, fetchedAt, attribution, ready, basemapNote = null }: {
   open: boolean; onClose: () => void; palette: Palette;
   state: LayersState; onState: (s: LayersState) => void;
   theme: ThemeName; onTheme: (t: ThemeName) => void;
@@ -90,6 +90,8 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
    * they enable themselves when a release does.
    */
   ready: LakeModesReady;
+  /** Why the ground drawn is not the Basemap chosen (satellite offline), else null — `MapModesVM.basemapNote`. */
+  basemapNote?: string | null;
 }) {
   const lakeOpts = lakeChoices(palette).map((c) =>
     ({ ...c, disabled: (c.k === "depth" || c.k === "stocked") && !ready[c.k] }));
@@ -147,6 +149,14 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
                             app is wearing. */
                          swatch: palette.imagery },
                      ]} />
+          {/* SATELLITE IS ONLINE-ONLY (owner 2026-10-21): the choice stays Satellite, the map draws its own ground,
+              and this says why until the imagery is back (`mapModes`' basemapNote) */}
+          {basemapNote && (
+            <Text testID="basemap-note"
+                  style={{ ...TYPE.small, fontSize: 11, lineHeight: 16.5, color: palette.faint, paddingTop: 8 }}>
+              {basemapNote}
+            </Text>
+          )}
         </Section>
 
         <Section palette={palette} title="Live data" note="every value has an age">

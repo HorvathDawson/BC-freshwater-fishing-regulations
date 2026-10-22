@@ -9,6 +9,8 @@
  * (P11), the bundle, tiles and feed below are the development set the app opens today. They must be one vintage: tiles,
  * bundle and feed join on section and station ids, and a mixed set colours nothing.
  */
+import { imageryTiles } from "@app/map";
+
 const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").replace(/\/$/, "");
 
 /**
@@ -31,6 +33,15 @@ export const MENU_INFO = {
   appBuild: process.env.EXPO_PUBLIC_APP_BUILD?.trim() || null,
   contact: process.env.EXPO_PUBLIC_CONTACT?.trim() || null,
 } as const;
+
+/**
+ * THE SATELLITE IMAGERY'S TILES (owner 2026-10-21: Esri World Imagery, online-only). `EXPO_PUBLIC_ARCGIS_API_KEY` is an
+ * ArcGIS Location Platform key the OWNER sets for a production build (restricted by referrer / app in the ArcGIS
+ * dashboard); with it the tiles come from Esri's keyed endpoint and count against that account's free tier. Unset, the
+ * template is Esri's own ArcGIS Online World_Imagery MapServer, as the original app used — see
+ * handoff/PLAN/app-data/satellite/README.md for why production should carry a key. Never a key in the code.
+ */
+export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
 
 export const ENDPOINTS = {
   base: BASE,

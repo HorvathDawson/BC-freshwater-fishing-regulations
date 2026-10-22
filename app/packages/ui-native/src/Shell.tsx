@@ -7,7 +7,7 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
+import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, withImageryCredit,
          type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
@@ -20,10 +20,12 @@ import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLe
 import { spotsMenu, useMapRail, type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
-         useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
+         useHorizon, useImageryReach, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, shownLayers, toggleableGroups,
-         type Camera, type TileEndpoints, coloursEachTile } from "@app/map";
+         type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
+import { connectivity } from "./connectivity";
+import { imageryProbe } from "./imageryProbe";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { MapDay } from "./MapDay";
@@ -292,8 +294,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
    */
+  /*
+   * SATELLITE IS ONLINE-ONLY (owner 2026-10-21): can Esri's imagery be reached — the device's word (web), a failed
+   * imagery tile (web map), and one probed tile (both; a phone's only signal). `mapModes` turns it and the reader's
+   * choice into the ground every map is handed (`mm.basemap`) and the Layers sheet's reason line; the choice is kept.
+   */
+  const probe = useMemo(() => imageryProbe(tiles.imagery ?? imageryTiles(null)), [tiles.imagery]);
+  const imagery = useImageryReach({ wanted: layers.basemap === "satellite", connectivity, probe });
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake: lakeChoice,
-                           groups });
+                           groups, basemap: layers.basemap, imageryUp: imagery.up });
+  // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
+  const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   const { onConditions, quantity, modes, activeGroups } = mm;
   /*
    * THE CONDITIONS COLOURING, per renderer (`useConditionsColour`): on a map that labels each tile, the release's
@@ -437,14 +448,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          onParameter={setFlowParam}
                          from={frame.at}
                          feed={feed}
-                         credits={attribution} horizon={horizon}
+                         credits={credits} horizon={horizon}
                          onHorizon={hz.pick} />
       : frame.view === "map"
         ? <WaterMap source={source} item={item} palette={palette}>
             {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
             <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
                           map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
-                                 basemap: layers.basemap, data: statusMapData, status: mapStatus,
+                                 basemap: mm.basemap, data: statusMapData, status: mapStatus,
                                  onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
                                  view: "plain", modes, groups: activeGroups,
                                  onError: (e) => console.error("map:", e.message) }}
@@ -470,7 +481,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                       onPick={(id) => go({ type: "show", item: id })}
                       memory={searchMemory} onMemory={setSearchMemory}
                       total={counts?.waters} tiles={tiles} theme={theme}
-                      basemap={layers.basemap} />
+                      basemap={mm.basemap} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme}
                      // the way back to search, while the map shows what search's eye sent it to
@@ -478,7 +489,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      camera={camera.current}
                      // the provisional pin a long press dropped, else the spot "Show" sent the map to
                      marker={rail.drop ?? rail.fly?.at ?? focus}
-                     basemap={layers.basemap}
+                     basemap={mm.basemap} onImageryError={imagery.tileFailed}
                      // THE CHOSEN WATER, whole, on the Map tab only — the Conditions view
                      // lights a gauge's route with the same feature-state and must not
                      // inherit a search.
@@ -692,7 +703,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    stations={facts.state === "ready"
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
-                   attribution={attribution} ready={lakeReady} />
+                   attribution={credits} basemapNote={mm.basemapNote} ready={lakeReady} />
       <SpotsSheet open={rail.spotsOpen && route.mode === "browse"} onClose={rail.closeSpots} palette={palette}
                   vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
                                          permission: rail.permission })}

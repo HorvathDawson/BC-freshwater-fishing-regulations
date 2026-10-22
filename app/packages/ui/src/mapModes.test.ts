@@ -4,7 +4,7 @@ import { mapModes, statusFeed, type MapModeInput } from "./mapModes";
 
 const base: MapModeInput = {
   tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, paired: true, statusOk: true, perTile: true,
-  lake: { mode: "plain" }, groups: { depth: false, admin: true },
+  lake: { mode: "plain" }, groups: { depth: false, admin: true }, basemap: "map", imageryUp: true,
 };
 const at = (over: Partial<MapModeInput>) => mapModes({ ...base, ...over });
 
@@ -16,7 +16,29 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       modes: { stream: "profile", lake: "profile", lake_flowing: "profile", wetland_flowing: "profile",
                gauges: "standing", basin: "plain" },
       activeGroups: { depth: false, admin: true },
+      basemap: "map", basemapNote: null,
     });
+  });
+
+  it("the ground drawn (owner 2026-10-21, satellite online-only): the choice while imagery is up; the drawn map and the reason while it is not", () => {
+    const ground = (basemap: "map" | "satellite", imageryUp: boolean) => {
+      const m = at({ basemap, imageryUp });
+      return { basemap: m.basemap, basemapNote: m.basemapNote };
+    };
+    expect([ground("satellite", true), ground("satellite", false), ground("map", true), ground("map", false)])
+      .toEqual([
+        { basemap: "satellite", basemapNote: null },
+        { basemap: "map", basemapNote:
+            "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself." },
+        { basemap: "map", basemapNote: null },
+        { basemap: "map", basemapNote: null },
+      ]);
+  });
+
+  it("the ground changes no colouring: the same modes and groups on satellite, offline or not (one colouring pathway)", () => {
+    const look = (m: ReturnType<typeof at>) => ({ modes: m.modes, activeGroups: m.activeGroups });
+    expect([look(at({ basemap: "satellite" })), look(at({ basemap: "satellite", imageryUp: false }))])
+      .toEqual([look(at({})), look(at({}))]);
   });
 
   it("a renderer that cannot colour each tile (the phone, until N2's follow-up) keeps the pushed 'status' mode", () => {
@@ -55,6 +77,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       modes: { stream: "standing", lake: "standing", lake_flowing: "standing", wetland_flowing: "standing",
                gauges: "standing", basin: "standing" },
       activeGroups: { depth: false, admin: true },
+      basemap: "map", basemapNote: null,
     });
   });
 
@@ -71,6 +94,7 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       modes: { stream: "plain", lake: "plain", lake_flowing: "plain", wetland_flowing: "plain",
                gauges: "temperature", basin: "plain" },
       activeGroups: { depth: false, admin: true },
+      basemap: "map", basemapNote: null,
     });
   });
 

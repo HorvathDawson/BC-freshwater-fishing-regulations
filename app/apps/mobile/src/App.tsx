@@ -36,7 +36,7 @@ import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 import { locate } from "./locate";
 
-import { DATA_SOURCE, ENDPOINTS, MENU_INFO } from "./config";
+import { DATA_SOURCE, ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -97,7 +97,7 @@ export default function App() {
   const dev = useDevBundle(!RELEASE);
 
   const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
-                             tiles: MapTiles; loader: ReleaseLoader | null } | null => {
+                             tiles: MapTiles & { imagery: string }; loader: ReleaseLoader | null } | null => {
     if (RELEASE) {
       if (boot.state !== "ready") return null;
       const b = boot.booted;
@@ -105,13 +105,16 @@ export default function App() {
       // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
       // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
       // through it (no regs store file of its own)
-      return { source: b.source, status: releaseStatus(b.loader), ...releaseMapInput(b, ENDPOINTS.tiles),
+      // the satellite imagery is Esri's, online, on both paths (never in a release): `IMAGERY_TILES`
+      const m = releaseMapInput(b, ENDPOINTS.tiles);
+      return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
                loader: b.loader };
     }
     if (!dev.bundle) return null;
     const source = makeBundleSource(dev.bundle, { feed });
     return { source, status: devStatus(source, ENDPOINTS.tiles.atlas),
-             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas }, tiles: ENDPOINTS.tiles,
+             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas },
+             tiles: { ...ENDPOINTS.tiles, imagery: IMAGERY_TILES },
              loader: null };      // the dev bundle holds no regulations
   }, [boot, dev.bundle, feed]);
 
@@ -197,10 +200,9 @@ export default function App() {
                  "the information on this website with caution and at their own risk.",
                  "Stocking: Province of British Columbia, Fisheries Inventory Data Queries",
                  "Weather from Open-Meteo.com (CC BY 4.0)",
-                 // The Satellite basemap. EOX's required form; the map's own attribution
-                 // control carries it too while the imagery is on screen.
-                 "Satellite imagery: EOxCloudless 2016 by EOX IT Services GmbH (Contains " +
-                 "modified Copernicus Sentinel data 2016), CC BY 4.0",
+                 // NO satellite line here: Esri's credit is added by the Shell exactly while its
+                 // imagery is drawn (`withImageryCredit`, @app/core IMAGERY_CREDIT), as the map's
+                 // own attribution control does from the style.
                ]} />
         </View>
       ) : (

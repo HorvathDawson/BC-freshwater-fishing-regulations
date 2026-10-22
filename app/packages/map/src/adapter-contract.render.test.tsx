@@ -373,6 +373,21 @@ describe("web only", () => {
     }
   });
 
+  it("SATELLITE ONLINE-ONLY: an imagery tile's failure goes to onImageryError with its status, not to onError; " +
+     "any other source's error still goes to onError", async () => {
+    const imagery: (number | undefined)[] = [];
+    const errors: string[] = [];
+    render(<WebMap {...base({ onImageryError: (s) => imagery.push(s), onError: (e) => errors.push(e.message) })} />);
+    await act(async () => { await Promise.resolve(); });
+    errors.length = 0;          // the fake map's own look-pass complaints are not this test's subject
+    act(() => {
+      web.map!.fire("error", { sourceId: "imagery", error: Object.assign(new Error("Failed to fetch"), {}) });
+      web.map!.fire("error", { sourceId: "imagery", error: Object.assign(new Error("Forbidden"), { status: 403 }) });
+      web.map!.fire("error", { sourceId: "atlas", error: new Error("atlas broke") });
+    });
+    expect({ imagery, errors }).toEqual({ imagery: [undefined, 403], errors: ["atlas broke"] });
+  });
+
   it("pushed data that arrives mid tile burst is applied (no `load` fires again on a zoom out)", async () => {
     const r = render(<WebMap {...base({ highlight: undefined, data: WEB_DATA })} />);
     await waitFor(() => expect(log.length).toBe(2));
@@ -440,7 +455,8 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     expect({ minZoom: o.minZoom, maxZoom: o.maxZoom, maxBounds: o.maxBounds,
              atlas: sources.atlas?.maxzoom, basemap: sources.basemap?.maxzoom, imagery: sources.imagery?.maxzoom })
       .toEqual({ minZoom: 4, maxZoom: 18, maxBounds: [[-147.1, 40.2], [-106.1, 68]],
-                 atlas: 14, basemap: 14, imagery: 13 });
+                 // Esri World Imagery's own z19 (owner 2026-10-21): the camera never outruns it; holes 404 to the parent
+                 atlas: 14, basemap: 14, imagery: 19 });
   });
   it("web: a fit goes no closer than the atlas's z14, though the camera may", async () => {
     render(<WebMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);

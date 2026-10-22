@@ -31,6 +31,7 @@ export * from "./temperature";
 export * from "./install";
 export * from "./pairing";
 export * from "./menu";
+export * from "./imagery";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

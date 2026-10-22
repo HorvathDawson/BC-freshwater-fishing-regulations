@@ -106,6 +106,11 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
       errors.push(new Error(`layer "${id}" is in the "profile" colour mode, which the native map cannot draw `
         + '(no per-tile colouring; give it "status" and pushed data — coloursEachTile)'));
   // the ground (`o.basemap`) is part of the look: `applyLook` set it, as it does on the web map
+  // ESRI'S CREDIT ONLY WHILE ITS IMAGERY IS DRAWN. The web's control lists only sources a visible layer uses; MapLibre
+  // Native's attribution is not documented to, and a credit for imagery that is not on screen (offline, or the drawn
+  // map chosen) is a claim about the map that is false. The phone's style is rebuilt on every basemap change anyway.
+  const imagery = s.sources.imagery;
+  if (imagery && o.basemap !== "satellite") delete imagery.attribution;
 
   const atlas = s.sources.atlas;
   if (atlas) delete atlas.promoteId;

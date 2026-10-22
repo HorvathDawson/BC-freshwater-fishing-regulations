@@ -44,7 +44,7 @@ const source = JSON.parse(
 /**
  * The layers drawn FROM THE ATLAS — the only ones the tile contract speaks for. The
  * satellite imagery is a third-party raster with no source-layer, no attributes and no
- * id; holding it to our tile contract would be asking EOX's JPEGs for a `section_id`.
+ * id; holding it to our tile contract would be asking Esri's JPEGs for a `section_id`.
  */
 source.layers = source.layers.filter((l) => (l as { source?: string }).source === "atlas");
 
