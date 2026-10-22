@@ -3,12 +3,15 @@
  * on either map. (The rail that once held a Spots button is Layers only now.) Decided here and drawn by
  * `@app/ui-native` `SpotsScreen` / `SpotDropSheet`, which compute nothing.
  *
- *   spotsMenu   the Spots tab's view model: your spots as rows (their words are `@app/data/spots`'), the ways to add
- *               one (the map's middle; your location — only where the reader has let the app know it, or will be asked
- *               on the tap itself: the app never asks silently), the empty state, the stale line, an unreadable file.
+ *   spotsMenu   the Spots tab's view model: your spots as rows (their words are `@app/data/spots`'), the TWO ways to
+ *               add one (owner 2026-10-22: AT MY LOCATION — only where the reader has let the app know it, or will be
+ *               asked on the tap itself: the app never asks silently; refused or absent it is not offered and the tab
+ *               says why — and PICK ON THE MAP; the map's-middle "Add a spot here" is gone), the empty state, the stale
+ *               line, an unreadable file.
  *   useMapRail  the PROVISIONAL pin a long press dropped (Cancel, back or a drag away removes it and nothing is saved;
- *               Continue starts the one spot capture at it), the ways to add from the tab, and where "Show" sent the
- *               map. Every way of adding ends in the route's own `addSpot` at a point, so there is ONE capture flow.
+ *               Continue starts the one spot capture at it), PICK MODE (the Map tab until its first tap, which drops
+ *               that same provisional pin; Cancel, back or the route moving leave it with nothing), the ways to add
+ *               from the tab, and where "Show" sent the map. Every way of adding ends in the route's own `addSpot` at a point, so there is ONE capture flow.
  *               The pin and the framing belong to the map where they were made: the route moving anywhere (a tab, a
  *               spot opened, a water, back) forgets them on that same render — else a map remounted on the way back
  *               would be framed on an old spot again and wear its pin. The one exception is Show's own move to the Map
@@ -41,7 +44,7 @@ export interface SpotsMenuRow {
   /** "Show" — the map goes to the spot — said aloud. */
   showLabel: string;
 }
-export type SpotsMenuAddKind = "here" | "mine";
+export type SpotsMenuAddKind = "mine" | "pick";
 export interface SpotsMenuAdd { k: SpotsMenuAddKind; label: string; detail: string }
 export interface SpotsMenuVM {
   title: string;
@@ -52,8 +55,10 @@ export interface SpotsMenuVM {
   rows: SpotsMenuRow[];
   /** How many spots are missing their weather, when they can be refreshed; null otherwise. */
   stale: string | null;
-  /** The ways to add one, first the map's middle. Empty where spots cannot be saved. */
+  /** The ways to add one: your location (when it can be offered), then pick on the map. Empty where spots cannot be saved. */
   adds: SpotsMenuAdd[];
+  /** Why "At my location" is not offered (refused, or none on this platform); null when it is, or while still asking. */
+  note: string | null;
 }
 
 export function spotsMenu(spots: readonly Spot[], o: {
@@ -62,11 +67,13 @@ export function spotsMenu(spots: readonly Spot[], o: {
   const error = o.error ?? null;
   const stale = spots.filter(needsRefresh).length;
   const adds: SpotsMenuAdd[] = !o.canAdd ? [] : [
-    { k: "here", label: SPOTS_MENU.addHere, detail: SPOTS_MENU.addHereDetail },
     ...(o.permission === "granted" ? [{ k: "mine" as const, label: SPOTS_MENU.addMine, detail: "" }]
       : o.permission === "prompt" ? [{ k: "mine" as const, label: SPOTS_MENU.addMine, detail: SPOTS_MENU.addMineAsk }]
       : []),
+    { k: "pick", label: SPOTS_MENU.addPick, detail: SPOTS_MENU.addPickDetail },
   ];
+  const note = !o.canAdd ? null
+    : o.permission === "denied" ? SPOTS_MENU.mineOff : o.permission === "unavailable" ? SPOTS_MENU.mineNone : null;
   return {
     title: SPOTS_MENU.title,
     error,
@@ -78,6 +85,7 @@ export function spotsMenu(spots: readonly Spot[], o: {
     }),
     stale: error === null && o.canRefresh && stale > 0 ? staleSpotsLine(stale) : null,
     adds,
+    note,
   };
 }
 
@@ -98,10 +106,16 @@ export interface MapRail {
   cancelDrop(): void;
   /** Continue: the one spot capture, starting at the pin. */
   continueDrop(): void;
-  /** "Add a spot here": the capture at the map's middle. */
-  addAt(at: LatLon): void;
   /** "At my location": read it (the platform may ask, on this tap), then the capture there; a failure is said. */
   addMine(): Promise<void>;
+  /** PICK ON THE MAP: on the Map tab, until its first tap (`tapPick`), Cancel, back, or the route moving anywhere else. */
+  picking: boolean;
+  /** "Pick on the map": the Map tab, in pick mode. */
+  pick(): void;
+  /** The map tapped in pick mode: the provisional pin there (the drop sheet asks), and pick mode ends. */
+  tapPick(lat: number, lon: number): void;
+  /** The banner's Cancel, back, Escape: pick mode ends and nothing is made. */
+  cancelPick(): void;
   /** The location could not be read; cleared when the route moves. */
   error: string | null;
   /**
@@ -129,6 +143,8 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
   const [drop, setDrop] = useState<LatLon | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fly, setFly] = useState<(SpotFly & { for: string }) | null>(null);
+  // pick mode is made FOR the Map tab's root (as Show's framing is): the move there keeps it, any other move ends it
+  const [pickFor, setPickFor] = useState<string | null>(null);
   const [flights, setFlights] = useState(0);
   // the route moved: forget, during this render (React's "state from the previous render"), and draw nothing stale —
   // but a Show made for where the route went (the Map tab) is what that move was for
@@ -136,12 +152,15 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
   const [madeAt, setMadeAt] = useState(place);
   const moved = madeAt !== place;
   const keepFly = fly !== null && fly.for === place;
+  const keepPick = pickFor === place;
   if (moved) {
     setMadeAt(place);
     setDrop(null);
     setError(null);
     if (!keepFly) setFly(null);
+    if (!keepPick) setPickFor(null);
   }
+  const picking = pickFor !== null && pickFor === place;
 
   // asked each time the Spots tab is entered: the reader may have changed it in the system's settings meanwhile
   const onSpots = place === SPOTS_ROOT;
@@ -158,13 +177,27 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
   }, [go]);
 
   const flying = fly === null || (moved && !keepFly) ? null : fly;
+  const tapPick = useCallback((lat: number, lon: number) => {
+    if (!picking) return;
+    setPickFor(null);
+    setDrop({ lat, lon });
+  }, [picking]);
   return {
     permission, drop: moved ? null : drop, error: moved ? null : error,
     fly: flying && { key: flying.key, bbox: flying.bbox, at: flying.at },
-    pressLong: (lat, lon) => setDrop({ lat, lon }),
+    pressLong: (lat, lon) => { setPickFor(null); setDrop({ lat, lon }); },
     cancelDrop: () => setDrop(null),
     continueDrop: () => { if (drop) addAt(drop); },
-    addAt,
+    picking,
+    pick: () => {
+      setDrop(null);
+      setError(null);
+      setFly(null);
+      setPickFor(MAP_ROOT);
+      if (place !== MAP_ROOT) go({ type: "tab", tab: "map" });
+    },
+    tapPick,
+    cancelPick: () => setPickFor(null),
     addMine: async () => {
       if (!locate) return;
       setError(null);

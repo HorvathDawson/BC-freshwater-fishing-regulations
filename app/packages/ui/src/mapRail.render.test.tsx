@@ -20,7 +20,7 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
 });
 
 describe("spotsMenu", () => {
-  it("your spots as rows, the map's middle then your location (granted), the stale line", () => {
+  it("your spots as rows, the two ways to add (your location, granted; pick on the map), the stale line", () => {
     const vm = spotsMenu([spot({ photos: ["photos/s1-1.jpg"] }), spot({ id: "s2", title: "", waterName: "Vedder River",
                                                                         weather: { at: "x" } as never })],
                          { canAdd: true, canRefresh: true, permission: "granted" });
@@ -33,19 +33,25 @@ describe("spotsMenu", () => {
           photo: null, showLabel: "Show Vedder River on the map" },
       ],
       stale: "2 spots are missing the weather from the day they were pinned, or the week before it.",
-      adds: [{ k: "here", label: "Add a spot here", detail: "At the middle of the map" },
-             { k: "mine", label: "At my location", detail: "" }],
+      adds: [{ k: "mine", label: "At my location", detail: "" },
+             { k: "pick", label: "Pick on the map", detail: "Go to the map and tap the place" }],
+      note: null,
     });
   });
 
-  it("your location: offered when granted, said to ask when the platform would, never when refused or absent", () => {
+  it("your location: offered when granted, said to ask when the platform would; refused or absent, not offered AND " +
+     "said why; still asking, nothing said; pick on the map always", () => {
     const kinds = (["granted", "prompt", "denied", "unavailable", null] as (LocatePermission | null)[])
-      .map((permission) => spotsMenu([], { canAdd: true, canRefresh: false, permission }).adds
-        .map((a) => `${a.k}${a.detail ? `(${a.detail})` : ""}`).join(" "));
+      .map((permission) => {
+        const vm = spotsMenu([], { canAdd: true, canRefresh: false, permission });
+        return `${vm.adds.map((a) => `${a.k}${a.detail ? `(${a.detail})` : ""}`).join(" ")} | ${vm.note ?? "-"}`;
+      });
     expect(kinds).toEqual([
-      "here(At the middle of the map) mine",
-      "here(At the middle of the map) mine(Asks for your location first)",
-      "here(At the middle of the map)", "here(At the middle of the map)", "here(At the middle of the map)"]);
+      "mine pick(Go to the map and tap the place) | -",
+      "mine(Asks for your location first) pick(Go to the map and tap the place) | -",
+      "pick(Go to the map and tap the place) | Location access is turned off for this app, so At my location is not offered.",
+      "pick(Go to the map and tap the place) | Your location is not available here, so At my location is not offered.",
+      "pick(Go to the map and tap the place) | -"]);
   });
 
   it("none yet: what a spot is; unreadable: said, never an empty list; no saving: no way to add", () => {
@@ -57,7 +63,7 @@ describe("spotsMenu", () => {
         body: "Pin an exact point on a stream and the app records the gauge, its standing against the record and the " +
               "weather that day. Notes and photographs go on top. Press and hold the map to drop one." },
       { title: "Spots", error: "The saved spots could not be read.", empty: null, rows: [], stale: null,
-        adds: [{ k: "here", label: "Add a spot here", detail: "At the middle of the map" }] },
+        adds: [{ k: "pick", label: "Pick on the map", detail: "Go to the map and tap the place" }], note: null },
       [],
     ]);
   });
@@ -130,19 +136,53 @@ describe("useMapRail", () => {
       "drop:- perm:granted err:Your location could not be read, so no spot was started. fly:-", 1]);
   });
 
-  it("Add a spot here: the capture at the point given; Show goes to the Map tab, frames the spot, and moves again each " +
-     "time", () => {
+  it("Show goes to the Map tab, frames the spot, and moves again each time", () => {
     const { acts, out, text } = rig(null, SPOTS);
-    act(() => out.r!.addAt({ lat: 49, lon: -122 }));
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     const first = text();
     const box = out.r!.fly!.bbox.map((v) => v.toFixed(4));
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     expect([acts, first, box, text()]).toEqual([
-      [{ type: "addSpot", at: { lat: 49, lon: -122 } }, { type: "tab", tab: "map" }, { type: "tab", tab: "map" }],
+      [{ type: "tab", tab: "map" }, { type: "tab", tab: "map" }],
       "drop:- perm:- err:- fly:spot:s1:1",
       ["-121.9730", "49.0938", "-121.9620", "49.1010"],
       "drop:- perm:- err:- fly:spot:s1:2"]);
+  });
+
+  it("PICK ON THE MAP (owner 2026-10-22): from the Spots tab, the Map tab in pick mode; the first tap there places the " +
+     "provisional pin and ends pick mode; Continue is the one capture at that point", () => {
+    const { acts, out, at, text } = rig(null, SPOTS);
+    act(() => out.r!.pick());
+    const asked = [...acts];
+    at(HOME);
+    const picking = [out.r!.picking, text()];
+    act(() => out.r!.tapPick(49.2, -122.1));
+    const tapped = [out.r!.picking, text()];
+    act(() => out.r!.tapPick(49.3, -122.3));        // pick mode is over: a later tap is the map's own again
+    act(() => out.r!.continueDrop());
+    expect([asked, picking, tapped, out.r!.picking, acts]).toEqual([
+      [{ type: "tab", tab: "map" }],
+      [true, "drop:- perm:- err:- fly:-"],
+      [false, "drop:49.2,-122.1 perm:- err:- fly:-"],
+      false,
+      [{ type: "tab", tab: "map" }, { type: "addSpot", at: { lat: 49.2, lon: -122.1 } }]]);
+  });
+
+  it("pick mode: Cancel leaves it with nothing; the route moving anywhere else forgets it; a long press ends it too", () => {
+    const { acts, out, at, text } = rig(null, HOME);
+    act(() => out.r!.pick());                       // already on the Map tab: no move
+    const on = out.r!.picking;
+    act(() => out.r!.cancelPick());
+    const cancelled = [out.r!.picking, text()];
+    act(() => out.r!.pick());
+    at(reduce(HOME, { type: "tab", tab: "conditions" }));
+    const moved = out.r!.picking;
+    at(HOME);
+    const back = out.r!.picking;
+    act(() => out.r!.pick());
+    act(() => out.r!.pressLong(49.1, -121.9));
+    expect([on, cancelled, moved, back, [out.r!.picking, text()], acts]).toEqual([
+      true, [false, "drop:- perm:- err:- fly:-"], false, false, [false, "drop:49.1,-121.9 perm:- err:- fly:-"], []]);
   });
 
   it("the route moving anywhere forgets the pin and the framing — on that same render, so a map remounted on return is " +

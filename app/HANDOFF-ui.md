@@ -61,13 +61,17 @@ exist once.
 
 **Spots (owner 2026-10-21; a tab again since T48).** The Spots tab (`SpotsScreen`) — your spots (tap opens one over the
 tab, back returns to it; "Show" goes to the Map tab framed on it with a pin — the spot screen's own Show is the same
-function), "Add a spot here" (the map's middle) and "At my location" (web: offered when the
-browser says granted, or labelled "Asks for your location first" when the tap itself will prompt; native: not offered
-— no location module yet, `apps/mobile/src/locate.native.ts`). A **long press** on a browse map (`MapProps.onLongPress`:
+function), and exactly TWO ways to add one (owner 2026-10-22; the map's-middle "Add a spot here" is gone): "At my
+location" (web: offered when the browser says granted, or labelled "Asks for your location first" when the tap itself
+will prompt; refused at the tap: said, nothing starts; refused in settings, or native — no location module yet,
+`apps/mobile/src/locate.native.ts` — not offered, and the tab says why) and "Pick on the map" (the Map tab in PICK MODE:
+`SpotPickBanner` "Tap where your spot is" + Cancel in the search field's place, the map pans and zooms as usual; the
+first tap — `onMapPoint`; `onPressFeature` is withheld so a water under it does NOT open — drops the provisional pin
+and raises the same `SpotDropSheet`; Cancel, back, Escape or another tab leave pick mode with nothing made). A **long press** on a browse map (`MapProps.onLongPress`:
 MapLibre Native's own on a phone; on the web a held finger timed by `@app/core` `LONG_PRESS`, or `contextmenu` — right
 click / Chrome's long press — whichever first, once; the click after it is not a tap, and the finger's lift is
 cancelled so the browser makes no click of it on the sheet now under the finger) drops a provisional pin and
-raises `SpotDropSheet`: Cancel, back, Done, the scrim or a drag removes it and saves nothing; "Add a spot here" goes on
+raises `SpotDropSheet`: Cancel, back, Done, the scrim or a drag removes it and saves nothing; Continue goes on
 into the ONE capture (`SpotCapture`, now able to start `at` a point: the map opens on the pin, step 1 picks the water
 near it, then straight to "when"). Every add is the route's `addSpot` with `at` (`@app/ui` `useMapRail`, `spotsMenu`);
 words in `@app/core` `mapRail.ts`. Each new sheet is a back layer, so Android's back closes it first. The menu, the
@@ -148,6 +152,7 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |
 | Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
 | Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
+| Pick on the map (pick mode's banner, owner 2026-10-22) | leaves pick mode, nothing made (= its Cancel; Escape on the web); the next back is the tab rule | SpotPickBanner `useBackLayer` | MapRail.shell "pick mode is a back layer" |
 | Layers sheet (and every `<Sheet>`) | closes the sheet | Sheet `useBackLayer` | back.test "Layers", gestures.render |
 | Regulations page: "Which day?" (the date pill's DaySheet) | closes the sheet, the day kept; the next back leaves the water | DaySheet → `<Sheet>` | back.test "day sheet" |
 | A spot (viewed) | back to the tab it was opened over (the Spots tab, or a map) | route | back.test "a spot", MapRail.shell |

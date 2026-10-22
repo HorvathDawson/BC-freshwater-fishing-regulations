@@ -1,6 +1,7 @@
 /**
- * A LONG PRESS ON THE MAP (owner 2026-10-21) drops a provisional pin and raises this: where it is, what comes next, and
- * the choice. "Add a spot here" goes on into the one spot capture (pick the water near the pin, when you were there,
+ * A LONG PRESS ON THE MAP (owner 2026-10-21), or the first tap in pick mode ("Pick on the map", owner 2026-10-22), drops
+ * a provisional pin and raises this: where it is, what comes next, and the choice. Continue goes on into the one spot
+ * capture (pick the water near the pin, when you were there,
  * photos, the lead-up); Cancel — and back, Done, the scrim, a drag down — removes the pin and saves nothing.
  */
 import { SPOT_DROP, type LatLon } from "@app/core";

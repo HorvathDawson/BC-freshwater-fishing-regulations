@@ -39,6 +39,7 @@ import { SearchSheet } from "./SearchSheet";
 import { SpotsScreen } from "./SpotsScreen";
 import { TopBar, topBarBottom } from "./TopBar";
 import { SpotDropSheet } from "./SpotDropSheet";
+import { SpotPickBanner } from "./SpotPickBanner";
 import { SpotCapture } from "./SpotCapture";
 import { SpotScreen } from "./SpotScreen";
 import { TABS, TabBar, type TabKey } from "./TabBar";
@@ -419,13 +420,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * a finger is a shape the size of a valley — a reach panel for it would answer a question about one river with a
    * number about a region. The rivers come back at z9 and they are what you tap.
    */
+  const picking = rail.picking;
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
+    // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
+    if (picking) return;
     const conditions = tab === "conditions";
     if (conditions && (camera.current?.zoom ?? HOME.zoom) < HANDOVER_Z) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible above).
     await opener.tap(Number(featureId) as SectionId,
                      lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
-  }, [tab, opener]);
+  }, [tab, opener, picking]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   if (viewing) {
@@ -493,7 +497,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   if (adding && onSaveSpot)
     return layered(
       <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
-                   // started at a point (a long press, the map's middle, your location): the pin is already down
+                   // started at a point (a long press, a tap in pick mode, your location): the pin is already down
                    at={adding.at}
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
@@ -546,13 +550,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     : tab === "spots"
       // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
       ? <SpotsScreen palette={palette}
+                     // no location module (native today): "unavailable", so the tab says why it is not offered
                      vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
-                                            permission: rail.permission })}
+                                            permission: locate ? rail.permission : "unavailable" })}
                      onOpen={(id) => go({ type: "openSpot", id })}
                      onShow={(id) => { const s = spots.find((x) => x.id === id); if (s) rail.show(s); }}
-                     // every add is the ONE capture flow, at a point: the map's middle as the reader left it, or here
-                     onAdd={(k) => (k === "mine" ? void rail.addMine()
-                                    : rail.addAt({ lat: camera.current.lat, lon: camera.current.lon }))}
+                     // the two ways (owner 2026-10-22), each into the ONE capture flow at a point: where the device
+                     // is, or the Map tab in pick mode until a tap places the pin (the drop sheet then asks)
+                     onAdd={(k) => (k === "mine" ? void rail.addMine() : rail.pick())}
                      onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
                      photoStore={photos?.store} />
     : tab === "more"
@@ -625,7 +630,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // press and hold: a provisional pin, and the sheet that asks before anything is made
                      onLongPress={onSaveSpot ? rail.pressLong : undefined}
                      // either map's tap opens the ONE water screen (see onPressFeature): only the view in front differs
-                     onPressFeature={onPressFeature}
+                     // — except in pick mode, where a tap is the spot's place and nothing else
+                     onPressFeature={picking ? undefined : onPressFeature}
+                     onMapPoint={picking ? rail.tapPick : undefined}
                      onError={(e) => console.error("map:", e.message)} />
         : null;
 
@@ -652,7 +659,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     : null;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
-  const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions");
+  const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !picking;
   // the legend is the map's caption: while search's sheet is over the map it captions nothing in view
   const showLegend = route.mode === "browse" && !searching
     && (tab === "conditions"
@@ -707,6 +714,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        // the one way out of search into a water: the one opener, with the view this map puts in front
                        onOpenWater={(id) => opener.item(id, tab === "conditions" ? "conditions" : "regs")}
                        statusIndex={statusIndex} total={counts?.waters} />
+        )}
+        {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
+        {picking && route.mode === "browse" && tab === "map" && (
+          <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
         )}
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} open={searching}

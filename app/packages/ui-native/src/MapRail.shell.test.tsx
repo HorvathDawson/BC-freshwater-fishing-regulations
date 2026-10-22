@@ -1,22 +1,30 @@
 /**
  * SPOTS AND THE RAIL THROUGH THE REAL SHELL (T48, owner 2026-10-22): Spots is a bottom-bar TAB again (its list, open,
  * Show on the map, add) and the side rail is Layers alone; a long press on either map still drops a provisional pin
- * and asks before anything is made; every way of adding goes into the ONE spot capture at a point; Android's back
- * closes each sheet before it does anything else, goes from a tab to the Map tab, and leaves the app at the root.
+ * and asks before anything is made; adding offers exactly two ways (owner 2026-10-22) — At my location and Pick on the
+ * map (the Map tab under a banner until a tap places the pin; that tap never opens a water); every way of adding goes
+ * into the ONE spot capture at a point; Android's back closes each sheet (and pick mode) before it does anything else,
+ * goes from a tab to the Map tab, and leaves the app at the root.
  *
- * The map renderer is replaced by buttons that press and hold it, open the Layers sheet, and a line saying what pin
- * and what framing the Shell handed it (no WebGL in jsdom). Everything else is the app's, on the fixture.
+ * The map renderer is replaced by buttons that press and hold it, tap a water on it (the place AND the feature, as both
+ * renderers report a tap), open the Layers sheet, and a line saying what pin and what framing the Shell handed it (no
+ * WebGL in jsdom). Everything else is the app's, on the fixture.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
+import type { ItemId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import { HOME, type Locate, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
+/** The section the stub's "tap a water" lands on: a reach of the Chilliwack (set in `beforeAll`). */
+const TAP = { sid: 0 };
 type Stub = { onLongPress?: (lat: number, lon: number) => void; onLayers?: () => void;
+              onMapPoint?: (lat: number, lon: number) => void;
+              onPressFeature?: (layer: string, id: number, lat?: number, lon?: number) => void;
               marker?: { lat: number; lon: number } | null; fit?: { key: string } | null;
               camera: { lat: number; lon: number; zoom: number } };
 vi.mock("./MapScreen", () => ({
@@ -24,6 +32,10 @@ vi.mock("./MapScreen", () => ({
     <View>
       <Pressable accessibilityRole="button" accessibilityLabel="hold the map"
                  onPress={() => p.onLongPress?.(49.0974, -121.9675)}><Text>hold</Text></Pressable>
+      {/* both renderers report a tap as the place, then the feature under it (Map.native onPress; Map.web clicks) */}
+      <Pressable accessibilityRole="button" accessibilityLabel="tap a water"
+                 onPress={() => { p.onMapPoint?.(49.2, -122.1); void p.onPressFeature?.("streams", TAP.sid, 49.2, -122.1); }}>
+        <Text>tap</Text></Pressable>
       {p.onLayers && <Pressable accessibilityRole="button" accessibilityLabel="Choose layers"
                                 onPress={p.onLayers}><Text>layers</Text></Pressable>}
       <Text testID="map-state">{`pin ${p.marker ? `${p.marker.lat},${p.marker.lon}` : "none"} · fit ${p.fit?.key ?? "none"}` +
@@ -34,7 +46,8 @@ vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 
 afterEach(cleanup);
-beforeAll(() => {
+beforeAll(async () => {
+  TAP.sid = (await makeFixtureSource().water("gnis:8634" as ItemId))!.sections[1]!;
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
 });
@@ -73,6 +86,7 @@ const look = () => {
   const on = screen.queryAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")?.getAttribute("aria-label");
   const map = screen.queryByTestId("map-state")?.textContent ?? "no map";
   const up = screen.queryByText("New spot") ? "drop sheet"
+    : screen.queryByTestId("spot-pick-banner") ? `pick banner${screen.queryByTestId("top-bar") ? " + search" : ""}`
     : screen.queryByTestId("spots-screen") ? "spots tab"
     : screen.queryByText("Pick the water") ? `capture: ${screen.queryByText(/near the pin/) ? "near the pin" : "pick"}`
     : screen.queryByText("Tamihi run") ? "spot screen" : "nothing";
@@ -115,7 +129,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
   it("Continue goes into the one spot capture, at the pin: pick the water near it; back leaves it, nothing saved", async () => {
     const saved = mount();
     press("hold the map");
-    press("Add a spot here");
+    press("Continue");
     const capture = look();
     let handled = false;
     act(() => { handled = androidBack(); });
@@ -173,21 +187,87 @@ describe("spots and the rail, through the Shell (T48)", () => {
     ]);
   });
 
-  it("Add a spot here (the map's middle) and At my location, from the tab, both start the one capture at their point", async () => {
+  it("adding offers exactly two ways: At my location (granted) starts the one capture where the device is", async () => {
     const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 50.1, lon: -120.2 }) };
-    mount({ locate });
+    mount({ locate, spots: [] });
     tab("Spots");
-    press("Add a spot here");
-    const middle = look();
-    act(() => { androidBack(); });
-    const backTo = look();
     await waitFor(() => expect(screen.queryByLabelText("At my location")).not.toBeNull());
+    const offered = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")).filter((n) => n !== "Refresh spots");
     await act(async () => { fireEvent.click(screen.getByLabelText("At my location")); });
-    expect([middle, backTo, look()]).toEqual([
-      "no bar | pin 49.15,-121.85 · fit none · camera 49.15,-121.85,14 | capture: near the pin",
-      `${BAR} (Spots) | no map | spots tab`,
+    expect([offered, look()]).toEqual([
+      ["At my location", "Pick on the map"],
       "no bar | pin 50.1,-120.2 · fit none · camera 50.1,-120.2,14 | capture: near the pin",
     ]);
+  });
+
+  it("At my location: the permission is asked on the tap, and refused there it is said and nothing starts; with no " +
+     "location module (native today) it is not offered and the tab says so", async () => {
+    const locate: Locate = { permission: async () => "prompt", here: async () => { throw new Error("denied"); } };
+    const saved = mount({ locate, spots: [] });
+    tab("Spots");
+    await waitFor(() => expect(screen.queryByText("Asks for your location first")).not.toBeNull());
+    await act(async () => { fireEvent.click(screen.getByLabelText("At my location")); });
+    const refused = [look(), screen.getByRole("alert").textContent, saved];
+    cleanup();
+    mount({ locate: null, spots: [] });
+    tab("Spots");
+    expect([refused, screen.queryByLabelText("At my location"), screen.getByTestId("spots-note").textContent]).toEqual([
+      [`${BAR} (Spots) | no map | spots tab`, "Your location could not be read, so no spot was started.", []],
+      null, "Your location is not available here, so At my location is not offered."]);
+  });
+
+  it("Pick on the map: the Map tab under a banner (in the search field's place); a tap on a water places the pin and " +
+     "asks — it does NOT open the water; Continue is the one capture at that point; back leaves it, nothing saved",
+     async () => {
+    const saved = mount();
+    tab("Spots");
+    press("Pick on the map");
+    const picking = [look(), screen.getByTestId("spot-pick-banner").textContent];
+    press("tap a water");
+    await act(async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); });
+    const tapped = look();
+    press("Continue");
+    const capture = look();
+    act(() => { androidBack(); });
+    expect([picking, tapped, capture, look(), saved]).toEqual([
+      [`${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,9.4 | pick banner`, "Tap where your spot isCancel"],
+      `${BAR} (Map) | pin 49.2,-122.1 · fit none · camera 49.15,-121.85,9.4 | drop sheet`,
+      "no bar | pin 49.2,-122.1 · fit none · camera 49.2,-122.1,14 | capture: near the pin",
+      ROOT, []]);
+  });
+
+  it("outside pick mode the same tap opens the water (the one water screen) — so the check above is a real one", async () => {
+    mount();
+    press("tap a water");
+    await waitFor(() => expect(screen.queryByText("Chilliwack River")).not.toBeNull());
+    // the water's own views strip, not the bottom bar: the water screen is up, and no map under it
+    expect(look()).toBe("Regulations Conditions Map (Regulations) | no map | nothing");
+  });
+
+  it("pick mode is a back layer: Android's back leaves it one step (the Map tab as it was), the next leaves the app; " +
+     "the banner's Cancel, Escape, a tab, and the drop sheet's Cancel all leave nothing", () => {
+    const saved = mount();
+    const enter = () => { tab("Spots"); press("Pick on the map"); };
+    enter();
+    let handled = false, left = true;
+    act(() => { handled = androidBack(); });
+    const backed = look();
+    act(() => { left = androidBack(); });
+    enter();
+    press("Cancel");
+    const cancelled = look();
+    enter();
+    act(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); });
+    const escaped = look();
+    enter();
+    tab("Conditions");
+    const away = look();
+    enter();
+    press("tap a water");
+    press("Cancel");
+    expect([handled, backed, left, cancelled, escaped, away, look(), saved]).toEqual([
+      true, ROOT, false, ROOT, ROOT, `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`,
+      ROOT, []]);
   });
 });
 

@@ -197,6 +197,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
+      "packages/ui-native/src/SpotPickBanner.tsx#SpotPickBanner: takes onCancel",
       "packages/ui-native/src/SpotScreen.tsx#SpotScreen: takes onBack",
       "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",

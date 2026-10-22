@@ -1,7 +1,7 @@
 /**
  * THE SPOTS TAB (T48, owner 2026-10-22: a tab again, after a spell as the map rail's menu): your saved spots, the map
- * sent to one ("Show" — the Map tab, framed on it), one opened, and the ways to add one. What it says is `@app/ui`
- * `spotsMenu`. The long press on either map stays, and every way of adding ends in the ONE capture flow (route `addSpot`).
+ * sent to one ("Show" — the Map tab, framed on it), one opened, and the two ways to add one (owner 2026-10-22: At my
+ * location, Pick on the map). What it says is `@app/ui` `spotsMenu`. The long press on either map stays, and every way of adding ends in the ONE capture flow (route `addSpot`).
  *
  * Spots are THE ONLY USER-AUTHORED DATA IN THE APP, and a spot is STANDALONE: a location, a title, notes and
  * photographs, not an annotation on a waterbody. A pin on an unnamed lake is the normal case (97.6% of BC's water carries
@@ -84,6 +84,11 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
             </View>
           </Pressable>
         ))}
+        {/* why "At my location" is not among them (refused, or none on this platform): said, never a silent gap */}
+        {vm.note !== null && (
+          <Text testID="spots-note" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
+                                             paddingTop: 10, paddingBottom: 16 }}>{vm.note}</Text>
+        )}
       </ScrollView>
     </View>
   );

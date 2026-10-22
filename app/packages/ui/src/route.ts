@@ -6,7 +6,7 @@
  *   browse   the four tabs (Map · Conditions · Spots · More, T48), the bottom bar shown. SEARCH is no tab: it opens over
  *            either map (`search`), from the top bar's field, and back closes it before anything else. A spot opens
  *            over the tab it was picked on (the Spots tab, or a map's long press), and adding one starts at a point when
- *            the reader gave one (a long press, the map's middle, their location).
+ *            the reader gave one (a long press, a tap in pick mode, their location).
  *   water    one water latched (APP-PREP §0): a STACK of frames, each a water at a part and a view (regs · map ·
  *            conditions). The bottom bar is hidden. `from` is the browse state underneath, kept whole, so leaving
  *            restores the tab (the Conditions map or the Map tab) and the open spot exactly. The camera is not here (it would
@@ -51,7 +51,7 @@ export interface LatLon { lat: number; lon: number }
 export interface WaterFrame {
   item: ItemId | null; part: number | null; tapSid: SectionId | null; at: LatLon | null; view: View;
 }
-/** A spot being added: at the point the reader gave (a long press, the map's middle, their location), or none yet. */
+/** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
 export interface AddingSpot { at: LatLon | null }
 export interface BrowseRoute {
   mode: "browse"; tab: BrowseTab;
@@ -86,7 +86,7 @@ export type RouteAction =
   | { type: "flowInto"; item: ItemId; part: number }
   | { type: "back" }
   | { type: "openSpot"; id: SpotId }
-  /** Start adding a spot, at a point when one was given (a long press, the map's middle, the reader's location). */
+  /** Start adding a spot, at a point when one was given (a long press, a tap in pick mode, the reader's location). */
   | { type: "addSpot"; at?: LatLon | null };
 
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */

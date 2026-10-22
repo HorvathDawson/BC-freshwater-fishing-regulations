@@ -68,7 +68,7 @@ describe("route (P13): one value, one back rule", () => {
       { mode: "browse", tab: "conditions", spot: "s1", adding: null, search: false }, true, cond]);
   });
 
-  it("adding a spot keeps the point it was started at (a long press, the map's middle, the reader's location)", () => {
+  it("adding a spot keeps the point it was started at (a long press, a tap in pick mode, the reader's location)", () => {
     const at = { lat: 49.0974, lon: -121.9675 };
     const add = reduce(HOME, { type: "addSpot", at });
     const plain = reduce(HOME, { type: "addSpot" });

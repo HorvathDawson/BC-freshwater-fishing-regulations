@@ -15,12 +15,19 @@ export const MAP_RAIL = {
 /** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */
 export const SPOTS_MENU = {
   title: "Spots",
-  /** The first action: a spot at the middle of the map as it is now. */
-  addHere: "Add a spot here",
-  addHereDetail: "At the middle of the map",
-  /** The second: where the phone is — offered only when the reader has let the app know it, or will be asked on tap. */
+  /**
+   * THE TWO WAYS TO ADD ONE (owner 2026-10-22: "where you are or select on map"; the map's-middle "Add a spot here" is
+   * gone — you had to centre the map first). First where the phone is — offered only when the reader has let the app
+   * know it, or will be asked on the tap itself.
+   */
   addMine: "At my location",
   addMineAsk: "Asks for your location first",
+  /** Your location cannot be offered: said, so the missing choice is not a mystery. Refused; none on this platform. */
+  mineOff: "Location access is turned off for this app, so At my location is not offered.",
+  mineNone: "Your location is not available here, so At my location is not offered.",
+  /** Then: the Map tab in pick mode (`SPOT_PICK`); a tap places the pin. */
+  addPick: "Pick on the map",
+  addPickDetail: "Go to the map and tap the place",
   /** The location could not be read (refused, timed out, no fix): said, and nothing is added. */
   noLocation: "Your location could not be read, so no spot was started.",
   /** A row's action besides opening it: the map goes to the spot. */
@@ -41,11 +48,20 @@ export const SPOT_DROP = {
   /** Where the pin is, said as numbers: the one thing every spot keeps. */
   where: (lat: number, lon: number) => `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
   detail: "Next you pick the water it is on, then when you were there.",
-  go: "Add a spot here",
+  go: "Continue",
   cancel: "Cancel",
 } as const;
 
-/** The spot-capture coach when the point is already chosen (a long press, the map's middle, your location). */
+/**
+ * PICK ON THE MAP (owner 2026-10-22): the slim banner over the Map tab until a tap places the pin (which raises the drop
+ * sheet). Cancel, back and Escape leave pick mode with nothing behind.
+ */
+export const SPOT_PICK = {
+  banner: "Tap where your spot is",
+  cancel: "Cancel",
+} as const;
+
+/** The spot-capture coach when the point is already chosen (a long press, a tap in pick mode, your location). */
 export const SPOT_CAPTURE_AT = {
   title: "Pick the water",
   detail: "Tap the stream or lake your spot is on, near the pin.",

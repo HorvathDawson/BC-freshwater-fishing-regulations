@@ -17,7 +17,7 @@
  * cover and no chance to see it was wrong before it is a permanent record. Highlighting
  * the choice and asking is the difference between picking and guessing.
  *
- * STARTED AT A POINT (owner 2026-10-21): a long press on the map, the Spots menu's "Add a spot here" (the map's middle)
+ * STARTED AT A POINT (owner 2026-10-21): a long press on the map, the Spots tab's "Pick on the map" (a tap in pick mode)
  * or "At my location" hands the point in (`at`). The pin is then already down: the map opens on it, step 1 picks the
  * water near it, and Next goes straight to step 3 — step 2 is still there, one ‹ Back away, to move the pin.
 
@@ -59,7 +59,7 @@ export interface SpotCaptureProps {
   palette: Palette;
   theme: string;
   camera: Camera;
-  /** The point the spot was started at (a long press, the map's middle, the reader's location); absent: picked here. */
+  /** The point the spot was started at (a long press, a tap in pick mode, the reader's location); absent: picked here. */
   at?: LatLon | null;
   onCancel: () => void;
   /** S1: the photo store and the platform's picker. Absent -> the draft offers no photos. */

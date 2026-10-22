@@ -10,6 +10,7 @@ import type { Spot } from "@app/data/spots";
 import { spotsMenu, type LocatePermission } from "@app/ui";
 import { SpotsScreen } from "./SpotsScreen";
 import { SpotDropSheet } from "./SpotDropSheet";
+import { SpotPickBanner } from "./SpotPickBanner";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -46,25 +47,27 @@ describe("<SpotsScreen>", () => {
     expect([screen.getByRole("heading").textContent, screen.queryByRole("button", { name: "Done" })]).toEqual(["Spots", null]);
   });
 
-  it("none yet: what a spot is, how to drop one, and the ways to add", () => {
+  it("none yet: what a spot is, how to drop one, and the two ways to add", () => {
     mount([], { permission: "prompt" });
     expect(screen.getByText("No spots yet")).toBeTruthy();
     expect(screen.getByText("Pin an exact point on a stream and the app records the gauge, its standing against the " +
                             "record and the weather that day. Notes and photographs go on top. Press and hold the map " +
                             "to drop one.")).toBeTruthy();
-    expect(buttons()).toEqual(["Add a spot here", "At my location"]);
-    expect(screen.getByText("Asks for your location first")).toBeTruthy();
+    expect(buttons()).toEqual(["At my location", "Pick on the map"]);
+    expect([screen.getByText("Asks for your location first").textContent,
+            screen.getByText("Go to the map and tap the place").textContent])
+      .toEqual(["Asks for your location first", "Go to the map and tap the place"]);
   });
 
   it("a spot with no photo, no gauge and no water is a normal row; tap opens it, Show sends the map", () => {
     const calls = mount([spot()]);
     expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · no gauge · no weather\n49.0974, -121.9675");
     expect(screen.getByText("NO PHOTO")).toBeTruthy();
-    expect(buttons()).toEqual(["Tamihi run", "Show Tamihi run on the map", "Add a spot here"]);
+    expect(buttons()).toEqual(["Tamihi run", "Show Tamihi run on the map", "Pick on the map"]);
     fireEvent.click(screen.getByRole("button", { name: "Tamihi run" }));
     fireEvent.click(screen.getByRole("button", { name: "Show Tamihi run on the map" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add a spot here" }));
-    expect(calls).toEqual(["open s1", "show s1", "add here"]);
+    fireEvent.click(screen.getByRole("button", { name: "Pick on the map" }));
+    expect(calls).toEqual(["open s1", "show s1", "add pick"]);
   });
 
   it("shows the reading that was recorded, not a live one", () => {
@@ -97,7 +100,33 @@ describe("<SpotsScreen>", () => {
     expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual([
       "The saved spots could not be read.", "Your location could not be read, so no spot was started."]);
     expect(screen.queryByText("No spots yet")).toBeNull();
-    expect(buttons()).toEqual(["Add a spot here", "At my location"]);
+    expect(buttons()).toEqual(["At my location", "Pick on the map"]);
+  });
+
+  it("your location refused, or none here: not offered, and the tab says why (whole line); pick on the map stays", () => {
+    const seen = (["denied", "unavailable"] as const).map((permission) => {
+      const calls = mount([], { permission });
+      const out = [buttons(), screen.getByTestId("spots-note").textContent];
+      fireEvent.click(screen.getByRole("button", { name: "Pick on the map" }));
+      cleanup();
+      return [...out, calls];
+    });
+    expect(seen).toEqual([
+      [["Pick on the map"], "Location access is turned off for this app, so At my location is not offered.", ["add pick"]],
+      [["Pick on the map"], "Your location is not available here, so At my location is not offered.", ["add pick"]],
+    ]);
+  });
+});
+
+describe("<SpotPickBanner>", () => {
+  it("over the map in pick mode: says what to do; Cancel and Escape leave it", () => {
+    const calls: string[] = [];
+    render(<SpotPickBanner palette={LIGHT} top={10} onCancel={() => calls.push("cancel")} />);
+    const said = [screen.getByTestId("spot-pick-banner").textContent, buttons()];
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    act(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); });
+    act(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" })); });
+    expect([said, calls]).toEqual([["Tap where your spot isCancel", ["Cancel"]], ["cancel", "cancel"]]);
   });
 });
 
@@ -111,13 +140,13 @@ describe("<SpotDropSheet>", () => {
       </GestureHandlerRootView>);
     return calls;
   };
-  it("says where the pin is and what comes next; Cancel, Done and the scrim cancel; Add a spot here continues", () => {
+  it("says where the pin is and what comes next; Cancel, Done and the scrim cancel; Continue continues", () => {
     const calls = drop({ lat: 49.09744, lon: -121.96752 });
     expect([screen.getByText("New spot").textContent, screen.getByTestId("spot-drop-where").textContent,
             screen.getByText("Next you pick the water it is on, then when you were there.").textContent, buttons()])
       .toEqual(["New spot", "49.0974, -121.9675", "Next you pick the water it is on, then when you were there.",
-                ["Done", "Cancel", "Add a spot here"]]);
-    for (const name of ["Cancel", "Done", "Close", "Add a spot here"])
+                ["Done", "Cancel", "Continue"]]);
+    for (const name of ["Cancel", "Done", "Close", "Continue"])
       fireEvent.click(screen.getByLabelText(name));       // Close: the scrim behind the sheet
     expect(calls).toEqual(["cancel", "cancel", "cancel", "continue"]);
   });
