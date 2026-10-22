@@ -475,3 +475,6 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   regulations were valid to <day>. Check the current Synopsis and the Province's notices before you fish." (the
   out-of-date dot, `accessibilityRole="alert"`). No stamp: no "Valid to" line (the edition's years, as before), never
   lapsed, no note.
+- SUMMARY (review fix): a lapsed edition leads the Data block's summary as "Regulations out of date" — never folded into
+  the "N likely out of date" count beside a line that says "Out of date"; other stale lines follow it
+  ("Regulations out of date · 1 likely out of date", "… · 1 more in Details"). A newer release still outranks it.

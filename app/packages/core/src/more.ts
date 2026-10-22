@@ -14,7 +14,7 @@
  * (staleness.ts), the same badges the detailed page draws: the block, the page and the sync dot never disagree.
  */
 import {
-  agoWords, contactVM, sourceFreshness, isoDayWords, MENU_WORDS, SOURCE_ORDER, type ContactVM,
+  agoWords, contactVM, sourceFreshness, isoDayWords, MENU_WORDS, regsLapsed, SOURCE_ORDER, type ContactVM,
   type FreshnessVM, type MenuPageKey, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { byCadence } from "./staleness";
@@ -30,6 +30,8 @@ export const MORE_WORDS = {
     summary: {
       fresh: "All up to date",
       stale: (n: number) => `${n} likely out of date`,
+      /** the edition has lapsed (`regsLapsed`): said first and without "likely", never folded into the count */
+      lapsed: "Regulations out of date",
       /** after the count, when sources listed on Details alone are out of date too */
       more: (n: number) => `${n} more in Details`,
       /** when the only sources out of date (or undated) are listed on Details alone */
@@ -121,7 +123,12 @@ export function dataVM(s: DataInput): DataBlockVM {
   const unknown = lines.some((l) => l.badge.kind === "unknown" && l.k !== "inseason");
   const unknownRest = rest.some((b) => b.kind === "unknown");
   const S = W.summary;
+  // a lapsed edition is not "likely" out of date: it leads, the other stale lines (drawn, then Details) follow it
+  const lapsed = regsLapsed(s.validUntil, s.now);
+  const others = stale - (lapsed ? 1 : 0);
   const summary = s.newRelease !== null ? { kind: "stale" as const, label: S.release }
+    : lapsed ? { kind: "stale" as const, label: [S.lapsed, others > 0 ? S.stale(others) : null,
+                                                staleRest > 0 ? S.more(staleRest) : null].filter(Boolean).join(" · ") }
     : stale > 0 ? { kind: "stale" as const, label: staleRest > 0 ? `${S.stale(stale)} · ${S.more(staleRest)}` : S.stale(stale) }
     : staleRest > 0 ? { kind: "stale" as const, label: `${S.stale(staleRest)} · ${S.seeDetails}` }
     : unknown ? { kind: "unknown" as const, label: S.unknown }

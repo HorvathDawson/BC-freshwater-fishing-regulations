@@ -51,7 +51,26 @@ describe("the Data block: always at the top of More, one line per source", () =>
     };
     expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
       "Regulations · Valid to Mar 31, 2027 · fresh Up to date | All up to date",
-      "Regulations · Valid to Mar 31, 2027 · stale Out of date | 1 likely out of date",
+      "Regulations · Valid to Mar 31, 2027 · stale Out of date | Regulations out of date",
+    ]);
+  });
+
+  it("a lapsed edition leads the summary (never folded into a 'likely' count); other stale lines follow it", () => {
+    const now = new Date(2027, 3, 1, 9).getTime();
+    const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
+    const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
+    const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(), now };
+    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
+    expect([
+      sum(base),
+      sum({ ...base, tilesPaired: false }),
+      sum({ ...base, sources: { ...sources, dfo: { date: "2026-01-01" } } }),
+      sum({ ...base, newRelease: "r-new" }),
+    ]).toEqual([
+      "stale: Regulations out of date",
+      "stale: Regulations out of date · 1 likely out of date",
+      "stale: Regulations out of date · 1 more in Details",
+      "stale: Newer data available",
     ]);
   });
 
