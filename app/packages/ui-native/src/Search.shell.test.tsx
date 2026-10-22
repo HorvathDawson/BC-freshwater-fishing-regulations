@@ -315,6 +315,20 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
         `search closed · no sheet · "chilliwack river" · tab Map`]);
     }));
 
+  it("Escape typed IN THE FIELD closes it: react-native-web's input stops its keys at the field, so the window never " +
+     "hears them and the field must close search itself", () =>
+    wide(async () => {
+      mount();
+      open();
+      act(() => { fireEvent.keyDown(field(), { key: "Escape" }); });
+      const empty = where();
+      open();
+      await typeIn("chilliwack");
+      act(() => { fireEvent.keyDown(field(), { key: "Escape" }); });
+      expect([empty, where()]).toEqual([
+        `search closed · no sheet · "" · tab Map`, `search closed · no sheet · "chilliwack" · tab Map`]);
+    }));
+
   it("a click on the map beside the panel closes it — on the ground or on a water, which it does not open", () =>
     wide(async () => {
       mount();
