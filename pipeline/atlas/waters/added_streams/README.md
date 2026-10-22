@@ -20,7 +20,7 @@ hand-drawn LineString  ──────────┘        (curated, allowl
 
 1. **(optional) Fetch OSM candidates over an area** — human-run, hits Overpass (external network):
    ```
-   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.fetch_osm \
+   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.fetch_osm \
        --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson
    ```
    Writes `data/generated/added_streams/added_candidates.geojson` (one Feature per merged channel) + a `.md` review table.
@@ -29,7 +29,7 @@ hand-drawn LineString  ──────────┘        (curated, allowl
    `LineString` with `source:"manual"` and a negative `blk`.
 3. **Verify standalone** — no build.py needed:
    ```
-   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.harness \
+   PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.harness \
        --geojson pipeline/tests/data/added_streams.sample.geojson --out data/generated/added_streams/added_demo.gpkg
    ```
    Prints merged mainstem = one node/blk/wsc, tributaries nesting under it, added nodes ∈
@@ -88,7 +88,7 @@ Abbotsford — `data/*.geojson`, described in `SOURCES.md`) are turned into the 
 batch:
 
 ```
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.build_dataset burnaby squamish …
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish …
 ```
 
 Flow: `clean` (uniform schema, strip ArcGIS cruft) → `merge` (same-name connected ways → one channel)
