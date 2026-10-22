@@ -43,6 +43,13 @@ interface IndexFile {
   /** Which HYDAT release every percentile in this file was measured against. */
   hydat?: { release: string | null; latest: string | null; stale: boolean };
   /**
+   * The OWNER's due upstream tasks (publish.py `maintenance_notices`, owner 2026-10-22 late): `hydat` when a newer HYDAT
+   * is listed, `roster` when ECCC's real-time list drifts from the roster. `since` is the first run that saw it;
+   * `action` the owner's command. Empty: nothing due. Absent: an index from before notices. The app reads the hydat
+   * notice for the Data sources page (`hydatNotice`, core staleness.ts) and nothing else.
+   */
+  maintenance?: { kind: string; since: string; current: string; latest: string; action: string }[];
+  /**
    * The station ids ECCC listed as real-time on the publishing run (`publish.py`). A panel member absent from it is
    * "not a real-time gauge" rather than "not reporting". Absent on an older feed: every station reads as listed.
    */

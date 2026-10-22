@@ -11,11 +11,15 @@
  *   by "release"  ships with the data release: stale only when a newer release is known, or (the regulations) their
  *                 last day in force has passed, or (the map tiles) the tiles and the data are not one pair — never by
  *                 age, so a release is never called stale just for being months old
+ *   by "notice"   the gauge feed's publisher SAYS whether a newer upstream release is out (its index's `maintenance`
+ *                 notice, owner 2026-10-22 late): due, stale; checked and none due, fresh — never by age; only when
+ *                 no word reaches the app (an index from before notices, a run that could not check) does `ms` decide
  *   by "notRead"  the app does not read it: unknown, the reader's to check
  *   by "live"     fetched on demand: it has no age to hold
  */
 export type StaleRule =
   | { readonly by: "age"; readonly ms: number }
+  | { readonly by: "notice"; readonly ms: number }
   | { readonly by: "release" }
   | { readonly by: "notRead" }
   | { readonly by: "live" };
@@ -48,8 +52,11 @@ export const STALE_AFTER = {
   fwa: { by: "age", ms: 730 * DAY },
   /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */
   basemap: { by: "age", ms: 365 * DAY },
-  /** HYDAT is published quarterly and a release takes it yearly: 18 months is a missed year. */
-  hydat: { by: "age", ms: 548 * DAY },
+  /**
+   * HYDAT: the feed checks HYDAT's listing every run and says a newer release is out (`hydatNotice`). The age line is
+   * the fallback only: HYDAT is published quarterly and a release takes it yearly, so 18 months is a missed year.
+   */
+  hydat: { by: "notice", ms: 548 * DAY },
   /** The regulations: the release's edition, in force through `valid_until`. */
   synopsis: { by: "release" },
   /** The map's tiles: built with the release, proven one pair with its data (P11). */
@@ -63,13 +70,40 @@ export const STALE_AFTER = {
 } as const satisfies Record<string, StaleRule>;
 
 export type StaleKey = keyof typeof STALE_AFTER;
-export type AgeKey = { [K in StaleKey]: (typeof STALE_AFTER)[K] extends { by: "age" } ? K : never }[StaleKey];
+/** A feed with an age line: age-ruled, or notice-ruled (its line is the fallback when no notice word arrives). */
+export type AgeKey = { [K in StaleKey]: (typeof STALE_AFTER)[K] extends { ms: number } ? K : never }[StaleKey];
 
 /**
  * An age-ruled feed's verdict: within its line fresh (the line itself included), past it stale, no age unknown.
- * The one comparison every age-ruled staleness makes.
+ * The one comparison every age-ruled staleness makes (and a notice-ruled one when no notice word reached the app).
  */
 export function byCadence(k: AgeKey, ageMs: number | null): "fresh" | "stale" | "unknown" {
   if (ageMs === null || !Number.isFinite(ageMs)) return "unknown";
   return ageMs > STALE_AFTER[k].ms ? "stale" : "fresh";
+}
+
+/**
+ * WHAT THE GAUGE FEED SAYS ABOUT HYDAT (owner 2026-10-22 late: "the feed should check for hydat releases ... similar
+ * to bundle changes where the app checks when in service for updates"). The publisher writes the owner's due tasks
+ * into its index as `maintenance` notices (pipeline/gauges/feed/publish.py `maintenance_notices`); the app re-reads
+ * the index while in service (the sync state), so a notice reaches the reader with no app change.
+ *
+ *   "due"      a `hydat` notice: a newer HYDAT is listed than the one the flows are measured against
+ *   "current"  the index carries notices, none for HYDAT, and this run checked (its `hydat` block names both the
+ *              release in use and the newest listed)
+ *   null       no word: no index, an index from before notices, or a run that could not check — the age line decides
+ *
+ * Structural, so core reads the index without importing @app/data's types.
+ */
+export type HydatNotice = "due" | "current";
+
+export interface MaintenanceIndex {
+  readonly hydat?: { readonly release: string | null; readonly latest: string | null; readonly stale?: boolean } | null;
+  readonly maintenance?: readonly { readonly kind: string }[] | null;
+}
+
+export function hydatNotice(index: MaintenanceIndex | null | undefined): HydatNotice | null {
+  if (!index || !Array.isArray(index.maintenance)) return null;
+  if (index.maintenance.some((n) => n?.kind === "hydat")) return "due";
+  return index.hydat?.release && index.hydat?.latest ? "current" : null;
 }

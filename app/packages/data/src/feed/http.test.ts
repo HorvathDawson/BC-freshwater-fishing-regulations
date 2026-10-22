@@ -157,6 +157,17 @@ describe("record length and HYDAT provenance", () => {
     expect((await f.index())!.hydat!.release).toBe("20260717");
   });
 
+  it("carries the publisher's maintenance notices whole (owner 2026-10-22 late)", async () => {
+    const notice = { kind: "hydat", since: "2026-10-22T21:00:00Z", current: "20260717", latest: "20261020",
+                     action: "scripts/update-hydat.sh" };
+    const idx = { ...INDEX, hydat: { release: "20260717", latest: "20261020", stale: true }, maintenance: [notice] };
+    const f = httpFeed("http://x", server({ "index.json": idx }));
+    expect((await f.index())!.maintenance).toEqual([notice]);
+    // an index from before notices: absent, never an empty list (that would claim "checked, nothing due")
+    const old = httpFeed("http://x", server({ "index.json": INDEX }));
+    expect((await old.index())!.maintenance).toBeUndefined();
+  });
+
   it("surfaces a stale envelope rather than hiding it", async () => {
     const idx = { ...INDEX, hydat: { release: "20250101", latest: "20260717",
                                      stale: true } };

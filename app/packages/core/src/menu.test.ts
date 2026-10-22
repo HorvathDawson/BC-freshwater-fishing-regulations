@@ -11,7 +11,7 @@ import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
 import { STALE_AFTER_MS } from "./index";
-import { STALE_AFTER } from "./staleness";
+import { hydatNotice, STALE_AFTER } from "./staleness";
 
 const term = (id: string, t: string, says: string): GlossaryTerm => ({ id, term: t, says, pages: [80], quote: "", source: "" });
 const TERMS = [
@@ -190,7 +190,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     expect(STALE_AFTER).toEqual({
       feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "age", ms: 36 * H },
       dfo: { by: "age", ms: 120 * D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
-      hydat: { by: "age", ms: 548 * D },
+      hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
       inseason: { by: "notRead" }, weather: { by: "live" }, imagery: { by: "live" },
     });
@@ -213,6 +213,77 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
             day("basemap", 366), day("hydat", 548), day("hydat", 549)]).toEqual([
       "dfo Up to date", "dfo Likely out of date", "fwa Up to date", "fwa Likely out of date",
       "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
+  });
+
+  describe("HYDAT: the feed's maintenance notice decides, its age only when no notice word reaches the app " +
+           "(owner 2026-10-22 late)", () => {
+    const DUE = { kind: "hydat", since: "2026-10-22T21:00:00Z", current: "20260717", latest: "20261020",
+                  action: "scripts/update-hydat.sh" };
+    const ROSTER = { kind: "roster", since: "2026-10-22T21:00:00Z", current: "data/source/bc_hydrometric_stations.json",
+                     latest: "+08NM139", action: "rm …" };
+    const CHECKED = { release: "20260717", latest: "20260717", stale: false };
+
+    it("reads the index: a hydat notice is due; a checked run with none is current; an older index or an unchecked " +
+       "run says nothing", () => {
+      expect([
+        hydatNotice(null),
+        hydatNotice(undefined),
+        // an index from before `maintenance`: the age rule
+        hydatNotice({ hydat: { release: "20250101", latest: "20260717", stale: true } }),
+        hydatNotice({ maintenance: [DUE], hydat: { release: "20260717", latest: "20261020", stale: true } }),
+        // the listing failed this run, but the publisher kept the notice: still due
+        hydatNotice({ maintenance: [DUE], hydat: { release: "20260717", latest: null, stale: false } }),
+        hydatNotice({ maintenance: [ROSTER], hydat: CHECKED }),
+        hydatNotice({ maintenance: [], hydat: CHECKED }),
+        // the listing could not be read and nothing was due before: not checked, the age rule
+        hydatNotice({ maintenance: [], hydat: { release: "20260717", latest: null, stale: false } }),
+        // no envelope in use: nothing to compare
+        hydatNotice({ maintenance: [], hydat: { release: null, latest: "20260717", stale: false } }),
+        hydatNotice({ maintenance: [] }),
+      ]).toEqual([null, null, null, "due", "due", "current", "current", null, null, null]);
+    });
+
+    it("due: 'Newer release out', whatever the age; current: up to date, whatever the age; neither: the age line", () => {
+      const midnight = Date.parse("2026-10-22T00:00:00Z");
+      const dated = (days: number) =>
+        ({ sources: { hydat: { date: new Date(midnight - days * D).toISOString().slice(0, 10) } } });
+      const one = (days: number, hydatNotice: "due" | "current" | null | undefined) =>
+        sourceFreshness("hydat", { validUntil: null, tiles: null, feedFetchedAt: null, now: midnight, ...dated(days),
+                                   hydatNotice });
+      expect([one(10, "due"), one(10, "current"), one(10, null), one(1000, "due"), one(1000, "current"),
+              one(1000, null), one(548, undefined), one(549, undefined)]).toEqual([
+        { kind: "stale", label: "Newer release out" },
+        { kind: "fresh", label: "Up to date" },
+        { kind: "fresh", label: "Up to date" },
+        { kind: "stale", label: "Newer release out" },
+        // MUTATION PIN: the notice says current, so three years on the shelf does not make it stale
+        { kind: "fresh", label: "Up to date" },
+        { kind: "stale", label: "Likely out of date" },
+        { kind: "fresh", label: "Up to date" },
+        { kind: "stale", label: "Likely out of date" },
+      ]);
+    });
+
+    it("the Data sources page's HYDAT row, whole: the release's date, and the notice's badge", () => {
+      const row = (n: "due" | "current" | null) => sourcesVM({
+        sources: { hydat: { date: "2026-07-17" } }, validUntil: null, tiles: null, feedFetchedAt: null, now,
+        hydatNotice: n,
+      }).rows.find((r) => r.k === "hydat");
+      const words = { k: "hydat", name: "Gauge records (HYDAT)",
+                      what: "Past years of flow and level, Environment and Climate Change Canada",
+                      when: "Updated Jul 17, 2026" };
+      expect([row("due"), row("current"), row(null)]).toEqual([
+        { ...words, badge: { kind: "stale", label: "Newer release out" } },
+        { ...words, badge: { kind: "fresh", label: "Up to date" } },
+        { ...words, badge: { kind: "fresh", label: "Up to date" } },
+      ]);
+    });
+
+    it("a newer DATA release does not touch the HYDAT line: it is not release-ruled", () => {
+      expect(sourceFreshness("hydat", { sources: { hydat: { date: "2026-07-17" } }, validUntil: null, tiles: null,
+                                        feedFetchedAt: null, now, newRelease: "r-new", hydatNotice: "current" }))
+        .toEqual({ kind: "fresh", label: "Up to date" });
+    });
   });
 
   it("the regulations: in force THROUGH their last day on the reader's calendar, OUT of date the day after, unknown " +

@@ -11,7 +11,7 @@
  */
 import { useMemo } from "react";
 import { Platform } from "react-native";
-import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type HydatNotice } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
 import type { Palette } from "../theme";
@@ -32,7 +32,7 @@ export interface MenuInfo {
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
 export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, tilesPaired = null, feedFetchedAt, route,
-                           day, newRelease = null }: {
+                           day, newRelease = null, hydatNotice = null }: {
   menu: MenuControls; palette: Palette;
   /** the release (null: the dev bundle, which holds no regulations and no manifest) */
   loader: RegsLoader | null;
@@ -45,6 +45,8 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
   feedFetchedAt: string | null;
   /** a newer data release the server names (the sync icon's re-read), or null: the regulations and map rows go stale */
   newRelease?: string | null;
+  /** what the gauge feed's index says about HYDAT (`hydatNotice`, core staleness.ts), or null: its age decides */
+  hydatNotice?: HydatNotice | null;
   /** where the reader is now (the Shell's route) and the map's day (null = today) — a report is prefilled with them */
   route: Route;
   day: Date | null;
@@ -87,7 +89,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
       </MenuPage>
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         sources: m?.sources ?? null, validUntil: m?.regulations?.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
-        newRelease, now: Date.now() })} />)}
+        newRelease, hydatNotice, now: Date.now() })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
         edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}

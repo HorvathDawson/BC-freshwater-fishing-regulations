@@ -38,9 +38,9 @@ const DATA: DataInput = {
 };
 
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host. */
-function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {} }: {
+function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, hydatNotice }: {
   info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
-  theme?: ThemeName; onTheme?: (t: ThemeName) => void;
+  theme?: ThemeName; onTheme?: (t: ThemeName) => void; hydatNotice?: "due" | "current" | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
@@ -53,7 +53,7 @@ function App({ info = INFO, loader = null, out, data = DATA, theme = "light", on
                     theme={theme} onTheme={onTheme}
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
         <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
-                  tilesPaired feedFetchedAt={null} route={route} day={null} />
+                  tilesPaired feedFetchedAt={null} route={route} day={null} hydatNotice={hydatNotice} />
       </MenuContext.Provider>
     </BackLayerContext.Provider>
   );
@@ -211,6 +211,9 @@ describe("a page", () => {
       "Live gauge readingsEnvironment and Climate Change Canada, and the BC River Forecast Centre's forecastsNot checked yet"
         + "Unknown",
     ]);
+    // no notice word passed (an index from before notices): HYDAT by its age, inside 548 days — up to date
+    expect(row("hydat")).toBe("Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada"
+      + "Updated Jul 17, 2026Up to date");
     // (T43) the app's one list of fish picture credits, every line whole, after the sources
     const pics = screen.getByTestId("sources-fish-credits");
     expect([...pics.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["FISH PICTURES", ...FISH_CREDITS]);
@@ -220,6 +223,30 @@ describe("a page", () => {
       "Lucide v0.460.0 (https://lucide.dev), ISC licence.",
       "Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). "
       + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
+  });
+
+  it("the HYDAT row reads the feed's notice: due says 'Newer release out'; current is up to date however old; no " +
+     "word, its age (owner 2026-10-22 late)", () => {
+    const at = (date: string, hydatNotice: "due" | "current" | null | undefined) => {
+      const loader = {
+        release: "r-0efa5d05fc92",
+        manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: null, versions: null },
+                    sources: { hydat: { date } } },
+      } as unknown as RegsLoader;
+      render(<App out={{}} loader={loader} hydatNotice={hydatNotice} />);
+      pick("more-data");
+      const got = text("source-hydat");
+      cleanup();
+      return got;
+    };
+    const head = "Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada";
+    expect([at("2026-07-17", "due"), at("2023-01-10", "current"), at("2023-01-10", null), at("2023-01-10", undefined)])
+      .toEqual([
+        `${head}Updated Jul 17, 2026Newer release out`,
+        `${head}Updated Jan 10, 2023Up to date`,
+        `${head}Updated Jan 10, 2023Likely out of date`,
+        `${head}Updated Jan 10, 2023Likely out of date`,
+      ]);
   });
 });
 

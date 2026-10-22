@@ -23,7 +23,7 @@ import { ICON_CREDIT } from "./iconSet";
 import { WORDS } from "./regs/words";
 import type { GlossaryTerm } from "./regs/inputs";
 import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
-import { byCadence, STALE_AFTER, type AgeKey, type StaleRule } from "./staleness";
+import { byCadence, STALE_AFTER, type AgeKey, type HydatNotice, type StaleRule } from "./staleness";
 
 // ── words ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -265,6 +265,12 @@ export interface SourcesInput {
    * absent. Known, the release-ruled sources (the regulations, the map) are likely out of date.
    */
   newRelease?: string | null;
+  /**
+   * What the gauge feed's index says about HYDAT (`hydatNotice`, staleness.ts, re-read with the sync state): "due" (a
+   * newer release is out), "current" (checked, none), or null / absent (no word: the age line decides). Not dotted on
+   * the sync icon: a reader cannot fix it.
+   */
+  hydatNotice?: HydatNotice | null;
   now: number;
 }
 
@@ -296,6 +302,11 @@ export const FRESHNESS_WORDS = {
   notRead: "Not read",
   /** the regulations past their last day: not "likely" — the edition has lapsed (`regsLapsed`) */
   lapsed: "Out of date",
+  /**
+   * HYDAT when the feed says a newer release is listed (`hydatNotice` "due"): not "likely" (the publisher saw it) and
+   * not "Out of date" (the records in use are still right; the new release adds a year) — what is known, no more
+   */
+  newerRelease: "Newer release out",
 } as const;
 
 /**
@@ -351,6 +362,8 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
  *   age       the feed (its index's own `fetchedAt`) and dfo / fwa / basemap / hydat (the release's date for each)
  *             against the table's line; never checked or not recorded, unknown
+ *   notice    hydat: the feed's notice — due "Newer release out", current up to date, whatever the age; no word,
+ *             the age line as above
  *   release   synopsis / tiles (`byRelease`)
  *   notRead   the in-season changes: unknown ("Not read")
  *   live      weather / imagery
@@ -359,6 +372,12 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
   const rule: StaleRule = STALE_AFTER[k];
   switch (rule.by) {
     case "age": return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
+    case "notice": {
+      const n = s.hydatNotice ?? null;
+      if (n === "due") return badge("stale", FRESHNESS_WORDS.newerRelease);
+      if (n === "current") return badge("fresh");
+      return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
+    }
     case "release": return byRelease(k, s);
     case "notRead": return badge("unknown", FRESHNESS_WORDS.notRead);
     case "live": return badge("live");

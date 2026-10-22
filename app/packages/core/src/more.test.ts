@@ -55,6 +55,27 @@ describe("the Data block: always at the top of More, one line per source", () =>
     ]);
   });
 
+  it("HYDAT (on Details alone) follows the feed's notice: due counts as out of date, current never by age; the " +
+     "sync icon never hears of it", () => {
+    const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
+    const old = { ...fresh.sources, hydat: { date: "2023-01-01" } };
+    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
+    expect([
+      sum({ ...fresh, hydatNotice: "due" }),
+      sum({ ...fresh, hydatNotice: "current", sources: old }),
+      sum({ ...fresh, hydatNotice: null, sources: old }),
+      sum({ ...fresh, sources: old }),
+    ]).toEqual([
+      "stale: 1 likely out of date · see Details",
+      "fresh: All up to date",
+      "stale: 1 likely out of date · see Details",
+      "stale: 1 likely out of date · see Details",
+    ]);
+    // the block draws no HYDAT line; the notice adds no line and no "newer data" note (that is the DATA release)
+    expect(lines({ ...fresh, hydatNotice: "due" })).toEqual(lines(fresh));
+    expect(dataVM({ ...fresh, hydatNotice: "due" }).newRelease).toBeNull();
+  });
+
   it("a lapsed edition leads the summary (never folded into a 'likely' count); other stale lines follow it", () => {
     const now = new Date(2027, 3, 1, 9).getTime();
     const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
