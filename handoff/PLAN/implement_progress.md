@@ -26,6 +26,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - RUNNING: wf_e3d5fe4e-dcc (owner: back steps out ONE layer; moves inside a water replace history; close to main);
   wf_54c90876-8ac (owner: desktop search close — Esc, outside click, panel close, field X clears only). Both touch
   navigation: merge back first, then reconcile search's back layer.
+- RUNNING: wf_d528f135-885 (owner: slough/canal stream-item polygons take the stream Conditions look; Nicomen Slough,
+  Vedder River; may need deliver/tiles — lane says what; finding the remaining polygons stays postponed, ticketed).
 - RUNNING: wf_b88d9e03-10e (owner: HYDAT
   maintenance notices — detect, notify once via FEED_NOTIFY_URL, scripts/update-hydat.sh, app HYDAT line follows the
   notice; decisions.md "upstream updates the owner runs"). THEN: merge both, full strict check + smoke once.
