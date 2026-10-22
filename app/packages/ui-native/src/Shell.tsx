@@ -470,9 +470,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // THE CHOSEN WATER, whole, on the Map tab only — the Conditions view
                      // lights a gauge's route with the same feature-state and must not
                      // inherit a search.
-                     fit={tab === "map" && pickFocus
-                       ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine }
-                       : rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox } : null}
+                     // The Spots menu's "Show" outranks it: the rail forgets `fly` whenever the route moves (a
+                     // new search pick included), so a `fly` here was asked for AFTER the water was shown.
+                     fit={rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
+                       : tab === "map" && pickFocus
+                         ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine } : null}
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : statusMapData}
                      standing={cond.standing}

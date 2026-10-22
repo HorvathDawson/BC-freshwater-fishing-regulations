@@ -165,6 +165,17 @@ describe("the map rail, through the Shell", () => {
     ]);
   });
 
+  it("Show while a searched water is on the map: Show still frames the spot", async () => {
+    mount({ start: { ...HOME, shown: "gnis:8634" as never } });
+    await waitFor(() => expect(look()).toMatch(/fit (?!none)/));
+    const searched = look().replace(/.*fit (\S+).*/, "$1");
+    press("Your spots");
+    press("Show Tamihi run on the map");
+    const shown = look();
+    expect([searched.startsWith("spot:"), shown]).toEqual([
+      false, "Map Search Conditions | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing"]);
+  });
+
   it("Add a spot here (the map's middle) and At my location both start the one capture at their point", async () => {
     const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 50.1, lon: -120.2 }) };
     mount({ locate });
