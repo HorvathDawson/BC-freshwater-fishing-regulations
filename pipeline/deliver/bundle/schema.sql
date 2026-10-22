@@ -603,6 +603,15 @@ CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id T
 -- Kootenay Lake's tributaries' release. Rows whose waters do not nest are absent (not ordered).
 CREATE TABLE item_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL,
                         PRIMARY KEY (ord, down_ord)) WITHOUT ROWID;
+-- WHICH STREAM GOES ON AS ANOTHER (owner 2026-10-21: "navigate up if one stream comes directly from another, like
+-- vedder from chilliwack"): water `ord` CONTINUES AS `next_ord` — the same watercourse under another name; `part` is
+-- the part of `ord` at its mouth, `next_part` the part of `next_ord` at its top. The rule is
+-- `pipeline.deliver.bundle.continuation` (read from the atlas graph while the build holds it). Keyed both ways: a water
+-- continues as at most one and is continued by at most one. The release copies it into its water file as is.
+CREATE TABLE water_continue (ord       INTEGER PRIMARY KEY,
+                             part      INTEGER NOT NULL,
+                             next_ord  INTEGER NOT NULL UNIQUE,
+                             next_part INTEGER NOT NULL);
 CREATE TABLE trib_nearer (near TEXT NOT NULL, far TEXT NOT NULL,
                           PRIMARY KEY (near, far)) WITHOUT ROWID;
 

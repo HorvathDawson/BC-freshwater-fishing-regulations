@@ -856,6 +856,12 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # is loaded; `trib_nearer` is derived from it once the rule sets are written
     from pipeline.deliver.bundle import nearer as _nearer
     _nearer.write_item_down(db, graph, registry_items, cov)
+    # WHICH STREAM GOES ON AS ANOTHER (`water_continue`, the Chilliwack as the Vedder): linked here,
+    # from item_down and the graph while it is loaded; written as parts once `part_section` exists
+    # (audit F07: the release used to unpickle graph.pkl again just for this)
+    from pipeline.common.section_handles import read as _read_handles
+    from pipeline.deliver.bundle import continuation as _continuation
+    _continues = _continuation.links(db, list(_read_handles(build_dir)[0]), graph)
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
     places = _water_places(build_dir, graph, registry_items)
@@ -917,6 +923,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
+        _continuation.write(db, _continues, cov)
         _topology.write(db, named_geo, cov)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets

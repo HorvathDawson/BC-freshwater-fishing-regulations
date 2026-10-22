@@ -8,8 +8,8 @@ writes paint, derives three per-water flags for search, converts the climatology
   near           place_water                                                      bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_geo, part_mark, water_exit,
-                 water_continue (continuation.py: which stream goes on as
-                 another, from the atlas's section ids + graph)
+                 water_continue (which stream goes on as another: the bundle's
+                 own table, bundle/continuation.py)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
@@ -34,10 +34,9 @@ import sqlite3
 import struct
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional
 
 from pipeline.deliver import lake_facts as LF
-from pipeline.deliver.release import continuation as CONT
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -200,43 +199,22 @@ def gate_problems(release_dir: Path) -> List[str]:
     return out
 
 
-def atlas_ids(bmeta: Dict[str, str], atlas: Optional[Path] = None) -> Tuple[Path, List[str]]:
-    """The atlas the bundle was built on and its section ids (`section_handles.txt`; `ids[h-1]` names handle `h`), from
-    `atlas` or the bundle's own `meta.build` — refused unless its digest is the bundle's `section_handles`."""
-    from pipeline.common import section_handles as SHD
-    d = Path(atlas or bmeta.get("build") or "")
-    if not (d / SHD.FILENAME).exists():
-        raise ReleaseError(f"release: no {SHD.FILENAME} in {d} (the bundle's atlas); pass --atlas")
-    if SHD.digest_for(d) != bmeta.get("section_handles"):
-        raise ReleaseError(f"release: {d / SHD.FILENAME} is not the atlas the bundle was built on "
-                           f"({SHD.digest_for(d)} != {bmeta.get('section_handles')})")
-    return d, list(SHD.read(d)[0])
-
-
-def continues_rows(b: sqlite3.Connection, bmeta: Dict[str, str], atlas: Optional[Path] = None) -> List[tuple]:
-    """`water_continue` (continuation.py) from the bundle and its atlas: the section ids and the GRAPH (`graph.pkl`,
-    every inflow — the bundle's `section_down` holds gauge sheds only). The graph is loaded for this and dropped."""
-    import gc
-    import pickle
-    d, ids = atlas_ids(bmeta, atlas)
-    if not (d / "graph.pkl").exists():
-        raise ReleaseError(f"release: no graph.pkl in {d} (the bundle's atlas); water_continue needs it")
-    with (d / "graph.pkl").open("rb") as fh:
-        graph = pickle.load(fh)
-    try:
-        return CONT.rows(b, ids, graph)
-    finally:
-        del graph
-        gc.collect()
+def bundle_continues(b: sqlite3.Connection) -> List[tuple]:
+    """`water_continue` as the bundle wrote it (`pipeline.deliver.bundle.continuation`): copied, never derived here — the
+    release reads nothing past the bundle (audit F07). A bundle without the table predates it and is refused."""
+    if not b.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'water_continue'").fetchone():
+        raise ReleaseError("release: the bundle has no water_continue table — it predates the continuation links; "
+                           "rebuild it: python -m pipeline.deliver bundle")
+    return b.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
 
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None, sources: Optional[dict] = None, atlas: Optional[Path] = None) -> Path:
+          lakes: Optional[Path] = None, sources: Optional[dict] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
     are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
-    as the file `lakes`; None (the default, and `deliver all`) ships none. `atlas`: the atlas build the bundle was made
-    from (default its `meta.build`), read for its section ids and graph only (`water_continue`)."""
+    as the file `lakes`; None (the default, and `deliver all`) ships none. Reads nothing past the bundle: the continuation
+    links are the bundle's own `water_continue`."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -252,7 +230,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         raise ReleaseError("release: the regs store holds other answers than the card gate proved")
     base = {"section_handles": bmeta["section_handles"], "reach_digest": bmeta["reach_digest"]}
     regs = {**base, "rule_ids_sha256": smeta["rule_ids_sha256"]}
-    continues = continues_rows(b, bmeta, atlas)
+    continues = bundle_continues(b)
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:

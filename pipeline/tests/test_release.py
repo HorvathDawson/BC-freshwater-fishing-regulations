@@ -62,6 +62,26 @@ def test_climatology_converts_to_float16_and_refuses_what_does_not_fit():
         B.clim_f16(bytes([1]) + struct.pack("<5f", 1, 2, 3, 4, 70000.0))
 
 
+def test_the_release_copies_water_continue_from_the_bundle_and_refuses_a_bundle_without_it():
+    """Audit F07 (owner 2026-10-22 call 6): the continuation links are the bundle's; the release no longer opens the
+    atlas graph to make them."""
+    db = sqlite3.connect(":memory:")
+    with pytest.raises(B.ReleaseError, match="predates the continuation links"):
+        B.bundle_continues(db)
+    db.execute("CREATE TABLE water_continue (ord INTEGER PRIMARY KEY, part INTEGER NOT NULL, "
+               "next_ord INTEGER NOT NULL UNIQUE, next_part INTEGER NOT NULL)")
+    db.executemany("INSERT INTO water_continue VALUES (?,?,?,?)", [(9, 0, 4, 2), (3, 1, 7, 0)])
+    assert B.bundle_continues(db) == [(3, 1, 7, 0), (9, 0, 4, 2)]
+
+
+def test_the_release_reads_nothing_past_the_bundle():
+    """No atlas path, no graph: the release module neither takes an atlas nor imports the continuation rule."""
+    import inspect
+    src = inspect.getsource(B)
+    assert "graph.pkl" not in src and "pickle" not in src and "continuation as" not in src
+    assert "atlas" not in inspect.signature(B.build).parameters
+
+
 def test_the_manifest_names_the_sid_space_not_a_tile_build():
     from pipeline.deliver.release.manifest import manifest
     m = manifest("r-x", {}, "d768d6e135e62b99")
@@ -193,54 +213,15 @@ def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
 
 
 @pytest.mark.needs_bundle
-def test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does(rel, tmp_path):
-    """`water_continue` (continuation.py) on the real atlas: the Chilliwack (blue line 380887781 from measure 0) goes on
-    as the Vedder (356363467, whose line ends at 12723 where the Chilliwack begins) — the Chilliwack's mouth part (1,
-    Vedder Crossing Bridge -> Tamihi) into the Vedder's part 0. Nothing else is linked to the Vedder: its sloughs flow
-    into it through no section of their own; a tributary joining mid-river (Slesse Creek into the Chilliwack, the North
-    Thompson into the Thompson) is not the river going on.
-
-    REVIEW 2026-10-21: and no confluence or lake outlet is either — the first cut (read from the gauge-shed-only
-    `section_down`) linked Oliver Creek to the Cowichan (Cowichan Lake's outlet is the Cowichan's top), the Sproat to the
-    Somass (the Stamp joins 64 m away), the South Thompson to the Thompson (the North Thompson 145 m away), Chase Creek to
-    the South Thompson (Little Shuswap Lake), the Puntledge to the Courtenay (the Tsolum): 89 of its 92 rows."""
+def test_the_release_ships_the_bundles_continuation_links_as_they_are(rel, tmp_path):
+    """`water_continue` is MADE by the bundle (`bundle/continuation.py`; the Chilliwack / Vedder and the reviewed list
+    are pinned on the bundle in `test_water_continue.py`) and COPIED here: the release reads nothing past the bundle
+    (audit F07 — it used to unpickle the atlas graph for this)."""
     d, _, bundle, _, _ = rel
-    w, core = _open(d, "water", tmp_path), _open(d, "core", tmp_path)
-    ordof = dict(core.execute("SELECT item_id, ord FROM item"))
-    named = lambda n: {o for (o,) in core.execute("SELECT ord FROM item WHERE name = ?", (n,))}  # noqa: E731
-    rows = w.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
-    chw, ved = ordof["gnis:8634"], ordof["gnis:3062"]
-    assert [r for r in rows if ved in (r[0], r[2]) or chw in (r[0], r[2])] == [(chw, 1, ved, 0)]
+    w = _open(d, "water", tmp_path)
     b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
-    preds = {n for (n,) in b.execute("SELECT i.name FROM item_down d JOIN item i ON i.ord = d.ord WHERE d.down_ord = ?",
-                                     (ved,))}
-    assert preds == {"Chilliwack River", "Stewart Slough", "Street Creek", "McGillivray Slough", "Lewis Slough"}
-    linked = {r[0] for r in rows} | {r[2] for r in rows}
-    for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek",
-                 "Oliver Creek", "Sproat River", "Stamp River", "South Thompson River", "Chase Creek", "Puntledge River",
-                 "Tsolum River", "Fairmont Creek", "Poquette Creek", "Swift River", "Atnarko River"):
-        assert named(trib) and not named(trib) & linked, trib
-    # both ends keyed: a water continues as at most one and is continued by at most one; every part named is real
-    assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
-    parts = set(w.execute("SELECT item_ord, part_ix FROM part"))
-    assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
-    # the name changes the rule finds besides (the list and its review: handoff/PLAN/app-data/p15/continuations.md)
-    name = dict(core.execute("SELECT ord, name FROM item"))
-    pairs = {(name[a], name[n]) for a, _, n, _ in rows}
-    # OWNER 2026-10-21 (late): the 18 rows reviewed there, less the one the FWA codes call reversed (Eagle Trib.5 "flows
-    # into" Eagle Trib.5-3, whose code makes it Trib.5's tributary); the 10 municipal continuations stay
-    assert sorted(pairs) == sorted({
-        ("Chilliwack River", "Vedder River"), ("Hatzis Slough", "Lower Hatzic Slough"),
-        ("Chilqua Creek", "Chilqua Slough"), ("Page Creek", "Matsqui Slough"), ("Marblehill Creek", "Semmihault Creek"),
-        ("Davidson Creek", "Tomat Creek"), ("Pass Creek", "Screw Creek"),
-        ("Jeperson Side Channel", "Jeperson Side Channel"),
-        ("Aliceville Trib.1-1", "Aliceville Trib.1"), ("Beecher Trib.4", "Beecher Creek"),
-        ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
-        ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
-        ("Westway Avenue Drainage Ditch", "Magnolia Creek Trib 1"),
-        ("Finch Connector (Unnamed)", "Logger's Lane Connector")})
-    assert len(rows) == 17
-    print("water_continue rows:", len(rows))
+    q = "SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord"
+    assert w.execute(q).fetchall() == b.execute(q).fetchall() != []
 
 
 def test_the_apps_pack_contract_is_current():

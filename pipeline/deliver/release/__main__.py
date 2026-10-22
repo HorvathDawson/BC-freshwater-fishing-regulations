@@ -1,5 +1,5 @@
 """python -m pipeline.deliver.release [--bundle FILE] [--store FILE] [--status-index FILE] [--export-dir DIR]
-                                    [--out-root DIR] [--data-release ID] [--lake-facts FILE] [--atlas DIR]
+                                    [--out-root DIR] [--data-release ID] [--lake-facts FILE]
 
 Writes `<out-root>/<data_release>/` (default `data/release/`), prints the sizes and fails on a size gate."""
 from __future__ import annotations
@@ -28,14 +28,12 @@ def main(argv=None) -> int:
     ap.add_argument("--lake-facts", type=Path, default=None,
                     help="a lakes/1 file (pipeline/deliver/lake_facts.py), shipped as `lakes`; none is made yet, so "
                          "by default the release ships no `lakes` (owner 2026-10-21: prepared, not fed)")
-    ap.add_argument("--atlas", type=Path, default=None,
-                    help="the atlas build the bundle was made from (default: the bundle's meta.build)")
     a = ap.parse_args(argv)
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, atlas=a.atlas, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"),
+                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"),
                 # the date each source was last updated, read from the fetched inputs (the app's Data sources screen)
                 sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules"))
     sz = B.sizes(d)

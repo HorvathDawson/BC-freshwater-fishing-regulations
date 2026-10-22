@@ -1,5 +1,6 @@
 """THE CONTINUATION LINK (owner 2026-10-21: "it should be able to navigate up if one stream comes directly from another,
-like vedder from chilliwack"): `water_continue (ord, part, next_ord, next_part)` in the release's water file — water
+like vedder from chilliwack"): `water_continue (ord, part, next_ord, next_part)`, written by the BUNDLE (`links` while it
+holds the atlas graph, `write` once the parts exist) and copied into the release's water file — water
 `ord` CONTINUES AS water `next_ord`: the same watercourse under another name, `part` the part of `ord` at its mouth and
 `next_part` the part of `next_ord` at its top. The app's water map steps across it (▲ from the Vedder's top part into
 the Chilliwack's lowest, ▼ back). Topology, not a regulation.
@@ -36,7 +37,8 @@ watercourse, a name change at Vedder Crossing. A braid piece or a side channel i
 cannot carry the link.
 
 The section ids come from the atlas's `section_handles.txt` (`{blue_line}:{measure}`; `lake:…` is no line), the one
-the bundle was built on — `rows` is handed them and the graph by the release builder, which checks the digest.
+the bundle is built on — the bundle build hands `links` them and the graph it already holds (audit F07, owner
+2026-10-22 call 6: the release used to unpickle graph.pkl again just for this).
 """
 from __future__ import annotations
 
@@ -182,9 +184,11 @@ def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: 
     return Flow(edges, top, owners, wsc)
 
 
-def rows(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, int, int, int]]:
-    """`water_continue` rows `(ord, part, next_ord, next_part)` from the bundle `b`, the atlas's section ids (`ids[h-1]`
-    names handle `h`) and its graph (`graph.pkl`, a `StreamGraph`)."""
+def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, int, int, int]]:
+    """[(A ord, A's mouth section, B ord, B's top section)] from the bundle `b` as far as it is built when the graph is
+    loaded (`item`, `item_section`, `item_down`), the atlas's section ids (`ids[h-1]` names handle `h`) and its graph
+    (`graph.pkl`, a `StreamGraph`). The bundle build calls this while it holds the graph; `write` turns the sections
+    into parts once `part_section` exists."""
     def line(sid: int) -> Optional[Line]:
         return line_of(ids[sid - 1]) if 0 < sid <= len(ids) else None
 
@@ -200,12 +204,19 @@ def rows(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, in
         if m is not None:
             tops.add(max((line(s)[1], s) for s in secs[o] if line(s) is not None and line(s)[0] == m)[1])  # type: ignore[index]
     flow = graph_flow(graph, ids, owners, tops)
+    return continuations(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
+
+
+def write(b: sqlite3.Connection, found: Iterable[Tuple[int, int, int, int]], cov) -> int:
+    """The bundle's `water_continue (ord, part, next_ord, next_part)` from `links`' rows, once `part_section` exists. A
+    linked section with no part stops the build."""
     part = {(o, s): p for o, s, p in b.execute("SELECT ord, sid, part_ix FROM part_section")}
     out = []
-    for a_ord, a, b_ord, bs in continuations(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line,
-                                             flow):
+    for a_ord, a, b_ord, bs in found:
         pa, pb = part.get((a_ord, a)), part.get((b_ord, bs))
         if pa is None or pb is None:
             raise ContinuationError(f"water_continue: section {a if pa is None else bs} has no part")
         out.append((a_ord, pa, b_ord, pb))
-    return out
+    b.executemany("INSERT INTO water_continue (ord, part, next_ord, next_part) VALUES (?,?,?,?)", sorted(out))
+    cov.filled("water_continue", len(out))
+    return len(out)

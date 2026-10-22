@@ -3,8 +3,9 @@ like vedder from chilliwack"): `water_continue` in the release's water file — 
 mouth is B's top on the same watercourse, and nothing else comes in there. Tributaries never do.
 
 No data: the rule on synthetic topology, in the ATLAS GRAPH's terms (every inflow, with the measure on B's line where it
-joins). The release-level check against the real Chilliwack / Vedder, the Cowichan, the Somass, the Thompson is in
-`test_release.py` (`needs_bundle`).
+joins). The bundle writes it (`links` while the graph is loaded, `write` once the parts exist) and the release
+copies it; the real Chilliwack / Vedder is checked on the bundle below and, with the Cowichan, the Somass and the
+Thompson, on the release in `test_release.py` (`needs_bundle`).
 
 REVIEW 2026-10-21 (why the graph): the first cut read the bundle's `section_down` for "the only inflow at B's top". That
 table holds GAUGE-SHED members only, so it hides most inflows: it shipped 92 rows of which 89 were tributaries or
@@ -14,7 +15,9 @@ shed.
 """
 from __future__ import annotations
 
-from pipeline.deliver.release import continuation as C
+import pytest
+
+from pipeline.deliver.bundle import continuation as C
 
 
 def _line(**ids):
@@ -176,3 +179,122 @@ def test_the_graph_flow_carries_each_pieces_code():
 
     flow = C.graph_flow(G(), ["X:0", "Y:12723"], {}, [2])
     assert (flow.into(2), flow.top, flow.wsc) == ([(1, 12925.0)], {2: 12950.0}, {2: "100-1", 1: "100-1-2"})
+
+
+# ---- the bundle writes it (audit F07, owner 2026-10-22 call 6): the release no longer opens graph.pkl -------------
+
+class _N:
+    def __init__(self, up_m, wsc=""):
+        self.up_m, self.wsc = up_m, wsc
+
+
+class _E:
+    def __init__(self, f, t, at):
+        self.from_node, self.to_node, self.at_measure = f, t, at
+
+
+class _G:
+    """The atlas graph's shape `graph_flow` reads: water 1 (line X) flows into the top piece of water 2's line Y."""
+    nodes = {"X:0": _N(4000.0), "Y:0": _N(12723.0), "Y:12723": _N(12950.0)}
+    edges = [_E("X:0", "Y:12723", 12925.0), _E("Y:12723", "Y:0", 12723.0)]
+    up_adj = {"Y:12723": [0], "Y:0": [1]}
+
+
+def _bundle_tables():
+    """The bundle tables `links` and `write` read, at the point of the build where each is written, and the
+    `water_continue` DDL exactly as schema.sql declares it."""
+    import re
+    import sqlite3
+    from pipeline.deliver.bundle.build import SCHEMA
+    db = sqlite3.connect(":memory:")
+    db.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, kind TEXT);
+        CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
+        CREATE TABLE item_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL);
+        CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL);
+        INSERT INTO item VALUES (1, 'stream'), (2, 'stream');
+        INSERT INTO item_section VALUES (1, 1), (2, 2), (2, 3);
+        INSERT INTO item_down VALUES (1, 2);
+    """)
+    ddl = re.search(r"CREATE TABLE water_continue .*?;", SCHEMA.read_text(), re.S)
+    assert ddl, "schema.sql declares water_continue"
+    db.execute(ddl.group(0))
+    return db
+
+
+class _Cov:
+    def __init__(self):
+        self.rows = {}
+
+    def filled(self, t, n):
+        self.rows[t] = n
+
+
+def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_exist():
+    """Two halves, because the build drops the graph before the parts exist: `links` reads the graph (section ids),
+    `write` turns them into parts after `derived.write`."""
+    db = _bundle_tables()
+    ids = ["X:0", "Y:0", "Y:12723"]                          # handles 1, 2, 3
+    links = C.links(db, ids, _G())
+    assert links == [(1, 1, 2, 3)]
+    db.executescript("INSERT INTO part_section VALUES (1, 1, 1), (2, 2, 1), (2, 3, 0);")
+    cov = _Cov()
+    C.write(db, links, cov)
+    assert db.execute("SELECT ord, part, next_ord, next_part FROM water_continue").fetchall() == [(1, 1, 2, 0)]
+    assert cov.rows == {"water_continue": 1}
+
+
+def test_a_link_whose_section_has_no_part_stops_the_build():
+    db = _bundle_tables()
+    db.execute("INSERT INTO part_section VALUES (1, 1, 1)")
+    with pytest.raises(C.ContinuationError, match="has no part"):
+        C.write(db, [(1, 1, 2, 3)], _Cov())
+
+
+@pytest.mark.needs_bundle
+def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
+    """On the real bundle: the link the owner asked for (the Chilliwack's mouth part into the Vedder's part 0), and the
+    17 reviewed links — the bundle is where `water_continue` is made now; the release copies it (`test_release.py`)."""
+    import os
+    import sqlite3
+    from pathlib import Path
+    from pipeline.deliver.bundle import read as R
+    from pipeline.tests.conftest import BUNDLE_HINT, need
+    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    if not b.execute("SELECT 1 FROM sqlite_master WHERE name = 'water_continue'").fetchone():
+        pytest.fail(f"{bundle} predates water_continue in the bundle — rebuild it: python -m pipeline.deliver bundle")
+    ordof = dict(b.execute("SELECT item_id, ord FROM item"))
+    named = lambda n: {o for (o,) in b.execute("SELECT ord FROM item WHERE name = ?", (n,))}  # noqa: E731
+    rows = b.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
+    chw, ved = ordof["gnis:8634"], ordof["gnis:3062"]
+    assert [r for r in rows if ved in (r[0], r[2]) or chw in (r[0], r[2])] == [(chw, 1, ved, 0)]
+    preds = {n for (n,) in b.execute("SELECT i.name FROM item_down d JOIN item i ON i.ord = d.ord WHERE d.down_ord = ?",
+                                     (ved,))}
+    assert preds == {"Chilliwack River", "Stewart Slough", "Street Creek", "McGillivray Slough", "Lewis Slough"}
+    # REVIEW 2026-10-21: no tributary, confluence or lake outlet is linked — the first cut (read from the gauge-shed-only
+    # `section_down`) linked Oliver Creek to the Cowichan, the Sproat to the Somass, the South Thompson to the Thompson,
+    # Chase Creek to the South Thompson, the Puntledge to the Courtenay: 89 of its 92 rows
+    linked = {r[0] for r in rows} | {r[2] for r in rows}
+    for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek",
+                 "Oliver Creek", "Sproat River", "Stamp River", "South Thompson River", "Chase Creek", "Puntledge River",
+                 "Tsolum River", "Fairmont Creek", "Poquette Creek", "Swift River", "Atnarko River"):
+        assert named(trib) and not named(trib) & linked, trib
+    # both ends keyed; every part named is real
+    assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
+    parts = set(b.execute("SELECT ord, part_ix FROM part"))
+    assert all((a, p) in parts and (n, q) in parts for a, p, n, q in rows)
+    # OWNER 2026-10-21 (late): the 18 rows reviewed in handoff/PLAN/app-data/p15/continuations.md, less the one the FWA
+    # codes call reversed (Eagle Trib.5 "flows into" Eagle Trib.5-3); the 10 municipal continuations stay
+    name = dict(b.execute("SELECT ord, name FROM item"))
+    assert sorted({(name[a], name[n]) for a, _, n, _ in rows}) == sorted({
+        ("Chilliwack River", "Vedder River"), ("Hatzis Slough", "Lower Hatzic Slough"),
+        ("Chilqua Creek", "Chilqua Slough"), ("Page Creek", "Matsqui Slough"), ("Marblehill Creek", "Semmihault Creek"),
+        ("Davidson Creek", "Tomat Creek"), ("Pass Creek", "Screw Creek"),
+        ("Jeperson Side Channel", "Jeperson Side Channel"),
+        ("Aliceville Trib.1-1", "Aliceville Trib.1"), ("Beecher Trib.4", "Beecher Creek"),
+        ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
+        ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
+        ("Westway Avenue Drainage Ditch", "Magnolia Creek Trib 1"),
+        ("Finch Connector (Unnamed)", "Logger's Lane Connector")})
+    assert len(rows) == 17
