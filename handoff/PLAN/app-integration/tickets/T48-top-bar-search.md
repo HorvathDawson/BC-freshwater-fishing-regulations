@@ -25,6 +25,13 @@ focuses it and opens the results over the map.
   MapLibre instance): previewing a result frames the main map. Picking a result settles the sheet and flies the map to the
   water (or opens it through openWater — the one opener — when that is the action). Cancel / back / Escape reverse the
   whole transition and restore the camera exactly.
+- A PLACE IS SHOWN WHEN TAPPED (owner 2026-10-21: "in search when a place is clicked it should automatically view it and
+  the nearbys like the streams instead of having to use eye"): tapping a town/place result immediately flies the map
+  (the same map behind the sheet) to it, drops its pin, and lights the nearby waters on the map. At the same time the
+  sheet lowers to a half height showing the "Water near <place>" list, so map and list are both visible. Tapping a
+  nearby water in that list frames it on the map; its row's action opens it through openWater(). The eye stops being
+  needed for places; keep it only where a row has two actions (show vs open), or remove it if every row's tap already
+  shows.
 - Reduced motion: a crossfade, no scale or slide. Native driver for transforms (motion.ts NATIVE_DRIVER).
 - BOTTOM BAR: Search and Spots have left it (Spots → side rail). Mock the two remaining options for the owner: (a) keep a
   2-item bottom bar Map · Conditions, or (b) a compact Map/Conditions switch in or under the top bar with no bottom bar.
@@ -34,6 +41,8 @@ focuses it and opens the results over the map.
 - A render test: the search field's frame is the same before and after focus (no jump); the results sheet mounts over the
   map without remounting the map (one Map instance, camera unchanged after cancel); back closes search before anything
   else (the Android back lane's registry); the placeholder is from the words list and stable while open.
+- A render test: tapping a place result frames the map on it, its pin is drawn, the nearby waters are lit, and the sheet
+  is at half height with the nearby list — with NO eye press.
 - A house check: no second MapLibre map is created by search.
 - Web check at 390x844 and desktop: a frame recording of open/cancel/pick, saved to `T48-shots/`, with frame-time under
   16 ms on the phone profile for the transition.
