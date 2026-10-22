@@ -28,6 +28,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
+- 2026-10-22 evening: cleanup rebuild DONE (no rule binding changed; 93 ambiguous cuts recorded; Skeena curated pick;
+  water_continue 17 in the bundle) → release r-81d40ad73176 live; fixtures re-cut 9b598a33; strict check 7500 pass;
+  smoke: 1 timing flake in Search.shell's sync-line test (that line is being removed by the refinement pass).
+  reaches/full_prev deleted. RUNNING: icons-lucide (wof4ijphk) and REFINEMENT PASS wf_259c396f-4eb (w3t8a05ep: map-style,
+  legend-motion, more-sync). Consistency auditors + remaining cleanup waves follow; then S2, determinism, T50.
 - MERGED (2026-10-22 afternoon, on redesign/stream-sections): pipeline cleanup lanes A+B (22 commits) + curated-pick
   f2bc9fd3; T48 nav 349968b0+3f8c277f; T47 palette D daf61b67..5473776d; regs polish 459811a8+8421137b. Typecheck clean.
   FULL CHECK + SMOKE PENDING until the rebuild chain finishes (memory). RUNNING: rebuild chain (2nd run, with the
