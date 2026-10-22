@@ -246,13 +246,15 @@ export type LicenceBlockVM =
   | { cls: "lostlist lopen"; label: string; cards: readonly { forWho: string; label: string; paths: readonly string[] }[] };
 
 // ── 2.6 Sheets ─────────────────────────────────────────────────────────────────────────────────────────────────────
+/** a list item: its words, then (bold, in ink) the words it stresses — the prototype's `ul.posx li b` */
+export interface ListItem { readonly line: Line; readonly strong: string | null }
 export interface SheetVM { readonly key: SheetKey; readonly title: string; readonly sub: string | null; readonly blocks: readonly SheetBlock[] }
 export type SheetBlock =
   | { k: "para"; text: Line; tone?: "plain" | "small" | "note" | "mono" }   // mono (T36): the rule sheet's key + fields JSON        // note = "⚑ …" rule notes
   | { k: "example"; text: Line }
   | { k: "head"; text: string }
   | { k: "quote"; text: string }
-  | { k: "list"; items: readonly Line[]; ordered?: false }
+  | { k: "list"; items: readonly ListItem[]; ordered?: false; tone?: "small" }   // small: the possession examples (.posx)
   | { k: "fold"; summary: string; body: readonly SheetBlock[]; open: false }   // ALWAYS closed by default
   | { k: "term"; id: string; title: string; body: readonly SheetBlock[] }
   | { k: "rule"; title: string; level: string; applies: readonly string[]; book: Line; open: SheetKey }

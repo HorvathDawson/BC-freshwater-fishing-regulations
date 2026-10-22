@@ -49,7 +49,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & Shee
     case "example": return <Example text={b.text} palette={palette} actions={actions} />;
     case "head": return <Head text={b.text} palette={palette} />;
     case "quote": return <Quote text={b.text} palette={palette} />;
-    case "list": return <List items={b.items} palette={palette} actions={actions} />;
+    case "list": return <List items={b.items} tone={b.tone} palette={palette} actions={actions} />;
     case "fold": return <Fold summary={b.summary} palette={palette}>{body(b.body)}</Fold>;
     case "term": return <TermSection title={b.title} palette={palette}>{body(b.body)}</TermSection>;
     case "rule": return <RuleRow title={b.title} level={b.level} applies={b.applies} book={b.book} open={b.open} palette={palette} actions={actions} />;

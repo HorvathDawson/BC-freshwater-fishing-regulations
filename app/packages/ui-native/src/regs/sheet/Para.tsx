@@ -3,6 +3,7 @@
  * tokens.md §5 `Sheet · says` (Archivo 400 15) and `Sheet · example` (12.48 in sub). No logic: every word is the VM's.
  */
 import { Text, View } from "react-native";
+import type { ListItem } from "@app/core";
 import type { Line } from "@app/core";
 import { TYPE, type TextStyle } from "../../type";
 import type { Palette } from "../../theme";
@@ -41,14 +42,29 @@ export function Quote({ text, palette }: { text: string; palette: Palette }) {
   );
 }
 
-/** a list, one item per row with a square marker (`ul.tips`, the possession examples) */
-export function List({ items, palette, actions }: { items: readonly Line[]; palette: Palette; actions: KeepActions }) {
+/**
+ * A list: one item per row with a square marker (`ul.tips`, What to look for); `small`: the possession examples
+ * (`ul.posx`) — no marker, small words in sub, each item's stressed words after them in bold ink (T41 walk).
+ */
+export function List({ items, tone, palette, actions }: { items: readonly ListItem[]; tone?: "small"; palette: Palette; actions: KeepActions }) {
+  if (tone === "small") {
+    return (
+      <View style={{ marginTop: 2, gap: 3 }}>
+        {items.map((it, i) => (
+          <Text key={i} style={[TYPE.meta, { color: palette.sub }]}>
+            <LineText line={it.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} />
+            {it.strong && <>{" "}<Text style={[TYPE.metaBold, { color: palette.ink }]}>{it.strong}</Text></>}
+          </Text>
+        ))}
+      </View>
+    );
+  }
   return (
     <View style={{ marginTop: 6, gap: 4 }}>
-      {items.map((l, i) => (
+      {items.map((it, i) => (
         <View key={i} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
           <View style={{ width: 5, height: 5, marginTop: 8, backgroundColor: palette.ink }} />
-          <View style={{ flex: 1 }}><LineText line={l} style={TYPE.regsBody} color={palette.ink} palette={palette} actions={actions} /></View>
+          <View style={{ flex: 1 }}><LineText line={it.line} style={TYPE.regsBody} color={palette.ink} palette={palette} actions={actions} /></View>
         </View>
       ))}
     </View>

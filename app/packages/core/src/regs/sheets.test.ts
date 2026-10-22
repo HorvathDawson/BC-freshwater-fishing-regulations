@@ -121,6 +121,13 @@ describe("pos: (prototype sheetHtml pos branch, rows 25 own examples)", () => {
       nested: ["rule:z2:possession_quota::possession_quota.r1"] });
     expect(lines(vm).lines.some((l) => l.includes("5 trout"))).toBe(false);
   });
+  it("(T41 walk) as the prototype draws it: the term's words small (.glex), the examples a small list, the doubles words held apart to be bold (.posx b)", () => {
+    const vm = sheetOf(ctx(), "pos:pos")!;
+    const [, says, , list] = vm.blocks;
+    expect({ says: says!.k === "para" ? says!.tone : null, list }).toEqual({ says: "small", list: { k: "list", tone: "small", items: [
+      { line: [{ t: "text", s: "With 4 trout and char a day you may have 8: 2 days’ fish." }], strong: "Possession doubles the 4 a day, not the 2 from streams." },
+      { line: [{ t: "text", s: "With 15 whitefish a day you may have 30: 2 days’ fish." }], strong: null }] } });
+  });
   it("7. no own example: the term's generic one", () => {
     expect(lines(sheetOf(ctx({ own: [] }), "pos:pos")).lines.filter((l) => l.startsWith("For example")))
       .toEqual(["For example: With a daily quota of 5 trout you may have 10: 2 days' fish."]);
@@ -139,6 +146,11 @@ describe("hatch (page v36 adiposeHtml + the hatchery_wild term)", () => {
       ["Wild · adipose fin there", "Hatchery · clipped, a healed scar instead",
         "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
         "Hatchery or wild (adipose fin)"], "Rule book p.13 ↗ p.80 ↗", [{ summary: "In the book’s words", open: false }]]);
+  });
+  it("(T41 walk) drawn as the prototype's .htw: the term is a small heading and its words are small (sub), not a second sheet's body", () => {
+    const vm = sheetOf(ctx(), "hatch")!;
+    expect(vm.blocks.map((b) => (b.k === "para" ? `para:${b.tone ?? "plain"}` : b.k === "head" ? `head:${b.text}` : b.k)))
+      .toEqual(["adipose", "para:small", "head:Hatchery or wild (adipose fin)", "para:small", "fold", "pages"]);
   });
 });
 

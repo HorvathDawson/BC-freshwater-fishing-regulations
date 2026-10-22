@@ -15,12 +15,14 @@ import { RegsPress } from "../RegsPress";
 const LINE = { w: 44, h: TYPE.regsBody.lineHeight } as const;
 
 function Row({ r, palette, actions }: { r: SourceRowVM; palette: Palette; actions: KeepActions }) {
-  const words = (
-    <Text style={[TYPE.regsBody, { color: palette.ink }]}>
-      {r.title ? <Text style={{ fontFamily: TYPE.regsBodyBold.fontFamily }}>{`${r.title} `}</Text> : null}
-      <Text>{r.quote}</Text>
-    </Text>
-  );
+  // the prototype's .srow: a titled rule's title bold on its own line, the book's words under it — quoted, small, in sub
+  // (`q.sq`); an untitled one is its words alone
+  const words = r.title ? (
+    <View>
+      <Text style={[TYPE.regsBodyBold, { color: palette.ink }]}>{r.title}</Text>
+      <Text style={[TYPE.meta, { color: palette.sub, marginTop: 1 }]}>{WORDS.SHEET_QUOTED(r.quote)}</Text>
+    </View>
+  ) : <Text style={[TYPE.regsBody, { color: palette.ink }]}>{r.quote}</Text>;
   return (
     <View style={{ paddingVertical: 6 }}>
       {r.key ? <RegsPress accessibilityRole="button" accessibilityLabel={r.title ?? r.quote} onPress={() => actions.onSheet(`rule:${r.key}`)} box={LINE}>{words}</RegsPress> : words}

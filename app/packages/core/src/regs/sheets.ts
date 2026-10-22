@@ -83,11 +83,11 @@ function possessionSheet(key: SheetKey, ctx: SheetCtx): SheetVM | null {
   const t = termOf(ctx.inp, o.term), r = ctx.inp.rules.byKey?.(o.rule) ?? null;
   const blocks: SheetBlock[] = [para(o.says)];
   if (t && t.says && norm1(t.says) !== norm1(o.says)
-      && !norm1(t.says).includes(norm1(o.says).replace(/^possession: ?/, "").replace(/\.$/, ""))) blocks.push(para(t.says));
+      && !norm1(t.says).includes(norm1(o.says).replace(/^possession: ?/, "").replace(/\.$/, ""))) blocks.push(para(t.says, "small"));
   const own = (ctx.inp.frames?.rows.rows ?? []).map((row) => row.group?.possession).filter((p) => !!p);
   if (own.length) {
     blocks.push({ k: "example", text: [text(WORDS.SHEET_FOR_EXAMPLE)] });
-    blocks.push({ k: "list", items: own.map((p): Line => (p!.doubles ? [text(p!.example), text(" "), text(p!.doubles)] : [text(p!.example)])) });
+    blocks.push({ k: "list", tone: "small", items: own.map((p) => ({ line: [text(p!.example)], strong: p!.doubles || null })) });
   } else if (t?.example) blocks.push({ k: "example", text: [text(WORDS.SHEET_FOR_EXAMPLE), text(" "), text(t.example)] });
   if (t?.quote) blocks.push({ k: "fold", summary: WORDS.SHEET_RULE_BOOK_WORDS, open: false, body: [{ k: "quote", text: t.quote }] });
   const book = ruleBookLine(r);
@@ -104,7 +104,8 @@ function hatchSheet(key: SheetKey, inp: RegsInputs): SheetVM {
       { variant: "clipped", caption: [text(WORDS.SHEET_HATCH_CLIPPED), text(WORDS.SHEET_HATCH_CLIPPED_CAP)] }] },
     para(WORDS.SHEET_HATCH_LOOK, "small"),
   ];
-  if (hw) blocks.push({ k: "term", id: hw.id, title: hw.term, body: glossBlocks(inp, hw) });
+  // the prototype's .htw: the term under a small heading, its words small (sub) — a note under the drawings, not a second sheet
+  if (hw) blocks.push({ k: "head", text: hw.term }, ...glossBlocks(inp, hw).map((b): SheetBlock => (b.k === "para" ? { ...b, tone: "small" } : b)));
   return { key, title: WORDS.SHEET_HATCH_TITLE, sub: WORDS.SHEET_HATCH_SUB, blocks };
 }
 
@@ -199,7 +200,7 @@ export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
           booksOf(b.line, out.pages); keysOf(b.line, nested); break;
         }
         case "head": case "quote": str(b.text); break;
-        case "list": b.items.forEach(line); break;
+        case "list": b.items.forEach((it) => line(it.strong ? [...it.line, text(" "), text(it.strong)] : it.line)); break;
         case "fold": out.folds.push({ summary: b.summary, open: false }); str(b.summary); walk(b.body); break;
         case "term": str(b.title); walk(b.body); break;
         case "adipose": b.figures.forEach((f) => line(f.caption)); break;

@@ -1618,60 +1618,58 @@
      "tone": "small"
     },
     {
-     "body": [
+     "k": "head",
+     "text": "Hatchery or wild (adipose fin)"
+    },
+    {
+     "k": "para",
+     "text": [
       {
-       "k": "para",
-       "text": [
-        {
-         "s": "Hatchery trout and steelhead are marked before release by removing the adipose fin — the small fleshy fin on the back between the dorsal fin and the tail — so a hatchery fish has a healed scar there. A fish with its adipose fin (or a fresh, unhealed wound) is wild. Where only hatchery fish may be kept, every wild one goes back.",
-         "t": "text"
-        }
-       ]
-      },
-      {
-       "body": [
-        {
-         "k": "quote",
-         "text": "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin. Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin, or will have an unhealed scar in place of that fin, if missing."
-        }
-       ],
-       "k": "fold",
-       "open": false,
-       "summary": "In the book’s words"
-      },
-      {
-       "k": "pages",
-       "line": [
-        {
-         "s": "Rule book",
-         "t": "text"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "bare": true,
-         "pdf": 15,
-         "printed": 13,
-         "t": "book"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "bare": true,
-         "pdf": 86,
-         "printed": 80,
-         "t": "book"
-        }
-       ]
+       "s": "Hatchery trout and steelhead are marked before release by removing the adipose fin — the small fleshy fin on the back between the dorsal fin and the tail — so a hatchery fish has a healed scar there. A fish with its adipose fin (or a fresh, unhealed wound) is wild. Where only hatchery fish may be kept, every wild one goes back.",
+       "t": "text"
       }
      ],
-     "id": "hatchery_wild",
-     "k": "term",
-     "title": "Hatchery or wild (adipose fin)"
+     "tone": "small"
+    },
+    {
+     "body": [
+      {
+       "k": "quote",
+       "text": "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin. Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin, or will have an unhealed scar in place of that fin, if missing."
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "In the book’s words"
+    },
+    {
+     "k": "pages",
+     "line": [
+      {
+       "s": "Rule book",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": 15,
+       "printed": 13,
+       "t": "book"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "bare": true,
+       "pdf": 86,
+       "printed": 80,
+       "t": "book"
+      }
+     ]
     }
    ],
    "key": "hatch",
@@ -3412,7 +3410,8 @@
        "s": "The fish you have with you at any time — in camp, a cooler or a vehicle.",
        "t": "text"
       }
-     ]
+     ],
+     "tone": "small"
     },
     {
      "k": "example",
@@ -3425,34 +3424,36 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "With 4 trout and char a day you may have 8: 2 days’ fish.",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "s": "Possession doubles the 4 a day, not the 2 from streams.",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "With 15 whitefish a day you may have 30: 2 days’ fish.",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "With 20 bass a day you may have 40: 2 days’ fish.",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "With 4 trout and char a day you may have 8: 2 days’ fish.",
+         "t": "text"
+        }
+       ],
+       "strong": "Possession doubles the 4 a day, not the 2 from streams."
+      },
+      {
+       "line": [
+        {
+         "s": "With 15 whitefish a day you may have 30: 2 days’ fish.",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "With 20 bass a day you may have 40: 2 days’ fish.",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
-     "k": "list"
+     "k": "list",
+     "tone": "small"
     },
     {
      "body": [
@@ -4974,24 +4975,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Deep, flat body covered in black speckles",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Large, rounded back and bottom fins",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Mouth reaches the front of the eye",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Deep, flat body covered in black speckles",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Large, rounded back and bottom fins",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Mouth reaches the front of the eye",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5026,24 +5036,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Red or orange slash under the lower jaw (may be faint)",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Large mouth, reaching well past the eye",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Black spots all over, more toward the tail",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Red or orange slash under the lower jaw (may be faint)",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Large mouth, reaching well past the eye",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Black spots all over, more toward the tail",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5078,30 +5097,42 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Pale pink or cream spots, smaller than the pupil",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "No worm-like markings on the back fin",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "White front edges on the lower fins",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Bull trout: big, broad, flat head",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Pale pink or cream spots, smaller than the pupil",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "No worm-like markings on the back fin",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "White front edges on the lower fins",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Bull trout: big, broad, flat head",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5127,24 +5158,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Worm-like markings on the back and back fin",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Red spots with blue halos",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Orange lower fins with white front edges",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Worm-like markings on the back and back fin",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Red spots with blue halos",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Orange lower fins with white front edges",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5170,24 +5210,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Black and red spots, many with pale halos",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Tail with few or no spots",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Orange-rimmed adipose fin",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Black and red spots, many with pale halos",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Tail with few or no spots",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Orange-rimmed adipose fin",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5222,24 +5271,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "No black spots on the sides",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Dark blue back, bright silver sides",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Long fin under the tail end (13 or more rays)",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "No black spots on the sides",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Dark blue back, bright silver sides",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Long fin under the tail end (13 or more rays)",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5265,24 +5323,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Dark stripe along the side",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Jaw reaches past the back of the eye",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Front and back fins almost separate",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Dark stripe along the side",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Jaw reaches past the back of the eye",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Front and back fins almost separate",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5308,24 +5375,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Pale spots all over a dark body, no red",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Worm-like light markings on the back and back fin",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Deeply forked tail",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Pale spots all over a dark body, no red",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Worm-like light markings on the back and back fin",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Deeply forked tail",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5351,24 +5427,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Large scales, silver sides",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Small mouth under a blunt snout",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Has an adipose fin; no spots",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Large scales, silver sides",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Small mouth under a blunt snout",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Has an adipose fin; no spots",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5394,24 +5479,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Pink or red band along the side",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Small black spots, mostly above the middle of the side",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Rows of black spots on the tail",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Pink or red band along the side",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Small black spots, mostly above the middle of the side",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Rows of black spots on the tail",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5446,24 +5540,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "A rainbow trout that went to sea: bright silver",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Faint spots, mostly on the back and tail",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Hatchery steelhead are missing this small fin (the adipose fin)",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "A rainbow trout that went to sea: bright silver",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Faint spots, mostly on the back and tail",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Hatchery steelhead are missing this small fin (the adipose fin)",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }
@@ -5489,24 +5592,33 @@
     },
     {
      "items": [
-      [
-       {
-        "s": "Rows of bony plates, no scales",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Barbels under a pointed snout",
-        "t": "text"
-       }
-      ],
-      [
-       {
-        "s": "Upper lobe of the tail much longer",
-        "t": "text"
-       }
-      ]
+      {
+       "line": [
+        {
+         "s": "Rows of bony plates, no scales",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Barbels under a pointed snout",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      },
+      {
+       "line": [
+        {
+         "s": "Upper lobe of the tail much longer",
+         "t": "text"
+        }
+       ],
+       "strong": null
+      }
      ],
      "k": "list"
     }

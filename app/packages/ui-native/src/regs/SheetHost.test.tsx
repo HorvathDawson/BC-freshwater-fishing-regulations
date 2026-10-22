@@ -152,7 +152,9 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 });
 
 /** whitespace dropped: the golden joins separate elements with one space, the components draw them as separate Text */
-const bare = (s: string) => s.replace(/\s+/g, "");
+// curly quotes dropped on both sides: the prototype's `q.sq` draws its quotes in CSS (not in the golden's textContent), the
+// app draws them as text (T41: a source row's book words, quoted under its title)
+const bare = (s: string) => s.replace(/\s+/g, "").replace(/[“”]/g, "");
 
 describe("C. golden mount: every vedder_1010 sheet draws every golden line, in order", () => {
   type G = { title: string; lines: string[] };

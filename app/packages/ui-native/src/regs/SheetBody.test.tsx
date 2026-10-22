@@ -14,6 +14,8 @@ afterEach(cleanup);
 
 const t = (s: string) => ({ t: "text" as const, s });
 const book = (printed: number, pdf: number | null) => ({ t: "book" as const, printed, pdf });
+const rgb = (h: string) => `rgb(${[1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(", ")})`;
+const LIGHT_RGB = { sub: rgb(LIGHT.sub), ink: rgb(LIGHT.ink) };
 const GROUP = (vedder1010 as unknown as { keep: { groups: GroupVM[] } }).keep.groups[0]!;
 
 function mount(b: SheetBlock) {
@@ -36,7 +38,7 @@ const CASES: [string, SheetBlock, string[]][] = [
   ["example", { k: "example", text: [t("For example:"), t(" "), t("With 4 trout a day you may have 8.")] }, ["For example: With 4 trout a day you may have 8."]],
   ["head", { k: "head", text: "How this was decided" }, ["How this was decided"]],
   ["quote", { k: "quote", text: "Waste the fish you catch." }, ["Waste the fish you catch."]],
-  ["list", { k: "list", items: [[t("Pink or red band")], [t("Small black spots")]] }, ["Pink or red band", "Small black spots"]],
+  ["list", { k: "list", items: [{ line: [t("Pink or red band")], strong: null }, { line: [t("Small black spots")], strong: null }] }, ["Pink or red band", "Small black spots"]],
   ["term", { k: "term", id: "hatchery_wild", title: "Hatchery or wild (adipose fin)", body: [{ k: "para", text: [t("A fish with its fin is wild.")] }] },
     ["Hatchery or wild (adipose fin)", "A fish with its fin is wild."]],
   ["rule", { k: "rule", title: "No netting", level: "This water’s", applies: ["A B.C.-wide rule — everywhere in B.C."], book: [book(8, 10)], open: "rule:zp:p::p.r1" },
@@ -64,6 +66,7 @@ const CASES: [string, SheetBlock, string[]][] = [
     ["Mouth → Canyon", "open", "From the mouth up to the canyon", "Canyon → Lake", "closed"]],
   ["rowTitle", { k: "rowTitle", title: "Black crappie", scope: "Region 2-wide" }, ["Black crappie", "Region 2-wide"]],
   ["group", { k: "group", group: GROUP, titled: true }, [GROUP.title, "See every regulation line ›"]],
+  ["list (small, stressed)", { k: "list", tone: "small", items: [{ line: [t("With 4 a day you may have 8.")], strong: "Possession doubles the 4." }] }, ["With 4 a day you may have 8. Possession doubles the 4."]],
 ];
 
 describe("<SheetBlockView>: one case per block kind", () => {
@@ -71,6 +74,24 @@ describe("<SheetBlockView>: one case per block kind", () => {
     const m = mount(b);
     expect(words.map((w) => [w, m.once(w)])).toEqual(words.map((w) => [w, 1]));
     expect(m.unnamed.map((e) => e.outerHTML.slice(0, 80))).toEqual([]);
+  });
+
+  it("(T41 walk) a small list is the prototype's ul.posx: no markers, the words small in sub, the stressed words bold in ink", () => {
+    const m = mount({ k: "list", tone: "small", items: [{ line: [t("With 4 a day you may have 8.")], strong: "Possession doubles the 4." }, { line: [t("With 15 a day: 30.")], strong: null }] });
+    const leaf = (s: string) => [...m.r.container.querySelectorAll<HTMLElement>("*")].filter((e) => e.textContent === s && ![...e.children].some((c) => c.textContent === s)).pop()!;
+    const look = (e: HTMLElement) => { const c = getComputedStyle(e); return [c.fontSize, c.fontFamily, c.color]; };
+    const markers = [...m.r.container.querySelectorAll<HTMLElement>("div")].filter((e) => !e.textContent && getComputedStyle(e).backgroundColor === LIGHT_RGB.ink);   // the plain list's square marker
+    expect({ plain: look(leaf("With 4 a day you may have 8.")), stressed: look(leaf("Possession doubles the 4.")), markers: markers.length })
+      .toEqual({ plain: ["12.48px", "Archivo_400Regular", LIGHT_RGB.sub], stressed: ["12.48px", "Archivo_700Bold", LIGHT_RGB.ink], markers: 0 });
+  });
+
+  it("(T41 walk) a source row as the prototype's .srow: the title bold on its line, the book's words under it — quoted, small, in sub", () => {
+    const m = mount({ k: "sources", groups: [{ where: "Region 2 · region-wide", rows: [{ key: "z2:t::t.r1", title: "Keep up to 4", quote: "Trout/char: 4", role: "Sets the number", book: [] }] }] });
+    const leaf = (s: string) => [...m.r.container.querySelectorAll<HTMLElement>("*")].filter((e) => e.textContent === s && ![...e.children].some((c) => c.textContent === s)).pop() ?? null;
+    const t = leaf("Keep up to 4"), q = leaf("“Trout/char: 4”");
+    const look = (e: HTMLElement | null) => { if (!e) return null; const c = getComputedStyle(e); return [c.fontSize, c.color]; };
+    expect({ title: look(t), quote: look(q), ownLine: !!t && !!q && t.tagName === "DIV" && q.tagName === "DIV" && !t.contains(q) && !q.contains(t) })   // a Text inside a Text is an inline span
+      .toEqual({ title: ["15px", LIGHT_RGB.ink], quote: ["12.48px", LIGHT_RGB.sub], ownLine: true });
   });
 
   it("fold: closed by default (its body is not drawn), a named button; pressed, its body is", () => {
