@@ -171,8 +171,133 @@ def test_id_index_self_identity_beats_an_inherited_ref():
                                    ref_ids=("gnis:39325",)),
     }
     idx = build_id_index(reg)
-    assert idx["gnis:39325"] == "gnis:39325"
-    assert idx["gnis:10494"] == "gnis:10494"
+    assert idx == {"gnis:10494": ("gnis:10494",), "gnis:39325": ("gnis:39325",)}
+
+
+# --------------------------------------------------------------------------------------------
+# A lake drawn as SEVERAL polygons shares its own gnis (owner 2026-10-22: "in region 2-8 only one
+# twin lakes gets the closure it should get both the lakes"). The id index handed `gnis:30212` to
+# the first polygon only, so the MU 2-8 override bound one of the two Twin Lakes. A typed id no
+# item owns as its own id resolves to EVERY lake/wetland item carrying it; streams keep one.
+
+def _twin_lakes_registry():
+    return {
+        "wbk:329291951": _it("wbk:329291951", "Twin Lakes", mus=("2-8",), kind="lake",
+                             variants=("TWIN LAKES", "Twin Lakes"),
+                             ref_ids=("gnis:30212", "wbk:329291951")),
+        "wbk:329291976": _it("wbk:329291976", "Twin Lakes", mus=("2-8",), kind="lake",
+                             variants=("TWIN LAKES", "Twin Lakes"),
+                             ref_ids=("gnis:30212", "wbk:329291976")),
+    }
+
+
+_TWIN_OVERRIDE = {"type": "override", "gnis_ids": ["30212"], "note": "2 polygons",
+                  "criteria": {"name_verbatim": "TWIN LAKES", "region": "2", "mus": ["2-8"]}}
+
+
+def test_a_lake_drawn_as_several_polygons_binds_every_polygon():
+    from pipeline.regs.matching.matcher import MatchResult
+
+    r = match_rows([{"water": "TWIN LAKES", "region": "REGION 2", "mu": "2-8"}],
+                   _twin_lakes_registry(), [_TWIN_OVERRIDE])[0]
+    assert r == MatchResult(index=0, water="TWIN LAKES", item_id="wbk:329291951", status="override",
+                            reason="2 polygons", also=("wbk:329291976",), via="override")
+
+
+def test_id_index_fans_an_unowned_lake_gnis_out_in_registry_order():
+    from pipeline.regs.matching.matcher import build_id_index
+
+    assert build_id_index(_twin_lakes_registry()) == {
+        "wbk:329291951": ("wbk:329291951",),
+        "wbk:329291976": ("wbk:329291976",),
+        "gnis:30212": ("wbk:329291951", "wbk:329291976"),
+    }
+
+
+def test_fraser_style_inherited_gnis_binds_only_the_river_that_owns_it():
+    """The mainstem gnis on a side channel's name tuples must not fan out: the river owns it."""
+    from pipeline.regs.matching.matcher import MatchResult
+
+    reg = {
+        "gnis:10494": _it("gnis:10494", "Annacis Channel", mus=("2-4",),
+                          ref_ids=("gnis:10494", "gnis:39325")),
+        "blk:356": _it("blk:356", "Fraser River", mus=("2-4",), ref_ids=("blk:356", "gnis:39325")),
+        "gnis:39325": _it("gnis:39325", "Fraser River", mus=("2-4",), ref_ids=("gnis:39325",)),
+    }
+    ov = {"type": "override", "gnis_ids": ["39325"],
+          "criteria": {"name_verbatim": "FRASER RIVER", "region": "2", "mus": ["2-4"]}}
+    r = match_rows([{"water": "FRASER RIVER", "region": "REGION 2", "mu": "2-4"}], reg, [ov])[0]
+    assert r == MatchResult(index=0, water="FRASER RIVER", item_id="gnis:39325", status="override",
+                            reason="override", via="override")
+
+
+def test_an_unowned_stream_gnis_still_binds_only_the_first_carrier():
+    """Two side channels inherit a mainstem gnis that no item owns: today's one-item answer holds."""
+    from pipeline.regs.matching.matcher import build_id_index
+
+    reg = {
+        "blk:1": _it("blk:1", "Blind Slough", ref_ids=("blk:1", "gnis:14589")),
+        "blk:2": _it("blk:2", "Stave Channel", ref_ids=("blk:2", "gnis:14589")),
+    }
+    assert build_id_index(reg) == {"blk:1": ("blk:1",), "blk:2": ("blk:2",), "gnis:14589": ("blk:1",)}
+
+
+def test_an_unowned_gnis_shared_by_a_lake_and_a_stream_does_not_fan_out():
+    from pipeline.regs.matching.matcher import build_id_index
+
+    reg = {
+        "wbk:9": _it("wbk:9", "Long Lake", kind="lake", ref_ids=("gnis:5", "wbk:9")),
+        "blk:7": _it("blk:7", "Long Creek", ref_ids=("blk:7", "gnis:5")),
+    }
+    assert build_id_index(reg) == {"wbk:9": ("wbk:9",), "blk:7": ("blk:7",), "gnis:5": ("wbk:9",)}
+
+
+def test_an_owned_gnis_never_fans_out_to_lakes_that_carry_it():
+    """A lake polygon carrying its through-river's gnis (GNIS_NAME_2) answers to the river's item."""
+    from pipeline.regs.matching.matcher import build_id_index
+
+    reg = {
+        "wbk:9": _it("wbk:9", "Yakoun Lake", kind="lake", ref_ids=("gnis:5", "wbk:9")),
+        "wbk:8": _it("wbk:8", "Yakoun Lake", kind="lake", ref_ids=("gnis:5", "wbk:8")),
+        "gnis:5": _it("gnis:5", "Yakoun River", ref_ids=("gnis:5",)),
+    }
+    assert build_id_index(reg)["gnis:5"] == ("gnis:5",)
+
+
+def _matcher_mutant(old, new):
+    import inspect
+    import textwrap
+
+    from pipeline.regs.matching import matcher as M
+
+    src = textwrap.dedent(inspect.getsource(M.build_id_index))
+    assert src.count(old) == 1, f"{old!r} moved; update this pin"
+    ns = dict(vars(M))
+    exec(compile(src.replace(old, new), M.__file__, "exec"), ns)
+    return ns["build_id_index"]
+
+
+def test_mutation_pin_the_polygon_kind_gate_is_what_holds_streams_to_one_item():
+    reg = {
+        "blk:1": _it("blk:1", "Blind Slough", ref_ids=("blk:1", "gnis:14589")),
+        "blk:2": _it("blk:2", "Stave Channel", ref_ids=("blk:2", "gnis:14589")),
+    }
+    mutant = _matcher_mutant("registry[i].kind in _POLYGON_KINDS", "True")
+    assert mutant(reg)["gnis:14589"] == ("blk:1", "blk:2")
+
+
+def test_mutation_pin_the_fan_out_is_what_binds_the_second_twin_lake():
+    mutant = _matcher_mutant("idx[r] = tuple(ids)", "idx[r] = tuple(ids[:1])")
+    assert mutant(_twin_lakes_registry())["gnis:30212"] == ("wbk:329291951",)
+
+
+def test_mutation_pin_self_identity_is_what_holds_the_fraser():
+    reg = {
+        "gnis:10494": _it("gnis:10494", "Annacis Channel", ref_ids=("gnis:10494", "gnis:39325")),
+        "gnis:39325": _it("gnis:39325", "Fraser River", ref_ids=("gnis:39325",)),
+    }
+    mutant = _matcher_mutant("if r in idx:", "if False:")
+    assert mutant(reg)["gnis:39325"] == ("gnis:10494",)
 
 
 # --------------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@ NEVER deleted and NEVER silently fall back to name matching.
 Strategy (conservative — a wrong match is worse than no match):
   1. Override wins. Match the row's water name to an override (region/MU-scoped). Then:
        - `skip`            -> the row is intentionally dropped (in-season correction, not-found, …).
-       - typed ids         -> resolve each against the registry's `id_index` (ref_id -> item_id, built
+       - typed ids         -> resolve each against the registry's `id_index` (ref_id -> item_id(s), built
                               from every item's `ref_ids`). Any that hit a NAMED item -> `override`
                               match. Ids that hit NOTHING (a nameless oxbow channel by wsc, an unnamed
                               lake by wbk, an admin/area target, a poly/fid needing an FWA lookup) are
@@ -124,22 +124,56 @@ def build_name_index(registry: dict[str, RegistryItem]) -> dict[str, list[str]]:
     return idx
 
 
-def build_id_index(registry: dict[str, RegistryItem]) -> dict[str, str]:
-    """ref_id (gnis:/wbk:/wsc:/blk:) -> item_id, from every item's `ref_ids`. The bridge that lets a
-    curated typed-id override resolve to whatever registry item now owns that FWA id (incl. a lake's
-    GNIS_ID_1/2/3).
+#: Item kinds drawn as a POLYGON keyed by waterbody key (`WATERBODY_KINDS`). A gnis such an item
+#: carries is one of the polygon's own gazetted names, so it may fan out — see `build_id_index`.
+_POLYGON_KINDS = frozenset({"lake", "wetland"})
 
-    SELF-IDENTITY WINS, then first writer. A ref is NOT unique: every side channel that inherited the
-    mainstem's name also carries the mainstem's gnis on its name tuples, so `gnis:39325` (the Fraser)
-    appears in the ref_ids of all 15 Fraser-channel items. Plain first-writer-wins then handed
-    `gnis:39325` to whichever item happened to be built first — Annacis Channel, ONE section — so the
-    Fraser overrides pinned the whole river onto a side channel. The item whose OWN id is that ref is
-    always the right answer, so it is claimed up front (5 rivers were misdirected this way: Fraser,
-    Stave, Columbia, Pitt, Nelson Slough)."""
-    idx: dict[str, str] = {iid: iid for iid, it in registry.items() if it.kind != "area"}
+
+def build_id_index(registry: dict[str, RegistryItem]) -> dict[str, tuple[str, ...]]:
+    """ref_id (gnis:/wbk:/wsc:/blk:) -> the item_id(s) it resolves to, from every item's `ref_ids`.
+    The bridge that lets a curated typed-id override resolve to whatever registry item(s) now carry
+    that FWA id (incl. a lake's GNIS_ID_1/2/3). Every value is a non-empty tuple in registry order;
+    the first is the `item_id` a match reports, the rest its `also`.
+
+    1. SELF-IDENTITY WINS. A ref is NOT unique: every side channel that inherited the mainstem's name
+       also carries the mainstem's gnis on its name tuples, so `gnis:39325` (the Fraser) appears in
+       the ref_ids of all 15 Fraser-channel items. Plain first-writer-wins handed `gnis:39325` to
+       whichever item happened to be built first — Annacis Channel, ONE section — so the Fraser
+       overrides pinned the whole river onto a side channel. The item whose OWN id is that ref is
+       always the right answer, so it is claimed up front and nothing else gets it (5 rivers were
+       misdirected this way: Fraser, Stave, Columbia, Pitt, Nelson Slough).
+
+    2. A REF NO ITEM OWNS, CARRIED ONLY BY LAKE/WETLAND ITEMS, RESOLVES TO EVERY ONE OF THEM. Lake
+       items are keyed by wbk, so a lake's gnis is never an item id, and a lake FWA draws as several
+       polygons gives each polygon the same gnis. First-writer-wins kept one: the MU 2-8 Twin Lakes
+       closure pins `gnis:30212`, both polygons carry it, and it reached only one of them (owner
+       2026-10-22; 15 multi-polygon catalogue entries the same way). The registry stores no
+       per-gnis provenance, so "the polygon's own gnis" is told from registry facts:
+         - kind: only a POLYGON item (lake/wetland). Side-channel inheritance — the case rule 1
+           exists for — is a stream-node naming step and never puts a gnis on a lake.
+         - not owned: a lake's gnis that IS an item id belongs to that item (a through-river's gnis
+           hung on the lake as GNIS_NAME_2 answers to the river's gnis-keyed item), so rule 1
+           already claimed it and it never fans out.
+         - every carrier a polygon: if any stream (or area) also carries the ref, the gnis is a
+           stream's name the lake borrowed, and today's single answer stands.
+       What is left is a gnis on a polygon's own gazetted name tuples (GNIS_ID_1/2/3, the registry
+       build's `own_gnis`). That includes a GROUP name gazetted on each member — Cameron Lakes on
+       the two North Cameron Lake polygons, Nechako Reservoir on Ootsa/Tahtsa — and binding the
+       group name to every member is what the gazetteer says it names.
+
+    3. Otherwise first writer (a stream ref no item owns keeps today's one-item answer)."""
+    idx: dict[str, tuple[str, ...]] = {iid: (iid,) for iid, it in registry.items() if it.kind != "area"}
+    carriers: dict[str, list[str]] = {}
     for iid, it in registry.items():
         for r in it.ref_ids:
-            idx.setdefault(r, iid)
+            carriers.setdefault(r, []).append(iid)
+    for r, ids in carriers.items():
+        if r in idx:
+            continue                                              # 1. self-identity
+        if all(registry[i].kind in _POLYGON_KINDS for i in ids):
+            idx[r] = tuple(ids)                                   # 2. every polygon carrying it
+        else:
+            idx[r] = (ids[0],)                                    # 3. first writer
     return idx
 
 
@@ -299,7 +333,7 @@ def _name_resolve(index: int, water: str, lookup: str, via: str, registry, name_
 
 
 def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_index: dict[str, list[str]],
-              id_index: dict[str, str], override_index: dict[str, list[dict]]) -> MatchResult:
+              id_index: dict[str, tuple[str, ...]], override_index: dict[str, list[dict]]) -> MatchResult:
     water = row.get("water", "")
     key = _norm(water)
     rn, row_mus = region_num(row), parse_reg_mus(row)
@@ -332,11 +366,10 @@ def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_ind
         admin = tuple(str(a) for a in e.get("admin_targets", []))
         resolved, unresolved = [], []
         for t in typed:
-            hit = id_index.get(t)
-            if hit and hit not in resolved:
-                resolved.append(hit)
-            elif not hit:
+            hits = id_index.get(t, ())
+            if not hits:
                 unresolved.append(t)
+            resolved.extend(h for h in hits if h not in resolved)
         if resolved:
             return MatchResult(index, water, resolved[0], "override",
                                reason=(note or "override"), also=tuple(resolved[1:]),
