@@ -96,6 +96,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED: lake modes prepared-not-fed (6 commits 2ce772dd..f13f623a + layers sheet stocking row removed): optional `lakes`
+  slot + reader + engine channels kept; FFSBC fetch, lake_facts step and derived data removed; Stocked/Depth greyed
+  ("No data yet") until a release carries values. Strict 6827, smoke, release/lake/deliver tests 27 pass.
 - T48 (owner 2026-10-21, recommended + accepted pattern): search field in the top bar (menu · search · sync slot), opens
   results over the SAME mounted map, one placeholder line per opening from a words list; bottom bar Map/Conditions
   options mocked for the owner first. Build after the map-chrome lanes merge.
