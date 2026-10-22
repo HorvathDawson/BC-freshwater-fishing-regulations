@@ -31,7 +31,7 @@ import { SEARCH_MAP, WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSu
          type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource } from "@app/data";
 import type { Camera, MapProps, TileEndpoints } from "@app/map";
-import { NO_SEARCH, isSelected, resultGroups, rowStatus, searchStep, useSearch,
+import { NO_SEARCH, isSelected, resultGroups, rowStatus, searchStep, useBackLayer, useSearch,
          useSearchView, useStatusIndex, type StatusSource,
          type SearchAction, type SearchMemory, type SearchResults, type SearchTarget }
   from "@app/ui";
@@ -85,6 +85,8 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
     if (next.leave) onPick(next.leave);
   };
   const type = (t: string) => setMem({ q: t, pick: searchStep(pick, { t: "typed" }).pick });
+  // back, everywhere (app/HANDOFF-ui.md): a town's list is a step inside search — back is its "← All results"
+  useBackLayer(pick.town !== null, () => act({ t: "back" }));
   const hits = useSearch(source, q);
   // The day's status of each water, from the same index the map colours by. Today, read once
   // per render — a list is not open across a midnight in any way that matters.

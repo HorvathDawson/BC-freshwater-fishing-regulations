@@ -110,7 +110,9 @@ export default defineConfig({
                 include: ["packages/ui-native/**/*.test.{ts,tsx}",
                           "packages/ui/**/*.render.test.tsx",
                           // N2: both map adapters, mounted over their SDKs mocked at the module boundary
-                          "packages/map/**/*.render.test.tsx"] },
+                          "packages/map/**/*.render.test.tsx",
+                          // back, everywhere: the app's own wiring (systemBack.native / .web) driving the real Shell
+                          "apps/mobile/**/*.test.{ts,tsx}"] },
         resolve: { alias, extensions },
       },
     ],

@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
-import { backDepth, historySync, viewSwipeAction, type HistoryPort } from "./gestures";
+import { backDepth, edgeBackDepth, historySync, viewSwipeAction, type HistoryPort } from "./gestures";
 import { HOME, STACK_CAP, reduce, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
@@ -67,24 +67,45 @@ function app(b: ReturnType<typeof browser>) {
 }
 
 describe("backDepth: how many backs the route holds, counted by the reducer that pops it", () => {
-  it("browse root 0; a water tapped on the Conditions map 1; its map view still 1 (views are lateral); a flow 2", () => {
+  it("browse root 0; the Conditions tab 1 (back goes to the Map tab first); a water tapped there 2; its map view still 2 (views are lateral); a flow 3", () => {
     const tap: RouteAction[] = [{ type: "tab", tab: "conditions" },
                                 { type: "openWater", item: VEDDER, tapSid: 5 as never, view: "conditions" }];
     const rows: [string, RouteAction[]][] = [
       ["root", []],
+      ["conditions tab", tap.slice(0, 1)],
       ["water", tap],
       ["map", [...tap, { type: "view", view: "map" }]],
       ["flow", [...tap, { type: "view", view: "map" }, { type: "flowInto", item: FRASER, part: 0 }]],
     ];
     expect(rows.map(([k, as]) => [k, backDepth(as.reduce(reduce, HOME as Route))]))
-      .toEqual([["root", 0], ["water", 1], ["map", 1], ["flow", 2]]);
+      .toEqual([["root", 0], ["conditions tab", 1], ["water", 2], ["map", 2], ["flow", 3]]);
   });
 
-  it("search's eye is one back (the browser's back returns to search); a water opened there, two", () => {
+  it("search is one back (to the Map tab); its eye two (back returns to search first); a water opened there, three", () => {
     const shown: RouteAction[] = [{ type: "tab", tab: "search" }, { type: "show", item: VEDDER }];
-    expect([backDepth(shown.reduce(reduce, HOME as Route)),
+    expect([backDepth(shown.slice(0, 1).reduce(reduce, HOME as Route)), backDepth(shown.reduce(reduce, HOME as Route)),
             backDepth([...shown, { type: "openWater", item: VEDDER } as RouteAction].reduce(reduce, HOME as Route))])
-      .toEqual([1, 2]);
+      .toEqual([1, 2, 3]);
+  });
+});
+
+describe("edgeBackDepth: the iOS edge swipe has no tab-to-tab step (iOS tabs are not history)", () => {
+  it("a tab root has nothing to swipe back to; a water or spot over it does; open layers count", () => {
+    const at = (as: RouteAction[]) => as.reduce(reduce, HOME as Route);
+    const rows: [string, Route, number][] = [
+      ["map root", HOME, 0],
+      ["search root", at([{ type: "tab", tab: "search" }]), 0],
+      ["spots root", at([{ type: "tab", tab: "spots" }]), 0],
+      ["a spot", at([{ type: "openSpot", id: "s1" }]), 1],
+      ["search's eye", at([{ type: "tab", tab: "search" }, { type: "show", item: VEDDER }]), 1],
+      ["a water from conditions", at([{ type: "tab", tab: "conditions" }, { type: "openWater", item: VEDDER }]), 1],
+      ["a water from the map", at([{ type: "openWater", item: VEDDER }]), 1],
+    ];
+    const layers = 1;
+    expect(rows.map(([k, r, n]) => `${k}: ${edgeBackDepth(r, backDepth(r))}/${n} +sheet ${edgeBackDepth(r, backDepth(r) + layers)}`))
+      .toEqual(["map root: 0/0 +sheet 1", "search root: 0/0 +sheet 1", "spots root: 0/0 +sheet 1",
+                "a spot: 1/1 +sheet 2", "search's eye: 1/1 +sheet 2",
+                "a water from conditions: 1/1 +sheet 2", "a water from the map: 1/1 +sheet 2"]);
   });
 });
 
@@ -152,14 +173,14 @@ describe("the browser's history stays in step with the route", () => {
       .toEqual({ frames: [`${VEDDER}/regs`], history: { entries: [null, 1, 2], at: 1, left: false }, pops: 2 });
   });
 
-  it("a tab change that drops two steps drops two entries in one traversal", () => {
+  it("a tab change that drops three steps drops three entries in one traversal", () => {
     const b = browser(); const a = app(b);
     a.go({ type: "tab", tab: "search" }, { type: "show", item: VEDDER }, { type: "addSpot" });
     const d = backDepth(a.route);
     a.go({ type: "tab", tab: "map" });
     b.flush();
     expect({ d, history: b.state, frames: a.frames(), pops: a.pops })
-      .toEqual({ d: 2, history: { entries: [null, 1, 2], at: 0, left: false }, frames: ["browse:map"], pops: 0 });
+      .toEqual({ d: 3, history: { entries: [null, 1, 2, 3], at: 0, left: false }, frames: ["browse:map"], pops: 0 });
   });
 
   it("the browser's forward is refused: a popped frame is gone, so history returns to where the route is", () => {

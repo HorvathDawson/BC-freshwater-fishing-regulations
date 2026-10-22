@@ -168,6 +168,17 @@ export const PHOTO_WORDS = {
   adding: "Adding the photo…",
 } as const;
 
+/* ---- back, everywhere: leaving a spot being added ---------------------------------------------------------------- */
+
+/** Asked before a back (or Cancel) leaves a spot being added that holds words or photos the reader put in. */
+export const DRAFT_WORDS = {
+  label: "Discard this spot?",
+  title: "Discard this spot?",
+  detail: "The name, notes and photographs you added to it will be thrown away.",
+  keep: "Keep adding",
+  discard: "Discard",
+} as const;
+
 /** The remove button on the n-th photo (1-based), so a screen reader can tell them apart. */
 export function removePhotoLabel(n: number): string {
   return `${PHOTO_WORDS.remove} ${n}`;

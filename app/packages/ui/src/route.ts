@@ -25,7 +25,9 @@
  * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
  * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,
  * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot),
- * returns a water search's eye SHOWED on the map to search, and otherwise stays.
+ * returns a water search's eye SHOWED on the map to search, then returns to the Map tab (the start tab: Android's
+ * "fixed start destination" — back from Search, Conditions or Spots goes to the map, as it does in Google's own apps
+ * and on the web's history), and on the Map tab itself stays: depth 0, where Android's back leaves the app.
  */
 import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
@@ -113,6 +115,7 @@ export function reduce(r: Route, a: RouteAction): Route {
         if (r.adding) return { ...r, adding: false };
         if (r.spot !== null) return { ...r, spot: null };
         if (r.shown !== null) return { ...r, tab: "search", shown: null };
+        if (r.tab !== HOME.tab) return HOME;
         return r;
       default: return r;            // view / part / flowInto mean nothing without a water
     }

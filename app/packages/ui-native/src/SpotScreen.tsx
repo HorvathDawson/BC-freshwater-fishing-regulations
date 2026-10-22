@@ -22,9 +22,9 @@
  */
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
+import { DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
   spotLabel, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
-import { leadUpView, usePhotoUris, type PhotoEdit } from "@app/ui";
+import { leadUpView, useBackLayer, usePhotoUris, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
@@ -90,6 +90,14 @@ export function SpotScreen(p: SpotScreenProps) {
   // Edit with nothing changed is not a decision worth interrupting someone for.
   const leaveEdit = () => (p.dirty ? setConfirm("discard") : p.onDiscard?.());
   const shown = confirm ?? (p.askToDiscard ? "discard" : null);
+  // "Keep it" / "Keep editing": nothing deleted, nothing dropped
+  const keep = () => { setConfirm(null); if (!confirm) p.onKeepEditing?.(); };
+  /*
+   * BACK, ON A SPOT (app/HANDOFF-ui.md "Back, everywhere"): an open question is answered "keep"; an edit is left the
+   * way Cancel leaves it — asking first when something changed, so no back ever drops an unsaved edit unasked; a spot
+   * only viewed is left by the route (to the list). A draft's own steps are the capture's (SpotCapture).
+   */
+  useBackLayer(shown !== null || mode === "edit", () => (shown ? keep() : leaveEdit()));
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -123,7 +131,7 @@ export function SpotScreen(p: SpotScreenProps) {
       {shown && (
         <Confirm palette={palette}
                  kind={shown}
-                 onCancel={() => { setConfirm(null); if (!confirm) p.onKeepEditing?.(); }}
+                 onCancel={keep}
                  onConfirm={() => {
                    setConfirm(null);
                    if (shown === "delete") p.onDelete?.();
@@ -425,11 +433,27 @@ function Trend({ win, palette }: {
   );
 }
 
-/** A destructive or lossy step, asked before it happens. */
-function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
-  palette: Palette; kind: "delete" | "discard";
+/**
+ * A destructive or lossy step, asked before it happens. `draft`: leaving a spot being added that holds what the reader
+ * put in (SpotCapture — a back or Cancel), in `DRAFT_WORDS`.
+ */
+export function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
+  palette: Palette; kind: "delete" | "discard" | "draft";
   onCancel: () => void; onConfirm: () => void; onSaveInstead?: () => void;
 }) {
+  if (kind === "draft")
+    return (
+      <View accessibilityLabel={DRAFT_WORDS.label}
+            style={{ marginBottom: 4, padding: 16, borderRadius: palette.r.box, borderWidth: 1,
+                     borderColor: palette.line2, backgroundColor: palette.wash, gap: 12 }}>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{DRAFT_WORDS.title}</Text>
+        <Text style={{ ...TYPE.small, color: palette.sub }}>{DRAFT_WORDS.detail}</Text>
+        <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+          <Button palette={palette} kind="ghost" label={DRAFT_WORDS.keep} onPress={onCancel} />
+          <Button palette={palette} kind="solid" label={DRAFT_WORDS.discard} onPress={onConfirm} />
+        </View>
+      </View>
+    );
   const del = kind === "delete";
   return (
     <View accessibilityLabel={del ? "Confirm delete" : "Unsaved changes"}

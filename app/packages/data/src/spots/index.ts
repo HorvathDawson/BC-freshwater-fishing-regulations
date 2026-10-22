@@ -18,6 +18,7 @@ export { observedLine, spotHeadline, spotRowLines, weatherTrend,
          LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend,
          leadUpQuantity, leadUpRainLine, leadUpWeatherCells, leadUpWeatherSentence, skyWord,
          PHOTO_WORDS, photoFailed, removePhotoLabel, staleSpotsLine } from "./words";
+export { DRAFT_WORDS } from "./words";
 // S1: the week before a visit, and a spot's photographs (the platform pair behind `./photoStore`)
 export { leadUpFor, leadUpMissing, weekGauge, weekWeather } from "./leadup";
 export { isPhotoRef, nextPhotoRef, openPhotosWith, photoExt, photosDropped, PHOTO_MAX_EDGE,

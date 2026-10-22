@@ -15,7 +15,7 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
-import { BackLayerContext, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
+import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -137,7 +137,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
    */
   const { back, depth, layers: backLayers } = useBack(route, go, systemBack);
-  const edge = useEdgeBack(back, Platform.OS, depth);
+  // iOS: no tab-to-tab swipe (tabs are not history there); Android and the web keep that step
+  const edge = useEdgeBack(back, Platform.OS, edgeBackDepth(route, depth));
+  /**
+   * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
+   * the capture, the tabs and the water — is inside `BackLayerContext`, so a sheet, menu, confirm or step drawn
+   * anywhere in it registers with the one back (`useBackLayer`) instead of falling back to its own close, which the
+   * system back would go under.
+   */
+  const layered = (n: React.ReactNode) => <BackLayerContext.Provider value={backLayers}>{n}</BackLayerContext.Provider>;
   /*
    * ONE WATER SCREEN, WHICHEVER MAP YOU TAPPED (owner rule 2026-10-21): every water opens through `@app/ui`
    * `useOpenWater` — a tap on the Conditions map, on the Map tab and on a water's own map alike — which resolves the
@@ -332,7 +340,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     const endEdit = () => { if (edit) void photoEdit.discard(); setEdit(null); };
     const close = () => { endEdit(); setSpotError(null); setPendingTab(null); back(); };
     const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
-    return (
+    return layered(
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
           <SpotScreen spot={viewing} palette={palette}
@@ -387,7 +395,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   }
 
   if (adding && onSaveSpot)
-    return (
+    return layered(
       <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
@@ -529,7 +537,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     && (tab === "conditions"
         || (tab === "map" && (lakeOn === "stocked" || statusOk)));
 
-  return (
+  return layered(
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       {/*
         * SAY WHY THE MAP IS GREY.
@@ -647,7 +655,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={toTab} />}
 
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
-      <BackLayerContext.Provider value={backLayers}>
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}
                    theme={themeName} onTheme={onTheme}
@@ -656,7 +663,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
                    attribution={attribution} ready={lakeReady} />
-      </BackLayerContext.Provider>
     </View>
   );
 }

@@ -76,17 +76,28 @@ export interface BackLayers {
 export const BackLayerContext = createContext<BackLayers | null>(null);
 
 /**
- * A sheet's registration while `open`. Returns what the platform's own back for the sheet calls (the Modal's
- * `onRequestClose`): the one back where there is one to register with, else the sheet's own close.
+ * A surface's registration while `open` — EVERY surface that back must close before it pops the route registers here:
+ * a sheet (`<Sheet>` does it for you), a menu, a dialog, a confirm, an in-screen step (a spot being captured, a town's
+ * list in search). See app/HANDOFF-ui.md "Back, everywhere" for the table and how a new surface joins it.
+ *
+ * `close` is what one back does to this surface. It need not close it: a back that only takes ONE STEP inside it (a
+ * capture's step, an edit that asks before it drops anything) leaves it `open`, and the layer is then registered
+ * again, on top — so the next back reaches it again rather than going under it. A surface that closes (`open` turns
+ * false) is simply gone.
+ *
+ * Returns what the platform's own back for the surface calls (a Modal's `onRequestClose`): the one back where there is
+ * one to register with, else the surface's own close.
  */
 export function useBackLayer(open: boolean, close: () => void): () => void {
   const layers = useContext(BackLayerContext);
   const latest = useRef(close);
   latest.current = close;
+  // bumped by every back that reached this layer: still open afterwards -> registered again (the effect re-runs)
+  const [reached, setReached] = useState(0);
   useEffect(() => {
     if (!open || !layers) return;
-    return layers.register(() => latest.current());
-  }, [open, layers]);
+    return layers.register(() => { latest.current(); setReached((n) => n + 1); });
+  }, [open, layers, reached]);
   return useCallback(() => { if (layers) layers.back(); else latest.current(); }, [layers]);
 }
 
@@ -197,6 +208,23 @@ export function historySync(port: HistoryPort, back: () => boolean): SystemBackB
     if (want !== null) sync(want);
   });
   return { sync, dispose: stop };
+}
+
+/**
+ * The back steps the iOS left-edge swipe may take: `depth` (`useBack`'s) less the last step when it is a TAB RETURN
+ * (another tab's root → the Map tab). That step is Android's convention (a fixed start destination) and the browser's
+ * (a tab change is history); on iOS tabs are not history and a tab root has nothing to swipe back to.
+ */
+export function edgeBackDepth(r: Route, depth: number): number {
+  let at = r;
+  for (let n = 0; n < 64; n++) {
+    const next = reduce(at, BACK);
+    if (next === at) return depth;
+    const tabReturn = at.mode === "browse" && !at.adding && at.spot === null && at.shown === null;
+    if (tabReturn) return Math.max(0, depth - 1);
+    at = next;
+  }
+  return depth;
 }
 
 /** The left-edge back swipe's measurements (iOS only — `edgeBackEnabled`). */

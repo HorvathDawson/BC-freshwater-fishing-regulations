@@ -27,6 +27,75 @@ reaches paint in `color.highlight` with downstream arrowheads.
 
 ---
 
+## Back, everywhere
+
+Owner 2026-10-21: "make sure android back button works for entire app where a user expects it to." One rule:
+**the innermost thing closes first** — sheet/menu/dialog > overlay or in-screen step > water (its views are lateral)
+> tab > the app. Every input is the same back: the ‹ links, Android's system back (button and edge gesture),
+the browser's back button and a phone browser's swipe-back, and the iOS edge swipe.
+
+**One mechanism.** `@app/ui` `useBack` (gestures.ts) is the one back: it closes the top **back layer**, else pops
+the route (`route.ts` `reduce(r, {type: "back"})`), else returns `false`. The platform glue is attached once, by the
+app shell (`apps/mobile/src/App.tsx` → `<Shell systemBack>`): `systemBack.native.ts` is Android's `BackHandler`
+(`hardwareBackPress` → back; `false` hands the press to Android, which leaves the app), `systemBack.web.ts` keeps
+one browser history entry per back step (`historySync`), so the browser's back pops exactly one step and the ‹
+leaves no stranded entry. iOS has no system back: `<EdgeBack>` (`useEdgeBack`) is the left-edge swipe.
+A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal is up) is that same back.
+`tools/back-layers.test.ts` holds this: `BackHandler`, the History API and `onRequestClose` are named nowhere else.
+
+| Surface | One back does | Where | Pinned by |
+|---|---|---|---|
+| Map tab, nothing open | **not handled** — Android leaves the app; the browser leaves the page | route depth 0 | back.test "Map tab's root" |
+| Search / Conditions / Spots tab root | goes to the **Map tab** (the start tab — Android's fixed start destination, as Google's own apps do); the next back leaves. **iOS:** the edge swipe does not take this step (tabs are not history on iOS; `edgeBackDepth`) | route.ts, gestures.ts | route.test, back.test, gestures.test "edgeBackDepth" |
+| Search: a town's "Water near …" list | back to all results (its "← All results") | SearchScreen `useBackLayer` | back.test "search" |
+| Search's eye shown on the map | back to search, query and selection kept | route `shown` | route.test |
+| Water screen, any view (Regulations · Conditions · Map) | leaves the water for the map it was tapped on (views are lateral: back never walks the strip) | route | back.test "water screen" |
+| A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |
+| Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
+| Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
+| Layers sheet (and every `<Sheet>`) | closes the sheet | Sheet `useBackLayer` | back.test "Layers", gestures.render |
+| Regulations page: "Which day?" (the date pill's DaySheet) | closes the sheet, the day kept; the next back leaves the water | DaySheet → `<Sheet>` | back.test "day sheet" |
+| A spot (viewed) | back to the Spots list | route | back.test "a spot" |
+| A spot being edited, nothing changed | ends the edit, stays on the spot (= Cancel) | SpotScreen `useBackLayer` | back.test |
+| A spot being edited, with changes | **asks** ("You have unsaved changes"); back again answers "Keep editing" — never drops an edit unasked | SpotScreen | back.test |
+| "Delete this spot?" | answers "Keep it" — nothing deleted | SpotScreen | back.test |
+| Adding a spot: details → hour → point → water | one step back each (= that step's ‹ Back) | SpotCapture `useBackLayer` | back.test "adding a spot" |
+| Adding a spot, first step, nothing put in | leaves the capture | route `adding` | back.test |
+| Adding a spot, first step, a name/notes/photos put in | **asks** ("Discard this spot?", `DRAFT_WORDS`); back again = "Keep adding" | SpotCapture | back.test "notes typed" |
+| A zoomed or panned map; a zoomed chart; "Larger map" | **nothing is reset** — back is navigation, not undo (Android: Maps and Photos do not un-zoom on back); the map's ⤢ and the chart's own reset do that | — | (decision) |
+| Folds, expanders, the regs page's section tabs / pin bar | not back layers (they are the page's state, not something opened over it); back leaves the water | — | (decision) |
+| Keyboard up | the OS closes it first (Android's own) | — | — |
+
+Not built yet, and covered when they land: the rule, glossary, species and "how this was determined" sheets
+(T36/T37, `onSheet` is a no-op today), the Regulations header's Parts sheet (`onParts` unwired), the map rail's spots
+menu and long-press "add a spot here" card, the hamburger menu and its pages (glossary, about, contact, bug report,
+source dates), a photo viewer. Each is a surface in the table's sense: back closes it first. Expected, so the lanes
+building them can test against it: the rail's menu, the hamburger menu and each of its pages close one per back
+(a page opened from the menu goes back to the menu, then the menu closes); the long-press card is cancelled by back
+(nothing saved, nothing asked — it holds nothing yet); once its "make a spot here" is taken, the capture's own rows
+above apply.
+
+**How a new surface registers back** (the map-rail and menu lanes, and anyone after):
+
+1. A bottom sheet: draw it in `<Sheet open onClose title palette>` (`@app/ui-native` Sheet.tsx). Done — the
+   sheet registers itself, Android's Modal back and the browser's back both close it, and it holds one history entry.
+2. Anything else that opens over the screen or steps inside it (a menu, a card, a confirm, a viewer, a step):
+   call `useBackLayer(open, closeOneStep)` from `@app/ui` in the component that draws it. `closeOneStep` is what one
+   back does — usually close; for a guarded surface, *ask* (set a confirm) and leave it open: a layer still open after
+   its back is registered again on top, so the next back reaches it again (gestures.render "takes one step").
+3. Draw it inside the Shell (everything the Shell returns is under `BackLayerContext`). A surface outside it has
+   no one back and falls back to its own close.
+4. Do not add a `BackHandler`, `popstate` or `onRequestClose` of your own: the scan fails, and two listeners are a
+   double back.
+5. Add a row to this table and a case to `apps/mobile/src/back.test.tsx` (mount the Shell, open it, `hardwareBack()`).
+
+`tools/back-layers.test.ts` fails on a `.tsx` that draws a Modal, a `role="dialog"`/`aria-modal`, takes
+`onClose`/`onDismiss`/`onCancel`, or declares a component named `…Sheet|Menu|Drawer|Dialog|Popover|Popup|Overlay|
+Viewer|Lightbox|Picker|Pop|Confirm|Prompt` without `useBackLayer(` or a `<Sheet>` — so an unregistered surface
+cannot merge silently. It also lists the surfaces it finds today by name: a new one is added there, on purpose.
+
+---
+
 ## What was learned
 
 **Assertions on expressions we build prove nothing about what the renderer accepts.** A

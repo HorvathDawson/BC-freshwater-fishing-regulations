@@ -1,0 +1,20 @@
+light 01 map-root: selected [Map] sheet false history 2
+light 02 search-tab: selected [Search] sheet false history 3
+light 03 after-back-map-tab: selected [Map] sheet false history 3
+light 04 layers-sheet: selected [Map] sheet true history 3
+light 05 after-back-sheet-closed: selected [Map] sheet false history 3
+light 06 spots-tab: selected [Spots] sheet false history 3
+light 07 after-back-map: selected [Map] sheet false history 3
+light 08 search-eye-shown-on-map: selected [Map] sheet false history 4
+light 09 after-back-search-again: selected [Search] sheet false history 4
+light errors: []
+dark 01 map-root: selected [Map] sheet false history 2
+dark 02 search-tab: selected [Search] sheet false history 3
+dark 03 after-back-map-tab: selected [Map] sheet false history 3
+dark 04 layers-sheet: selected [Map] sheet true history 3
+dark 05 after-back-sheet-closed: selected [Map] sheet false history 3
+dark 06 spots-tab: selected [Spots] sheet false history 3
+dark 07 after-back-map: selected [Map] sheet false history 3
+dark 08 search-eye-shown-on-map: selected [Map] sheet false history 4
+dark 09 after-back-search-again: selected [Search] sheet false history 4
+dark errors: []

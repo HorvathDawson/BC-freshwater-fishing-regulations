@@ -16,7 +16,7 @@ import { Pressable, Text, View } from "react-native";
 import { WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { useRegsStore, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
+import { useBackLayer, useRegsStore, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
@@ -158,6 +158,8 @@ function Head({ title, close, glyph, palette, onClose }: {
 /** A boundary mark, open: its words, the parts above it, the part below it (the prototype's `markPop`). */
 function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void }) {
   const pop = vm.pop!;
+  // back closes the open mark before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
+  useBackLayer(true, () => act({ type: "mark", ix: null }));
   const side = (lab: string, parts: readonly WaterMapPartVM[]) => (
     <View style={{ paddingTop: 6, paddingBottom: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
       <Text style={{ ...TYPE.section, color: palette.faint }}>{lab}</Text>
@@ -176,6 +178,8 @@ function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: 
 /** ▲ at a fork: which way, the main stem first. */
 function Chooser({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void }) {
   const c = vm.chooser!;
+  // back closes the chooser (no way taken) before it leaves the water
+  useBackLayer(true, () => act({ type: "closeChooser" }));
   return (
     <View style={card(palette)} role="dialog" aria-label={c.title} testID="water-map-chooser">
       <Head title={c.title} close={c.close} glyph={c.closeGlyph} palette={palette} onClose={() => act({ type: "closeChooser" })} />

@@ -207,3 +207,52 @@ describe("an open sheet: back closes it first, on every platform", () => {
     expect(out.open).toBe(false);
   });
 });
+
+/**
+ * A LAYER THAT TAKES A STEP (back, everywhere): one back does one thing to a surface — a capture steps back one step,
+ * an edit asks before it drops anything — and the surface may stay open. It is then registered again, on top, so the
+ * next back reaches it again rather than going under it; only when it closes does back reach the route.
+ */
+function Stepper({ out, steps }: { out: Out & { step?: number }; steps: number }) {
+  const [step, setStep] = useState(steps);
+  out.step = step;
+  useBackLayer(step > 0, () => setStep((s) => s - 1));
+  return null;
+}
+function WithStepper({ system, out, steps }: { system: SystemBack; out: Out & { step?: number }; steps: number }) {
+  const [route, go] = useRoute();
+  out.go = go; out.r = route;
+  out.b = useBack(route, go, system);
+  return <BackLayerContext.Provider value={out.b.layers}><Stepper out={out} steps={steps} /></BackLayerContext.Provider>;
+}
+
+describe("a layer that takes one step per back stays registered until it closes", () => {
+  it("Android: two steps, then the route, then Android's own (false)", () => {
+    const a = androidBack();
+    const out: Out & { step?: number } = {};
+    render(<WithStepper system={a.system} out={out} steps={2} />);
+    act(() => { out.go!({ type: "openWater", item: VEDDER }); });
+    const seen: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      const handled = a.press();
+      seen.push(`${handled} step ${out.step} ${frames(out.r!).join()} depth ${out.b!.depth}`);
+    }
+    expect(seen.join(" | ")).toBe(
+      `true step 1 ${VEDDER}/regs depth 2 | true step 0 ${VEDDER}/regs depth 1 | true step 0 browse:map depth 0 | ` +
+      "false step 0 browse:map depth 0");
+  });
+
+  it("web: each browser back takes one step and the entry is put back while the surface is still open", () => {
+    const b = browser();
+    const out: Out & { step?: number } = {};
+    render(<WithStepper system={(back) => historySync(b.port, back)} out={out} steps={2} />);
+    const seen: unknown[] = [{ step: out.step, history: b.state() }];
+    b.userBack(); seen.push({ step: out.step, history: b.state() });
+    b.userBack(); seen.push({ step: out.step, history: b.state() });
+    expect(seen).toEqual([
+      { step: 2, history: { entries: [null, 1], at: 1 } },
+      { step: 1, history: { entries: [null, 1], at: 1 } },
+      { step: 0, history: { entries: [null, 1], at: 0 } },
+    ]);
+  });
+});

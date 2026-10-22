@@ -8,6 +8,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture } from "@app/data/release/node";
+import { BackLayerContext, HOME, useBack, useRoute, type SystemBack } from "@app/ui";
 import { LIGHT } from "../theme";
 
 const seen: { props: MapProps | null } = { props: null };
@@ -115,6 +116,42 @@ describe("<WaterMapView>", () => {
       "Close", "Zymoetz Canyon upper entrance → Limonite Creek confluence", "Side channel"]);
     fireEvent.click(chooser.getByRole("button", { name: "Side channel" }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, "Side channel"]);
+  }, 30_000);
+
+  it("Android's back closes an open mark, then the chooser, before it leaves the water (back, everywhere)", async () => {
+    let press: (() => boolean) | null = null;
+    const system: SystemBack = (b) => { press = b; return { sync: () => {}, dispose: () => { press = null; } }; };
+    const routes: string[] = [];
+    function Harness({ item, part }: { item: string; part: number }) {
+      const [route, go] = useRoute({ mode: "water", from: HOME,
+                                     stack: [{ item: item as ItemId, part, tapSid: null, at: null, view: "map" }] });
+      routes.push(route.mode);
+      const { layers } = useBack(route, go, system);
+      return (
+        <BackLayerContext.Provider value={layers}>
+          <WaterMapView loader={loader} item={item as ItemId} part={part} tapSid={null} palette={LIGHT} map={MAP}
+                        onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} />
+        </BackLayerContext.Provider>);
+    }
+    const back = () => { let h = false; act(() => { h = press!(); }); return h; };
+    const open = () => [screen.queryByRole("dialog")?.getAttribute("aria-label") ?? "nothing open", routes.at(-1)].join(" · ");
+
+    render(<Harness item="gnis:8634" part={1} />);
+    await ready();
+    act(() => seen.props!.onPressMark!(2));
+    const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
+    cleanup(); routes.length = 0;
+    render(<Harness item="gnis:3137" part={4} />);
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    const seenChooser = [open(), `${back()} -> ${open()}`];
+    expect([...seenMark, ...seenChooser]).toEqual([
+      "fishing boundary signs 100 m below the Slesse Creek confluence · water",
+      "true -> nothing open · water",
+      "true -> nothing open · browse",
+      "Which way upstream? · water",
+      "true -> nothing open · water",
+    ]);
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {

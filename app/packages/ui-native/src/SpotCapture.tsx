@@ -19,20 +19,22 @@
 
  */
 import { VISIT_QUICK_DAYS, type SectionKey, type VisitSteps } from "@app/core";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { RegsSource, SectionId } from "@app/data";
 import type { Spot, WeatherSource } from "@app/data/spots";
-import { useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
+import { useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
-import { SpotScreen } from "./SpotScreen";
+import { Confirm, SpotScreen } from "./SpotScreen";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
+/** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
+const PREV: Record<Step, Step | null> = { water: null, point: "water", when: "point", details: "when", saving: "when" };
 
 export interface SpotCaptureProps {
   /**
@@ -68,6 +70,23 @@ export function SpotCapture(props: SpotCaptureProps) {
   const draft = cap.draft;
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  /*
+   * BACK, WHILE ADDING A SPOT (app/HANDOFF-ui.md "Back, everywhere"): one back is one step back — the details to the
+   * hour, the hour to the point, the point to the water — exactly what each step's own ‹ / Back does. On the first
+   * step back leaves, as Cancel does: at once when nothing was put in, else only after asking (`DRAFT_WORDS`), so
+   * no back ever throws away a name, notes or photographs unasked. `asking` is answered "keep" by a back.
+   */
+  const [asking, setAsking] = useState(false);
+  const held = notes.trim() !== "" || cap.photos.refs.length > 0
+    || (title.trim() !== "" && title !== (water?.name ?? ""));
+  const leave = () => (held ? setAsking(true) : cancel());
+  const stepNow = useRef(step);
+  stepNow.current = step;
+  useBackLayer(step !== "water" || held, () => {
+    if (asking) setAsking(false);
+    else if (PREV[step] !== null) setStep(PREV[step]!);
+    else leave();
+  });
 
   const pickWater = async (_layer: string, featureId: SectionKey) => {
     // The tile's feature id IS the section handle — see SectionId in @app/data.
@@ -81,7 +100,9 @@ export function SpotCapture(props: SpotCaptureProps) {
     if (!water || !point) return;
     setStep("saving");
     // never left on "saving": a failure goes back to the step that asked, with the reason (P01)
-    if (!(await cap.capture(water, point, title))) { setStep("when"); return; }
+    const ok = await cap.capture(water, point, title);
+    if (stepNow.current !== "saving") return;            // a back while it read: the reader has moved on
+    if (!ok) { setStep("when"); return; }
     setTitle(title || water.name || "");
     setStep("details");
   };
@@ -122,6 +143,12 @@ export function SpotCapture(props: SpotCaptureProps) {
                  highlight={water ? [water.section] : []}
                  marker={point} />
 
+      {asking && (
+        <View style={{ backgroundColor: palette.card, paddingHorizontal: 16, paddingTop: 12 }}>
+          <Confirm palette={palette} kind="draft" onCancel={() => setAsking(false)}
+                   onConfirm={() => { setAsking(false); cancel(); }} />
+        </View>
+      )}
       <Coach palette={palette}
              title={step === "water" ? "Pick the water" : "Now the exact spot"}
              detail={step === "water"
@@ -129,7 +156,8 @@ export function SpotCapture(props: SpotCaptureProps) {
                : `Tap the point on ${water?.name ?? "this reach"}.`}
              chose={step === "water" ? water?.name ?? null
                                      : point && `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`}
-             onCancel={cancel}
+             // Cancel leaves the whole capture: asks first when the draft holds what the reader put in
+             onCancel={leave}
              onNext={ready ? () => setStep(step === "water" ? "point" : "when") : undefined} />
     </View>
   );

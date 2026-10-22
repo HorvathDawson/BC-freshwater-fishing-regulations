@@ -50,6 +50,20 @@ describe("route (P13): one value, one back rule", () => {
     expect(reduce(HOME, { type: "back" })).toBe(HOME);
   });
 
+  it("back on another tab's root goes to the Map tab (the start tab); back on the Map tab stays (Android leaves)", () => {
+    const tabs = ["map", "search", "conditions", "spots"] as const;
+    const after = tabs.map((t) => {
+      const at = reduce(HOME, { type: "tab", tab: t });
+      const b = reduce(at, { type: "back" });
+      return `${t} -> ${b === at ? "stays" : b.mode === "browse" ? b.tab : b.mode}`;
+    });
+    expect(after.join(" | ")).toBe("map -> stays | search -> map | conditions -> map | spots -> map");
+    // and a spot's list is reached from a spot first: spot -> Spots -> Map, one step each
+    const spot = run(HOME, { type: "openSpot", id: "s1" });
+    expect([reduce(spot, { type: "back" }), run(spot, { type: "back" }, { type: "back" })])
+      .toEqual([{ ...HOME, tab: "spots" }, HOME]);
+  });
+
   it("search's eye SHOWS the water on the main map; back returns to search", () => {
     const search = reduce(HOME, { type: "tab", tab: "search" });
     const shown = reduce(search, { type: "show", item: VEDDER });
