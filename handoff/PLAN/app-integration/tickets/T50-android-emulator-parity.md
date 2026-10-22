@@ -1,5 +1,5 @@
 # T50 — Android emulator: the app matches the phone web app, and the system bars never cover the UI
-Phase 4 · Depends on T48 (new top/bottom bars) merged · HEAVY (emulator + Gradle): run alone through heavy.sh · Size 1–2 days
+Phase 4 · After the mass cleanup (owner 2026-10-22) · Depends on T48 (new top/bottom bars) merged · HEAVY (emulator + Gradle): run alone through heavy.sh · Size 1–2 days
 
 ## Owner (2026-10-22)
 "could you also try to run android simulations on an emulator? to make sure mobile webapp is the same as android. also
