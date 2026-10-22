@@ -151,3 +151,23 @@ one. Default implemented (`@app/core` `dayRange`): the picker offers TODAY'S CAL
 when the release states `regulations.valid_until` (inside the year and not yet passed); today is always offered. Other
 days are disabled and the sheet says why. If not: a rolling 12 months, or the synopsis edition (Apr 1 – Mar 31) — one
 function (`dayRange`) and its tests change; the sheets do not.
+
+## OWNER 2026-10-22 — answers (T39/T40, T47, T48, T41, process)
+T39/T40: dark fish cut-outs with no tile are fine; the licence paper note's tint is Claude's call (the prototype is a
+reference, not the end-all — improve on it where there is a better way); small inline links are fine; keep the
+original "Who is fishing?" radiogroup labels; tabs wrapping at 2x text is fine unless there is a better way.
+T47: region (and unit) boundaries grey is good, but the STATUS colours must be MORE different from each other than the
+candidates — push own / closed / restricted / base / open further apart, then apply.
+T48: keep a bottom bar, made smaller: Map · Conditions (option 1). The search field stays in the top bar, always open,
+with the sync status in the top of the search area. Placeholders may also mention towns. The search transition and the
+placeholder lines are approved. The owner doubts splitting things between a top hamburger, a bottom bar and a side rail,
+and asked for Claude's view on (a) the hamburger moving into the bottom bar and (b) Spots as a tab vs on the rail.
+CLAUDE'S RECOMMENDATION (built, easily reversed): bottom bar Map · Conditions · Spots · More — "More" holds what the
+hamburger held (glossary, data sources & dates, display, about, report a problem, contact); Spots is a tab again (its
+list, open, show on map, add) while long-press-to-add stays on the map; the side rail keeps Layers only; the top bar is
+the search field alone, with the sync status line at its top. One place for each kind of thing.
+T41: the prototype is a reference — Claude decides R1 spacing, sheet kicker style, the report link placement and the
+sheet's Done word, improving on the prototype where there is a better way.
+Process: add strict consistency auditors (Fable model) that check data and UI agree and that every route into a screen
+reaches the SAME screen (e.g. a water's Regulations/Conditions opened from the Map tab vs the Conditions map), with no
+duplicate menus; then finish the remaining implementation and do the mass cleanup.
