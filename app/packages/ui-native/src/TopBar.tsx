@@ -88,9 +88,9 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                      value={query}
                      onChangeText={onQuery}
                      onFocus={() => { if (!open) onOpen(); }}
-                     // a phone's Escape (a keyboard on the web) is the field's; a wide screen hears it window-wide
-                     // (`SearchSheet`), so it is not heard twice here
-                     onKeyPress={(e) => { if (panel === null && e.nativeEvent.key === "Escape") onClose(); }}
+                     // Escape typed IN the field is the field's on every screen: react-native-web's input stops its
+                     // keys at the field, so the wide panel's window-wide Escape (`SearchSheet`) never hears it
+                     onKeyPress={(e) => { if (e.nativeEvent.key === "Escape") onClose(); }}
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}

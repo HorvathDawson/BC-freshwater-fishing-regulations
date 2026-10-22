@@ -557,7 +557,9 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 ## CLAUDE 2026-10-22 (late) — closing search on desktop: built
 - WIDE (≥ 720 px, `searchPanelWidth`): the panel's ✕ at its top-right ("Close search") is the ONE close control; the
   field's left slot keeps the magnifier (no ‹ there), so the bar offers only the field's ✕. Escape closes from anywhere
-  (a window listener in `SearchSheet`; a page dialog — `aria-modal` — keeps its own Escape). A click on the map beside the
+  (a window listener in `SearchSheet`; a page dialog — `aria-modal` — keeps its own Escape). Escape typed IN the field
+  is the field's own `onKeyPress` on every screen: react-native-web's input stops its keys at the field, so the window
+  never hears them (review fix; pinned by "Escape typed IN THE FIELD"). A click on the map beside the
   panel closes search and does NOTHING else: no water opens under it, no pin drops (the Shell hands the map
   `onMapPoint = close` and no `onPressFeature` while wide search is open); a drag still pans. Closing restores the
   camera as every close does.
