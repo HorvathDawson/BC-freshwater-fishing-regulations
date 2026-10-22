@@ -28,6 +28,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
+- NEW TICKET T52 (owner 2026-10-22): Conditions "Expected change" chip after +10 from daily forecast series (spikes
+  included); pipeline carries per-station daily series politely. Queued after T51.
 - QUEUE (owner 2026-10-22, spots): add-a-spot = my location / pick on map (agent running); lead-up refresh BUG (agent
   running); spots on/off toggle in Layers (after the refinement pass merges — layers registry); T51 spot similarity
   forecast (after the add-spot + bug lanes merge). Icons MERGED 5c968853+ca4b29a6 (strict 7524).

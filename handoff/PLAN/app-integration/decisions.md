@@ -332,3 +332,6 @@ a second selection style and a new fill to gate. Ask to change it if it reads we
 - BUG (owner): "the refresh for week before isn't working" — a spot's lead-up (the week before the visit: weather + gauge,
   S1) does not refresh/backfill. Investigate and fix.
 - NEW TICKET T51: spot similarity forecast (below).
+- NEW TICKET T52 (owner 2026-10-22): an "Expected change" view on Conditions — a chip after +10 that flags rivers with a
+  big expected change anywhere in the forecast window (spikes between the sampled days included), from each station's
+  DAILY forecast series (CLEVER and the other models), flow only.
