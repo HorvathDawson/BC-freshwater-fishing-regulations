@@ -544,3 +544,13 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   - The results panel carries its own visible close control at its top-right, next to the results, where the eye is.
   - The X inside the field is only "clear text", labelled so; it never doubles as close.
   - Search is a layer: back (browser / in-app / Android) closes it, matching the back-steps-out-a-layer rule.
+
+## OWNER 2026-10-22 (late) — sloughs and canals look like streams in Conditions
+- Owner: in Conditions, sloughs and canals with stream regulations get the SAME conditions look as streams. Nicomen
+  Slough has both stream lines and lake polygons, but all of it is a stream — the book treats sloughs and canals as
+  streams. Many such polygons are already marked; the rest are still to be found (the postponed canal/slough work,
+  see BRAIDS-HANDOFF.md), and stays postponed.
+- Claude's rule: the colouring follows the WATER'S KIND (a slough / canal item is a stream), never the geometry
+  type. A polygon of a stream item paints with its stream's flow colour (its section / panel), exactly like the lines
+  of the same water, on every Conditions view (map, legend, water's map). Lake-only treatment (level, lake fill) is
+  for lake items only. Applies to the polygons already marked; finding the rest is a separate, postponed ticket.
