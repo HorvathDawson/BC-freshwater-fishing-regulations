@@ -137,7 +137,7 @@ ARTIFACTS = [
         name="bathymetry sheet match",
         roster=SOURCE / "bc_bathymetry_sheets.json",
         frozen=_C.bathymetry.matches or ROOT / "data/curated/bathymetry/matches.json",
-        regenerate="python -m pipeline.bathymetry.generate.match  (not wired yet)",
+        regenerate="no matcher yet: write pipeline/bathymetry/generate/match.py (pipeline/bathymetry/README.md)",
         roster_ids="waterbody_identifier",
         frozen_ids="sheets.waterbody_identifier",
     ),

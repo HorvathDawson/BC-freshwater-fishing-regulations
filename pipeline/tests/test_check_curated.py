@@ -99,6 +99,16 @@ class TestTheRealDeclarations:
         for art in C.ARTIFACTS:
             assert art.regenerate.strip(), art.name
 
+    def test_every_module_a_regenerate_command_runs_exists(self):
+        """Audit F09 (2026-10-22): the bathymetry artifact told the reader to run
+        `python -m pipeline.bathymetry.generate.match`, which was never written. A command the
+        gate prints must run; a prepared artifact with no producer says so in words instead."""
+        import importlib.util
+        import re
+        for art in C.ARTIFACTS:
+            for mod in re.findall(r"python -m ([\w.]+)", art.regenerate):
+                assert importlib.util.find_spec(mod) is not None, (art.name, mod)
+
     def test_the_live_ones_parse(self):
         # Catches an Artifact spec that does not match the file it points at — which would
         # otherwise surface as a traceback in CI rather than as a verdict.
