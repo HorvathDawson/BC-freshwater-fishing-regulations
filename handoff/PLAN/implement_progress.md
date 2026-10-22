@@ -28,6 +28,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   navigation: merge back first, then reconcile search's back layer.
 - RUNNING: wf_d528f135-885 (owner: slough/canal stream-item polygons take the stream Conditions look; Nicomen Slough,
   Vedder River; may need deliver/tiles — lane says what; finding the remaining polygons stays postponed, ticketed).
+- QUEUED T53 (owner: unnamed stream shows no regulations): app-only — frameViews/openWater/WaterScreen gate item:null
+  to Conditions; data answers all 1,893,082 unnamed sections. Start AFTER the back lane merges (same files: openWater,
+  route.ts). Live release now r-66f94fa635c1 (valid_until; id covers manifest); dev fixture a44b232.
 - RUNNING: wf_b88d9e03-10e (owner: HYDAT
   maintenance notices — detect, notify once via FEED_NOTIFY_URL, scripts/update-hydat.sh, app HYDAT line follows the
   notice; decisions.md "upstream updates the owner runs"). THEN: merge both, full strict check + smoke once.
