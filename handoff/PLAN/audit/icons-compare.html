@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bottom Bar Icons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Bricolage+Grotesque:wght@700&display=swap" rel="stylesheet">
+<style>
+/* App tokens, copied from app/packages/map/style/themes/{light,dark}.json (color.ui.*) */
+:root{
+  --page:#EFEFEC; --card:#FFFFFF; --tint:#EEEFEB; --line:#E5E6E1; --line2:#D3D5CF;
+  --ink:#15181C; --sub:#555C62; --faint:#6E757B; --accent:#5F26E0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0A0B0D; --card:#15181B; --tint:#1E2227; --line:#252A2F; --line2:#343B42;
+    --ink:#F0F2F0; --sub:#B0B8BF; --faint:#7C858C; --accent:#A97CFF;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0A0B0D; --card:#15181B; --tint:#1E2227; --line:#252A2F; --line2:#343B42;
+  --ink:#F0F2F0; --sub:#B0B8BF; --faint:#7C858C; --accent:#A97CFF;
+}
+.t-light{--card:#FFFFFF;--ink:#15181C;--sub:#555C62;--line:#E5E6E1;--line2:#D3D5CF;--tint:#EEEFEB;--page:#EFEFEC;--accent:#5F26E0}
+.t-dark{--card:#15181B;--ink:#F0F2F0;--sub:#B0B8BF;--line:#252A2F;--line2:#343B42;--tint:#1E2227;--page:#0A0B0D;--accent:#A97CFF}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 Archivo,system-ui,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:28px 16px 64px}
+h1{font:700 30px/1.15 "Bricolage Grotesque",Archivo,sans-serif;margin:0 0 6px}
+h2{font:700 21px/1.2 "Bricolage Grotesque",Archivo,sans-serif;margin:0 0 4px}
+p{margin:0 0 10px;max-width:72ch}
+.lede{color:var(--sub)}
+code{font-size:13px;background:var(--tint);padding:1px 4px}
+section.dir{background:var(--card);border:1px solid var(--line2);padding:20px 18px;margin:22px 0}
+.meta{color:var(--sub);font-size:13.5px}
+.phones{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px}
+.phone{width:390px;max-width:100%;background:var(--page);border:1px solid var(--line2);overflow:hidden}
+.phone .cap{font:600 11px/1 Archivo;letter-spacing:1px;text-transform:uppercase;color:var(--sub);padding:8px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.mapfake{height:120px;position:relative;background:
+  linear-gradient(135deg,transparent 46%,color-mix(in srgb,var(--sub) 22%,transparent) 46% 49%,transparent 49%),
+  var(--tint)}
+.rail{position:absolute;right:14px;top:14px;background:var(--card);border:1px solid var(--line2);box-shadow:3px 3px 0 color-mix(in srgb,#000 30%,transparent)}
+.rail button{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--ink)}
+.bar{display:flex;border-top:1.5px solid var(--ink);background:var(--card);padding:9px 0 10px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0;background:none;border:0;cursor:pointer;color:var(--sub);font:inherit}
+.tab[aria-selected="true"]{color:var(--ink)}
+.tab span{font:700 9.5px/12px Archivo;letter-spacing:1.1px;text-transform:uppercase}
+.tab i{display:block;height:2.5px;width:22px;margin-top:1px;background:transparent}
+.tab[aria-selected="true"] i{background:var(--ink)}
+.grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.cell{width:92px;text-align:center;font-size:11.5px;color:var(--sub)}
+.cell .sw{display:flex;gap:0;border:1px solid var(--line2)}
+.cell .sw div{flex:1;display:flex;align-items:center;justify-content:center;height:46px}
+.notes{margin-top:12px;font-size:14px}
+.notes li{margin:3px 0}
+svg{display:block;overflow:visible}
+@media (max-width:440px){.phone{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<h1>Bottom bar icons: three directions</h1>
+<p class="lede">The bar is Map · Conditions · Spots · More (decisions.md, OWNER 2026-10-22), and the map rail keeps Layers. Each direction is drawn on a 24-px grid and shown in a 390-px phone frame, in the app's light and dark tokens (<code>color.ui.*</code>), at the bar's 22 px beside the real <code>TYPE.tab</code> label: Archivo 700, 9.5 px, uppercase, 1.1 tracking, with the ink underscore marking the selected tab. Tap a tab to move the selection. Search, sync and back are drawn in the same set, so the top bar can match the bottom one.</p>
+<p class="meta">Baseline: the current icons from <code>app/packages/ui-native/src/icons.tsx</code> (Map, Search, Conditions, Spots; LayersIcon; MenuIcon is drawn with Views in <code>menu/MenuButton.tsx</code>), placed in the new four-tab order. There is no More, sync or back glyph in the set yet.</p>
+<div id="root"></div>
+</main>
+<script>
+// Each icon is a list of [tag, attrs, role]. role "f" = frame (thin), "m" = mark (heavier), "fill" = solid.
+// Sizes and weights per direction are set in DIRS.
+const P = (d, r="m") => ["path", {d}, r];
+const SQ = (x,y,s) => ["rect", {x, y, width:s, height:s}, "fill"];
+
+// ── BASELINE: verbatim from icons.tsx / MenuButton.tsx ──
+const BASE = {
+  map:        [P("M3 3.5H21V20.5H3Z","f"), P("M8 3.5V9L12.5 13.5V20.5"), P("M17.5 3.5V7L12.5 13.5")],
+  conditions: [P("M3.5 19.5H21","f"), P("M3.5 19.5V5","f"), P("M3.5 15L8 10.5L12 14L16 6.5L21 11"), P("M16 6.5V19.5")],
+  spots:      [P("M7 3.5H17V12.5H7Z","f"), P("M12 12.5V20.5"), P("M7.5 20.5H16.5")],
+  more:       [P("M3.5 6.5H20.5","m"), P("M3.5 12H20.5","m"), P("M3.5 17.5H20.5","m")], // MenuIcon stand-in
+  layers:     [["rect",{x:3,y:3.5,width:18,height:5},"m"], P("M3 12H21"), P("M3 16.5H21"), P("M3 21H21")],
+  search:     [P("M4 4.5H16V16.5H4Z","f"), P("M16.5 17L21 21.5")],
+  sync: [], back: [],
+};
+
+// ── A. CUT SQUARE, FINISHED (original paths, house style) ──
+const A = {
+  // confluence in a frame: kept, it is the best of the current set
+  map:        [P("M3 3.5H21V20.5H3Z","f"), P("M8 3.5V9L12.5 13.5V20.5"), P("M17.5 3.5V7L12.5 13.5")],
+  // hydrograph: kept, with the reading as a filled square on the trace
+  conditions: [P("M3.5 19.5H21","f"), P("M3.5 19.5V4.5","f"), P("M3.5 15L8 10.5L12 14L16 7.5L21 11"), SQ(14.25,5.75,3.5)],
+  // a pennant on a pole: a marked place. No longer a square on a stick, which read as the square search lens
+  spots:      [P("M6 21.5V3","m"), P("M6 4H19L15.5 8.5L19 13H6","f"), P("M3 21.5H10","m")],
+  // three square dots: the "rest of it" glyph, squared to match
+  more:       [SQ(3.5,10.25,3.5), SQ(10.25,10.25,3.5), SQ(17,10.25,3.5)],
+  // three plates offset on the diagonal: squared stack, reads as layers at 18 px
+  layers:     [P("M3 3H15V13H3Z","m"), P("M6.5 16.5H18.5V7","f"), P("M10 20.5H21.5V11","f")],
+  search:     [P("M3.5 3.5H16V16H3.5Z","f"), P("M16 16L21 21")],
+  sync:       [P("M4 10.5V6H19","f"), P("M15.5 2.5L19 6L15.5 9.5"), P("M20 13.5V18H5","f"), P("M8.5 14.5L5 18L8.5 21.5")],
+  back:       [P("M15.5 3.5L7 12L15.5 20.5")],
+};
+// filled-on-selected variants for A geometry (direction B)
+const B_ON = {
+  map:        [["path",{d:"M3 3.5H21V20.5H3Z"},"solid"], ["path",{d:"M8 3.5V9L12.5 13.5V20.5"},"knock"], ["path",{d:"M17.5 3.5V7L12.5 13.5"},"knock"]],
+  conditions: [["path",{d:"M3.5 19.5V15L8 10.5L12 14L16 7.5L21 11V19.5Z"},"solid"], P("M3.5 19.5H21","f"), P("M3.5 19.5V4.5","f"), SQ(14.25,3.25,3.5)],
+  spots:      [P("M6 21.5V3","m"), ["path",{d:"M6 4H19L15.5 8.5L19 13H6Z"},"solid"], P("M3 21.5H10","m")],
+  more:       [["rect",{x:2.5,y:6.5,width:19,height:11},"solid"], ["rect",{x:5,y:10.5,width:3,height:3},"knockfill"], ["rect",{x:10.5,y:10.5,width:3,height:3},"knockfill"], ["rect",{x:16,y:10.5,width:3,height:3},"knockfill"]],
+  layers:     [["path",{d:"M3 3H15V13H3Z"},"solid"], P("M6.5 16.5H18.5V7","f"), P("M10 20.5H21.5V11","f")],
+};
+
+// ── C. OPEN LICENCE: Lucide (ISC) v0.460.0, verbatim paths; Spots alt from Tabler (MIT) ──
+const C = {
+  map:        [P("M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"), P("M15 5.764v15"), P("M9 3.236v15")],
+  conditions: [P("M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2")],
+  spots:      [P("M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"), ["circle",{cx:12,cy:10,r:3},"m"]],
+  more:       [["circle",{cx:12,cy:12,r:1},"m"],["circle",{cx:19,cy:12,r:1},"m"],["circle",{cx:5,cy:12,r:1},"m"]],
+  layers:     [P("m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"), P("m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"), P("m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65")],
+  search:     [["circle",{cx:11,cy:11,r:8},"m"], P("m21 21-4.3-4.3")],
+  sync:       [P("M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"), P("M21 3v5h-5"), P("M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"), P("M8 16H3v5")],
+  back:       [P("m15 18-6-6 6-6")],
+};
+const C_ALT = {
+  "conditions (Lucide waves)": [P("M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"), P("M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"), P("M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1")],
+  "spots (Tabler fish-hook)": [P("M16 9v6a5 5 0 0 1 -10 0v-4l3 3"), ["circle",{cx:16,cy:7,r:2},"m"], P("M16 5v-2")],
+  "more (Lucide menu)": [P("M4 12H20"), P("M4 6H20"), P("M4 18H20")],
+};
+
+const DIRS = [
+  { id:"base", name:"Baseline: today's icons", set:BASE, cap:"butt", join:"miter", f:1.8, m:2.2,
+    meta:"icons.tsx as shipped. More is the hamburger's three rules (MenuIcon); there is no sync or back glyph.",
+    notes:["Spots and Search are both a square with a stem: at 22 px in a row they read as the same shape.","Layers mixes a Rect at 2.0 with lines; it is drawn at 18 px on the rail while Spots is 20 and the tabs 22.","MenuIcon is Views, not SVG, so it cannot share a path list with the others."] },
+  { id:"A", name:"A. Cut square, finished (original paths)", set:A, cap:"butt", join:"miter", f:1.8, m:2.2,
+    meta:"Keeps the house style that icons.tsx argues for: butt caps, mitre joins, a 1.8 frame and a 2.2 mark, hard angles. Keeps the confluence (Map) and the hydrograph (Conditions); redraws Spots, More and Layers so no two icons share a silhouette. Selected state: colour plus the existing underscore.",
+    notes:["Map: two streams meeting inside a frame (unchanged).","Conditions: the hydrograph, with the latest reading as a filled square on the trace.","Spots: a pennant on a pole over a ground mark. A flag is planted where you stood, and it no longer echoes the square search lens.","More: three square dots, which the hamburger's three rules cannot be once the bar has a More tab (a hamburger implies a drawer).","Layers: three plates offset on the diagonal, squared, all in one path list at the same weights.","Search, sync, back: same weights and same mitres, so the top bar matches."] },
+  { id:"B", name:"B. Same drawings, solid when selected", set:A, on:B_ON, cap:"butt", join:"miter", f:1.8, m:2.2,
+    meta:"Direction A's geometry, with a second state: the selected tab's frame fills with ink and the mark is cut out of it in the card colour. Matches the app's printed-slab language and adds a second cue besides colour and the underscore. It costs one extra drawing per tab (5 paths).",
+    notes:["The solid tile is the strongest cue in sunlight and for colour-blind readers; the underscore stays.","Map, Layers and More fill their frame; Conditions fills the area under the trace; Spots fills the pennant.","Needs care at 22 px in dark: the knocked-out mark is card-colour on ink, which reverses the bar's contrast for one tab."] },
+  { id:"C", name:"C. Open licence: Lucide (ISC), rounded 1.75", set:C, cap:"round", join:"round", f:1.75, m:1.75,
+    meta:"Lucide v0.460.0, ISC licence, paths copied verbatim: map, activity, map-pin, ellipsis, layers, search, refresh-cw, chevron-left. Drawn at 1.75 rather than Lucide's 2 to match the 9.5 px label. Alternates below: Lucide waves, Tabler fish-hook (MIT, @tabler/icons 3.19.0), Lucide menu.",
+    notes:["Zero drawing work and a large set to grow into, but it is the round, soft house style icons.tsx deliberately moved away from.","map-pin is the teardrop icons.tsx calls 'somebody else's product'; fish-hook is the fishing-specific alternative but reads poorly at 22 px.","activity (a heartbeat line) reads as fitness, not river flow; waves is closer to water but says 'water', not 'conditions'.","Licence: ISC requires the copyright notice in distributed copies (a line in the Credits screen covers it)."] },
+];
+
+const ORDER = [["map","Map"],["conditions","Conditions"],["spots","Spots"],["more","More"]];
+const EXTRA = ["layers","search","sync","back"];
+
+function svg(els, d, size, state){
+  const ns = "http://www.w3.org/2000/svg";
+  const s = document.createElementNS(ns,"svg");
+  s.setAttribute("width",size); s.setAttribute("height",size); s.setAttribute("viewBox","0 0 24 24");
+  s.setAttribute("fill","none"); s.setAttribute("aria-hidden","true");
+  for(const [tag, attrs, role] of els){
+    const e = document.createElementNS(ns, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    if(role==="fill"){ e.setAttribute("fill","currentColor"); }
+    else if(role==="solid"){ e.setAttribute("fill","currentColor"); e.setAttribute("stroke","currentColor"); e.setAttribute("stroke-width",d.f); e.setAttribute("stroke-linejoin",d.join); }
+    else if(role==="knock"){ e.setAttribute("stroke","var(--card)"); e.setAttribute("stroke-width",d.m); e.setAttribute("stroke-linecap",d.cap); e.setAttribute("stroke-linejoin",d.join); }
+    else if(role==="knockfill"){ e.setAttribute("fill","var(--card)"); }
+    else { e.setAttribute("stroke","currentColor"); e.setAttribute("stroke-width", role==="f"?d.f:d.m);
+           e.setAttribute("stroke-linecap",d.cap); e.setAttribute("stroke-linejoin",d.join); }
+    s.appendChild(e);
+  }
+  return s;
+}
+function iconFor(d, k, on){ return (on && d.on && d.on[k]) ? d.on[k] : d.set[k]; }
+
+function phone(d, theme){
+  const ph = document.createElement("div"); ph.className = "phone t-"+theme;
+  ph.innerHTML = `<div class="cap">${theme} · 390 px</div><div class="mapfake"><div class="rail"><button aria-label="Layers"></button></div></div><div class="bar" role="tablist"></div>`;
+  const railBtn = ph.querySelector(".rail button");
+  if(d.set.layers.length) railBtn.appendChild(svg(d.set.layers, d, 20));
+  const bar = ph.querySelector(".bar");
+  let sel = "map";
+  function draw(){
+    bar.innerHTML = "";
+    for(const [k,t] of ORDER){
+      const b = document.createElement("button"); b.className="tab"; b.setAttribute("role","tab");
+      b.setAttribute("aria-selected", String(k===sel)); b.setAttribute("aria-label", t);
+      b.appendChild(svg(iconFor(d,k,k===sel), d, 22));
+      const sp = document.createElement("span"); sp.textContent=t; b.appendChild(sp);
+      b.appendChild(document.createElement("i"));
+      b.onclick = ()=>{ sel=k; draw(); };
+      bar.appendChild(b);
+    }
+  }
+  draw(); return ph;
+}
+function grid(d){
+  const g = document.createElement("div"); g.className="grid";
+  const add = (label, els, onEls) => {
+    if(!els || !els.length) return;
+    const c = document.createElement("div"); c.className="cell";
+    const sw = document.createElement("div"); sw.className="sw";
+    for(const th of ["light","dark"]){
+      const x = document.createElement("div"); x.className="t-"+th; x.style.background="var(--card)"; x.style.color="var(--ink)";
+      x.appendChild(svg(onEls||els, d, 24)); sw.appendChild(x);
+    }
+    c.appendChild(sw); const l=document.createElement("div"); l.textContent=label; c.appendChild(l); g.appendChild(c);
+  };
+  for(const [k] of ORDER) add(k, d.set[k]);
+  for(const k of EXTRA) add(k, d.set[k]);
+  if(d.on) for(const k in d.on) add(k+" (on)", null || d.set[k], d.on[k]);
+  if(d.id==="C") for(const k in C_ALT) add(k, C_ALT[k]);
+  return g;
+}
+const root = document.getElementById("root");
+for(const d of DIRS){
+  const s = document.createElement("section"); s.className="dir";
+  s.innerHTML = `<h2>${d.name}</h2><p class="meta">${d.meta}</p>`;
+  const phs = document.createElement("div"); phs.className="phones";
+  phs.appendChild(phone(d,"light")); phs.appendChild(phone(d,"dark")); s.appendChild(phs);
+  s.appendChild(grid(d));
+  const ul = document.createElement("ul"); ul.className="notes";
+  for(const n of d.notes){ const li=document.createElement("li"); li.textContent=n; ul.appendChild(li); }
+  s.appendChild(ul); root.appendChild(s);
+}
+</script>
+</body>
+</html>

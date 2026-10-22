@@ -12,7 +12,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   more distinct, applied + gate), regs polish (R1 spacing, sheet kickers, report link once, Done, paper tint — Claude
   decides). Resume with Workflow({scriptPath, resumeFromRunId}); merge each lane (cherry-pick, conflict-marker grep,
   fixtures if VMs moved, strict check, smoke, remove worktrees).
-- ALSO RUNNING (read-only) wf_bdacabdc-f09 (script workflows/scripts/audit-cleanup-pipeline-icons-wf_bdacabdc-f09.js):
+- AUDIT DONE: handoff/PLAN/audit/PLAN.md (pipeline diagram; cleanup waves 1-4 = 15/21/11/14 items; tickets N1-N23;
+  13 owner calls in §4) + audit/icons-compare.html. The mass cleanup works from this plan. (was: wf_bdacabdc-f09 (script workflows/scripts/audit-cleanup-pipeline-icons-wf_bdacabdc-f09.js):
   app cleanup finder, pipeline data-flow audit, docs/tickets audit, bottom-bar icon directions; each verified; output
   scratchpad audit/PLAN.md + icons/compare.html (copy into handoff/PLAN/audit/ when done; show the owner).
 - OWNER 2026-10-22: ICONS = Lucide (ISC), rounded, 1.75 stroke (decisions.md; an earlier "T47 option C" reading was wrong
