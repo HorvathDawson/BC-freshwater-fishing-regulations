@@ -14,12 +14,14 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { createElement, forwardRef, useState } from "react";
 import { PixelRatio, Pressable, Text, View } from "react-native";
 import type { LicenceVM, PinAnchor, RegsPage, SheetKey, SheetVM, Who } from "@app/core";
-import type { LayoutClass } from "@app/ui";
+import type { LayoutClass, MenuControls } from "@app/ui";
+import { MenuContext } from "../menu/MenuButton";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { GearTab } from "./GearTab";
 import { LicenceTab } from "./LicenceTab";
 import { MethodsTab } from "./MethodsTab";
+import { lineRun } from "./hit";
 import { RegsPress } from "./RegsPress";
 import { RegsScreen } from "./RegsScreen";
 import { SheetHost } from "./SheetHost";
@@ -50,6 +52,16 @@ const PAGES: Record<string, RegsPage> = { vedder_1010: pageOf(vedder1010), klwa_
   glenn_501: pageOf(glenn501), vedder_615: pageOf(vedder615) };
 const LIC = licences as unknown as Record<string, LicenceVM>;
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
+/** vedder_1010's runs inside a sentence, every fold open: a new one (or a press that turned back into a run) shows here */
+const VEDDER_INLINE: string[] = [
+  "button What does Anglers under 16 mean?", "button What does Catch and release (release) mean?",
+  "button What does Conservation Surcharge Stamp mean?", "button What does Fly fishing only mean?",
+  "button What does No fishing for (closed) mean?", "button What does Single barbless hook mean?",
+  "button What does Steelhead Stamp mean?", "button What does Steelhead mean?",
+  "link How to tell ›",   // the page's own link run in a hatchery-only line (Line `link`), not GroupCard's HowTell press
+  "link Rule book page 21, opens the PDF", "link Rule book page 22, opens the PDF", "link Rule book page 9, opens the PDF",
+  "link Steelhead stamp ›", "link White Sturgeon Conservation Licence ›",
+];
 
 /** the Licence tab as the water screen holds it: a pick rebuilds the answer for that angler (the frozen six) */
 function Licence({ actions }: { actions: Parameters<typeof LicenceTab>[0]["actions"] }) {
@@ -57,15 +69,20 @@ function Licence({ actions }: { actions: Parameters<typeof LicenceTab>[0]["actio
   return <LicenceTab vm={LIC[`${who.age}|${who.residency}`]!} who={who} palette={LIGHT} actions={actions} onWho={setWho} />;
 }
 
+/** the Shell's menu, so the foot of each tab draws its "Report a problem with this page" link as the app does */
+const MENU = { report() {} } as unknown as MenuControls;
+
 function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createPinStore()) {
   const page = PAGES[id]!;
   return render(
+    <MenuContext.Provider value={MENU}>
     <WaterFrame palette={LIGHT} face="regulations" onBack={() => {}} backLabel="Map">
       <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} onMap={() => {}} layout={layout} store={store}
                   gear={page.gear ? (a) => <GearTab vm={page.gear!} palette={LIGHT} actions={a} /> : undefined}
                   methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} referenceOpen /> : undefined}
                   licence={id === "vedder_1010" ? (a) => <Licence actions={a} /> : undefined} />
-    </WaterFrame>);
+    </WaterFrame>
+    </MenuContext.Provider>);
 }
 
 /** open every fold on the screen (the in-part caveat, "How this was decided", sheet folds) so their insides are audited */
@@ -130,9 +147,19 @@ describe("4. every press is named and reaches 44 × 44", () => {
         expect(bad).toEqual([]);
         // not vacuous: the frame's back and view strip, the header (date, Map, four tabs) and the page's own presses
         expect(sized).toBeGreaterThanOrEqual(id === "vedder_615" ? 10 : 20);
-        // the key: only runs inside a sentence (LineText's link / ⓘ / book runs), each named
+        // the key: only runs inside a sentence (LineText's link / ⓘ / book runs), each named — a nested Text press that
+        // is not one of LineText's runs is in `bad` above ("not a line run")
         expect(inline.every((x) => x.role === "link" || x.role === "button")).toBe(true);
+        // the menu's report link at the foot of each tab drawn is audited like any press (it is in `sized`, not exempt)
+        expect(container.querySelectorAll('[data-testid^="report-link-"]').length).toBeGreaterThan(0);
       });
+
+  it("vedder_1010: exactly these runs ride on the key — the ⓘs, the book pages and the line's own links", () => {
+    const { container } = mount();
+    openFolds(container);
+    const names = [...new Set(pressAudit(container).inline.map((x) => `${x.role} ${x.name}`))].sort();
+    expect(names).toEqual(VEDDER_INLINE);
+  });
 
   for (const id of ["vedder_1010", "klwa_1010", "bc1_501", "glenn_501"] as const)
     it(`${id}: every sheet the page opens, on a phone and as a wide dialog`, () => {
@@ -160,13 +187,15 @@ describe("4. every press is named and reaches 44 × 44", () => {
         <RegsPress accessibilityRole="link" box={{ w: 44, h: 20 }} onPress={() => {}}><Text>ok</Text></RegsPress>
         <Pressable accessibilityRole="button" onPress={() => {}} {...{ dataSet: { hitslop: "30 30 2 2 2 2" } }}><Text>Too small</Text></Pressable>
         <Pressable accessibilityRole="tab" onPress={() => {}} {...{ dataSet: { hitslop: "44 44 0 0 0 0" } }} />
-        <Text>A sentence with <Text accessibilityRole="link" onPress={() => {}}>a run</Text> in it.</Text>
+        <Text>A sentence with <Text accessibilityRole="link" onPress={() => {}} {...lineRun}>a run</Text> in it.</Text>
+        <Text><Text accessibilityRole="link" onPress={() => {}}>How to tell ›</Text></Text>
       </View>);
     expect(pressAudit(container)).toEqual({
       bad: [
         { role: "button", name: "Plain pressable", why: "no data-hitslop: not a RegsPress / hitProps press" },
         { role: "button", name: "Too small", why: "reaches 34×34" },
         { role: "tab", name: "", why: "no accessible name" },
+        { role: "link", name: "How to tell ›", why: "a nested Text press that is not a line run (LineText): give it a RegsPress" },
       ],
       inline: [{ role: "link", name: "a run" }],
       sized: 3,

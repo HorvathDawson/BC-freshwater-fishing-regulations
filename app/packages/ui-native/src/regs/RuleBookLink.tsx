@@ -9,7 +9,7 @@ import { Text } from "react-native";
 import { bookText, WORDS } from "@app/core";
 import { TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
-import { MIN_HIT } from "./hit";
+import { lineRun, MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
 import { RegsPress } from "./RegsPress";
 
@@ -37,7 +37,7 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, s
   );
   return (
     <Text accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void onBook(pdf); }}
-          style={[face, { color: palette.accent }]}>
+          style={[face, { color: palette.accent }]} {...lineRun}>
       {words}
     </Text>
   );

@@ -13,7 +13,8 @@
  * book runs). React Native's Text has no `hitSlop` (react-native 0.86 Text.js: `pressRetentionOffset` only) and a nested
  * Text cannot hold a Pressable without leaving the sentence's line, so its target is its own glyph run on the line box —
  * the prototype's inline `<a>` too (check.mjs grew it with a `::before`). It is returned in `inline` (not `bad`), with its
- * name still required, so a gate can pin exactly which runs ride on that key.
+ * name still required, so a gate can pin exactly which runs ride on that key. Only a run that carries LineText's mark
+ * (`lineRun` → `data-run="line"`) may: any other nested-Text press is in `bad` — it should be a `RegsPress`.
  */
 import { hitArea, MIN_HIT } from "../hit";
 
@@ -52,7 +53,11 @@ export function pressAudit(root: Element): { bad: PressOffence[]; inline: { role
     if (hidden(el)) continue;
     const role = el.getAttribute("role")!, name = nameOf(el);
     if (!name) { bad.push({ role, name, why: "no accessible name" }); continue; }
-    if (isInlineRun(el)) { inline.push({ role, name }); continue; }
+    if (isInlineRun(el)) {
+      if (el.getAttribute("data-run") === "line") inline.push({ role, name });
+      else bad.push({ role, name, why: "a nested Text press that is not a line run (LineText): give it a RegsPress" });
+      continue;
+    }
     sized++;
     const data = el.getAttribute("data-hitslop");
     const area = data === null ? null : hitArea(data);

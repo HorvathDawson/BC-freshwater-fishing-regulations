@@ -8,6 +8,7 @@ import { Text } from "react-native";
 import { WORDS, type Line, type Run, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
+import { lineRun } from "./hit";
 import { RuleBookLink } from "./RuleBookLink";
 
 /** What a tap on a Keep link does. Sheets (T36/T37) are not built yet: `onSheet` may be a no-op. */
@@ -34,7 +35,7 @@ export function termLabel(ids: readonly string[], titles: Readonly<Record<string
 export function TermText({ ids, palette, actions }: { ids: readonly string[]; palette: Palette; actions: Pick<KeepActions, "onSheet"> }) {
   const titles = useContext(TermTitles);
   return (
-    <Text accessibilityRole="button" accessibilityLabel={termLabel(ids, titles)}
+    <Text accessibilityRole="button" accessibilityLabel={termLabel(ids, titles)} {...lineRun}
           onPress={() => actions.onSheet(`gl:${ids.join(",")}`)} style={{ color: palette.accent }}>
       {ids.length >= 2 ? WORDS.TERMS_MANY : WORDS.TERM_ONE}
     </Text>);
@@ -67,7 +68,7 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
           case "link": {
             const o = r.open;
             const go = () => (typeof o === "string" ? actions.onSheet(o) : "day" in o ? actions.onDay(o.day) : actions.onTab(o.tab));
-            return <Text key={i} accessibilityRole="link" onPress={go} style={[linkStyle ?? {}, { color: palette.accent }]}>{r.s}</Text>;
+            return <Text key={i} accessibilityRole="link" onPress={go} {...lineRun} style={[linkStyle ?? {}, { color: palette.accent }]}>{r.s}</Text>;
           }
         }
       })}

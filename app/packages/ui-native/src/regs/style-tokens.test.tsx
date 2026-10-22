@@ -20,6 +20,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { Text, View } from "react-native";
 import type { KeepVM, RegsPage } from "@app/core";
+import type { MenuControls } from "@app/ui";
+import { MenuContext } from "../menu/MenuButton";
+import { ReportLink } from "../menu/ReportLink";
 import { LIGHT } from "../theme";
 import { TYPE } from "../type";
 import { KeepTab } from "./KeepTab";
@@ -60,10 +63,20 @@ function audit(root: Element) {
   };
 }
 
+/**
+ * The Keep tab as the app draws it: the tab and, at its foot, the menu's "Report a problem with this page" link (RegsScreen
+ * puts it under every tab; it draws only under the Shell's MenuContext, so the gate provides one).
+ */
 function keepOf(id: string) {
   const page = STATES[id]!;
-  const { container } = render(<KeepTab keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />);
-  return container.querySelector('[data-testid="keep-tab"]')!;
+  const { container } = render(
+    <MenuContext.Provider value={{ report() {} } as unknown as MenuControls}>
+      <KeepTab keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />
+      <ReportLink page={page} tab="keep" palette={LIGHT} />
+    </MenuContext.Provider>);
+  expect(container.querySelector('[data-testid="keep-tab"]')).not.toBeNull();
+  expect(container.querySelector('[data-testid="report-link-keep"]')).not.toBeNull();
+  return container;
 }
 
 describe("r20c-style-tokens on the Keep tab", () => {

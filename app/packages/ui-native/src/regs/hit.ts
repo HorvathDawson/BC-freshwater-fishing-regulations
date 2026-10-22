@@ -39,3 +39,10 @@ export function hitArea(data: string): { w: number; h: number } | null {
 export function hitProps(box: HitBox): { hitSlop: Insets } & Record<string, unknown> {
   return { hitSlop: hitSlopFor(box.w, box.h), dataSet: { hitslop: hitData(box) } };
 }
+
+/**
+ * THE ONE KEY's mark (a11yAudit `pressAudit`): a press that is a run INSIDE a sentence — LineText's link, ⓘ and book runs,
+ * nested Texts that cannot take a hitSlop — spreads this, and only those do. Any other nested-Text press is an offence in
+ * the audit (it should be a `RegsPress`), so a fixed press cannot quietly turn back into a small run. Native ignores it.
+ */
+export const lineRun: Record<string, unknown> = { dataSet: { run: "line" } };
