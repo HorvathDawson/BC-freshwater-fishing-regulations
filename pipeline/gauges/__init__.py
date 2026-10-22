@@ -30,7 +30,8 @@ __all__ = ["TRUST_BANDS", "GaugeLink", "StationMatch", "build_gauge_sheds",
            "is_lake_station", "lake_gauge_links", "read_match", "trust_for",
            "write_match"]
 
-# `nodes_for`, `match_stations`, `load_aliases` and `summarise` are DELIBERATELY not
-# re-exported: importing them pulls in geopandas, shapely's STRtree and the expectation of a
-# 2.8 GB atlas. Reach for `pipeline.gauges.generate.match` explicitly when you mean to match
-# something — which should be a few times a year, by hand.
+# `match_stations` is DELIBERATELY not re-exported: importing it pulls in shapely's STRtree and the
+# expectation of a whole atlas. Reach for `pipeline.gauges.generate.match` explicitly when you mean
+# to match something — a few times a year, by hand; nothing outside `generate/` imports it
+# (`test_gauge_imports.py`). Placing the frozen match on a graph (`nodes_for`, `summarise`) is a
+# consumer's job: `pipeline.gauges.consume.place` (it needs geopandas, so it is not re-exported here).

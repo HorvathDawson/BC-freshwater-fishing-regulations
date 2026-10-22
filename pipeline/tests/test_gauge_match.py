@@ -9,7 +9,9 @@ import geopandas as gpd
 import pytest
 from shapely.geometry import LineString, Point
 
-from pipeline.gauges.generate import match as M
+from pipeline.gauges import matches as M
+from pipeline.gauges.consume import place as P
+from pipeline.gauges.generate import match as G  # the matcher's own rules (area fit)
 
 
 def _graph(nodes):
@@ -46,12 +48,12 @@ class TestPlacing:
         g = _graph({"below": _stream("below"), "above": _stream("above")})
         geoms = {"below": below, "above": above}
         m = _at(100, 0)
-        assert M.nodes_for([m], g, geoms) == {"08AA001": "above"}
+        assert P.nodes_for([m], g, geoms) == {"08AA001": "above"}
 
     def test_a_station_mid_section_lands_on_that_section(self):
         g = _graph({"only": _stream("only")})
         geoms = {"only": LineString([(0, 0), (200, 0)])}
-        assert M.nodes_for([_at(100, 0)], g, geoms) == {"08AA001": "only"}
+        assert P.nodes_for([_at(100, 0)], g, geoms) == {"08AA001": "only"}
 
     def test_never_leaves_its_own_watershed(self):
         # A creek gauge twenty metres from a mainstem must not be placed on the mainstem.
@@ -60,25 +62,25 @@ class TestPlacing:
                     "main": _stream("main", wsc="100-1")})
         geoms = {"creek": LineString([(0, 20), (200, 20)]),
                  "main": LineString([(0, 0), (200, 0)])}
-        assert M.nodes_for([_at(100, 0, wsc="100-1-2")], g, geoms) == {"08AA001": "creek"}
+        assert P.nodes_for([_at(100, 0, wsc="100-1-2")], g, geoms) == {"08AA001": "creek"}
 
     def test_a_station_too_far_from_its_water_is_not_placed(self):
         g = _graph({"only": _stream("only")})
         geoms = {"only": LineString([(0, 0), (200, 0)])}
-        assert M.nodes_for([_at(100, 5_000)], g, geoms) == {}
+        assert P.nodes_for([_at(100, 5_000)], g, geoms) == {}
 
     def test_a_lake_station_is_named_not_projected(self):
         # It sits on a body of water, not along a channel. Forgetting this emptied
         # `lake_gauge` from 220 rows to 0.
         g = _graph({"lake:99": _lake("lake:99", "99")})
         m = M.StationMatch("08MH999", "matched", "name+radius", 5.0, wbk="99")
-        assert M.nodes_for([m], g, {}) == {"08MH999": "lake:99"}
+        assert P.nodes_for([m], g, {}) == {"08MH999": "lake:99"}
 
     def test_an_unmatched_station_is_never_placed(self):
         g = _graph({"only": _stream("only")})
         geoms = {"only": LineString([(0, 0), (200, 0)])}
         m = M.StationMatch("08AA001", "unresolved", None, None)
-        assert M.nodes_for([m], g, geoms) == {}
+        assert P.nodes_for([m], g, geoms) == {}
 
     def test_a_graph_is_required_so_a_stale_node_id_can_never_be_returned(self):
         # There used to be a no-graph path here that returned the `node_id` frozen into the
@@ -88,7 +90,7 @@ class TestPlacing:
         # must supply the graph they want the answer to be about.
         m = M.StationMatch("08AA001", "matched", "name+radius", 1.0, node_id="B1:0")
         with pytest.raises(TypeError):
-            M.nodes_for([m])                                       # type: ignore[call-arg]
+            P.nodes_for([m])                                       # type: ignore[call-arg]
 
     def test_it_may_reach_as_far_as_the_match_did_but_no_further(self):
         # ONE DECISION, MADE ONCE. The match accepted this station at 900 m; re-projecting
@@ -97,12 +99,12 @@ class TestPlacing:
         g = _graph({"only": _stream("only")})
         geoms = {"only": LineString([(0, 0), (200, 0)])}
         far = M.StationMatch(**{**vars(_at(100, 900)), "distance_m": 900.0})
-        assert M.nodes_for([far], g, geoms) == {"08AA001": "only"}
+        assert P.nodes_for([far], g, geoms) == {"08AA001": "only"}
 
         # ... and no further: a station matched at 30 m cannot drift onto a node 900 m away
         # just because a boundary moved.
         near = M.StationMatch(**{**vars(_at(100, 900)), "distance_m": 30.0})
-        assert M.nodes_for([near], g, geoms) == {}
+        assert P.nodes_for([near], g, geoms) == {}
 
     def test_every_station_it_cannot_place_is_reported(self):
         # A station that matched and then failed to project is a river the app will call
@@ -110,7 +112,7 @@ class TestPlacing:
         g = _graph({"only": _stream("only")})
         geoms = {"only": LineString([(0, 0), (200, 0)])}
         report: list[str] = []
-        assert M.nodes_for([_at(100, 5_000)], g, geoms, report=report) == {}
+        assert P.nodes_for([_at(100, 5_000)], g, geoms, report=report) == {}
         assert len(report) == 1 and "08AA001" in report[0]
 
 
@@ -159,28 +161,28 @@ class TestDrainageArea:
     def test_it_refuses_a_stub_for_a_station_that_drains_a_province(self):
         # 08MH028 FRASER RIVER AT STEVESTON, matched to a node of magnitude 1 in the build
         # on disk. ECCC surveyed 232,000 km2. Name, watershed and distance all passed.
-        assert not M._area_fits({"area_km2": 232_000.0},
+        assert not G._area_fits({"area_km2": 232_000.0},
                                 SimpleNamespace(stream_magnitude=1))
-        assert M._area_fits({"area_km2": 232_000.0},
+        assert G._area_fits({"area_km2": 232_000.0},
                             SimpleNamespace(stream_magnitude=290_000))
 
     def test_silence_on_either_side_is_not_evidence_of_a_bad_match(self):
         # A station with no published area, or a node with no magnitude, tells us nothing.
         # Treating "unknown" as "wrong" would refuse the lake stations wholesale.
-        assert M._area_fits({}, SimpleNamespace(stream_magnitude=1))
-        assert M._area_fits({"area_km2": 232_000.0}, SimpleNamespace(stream_magnitude=None))
-        assert M._area_fits({"area_km2": 500.0}, SimpleNamespace(stream_magnitude=0))
-        assert M._area_fits({"area_km2": None}, SimpleNamespace(stream_magnitude=3))
+        assert G._area_fits({}, SimpleNamespace(stream_magnitude=1))
+        assert G._area_fits({"area_km2": 232_000.0}, SimpleNamespace(stream_magnitude=None))
+        assert G._area_fits({"area_km2": 500.0}, SimpleNamespace(stream_magnitude=0))
+        assert G._area_fits({"area_km2": None}, SimpleNamespace(stream_magnitude=3))
 
     def test_the_ordinary_case_is_never_disturbed(self):
         # The whole 5th-to-95th spread of the roster, 0.29 to 2.86 km2 per magnitude, has to
         # pass — this is a blunder detector, not a ranking.
         for km2_per_mag in (0.29, 0.80, 2.86):
-            assert M._area_fits({"area_km2": 100 * km2_per_mag},
+            assert G._area_fits({"area_km2": 100 * km2_per_mag},
                                 SimpleNamespace(stream_magnitude=100)), km2_per_mag
 
     def test_a_bad_area_value_is_treated_as_no_area(self):
-        assert M._area_km2({"area_km2": "not a number"}) is None
-        assert M._area_km2({"area_km2": 0}) is None
-        assert M._area_km2({"area_km2": -1}) is None
-        assert M._area_km2({"area_km2": 12.5}) == 12.5
+        assert G._area_km2({"area_km2": "not a number"}) is None
+        assert G._area_km2({"area_km2": 0}) is None
+        assert G._area_km2({"area_km2": -1}) is None
+        assert G._area_km2({"area_km2": 12.5}) == 12.5

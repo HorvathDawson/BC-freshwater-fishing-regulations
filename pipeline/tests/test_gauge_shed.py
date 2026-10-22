@@ -416,7 +416,8 @@ class TestMatchProvenance:
         assert "name_variants" not in src.replace("name_variants.json`", "")
 
     def test_summarise_counts_by_outcome(self):
-        from pipeline.gauges.generate.match import StationMatch, summarise
+        from pipeline.gauges.consume.place import summarise
+        from pipeline.gauges.matches import StationMatch
         got = summarise([
             StationMatch("a", "matched", "name+radius", 12.0, node_id="n1"),
             StationMatch("b", "matched", "alias", 40.0, node_id="n2"),
@@ -429,7 +430,8 @@ class TestMatchProvenance:
     def test_summarise_can_report_only_the_stations_that_matter(self):
         # The roster-wide rate is 89%; among TRANSMITTING stations it is 99%. Reporting the
         # first as the headline hides the only number a user can be affected by.
-        from pipeline.gauges.generate.match import StationMatch, summarise
+        from pipeline.gauges.consume.place import summarise
+        from pipeline.gauges.matches import StationMatch
         rows = [StationMatch("live", "matched", "name+radius", 1.0, node_id="n"),
                 StationMatch("dead", "unresolved", None, None, "x")]
         assert "1/1 matched (100.0%)" in summarise(rows, live={"live"})

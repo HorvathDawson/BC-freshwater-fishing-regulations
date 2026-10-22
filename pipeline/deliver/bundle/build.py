@@ -537,7 +537,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         raise SystemExit("section_gauge: no graph.pkl in this build")
 
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
-    from pipeline.gauges.generate.match import nodes_for, read_match, summarise
+    from pipeline.gauges.consume.place import nodes_for, summarise
+    from pipeline.gauges.matches import read_match
     from pipeline.gauges.consume.shed import downstream_map, load_stations
 
     from pipeline.common.section_handles import read as _read_handles
