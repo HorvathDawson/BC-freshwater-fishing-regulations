@@ -9,15 +9,16 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   wf_259c396f worktrees removed.
 - PANELS LANE MERGED (wf_ac3c87d1-cf6): every gauge per quantity (MEMBERS_PER_QUANTITY=8; CORE_MEMBERS=4 core, the rest a
   reserve that may answer but never silences the core). Real data: Flow 100,020→100,095, Level 107,296→107,373, 0 losses.
-- RUNNING (scratchpad panels-rebuild.sh, log panels-rebuild.log): roster refresh (needs PYTHONPATH=.; the old roster is
-  kept in the scratchpad and restored on failure) → panel tests → deliver all via heavy.sh → data tests. THEN: re-cut fixtures
-  (taps.py, regs-fixture, harness/goldenSlices), strict check once, local feed run, commit fixtures.
+- DONE: rebuild → release r-98ded5f443e1 live (13,675,295 B gz; paint 942,794); roster refreshed 23b7309; dev fixture
+  re-cut ac8d56a; strict 7626 green. Live feed published to data/generated/gauges/feeds with --clim (432 answered, 422 with
+  a percentile). NOTE: the local feed goes to data/generated/gauges/feeds WITH --clim; never --out the dev fixture dir.
+- MERGED: spots switch in Layers + spot pins on every map + layer choice persisted (2e77f1af d5bea71a); "not a real-time
+  gauge" from feed `listed` (70fe7ac3). Full check + smoke pending with the next lanes.
 - TILE REBUILD PENDING: parcels from z11 + basins coverage simplify (100 m), batched with S2 tile-size work.
 - NEXT: app reads feed `listed` ("not a real-time gauge"); spots on/off in Layers; T51; T52; Fable consistency auditors;
   cleanup waves 2-4 + app test cleanup + knip; S2; determinism proof (heavy.sh); T50 Android.
-- RUNNING wf_9621cf41-0e0 (spots toggle in Layers; feed `listed` -> "not a real-time gauge") and wf_5087364a-96e (per-feed
+- RUNNING wf_1060af7b-2d2 (silent donors hidden, one line with last data time) and wf_5087364a-96e (per-feed
   stale cadences; dark water back to blue; release `valid_until`). Owner answers: decisions.md "OWNER 2026-10-22 (late)".
-- QUEUED after wf_9621cf41 merges: silent donors HIDDEN from the Conditions gauge table, one line naming them with last data time.
 
 ## EARLIER STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections. Live data release r-f734cbb93724 (option A side channels + own gauge lead; served by
