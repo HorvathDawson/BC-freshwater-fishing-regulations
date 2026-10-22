@@ -39,10 +39,15 @@ export function SheetHost(p: SheetHostProps) {
   const scroll = useRef<ScrollView>(null);
   // a sheet opened in another's place starts at its top
   useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [p.open]);
-  if (!vm) return null;
+  // (refinement pass) the last sheet drawn stays mounted, closed, so the one Sheet can slide it away (its scrim fading in
+  // place) instead of it vanishing on the press of Done; a key the page cannot open still draws nothing
+  const last = useRef(vm);
+  if (vm) last.current = vm;
+  const drawn = vm ?? (p.open ? null : last.current);
+  if (!drawn) return null;
   return (
-    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog>
-      <SheetBody vm={vm} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
+    <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog>
+      <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
 }

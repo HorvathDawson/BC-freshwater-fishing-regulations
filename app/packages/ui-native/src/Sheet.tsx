@@ -8,13 +8,13 @@
  * Spots, SpotDrop, the Day sheet) changes what the map shows, so it stays a bottom sheet at every width and the map stays
  * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
-import { useEffect, useMemo, useRef } from "react";
-import { Animated, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
-import { NATIVE_DRIVER } from "./motion";
+import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
 
 /**
@@ -95,6 +95,57 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const requestClose = useBackLayer(open, onClose);
   const wide = dialog && (layout ?? shellLayout) !== "phone";
   /*
+   * THE SHEET SLIDES; THE SCRIM STAYS AND FADES (refinement pass, owner 2026-10-22: "when menus close the screen opacity
+   * slides down with the menu instead of staying in the back then disappearing after menu slides down"). The Modal's own
+   * `slide` moved everything in it, so the dim travelled down the window as a band behind the sheet. Now the Modal does
+   * no animation of its own and stays up while the sheet leaves: `slide` (px below its resting place) moves the sheet
+   * only, `dim` (0–1) is the scrim's opacity only, and the scrim never has a transform. Timings: `SHEET_MOTION`.
+   * Reduced motion: nothing slides; the sheet and the scrim fade together, quickly.
+   */
+  const reduced = useReducedMotion();
+  const offscreen = () => height.current || windowHeight || 1000;
+  const slide = useRef(new Animated.Value(windowHeight || 1000)).current;
+  const dim = useRef(new Animated.Value(0)).current;
+  const hidden = useRef(true);
+  const run = useRef<Animated.CompositeAnimation | null>(null);
+  // up while open AND while leaving: set during render when it opens (so the open frame already has the Modal up), and
+  // cleared only when the leaving motion has finished
+  const [up, setUp] = useState(open);
+  if (open && !up) setUp(true);
+  // what it showed, kept while it leaves: a caller that clears its content on close (SheetHost) slides out what was there
+  const kept = useRef({ title, sub, children });
+  if (open) kept.current = { title, sub, children };
+  const shown = open ? { title, sub, children } : kept.current;
+  useEffect(() => {
+    if (wide) return;
+    run.current?.stop();
+    const timing = (v: Animated.Value, toValue: number, duration: number, easing: (t: number) => number, delay = 0) =>
+      Animated.timing(v, { toValue, duration, easing, delay, useNativeDriver: NATIVE_DRIVER });
+    let anim: Animated.CompositeAnimation;
+    if (open) {
+      if (hidden.current) { slide.setValue(reduced ? 0 : offscreen()); dim.setValue(0); hidden.current = false; }
+      y.setValue(0);
+      anim = reduced
+        ? Animated.parallel([timing(slide, 0, 0, Easing.linear), timing(dim, 1, SHEET_MOTION.reducedMs, Easing.linear)])
+        : Animated.parallel([timing(slide, 0, SHEET_MOTION.inMs, Easing.out(Easing.cubic)),
+                             timing(dim, 1, SHEET_MOTION.fadeInMs, Easing.out(Easing.quad))]);
+    } else {
+      if (hidden.current) return;
+      anim = reduced
+        ? timing(dim, 0, SHEET_MOTION.reducedMs, Easing.linear)
+        : Animated.parallel([timing(slide, offscreen(), SHEET_MOTION.outMs, Easing.in(Easing.cubic)),
+                             timing(dim, 0, SHEET_MOTION.fadeOutMs, Easing.inOut(Easing.quad), SHEET_MOTION.fadeOutDelayMs)]);
+    }
+    run.current = anim;
+    anim.start(({ finished }) => {
+      if (!finished || open) return;
+      hidden.current = true;
+      setUp(false);
+    });
+    // on open / close (and a reduce-motion change) only: the Animated values and `y` are stable refs
+  }, [open, reduced, wide]);
+  useEffect(() => () => run.current?.stop(), []);
+  /*
    * (T45) ON A WIDE SCREEN, A CENTRED DIALOG sized to its content (owner: "on desktop the sheet spans the whole 1280 px
    * window … capped?"): at most SHEET_DIALOG.maxWidth across and maxHeight of the window tall (the body scrolls past
    * that), over the same scrim, with the same title row, Done and sub line. No drag (a window has no bottom edge to pull
@@ -116,18 +167,18 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                justifyContent: "space-between", paddingHorizontal: 18,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
-                  <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
+                  <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
                   <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" {...DONE_HIT}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
                   </Pressable>
                 </View>
-                {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
+                {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
               </View>
               {scroll
                 ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1, flexBasis: "auto" }}
                               keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
-                : <View style={{ paddingBottom: 28 }}>{children}</View>}
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>
+                : <View style={{ paddingBottom: 28 }}>{shown.children}</View>}
             </View>
           </View>
         </GestureHandlerRootView>
@@ -135,12 +186,16 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
     );
   }
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={requestClose}>
-      {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). */}
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        {/* tapping the map behind closes it — the standard way out of a sheet */}
-        <Pressable accessibilityLabel="Close" onPress={onClose}
-                   style={{ flex: 1, backgroundColor: palette.scrim }} />
+    <Modal visible={up} transparent animationType="none" onRequestClose={requestClose}>
+      {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). While it leaves,
+          it takes no touches: the map under it is live again from the press of Done. */}
+      <GestureHandlerRootView style={{ flex: 1, justifyContent: "flex-end" }} pointerEvents={open ? "auto" : "none"}>
+        {/* tapping the map behind closes it — the standard way out of a sheet. The whole window, BEHIND the sheet, fixed:
+            only its opacity moves, so the dim neither travels with the sheet nor uncovers a bright band as it leaves. */}
+        <Animated.View testID="sheet-scrim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
+                                                     backgroundColor: palette.scrim, opacity: dim }}>
+          <Pressable accessibilityLabel="Close" onPress={onClose} style={{ flex: 1 }} />
+        </Animated.View>
         {/*
           THE SHEET WAS THE LAST ROUNDED THING. It carried a 22px radius on both top corners
           and a grabber pill, over a `palette.line` hairline — the softest surface in the app,
@@ -149,9 +204,10 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   
           Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
         */}
-        <Animated.View onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal
+        <Animated.View testID="sheet-panel" onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal
                        style={{ backgroundColor: palette.card, paddingBottom: 28,
-                                borderTopWidth: 1.5, borderColor: palette.ink, transform: [{ translateY: y }] }}>
+                                borderTopWidth: 1.5, borderColor: palette.ink,
+                                opacity: reduced ? dim : 1, transform: [{ translateY: Animated.add(y, slide) }] }}>
           <GestureDetector gesture={pull} touchAction="none">
             <View testID="sheet-handle" style={{ paddingTop: 10 }}>
               <View style={{ alignSelf: "center", width: 38, height: 3,
@@ -160,13 +216,13 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              justifyContent: "space-between", paddingHorizontal: 18,
                              paddingBottom: 10, borderBottomWidth: 1.5,
                              borderBottomColor: palette.ink }}>
-                <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
+                <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
                            {...DONE_HIT}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
                 </Pressable>
               </View>
-              {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
+              {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
             </View>
           </GestureDetector>
           {scroll
@@ -178,10 +234,10 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                   <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * 0.68 }}
                               keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
                               onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>
                 </GestureDetector>
               </GestureDetector>
-            : children}
+            : shown.children}
         </Animated.View>
       </GestureHandlerRootView>
     </Modal>
