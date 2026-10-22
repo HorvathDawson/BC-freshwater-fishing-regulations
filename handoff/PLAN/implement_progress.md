@@ -96,7 +96,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
-- RUNNING: Esri online imagery wf_afbf4e63-327 (task w515tl9kl; script esri-online-imagery-wf_afbf4e63-327.js).
+- MERGED: Esri online imagery 388e5e08 (World_Imagery, maxzoom 19, overzoom; offline -> drawn map + reason, comes back by
+  itself; credit switches). Strict 6996, smoke pass. MUST NOT SHIP without an ArcGIS Location Platform key
+  (EXPO_PUBLIC_ARCGIS_API_KEY): the token-free URL is dev-only. OWNER QUESTIONS: create the key (tile vs session
+  billing)?; offline 10 m base still wanted?; add netinfo for instant offline on phones?; persist the Satellite choice?
   Everything else merged; waiting on owner: layers-menu pick + questions, T47 start, the question lists below.
 - MERGED ~00:30: WATER MAP FOLLOW-UPS (0db23b54, a9876032, 7171e865 + test fix): current part keeps its colour with an
   outline; ▲/▼ cross waters through openWater (Vedder <-> Chilliwack); every part reachable; stepped part is the frame's.
