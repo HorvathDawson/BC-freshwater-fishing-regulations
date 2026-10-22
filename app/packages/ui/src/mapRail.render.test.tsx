@@ -68,16 +68,18 @@ function Probe({ go, locate, out, route = HOME, seen }: {
 }) {
   out.r = useMapRail(go, locate ?? null, route);
   const r = out.r;
-  const line = `open:${r.spotsOpen} drop:${r.drop ? `${r.drop.lat},${r.drop.lon}` : "-"} perm:${r.permission ?? "-"}` +
+  const line = `drop:${r.drop ? `${r.drop.lat},${r.drop.lon}` : "-"} perm:${r.permission ?? "-"}` +
                ` err:${r.error ?? "-"} fly:${r.fly ? r.fly.key : "-"}`;
   seen?.push(line);
   return <p>{line}</p>;
 }
-const rig = (locate?: Locate | null) => {
+const SPOTS = reduce(HOME, { type: "tab", tab: "spots" });
+const rig = (locate?: Locate | null, route: Route = HOME) => {
   const acts: RouteAction[] = [];
   const out: { r?: MapRail } = {};
-  const { container } = render(<Probe go={(a) => acts.push(a)} locate={locate} out={out} />);
-  return { acts, out, text: () => container.textContent };
+  const view = render(<Probe go={(a) => acts.push(a)} locate={locate} out={out} route={route} />);
+  const at = (r: Route) => view.rerender(<Probe go={(a) => acts.push(a)} locate={locate} out={out} route={r} />);
+  return { acts, out, at, text: () => view.container.textContent };
 };
 
 describe("useMapRail", () => {
@@ -87,83 +89,94 @@ describe("useMapRail", () => {
     const dropped = text();
     act(() => out.r!.cancelDrop());
     expect([dropped, text(), acts]).toEqual([
-      "open:false drop:49.1,-121.9 perm:- err:- fly:-", "open:false drop:- perm:- err:- fly:-", []]);
+      "drop:49.1,-121.9 perm:- err:- fly:-", "drop:- perm:- err:- fly:-", []]);
   });
 
   it("Continue is the one capture, started at the pin, and the pin goes with it", () => {
     const { acts, out, text } = rig();
     act(() => out.r!.pressLong(49.1, -121.9));
     act(() => out.r!.continueDrop());
-    expect([text(), acts]).toEqual(["open:false drop:- perm:- err:- fly:-",
+    expect([text(), acts]).toEqual(["drop:- perm:- err:- fly:-",
                                     [{ type: "addSpot", at: { lat: 49.1, lon: -121.9 } }]]);
   });
 
-  it("the menu asks the platform's permission each time it opens, never the location itself", async () => {
+  it("(T48) the Spots TAB asks the platform's permission each time it is entered, never the location itself", async () => {
     const asked: string[] = [];
     const locate: Locate = { permission: async () => { asked.push("permission"); return "prompt"; },
                              here: async () => { asked.push("here"); return { lat: 0, lon: 0 }; } };
-    const { out, text } = rig(locate);
-    const before = text();
-    act(() => out.r!.openSpots());
+    const { at, text } = rig(locate);
     await settle();
-    act(() => out.r!.closeSpots());
-    act(() => out.r!.openSpots());
+    const onMap = [text(), [...asked]];
+    at(SPOTS);
     await settle();
-    expect([before, text(), asked]).toEqual(["open:false drop:- perm:- err:- fly:-",
-                                             "open:true drop:- perm:prompt err:- fly:-", ["permission", "permission"]]);
+    at(HOME);
+    at(SPOTS);
+    await settle();
+    expect([onMap, text(), asked]).toEqual([["drop:- perm:- err:- fly:-", []],
+                                            "drop:- perm:prompt err:- fly:-", ["permission", "permission"]]);
   });
 
-  it("At my location: the capture where the device is; a failure is said and nothing starts", async () => {
+  it("At my location: the capture where the device is; a failure is said on the tab and nothing starts", async () => {
     let fail = false;
     const locate: Locate = { permission: async () => "granted",
                              here: async () => { if (fail) throw new Error("timeout"); return { lat: 50, lon: -120 }; } };
-    const { acts, out, text } = rig(locate);
-    act(() => out.r!.openSpots());
+    const { acts, out, text } = rig(locate, SPOTS);
     await act(async () => { await out.r!.addMine(); });
     const ok = [text(), [...acts]];
-    act(() => out.r!.openSpots());
     fail = true;
     await act(async () => { await out.r!.addMine(); });
     expect([ok, text(), acts.length]).toEqual([
-      ["open:false drop:- perm:granted err:- fly:-", [{ type: "addSpot", at: { lat: 50, lon: -120 } }]],
-      "open:true drop:- perm:granted err:Your location could not be read, so no spot was started. fly:-", 1]);
+      ["drop:- perm:granted err:- fly:-", [{ type: "addSpot", at: { lat: 50, lon: -120 } }]],
+      "drop:- perm:granted err:Your location could not be read, so no spot was started. fly:-", 1]);
   });
 
-  it("Add a spot here: the capture at the point given; Show frames the spot, closes the menu, and moves again each time", () => {
-    const { acts, out, text } = rig();
-    act(() => out.r!.openSpots());
+  it("Add a spot here: the capture at the point given; Show goes to the Map tab, frames the spot, and moves again each " +
+     "time", () => {
+    const { acts, out, text } = rig(null, SPOTS);
     act(() => out.r!.addAt({ lat: 49, lon: -122 }));
-    act(() => out.r!.openSpots());
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     const first = text();
     const box = out.r!.fly!.bbox.map((v) => v.toFixed(4));
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     expect([acts, first, box, text()]).toEqual([
-      [{ type: "addSpot", at: { lat: 49, lon: -122 } }],
-      "open:false drop:- perm:- err:- fly:spot:s1:1",
+      [{ type: "addSpot", at: { lat: 49, lon: -122 } }, { type: "tab", tab: "map" }, { type: "tab", tab: "map" }],
+      "drop:- perm:- err:- fly:spot:s1:1",
       ["-121.9730", "49.0938", "-121.9620", "49.1010"],
-      "open:false drop:- perm:- err:- fly:spot:s1:2"]);
+      "drop:- perm:- err:- fly:spot:s1:2"]);
   });
 
-  it("the route moving anywhere forgets the pin, the framing and the menu — on that same render, so a map remounted " +
-     "on return is never framed on an old spot again", () => {
+  it("the route moving anywhere forgets the pin and the framing — on that same render, so a map remounted on return is " +
+     "never framed on an old spot again — EXCEPT the Show it was asked for, which lands on the Map tab", () => {
     const seen: string[] = [];
     const out: { r?: MapRail } = {};
     const at = (route: Route) => <Probe go={() => {}} out={out} route={route} seen={seen} />;
-    const { rerender } = render(at(HOME));
+    const { rerender } = render(at(SPOTS));
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
+    rerender(at(HOME));                                       // Show's own move: the framing survives it
+    const landed = seen[seen.length - 1];
     act(() => out.r!.pressLong(49.1, -121.9));
-    act(() => out.r!.openSpots());
     const before = seen[seen.length - 1];
     seen.length = 0;
     const spotOpen = reduce(HOME, { type: "openSpot", id: "s2" });
     rerender(at(spotOpen));
     rerender(at(reduce(spotOpen, { type: "back" })));
     const conditions = reduce(HOME, { type: "tab", tab: "conditions" });
-    act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     rerender(at(conditions));
-    expect([before, [...new Set(seen)]]).toEqual([
-      "open:true drop:49.1,-121.9 perm:- err:- fly:spot:s1:1",
-      ["open:false drop:- perm:- err:- fly:-", "open:false drop:- perm:- err:- fly:spot:s1:2"]]);
+    expect([landed, before, [...new Set(seen)]]).toEqual([
+      "drop:- perm:- err:- fly:spot:s1:1",
+      "drop:49.1,-121.9 perm:- err:- fly:spot:s1:1",
+      ["drop:- perm:- err:- fly:-"]]);
+  });
+
+  it("a spot's own Show (its screen, over any tab) lands on the Map tab the same way", () => {
+    const seen: string[] = [];
+    const out: { r?: MapRail } = {};
+    const acts: RouteAction[] = [];
+    const at = (route: Route) => <Probe go={(a) => acts.push(a)} out={out} route={route} seen={seen} />;
+    const spotOnCond = reduce(reduce(HOME, { type: "tab", tab: "conditions" }), { type: "openSpot", id: "s1" });
+    const { rerender } = render(at(spotOnCond));
+    act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
+    rerender(at(reduce(spotOnCond, acts[0]!)));
+    expect([acts, seen[seen.length - 1]]).toEqual([[{ type: "tab", tab: "map" }], "drop:- perm:- err:- fly:spot:s1:1"]);
   });
 });

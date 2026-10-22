@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ItemId, PlaceId, SectionId } from "@app/data";
 import type { NameHit } from "@app/data";
 import {
-  NO_PICK, focusFor, isSelected, resultGroups, searchStep, subjectOf, targetKey, townToPreview,
+  NO_PICK, focusFor, isSelected, resultGroups, searchSheet, searchStep, subjectOf, targetKey, townToPreview,
   type Located, type SearchPick, type SearchTarget, type TownView,
 } from "./search";
 
@@ -118,10 +118,10 @@ describe("select, then go", () => {
     expect(isSelected(r.pick, water)).toBe(true);
   });
 
-  it("the first tap on a place row selects the town and never leaves or opens its list", () => {
-    const r = searchStep(NO_PICK, { t: "select", target: place });
-    expect(r.leave).toBeNull();
-    expect(r.pick).toEqual({ selected: place, town: null });
+  it("(T48) the first tap on a place row SHOWS it: its list of water near it opens at once — no eye", () => {
+    expect([searchStep(NO_PICK, { t: "select", target: place }), searchStep(sel(water), { t: "select", target: place })])
+      .toEqual([{ pick: { selected: null, town: smithers.place }, leave: null },
+                { pick: { selected: null, town: smithers.place }, leave: null }]);
   });
 
   it("tapping the selected row again keeps it selected and does not navigate", () => {
@@ -139,6 +139,7 @@ describe("select, then go", () => {
   it("only the selected row shows the go button", () => {
     const p = sel(water);
     expect([water, other, place].map((t) => isSelected(p, t))).toEqual([true, false, false]);
+    expect([water, other, place].map((t) => isSelected(sel(place), t))).toEqual([false, false, false]);
     expect(isSelected(NO_PICK, water)).toBe(false);
   });
 
@@ -154,8 +155,8 @@ describe("select, then go", () => {
     expect(searchStep(NO_PICK, { t: "go", target: water }).leave).toBeNull();
   });
 
-  it("go on the selected place stays, and opens what is near it", () => {
-    const r = searchStep(sel(place), { t: "go", target: place });
+  it("go on a place (Enter on its row) stays, and opens what is near it", () => {
+    const r = searchStep(NO_PICK, { t: "go", target: place });
     expect(r.leave).toBeNull();
     // The selection is dropped: the map now shows the town and its waters.
     expect(r.pick).toEqual({ selected: null, town: smithers.place });
@@ -243,5 +244,22 @@ describe("places are their own group, above the waters", () => {
                                       hit("c", "Bull River")], places: [] });
     const w = g[0]!.kind === "waters" ? g[0]!.waters : [];
     expect(w.map((x) => x.dup)).toEqual([true, true, false]);
+  });
+});
+
+describe("(T48) the results sheet over the main map: full while typing, half while looking", () => {
+  const water: SearchTarget = { kind: "water", item: "gnis:1" as ItemId, name: "Bulkley River" };
+  it("nothing picked: full (the map dimmed under it); a water framed or a town's list open: half, the map clear", () => {
+    expect([searchSheet(NO_PICK), searchSheet({ selected: water, town: null }),
+            searchSheet({ selected: null, town: smithers.place }), searchSheet({ selected: water, town: smithers.place })])
+      .toEqual(["full", "half", "half", "half"]);
+  });
+
+  it("the main map follows what the reader PICKED, never the typing (the full sheet covers it): no auto subject", () => {
+    const auto = { best: "gnis:9" as ItemId, typedTown: smithers.place };
+    expect([subjectOf(NO_PICK, auto, false), subjectOf({ selected: water, town: null }, auto, false),
+            subjectOf(NO_PICK, auto)]).toEqual([
+      { item: null, place: null, pin: null }, { item: "gnis:1", place: null, pin: null },
+      { item: null, place: smithers.place, pin: null }]);
   });
 });

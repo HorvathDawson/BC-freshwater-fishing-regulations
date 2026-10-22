@@ -24,6 +24,7 @@ export interface GlMapSlice {
   queryRenderedFeatures(...a: unknown[]): Feature[];
   querySourceFeatures(source: string, o: { sourceLayer: string }): Feature[];
   fitBounds(b: [[number, number], [number, number]], o: Record<string, unknown>): unknown;
+  easeTo(o: { center: [number, number]; zoom: number; duration: number }): unknown;
   getBounds(): { getWest(): number; getSouth(): number; getEast(): number; getNorth(): number };
 }
 
@@ -53,6 +54,7 @@ export function webRenderer(m: GlMapSlice, maxZoom: number): WebRenderer {
     states: (lit: () => readonly SectionKey[]) => stateHandle(sink, lit),
     fitBounds: (b, { padding, duration }) =>
       void m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding, maxZoom, duration }),
+    easeTo: (c, { duration }) => void m.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration }),
     press: async (x, y) => {
       const box = tapBox(x, y);
       for (const g of TAP_GROUPS) {

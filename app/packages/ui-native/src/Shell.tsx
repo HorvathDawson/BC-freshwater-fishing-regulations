@@ -1,26 +1,30 @@
 /**
- * The app: three tabs, the map as home (its rail: Layers, Spots), and a legend that always says what the colours mean.
+ * The app: the map as home, and ONE PLACE FOR EACH KIND OF THING (T48, owner 2026-10-22): the top bar is the search field
+ * alone (with the sync status at its top), the side rail is Layers alone, and the bottom bar is where you go — Map ·
+ * Conditions · Spots · More. A legend always says what the colours mean.
  *
- * Drawn to `design/riffle.html`. The shell owns the state that more than one screen needs —
+ * The shell owns the state that more than one screen needs —
  * which tab, which water, which colouring, which layers, which palette — and hands it down.
  * Every answer on every screen comes from a hook (rule 25). The Map tab colours water by the
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
-         waterLegend, withImageryCredit, type LayerChoice, type SectionKey, type TempBand } from "@app/core";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Platform, Text, View } from "react-native";
+import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, placeholderFor, syncLine, TEMP_LEGEND,
+         unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type LayerChoice, type SectionKey,
+         type TempBand } from "@app/core";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Keyboard, Platform, Text, View, type TextInput } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, crossAction, exitAction, partAction,
          showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { spotsMenu, useMapRail, type Locate } from "@app/ui";
-import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried,
-         NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
-         useHorizon, useImageryReach, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
+import { routeWhere, spotsMenu, useMapRail, type Locate } from "@app/ui";
+import { useConditionsColour, useDataFacts, useFeedAge, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried,
+         NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
+         useStatusIndex, statusFeed, useHorizon, useImageryReach, type Horizon, type PairingInput,
+         type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, shownLayers,
          type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
@@ -31,8 +35,9 @@ import { MapDayButton } from "./DayCalendar";
 import { DaySheet } from "./regs/DaySheet";
 import { LayersSheet, legendColour } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
-import { SearchScreen } from "./SearchScreen";
-import { SpotsSheet } from "./SpotsSheet";
+import { SearchSheet } from "./SearchSheet";
+import { SpotsScreen } from "./SpotsScreen";
+import { TopBar, topBarBottom } from "./TopBar";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { SpotCapture } from "./SpotCapture";
 import { SpotScreen } from "./SpotScreen";
@@ -42,14 +47,16 @@ import { EdgeBack } from "./EdgeBack";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { WaterConditions, WaterMap } from "./WaterViews";
 import { WaterMapView } from "./water/WaterMapView";
-import { MenuContext } from "./menu/MenuButton";
+import { MenuContext } from "./menu/MenuContext";
 import { MenuHost, type MenuInfo } from "./menu/MenuHost";
+import { MoreScreen } from "./menu/MoreScreen";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
 
 /** No highlight — one frozen empty list, so the map's effect is not re-run every render. */
 const NONE: readonly SectionKey[] = [];
+const NONE_PINS: readonly never[] = [];
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
@@ -186,25 +193,28 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * last day (`dayRange`), the same range the page's sheet is handed by `WaterScreen`.
    */
   const [dayOpen, setDayOpen] = useState(false);
-  /**
-   * The water search's eye SHOWED on the main map (route `show`): framed by its outline and lit, whole. It is the
-   * route's, so back returns to search, and a tab change forgets it — a later remount of the map never drags the
-   * camera back to an old search. Where search was (query, selection) is kept here, for that back.
+  /*
+   * (T48) SEARCH, OVER THE SAME MAP: the top bar's always-open field opens it (route `search`, on either map), and the
+   * results sheet rises over the map that is already there — no second map. What the reader typed and picked is kept
+   * here, so a water opened from the results and back returns to them as they were. ONE session value
+   * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins.
    */
-  const shown: ItemId | null = browse.shown;
-  const pickFocus = usePickFocus(source, shown);
+  const searching = browse.search;
   const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
+  const session = useSearchSession(source, searchMemory, searching);
+  /** ONE placeholder line per opening of the app, never cycled while on screen. */
+  const [placeholder] = useState(() => placeholderFor(Math.random() * 1e6));
+  const field = useRef<TextInput>(null);
   const [layersOpen, setLayersOpen] = useState(false);
   /*
    * THE MAP RAIL (owner 2026-10-21): the Spots menu, the provisional pin a long press drops, and where "Show" sent the
    * map — `@app/ui` `useMapRail`. Every way of adding a spot ends in the route's `addSpot` at a point: one capture.
    */
   const rail = useMapRail(go, locate, route);
-  /** THE MENU (owner 2026-10-21): the hamburger's drawer and its pages, mounted below as back layers (menu/MenuHost). */
+  /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
-  // the figures are drawn by the search screen (its total) and the menu's
-  // Data sources page (the feed's age)
-  const factsWanted = tab === "search" || menu.state.page === "sources";
+  // the figures are drawn by the search sheet (its total) and the menu's Data sources page (the feed's age)
+  const factsWanted = searching || menu.state.page === "sources";
   const facts = useDataFacts(source, feed, factsWanted);
   const counts = facts.state === "ready" ? facts.value.counts : null;
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
@@ -218,9 +228,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // G1: however the spot is left (‹, Android's back, the browser's back, a tab), its edit ends with it — else the next
   // spot opens in edit mode with this one's text and Save writes it there
   useOnLeave(openSpot, () => { if (edit) void photoEdit.discard(); setEdit(null); setSpotError(null); setPendingTab(null); });
-  // A pin dropped on the map when you ask to see a spot there. Cleared when you pan away
-  // to something else, so it never lingers as a mystery dot.
-  const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(null);
   /**
    * The reaches the map currently has rendered — what the Conditions view asks the panel
    * about. Viewport-scoped because the whole table is far too big to hold for a question
@@ -349,6 +356,45 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const camera = useRef<Camera>(HOME);
   /*
+   * (T48) SEARCH GIVES THE CAMERA BACK. Where it was when search opened is kept; a pick moves the map (a water framed, a
+   * town flown to); closing search — ‹, Escape, the system back, a tab — puts it back EXACTLY (`fit.camera`, sent
+   * once) and drops the keyboard. A water opened from the results keeps search open underneath (the route's `from`),
+   * so nothing is restored until search itself closes.
+   */
+  const searchCamera = useRef<Camera | null>(null);
+  const searchMoved = useRef(false);
+  const [restore, setRestore] = useState<{ key: string; camera: Camera } | null>(null);
+  const restores = useRef(0);
+  const wasSearching = useRef(searching);
+  useEffect(() => {
+    if (searching === wasSearching.current) return;
+    wasSearching.current = searching;
+    if (searching) { searchCamera.current = { ...camera.current }; searchMoved.current = false; return; }
+    field.current?.blur();
+    Keyboard.dismiss();
+    const back = searchCamera.current;
+    if (searchMoved.current && back) {
+      camera.current = back;                       // a map mounted later (a spot was opened) starts there too
+      setRestore({ key: `restore:${++restores.current}`, camera: back });
+    }
+  }, [searching]);
+  useEffect(() => { if (searching && session.focus?.bbox) searchMoved.current = true; }, [searching, session.focus?.key]);
+  // sent once: the next render hands the map no fit, so a later remount is never dragged back
+  useEffect(() => { if (restore) setRestore(null); }, [restore]);
+  /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
+  const searchAct = (a: SearchAction) => {
+    const next = searchStep(searchMemory.pick, a).pick;
+    if (next.selected !== null || next.town !== null) { field.current?.blur(); Keyboard.dismiss(); }
+    setSearchMemory({ q: searchMemory.q, pick: next });
+  };
+  const searchType = useCallback((q: string) => setSearchMemory((m) => ({ q, pick: searchStep(m.pick, { t: "typed" }).pick })),
+    []);
+  /** The SYNC STATUS at the top of the search area: the Data sources page's facts, on one line (`syncLine`). */
+  const feedAge = useFeedAge(feed);
+  const sync = syncLine({ validUntil: loader?.manifest?.regulations?.valid_until ?? null, feed: !!feed,
+                          feedFetchedAt: feedAge, now: Date.now() });
+  const barBottom = topBarBottom(sync !== null);
+  /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`), and the way this platform's map
    * takes it (`statusFeed`): the web map is handed the index and the day and labels each tile as it arrives
    * (colour-latency AP — no `idle`, no round trip through here per pan); the native map is pushed the visible
@@ -428,11 +474,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                         catch (e) { setSpotError(spotSaveFailed(e)); }
                       })}
                       onShowOnMap={() => {
-                        // The camera is a ref, so setting it and then mounting the map is
-                        // what moves it — MapScreen reads the ref when it mounts.
+                        // THE ONE SHOW (the Spots tab's row does the same): the Map tab, framed on the spot with its
+                        // pin. The camera is a ref, so setting it first means the map mounts there already.
                         camera.current = { lon: viewing.lon, lat: viewing.lat, zoom: 14 };
-                        setFocus({ lat: viewing.lat, lon: viewing.lon });
-                        goTab("map");
+                        endEdit(); setSpotError(null); setPendingTab(null);
+                        rail.show(viewing);
                       }}
                       onRefresh={onRefreshSpots && (() => onRefreshSpots())}
                       refreshing={refreshing} />
@@ -497,30 +543,43 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
                        // swipe away, is where a water's numbers are.
                        onBack={back} />
-    : tab === "search"
-      ? <SearchScreen source={source} palette={palette} status={status}
-                      // the eye: SHOW it on the main map, framed and lit; back returns here as it was
-                      onPick={(id) => go({ type: "show", item: id })}
-                      memory={searchMemory} onMemory={setSearchMemory}
-                      total={counts?.waters} tiles={tiles} theme={theme}
-                      basemap={mm.basemap} />
+    : tab === "spots"
+      // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
+      ? <SpotsScreen palette={palette}
+                     vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
+                                            permission: rail.permission })}
+                     onOpen={(id) => go({ type: "openSpot", id })}
+                     onShow={(id) => { const s = spots.find((x) => x.id === id); if (s) rail.show(s); }}
+                     // every add is the ONE capture flow, at a point: the map's middle as the reader left it, or here
+                     onAdd={(k) => (k === "mine" ? void rail.addMine()
+                                    : rail.addAt({ lat: camera.current.lat, lon: camera.current.lon }))}
+                     onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
+                     photoStore={photos?.store} />
+    : tab === "more"
+      // (T48) THE MORE TAB: what the hamburger held, moved — a page opens over it (MenuHost, a back layer)
+      ? <MoreScreen palette={palette}
+                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
+                                    : menu.show(k))} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme}
-                     // the way back to search, while the map shows what search's eye sent it to
-                     onBack={tab === "map" && shown !== null ? back : undefined}
                      camera={camera.current}
+                     // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
+                     insetTop={barBottom}
                      // the provisional pin a long press dropped, else the spot "Show" sent the map to
-                     marker={rail.drop ?? rail.fly?.at ?? focus}
+                     marker={rail.drop ?? rail.fly?.at ?? null}
+                     // a searched town's pin, in the town's colour (its row's), so pin and row read as one thing
+                     pins={searching && session.focus?.marker ? [{ ...session.focus.marker, tone: palette.place }] : NONE_PINS}
                      basemap={mm.basemap} onImageryError={imagery.tileFailed}
-                     // THE CHOSEN WATER, whole, on the Map tab only — the Conditions view
-                     // lights a gauge's route with the same feature-state and must not
-                     // inherit a search.
-                     // The Spots menu's "Show" outranks it: the rail forgets `fly` whenever the route moves (a
-                     // new search pick included), so a `fly` here was asked for AFTER the water was shown.
+                     // WHERE THE CAMERA IS SENT, one subject at a time: a spot "Show" asked for (the rail forgets it
+                     // whenever the route moves), else what search has picked (a water framed, a town flown to), else
+                     // — once, as search closes — back to where the reader was before search moved it
                      fit={rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
-                       : tab === "map" && pickFocus
-                         ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine } : null}
-                     highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
+                       : searching && session.focus
+                         ? { key: session.focus.key, bbox: session.focus.bbox, refine: session.focus.refine }
+                         : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
+                     // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
+                     // view lights a gauge's route with the same feature-state and must not inherit a search)
+                     highlight={searching ? session.focus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : statusMapData}
                      standing={cond.standing}
                      lakes={lakeFeed}
@@ -563,8 +622,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onLayers={() => setLayersOpen(true)}
                      // how many of THIS map's layer choices differ from the defaults: the rail's badge, said aloud
                      layersChanged={layers.changed}
-                     // THE RAIL'S SPOTS (owner 2026-10-21): on both browse maps, where the Spots tab was
-                     onSpots={rail.openSpots}
                      // press and hold: a provisional pin, and the sheet that asks before anything is made
                      onLongPress={onSaveSpot ? rail.pressLong : undefined}
                      // either map's tap opens the ONE water screen (see onPressFeature): only the view in front differs
@@ -594,12 +651,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : null;
 
-  const showLegend = route.mode === "browse"
+  /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
+  const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions");
+  // the legend is the map's caption: while search's sheet is over the map it captions nothing in view
+  const showLegend = route.mode === "browse" && !searching
     && (tab === "conditions"
         || (tab === "map" && (layers.water.drawn !== "regulations" || statusOk)));
 
   return layered(
-    // the hamburger on each browse screen reads the menu from here (menu/MenuButton)
+    // a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink)
     <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       {/*
@@ -640,6 +700,20 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             <BackLayerContext.Provider value={backLayers}>{body}</BackLayerContext.Provider>
           </WaterViewsContext.Provider>
         </EdgeBack>
+        {/* (T48) search over the SAME map: the sheet rises over it, and the field is drawn over both */}
+        {topBar && (
+          <SearchSheet open={searching} top={barBottom} palette={palette} session={session} pick={searchMemory.pick}
+                       onAct={searchAct}
+                       // the one way out of search into a water: the one opener, with the view this map puts in front
+                       onOpenWater={(id) => opener.item(id, tab === "conditions" ? "conditions" : "regs")}
+                       statusIndex={statusIndex} total={counts?.waters} />
+        )}
+        {topBar && (
+          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} open={searching}
+                  query={searchMemory.q} onQuery={searchType}
+                  onOpen={() => go({ type: "search", open: true })}
+                  onClose={() => go({ type: "search", open: false })} />
+        )}
       </View>
       {showLegend && (
         <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
@@ -702,21 +776,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    vm={layers} onChoose={onChooseLayer} />
-      <SpotsSheet open={rail.spotsOpen && route.mode === "browse"} onClose={rail.closeSpots} palette={palette}
-                  vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
-                                         permission: rail.permission })}
-                  onOpen={(id) => { rail.closeSpots(); go({ type: "openSpot", id }); }}
-                  onShow={(id) => { const s = spots.find((x) => x.id === id); if (s) rail.show(s); }}
-                  onAdd={(k) => (k === "mine" ? void rail.addMine()
-                                 : rail.addAt({ lat: camera.current.lat, lon: camera.current.lon }))}
-                  onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
-                  photoStore={photos?.store} />
       <DaySheet open={dayOpen && route.mode === "browse"} onClose={() => setDayOpen(false)} palette={palette}
                 day={mapDay} onDay={setMapDay}
                 range={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)} />
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
-      {/* the menu's drawer and pages: each open level a back layer (back closes a term, a page, the drawer) */}
+      {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
                 feedFetchedAt={facts.state === "ready" ? facts.value.fetchedAt ?? null : null}
                 route={route} day={mapDay} theme={themeName} onTheme={onTheme} />

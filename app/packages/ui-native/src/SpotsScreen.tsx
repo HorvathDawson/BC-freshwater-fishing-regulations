@@ -1,27 +1,26 @@
 /**
- * THE SPOTS MENU (owner 2026-10-21): the rail's Spots button opens it over the map — your saved spots, the map sent to
- * one ("Show"), one opened, and the ways to add one. It replaces the Spots tab; what it says is `@app/ui` `spotsMenu`.
+ * THE SPOTS TAB (T48, owner 2026-10-22: a tab again, after a spell as the map rail's menu): your saved spots, the map
+ * sent to one ("Show" — the Map tab, framed on it), one opened, and the ways to add one. What it says is `@app/ui`
+ * `spotsMenu`. The long press on either map stays, and every way of adding ends in the ONE capture flow (route `addSpot`).
  *
  * Spots are THE ONLY USER-AUTHORED DATA IN THE APP, and a spot is STANDALONE: a location, a title, notes and
  * photographs, not an annotation on a waterbody. A pin on an unnamed lake is the normal case (97.6% of BC's water carries
  * no registry item), so such a row looks like any other.
  *
- * A sheet, so back, Done, the scrim and a drag down all close it (`Sheet`, a back layer).
+ * A tab root, not a surface: back from it is the Map tab (the route's tab rule); a spot opened from it is the route's too.
  */
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
 import { usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuVM } from "@app/ui";
-import { Sheet } from "./Sheet";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { GUTTER, type Palette } from "./theme";
 
-export function SpotsSheet({ open, onClose, palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error,
-                             photoStore }: {
-  open: boolean; onClose: () => void; palette: Palette; vm: SpotsMenuVM;
+export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
+  palette: Palette; vm: SpotsMenuVM;
   onOpen: (id: string) => void;
-  /** The map goes to the spot (and the menu closes). */
+  /** The Map tab, framed on the spot with its pin. */
   onShow: (id: string) => void;
   onAdd: (k: SpotsMenuAddKind) => void;
   onRefresh?: () => void;
@@ -32,8 +31,12 @@ export function SpotsSheet({ open, onClose, palette, vm, onOpen, onShow, onAdd, 
   photoStore?: Pick<PhotoStore, "uri">;
 }) {
   return (
-    <Sheet open={open} onClose={onClose} title={vm.title} palette={palette}>
-      <ScrollView style={{ maxHeight: 520 }}>
+    <View testID="spots-screen" style={{ flex: 1, backgroundColor: palette.card }}>
+      <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12,
+                     borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
+        <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{vm.title}</Text>
+      </View>
+      <ScrollView>
         {vm.error !== null && (
           <Text accessibilityRole="alert" style={{ ...TYPE.body, color: palette.closed, padding: 20 }}>{vm.error}</Text>
         )}
@@ -82,7 +85,7 @@ export function SpotsSheet({ open, onClose, palette, vm, onOpen, onShow, onAdd, 
           </Pressable>
         ))}
       </ScrollView>
-    </Sheet>
+    </View>
   );
 }
 

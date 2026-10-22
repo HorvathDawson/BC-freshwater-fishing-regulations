@@ -1,22 +1,23 @@
 /**
- * THE MAP RAIL (owner 2026-10-21, Fish Washington's side stack): the browse maps' Layers and Spots buttons, the Spots
- * menu, and the long press that drops a spot. Decided here and drawn by `@app/ui-native` `MapRail` / `SpotsSheet` /
- * `SpotDropSheet`, which compute nothing.
+ * THE SPOTS FLOW (owner 2026-10-21; T48 owner 2026-10-22): the Spots TAB's list and the long press that drops a spot
+ * on either map. (The rail that once held a Spots button is Layers only now.) Decided here and drawn by
+ * `@app/ui-native` `SpotsScreen` / `SpotDropSheet`, which compute nothing.
  *
- *   spotsMenu   the menu's view model: your spots as rows (their words are `@app/data/spots`'), the ways to add one
- *               (the map's middle; your location — only where the reader has let the app know it, or will be asked
+ *   spotsMenu   the Spots tab's view model: your spots as rows (their words are `@app/data/spots`'), the ways to add
+ *               one (the map's middle; your location — only where the reader has let the app know it, or will be asked
  *               on the tap itself: the app never asks silently), the empty state, the stale line, an unreadable file.
- *   useMapRail  which sheet is open, the PROVISIONAL pin a long press dropped (Cancel, back or a drag away removes
- *               it and nothing is saved; Continue starts the one spot capture at it), and where "Show" sent the map.
- *               Every way of adding ends in the route's own `addSpot` at a point, so there is one capture flow.
- *               All three belong to the map where they were made: the route moving anywhere (a tab, a spot opened, a
- *               water, back) forgets them on that same render, as a tab change forgets search's `shown` — else a map
- *               remounted on the way back would be framed on an old spot again and wear its pin.
+ *   useMapRail  the PROVISIONAL pin a long press dropped (Cancel, back or a drag away removes it and nothing is saved;
+ *               Continue starts the one spot capture at it), the ways to add from the tab, and where "Show" sent the
+ *               map. Every way of adding ends in the route's own `addSpot` at a point, so there is ONE capture flow.
+ *               The pin and the framing belong to the map where they were made: the route moving anywhere (a tab, a
+ *               spot opened, a water, back) forgets them on that same render — else a map remounted on the way back
+ *               would be framed on an old spot again and wear its pin. The one exception is Show's own move to the Map
+ *               tab, which is what the framing was made for.
  */
 import { useCallback, useEffect, useState } from "react";
 import { SPOTS_MENU, boxAround, type Bbox, type LatLon } from "@app/core";
 import { needsRefresh, spotLabel, spotRowLines, staleSpotsLine, type Spot } from "@app/data/spots";
-import type { Route, RouteAction } from "./route";
+import { HOME, type Route, type RouteAction } from "./route";
 
 /** Whether the app may read where the device is: asked of the platform, never assumed. */
 export type LocatePermission = "granted" | "prompt" | "denied" | "unavailable";
@@ -87,11 +88,7 @@ export interface SpotFly { key: string; bbox: Bbox; at: LatLon }
 export const SPOT_FLY_KM = 0.4;
 
 export interface MapRail {
-  /** Which rail sheet is up. The Layers sheet stays the Shell's own state; this is the Spots menu. */
-  spotsOpen: boolean;
-  openSpots(): void;
-  closeSpots(): void;
-  /** What the platform says of location, read each time the menu opens; null until it answers or with no `locate`. */
+  /** What the platform says of location, read each time the Spots tab is entered; null until it answers or with no `locate`. */
   permission: LocatePermission | null;
   /** The provisional pin a long press dropped, or null. Only the drop sheet's Continue makes anything of it. */
   drop: LatLon | null;
@@ -105,57 +102,66 @@ export interface MapRail {
   addAt(at: LatLon): void;
   /** "At my location": read it (the platform may ask, on this tap), then the capture there; a failure is said. */
   addMine(): Promise<void>;
-  /** The location could not be read; cleared when the menu opens again. */
+  /** The location could not be read; cleared when the route moves. */
   error: string | null;
-  /** "Show": the map goes to the spot and the menu closes. */
+  /**
+   * "Show" — from the Spots tab's row or a spot's own screen alike (one function): the Map tab, framed on the spot with
+   * its pin. The framing is made FOR the Map tab, so the move there keeps it; any later move forgets it.
+   */
   show(spot: Pick<Spot, "id" | "lat" | "lon">): void;
   fly: SpotFly | null;
 }
 
-/** Where the route is, as far as the rail cares: any change of it forgets the rail's menu, pin and framing. */
+/** Where the route is, as far as the rail cares: any change of it forgets the pin and the framing. */
 export function railPlace(r: Route): string {
   return r.mode === "water" ? "water"
-    : `${r.tab}|${r.spot ?? ""}|${r.adding === null ? "" : "adding"}|${r.shown ?? ""}`;
+    : `${r.tab}|${r.spot ?? ""}|${r.adding === null ? "" : "adding"}|${r.search ? "search" : ""}`;
 }
+
+/** Where Show lands: the Map tab's root. */
+const MAP_ROOT = railPlace(HOME);
+/** The Spots tab's root, where the permission is asked. */
+const SPOTS_ROOT = railPlace({ ...HOME, tab: "spots" });
 
 export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null = null,
                            route: Route | null = null): MapRail {
-  const [spotsOpen, setSpotsOpen] = useState(false);
   const [permission, setPermission] = useState<LocatePermission | null>(null);
   const [drop, setDrop] = useState<LatLon | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fly, setFly] = useState<SpotFly | null>(null);
+  const [fly, setFly] = useState<(SpotFly & { for: string }) | null>(null);
   const [flights, setFlights] = useState(0);
-  // the route moved: forget, during this render (React's "state from the previous render"), and draw nothing stale
+  // the route moved: forget, during this render (React's "state from the previous render"), and draw nothing stale —
+  // but a Show made for where the route went (the Map tab) is what that move was for
   const place = route === null ? "" : railPlace(route);
   const [madeAt, setMadeAt] = useState(place);
   const moved = madeAt !== place;
+  const keepFly = fly !== null && fly.for === place;
   if (moved) {
     setMadeAt(place);
-    setSpotsOpen(false);
     setDrop(null);
-    setFly(null);
+    setError(null);
+    if (!keepFly) setFly(null);
   }
 
-  // asked each time the menu opens: the reader may have changed it in the system's settings meanwhile
+  // asked each time the Spots tab is entered: the reader may have changed it in the system's settings meanwhile
+  const onSpots = place === SPOTS_ROOT;
   useEffect(() => {
-    if (!spotsOpen || !locate) return;
+    if (!onSpots || !locate) return;
     let alive = true;
     locate.permission().then((p) => { if (alive) setPermission(p); }, () => { if (alive) setPermission("unavailable"); });
     return () => { alive = false; };
-  }, [spotsOpen, locate]);
+  }, [onSpots, locate]);
 
   const addAt = useCallback((at: LatLon) => {
-    setSpotsOpen(false);
     setDrop(null);
     go({ type: "addSpot", at });
   }, [go]);
 
+  const flying = fly === null || (moved && !keepFly) ? null : fly;
   return {
-    spotsOpen: spotsOpen && !moved, permission, drop: moved ? null : drop, error, fly: moved ? null : fly,
-    openSpots: () => { setError(null); setSpotsOpen(true); },
-    closeSpots: () => setSpotsOpen(false),
-    pressLong: (lat, lon) => { setSpotsOpen(false); setDrop({ lat, lon }); },
+    permission, drop: moved ? null : drop, error: moved ? null : error,
+    fly: flying && { key: flying.key, bbox: flying.bbox, at: flying.at },
+    pressLong: (lat, lon) => setDrop({ lat, lon }),
     cancelDrop: () => setDrop(null),
     continueDrop: () => { if (drop) addAt(drop); },
     addAt,
@@ -172,8 +178,8 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
       const n = flights + 1;
       setFlights(n);
       const at = { lat: spot.lat, lon: spot.lon };
-      setFly({ key: `spot:${spot.id}:${n}`, bbox: boxAround(at, SPOT_FLY_KM), at });
-      setSpotsOpen(false);
+      setFly({ key: `spot:${spot.id}:${n}`, bbox: boxAround(at, SPOT_FLY_KM), at, for: MAP_ROOT });
+      if (place !== MAP_ROOT) go({ type: "tab", tab: "map" });
     },
   };
 }

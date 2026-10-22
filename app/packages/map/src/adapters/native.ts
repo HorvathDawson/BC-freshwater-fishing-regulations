@@ -40,6 +40,7 @@ export interface NativeRefs {
   } | null;
   camera(): {
     fitBounds(b: [number, number, number, number], o: Record<string, unknown>): void;
+    easeTo(o: { center: [number, number]; zoom: number; duration: number }): void;
   } | null;
 }
 
@@ -70,6 +71,7 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void): 
     fitBounds: (b, { padding, duration }) => refs.camera()?.fitBounds([b[0], b[1], b[2], b[3]], {
       padding: { top: padding, right: padding, bottom: padding, left: padding }, duration,
     }),
+    easeTo: (c, { duration }) => refs.camera()?.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration }),
     press: async (x, y) => {
       const box = tapBox(x, y);
       for (const g of TAP_GROUPS) {

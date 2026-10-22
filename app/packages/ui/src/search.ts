@@ -10,13 +10,14 @@
  * `focusFor` is the whole decision, pure, so it is tested without a renderer. The hooks
  * below only fetch what it needs.
  */
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import {
   NEAR_KM, duplicateNames, extentOf, normalise, rankNear, townBox, waterCaption, waterStatusOn, watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
+import { useSearch, type SearchResults } from "./hooks";
 
 /** What a map should do for the current search. Handed straight to `<Map fit highlight>`. */
 export interface MapFocus {
@@ -170,15 +171,13 @@ export function townToPreview(query: string, waters: readonly { name: string }[]
 /* ────────────────────────────────────────────────────────────────────────────────────────
  * LOOK, THEN GO.
  *
- * A result row answers "where is that?" and nothing else: tapping it frames the water on
- * the pinned map and lights it, or frames the town and marks it — and the reader stays on
- * the list, free to tap the next row and compare. LEAVING is a separate, deliberate act:
- * the eye button on the row. For a water the eye shows it, framed and lit, on the main map
- * (route `show`: back returns to this screen as it was); for a town it opens the list of what is near it (which is still this screen — a town
- * has no page of its own).
+ * A result row answers "where is that?" and nothing else: (T48) tapping a WATER frames it on the main map behind the
+ * results sheet and lights it; tapping a PLACE shows it at once — the map flies to it, its pin drops, the waters near it
+ * light and its "Water near" list opens (owner 2026-10-21: no eye for places). The reader stays in search, free to tap
+ * the next row and compare. LEAVING is a separate, deliberate act: the selected water row's open action, which opens
+ * the water screen through `openWater` (the one opener; back returns to these results as they were).
  *
- * The two used to be one tap, so every look at a row was a trip away from the results and
- * back. Kept pure here so "a tap never leaves" is a test, not a hope.
+ * Kept pure here so "a tap never leaves" is a test, not a hope.
  * ──────────────────────────────────────────────────────────────────────────────────────── */
 
 /** Something in the results the reader can point at: a water, or a town. */
@@ -198,16 +197,16 @@ export interface SearchPick {
    * carries the go button. Nothing navigates by selecting.
    */
   selected: SearchTarget | null;
-  /** The town whose "water near" list is open — the eye on a town. */
+  /** The town whose "water near" list is open — a place row tapped (T48). */
   town: PlaceHit | null;
 }
 
 export const NO_PICK: SearchPick = { selected: null, town: null };
 
 /**
- * WHERE THE READER WAS ON THE SEARCH SCREEN: what they typed and what they had selected. Held by the Shell, not the
- * screen, so the eye's trip to the main map and back (route `show`, then back) returns to the same query, the same
- * results and the same selected row, with the preview on the same water.
+ * WHERE THE READER WAS IN SEARCH: what they typed and what they had selected. Held by the Shell, not the sheet, so a
+ * water opened from the results and back returns to the same query, the same results and the same selected row, with
+ * the main map on the same water.
  */
 export interface SearchMemory { q: string; pick: SearchPick }
 export const NO_SEARCH: SearchMemory = { q: "", pick: NO_PICK };
@@ -230,12 +229,11 @@ export type SearchAction =
 /**
  * One step of the search screen: SELECT, THEN GO.
  *
- * The first tap on a row selects it — the pinned map frames and lights it — and never
- * navigates; tapping it again keeps it selected; tapping another row moves the selection.
- * Only the selected row carries the go button, and only `go` on the SELECTED row acts: a go
- * aimed at any other row (a stale press, a second pointer) selects that row instead. `leave`
- * is the water to open, set only by going on a water; going on a town stays and opens the
- * town's list, with every water near it lit.
+ * The first tap on a water row selects it — the main map frames and lights it — and never navigates; tapping it again
+ * keeps it selected; tapping another row moves the selection. Only the selected water row carries the open action, and
+ * only `go` on the SELECTED row acts: a go aimed at any other water (a stale press, a second pointer) selects it instead.
+ * `leave` is the water to open, set only by going on a water. (T48) A PLACE needs no second step: selecting it (or
+ * going on it) opens the town's list at once, with every water near it lit.
  */
 export function searchStep(s: SearchPick, a: SearchAction):
     { pick: SearchPick; leave: ItemId | null } {
@@ -244,12 +242,12 @@ export function searchStep(s: SearchPick, a: SearchAction):
     case "back":
       return { pick: NO_PICK, leave: null };
     case "select":
+      if (a.target.kind === "place") return { pick: { selected: null, town: a.target.place }, leave: null };
       return { pick: { ...s, selected: a.target }, leave: null };
     case "go":
+      if (a.target.kind === "place") return { pick: { selected: null, town: a.target.place }, leave: null };
       if (!isSelected(s, a.target)) return { pick: { ...s, selected: a.target }, leave: null };
-      return a.target.kind === "water"
-        ? { pick: s, leave: a.target.item }
-        : { pick: { selected: null, town: a.target.place }, leave: null };
+      return { pick: s, leave: a.target.item };
   }
 }
 
@@ -259,12 +257,14 @@ export function searchStep(s: SearchPick, a: SearchAction):
  * looked at from inside a town's list keeps that town pinned.
  */
 export function subjectOf(pick: SearchPick, auto: { best: ItemId | null;
-                                                    typedTown: PlaceHit | null }):
+                                                    typedTown: PlaceHit | null }, follow = true):
     { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null } {
   const p = pick.selected;
   if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town };
   if (p?.kind === "place") return { item: null, place: p.place, pin: null };
   if (pick.town) return { item: null, place: pick.town, pin: null };
+  // (T48) the main map behind a full sheet follows only what was picked: moving it under the typing is unseen work
+  if (!follow) return { item: null, place: null, pin: null };
   if (auto.typedTown) return { item: null, place: auto.typedTown, pin: null };
   return { item: auto.best, place: null, pin: null };
 }
@@ -307,13 +307,13 @@ export function resultGroups(r: { waters: readonly NameHit[]; places: readonly P
 export function useSearchView(source: RegsSource, query: string,
                               results: { waters: readonly NameHit[];
                                          places: readonly PlaceHit[] },
-                              pick: SearchPick):
+                              pick: SearchPick, follow = true):
     { focus: MapFocus | null; town: Async<TownView | null> } {
   const typed = query.trim().length >= 2;
   const subject = subjectOf(pick, {
     best: typed ? results.waters[0]?.item ?? null : null,
     typedTown: typed ? townToPreview(query, results.waters, results.places) : null,
-  });
+  }, follow);
   const located = useLocated(source, subject.item);
   const townPlace = pick.town ?? subject.place;
   const town = useTown(source, townPlace);
@@ -334,6 +334,58 @@ export function useSearchView(source: RegsSource, query: string,
                                              : town;
   return { focus, town: mine };
 }
+
+/**
+ * (T48) HOW HIGH THE RESULTS SHEET STANDS over the main map: FULL while the reader is choosing (nothing picked — the
+ * keyboard up, the map dimmed under it), HALF while they look (a water framed, a town's list open — the map clear above,
+ * the list below). Typing again forgets the pick (`searchStep` "typed"), so the sheet rises again.
+ */
+export type SearchSheetSize = "full" | "half";
+export function searchSheet(pick: SearchPick): SearchSheetSize {
+  return pick.selected !== null || pick.town !== null ? "half" : "full";
+}
+
+/** Everything search draws, from what the reader typed and picked: the rows' answers, and what the main map shows. */
+export interface SearchSession {
+  /** The results the rows draw (the last answer held while the next loads, so neither the list nor the map flashes). */
+  results: SearchResults;
+  /** At least two letters typed. */
+  typed: boolean;
+  /** Typed, the first answer not in yet: the spinner. */
+  busy: boolean;
+  /** The search could not read the source. */
+  failed: boolean;
+  /** Typed, answered, nothing found. */
+  none: boolean;
+  /** What the main map frames, lights and pins (`focusFor`), or null: the map stays where the reader left it. */
+  focus: MapFocus | null;
+  /** The open town's list. */
+  town: Async<TownView | null>;
+  size: SearchSheetSize;
+}
+
+/**
+ * (T48) ONE SEARCH SESSION, read by the Shell: the sheet's rows and the main map behind it come from this one value, so
+ * the list and the map can never disagree about which water is lit. `open` false asks nothing (search is closed).
+ */
+export function useSearchSession(source: RegsSource, memory: SearchMemory, open: boolean): SearchSession {
+  const { q, pick } = memory;
+  const hits = useSearch(source, open ? q : "");
+  const last = useRef<SearchResults>({ waters: [], places: [] });
+  if (hits.state === "ready") last.current = hits.value;
+  const typed = open && q.trim().length >= 2;
+  const results = typed ? last.current : EMPTY_RESULTS;
+  const { focus, town } = useSearchView(source, open ? q : "", results, open ? pick : NO_PICK, false);
+  return {
+    results, typed, town, focus,
+    busy: typed && hits.state === "loading" && !last.current.waters.length && !last.current.places.length,
+    failed: typed && hits.state === "failed",
+    none: typed && hits.state === "ready" && !results.waters.length && !results.places.length,
+    size: searchSheet(pick),
+  };
+}
+
+const EMPTY_RESULTS: SearchResults = { waters: [], places: [] };
 
 /**
  * THE STATUS A RESULT ROW WEARS — a water in the search results or in the list of water near a

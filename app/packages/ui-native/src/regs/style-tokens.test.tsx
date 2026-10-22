@@ -21,7 +21,7 @@ import { cleanup, render } from "@testing-library/react";
 import { Text, View } from "react-native";
 import type { KeepVM, RegsPage } from "@app/core";
 import type { MenuControls } from "@app/ui";
-import { MenuContext } from "../menu/MenuButton";
+import { MenuContext } from "../menu/MenuContext";
 import { ReportLink } from "../menu/ReportLink";
 import { LIGHT } from "../theme";
 import { TYPE } from "../type";

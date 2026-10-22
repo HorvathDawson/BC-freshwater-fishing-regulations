@@ -1,6 +1,7 @@
 /**
- * THE MAP RAIL'S WORDS (owner 2026-10-21): the small stack of buttons on the side of the browse maps (Layers, Spots),
- * the Spots menu it opens, and the sheet a long press on the map raises. One copy, so every surface says the same.
+ * THE MAP RAIL'S WORDS (owner 2026-10-21): the small stack on the side of the browse maps — Layers only since T48
+ * (owner 2026-10-22: Spots is a bottom-bar tab again) — the Spots tab's words, and the sheet a long press on the map
+ * raises. One copy, so every surface says the same.
  */
 
 /** The rail's buttons: what each is called aloud (an icon alone is a guess, so the name is always said). */
@@ -9,11 +10,9 @@ export const MAP_RAIL = {
   label: "Map tools",
   layers: "Layers",
   layersLabel: "Choose layers",
-  spots: "Spots",
-  spotsLabel: "Your spots",
 } as const;
 
-/** The Spots menu: your saved spots, and the ways to add one. */
+/** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */
 export const SPOTS_MENU = {
   title: "Spots",
   /** The first action: a spot at the middle of the map as it is now. */

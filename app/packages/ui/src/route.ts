@@ -3,9 +3,10 @@
  * implicit priority chain (open spot → adding → item → search → conditions → map, with the tab bar clearing four
  * separate states), so "back" is a function a test can call.
  *
- *   browse   the three tabs (Map · Search · Conditions), the bottom bar shown. The spots are the maps' rail's (owner
- *            2026-10-21): a spot opens over the map it was picked on, and adding one starts at a point when the
- *            reader gave one (a long press, the map's middle, their location).
+ *   browse   the four tabs (Map · Conditions · Spots · More, T48), the bottom bar shown. SEARCH is no tab: it opens over
+ *            either map (`search`), from the top bar's field, and back closes it before anything else. A spot opens
+ *            over the tab it was picked on (the Spots tab, or a map's long press), and adding one starts at a point when
+ *            the reader gave one (a long press, the map's middle, their location).
  *   water    one water latched (APP-PREP §0): a STACK of frames, each a water at a part and a view (regs · map ·
  *            conditions). The bottom bar is hidden. `from` is the browse state underneath, kept whole, so leaving
  *            restores the tab (the Conditions map or the Map tab) and the open spot exactly. The camera is not here (it would
@@ -26,16 +27,18 @@
  *
  * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
  * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,
- * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot),
- * returns a water search's eye SHOWED on the map to search, then returns to the Map tab (the start tab: Android's
- * "fixed start destination" — back from Search, Conditions or Spots goes to the map, as it does in Google's own apps
- * and on the web's history), and on the Map tab itself stays: depth 0, where Android's back leaves the app.
+ * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot,
+ * search), then returns to the Map tab (the start tab: Android's "fixed start destination" — back from Conditions,
+ * Spots or More goes to the map, as it does in Google's own apps and on the web's history), and on the Map tab itself
+ * stays: depth 0, where Android's back leaves the app.
  */
 import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 
-export type BrowseTab = "map" | "search" | "conditions";
+export type BrowseTab = "map" | "conditions" | "spots" | "more";
+/** The tabs search opens over (T48): the two maps. Spots and More have no map behind them to search on. */
+export const SEARCH_TABS: readonly BrowseTab[] = ["map", "conditions"];
 export type View = WaterView;
 export type SpotId = string;
 /** Where on a reach a Conditions tap landed: the "you are here" end of its route map. */
@@ -54,10 +57,11 @@ export interface BrowseRoute {
   mode: "browse"; tab: BrowseTab;
   spot: SpotId | null; adding: AddingSpot | null;
   /**
-   * A water SHOWN on the main map by search's eye — framed and lit there, the bar still up. Back returns to search
-   * (which keeps its query and selection: the Shell holds them). Any tab change forgets it.
+   * (T48) Search is open over this map: the top bar's field has focus or its results sheet is up. Back closes it first;
+   * a tab change closes it; a water opened from it keeps it, so back from the water returns to the results (the query
+   * and selection are the Shell's). Only on the maps (`SEARCH_TABS`).
    */
-  shown: ItemId | null;
+  search: boolean;
 }
 export interface WaterRoute { mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute }
 export type Route = BrowseRoute | WaterRoute;
@@ -70,8 +74,8 @@ export type RouteAction =
    */
   | { type: "openWater"; item: ItemId | null; tapSid?: SectionId | null; part?: number | null; at?: LatLon | null;
       view?: View }
-  /** Search's eye: show this water on the main map, and come back to search on back. */
-  | { type: "show"; item: ItemId }
+  /** (T48) Open or close search over the map on screen. */
+  | { type: "search"; open: boolean }
   | { type: "view"; view: View }
   /**
    * The frame's part (the water map's step, "Show regulations for this part"). `item`: a split lake's OTHER closure
@@ -88,7 +92,7 @@ export type RouteAction =
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */
 export const STACK_CAP = 8;
 
-export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: null, shown: null };
+export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: null, search: false };
 
 /** The views a frame offers: all three for a water; an unnamed reach has no regulations or water map, only Conditions. */
 export const REACH_ONLY: readonly WaterView[] = ["conditions"];
@@ -113,19 +117,21 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
 export function reduce(r: Route, a: RouteAction): Route {
   if (r.mode === "browse") {
     switch (a.type) {
-      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: null, shown: null };
-      case "show": return { mode: "browse", tab: "map", spot: null, adding: null, shown: a.item };
+      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: null, search: false };
+      case "search":
+        if (a.open === r.search || (a.open && !SEARCH_TABS.includes(r.tab))) return r;
+        return { ...r, search: a.open };
       case "openWater": {
         const f = opened(a);
         return f === null ? r : { mode: "water", from: r, stack: [f] };
       }
       // a spot opens over the map it was picked on (the rail's menu); back returns to that map
-      case "openSpot": return { ...r, spot: a.id, adding: null };
-      case "addSpot": return { ...r, adding: { at: a.at ?? null }, spot: null };
+      case "openSpot": return { ...r, spot: a.id, adding: null, search: false };
+      case "addSpot": return { ...r, adding: { at: a.at ?? null }, spot: null, search: false };
       case "back":
         if (r.adding !== null) return { ...r, adding: null };
         if (r.spot !== null) return { ...r, spot: null };
-        if (r.shown !== null) return { ...r, tab: "search", shown: null };
+        if (r.search) return { ...r, search: false };
         if (r.tab !== HOME.tab) return HOME;
         return r;
       default: return r;            // view / part / flowInto mean nothing without a water

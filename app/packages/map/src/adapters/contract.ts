@@ -96,6 +96,8 @@ export interface MapRenderer {
   states(lit: () => readonly SectionKey[]): MapHandle;
   /** Frame a box: `[w, s, e, n]`, padding in px, animated over `duration` ms. */
   fitBounds(b: Bbox, opts: { padding: number; duration: number }): void;
+  /** (T48) Put the camera at a centre and zoom, animated over `duration` ms — a camera restored exactly (search's cancel). */
+  easeTo(c: { lon: number; lat: number; zoom: number }, opts: { duration: number }): void;
   /** The section under a tap at screen `(x, y)`: the 24 px box, `TAP_GROUPS` order; the group names the hit. */
   press(x: number, y: number): Promise<{ layer: string; id: number } | null>;
   /** The sections on screen (`VISIBLE_LAYERS`), as numbers, once each. */

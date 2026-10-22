@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aboutVM, agoWords, contactVM, diagnosticRows, glossaryRows, isoDayWords, mailtoUrl, menuVM, regsReportWhere,
-  reportMessage, sourcesVM, whereLines, type Diagnostics,
+  reportMessage, sourcesVM, syncLine, whereLines, type Diagnostics,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
@@ -19,10 +19,10 @@ const TERMS = [
   term("éclosion", "Éclosion", "A made-up accented term."),
 ];
 
-describe("the drawer", () => {
-  it("lists the six pages in the reader's order, each with its hint", () => {
+describe("(T48) the More tab: what the hamburger held, moved (never a second copy)", () => {
+  it("lists the six pages in the reader's order, each with its hint, under the tab's own name", () => {
     expect(menuVM()).toEqual({
-      title: "Menu",
+      title: "More",
       items: [
         { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
         { k: "sources", label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
@@ -32,6 +32,25 @@ describe("the drawer", () => {
         { k: "contact", label: "Contact", hint: "Get in touch" },
       ],
     });
+  });
+});
+
+describe("(T48) the sync status line at the top of the search area", () => {
+  const NOW = Date.parse("2026-10-22T18:00:00Z");
+  it("today's two facts, from the Data sources page's own words: the regulations' last day and the feed's age", () => {
+    expect([
+      syncLine({ validUntil: "2027-03-31", feed: true, feedFetchedAt: "2026-10-22T15:00:00Z", now: NOW }),
+      syncLine({ validUntil: "2027-03-31", feed: true, feedFetchedAt: null, now: NOW }),
+      syncLine({ validUntil: null, feed: true, feedFetchedAt: "2026-10-22T17:59:00Z", now: NOW }),
+      syncLine({ validUntil: "2027-03-31", feed: false, feedFetchedAt: null, now: NOW }),
+      syncLine({ validUntil: "not a day", feed: false, feedFetchedAt: null, now: NOW }),
+    ]).toEqual([
+      "Regs to Mar 31, 2027 · Flows checked 3h ago",
+      "Regs to Mar 31, 2027 · Flows not checked yet",
+      "Flows checked just now",
+      "Regs to Mar 31, 2027",
+      null,
+    ]);
   });
 });
 

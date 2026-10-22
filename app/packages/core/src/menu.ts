@@ -1,9 +1,12 @@
 /**
- * THE MENU (owner 2026-10-21): the hamburger's drawer and its six pages — Glossary, Data sources & dates, Display (the
- * app's colours, moved here from the Layers menu, owner 2026-10-21 late), About, Report a problem, Contact. Every word they draw and every sentence they compose is here, where a test can pin the
- * finished string (AGENTS 33); the components draw these VMs and decide nothing.
+ * THE MENU (owner 2026-10-21): six pages — Glossary, Data sources & dates, Display (the app's colours, moved here from
+ * the Layers menu, owner 2026-10-21 late), About, Report a problem, Contact. (T48, owner 2026-10-22) They are the bottom
+ * bar's MORE tab: the top-left hamburger and its drawer are gone, moved, never copied. Every word they draw and every
+ * sentence they compose is here, where a test can pin the finished string (AGENTS 33); the components draw these VMs and
+ * decide nothing.
  *
- *   menuVM          the drawer's items, in order
+ *   menuVM          the More tab's items, in order
+ *   syncLine        the status line at the top of the search area (the slot update / sync fills later)
  *   glossaryRows    the glossary's list, searched — the release's own terms (`answers.glossary`, the same terms the
  *                   regs page's `gl:` sheets open); a term's definition is `glossBlocks` (regs/sheets.ts), never a copy
  *   aboutVM         what the app is, the authority disclaimer, the official synopsis, the versions
@@ -29,9 +32,8 @@ export type MenuPageKey = "glossary" | "sources" | "display" | "about" | "report
 export const APP_NAME = "Can I Fish This?";
 
 export const MENU_WORDS = {
-  open: "Open menu",
-  close: "Close menu",
-  title: "Menu",
+  /** The More tab's name and its page's title (T48: the menu lives in the bottom bar). */
+  title: "More",
   back: "Back",
   items: {
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
@@ -154,9 +156,35 @@ export const MENU_WORDS = {
   },
 } as const;
 
-// ── the drawer ───────────────────────────────────────────────────────────────────────────────────────────────────────
+// ── the sync status line ─────────────────────────────────────────────────────────────────────────────────────────────
 
-/** The drawer's order: reading the regulations first, then where they come from, then the app, then talking to us. */
+/** The status line's words: the Data sources page's own facts, shortened to one line over the map. */
+export const SYNC_WORDS = {
+  regs: (day: string) => `Regs to ${day}`,
+  flows: (ago: string) => `Flows checked ${ago}`,
+  flowsNot: "Flows not checked yet",
+} as const;
+
+/**
+ * (T48) THE SYNC STATUS at the top of the search area: what the Data sources page says of freshness, on one line — the
+ * edition's last day (the release's `regulations.valid_until`) and when the live flows were last checked (the feed's
+ * index). `feed` false: this build reads no feed, so nothing is said of it. Null when there is nothing to say. When
+ * "Update / sync" is built, its state takes this line; nothing else here changes.
+ */
+export function syncLine(s: { validUntil: string | null; feed: boolean; feedFetchedAt: string | null; now: number }):
+    string | null {
+  const parts: string[] = [];
+  const until = isoDayWords(s.validUntil);
+  if (until) parts.push(SYNC_WORDS.regs(until));
+  if (s.feed)
+    parts.push(s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
+      ? SYNC_WORDS.flows(agoWords(s.feedFetchedAt, s.now)) : SYNC_WORDS.flowsNot);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+// ── the More tab ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** The More tab's order: reading the regulations first, then where they come from, then the app, then talking to us. */
 export const MENU_ORDER: readonly MenuPageKey[] = ["glossary", "sources", "display", "about", "report", "contact"];
 
 export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }

@@ -48,11 +48,20 @@ The panel carries: the reading and its standing, quantity and span controls (flo
 live, the hydrograph with envelope + prior years + a TODAY rule, the model's disclaimer
 verbatim, and the route panel with a mini-map showing both ends of the trace.
 
-**The map rail and spots (owner 2026-10-21).** The browse maps (Map tab and Conditions map) carry a side rail on the
-right, Fish Washington style, drawn as riffle's `.tr .stack` (`MapRail`): **Layers** (moved from the bottom-left pill;
-Map tab only — the Conditions map decides its own colouring) and **Spots**. The Spots TAB IS GONE (three tabs now):
-the rail's Spots button opens `SpotsSheet` — your spots (tap opens one over the map, back returns to that map; "Show"
-frames it on the map with a pin), "Add a spot here" (the map's middle) and "At my location" (web: offered when the
+**The layout: one place for each kind of thing (T48, owner 2026-10-22).** The TOP BAR over both browse maps is the
+search field alone, always open, with the sync status line at its top (`TopBar`; `syncLine`: the regulations' last day
+and when the flows were last checked). Tapping it focuses it in place and raises `SearchSheet` over the SAME map (route
+`search`; no second map): FULL while typing (the map dimmed), HALF once something is picked — a town flies the map there
+with its pin and the waters near it lit, a water row frames it; the selected water row's › opens it through
+`openWater`. Closing (‹, Escape, back, a tab) restores the camera exactly (`fit.camera`). The SIDE RAIL is Layers
+alone (`MapRail`). The BOTTOM BAR, smaller, is Map · Conditions · Spots · More: **Spots** is a tab again
+(`SpotsScreen`), **More** lists the menu's pages (`MoreScreen`; the hamburger and its drawer are gone).
+`tools/one-menu.test.ts` holds the "one": the menu's list, the spots list, the capture flow and the search sheet each
+exist once.
+
+**Spots (owner 2026-10-21; a tab again since T48).** The Spots tab (`SpotsScreen`) — your spots (tap opens one over the
+tab, back returns to it; "Show" goes to the Map tab framed on it with a pin — the spot screen's own Show is the same
+function), "Add a spot here" (the map's middle) and "At my location" (web: offered when the
 browser says granted, or labelled "Asks for your location first" when the tap itself will prompt; native: not offered
 — no location module yet, `apps/mobile/src/locate.native.ts`). A **long press** on a browse map (`MapProps.onLongPress`:
 MapLibre Native's own on a phone; on the web a held finger timed by `@app/core` `LONG_PRESS`, or `contextmenu` — right
@@ -63,7 +72,8 @@ into the ONE capture (`SpotCapture`, now able to start `at` a point: the map ope
 near it, then straight to "when"). Every add is the route's `addSpot` with `at` (`@app/ui` `useMapRail`, `spotsMenu`);
 words in `@app/core` `mapRail.ts`. Each new sheet is a back layer, so Android's back closes it first. The menu, the
 provisional pin and Show's pin + framing belong to the map they were made on: the route moving anywhere forgets them
-on that render (`railPlace`), so a map remounted on the way back is never framed on an old spot again.
+on that render (`railPlace`), so a map remounted on the way back is never framed on an old spot again — except
+Show's own move to the Map tab, which is what its framing was made for.
 
 **The Layers menu, direction B (owner 2026-10-21 late).** Three sections: **Map** (Map · Satellite · Corridors
 [coming soon]), **Colour the water by** (Regulations · Stocked · Depth) and **On the map** (Depth contours, Private land,
@@ -129,16 +139,18 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | Surface | One back does | Where | Pinned by |
 |---|---|---|---|
 | Map tab, nothing open | **not handled** — Android leaves the app; the browser leaves the page | route depth 0 | back.test "Map tab's root" |
-| Search / Conditions / Spots tab root | goes to the **Map tab** (the start tab — Android's fixed start destination, as Google's own apps do); the next back leaves. **iOS:** the edge swipe does not take this step (tabs are not history on iOS; `edgeBackDepth`) | route.ts, gestures.ts | route.test, back.test, gestures.test "edgeBackDepth" |
-| Search: a town's "Water near …" list | back to all results (its "← All results") | SearchScreen `useBackLayer` | back.test "search" |
-| Search's eye shown on the map | back to search, query and selection kept | route `shown` | route.test |
+| Conditions / Spots / More tab root | goes to the **Map tab** (the start tab — Android's fixed start destination, as Google's own apps do); the next back leaves. **iOS:** the edge swipe does not take this step (tabs are not history on iOS; `edgeBackDepth`) | route.ts, gestures.ts | route.test, back.test, gestures.test "edgeBackDepth" |
+| Search open over a map (T48) | closes search (keyboard down, camera restored); the next back is the tab rule | route `search` | back.test "search", Search.shell |
+| Search: a town's "Water near …" list | back to all results (its "← All results") | SearchSheet `useBackLayer` | back.test "search" |
+| A water opened from search | back to search, query and selection kept | route `from` keeps `search` | route.test, Search.shell |
+| A More page (Glossary, Data sources, …) | closes the page to the More tab; a glossary term first | MenuPage `useBackLayer` | back.test "More page", Menu.test |
 | Water screen, any view (Regulations · Conditions · Map) | leaves the water for the map it was tapped on (views are lateral: back never walks the strip) | route | back.test "water screen" |
 | A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |
 | Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
 | Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
 | Layers sheet (and every `<Sheet>`) | closes the sheet | Sheet `useBackLayer` | back.test "Layers", gestures.render |
 | Regulations page: "Which day?" (the date pill's DaySheet) | closes the sheet, the day kept; the next back leaves the water | DaySheet → `<Sheet>` | back.test "day sheet" |
-| A spot (viewed) | back to the Spots list | route | back.test "a spot" |
+| A spot (viewed) | back to the tab it was opened over (the Spots tab, or a map) | route | back.test "a spot", MapRail.shell |
 | A spot being edited, nothing changed | ends the edit, stays on the spot (= Cancel) | SpotScreen `useBackLayer` | back.test |
 | A spot being edited, with changes | **asks** ("You have unsaved changes"); back again answers "Keep editing" — never drops an edit unasked | SpotScreen | back.test |
 | "Delete this spot?" | answers "Keep it" — nothing deleted | SpotScreen | back.test |

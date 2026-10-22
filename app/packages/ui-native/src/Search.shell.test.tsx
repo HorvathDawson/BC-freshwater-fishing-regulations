@@ -1,0 +1,227 @@
+/**
+ * (T48) SEARCH IN THE TOP BAR, THROUGH THE REAL SHELL: the always-open field over the browse maps, the sync status at
+ * its top, the results sheet rising over the SAME map (never a second one), a place shown by its tap (no eye), a water
+ * opened through the one opener, and back / Escape / ‹ closing search first and giving the camera back exactly.
+ *
+ * The map renderer is replaced by a stub that counts its mounts and writes down every framing the Shell sends it (no
+ * WebGL in jsdom). Everything else is the app's, on the fixture.
+ */
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useEffect } from "react";
+import { Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SEARCH_BAR } from "@app/core";
+import { makeFixtureSource } from "@app/data/fixture";
+import { HOME, type Route, type SystemBack } from "@app/ui";
+import { LIGHT } from "./theme";
+
+type Fit = { key: string; bbox: unknown; camera?: { lon: number; lat: number; zoom: number } } | null | undefined;
+type Stub = { fit?: Fit; highlight?: readonly unknown[]; pins?: readonly { tone?: string }[]; insetTop?: number };
+const seen = vi.hoisted(() => ({ mounts: 0, fits: [] as string[] }));
+vi.mock("./MapScreen", () => ({
+  MapScreen: (p: Stub) => {
+    useEffect(() => { seen.mounts += 1; }, []);
+    const f = p.fit;
+    const said = !f ? "none" : f.camera ? `${f.key} camera ${f.camera.lat},${f.camera.lon},${f.camera.zoom}` : f.key;
+    if (seen.fits[seen.fits.length - 1] !== said) seen.fits.push(said);
+    return (
+      <View>
+        <Text testID="map-state">
+          {`fit ${f?.key ?? "none"} · lit ${p.highlight?.length ?? 0} · pins ${(p.pins ?? []).map((x) => x.tone).join(",") || "none"}` +
+           ` · inset ${p.insetTop}`}
+        </Text>
+      </View>
+    );
+  },
+}));
+vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
+const { Shell } = await import("./Shell");
+
+afterEach(() => { cleanup(); seen.mounts = 0; seen.fits.length = 0; });
+beforeAll(() => {
+  Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
+  Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
+});
+
+let androidBack: () => boolean = () => false;
+const android: SystemBack = (back) => { androidBack = back; return { sync: () => {}, dispose: () => {} }; };
+const FETCHED = new Date(Date.now() - 3 * 3.6e6).toISOString();
+const FEED = { index: async () => ({ fetchedAt: FETCHED, stations: {} }) } as never;
+
+function mount(start: Route = HOME) {
+  render(
+    <GestureHandlerRootView>
+      <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} systemBack={android} feed={FEED}
+             spots={[]} onSaveSpot={async () => {}} />
+    </GestureHandlerRootView>);
+}
+const field = () => screen.getByLabelText(SEARCH_BAR.label) as HTMLInputElement;
+const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 260)); });
+const typeIn = async (q: string) => { fireEvent.change(field(), { target: { value: q } }); await settle(); await settle(); };
+const tabOn = () => screen.queryAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")
+  ?.getAttribute("aria-label") ?? "no bar";
+const sheet = () => {
+  return screen.queryByTestId("search-sheet-full") ? "full" : screen.queryByTestId("search-sheet-half") ? "half" : "no sheet";
+};
+/** The search's state in one line: open or not, the sheet's height, the field's value and the tab. */
+const where = () => `${screen.queryByLabelText(SEARCH_BAR.close) ? "search open" : "search closed"} · ${sheet()}` +
+  ` · "${field().value}" · tab ${tabOn()}`;
+const back = () => { let h = false; act(() => { h = androidBack(); }); return h; };
+
+describe("the top bar (T48): the search field alone, always open, the sync status at its top", () => {
+  it("the field is drawn on both maps, called the same aloud, with ONE placeholder from the list that never cycles", async () => {
+    mount();
+    await settle();
+    const first = field().placeholder;
+    await typeIn("ch");
+    await typeIn("");
+    const onMap = [SEARCH_BAR.placeholders.includes(first as never), field().placeholder === first];
+    fireEvent.click(screen.getByRole("tab", { name: "Conditions" }));
+    expect([onMap, field().placeholder === first, field().getAttribute("aria-label")])
+      .toEqual([[true, true], true, "Search waters and towns"]);
+  });
+
+  it("the sync status sits at the top of the search area: the flows' age, as the Data sources page says it", async () => {
+    mount();
+    await waitFor(() => expect(screen.queryByTestId("sync-status")).not.toBeNull());
+    expect(screen.getByTestId("sync-status").textContent).toBe("Flows checked 3h ago");
+  });
+
+  it("no top bar on the Spots and More tabs (no map there to search over), and none in water mode", () => {
+    const bars: string[] = [];
+    for (const tab of ["spots", "more"] as const) {
+      mount({ ...HOME, tab });
+      bars.push(`${tab}: ${screen.queryByLabelText(SEARCH_BAR.label) ? "bar" : "no bar"}`);
+      cleanup();
+    }
+    mount({ mode: "water", from: HOME, stack: [{ item: "gnis:8634" as never, part: null, tapSid: null, at: null, view: "regs" }] });
+    bars.push(`water: ${screen.queryByLabelText(SEARCH_BAR.label) ? "bar" : "no bar"}`);
+    expect(bars).toEqual(["spots: no bar", "more: no bar", "water: no bar"]);
+  });
+
+  it("on a wide screen the bar and its sheet are a 440 px left panel; on a phone they span the screen", async () => {
+    const size = (w: number) => {
+      Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+      window.dispatchEvent(new Event("resize"));
+    };
+    try {
+      size(1280);
+      mount();
+      act(() => { fireEvent.focus(field()); });
+      const wide = [screen.getByTestId("top-bar").style.width, screen.getByTestId("search-sheet-full").style.width];
+      cleanup();
+      size(390);
+      mount();
+      act(() => { fireEvent.focus(field()); });
+      expect([wide, screen.getByTestId("top-bar").style.width, screen.getByTestId("top-bar").style.right])
+        .toEqual([["440px", "440px"], "", "14px"]);
+    } finally { size(390); }
+  });
+
+  it("the map's own chrome starts under the bar: the Shell hands it the bar's bottom edge", async () => {
+    mount();
+    await waitFor(() => expect(screen.queryByTestId("sync-status")).not.toBeNull());
+    expect(screen.getByTestId("map-state").textContent).toMatch(/ · inset 80$/);
+  });
+});
+
+describe("opening search: in place, over the SAME map", () => {
+  it("the field's frame is the same before and after focus (no jump); the ‹ takes the magnifier's slot; the sheet rises " +
+     "FULL over the map, which is not remounted", async () => {
+    mount();
+    const frame = () => [screen.getByTestId("top-bar").getAttribute("style"),
+                         screen.getByTestId("search-field").getAttribute("style")!.replace(/border-[a-z-]*color:[^;]*;?/g, "")];
+    const before = [frame(), where(), screen.queryByLabelText(SEARCH_BAR.close)];
+    act(() => { fireEvent.focus(field()); });
+    expect([before, frame(), where(), seen.mounts]).toEqual([
+      [before[0], `search closed · no sheet · "" · tab Map`, null],
+      before[0], `search open · full · "" · tab Map`, 1]);
+    expect(screen.getByText(SEARCH_BAR.start)).toBeTruthy();
+  });
+
+  it("back closes search before anything else, on either map; then the tab rule (Conditions -> Map -> Android leaves)",
+     async () => {
+    mount({ ...HOME, tab: "conditions" });
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack");
+    const open = where();
+    const h1 = back();
+    const closed = where();
+    const h2 = back();
+    const map = where();
+    expect([open, h1, closed, h2, map, back(), seen.mounts]).toEqual([
+      `search open · full · "chilliwack" · tab Conditions`, true,
+      `search closed · no sheet · "chilliwack" · tab Conditions`, true,
+      `search closed · no sheet · "chilliwack" · tab Map`, false, 1]);
+  });
+
+  it("‹ and Escape close it too; a cancel that moved nothing sends the camera nowhere", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    act(() => { fireEvent.click(screen.getByLabelText(SEARCH_BAR.close)); });
+    const viaClose = where();
+    act(() => { fireEvent.focus(field()); });
+    act(() => { fireEvent.keyDown(field(), { key: "Escape" }); });
+    expect([viaClose, where(), seen.fits]).toEqual([
+      `search closed · no sheet · "" · tab Map`, `search closed · no sheet · "" · tab Map`, ["none"]]);
+  });
+});
+
+describe("a place is SHOWN by its tap; a water is framed by its tap and opened by its action", () => {
+  it("tapping a town: the map flies to it, its pin in the town's colour, the waters near it lit, the sheet at HALF — no " +
+     "eye pressed; ← All results steps back inside search", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack on the map/ }));
+    await waitFor(() => expect(screen.queryByLabelText("Back to all results")).not.toBeNull());
+    await settle();
+    const state = screen.getByTestId("map-state").textContent!;
+    expect([where(), state.replace(/lit \d+/, "lit N"), Number(/lit (\d+)/.exec(state)![1]) > 0,
+            screen.queryAllByRole("button", { name: /^View / }).length]).toEqual([
+      `search open · half · "chilliwack" · tab Map`,
+      `fit place:${/fit place:(\S+)/.exec(state)![1]} · lit N · pins ${LIGHT.place} · inset 80`, true, 0]);
+    expect(back()).toBe(true);
+    expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search open · full · "chilliwack" · tab Map`, null]);
+  });
+
+  it("a water row: its tap frames it (half); its › opens the water screen through the one opener; back returns to the " +
+     "results as they were; the next back closes search and gives the camera back exactly", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    await settle();
+    const framed = [where(), screen.getByTestId("map-state").textContent!.split(" · ")[0]];
+    fireEvent.click(screen.getByRole("button", { name: /^Open Chilliwack River/ }));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    const water = screen.queryByLabelText(SEARCH_BAR.label);
+    back();
+    await settle();
+    const returned = [where(), screen.getByRole("button", { name: /^Show Chilliwack River/ })
+      .getAttribute("aria-pressed")];
+    back();
+    await settle();
+    expect([framed, water, returned, where(), seen.fits]).toEqual([
+      [`search open · half · "chilliwack river" · tab Map`, "fit item:gnis:8634"],
+      null,
+      [`search open · half · "chilliwack river" · tab Map`, "true"],
+      `search closed · no sheet · "chilliwack river" · tab Map`,
+      // the framing; then, as search closes, one render with no fit (nothing sent), the camera put back, and no fit again
+      ["none", "item:gnis:8634", "none", "restore:1 camera 49.15,-121.85,9.4", "none"],
+    ]);
+  });
+
+  it("typing again after a pick raises the sheet to FULL (the pick is forgotten)", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    const half = where();
+    await typeIn("vedder");
+    expect([half, where()]).toEqual([`search open · half · "chilliwack river" · tab Map`,
+                                     `search open · full · "vedder" · tab Map`]);
+  });
+});

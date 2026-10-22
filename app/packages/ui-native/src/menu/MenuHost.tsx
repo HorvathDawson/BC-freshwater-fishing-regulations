@@ -1,11 +1,12 @@
 /**
- * THE MENU, mounted once by the Shell: the drawer the hamburger opens and the page it hands over to. Everything a page
+ * THE MENU'S PAGES, mounted once by the Shell: the page opened from the More tab (`MoreScreen`, T48 — the hamburger's
+ * drawer is gone) or from a regulations tab's report link. Everything a page
  * says comes from core/menu.ts over facts handed in here — the release's manifest (its id, `sources`, the edition's
  * valid-until), the tile version the map draws, when the gauge feed was last fetched, the app's own config (build,
  * contact) and the recent error log. Nothing here is fetched for the menu except the glossary, read from the regs
  * store only while its page is open.
  *
- * Each open level is a back layer (G1): back closes a glossary term, then the page, then the drawer.
+ * Each open level is a back layer (G1): back closes a glossary term, then the page.
  */
 import { useMemo } from "react";
 import { Platform } from "react-native";
@@ -15,7 +16,6 @@ import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } fro
 import type { Palette, ThemeName } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, ContactPage, DisplayPage, SourcesPage } from "./InfoPages";
-import { MenuDrawer } from "./MenuDrawer";
 import { MenuPage } from "./MenuPage";
 import { ReportPage } from "./ReportPage";
 
@@ -75,9 +75,6 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, fe
 
   return (
     <>
-      {/* THE SYNC SLOT stays empty until "Update / sync" is built (MenuDrawer `sync`) */}
-      <MenuDrawer open={s.drawer} onClose={menu.close} onPick={(k) => (k === "report" ? menu.report(where) : menu.show(k))}
-                  palette={palette} />
       <MenuPage open={s.page === "glossary"} title={term?.term ?? MENU_WORDS.items.glossary.label}
                 onBack={term ? menu.closeTerm : menu.closePage} palette={palette} scroll={false}
                 backLabel={term ? MENU_WORDS.items.glossary.label : undefined} testID="menu-page-glossary">

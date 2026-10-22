@@ -1,22 +1,21 @@
 /**
- * THE MENU'S STATE (owner 2026-10-21): the hamburger's drawer, the page it opened, the glossary term open on it, and
- * where a problem report was asked from. Headless: `@app/ui-native` `MenuHost` draws it.
+ * THE MENU'S STATE (owner 2026-10-21): the page open over the More tab (T48: the bottom bar's More holds what the
+ * hamburger's drawer held — moved, not copied), the glossary term open on it, and where a problem report was asked from.
+ * Headless: `@app/ui-native` `MenuHost` draws the pages, `MoreScreen` the list.
  *
  * NOT ROUTE FRAMES. A menu page is not a place on the map (it belongs in no deep link, no saved route) — like a sheet,
  * each open level registers as a BACK LAYER (`useBackLayer`, gestures.ts), so Android's back, the browser's back and a
- * phone browser's swipe-back close the top one first: the term, then the page, then the drawer. Picking a page closes
- * the drawer in the same step (a navigation drawer hands over to what it opened), so back from a page is the map.
+ * phone browser's swipe-back close the top one first: the term, then the page. Back from a page is the More tab (or the
+ * regulations page a report was asked from).
  */
 import { useCallback, useMemo, useReducer } from "react";
-import { sheetDismiss, type GlossaryTerm, type MenuPageKey, type ReportWhere, type Statics } from "@app/core";
+import { type GlossaryTerm, type MenuPageKey, type ReportWhere, type Statics } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 import { useRegsStore } from "./regs";
 import { waterFrame, type Route } from "./route";
 
 export interface MenuState {
-  /** the drawer is out */
-  readonly drawer: boolean;
   /** the page on screen, or none */
   readonly page: MenuPageKey | null;
   /** the glossary term open on the Glossary page */
@@ -26,19 +25,16 @@ export interface MenuState {
 }
 
 export type MenuAction =
-  | { type: "open" } | { type: "close" }
   | { type: "page"; page: MenuPageKey; report?: ReportWhere | null }
   | { type: "closePage" }
   | { type: "term"; id: string } | { type: "closeTerm" };
 
-export const MENU_CLOSED: MenuState = { drawer: false, page: null, term: null, report: null };
+export const MENU_CLOSED: MenuState = { page: null, term: null, report: null };
 
 export function menuReduce(s: MenuState, a: MenuAction): MenuState {
   switch (a.type) {
-    case "open": return s.drawer ? s : { ...s, drawer: true };
-    case "close": return s.drawer ? { ...s, drawer: false } : s;
-    // the drawer hands over to the page it opened; a report keeps where it was asked from, any other page forgets it
-    case "page": return { drawer: false, page: a.page, term: null, report: a.page === "report" ? a.report ?? null : null };
+    // a report keeps where it was asked from, any other page forgets it
+    case "page": return { page: a.page, term: null, report: a.page === "report" ? a.report ?? null : null };
     case "closePage": return s.page === null ? s : { ...s, page: null, term: null, report: null };
     case "term": return s.page === "glossary" ? { ...s, term: a.id } : s;
     case "closeTerm": return s.term === null ? s : { ...s, term: null };
@@ -47,8 +43,6 @@ export function menuReduce(s: MenuState, a: MenuAction): MenuState {
 
 export interface MenuControls {
   readonly state: MenuState;
-  open(): void;
-  close(): void;
   show(page: MenuPageKey): void;
   /** Report a problem, from wherever the reader is (a regulations tab passes the page's own words). */
   report(where?: ReportWhere | null): void;
@@ -59,15 +53,13 @@ export interface MenuControls {
 
 export function useMenu(): MenuControls {
   const [state, go] = useReducer(menuReduce, MENU_CLOSED);
-  const open = useCallback(() => go({ type: "open" }), []);
-  const close = useCallback(() => go({ type: "close" }), []);
   const show = useCallback((page: MenuPageKey) => go({ type: "page", page }), []);
   const report = useCallback((where?: ReportWhere | null) => go({ type: "page", page: "report", report: where ?? null }), []);
   const closePage = useCallback(() => go({ type: "closePage" }), []);
   const openTerm = useCallback((id: string) => go({ type: "term", id }), []);
   const closeTerm = useCallback(() => go({ type: "closeTerm" }), []);
-  return useMemo(() => ({ state, open, close, show, report, closePage, openTerm, closeTerm }),
-    [state, open, close, show, report, closePage, openTerm, closeTerm]);
+  return useMemo(() => ({ state, show, report, closePage, openTerm, closeTerm }),
+    [state, show, report, closePage, openTerm, closeTerm]);
 }
 
 /**
@@ -82,24 +74,6 @@ export function routeWhere(r: Route, day: string | null): ReportWhere {
   if (f && f.tapSid !== null) out.section = f.tapSid;
   if (day) out.day = day;
   return out;
-}
-
-/** The drawer's sideways drag: it follows the finger LEFT only and closes past a third of its width or on a flick —
- *  the sheet's own rule (`sheetDismiss`), turned on its side. */
-export interface DrawerDrag {
-  offset(dx: number): number;
-  release(dx: number, vx: number, width: number): boolean;
-}
-
-export function useDrawerDrag(onClose: () => void): DrawerDrag {
-  return useMemo(() => ({
-    offset: (dx: number) => Math.min(0, dx),
-    release: (dx: number, vx: number, width: number) => {
-      if (!sheetDismiss(-dx, -vx, width)) return false;
-      onClose();
-      return true;
-    },
-  }), [onClose]);
 }
 
 /** The glossary as the release carries it: its terms (`answers.glossary`) and the printed → PDF page map. */

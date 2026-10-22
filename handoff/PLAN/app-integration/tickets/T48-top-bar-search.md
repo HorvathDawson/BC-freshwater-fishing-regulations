@@ -1,4 +1,9 @@
 # T48 — search lives in the top bar (menu · search field · sync), opening over the same map
+
+> **BUILT 2026-10-22 with the owner's changes (decisions.md "OWNER 2026-10-22 — answers" + "T48 BUILT"):** NO menu
+> button — the top bar is the field alone with the sync line at its top; the bottom bar is Map · Conditions · Spots ·
+> More (smaller); the rail is Layers alone. Where this ticket's Design says otherwise (the menu button, Spots on the
+> rail, the bottom-bar options), the decisions win. Shots: `../T48-shots/`.
 Phase 4 · Depends on the map-chrome lanes (wf_5f5e25c3-271: menu-info's top-left menu button, map-rail-spots' side rail),
 search placement + preview (merged), G1 gestures, Android back lane · Size 1–2 days
 

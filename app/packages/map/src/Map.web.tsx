@@ -223,7 +223,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, marks, onPressMark }: MapProps) {
+                      zoomControls, status, standing, lakes, marks, onPressMark, insetTop = 0 }: MapProps) {
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
   imageryError.current = onImageryError;
@@ -789,6 +789,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // shapes as well as their ends, so a river that bends outside its gauges stays on screen.
     const withTrace = (b: Bbox | null) =>
       (traceBox.current ? unionBbox(b, traceBox.current) : b);
+    // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
+    if (fit.camera) { r.easeTo(fit.camera, { duration: 450 }); return done; }
     const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
     if (first) go(first);
     if (!fit.refine) return done;
@@ -1001,7 +1003,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     "--map-shadow": furniture.shadow,
     "--map-icon-filter": furniture.iconFilter,
     "--map-scale-bg": furniture.scaleBg,
-  } as React.CSSProperties), [furniture]);
+    // (T48) the app's own bar over the map's top: the top-right controls start under it
+    "--map-inset-top": `${insetTop}px`,
+  } as React.CSSProperties), [furniture, insetTop]);
 
   return <div ref={host}
               style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;

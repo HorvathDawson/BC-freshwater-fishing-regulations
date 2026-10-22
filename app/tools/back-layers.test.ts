@@ -132,7 +132,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/Shell.tsx#Shell: takes onBack": "the Shell IS the route layer (useEdgeBack); `onBack: back` hands that one back to the water's ‹",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
-  "packages/ui-native/src/MapScreen.tsx#MapScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer",
+  "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
   "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop and Chooser, which draw it, register",
@@ -164,7 +164,7 @@ describe("back, everywhere: one mechanism", () => {
       && [...src.matchAll(/\bonRequestClose\s*=\s*\{([^}]*)\}/g)].every((m) => m[1]!.trim() === "requestClose");
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
-      "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuDrawer.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
+      "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
   });
 });
 
@@ -191,7 +191,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
     expect(found).toEqual([
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
-      "packages/ui-native/src/MapScreen.tsx#MapScreen: takes onBack",
+      "packages/ui-native/src/SearchSheet.tsx#SearchSheet: draws SearchSheet",
       "packages/ui-native/src/Sheet.tsx#Sheet: a Modal",
       "packages/ui-native/src/Shell.tsx#Shell: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack",
@@ -199,7 +199,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotScreen.tsx#SpotScreen: takes onBack",
       "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel",
-      "packages/ui-native/src/SpotsSheet.tsx#SpotsSheet: takes onClose",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack",
       "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",
@@ -207,7 +206,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
       "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage",
       "packages/ui-native/src/menu/InfoPages.tsx#DisplayPage: draws DisplayPage",
-      "packages/ui-native/src/menu/MenuDrawer.tsx#MenuDrawer: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",

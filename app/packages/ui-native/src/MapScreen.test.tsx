@@ -10,8 +10,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { horizonChips, type Horizon, type MenuControls } from "@app/ui";
-import { MenuContext } from "./menu/MenuButton";
+import { horizonChips, type Horizon } from "@app/ui";
 import { LIGHT } from "./theme";
 
 /*
@@ -27,6 +26,7 @@ vi.mock("@app/map", async (orig) => ({
 }));
 
 const { MapScreen } = await import("./MapScreen");
+const { RAIL_BELOW } = await import("./MapRail");
 
 afterEach(cleanup);
 
@@ -82,29 +82,13 @@ describe("<MapScreen> corner", () => {
     expect(onPick).toHaveBeenLastCalledWith(5);
   });
 
-  it("the corner holds the way back to search only while the map shows what search's eye sent it to", () => {
-    const back = vi.fn();
-    const { rerender } = render(<MapScreen {...BASE} />);
-    expect(screen.queryByRole("button", { name: "Back to search" })).toBeNull();
-    rerender(<MapScreen {...BASE} onBack={back} />);
-    const pill = screen.getByRole("button", { name: "Back to search" });
-    expect(pill.textContent).toBe("‹ Search");
-    pill.click();
-    expect(back).toHaveBeenCalledTimes(1);
-  });
-
-  it("gives the horizons their own row under the menu, so the hamburger does not push +10d under the zoom", () => {
-    // REVIEW 2026-10-21: in one row the hamburger moved the chips ~45px right; at 390 wide +10d ran under MapLibre's
-    // zoom control (top-right) and past the edge at 360. Under the menu, the chips start at the corner's left edge as
-    // they did before the menu came, and the row they used to fit in is theirs alone.
-    const menu = { open: () => {} } as unknown as MenuControls;
-    render(<MenuContext.Provider value={menu}><MapScreen {...BASE} horizons={horizons(0)} /></MenuContext.Provider>);
-    const row = screen.getByTestId("map-corner-row");
-    const chips = screen.getByTestId("map-horizons");
-    expect(row.contains(screen.getByTestId("menu-button"))).toBe(true);
-    expect(row.contains(chips)).toBe(false);
-    expect(getComputedStyle(row.parentElement as Element).flexDirection).toBe("column");
-    expect(row.parentElement?.contains(chips)).toBe(true);
+  it("(T48) the corner sits under the app's bar: its top is the bar's bottom edge plus 8; no menu, no way-back pill", () => {
+    const { rerender } = render(<MapScreen {...BASE} horizons={horizons(0)} />);
+    const bare = screen.getByTestId("map-corner").style.top;
+    rerender(<MapScreen {...BASE} horizons={horizons(0)} insetTop={76} />);
+    expect([bare, screen.getByTestId("map-corner").style.top, mapProps.last!.insetTop,
+            screen.queryByTestId("menu-button"), screen.queryByRole("button", { name: "Back to search" })])
+      .toEqual(["8px", "84px", 76, null, null]);
   });
 
   it("offers no layers button when the caller gives no handler", () => {
@@ -116,28 +100,25 @@ describe("<MapScreen> corner", () => {
   });
 });
 
-describe("<MapScreen> rail (owner 2026-10-21: Layers and Spots stacked on the side, Fish Washington style)", () => {
+describe("<MapScreen> rail (owner 2026-10-21, Fish Washington style; T48: Layers ALONE — Spots is a tab again)", () => {
   const rail = () => {
     const bar = screen.queryByRole("toolbar", { name: "Map tools" });
     return bar ? [...bar.querySelectorAll("[role=button]")].map((b) => b.getAttribute("aria-label")).join(" · ")
       : "no rail";
   };
-  it("Layers then Spots, each said aloud; the Conditions map (no layers handler) keeps Spots; neither: no rail", () => {
-    const { rerender } = render(<MapScreen {...BASE} onLayers={() => {}} onSpots={() => {}} />);
-    const both = rail();
-    rerender(<MapScreen {...BASE} onSpots={() => {}} />);
-    const spots = rail();
+  it("Layers, said aloud; no layers handler: no rail; it starts RAIL_BELOW under the bar", () => {
+    const { rerender } = render(<MapScreen {...BASE} onLayers={() => {}} insetTop={76} />);
+    const layers = rail();
+    const top = (screen.getByRole("toolbar", { name: "Map tools" }) as HTMLElement).style.top;
     rerender(<MapScreen {...BASE} />);
-    expect([both, spots, rail()]).toEqual(["Choose layers · Your spots", "Your spots", "no rail"]);
+    expect([layers, top, rail()]).toEqual(["Choose layers", `${76 + RAIL_BELOW}px`, "no rail"]);
   });
 
-  it("each button opens its own sheet", () => {
-    const layers = vi.fn(), spots = vi.fn();
-    render(<MapScreen {...BASE} onLayers={layers} onSpots={spots} />);
-    fireEvent.click(screen.getByRole("button", { name: "Your spots" }));
+  it("the button opens the Layers sheet", () => {
+    const layers = vi.fn();
+    render(<MapScreen {...BASE} onLayers={layers} />);
     fireEvent.click(screen.getByRole("button", { name: "Choose layers" }));
-    fireEvent.click(screen.getByRole("button", { name: "Your spots" }));
-    expect([layers.mock.calls.length, spots.mock.calls.length]).toEqual([1, 2]);
+    expect(layers.mock.calls.length).toBe(1);
   });
 
   it("the long press reaches the map as given, and only when given", () => {

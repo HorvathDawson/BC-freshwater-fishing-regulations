@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bboxOfGeometry, boxAround, boxOfParts, describeBy, distanceKm, duplicateNames, extentOf, fixOf,
-  matchTier, outlineOf, SEARCH_MAP, waterCaption,
+  matchTier, outlineOf, PLACEHOLDER_MAX, SEARCH_BAR, placeholderFor, waterCaption,
   normalise, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
   NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
 } from "./search";
@@ -111,11 +111,49 @@ describe("the search map's words", () => {
     expect([waterCaption("Kooryet Lake", true), waterCaption("Kooryet Lake", false)])
       .toEqual(["Kooryet Lake", "Kooryet Lake — the map cannot place it yet"]);
   });
-  it("the preview's controls and the way back", () => {
-    expect(SEARCH_MAP).toEqual({
-      idle: "Tap a result to see it here · the eye shows it on the map",
-      placesOnly: "Tap a place to see where it is",
-      fit: "Show all of it", back: "Search", backLabel: "Back to search" });
+});
+
+describe("(T48) the top bar's search field and its results sheet", () => {
+  it("the words, whole: what the field is called aloud, its ‹, a row's open action, the sheet's lines", () => {
+    expect({ ...SEARCH_BAR, open: SEARCH_BAR.open("Chilliwack River"), placeholders: SEARCH_BAR.placeholders.length })
+      .toEqual({
+        label: "Search waters and towns",
+        close: "Close search",
+        clear: "Clear search",
+        open: "Open Chilliwack River",
+        start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
+        none: "Nothing by that name in this bundle.",
+        failed: "Search could not read the bundle.",
+        placeholders: 9,
+      });
+  });
+
+  it("the placeholder lines: the approved six, then three that name towns; none promises fish", () => {
+    expect(SEARCH_BAR.placeholders).toEqual([
+      "Cast your search — any lake or river",
+      "Drop a line: river, lake or creek…",
+      "Hook a water by name",
+      "Reel in a river…",
+      "Where to next? Search waters",
+      "Find your next water",
+      "Search a lake, river or town",
+      "Name a town to find water near it",
+      "Fishing near a town? Type its name",
+    ]);
+    expect(SEARCH_BAR.placeholders.filter((l) => /biting|catch|fish are/i.test(l))).toEqual([]);
+  });
+
+  it("every line fits the field at 390 px: at most PLACEHOLDER_MAX characters (measured in Chrome, T48-shots)", () => {
+    expect([PLACEHOLDER_MAX, SEARCH_BAR.placeholders.filter((l) => [...l].length > PLACEHOLDER_MAX)]).toEqual([36, []]);
+  });
+
+  it("ONE line per opening: a seed picks it, the same seed always the same line, every line reachable", () => {
+    const n = SEARCH_BAR.placeholders.length;
+    expect([placeholderFor(0), placeholderFor(0.999), placeholderFor(n), placeholderFor(-1), placeholderFor(Number.NaN)])
+      .toEqual(["Cast your search — any lake or river", "Cast your search — any lake or river",
+                "Cast your search — any lake or river", "Drop a line: river, lake or creek…",
+                "Cast your search — any lake or river"]);
+    expect(new Set(Array.from({ length: n }, (_, i) => placeholderFor(i))).size).toBe(n);
   });
 });
 

@@ -220,7 +220,7 @@ export function edgeBackDepth(r: Route, depth: number): number {
   for (let n = 0; n < 64; n++) {
     const next = reduce(at, BACK);
     if (next === at) return depth;
-    const tabReturn = at.mode === "browse" && !at.adding && at.spot === null && at.shown === null;
+    const tabReturn = at.mode === "browse" && !at.adding && at.spot === null && !at.search;
     if (tabReturn) return Math.max(0, depth - 1);
     at = next;
   }

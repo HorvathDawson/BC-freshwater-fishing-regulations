@@ -6,21 +6,20 @@
  * @app/map resolves those through the generated style, so the phone and the desktop cannot
  * colour the same river differently.
  */
-import { SEARCH_MAP, type SectionKey } from "@app/core";
+import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
 import { Pill } from "./Chrome";
 import { MapRail } from "./MapRail";
-import { MenuButton } from "./menu/MenuButton";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
-                            onLayers, layersChanged = 0, onSpots, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
-                            highlight, marker, data, status, standing, lakes, gauges, onVisible, onError,
-                            fit, basemap, onImageryError, onBack, water, marks, onPressMark }: {
+                            onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
+                            highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
+                            fit, basemap, onImageryError, water, marks, onPressMark, insetTop = 0 }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -57,8 +56,6 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   onLayers?: () => void;
   /** How many layer choices differ from the defaults (`layersVM().changed`): the Layers button's badge. */
   layersChanged?: number;
-  /** The rail's Spots button (owner 2026-10-21): opens the Spots menu. Absent -> no button. */
-  onSpots?: () => void;
   /** A long press on the map, where (owner 2026-10-21: drops a provisional spot) — see MapProps.onLongPress. */
   onLongPress?: MapProps["onLongPress"];
   /**
@@ -73,15 +70,20 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   basemap?: MapProps["basemap"];
   /** An imagery tile failed (satellite is online-only) — see MapProps.onImageryError. */
   onImageryError?: MapProps["onImageryError"];
-  /** Present while the map shows a water search's eye sent it to: a pill back to search. */
-  onBack?: () => void;
+  /** (T48) Marked points with their own colour — a searched town's pin, in the town's colour. See MapProps.pins. */
+  pins?: MapProps["pins"];
+  /**
+   * (T48) The bottom edge of the app's bar over the map (the search field), in px: the corner's chips, the rail and the
+   * web map's own controls start under it. 0: no bar.
+   */
+  insetTop?: number;
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
+           highlight={highlight} pins={pins} insetTop={insetTop} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
 
@@ -99,34 +101,13 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         seasonal regulations; it went with them.)
       */}
       {/*
-        THE TOP-LEFT CORNER, a column: the menu row (the hamburger, owner 2026-10-21, on every browse map, and the way
-        back to search beside it), then the horizons on a row of their own. Not one row: the hamburger in front of the
-        chips pushed +10d under MapLibre's zoom (top-right) at 390 wide and off a 360 screen (review 2026-10-21). Under
-        it, the chips start at the corner's left edge, where they fitted before the menu came.
+        THE TOP-LEFT CORNER, under the app's bar (T48: the search field across the top). The hamburger that sat here moved
+        to the bottom bar's More tab, and search's way-back pill went with the eye: search opens over this same map now.
+        NO satellite button here either: the choice is the Layers sheet's Basemap — two controls for one setting is one
+        too many.
       */}
-      <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "column", gap: 8,
-                     alignItems: "flex-start" }} pointerEvents="box-none">
-      <View testID="map-corner-row" style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
-            pointerEvents="box-none">
-      <MenuButton palette={palette} />
-
-      {/* NO satellite button here. MapLibre's own control stack lives in this corner and
-          ours overlapped it — and the choice already exists in the Layers sheet under
-          Basemap, where it sits beside the other things that change what the map is
-          showing. Two controls for one setting is one too many. */}
-
-      {/*
-        THE WAY BACK TO SEARCH, while the map shows the water search's eye sent it to (route `show`). Top-left, the
-        corner MapLibre leaves empty; the system back and the browser's back do the same (one back rule).
-      */}
-      {onBack && (
-        <Pill palette={palette} onPress={onBack} label={SEARCH_MAP.backLabel}>
-          <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600", color: palette.accent }}>
-            {`‹ ${SEARCH_MAP.back}`}
-          </Text>
-        </Pill>
-      )}
-      </View>
+      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, flexDirection: "column",
+                                          gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
         <View testID="map-horizons" style={{ flexDirection: "row", gap: 6 }}>
           {horizons.chips.map((h) => (
@@ -149,10 +130,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       </View>
 
       {/*
-        THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill, with Spots under it — the map's own
-        buttons in one stack on the right, under MapLibre's zoom stack (`MapRail`).
+        THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill — the map's own buttons in one stack on the
+        right, under MapLibre's zoom stack (`MapRail`). Layers alone since T48: Spots is a bottom-bar tab again.
       */}
-      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} onSpots={onSpots} />
+      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
     </View>
   );
 }

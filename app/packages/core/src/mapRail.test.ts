@@ -7,8 +7,7 @@ describe("the map rail's words", () => {
     const { showLabel, ...menu } = SPOTS_MENU;
     const { where, ...drop } = SPOT_DROP;
     expect({ MAP_RAIL, menu, drop, SPOT_CAPTURE_AT }).toEqual({
-      MAP_RAIL: { label: "Map tools", layers: "Layers", layersLabel: "Choose layers", spots: "Spots",
-                  spotsLabel: "Your spots" },
+      MAP_RAIL: { label: "Map tools", layers: "Layers", layersLabel: "Choose layers" },
       menu: {
         title: "Spots", addHere: "Add a spot here", addHereDetail: "At the middle of the map",
         addMine: "At my location", addMineAsk: "Asks for your location first",

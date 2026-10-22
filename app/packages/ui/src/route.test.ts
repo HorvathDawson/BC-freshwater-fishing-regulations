@@ -37,7 +37,7 @@ describe("route (P13): one value, one back rule", () => {
 
   it("a tab or a spot is impossible in water mode: there is no bar", () => {
     const w = reduce(HOME, { type: "openWater", item: VEDDER });
-    for (const a of [{ type: "tab", tab: "search" }, { type: "openSpot", id: "s1" },
+    for (const a of [{ type: "tab", tab: "spots" }, { type: "openSpot", id: "s1" }, { type: "search", open: true },
                      { type: "addSpot", at: { lat: 49, lon: -122 } }] as RouteAction[]) {
       expect(reduce(w, a)).toBe(w);
     }
@@ -52,20 +52,20 @@ describe("route (P13): one value, one back rule", () => {
   });
 
   it("back on another tab's root goes to the Map tab (the start tab); back on the Map tab stays (Android leaves)", () => {
-    const tabs = ["map", "search", "conditions"] as const;
+    const tabs = ["map", "conditions", "spots", "more"] as const;
     const after = tabs.map((t) => {
       const at = reduce(HOME, { type: "tab", tab: t });
       const b = reduce(at, { type: "back" });
       return `${t} -> ${b === at ? "stays" : b.mode === "browse" ? b.tab : b.mode}`;
     });
-    expect(after.join(" | ")).toBe("map -> stays | search -> map | conditions -> map");
+    expect(after.join(" | ")).toBe("map -> stays | conditions -> map | spots -> map | more -> map");
   });
 
   it("the spots are the maps' rail's (owner 2026-10-21): a spot opens over the map it was picked on, back returns there", () => {
     const cond = reduce(HOME, { type: "tab", tab: "conditions" });
     const spot = reduce(cond, { type: "openSpot", id: "s1" });
     expect([spot, bottomBarShown(spot), reduce(spot, { type: "back" })]).toEqual([
-      { mode: "browse", tab: "conditions", spot: "s1", adding: null, shown: null }, true, cond]);
+      { mode: "browse", tab: "conditions", spot: "s1", adding: null, search: false }, true, cond]);
   });
 
   it("adding a spot keeps the point it was started at (a long press, the map's middle, the reader's location)", () => {
@@ -73,37 +73,54 @@ describe("route (P13): one value, one back rule", () => {
     const add = reduce(HOME, { type: "addSpot", at });
     const plain = reduce(HOME, { type: "addSpot" });
     expect([add, plain, bottomBarShown(add), reduce(add, { type: "back" })]).toEqual([
-      { mode: "browse", tab: "map", spot: null, adding: { at }, shown: null },
-      { mode: "browse", tab: "map", spot: null, adding: { at: null }, shown: null },
+      { mode: "browse", tab: "map", spot: null, adding: { at }, search: false },
+      { mode: "browse", tab: "map", spot: null, adding: { at: null }, search: false },
       false, HOME]);
   });
 
-  it("search's eye SHOWS the water on the main map; back returns to search", () => {
-    const search = reduce(HOME, { type: "tab", tab: "search" });
-    const shown = reduce(search, { type: "show", item: VEDDER });
-    expect(shown).toEqual({ mode: "browse", tab: "map", spot: null, adding: null, shown: VEDDER });
-    expect(bottomBarShown(shown)).toBe(true);
-    expect(reduce(shown, { type: "back" })).toEqual(search);
+  it("(T48) search opens OVER either map, the bar still up; back closes it first, then the tab rule", () => {
+    const cond = reduce(HOME, { type: "tab", tab: "conditions" });
+    const onMap = reduce(HOME, { type: "search", open: true });
+    const onCond = reduce(cond, { type: "search", open: true });
+    expect([onMap, onCond, bottomBarShown(onMap), reduce(onMap, { type: "back" }), reduce(onCond, { type: "back" }),
+            run(onCond, { type: "back" }, { type: "back" })]).toEqual([
+      { mode: "browse", tab: "map", spot: null, adding: null, search: true },
+      { mode: "browse", tab: "conditions", spot: null, adding: null, search: true },
+      true, HOME, cond, HOME]);
   });
 
-  it("a water opened from the shown map comes back to it, and the next back to search", () => {
-    const search = reduce(HOME, { type: "tab", tab: "search" });
-    const shown = reduce(search, { type: "show", item: VEDDER });
-    const water = reduce(shown, { type: "openWater", item: VEDDER });
-    expect(reduce(water, { type: "back" })).toBe(shown);
-    expect(run(water, { type: "back" }, { type: "back" })).toEqual(search);
+  it("(T48) search is a map's: never over Spots or More, and a tab change closes it", () => {
+    const spots = reduce(HOME, { type: "tab", tab: "spots" });
+    const more = reduce(HOME, { type: "tab", tab: "more" });
+    const open = reduce(HOME, { type: "search", open: true });
+    expect([reduce(spots, { type: "search", open: true }), reduce(more, { type: "search", open: true }),
+            reduce(open, { type: "tab", tab: "conditions" }), reduce(open, { type: "search", open: false }),
+            reduce(HOME, { type: "search", open: false })])
+      .toEqual([spots, more, { ...HOME, tab: "conditions" }, HOME, HOME]);
   });
 
-  it("a tab change forgets the shown water — back on a map the reader chose stays", () => {
-    const shown = run(HOME, { type: "tab", tab: "search" }, { type: "show", item: VEDDER });
-    const map = reduce(shown, { type: "tab", tab: "map" });
-    expect(map).toEqual(HOME);
-    expect(reduce(map, { type: "back" })).toBe(map);
+  it("(T48) a water opened from search comes back to search as it was, and the next back closes it", () => {
+    const open = reduce(HOME, { type: "search", open: true });
+    const water = reduce(open, { type: "openWater", item: VEDDER });
+    expect([reduce(water, { type: "back" }), run(water, { type: "back" }, { type: "back" })]).toEqual([open, HOME]);
   });
 
-  it("show means nothing in water mode: there is no search under it", () => {
+  it("(T48) a spot opened or added while searching is over the map: back returns to the map with search closed", () => {
+    const open = reduce(HOME, { type: "search", open: true });
+    expect([reduce(open, { type: "openSpot", id: "s1" }), reduce(open, { type: "addSpot" })]).toEqual([
+      { ...HOME, spot: "s1" }, { ...HOME, adding: { at: null } }]);
+  });
+
+  it("(T48) Spots is a tab again: a spot opens over it and back returns to it, then to the Map tab", () => {
+    const spots = reduce(HOME, { type: "tab", tab: "spots" });
+    const spot = reduce(spots, { type: "openSpot", id: "s1" });
+    expect([spot, run(spot, { type: "back" }), run(spot, { type: "back" }, { type: "back" })]).toEqual([
+      { mode: "browse", tab: "spots", spot: "s1", adding: null, search: false }, spots, HOME]);
+  });
+
+  it("search means nothing in water mode: there is no bar", () => {
     const w = reduce(HOME, { type: "openWater", item: VEDDER });
-    expect(reduce(w, { type: "show", item: FRASER })).toBe(w);
+    expect(reduce(w, { type: "search", open: true })).toBe(w);
   });
 
   it("a tab change clears the spot and the add flow (the old TabBar reset), and part/view mean nothing in browse", () => {

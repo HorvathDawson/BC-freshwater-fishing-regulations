@@ -15,7 +15,7 @@ import { createElement, forwardRef, useState } from "react";
 import { PixelRatio, Pressable, Text, View } from "react-native";
 import type { LicenceVM, PinAnchor, RegsPage, SheetKey, SheetVM, Who } from "@app/core";
 import type { LayoutClass, MenuControls } from "@app/ui";
-import { MenuContext } from "../menu/MenuButton";
+import { MenuContext } from "../menu/MenuContext";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { GearTab } from "./GearTab";

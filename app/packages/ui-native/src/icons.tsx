@@ -26,10 +26,11 @@
  *               Literally the picture the Conditions screen draws, rather than "water"
  *   spots       a square-headed pin over its own ground mark. A pin is a place you stood;
  *               the teardrop is the Google Maps glyph and reads as somebody else's product
+ *   more        (T48) three square stops: the More tab, where the menu's pages live
  */
 import Svg, { Path, Rect, Line } from "react-native-svg";
 
-export type IconName = "map" | "search" | "conditions" | "spots";
+export type IconName = "map" | "search" | "conditions" | "spots" | "more";
 
 /**
  * Two weights of the same drawing.
@@ -58,6 +59,11 @@ const SHAPES: Record<IconName, { frame: string[]; mark: string[] }> = {
   spots: {
     frame: ["M7 3.5H17V12.5H7Z"],
     mark: ["M12 12.5V20.5", "M7.5 20.5H16.5"],
+  },
+  // (T48) the More tab: three square stops in a row — the "and the rest" mark, squared like everything else
+  more: {
+    frame: [],
+    mark: ["M4 10.9H7.2V13.1H4Z", "M10.4 10.9H13.6V13.1H10.4Z", "M16.8 10.9H20V13.1H16.8Z"],
   },
 };
 
@@ -89,21 +95,6 @@ export function LayersIcon({ colour, size = 16 }: { colour: string; size?: numbe
       <Line x1={3} y1={12} x2={21} y2={12} stroke={colour} strokeWidth={2} />
       <Line x1={3} y1={16.5} x2={21} y2={16.5} stroke={colour} strokeWidth={2} />
       <Line x1={3} y1={21} x2={21} y2={21} stroke={colour} strokeWidth={2} />
-    </Svg>
-  );
-}
-
-/**
- * "Go and look at it" — the eye on a search result. Cut from straight segments like the tab
- * icons: an eye with hard corners and a square pupil, not the rounded almond every icon set
- * ships, which would be the one soft shape on a square screen.
- */
-export function EyeIcon({ colour, size = 20 }: { colour: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M2 12L7 6.5H17L22 12L17 17.5H7Z" stroke={colour} strokeWidth={1.8}
-            strokeLinecap="butt" strokeLinejoin="miter" />
-      <Rect x={9.5} y={9.5} width={5} height={5} fill={colour} />
     </Svg>
   );
 }

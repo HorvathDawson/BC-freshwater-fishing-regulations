@@ -217,6 +217,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what FIT_MAX_ZOOM shows
       renderer.fitBounds(fitAtMost(b, FIT_MAX_ZOOM, width, height, p), { padding: p, duration: 450 });
     };
+    // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
+    if (fit.camera) { renderer.easeTo(fit.camera, { duration: 450 }); refine.current = null; return () => { alive = false; }; }
     if (fit.bbox) go(fit.bbox);
     if (!fit.refine) { refine.current = null; return () => { alive = false; }; }
     refine.current = async () => {

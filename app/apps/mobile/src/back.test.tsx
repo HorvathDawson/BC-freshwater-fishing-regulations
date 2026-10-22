@@ -108,8 +108,8 @@ async function mount(initialRoute: Route, system: SystemBack = nativeBack, loade
  */
 function where(): string {
   const parts: string[] = [];
-  const bar = screen.queryByRole("tab", { name: "Search" });   // only the bottom bar has a Search tab (a water's view strip has Conditions too)
-  const tab = bar ? ["Map", "Search", "Conditions"]
+  const bar = screen.queryByRole("tab", { name: "Spots" });   // only the bottom bar has a Spots tab (a water's view strip has Conditions too)
+  const tab = bar ? ["Map", "Conditions", "Spots", "More"]
     .find((k) => screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true") : null;
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   if (strip) {
@@ -126,6 +126,9 @@ function where(): string {
   const sheet = openSheet();
   if (sheet !== null) parts.push(`${sheet} sheet`);
   if (screen.queryByLabelText("Back to all results")) parts.push("water near a town");
+  if (screen.queryByLabelText("Close search")) parts.push("search");
+  const page = menuPage();
+  if (page) parts.push(`${page} page`);
   for (const q of ["Unsaved changes", "Confirm delete", "Discard this spot?"])
     if (screen.queryByLabelText(q)) parts.push(`asking: ${q}`);
   parts.push(tab ? `tab ${tab}` : "no bar");
@@ -146,6 +149,17 @@ function openSheet(): string | null {
   const still = screen.queryByRole("button", { name: "Done" });
   return still ? still.previousElementSibling?.textContent ?? "?" : null;
 }
+/** The open menu page's title (a More page, a Modal: its slide-out ended here as `openSheet` does), or null. */
+function menuPage(): string | null {
+  const open = () => screen.queryAllByTestId(/^menu-page-/);
+  act(() => {
+    for (const p of open())
+      for (let e: HTMLElement | null = p; e; e = e.parentElement)
+        for (const type of ["animationend", "webkitAnimationEnd"]) e.dispatchEvent(new Event(type, { bubbles: true }));
+  });
+  const p = open()[0];
+  return p ? p.querySelector("[role=heading]")?.textContent ?? "?" : null;
+}
 /** Press back `n` times, writing down what each press returned and where it left the reader. */
 function backs(n: number): string[] {
   const out = [where()];
@@ -164,14 +178,15 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 
   it("another tab's root goes to the Map tab first, then Android leaves", async () => {
     const seen = [];
-    for (const tab of ["search", "conditions"] as const) {
+    for (const tab of ["conditions", "spots", "more"] as const) {
       await mount({ ...HOME, tab });
       seen.push(backs(2).join(" | "));
       cleanup();
     }
     expect(seen).toEqual([
-      "tab Search | handled -> tab Map | ANDROID -> tab Map",
       "tab Conditions | handled -> tab Map | ANDROID -> tab Map",
+      "tab Spots | handled -> tab Map | ANDROID -> tab Map",
+      "tab More | handled -> tab Map | ANDROID -> tab Map",
     ]);
   });
 
@@ -226,17 +241,25 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       ]);
   });
 
-  it("search: a town's list steps back to all results, then search goes to the map", async () => {
-    await mount({ ...HOME, tab: "search" });
-    fireEvent.change(screen.getByLabelText("Search for a river, lake or town"), { target: { value: "chilliwack" } });
+  it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
+     "goes to the Map tab, then Android leaves", async () => {
+    await mount({ ...HOME, tab: "conditions" });
+    act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
+    fireEvent.change(screen.getByLabelText("Search waters and towns"), { target: { value: "chilliwack" } });
     await until(() => screen.queryByLabelText("Show Chilliwack on the map") !== null);
     await click("Show Chilliwack on the map");
-    await click("View water near Chilliwack");
     await until(() => screen.queryByLabelText("Back to all results") !== null);
-    expect(backs(2)).toEqual(["water near a town · tab Search", "handled -> tab Search", "handled -> tab Map"]);
+    expect(backs(4)).toEqual(["water near a town · search · tab Conditions", "handled -> search · tab Conditions",
+                              "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
-  it("a spot (opened from the map rail, over the map it was picked on): back returns to that map, then Android leaves", async () => {
+  it("(T48) a More page closes first, then the More tab goes to the Map tab", async () => {
+    await mount({ ...HOME, tab: "more" });
+    await click("About");
+    expect(backs(3)).toEqual(["About page · tab More", "handled -> tab More", "handled -> tab Map", "ANDROID -> tab Map"]);
+  });
+
+  it("a spot (opened over the map it was picked on): back returns to that map, then Android leaves", async () => {
     await mount({ ...HOME, spot: "s1" });
     expect(backs(2)).toEqual(["spot · tab Map", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
@@ -324,7 +347,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
   const browserBack = async () => { await act(async () => { window.history.back(); await new Promise((r) => setTimeout(r, 30)); }); };
 
   it("Layers sheet, then a water, then a tab: one entry each, closed innermost first", async () => {
-    await mount({ ...HOME, tab: "search" }, webBack);
+    await mount({ ...HOME, tab: "spots" }, webBack);
     const seen = [where()];
     // leaving a tab's root steps the history back; jsdom delivers that popstate later, as a browser does — let it land
     // before the next press (a person is never faster than a few milliseconds)
@@ -335,12 +358,12 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     await until(() => screen.queryByText("Chilliwack River") !== null);
     seen.push(where());
     await browserBack(); seen.push(where());
-    await click("Search"); seen.push(where());
+    await click("Spots"); seen.push(where());
     await browserBack(); seen.push(where());
     expect(seen).toEqual([
-      "tab Search", "tab Map", "Layers sheet · tab Map", "tab Map",
+      "tab Spots", "tab Map", "Layers sheet · tab Map", "tab Map",
       "water Chilliwack River on Regulations · no bar", "tab Map",
-      "tab Search", "tab Map",
+      "tab Spots", "tab Map",
     ]);
   });
 });

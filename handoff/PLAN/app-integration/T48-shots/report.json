@@ -1,0 +1,161 @@
+{
+  "390-light": {
+    "fieldBefore": "[14,10,362,66]",
+    "fieldAfter": "[14,10,362,66]",
+    "frames": {
+      "n": 41,
+      "median": 16.69999999999891,
+      "p95": 16.700000000000728,
+      "max": 16.799999999999272
+    },
+    "placeholders": {
+      "box": 280,
+      "font": "16px Archivo_400Regular",
+      "lines": [
+        [
+          "Cast your search — any lake or river",
+          252
+        ],
+        [
+          "Drop a line: river, lake or creek…",
+          223
+        ],
+        [
+          "Hook a water by name",
+          157
+        ],
+        [
+          "Reel in a river…",
+          107
+        ],
+        [
+          "Where to next? Search waters",
+          212
+        ],
+        [
+          "Find your next water",
+          143
+        ],
+        [
+          "Search a lake, river or town",
+          189
+        ],
+        [
+          "Name a town to find water near it",
+          229
+        ],
+        [
+          "Fishing near a town? Type its name",
+          248
+        ]
+      ]
+    },
+    "sync": "Flows checked 25h ago"
+  },
+  "390-dark": {
+    "fieldBefore": "[14,10,362,66]",
+    "fieldAfter": "[14,10,362,66]",
+    "frames": {
+      "n": 41,
+      "median": 16.699999999999818,
+      "p95": 16.700000000000728,
+      "max": 16.800000000000182
+    },
+    "placeholders": {
+      "box": 280,
+      "font": "16px Archivo_400Regular",
+      "lines": [
+        [
+          "Cast your search — any lake or river",
+          252
+        ],
+        [
+          "Drop a line: river, lake or creek…",
+          223
+        ],
+        [
+          "Hook a water by name",
+          157
+        ],
+        [
+          "Reel in a river…",
+          107
+        ],
+        [
+          "Where to next? Search waters",
+          212
+        ],
+        [
+          "Find your next water",
+          143
+        ],
+        [
+          "Search a lake, river or town",
+          189
+        ],
+        [
+          "Name a town to find water near it",
+          229
+        ],
+        [
+          "Fishing near a town? Type its name",
+          248
+        ]
+      ]
+    },
+    "sync": "Flows checked 25h ago"
+  },
+  "desktop-light": {
+    "fieldBefore": "[14,10,440,66]",
+    "fieldAfter": "[14,10,440,66]",
+    "frames": {
+      "n": 45,
+      "median": 16.699999999999818,
+      "p95": 16.800000000000182,
+      "max": 16.800000000000182
+    },
+    "placeholders": {
+      "box": 358,
+      "font": "16px Archivo_400Regular",
+      "lines": [
+        [
+          "Cast your search — any lake or river",
+          252
+        ],
+        [
+          "Drop a line: river, lake or creek…",
+          223
+        ],
+        [
+          "Hook a water by name",
+          157
+        ],
+        [
+          "Reel in a river…",
+          107
+        ],
+        [
+          "Where to next? Search waters",
+          212
+        ],
+        [
+          "Find your next water",
+          143
+        ],
+        [
+          "Search a lake, river or town",
+          189
+        ],
+        [
+          "Name a town to find water near it",
+          229
+        ],
+        [
+          "Fishing near a town? Type its name",
+          248
+        ]
+      ]
+    },
+    "sync": "Flows checked 25h ago"
+  }
+}

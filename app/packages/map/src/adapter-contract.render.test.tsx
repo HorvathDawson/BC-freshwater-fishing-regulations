@@ -62,6 +62,9 @@ class FakeGl {
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { return []; }
   fitBounds(b: unknown, o?: unknown) { log.push(`fit ${JSON.stringify(b)}`); web.fitOpts.push(o); }
+  easeTo(o: { center: [number, number]; zoom: number; duration: number }) {
+    log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`);
+  }
   setFeatureState(t: { source: string; sourceLayer: string; id: unknown }, s: unknown) {
     log.push(`set ${t.source}/${t.sourceLayer} ${fmt(t.id)} ${JSON.stringify(s)}`);
   }
@@ -119,7 +122,11 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
   },
   Camera: ({ ref, ...props }: { ref?: unknown } & Record<string, unknown>) => {
     native.camera = props;
-    useImperativeHandle(ref as never, () => ({ fitBounds: (b: unknown) => log.push(`fit ${JSON.stringify(b)}`) }));
+    useImperativeHandle(ref as never, () => ({
+      fitBounds: (b: unknown) => log.push(`fit ${JSON.stringify(b)}`),
+      easeTo: (o: { center: [number, number]; zoom: number; duration: number }) =>
+        log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
+    }));
     return null;
   },
   VectorSource: ({ id, ref }: { id: string; ref?: unknown }) => {
@@ -471,6 +478,21 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     // a 400 x 800 phone less 48 px padding: 304 x 704 px of z14 (0.0130° of longitude, 0.0198° of latitude at 49.2°N),
     // centred on the pond
     expect(fits).toEqual([[-121.9565, 49.1901, -121.9435, 49.2099]]);
+  });
+  it("(T48) a fit to a CAMERA puts it back exactly (search's cancel), the same command on both maps, once per key", async () => {
+    const fit = { key: "restore:1", bbox: null, camera: { lon: -121.85, lat: 49.15, zoom: 9.4 } };
+    const w = render(<WebMap {...base({ fit })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease"))).toBe(true));
+    w.rerender(<WebMap {...base({ fit: { ...fit } })} />);
+    const onWeb = log.filter((l) => l.startsWith("ease") || l.startsWith("fit"));
+    cleanup();
+    log.length = 0;
+    const n = render(<NativeMap {...base({ fit })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease"))).toBe(true));
+    n.rerender(<NativeMap {...base({ fit: { ...fit } })} />);
+    const onPhone = log.filter((l) => l.startsWith("ease") || l.startsWith("fit"));
+    expect({ onWeb, onPhone }).toEqual({ onWeb: ["ease [-121.85,49.15] z9.4 450ms"],
+                                         onPhone: ["ease [-121.85,49.15] z9.4 450ms"] });
   });
 });
 

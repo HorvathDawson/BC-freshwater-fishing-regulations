@@ -1,6 +1,5 @@
 /**
- * The Spots menu and the long-press drop sheet, mounted (owner 2026-10-21). The menu took over from the Spots tab, so
- * the tab's promises are pinned here: the empty state says what a spot is (the only place that does), a spot on unnamed
+ * The Spots TAB and the long-press drop sheet, mounted (T48: Spots is a tab again, owner 2026-10-22). Its promises: the empty state says what a spot is (the only place that does), a spot on unnamed
  * water is an ordinary row, the row dates the visit and shows what was recorded then, the first photo is drawn through
  * the store, stale spots can be refreshed. And the new ones: Show sends the map, the ways to add, a failure said.
  */
@@ -9,7 +8,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import type { Spot } from "@app/data/spots";
 import { spotsMenu, type LocatePermission } from "@app/ui";
-import { SpotsSheet } from "./SpotsSheet";
+import { SpotsScreen } from "./SpotsScreen";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { LIGHT } from "./theme";
 
@@ -31,7 +30,7 @@ function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?:
                                 permission: o.permission ?? null });
   render(
     <GestureHandlerRootView>
-      <SpotsSheet open palette={LIGHT} vm={vm} onClose={() => calls.push("close")}
+      <SpotsScreen palette={LIGHT} vm={vm}
                   onOpen={(id) => calls.push(`open ${id}`)} onShow={(id) => calls.push(`show ${id}`)}
                   onAdd={(k) => calls.push(`add ${k}`)} onRefresh={o.refresh ? () => calls.push("refresh") : undefined}
                   photoStore={o.photoStore} error={o.railError ?? null} />
@@ -41,14 +40,19 @@ function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?:
 /** What the menu offers, in order: every button's spoken name (the scrim, "Close", is a press area, not a button). */
 const buttons = () => screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
 
-describe("<SpotsSheet>", () => {
+describe("<SpotsScreen>", () => {
+  it("is a tab page: its title is a header, and nothing on it closes (back from a tab is the route's)", () => {
+    mount([]);
+    expect([screen.getByRole("heading").textContent, screen.queryByRole("button", { name: "Done" })]).toEqual(["Spots", null]);
+  });
+
   it("none yet: what a spot is, how to drop one, and the ways to add", () => {
     mount([], { permission: "prompt" });
     expect(screen.getByText("No spots yet")).toBeTruthy();
     expect(screen.getByText("Pin an exact point on a stream and the app records the gauge, its standing against the " +
                             "record and the weather that day. Notes and photographs go on top. Press and hold the map " +
                             "to drop one.")).toBeTruthy();
-    expect(buttons()).toEqual(["Done", "Add a spot here", "At my location"]);
+    expect(buttons()).toEqual(["Add a spot here", "At my location"]);
     expect(screen.getByText("Asks for your location first")).toBeTruthy();
   });
 
@@ -56,7 +60,7 @@ describe("<SpotsSheet>", () => {
     const calls = mount([spot()]);
     expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · no gauge · no weather\n49.0974, -121.9675");
     expect(screen.getByText("NO PHOTO")).toBeTruthy();
-    expect(buttons()).toEqual(["Done", "Tamihi run", "Show Tamihi run on the map", "Add a spot here"]);
+    expect(buttons()).toEqual(["Tamihi run", "Show Tamihi run on the map", "Add a spot here"]);
     fireEvent.click(screen.getByRole("button", { name: "Tamihi run" }));
     fireEvent.click(screen.getByRole("button", { name: "Show Tamihi run on the map" }));
     fireEvent.click(screen.getByRole("button", { name: "Add a spot here" }));
@@ -93,7 +97,7 @@ describe("<SpotsSheet>", () => {
     expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual([
       "The saved spots could not be read.", "Your location could not be read, so no spot was started."]);
     expect(screen.queryByText("No spots yet")).toBeNull();
-    expect(buttons()).toEqual(["Done", "Add a spot here", "At my location"]);
+    expect(buttons()).toEqual(["Add a spot here", "At my location"]);
   });
 });
 

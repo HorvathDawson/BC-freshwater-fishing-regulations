@@ -236,7 +236,17 @@ export interface MapProps {
     key: string;
     bbox: readonly [number, number, number, number] | null;
     refine?: boolean;
+    /**
+     * (T48) Instead of a box, an exact CAMERA to go back to: search's cancel restores the camera the reader had before
+     * search moved it. Wins over `bbox`; never refined.
+     */
+    camera?: Camera | null;
   } | null;
+  /**
+   * (T48) How much of the map's top is covered by the app's own bar (the search field over the browse maps), in px: the
+   * web map's own controls (zoom, compass — top-right) start under it. 0 when absent. A phone's map draws none there.
+   */
+  insetTop?: number;
   /**
    * The ground under the water: the drawn basemap, or satellite imagery.
    *

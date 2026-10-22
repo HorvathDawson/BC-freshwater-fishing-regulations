@@ -10,23 +10,17 @@ import { createErrorLog, teeConsoleErrors } from "./errorLog";
 const run = (...as: MenuAction[]): MenuState => as.reduce(menuReduce, MENU_CLOSED);
 
 describe("the menu's state", () => {
-  it("opens and closes the drawer, and a repeat is the same state (no re-render)", () => {
-    const open = run({ type: "open" });
-    expect(open).toEqual({ drawer: true, page: null, term: null, report: null });
-    expect(menuReduce(open, { type: "open" })).toBe(open);
-    expect(menuReduce(MENU_CLOSED, { type: "close" })).toBe(MENU_CLOSED);
-  });
-
-  it("hands the drawer over to the page it opened, so back from the page is the map", () => {
-    expect(run({ type: "open" }, { type: "page", page: "glossary" }))
-      .toEqual({ drawer: false, page: "glossary", term: null, report: null });
+  it("(T48) no drawer: the More tab lists the pages, and a page opens over it (back from the page is the More tab)", () => {
+    expect([MENU_CLOSED, run({ type: "page", page: "glossary" }), menuReduce(MENU_CLOSED, { type: "closePage" })])
+      .toEqual([{ page: null, term: null, report: null }, { page: "glossary", term: null, report: null }, MENU_CLOSED]);
+    expect(menuReduce(MENU_CLOSED, { type: "closePage" })).toBe(MENU_CLOSED);
   });
 
   it("opens a term only on the glossary; closing the page forgets the term", () => {
     expect(run({ type: "page", page: "about" }, { type: "term", id: "bait" }).term).toBeNull();
     const t = run({ type: "page", page: "glossary" }, { type: "term", id: "bait" });
     expect(t.term).toBe("bait");
-    expect(menuReduce(t, { type: "closeTerm" })).toEqual({ drawer: false, page: "glossary", term: null, report: null });
+    expect(menuReduce(t, { type: "closeTerm" })).toEqual({ page: "glossary", term: null, report: null });
     expect(menuReduce(t, { type: "closePage" })).toEqual(MENU_CLOSED);
   });
 
@@ -71,8 +65,8 @@ describe("the recent error log", () => {
   });
 });
 
-describe("where the reader was (the hamburger's report)", () => {
-  const browse = { mode: "browse", tab: "map", spot: null, adding: null, shown: null } as const;
+describe("where the reader was (a report from the More tab or a regulations page)", () => {
+  const browse = { mode: "browse", tab: "map", spot: null, adding: null, search: false } as const;
 
   it("on a browse screen: the tab, and the day the map answers for", () => {
     expect(routeWhere(browse, null)).toEqual({ screen: "map" });

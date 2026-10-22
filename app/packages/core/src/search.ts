@@ -333,20 +333,52 @@ export function fixOf(fix: WaterFix): Extent | null {
 }
 
 /**
- * THE SEARCH MAP'S WORDS — the preview pinned under the results, and the way back to it from the main map. One copy, so
- * the phone and the desktop say the same thing.
+ * (T48) THE TOP BAR'S SEARCH — the always-open field over the browse maps and the results sheet it raises over the SAME
+ * map (no preview map of its own any more: the main map frames what the reader looks at). One copy of the words.
+ *
+ * THE PLACEHOLDER is one line per opening of the app, picked by `placeholderFor` and never cycled while it is on screen.
+ * Each still says what the field finds; none promises fish. The first six are the owner-approved lines (2026-10-22), the
+ * last three name towns (owner: "placeholders could also mention towns").
  */
-export const SEARCH_MAP = {
-  /** The caption before anything is picked. */
-  idle: "Tap a result to see it here · the eye shows it on the map",
-  /** The caption when the results hold towns and no water. */
-  placesOnly: "Tap a place to see where it is",
-  /** The fit control on the preview: back to the whole subject after a pan or zoom. */
-  fit: "Show all of it",
-  /** The pill on the main map when search's eye sent the reader there, and its spoken name. */
-  back: "Search",
-  backLabel: "Back to search",
+export const SEARCH_BAR = {
+  /** What the field is called aloud, whatever its placeholder says. */
+  label: "Search waters and towns",
+  /** The ‹ that replaces the magnifier while search is open: closes it and restores the map. */
+  close: "Close search",
+  clear: "Clear search",
+  /** A selected water row's action: the water screen, through `openWater` (the one opener). */
+  open: (name: string) => `Open ${name}`,
+  /** The sheet before two letters are typed. */
+  start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
+  none: "Nothing by that name in this bundle.",
+  failed: "Search could not read the bundle.",
+  placeholders: [
+    "Cast your search — any lake or river",
+    "Drop a line: river, lake or creek…",
+    "Hook a water by name",
+    "Reel in a river…",
+    "Where to next? Search waters",
+    "Find your next water",
+    "Search a lake, river or town",
+    "Name a town to find water near it",
+    "Fishing near a town? Type its name",
+  ],
 } as const;
+
+/**
+ * THE LONGEST PLACEHOLDER, in characters, that fits the field at 390 px: the field's text box there is about 309 px
+ * (390 − 2 × 14 inset − the 1.5 edges − the magnifier's 38 − 12 padding) and Archivo at 16 px averages 7 px a character
+ * ("Cast your search — any lake or river", 36 characters, measured 252 px in the mocks). 36 keeps a margin for the widest
+ * glyphs; the web check measures every line in Chrome (handoff/PLAN/app-integration/T48-shots).
+ */
+export const PLACEHOLDER_MAX = 36;
+
+/** The placeholder for one opening: `seed` (any number; the app passes a random one, a test a fixed one) picks the line. */
+export function placeholderFor(seed: number): string {
+  const lines = SEARCH_BAR.placeholders;
+  const i = Number.isFinite(seed) ? Math.abs(Math.floor(seed)) % lines.length : 0;
+  return lines[i]!;
+}
 
 /** The caption under the preview for a water: its name, or — only where the source holds no geometry — that it cannot. */
 export function waterCaption(name: string, placed: boolean): string {

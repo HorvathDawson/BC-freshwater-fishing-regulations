@@ -67,6 +67,7 @@ function glRecorder(log: string[]): GlMapSlice {
     },
     querySourceFeatures: (_src, o) => (WORLD.source[o.sourceLayer] ?? []).map((h) => ({ ...h })),
     fitBounds: (b, o) => log.push(`fit ${JSON.stringify(b.flat())} pad ${o.padding} ${o.duration}ms`),
+    easeTo: (o) => log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
     getBounds: () => ({ getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }),
   };
 }
@@ -94,6 +95,7 @@ function bindingRecorder(log: string[]): NativeRefs {
     }),
     camera: () => ({
       fitBounds: (b, o) => log.push(`fit ${JSON.stringify(b)} pad ${(o.padding as { top: number }).top} ${o.duration}ms`),
+      easeTo: (o) => log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
     }),
   };
 }
@@ -113,6 +115,7 @@ async function script(r: MapRenderer, log: string[]) {
   out.push(await r.waterBox([311274, 1566515]));
   out.push(await r.bounds());
   r.fitBounds([-123, 49, -122, 50], { padding: 24, duration: 450 });
+  r.easeTo({ lon: -121.85, lat: 49.15, zoom: 9.4 }, { duration: 450 });
   await Promise.resolve();
   return { log, out };
 }
@@ -139,6 +142,7 @@ describe("map parity: one op script, both renderers, the same commands", () => {
       "query [[88,188],[112,212]] stream,lake_flowing,wetland_flowing",
       "query viewport stream,lake,lake_flowing,wetland_flowing",
       "fit [-123,49,-122,50] pad 24 450ms",
+      "ease [-121.85,49.15] z9.4 450ms",
     ]);
     expect(w.out).toEqual([{ layer: "stream", id: 311274 }, [311274, 1566515], [-122, 49, -121.5, 49.4],
                            [-123, 48, -121, 50]]);

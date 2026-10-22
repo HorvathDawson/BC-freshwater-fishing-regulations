@@ -1,24 +1,24 @@
 /**
- * THE MENU, mounted (owner 2026-10-21): the hamburger, the drawer, its pages, the report form and the regs tabs' report
- * link — through react-native-web, with the app's real back (`useBack`) and the menu's real state (`useMenu`).
+ * THE MENU, mounted (owner 2026-10-21; T48: the More tab holds what the hamburger's drawer held — moved, not copied): the
+ * More tab's list, its pages, the report form and the regs tabs' report link — through react-native-web, with the app's
+ * real back (`useBack`) and the menu's real state (`useMenu`).
  *
  * What this proves: every page draws its core VM's words exactly; every open level is a back layer (back closes the
  * top one, and at the browse root there is nothing left to close); a report is composed from what the reader sees and
- * leaves on, and goes out only on a press. What it does NOT: how the drawer's slide and drag feel under a finger
- * (`fireGestureHandler` skips the recognisers' activation), nor the native share sheet itself.
+ * leaves on, and goes out only on a press. What it does NOT: the native share sheet itself. (Back from the More tab to
+ * the Map tab is the route's tab rule: apps/mobile back.test.tsx.)
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { BackLayerContext, ERROR_LOG, useBack, useMenu, useRoute, type Back, type BackLayers, type MenuControls }
-  from "@app/ui";
+import { BackLayerContext, ERROR_LOG, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
+         type MenuControls } from "@app/ui";
 import { LIGHT } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
-import { MenuButton, MenuContext } from "./MenuButton";
-import { MenuDrawer } from "./MenuDrawer";
+import { MenuContext } from "./MenuContext";
+import { MoreScreen } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
 import { ReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
@@ -28,7 +28,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
 
 const INFO: MenuInfo = { appBuild: "1.2.0 (34)", contact: null };
 
-/** The Shell's wiring, and nothing else: the one back, the menu, the hamburger and the host. */
+/** The Shell's wiring, and nothing else: the one back, the menu, the More tab's list and the host. */
 function App({ info = INFO, loader = null, out }: { info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back } }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
@@ -37,7 +37,7 @@ function App({ info = INFO, loader = null, out }: { info?: MenuInfo; loader?: Re
   return (
     <BackLayerContext.Provider value={b.layers}>
       <MenuContext.Provider value={menu}>
-        <MenuButton palette={LIGHT} />
+        <MoreScreen palette={LIGHT} onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
         <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
                   feedFetchedAt={null} route={route} day={null} />
       </MenuContext.Provider>
@@ -57,82 +57,36 @@ const press = (label: string) => { act(() => { fireEvent.click(screen.getByLabel
 const pick = (id: string) => { act(() => { fireEvent.click(screen.getByTestId(id)); }); settle(); };
 const text = (id: string) => screen.getByTestId(id).textContent;
 
-describe("the hamburger and the drawer", () => {
-  it("opens the drawer, which lists the six pages in order, each with its hint", () => {
+describe("the More tab (T48)", () => {
+  it("lists the six pages in order, each with its hint, under its own title — the only list of them in the app", () => {
+    render(<App out={{}} />);
+    expect([screen.getByRole("heading").textContent, ...screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent)])
+      .toEqual([
+        "More",
+        "GlossaryWhat the regulations' words mean",
+        "Data sources & datesWhere each answer comes from, and how fresh it is",
+        "DisplayLight, dark or colour-blind colours",
+        "AboutWhat this app is, and what it is not",
+        "Report a problemSomething wrong, missing or confusing",
+        "ContactGet in touch",
+      ]);
+  });
+
+  it("has no menu button, no drawer and nothing to close: it is a tab, not a surface", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);
-    expect(screen.queryByTestId("menu-drawer")).toBeNull();
-    press("Open menu");
-    expect(screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent)).toEqual([
-      "GlossaryWhat the regulations' words mean",
-      "Data sources & datesWhere each answer comes from, and how fresh it is",
-      "DisplayLight, dark or colour-blind colours",
-      "AboutWhat this app is, and what it is not",
-      "Report a problemSomething wrong, missing or confusing",
-      "ContactGet in touch",
-    ]);
-  });
-
-  it("is closed by back first; at the browse root a second back has nothing to do (Android leaves the app)", () => {
-    const out: { back?: Back } = {};
-    render(<App out={out} />);
-    press("Open menu");
-    let r1 = false;
-    act(() => { r1 = out.back!.back(); });
-    settle();
-    expect([r1, screen.queryByTestId("menu-drawer")]).toEqual([true, null]);
-    let r2 = true;
-    act(() => { r2 = out.back!.back(); });
-    expect(r2).toBe(false);
-  });
-
-  it("is closed by its ✕ and by the scrim", () => {
-    const out: { back?: Back } = {};
-    render(<App out={out} />);
-    press("Open menu");
-    act(() => { fireEvent.click(screen.getAllByLabelText("Close menu")[0]!); });
-    settle();
-    expect(screen.queryByTestId("menu-drawer")).toBeNull();
-    press("Open menu");
-    act(() => { fireEvent.click(screen.getAllByLabelText("Close menu")[1]!); });
-    settle();
-    expect(screen.queryByTestId("menu-drawer")).toBeNull();
-  });
-
-  it("a leftward flick closes it; a short slow drag springs back (the sheet's rule, on its side)", () => {
-    const drag = (dx: number, vx: number) => {
-      const onClose = vi.fn();
-      render(<MenuDrawer open onClose={onClose} onPick={() => {}} palette={LIGHT} />);
-      act(() => {
-        fireGestureHandler(getByGestureTestId("drawer-drag"), [
-          { translationX: 0 }, { translationX: dx / 2 }, { translationX: dx, velocityX: vx }]);
-      });
-      cleanup();
-      return onClose.mock.calls.length;
-    };
-    expect([drag(-60, -900), drag(-30, -100), drag(80, 900)]).toEqual([1, 0, 0]);
-  });
-
-  it("keeps the slot at its top for the future Update / sync item, above the pages", () => {
-    render(<MenuDrawer open onClose={() => {}} onPick={() => {}} palette={LIGHT} sync={<SyncStub />} />);
-    const drawer = screen.getByTestId("menu-drawer").textContent!;
-    expect(drawer.indexOf("SYNC SLOT")).toBeGreaterThan(0);
-    expect(drawer.indexOf("SYNC SLOT")).toBeLessThan(drawer.indexOf("Glossary"));
+    let r = true;
+    act(() => { r = out.back!.back(); });
+    expect([screen.queryByLabelText("Open menu"), screen.queryByTestId("menu-drawer"), r]).toEqual([null, null, false]);
   });
 });
-
-function SyncStub() {
-  return <Text>SYNC SLOT</Text>;
-}
 
 describe("a page", () => {
   it("About: what the app is, the authority disclaimer, the official synopsis and every version", () => {
     const out: { back?: Back } = {};
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
     render(<App out={out} />);
-    press("Open menu");
     pick("menu-item-about");
-    expect(screen.queryByTestId("menu-drawer")).toBeNull();          // the drawer handed over to the page
     expect(text("about-not-official")).toBe(MENU_WORDS.about.notOfficial);
     expect(screen.getAllByTestId(/^about-version-/).map((e) => e.textContent)).toEqual(
       ["1.2.0 (34)", "Development bundle", "d768d6e135e62b99.c9f9604f12bf", "Not stated"]);
@@ -141,15 +95,14 @@ describe("a page", () => {
       + "recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"]]);
   });
 
-  it("back closes the page to the map — the drawer is not reopened", () => {
+  it("back closes the page to the More tab's list", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);
-    press("Open menu");
     pick("menu-item-about");
     let r = false;
     act(() => { r = out.back!.back(); });
     settle();
-    expect([r, screen.queryByTestId("menu-page-about"), screen.queryByTestId("menu-drawer")]).toEqual([true, null, null]);
+    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 6]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
   });
@@ -164,7 +117,7 @@ describe("a page", () => {
       return (
         <BackLayerContext.Provider value={b.layers}>
           <MenuContext.Provider value={menu}>
-            <MenuButton palette={LIGHT} />
+            <MoreScreen palette={LIGHT} onPick={(k) => menu.show(k)} />
             <MenuHost menu={menu} palette={LIGHT} loader={null} tiles={null} feedFetchedAt={null} route={route}
                       day={null} theme="dark" onTheme={(t) => picked.push(t)} />
           </MenuContext.Provider>
@@ -173,7 +126,6 @@ describe("a page", () => {
     }
     const out: { back?: Back } = {};
     render(<Themed out={out} />);
-    press("Open menu");
     pick("menu-item-display");
     expect(text("display-palette")).toBe(
       "ColoursLightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
@@ -189,13 +141,11 @@ describe("a page", () => {
 
   it("Contact: a placeholder until the owner supplies the one value; then that address", () => {
     render(<App out={{}} />);
-    press("Open menu");
     pick("menu-item-contact");
     expect(text("contact-placeholder")).toBe(
       "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
     cleanup();
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
-    press("Open menu");
     pick("menu-item-contact");
     expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
   });
@@ -208,7 +158,6 @@ describe("a page", () => {
                              fwa: { date: "2026-07-15" }, hydat: { date: "2026-07-17" } } },
     } as unknown as RegsLoader;
     render(<App out={{}} loader={loader} />);
-    press("Open menu");
     pick("menu-item-sources");
     const row = (k: string) => text(`source-${k}`);
     expect([row("synopsis"), row("fwa"), row("dfo"), row("feed")]).toEqual([
@@ -231,7 +180,6 @@ describe("report a problem", () => {
     ERROR_LOG.record("map:", new Error("style failed"));
     const errorLine = ERROR_LOG.recent()[0]!;
     render(<App out={{}} />);
-    press("Open menu");
     pick("menu-item-report");
     // the diagnostics, each visible with its switch
     expect(screen.getAllByTestId(/^report-diag-/).map((e) => e.getAttribute("data-testid"))).toEqual(
@@ -254,7 +202,6 @@ describe("report a problem", () => {
   it("with a contact address, Send by email opens a mailto of the same message", () => {
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
-    press("Open menu");
     pick("menu-item-report");
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "Typo" } }); });
     press("Send by email");
@@ -266,7 +213,6 @@ describe("report a problem", () => {
   it("a share sheet that fails says so, and the report stays on screen to copy", async () => {
     vi.spyOn(Share, "share").mockRejectedValue(new Error("not supported"));
     render(<App out={{}} />);
-    press("Open menu");
     pick("menu-item-report");
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "x" } }); });
     await act(async () => { fireEvent.click(screen.getByLabelText("Share…")); });

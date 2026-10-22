@@ -17,7 +17,7 @@ import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";
 import { MIN_HIT } from "../regs/hit";
 import { RegsPress } from "../regs/RegsPress";
-import { MenuContext } from "./MenuButton";
+import { MenuContext } from "./MenuContext";
 
 export function ReportLink({ page, tab, palette }: {
   page: Pick<RegsPage, "target" | "header">; tab: Tab; palette: Palette;

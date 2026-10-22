@@ -1,9 +1,10 @@
 /**
- * THE MAP RAIL THROUGH THE REAL SHELL (owner 2026-10-21): spots moved off the bottom bar onto the maps' side rail; a long
- * press drops a provisional pin and asks before anything is made; every way of adding goes into the ONE spot capture
- * at a point; Android's back closes each new sheet before it does anything else, and leaves the app at the root.
+ * SPOTS AND THE RAIL THROUGH THE REAL SHELL (T48, owner 2026-10-22): Spots is a bottom-bar TAB again (its list, open,
+ * Show on the map, add) and the side rail is Layers alone; a long press on either map still drops a provisional pin
+ * and asks before anything is made; every way of adding goes into the ONE spot capture at a point; Android's back
+ * closes each sheet before it does anything else, goes from a tab to the Map tab, and leaves the app at the root.
  *
- * The map renderer is replaced by buttons that press and hold it, open the rail's sheets, and a line saying what pin
+ * The map renderer is replaced by buttons that press and hold it, open the Layers sheet, and a line saying what pin
  * and what framing the Shell handed it (no WebGL in jsdom). Everything else is the app's, on the fixture.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -15,7 +16,7 @@ import type { Spot } from "@app/data/spots";
 import { HOME, type Locate, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
-type Stub = { onLongPress?: (lat: number, lon: number) => void; onSpots?: () => void; onLayers?: () => void;
+type Stub = { onLongPress?: (lat: number, lon: number) => void; onLayers?: () => void;
               marker?: { lat: number; lon: number } | null; fit?: { key: string } | null;
               camera: { lat: number; lon: number; zoom: number } };
 vi.mock("./MapScreen", () => ({
@@ -23,8 +24,6 @@ vi.mock("./MapScreen", () => ({
     <View>
       <Pressable accessibilityRole="button" accessibilityLabel="hold the map"
                  onPress={() => p.onLongPress?.(49.0974, -121.9675)}><Text>hold</Text></Pressable>
-      {p.onSpots && <Pressable accessibilityRole="button" accessibilityLabel="Your spots"
-                               onPress={p.onSpots}><Text>spots</Text></Pressable>}
       {p.onLayers && <Pressable accessibilityRole="button" accessibilityLabel="Choose layers"
                                 onPress={p.onLayers}><Text>layers</Text></Pressable>}
       <Text testID="map-state">{`pin ${p.marker ? `${p.marker.lat},${p.marker.lon}` : "none"} · fit ${p.fit?.key ?? "none"}` +
@@ -71,23 +70,26 @@ const slidOut = () => act(() => {
 const look = () => {
   slidOut();
   const bar = screen.queryAllByRole("tab").map((t) => t.getAttribute("aria-label")).join(" ") || "no bar";
+  const on = screen.queryAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")?.getAttribute("aria-label");
   const map = screen.queryByTestId("map-state")?.textContent ?? "no map";
   const up = screen.queryByText("New spot") ? "drop sheet"
-    : screen.queryByText("Add a spot here") ? "spots menu"
+    : screen.queryByTestId("spots-screen") ? "spots tab"
     : screen.queryByText("Pick the water") ? `capture: ${screen.queryByText(/near the pin/) ? "near the pin" : "pick"}`
     : screen.queryByText("Tamihi run") ? "spot screen" : "nothing";
-  return `${bar} | ${map} | ${up}`;
+  return `${bar}${on ? ` (${on})` : ""} | ${map} | ${up}`;
 };
+const BAR = "Map Conditions Spots More";
+const ROOT = `${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`;
+const tab = (name: string) => act(() => { fireEvent.click(screen.getByRole("tab", { name })); });
 
-describe("the map rail, through the Shell", () => {
-  it("three tabs (Spots moved to the rail), and the rail on both maps — Layers on both (owner 2026-10-22)", () => {
+describe("spots and the rail, through the Shell (T48)", () => {
+  it("four tabs, Spots among them; the rail is Layers alone on both maps — no Spots button anywhere on a map", () => {
     mount();
-    const map = [look(), screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots") !== null];
+    const map = [look(), screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots")];
     cleanup();
     mount({ start: { ...HOME, tab: "conditions" } });
-    expect([map, screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots") !== null])
-      .toEqual([["Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing", true, true],
-                true, true]);
+    expect([map, screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots")])
+      .toEqual([[ROOT, true, null], true, null]);
   });
 
   it("a long press drops a provisional pin and asks; Cancel removes it and nothing is saved", () => {
@@ -96,8 +98,7 @@ describe("the map rail, through the Shell", () => {
     const asked = look();
     press("Cancel");
     expect([asked, look(), saved]).toEqual([
-      "Map Search Conditions | pin 49.0974,-121.9675 · fit none · camera 49.15,-121.85,9.4 | drop sheet",
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing", []]);
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit none · camera 49.15,-121.85,9.4 | drop sheet`, ROOT, []]);
   });
 
   it("Android's back closes the drop sheet (and its pin) first, then at the root leaves the app", () => {
@@ -108,8 +109,7 @@ describe("the map rail, through the Shell", () => {
     const after = look();
     let atRoot = true;
     act(() => { atRoot = androidBack(); });
-    expect([handled, after, atRoot]).toEqual([
-      true, "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing", false]);
+    expect([handled, after, atRoot]).toEqual([true, ROOT, false]);
   });
 
   it("Continue goes into the one spot capture, at the pin: pick the water near it; back leaves it, nothing saved", async () => {
@@ -120,74 +120,72 @@ describe("the map rail, through the Shell", () => {
     let handled = false;
     act(() => { handled = androidBack(); });
     expect([capture, handled, look(), saved]).toEqual([
-      "no bar | pin 49.0974,-121.9675 · fit none · camera 49.0974,-121.9675,14 | capture: near the pin", true,
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing", []]);
+      "no bar | pin 49.0974,-121.9675 · fit none · camera 49.0974,-121.9675,14 | capture: near the pin", true, ROOT, []]);
   });
 
-  it("the Spots menu: a spot opens over the map and back returns to it; Show frames it; back closes the menu first", () => {
+  it("the Spots tab: a spot opens over it and back returns to it; Show goes to the Map tab framed on it; back from the " +
+     "tab is the Map tab, then Android leaves", () => {
     mount();
-    press("Your spots");
-    const menu = look();
-    act(() => { androidBack(); });
-    const closed = look();
-    press("Your spots");
+    tab("Spots");
+    const list = look();
     press("Tamihi run");
     const opened = look();
     act(() => { androidBack(); });
     const back = look();
-    press("Your spots");
     press("Show Tamihi run on the map");
-    expect([menu, closed, opened, back, look()]).toEqual([
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | spots menu",
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing",
-      "Map Search Conditions | no map | spot screen",
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing",
-      "Map Search Conditions | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing",
+    const shown = look();
+    tab("Spots");
+    let handled = false, left = true;
+    act(() => { handled = androidBack(); });
+    const toMap = look();
+    act(() => { left = androidBack(); });
+    expect([list, opened, back, shown, handled, toMap, left]).toEqual([
+      `${BAR} (Spots) | no map | spots tab`,
+      `${BAR} (Spots) | no map | spot screen`,
+      `${BAR} (Spots) | no map | spots tab`,
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing`,
+      true, ROOT, false,
     ]);
+  });
+
+  it("a spot's own Show is the same Show: the Map tab, framed on it with its pin", () => {
+    mount({ start: { ...HOME, tab: "conditions", spot: "s1" } });
+    press("Show on map");
+    expect(look()).toBe(`${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.0974,-121.9675,14 | nothing`);
   });
 
   it("Show's pin and framing belong to that map: a spot opened, or another tab, forgets them (no re-framing on return)", () => {
     mount();
-    press("Your spots");
+    tab("Spots");
     press("Show Tamihi run on the map");
     const shown = look();
-    press("Your spots");
+    tab("Spots");
     press("Tamihi run");
     act(() => { androidBack(); });
+    tab("Map");
     const returned = look();
-    press("Your spots");
+    tab("Spots");
     press("Show Tamihi run on the map");
-    act(() => { fireEvent.click(screen.getByRole("tab", { name: "Conditions" })); });
+    tab("Conditions");
     expect([shown, returned, look()]).toEqual([
-      "Map Search Conditions | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing",
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing",
-      "Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing",
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing`, ROOT,
+      `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`,
     ]);
   });
 
-  it("Show while a searched water is on the map: Show still frames the spot", async () => {
-    mount({ start: { ...HOME, shown: "gnis:8634" as never } });
-    await waitFor(() => expect(look()).toMatch(/fit (?!none)/));
-    const searched = look().replace(/.*fit (\S+).*/, "$1");
-    press("Your spots");
-    press("Show Tamihi run on the map");
-    const shown = look();
-    expect([searched.startsWith("spot:"), shown]).toEqual([
-      false, "Map Search Conditions | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing"]);
-  });
-
-  it("Add a spot here (the map's middle) and At my location both start the one capture at their point", async () => {
+  it("Add a spot here (the map's middle) and At my location, from the tab, both start the one capture at their point", async () => {
     const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 50.1, lon: -120.2 }) };
     mount({ locate });
-    press("Your spots");
+    tab("Spots");
     press("Add a spot here");
     const middle = look();
     act(() => { androidBack(); });
-    press("Your spots");
+    const backTo = look();
     await waitFor(() => expect(screen.queryByLabelText("At my location")).not.toBeNull());
     await act(async () => { fireEvent.click(screen.getByLabelText("At my location")); });
-    expect([middle, look()]).toEqual([
+    expect([middle, backTo, look()]).toEqual([
       "no bar | pin 49.15,-121.85 · fit none · camera 49.15,-121.85,14 | capture: near the pin",
+      `${BAR} (Spots) | no map | spots tab`,
       "no bar | pin 50.1,-120.2 · fit none · camera 50.1,-120.2,14 | capture: near the pin",
     ]);
   });
@@ -197,15 +195,15 @@ describe("the rail's Layers badge (layers menu B)", () => {
   it("counts the choices that differ from the defaults, on the button and aloud; none draws no badge", async () => {
     const { MapRail } = await import("./MapRail");
     const seen = (n: number) => {
-      render(<MapRail palette={LIGHT} onLayers={() => {}} layersChanged={n} onSpots={() => {}} />);
+      render(<MapRail palette={LIGHT} onLayers={() => {}} layersChanged={n} />);
       const out = [screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")),
                    screen.queryByTestId("rail-badge-layers")?.textContent ?? null];
       cleanup();
       return out;
     };
     expect([seen(0), seen(2)]).toEqual([
-      [["Choose layers", "Your spots"], null],
-      [["Choose layers, 2 changed", "Your spots"], "2"],
+      [["Choose layers"], null],
+      [["Choose layers, 2 changed"], "2"],
     ]);
   });
 });

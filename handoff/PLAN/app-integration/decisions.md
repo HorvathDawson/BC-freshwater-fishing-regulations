@@ -207,3 +207,33 @@ status colours more distinct than A/B/C.
   extent" rule. Where a curated record states which crossing/end it means (e.g. skeena_river_2's review_reason LS-1: the
   reserve's LOWER mainstem crossing standing in for the Exchamsiks confluence), that pick stands; the general rule
   applies only where nothing curated says otherwise.
+## T48 BUILT (2026-10-22) — the calls Claude made, and why (each a local change if the owner wants otherwise)
+Built as recorded above: top bar = the search field alone + sync line; bottom bar Map · Conditions · Spots · More
+(smaller: 20 px icons, 5/4 px padding, every tab still 44 px tall); rail = Layers alone; hamburger + drawer DELETED
+(More lists the same six pages — `tools/one-menu.test.ts` pins one list, one spots list, one capture flow, one search
+sheet, and no `@app/map` in the sheet or the bar). Decisions not spelled out by the owner:
+- SEARCH IS ROUTE STATE, not a tab and not a sheet layer (`route.search`, only over Map / Conditions): back closes it
+  first on every platform, a tab change closes it, and a water opened from it keeps it underneath, so back from the
+  water lands on the same results (query, selection, map framing). Why: one back rule, and the browser's history counts
+  it like any other step.
+- THE SHEET HAS TWO HEIGHTS: full while choosing (nothing picked; map dimmed), half once anything is picked (a water
+  framed OR a town's list) — typing again forgets the pick and raises it. The main map follows only PICKS, never the
+  typing (the full sheet covers the map; moving it unseen is wasted work and a jumpy cancel). The old preview's
+  "open on the best match" therefore no longer moves the map.
+- NO BLUR behind the sheet, the scrim only: a real blur needs a native module (expo-blur — against "minimal prod
+  packages") and on the web a backdrop-filter over a live WebGL canvas costs frame time on the phone profile.
+- CANCEL RESTORES THE CAMERA EXACTLY, and only when search moved it: a new `fit.camera` on the map contract
+  (`easeTo`, both renderers, pinned in parity.test and adapter-contract). Opening a spot from search restores too.
+- THE EYE IS GONE: a place's tap shows it (owner); a water's tap frames it and its selected row carries a › "Open …"
+  (the one opener, `openWater`, with the view the map in front implies: Conditions from the Conditions map).
+- SPOTS "SHOW" IS ONE FUNCTION (`useMapRail().show`) for the Spots tab row and the spot screen: it goes to the Map tab and
+  frames the spot; the framing survives that one move (it is what the move is for) and is forgotten by any later one.
+- SYNC LINE TODAY: "Regs to <valid_until> · Flows checked <age>" (the Data sources page's own facts, shortened). The
+  release carries no build date, so "data release age" is the edition's last day; the feed's age reads only the feed's
+  index (cached), never the bundle counts, so a cold start opens no core for it.
+- PLACEHOLDERS: the approved six + three naming towns ("Search a lake, river or town", "Name a town to find water near
+  it", "Fishing near a town? Type its name"); one per app opening; ≤ 36 characters (fits 390 px, measured in Chrome).
+- A REPORT FROM THE MORE TAB says "Screen: more" (where the reader is); a report from a regulations tab is unchanged.
+OWNER QUESTIONS (defaults built): (1) should the search sheet keep the old "open on the best match while typing"
+preview? (default no); (2) should Spots' "Add a spot here" from the Spots tab say "at the middle of the map as you left
+it"? (default: the existing words).
