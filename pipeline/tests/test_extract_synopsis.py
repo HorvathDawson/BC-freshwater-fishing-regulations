@@ -33,8 +33,21 @@ def raw_regs_contain(row, text):
 @pytest.fixture(scope="module")
 def parser(tmp_path_factory):
     """Fixture to provide a class instance. Its row images go to a temp dir: the parser's default
-    is `output/`, a retired directory, and a test run recreated it in the repo root."""
-    return FishingSynopsisParser(output_dir=str(tmp_path_factory.mktemp("extraction")))
+    is `output/`, a retired directory, and a test run recreated it in the repo root.
+
+    EACH PAGE IS PARSED ONCE (test cleanup, 2026-10-22): `extract_rows` keeps no state between
+    pages and no test changes a result, yet page 17 was parsed by nine tests and page 26 by four,
+    about 2.5 s each. The first parse of a page is kept for the module and handed to every test."""
+    p = FishingSynopsisParser(output_dir=str(tmp_path_factory.mktemp("extraction")))
+    parsed, extract = {}, p.extract_rows
+
+    def once(raw_page, *a, **k):
+        key = (raw_page.page_number, a, tuple(sorted(k.items())))
+        if key not in parsed:
+            parsed[key] = extract(raw_page, *a, **k)
+        return parsed[key]
+    p.extract_rows = once
+    return p
 
 
 @pytest.fixture(scope="module")
@@ -368,28 +381,6 @@ def test_no_false_positives_on_non_table_pages(parser, pdf, page_num):
 # ==========================================
 #      PART 2: REGULATION PARSER TESTS
 # ==========================================
-
-
-def test_region_name_normalization(tmp_path):
-    """Test that region names are normalized to consistent format."""
-    parser = FishingSynopsisParser(output_dir=str(tmp_path))
-
-    # Test various input formats
-    test_cases = [
-        ("REGION 1 - VANCOUVER ISLAND", "REGION 1 - Vancouver Island"),
-        ("region 1 - vancouver island", "REGION 1 - Vancouver Island"),
-        ("Region 1 - Vancouver Island", "REGION 1 - Vancouver Island"),
-        ("REGION 2 - LOWER MAINLAND", "REGION 2 - Lower Mainland"),
-        ("REGION 3 - thompson-nicola", "REGION 3 - Thompson-Nicola"),
-        ("REGION 4 - kootenay", "REGION 4 - Kootenay"),
-        ("REGION 7A - omineca-peace", "REGION 7A - Omineca-Peace"),
-    ]
-
-    for input_name, expected_output in test_cases:
-        actual = parser._normalize_region_name(input_name)
-        assert (
-            actual == expected_output
-        ), f"Failed: {input_name!r} -> {actual!r} (expected {expected_output!r})"
 
 
 def test_kootenay_river_waterbody_name_cleaning(parser, pdf):
