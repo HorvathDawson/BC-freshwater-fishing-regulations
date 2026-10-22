@@ -674,3 +674,37 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   under their own names; the group name leads the reader to those waters ("see X" with a way to open each). A "See X"
   pointer is never drawn as a regulation line on the lakes it points to. Group entries with real rules (McCulloch
   Reservoir) still apply to their member lakes; an identical rule from two entries reads once.
+## CLAUDE 2026-10-22 (late) — one system for back: built, and what the data says about the Atnarko
+- **A route action, not an openWater flag**: `{ type: "cross", item, part }`, built ONLY by `crossAction` (waterMap.ts),
+  reduced in route.ts: the frame is built as an open is (`opened`, Map in front) and REPLACES the top frame — the top is
+  dropped, then `enter` (so a water already under it is still gone back to, never stacked). One back from either side
+  of the Vedder ↔ Chilliwack leaves the system for where it was opened from; under a tributary (Jeperson → "Flows
+  into" Chilliwack → ▼ Vedder) the crossings replace only the top, so back is the tributary. Nothing in browse mode.
+  `openWater` / `exitAction` untouched: "Flows into" stays a push. The × is unchanged.
+- Pinned: back-layers walks `cross` + `system`, mutation `crossPushes` (the cross as an `openWater` push again) fails
+  both; route.test "one system"; waterMap.test "across waters"; WaterMode "across waters"; back.test "one system"
+  (Android, and the browser: one history entry). one-water-screen: `"cross"` named only by route.ts + waterMap.ts.
+- **The data (release r-66f94fa635c1, read-only):** Vedder/Chilliwack IS a continuation: `water_continue` row
+  (Chilliwack ord 11095 part 1 → Vedder ord 7670 part 0), so ▼/▲ crosses it and the rule applies. The Atnarko is NOT:
+  `water_continue` has no row for it (17 rows in all); it is reached only as `water_exit` (Atnarko ord 2628 →
+  Bella Coola ord 561, `down_part` 0), i.e. "Flows into Bella Coola River", a push. WHY: the Bella Coola begins at
+  the Atnarko + Talchako confluence (its part 0 "From the mouth up to the Talchako River confluence"; the Atnarko's
+  lowest part "From the Talchako River confluence up to …"). Both rivers' main lines (blue lines 360879335 and
+  360887426) begin at measure 0 at the top of the Bella Coola's main line (360885253, top 48 628 m), neither is on
+  it, and FWA codes BOTH as tributaries of it (Bella Coola `910-275583`, Atnarko `910-275583-999439`, Talchako
+  `910-275583-999074`). `continuation.py` refuses that on purpose ("two rivers meeting make a third, and neither is it"
+  — the Somass/Thompson rule), so `item_down` alone links them.
+- **No safe app-side rule in the release.** Tried: "the exit's receiving stream shares a regulations entry with this
+  one AND the exit lands on its top-ranked part": 5 hits — Atnarko → Bella Coola (right), Hatzis → Lower Hatzic and
+  Chilliwack → Vedder (already continuations), Fraser River → Annacis Channel (WRONG: and the Fraser's `water_exit`
+  naming Annacis Channel is itself a defect worth a look) and Squamish Powerhouse Channel → itself. An entry that
+  "includes tributaries" (the Atnarko/Bella Coola entry is held by the South Atnarko too) makes sharing no proof.
+  Nothing implemented.
+- **PROPOSED (not done; a pipeline change + release, owner's call):** let `continuation.py` pick ONE water at a
+  two-river confluence instead of refusing it, when evidence names it: (1) the synopsis's own pairing — one entry
+  that names both waters as one ("Atnarko/Bella Coola Rivers", "Chilliwack/Vedder Rivers"; the entry id carries both
+  names), with `item_down` A → B and A's mouth at B's top (the existing STUB_M gate), the other river at the
+  confluence then stays a tributary; or (2) without a pairing, the inflow whose FWA code joins B nearest its top
+  (`-999439` over `-999074`) only when its upstream length / Strahler order is also the larger — else keep refusing.
+  (1) alone covers both owner examples and cannot produce "continues as two waters". The app needs no change: a
+  new `water_continue` row makes the Atnarko's ▼ read "▼ Downstream into Bella Coola River" and cross in place.

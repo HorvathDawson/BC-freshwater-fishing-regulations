@@ -228,8 +228,9 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
       "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
   }, 40_000);
 
-  it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part; ▼ there IS back to the Vedder " +
-     "(owner 2026-10-22 late: crossing to and fro never stacks); back from the Chilliwack returns", async () => {
+  it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part IN ITS PLACE (owner 2026-10-22 " +
+     "late: a river that changes its name is ONE system), so to and fro never stacks and ONE back from the Chilliwack " +
+     "is the Map tab", async () => {
     await onMap("gnis:3062", 0);
     const seen = [where()];
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
@@ -240,17 +241,15 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4"));
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
-    await until(() => where().startsWith("Part 1 of 1"));
-    seen.push(where());
+    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     seen.push(screen.queryByTestId("water-map-where") ? where() : "the Map tab");
     expect(seen).toEqual([
       "Part 1 of 1 | Vedder River",
-      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Back",
-      // the Vedder is the water under the Chilliwack: ▼ goes back to it, so its ‹ names the tab again
+      // one system: the Chilliwack replaced the Vedder, so its ‹ names the tab the system was opened from
+      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Map",
       "Part 1 of 1 | Vedder River | Map",
-      "Part 1 of 1 | Vedder River",
+      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Map",
       "the Map tab"]);
   }, 40_000);
 });

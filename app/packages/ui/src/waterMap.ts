@@ -16,7 +16,7 @@
  *
  * ACROSS WATERS: ▲ on the top of a water that goes on from another (the Vedder, from the Chilliwack), or ▼ on the
  * mouth part of one that goes on as another, is not a step in this group — the view model says which water and part
- * (`up.cross` / `down.cross`), and the caller opens it (`crossAction`, through `openWater`, Map in front).
+ * (`up.cross` / `down.cross`), and the caller opens it (`crossAction`, Map in front) IN PLACE of this one: one system.
  *
  * NO GEOMETRY: the tiles draw the water; the release says which sections are which part (lit by feature-state through
  * the map adapter's one `highlight` call: `selected` on this part, `water` on the rest) and each part's box.
@@ -221,11 +221,12 @@ export function exitAction(item: ItemId, part: number | null): RouteAction {
   return openWater({ item, part, view: "regs" });
 }
 
-/** ▲ / ▼ into the water this one goes on from or as: that water on top, its Map in front, on the part it meets this
- *  one (the one `openWater` path; back returns here). A different water, so one layer — and crossing back is going
- *  back to it (the route's `enter`), so stepping to and fro across the boundary never stacks. */
+/** ▲ / ▼ into the water this one goes on from or as (`water_continue`): that water, its Map in front, on the part it
+ *  meets this one. A river that changes its name is ONE system (owner 2026-10-22 late), so it REPLACES the water on
+ *  screen (the route's `cross`) — to and fro never stacks, and one back leaves the system for where it was opened
+ *  from. "Flows into" (`exitAction`) from a tributary stays a layer. */
 export function crossAction(item: ItemId, part: number): RouteAction {
-  return openWater({ item, part, view: "map" });
+  return { type: "cross", item, part };
 }
 
 /**

@@ -271,21 +271,32 @@ describe("leaving the map, through the route (P13)", () => {
                 { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" }]);
   });
 
-  it("across waters: ▲ from the Vedder opens the Chilliwack's lowest part with its Map in front; back returns", () => {
+  it("across waters (owner 2026-10-22 late: a river that changes its name is ONE system): ▲ from the Vedder is the " +
+     "Chilliwack's lowest part with its Map in front, IN PLACE of the Vedder; back leaves the system", () => {
     const onVedder: Route = { mode: "water", from: HOME,
                               stack: [{ item: "gnis:3062" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
     const r = reduce(onVedder, crossAction(CHW, 1));
-    expect([top(r), reduce(r, { type: "back" })]).toEqual([
-      { item: CHW, part: 1, tapSid: null, at: null, view: "map" }, onVedder]);
-    expect(top(reduce(onMap, crossAction("gnis:3062" as ItemId, 0)))).toEqual(
-      { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "map" });
+    expect([crossAction(CHW, 1), r, reduce(r, { type: "back" }), reduce(onMap, crossAction("gnis:3062" as ItemId, 0))])
+      .toEqual([
+        { type: "cross", item: CHW, part: 1 },
+        { mode: "water", from: HOME, stack: [{ item: CHW, part: 1, tapSid: null, at: null, view: "map" }] },
+        HOME,
+        { ...onMap, stack: [{ item: "gnis:3062", part: 0, tapSid: null, at: null, view: "map" }] }]);
   });
 
-  it("(owner 2026-10-22 late) ▲ / ▼ back and forth across the boundary never stacks: crossing back IS back", () => {
+  it("(owner 2026-10-22 late) ▲ / ▼ back and forth across the boundary never stacks: one back from either side leaves", () => {
     const onVedder: Route = { mode: "water", from: HOME,
                               stack: [{ item: "gnis:3062" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
-    const r = [crossAction(CHW, 1), crossAction("gnis:3062" as ItemId, 0), crossAction(CHW, 1),
-               crossAction("gnis:3062" as ItemId, 0)].reduce(reduce, onVedder);
-    expect([r, reduce(r, { type: "back" })]).toEqual([onVedder, HOME]);
+    const r = [crossAction(CHW, 1), crossAction("gnis:3062" as ItemId, 0), crossAction(CHW, 1)].reduce(reduce, onVedder);
+    expect([r, reduce(r, { type: "back" })]).toEqual([
+      { mode: "water", from: HOME, stack: [{ item: CHW, part: 1, tapSid: null, at: null, view: "map" }] }, HOME]);
+  });
+
+  it("'Flows into' from a true tributary stays a layer: back returns to the tributary", () => {
+    const onTrib: Route = { mode: "water", from: HOME,
+                            stack: [{ item: "gnis:11481" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
+    const r = reduce(onTrib, exitAction(CHW, 2));
+    expect([r, reduce(r, { type: "back" })]).toEqual([
+      { ...onTrib, stack: [...onTrib.stack, { item: CHW, part: 2, tapSid: null, at: null, view: "regs" }] }, onTrib]);
   });
 });

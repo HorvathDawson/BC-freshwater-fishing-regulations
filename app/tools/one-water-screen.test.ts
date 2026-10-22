@@ -33,11 +33,13 @@ describe("one water screen: one way in, one Conditions panel", () => {
     expect(where(/["']openWater["']/)).toEqual(["packages/ui/src/openWater.ts", "packages/ui/src/route.ts"]);
   });
 
-  it("the water map leaves its water only through openWater (the exit, ▲ / ▼ into another water) and steps the FRAME's part", () => {
+  it("the water map leaves its water only through openWater (the exit) or the route's cross (▲ / ▼ into the water " +
+     "it continues as / from: one system, built only by crossAction) and steps the FRAME's part", () => {
     const wm = readFileSync(join(APP, "packages/ui/src/waterMap.ts"), "utf8");
     // (owner 2026-10-22 late) "Show regulations for this part" on a split lake's other area is a part move, no openWater
-    expect(wm.match(/openWater\(\{[^}]*\}\)/g)).toEqual([
-      'openWater({ item, part, view: "regs" })', 'openWater({ item, part, view: "map" })']);
+    expect([wm.match(/openWater\(\{[^}]*\}\)/g), wm.match(/\{ type: "cross"[^}]*\}/g), where(/["']cross["']/)]).toEqual([
+      ['openWater({ item, part, view: "regs" })'], ['{ type: "cross", item, part }'],
+      ["packages/ui/src/route.ts", "packages/ui/src/waterMap.ts"]]);
     const shell = readFileSync(join(APP, "packages/ui-native/src/Shell.tsx"), "utf8");
     expect([shell.includes("onCross={(id, p) => go(crossAction(id, p))}"),
             shell.includes("onPart={(id, p) => go(partAction(item, id, p))}")]).toEqual([true, true]);

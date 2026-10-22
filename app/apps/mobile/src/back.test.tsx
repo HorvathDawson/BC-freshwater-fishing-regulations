@@ -114,7 +114,7 @@ function where(): string {
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   if (strip) {
     const on = [...strip.querySelectorAll("[role=tab]")].find((t) => t.getAttribute("aria-selected") === "true");
-    const name = ["Chilliwack River", "Jeperson Side Channel"].find((n) => screen.queryByText(n)) ?? "?";
+    const name = ["Chilliwack River", "Jeperson Side Channel", "Vedder River"].find((n) => screen.queryByText(n)) ?? "?";
     parts.push(`water ${name} on ${on?.getAttribute("aria-label")}`);
   }
   if (screen.queryByLabelText("Edit spot") || screen.queryByLabelText("Cancel editing"))
@@ -220,6 +220,33 @@ async function openTributary(): Promise<void> {
   await until(() => screen.queryByText("Jeperson Side Channel") !== null);
 }
 
+/**
+ * (Owner 2026-10-22 late, "a river that changes its name is ONE system") Tap the Chilliwack open, its Map, ▼ ▼ to its
+ * lowest part, then ▼ into the Vedder, ▲ into the Chilliwack, ▼ into the Vedder: each cross replaces the water on
+ * screen. Written down as `movesInsideChilliwack` does, the map's part beside each.
+ */
+async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<string[]> {
+  const out: string[] = [];
+  const note = (s: string) => out.push(`${s}${extra()}`);
+  await click("tap the map");
+  await until(() => screen.queryByText("Chilliwack River") !== null);
+  await view("Map"); await onWaterMap();
+  await press("▼ Downstream"); await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("▼ Downstream into Vedder River");
+  await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
+  await press("▲ Upstream into Chilliwack River");
+  await until(() => mapWhere().startsWith("Part 1 of 4")); note(`${where()} · ${mapWhere()}`);
+  await press("▼ Downstream into Vedder River");
+  await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
+  return out;
+}
+const ACROSS_SEEN = [
+  "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
+  "water Vedder River on Map · no bar · Part 1 of 1",
+  "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
+  "water Vedder River on Map · no bar · Part 1 of 1",
+];
+
 describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", () => {
   it("the Map tab's root: not handled — Android leaves the app (no trap)", async () => {
     await mount(HOME);
@@ -297,6 +324,13 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     await mount(HOME, nativeBack, openRegsFixture());
     const seen = [where(), ...(await movesInsideChilliwack())];
     expect([...seen, ...backs(2).slice(1)]).toEqual([...MOVES_SEEN, "handled -> tab Map", "ANDROID -> tab Map"]);
+  }, 60_000);
+
+  it("(owner 2026-10-22 late) one system: ▼ / ▲ across the Chilliwack ↔ Vedder name change replaces the water, so " +
+     "ONE back from either side is the map it was opened from, and the next is Android's", async () => {
+    await mount(HOME, nativeBack, openRegsFixture());
+    const seen = await acrossChilliwackVedder();
+    expect([...seen, ...backs(2).slice(1)]).toEqual([...ACROSS_SEEN, "handled -> tab Map", "ANDROID -> tab Map"]);
   }, 60_000);
 
   it("(owner 2026-10-22 late) a tributary chain A -> B: back is A, back is the map; × from B is the map at once", async () => {
@@ -481,5 +515,17 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
               `tab Map${e(0)}`],
       close: [`water Jeperson Side Channel on Regulations · no bar${e(2)}`, `tab Map${e(0)}`],
     });
+  }, 60_000);
+
+  it("(owner 2026-10-22 late) one system: the Chilliwack ↔ Vedder crossings hold ONE entry; one browser back leaves", async () => {
+    const entry = () => {
+      const s: unknown = window.history.state;
+      const v = s && typeof s === "object" ? (s as Record<string, unknown>)["canifishthis.back"] : undefined;
+      return ` [entry ${typeof v === "number" ? v : 0}]`;
+    };
+    await mount(HOME, webBack, openRegsFixture());
+    const seen = await acrossChilliwackVedder(entry);
+    await browserBack(); seen.push(`${where()}${entry()}`);
+    expect(seen).toEqual([...ACROSS_SEEN.map((s) => `${s} [entry 1]`), "tab Map [entry 0]"]);
   }, 60_000);
 });

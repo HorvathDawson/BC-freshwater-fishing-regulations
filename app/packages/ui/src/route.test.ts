@@ -276,6 +276,23 @@ describe("back steps out one layer: moves inside a water replace, a different wa
       { mode: "water", from: HOME, stack: [frame(null, null, "conditions", 7)] }, [7, 8]]);
   });
 
+  it("(owner 2026-10-22 late, 'one system') a cross into the water this one continues as / from REPLACES the top " +
+     "frame: to and fro never stacks, ONE back leaves the system for where it was opened from; under a tributary it " +
+     "replaces only the top; a water already under the top is gone back to; nothing in browse", () => {
+    const cross = (item: ItemId, part: number): RouteAction => ({ type: "cross", item, part });
+    const over = run(opened, cross(VEDDER, 0), cross(CHW, 1), cross(VEDDER, 0), cross(CHW, 1));
+    const tribUnder = run(reduce(from, { type: "openWater", item: FRASER, view: "regs" }),
+                          { type: "flowInto", item: CHW, part: 1 }, cross(VEDDER, 0), cross(CHW, 1));
+    const backTo = run(opened, { type: "flowInto", item: FRASER, part: 0 }, cross(CHW, 3));
+    expect([over, reduce(over, { type: "back" }), tribUnder, reduce(tribUnder, { type: "back" }), backTo,
+            reduce(from, cross(VEDDER, 0)) === from]).toEqual([
+      { mode: "water", from, stack: [frame(CHW, 1, "map")] }, from,
+      { mode: "water", from, stack: [frame(FRASER, null, "regs"), frame(CHW, 1, "map")] },
+      { mode: "water", from, stack: [frame(FRASER, null, "regs")] },
+      { mode: "water", from, stack: [frame(CHW, 3, "map")] },
+      true]);
+  });
+
   it("close leaves every water at once, for where the first was opened from (search and all); nothing in browse", () => {
     const deep = run(opened, { type: "openWater", item: VEDDER, view: "regs" }, { type: "flowInto", item: FRASER, part: 0 });
     expect([deep.mode === "water" && deep.stack.length, reduce(deep, { type: "close" }), reduce(opened, { type: "close" }),

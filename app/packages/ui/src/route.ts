@@ -35,7 +35,9 @@
  *
  * BACK STEPS OUT ONE LAYER, IT NEVER UNDOES A MOVE (owner 2026-10-22 late): every move within one water — a view, a part,
  * a split lake's other closure area, the same water opened again — REPLACES the top frame; only a DIFFERENT water opened
- * from inside is a new frame, and one already held is gone back to rather than stacked again (`enter`). `close` (the
+ * from inside is a new frame, and one already held is gone back to rather than stacked again (`enter`). A river that
+ * changes its name is ONE system (owner 2026-10-22 late): ▲ / ▼ into the water this one continues as / from (`cross`)
+ * replaces the top frame too; "Flows into" from a tributary stays a new frame. `close` (the
  * header's ×) leaves every water at once. The browser's history and Android's back count these same frames
  * (`backDepth`), so all three inputs agree; `tools/back-layers.test.ts` holds the rule, mutation-pinned.
  */
@@ -97,6 +99,13 @@ export type RouteAction =
    */
   | { type: "part"; part: number; item?: ItemId }
   | { type: "flowInto"; item: ItemId; part: number }
+  /**
+   * (Owner 2026-10-22 late, "a river that changes its name is ONE system") ▲ / ▼ off the end of a water into the water
+   * it CONTINUES AS / FROM (`water_continue`: the Vedder ↔ Chilliwack): that water at `part`, its Map in front, IN
+   * PLACE of the top frame — so to and fro never stacks and one back leaves the whole system. Built ONLY by
+   * `crossAction` (waterMap.ts). Nothing in browse mode.
+   */
+  | { type: "cross"; item: ItemId; part: number }
   | { type: "back" }
   /**
    * (Owner 2026-10-22 late) The water header's ×: leave EVERY water at once, for where the first was opened from
@@ -170,7 +179,7 @@ export function reduce(r: Route, a: RouteAction): Route {
         if (r.search) return { ...r, search: false };
         if (r.tab !== HOME.tab) return r.prev !== undefined ? { ...HOME, tab: r.prev } : HOME;
         return r;
-      default: return r;            // view / part / flowInto mean nothing without a water
+      default: return r;            // view / part / flowInto / cross mean nothing without a water
     }
   }
   switch (a.type) {
@@ -186,6 +195,10 @@ export function reduce(r: Route, a: RouteAction): Route {
     case "openWater": {
       const f = opened(a);
       return f === null ? r : enter(r, f);
+    }
+    case "cross": {                 // one system: the top frame is replaced (a water already under it is gone back to)
+      const f = opened({ type: "openWater", item: a.item, part: a.part, view: "map" });
+      return f === null ? r : enter({ ...r, stack: r.stack.slice(0, -1) }, f);
     }
     case "back":                    // the views are lateral: back leaves the water, whatever view is in front
       if (r.stack.length > 1) return { ...r, stack: r.stack.slice(0, -1) };
