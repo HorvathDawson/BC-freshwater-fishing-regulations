@@ -168,6 +168,15 @@ export const REGS_WIDE = { measure: 560, side: 264 } as const;
 export const SHEET_DIALOG = { maxWidth: 640, inset: 24, maxHeight: 0.82 } as const;
 
 /**
+ * T46 — A FISH PICTURE never scales with the window (owner: "on desktop … they become hugeeee"):
+ *
+ *   maxWidth   the most a picture is ever drawn (a phone's sheet is 358 px across, so a phone never reaches it)
+ *   minWidth   the least a look is drawn beside another before the row wraps
+ *   gap        between two looks side by side
+ */
+export const FISH_PICTURE = { maxWidth: 360, minWidth: 180, gap: SPACE.s3 } as const;
+
+/**
  * A HARD OFFSET SHADOW, not a blur.
  *
  * v1's signature, used on the search bar and every floating panel:

@@ -37,6 +37,12 @@ a side column at the frame's left holds the date pill, the sections as a list an
 or desktop is a centred dialog (`SHEET_DIALOG`, 640 wide at most, sized to its content; Done, the scrim, back and Escape
 close it — no drag).
 
+**Fish pictures (T46).** A fish's looks (an sp: sheet's consecutive `image` blocks) are one `FishLooks` group: side by
+side on a tablet / desktop (a wrapping row, each look between `FISH_PICTURE.minWidth` 180 and `maxWidth` 360), stacked on
+a phone; every picture at most 360 px across, so none scales with the window. Captions are the blocks' `credit` (core
+`fishSheet` from the manifest), never written in ui-native. No ground behind a registered picture (T39), light and dark.
+Measured in Chrome by `tools/fish-looks-layout.test.ts` (mutation: no max width fails).
+
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is
 live, the hydrograph with envelope + prior years + a TODAY rule, the model's disclaimer

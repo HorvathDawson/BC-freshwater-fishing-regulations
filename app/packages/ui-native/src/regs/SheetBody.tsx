@@ -22,7 +22,8 @@ import { RuleRow } from "./sheet/RuleRow";
 import { LadderView } from "./sheet/LadderView";
 import { SourcesView } from "./sheet/SourcesView";
 import { WeekBox } from "./sheet/WeekBox";
-import { Adipose, FishImage } from "./sheet/FishImage";
+import { Adipose, FishImage, FishLooks } from "./sheet/FishImage";
+import type { LayoutClass } from "@app/ui";
 import { PartsChoice } from "./sheet/PartsChoice";
 import { TermSection } from "./sheet/TermSection";
 
@@ -71,7 +72,26 @@ export function SheetBlockView(p: { b: SheetBlock } & SheetBodyProps) {
   }
 }
 
-export function SheetBody(p: { vm: SheetVM } & SheetBodyProps) {
-  const { vm, ...rest } = p;
-  return <View testID="sheet-body">{vm.blocks.map((b, i) => <SheetBlockView key={i} {...rest} b={b} />)}</View>;
+type ImageBlock = Extract<SheetBlock, { k: "image" }>;
+
+/** (T46) The blocks with each run of consecutive pictures (a fish's looks) as one group, in order. */
+function grouped(blocks: readonly SheetBlock[]): (SheetBlock | ImageBlock[])[] {
+  const out: (SheetBlock | ImageBlock[])[] = [];
+  for (const b of blocks) {
+    const last = out[out.length - 1];
+    if (b.k === "image" && Array.isArray(last)) last.push(b);
+    else out.push(b.k === "image" ? [b] : b);
+  }
+  return out;
+}
+
+export function SheetBody(p: { vm: SheetVM; layout?: LayoutClass } & SheetBodyProps) {
+  const { vm, layout = "phone", ...rest } = p;
+  return (
+    <View testID="sheet-body">
+      {grouped(vm.blocks).map((b, i) => Array.isArray(b)
+        ? <FishLooks key={i} looks={b} layout={layout} fish={rest.fish} palette={rest.palette} />
+        : <SheetBlockView key={i} {...rest} b={b} />)}
+    </View>
+  );
 }

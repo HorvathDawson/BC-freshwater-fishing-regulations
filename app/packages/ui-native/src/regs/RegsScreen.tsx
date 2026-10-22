@@ -156,7 +156,7 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
         </View>
       ) : pageScroll}
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
-                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} />
+                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
   );
 }

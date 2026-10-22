@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { ImageSourcePropType, ScrollView } from "react-native";
 import type { RegsPage, SheetKey, Tab } from "@app/core";
+import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
 import { SheetBody } from "./SheetBody";
@@ -27,17 +28,21 @@ export interface SheetHostProps {
   fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
   adipose?: { wild: ImageSourcePropType; clipped: ImageSourcePropType };   // T38
   onBook?: (pdf: number) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
+  layout?: LayoutClass;                 // (T45/T46) absent → the app's (`useLayoutClass`)
 }
 
 export function SheetHost(p: SheetHostProps) {
+  // (T45/T46) the layout class: the caller's (RegsScreen hands its own), else the app's
+  const shell = useLayoutClass();
+  const layout = p.layout ?? shell;
   const vm = useMemo(() => (p.open ? p.page.sheet(p.open) : null), [p.page, p.open]);
   const scroll = useRef<ScrollView>(null);
   // a sheet opened in another's place starts at its top
   useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [p.open]);
   if (!vm) return null;
   return (
-    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose}>
-      <SheetBody vm={vm} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
+    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout}>
+      <SheetBody vm={vm} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
 }

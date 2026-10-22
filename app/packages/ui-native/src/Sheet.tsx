@@ -91,7 +91,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
             <Pressable accessibilityLabel="Close" onPress={onClose}
                        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.scrim }} />
             <View testID="sheet-dialog" accessibilityViewIsModal
-                  style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, maxHeight: windowHeight * SHEET_DIALOG.maxHeight,
+                  style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, // no window height yet (0: not measured) caps nothing
+                           maxHeight: windowHeight > 0 ? windowHeight * SHEET_DIALOG.maxHeight : undefined,
                            backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink }}>
               <View testID="sheet-handle" style={{ paddingTop: 14 }}>
                 <View style={{ flexDirection: "row", alignItems: "center",
@@ -106,7 +107,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
               </View>
               {scroll
-                ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1 }}
+                ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1, flexBasis: "auto" }}
                               keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
                               contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
                 : <View style={{ paddingBottom: 28 }}>{children}</View>}
