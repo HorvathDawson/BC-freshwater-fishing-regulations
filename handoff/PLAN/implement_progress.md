@@ -29,9 +29,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
 - MERGED: add-a-spot (dbdf8a68: my location / pick on the map) and the lead-up refresh fix (6630879d: still-to-come
-  days refill; unpublished stations settle). FINDING to investigate: 28 stations linked to sections have climatology
-  but NO feed file (3,456 sections, e.g. 08EG012 668, 08LG028 543) — why does the publisher not carry them? (queue as a
-  feed ticket). Flakes seen under load: Search.shell sync line, apps/mobile back.test browser-back step.
+  days refill; unpublished stations settle). FEED COVERAGE: cause = the roster (data/source/bc_hydrometric_stations.json, fetched once
+  2026-09-01) drifted from ECCC: 13 "live" stations are no longer real-time, 6 "silent" ones now transmit. FIX merged
+  (publish.py reads ECCC's live station list each run; index.json `listed`; drift warning). TO DO WITH THE NEXT PIPELINE
+  REBUILD: refresh the roster (`rm data/source/bc_hydrometric_stations.json && python data/fetch_data.py --layers
+  hydrometric_stations`), diff panel leads (08EG012/08LG028 lead ~1,200 sections as live but don't transmit), deliver all,
+  then a local feed run. App follow-up: read `listed` to say "not a real-time gauge" vs "not reporting". Flakes seen under load: Search.shell sync line, apps/mobile back.test browser-back step.
 - NEW TICKET T52 (owner 2026-10-22): Conditions "Expected change" chip after +10 from daily forecast series (spikes
   included); pipeline carries per-station daily series politely. Queued after T51.
 - QUEUE (owner 2026-10-22, spots): add-a-spot = my location / pick on map (agent running); lead-up refresh BUG (agent
