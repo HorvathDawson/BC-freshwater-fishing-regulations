@@ -131,7 +131,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
 const COVERED: Record<string, string> = {
   "packages/ui-native/src/Shell.tsx#Shell: takes onBack": "the Shell IS the route layer (useEdgeBack); `onBack: back` hands that one back to the water's ‹",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
-  "packages/ui-native/src/regs/RegsScreen.tsx#RegsScreen: takes onBack (RegsScreenProps)": "the on-screen ‹; system back is the Shell's route layer (its DaySheet registers itself)",
+  "packages/ui-native/src/regs/RegsScreen.tsx#RegsScreen: takes onBack (RegsScreenProps)": "the on-screen ‹; system back is the Shell's route layer (T49: its date pill's DaySheet is the water screen's, and registers itself)",
   "packages/ui-native/src/MapScreen.tsx#MapScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
@@ -211,7 +211,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
-      "packages/ui-native/src/regs/RegsScreen.tsx#RegsScreen: opens dayOpen",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",
       "packages/ui-native/src/water/WaterMapView.tsx#Chooser: a dialog",

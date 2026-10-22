@@ -107,3 +107,19 @@ export function EyeIcon({ colour, size = 20 }: { colour: string; size?: number }
     </Svg>
   );
 }
+
+/**
+ * The calendar, for the map's day button (T49). Squared like the rest: a frame, its header rule and two binding posts,
+ * and one filled day — the day the map is coloured for.
+ */
+export function CalendarIcon({ colour, size = 18 }: { colour: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x={3} y={5} width={18} height={16} stroke={colour} strokeWidth={1.8} strokeLinejoin="miter" />
+      <Line x1={3} y1={10} x2={21} y2={10} stroke={colour} strokeWidth={1.8} />
+      <Line x1={8} y1={2.5} x2={8} y2={7} stroke={colour} strokeWidth={2.2} />
+      <Line x1={16} y1={2.5} x2={16} y2={7} stroke={colour} strokeWidth={2.2} />
+      <Rect x={13} y={14} width={4} height={4} fill={colour} />
+    </Svg>
+  );
+}

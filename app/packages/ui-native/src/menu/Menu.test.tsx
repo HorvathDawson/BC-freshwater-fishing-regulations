@@ -368,7 +368,7 @@ describe("the Regulations screen's four tabs", () => {
     render(
       <MenuContext.Provider value={menu}>
         <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT}
-                    actions={{ onSheet() {}, onDay() {}, onBook() {} }} day={null} onDay={() => {}}
+                    actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}}
                     gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                     licence={<Text>licence section</Text>} />
       </MenuContext.Provider>);

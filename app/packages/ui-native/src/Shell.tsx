@@ -7,7 +7,7 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, dayLabel, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
+import { chooseLayer, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
          waterLegend, withImageryCredit, type LayerChoice, type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
@@ -28,7 +28,8 @@ import { connectivity } from "./connectivity";
 import { imageryProbe } from "./imageryProbe";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
-import { MapDay } from "./MapDay";
+import { MapDayButton } from "./DayCalendar";
+import { DaySheet } from "./regs/DaySheet";
 import { LayersSheet, legendColour } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
@@ -172,6 +173,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const mapTab: BrowseTab = route.mode === "water" ? "map" : tab;
   /** The day the map's status colours answer for; null is today. */
   const [mapDay, setMapDay] = useState<Date | null>(null);
+  /**
+   * (T49) The map's date sheet: its calendar button opens the SAME sheet the Regulations page's date pill does
+   * (`regs/DaySheet`), on this one `mapDay` — and the days it offers are the data's calendar year, cut at the release's
+   * last day (`dayRange`), the same range the page's sheet is handed by `WaterScreen`.
+   */
+  const [dayOpen, setDayOpen] = useState(false);
   /**
    * The water search's eye SHOWED on the main map (route `show`): framed by its outline and lit, whole. It is the
    * route's, so back returns to search, and a tab change forgets it — a later remount of the map never drags the
@@ -695,7 +702,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             // The three statuses, in the words and colours every surface uses (@app/core
             // WATER_STATUS through the map's theme) — for today.
             <>
-              <MapDay palette={palette} day={mapDay} onDay={setMapDay} />
+              <MapDayButton palette={palette} day={mapDay} onPress={() => setDayOpen(true)} />
               {WATER_STATUSES.map((s) => (
                 <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
                              line
@@ -721,6 +728,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                                  : rail.addAt({ lat: camera.current.lat, lon: camera.current.lon }))}
                   onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
                   photoStore={photos?.store} />
+      <DaySheet open={dayOpen && route.mode === "browse"} onClose={() => setDayOpen(false)} palette={palette}
+                day={mapDay} onDay={setMapDay}
+                range={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)} />
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's drawer and pages: each open level a back layer (back closes a term, a page, the drawer) */}

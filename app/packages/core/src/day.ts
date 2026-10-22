@@ -1,8 +1,8 @@
 /**
  * Days, in the reader's own time zone (P12b).
  *
- * Two screens chose days with their own arithmetic: the map's day stepper (`MapDay`) and the visit step of adding a
- * spot (`SpotCapture`). Both are here now, beside the words for them, so a component draws what this returns.
+ * Two screens chose days with their own arithmetic: the map's day picker (`DayCalendar`; its grid and words are
+ * `dayPicker.ts`) and the visit step of adding a spot (`SpotCapture`). Both are here now, beside the words for them, so a component draws what this returns.
  *
  * LOCAL, NOT UTC, throughout. A spot fished at 6 p.m. in Vancouver on the 30th is in UTC on the 31st, and the list
  * used to say so; the reader's day is the only day a reader means.

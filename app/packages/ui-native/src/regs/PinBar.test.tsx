@@ -34,7 +34,7 @@ afterEach(() => { cleanup(); vi.useRealTimers(); });
 function mount(id: string) {
   const s = P.states[id]!, store = createPinStore({ heights: new Map(Object.entries(P.heights)) });
   const r = render(<RegsScreen page={PAGES[id] as RegsPage} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }}
-                               day={null} onDay={() => {}} store={store} />);
+                               onDate={() => {}} store={store} />);
   act(() => { store.setViewport(s.viewport.height); store.setAnchors(s.anchors); });
   return { r, store };
 }

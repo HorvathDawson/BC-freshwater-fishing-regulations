@@ -1,7 +1,7 @@
 /**
  * T23 — the Regulations screen: the water's header row and the regs header FIXED above ONE ScrollView of the four tab
- * sections (header-one-shape, one scroll, licence-last, no part strip), the date pill's "Which day?" sheet (D7 a: the
- * map's own day stepper), and (T29) a tab press scrolling to its section. Mounted over the frozen golden page
+ * sections (header-one-shape, one scroll, licence-last, no part strip), the date pill (D7 a; T49: it asks the water
+ * screen for "Which day?", the map's own calendar sheet — WaterScreen.regs-props.test), and (T29) a tab press scrolling to its section. Mounted over the frozen golden page
  * (fixtures/vedder_1010.json, buildRegsPage over the parity store).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -18,7 +18,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 const page = vedder1010 as unknown as RegsPage;
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 function mount(p: Partial<RegsScreenProps> = {}) {
-  return render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} day={null} onDay={() => {}}
+  return render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                             gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                             licence={<Text>licence section</Text>} {...p} />);
 }
@@ -81,16 +81,11 @@ describe("<RegsScreen>", () => {
     expect(screen.queryByTestId("regs-action")).toBeNull();
   });
 
-  it("the pill opens 'Which day?' holding the map's day stepper; a step moves THE day (null = today)", () => {
-    const onDay = vi.fn();
-    mount({ onDay });
-    expect(screen.queryByText("Which day?")).toBeNull();
+  it("the pill asks for 'Which day?' (T49: the water screen's sheet, so a reload does not close it); no sheet of its own", () => {
+    const onDate = vi.fn();
+    mount({ onDate });
     fireEvent.click(screen.getByRole("button", { name: "Change date, now Oct 10" }));
-    expect(screen.getByText("Which day?")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "One day earlier" }));
-    const got = onDay.mock.calls[0]![0] as Date, want = new Date();
-    want.setDate(want.getDate() - 1);
-    expect(got.toDateString()).toBe(want.toDateString());
+    expect([onDate.mock.calls.length, screen.queryByText("Which day?")]).toEqual([1, null]);
   });
 
   it("(T29) a tab press selects it at once and scrolls to its section top + 2 (prototype 2000); Keep scrolls to 0", () => {

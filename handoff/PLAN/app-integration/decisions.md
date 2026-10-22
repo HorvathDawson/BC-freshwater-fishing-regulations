@@ -144,3 +144,10 @@ separate view of its own (today the Conditions legend's Flow / Level switch; the
 layers menu — decide with the layers registry). In the Level view, check and
 disclose tidal or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
 before the data rebuild; the estimate stays pipeline-generated with the app mirror held equal.
+
+## T49 default (2026-10-22) — which days the date sheet offers (OWNER QUESTION)
+The data is one 366-day calendar with no year, so a date in another year would read as the same month and day of this
+one. Default implemented (`@app/core` `dayRange`): the picker offers TODAY'S CALENDAR YEAR (Jan 1 – Dec 31), cut earlier
+when the release states `regulations.valid_until` (inside the year and not yet passed); today is always offered. Other
+days are disabled and the sheet says why. If not: a rolling 12 months, or the synopsis edition (Apr 1 – Mar 31) — one
+function (`dayRange`) and its tests change; the sheets do not.

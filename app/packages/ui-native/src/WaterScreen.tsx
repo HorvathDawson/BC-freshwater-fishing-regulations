@@ -16,9 +16,9 @@
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
-import { bookUrl, WORDS, type RegsTarget } from "@app/core";
+import { bookUrl, dayRange, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAnglerProfile, useRegsPage, useRegsStore, useRegsTarget, useRegulations, useWater } from "@app/ui";
@@ -27,6 +27,7 @@ import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { FishImages } from "./regs/types";
+import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen, TabPending } from "./regs/RegsScreen";
 import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
@@ -71,6 +72,18 @@ export function WaterScreen({ source, item, palette, onBack,
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
   const views = useContext(WaterViewsContext);
   const swipe = views?.bodySwipe ?? null;
+  /*
+   * (T49) "WHICH DAY?" — the date pill's sheet, the same `DaySheet` the map's calendar button opens, on THE day. Kept
+   * HERE, not in `RegsScreen`: a new day reloads the page, so the page draws its loading frame and then remounts on the
+   * next day's answer — a sheet inside it closed under the reader at every step. Here it stays open across the reload
+   * (drawn beside whichever frame is up), and back closes it first (a `<Sheet>`).
+   */
+  const [dayOpen, setDayOpen] = useState(false);
+  const daySheet = loader && (
+    <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={(x) => onDay?.(x)}
+              // the same days the map's date sheet offers: this calendar year, cut at the release's last day
+              range={dayRange(new Date(), loader.manifest?.regulations?.valid_until ?? null)} />
+  );
 
   if (sheet.state === "loading") {
     return (
@@ -97,7 +110,8 @@ export function WaterScreen({ source, item, palette, onBack,
   if (loader && regs && !regsError) {
     const label = (t: string) => regs.header.tabs.find((x) => x.tab === t)?.label ?? "";
     return (
-      <RegsScreen page={regs} palette={palette} images={fishImages} day={day} onDay={(x) => onDay?.(x)} onBack={onBack}
+      <>
+      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)} onBack={onBack}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
@@ -112,6 +126,8 @@ export function WaterScreen({ source, item, palette, onBack,
                     : <TabPending label={label("methods")} palette={palette} />}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : <TabPending label={label("licence")} palette={palette} />} />
+      {daySheet}
+      </>
     );
   }
 
@@ -131,10 +147,14 @@ export function WaterScreen({ source, item, palette, onBack,
       </View>
     </>
   );
+  // the day sheet in the SAME place as beside the page above, so a reload's loading frame keeps it (it does not remount)
   return (
+    <>
     <ScrollView style={{ flex: 1, backgroundColor: palette.card }} contentContainerStyle={{ flexGrow: 1 }}>
       {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{page}</ViewSwipe> : page}
     </ScrollView>
+    {daySheet}
+    </>
   );
 }
 

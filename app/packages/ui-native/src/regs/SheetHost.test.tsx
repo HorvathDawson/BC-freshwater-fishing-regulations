@@ -100,7 +100,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     let close: (() => void) | null = null;
     const layers: BackLayers = { register: (c) => { log.push("register"); close = c; return () => { log.push("unregister"); }; },
       back: () => { log.push("back"); close?.(); return true; } };
-    render(<BackLayerContext.Provider value={layers}><RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} day={null} onDay={() => {}} /></BackLayerContext.Provider>);
+    render(<BackLayerContext.Provider value={layers}><RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} /></BackLayerContext.Provider>);
     fireEvent.click(screen.getByText("Kokanee"));
     act(() => { close!(); });
     expect([log, screen.queryByLabelText("Done"), !!screen.getByTestId("regs-view")]).toEqual([["register", "unregister"], null, true]);
@@ -114,7 +114,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
   });
 
   it("6. the sheet sits over the regs view: the header's place and date stay mounted (howtell-current-water)", () => {
-    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} day={null} onDay={() => {}} />);
+    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}} />);
     fireEvent.click(screen.getByText("Kokanee"));
     expect(screen.getByRole("heading", { name: "Kokanee" })).toBeTruthy();
     expect(screen.getByText(VEDDER.header.date)).toBeTruthy();

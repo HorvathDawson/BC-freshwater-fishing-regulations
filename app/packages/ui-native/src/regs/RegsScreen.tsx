@@ -4,7 +4,7 @@
  * four tabs) FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
  *
- * Owns the layout state only: the day sheet's open flag, the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
+ * Owns the layout state only: the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
  * React's render path) and the anchors. The tabs are not a pager (D1 a): a press scrolls to its section
  * (`tabScrollY`), and the scroll moves the selected tab (`tabInView`). No words of its own and no regulation logic:
  * every string is the RegsPage's.
@@ -20,7 +20,6 @@ import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { GUTTER, SPACE, type Palette } from "../theme";
-import { DaySheet } from "./DaySheet";
 import { KeepTab } from "./KeepTab";
 import type { KeepActions } from "./LineText";
 import { PinBar } from "./PinBar";
@@ -39,9 +38,11 @@ export interface RegsScreenProps {
   images?: FishImages;
   /** what a Keep link does (the tab links are this screen's: they scroll to the section) */
   actions: Omit<KeepActions, "onTab">;
-  /** THE ONE DAY (the Shell's `mapDay`; null = today) and its setter — the date pill's sheet moves it for the map too (D7) */
-  day: Date | null;
-  onDay: (d: Date | null) => void;
+  /**
+   * The date pill: opens "Which day?" (T49). The sheet is the water screen's, not this one's: a new day reloads the page
+   * (this screen remounts on the next day's answer), and a sheet kept here closed under the reader at every step.
+   */
+  onDate: () => void;
   /** back, drawn in the water's header row (FaceBar) */
   onBack?: () => void;
   /** the Map button: this water's map view. Absent → the button is not drawn (its slot stays). */
@@ -66,13 +67,12 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
   );
 }
 
-export function RegsScreen({ page, palette, images, actions, day, onDay, onBack, onMap, onParts,
+export function RegsScreen({ page, palette, images, actions, onDate, onBack, onMap, onParts,
                              gear, methods, licence, footer, store: injected }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
-  const [dayOpen, setDayOpen] = useState(false);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the fixed header and the scroll's
   // content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx
   const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
@@ -102,7 +102,7 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
       <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s2 }}>
         <FaceBar palette={palette} face="regulations" onBack={onBack} backLabel="Back" onFace={() => {}} />
       </View>
-      <RegsHeader header={page.header} palette={palette} tabs={store} onDate={() => setDayOpen(true)}
+      <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate}
                   onAction={onAction} onTab={toTab} />
     </View>
   );
@@ -142,7 +142,6 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
         </ScrollView>
         <PinBar store={store} palette={palette} />
       </View>
-      <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={onDay} />
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} />
     </View>
