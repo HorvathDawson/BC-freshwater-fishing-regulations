@@ -21,6 +21,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
 import { creditsFor, parseSheetKey, tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { Credits } from "../Credits";
+import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
@@ -85,6 +86,11 @@ export interface RegsScreenProps {
    */
   start?: RegsStart | null;
   onStarted?: () => void;
+  /**
+   * The release's edition has lapsed (core `regsLapsedNote`: past `regulations.valid_until`): its sentence, drawn first
+   * in the scroll with the out-of-date dot (`FreshDot`, the Data block's). Null/absent: in force, or no stamp — nothing.
+   */
+  lapsed?: string | null;
 }
 
 /** A tab section whose presenter the app does not draw yet: says so, and where to look instead (never a blank). */
@@ -97,7 +103,8 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts,
-                             gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted }: RegsScreenProps) {
+                             gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
+                             lapsed = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -167,6 +174,12 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   };
   const body = (
     <View ref={content} collapsable={false} testID="regs-content">
+      {lapsed && (
+        <WaterInset testID="regs-lapsed" style={{ paddingTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+          <View style={{ paddingTop: 4 }}><FreshDot palette={palette} kind="stale" /></View>
+          <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
+        </WaterInset>
+      )}
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>

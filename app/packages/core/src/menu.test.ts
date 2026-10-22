@@ -4,8 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutVM, agoWords, contactVM, diagnosticRows, sourceFreshness, glossaryRows, isoDayWords, mailtoUrl, regsReportWhere,
-  reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
+  aboutVM, agoWords, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
+  mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
@@ -146,7 +146,7 @@ describe("data sources & dates", () => {
     const vm = sourcesVM({ sources: { synopsis: { title: "2025–2027 Synopsis", date: null } }, validUntil: "2027-03-31",
                            tiles: null, feedFetchedAt: null, now });
     expect(vm.rows[0]).toEqual({ k: "synopsis", name: "2025–2027 Synopsis",
-      what: "The Province of British Columbia's printed regulations, read water by water", when: "In force until Mar 31, 2027",
+      what: "The Province of British Columbia's printed regulations, read water by water", when: "Valid to Mar 31, 2027",
       badge: { kind: "fresh", label: "Up to date" } });
     // a printing date, when one is recorded, is what the row says
     expect(sourcesVM({ sources: { synopsis: { title: "S", date: "2025-03-20" } }, validUntil: "2027-03-31", tiles: null,
@@ -215,16 +215,30 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
   });
 
-  it("the regulations: in force THROUGH their last day, likely out of date the day after, unknown with no last day — " +
-     "and likely out of date once a newer release is known", () => {
+  it("the regulations: in force THROUGH their last day on the reader's calendar, OUT of date the day after, unknown " +
+     "with no last day — and likely out of date once a newer release is known", () => {
     const last = "2027-03-31";
-    expect([at("synopsis", { validUntil: last }, Date.parse("2027-03-31T23:59:00Z")),
-            at("synopsis", { validUntil: last }, Date.parse("2027-04-01T00:00:00Z")),
+    // local times: the release's last day is a B.C. calendar day, not a UTC one (UTC midnight is 5 pm on Mar 31 here)
+    expect([at("synopsis", { validUntil: last }, new Date(2027, 2, 31, 23, 59).getTime()),
+            at("synopsis", { validUntil: last }, new Date(2027, 3, 1, 0, 0).getTime()),
             at("synopsis", { validUntil: null }, now),
+            at("synopsis", { validUntil: "soon" }, now),
             at("synopsis", { validUntil: last, newRelease: "r-new" }, now),
             at("synopsis", { validUntil: null, newRelease: "r-new" }, now)])
-      .toEqual(["synopsis Up to date", "synopsis Likely out of date", "synopsis Unknown", "synopsis Likely out of date",
-                "synopsis Likely out of date"]);
+      .toEqual(["synopsis Up to date", "synopsis Out of date", "synopsis Unknown", "synopsis Unknown",
+                "synopsis Likely out of date", "synopsis Likely out of date"]);
+  });
+
+  it("ONE lapse rule (regsLapsed) and its one sentence (regsLapsedNote): none without a stamp or before the day after", () => {
+    const last = "2027-03-31";
+    const eve = new Date(2027, 2, 31, 23, 59).getTime(), next = new Date(2027, 3, 1, 0, 0).getTime();
+    expect([regsLapsed(last, eve), regsLapsed(last, next), regsLapsed(null, next), regsLapsed(undefined, next),
+            regsLapsed("2027-3-31", next)]).toEqual([false, true, false, false, false]);
+    expect([regsLapsedNote(last, eve), regsLapsedNote(last, next), regsLapsedNote(null, next)]).toEqual([
+      null,
+      "Out of date: these regulations were valid to Mar 31, 2027. Check the current Synopsis and the Province's " +
+        "notices before you fish.",
+      null]);
   });
 
   it("the map tiles by the proven pair and the release; the in-season changes not read; weather and imagery live", () => {

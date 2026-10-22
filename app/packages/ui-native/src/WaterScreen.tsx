@@ -19,7 +19,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, regsLapsedNote, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
@@ -130,6 +130,8 @@ export function WaterScreen({ source, item, palette, onBack,
       {frame(null, (
       <RegsScreen page={regs} palette={palette} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
                   start={start} onStarted={onStarted}
+                  // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
+                  lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{

@@ -66,6 +66,18 @@ describe("<RegsScreen>", () => {
     expect(scrolls).toEqual([scrollEl()]);
   });
 
+  it("a lapsed edition: core's sentence leads the page, above Keep; in force (or no stamp) it is not drawn", () => {
+    const said = "Out of date: these regulations were valid to Mar 31, 2027. Check the current Synopsis and the " +
+      "Province's notices before you fish.";
+    mount({ lapsed: said });
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 2))
+      .toEqual(["regs-lapsed", "keep-tab"]);
+    expect(screen.getByTestId("regs-lapsed").textContent).toBe(said);
+    cleanup();
+    mount({ lapsed: null });
+    expect(screen.queryByTestId("regs-lapsed")).toBeNull();
+  });
+
   it("licence-last: Keep, Gear, Methods, Licence, then the footer, in the one scroll; absent sections are not drawn", () => {
     mount({ footer: <Text testID="foot">foot</Text> });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))

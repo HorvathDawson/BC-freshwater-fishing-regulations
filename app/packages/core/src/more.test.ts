@@ -37,7 +37,22 @@ describe("the Data block: always at the top of More, one line per source", () =>
       syn({ validUntil: "2027-03-31" }),
       syn({ sources: { synopsis: { title: "S", date: "2025-03-20" } } }),
       syn({ sources: null }),
-    ]).toEqual(["In force to Mar 31, 2027", "Printed Mar 20, 2025", "Date not recorded"]);
+    ]).toEqual(["Valid to Mar 31, 2027", "Printed Mar 20, 2025", "Date not recorded"]);
+  });
+
+  it("past the last day the regulations line says OUT of date (not 'likely') and the block counts it", () => {
+    // the reader's own calendar: the evening of the last day is still in force, the next morning is not
+    const at = (now: number) => {
+      // every other source dated the same week, so the regulations line is the only one that can go stale
+      const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
+      const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
+      const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(), now });
+      return `${v.lines[0]!.name} · ${v.lines[0]!.when} · ${v.lines[0]!.badge.kind} ${v.lines[0]!.badge.label} | ${v.summary.label}`;
+    };
+    expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
+      "Regulations · Valid to Mar 31, 2027 · fresh Up to date | All up to date",
+      "Regulations · Valid to Mar 31, 2027 · stale Out of date | 1 likely out of date",
+    ]);
   });
 
   it("a newer release known: the regulations and the map lines are likely out of date; the flows keep their own hours", () => {

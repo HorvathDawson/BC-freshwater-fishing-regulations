@@ -44,7 +44,7 @@ export const MORE_WORDS = {
       tiles: "Map", basemap: "Basemap", imagery: "Satellite imagery",
     },
     when: {
-      inForce: (day: string) => `In force to ${day}`,
+      validTo: (day: string) => `Valid to ${day}`,
       printed: (day: string) => `Printed ${day}`,
       edition: (years: string) => `${years} edition`,
       notRecorded: "Date not recorded",
@@ -93,7 +93,7 @@ function lineWhen(k: DataLineKey, s: SourcesInput): string {
       const printed = isoDayWords(s.sources?.synopsis?.date);
       // the edition's own years, read off the title the release states ("2025–2027 BC Freshwater …"), never guessed
       const years = /^(\d{4}[–-]\d{4})\b/.exec(s.sources?.synopsis?.title ?? "")?.[1];
-      return until ? w.inForce(until) : printed ? w.printed(printed) : years ? w.edition(years) : w.notRecorded;
+      return until ? w.validTo(until) : printed ? w.printed(printed) : years ? w.edition(years) : w.notRecorded;
     }
     case "inseason": return w.inseason;
     case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))

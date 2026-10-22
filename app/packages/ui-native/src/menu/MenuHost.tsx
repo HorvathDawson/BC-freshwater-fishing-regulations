@@ -86,7 +86,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
         )}
       </MenuPage>
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
-        sources: m?.sources ?? null, validUntil: m?.regulations.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
+        sources: m?.sources ?? null, validUntil: m?.regulations?.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
         newRelease, now: Date.now() })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,

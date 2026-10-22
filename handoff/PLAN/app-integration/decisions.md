@@ -460,3 +460,18 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   what the runtime theme paints): `shots/dark-water-ink-{before,after}-{map-z9,map-z12,conditions-z12}.png`.
 - **Rebuild:** none for data. The app picks up the theme at runtime; the served :39218 app shows the new ink once
   it runs this branch.
+## CLAUDE 2026-10-22 (owner delegated) — the release stamps `valid_until`
+- SOURCE: the synopsis's own cover ("EFFECTIVE APRIL 1, 2025 THROUGH MARCH 31, 2027", repeated inside as "valid from
+  April 1, 2025, to March 31, 2027"), read by ONE reader, `pipeline/common/synopsis_pages.synopsis_period`. No date is
+  typed anywhere; statements that disagree, or a book that states none, or a missing PDF stop the build (an empty stamp
+  would ship a release the app cannot tell has lapsed). `BOOK_TITLE`'s years are held to the read period by a test.
+- ONE STAMP: the bundle's meta `valid_until` (`bundle/build.edition_valid_until`), which the release already copied into
+  `manifest.regulations.valid_until` — so the bundle and the manifest cannot disagree. Lands with the next `deliver all`
+  (not run here); today's live releases say `null`, and the app treats that as "no stamp".
+- APP (core owns the words, one rule): `regsLapsed(validUntil, now)` — in force THROUGH the last day on the READER'S
+  calendar (a B.C. day, like every day the app reads; the old UTC rule lapsed at 5 pm on Mar 31). The More tab's Data
+  block line reads "Regulations · Valid to Mar 31, 2027" (the Data sources page says "Valid to" too); past it the badge
+  says "Out of date" (not "likely": the edition has lapsed) and the Regulations page leads with "Out of date: these
+  regulations were valid to <day>. Check the current Synopsis and the Province's notices before you fish." (the
+  out-of-date dot, `accessibilityRole="alert"`). No stamp: no "Valid to" line (the edition's years, as before), never
+  lapsed, no note.

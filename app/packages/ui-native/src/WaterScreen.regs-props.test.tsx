@@ -55,6 +55,18 @@ describe("<WaterScreen> regulations", () => {
       .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence"]);
   }, 30_000);
 
+  it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {
+    const live = openRegsFixture();
+    const lapsed: ReleaseLoader = Object.assign(Object.create(Object.getPrototypeOf(live)), live, {
+      manifest: { ...live.manifest, regulations: { ...live.manifest.regulations, valid_until: "2020-03-31" } } });
+    render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
+                        loader={lapsed} day={new Date(2026, 9, 10, 12)} part={0} />);
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+    expect(screen.getByTestId("regs-lapsed").textContent).toBe("Out of date: these regulations were valid to Mar 31, " +
+      "2020. Check the current Synopsis and the Province's notices before you fish.");
+    expect(screen.getByRole("alert").textContent).toBe(screen.getByTestId("regs-lapsed").textContent);
+  }, 30_000);
+
   it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={1} />);

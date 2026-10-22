@@ -16,6 +16,7 @@
  *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
  *                   without the user pressing send, and nothing is sent in the background
  */
+import { localDate } from "./day";
 import { monthAbbr } from "./flow";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import { ICON_CREDIT } from "./iconSet";
@@ -82,7 +83,7 @@ export const MENU_WORDS = {
     intro: "Every answer in this app comes from one of these. Each says when it was last updated.",
     notRecorded: "Date not recorded in this release",
     updated: (day: string) => `Updated ${day}`,
-    inForce: (day: string) => `In force until ${day}`,
+    validTo: (day: string) => `Valid to ${day}`,
     notRead: "Not read by this app: check them before you fish",
     version: (v: string) => `Version ${v}`,
     checked: (ago: string) => `Checked ${ago}`,
@@ -293,7 +294,28 @@ export const FRESHNESS_WORDS = {
   live: "Live",
   /** the in-season changes: the app does not read them, so their freshness is the reader's to check */
   notRead: "Not read",
+  /** the regulations past their last day: not "likely" — the edition has lapsed (`regsLapsed`) */
+  lapsed: "Out of date",
 } as const;
+
+/**
+ * THE ONE LAPSE RULE (owner 2026-10-22 late: the release stamps `valid_until`, the synopsis period's end): the
+ * regulations are in force THROUGH their last day on the READER'S calendar (a B.C. day, like every day the app reads —
+ * `day.ts`), and out of date from the next local day. No stamp, or one that is not an ISO day (today's live release
+ * states none): never lapsed — the app does not say so on a guess.
+ */
+export function regsLapsed(validUntil: string | null | undefined, now: number): boolean {
+  return isoDayWords(validUntil) !== null && localDate(now) > validUntil!;
+}
+
+/** The sentence a lapsed edition's Regulations page leads with; null while in force or with no stamp. */
+export const REGS_LAPSED_NOTE = (day: string) =>
+  `Out of date: these regulations were valid to ${day}. Check the current Synopsis and the Province's notices before ` +
+  "you fish.";
+
+export function regsLapsedNote(validUntil: string | null | undefined, now: number): string | null {
+  return regsLapsed(validUntil, now) ? REGS_LAPSED_NOTE(isoDayWords(validUntil)!) : null;
+}
 
 const DAY_MS = 86_400_000;
 /** The age in ms of an ISO day at `now` (from its start, UTC), or null when it is not one. */
@@ -320,8 +342,8 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
   if ((s.newRelease ?? null) !== null) return badge("stale");
   if (k === "synopsis") {
     if (isoDayWords(s.validUntil) === null) return badge("unknown");
-    // in force THROUGH its last day: stale only once that whole day (UTC) has passed
-    return badge(s.now >= Date.parse(`${s.validUntil}T00:00:00Z`) + DAY_MS ? "stale" : "fresh");
+    // in force THROUGH its last day (the reader's calendar); after it, out of date — said without "likely"
+    return regsLapsed(s.validUntil, s.now) ? badge("stale", FRESHNESS_WORDS.lapsed) : badge("fresh");
   }
   return badge(s.tilesPaired === true ? "fresh" : s.tilesPaired === false ? "stale" : "unknown");
 }
@@ -367,7 +389,7 @@ export function sourcesVM(s: SourcesInput): {
         // the printing's own date when recorded, else how long the edition is in force, else not recorded
         const printed = isoDayWords(s.sources?.synopsis?.date);
         const until = isoDayWords(s.validUntil);
-        return printed ? w.updated(printed) : until ? w.inForce(until) : w.notRecorded;
+        return printed ? w.updated(printed) : until ? w.validTo(until) : w.notRecorded;
       }
       case "inseason": return w.notRead;
       case "dfo": case "fwa": case "basemap": case "hydat": return dated(s.sources?.[k]);
