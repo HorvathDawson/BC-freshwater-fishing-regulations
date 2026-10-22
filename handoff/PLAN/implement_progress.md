@@ -37,6 +37,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - MERGED: desktop search close (d5f6bbc8 797175e9 d57f4701); HYDAT maintenance notices + notify-once (FEED_NOTIFY_URL)
   + scripts/update-hydat.sh (6894b406..24d43bd8). RUNNING agent: HYDAT line current only when the release's
   sources.hydat.date matches the feed's latest. TICKETS: T53 unnamed regs (queued after back lane), T54 no-access.
+- MERGED slough/canal polygons take their line's panel (5f9af9a7..3462a565; 38 of 45 grey polygons answer on the real
+  graph). NEEDS deliver — batched with Twin Lakes: ONE rebuild = backfill_matched (dry-run, apply) → reach rerun →
+  binding diff → deliver all → pytest test_stream_polygon_panels.py (no ALLOW_PREDATING) → fixtures.
+  Remaining sloughs/canals = T55. RUNNING wf_31731618-a9b (one river system: Vedder/Chilliwack, Atnarko/Bella Coola).
 - RUNNING wf_d6aefe12-cec (owner: Twin Lakes 2-8 closure on BOTH lakes; matcher build_id_index first-writer drops
   multi-polygon lakes; 15 entries). Merger: backfill_matched (dry-run, then apply), reach rerun + binding diff, deliver.
 - FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
