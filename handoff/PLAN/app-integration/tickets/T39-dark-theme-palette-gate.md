@@ -93,7 +93,11 @@ node app/tools/regs-census.mjs --theme dark /tmp/census-dark.json   # needs pnpm
 - The components carry the §2.7 testIDs now (contracts.md "AS BUILT"); the group containers keep `keep-group` /
   `keep-plain` and the pin bar `pin-bar` (renaming them would break T21/T29 tests).
 - Keyed exceptions (census.ts `ALLOW`, each with its reason): the caveat block's `restricted` left rule (T42), the closed
-  banner's `closed` top rule, the licence paper note's `tint` ground (`note:paper`, prototype `.gtopic .paper`).
+  banner's `closed` top rule, the licence paper note's `tint` ground (`note:paper`, prototype `.gtopic .paper`). A key
+  excuses its own element (a border: its one side) only, never what the element holds (review fix: a `closed` rule on a
+  banner chain row, or a tinted run inside the paper note, is a fault).
+- An Other-fish row with no picture (thumb null: Crayfish, Protected species) draws the prototype's `.th.sil` silhouette
+  (a `line2` fish shape, no ground) as `pic:none` — it was a filled `line2` tile no rule saw (review fix).
 - Rule 3 also covers rules (borders): a status colour on a border only on a status element or a keyed exception.
 - `theme.test.ts` unchanged: T22 already holds `sub` at the prototype's value (`tools/regs-tokens.test.ts`); `faint` is
   NOT the prototype's in the app (it stays the app-wide token, banned as regs text by D3 — regs-tokens' lint + rule 2).

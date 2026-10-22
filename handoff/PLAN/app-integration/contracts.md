@@ -413,7 +413,7 @@ testID (a nested run inherits its Text's role). In use —
   chain's Source button and level label (`.srcbtn`) — the only text a `tint` ground may sit behind.
 - `btn:<value>` each segmented `Choice` option (the Licence tab's who-selector: `card` text on `ink` when checked).
 - non-role marks the gate reads: `tier:size` / `pin:size` (the size section's line: its numbers are drawn in `rule`, UR7
-  owner B), `pic:<code>` (a fish picture: no ground of its own, D4 a), `note:paper` (the licence paper note: keyed
+  owner B), `pic:<code>` (a fish picture: no ground of its own, D4 a; `pic:none` the silhouette of a row with no picture), `note:paper` (the licence paper note: keyed
   `tint` exception, census.ts ALLOW), group containers `keep-group` / `keep-plain` and the pin bar `pin-bar` (the ticket's
   `group:<i>` / `pins` were not renamed: T21/T29 tests read the existing ids).
 

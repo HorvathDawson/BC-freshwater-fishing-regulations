@@ -35,14 +35,15 @@ export const TEXT_TOKENS: readonly (keyof Palette)[] = ["ink", "sub", "accent", 
 export const STATUS_TOKENS: readonly (keyof Palette)[] = ["open", "closed", "restricted"];
 
 /**
- * KEYED EXCEPTIONS — each a testID, the rule it is excepted from, and why. Nothing else is excepted; a new entry needs a
+ * KEYED EXCEPTIONS — each a testID, the rule it is excepted from (a border: on which side), and why. Only the keyed
+ * element itself is excepted, never what it holds. Nothing else is excepted; a new entry needs a
  * reason the prototype gives (cite its CSS / check), never "the gate failed".
  */
-export const ALLOW: readonly { testID: string; rule: "border" | "tint"; reason: string }[] = [
-  { testID: "keep-caveat", rule: "border",
+export const ALLOW: readonly { testID: string; rule: "border" | "tint"; side?: "top" | "left"; reason: string }[] = [
+  { testID: "keep-caveat", rule: "border", side: "left",
     reason: "T42: the caveat block's 3 px left rule is `restricted` on purpose (prototype .caveats border-left: it marks "
       + "'restricted here at some times, sides or anglers'); its label (testID kicker:<kind>) stays sub" },
-  { testID: "keep-banner", rule: "border",
+  { testID: "keep-banner", rule: "border", side: "top",
     reason: "the closed banner's 1.5 px top rule is `closed` (prototype .banner border-top), over its own st:closed words" },
   { testID: "note:paper", rule: "tint",
     reason: "the licence paper note (prototype .gtopic .paper: background --wash, which IS --tint at v38) — a note "
@@ -139,8 +140,10 @@ export function census(root: HTMLElement, palette: Palette): CensusHit[] {
 }
 
 const say = (h: CensusHit) => `“${h.text.slice(0, 40)}”`;
-const allowed = (el: Element, rule: "border" | "tint") =>
-  ALLOW.some((a) => a.rule === rule && el.closest(`[data-testid="${a.testID}"]`) !== null);
+/** A key excuses its OWN element (and, for a border, its one side) — never a descendant: a status rule on a banner chain
+ *  row, or a tinted run inside the paper note, is still a fault. */
+const allowed = (el: Element, rule: "border" | "tint", side?: string) =>
+  ALLOW.some((a) => a.rule === rule && testIdOf(el) === a.testID && (rule !== "border" || a.side === side));
 
 /**
  * The r20g / r20i rules over one tab's tree (rules 1–6 and 9 of the ticket). Each fault is one string; `[]` is a pass.
@@ -201,7 +204,7 @@ export function borderFaults(root: HTMLElement, palette: Palette): string[] {
       const w = parseFloat(s.getPropertyValue(`border-${side.toLowerCase()}-width`) || "0"), c = s.getPropertyValue(`border-${side.toLowerCase()}-color`);
       if (!(w > 0) || !c) continue;
       const t = tokenOf(palette, getComputedStyle(el).getPropertyValue(`border-${side.toLowerCase()}-color`) || c);
-      if (t.some((k) => STATUS_TOKENS.includes(k)) && roleOf(el) !== "status" && !allowed(el, "border"))
+      if (t.some((k) => STATUS_TOKENS.includes(k)) && roleOf(el) !== "status" && !allowed(el, "border", side.toLowerCase()))
         bad.push(`a ${nameOf(t)} ${side.toLowerCase()} rule on ${testIdOf(el) ?? el.tagName.toLowerCase()} “${(el.textContent ?? "").slice(0, 30)}”`);
     }
   }

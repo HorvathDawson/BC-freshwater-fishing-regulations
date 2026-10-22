@@ -203,7 +203,21 @@ describe("each rule fails its mutant", () => {
     expect(borderFaults(bad, P)).toEqual(["a restricted left rule on keep-somewhere “Some times”"]);
     cleanup();
     expect(borderFaults(tree(<View testID="keep-caveat" style={rule}><Text testID="kicker:times" style={{ color: P.sub }}>Some times</Text></View>), P)).toEqual([]);
-    expect(ALLOW.map((a) => [a.testID, a.rule])).toEqual([["keep-caveat", "border"], ["keep-banner", "border"], ["note:paper", "tint"]]);
+    expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null]]);
+  });
+
+  it("3 status (rules): a key excuses its own element and side only — never what it holds (P11: a closed rule on a banner chain row)", () => {
+    const root = tree(<>
+      <View testID="keep-banner" style={{ borderTopWidth: 1.5, borderTopColor: P.closed, borderLeftWidth: 2, borderLeftColor: P.closed }}>
+        <Text testID="st:closed" style={{ color: P.closed }}>Closed</Text>
+        <View style={{ borderTopWidth: 1, borderTopColor: P.closed }}><T c={P.ink} s="chain row" /></View>
+      </View>
+      <View testID="keep-caveat" style={{ borderLeftWidth: 3, borderLeftColor: P.restricted }}>
+        <View style={{ borderLeftWidth: 3, borderLeftColor: P.open }}><T c={P.sub} s="caveat item" /></View>
+      </View>
+    </>);
+    expect(borderFaults(root, P)).toEqual([
+      "a closed left rule on keep-banner “Closedchain row”", "a closed top rule on div “chain row”", "a open left rule on div “caveat item”"]);
   });
 
   it("4 filled: card / onAccent text off a filled control", () => {
@@ -233,6 +247,11 @@ describe("each rule fails its mutant", () => {
       "keep: tint behind a non-chip text “band”", "keep: a background that is not tint or card (line2) behind “grey chip”"]);
   });
 
+  it("6 tint: the paper note's key excuses the note's own ground, not a tinted run inside it", () => {
+    const root = tree(<Text testID="note:paper" style={{ color: P.ink, backgroundColor: P.tint }}>Carry <Text style={{ color: P.ink, backgroundColor: P.tint }}>your paper</Text></Text>);
+    expect(textFaults(root, P, "licence").tint).toEqual(["licence: tint behind a non-chip text “your paper”"]);
+  });
+
   it("7 one surface: a painted View inside a group; the card and a chip pass", () => {
     const root = tree(<View testID="keep-group">
       <View style={{ backgroundColor: P.card }}><T c={P.ink} /></View>
@@ -248,6 +267,17 @@ describe("each rule fails its mutant", () => {
       <View><View testID="pic:CT"><View style={{ width: 80, height: 40 }} /></View></View>
     </>);
     expect(pictureFaults(root)).toEqual([`pic:RB: its parent paints ${rgbOf(P.tint)}`, `pic:RB: div paints ${rgbOf(P.line2)}`]);
+  });
+
+  it("8 pictures: a fish with no picture (vedder_1010's Crayfish, Protected species) draws the prototype's silhouette — a pic:none, no ground", () => {
+    const rows = PAGES.vedder_1010!.keep.otherFish!;
+    const root = drawTab("keep", PAGES.vedder_1010!, P);
+    const list = root.querySelector<HTMLElement>('[data-testid="keep-otherfish"]')!;
+    expect([list.querySelectorAll('[data-testid^="pic:"]').length, list.querySelectorAll('[data-testid="pic:none"]').length])
+      .toEqual([rows.length, rows.filter((r) => r.thumb === null).length]);
+    expect(rows.filter((r) => r.thumb === null).length).toBeGreaterThan(0);
+    expect(list.querySelector('[data-testid="pic:none"] svg')).not.toBeNull();
+    expect(pictureFaults(list)).toEqual([]);
   });
 
   it("9 release: a release word under 700", () => {

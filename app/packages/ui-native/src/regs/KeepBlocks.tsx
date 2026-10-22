@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 import { WORDS, type BannerVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -146,12 +147,19 @@ export function PossessionRow({ possession, palette, actions }: { possession: Po
   );
 }
 
+/** A row's picture; a row with no picture (Crayfish, Protected species: thumb null) draws the prototype's silhouette
+ *  (`.th.sil`: a line2 fish shape, no ground) — never a filled tile. Both carry `pic:` (rule 8 sees them). */
 function Thumb({ code, images, palette }: { code: string | null; images: FishImages | undefined; palette: Palette }) {
   const src = code ? images?.[code]?.[0] : undefined;
   return (
-    <View testID={code ? `pic:${code}` : undefined} style={{ width: 64, alignItems: "center" }}>
+    <View testID={`pic:${src ? code : "none"}`} aria-hidden={!src || undefined} style={{ width: 64, alignItems: "center" }}>
       {src ? <Image source={src} style={{ width: 64, height: 32 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-        : <View style={{ width: 40, height: 20, backgroundColor: palette.line2 }} />}
+        : (
+          <Svg width={40} height={20} viewBox="0 0 64 32">
+            <Path d="M6 16c7-8 18-11 29-9.5 7 1 12 4.5 16 9.5-4 5-9 8.5-16 9.5C24 27 13 24 6 16Zm45 0 9-7.5v15Z" fill={palette.line2} />
+            <Circle cx={15} cy={14} r={1.6} fill={palette.tint} />
+          </Svg>
+        )}
     </View>
   );
 }

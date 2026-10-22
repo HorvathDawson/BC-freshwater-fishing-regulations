@@ -59,7 +59,7 @@ const CENSUS = (tok) => `(() => {
       if (n.some(x => x === 'card' || x === 'onAccent') && r !== 'button') bad.push(id + ': ' + nameOf(c) + ' text off a filled control “' + t + '”');
       if (r === 'number' && !n.includes(e.closest('[data-testid="tier:size"]') ? 'rule' : 'ink')) bad.push(id + ': a number in ' + nameOf(c) + ' “' + t + '”');
       const bg = getComputedStyle(e).backgroundColor; if (!/rgba\\(0, 0, 0, 0\\)|transparent/.test(bg)) { const b = names[bg] || [];
-        if (b.includes('tint') ? (r !== 'chip' && !e.closest('[data-testid="note:paper"]')) : !b.includes('card')) bad.push(id + ': ' + (b[0] || bg) + ' behind a ' + r + ' “' + t + '”'); }
+        if (b.includes('tint') ? (r !== 'chip' && e.dataset.testid !== 'note:paper') : !b.includes('card')) bad.push(id + ': ' + (b[0] || bg) + ' behind a ' + r + ' “' + t + '”'); }
       if (e.closest('[data-testid="st:release"]') && parseInt(getComputedStyle(e).fontWeight) < 700 && !/_[7-9]00/.test(getComputedStyle(e).fontFamily)) bad.push(id + ': release not bold “' + t + '”'); }
     document.querySelectorAll('[data-testid="keep-group"], [data-testid="keep-plain"], [data-testid="pin-bar"]').forEach(g => { if (!root.contains(g)) return;
       [g, ...g.querySelectorAll('*')].forEach(e => { const bg = getComputedStyle(e).backgroundColor; if (/rgba\\(0, 0, 0, 0\\)|transparent/.test(bg) || (names[bg] || []).includes('card') || role(e) === 'chip' || e.closest('svg')) return;
