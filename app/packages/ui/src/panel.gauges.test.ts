@@ -81,7 +81,7 @@ describe("a gauge ECCC does not list as real-time (index.json `listed`)", () => 
       ["LEAD", "Reads lower than 8 days in 10 at this time of year.",
        "LEAD, upstream, same size, 100 per cent of the answer"],
       ["RANKLESS", "Reporting, but its reading cannot be ranked today.",
-       "RANKLESS, downstream, same size, not reporting today, so it counts for nothing"],
+       "RANKLESS, downstream, same size, reporting but not ranked today, so it counts for nothing"],
     ]);
     expect(vm.silent).toBe("Not reporting: STALE (last 17 Oct, 10:00 PDT) · GONE (not a real-time gauge)");
   });

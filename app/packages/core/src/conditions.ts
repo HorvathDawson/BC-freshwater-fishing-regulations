@@ -193,8 +193,18 @@ export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon }
   return "Not reporting today.";
 }
 
+/**
+ * A MEMBER THAT REPORTS BUT CANNOT BE RANKED at this horizon — `donorReads`' "Reporting, but …" branch, and the one
+ * percentile-less member that stays a row. Every word about a member (its row label, its pin, its key) asks this, so
+ * the map never says "not reporting" beside a row that says it reports (review 2026-10-22).
+ */
+export function donorUnranked(r: Pick<DonorFacts, "percentile" | "realtime" | "observedAt">,
+                              o: { ref?: number; horizon?: Horizon } = {}): boolean {
+  return r.percentile === null && r.realtime !== false && !o.horizon && reportingUnranked(r, o.ref);
+}
+
 /** No percentile, but a report within a day of `ref`: it speaks, its reading just cannot be ranked. */
-function reportingUnranked(r: DonorFacts, ref: number | undefined): boolean {
+function reportingUnranked(r: Pick<DonorFacts, "observedAt">, ref: number | undefined): boolean {
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
   return ref !== undefined && Number.isFinite(t) && Math.abs(ref - t) < DAY;
 }
@@ -289,9 +299,11 @@ export function donorBecause(r: DonorFacts): string {
 }
 
 /** The row's screen-reader name; the weight is drawn as a bar, invisible to a reader. */
-export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean): string {
+export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
+                              o: { ref?: number; horizon?: Horizon } = {}): string {
   const said = r.percentile === null
-    ? `${r.realtime === false ? "not a real-time gauge" : "not reporting today"}, so it counts for nothing`
+    ? `${r.realtime === false ? "not a real-time gauge"
+        : donorUnranked(r, o) ? "reporting but not ranked today" : "not reporting today"}, so it counts for nothing`
     : `${Math.round(r.weight * 100)} per cent of the answer`;
   const base = `${r.station}, ${ROLE[r.role]}, ${sizeApart(r.areaRatio)}, ${said}`;
   return pickable ? `${base}. ${on ? "Showing" : "Show"} this gauge's chart` : base;

@@ -521,7 +521,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       ...placed.map((r): DonorPinVM => {
         const row = toneOf(r);
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
-                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r), rank: row };
+                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, { ref, horizon: o.horizon }), rank: row };
       }),
       // LAST, so it draws over a gauge at the same place.
       ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
@@ -529,7 +529,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),
-      ...placed.map((r) => ({ row: toneOf(r), label: donorMapKey(r) })),
+      ...placed.map((r) => ({ row: toneOf(r), label: donorMapKey(r, { ref, horizon: o.horizon }) })),
     ],
     unplaced: unplacedNote(shown.length - placed.length),
     chain: [...new Set(shown.flatMap((r) => r.route?.path ?? []))],
@@ -563,7 +563,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         lastReport: r.percentile === null ? donorLastReport(r.observedAt, o.zone) : null,
         facts: donorFacts(r),
         because: r.percentile === null ? null : donorBecause(r),
-        label: donorRowLabel(r, o.pickable, on),
+        label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
       };
     }),
     silent,

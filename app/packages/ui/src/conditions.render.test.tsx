@@ -115,7 +115,9 @@ describe("donorView", () => {
       { station: "08MH024", row: 1, name: null, quiet: true, on: true, bar: "1%",
         weightLine: donorWeightLine(b), reads: "Reporting, but its reading cannot be ranked today.",
         lastReport: donorLastReport(early), facts: donorFacts(b),
-        because: null, label: donorRowLabel(b, true, true) },
+        because: null,
+        label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing. "
+          + "Showing this gauge's chart" },
     ]);
     expect(vm.silent).toBe("Not reporting: 08MH099 (last report not known)");
     expect(vm.regulated).not.toBeNull();
@@ -167,7 +169,7 @@ describe("donorView", () => {
     ]);
     // The share on the map is the panel's: a quiet gauge says so, it never reads "0%".
     expect(vm.map.pins.map((p) => p.label))
-      .toEqual(["60%", "not reporting", "0%", "you are here"]);
+      .toEqual(["60%", "reporting, not ranked", "0%", "you are here"]);
     expect(vm.map.bbox).toEqual([-122, 49.0, -121.5, 49.2]);
     expect(vm.map.words).toEqual({ fit: "Fit", fitLabel: "Fit the map to you and the gauges",
                                    larger: "Larger map", smaller: "Smaller map" });

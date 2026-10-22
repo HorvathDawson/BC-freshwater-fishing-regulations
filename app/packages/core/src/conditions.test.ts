@@ -334,6 +334,10 @@ describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)"
       .toBe("08MH001, upstream, 2.4× apart, not a real-time gauge, so it counts for nothing");
     expect(donorRowLabel(row({ percentile: null, realtime: true }), false, false))
       .toBe("08MH001, upstream, 2.4× apart, not reporting today, so it counts for nothing");
+    // A gauge that reports but cannot be ranked: the screen reader hears what the row reads, not "not reporting".
+    expect(donorRowLabel(row({ percentile: null, observedAt: "2026-10-20T20:30:00-08:00" }), false, false,
+                         { ref: REF }))
+      .toBe("08MH001, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing");
   });
   it("a day ahead with no forecast is a missing forecast", () => {
     expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))

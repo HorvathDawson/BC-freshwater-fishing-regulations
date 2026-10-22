@@ -20,6 +20,15 @@ describe("the route map's words", () => {
       .toBe("08MH024 · not a real-time gauge");
   });
 
+  it("a gauge that reports but cannot be ranked is said as that — never 'not reporting' beside a table that says it reports", () => {
+    const ref = Date.parse("2026-10-21T05:00:00Z");
+    const r = { station: "08MH024", weight: 0, percentile: null, observedAt: "2026-10-20T20:35:00-08:00" };
+    expect(donorMapLabel(r, { ref })).toBe("reporting, not ranked");
+    expect(donorMapKey(r, { ref })).toBe("08MH024 · reporting, not ranked");
+    // A report more than a day old is silence, as `donorReads` says it.
+    expect(donorMapLabel(r, { ref: ref + 2 * 86_400_000 })).toBe("not reporting");
+  });
+
   it("names the spot as its key does", () => {
     expect(hereMapLabel()).toBe("you are here");
   });
@@ -39,6 +48,7 @@ describe("the route map's words", () => {
       down: "gauge downstream: your water flows on to it",
       up: "gauge upstream: its water flows down to you",
       quiet: "not reporting",
+      unranked: "reporting, not ranked",
       notRealtime: "not a real-time gauge",
       fit: "Fit",
       fitLabel: "Fit the map to you and the gauges",

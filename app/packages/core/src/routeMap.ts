@@ -6,7 +6,7 @@
  * and fit back. The shares are `donorShare` — the panel's own words for the same number —
  * so the map and the rows under it cannot disagree about what a gauge contributed.
  */
-import { CONDITIONS_WORDS, donorShare, type DonorFacts } from "./conditions";
+import { CONDITIONS_WORDS, donorShare, donorUnranked, type DonorFacts, type Horizon } from "./conditions";
 
 export const ROUTE_MAP_WORDS = {
   /** The key's two line samples. Role is where the GAUGE sits (`PanelRoute.role`). */
@@ -14,6 +14,8 @@ export const ROUTE_MAP_WORDS = {
   up: "gauge upstream: its water flows down to you",
   /** Beside a gauge that is not reporting — it counts for nothing today. */
   quiet: "not reporting",
+  /** Beside a gauge that reports but whose reading cannot be ranked — the row says the same ("Reporting, but …"). */
+  unranked: "reporting, not ranked",
   /** Beside a gauge ECCC does not list as real-time (the feed index's `listed`) — it never reports live. */
   notRealtime: "not a real-time gauge",
   fit: "Fit",
@@ -23,14 +25,19 @@ export const ROUTE_MAP_WORDS = {
 } as const;
 
 /** What a gauge's dot says on the map: its share of the estimate, or that it is quiet. */
-export function donorMapLabel(r: Pick<DonorFacts, "weight" | "percentile" | "realtime">): string {
+type MapFacts = Pick<DonorFacts, "weight" | "percentile" | "realtime" | "observedAt">;
+
+/** `o`: the instant and horizon the answer is for, so a gauge that reports but cannot be ranked is said as that. */
+export function donorMapLabel(r: MapFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
   if (r.percentile !== null) return donorShare(r);
-  return r.realtime === false ? ROUTE_MAP_WORDS.notRealtime : ROUTE_MAP_WORDS.quiet;
+  if (r.realtime === false) return ROUTE_MAP_WORDS.notRealtime;
+  return donorUnranked(r, o) ? ROUTE_MAP_WORDS.unranked : ROUTE_MAP_WORDS.quiet;
 }
 
 /** A gauge's entry in the map's key: its station and the same words its dot carries. */
-export function donorMapKey(r: Pick<DonorFacts, "station" | "weight" | "percentile" | "realtime">): string {
-  return `${r.station} · ${donorMapLabel(r)}`;
+export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station">,
+                            o: { ref?: number; horizon?: Horizon } = {}): string {
+  return `${r.station} · ${donorMapLabel(r, o)}`;
 }
 
 /** The spot's own label on the map — the same words as its key entry. */

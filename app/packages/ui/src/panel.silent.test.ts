@@ -65,7 +65,8 @@ describe("a silent panel member", () => {
     const vm = donorView(answer(), opts());
     if (!vm.ok || !vm.map) throw new Error("expected a map");
     expect(vm.map.pins.map((p) => [p.row, p.lat, p.label])).toEqual([
-      [0, 49.2, "54%"], [1, 49.0, "46%"], [4, 49.1, "not reporting"]]);
+      [0, 49.2, "54%"], [1, 49.0, "46%"], [4, 49.1, "reporting, not ranked"]]);
+    expect(vm.map.keys.map((k) => k.label)).toEqual(["LEAD · 54%", "SECOND · 46%", "RANKLESS · reporting, not ranked"]);
     expect(vm.map.routes.map((r) => [r.row, r.path])).toEqual([
       [0, ["LEAD:1"]], [1, ["SECOND:1"]], [4, ["RANKLESS:1"]]]);
     expect(vm.map.keys.map((k) => k.row)).toEqual([0, 1, 4]);

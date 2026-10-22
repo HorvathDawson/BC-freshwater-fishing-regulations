@@ -78,7 +78,7 @@ describe("<DonorMap>", () => {
     draw();
     expect(seen.at(-1)!.trace!.pins).toEqual([
       { lat: 49.2, lon: -121.5, kind: "gauge", tone: LIGHT.donor[0], label: "60%", rank: 0 },
-      { lat: 49.0, lon: -121.5, kind: "gauge", tone: LIGHT.quiet, label: "not reporting",
+      { lat: 49.0, lon: -121.5, kind: "gauge", tone: LIGHT.quiet, label: "reporting, not ranked",
         rank: 1 },
       { lat: 49.1, lon: -122, kind: "here", tone: LIGHT.accent, label: "you are here",
         rank: -1 },
@@ -91,7 +91,7 @@ describe("<DonorMap>", () => {
     draw();
     for (const t of ["you are here", "gauge downstream: your water flows on to it",
                      "gauge upstream: its water flows down to you", "08MH001 · 60%",
-                     "08MH024 · not reporting"])
+                     "08MH024 · reporting, not ranked"])
       expect(screen.getByText(t)).toBeTruthy();
   });
 
