@@ -6,9 +6,12 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { RegsPage, SheetKey, SheetVM } from "@app/core";
+import { dayRange, type RegsPage, type SheetKey, type SheetVM } from "@app/core";
 import { BackLayerContext, LayoutWidthContext, type BackLayers } from "@app/ui";
+import { Text } from "react-native";
 import { SheetHost } from "./SheetHost";
+import { Sheet } from "../Sheet";
+import { DaySheet } from "./DaySheet";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 
@@ -86,5 +89,31 @@ describe("T45 a sheet on a wide screen", () => {
     cleanup();
     host(1440);
     expect([phoneBars, screen.getByTestId("sheet-handle").children.length]).toEqual([2, 1]);
+  });
+});
+
+/**
+ * (T45 review) The dialog is the regs sheets' alone (SheetHost opts in). Every other Sheet — Layers, Spots, SpotDrop, the
+ * Day sheet — changes what the map shows, so it stays a bottom sheet at every width: a centred dialog's scrim would cover
+ * the middle of the map the control is recolouring (Sheet's header: "not a modal dialog").
+ */
+describe("T45 review: the map's sheets stay bottom sheets on a wide screen", () => {
+  const RANGE = dayRange(new Date(2026, 9, 22), null);
+  it("a plain Sheet (Layers / Spots / SpotDrop) and the Day sheet at 900, 1024, 1440: no dialog, the grabber is there", () => {
+    const seen: Record<string, [boolean, number][]> = {};
+    for (const w of [900, 1024, 1440]) {
+      const row: [boolean, number][] = [];
+      render(<LayoutWidthContext.Provider value={w}>
+        <Sheet open onClose={() => {}} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet></LayoutWidthContext.Provider>);
+      row.push([!!screen.queryByTestId("sheet-dialog"), screen.getByTestId("sheet-handle").children.length]);
+      cleanup();
+      render(<LayoutWidthContext.Provider value={w}>
+        <DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={RANGE} now={new Date(2026, 9, 22)} /></LayoutWidthContext.Provider>);
+      row.push([!!screen.queryByTestId("sheet-dialog"), screen.getByTestId("sheet-handle").children.length]);
+      cleanup();
+      seen[w] = row;
+    }
+    const bottom: [boolean, number][] = [[false, 2], [false, 2]];
+    expect(seen).toEqual({ 900: bottom, 1024: bottom, 1440: bottom });
   });
 });

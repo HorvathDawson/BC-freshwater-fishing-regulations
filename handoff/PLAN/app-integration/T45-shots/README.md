@@ -26,5 +26,13 @@ left edge under the name row is the frame's gutter (16 at 900/1024, 16 at 1280, 
 T44); the page's centre is within 1 px of the centre of the room beside the side column. A reading column with no
 measure fails it (lines of 93–114).
 
+## Which sheets become a dialog (review fix)
+
+Only the regs sheets (the ⓘ / rule / source / fish sheets drawn by `SheetHost`) are centred dialogs on a wide screen:
+they opt in with `<Sheet dialog>`. Every other sheet — Layers, Spots, SpotDrop and the Day sheet — changes what the map
+shows, so it stays a bottom sheet at every width and the map stays visible above it (`Sheet`'s rule: "not a modal
+dialog"). Pinned by `SheetWide.test.tsx` ("the map's sheets stay bottom sheets on a wide screen"). Owner question: the
+map's bottom sheets still run the full window width on desktop; capping them (e.g. a left-anchored panel) is open.
+
 Not checked here: native (no emulator), dark theme, a real tablet's touch. Bella Coola part 1 was reached through the
 part stepper, not a tap.

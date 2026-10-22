@@ -3,7 +3,10 @@
  * stay visible behind the thing you are adjusting, because every control in here changes
  * what the map is showing and you want to see it change.
  *
- * (T45) On a wide screen (layout class tablet / desktop) the same sheet is a centred dialog sized to its content.
+ * (T45) A sheet that opts in (`dialog`: the regs sheets, SheetHost) is a centred dialog sized to its content on a wide
+ * screen (layout class tablet / desktop). Only those: they are reading, not adjusting the map. Every other sheet (Layers,
+ * Spots, SpotDrop, the Day sheet) changes what the map shows, so it stays a bottom sheet at every width and the map stays
+ * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
 import { useEffect, useMemo, useRef } from "react";
 import { Animated, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
@@ -13,7 +16,7 @@ import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER } from "./motion";
 
-export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
   /** (T37) the body scrolls inside the sheet, at most 82% of the window tall (the regs sheets); default false: as before */
@@ -24,6 +27,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   scrollRef?: React.Ref<ScrollView>;
   /** (T45) the layout class; absent → the app's (`useLayoutClass`). A phone: the bottom sheet; wider: a centred dialog. */
   layout?: LayoutClass;
+  /** (T45) on a wide layout, a centred dialog instead of the bottom sheet; default false: a bottom sheet at every width */
+  dialog?: boolean;
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const shellLayout = useLayoutClass();
@@ -76,7 +81,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
    * rather than going under it. Android's back reaches the Modal's own `onRequestClose`, which is that same back.
    */
   const requestClose = useBackLayer(open, onClose);
-  const wide = (layout ?? shellLayout) !== "phone";
+  const wide = dialog && (layout ?? shellLayout) !== "phone";
   /*
    * (T45) ON A WIDE SCREEN, A CENTRED DIALOG sized to its content (owner: "on desktop the sheet spans the whole 1280 px
    * window … capped?"): at most SHEET_DIALOG.maxWidth across and maxHeight of the window tall (the body scrolls past

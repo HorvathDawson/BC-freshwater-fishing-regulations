@@ -41,7 +41,7 @@ export function SheetHost(p: SheetHostProps) {
   useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [p.open]);
   if (!vm) return null;
   return (
-    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout}>
+    <Sheet open title={vm.title} sub={vm.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog>
       <SheetBody vm={vm} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
