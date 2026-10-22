@@ -110,7 +110,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   + 8 questions before T48 is built). Strict 7093, smoke. MERGED T45 919cdb6f + T46 e3332e62 + review fix 412f4bfc (regs reading column 560 px ~70 chars on wide screens, side
   column on desktop, regs sheets as centred dialogs [map sheets stay bottom sheets], fish looks side by side at max
   360 px). Strict 7130, smoke. T45/T46 owner questions: frame 1280 + 560 column OK?; date pill in the side column?;
-  dialog vs side panel; landscape fish looks; small notes ~103 chars. RUNNING T38, T42, T43 wf_1252d634-7a6 (task wc4m8j6qe); then T39, T40, T41.
+  dialog vs side panel; landscape fish looks; small notes ~103 chars. MERGED T38 e924a347 (adipose drawings + How to tell), T42 b2e116c6+0e36a2d5 (edge states), T43 b4e5734c (book link,
+  picture credits; merge fix: credits list outside pictures only). Strict 7202, smoke. Owner questions: T38 image
+  before caption / no tile behind drawings / side by side on wide; T42 tabs outside B.C. / caveat look / tidal licence box;
+  T43 amend D15 (permissions not a ship gate) / 18-line Fish pictures foot. NEXT: T39, T40, then T41.
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
