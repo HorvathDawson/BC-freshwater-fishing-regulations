@@ -3,6 +3,34 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## WORK QUEUE (2026-10-22 night, owner away) — do in order; one heavy job at a time (scripts/heavy.sh)
+A. IN FLIGHT — merge each as it lands (cherry-pick, conflict-marker grep, targeted tests, remove worktree):
+   1. wf_a9a1cfb6-35b T53 unnamed streams get Regulations (+ "tributary of X" title).
+   2. wf_31731618-a9b one river system for back (Vedder/Chilliwack, Atnarko/Bella Coola).
+   3. wf_77e3c38a-472 back from a searched water → map at the water.
+   4. wf_3976eddc-bba gauge walk through stream polygons (polygon-only sloughs/canals).
+   5. wf_e4e2b70f-f21 "See X" group entries are pointers; identical rules read once.
+   6. twin-reach.sh (reach → reaches/full_twin + binding diff). Expect only lake sections of the 19 stamped entries.
+B. ONE DATA REBUILD after A4-A6 merge: swap reaches/full_twin in (after the diff is reviewed) → deliver all →
+   test_stream_polygon_panels.py (no ALLOW_PREDATING) → taps/regs-fixture/harness re-cut → strict check + smoke ONCE.
+C. T53 VERIFICATION SWEEP (owner: "unnamed streams have proper regs, incl. regs from being a trib of something"):
+   real-data audit over all regions — for a sample of unnamed sections per region, the Regulations page lines ==
+   region base + every override the reach run binds to that section (trib rules incl.); count sections where an
+   "and tributaries" rule of a named water should reach an unnamed trib but does not (reach trib walk). Pin it.
+D. T54 no-access streams (4th colour + banner; private/Indigenous gentle note). Owner questions unanswered → build
+   with the ticket's suggested defaults (permit = gentle tier; Conditions keeps flow colour + banner; lakes in no-access
+   areas get the colour) and list them for the owner. Needs pipeline section_access + deliver.
+E. Back follow-ups: split lake stacked twice via a tributary; parts-sheet rows do nothing (no onPart).
+F. Consistency auditors (N16, Fable model): route equality, one surface per action, data-vs-UI.
+G. Cleanup (handoff/PLAN/audit/PLAN.md): wave 2 (merges incl. one name normaliser — binding diff first), wave 3 (file
+   splits incl. Shell P14/P17, export_ui_rules), wave 4 docs, app test cleanup, knip (N23). Keep stocking/bathymetry/
+   salmon code; prove every script unneeded before deleting. N3 ticket ledger with status; N15 OPEN-QUESTIONS.md.
+H. Tiles: S2 tile-size easy wins + the pending rebuild (parcels from z11, basins 100 m simplify) — one tile build.
+I. N12 determinism proof (heavy, background, heavy.sh).
+J. T51 spot similarity forecast; T52 expected change; HYDAT: Forecasts line on More (feed forecastIssuedAt).
+K. T50 Android emulator parity (after cleanup). D1 phone testing needs the owner.
+POSTPONED by owner: T55 remaining slough/canal polygons; braids. NEVER: parser runs (human-only), merging to main.
+
 ## CURRENT STATE (2026-10-22 ~15:20) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections (NEVER main). REFINEMENT PASS MERGED (map-style 48c4fa3c..6b5da3ce, legend+scrim
   a25685e3..5a6399c1, More+sync e7ac4eb8+1086aa45, integration fix 7af2880); strict check 7609 pass + smoke 18/18 green.
