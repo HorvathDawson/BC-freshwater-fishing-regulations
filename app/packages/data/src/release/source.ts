@@ -125,7 +125,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     for (const m of [...p.members].sort((a, b) => a.panel - b.panel || a.ord - b.ord)) {
       const list = out.get(m.panel) ?? [];
       list.push({ station: m.station as StationId, role: m.role, areaKm2: m.areaKm2, years: m.years,
-                  regulated: m.regulated, sameRiver: m.sameRiver });
+                  regulated: m.regulated, sameRiver: m.sameRiver, ...(m.lead ? { lead: m.lead } : {}) });
       out.set(m.panel, list);
     }
     return out;

@@ -12,7 +12,8 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { estimate, trustFor, weightFactors, type Answer, type Contribution, type TrustClass } from "@app/core";
+import { estimate, leaderOf, leadShares, trustFor, weightFactors, type Answer, type Contribution, type TrustClass }
+  from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
@@ -21,7 +22,8 @@ export interface DonorRow {
   role: "up" | "down";
   /** 0–1, this donor's own percentile today. Null when it is not reporting. */
   percentile: number | null;
-  /** Its share of the answer, 0–1, normalised across the panel. */
+  /** Its share of the answer, 0–1, normalised across the panel — with this water's own gauge leading where one may
+   *  (`lead`, core's `leadShares`), exactly as the answer above the table was computed. */
   weight: number;
   /** How many times bigger the larger of the two catchments is. Always ≥ 1. */
   areaRatio: number;
@@ -203,9 +205,12 @@ export function answerFrom(panel: Panel | undefined, index: Index,
              rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
              areaKm2: panel.areaKm2, routesReady: false };
   }
-  const total = raw.reduce((a, r) => a + r._w, 0) || 1;
+  // THE SAME SHARES `estimate` USES: the usual weights, with the leading own gauge (if one reports) raised to its
+  // share. A table that showed the plain weights under a led answer would contradict the number above it.
+  const ws = raw.map((r) => r._w);
+  const shares = leadShares(ws, leaderOf(panel.members.map((m) => m.lead ?? 0), ws));
   const rows = raw
-    .map(({ _w, ...r }) => ({ ...r, weight: _w / total }))
+    .map(({ _w, ...r }, i) => ({ ...r, weight: shares[i]! }))
     .sort((a, b) => b.weight - a.weight);
   return { answer: estimate(panel.areaKm2, contributions), rows,
            areaKm2: panel.areaKm2, routesReady: false };
@@ -225,7 +230,8 @@ export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantit
     const row = index.stations[m.station];
     const own = row ? reading(row, quantity, horizon) : null;
     if (own !== null)
-      out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: m.years, sameRiver: m.sameRiver });
+      out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: m.years, sameRiver: m.sameRiver,
+                 ...(m.lead ? { lead: m.lead } : {}) });
   }
   return out;
 }

@@ -20,7 +20,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { errorFor, weightFactors } from "@app/core";
+import { errorFor, leadShares, leaderOf, weightFactors } from "@app/core";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PY = `${ROOT}.venv/bin/python`;
@@ -32,12 +32,30 @@ const YEARS = [3, 6, 10, 16, 20, 40, 76];
 const ROLES = ["up", "down"] as const;
 const RIVERS = [true, false] as const;   // same blue line, or a tributary
 
+/**
+ * A water's own gauge comes first (owner 2026-10-22): `(lead ranks, usual weights)` per panel. Covers a leader below
+ * the floor, one above it, a quiet rank 1 handing over to rank 2, a lone own gauge, no leader, and nothing reporting.
+ */
+const LEADS: [number[], number[]][] = [
+  [[1, 0, 0], [1, 1, 1]],
+  [[1, 0, 0], [0.2, 0.75, 0.25]],
+  [[1, 0], [9, 1]],
+  [[0, 2, 1], [1, 1, 0]],
+  [[0, 2, 1], [0.3, 0.05, 0.6]],
+  [[1], [0.15]],
+  [[1, 0], [0.15, 0]],
+  [[0, 0, 0], [0.4, 0.3, 0.2]],
+  [[1, 0], [0, 0.4]],
+  [[0, 0], [0, 0]],
+];
+
 /** The same cases, evaluated by the pipeline's own code. */
-function fromPython(): { errors: number[]; weights: number[] } {
+function fromPython(): { errors: number[]; weights: number[]; leaders: (number | null)[]; shares: number[][] } {
   const script = `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(ROOT)})
-from pipeline.atlas.gauges.panel import error_for, weight_of
+from pipeline.atlas.gauges.panel import error_for, lead_shares, leader_of, weight_of
+leads = ${JSON.stringify(LEADS)}
 ratios = ${JSON.stringify(RATIOS)}
 years = ${JSON.stringify(YEARS)}
 roles = ${JSON.stringify(ROLES)}
@@ -46,6 +64,8 @@ print(json.dumps({
     "errors": [error_for(r) for r in ratios],
     "weights": [weight_of(1.0 / r, role, y, same)
                 for r in ratios for role in roles for y in years for same in rivers],
+    "leaders": [leader_of(r, w) for r, w in leads],
+    "shares": [lead_shares(w, leader_of(r, w)) for r, w in leads],
 }))
 `;
   return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8" }));
@@ -57,7 +77,7 @@ print(json.dumps({
 const has = existsSync(PY);
 
 describe.skipIf(!has)("one formula, two languages", () => {
-  const py = has ? fromPython() : { errors: [], weights: [] };
+  const py = has ? fromPython() : { errors: [], weights: [], leaders: [], shares: [] };
 
   it("computes the same donor error, ratio for ratio", () => {
     // Including the exact band edges, where an off-by-one in the interpolation hides.
@@ -78,6 +98,12 @@ describe.skipIf(!has)("one formula, two languages", () => {
     for (let i = 0; i < ours.length; i++) expect(ours[i]!).toBeCloseTo(py.weights[i]!, 9);
   });
 
+  it("picks the same leading own gauge and gives every donor the same share", () => {
+    expect(LEADS.map(([r, w]) => leaderOf(r, w))).toEqual(py.leaders);
+    expect(LEADS.map(([r, w]) => leadShares(w, leaderOf(r, w))))
+      .toEqual(py.shares.map((xs) => xs.map((x) => expect.closeTo(x, 12))));
+  });
+
   it("is actually comparing something", () => {
     // A guard on the guard: if the Python ever returns an empty list, every comparison
     // above passes vacuously and the drift it exists to catch sails through.
@@ -85,5 +111,7 @@ describe.skipIf(!has)("one formula, two languages", () => {
     expect(py.weights.length)
       .toBe(RATIOS.length * ROLES.length * YEARS.length * RIVERS.length);
     expect(new Set(py.weights).size).toBeGreaterThan(5);
+    expect(py.leaders).toEqual([0, 0, 0, 1, 2, 0, 0, null, null, null]);
+    expect(py.shares.length).toBe(LEADS.length);
   });
 });

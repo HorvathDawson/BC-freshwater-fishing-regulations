@@ -168,6 +168,13 @@ export interface PanelMember {
    * with the Babine at the 24th, disagreeing past what the interval can express.
    */
   sameRiver: boolean;
+  /**
+   * The section's OWN gauge (matched to its water) and so may LEAD the answer: 1 the nearest, 2 the next; absent or
+   * 0 when it may not — far along the water, much smaller than the section, or another water's gauge. Owner
+   * 2026-10-22, "a water's own gauge comes first": decided by the pipeline (panel.py `may_lead`), applied by core's
+   * `estimate` (`leaderOf`, `leadShares`). Optional so a panel written by hand without it means "nothing leads".
+   */
+  lead?: number;
 }
 
 /**

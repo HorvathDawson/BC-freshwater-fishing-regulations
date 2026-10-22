@@ -271,6 +271,97 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
     return ((BEST_ERROR / err) ** 2) * direction * rec
 
 
+# ------------------------------------------------------------------ a water's own gauge comes first
+#
+# OWNER 2026-10-22 (handoff/PLAN/app-integration/decisions.md): "the pitt could use its own gauge" — "it can still use
+# auxiliary gauges but own gauge should be main (unless far from click) low magnitude compared to click spot."
+#
+# A water's OWN gauge is a station matched to that water (gauge.item_id is the section's water). It LEADS the answer:
+# it carries at least `OWN_LEAD_SHARE` of it and the other donors split the rest in their usual proportion. It stops
+# leading where it is FAR along the water from the tapped section, or drains MUCH LESS than it; there the usual
+# weighting applies. Never across quantities: the lead is chosen among the donors REPORTING the quantity asked for, so
+# a level-only own gauge (the Pitt's 08MH035) leads Level and is simply absent from Flow.
+#
+# WHO MAY LEAD is decided here at build time (`may_lead`, from the along-water distance and both catchments, which
+# only the pipeline has) and ships as each member's `lead` rank. WHAT LEADING MEANS (`leader_of`, `lead_shares`) runs
+# on every tap in the app; `leaderOf` / `leadShares` in app/packages/core/src/trust.ts are the mirror, and
+# app/tools/one-formula.test.ts executes both. Real-data evaluation: handoff/PLAN/app-data/own-gauge/REPORT.md.
+
+#: The least share of the answer a leading own gauge carries. "Main" — and the auxiliaries keep the other 30%,
+#: split in their usual proportion. A gauge already carrying more on its own merits keeps what it had.
+OWN_LEAD_SHARE = 0.7
+
+#: "Low magnitude compared to click spot": an own gauge draining less than a tenth of the tapped section does not
+#: lead. Ten is where the measured error ladder leaves its flat best row (`ERROR_BY_RATIO`, "close" to 10x) — inside
+#: it a donor is as good as the method has ever been measured to be. A gauge LARGER than the section is not limited
+#: by this; the owner named only the smaller case, and `OWN_FAR_*` still bounds it.
+OWN_SMALLER_RATIO = 10.0
+
+#: "Far from click", scaled to the river: past a fifth of the river's own length at the larger of the two catchments
+#: (Hack's law, `river_length_km`), and never closer than `OWN_FAR_MIN_KM`. A fixed distance cannot serve both ends of
+#: the province: 50 km on the lower Fraser adds 5% to its catchment, on a creek it is another valley. Measured:
+#: Hope leads the lower Fraser to 193 km below it (Mission, the Fraser mouth), Hansard 807 km up does not; a 100 km²
+#: creek's own gauge leads for 10 km.
+OWN_FAR_FRACTION = 0.2
+OWN_FAR_MIN_KM = 10.0
+
+#: How many own gauges per quantity a section keeps as lead candidates, nearest first. They ride on top of
+#: `MAX_MEMBERS` (`panel_for`), so this bounds how big a panel can grow; the app leads with the best-ranked one that
+#: is reporting, so a quiet first choice still has a few behind it.
+OWN_LEADS_PER_QUANTITY = 4
+
+#: Hack's law, L = c * A^h — a river's mainstem length from its catchment. Hack (1957) gives 1.4 * A^0.6 in miles and
+#: square miles, which is 1.27 * A^0.6 in km and km². A yardstick for "far", not a measurement of any one river.
+HACK_C = 1.27
+HACK_H = 0.6
+
+
+def river_length_km(area_km2: float) -> float:
+    """The length of a river draining `area_km2`, by Hack's law."""
+    return HACK_C * max(0.0, area_km2) ** HACK_H
+
+
+def far_limit_km(area_target: float, area_gauge: float) -> float:
+    """How far along the water an own gauge may sit from the tapped section and still lead."""
+    return max(OWN_FAR_MIN_KM, OWN_FAR_FRACTION * river_length_km(max(area_target, area_gauge)))
+
+
+def may_lead(area_target: float | None, area_gauge: float | None, distance_m: float) -> bool:
+    """Whether an own gauge this far along the water, this big against the tapped section, leads it."""
+    if not area_target or not area_gauge or area_target <= 0 or area_gauge <= 0:
+        return False
+    if area_target > area_gauge * OWN_SMALLER_RATIO:
+        return False
+    return distance_m <= far_limit_km(area_target, area_gauge) * 1000.0
+
+
+def leader_of(ranks: list[int], weights: list[float]) -> int | None:
+    """The index of the vote that leads: the best-ranked own gauge (rank 1 is the nearest) that is reporting.
+
+    `ranks[i]` is a member's `lead` (0: not an own gauge that may lead); `weights[i]` its usual weight, 0 when it has
+    no reading in the quantity asked for. A quiet rank 1 hands the lead to rank 2, not to nobody.
+    """
+    best: int | None = None
+    for i, (r, w) in enumerate(zip(ranks, weights)):
+        if r > 0 and w > 0 and (best is None or r < ranks[best]):
+            best = i
+    return best
+
+
+def lead_shares(weights: list[float], lead: int | None) -> list[float]:
+    """Each vote's share of the answer, 0..1, summing to 1: the usual weights normalised, then — when an own gauge
+    leads — that gauge raised to at least `OWN_LEAD_SHARE` and the others scaled into what is left."""
+    total = sum(weights)
+    if total <= 0:
+        return [0.0 for _ in weights]
+    norm = [w / total for w in weights]
+    if lead is None or weights[lead] <= 0 or sum(1 for w in weights if w > 0) < 2:
+        return norm
+    own = max(OWN_LEAD_SHARE, norm[lead])
+    rest = total - weights[lead]
+    return [own if i == lead else (1.0 - own) * w / rest for i, w in enumerate(weights)]
+
+
 def eligible(area_target: float | None, area_donor: float | None,
              years: int, regulated: bool, crossed_lake: bool) -> bool:
     """The four gates, in one place so the reasons cannot drift apart."""
@@ -294,7 +385,7 @@ def share_of(area_target: float, area_donor: float) -> float:
     return min(area_target, area_donor) / max(area_target, area_donor)
 
 
-def combine(values: list[tuple[float, float]]) -> tuple[float, float] | None:
+def combine(values: list[tuple[float, float]], lead: int | None = None) -> tuple[float, float] | None:
     """Weighted percentiles -> one percentile, and a spread. `[(percentile, weight)]`.
 
     IN PROBIT SPACE, NOT DIRECTLY. Percentiles are uniform on [0,1] and averaging uniforms
@@ -307,14 +398,19 @@ def combine(values: list[tuple[float, float]]) -> tuple[float, float] | None:
     the mean, and it is the honest half of the answer: three donors spanning the 10th to
     the 60th is a catchment doing something complicated, and the screen should say so
     rather than print their average.
+
+    `lead` is the index in `values` of the own gauge that leads (`leader_of`), or None: its share is raised by
+    `lead_shares`, as the app's `estimate` does.
     """
-    kept = [(p, w) for p, w in values if w > 0 and 0.0 < p < 1.0]
-    total = sum(w for _, w in kept)
+    kept = [(i, p, w) for i, (p, w) in enumerate(values) if w > 0 and 0.0 < p < 1.0]
+    total = sum(w for _, _, w in kept)
     if not kept or total < MIN_TOTAL_WEIGHT:
         return None
-    zs = [(_probit(p), w) for p, w in kept]
-    mean = sum(z * w for z, w in zs) / total
-    var = sum(w * (z - mean) ** 2 for z, w in zs) / total
+    at = next((k for k, (i, _p, _w) in enumerate(kept) if i == lead), None)
+    shares = lead_shares([w for _, _, w in kept], at)
+    zs = [(_probit(p), s) for (_i, p, _w), s in zip(kept, shares)]
+    mean = sum(z * s for z, s in zs)
+    var = sum(s * (z - mean) ** 2 for z, s in zs)
     lo, hi = _norm_cdf(mean - math.sqrt(var)), _norm_cdf(mean + math.sqrt(var))
     return _norm_cdf(mean), hi - lo
 
@@ -338,7 +434,8 @@ def _norm_cdf(z: float) -> float:
 
 
 def panel_for(candidates: list[tuple],
-              area_target: float | None) -> list[Donor]:
+              area_target: float | None,
+              keep: list[str] | None = None) -> list[Donor]:
     """Gates, weights and a cap, over
     `(station, role, area, years, regulated, lake[, same_river])`.
 
@@ -348,6 +445,12 @@ def panel_for(candidates: list[tuple],
 
     Sorted by weight so the cap keeps the best, and so the screen can list them in the order
     they actually mattered.
+
+    `keep` names the own gauges that may lead this section: they pass the same gates, and ride ON TOP of the cap
+    rather than inside it. A three-year own gauge weighs 3/20 of a long-lived neighbour and would otherwise lose its
+    seat to four of them, and then it could not lead. Inside the cap it would take a seat instead — measured, 393
+    sections swapped a donor for their own gauge, and where that own gauge reports only level the Flow answer lost a
+    donor it had (125 sections fell silent). On top, nothing a panel holds today is ever displaced.
     """
     out: list[Donor] = []
     for cand in candidates:
@@ -359,4 +462,8 @@ def panel_for(candidates: list[tuple],
         sh = share_of(area_target, area_donor)
         out.append(Donor(station, role, sh, weight_of(sh, role, years, same_river)))
     out.sort(key=lambda d: -d.weight)
-    return out[:MAX_MEMBERS]
+    capped = out[:MAX_MEMBERS]
+    if keep:
+        wanted = set(keep)
+        capped += [d for d in out[MAX_MEMBERS:] if d.station in wanted]
+    return capped

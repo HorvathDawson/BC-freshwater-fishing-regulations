@@ -144,6 +144,54 @@ export interface Contribution {
   years: number;
   /** On the same blue line as the reach — see `PanelMember.sameRiver`. */
   sameRiver?: boolean;
+  /**
+   * This donor is the reach's OWN gauge and may lead the answer: its rank (1 the nearest along the water), absent or
+   * 0 when it may not. The pipeline decides it (`may_lead` in panel.py: not far, not much smaller); see `leadShares`.
+   */
+  lead?: number;
+}
+
+/* ---------------------------------------------------------- a water's own gauge comes first --- */
+
+/**
+ * OWNER 2026-10-22: "own gauge should be main (unless far from click) low magnitude compared to click spot", and "it
+ * can still use auxiliary gauges". MIRRORS `OWN_LEAD_SHARE` in panel.py; `tools/trust-ladder.test.ts` holds the number
+ * equal and `tools/one-formula.test.ts` runs both implementations of `leaderOf` / `leadShares` side by side.
+ *
+ * A leading own gauge carries at least this share of the answer; the auxiliaries split the rest in their usual
+ * proportion. WHO may lead is the pipeline's (it alone has the water, the distance and both catchments) and arrives
+ * as each member's `lead` rank; this is only what leading means.
+ */
+export const OWN_LEAD_SHARE = 0.7;
+
+/**
+ * The index of the vote that leads: the best-ranked own gauge (`lead` 1 is the nearest) whose weight is above zero —
+ * i.e. which is REPORTING the quantity asked for. That is the whole of "never mix quantities": a level-only own gauge
+ * has no discharge reading, so it is not a vote in Flow and cannot lead it; in Level it can. A quiet rank 1 hands the
+ * lead to rank 2. Null when no own gauge may lead.
+ */
+export function leaderOf(ranks: readonly number[], weights: readonly number[]): number | null {
+  let best: number | null = null;
+  for (let i = 0; i < ranks.length; i++) {
+    const r = ranks[i] ?? 0, w = weights[i] ?? 0;
+    if (r > 0 && w > 0 && (best === null || r < ranks[best]!)) best = i;
+  }
+  return best;
+}
+
+/**
+ * Each vote's share of the answer, 0..1, summing to 1: the usual weights normalised, then — with a leader — the leader
+ * raised to at least `OWN_LEAD_SHARE` and the others scaled into what is left. A leader already carrying more keeps
+ * it: leading is a floor. Alone, it is the whole answer. MIRRORS `lead_shares` in panel.py.
+ */
+export function leadShares(weights: readonly number[], lead: number | null): number[] {
+  const total = weights.reduce((a, w) => a + w, 0);
+  if (total <= 0) return weights.map(() => 0);
+  const norm = weights.map((w) => w / total);
+  if (lead === null || !(weights[lead]! > 0) || weights.filter((w) => w > 0).length < 2) return norm;
+  const own = Math.max(OWN_LEAD_SHARE, norm[lead]!);
+  const rest = total - weights[lead]!;
+  return weights.map((w, i) => (i === lead ? own : (1 - own) * w / rest));
 }
 
 /** Mirrors `weight_of` in panel.py; `tools/trust-ladder.test.ts` holds the two together. */
@@ -283,7 +331,7 @@ export function estimate(targetAreaKm2: number | null,
   if (!contributions.length) return { ok: false, why: "no-station" };
   if (!targetAreaKm2 || targetAreaKm2 <= 0) return { ok: false, why: "no-station" };
 
-  const votes: { z: number; w: number; ratio: number; sameRiver: boolean }[] = [];
+  const votes: { z: number; w: number; ratio: number; sameRiver: boolean; lead: number }[] = [];
   for (const c of contributions) {
     if (!(c.percentile > 0 && c.percentile < 1)) continue;
     if (!c.areaKm2 || c.areaKm2 <= 0) continue;
@@ -291,14 +339,18 @@ export function estimate(targetAreaKm2: number | null,
     const same = c.sameRiver !== false;
     const w = weightFor(Math.min(targetAreaKm2, c.areaKm2)
                         / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years, same);
-    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same });
+    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same, lead: c.lead ?? 0 });
   }
   if (!votes.length) return { ok: false, why: "no-record" };
   const total = votes.reduce((a, v) => a + v.w, 0);
   if (total < MIN_TOTAL_WEIGHT) return { ok: false, why: "too-uncertain" };
 
-  const mean = votes.reduce((a, v) => a + v.z * v.w, 0) / total;
-  const varZ = votes.reduce((a, v) => a + v.w * (v.z - mean) ** 2, 0) / total;
+  // A WATER'S OWN GAUGE COMES FIRST (owner 2026-10-22): the shares below are the usual weights normalised, with the
+  // leading own gauge — if one may lead and is reporting — raised to OWN_LEAD_SHARE. Everything after reads `shares`.
+  const leader = leaderOf(votes.map((v) => v.lead), votes.map((v) => v.w));
+  const shares = leadShares(votes.map((v) => v.w), leader);
+  const mean = votes.reduce((a, v, i) => a + v.z * shares[i]!, 0);
+  const varZ = votes.reduce((a, v, i) => a + shares[i]! * (v.z - mean) ** 2, 0);
   const sd = Math.sqrt(varZ);
   const spread = (normCdf(mean + sd) - normCdf(mean - sd)) * 100;
 
@@ -316,7 +368,7 @@ export function estimate(targetAreaKm2: number | null,
    * So the error is the weighted mean of each donor's own error, which is what "they all
    * voted" actually means once you account for how much.
    */
-  const plusMinus = votes.reduce((a, v) => a + trustFor(v.ratio).plusMinus * v.w, 0) / total;
+  const plusMinus = votes.reduce((a, v, i) => a + trustFor(v.ratio).plusMinus * shares[i]!, 0);
   // The CLASS is a word, and a word cannot be averaged — so it is the class of the ratio
   // that error corresponds to, which keeps the two halves of the label consistent.
   const klass = ERROR_BY_RATIO.find(([, , e]) => plusMinus <= e)?.[1]
@@ -347,7 +399,8 @@ export function estimate(targetAreaKm2: number | null,
    * above the working, and every donor is listed with what it read. What changes is that
    * the reader is given the number the river's own gauges produced.
    */
-  const measured = votes.some((v) => v.sameRiver);
+  // A leading own gauge is a measurement of this water too, whatever blue line FWA drew it on.
+  const measured = votes.some((v) => v.sameRiver) || leader !== null;
   const [lo, hi] = interval(value);
   if (!measured && hi - lo > MAX_USEFUL_SPREAD)
     return { ok: false, why: "too-uncertain" };

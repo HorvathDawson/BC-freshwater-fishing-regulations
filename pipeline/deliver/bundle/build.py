@@ -22,6 +22,7 @@ HONESTY ABOUT COVERAGE
 
 from __future__ import annotations
 
+import collections
 import json
 import sqlite3
 from dataclasses import dataclass, field
@@ -709,10 +710,18 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         donors = [(st, matched[st], years_by_station.get(st, 0), st in regulated)
                   for st in matched
                   if years_by_station.get(st, 0) >= MIN_RECORD_YEARS]
-        panels = build_panels(graph, model, donors)
+        # `owner` (section -> water) is what makes a donor a section's OWN gauge, which then
+        # leads its answer — owner 2026-10-22, "a water's own gauge comes first" (panel.py) —
+        # if it reports in real time: the feed carries nothing else.
+        measures: dict[str, set[str]] = collections.defaultdict(set)
+        for st, param in db.execute("SELECT station, parameter FROM gauge_stats"):
+            measures[st].add(param)
+        panels = build_panels(graph, model, donors, water_of=owner,
+                              live={s["station"] for s in stations if s.get("realtime")},
+                              measures=measures)
         db.executemany("INSERT INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
                        [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
-        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?)",
+        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?)",
                        panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))

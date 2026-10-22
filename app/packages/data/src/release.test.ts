@@ -51,7 +51,7 @@ const M = (over: Partial<Manifest> = {}): Manifest => parseManifest({
            assets: { id: "map-assets-1", url: "a" }, mask: null },
   basemap: { id: "protomaps-2025-09-25", url: "b" },
   files: { core: { url: "c", bytes: 1, gz: 1, sha256: "c2", format: "core/1", section_handles: "d768d6e135e62b99" },
-           paint: { url: "p", bytes: 1, gz: 1, sha256: "p1", format: "paint/1", section_handles: "d768d6e135e62b99" } },
+           paint: { url: "p", bytes: 1, gz: 1, sha256: "p1", format: "paint/2", section_handles: "d768d6e135e62b99" } },
   regulations: { valid_until: null, versions: null }, ...over,
 });
 const HELD: Held = { tiles: "d768d6e135e62b99.aaaaaaaaaaaa", basemap: "protomaps-2025-09-25", assets: "map-assets-1",

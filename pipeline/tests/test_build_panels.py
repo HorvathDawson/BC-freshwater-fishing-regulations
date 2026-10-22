@@ -25,6 +25,8 @@ class N:
     # FWA EDGE_TYPEs. "1100"/"1350" mark a side channel — a piece of the river beside it,
     # not a river of its own. Default empty: an ordinary reach.
     edge_types: tuple = ()
+    # Along-water length, metres: the own-gauge rule measures "far" with it (test_own_gauge.py).
+    length_m: float = 1_000.0
 
 
 @dataclass
@@ -137,7 +139,7 @@ def test_the_rows_carry_facts_rather_than_anything_derived():
     rows = {sec: (pid, area) for sec, pid, area in got.section_rows()}
     pid, area = rows["target"]
     assert area == 200.0
-    (mpid, ordinal, station, role, donor_area, years, regulated, same_river), = [
+    (mpid, ordinal, station, role, donor_area, years, regulated, same_river, lead), = [
         r for r in got.member_rows() if r[0] == pid]
     assert (mpid, ordinal, station, role, donor_area, years) == (pid, 0, "S", "up", 100.0, 40)
     # `regulated` is a FACT about the station, not a calibration — it changes what the
@@ -146,6 +148,8 @@ def test_the_rows_carry_facts_rather_than_anything_derived():
     # Same blue line in this fixture, and it is a FACT about the pair rather than a
     # calibration — the client cannot derive it and it changes the weight fourfold.
     assert same_river == 1
+    # No water map in this build, so no donor is anybody's OWN gauge (test_own_gauge.py).
+    assert lead == 0
 
 
 def test_a_regulated_donor_speaks_for_its_own_water():
@@ -185,7 +189,7 @@ def test_a_gauge_speaks_for_the_reach_it_stands_in():
     graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
     got = build(graph, MODEL, [("S", "gauged", 40, False)])
     assert "gauged" in got.by_section
-    (_pid, _ord, station, role, area, years, _reg, _same), = [
+    (_pid, _ord, station, role, area, years, _reg, _same, _lead), = [
         r for r in got.member_rows()
         if r[0] == got.by_section["gauged"][0]]
     assert station == "S"

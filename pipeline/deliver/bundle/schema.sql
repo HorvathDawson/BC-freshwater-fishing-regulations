@@ -813,6 +813,17 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            -- refused and drew "no baseline" over a river with two of its
                            -- own gauges reporting.
                            same_river INTEGER NOT NULL DEFAULT 1,
+                           -- THE SECTION'S OWN GAUGE, and it may LEAD the answer: 1 the first
+                           -- choice (nearest along the water), 2 the next; 0 not (owner
+                           -- 2026-10-22, "a water's own gauge comes first"). A leading gauge
+                           -- carries at least OWN_LEAD_SHARE of the answer, the others split
+                           -- the rest. Decided at build time because only the pipeline has the
+                           -- water, the along-water distance and both catchments (panel.py
+                           -- `may_lead`); the client applies it (trust.ts `leaderOf`,
+                           -- `leadShares`). It depends on the target, and is interned with the
+                           -- set anyway: it changes only where a river passes from near its
+                           -- gauge to far.
+                           lead INTEGER NOT NULL DEFAULT 0,
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- WHICH STATION SPEAKS FOR EACH CATCHMENT, for the zoomed-out field.

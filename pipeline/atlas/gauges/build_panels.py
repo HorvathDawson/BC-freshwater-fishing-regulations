@@ -19,9 +19,14 @@ collapse the rules work found — 2.24M rule rows to 1,656 distinct rule sets.
 from __future__ import annotations
 
 import collections
+import heapq
+import math
 from dataclasses import dataclass
 
-from pipeline.atlas.gauges.panel import MAX_AREA_RATIO, Donor, panel_for
+from pipeline.atlas.gauges.panel import MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, Donor, may_lead, panel_for
+
+#: The quantities a gauge is ranked in, as `gauge_stats.parameter` names them and the app's Flow / Level views ask.
+QUANTITIES = ("discharge", "level")
 from pipeline.atlas.graph.drainage import AreaModel
 
 
@@ -47,6 +52,13 @@ class Member:
     #: factor of four — the water flows past both points, rather than the two merely sharing
     #: a rain shadow. See TRIBUTARY_ERROR_FACTOR in panel.py.
     same_river: bool = True
+    #: This donor is the section's OWN gauge and may LEAD its answer — 1 the first choice (nearest along the water),
+    #: 2 the next, and so on; 0 not. The app leads with the best-ranked one reporting the quantity asked for. See
+    #: "a water's own gauge comes first" in panel.py.
+    #:
+    #: Depends on the target, unlike the facts above — and is interned with them anyway: it changes only where a
+    #: section passes from near its gauge to far, so a stretch of river still shares one panel.
+    lead: int = 0
 
 
 @dataclass(frozen=True)
@@ -68,11 +80,11 @@ class Panels:
             yield (sec, pid, None if area is None else round(area, 3))
 
     def member_rows(self):
-        """`(panel_id, ord, station, role, area_km2, years, regulated, same_river)`."""
+        """`(panel_id, ord, station, role, area_km2, years, regulated, same_river, lead)`."""
         for pid, ms in sorted(self.members.items()):
             for i, m in enumerate(ms):
                 yield (pid, i, m.station, m.role, round(m.area_km2, 3), m.years,
-                       1 if m.regulated else 0, 1 if m.same_river else 0)
+                       1 if m.regulated else 0, 1 if m.same_river else 0, m.lead)
 
 
 def _kind(node) -> str:
@@ -250,13 +262,81 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
     return parent
 
 
+def own_distances(graph, water_of: dict[str, str],
+                  donors: list[tuple[str, str, int, bool]]) -> dict[str, dict[str, float]]:
+    """`section -> {station: metres along the water}` for every station on the section's OWN water.
+
+    A station's water is the water its section belongs to (`water_of`, the registry's section -> water item — the
+    same join `gauge.item_id` is made from). The walk keeps to stream sections of that water, so a lake on the way
+    (a different item) ends it, as it ends the panel walk.
+
+    THE DISTANCE is to the NEARER END of the target section, the shortest way along the water, walking up or down
+    and never both. The gauge stands at the downstream end of its own section ("the section that begins at the gauge
+    and runs upstream", `nodes_for`), so its own section is 0, the section below begins at the gauge (0), and the
+    section above begins one gauge-section away.
+    """
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    def length(sec: str) -> float:
+        return float(getattr(graph.nodes[sec], "length_m", 0.0) or 0.0)
+
+    out: dict[str, dict[str, float]] = collections.defaultdict(dict)
+    for station, sec, _years, _reg in donors:
+        water = water_of.get(sec)
+        if water is None or sec not in graph.nodes:
+            continue
+        out[sec][station] = 0.0
+        for adj, going_down in ((up, False), (down, True)):
+            best = {sec: 0.0}
+            heap = [(0.0, sec)]
+            while heap:
+                d, cur = heapq.heappop(heap)
+                if d > best.get(cur, math.inf):
+                    continue
+                step = 0.0 if (going_down and cur == sec) else length(cur)
+                for nxt in adj[cur]:
+                    node = graph.nodes.get(nxt)
+                    if node is None or _kind(node) != "stream" or water_of.get(nxt) != water:
+                        continue
+                    if d + step < best.get(nxt, math.inf):
+                        best[nxt] = d + step
+                        heapq.heappush(heap, (d + step, nxt))
+            for nxt, d in best.items():
+                if nxt != sec and d < out[nxt].get(station, math.inf):
+                    out[nxt][station] = d
+    return out
+
+
 def build(graph, model: AreaModel,
           donors: list[tuple[str, str, int, bool]],
-          max_ratio: float = MAX_AREA_RATIO) -> Panels:
-    """Candidates, gates, weights, and the dictionary — the whole pass."""
+          max_ratio: float = MAX_AREA_RATIO,
+          water_of: dict[str, str] | None = None,
+          live: set[str] | None = None,
+          measures: dict[str, set[str]] | None = None) -> Panels:
+    """Candidates, gates, weights, and the dictionary — the whole pass.
+
+    `water_of` (section -> water item) is what says which donors are a section's OWN gauges; without it nothing
+    leads and the usual weighting applies everywhere.
+
+    `live` is the stations that report in REAL TIME (ECCC's `realtime` flag): only those may lead. The feed carries
+    nothing else, so a historic gauge could never lead anyway — and kept on top of the member cap it only crowds the
+    panel. None (synthetic callers) lets any own gauge lead.
+
+    `measures` is each station's quantities with a climatology (`gauge_stats` parameters: discharge, level) — the
+    only quantities it can ever be ranked in. Per quantity, the nearest `OWN_LEADS_PER_QUANTITY` own gauges that may
+    lead are kept as candidates and the rest are ordinary members: on the lower Fraser at Mission 12 real-time own
+    gauges are near enough and big enough (11 with a level record, 4 with discharge), and a panel of 16 donors is a
+    table nobody reads; with 4 per quantity it holds at most 10, and Hope — 4th of the discharge ones — still leads Flow.
+    None treats every station as measuring both.
+    """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
     cand = candidates(graph, area_of, donors, max_ratio)
+    own = own_distances(graph, water_of, donors) if water_of else {}
 
     by_section: dict[str, tuple[int, float | None]] = {}
     members: dict[int, tuple[Member, ...]] = {}
@@ -267,23 +347,41 @@ def build(graph, model: AreaModel,
         if node is None:
             continue
         at = area_of(node)
+        by_station = {station: ad for station, _r, ad, *_ in cs}
+        # THE OWN GAUGES THAT MAY LEAD, nearest first; ties go to the one nearer this section in size. See
+        # "a water's own gauge comes first" in panel.py.
+        near = own.get(sec, {})
+        leads = [st for _d, _r, st in sorted(
+            (d, abs(math.log(by_station[st] / at)), st) for st, d in near.items()
+            if st in by_station and at and by_station[st] and (live is None or st in live)
+            and may_lead(at, by_station[st], d))]
+        # AT MOST `OWN_LEADS_PER_QUANTITY` PER QUANTITY, the nearest: in Flow the best-ranked one reporting discharge
+        # leads, in Level the best-ranked one reporting level, so a quantity needs its own few and no more.
+        wanted: set[str] = set()
+        for q in QUANTITIES:
+            wanted.update([st for st in leads if measures is None or q in measures.get(st, ())]
+                          [:OWN_LEADS_PER_QUANTITY])
+        leads = [st for st in leads if st in wanted]
         # The gates and the cap still run HERE, at build time, because both depend on the
         # target and both are cheap once rather than per tap. What is not stored is what
         # they produced — only which donors survived.
-        panel = panel_for(cs, at)
+        panel = panel_for(cs, at, keep=leads)
         if not panel:
             continue
-        by_station = {station: ad for station, _r, ad, *_ in cs}
+        present = {d.station for d in panel}
+        rank = {st: i + 1 for i, st in enumerate(st for st in leads if st in present)}
         same_by = {c[0]: (bool(c[6]) if len(c) > 6 else True) for c in cs}
         chosen = tuple(Member(d.station, d.role, by_station[d.station],
                               facts.get(d.station, (0, False))[0],
                               facts.get(d.station, (0, False))[1],
-                              same_by.get(d.station, True))
+                              same_by.get(d.station, True),
+                              rank.get(d.station, 0))
                        for d in panel)
-        # Interned on the SET — station, role, and the donor's own facts. Nothing here
-        # depends on the target, which is exactly why it collapses.
+        # Interned on the SET — station, role, and the donor's own facts — plus its lead rank,
+        # which changes only where a section passes from near its own gauge to far, so a
+        # stretch of river still shares one panel.
         key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,
-                            m.same_river) for m in chosen))
+                            m.same_river, m.lead) for m in chosen))
         pid = intern.setdefault(key, len(intern))
         by_section[sec] = (pid, at)
         members.setdefault(pid, chosen)

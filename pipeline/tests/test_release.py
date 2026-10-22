@@ -29,11 +29,11 @@ def _tiny_bundle() -> sqlite3.Connection:
         CREATE TABLE gauge (station TEXT PRIMARY KEY);
         CREATE TABLE section_panel (sid INTEGER PRIMARY KEY, panel_id INTEGER, area_km2 REAL);
         CREATE TABLE panel_member (panel_id INTEGER, ord INTEGER, station TEXT, role TEXT, area_km2 REAL,
-                                   years INTEGER, regulated INTEGER, same_river INTEGER);
+                                   years INTEGER, regulated INTEGER, same_river INTEGER, lead INTEGER);
         CREATE TABLE basin_member (basin_id TEXT, station TEXT, area_km2 REAL, years INTEGER);
         INSERT INTO gauge VALUES ('08MH001'), ('08MH016');
         INSERT INTO section_panel VALUES (3, 7, 1.044), (4, 7, 1.883), (5, 7, 2.659), (9, 2, 64000.5);
-        INSERT INTO panel_member VALUES (2, 0, '08MH016', 'down', 4840.015, 66, 0, 1), (7, 0, '08MH001', 'up', 12.5, 3, 1, 0);
+        INSERT INTO panel_member VALUES (2, 0, '08MH016', 'down', 4840.015, 66, 0, 1, 1), (7, 0, '08MH001', 'up', 12.5, 3, 1, 0, 0);
         INSERT INTO basin_member VALUES ('ADMS', '08MH001', 70.41000366210938, 33), ('BABL', '08MH016', NULL, 4);
     """)
     return db
@@ -45,7 +45,9 @@ def test_paint_and_flow_area_round_trip():
     d = P.decode(P.encode(status, db))
     assert d["status"] == status
     assert d["section_panel"] == [(3, 7), (4, 7), (5, 7), (9, 2)]
-    assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 0, 1), (7, 0, "08MH001", "up", 12.5, 3, 1, 0)]
+    # `lead` (paint/2): 08MH016 is its section's own gauge and leads; 08MH001 does not
+    assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 0, 1, 1),
+                                 (7, 0, "08MH001", "up", 12.5, 3, 1, 0, 0)]
     assert d["basin_member"] == [("ADMS", "08MH001", 70.41000366210938, 33), ("BABL", "08MH016", None, 4)]
     assert P.decode_area(P.encode_area(db), 4) == [1.044, 1.883, 2.659, 64000.5]
     with pytest.raises(ValueError):
@@ -141,8 +143,8 @@ def test_paint_reproduces_the_status_index_and_the_flow_tables(rel):
     sp = b.execute("SELECT sid, panel_id, area_km2 FROM section_panel ORDER BY sid").fetchall()
     area = P.decode_area(gzip.decompress((d.parent / m["files"]["flow-area"]["url"]).read_bytes()), len(sp))
     assert [(s, p, a) for (s, p), a in zip(paint["section_panel"], area)] == sp
-    assert paint["panel_member"] == [tuple(r[:7]) + (int(r[7] or 0),) for r in b.execute(
-        "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river FROM panel_member "
+    assert paint["panel_member"] == [tuple(r[:7]) + (int(r[7] or 0), int(r[8] or 0)) for r in b.execute(
+        "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river, lead FROM panel_member "
         "ORDER BY panel_id, ord")]
     assert paint["basin_member"] == b.execute(
         "SELECT basin_id, station, area_km2, years FROM basin_member ORDER BY basin_id, station").fetchall()

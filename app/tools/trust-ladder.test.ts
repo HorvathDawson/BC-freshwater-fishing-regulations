@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ERROR_BY_RATIO, MAX_USEFUL_SPREAD, estimate, interval, trustFor, weightFor }
+import { ERROR_BY_RATIO, MAX_USEFUL_SPREAD, OWN_LEAD_SHARE, estimate, interval, trustFor, weightFor }
   from "@app/core";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -167,6 +167,11 @@ describe("combining a panel", () => {
 
   it("counts a downstream donor for less than an upstream one", () => {
     expect(weightFor(0.8, "down", 40)).toBeLessThan(weightFor(0.8, "up", 40));
+  });
+
+  it("leads with the same share of the answer as the pipeline", () => {
+    // "a water's own gauge comes first" (owner 2026-10-22): the floor a leading own gauge carries.
+    expect(OWN_LEAD_SHARE).toBe(Number(/OWN_LEAD_SHARE = ([\d.]+)/.exec(PY)![1]));
   });
 
   it("matches the pipeline's own weighting constants", () => {

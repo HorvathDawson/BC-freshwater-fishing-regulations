@@ -335,7 +335,7 @@ export const lakeStationsFor = (n: number) =>
 export const panelsForSections = (n: number) =>
   `SELECT sp.sid, sp.area_km2 AS target_area,
           pm.ord, pm.station, pm.role, pm.area_km2 AS donor_area, pm.years,
-          pm.regulated, pm.same_river
+          pm.regulated, pm.same_river, pm.lead
      FROM section_panel sp JOIN panel_member pm ON pm.panel_id = sp.panel_id
     WHERE sp.sid IN (${placeholders(n)})
     ORDER BY sp.sid, pm.ord`;
@@ -370,7 +370,7 @@ export const BASIN_MEMBERS =
  */
 export const ALL_SECTION_PANELS = "SELECT sid, panel_id, area_km2 FROM section_panel";
 export const ALL_PANEL_MEMBERS =
-  "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river FROM panel_member ORDER BY panel_id, ord";
+  "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river, lead FROM panel_member ORDER BY panel_id, ord";
 export const ALL_LAKE_SECTIONS =
   `SELECT it.sid, min(lg.station) AS station
      FROM item_section it JOIN item i ON i.ord = it.ord

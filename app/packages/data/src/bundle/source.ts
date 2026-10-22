@@ -219,6 +219,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
             years: Number(r.years),
             regulated: Number(r.regulated ?? 0) === 1,
             sameRiver: Number(r.same_river ?? 1) === 1,
+            ...(Number(r.lead ?? 0) > 0 ? { lead: Number(r.lead) } : {}),
           });
         }
       }
@@ -262,7 +263,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
           if (!list) members.set(id, (list = []));
           list.push({ station: str(r.station) as StationId, role: str(r.role) === "down" ? "down" : "up",
                       areaKm2: Number(r.area_km2), years: Number(r.years),
-                      regulated: Number(r.regulated ?? 0) === 1, sameRiver: Number(r.same_river ?? 1) === 1 });
+                      regulated: Number(r.regulated ?? 0) === 1, sameRiver: Number(r.same_river ?? 1) === 1,
+                      ...(Number(r.lead ?? 0) > 0 ? { lead: Number(r.lead) } : {}) });
         }
         const sections = (await db.all(Q.ALL_SECTION_PANELS)).map((r) => ({
           sid: Number(r.sid), panel: Number(r.panel_id), areaKm2: r.area_km2 === null ? null : Number(r.area_km2) }));
