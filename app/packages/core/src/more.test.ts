@@ -77,7 +77,7 @@ describe("the Data block: always at the top of More, one line per source", () =>
   it("a newer release known: the regulations and the map lines are likely out of date; the flows keep their own hours", () => {
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
     expect(lines({ ...fresh, newRelease: "r-new" })).toEqual([
-      "Regulations · In force to Mar 31, 2027 · Likely out of date",
+      "Regulations · Valid to Mar 31, 2027 · Likely out of date",
       "In-season changes · Check the Province's notices · Not read",
       "River flows · Checked 1h ago · Up to date",
       "Weather · With each saved spot · Live",

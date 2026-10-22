@@ -317,7 +317,6 @@ export function regsLapsedNote(validUntil: string | null | undefined, now: numbe
   return regsLapsed(validUntil, now) ? REGS_LAPSED_NOTE(isoDayWords(validUntil)!) : null;
 }
 
-const DAY_MS = 86_400_000;
 /** The age in ms of an ISO day at `now` (from its start, UTC), or null when it is not one. */
 const dayAgeMs = (day: string | null | undefined, now: number): number | null =>
   isoDayWords(day) === null ? null : now - Date.parse(`${day}T00:00:00Z`);
