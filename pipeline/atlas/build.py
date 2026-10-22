@@ -702,11 +702,14 @@ def main() -> None:
             # MATCHER lives in `gauges.generate` and is deliberately not importable from
             # here — a build that could re-derive a match is a build that can silently
             # change one, and 206 of these were confirmed by a person against a map.
-            from pipeline.gauges.matches import MATCH_FILE, read_match
+            from pipeline.gauges.matches import MATCH_FILE, matches_digest, read_match
             from pipeline.gauges.consume.cuts import split_defs as _gauge_defs
             from pipeline.gauges.consume.shed import load_stations
             from pipeline.gauges.review import load as _load_review
             from pipeline.common.models.splits import SplitDef
+            # THE FILE'S IDENTITY, read with it and recorded beside the graph (`gauge_matches.json`,
+            # N8): the bundle places stations from this file again later and refuses another version
+            _matches_sha = matches_digest()
             _matches = read_match()
             if not _matches:
                 # ABSENT IS LOUD, NOT A DEFAULT. A graph with no gauge boundaries looks
@@ -1193,6 +1196,10 @@ def main() -> None:
 
     summary = summarize(chains, graph, fids, pruned_fids) + "\n\n" + timing_str
     (out / "summary.txt").write_text(summary)
+    # WHICH GAUGE MATCHES THIS GRAPH IS CUT AT (N8, audit F28), for the bundle to check
+    from pipeline.gauges.matches import write_record
+    write_record(out, cut=not args.no_gauge_splits,
+                 sha=None if args.no_gauge_splits else _matches_sha)
     print("\n" + summary)
     print(f"\nwrote artifacts + graph.gpkg to {out}/")
 

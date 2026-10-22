@@ -538,7 +538,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
 
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.consume.place import nodes_for, summarise
-    from pipeline.gauges.matches import read_match
+    from pipeline.gauges.matches import check_record, read_match
     from pipeline.gauges.consume.shed import downstream_map, load_stations
 
     from pipeline.common.section_handles import read as _read_handles
@@ -555,6 +555,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # and which water it is on, and `nodes_for` projects that coordinate onto THIS graph,
     # taking the section that begins at the gauge and runs upstream. Node ids move when the
     # sectionizer cuts differently; a published coordinate does not.
+    # THE SAME VERSION THE ATLAS CUT AT (N8): refused when the file changed since the atlas build
+    check_record(build_dir)
     matches = read_match()                  # a missing file raises (P2: no missing-file fallbacks)
     if not matches:
         raise SystemExit("section_gauge: the gauge match file holds no stations — run "

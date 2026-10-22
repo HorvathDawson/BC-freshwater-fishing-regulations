@@ -129,3 +129,81 @@ def read_match(path: Path | None = None) -> list[StationMatch]:
                            "candidate": "unresolved"}.get(trust, "matched")
         out.append(StationMatch(**{k: v for k, v in r.items() if k in known}))
     return out
+
+
+# ---------------------------------------------------------------- the atlas's record (N8, audit F28)
+
+#: THE MATCHES AN ATLAS CUT AT, written into its build directory: `{"matches_sha256", "cut",
+#: "stamped_after_build"}`. The atlas cuts rivers at their gauges from MATCH_FILE; the bundle places
+#: every station from MATCH_FILE again, later. Two reads, so two versions could meet — a river cut
+#: at a gauge the bundle no longer puts there — and nothing noticed. The bundle compares this record
+#: with the file it is about to read (`check_record`) and refuses a difference.
+RECORD = "gauge_matches.json"
+
+
+def matches_digest(path: Path | None = None) -> str:
+    """sha256 of the matches file's bytes (16 hex), the identity the atlas records."""
+    import hashlib
+    return hashlib.sha256(Path(path or MATCH_FILE).read_bytes()).hexdigest()[:16]
+
+
+def write_record(build_dir: Path, *, cut: bool, sha: str | None,
+                 stamped_after_build: bool = False) -> Path:
+    """Write RECORD into an atlas build directory. `cut` False (`--no-gauge-splits`): no gauge cut
+    is in the graph, so no version of the file can disagree with it."""
+    p = Path(build_dir) / RECORD
+    p.write_text(json.dumps({"matches_sha256": sha if cut else None, "cut": bool(cut),
+                             "stamped_after_build": bool(stamped_after_build)},
+                            indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    return p
+
+
+def check_record(build_dir: Path, path: Path | None = None) -> None:
+    """Refuse (SystemExit) unless the atlas at `build_dir` cut at the matches file now at `path`."""
+    path = Path(path or MATCH_FILE)
+    rec_path = Path(build_dir) / RECORD
+    if not rec_path.exists():
+        raise SystemExit(
+            f"gauge matches: {build_dir} records no {RECORD} — the atlas predates the record (N8), so "
+            f"which matches.json it cut its rivers at is unknown.\n"
+            f"  If {path} has not changed since that atlas was built, stamp it (refused otherwise):\n"
+            f"    python -m pipeline.gauges.matches --stamp-atlas {build_dir}\n"
+            f"  else rebuild the atlas: python -m pipeline build --atlas --promote")
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    if not rec.get("cut"):
+        return
+    now = matches_digest(path)
+    if rec.get("matches_sha256") != now:
+        raise SystemExit(
+            f"gauge matches: the atlas at {build_dir} cut its rivers at matches.json "
+            f"{rec.get('matches_sha256')}, but {path} is now {now} — the bundle would place stations "
+            f"where the atlas did not cut. Rebuild the atlas (python -m pipeline.atlas.build, via "
+            f"`python -m pipeline build --atlas --promote`), or restore the matches it was built with.")
+
+
+def stamp_atlas(build_dir: Path, path: Path | None = None) -> Path:
+    """Write RECORD for an atlas built BEFORE the record existed, from today's matches file — only when
+    that file is older than the atlas build (its `graph.pkl.meta.json` build_ts, else graph.pkl's
+    mtime): then the atlas cannot have cut at a later version. Refused otherwise."""
+    path = Path(path or MATCH_FILE)
+    build_dir = Path(build_dir)
+    meta = build_dir / "graph.pkl.meta.json"
+    if meta.exists():
+        built = float(json.loads(meta.read_text(encoding="utf-8"))["build_ts"])
+    elif (build_dir / "graph.pkl").exists():
+        built = (build_dir / "graph.pkl").stat().st_mtime
+    else:
+        raise SystemExit(f"gauge matches: {build_dir} is not an atlas build (no graph.pkl)")
+    if path.stat().st_mtime > built:
+        raise SystemExit(f"gauge matches: {path} is newer than the atlas at {build_dir} — it may have cut "
+                         f"at an earlier version; rebuild the atlas instead of stamping it")
+    return write_record(build_dir, cut=True, sha=matches_digest(path), stamped_after_build=True)
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description="the atlas's gauge-match record (N8)")
+    ap.add_argument("--stamp-atlas", type=Path, required=True,
+                    help="an atlas build that predates the record; stamped only if matches.json is older")
+    a = ap.parse_args()
+    print(f"wrote {stamp_atlas(a.stamp_atlas)}")
