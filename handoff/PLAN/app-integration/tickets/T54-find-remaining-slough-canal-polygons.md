@@ -9,6 +9,9 @@ material is handoff/PLAN/app-data/side-channels/shots/klesilkwa-braid.png).
 ## What is done (not this ticket)
 A polygon ALREADY folded into a stream item (`item.kind = 'stream'`, `section_span.shape = 1`; 146 sections on 48 items)
 takes its water's line answer: `build_panels.stream_polygons`, pinned by `pipeline/tests/test_stream_polygon_panels.py`.
+On the real graph that answers 38 of the 45 polygons that drew grey beside coloured lines; the other 7 (Nation River
+1698439, 1698992, 1700170, 1703535; West Road (Blackwater) 1263111, 1406976; Honna 1444372) stay grey with the
+unanswered lines around them — point 2 below is what would reach them.
 
 ## What is left
 1. **Find the slough / canal / channel polygons that are still lake (or wetland) items** and decide, per water, whether
