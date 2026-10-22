@@ -315,3 +315,8 @@ TOP BAR: no "Flows checked 27h ago" text in the search bar. Instead a SYNC ICON 
 needed (stale feed / new release); the details live in More.
 MOTION: when a menu/sheet closes, the dim backdrop must NOT slide down with it — it stays in place and fades out after the
 sheet has slid away (and fades in in place on open).
+- SPOTS (owner, same pass): "add a spot should be either where you are or select on map — 'add a spot here' is awkward
+  because you need to centre it on the map first". Adding a spot offers two ways: AT MY LOCATION (asks for location
+  permission first; on native via the location module when present) and PICK ON THE MAP (go to the map with a short
+  "Tap where your spot is" banner + Cancel; a tap drops the pin and opens the existing drop sheet → the one capture flow).
+  "Add a spot here" (map centre) is removed. Long-press on the map stays as the shortcut.
