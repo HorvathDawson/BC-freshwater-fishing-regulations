@@ -24,7 +24,8 @@ const INKS = ["color.label.water", "color.label.place", "color.label.minor", "co
  * The style build's own one-meaning floor (ΔE 12, tools/build-style.mjs), here held for the WORST reader. The blues are
  * crowded — base and open are blues — and no water-label blue clears 15 for every dichromat in any theme
  * (handoff/PLAN/app-data/map-polish/scripts/label-search.ts proves it); 12 is reachable in all three, and the water inks
- * were moved to reach it (light was 7.0 from `status.open` under tritanopia).
+ * were moved to reach it (light was 7.0 from `status.open` under tritanopia). Dark gave one pair back when its ink was
+ * returned to blue (owner, 2026-10-22 late) — see UNDER_FLOOR.
  */
 const FLOOR_DE = 12;
 /**
