@@ -18,8 +18,8 @@
  * (WaterScreen hands `onMap`); it is not another way into a water.
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, ScrollView, Text, View } from "react-native";
-import { creditsFor, tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
+import { creditsFor, parseSheetKey, tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { Credits } from "../Credits";
 import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
@@ -32,9 +32,18 @@ import { createPinStore, type PinStore } from "./pinStore";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
-import type { LayoutClass } from "@app/ui";
+import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import type { AdiposeImages, FishImages } from "./types";
+
+declare const __DEV__: boolean | undefined;
+
+/**
+ * (T41) THE BROWSER WALK'S HOOK — in a development build on the web only (`app/tools/regs-walk.mjs`): open any sheet of
+ * this page by its key without a reload, and read the pin bar's lines. Never in a release build, never on native.
+ */
+export interface RegsDebug { openSheet(k: string): boolean; pinLines(): string[] }
+const debugOn = () => typeof __DEV__ !== "undefined" && __DEV__ && Platform.OS === "web";
 
 /** A section slot: a node, or a node drawn with this screen's actions. */
 export type Slot = React.ReactNode | ((actions: KeepActions) => React.ReactNode);
@@ -69,6 +78,13 @@ export interface RegsScreenProps {
   layout?: LayoutClass;
   /** a test injects its store (golden anchors); the app makes its own */
   store?: PinStore;
+  /**
+   * (T41) where the page starts — the web start link's (`@app/ui` `parseStartLink`), a test affordance: the sheet is open
+   * at once; the scroll jumps to the tab's section (+ `scroll` px) once that section is measured. `onStarted` is called
+   * when done, so the host hands the start to this page once (a new day remounts the page).
+   */
+  start?: RegsStart | null;
+  onStarted?: () => void;
 }
 
 /** A tab section whose presenter the app does not draw yet: says so, and where to look instead (never a blank). */
@@ -81,7 +97,7 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts,
-                             gear, methods, licence, footer, store: injected, layout = "phone" }: RegsScreenProps) {
+                             gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -103,8 +119,32 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     scroll.current?.scrollTo({ y: tabScrollY(t, store.getSections()), animated: !still.current });
   };
   // (T37) the one sheet over the page: every sheet key a press opens — in any section — lands here (the caller hears it too)
-  const [sheet, setSheet] = useState<SheetKey | null>(null);
+  const [sheet, setSheet] = useState<SheetKey | null>(start?.sheet ?? null);
+  // (T41) the start link's scroll: polled until the tab's section has a measured top (images and fonts move it), once
+  useEffect(() => {
+    if (!start) return;
+    if (start.tab === "keep" && start.scroll === 0) { onStarted?.(); return; }
+    const timer = setInterval(() => {
+      if (start.tab !== "keep" && store.getSections()[start.tab] == null) return;
+      clearInterval(timer);
+      store.selectTab(start.tab);
+      scroll.current?.scrollTo({ y: tabScrollY(start.tab, store.getSections()) + start.scroll, animated: false });
+      onStarted?.();
+    }, 100);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount: a start is applied to the page it opened
+  }, []);
   const openSheet = (k: SheetKey) => { actions.onSheet(k); setSheet(k); };
+  useEffect(() => {
+    if (!debugOn()) return;
+    const g = globalThis as { __regsDebug?: RegsDebug };
+    const hook: RegsDebug = {
+      openSheet: (k) => { const key = parseSheetKey(k); if (key) setSheet(key); return key !== null; },
+      pinLines: () => store.getLines().map((l) => (l.sub ? `${l.text} ${l.sub}` : l.text)),
+    };
+    g.__regsDebug = hook;
+    return () => { if (g.__regsDebug === hook) delete g.__regsDebug; };
+  }, [store]);
   const keepActions: KeepActions = { ...actions, onSheet: openSheet, onTab: toTab };
   const action = page.header.action;
   const onAction = action?.kind === "map" ? onMap && (() => onMap())

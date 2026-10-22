@@ -51,3 +51,4 @@ export * from "./gestures";
 export * from "./leave";
 export * from "./menu";
 export * from "./errorLog";
+export * from "./startLink";

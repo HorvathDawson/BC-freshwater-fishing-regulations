@@ -153,4 +153,50 @@ describe("<RegsScreen>", () => {
       expect(sel()).toEqual(["Regulations", "What you can keep"]);
     } finally { vi.useRealTimers(); }
   });
+
+  it("(T41) a start link: its sheet is open at once; once the tab's section is measured the page jumps there (+ scroll), selects it, says started", () => {
+    vi.useFakeTimers();
+    try {
+      const store = createPinStore(), onStarted = vi.fn();
+      const withSheets = { ...page, sheet: (k: string) => (page as unknown as { sheets: Record<string, unknown> }).sheets[k] ?? null } as RegsPage;
+      mount({ page: withSheets, store, start: { tab: "gear", sheet: "pos:pos", scroll: 40 }, onStarted });
+      const to = vi.fn();
+      (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+      const heading = screen.getAllByRole("heading").map((h) => h.textContent).filter((t) => t === "Possession");
+      act(() => { vi.advanceTimersByTime(500); });
+      const before = [to.mock.calls.length, onStarted.mock.calls.length];   // no section measured yet: waits
+      act(() => { store.setSections({ gear: 1500, methods: 2100, methodsHeight: 400, licence: 2700 }); vi.advanceTimersByTime(200); });
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect({ heading, before, calls: to.mock.calls, started: onStarted.mock.calls.length,
+               tab: screen.getByRole("tab", { name: "Gear" }).getAttribute("aria-selected") })
+        .toEqual({ heading: ["Possession"], before: [0, 0], calls: [[{ top: 1542, left: 0, behavior: "auto" }]], started: 1, tab: "true" });
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("(T41) the dev-only walk hook: opens a sheet by key (a bad key: false) and reads the pin bar's lines; gone on unmount and outside dev", () => {
+    type Hook = { openSheet(k: string): boolean; pinLines(): string[] } | undefined;
+    const g = globalThis as { __DEV__?: boolean; __regsDebug?: Hook };
+    mount();
+    const outside = g.__regsDebug;
+    cleanup();
+    g.__DEV__ = true;
+    try {
+      const withSheets = { ...page, sheet: (k: string) => (page as unknown as { sheets: Record<string, unknown> }).sheets[k] ?? null } as RegsPage;
+      mount({ page: withSheets });
+      const opened = [g.__regsDebug!.openSheet("nope")];
+      act(() => { opened.push(g.__regsDebug!.openSheet("pos:pos")); });
+      const heading = screen.getAllByRole("heading").map((h) => h.textContent).filter((t) => t === "Possession");
+      const lines = g.__regsDebug!.pinLines();
+      cleanup();
+      expect({ outside, opened, heading, lines, after: g.__regsDebug }).toEqual({ outside: undefined, opened: [false, true], heading: ["Possession"], lines: [], after: undefined });
+    } finally { delete g.__DEV__; }
+  });
+
+  it("(T41) a start link on Keep with no offset and no sheet does nothing to the scroll, and says started at once", () => {
+    const onStarted = vi.fn();
+    mount({ start: { tab: "keep", sheet: null, scroll: 0 }, onStarted });
+    const to = vi.fn();
+    (scrollEl() as unknown as { scroll: typeof to }).scroll = to;
+    expect([to.mock.calls.length, onStarted.mock.calls.length]).toEqual([0, 1]);
+  });
 });

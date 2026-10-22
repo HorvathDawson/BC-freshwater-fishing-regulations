@@ -15,7 +15,7 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, crossAction, exitAction, partAction,
          showRegsActions, usePhotoEdit, useRoute, waterFrame,
-         type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
+         type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { spotsMenu, useMapRail, type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried,
@@ -71,7 +71,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
-                       systemBack = null, loader = null, initialRoute, locate = null, menuInfo }: {
+                       systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -116,6 +116,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   loader?: ReleaseLoader | null;
   /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
   initialRoute?: Route;
+  /** (T41) the day it opens on (the web start link); today when absent. Read once, on mount. */
+  initialDay?: Date | null;
+  /** (T41) where the first water's Regulations page starts (the web start link): handed to that page once. */
+  regsStart?: RegsStart | null;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
   /** The menu's build facts (app build, the one contact value), from the app's config. Absent -> neither stated. */
@@ -173,7 +177,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const mapTab: BrowseTab = route.mode === "water" ? "map" : tab;
   /** The day the map's status colours answer for; null is today. */
-  const [mapDay, setMapDay] = useState<Date | null>(null);
+  const [mapDay, setMapDay] = useState<Date | null>(initialDay);
+  /** (T41) the start link's page start, until the page it opened has applied it (a later water never sees it) */
+  const [start, setStart] = useState<RegsStart | null>(regsStart);
   /**
    * (T49) The map's date sheet: its calendar button opens the SAME sheet the Regulations page's date pill does
    * (`regs/DaySheet`), on this one `mapDay` — and the days it offers are the data's calendar year, cut at the release's
@@ -487,7 +493,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
                        // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                        loader={loader} day={mapDay} onDay={setMapDay} section={frame.tapSid}
-                       part={frame.part}
+                       part={frame.part} start={start} onStarted={() => setStart(null)}
                        // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
                        // swipe away, is where a water's numbers are.
                        onBack={back} />

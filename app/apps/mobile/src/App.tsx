@@ -30,11 +30,12 @@ import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 import { locate } from "./locate";
+import { startLink } from "./startLink";
 
 import { DATA_SOURCE, ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
 
@@ -45,6 +46,13 @@ import { DATA_SOURCE, ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
  */
 teeConsoleErrors(console);
 import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
+
+/**
+ * (T41) THE WEB START LINK, read once (a test affordance; null on native and on a plain visit): the water, part, day,
+ * tab, sheet, angler and palette the browser tools put on screen. The angler is the session's profile (D8), set here.
+ */
+const START = startLink();
+if (START?.who) setAnglerProfile(START.who);
 
 /**
  * Where everything is served from: ONE base, in `config.ts` (P10). In production these are R2 URLs and nothing else
@@ -72,7 +80,7 @@ function useDevBundle(on: boolean): { bundle: LoadedBundle | null; failed: strin
 
 export default function App() {
   const scheme = useColorScheme();
-  const [theme, setTheme] = useState<ThemeName | null>(null);
+  const [theme, setTheme] = useState<ThemeName | null>(START?.theme ?? null);
 
   // Spots live in their own store — a `.spots` file on a phone, browser storage on the
   // web. Never in the release: that is replaced wholesale on every update.
@@ -178,6 +186,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
+               initialRoute={START?.route} initialDay={START?.day ?? null} regsStart={START?.regs ?? null}
                locate={locate}
                weather={weather}
                photos={photos}
