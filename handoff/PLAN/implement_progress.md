@@ -96,6 +96,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- T48 (owner 2026-10-21, recommended + accepted pattern): search field in the top bar (menu · search · sync slot), opens
+  results over the SAME mounted map, one placeholder line per opening from a words list; bottom bar Map/Conditions
+  options mocked for the owner first. Build after the map-chrome lanes merge.
 - NEW TICKETS (owner 2026-10-21): T44 one frame for the water screen (no left-margin shift between Regulations/Conditions/
   Map; FaceBar drawn once), T45 Regulations desktop layout, T46 fish ID looks side by side + max picture width on desktop,
   T47 status colours distinct (own vs closed vs restricted; region boundary red reads as closed -> neutral boundaries;

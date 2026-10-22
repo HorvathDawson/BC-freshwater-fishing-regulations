@@ -1,0 +1,37 @@
+# T48 — search lives in the top bar (menu · search field · sync), opening over the same map
+Phase 4 · Depends on the map-chrome lanes (wf_5f5e25c3-271: menu-info's top-left menu button, map-rail-spots' side rail),
+search placement + preview (merged), G1 gestures, Android back lane · Size 1–2 days
+
+## Owner (2026-10-21)
+"after the placeholder sync and menu button goes into the topbar like discussed before maybe we should think about moving
+the search up there instead of being a button? then when used it opens the menu like the search currently is? also we
+could have quirky search statements like 'cast your search' 'hook into a new spot' … just make it so when we click the
+search icon the text box for search opens up in top bar and the screen turns into the current search screen (maybe
+blend the transition so it looks like the map is being reused or something?) … we should think about it and if thought
+of as a good idea then we can roll with it."
+Recommendation given (accepted pattern: Google Maps, Apple Maps, onX, Fishbrain): yes.
+
+## Design
+- TOP BAR on the browse screens: menu button (left) · a rounded search FIELD filling the middle · the reserved sync slot
+  (right, empty until sync exists). Layers + Spots stay on the side rail. Heights and insets from tokens. It sits over the map.
+- ONE PLACEHOLDER PER OPENING, chosen from a words-table list (never cycling while visible). Each line still says what the
+  field searches, e.g. "Cast your search — any lake or river", "Drop a line: river, lake or creek…", "Hook a water by
+  name", "Reel in a river…", "Where to next? Search waters", "Find your next water". Nothing that promises fish
+  ("where they're biting"). accessibilityLabel is always the plain "Search waters".
+- TAP → the field widens IN PLACE (no jump), the keyboard comes up, and the map behind stays MOUNTED, dimmed and slightly
+  blurred. Today's SearchScreen becomes a results sheet sliding up over it. Its preview map is the SAME map (no second
+  MapLibre instance): previewing a result frames the main map. Picking a result settles the sheet and flies the map to the
+  water (or opens it through openWater — the one opener — when that is the action). Cancel / back / Escape reverse the
+  whole transition and restore the camera exactly.
+- Reduced motion: a crossfade, no scale or slide. Native driver for transforms (motion.ts NATIVE_DRIVER).
+- BOTTOM BAR: Search and Spots have left it (Spots → side rail). Mock the two remaining options for the owner: (a) keep a
+  2-item bottom bar Map · Conditions, or (b) a compact Map/Conditions switch in or under the top bar with no bottom bar.
+  The owner picks before this is built.
+
+## Acceptance
+- A render test: the search field's frame is the same before and after focus (no jump); the results sheet mounts over the
+  map without remounting the map (one Map instance, camera unchanged after cancel); back closes search before anything
+  else (the Android back lane's registry); the placeholder is from the words list and stable while open.
+- A house check: no second MapLibre map is created by search.
+- Web check at 390x844 and desktop: a frame recording of open/cancel/pick, saved to `T48-shots/`, with frame-time under
+  16 ms on the phone profile for the transition.
