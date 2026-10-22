@@ -47,8 +47,10 @@ def message(n: dict) -> str:
 
 
 def state_path(out: Path) -> Path:
-    """The sent-keys file: beside the feed directory, so it is never published with the feed."""
-    out = Path(out)
+    """The sent-keys file: beside the feed directory, so it is never published with the feed.
+
+    Resolved first: `--out .` would otherwise name `./.notified.json`, INSIDE the published directory."""
+    out = Path(out).resolve()
     return out.parent / f"{out.name}.notified.json"
 
 

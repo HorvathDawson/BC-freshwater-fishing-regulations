@@ -9,6 +9,7 @@ send is not recorded, so the next run retries it, and it never fails the feed. E
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from pipeline.gauges.feed import notify
 
@@ -40,6 +41,14 @@ def test_the_message_is_short_plain_text_with_the_command():
 def test_the_state_file_sits_beside_the_feed_not_in_it(tmp_path):
     out = tmp_path / "feeds"
     assert notify.state_path(out) == tmp_path / "feeds.notified.json"
+
+
+def test_a_relative_feed_dir_still_keeps_the_state_outside_it(tmp_path, monkeypatch):
+    # `--out .` (or `feeds/.`) must not put the sent keys INSIDE the directory that is synced to the public origin
+    (tmp_path / "feeds").mkdir()
+    monkeypatch.chdir(tmp_path / "feeds")
+    assert notify.state_path(Path(".")) == tmp_path.resolve() / "feeds.notified.json"
+    assert notify.state_path(Path("../feeds/.")) == tmp_path.resolve() / "feeds.notified.json"
 
 
 def test_sends_each_notice_once(tmp_path, capsys):
