@@ -1,6 +1,14 @@
-# Run timing
+# Run timing — PREPARED, NOT FED
 
 When each salmon and steelhead run enters fresh water, and on which reach.
+
+> **Status (2026-10-22):** not wired. No build stage (`python -m pipeline build`, `pipeline.deliver`) runs any of
+> it, and `consume/bundle.py` creates its own tables (`run_*`, `section_run`, `passage_profile`, `section_passage`) that `pipeline/deliver/bundle/schema.sql`
+> does not declare, so nothing downstream reads them. KEPT as salmon code that is planned to come back (owner,
+> 2026-10-22: salmon is not dropped). To feed it: declare its tables in `schema.sql` (or move it to `lakes/1`-style
+> release data), call `consume.bundle` from the bundle build, and refresh `data/generated/runtiming/` (generated
+> 2026-09-08, ~413 MB; the owner's call 1 lets old outputs go — re-runnable from `data/source/runtiming/`).
+> `data/curated/runtiming/review.json` is authored and NOT recreatable: keep it.
 
 Source: the Pacific Salmon Foundation's dataset #90, *Average Run Timing of Salmon and
 Steelhead Conservation Units*, built from LGL Ltd., DFO and Pacific Salmon Commission data
