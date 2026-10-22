@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # TIER 2, the FULL set (P00, 2026-10-20): run once per phase or before a merge, never per edit or per ticket.
-# It is HEAVY: run it through handoff/tools/heavy.sh (min free 40 %), one heavy job at a time, with the owner's go-ahead.
+# It is HEAVY: run it through scripts/heavy.sh (min free 40 %), one heavy job at a time, with the owner's go-ahead.
 #
-#   heavy.sh test-full 40 -- ./scripts/test-full.sh
+#   scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh
 #
 #   1. pnpm -C app check                                    every app gate + vitest (≈ 17 s)
 #   2. pytest (the fast suite, `-m "not slow"`)             ≈ 8.5 min serial (2026-10-20: 3572 passed)

@@ -123,7 +123,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     guards live there, so CI must run `-m slow` explicitly or they never run.
     **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
     commit (≈ 75 s: app check, `pytest -m smoke` from `pipeline/tests/smoke.txt`, check.mjs `ONLY=smoke`); Tier 2 is
-    `scripts/test-full.sh` via heavy.sh, once per phase or before a merge.
+    `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **Heavy jobs** (atlas build, reach run,
+    `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
+    <cmd>`: one at a time machine-wide, waits for free memory, kills the job if free memory falls under 6 %.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
 20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
