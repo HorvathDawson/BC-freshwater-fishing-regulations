@@ -54,7 +54,7 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   `@app/ui/hydrograph` and the component only draws the shapes it is handed, so the same
   arithmetic feeds react-native-svg on the phone and DOM SVG on desktop.
 
-  Also draws the icons (N1, owner 2026-10-22: Lucide, rounded 1.75). Lucide is NOT a dependency: eleven icons' path
+  Also draws the icons (N1, owner 2026-10-22: Lucide, rounded 1.75). Lucide is NOT a dependency: thirteen icons' path
   data are copied from lucide-static@0.460.0 into `packages/ui-native/src/icons.tsx` (ISC; the notice is in
   `LICENSES/lucide.txt` and on the Data sources page; the version is `@app/core` `ICON_SET`). `lucide-react-native`
   would add a package and its own react-native-svg peer for what is a table of strings.

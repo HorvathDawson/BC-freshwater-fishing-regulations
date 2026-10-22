@@ -44,6 +44,7 @@ import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
 import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
+import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -372,10 +373,8 @@ export function Fold({ palette, children }: { palette: Palette; children: ReactN
         <Text style={{ ...TYPE.kicker, color: palette.sub, flex: 1 }}>
           {CONDITIONS_WORDS.fold}
         </Text>
-        {/* A drawn chevron, not a glyph: it turns, and it carries no words. */}
-        <View style={{ width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2,
-                       borderColor: palette.sub, marginRight: SPACE.s1,
-                       transform: [{ rotate: open ? "225deg" : "45deg" }] }} />
+        {/* The set's chevron (N1): down while closed, up while open; it carries no words. */}
+        <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
       </Pressable>
       {open && <View style={{ gap: SPACE.s3, paddingBottom: SPACE.s3 }}>{children}</View>}
     </View>

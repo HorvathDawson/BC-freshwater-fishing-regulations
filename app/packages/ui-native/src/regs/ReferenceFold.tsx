@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import type { MethodsVM } from "@app/core";
+import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import type { KeepActions } from "./LineText";
@@ -25,8 +26,7 @@ export function ReferenceFold({ vm, palette, actions, initiallyOpen = false }: {
         <Text testID="kicker:reference" style={[TYPE.kicker, { width: "100%", color: palette.sub }]}>{vm.label}</Text>
         <Text style={[TYPE.regsChip, { color: palette.ink }]}>{vm.title}</Text>
         <Text style={[TYPE.metaSemi, { flex: 1, color: palette.sub }]}>{vm.sub}</Text>
-        <View aria-hidden style={{ width: 8, height: 8, marginRight: 4, alignSelf: "center", borderRightWidth: 2, borderBottomWidth: 2,
-                                   borderColor: palette.sub, transform: [{ rotate: open ? "-135deg" : "45deg" }] }} />
+        <View style={{ alignSelf: "center" }}><Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} /></View>
       </RegsPress>
       {open && (
         <View testID="methods-reference-body">

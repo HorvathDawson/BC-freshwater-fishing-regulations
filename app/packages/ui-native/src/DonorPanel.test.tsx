@@ -338,4 +338,14 @@ describe("the donor panel", () => {
     expect(screen.getByLabelText("08MH001, upstream, 2.4× apart, 60 per cent of the "
                                  + "answer. Show this gauge's chart")).toBeTruthy();
   });
+
+  it("marks the fold with the set's chevron: expand closed, collapse open (no drawn borders)", () => {
+    draw({ value: answer() });
+    const fold = screen.getByRole("button", { name: CONDITIONS_WORDS.fold });
+    expect([!!fold.querySelector('[data-testid="icon-expand"]'), !!fold.querySelector('[data-testid="icon-collapse"]')])
+      .toEqual([true, false]);
+    openFold();
+    expect([!!fold.querySelector('[data-testid="icon-expand"]'), !!fold.querySelector('[data-testid="icon-collapse"]')])
+      .toEqual([false, true]);
+  });
 });

@@ -76,6 +76,15 @@ describe("<MethodsTab>", () => {
     expect(screen.getByText("Gently, back in the water")).toBeTruthy();
   });
 
+  it("the Reference fold's mark is the set's chevron: expand closed, collapse open", () => {
+    mountMethods(methodsOf(bc1501));
+    const summary = screen.getByTestId("methods-reference-summary");
+    const marks = () => [within(summary).queryByTestId("icon-expand") !== null, within(summary).queryByTestId("icon-collapse") !== null];
+    expect(marks()).toEqual([true, false]);
+    fireEvent.click(summary);
+    expect(marks()).toEqual([false, true]);
+  });
+
   it("golden mounts (fold opened: the golden reads the folded text): vedder_1010, vedder_515, bc1_501", () => {
     for (const [id, f] of [["vedder_1010", vedder1010], ["vedder_515", vedder515], ["bc1_501", bc1501]] as const) {
       const { lines } = mountMethods(methodsOf(f), true);

@@ -9,6 +9,7 @@
  *   old icons    LayersIcon, MenuIcon, CalendarIcon and RegsHeader's GLYPH paths are gone and stay gone
  *   glyph text   no button draws a typed ‹ ✕ × ← as its glyph (the set has back and close); a lone › outside the
  *                regs page (whose rows keep it as text, the same mark as its inline "Source ›" links) is refused too
+ *   drawn marks  no chevron built from a View's two borders and a rotate (the folds' marks are expand / collapse)
  *   the table    every icon is used somewhere; the version is recorded once (`@app/core` ICON_SET) and the licence
  *                file and the credit say the same (each icon's drawing: packages/ui-native/src/icons.test.tsx)
  *
@@ -79,6 +80,12 @@ describe("one icon set (N1)", () => {
     const bad = files().filter((f) => f.startsWith("packages/ui-native/") || f.startsWith("apps/"))
       .filter((f) => glyph.test(read(f)) || (!f.startsWith("packages/ui-native/src/regs/") && chevron.test(read(f))));
     expect(bad).toEqual([]);
+  });
+
+  it("no chevron drawn from a View's two borders and a turn (a fold's mark is the set's expand / collapse)", () => {
+    // the pre-N1 fold mark: an 8x8 View, two 2 px borders, rotated 45 / 225 deg — square-capped, 2 px, not Lucide
+    const drawn = /border(?:Right|Left|Top|Bottom)Width[^}]{0,200}border(?:Right|Left|Top|Bottom)Width[^}]{0,300}\brotate\b/;
+    expect(files().filter((f) => drawn.test(read(f)))).toEqual([]);
   });
 
   it("every icon in the table is used somewhere (how each one draws: ui-native icons.test.tsx)", () => {

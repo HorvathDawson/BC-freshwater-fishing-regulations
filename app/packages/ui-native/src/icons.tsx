@@ -1,10 +1,10 @@
 /**
  * THE APP'S ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"): every chrome glyph
- * — the bottom bar, the map rail, search, back, close, the calendar, the regs header's Map / Parts — is drawn HERE and
+ * — the bottom bar, the map rail, search, back, close, the calendar, the regs header's Map / Parts, a fold's open / closed mark — is drawn HERE and
  * nowhere else (`tools/one-icon-set.test.ts` refuses a hand-drawn one beside it).
  *
  * The drawings are Lucide's, copied verbatim from lucide-static@0.460.0 (`ICON_SET` in `@app/core`, ISC licence; the
- * notice is on the menu's Data sources page and in `app/LICENSES/lucide.txt`). Copied, not installed: eleven icons are
+ * notice is on the menu's Data sources page and in `app/LICENSES/lucide.txt`). Copied, not installed: thirteen icons are
  * not worth a runtime dependency (deps.md, "minimal prod packages"). Drawn as Lucide draws them — a 24 px grid, round
  * caps and joins, no fill — at the owner's 1.75 stroke rather than Lucide's 2, which sits with the bar's 9.5 px labels.
  *
@@ -19,7 +19,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
-  | "search" | "back" | "next" | "close" | "calendar" | "parts";
+  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -34,6 +34,8 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   close: "x",
   calendar: "calendar",
   parts: "list",
+  expand: "chevron-down",
+  collapse: "chevron-up",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -94,6 +96,8 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
     { path: "M8 18h13" },
     { path: "M8 6h13" },
   ],
+  expand: [{ path: "m6 9 6 6 6-6" }],
+  collapse: [{ path: "m18 15-6-6-6 6" }],
 };
 
 /** One icon from the table, `size` px square, stroked in `colour` (a palette token). Decorative: its button speaks. */
