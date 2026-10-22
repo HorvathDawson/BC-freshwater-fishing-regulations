@@ -98,6 +98,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- NEXT after option A merges (same panel code, one rebuild for both): "own gauge first" (decisions.md OWNER 2026-10-22):
+  the Pitt uses 08MH035 (level-only) instead of North Alouette; label the quantity; check tidal swing.
 - RUNNING: side channels option A (owner 2026-10-22) wf_a3a90e27-906 (task wnrcwqr2u). After merge: bundle + release rebuild
   via heavy.sh (deliver all, alone), then taps/fixture re-cut if answers moved, strict check, smoke.
 - MERGED (wf_199d0858-41a): LAYERS MENU B a3b43827 (one water colouring for all features; layer registry; coming soon

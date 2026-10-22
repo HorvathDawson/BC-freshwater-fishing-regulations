@@ -129,3 +129,11 @@ does not need to persist across launches.
 its OWN river (same FWA watershed code) — `mainstem_of` in pipeline/atlas/gauges/build_panels.py never adopts another
 river's reach. Where its own river is silent, the channel is silent too. Options B (an explanatory line), C1 (share-of-
 flow weighting) and D (the downstream-walk area rule) are NOT part of this. See handoff/PLAN/app-data/side-channels/REPORT.md.
+
+## OWNER 2026-10-22 — a water's own gauge comes first
+"the pitt could use its own gauge." The Pitt's own gauge, 08MH035 Pitt River near Port Coquitlam, records LEVEL only
+(2017–2024), so in Flow mode the Pitt borrowed North Alouette (26 km²). Rule: a water's OWN gauge (matched to that water)
+outranks borrowed donors in whatever it measures. When the chosen quantity isn't recorded there but the other is, that
+water shows its own gauge's other quantity, labelled ("Level — this gauge records level only"). Check and disclose tidal
+or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
+before the data rebuild; the estimate stays pipeline-generated with the app mirror held equal.
