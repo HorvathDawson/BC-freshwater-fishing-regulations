@@ -19,7 +19,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { STYLE_META, baseAdapter, type MapHandle } from "@app/map";
+import { STYLE_META, baseAdapter, resolveTheme, type MapHandle } from "@app/map";
+import { paintFor } from "../packages/map/src/adapters/contract";
 // The style itself is not exported — it is the generated artifact, and reading
 // it here is reading what actually ships rather than a re-export of it.
 const MAP_STYLE = JSON.parse(
@@ -30,14 +31,15 @@ const ROOT = new URL("../../", import.meta.url).pathname;
 const PY = `${ROOT}.venv/bin/python`;
 
 /** What the tile builder thinks, read from the tile builder. */
-function fromPipeline(): { handover: number; basinMax: number; basinMin: number } {
+function fromPipeline(): { handover: number; basinMax: number; basinMin: number; simplifyM: number } {
   const script = `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(ROOT)})
 from pipeline.deliver.tiles.layers import BASIN_HANDOVER_Z, BY_NAME
+from pipeline.deliver.tiles.basins import SIMPLIFY_M
 b = BY_NAME["basin"]
 print(json.dumps({"handover": BASIN_HANDOVER_Z, "basinMax": b.maxzoom,
-                  "basinMin": b.minzoom}))
+                  "basinMin": b.minzoom, "simplifyM": SIMPLIFY_M}))
 `;
   return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8" }));
 }
@@ -147,6 +149,13 @@ describe("the basin/river handover", () => {
     expect(fromShell()).toBeGreaterThanOrEqual(py.handover);
     // And the field must reach the zoom the map opens at its widest.
     expect(py.basinMin).toBeLessThanOrEqual(4);
+    /*
+     * AND ITS EDGES ARE FINE ENOUGH FOR THE DEEPEST ZOOM IT IS DRAWN AT. The basins were simplified at 500 m — one pixel
+     * at z8, the old handover — and overzoomed to z10 that is 5 px straight runs: the sawtooth edge on the right of
+     * after-conditions-z9 (review 2026-10-22). One pixel at the handover, at 49 N.
+     */
+    const pxAtHandover = (156543.03 * Math.cos((49 * Math.PI) / 180)) / 2 ** fromShell();
+    expect(py.simplifyM).toBeLessThanOrEqual(pxAtHandover);
   });
 
   /** A handle that records each layer's floor and visibility as the adapter sets them. */
@@ -176,6 +185,13 @@ describe("the basin/river handover", () => {
       stream: 10, "selection-casing": 10, stream__arrows: 10, lake: 10, lake__edge: 10,
       "stream-nobaseline": 10, water_river: 10, stream__label: 11, lake__label: 10, lake_flowing: 10,
       wetland: 10, wetland_flowing: 10, under_lake: 10, contour: 10,
+      // and the areas and the gauges (review 2026-10-22: hatches at Liumchen and gauge dots drawn on the field)
+      indigenous_land: 10, indigenous_land__edge: 11, indigenous_land__label: 10,
+      no_access: 10, no_access__edge: 10, no_access__label: 10,
+      no_access_permit: 10, no_access_permit__edge: 10, no_access_permit__label: 10,
+      eco_reserve: 10, eco_reserve__edge: 10, eco_reserve__label: 10,
+      park: 10, park__label: 10, park_closed: 10, park_closed__edge: 10, park_closed__label: 10,
+      "gauge-dot": 10, "gauge-label": 10,
     });
   });
 
@@ -188,6 +204,75 @@ describe("the basin/river handover", () => {
     a.setLayerMode(h, "stream", "plain", "light");
     a.setLayerMode(h, "basin", "plain", "light");
     expect(shown.basin).toBe(false);
-    expect(floor).toMatchObject({ stream: 0, "stream-nobaseline": 0, water_river: 9, lake__label: 8, wetland: 0 });
+    expect(shown.basin__edge).toBe(false);
+    expect(floor).toMatchObject({ stream: 0, "stream-nobaseline": 0, water_river: 9, lake__label: 8, wetland: 0,
+                                  no_access__label: 9, park_closed__label: 7, "gauge-dot": 7, "gauge-label": 0 });
   });
+});
+
+/**
+ * THE FIELD IS ONE SOLID SHEET (review 2026-10-22). The basins are simplified one polygon at a time in the tile build, so
+ * neighbours do not share an edge: 3,552 slivers open between them and 3,694 overlap, up to ~700 m across
+ * (measured on data/generated/tiles/layers/basin.geojsonl). Overzoomed from z8 to z10 those are white and black wedges a
+ * valley long, and with the field at 0.55 every overlap was a darker seam and the basemap's lakes and the Fraser showed
+ * through it. So the field is painted OPAQUE, each colour pre-mixed on the paper at `opacity.basin` (the same colour the
+ * translucent field had on blank paper), and a seam of the basin's own colour is drawn UNDER it, wide enough to close the
+ * widest gap at every zoom it is drawn.
+ */
+describe("the field is one solid sheet", () => {
+  const STYLE_LAYERS = MAP_STYLE.layers as { id: string; type?: string }[];
+  /** `a` laid over `b` at `alpha`, as the renderer blends: per channel, in sRGB. */
+  const over = (a: string, b: string, alpha: number) => {
+    const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const [x, y] = [p(a), p(b)];
+    return "#" + x.map((v, i) => Math.round(v * alpha + y[i]! * (1 - alpha)).toString(16).padStart(2, "0")).join("")
+      .toUpperCase();
+  };
+  /** Every hex colour in an expression, in order. */
+  const colours = (e: unknown): string[] =>
+    Array.isArray(e) ? e.flatMap(colours) : typeof e === "string" && /^#[0-9a-f]{6}$/i.test(e) ? [e.toUpperCase()] : [];
+  /** Metres per CSS pixel at zoom z, at the latitude of the southern interior (49 N). */
+  const mpp = (z: number) => (156543.03 * Math.cos((49 * Math.PI) / 180)) / 2 ** z;
+  /** The widest sliver between two simplified basins (`basin.geojsonl`, maximum inscribed circle). */
+  const WIDEST_GAP_M = 700;
+  /** A zoom curve's value at z (linear between stops, clamped). */
+  const at = (curve: unknown, z: number): number => {
+    if (typeof curve === "number") return curve;
+    const c = curve as unknown[];
+    const stops: [number, number][] = [];
+    for (let i = 3; i < c.length; i += 2) stops.push([c[i] as number, c[i + 1] as number]);
+    if (z <= stops[0]![0]) return stops[0]![1];
+    for (let i = 1; i < stops.length; i++)
+      if (z <= stops[i]![0]) {
+        const [[z0, v0], [z1, v1]] = [stops[i - 1]!, stops[i]!];
+        return v0 + ((v1 - v0) * (z - z0)) / (z1 - z0);
+      }
+    return stops[stops.length - 1]![1];
+  };
+
+  for (const theme of ["light", "dark", "cvd"]) {
+    it(`paints the field opaque, each colour mixed on the paper (${theme})`, () => {
+      const t = resolveTheme(theme) as Record<string, string | number>;
+      const k = Number(t["opacity.basin"]);
+      const paper = String(t["color.outside"]);
+      const plainly = paintFor("basin", "standing", { ...t, "opacity.basin": 1 });
+      const solid = paintFor("basin", "standing", t);
+      expect(solid["fill-opacity"]).toBe(1);
+      const want = colours(plainly["fill-color"]).map((c) => over(c, paper, k));
+      expect(colours(solid["fill-color"])).toEqual(want);
+      expect(want.length).toBeGreaterThan(5);
+    });
+
+    it(`draws a seam under the field in the field's own colour (${theme})`, () => {
+      const t = resolveTheme(theme);
+      const ids = STYLE_LAYERS.map((l) => l.id);
+      expect(ids.indexOf("basin__edge")).toBe(ids.indexOf("basin") - 1);
+      expect(STYLE_META.follows.basin__edge).toBe("basin");
+      const seam = paintFor("basin__edge", "standing", t);
+      expect(seam["line-color"]).toEqual(paintFor("basin", "standing", t)["fill-color"]);
+      expect(seam["line-opacity"]).toBe(1);
+      for (let z = 4; z < STYLE_META.field!.handover; z += 0.25)
+        expect(at(seam["line-width"], z), `z${z}`).toBeGreaterThanOrEqual(WIDEST_GAP_M / mpp(z));
+    });
+  }
 });

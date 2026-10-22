@@ -97,6 +97,14 @@ describe("the native style", () => {
       .toContain(JSON.stringify(["literal", {}]));
   });
 
+  it("the field's seam reads the same table as the field (it follows the basin)", () => {
+    const areaData = { basin: { "BX-1": { standing: 42 } } };
+    const s = nativeStyle({ ...base, view: "conditions", modes: { basin: "standing" }, areaData }).style as unknown as S;
+    const seam = JSON.stringify(layer(s, "basin__edge").paint!["line-color"]);
+    expect(seam).not.toContain("feature-state");
+    expect(seam).toBe(JSON.stringify(layer(s, "basin").paint!["fill-color"]));
+  });
+
   it("carries the view and each layer's mode, as the web adapter would paint them", () => {
     const s = nativeStyle({ ...base, modes: { stream: "status", lake: "status" } }).style as unknown as S;
     const t = resolveTheme("light");

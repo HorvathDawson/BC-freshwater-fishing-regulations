@@ -205,7 +205,7 @@ ADMIN: tuple[LayerSpec, ...] = (
             "the atlas. Never cut: a drainage divide is not a line water crosses.",
     ),
     LayerSpec(
-        name="parcel", geometry="polygon", ladder="none", minzoom=12, decorative=True,
+        name="parcel", geometry="polygon", ladder="none", minzoom=11, decorative=True,
         attrs=(),
         why="PRIVATE LAND, AND ONLY PRIVATE LAND. One polygon: the union of every privately "
             "titled parcel in British Columbia. The source is 1,290,764 individual lots and "
@@ -222,8 +222,10 @@ ADMIN: tuple[LayerSpec, ...] = (
             "membership list for a fact no rule reads.\n\n"
             "NO ATTRIBUTES AT ALL. It is one polygon and its meaning is its existence — "
             "there is nothing to say about a feature when every feature is the same thing. "
-            "No feature id either: you tap the WATER, never the lot. z12 and up, because a "
-            "title boundary is meaningless at the scale of a region.",
+            "No feature id either: you tap the WATER, never the lot. z11 and up (z12 until the "
+            "refinement pass, owner 2026-10-22: private land \"should show slightly more zoomed "
+            "out\"), because a title boundary is meaningless at the scale of a region; z11 is a "
+            "valley-side on a phone, where the question at a gate starts to be asked.",
     ),
     LayerSpec(
         name="region", geometry="polygon", ladder="none", minzoom=4, maxzoom=11,
@@ -316,10 +318,10 @@ HYDROLOGY: tuple[LayerSpec, ...] = (
             "watersheds, the leaves only (under 500 km2), which is the level at which they "
             "stop nesting and become a mosaic: 11,580 polygons cover 2.68M km2 of a "
             "945,000 km2 province because a named watershed contains its tributaries'.\n\n"
-            "SIMPLIFIED TO 300 m, which is chosen rather than picked: at z8 — the deepest "
-            "zoom this layer draws — one tile pixel is 351 m at BC's latitude, so a vertex "
-            "finer than that cannot be seen. It costs 4.3% of the outline area and takes "
-            "9.6M vertices to 223k.\n\n"
+            "SIMPLIFIED TO 100 m, AS ONE COVERAGE (refinement pass, 2026-10-22): one pixel at "
+            "z10, the deepest zoom the app overzooms these z8 tiles to, and every shared border "
+            "simplified once so neighbours never gap or overlap (tiles/basins.py). It was 500 m, "
+            "one polygon at a time: 3,552 slivers up to ~700 m and a sawtooth edge at z9.\n\n"
             "`basin_id` AND NOTHING ELSE. The reading is not in the tile — it changes every "
             "half hour and the tile changes once a build — so the id is the join and the "
             "colour arrives as feature-state, exactly as a stream's does. Which station "

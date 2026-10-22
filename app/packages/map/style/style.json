@@ -228,6 +228,16 @@
       ]
     },
     {
+      "id": "basin__edge",
+      "type": "line",
+      "source": "basins",
+      "source-layer": "basin",
+      "maxzoom": 10,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
       "id": "basin",
       "type": "fill",
       "source": "basins",

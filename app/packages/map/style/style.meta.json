@@ -76,6 +76,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "basin__edge": "standing",
         "lake__edge": "standing",
         "region__edge": "plain",
         "mu__edge": "plain",
@@ -132,6 +133,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "basin__edge": "plain",
         "lake__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
@@ -177,6 +179,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "basin__edge": "plain",
         "lake__edge": "stocked",
         "region__edge": "plain",
         "mu__edge": "plain",
@@ -222,6 +225,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
+        "basin__edge": "plain",
         "lake__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
@@ -299,6 +303,7 @@
     "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
     "park_closed__edge": "protected",
+    "basin__edge": "water",
     "lake__edge": "water",
     "region__edge": "admin",
     "mu__edge": "admin",
@@ -315,6 +320,7 @@
     "stream__arrows": "water"
   },
   "follows": {
+    "basin__edge": "basin",
     "lake__edge": "lake",
     "stream__arrows": "stream"
   },
@@ -1112,6 +1118,72 @@
         }
       }
     },
+    "basin__edge": {
+      "plain": {
+        "label": "basin outline",
+        "scale": "static",
+        "color": {
+          "token": "color.water.ungauged"
+        }
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\nWITHOUT THE -1 SENTINEL, which the rivers keep. On a reach, \"a gauge reports here but has no record to rank it against\" is worth drawing: you can tap it and be told. On a 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot interrogate, and at this zoom the map should be answering one question in one vocabulary. Such a group falls through to `missing` — the unmeasured grey — which is the same thing the map says about a group with no gauge at all, and at this scale that is the truthful pairing.\n\n`missing` is water.ungauged: the grey a river gets when nothing can speak for it."
+      }
+    },
     "lake__edge": {
       "plain": {
         "label": "lake outline",
@@ -1668,6 +1740,36 @@
         ]
       ]
     },
+    "basin__edge": {
+      "token": "width.basin.seam",
+      "mode": "zoom",
+      "ramp": [
+        [
+          4,
+          0.25
+        ],
+        [
+          6,
+          0.6
+        ],
+        [
+          7,
+          1.2
+        ],
+        [
+          8,
+          2.4
+        ],
+        [
+          9,
+          4.8
+        ],
+        [
+          10,
+          9.6
+        ]
+      ]
+    },
     "lake__edge": {
       "token": "width.stream.base",
       "by": "area_m2",
@@ -1815,8 +1917,31 @@
       "wetland_flowing": 0,
       "under_lake": 0,
       "contour": 0,
+      "indigenous_land": 0,
+      "indigenous_land__edge": 11,
+      "indigenous_land__label": 9,
+      "no_access": 0,
+      "no_access__edge": 10,
+      "no_access__label": 9,
+      "no_access_permit": 0,
+      "no_access_permit__edge": 10,
+      "no_access_permit__label": 9,
+      "eco_reserve": 0,
+      "eco_reserve__edge": 10,
+      "eco_reserve__label": 8,
+      "park": 0,
+      "park__label": 8,
+      "park_closed": 0,
+      "park_closed__edge": 10,
+      "park_closed__label": 7,
       "stream-nobaseline": 0,
-      "water_river": 9
+      "water_river": 9,
+      "gauge-dot": 7,
+      "gauge-label": 0
+    },
+    "solid": {
+      "over": "color.outside",
+      "opacity": "opacity.basin"
     }
   },
   "minzoomByMode": {
@@ -1999,6 +2124,7 @@
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
+      "width.basin.seam": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
       "color.stock.season": "#00224E",
@@ -2034,7 +2160,7 @@
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "color.ui.imagery.label": "#FAFBF8",
-      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#8B857F"
     },
@@ -2086,7 +2212,7 @@
       "color.water.ungauged": "#39434B",
       "color.mask": "#595956",
       "opacity.route": 0.4,
-      "color.label.water": "#C8D0F0",
+      "color.label.water": "#5AB49C",
       "color.parcel.private": "#C49377",
       "opacity.parcel": 0.08,
       "width.parcel.edge": 0.8,
@@ -2102,6 +2228,7 @@
       "opacity.park": 0.14,
       "opacity.admin.area": 0.16,
       "width.closure.edge": 1,
+      "width.basin.seam": 1,
       "opacity.admin.edge": 0.45,
       "opacity.basin": 0.55,
       "color.stock.season": "#2ED573",
@@ -2137,7 +2264,7 @@
       "opacity.parcel.edge": 0.42,
       "opacity.closure.edge": 0.85,
       "color.ui.imagery.label": "#FAFBF8",
-      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#B8B8B8"
     },
@@ -2205,6 +2332,7 @@
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
+      "width.basin.seam": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
       "color.stock.season": "#12873F",
@@ -2240,7 +2368,7 @@
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "color.ui.imagery.label": "#FAFBF8",
-      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#7F7C79"
     }
@@ -2509,6 +2637,11 @@
       "type": "number",
       "themeable": false,
       "$comment": "Scales the closure edge's zoom curve (`outline.width.ramp` on the closed and permit layers): a hairline where the edge first appears at z10, firm by street scale. Heavier than an ordinary admin edge close in — crossing this line changes what you may do; crossing a provincial park's does not, which is why that one has no edge at all."
+    },
+    "width.basin.seam": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "Scales the seam drawn under the Conditions basin field (`outline.width.ramp` on `basin`): wide enough at every zoom to close the widest sliver (~700 m) between two independently simplified basins. Never seen on its own — the field covers it everywhere a basin is."
     },
     "opacity.admin.edge": {
       "type": "number",

@@ -121,7 +121,9 @@ export const STYLE_META = meta as unknown as {
    * `handover` (the field's own maxzoom) as its floor; otherwise the floor it maps to. One answer per zoom, nothing
    * drawn through it (owner 2026-10-22). null: no field.
    */
-  field: { layer: string; handover: number; drawnIn: string[]; covers: Record<string, number> } | null;
+  field: { layer: string; handover: number; drawnIn: string[]; covers: Record<string, number>;
+           /** Painted opaque: every colour pre-mixed on the `over` token at the `opacity` token. */
+           solid?: { over: string; opacity: string } } | null;
   /** layer id -> [[zoom, factor]]: its opacity token times this curve. */
   opacityRamps: Record<string, [number, number][]>;
   edgeOpacities: Record<string, string>;

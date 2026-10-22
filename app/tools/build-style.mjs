@@ -522,9 +522,16 @@ for (const l of src.layers ?? []) {
      */
     const edgeMinzoom = l.outline.minzoom !== undefined
       ? Math.max(l.outline.minzoom, l.minzoom ?? 0) : l.minzoom;
-    outLayers.push({ id, type: "line", ...geom,
-                     ...(edgeMinzoom !== undefined ? { minzoom: edgeMinzoom } : {}),
-                     ...(l.filter ? { filter: l.filter } : {}) });
+    const edge = { id, type: "line", ...geom,
+                   ...(edgeMinzoom !== undefined ? { minzoom: edgeMinzoom } : {}),
+                   ...(l.filter ? { filter: l.filter } : {}) };
+    /*
+     * `under: true` DRAWS THE EDGE BENEATH ITS FILL — a seam, not a border. Over an opaque fill it shows only where no
+     * feature is drawn, which is how the Conditions field closes the slivers between basins that were simplified one at
+     * a time, without moving any basin's edge (`basin` in layers.source.json).
+     */
+    if (l.outline.under === true) outLayers.splice(outLayers.length - 1, 0, edge);
+    else outLayers.push(edge);
     edges.set(id, l);
   }
 
@@ -865,7 +872,17 @@ for (const l of src.layers ?? []) {
     if (typeof z !== "number") err(`${where}: runtime layer "${id}" needs the floor it returns to`);
     covers[id] = z;
   }
-  field = { layer: l.id, handover: l.maxzoom, drawnIn, covers };
+  /*
+   * `solid`: the field is painted OPAQUE, each of its colours (and its seam's) pre-mixed on `solid.over` at the layer's
+   * own opacity token — the colour the translucent field had on blank paper, with nothing showing through it.
+   */
+  let solid = null;
+  if (l.field.solid) {
+    tokenValue(l.field.solid.over, `${where} solid.over`);
+    if (!l.opacity?.token) err(`${where}: solid needs the layer's opacity token — the strength it is mixed at`);
+    solid = { over: l.field.solid.over.token, opacity: l.opacity?.token };
+  }
+  field = { layer: l.id, handover: l.maxzoom, drawnIn, covers, ...(solid ? { solid } : {}) };
   // EVERY FLOOR A MODE GIVES A COVERED LAYER IS THE HANDOVER OR BELOW: a covered layer that came back later than the
   // field leaves would open a band drawing neither (tools/handover.test.ts holds the band itself).
   for (const id of Object.keys(covers))

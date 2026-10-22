@@ -111,7 +111,7 @@
           "token": "opacity.parcel.edge"
         }
       },
-      "$comment": "QUIET ON PURPOSE (owner 2026-10-22: \"private land is very abrasive when turned on\" and \"should show slightly more zoomed out\"). A warm tint at `opacity.parcel` and a hairline edge at `opacity.parcel.edge`, under every water colour (first of our layers). From z11 in the style; the tiles carry the parcel layer from z12 (pipeline/deliver/tiles/layers.py `parcel` minzoom), so z11 draws only after a tile rebuild with that minzoom lowered — until then the layer simply starts at z12, as before."
+      "$comment": "QUIET ON PURPOSE (owner 2026-10-22: \"private land is very abrasive when turned on\" and \"should show slightly more zoomed out\"). A warm tint at `opacity.parcel` and a hairline edge at `opacity.parcel.edge`, under every water colour (first of our layers). From z11: the tile builder now writes the parcel layer from z11 too (pipeline/deliver/tiles/layers.py `parcel` minzoom; about +2 MB of tiles, measured). The atlas shipped today was built at z12, so until the next atlas build z11 asks for parcels the tiles do not have and the layer still starts at z12."
     },
     {
       "id": "indigenous_land",
@@ -808,14 +808,76 @@
             "wetland",
             "wetland_flowing",
             "under_lake",
-            "contour"
+            "contour",
+            "indigenous_land",
+            "indigenous_land__edge",
+            "indigenous_land__label",
+            "no_access",
+            "no_access__edge",
+            "no_access__label",
+            "no_access_permit",
+            "no_access_permit__edge",
+            "no_access_permit__label",
+            "eco_reserve",
+            "eco_reserve__edge",
+            "eco_reserve__label",
+            "park",
+            "park__label",
+            "park_closed",
+            "park_closed__edge",
+            "park_closed__label"
           ],
           "runtime": {
             "stream-nobaseline": 0,
-            "water_river": 9
+            "water_river": 9,
+            "gauge-dot": 7,
+            "gauge-label": 0
           }
         },
-        "$comment": "ONE ANSWER PER ZOOM, AND NOTHING UNDER IT (owner 2026-10-22: \"the lakes and streams etc disappear when it is visible\"). While the field is drawn (`drawnIn`: its colour modes that draw at all — `plain` is not drawn, it was a #D5D5D5 wash at 0.55 over the whole Map tab below z9), every layer in `covers` takes the field's maxzoom as its floor: the rivers and lakes and their names, outlines, arrows and dashes, the wetlands, the routes through lakes, and the basemap's own river lines (`runtime`: layers the style does not generate, with the floor each returns to). Under the field before, the lake outlines, the lake names from z8 and the no-baseline dashes all drew through it — two answers, one of them a hairline. Released the moment the field is: the Map tab and the temperature view keep every layer's own floor."
+        "solid": {
+          "over": {
+            "token": "color.outside"
+          }
+        },
+        "$comment": "ONE ANSWER PER ZOOM, AND NOTHING UNDER IT (owner 2026-10-22: \"the lakes and streams etc disappear when it is visible\"). While the field is drawn (`drawnIn`: its colour modes that draw at all — `plain` is not drawn, it was a #D5D5D5 wash at 0.55 over the whole Map tab below z9), every layer in `covers` takes the field's maxzoom as its floor: the rivers and lakes and their names, outlines, arrows and dashes, the wetlands, the routes through lakes, and the basemap's own river lines (`runtime`: layers the style does not generate, with the floor each returns to). Under the field before, the lake outlines, the lake names from z8 and the no-baseline dashes all drew through it — two answers, one of them a hairline. Released the moment the field is: the Map tab and the temperature view keep every layer's own floor.\n\nONE SOLID SHEET (review 2026-10-22). The tile build simplifies each basin on its own, so neighbours do not share an edge: 3,552 slivers open between them and 3,694 overlap, up to ~700 m across. Drawn translucent and overzoomed from z8 to z10 those were white and black wedges a valley long, every overlap a darker seam, and the basemap's lakes and the Fraser showed through. So the field is OPAQUE, each colour pre-mixed on `over` at the layer's own opacity token (the colour the 0.55 field had on blank paper, now without the ground showing through), and the seam under it (`outline`, `under`) closes the gaps. Nothing under the field can show through it; `covers` still stands those layers down so their names and the gauge dots, which draw above every fill, do not float over it. The source fix (basins simplified as one coverage, pipeline/deliver/tiles/basins.py) lands with the next atlas build; the seam keeps the field closed until then."
+      },
+      "outline": {
+        "color": {
+          "token": "color.water.ungauged"
+        },
+        "follow": true,
+        "under": true,
+        "width": {
+          "token": "width.basin.seam",
+          "mode": "zoom",
+          "ramp": [
+            [
+              4,
+              0.25
+            ],
+            [
+              6,
+              0.6
+            ],
+            [
+              7,
+              1.2
+            ],
+            [
+              8,
+              2.4
+            ],
+            [
+              9,
+              4.8
+            ],
+            [
+              10,
+              9.6
+            ]
+          ]
+        },
+        "$comment": "THE SEAM, under the field in each basin's own colour: it shows only where no basin is drawn, so it closes the slivers between independently simplified neighbours without moving a border. Wide enough for the widest (~700 m) at every zoom the field draws: 700 m is 7 px at z10, 3.5 at z9 and 1.7 at z8 at 49 N (tools/handover.test.ts holds the curve to it)."
       }
     },
     {

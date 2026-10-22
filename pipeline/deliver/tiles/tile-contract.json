@@ -182,7 +182,7 @@
       "featureId": null,
       "decorative": true,
       "mvtId": false,
-      "minzoom": 12,
+      "minzoom": 11,
       "maxzoom": 14,
       "ladder": "none",
       "flows": null

@@ -48,7 +48,7 @@
     "color.water.ungauged": "#39434B",
     "color.mask": "#595956",
     "opacity.route": 0.4,
-    "color.label.water": "#C8D0F0",
+    "color.label.water": "#5AB49C",
     "color.parcel.private": "#C49377",
     "opacity.parcel": 0.08,
     "width.parcel.edge": 0.8,
@@ -64,6 +64,7 @@
     "opacity.park": 0.14,
     "opacity.admin.area": 0.16,
     "width.closure.edge": 1.0,
+    "width.basin.seam": 1.0,
     "opacity.admin.edge": 0.45,
     "opacity.basin": 0.55,
     "color.stock.season": "#2ED573",
@@ -99,7 +100,7 @@
     "opacity.parcel.edge": 0.42,
     "opacity.closure.edge": 0.85,
     "color.ui.imagery.label": "#FAFBF8",
-    "color.ui.imagery.label-water": "#D3EBFF",
+    "color.ui.imagery.label-water": "#B4DCFF",
     "color.ui.imagery.halo": "#0B0E10",
     "color.label.minor": "@color.region.edge"
   }

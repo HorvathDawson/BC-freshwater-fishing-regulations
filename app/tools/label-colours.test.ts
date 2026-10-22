@@ -15,7 +15,7 @@
 import { describe, expect, it } from "vitest";
 import { MAP_STYLE, resolveTheme, STYLE_META } from "../packages/map/src/style";
 import { BASEMAP_LABELS, basemapLabelPaint, OWN_LABELS, ownLabelOnImagery } from "../packages/map/src/labels";
-import { contrast, MODELS, worstSeparation } from "./cvd";
+import { contrast, deltaE, MODELS, worstSeparation } from "./cvd";
 
 const THEMES = ["light", "dark", "cvd"] as const;
 const STATUSES = ["closed", "own", "base", "restricted", "open"];
@@ -27,6 +27,9 @@ const INKS = ["color.label.water", "color.label.place", "color.label.minor", "co
  * were moved to reach it (light was 7.0 from `status.open` under tritanopia).
  */
 const FLOOR_DE = 12;
+/** Water ink against place ink: a clear step for normal vision (CIEDE2000 15), and 10 for the worst reader. */
+const WATER_PLACE_DE = 15;
+const WATER_PLACE_WORST = 10;
 /**
  * WCAG on the halo: 4.5:1 for the names a reader steers by (water, places, areas); 3:1 (AA large / non-text) for the
  * quiet orientation inks — roads, neighbourhoods, the region and unit numbers — which are the boundary's own grey, set
@@ -49,6 +52,24 @@ describe("the map's names", () => {
           if (w.dE < FLOOR_DE) close.push(`${ink} ~ status.${s}: ΔE ${w.dE.toFixed(1)} (${w.under})`);
         }
       expect(close).toEqual([]);
+    });
+
+    it(`a water's name never reads as a town's (${theme})`, () => {
+      /*
+       * Review 2026-10-22: dark's water ink had been moved to #C8D0F0 to clear the statuses, ΔE 8.9 from the place ink
+       * (3.9 under tritanopia) — Pitt Lake and Hemlock Valley the same pale grey-white, told apart by the italic alone.
+       * Water and place are two kinds of name; held apart for normal vision by a clear step, and for the worst reader by
+       * more than a just-noticeable one. Over imagery too.
+       */
+      const near: string[] = [];
+      const pair = (what: string, a: string, b: string) => {
+        const n = deltaE(a, b), w = worstSeparation(a, b, MODELS);
+        if (n < WATER_PLACE_DE || w.dE < WATER_PLACE_WORST)
+          near.push(`${what}: ΔE ${n.toFixed(1)}, worst ${w.dE.toFixed(1)} (${w.under})`);
+      };
+      pair("drawn", t["color.label.water"]!, t["color.label.place"]!);
+      pair("imagery", t["color.ui.imagery.label-water"]!, t["color.ui.imagery.label"]!);
+      expect(near).toEqual([]);
     });
 
     it(`every ink reads on its halo, on the drawn map and over imagery (${theme})`, () => {

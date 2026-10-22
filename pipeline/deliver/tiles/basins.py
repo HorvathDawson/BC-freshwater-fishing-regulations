@@ -28,12 +28,13 @@ from pipeline.deliver.tiles.layers import BY_NAME
 
 #: Simplification, in metres, and it is DERIVED rather than chosen by eye.
 #:
-#: At z8 — the deepest zoom this layer draws — one tile pixel is 351 m of ground at BC's
-#: latitude. A vertex finer than a pixel cannot be drawn, so anything below that is detail
-#: the screen throws away and the reader pays for. 500 m is the next step out and is what
-#: the coastline actually needs: these are large shapes and most of their vertices are in
-#: fjords that read as one edge at this zoom.
-SIMPLIFY_M = 500.0
+#: One pixel at the deepest zoom the field is DRAWN at. The tiles stop at z8, but the app
+#: overzooms them to its handover, z10 since the refinement pass (owner 2026-10-22), and at
+#: z10 one pixel is ~100 m at 49 N. It was 500 m — the next step out from a z8 pixel — and
+#: overzoomed to z10 every 500 m run was a 5 px straight edge: the sawtooth basin border on
+#: the Conditions map (review 2026-10-22; app/tools/handover.test.ts holds it to a pixel).
+#: Simplified as one coverage, 100 m is 494k vertices of the source's 5.46M.
+SIMPLIFY_M = 100.0
 
 #: The layer in the FWA gpkg. See `data/fetch_data.py` for where it comes from.
 LAYER = "watershed_groups"
@@ -56,6 +57,21 @@ def groups(gpkg: str):
     return gdf
 
 
+def simplify_cover(geoms, tolerance_m: float) -> list:
+    """Simplify the basins AS ONE COVERAGE: each shared border is simplified once and both neighbours keep it.
+
+    One polygon at a time, two neighbours each cut their common border differently, and the field opened 3,552 slivers
+    and 3,694 overlaps up to ~700 m across (measured on the shipped layer, review 2026-10-22) — white and black wedges a
+    valley long once the field was overzoomed to z10. `coverage_simplify` (GEOS >= 3.12) keeps the cover a cover.
+    The groups are the Province's complete, non-overlapping cover, so they are a valid coverage as delivered; a polygon
+    that is not (one invalid ring in the source) is made valid first.
+    """
+    import shapely
+
+    arr = shapely.make_valid(shapely.from_wkb(shapely.to_wkb(list(geoms))))
+    return list(shapely.coverage_simplify(arr, tolerance_m, simplify_boundary=True))
+
+
 def export_basins(gpkg: str, out_dir: Path) -> dict:
     """Write the basin layer. A missing groups layer is a skip, never a failure."""
     import fiona
@@ -70,11 +86,11 @@ def export_basins(gpkg: str, out_dir: Path) -> dict:
     spec = BY_NAME["basin"]
     write, close = _writer(out_dir, spec)
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
-    for row in groups(gpkg).itertuples():
-        g = row.geometry.simplify(SIMPLIFY_M, preserve_topology=True)
+    gdf = groups(gpkg)
+    for row, g in zip(gdf.itertuples(), simplify_cover(gdf.geometry.values, SIMPLIFY_M)):
         if g is None or g.is_empty:
             continue
         write(_to4326(g, tf), {"basin_id": row.basin_id}, spec.minzoom)
     n = close()
-    print(f"  basin            <- {LAYER} {n:>6,}  (simplified {SIMPLIFY_M:g} m)")
+    print(f"  basin            <- {LAYER} {n:>6,}  (simplified {SIMPLIFY_M:g} m, as one coverage)")
     return {"basin": n}

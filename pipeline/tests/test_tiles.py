@@ -414,3 +414,39 @@ def test_the_assets_folder_lists_every_file_with_its_digest(tmp_path, monkeypatc
     assert out.name == f"map-assets-{A.ASSETS_VERSION}" and meta["pin"] == A.PIN
     assert sorted(meta["files"]) == sorted(A.wanted())
     assert len(A.files_sha256(out / "assets.json")) == 64
+
+
+# ---------------------------------------------------------------- refinement pass (owner 2026-10-22)
+
+def test_basins_are_simplified_as_one_cover_so_neighbours_never_gap():
+    """Simplified one at a time, two basins sharing a wiggly border each cut it differently: the field drew white and
+    black wedges a valley long between them once overzoomed (review 2026-10-22; 3,552 slivers up to ~700 m across in the
+    shipped layer). Simplified as one coverage, the shared border is simplified once and both keep it."""
+    import math
+
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+
+    from pipeline.deliver.tiles.basins import simplify_cover
+
+    # a 20 km border that wanders up to ~600 m either side, one vertex every 200 m — as a real watershed divide does;
+    # each neighbour walks it the way its own ring runs (west up it, east down it), as the source rings do
+    border = [(600.0 * math.sin(i * 0.37) * math.cos(i * 1.91), i * 200.0) for i in range(101)]
+    west = Polygon([(-20_000.0, 20_000.0), (-20_000.0, 0.0), *border])
+    east = Polygon([(20_000.0, 0.0), (20_000.0, 20_000.0), *reversed(border)])
+    a, b = simplify_cover([west, east], 500.0)
+    assert len(a.exterior.coords) < len(west.exterior.coords)       # it did simplify
+    assert a.intersection(b).area < 1.0                             # no overlap
+    union = unary_union([a, b])
+    assert union.geom_type == "Polygon" and not list(union.interiors)  # no sliver between them
+    assert abs(union.area - unary_union([west, east]).area) < 1.0
+
+
+def test_private_land_starts_a_zoom_further_out():
+    """Owner 2026-10-22: private land "should show slightly more zoomed out". The style asks for it from z11; the tiles
+    must carry it there, or z11 draws nothing until z12 as before."""
+    assert BY_NAME["parcel"].minzoom == 11
+    contract = json.loads((ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
+    layers = contract["layers"] if isinstance(contract, dict) and "layers" in contract else contract
+    entry = layers["parcel"] if isinstance(layers, dict) else next(l for l in layers if l.get("name") == "parcel")
+    assert entry["minzoom"] == 11

@@ -65,6 +65,7 @@
     "opacity.park": 0.12,
     "opacity.admin.area": 0.14,
     "width.closure.edge": 1.0,
+    "width.basin.seam": 1.0,
     "opacity.admin.edge": 0.35,
     "opacity.basin": 0.55,
     "color.stock.season": "#00224E",
@@ -100,7 +101,7 @@
     "opacity.parcel.edge": 0.5,
     "opacity.closure.edge": 0.85,
     "color.ui.imagery.label": "#FAFBF8",
-    "color.ui.imagery.label-water": "#D3EBFF",
+    "color.ui.imagery.label-water": "#B4DCFF",
     "color.ui.imagery.halo": "#0B0E10",
     "color.label.minor": "@color.region.edge"
   }

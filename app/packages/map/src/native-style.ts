@@ -48,11 +48,15 @@ export interface NativeStyleInput extends Look {
  * Its per-feature values go into the style (`areaData`), never to feature-state, which would address nothing.
  */
 export function areaLayer(layerId: string): boolean {
-  const prop = STYLE_META.featureIds[layerId];
+  const prop = areaKey(layerId);
   if (prop === undefined || prop === "section_id") return false;
   const t = stateTarget(layerId);
   return t !== null && ATLAS_SOURCES.includes(t.source) && !SECTION_SOURCE_LAYERS.includes(t.sourceLayer);
 }
+
+/** The property an area layer's features are keyed by: its own, or (a follower, the field's seam) its fill's. */
+const areaKey = (layerId: string): string | undefined =>
+  STYLE_META.featureIds[layerId] ?? STYLE_META.featureIds[STYLE_META.follows?.[layerId] ?? ""];
 
 /** Every `["feature-state", key]` in `expr` replaced by `lookup(key)`. */
 function withoutFeatureState(expr: unknown, lookup: (key: string) => unknown): unknown {
@@ -121,8 +125,9 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
     // AN AREA LAYER'S VALUES, by its own property: `["get", <the feature's id as text>, <the table>]` is null where
     // the table has no entry — exactly what feature-state answers for a feature nobody set
     if (areaLayer(l.id)) {
-      const prop = STYLE_META.featureIds[l.id]!;
-      const rows = o.areaData?.[l.id] ?? {};
+      const prop = areaKey(l.id)!;
+      // a follower (the field's seam) reads the values of the fill it follows
+      const rows = o.areaData?.[l.id] ?? o.areaData?.[STYLE_META.follows?.[l.id] ?? ""] ?? {};
       const lookup = (key: string) => ["get", ["to-string", ["get", prop]], ["literal",
         Object.fromEntries(Object.entries(rows).filter(([, st]) => st[key] !== undefined)
           .map(([id, st]) => [id, st[key]]))]];

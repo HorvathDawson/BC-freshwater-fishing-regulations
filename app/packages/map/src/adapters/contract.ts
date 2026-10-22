@@ -338,8 +338,36 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
       && STYLE_META.colorModes[layerId]?.[mode]?.scale === "static") {
     out["fill-pattern"] = `${layerId}-hatch`;
   }
-  return out;
+  return solidField(layerId, type, out, tokens);
 }
+
+/**
+ * THE FIELD AS ONE SOLID SHEET (`field.solid`, review 2026-10-22). Its basins were simplified one at a time, so they
+ * gap and overlap along every shared border; drawn translucent, each overlap was a darker seam and the ground showed
+ * through every gap and through the field itself. Opaque, with each colour pre-mixed on the paper at the field's own
+ * opacity — the same colour the translucent field had on blank paper — nothing shows through, an overlap is invisible,
+ * and the seam drawn under it (its follower, `outline.under`) closes the gaps in the basin's own colour.
+ */
+function solidField(layerId: string, type: string | undefined, out: Record<string, unknown>,
+                    tokens: Tokens): Record<string, unknown> {
+  const f = STYLE_META.field;
+  if (!f?.solid || (layerId !== f.layer && STYLE_META.follows?.[layerId] !== f.layer)) return out;
+  const over = tokens[f.solid.over], k = Number(tokens[f.solid.opacity]);
+  if (typeof over !== "string" || !Number.isFinite(k)) return out;
+  const prop = type === "line" ? "line-color" : "fill-color";
+  return { ...out, [prop]: mixColours(out[prop], over, k), [`${type}-opacity`]: 1 };
+}
+
+/** Every `#rrggbb` in `expr` laid over `ground` at `alpha`, per sRGB channel — what the renderer's blend gives. */
+export function mixColours(expr: unknown, ground: string, alpha: number): unknown {
+  if (Array.isArray(expr)) return expr[0] === "literal" ? expr : expr.map((x) => mixColours(x, ground, alpha));
+  if (typeof expr !== "string" || !HEX6.test(expr) || !HEX6.test(ground)) return expr;
+  const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [a, b] = [rgb(expr), rgb(ground)];
+  return "#" + a.map((v, i) => Math.round(v * alpha + b[i]! * (1 - alpha)).toString(16).padStart(2, "0"))
+    .join("").toUpperCase();
+}
+const HEX6 = /^#[0-9a-f]{6}$/i;
 
 /**
  * Apply `f` to what an expression EVALUATES TO, leaving any zoom curve on the outside.
@@ -434,6 +462,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     const f = STYLE_META.field;
     if (!f) return;
     h.setVisibility(f.layer, fieldOn());
+    // its seam goes with it: drawn in every view's mode, it would otherwise outline the province on the Map tab
+    for (const follower of followersOf(f.layer)) h.setVisibility(follower, fieldOn());
     for (const id of Object.keys(f.covers)) zoomFor(h, id, modeOf[id], fieldOn());
   };
   /** The channel a layer's mode reads its values from, if any. */
