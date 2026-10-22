@@ -98,6 +98,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
+  w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
   NOT LIVE until deliver all. RUNNING own-gauge-leads wf_3c35e1af-596 (task wwqu8q52r); after it merges: ONE
   `deliver all` via heavy.sh (alone, when T47/T49 agents are idle or done), then strict check + smoke.
