@@ -267,11 +267,18 @@ bait-ways-compact (was 9).
   and the line wraps a pixel of column apart (Bella Coola "Spear or bow — …" wraps in the app). The section head's rule
   + 16 px is the prototype's own (`.gpart` padding-top 16 + its 1.5 px rule) — not changed. T40's 200 % layout test passes
   with the nested runs (they scale with the text). Undo: one style per component (rhythm.test.tsx pins each value).
-- **Q3 report link — once, at the page's foot, prefilled with the tab in view WHEN PRESSED.** Four identical links cost
+- **Q3 report link — once, at the page's foot; the report names the whole page, NOT a tab.** Four identical links cost
   ~52 px a section, sat inside each section as if they were one of its rules, and a reader scrolling the one page met the
-  same link four times. `ReportLink` takes `tab: () => Tab` (the pin store's `getTab`, the tab row's own selection) and is
-  drawn after Licence, before the picture credits; the menu's Report a problem (ReportPage) is unchanged and still the
-  other way in; the link keeps T40's 44 × 44. Undo: `RegsScreen` draws it inside `sec()` again (one line).
+  same link four times. First cut prefilled "the tab in view when pressed" — the review measured that this is always
+  Licence (the link is first fully on screen at y=4072 on vedder_1010 / y=3120 on klwa_1010 at 390 px, y=3622 at
+  1280 px; bc1_501's report read "Tab: Licence" and subject "… Bella Coola River · Licence"), so it named the wrong
+  section whenever the problem was in Keep/Gear/Methods. Now `regsReportWhere(page, null)` names no tab: "Where you
+  were" is the screen, the water, its part and the day; the subject is "… problem report: <water>"; the reader says
+  which rule in their own words (the What's wrong box). `ReportLink` takes no `tab`. Drawn after Licence, before the
+  picture credits; the menu's Report a problem (ReportPage) is unchanged and still the other way in; T40's 44 × 44 kept.
+  Rejected: per-section links back (the 52 px × 4 cost above); a tab picker on ReportPage (a form field for a fact the
+  free-text box already carries). Undo: `RegsScreen` draws it inside `sec()` passing the section's tab (one line; the
+  core function still takes a tab).
 - **O4 sheet typography — sentence-case sheet headings; rule titles and licence documents stay at body size.** The
   prototype's own round-20 rule #7 says caps only on section kickers (`.sbody .lbl { text-transform: none }`) — the app's
   sheet `Head` ("To fish here", "These decide it (12)", "What to look for") drew caps against it; now bold sub sentence

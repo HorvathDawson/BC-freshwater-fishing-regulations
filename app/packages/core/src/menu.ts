@@ -398,17 +398,18 @@ export interface DiagnosticRowVM { readonly k: DiagKey; readonly label: string; 
 const DIAG_LABEL: Record<DiagKey, string> = MENU_WORDS.report.diag;
 
 /**
- * Where a report asked from a regulations tab was asked from: the page's own words (the water's name, the day as the
- * header writes it, the tab's label) and its target — prefilled into the report's "Where you were", which the reader
- * still sees and can switch off.
+ * Where a report asked from the Regulations page was asked from: the page's own words (the water's name, the day as the
+ * header writes it, the tab's label when one is named) and its target — prefilled into the report's "Where you were",
+ * which the reader still sees and can switch off. `tab` null names the whole page: the page-foot link (T41 Q3) is only
+ * reached below Licence, so "the tab in view" there would always say Licence — a wrong fact, so it names none.
  */
 export function regsReportWhere(page: { readonly target: RegsTarget;
                                          readonly header: Pick<HeaderVM, "name" | "dayWord" | "date" | "tabs" | "place"> },
-                                tab: Tab): ReportWhere {
+                                tab: Tab | null): ReportWhere {
   const t = page.target;
   return {
     screen: MENU_WORDS.report.where.regs,
-    tab: page.header.tabs.find((x) => x.tab === tab)?.label ?? tab,
+    tab: tab === null ? null : page.header.tabs.find((x) => x.tab === tab)?.label ?? tab,
     place: page.header.name,
     water: t.kind === "part" ? t.item : null,
     part: t.kind === "part" ? t.partIx : null,

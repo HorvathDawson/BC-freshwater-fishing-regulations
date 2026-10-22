@@ -274,22 +274,21 @@ describe("the report link at the foot of the Regulations page", () => {
   } as unknown as Pick<RegsPage, "target" | "header">;
 
   it("draws nothing without the Shell's menu (a Regs screen mounted alone is unchanged)", () => {
-    render(<ReportLink page={page} tab={() => "gear"} palette={LIGHT} />);
+    render(<ReportLink page={page} palette={LIGHT} />);
     expect(screen.queryByTestId("report-link")).toBeNull();
   });
 
-  it("opens Report a problem prefilled with the water, the part, the day and the tab in view AT THE PRESS", () => {
+  it("opens Report a problem prefilled with the water, the part and the day — and NO tab: it reports the whole page", () => {
+    // (T41 Q3 review) the link sits below Licence, so the tab in view at the press was always Licence — a wrong fact
     const report = vi.fn();
     const menu = { report } as unknown as MenuControls;
-    let inView: "keep" | "gear" | "methods" | "licence" = "keep";
-    render(<MenuContext.Provider value={menu}><ReportLink page={page} tab={() => inView} palette={LIGHT} /></MenuContext.Provider>);
+    render(<MenuContext.Provider value={menu}><ReportLink page={page} palette={LIGHT} /></MenuContext.Provider>);
     expect(text("report-link")).toBe("Report a problem with this page");
-    inView = "gear";   // the reader scrolled: the link reads the tab when pressed, not when drawn
     press("Report a problem with this page");
     expect(report.mock.calls).toEqual([[{
-      screen: "water · regulations", tab: "Gear", place: "Vedder River", water: "gnis:3062", part: 1,
+      screen: "water · regulations", tab: null, place: "Vedder River", water: "gnis:3062", part: 1,
       partLabel: "Vedder Crossing → Fraser River", section: null, day: "Today, Oct 21" }]]);
-    expect(report.mock.calls[0]![0]).toEqual(regsReportWhere(page, "gear"));
+    expect(report.mock.calls[0]![0]).toEqual(regsReportWhere(page, null));
   });
 
   it("the report it opens shows those facts as 'Where you were' lines", () => {
@@ -300,7 +299,7 @@ describe("the report link at the foot of the Regulations page", () => {
       return (
         <BackLayerContext.Provider value={b.layers}>
           <MenuContext.Provider value={menu}>
-            <ReportLink page={page} tab={() => "licence"} palette={LIGHT} />
+            <ReportLink page={page} palette={LIGHT} />
             <MenuHost menu={menu} palette={LIGHT} loader={null} info={INFO} tiles={null} feedFetchedAt={null}
                       route={route} day={null} />
           </MenuContext.Provider>
@@ -308,7 +307,7 @@ describe("the report link at the foot of the Regulations page", () => {
     }
     render(<WithReport />);
     press("Report a problem with this page");
-    expect(text("report-diag-where")).toBe("Where you wereScreen: water · regulationsTab: LicenceWater: Vedder River "
+    expect(text("report-diag-where")).toBe("Where you wereScreen: water · regulationsWater: Vedder River "
       + "(gnis:3062)Part: 1 (Vedder Crossing → Fraser River)Day: Today, Oct 21");
   });
 });
@@ -328,13 +327,12 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "report-link", "regs-fish-credits"]);   // (T43) the foot credits last
     expect(screen.getAllByText("Report a problem with this page")).toHaveLength(1);
-    // prefilled with the tab in view when pressed (the pin store's: the tab row's own selection)
+    // (T41 Q3 review) it reports the whole page: whichever tab the row has selected, the report names no tab
     for (const t of ["methods", "keep", "licence", "gear"] as const) {
       act(() => store.selectTab(t));
       act(() => { fireEvent.click(screen.getByTestId("report-link")); });
     }
-    expect(report.mock.calls.map(([w]) => [w.tab, w.place, w.day])).toEqual([
-      ["Methods", "Vedder River", "Today, Oct 10"], ["What you can keep", "Vedder River", "Today, Oct 10"],
-      ["Licence", "Vedder River", "Today, Oct 10"], ["Gear", "Vedder River", "Today, Oct 10"]]);
+    expect(report.mock.calls.map(([w]) => [w.tab, w.place, w.day])).toEqual(
+      Array(4).fill([null, "Vedder River", "Today, Oct 10"]));
   });
 });

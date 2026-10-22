@@ -72,7 +72,7 @@ function keepOf(id: string) {
   const { container } = render(
     <MenuContext.Provider value={{ report() {} } as unknown as MenuControls}>
       <KeepTab keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />
-      <ReportLink page={page} tab={() => "keep"} palette={LIGHT} />
+      <ReportLink page={page} palette={LIGHT} />
     </MenuContext.Provider>);
   expect(container.querySelector('[data-testid="keep-tab"]')).not.toBeNull();
   expect(container.querySelector('[data-testid="report-link"]')).not.toBeNull();

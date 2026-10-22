@@ -286,6 +286,15 @@ describe("report a problem, from a regulations tab", () => {
                  partLabel: null, section: 812345, day: "Today, Oct 21" });
   });
 
+  it("names no tab for the page-foot link: the whole page is the subject (T41 Q3 review: the foot is only reached on Licence)", () => {
+    const w = regsReportWhere({ target: { kind: "part", item: "356308001", partIx: 2 }, header }, null);
+    expect(w).toEqual({ screen: "water · regulations", tab: null, place: "Vedder River", water: "356308001", part: 2,
+                        partLabel: "Vedder Crossing → Fraser River", section: null, day: "Today, Oct 21" });
+    expect(whereLines(w).some((l) => l.startsWith("Tab:"))).toBe(false);
+    const d = { appBuild: null, platform: null, release: null, tiles: null, where: w, errors: [] };
+    expect(reportMessage("x", d, {}).subject).toBe("Can I Fish This? problem report: Vedder River");
+  });
+
   it("words the link at the foot of the Regulations page", () => {
     expect(MENU_WORDS.report.fromRegs).toBe("Report a problem with this page");
   });

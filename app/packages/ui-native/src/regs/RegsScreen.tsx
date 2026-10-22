@@ -173,8 +173,8 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
-      {/* (T41 Q3) once, at the page's foot: the report names the tab in view when it is pressed */}
-      <ReportLink page={page} tab={store.getTab} palette={palette} />
+      {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
+      <ReportLink page={page} palette={palette} />
       {credits.length > 0 && (
         <WaterInset style={{ paddingTop: 20 }} testID="regs-fish-credits">
           <Credits palette={palette} ink={palette.sub} lines={credits} label={WORDS.FISH_PICTURES} />
