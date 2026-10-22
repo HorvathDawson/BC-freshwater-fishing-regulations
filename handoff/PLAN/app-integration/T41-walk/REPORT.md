@@ -54,8 +54,11 @@ Each shot is `[prototype | app | per-pixel diff]`, both columns cut at the regs 
 the PR, never a gate: the faces are the same, but a line break a pixel apart moves everything under it, so 7–24 % is the
 range of a matching page. **Read the shots, not the %.**
 
-Tally over the 109 shots: **match 95 · deliberate 2 · fixed 4 · open 8**. A shot is *match* when what differs is only
-the deliberate, everywhere differences G1–G7 below (a Gear / Methods / Licence shot also carries the rhythm note R1).
+Tally over the 109 shots: **match 27 · deliberate 2 · fixed 4 · open 76** (68 of the open are R1 alone, 6 are O4, one
+O3, one R1 + the bait-ways margin). A shot is *match* only when what differs is only the deliberate, everywhere
+differences G1–G7 below. Every Gear / Methods / Licence shot that shows the R1 rhythm difference is *open*, not match: R1
+waits on the owner's answer to Q1/Q3, so those shots are not at parity yet. (x31p's tidal Gear / Methods draw one note
+per section and are not taller than the prototype's: match.)
 
 ### Deliberate everywhere (owner decisions, cited) — not counted per shot
 
@@ -133,9 +136,9 @@ result in `handoff/PLAN/app-integration/reader/`. T39's `regs-census.mjs` now re
 | state | tab / sheet | theme | diff % | verdict | shot |
 |---|---|---|---|---|---|
 | vedder_1010 | keep | light | 13.63 | **match**  | [shot](shots/vedder_1010-keep-light.jpg) |
-| vedder_1010 | gear | light | 11.27 | **match** R1 rhythm | [shot](shots/vedder_1010-gear-light.jpg) |
-| vedder_1010 | methods | light | 11.45 | **match** R1 rhythm | [shot](shots/vedder_1010-methods-light.jpg) |
-| vedder_1010 | licence | light | 16.89 | **match** R1 rhythm | [shot](shots/vedder_1010-licence-light.jpg) |
+| vedder_1010 | gear | light | 11.27 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-gear-light.jpg) |
+| vedder_1010 | methods | light | 11.45 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-methods-light.jpg) |
+| vedder_1010 | licence | light | 16.89 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-licence-light.jpg) |
 | vedder_1010 | keep · sheet `pos:vedder_1010\|pos` | light | 18.96 | **fixed** F1: term words + examples small, the doubles words bold (body 325 → 255 px) | [shot](shots/vedder_1010-keep-pos_pos-light.jpg) |
 | vedder_1010 | keep · sheet `hatch` | light | 23.11 | **fixed** F2: the term under a small heading, its words small (sheet ~180 px shorter); O1 no tile behind the drawings | [shot](shots/vedder_1010-keep-hatch-light.jpg) |
 | vedder_1010 | keep · sheet `gl:single_barbless_hook` | light | 16.17 | **match**  | [shot](shots/vedder_1010-keep-gl_single_barbless_hook-light.jpg) |
@@ -147,97 +150,97 @@ result in `handoff/PLAN/app-integration/reader/`. T39's `regs-census.mjs` now re
 | vedder_1010 | keep · sheet `sp:BCB` | light | 23.07 | **open** O4 "What to look for" upper-case kicker; T46 picture held smaller (deliberate) | [shot](shots/vedder_1010-keep-sp_BCB-light.jpg) |
 | vedder_1010 | keep · sheet `src:vedder_1010\|r0` | light | 21.29 | **fixed** F3: each rule's book words quoted on their own line, small, sub | [shot](shots/vedder_1010-keep-src_r0-light.jpg) |
 | klwa_1010 | keep | light | 11.79 | **match**  | [shot](shots/klwa_1010-keep-light.jpg) |
-| klwa_1010 | gear | light | 8.13 | **match** R1 rhythm | [shot](shots/klwa_1010-gear-light.jpg) |
+| klwa_1010 | gear | light | 8.13 | **open** R1 rhythm (Q1) | [shot](shots/klwa_1010-gear-light.jpg) |
 | klwa_1010 | methods | light | 11.3 | **open** R1 rhythm; bait-ways-compact see walk | [shot](shots/klwa_1010-methods-light.jpg) |
-| klwa_1010 | licence | light | 15.9 | **match** R1 rhythm | [shot](shots/klwa_1010-licence-light.jpg) |
+| klwa_1010 | licence | light | 15.9 | **open** R1 rhythm (Q1) | [shot](shots/klwa_1010-licence-light.jpg) |
 | klwa_1010 | keep · sheet `other:klwa_1010\|o0` | light | 17.88 | **open** O4 sheet typography | [shot](shots/klwa_1010-keep-other_o0-light.jpg) |
 | cow1_1010 | keep | light | 11.48 | **match**  | [shot](shots/cow1_1010-keep-light.jpg) |
-| cow1_1010 | gear | light | 14.34 | **match** R1 rhythm | [shot](shots/cow1_1010-gear-light.jpg) |
-| cow1_1010 | methods | light | 12.42 | **match** R1 rhythm | [shot](shots/cow1_1010-methods-light.jpg) |
-| cow1_1010 | licence | light | 16.52 | **match** R1 rhythm | [shot](shots/cow1_1010-licence-light.jpg) |
+| cow1_1010 | gear | light | 14.34 | **open** R1 rhythm (Q1) | [shot](shots/cow1_1010-gear-light.jpg) |
+| cow1_1010 | methods | light | 12.42 | **open** R1 rhythm (Q1) | [shot](shots/cow1_1010-methods-light.jpg) |
+| cow1_1010 | licence | light | 16.52 | **open** R1 rhythm (Q1) | [shot](shots/cow1_1010-licence-light.jpg) |
 | chw1_1010 | keep | light | 13.8 | **match**  | [shot](shots/chw1_1010-keep-light.jpg) |
-| chw1_1010 | gear | light | 10.99 | **match** R1 rhythm | [shot](shots/chw1_1010-gear-light.jpg) |
-| chw1_1010 | methods | light | 11.88 | **match** R1 rhythm | [shot](shots/chw1_1010-methods-light.jpg) |
-| chw1_1010 | licence | light | 17.32 | **match** R1 rhythm | [shot](shots/chw1_1010-licence-light.jpg) |
+| chw1_1010 | gear | light | 10.99 | **open** R1 rhythm (Q1) | [shot](shots/chw1_1010-gear-light.jpg) |
+| chw1_1010 | methods | light | 11.88 | **open** R1 rhythm (Q1) | [shot](shots/chw1_1010-methods-light.jpg) |
+| chw1_1010 | licence | light | 17.32 | **open** R1 rhythm (Q1) | [shot](shots/chw1_1010-licence-light.jpg) |
 | wilkes_1010 | keep | light | 11.88 | **match**  | [shot](shots/wilkes_1010-keep-light.jpg) |
-| wilkes_1010 | gear | light | 8.99 | **match** R1 rhythm | [shot](shots/wilkes_1010-gear-light.jpg) |
-| wilkes_1010 | methods | light | 9.26 | **match** R1 rhythm | [shot](shots/wilkes_1010-methods-light.jpg) |
-| wilkes_1010 | licence | light | 14.19 | **match** R1 rhythm | [shot](shots/wilkes_1010-licence-light.jpg) |
+| wilkes_1010 | gear | light | 8.99 | **open** R1 rhythm (Q1) | [shot](shots/wilkes_1010-gear-light.jpg) |
+| wilkes_1010 | methods | light | 9.26 | **open** R1 rhythm (Q1) | [shot](shots/wilkes_1010-methods-light.jpg) |
+| wilkes_1010 | licence | light | 14.19 | **open** R1 rhythm (Q1) | [shot](shots/wilkes_1010-licence-light.jpg) |
 | vedder_515 | keep | light | 16.07 | **match**  | [shot](shots/vedder_515-keep-light.jpg) |
-| vedder_515 | gear | light | 11.54 | **match** R1 rhythm | [shot](shots/vedder_515-gear-light.jpg) |
-| vedder_515 | methods | light | 10.78 | **match** R1 rhythm | [shot](shots/vedder_515-methods-light.jpg) |
-| vedder_515 | licence | light | 15.01 | **match** R1 rhythm | [shot](shots/vedder_515-licence-light.jpg) |
+| vedder_515 | gear | light | 11.54 | **open** R1 rhythm (Q1) | [shot](shots/vedder_515-gear-light.jpg) |
+| vedder_515 | methods | light | 10.78 | **open** R1 rhythm (Q1) | [shot](shots/vedder_515-methods-light.jpg) |
+| vedder_515 | licence | light | 15.01 | **open** R1 rhythm (Q1) | [shot](shots/vedder_515-licence-light.jpg) |
 | x12p_1010 | keep | light | 11.83 | **match**  | [shot](shots/x12p_1010-keep-light.jpg) |
-| x12p_1010 | gear | light | 9.13 | **match** R1 rhythm | [shot](shots/x12p_1010-gear-light.jpg) |
-| x12p_1010 | methods | light | 13.34 | **match** R1 rhythm | [shot](shots/x12p_1010-methods-light.jpg) |
-| x12p_1010 | licence | light | 18.85 | **match** R1 rhythm | [shot](shots/x12p_1010-licence-light.jpg) |
+| x12p_1010 | gear | light | 9.13 | **open** R1 rhythm (Q1) | [shot](shots/x12p_1010-gear-light.jpg) |
+| x12p_1010 | methods | light | 13.34 | **open** R1 rhythm (Q1) | [shot](shots/x12p_1010-methods-light.jpg) |
+| x12p_1010 | licence | light | 18.85 | **open** R1 rhythm (Q1) | [shot](shots/x12p_1010-licence-light.jpg) |
 | x3p_1010 | keep | light | 10.37 | **match**  | [shot](shots/x3p_1010-keep-light.jpg) |
-| x3p_1010 | gear | light | 8.85 | **match** R1 rhythm | [shot](shots/x3p_1010-gear-light.jpg) |
-| x3p_1010 | methods | light | 13.26 | **match** R1 rhythm | [shot](shots/x3p_1010-methods-light.jpg) |
-| x3p_1010 | licence | light | 12.94 | **match** R1 rhythm | [shot](shots/x3p_1010-licence-light.jpg) |
+| x3p_1010 | gear | light | 8.85 | **open** R1 rhythm (Q1) | [shot](shots/x3p_1010-gear-light.jpg) |
+| x3p_1010 | methods | light | 13.26 | **open** R1 rhythm (Q1) | [shot](shots/x3p_1010-methods-light.jpg) |
+| x3p_1010 | licence | light | 12.94 | **open** R1 rhythm (Q1) | [shot](shots/x3p_1010-licence-light.jpg) |
 | iron_720 | keep | light | 10.83 | **match**  | [shot](shots/iron_720-keep-light.jpg) |
-| iron_720 | gear | light | 11.4 | **match** R1 rhythm | [shot](shots/iron_720-gear-light.jpg) |
-| iron_720 | methods | light | 11.26 | **match** R1 rhythm | [shot](shots/iron_720-methods-light.jpg) |
-| iron_720 | licence | light | 14.04 | **match** R1 rhythm | [shot](shots/iron_720-licence-light.jpg) |
+| iron_720 | gear | light | 11.4 | **open** R1 rhythm (Q1) | [shot](shots/iron_720-gear-light.jpg) |
+| iron_720 | methods | light | 11.26 | **open** R1 rhythm (Q1) | [shot](shots/iron_720-methods-light.jpg) |
+| iron_720 | licence | light | 14.04 | **open** R1 rhythm (Q1) | [shot](shots/iron_720-licence-light.jpg) |
 | x34p_1010 | keep | light | 12.6 | **match**  | [shot](shots/x34p_1010-keep-light.jpg) |
-| x34p_1010 | gear | light | 9.04 | **match** R1 rhythm | [shot](shots/x34p_1010-gear-light.jpg) |
-| x34p_1010 | methods | light | 11.21 | **match** R1 rhythm | [shot](shots/x34p_1010-methods-light.jpg) |
-| x34p_1010 | licence | light | 14.48 | **match** R1 rhythm | [shot](shots/x34p_1010-licence-light.jpg) |
+| x34p_1010 | gear | light | 9.04 | **open** R1 rhythm (Q1) | [shot](shots/x34p_1010-gear-light.jpg) |
+| x34p_1010 | methods | light | 11.21 | **open** R1 rhythm (Q1) | [shot](shots/x34p_1010-methods-light.jpg) |
+| x34p_1010 | licence | light | 14.48 | **open** R1 rhythm (Q1) | [shot](shots/x34p_1010-licence-light.jpg) |
 | x35p_1010 | keep | light | 11.83 | **match**  | [shot](shots/x35p_1010-keep-light.jpg) |
-| x35p_1010 | gear | light | 9.12 | **match** R1 rhythm | [shot](shots/x35p_1010-gear-light.jpg) |
-| x35p_1010 | methods | light | 13.34 | **match** R1 rhythm | [shot](shots/x35p_1010-methods-light.jpg) |
-| x35p_1010 | licence | light | 18.85 | **match** R1 rhythm | [shot](shots/x35p_1010-licence-light.jpg) |
+| x35p_1010 | gear | light | 9.12 | **open** R1 rhythm (Q1) | [shot](shots/x35p_1010-gear-light.jpg) |
+| x35p_1010 | methods | light | 13.34 | **open** R1 rhythm (Q1) | [shot](shots/x35p_1010-methods-light.jpg) |
+| x35p_1010 | licence | light | 18.85 | **open** R1 rhythm (Q1) | [shot](shots/x35p_1010-licence-light.jpg) |
 | bc0_1010 | keep | light | 11.96 | **match**  | [shot](shots/bc0_1010-keep-light.jpg) |
-| bc0_1010 | gear | light | 9.56 | **match** R1 rhythm | [shot](shots/bc0_1010-gear-light.jpg) |
-| bc0_1010 | methods | light | 11.55 | **match** R1 rhythm | [shot](shots/bc0_1010-methods-light.jpg) |
-| bc0_1010 | licence | light | 15.32 | **match** R1 rhythm | [shot](shots/bc0_1010-licence-light.jpg) |
+| bc0_1010 | gear | light | 9.56 | **open** R1 rhythm (Q1) | [shot](shots/bc0_1010-gear-light.jpg) |
+| bc0_1010 | methods | light | 11.55 | **open** R1 rhythm (Q1) | [shot](shots/bc0_1010-methods-light.jpg) |
+| bc0_1010 | licence | light | 15.32 | **open** R1 rhythm (Q1) | [shot](shots/bc0_1010-licence-light.jpg) |
 | bc0_501 | keep | light | 13.76 | **match**  | [shot](shots/bc0_501-keep-light.jpg) |
-| bc0_501 | gear | light | 10.26 | **match** R1 rhythm | [shot](shots/bc0_501-gear-light.jpg) |
-| bc0_501 | methods | light | 11.92 | **match** R1 rhythm | [shot](shots/bc0_501-methods-light.jpg) |
-| bc0_501 | licence | light | 16.24 | **match** R1 rhythm | [shot](shots/bc0_501-licence-light.jpg) |
+| bc0_501 | gear | light | 10.26 | **open** R1 rhythm (Q1) | [shot](shots/bc0_501-gear-light.jpg) |
+| bc0_501 | methods | light | 11.92 | **open** R1 rhythm (Q1) | [shot](shots/bc0_501-methods-light.jpg) |
+| bc0_501 | licence | light | 16.24 | **open** R1 rhythm (Q1) | [shot](shots/bc0_501-licence-light.jpg) |
 | ape_1010 | keep | light | 10.73 | **match**  | [shot](shots/ape_1010-keep-light.jpg) |
-| ape_1010 | gear | light | 8.36 | **match** R1 rhythm | [shot](shots/ape_1010-gear-light.jpg) |
-| ape_1010 | methods | light | 11.02 | **match** R1 rhythm | [shot](shots/ape_1010-methods-light.jpg) |
-| ape_1010 | licence | light | 16.81 | **match** R1 rhythm | [shot](shots/ape_1010-licence-light.jpg) |
+| ape_1010 | gear | light | 8.36 | **open** R1 rhythm (Q1) | [shot](shots/ape_1010-gear-light.jpg) |
+| ape_1010 | methods | light | 11.02 | **open** R1 rhythm (Q1) | [shot](shots/ape_1010-methods-light.jpg) |
+| ape_1010 | licence | light | 16.81 | **open** R1 rhythm (Q1) | [shot](shots/ape_1010-licence-light.jpg) |
 | ape_501 | keep | light | 10.68 | **match**  | [shot](shots/ape_501-keep-light.jpg) |
-| ape_501 | gear | light | 8.18 | **match** R1 rhythm | [shot](shots/ape_501-gear-light.jpg) |
-| ape_501 | methods | light | 10.94 | **match** R1 rhythm | [shot](shots/ape_501-methods-light.jpg) |
-| ape_501 | licence | light | 16.74 | **match** R1 rhythm | [shot](shots/ape_501-licence-light.jpg) |
+| ape_501 | gear | light | 8.18 | **open** R1 rhythm (Q1) | [shot](shots/ape_501-gear-light.jpg) |
+| ape_501 | methods | light | 10.94 | **open** R1 rhythm (Q1) | [shot](shots/ape_501-methods-light.jpg) |
+| ape_501 | licence | light | 16.74 | **open** R1 rhythm (Q1) | [shot](shots/ape_501-licence-light.jpg) |
 | x15p3_1010 | keep | light | 13.42 | **match** G7 Map, not Parts (D1) | [shot](shots/x15p3_1010-keep-light.jpg) |
-| x15p3_1010 | gear | light | 10.78 | **match** R1 rhythm | [shot](shots/x15p3_1010-gear-light.jpg) |
-| x15p3_1010 | methods | light | 11.77 | **match** R1 rhythm | [shot](shots/x15p3_1010-methods-light.jpg) |
-| x15p3_1010 | licence | light | 16.52 | **match** R1 rhythm | [shot](shots/x15p3_1010-licence-light.jpg) |
+| x15p3_1010 | gear | light | 10.78 | **open** R1 rhythm (Q1) | [shot](shots/x15p3_1010-gear-light.jpg) |
+| x15p3_1010 | methods | light | 11.77 | **open** R1 rhythm (Q1) | [shot](shots/x15p3_1010-methods-light.jpg) |
+| x15p3_1010 | licence | light | 16.52 | **open** R1 rhythm (Q1) | [shot](shots/x15p3_1010-licence-light.jpg) |
 | bc1_501 | keep | light | 13.77 | **match**  | [shot](shots/bc1_501-keep-light.jpg) |
-| bc1_501 | gear | light | 10.27 | **match** R1 rhythm | [shot](shots/bc1_501-gear-light.jpg) |
-| bc1_501 | methods | light | 12.21 | **match** R1 rhythm | [shot](shots/bc1_501-methods-light.jpg) |
-| bc1_501 | licence | light | 16.18 | **match** R1 rhythm | [shot](shots/bc1_501-licence-light.jpg) |
+| bc1_501 | gear | light | 10.27 | **open** R1 rhythm (Q1) | [shot](shots/bc1_501-gear-light.jpg) |
+| bc1_501 | methods | light | 12.21 | **open** R1 rhythm (Q1) | [shot](shots/bc1_501-methods-light.jpg) |
+| bc1_501 | licence | light | 16.18 | **open** R1 rhythm (Q1) | [shot](shots/bc1_501-licence-light.jpg) |
 | bc1_501 | keep · sheet `parts` | light | 11.39 | **deliberate** D1: the prototype's "no map of this water" note is not ported; the ✓ on the part read | [shot](shots/bc1_501-keep-parts-light.jpg) |
 | hamill_615 | keep | light | 12.56 | **match**  | [shot](shots/hamill_615-keep-light.jpg) |
-| hamill_615 | gear | light | 7.82 | **match** R1 rhythm | [shot](shots/hamill_615-gear-light.jpg) |
-| hamill_615 | methods | light | 9.26 | **match** R1 rhythm | [shot](shots/hamill_615-methods-light.jpg) |
-| hamill_615 | licence | light | 13.27 | **match** R1 rhythm | [shot](shots/hamill_615-licence-light.jpg) |
+| hamill_615 | gear | light | 7.82 | **open** R1 rhythm (Q1) | [shot](shots/hamill_615-gear-light.jpg) |
+| hamill_615 | methods | light | 9.26 | **open** R1 rhythm (Q1) | [shot](shots/hamill_615-methods-light.jpg) |
+| hamill_615 | licence | light | 13.27 | **open** R1 rhythm (Q1) | [shot](shots/hamill_615-licence-light.jpg) |
 | klwa_1012 | keep | light | 11.78 | **match**  | [shot](shots/klwa_1012-keep-light.jpg) |
-| klwa_1012 | gear | light | 8.09 | **match** R1 rhythm | [shot](shots/klwa_1012-gear-light.jpg) |
-| klwa_1012 | methods | light | 10.72 | **match** R1 rhythm | [shot](shots/klwa_1012-methods-light.jpg) |
-| klwa_1012 | licence | light | 15.86 | **match** R1 rhythm | [shot](shots/klwa_1012-licence-light.jpg) |
+| klwa_1012 | gear | light | 8.09 | **open** R1 rhythm (Q1) | [shot](shots/klwa_1012-gear-light.jpg) |
+| klwa_1012 | methods | light | 10.72 | **open** R1 rhythm (Q1) | [shot](shots/klwa_1012-methods-light.jpg) |
+| klwa_1012 | licence | light | 15.86 | **open** R1 rhythm (Q1) | [shot](shots/klwa_1012-licence-light.jpg) |
 | glenn_615 | keep | light | 12.51 | **match**  | [shot](shots/glenn_615-keep-light.jpg) |
-| glenn_615 | gear | light | 7.05 | **match** R1 rhythm | [shot](shots/glenn_615-gear-light.jpg) |
-| glenn_615 | methods | light | 9.88 | **match** R1 rhythm | [shot](shots/glenn_615-methods-light.jpg) |
-| glenn_615 | licence | light | 13.19 | **match** R1 rhythm | [shot](shots/glenn_615-licence-light.jpg) |
+| glenn_615 | gear | light | 7.05 | **open** R1 rhythm (Q1) | [shot](shots/glenn_615-gear-light.jpg) |
+| glenn_615 | methods | light | 9.88 | **open** R1 rhythm (Q1) | [shot](shots/glenn_615-methods-light.jpg) |
+| glenn_615 | licence | light | 13.19 | **open** R1 rhythm (Q1) | [shot](shots/glenn_615-licence-light.jpg) |
 | chw2_1010 | keep | light | 14.11 | **match**  | [shot](shots/chw2_1010-keep-light.jpg) |
-| chw2_1010 | gear | light | 9.92 | **match** R1 rhythm | [shot](shots/chw2_1010-gear-light.jpg) |
-| chw2_1010 | methods | light | 12.13 | **match** R1 rhythm | [shot](shots/chw2_1010-methods-light.jpg) |
-| chw2_1010 | licence | light | 15.63 | **match** R1 rhythm | [shot](shots/chw2_1010-licence-light.jpg) |
+| chw2_1010 | gear | light | 9.92 | **open** R1 rhythm (Q1) | [shot](shots/chw2_1010-gear-light.jpg) |
+| chw2_1010 | methods | light | 12.13 | **open** R1 rhythm (Q1) | [shot](shots/chw2_1010-methods-light.jpg) |
+| chw2_1010 | licence | light | 15.63 | **open** R1 rhythm (Q1) | [shot](shots/chw2_1010-licence-light.jpg) |
 | x31p_1010 | keep | light | 11.91 | **match**  | [shot](shots/x31p_1010-keep-light.jpg) |
 | x31p_1010 | gear | light | 15.41 | **match** tidal words (D20 b) — the v38 prototype draws them too | [shot](shots/x31p_1010-gear-light.jpg) |
 | x31p_1010 | methods | light | 15.29 | **match** tidal words (D20 b), as v38 | [shot](shots/x31p_1010-methods-light.jpg) |
 | x31p_1010 | licence | light | 15.29 | **deliberate** D33 (b): the stored tidal licence answer, not the prototype's empty section | [shot](shots/x31p_1010-licence-light.jpg) |
 | x15p2_1010 | keep | light | 14.18 | **open** O3 the timed caveat draws no grey box (T42 owner question "caveat look"); G7 Map, not Parts | [shot](shots/x15p2_1010-keep-light.jpg) |
-| x15p2_1010 | gear | light | 7.99 | **match** R1 rhythm | [shot](shots/x15p2_1010-gear-light.jpg) |
-| x15p2_1010 | methods | light | 11.33 | **match** R1 rhythm | [shot](shots/x15p2_1010-methods-light.jpg) |
-| x15p2_1010 | licence | light | 14.46 | **match** R1 rhythm | [shot](shots/x15p2_1010-licence-light.jpg) |
+| x15p2_1010 | gear | light | 7.99 | **open** R1 rhythm (Q1) | [shot](shots/x15p2_1010-gear-light.jpg) |
+| x15p2_1010 | methods | light | 11.33 | **open** R1 rhythm (Q1) | [shot](shots/x15p2_1010-methods-light.jpg) |
+| x15p2_1010 | licence | light | 14.46 | **open** R1 rhythm (Q1) | [shot](shots/x15p2_1010-licence-light.jpg) |
 | vedder_1010 | keep | dark | 13.65 | **match**  | [shot](shots/vedder_1010-keep-dark.jpg) |
-| vedder_1010 | gear | dark | 10.91 | **match** R1 rhythm | [shot](shots/vedder_1010-gear-dark.jpg) |
-| vedder_1010 | methods | dark | 10.03 | **match** R1 rhythm | [shot](shots/vedder_1010-methods-dark.jpg) |
-| vedder_1010 | licence | dark | 16.11 | **match** R1 rhythm | [shot](shots/vedder_1010-licence-dark.jpg) |
+| vedder_1010 | gear | dark | 10.91 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-gear-dark.jpg) |
+| vedder_1010 | methods | dark | 10.03 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-methods-dark.jpg) |
+| vedder_1010 | licence | dark | 16.11 | **open** R1 rhythm (Q1) | [shot](shots/vedder_1010-licence-dark.jpg) |
 | vedder_1010 | keep · sheet `pos:vedder_1010\|pos` | dark | 12.8 | **fixed** F1: term words + examples small, the doubles words bold (body 325 → 255 px) | [shot](shots/vedder_1010-keep-pos_pos-dark.jpg) |
