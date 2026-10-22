@@ -57,9 +57,9 @@
                  "color.status.restricted": "#2E0A55", "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge" }
     }
   },
-  "D": {
-    "label": "D · Five apart (applied)",
-    "summary": "Part 2, after the owner's answer of 2026-10-22 ('push own / closed / restricted / base / open further apart'). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs to maximise the minimum ΔE2000 over every pair a reader sees side by side on the map, as tokens, thin lines, lake fills and over satellite, for normal vision and protan / deutan / tritan under Viénot and Machado. Lightness AND hue: light runs restricted deep aubergine (darkest) · closed red · open cerulean (off the mid green: open is a cool temperature dot and a card word, never water) · base periwinkle blue · own amber (lightest). Dark keeps the hue families, light enough for the dark card (pale cyan open, mauve restricted, coral red closed, yellow own, deep blue base), and holds the owner's closed/own pair at least where it was before T47 as a thin line. The colour-blind palette takes the light statuses (D is chosen under all three simulations already) except open, a deeper blue there (#1154C3) because the cvd theme's mapped-water teal sits on the light cerulean; its open and base are no longer one blue.",
+  "D0": {
+    "label": "D0 · first D (superseded by review, 2026-10-22)",
+    "summary": "SUPERSEDED the same day it was applied, after review: maximising the minimum over every pair let the owner's closed/own pair give ground to the others (light thin line 19.5, under B's 20.3; dark no better than before T47), its light restricted #1D002B was a near-black the card could not tell from body ink (18.3 normal, 10.9 deutan, 1.08:1), its dark open #94E1FF sat 19.5 from the dark ink, and the cvd boundary token fell to 18.9 under the ticket's 20. Kept for the record (table 3b); not rendered. Original summary: Part 2, after the owner's answer of 2026-10-22 ('push own / closed / restricted / base / open further apart'). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs to maximise the minimum ΔE2000 over every pair a reader sees side by side on the map, as tokens, thin lines, lake fills and over satellite, for normal vision and protan / deutan / tritan under Viénot and Machado. Lightness AND hue: light runs restricted deep aubergine (darkest) · closed red · open cerulean (off the mid green: open is a cool temperature dot and a card word, never water) · base periwinkle blue · own amber (lightest). Dark keeps the hue families, light enough for the dark card (pale cyan open, mauve restricted, coral red closed, yellow own, deep blue base), and holds the owner's closed/own pair at least where it was before T47 as a thin line. The colour-blind palette takes the light statuses (D is chosen under all three simulations already) except open, a deeper blue there (#1154C3) because the cvd theme's mapped-water teal sits on the light cerulean; its open and base are no longer one blue.",
     "themes": {
       "light": { "color.status.closed": "#8F0901", "color.status.own": "#C68900", "color.status.base": "#6E87E9",
                  "color.status.restricted": "#1D002B", "color.status.open": "#1B6A91",
@@ -71,6 +71,24 @@
                  "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
       "cvd":   { "color.status.closed": "#8F0901", "color.status.own": "#C68900", "color.status.base": "#6E87E9",
                  "color.status.restricted": "#1D002B", "color.status.open": "#1154C3",
+                 "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] }
+    }
+  },
+  "D": {
+    "label": "D · Five apart, owner's pair first (applied)",
+    "summary": "Part 2, after the owner's answer of 2026-10-22 (status colours more different than A / B / C) and the review of the first D (D0). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs. The owner's pair comes first: closed / own is pushed hardest (CO_BONUS 4) and ends above B in light and cvd and above the palette before T47 in dark, as tokens, thin lines, lake fills and over satellite. Then the minimum over every other pair a reader sees side by side, as it is drawn: water and the permit hatch as lines, lakes and over satellite; the temperature trio as gauge dots (tokens); every boundary against every status. Every status stands 20 from body ink in normal vision and 15 in every vision, so no status word reads as text. Light: closed deep red, own amber, base periwinkle blue, restricted plum (visibly purple, not ink), open deep cerulean. Dark: closed rose red, own yellow, base deep blue, restricted orchid mauve, open pale mint. Colour-blind: the light closed and own; base sky blue, restricted violet, open royal blue (its open and base are no longer one blue).",
+    "themes": {
+      "light": { "color.status.closed": "#8F0006", "color.status.own": "#D08404", "color.status.base": "#608AE5",
+                 "color.status.restricted": "#421652", "color.status.open": "#016890",
+                 "color.region.edge": "#7F7C79", "color.mu.edge": "@color.region.edge", "opacity.lake": 0.6,
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "dark":  { "color.status.closed": "#FF3B6D", "color.status.own": "#FFD307", "color.status.base": "#0368EB",
+                 "color.status.restricted": "#BE8DC2", "color.status.open": "#A7FBB2",
+                 "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "cvd":   { "color.status.closed": "#8F0006", "color.status.own": "#D08404", "color.status.base": "#3695D8",
+                 "color.status.restricted": "#451F60", "color.status.open": "#4361D1",
                  "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge",
                  "width.region.edge": 3.0, "dash.mu": [1, 2.5] }
     }

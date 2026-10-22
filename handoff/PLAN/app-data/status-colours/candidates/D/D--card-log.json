@@ -1,0 +1,75 @@
+{
+ "palette": "D",
+ "state": "vedder_1010",
+ "url": "http://localhost:39782/",
+ "at": "2026-10-22T20:06:45.145Z",
+ "shots": [
+  {
+   "file": "D--card-keep-top--light.jpg",
+   "view": "card-keep-top",
+   "ground": "light",
+   "colours": {
+    "st:open": "rgb(1, 104, 144)",
+    "st:release": "rgb(66, 22, 82)",
+    "st:keep": "rgb(21, 24, 28)",
+    "st:closed": "rgb(143, 0, 6)"
+   }
+  },
+  {
+   "file": "D--card-keep-release--light.jpg",
+   "view": "card-keep-release",
+   "ground": "light",
+   "colours": {
+    "st:open": "rgb(1, 104, 144)",
+    "st:release": "rgb(66, 22, 82)",
+    "st:keep": "rgb(21, 24, 28)",
+    "st:closed": "rgb(143, 0, 6)"
+   }
+  },
+  {
+   "file": "D--card-keep-top--dark.jpg",
+   "view": "card-keep-top",
+   "ground": "dark",
+   "colours": {
+    "st:open": "rgb(167, 251, 178)",
+    "st:release": "rgb(190, 141, 194)",
+    "st:keep": "rgb(240, 242, 240)",
+    "st:closed": "rgb(255, 59, 109)"
+   }
+  },
+  {
+   "file": "D--card-keep-release--dark.jpg",
+   "view": "card-keep-release",
+   "ground": "dark",
+   "colours": {
+    "st:open": "rgb(167, 251, 178)",
+    "st:release": "rgb(190, 141, 194)",
+    "st:keep": "rgb(240, 242, 240)",
+    "st:closed": "rgb(255, 59, 109)"
+   }
+  },
+  {
+   "file": "D--card-keep-top--cvd.jpg",
+   "view": "card-keep-top",
+   "ground": "cvd",
+   "colours": {
+    "st:open": "rgb(67, 97, 209)",
+    "st:release": "rgb(69, 31, 96)",
+    "st:keep": "rgb(21, 24, 28)",
+    "st:closed": "rgb(143, 0, 6)"
+   }
+  },
+  {
+   "file": "D--card-keep-release--cvd.jpg",
+   "view": "card-keep-release",
+   "ground": "cvd",
+   "colours": {
+    "st:open": "rgb(67, 97, 209)",
+    "st:release": "rgb(69, 31, 96)",
+    "st:keep": "rgb(21, 24, 28)",
+    "st:closed": "rgb(143, 0, 6)"
+   }
+  }
+ ],
+ "errors": []
+}

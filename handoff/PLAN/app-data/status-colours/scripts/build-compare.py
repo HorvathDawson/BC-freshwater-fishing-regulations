@@ -21,7 +21,9 @@ cands = json.loads((DIR / "candidates.json").read_text())
 meas = json.loads((DIR / "measurements.json").read_text())
 ids = [k for k in cands if not k.startswith("$")]
 VIEWS = [("vedder-z11", "Vedder / Chilliwack z11"), ("kootenay-z9", "Kootenay Lake z9"), ("province-z6", "Province z6"),
-         ("boundary-z10", "Boundaries · Coquihalla z10")]
+         ("boundary-z10", "Boundaries · Coquihalla z10"), ("permit-z12", "Permit area (restricted) z12"),
+         ("temperature-z8", "Temperature dots (open) z8"), ("card-keep-top", "Card · answer + year strip"),
+         ("card-keep-release", "Card · release words")]
 GROUNDS = [("light", "Light"), ("dark", "Dark"), ("cvd", "Colour-blind palette"), ("satellite", "Satellite")]
 
 shots = {}
@@ -50,12 +52,14 @@ filters = "".join(
     + " ".join(" ".join(f"{x:.6f}" for x in row) + " 0 0" for row in m) + ' 0 0 0 1 0"/></filter>'
     for k, m in MACHADO.items())
 
-intro = ("The palette before T47, part 1's three candidates (A, B, C) and D, the palette part 2 applied, shot on the same four map views (the app's Map tab, today's statuses, "
-         "Expo web at a 390 × 844 phone viewport). Pick a view, a ground and a colour-vision simulation; the numbers under "
+intro = ("The palette before T47, part 1's three candidates (A, B, C), D0 (the first D, superseded after review; numbers only) and D, the palette part 2 applied, shot on the same map views "
+         "(the app's Map tab, today's statuses, Expo web at a 390 × 844 phone viewport). The permit-area and temperature views and the two card views show the two "
+         "statuses the map views never do: restricted (the permit hatch, its label, the release words on the card) and open (the cool temperature dot, the Open answer); "
+         "they are rendered for B and D. Pick a view, a ground and a colour-vision simulation; the numbers under "
          "each map are the worst ΔE2000 for that theme across normal vision and protan, deutan and tritan simulation "
          "(Viénot 1999 and Machado 2009). Twenty is a different category at a glance on a thin line; under twelve, two lines "
-         "read as one. D was searched (scripts/search-d.mjs) to push all FIVE statuses apart, restricted and open included; "
-         "A to C were judged on closed / own / base only. Tap a map for the full-size shot.")
+         "read as one. D puts the owner's pair (closed / own) first, then pushes all five statuses apart, and keeps every status "
+         "off body ink. Tap a map for the full-size shot.")
 
 page = f"""<!doctype html>
 <html lang="en">
@@ -105,6 +109,7 @@ fieldset label:has(input:focus-visible) {{ outline: 2px solid var(--accent); out
 .sw i {{ width: 22px; height: 4px; display: inline-block; }}
 .sw i.dash {{ height: 0; border-top: 2px dashed; }}
 .map {{ display: block; aspect-ratio: 390 / 844; max-width: 100%; background: var(--line); }}
+.map.empty {{ display: grid; place-items: center; color: var(--sub); font-size: 0.85rem; padding: 12px; text-align: center; }}
 .map img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
 table {{ border-collapse: collapse; width: 100%; font: 500 0.78rem var(--mono); font-variant-numeric: tabular-nums; }}
 td, th {{ padding: 3px 4px; border-bottom: 1px solid var(--line); text-align: left; }}
@@ -132,7 +137,10 @@ ground; <em>lake</em> = both as lake fills over the basemap's water; <em>sat</em
 worst of the region and unit boundary against all five statuses (closed, own, base, restricted, open). The colour-blind palette and satellite rows use their
 own theme's colours (satellite draws the light theme). Source: T47-colours.md, scripts/measure.mjs.
 In A to D the unit boundary wears the region's colour on purpose and is told apart by width and dash. Restricted pairs are the
-permit-area hatch over water; open pairs are the temperature dots (cool / warm / critical); neither is ever a lake fill.</p>
+permit-area hatch over water; open pairs are the temperature dots (cool / warm / critical), 5 px filled circles in a paper stroke,
+so they are measured as tokens only; neither is ever a lake fill. <em>status vs ink</em> = the closest status to body ink, normal vision (floor 20)
+and the worst of every vision (floor 15): a release word or a restricted pill must never read as plain text. The card views read the same tokens
+(app/packages/ui-native/src/theme.ts, <code>color.status.*</code>), so the colours there are the theme's own.</p>
 <script>
 const D = {json.dumps(data)};
 const state = {{ view: "boundary-z10", ground: "light", sim: "none" }};
@@ -160,15 +168,19 @@ function numbers(id) {{
   const lakeless = (k) => /restricted|open/.test(k);
   const val = (cond, k) => {{ if (cond === "lake" && lakeless(k)) return null;
     const r = P[cond][k]; return r ? (sim ? Math.min(r[sim], r.normal) : r.worst) : null; }};
-  const row = (label, k) => `<tr><td>${{label}}</td>` + ["pure", "line", "lake", "satellite"].map((c) => {{
-    const v = val(c, k); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("") + "</tr>";
-  const bnd = (c) => Math.min(...["region", "mu"].flatMap((b) => ["closed", "own", "base", "restricted", "open"].map((s) => val(c, `${{s}}/${{b}}`) ?? 99)));
+  // the gate's model: the temperature pairs are gauge DOTS (tokens only); open is never a line, so no boundary line for it
+  const dot = (k) => /open/.test(k);
+  const cell = (c, k) => {{ const v = (dot(k) && c !== "pure") ? null : val(c, k); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }};
+  const row = (label, k) => `<tr><td>${{label}}</td>` + ["pure", "line", "lake", "satellite"].map((c) => cell(c, k)).join("") + "</tr>";
+  const bnd = (c) => Math.min(...["region", "mu"].flatMap((b) => ["closed", "own", "base", "restricted", "open"]
+    .filter((s) => c === "pure" || s !== "open").map((s) => val(c, `${{s}}/${{b}}`) ?? 99)));
   const b = ["pure", "line", "lake", "satellite"].map((c) => {{ const v = c === "lake" ? null : bnd(c); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("");
+  const ink = T.ink ? `<tr><td>status vs ink</td><td class="n ${{cls(T.ink.normal)}}">${{f1(T.ink.normal)}}</td><td colspan="3" class="n ${{cls(T.ink.worst, 15)}}">worst ${{f1(T.ink.worst)}} (${{T.ink.status}})</td></tr>` : "";
   return `<table><thead><tr><th>${{th}}${{sim ? " · " + sim : " · worst"}}</th><th>pure</th><th>line</th><th>lake</th><th>sat</th></tr></thead><tbody>`
     + row("closed / own", "closed/own") + row("closed / base", "closed/base") + row("own / base", "own/base")
     + row("restricted / closed", "closed/restricted") + row("restricted / own", "own/restricted")
-    + row("restricted / base", "base/restricted") + row("open / restricted", "restricted/open") + row("open / closed", "closed/open")
-    + `<tr><td>boundary</td>${{b}}</tr></tbody></table>`;
+    + row("restricted / base", "base/restricted") + row("open / restricted (dots)", "restricted/open") + row("open / closed (dots)", "closed/open")
+    + `<tr><td>boundary</td>${{b}}</tr>` + ink + `</tbody></table>`;
 }}
 function swatches(id) {{
   const th = state.ground === "dark" ? "dark" : state.ground === "cvd" ? "cvd" : "light";
@@ -187,7 +199,7 @@ function render() {{
     const filt = state.sim === "none" ? "" : `filter:url(#sim-${{state.sim}})`;
     col.innerHTML = `<h2>${{D.meas[id].label}}</h2><div class="swatches">${{swatches(id)}}</div>`
       + (s ? `<a class="map" href="${{s.full}}" target="_blank" rel="noopener"><img alt="${{D.meas[id].label}}, ${{state.view}}, ${{state.ground}}" src="${{s.src}}" style="${{filt}}"></a>`
-           : `<div class="map"></div>`)
+           : `<div class="map empty">${{id === "D0" ? "superseded: not rendered" : state.view.startsWith("card") && state.ground === "satellite" ? "the card has no satellite ground" : "not rendered for this palette"}}</div>`)
       + numbers(id) + `<p class="summary">${{D.meas[id].summary}}</p>`;
     grid.appendChild(col);
   }}

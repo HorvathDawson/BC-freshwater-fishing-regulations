@@ -40,6 +40,12 @@
       "onTint": 4.6340361005697766
      }
     },
+    "ink": {
+     "normal": 32.6,
+     "worst": 19.1,
+     "under": "protan",
+     "status": "closed"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -745,6 +751,12 @@
       "onTint": 5.392465479577693
      }
     },
+    "ink": {
+     "normal": 27.3,
+     "worst": 15,
+     "under": "tritan",
+     "status": "own"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -1449,6 +1461,12 @@
       "onCard": 5.652204150692024,
       "onTint": 4.632511122449569
      }
+    },
+    "ink": {
+     "normal": 23,
+     "worst": 14.1,
+     "under": "deutan",
+     "status": "restricted"
     },
     "pairs": {
      "pure": {
@@ -2161,6 +2179,12 @@
       "onTint": 4.6340361005697766
      }
     },
+    "ink": {
+     "normal": 32.6,
+     "worst": 19.1,
+     "under": "protan",
+     "status": "closed"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -2866,6 +2890,12 @@
       "onTint": 5.392465479577693
      }
     },
+    "ink": {
+     "normal": 28,
+     "worst": 15,
+     "under": "tritan",
+     "status": "own"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -3570,6 +3600,12 @@
       "onCard": 5.652204150692024,
       "onTint": 4.632511122449569
      }
+    },
+    "ink": {
+     "normal": 18.5,
+     "worst": 5.5,
+     "under": "tritan",
+     "status": "restricted"
     },
     "pairs": {
      "pure": {
@@ -4282,6 +4318,12 @@
       "onTint": 4.6340361005697766
      }
     },
+    "ink": {
+     "normal": 32.6,
+     "worst": 19.1,
+     "under": "protan",
+     "status": "closed"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -4987,6 +5029,12 @@
       "onTint": 5.392465479577693
      }
     },
+    "ink": {
+     "normal": 28,
+     "worst": 15,
+     "under": "tritan",
+     "status": "own"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -5691,6 +5739,12 @@
       "onCard": 5.652204150692024,
       "onTint": 4.632511122449569
      }
+    },
+    "ink": {
+     "normal": 18.5,
+     "worst": 5.5,
+     "under": "tritan",
+     "status": "restricted"
     },
     "pairs": {
      "pure": {
@@ -6403,6 +6457,12 @@
       "onTint": 4.6340361005697766
      }
     },
+    "ink": {
+     "normal": 34.1,
+     "worst": 20.4,
+     "under": "protan",
+     "status": "closed"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -7107,6 +7167,12 @@
       "onCard": 6.59108149088964,
       "onTint": 5.392465479577693
      }
+    },
+    "ink": {
+     "normal": 28,
+     "worst": 15,
+     "under": "tritan",
+     "status": "own"
     },
     "pairs": {
      "pure": {
@@ -7813,6 +7879,12 @@
       "onTint": 4.632511122449569
      }
     },
+    "ink": {
+     "normal": 18.5,
+     "worst": 5.5,
+     "under": "tritan",
+     "status": "restricted"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -8483,9 +8555,9 @@
    }
   }
  },
- "D": {
-  "label": "D · Five apart (applied)",
-  "summary": "Part 2, after the owner's answer of 2026-10-22 ('push own / closed / restricted / base / open further apart'). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs to maximise the minimum ΔE2000 over every pair a reader sees side by side on the map, as tokens, thin lines, lake fills and over satellite, for normal vision and protan / deutan / tritan under Viénot and Machado. Lightness AND hue: light runs restricted deep aubergine (darkest) · closed red · open cerulean (off the mid green: open is a cool temperature dot and a card word, never water) · base periwinkle blue · own amber (lightest). Dark keeps the hue order, light enough for the dark card. The colour-blind palette takes the light statuses unchanged (D is chosen under all three simulations already), which also ends its open/base collision.",
+ "D0": {
+  "label": "D0 · first D (superseded by review, 2026-10-22)",
+  "summary": "SUPERSEDED the same day it was applied, after review: maximising the minimum over every pair let the owner's closed/own pair give ground to the others (light thin line 19.5, under B's 20.3; dark no better than before T47), its light restricted #1D002B was a near-black the card could not tell from body ink (18.3 normal, 10.9 deutan, 1.08:1), its dark open #94E1FF sat 19.5 from the dark ink, and the cvd boundary token fell to 18.9 under the ticket's 20. Kept for the record (table 3b); not rendered. Original summary: Part 2, after the owner's answer of 2026-10-22 ('push own / closed / restricted / base / open further apart'). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs to maximise the minimum ΔE2000 over every pair a reader sees side by side on the map, as tokens, thin lines, lake fills and over satellite, for normal vision and protan / deutan / tritan under Viénot and Machado. Lightness AND hue: light runs restricted deep aubergine (darkest) · closed red · open cerulean (off the mid green: open is a cool temperature dot and a card word, never water) · base periwinkle blue · own amber (lightest). Dark keeps the hue families, light enough for the dark card (pale cyan open, mauve restricted, coral red closed, yellow own, deep blue base), and holds the owner's closed/own pair at least where it was before T47 as a thin line. The colour-blind palette takes the light statuses (D is chosen under all three simulations already) except open, a deeper blue there (#1154C3) because the cvd theme's mapped-water teal sits on the light cerulean; its open and base are no longer one blue.",
   "themes": {
    "light": {
     "colours": {
@@ -8523,6 +8595,12 @@
       "onCard": 5.970857527205536,
       "onTint": 4.931102844496476
      }
+    },
+    "ink": {
+     "normal": 18.3,
+     "worst": 10.9,
+     "under": "deutan",
+     "status": "restricted"
     },
     "pairs": {
      "pure": {
@@ -9229,6 +9307,12 @@
       "onTint": 8.961630386085607
      }
     },
+    "ink": {
+     "normal": 19.5,
+     "worst": 15,
+     "under": "protan",
+     "status": "open"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -9934,6 +10018,12 @@
       "onTint": 5.527070410282485
      }
     },
+    "ink": {
+     "normal": 18.3,
+     "worst": 10.9,
+     "under": "deutan",
+     "status": "restricted"
+    },
     "pairs": {
      "pure": {
       "closed/own": {
@@ -10588,6 +10678,2145 @@
        "tritan": 24.1,
        "worst": 24,
        "under": "protan",
+       "ground": "snow"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "conifer"
+      }
+     }
+    }
+   }
+  }
+ },
+ "D": {
+  "label": "D · Five apart, owner's pair first (applied)",
+  "summary": "Part 2, after the owner's answer of 2026-10-22 (status colours more different than A / B / C) and the review of the first D (D0). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs. The owner's pair comes first: closed / own is pushed hardest (CO_BONUS 4) and ends above B in light and cvd and above the palette before T47 in dark, as tokens, thin lines, lake fills and over satellite. Then the minimum over every other pair a reader sees side by side, as it is drawn: water and the permit hatch as lines, lakes and over satellite; the temperature trio as gauge dots (tokens); every boundary against every status. Every status stands 20 from body ink in normal vision and 15 in every vision, so no status word reads as text. Light: closed deep red, own amber, base periwinkle blue, restricted plum (visibly purple, not ink), open deep cerulean. Dark: closed rose red, own yellow, base deep blue, restricted orchid mauve, open pale mint. Colour-blind: the light closed and own; base sky blue, restricted violet, open royal blue (its open and base are no longer one blue).",
+  "themes": {
+   "light": {
+    "colours": {
+     "closed": "#8F0006",
+     "own": "#D08404",
+     "base": "#608AE5",
+     "restricted": "#421652",
+     "open": "#016890",
+     "region": "#7F7C79",
+     "mu": "#7F7C79"
+    },
+    "card": {
+     "closed": {
+      "hex": "#8F0006",
+      "onCard": 9.674932903029271,
+      "onTint": 7.418562956287201
+     },
+     "own": {
+      "hex": "#D08404",
+      "onCard": 3.0067703147819236,
+      "onTint": 2.638703468632911
+     },
+     "base": {
+      "hex": "#608AE5",
+      "onCard": 3.3523944053366304,
+      "onTint": 2.9135086370910797
+     },
+     "restricted": {
+      "hex": "#421652",
+      "onCard": 14.302710796636791,
+      "onTint": 11.028139020144014
+     },
+     "open": {
+      "hex": "#016890",
+      "onCard": 6.205417520197578,
+      "onTint": 5.087265360105892
+     }
+    },
+    "ink": {
+     "normal": 20,
+     "worst": 15.2,
+     "under": "deutan",
+     "status": "restricted"
+    },
+    "pairs": {
+     "pure": {
+      "closed/own": {
+       "normal": 39.6,
+       "protan": 33.3,
+       "deutan": 30.6,
+       "tritan": 29.4,
+       "worst": 29.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "closed/base": {
+       "normal": 51.3,
+       "protan": 57.5,
+       "deutan": 56,
+       "tritan": 57.2,
+       "worst": 51.3,
+       "under": "normal",
+       "ground": "-"
+      },
+      "closed/restricted": {
+       "normal": 33.6,
+       "protan": 39.2,
+       "deutan": 43.5,
+       "tritan": 22.1,
+       "worst": 22.1,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "closed/open": {
+       "normal": 49.6,
+       "protan": 41.1,
+       "deutan": 44.4,
+       "tritan": 50.9,
+       "worst": 41.1,
+       "under": "protan",
+       "ground": "-"
+      },
+      "closed/region": {
+       "normal": 33.1,
+       "protan": 29.5,
+       "deutan": 26,
+       "tritan": 31.8,
+       "worst": 26,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/mu": {
+       "normal": 33.1,
+       "protan": 29.5,
+       "deutan": 26,
+       "tritan": 31.8,
+       "worst": 26,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "own/base": {
+       "normal": 52.3,
+       "protan": 55.7,
+       "deutan": 58.4,
+       "tritan": 46.1,
+       "worst": 46.1,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/restricted": {
+       "normal": 62.5,
+       "protan": 60.2,
+       "deutan": 63.4,
+       "tritan": 40.6,
+       "worst": 40.6,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/open": {
+       "normal": 53.4,
+       "protan": 48.6,
+       "deutan": 56,
+       "tritan": 49.8,
+       "worst": 48.6,
+       "under": "protan",
+       "ground": "-"
+      },
+      "own/region": {
+       "normal": 27.3,
+       "protan": 25.3,
+       "deutan": 27.2,
+       "tritan": 23.4,
+       "worst": 23.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/mu": {
+       "normal": 27.3,
+       "protan": 25.3,
+       "deutan": 27.2,
+       "tritan": 23.4,
+       "worst": 23.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/restricted": {
+       "normal": 41.7,
+       "protan": 37.4,
+       "deutan": 34.4,
+       "tritan": 51,
+       "worst": 34.4,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "base/open": {
+       "normal": 20.1,
+       "protan": 18.7,
+       "deutan": 18.6,
+       "tritan": 16.3,
+       "worst": 16.3,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/region": {
+       "normal": 26.8,
+       "protan": 27,
+       "deutan": 27.7,
+       "tritan": 24.1,
+       "worst": 24.1,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/mu": {
+       "normal": 26.8,
+       "protan": 27,
+       "deutan": 27.7,
+       "tritan": 24.1,
+       "worst": 24.1,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "restricted/open": {
+       "normal": 35.7,
+       "protan": 20.2,
+       "deutan": 15.9,
+       "tritan": 41.3,
+       "worst": 15.9,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "restricted/region": {
+       "normal": 37.7,
+       "protan": 35.7,
+       "deutan": 34.7,
+       "tritan": 30.8,
+       "worst": 30.8,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "restricted/mu": {
+       "normal": 37.7,
+       "protan": 35.7,
+       "deutan": 34.7,
+       "tritan": 30.8,
+       "worst": 30.8,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "open/region": {
+       "normal": 23.6,
+       "protan": 20.5,
+       "deutan": 25,
+       "tritan": 25.4,
+       "worst": 20.5,
+       "under": "protan",
+       "ground": "-"
+      },
+      "open/mu": {
+       "normal": 23.6,
+       "protan": 20.5,
+       "deutan": 25,
+       "tritan": 25.4,
+       "worst": 20.5,
+       "under": "protan",
+       "ground": "-"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "-"
+      }
+     },
+     "line": {
+      "closed/own": {
+       "normal": 35.6,
+       "protan": 26.8,
+       "deutan": 21.2,
+       "tritan": 21.5,
+       "worst": 21.2,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "closed/base": {
+       "normal": 37.8,
+       "protan": 35.1,
+       "deutan": 35.9,
+       "tritan": 43.7,
+       "worst": 35.1,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/restricted": {
+       "normal": 19.6,
+       "protan": 16.5,
+       "deutan": 23.9,
+       "tritan": 16,
+       "worst": 16,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "closed/open": {
+       "normal": 41.8,
+       "protan": 24.5,
+       "deutan": 27.4,
+       "tritan": 45.2,
+       "worst": 24.5,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/region": {
+       "normal": 24.9,
+       "protan": 14.9,
+       "deutan": 13.8,
+       "tritan": 24.4,
+       "worst": 13.8,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "closed/mu": {
+       "normal": 24.9,
+       "protan": 14.9,
+       "deutan": 13.8,
+       "tritan": 24.4,
+       "worst": 13.8,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "own/base": {
+       "normal": 42.2,
+       "protan": 43.3,
+       "deutan": 44.4,
+       "tritan": 35.9,
+       "worst": 35.9,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "own/restricted": {
+       "normal": 44.3,
+       "protan": 42.5,
+       "deutan": 41.3,
+       "tritan": 24,
+       "worst": 24,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "own/open": {
+       "normal": 37.7,
+       "protan": 34.9,
+       "deutan": 39.4,
+       "tritan": 38.1,
+       "worst": 34.9,
+       "under": "protan",
+       "ground": "forest"
+      },
+      "own/region": {
+       "normal": 22.8,
+       "protan": 21.3,
+       "deutan": 22.1,
+       "tritan": 19.7,
+       "worst": 19.7,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "own/mu": {
+       "normal": 22.8,
+       "protan": 21.3,
+       "deutan": 22.1,
+       "tritan": 19.7,
+       "worst": 19.7,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "base/restricted": {
+       "normal": 26.9,
+       "protan": 22.3,
+       "deutan": 20.9,
+       "tritan": 27.3,
+       "worst": 20.9,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "base/open": {
+       "normal": 14.2,
+       "protan": 10.3,
+       "deutan": 10.6,
+       "tritan": 8.6,
+       "worst": 8.6,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "base/region": {
+       "normal": 20.4,
+       "protan": 20.5,
+       "deutan": 20.1,
+       "tritan": 17,
+       "worst": 17,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "base/mu": {
+       "normal": 20.4,
+       "protan": 20.5,
+       "deutan": 20.1,
+       "tritan": 17,
+       "worst": 17,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "restricted/open": {
+       "normal": 25.8,
+       "protan": 13.4,
+       "deutan": 10.4,
+       "tritan": 20.9,
+       "worst": 10.4,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "restricted/region": {
+       "normal": 21.6,
+       "protan": 18.4,
+       "deutan": 17,
+       "tritan": 13.5,
+       "worst": 13.5,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "restricted/mu": {
+       "normal": 21.6,
+       "protan": 18.4,
+       "deutan": 17,
+       "tritan": 13.5,
+       "worst": 13.5,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "open/region": {
+       "normal": 15.4,
+       "protan": 13,
+       "deutan": 15.5,
+       "tritan": 16.5,
+       "worst": 13,
+       "under": "protan",
+       "ground": "land"
+      },
+      "open/mu": {
+       "normal": 15.4,
+       "protan": 13,
+       "deutan": 15.5,
+       "tritan": 16.5,
+       "worst": 13,
+       "under": "protan",
+       "ground": "land"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "land"
+      }
+     },
+     "lake": {
+      "closed/own": {
+       "normal": 40.8,
+       "protan": 31.5,
+       "deutan": 26.2,
+       "tritan": 25.2,
+       "worst": 25.2,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "closed/base": {
+       "normal": 41.2,
+       "protan": 35.1,
+       "deutan": 35.9,
+       "tritan": 48,
+       "worst": 35.1,
+       "under": "protan",
+       "ground": "water"
+      },
+      "closed/restricted": {
+       "normal": 21.8,
+       "protan": 16.5,
+       "deutan": 23.9,
+       "tritan": 30,
+       "worst": 16.5,
+       "under": "protan",
+       "ground": "water"
+      },
+      "closed/open": {
+       "normal": 47.5,
+       "protan": 24.5,
+       "deutan": 27.4,
+       "tritan": 45.3,
+       "worst": 24.5,
+       "under": "protan",
+       "ground": "water"
+      },
+      "own/base": {
+       "normal": 48.4,
+       "protan": 44.9,
+       "deutan": 45.9,
+       "tritan": 35.9,
+       "worst": 35.9,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/restricted": {
+       "normal": 47.8,
+       "protan": 45.7,
+       "deutan": 46.6,
+       "tritan": 32.3,
+       "worst": 32.3,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/open": {
+       "normal": 40.2,
+       "protan": 38.4,
+       "deutan": 42.7,
+       "tritan": 38.1,
+       "worst": 38.1,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "base/restricted": {
+       "normal": 27.8,
+       "protan": 24.9,
+       "deutan": 23.5,
+       "tritan": 27.3,
+       "worst": 23.5,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "base/open": {
+       "normal": 14.2,
+       "protan": 10.3,
+       "deutan": 10.7,
+       "tritan": 8.6,
+       "worst": 8.6,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "restricted/open": {
+       "normal": 25.8,
+       "protan": 15.8,
+       "deutan": 11.9,
+       "tritan": 20.9,
+       "worst": 11.9,
+       "under": "deutan",
+       "ground": "water"
+      }
+     },
+     "satellite": {
+      "closed/own": {
+       "normal": 28.9,
+       "protan": 21.3,
+       "deutan": 18.3,
+       "tritan": 17.8,
+       "worst": 17.8,
+       "under": "tritan",
+       "ground": "shadow"
+      },
+      "closed/base": {
+       "normal": 37.8,
+       "protan": 35.1,
+       "deutan": 37.6,
+       "tritan": 41.7,
+       "worst": 35.1,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/restricted": {
+       "normal": 19.8,
+       "protan": 20.3,
+       "deutan": 25.5,
+       "tritan": 15.1,
+       "worst": 15.1,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "closed/open": {
+       "normal": 40.2,
+       "protan": 25.2,
+       "deutan": 30.2,
+       "tritan": 43.2,
+       "worst": 25.2,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/region": {
+       "normal": 25,
+       "protan": 14.7,
+       "deutan": 13.9,
+       "tritan": 24.5,
+       "worst": 13.9,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "closed/mu": {
+       "normal": 25,
+       "protan": 14.7,
+       "deutan": 13.9,
+       "tritan": 24.5,
+       "worst": 13.9,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "own/base": {
+       "normal": 41.2,
+       "protan": 43.4,
+       "deutan": 44.3,
+       "tritan": 36.7,
+       "worst": 36.7,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "own/restricted": {
+       "normal": 43.1,
+       "protan": 41,
+       "deutan": 39.1,
+       "tritan": 23.6,
+       "worst": 23.6,
+       "under": "tritan",
+       "ground": "shadow"
+      },
+      "own/open": {
+       "normal": 38.5,
+       "protan": 34.1,
+       "deutan": 39.7,
+       "tritan": 41.9,
+       "worst": 34.1,
+       "under": "protan",
+       "ground": "scrub"
+      },
+      "own/region": {
+       "normal": 21,
+       "protan": 19.9,
+       "deutan": 20,
+       "tritan": 16.9,
+       "worst": 16.9,
+       "under": "tritan",
+       "ground": "conifer"
+      },
+      "own/mu": {
+       "normal": 21,
+       "protan": 19.9,
+       "deutan": 20,
+       "tritan": 16.9,
+       "worst": 16.9,
+       "under": "tritan",
+       "ground": "conifer"
+      },
+      "base/restricted": {
+       "normal": 26.1,
+       "protan": 21.6,
+       "deutan": 20.4,
+       "tritan": 32.7,
+       "worst": 20.4,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "base/open": {
+       "normal": 14.2,
+       "protan": 10.4,
+       "deutan": 10.4,
+       "tritan": 9.4,
+       "worst": 9.4,
+       "under": "tritan",
+       "ground": "shadow"
+      },
+      "base/region": {
+       "normal": 20.1,
+       "protan": 19.2,
+       "deutan": 20.5,
+       "tritan": 17.6,
+       "worst": 17.6,
+       "under": "tritan",
+       "ground": "olive"
+      },
+      "base/mu": {
+       "normal": 20.1,
+       "protan": 19.2,
+       "deutan": 20.5,
+       "tritan": 17.6,
+       "worst": 17.6,
+       "under": "tritan",
+       "ground": "olive"
+      },
+      "restricted/open": {
+       "normal": 27.6,
+       "protan": 11.8,
+       "deutan": 9.4,
+       "tritan": 29.9,
+       "worst": 9.4,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "restricted/region": {
+       "normal": 22,
+       "protan": 18.9,
+       "deutan": 17,
+       "tritan": 13.3,
+       "worst": 13.3,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "restricted/mu": {
+       "normal": 22,
+       "protan": 18.9,
+       "deutan": 17,
+       "tritan": 13.3,
+       "worst": 13.3,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "open/region": {
+       "normal": 18.2,
+       "protan": 13.6,
+       "deutan": 15.9,
+       "tritan": 20.9,
+       "worst": 13.6,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "open/mu": {
+       "normal": 18.2,
+       "protan": 13.6,
+       "deutan": 15.9,
+       "tritan": 20.9,
+       "worst": 13.6,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "conifer"
+      }
+     }
+    }
+   },
+   "dark": {
+    "colours": {
+     "closed": "#FF3B6D",
+     "own": "#FFD307",
+     "base": "#0368EB",
+     "restricted": "#BE8DC2",
+     "open": "#A7FBB2",
+     "region": "#B8B8B8",
+     "mu": "#B8B8B8"
+    },
+    "card": {
+     "closed": {
+      "hex": "#FF3B6D",
+      "onCard": 5.175312315897306,
+      "onTint": 4.518188664946999
+     },
+     "own": {
+      "hex": "#FFD307",
+      "onCard": 12.366935502776464,
+      "onTint": 9.116373623641897
+     },
+     "base": {
+      "hex": "#0368EB",
+      "onCard": 3.5503654188269507,
+      "onTint": 3.1615858914987824
+     },
+     "restricted": {
+      "hex": "#BE8DC2",
+      "onCard": 6.6009965928736305,
+      "onTint": 5.36224202357415
+     },
+     "open": {
+      "hex": "#A7FBB2",
+      "onCard": 14.49875755903607,
+      "onTint": 10.298666682874027
+     }
+    },
+    "ink": {
+     "normal": 23.4,
+     "worst": 15.6,
+     "under": "deutan",
+     "status": "open"
+    },
+    "pairs": {
+     "pure": {
+      "closed/own": {
+       "normal": 59.7,
+       "protan": 35.5,
+       "deutan": 21.8,
+       "tritan": 28.1,
+       "worst": 21.8,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/base": {
+       "normal": 42.5,
+       "protan": 29.8,
+       "deutan": 54.3,
+       "tritan": 56.9,
+       "worst": 29.8,
+       "under": "protan",
+       "ground": "-"
+      },
+      "closed/restricted": {
+       "normal": 24.2,
+       "protan": 23.3,
+       "deutan": 33,
+       "tritan": 22.7,
+       "worst": 22.7,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "closed/open": {
+       "normal": 76.4,
+       "protan": 32.9,
+       "deutan": 17.7,
+       "tritan": 56,
+       "worst": 17.7,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/region": {
+       "normal": 31.5,
+       "protan": 21,
+       "deutan": 19.4,
+       "tritan": 32,
+       "worst": 19.4,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/mu": {
+       "normal": 31.5,
+       "protan": 21,
+       "deutan": 19.4,
+       "tritan": 32,
+       "worst": 19.4,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "own/base": {
+       "normal": 74,
+       "protan": 70,
+       "deutan": 76.2,
+       "tritan": 50.8,
+       "worst": 50.8,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/restricted": {
+       "normal": 58.6,
+       "protan": 50.7,
+       "deutan": 48.3,
+       "tritan": 15.5,
+       "worst": 15.5,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/open": {
+       "normal": 31,
+       "protan": 15.5,
+       "deutan": 17.3,
+       "tritan": 39.7,
+       "worst": 15.5,
+       "under": "protan",
+       "ground": "-"
+      },
+      "own/region": {
+       "normal": 30.3,
+       "protan": 29.6,
+       "deutan": 30.2,
+       "tritan": 19.4,
+       "worst": 19.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/mu": {
+       "normal": 30.3,
+       "protan": 29.6,
+       "deutan": 30.2,
+       "tritan": 19.4,
+       "worst": 19.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/restricted": {
+       "normal": 30.4,
+       "protan": 16.4,
+       "deutan": 23.7,
+       "tritan": 41.2,
+       "worst": 16.4,
+       "under": "protan",
+       "ground": "-"
+      },
+      "base/open": {
+       "normal": 61.9,
+       "protan": 61.1,
+       "deutan": 61,
+       "tritan": 32.7,
+       "worst": 32.7,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/region": {
+       "normal": 37.2,
+       "protan": 33.3,
+       "deutan": 37.7,
+       "tritan": 27.9,
+       "worst": 27.9,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/mu": {
+       "normal": 37.2,
+       "protan": 33.3,
+       "deutan": 37.7,
+       "tritan": 27.9,
+       "worst": 27.9,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "restricted/open": {
+       "normal": 46.1,
+       "protan": 43.3,
+       "deutan": 36,
+       "tritan": 40.6,
+       "worst": 36,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "restricted/region": {
+       "normal": 23.1,
+       "protan": 17.9,
+       "deutan": 15,
+       "tritan": 15.9,
+       "worst": 15,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "restricted/mu": {
+       "normal": 23.1,
+       "protan": 17.9,
+       "deutan": 15,
+       "tritan": 15.9,
+       "worst": 15,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "open/region": {
+       "normal": 26.9,
+       "protan": 22.4,
+       "deutan": 19,
+       "tritan": 21.2,
+       "worst": 19,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "open/mu": {
+       "normal": 26.9,
+       "protan": 22.4,
+       "deutan": 19,
+       "tritan": 21.2,
+       "worst": 19,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "-"
+      }
+     },
+     "line": {
+      "closed/own": {
+       "normal": 49.8,
+       "protan": 31.4,
+       "deutan": 21.4,
+       "tritan": 23.6,
+       "worst": 21.4,
+       "under": "deutan",
+       "ground": "hollow"
+      },
+      "closed/base": {
+       "normal": 35.9,
+       "protan": 19.1,
+       "deutan": 37.9,
+       "tritan": 47.3,
+       "worst": 19.1,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/restricted": {
+       "normal": 19.1,
+       "protan": 13.9,
+       "deutan": 22.1,
+       "tritan": 19.1,
+       "worst": 13.9,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/open": {
+       "normal": 58.8,
+       "protan": 28.7,
+       "deutan": 15.8,
+       "tritan": 45.3,
+       "worst": 15.8,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "closed/region": {
+       "normal": 33,
+       "protan": 26.3,
+       "deutan": 21.4,
+       "tritan": 33,
+       "worst": 21.4,
+       "under": "deutan",
+       "ground": "river"
+      },
+      "closed/mu": {
+       "normal": 33,
+       "protan": 26.3,
+       "deutan": 21.4,
+       "tritan": 33,
+       "worst": 21.4,
+       "under": "deutan",
+       "ground": "river"
+      },
+      "own/base": {
+       "normal": 60.7,
+       "protan": 58.3,
+       "deutan": 63,
+       "tritan": 45.7,
+       "worst": 45.7,
+       "under": "tritan",
+       "ground": "hollow"
+      },
+      "own/restricted": {
+       "normal": 46.9,
+       "protan": 41.3,
+       "deutan": 39.1,
+       "tritan": 14,
+       "worst": 14,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "own/open": {
+       "normal": 25.4,
+       "protan": 15.2,
+       "deutan": 16,
+       "tritan": 33.4,
+       "worst": 15.2,
+       "under": "protan",
+       "ground": "hollow"
+      },
+      "own/region": {
+       "normal": 26.1,
+       "protan": 26.1,
+       "deutan": 25.5,
+       "tritan": 15.6,
+       "worst": 15.6,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "own/mu": {
+       "normal": 26.1,
+       "protan": 26.1,
+       "deutan": 25.5,
+       "tritan": 15.6,
+       "worst": 15.6,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "base/restricted": {
+       "normal": 24.5,
+       "protan": 13.6,
+       "deutan": 18.8,
+       "tritan": 34,
+       "worst": 13.6,
+       "under": "protan",
+       "ground": "river"
+      },
+      "base/open": {
+       "normal": 49.7,
+       "protan": 47.9,
+       "deutan": 48.4,
+       "tritan": 26.8,
+       "worst": 26.8,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "base/region": {
+       "normal": 36.1,
+       "protan": 32.9,
+       "deutan": 37.6,
+       "tritan": 30.6,
+       "worst": 30.6,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "base/mu": {
+       "normal": 36.1,
+       "protan": 32.9,
+       "deutan": 37.6,
+       "tritan": 30.6,
+       "worst": 30.6,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "restricted/open": {
+       "normal": 37.7,
+       "protan": 33,
+       "deutan": 26.7,
+       "tritan": 30.8,
+       "worst": 26.7,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "restricted/region": {
+       "normal": 23,
+       "protan": 19.6,
+       "deutan": 17.3,
+       "tritan": 18.1,
+       "worst": 17.3,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "restricted/mu": {
+       "normal": 23,
+       "protan": 19.6,
+       "deutan": 17.3,
+       "tritan": 18.1,
+       "worst": 17.3,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "open/region": {
+       "normal": 21.5,
+       "protan": 14.5,
+       "deutan": 11.7,
+       "tritan": 13.8,
+       "worst": 11.7,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "open/mu": {
+       "normal": 21.5,
+       "protan": 14.5,
+       "deutan": 11.7,
+       "tritan": 13.8,
+       "worst": 11.7,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "land"
+      }
+     },
+     "lake": {
+      "closed/own": {
+       "normal": 57.5,
+       "protan": 35.2,
+       "deutan": 22.4,
+       "tritan": 26.4,
+       "worst": 22.4,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "closed/base": {
+       "normal": 40.3,
+       "protan": 23.8,
+       "deutan": 48.9,
+       "tritan": 53.9,
+       "worst": 23.8,
+       "under": "protan",
+       "ground": "water"
+      },
+      "closed/restricted": {
+       "normal": 22.8,
+       "protan": 20.4,
+       "deutan": 29,
+       "tritan": 21.9,
+       "worst": 20.4,
+       "under": "protan",
+       "ground": "water"
+      },
+      "closed/open": {
+       "normal": 70.8,
+       "protan": 32.1,
+       "deutan": 17.3,
+       "tritan": 53.1,
+       "worst": 17.3,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "own/base": {
+       "normal": 70.3,
+       "protan": 66.7,
+       "deutan": 72.8,
+       "tritan": 50.3,
+       "worst": 50.3,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/restricted": {
+       "normal": 55.1,
+       "protan": 48.3,
+       "deutan": 45.8,
+       "tritan": 15.7,
+       "worst": 15.7,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/open": {
+       "normal": 29.3,
+       "protan": 16,
+       "deutan": 17.6,
+       "tritan": 39,
+       "worst": 16,
+       "under": "protan",
+       "ground": "water"
+      },
+      "base/restricted": {
+       "normal": 29.1,
+       "protan": 16.5,
+       "deutan": 23.1,
+       "tritan": 39.5,
+       "worst": 16.5,
+       "under": "protan",
+       "ground": "water"
+      },
+      "base/open": {
+       "normal": 58.2,
+       "protan": 56.8,
+       "deutan": 56.9,
+       "tritan": 31,
+       "worst": 31,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "restricted/open": {
+       "normal": 43,
+       "protan": 39.7,
+       "deutan": 32.6,
+       "tritan": 37.7,
+       "worst": 32.6,
+       "under": "deutan",
+       "ground": "water"
+      }
+     },
+     "satellite": {
+      "closed/own": {
+       "normal": 47.5,
+       "protan": 28.7,
+       "deutan": 19.2,
+       "tritan": 19,
+       "worst": 19,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "closed/base": {
+       "normal": 35.7,
+       "protan": 18.4,
+       "deutan": 34.4,
+       "tritan": 46.9,
+       "worst": 18.4,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/restricted": {
+       "normal": 18.2,
+       "protan": 11.8,
+       "deutan": 18.8,
+       "tritan": 17.8,
+       "worst": 11.8,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/open": {
+       "normal": 56.4,
+       "protan": 24.6,
+       "deutan": 12.3,
+       "tritan": 43,
+       "worst": 12.3,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "closed/region": {
+       "normal": 21.2,
+       "protan": 10.7,
+       "deutan": 9.7,
+       "tritan": 22.4,
+       "worst": 9.7,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "closed/mu": {
+       "normal": 21.2,
+       "protan": 10.7,
+       "deutan": 9.7,
+       "tritan": 22.4,
+       "worst": 9.7,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "own/base": {
+       "normal": 56.4,
+       "protan": 56.4,
+       "deutan": 59.2,
+       "tritan": 42.3,
+       "worst": 42.3,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "own/restricted": {
+       "normal": 42,
+       "protan": 35.8,
+       "deutan": 31.6,
+       "tritan": 11,
+       "worst": 11,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "own/open": {
+       "normal": 23.8,
+       "protan": 12.9,
+       "deutan": 13.7,
+       "tritan": 32.7,
+       "worst": 12.9,
+       "under": "protan",
+       "ground": "conifer"
+      },
+      "own/region": {
+       "normal": 24.1,
+       "protan": 24.1,
+       "deutan": 23.5,
+       "tritan": 14.5,
+       "worst": 14.5,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "own/mu": {
+       "normal": 24.1,
+       "protan": 24.1,
+       "deutan": 23.5,
+       "tritan": 14.5,
+       "worst": 14.5,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "base/restricted": {
+       "normal": 24.2,
+       "protan": 13.7,
+       "deutan": 18.4,
+       "tritan": 33,
+       "worst": 13.7,
+       "under": "protan",
+       "ground": "water"
+      },
+      "base/open": {
+       "normal": 44,
+       "protan": 42.9,
+       "deutan": 42.4,
+       "tritan": 21.9,
+       "worst": 21.9,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "base/region": {
+       "normal": 25.3,
+       "protan": 24.1,
+       "deutan": 26.9,
+       "tritan": 24.3,
+       "worst": 24.1,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "base/mu": {
+       "normal": 25.3,
+       "protan": 24.1,
+       "deutan": 26.9,
+       "tritan": 24.3,
+       "worst": 24.1,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "restricted/open": {
+       "normal": 35.2,
+       "protan": 28.9,
+       "deutan": 22.2,
+       "tritan": 27.3,
+       "worst": 22.2,
+       "under": "deutan",
+       "ground": "scrub"
+      },
+      "restricted/region": {
+       "normal": 17,
+       "protan": 11.6,
+       "deutan": 9.8,
+       "tritan": 9.7,
+       "worst": 9.7,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "restricted/mu": {
+       "normal": 17,
+       "protan": 11.6,
+       "deutan": 9.8,
+       "tritan": 9.7,
+       "worst": 9.7,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "open/region": {
+       "normal": 19.5,
+       "protan": 13.9,
+       "deutan": 11.8,
+       "tritan": 14.2,
+       "worst": 11.8,
+       "under": "deutan",
+       "ground": "olive"
+      },
+      "open/mu": {
+       "normal": 19.5,
+       "protan": 13.9,
+       "deutan": 11.8,
+       "tritan": 14.2,
+       "worst": 11.8,
+       "under": "deutan",
+       "ground": "olive"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "conifer"
+      }
+     }
+    }
+   },
+   "cvd": {
+    "colours": {
+     "closed": "#8F0006",
+     "own": "#D08404",
+     "base": "#3695D8",
+     "restricted": "#451F60",
+     "open": "#4361D1",
+     "region": "#8B857F",
+     "mu": "#8B857F"
+    },
+    "card": {
+     "closed": {
+      "hex": "#8F0006",
+      "onCard": 9.674932903029271,
+      "onTint": 7.418562956287201
+     },
+     "own": {
+      "hex": "#D08404",
+      "onCard": 3.0067703147819236,
+      "onTint": 2.638703468632911
+     },
+     "base": {
+      "hex": "#3695D8",
+      "onCard": 3.2571238881287026,
+      "onTint": 2.832354662573803
+     },
+     "restricted": {
+      "hex": "#451F60",
+      "onCard": 12.979451474676289,
+      "onTint": 10.0886105249762
+     },
+     "open": {
+      "hex": "#4361D1",
+      "onCard": 5.42744221827869,
+      "onTint": 4.523291574589323
+     }
+    },
+    "ink": {
+     "normal": 20.2,
+     "worst": 15.3,
+     "under": "tritan",
+     "status": "restricted"
+    },
+    "pairs": {
+     "pure": {
+      "closed/own": {
+       "normal": 39.6,
+       "protan": 33.3,
+       "deutan": 30.6,
+       "tritan": 29.4,
+       "worst": 29.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "closed/base": {
+       "normal": 56,
+       "protan": 56.2,
+       "deutan": 54.2,
+       "tritan": 60.8,
+       "worst": 54.2,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/restricted": {
+       "normal": 34.6,
+       "protan": 40.4,
+       "deutan": 44.8,
+       "tritan": 23.5,
+       "worst": 23.5,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "closed/open": {
+       "normal": 45,
+       "protan": 52.4,
+       "deutan": 55.4,
+       "tritan": 52.4,
+       "worst": 45,
+       "under": "normal",
+       "ground": "-"
+      },
+      "closed/region": {
+       "normal": 35.2,
+       "protan": 31.8,
+       "deutan": 27.7,
+       "tritan": 33.4,
+       "worst": 27.7,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "closed/mu": {
+       "normal": 35.2,
+       "protan": 31.8,
+       "deutan": 27.7,
+       "tritan": 33.4,
+       "worst": 27.7,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "own/base": {
+       "normal": 49.6,
+       "protan": 52.2,
+       "deutan": 56,
+       "tritan": 49.5,
+       "worst": 49.5,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/restricted": {
+       "normal": 62.1,
+       "protan": 60.1,
+       "deutan": 63.6,
+       "tritan": 40,
+       "worst": 40,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/open": {
+       "normal": 57.8,
+       "protan": 59.3,
+       "deutan": 64.8,
+       "tritan": 49.2,
+       "worst": 49.2,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/region": {
+       "normal": 25.2,
+       "protan": 23.7,
+       "deutan": 25,
+       "tritan": 20.5,
+       "worst": 20.5,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "own/mu": {
+       "normal": 25.2,
+       "protan": 23.7,
+       "deutan": 25,
+       "tritan": 20.5,
+       "worst": 20.5,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "base/restricted": {
+       "normal": 45.5,
+       "protan": 36.2,
+       "deutan": 31.2,
+       "tritan": 48.8,
+       "worst": 31.2,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "base/open": {
+       "normal": 20,
+       "protan": 14.9,
+       "deutan": 13.7,
+       "tritan": 14.7,
+       "worst": 13.7,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "base/region": {
+       "normal": 25.9,
+       "protan": 25.8,
+       "deutan": 27.4,
+       "tritan": 29,
+       "worst": 25.8,
+       "under": "protan",
+       "ground": "-"
+      },
+      "base/mu": {
+       "normal": 25.9,
+       "protan": 25.8,
+       "deutan": 27.4,
+       "tritan": 29,
+       "worst": 25.8,
+       "under": "protan",
+       "ground": "-"
+      },
+      "restricted/open": {
+       "normal": 25.8,
+       "protan": 22.5,
+       "deutan": 20.2,
+       "tritan": 38.8,
+       "worst": 20.2,
+       "under": "deutan",
+       "ground": "-"
+      },
+      "restricted/region": {
+       "normal": 40.2,
+       "protan": 38.5,
+       "deutan": 37.9,
+       "tritan": 30.8,
+       "worst": 30.8,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "restricted/mu": {
+       "normal": 40.2,
+       "protan": 38.5,
+       "deutan": 37.9,
+       "tritan": 30.8,
+       "worst": 30.8,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "open/region": {
+       "normal": 32.6,
+       "protan": 30.8,
+       "deutan": 33.6,
+       "tritan": 29.4,
+       "worst": 29.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "open/mu": {
+       "normal": 32.6,
+       "protan": 30.8,
+       "deutan": 33.6,
+       "tritan": 29.4,
+       "worst": 29.4,
+       "under": "tritan",
+       "ground": "-"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "-"
+      }
+     },
+     "line": {
+      "closed/own": {
+       "normal": 35.6,
+       "protan": 26.8,
+       "deutan": 21.2,
+       "tritan": 21.5,
+       "worst": 21.2,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "closed/base": {
+       "normal": 45.2,
+       "protan": 34.3,
+       "deutan": 34.7,
+       "tritan": 47.9,
+       "worst": 34.3,
+       "under": "protan",
+       "ground": "meadow"
+      },
+      "closed/restricted": {
+       "normal": 21,
+       "protan": 17.7,
+       "deutan": 24.9,
+       "tritan": 17.7,
+       "worst": 17.7,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/open": {
+       "normal": 34.5,
+       "protan": 30.8,
+       "deutan": 33.7,
+       "tritan": 41,
+       "worst": 30.8,
+       "under": "protan",
+       "ground": "river"
+      },
+      "closed/region": {
+       "normal": 26,
+       "protan": 16.5,
+       "deutan": 14.4,
+       "tritan": 24.3,
+       "worst": 14.4,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "closed/mu": {
+       "normal": 26,
+       "protan": 16.5,
+       "deutan": 14.4,
+       "tritan": 24.3,
+       "worst": 14.4,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "own/base": {
+       "normal": 41.1,
+       "protan": 39.7,
+       "deutan": 42.8,
+       "tritan": 37.2,
+       "worst": 37.2,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "own/restricted": {
+       "normal": 44.3,
+       "protan": 42.8,
+       "deutan": 42.3,
+       "tritan": 23.4,
+       "worst": 23.4,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "own/open": {
+       "normal": 45.7,
+       "protan": 46.7,
+       "deutan": 48.5,
+       "tritan": 36.8,
+       "worst": 36.8,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "own/region": {
+       "normal": 21.1,
+       "protan": 20,
+       "deutan": 20.5,
+       "tritan": 17,
+       "worst": 17,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "own/mu": {
+       "normal": 21.1,
+       "protan": 20,
+       "deutan": 20.5,
+       "tritan": 17,
+       "worst": 17,
+       "under": "tritan",
+       "ground": "land"
+      },
+      "base/restricted": {
+       "normal": 28.3,
+       "protan": 19.8,
+       "deutan": 17.7,
+       "tritan": 25.5,
+       "worst": 17.7,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "base/open": {
+       "normal": 12.7,
+       "protan": 8.4,
+       "deutan": 6.7,
+       "tritan": 7.9,
+       "worst": 6.7,
+       "under": "deutan",
+       "ground": "land"
+      },
+      "base/region": {
+       "normal": 19.1,
+       "protan": 19.3,
+       "deutan": 19.3,
+       "tritan": 19,
+       "worst": 19,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "base/mu": {
+       "normal": 19.1,
+       "protan": 19.3,
+       "deutan": 19.3,
+       "tritan": 19,
+       "worst": 19,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "restricted/open": {
+       "normal": 17.9,
+       "protan": 15,
+       "deutan": 14.3,
+       "tritan": 18.1,
+       "worst": 14.3,
+       "under": "deutan",
+       "ground": "meadow"
+      },
+      "restricted/region": {
+       "normal": 23.6,
+       "protan": 21.3,
+       "deutan": 20.2,
+       "tritan": 12.8,
+       "worst": 12.8,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "restricted/mu": {
+       "normal": 23.6,
+       "protan": 21.3,
+       "deutan": 20.2,
+       "tritan": 12.8,
+       "worst": 12.8,
+       "under": "tritan",
+       "ground": "meadow"
+      },
+      "open/region": {
+       "normal": 22.6,
+       "protan": 22,
+       "deutan": 22.4,
+       "tritan": 16.3,
+       "worst": 16.3,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "open/mu": {
+       "normal": 22.6,
+       "protan": 22,
+       "deutan": 22.4,
+       "tritan": 16.3,
+       "worst": 16.3,
+       "under": "tritan",
+       "ground": "river"
+      },
+      "region/mu": {
+       "normal": 0,
+       "protan": 0,
+       "deutan": 0,
+       "tritan": 0,
+       "worst": 0,
+       "under": "normal",
+       "ground": "land"
+      }
+     },
+     "lake": {
+      "closed/own": {
+       "normal": 42.9,
+       "protan": 34.7,
+       "deutan": 30.8,
+       "tritan": 30,
+       "worst": 30,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "closed/base": {
+       "normal": 56.2,
+       "protan": 52.8,
+       "deutan": 51.9,
+       "tritan": 61.1,
+       "worst": 51.9,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "closed/restricted": {
+       "normal": 31.3,
+       "protan": 35.2,
+       "deutan": 42,
+       "tritan": 24.2,
+       "worst": 24.2,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "closed/open": {
+       "normal": 43.3,
+       "protan": 47.9,
+       "deutan": 51.8,
+       "tritan": 52.7,
+       "worst": 43.3,
+       "under": "normal",
+       "ground": "water"
+      },
+      "own/base": {
+       "normal": 48.2,
+       "protan": 51.3,
+       "deutan": 54.1,
+       "tritan": 47.2,
+       "worst": 47.2,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/restricted": {
+       "normal": 60.5,
+       "protan": 58.4,
+       "deutan": 61.3,
+       "tritan": 38.9,
+       "worst": 38.9,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "own/open": {
+       "normal": 56.4,
+       "protan": 58.4,
+       "deutan": 61.7,
+       "tritan": 46.8,
+       "worst": 46.8,
+       "under": "tritan",
+       "ground": "water"
+      },
+      "base/restricted": {
+       "normal": 43.1,
+       "protan": 34.6,
+       "deutan": 29.6,
+       "tritan": 43,
+       "worst": 29.6,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "base/open": {
+       "normal": 18,
+       "protan": 13.7,
+       "deutan": 12.4,
+       "tritan": 12.7,
+       "worst": 12.4,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "restricted/open": {
+       "normal": 24.8,
+       "protan": 21.3,
+       "deutan": 19.2,
+       "tritan": 32.6,
+       "worst": 19.2,
+       "under": "deutan",
+       "ground": "water"
+      }
+     },
+     "satellite": {
+      "closed/own": {
+       "normal": 28.9,
+       "protan": 21.3,
+       "deutan": 18.3,
+       "tritan": 17.8,
+       "worst": 17.8,
+       "under": "tritan",
+       "ground": "shadow"
+      },
+      "closed/base": {
+       "normal": 43.9,
+       "protan": 33.9,
+       "deutan": 36.2,
+       "tritan": 46.9,
+       "worst": 33.9,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/restricted": {
+       "normal": 21.2,
+       "protan": 21.7,
+       "deutan": 27.6,
+       "tritan": 16.2,
+       "worst": 16.2,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "closed/open": {
+       "normal": 34.3,
+       "protan": 33.1,
+       "deutan": 37.5,
+       "tritan": 38.9,
+       "worst": 33.1,
+       "under": "protan",
+       "ground": "snow"
+      },
+      "closed/region": {
+       "normal": 26.1,
+       "protan": 16,
+       "deutan": 14.1,
+       "tritan": 24.1,
+       "worst": 14.1,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "closed/mu": {
+       "normal": 26.1,
+       "protan": 16,
+       "deutan": 14.1,
+       "tritan": 24.1,
+       "worst": 14.1,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "own/base": {
+       "normal": 41.3,
+       "protan": 39.6,
+       "deutan": 42.5,
+       "tritan": 40.8,
+       "worst": 39.6,
+       "under": "protan",
+       "ground": "conifer"
+      },
+      "own/restricted": {
+       "normal": 43.4,
+       "protan": 41.5,
+       "deutan": 40.3,
+       "tritan": 23.6,
+       "worst": 23.6,
+       "under": "tritan",
+       "ground": "shadow"
+      },
+      "own/open": {
+       "normal": 45.8,
+       "protan": 47.1,
+       "deutan": 49.2,
+       "tritan": 38.1,
+       "worst": 38.1,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "own/region": {
+       "normal": 19.6,
+       "protan": 19,
+       "deutan": 18.6,
+       "tritan": 15.7,
+       "worst": 15.7,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "own/mu": {
+       "normal": 19.6,
+       "protan": 19,
+       "deutan": 18.6,
+       "tritan": 15.7,
+       "worst": 15.7,
+       "under": "tritan",
+       "ground": "scrub"
+      },
+      "base/restricted": {
+       "normal": 29.8,
+       "protan": 20.1,
+       "deutan": 17.6,
+       "tritan": 31.8,
+       "worst": 17.6,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "base/open": {
+       "normal": 12.5,
+       "protan": 8.3,
+       "deutan": 6.7,
+       "tritan": 8.2,
+       "worst": 6.7,
+       "under": "deutan",
+       "ground": "snow"
+      },
+      "base/region": {
+       "normal": 21.6,
+       "protan": 19.8,
+       "deutan": 22.1,
+       "tritan": 23.4,
+       "worst": 19.8,
+       "under": "protan",
+       "ground": "olive"
+      },
+      "base/mu": {
+       "normal": 21.6,
+       "protan": 19.8,
+       "deutan": 22.1,
+       "tritan": 23.4,
+       "worst": 19.8,
+       "under": "protan",
+       "ground": "olive"
+      },
+      "restricted/open": {
+       "normal": 17.7,
+       "protan": 14.3,
+       "deutan": 13.3,
+       "tritan": 25.3,
+       "worst": 13.3,
+       "under": "deutan",
+       "ground": "water"
+      },
+      "restricted/region": {
+       "normal": 23.7,
+       "protan": 21.6,
+       "deutan": 20.5,
+       "tritan": 12.4,
+       "worst": 12.4,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "restricted/mu": {
+       "normal": 23.7,
+       "protan": 21.6,
+       "deutan": 20.5,
+       "tritan": 12.4,
+       "worst": 12.4,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "open/region": {
+       "normal": 24,
+       "protan": 23.5,
+       "deutan": 24.8,
+       "tritan": 19.3,
+       "worst": 19.3,
+       "under": "tritan",
+       "ground": "snow"
+      },
+      "open/mu": {
+       "normal": 24,
+       "protan": 23.5,
+       "deutan": 24.8,
+       "tritan": 19.3,
+       "worst": 19.3,
+       "under": "tritan",
        "ground": "snow"
       },
       "region/mu": {

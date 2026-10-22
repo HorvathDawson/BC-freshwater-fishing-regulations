@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# T47: render each candidate on the same views (shots.mjs), one Expo web server per candidate, then put today's palette back.
+# T47: render each candidate on the same views (shots.mjs) and its regulations card (card-shots.mjs; CARDS=0 skips it),
+# one Expo web server per candidate, then put today's palette back. VIEWS=<id,...> / ONLY=<ground,...> narrow shots.mjs.
 #
 #   TILE_PORT=39481 APP_PORT=39482 bash handoff/PLAN/app-data/status-colours/scripts/render-candidates.sh A B C
 #
@@ -27,6 +28,7 @@ for id in "$@"; do
   PID=$!
   for _ in $(seq 1 120); do curl -s -o /dev/null "http://localhost:$APP_PORT/" && break; sleep 2; done
   node "$S/shots.mjs" "$id" "$OUT/$id" "http://localhost:$APP_PORT/"
+  [ -n "${CARDS:-1}" ] && [ "${CARDS:-1}" != 0 ] && node "$S/card-shots.mjs" "$id" "$OUT/$id" "http://localhost:$APP_PORT/"
   stop
   node "$S/apply-palette.mjs" --restore >/dev/null
 done

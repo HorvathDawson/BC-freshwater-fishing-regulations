@@ -1,7 +1,7 @@
 {
  "palette": "B",
- "url": "http://localhost:39482/",
- "at": "2026-10-22T06:13:59.306Z",
+ "url": "http://localhost:39782/",
+ "at": "2026-10-22T20:11:02.427Z",
  "shots": [
   {
    "file": "B--vedder-z11--light.jpg",
@@ -82,7 +82,48 @@
    "file": "B--boundary-z10--satellite.jpg",
    "view": "boundary-z10",
    "ground": "satellite"
+  },
+  {
+   "file": "B--permit-z12--light.jpg",
+   "view": "permit-z12",
+   "ground": "light"
+  },
+  {
+   "file": "B--temperature-z8--light.jpg",
+   "view": "temperature-z8",
+   "ground": "light"
+  },
+  {
+   "file": "B--permit-z12--dark.jpg",
+   "view": "permit-z12",
+   "ground": "dark"
+  },
+  {
+   "file": "B--temperature-z8--dark.jpg",
+   "view": "temperature-z8",
+   "ground": "dark"
+  },
+  {
+   "file": "B--permit-z12--cvd.jpg",
+   "view": "permit-z12",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--temperature-z8--cvd.jpg",
+   "view": "temperature-z8",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--permit-z12--satellite.jpg",
+   "view": "permit-z12",
+   "ground": "satellite"
+  },
+  {
+   "file": "B--temperature-z8--satellite.jpg",
+   "view": "temperature-z8",
+   "ground": "satellite"
   }
  ],
- "errors": []
+ "errors": [],
+ "note": "Part 1's four views, plus (part 2 review) the permit-area and temperature views, so B and D can be compared on restricted and open."
 }

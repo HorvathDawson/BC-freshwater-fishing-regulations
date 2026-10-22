@@ -1,7 +1,7 @@
 {
  "palette": "D",
- "url": "http://localhost:39582/",
- "at": "2026-10-22T19:13:03.357Z",
+ "url": "http://localhost:39782/",
+ "at": "2026-10-22T20:10:31.119Z",
  "shots": [
   {
    "file": "D--vedder-z11--light.jpg",
@@ -21,6 +21,16 @@
   {
    "file": "D--boundary-z10--light.jpg",
    "view": "boundary-z10",
+   "ground": "light"
+  },
+  {
+   "file": "D--permit-z12--light.jpg",
+   "view": "permit-z12",
+   "ground": "light"
+  },
+  {
+   "file": "D--temperature-z8--light.jpg",
+   "view": "temperature-z8",
    "ground": "light"
   },
   {
@@ -44,6 +54,16 @@
    "ground": "dark"
   },
   {
+   "file": "D--permit-z12--dark.jpg",
+   "view": "permit-z12",
+   "ground": "dark"
+  },
+  {
+   "file": "D--temperature-z8--dark.jpg",
+   "view": "temperature-z8",
+   "ground": "dark"
+  },
+  {
    "file": "D--vedder-z11--cvd.jpg",
    "view": "vedder-z11",
    "ground": "cvd"
@@ -61,6 +81,16 @@
   {
    "file": "D--boundary-z10--cvd.jpg",
    "view": "boundary-z10",
+   "ground": "cvd"
+  },
+  {
+   "file": "D--permit-z12--cvd.jpg",
+   "view": "permit-z12",
+   "ground": "cvd"
+  },
+  {
+   "file": "D--temperature-z8--cvd.jpg",
+   "view": "temperature-z8",
    "ground": "cvd"
   },
   {
@@ -82,7 +112,18 @@
    "file": "D--boundary-z10--satellite.jpg",
    "view": "boundary-z10",
    "ground": "satellite"
+  },
+  {
+   "file": "D--permit-z12--satellite.jpg",
+   "view": "permit-z12",
+   "ground": "satellite"
+  },
+  {
+   "file": "D--temperature-z8--satellite.jpg",
+   "view": "temperature-z8",
+   "ground": "satellite"
   }
  ],
- "errors": []
+ "errors": [],
+ "note": "Part 2 revised D: six views x four grounds; the satellite temperature view was re-shot alone after the Conditions tab's badged 'Choose layers' label broke the first run."
 }

@@ -1,4 +1,4 @@
-// T47 map shots: the SAME four views in light, dark, the colour-blind palette and satellite, for one palette.
+// T47 map shots: the SAME six views (four map views, the permit area, the temperature dots) in light, dark, the colour-blind palette and satellite, for one palette.
 //
 //   node handoff/PLAN/app-data/status-colours/scripts/shots.mjs <palette id> <out dir> [app url]
 //
@@ -35,6 +35,13 @@ export const VIEWS = [
   { id: "kootenay-z9", label: "Kootenay Lake, z9", center: [-116.87, 49.72], zoom: 9 },
   { id: "province-z6", label: "Province, z6", center: [-122.6, 50.9], zoom: 6 },
   { id: "boundary-z10", label: "Region 2/3/8 + MU boundaries beside closed and own water (Coquihalla summit), z10", center: [-121.05, 49.62], zoom: 10 },
+  // T47 part 2 (review): the two statuses the first four views never show. RESTRICTED is the permit-area hatch, outline
+  // and label (UBC Malcolm Knapp Research Forest, closed and own water running through it); OPEN is the cool
+  // temperature dot (Conditions → Layers → Temperature), with the legend under the map carrying all three dot colours
+  // (cool = open, warm = restricted, critical = closed) — the live readings in October are all cool.
+  { id: "permit-z12", label: "Permit area (restricted): UBC Malcolm Knapp Research Forest, z12", center: [-122.555, 49.33], zoom: 12 },
+  { id: "temperature-z8", label: "Water temperature dots (open = cool) + the dot legend, Fraser Valley, z8", center: [-122.0, 49.4], zoom: 8,
+    temperature: true },
 ];
 const GROUNDS = [
   { id: "light", scheme: "light" },
@@ -96,8 +103,21 @@ for (const g of GROUNDS.filter((x) => !process.env.ONLY || process.env.ONLY.spli
   let s;
   try {
     s = await boot(g);
-    for (const v of VIEWS) {
+    for (const v of VIEWS.filter((x) => !process.env.VIEWS || process.env.VIEWS.split(",").includes(x.id))) {
+      if (v.temperature && !s.temperature) {   // the Conditions tab, Layers → Temperature (stays on for later views)
+        await s.p.getByRole("tab", { name: "Conditions" }).click();
+        await s.p.waitForTimeout(1500);
+        // a changed layer choice (satellite) badges the button and its label: "Choose layers" is only its start
+        await s.p.getByLabel(/^Choose layers/).click();
+        await s.p.waitForTimeout(800);
+        await s.p.getByRole("radio", { name: "Temperature" }).click();
+        await s.p.waitForTimeout(800);
+        await s.p.getByRole("button", { name: "Done", exact: true }).click();
+        await s.p.waitForTimeout(1500);
+        s.temperature = true;
+      }
       await frame(s.p, v);
+      if (v.temperature) await s.p.waitForTimeout(6000);   // the live gauge feed
       const file = `${ID}--${v.id}--${g.id}.jpg`;
       await s.p.screenshot({ path: join(OUT, file), type: "jpeg", quality: 82 });
       log.shots.push({ file, view: v.id, ground: g.id });

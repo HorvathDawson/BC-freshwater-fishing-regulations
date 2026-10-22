@@ -15,6 +15,24 @@ const THEMES = ["light", "dark", "cvd"];
 
 const results = {};
 for (const id of ids) results[id] = measure(layered(cands, id));
+// every status against body ink: the lowest normal-vision ΔE, and the lowest worst-vision one (with its status)
+const { deltaE: dE2000 } = await import(join(REPO, "app/tools/cvd.ts"));
+const { worst: worstOf } = await import("./colour-math.mjs");
+for (const id of ids) {
+  results[id].ink = {};
+  for (const th of THEMES) {
+    const t = themeTokens(th, layered(cands, id)[th]);
+    const ink = t["color.ui.ink"];
+    let normal = Infinity, w = { dE: Infinity, under: "" }, s = "";
+    for (const st of STATUSES) {
+      const c = t[`color.status.${st}`];
+      normal = Math.min(normal, dE2000(c, ink));
+      const x = worstOf(c, ink);
+      if (x.dE < w.dE) { w = x; s = st; }
+    }
+    results[id].ink[th] = { normal, worst: w, s };
+  }
+}
 
 const f1 = (x) => (x === undefined ? "–" : x.toFixed(1));
 const V = { normal: "n", protan: "p", deutan: "d", tritan: "t" };
@@ -78,27 +96,42 @@ for (const th of THEMES) {
   }
 }
 
-// ---- 3b. all five statuses (part 2): the minima search-d.mjs maximised, per palette
-out.push("\n### 3b · All five statuses, the minima palette D maximised (worst ΔE2000 over all visions and both models)\n");
-out.push("Each cell is the WORST pair of its group, with the pair and the reader. `water` = closed / own / base against each other; " +
-  "`permit · temperature` = restricted against closed, own and base (the permit-area hatch over water) and open against restricted and closed " +
-  "(the temperature dots); `boundary` = the region and unit boundaries against all five. Satellite = thin lines over the Esri imagery grounds.\n");
-const WATER_P = ["closed/own", "closed/base", "own/base"];
-const OTHER_P = ["closed/restricted", "own/restricted", "base/restricted", "restricted/open", "closed/open"];
-const BND_P = STATUSES.flatMap((s) => BOUNDARIES.map((b) => `${s}/${b}`));
+// ---- 3b. all five statuses (part 2): the minima search-d.mjs maximised, per palette, in the gate's model
+// (app/tools/status-colours-distinct.test.ts): the owner's pair on its own; the other water pairs; the permit hatch over
+// water as tokens, lines and satellite; the temperature trio as gauge DOTS (tokens: a 5 px dot in a paper stroke is its
+// token, never a line over a ground); boundaries against all five as tokens and against the four LINE statuses as lines;
+// and every status against body ink (normal vision, and the worst of every vision).
+out.push("\n### 3b · All five statuses, as the gate measures them (worst ΔE2000 over all visions and both models)\n");
+out.push("Each cell is the WORST pair of its group, with the pair and the reader. `owner` = closed / own, the pair the owner " +
+  "could not tell apart (token · line · lake · satellite). `water` = closed / base and own / base. `permit` = restricted against " +
+  "closed, own and base (the permit-area hatch over water). `dots` = open against restricted and closed, the temperature gauge dots, " +
+  "measured as tokens. `boundary` = the region and unit boundaries against all five as tokens, and against the four statuses " +
+  "drawn as lines. `ink` = every status against body ink, normal vision · worst vision (a status word is never body text). " +
+  "Bold = under 20.\n");
+const OWNER = ["closed/own"];
+const WATER_P = ["closed/base", "own/base"];
+const PERMIT_P = ["closed/restricted", "own/restricted", "base/restricted"];
+const DOT_P = ["restricted/open", "closed/open"];
+const BND_TOKEN = STATUSES.flatMap((s) => BOUNDARIES.map((b) => `${s}/${b}`));
+const BND_LINE = STATUSES.filter((s) => s !== "open").flatMap((s) => BOUNDARIES.map((b) => `${s}/${b}`));
 for (const th of THEMES) {
   out.push(`\n#### ${th}\n`);
-  out.push("| palette | water token | water line | water lake | water satellite | permit · temperature token | … line | … satellite | boundary token | boundary line |");
-  out.push("|---|---|---|---|---|---|---|---|---|---|");
+  out.push("| palette | owner (closed / own) | water | permit | dots | boundary token · line | ink |");
+  out.push("|---|---|---|---|---|---|---|");
   for (const id of ids) {
     const P = results[id].pairs[th];
-    const min = (cond, keys) => {
-      let w = null;
-      for (const k of keys) { const r = P[cond][k]; if (r && (!w || r.worst.dE < w.dE)) w = { ...r.worst, k }; }
-      return w ? `${bold(f1(w.dE), w.dE, 20)} ${V[w.under]} ${w.k}` : "–";
+    const w = (cond, keys) => {
+      let m = null;
+      for (const k of keys) { const r = P[cond][k]; if (r && (!m || r.worst.dE < m.dE)) m = { ...r.worst, k }; }
+      return m;
     };
-    out.push(`| ${id} | ${min("pure", WATER_P)} | ${min("line", WATER_P)} | ${min("lake", WATER_P)} | ${min("satellite", WATER_P)} | ` +
-      `${min("pure", OTHER_P)} | ${min("line", OTHER_P)} | ${min("satellite", OTHER_P)} | ${min("pure", BND_P)} | ${min("line", BND_P)} |`);
+    const n = (m) => (m ? bold(f1(m.dE), m.dE, 20) : "–");
+    const named = (m) => (m ? `${n(m)} ${V[m.under]} ${m.k}` : "–");
+    const four = (keys) => ["pure", "line", "lake", "satellite"].map((c) => n(w(c, keys))).join(" · ");
+    const permit = ["pure", "line", "satellite"].map((c) => n(w(c, PERMIT_P))).join(" · ") + ` (${w("line", PERMIT_P)?.k ?? ""})`;
+    const ink = results[id].ink[th];
+    out.push(`| ${id} | ${four(OWNER)} | ${four(WATER_P)} | ${permit} | ${named(w("pure", DOT_P))} | ` +
+      `${named(w("pure", BND_TOKEN))} · ${named(w("line", BND_LINE))} | ${bold(f1(ink.normal), ink.normal, 20)} · ${bold(f1(ink.worst.dE), ink.worst.dE, 15)} ${ink.s} |`);
   }
 }
 
@@ -124,6 +157,8 @@ for (const id of ids) {
     slim[id].themes[th] = {
       colours: results[id][th],
       card: results[id].card[th],
+      ink: { normal: +results[id].ink[th].normal.toFixed(1), worst: +results[id].ink[th].worst.dE.toFixed(1),
+             under: results[id].ink[th].worst.under, status: results[id].ink[th].s },
       pairs: Object.fromEntries(Object.entries(P).map(([cond, rows]) => [cond, Object.fromEntries(Object.entries(rows).map(([k, r]) =>
         [k, { ...Object.fromEntries(VISIONS.map((v) => [v, +r[v].toFixed(1)])), worst: +r.worst.dE.toFixed(1), under: r.worst.under, ground: r.worst.ground }]))])),
     };
