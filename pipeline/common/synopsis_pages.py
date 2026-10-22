@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from pipeline.common.curated import SOURCE
 
@@ -97,3 +97,58 @@ def _cached(pdf_path: Path) -> dict[int, int]:
 def pdf_page(printed: int, pdf_path: Optional[Path] = None) -> Optional[int]:
     """The 1-based PDF page a printed page is on; None for a number the book does not print."""
     return printed_to_pdf(pdf_path).get(int(printed))
+
+
+# ── the period the book is in force ──────────────────────────────────────────────────────────────
+
+class SynopsisPeriod(NamedTuple):
+    """The days the edition's regulations are in force, as ISO days: from its first through its last."""
+    valid_from: str
+    valid_until: str
+
+
+#: How the book states its period: the cover's "EFFECTIVE APRIL 1, 2025 THROUGH MARCH 31, 2027" and the inside page's
+#: "valid from April 1, 2025, to March 31, 2027". Read, never typed: a new edition's PDF carries its own.
+_PERIOD = re.compile(
+    r"(?:effective|valid\s+from)\s+([a-z]+)\s+(\d{1,2}),\s*(\d{4}),?\s+(?:through|to)\s+([a-z]+)\s+(\d{1,2}),\s*(\d{4})",
+    re.IGNORECASE)
+_MONTHS = ("january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+           "november", "december")
+#: The pages the period is printed on (the cover and the page inside it); read no further.
+_PERIOD_PAGES = 3
+
+
+def _iso(month: str, day: str, year: str) -> str:
+    import datetime
+    try:
+        return datetime.date(int(year), _MONTHS.index(month.lower()) + 1, int(day)).isoformat()
+    except ValueError:
+        raise ValueError(f"synopsis period: {month} {day}, {year} is not a date") from None
+
+
+def period_from_text(text: str) -> SynopsisPeriod:
+    """The one period `text` states. Every statement must agree; none, or two that differ, is an error — the release's
+    `valid_until` is the day the app tells a reader the regulations lapse, so it is never guessed or picked."""
+    got = {SynopsisPeriod(_iso(*m.group(1, 2, 3)), _iso(*m.group(4, 5, 6))) for m in _PERIOD.finditer(text)}
+    if not got:
+        raise ValueError("synopsis period: the book states no period (no 'effective … through …' on its cover)")
+    if len(got) > 1:
+        said = ", ".join(f"{p.valid_from}..{p.valid_until}" for p in sorted(got))
+        raise ValueError(f"synopsis period: the book's statements disagree: {said}")
+    return got.pop()
+
+
+def synopsis_period(pdf_path: Optional[Path] = None) -> SynopsisPeriod:
+    """The period the repo synopsis states on its first pages. A missing PDF is a hard error, never an empty period."""
+    p = Path(pdf_path or default_pdf()).resolve()
+    if not p.exists():
+        raise FileNotFoundError(f"synopsis period: {p} not found")
+    return _cached_period(p)
+
+
+@lru_cache(maxsize=4)
+def _cached_period(pdf_path: Path) -> SynopsisPeriod:
+    import pdfplumber
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        text = "\n".join(page.extract_text() or "" for page in pdf.pages[:_PERIOD_PAGES])
+    return period_from_text(text)

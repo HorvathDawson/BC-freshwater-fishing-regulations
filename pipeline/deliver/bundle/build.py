@@ -799,6 +799,15 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
 
 
 
+def edition_valid_until(data_dir: Path) -> str:
+    """The last day the edition's regulations are in force (ISO day): the end of the period the synopsis in
+    `data_dir` states on its cover (`synopsis_pages.synopsis_period`). The ONE place the release's `valid_until` comes
+    from — no date is typed anywhere. A source tree without the book is a hard error: an empty stamp would ship a
+    release the app cannot tell has lapsed."""
+    from pipeline.common.synopsis_pages import PDF_NAME, synopsis_period
+    return synopsis_period(Path(data_dir) / PDF_NAME).valid_until
+
+
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
           reaches: Path | None = None, entries: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
@@ -956,14 +965,15 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
     from pipeline.gauges.consume.shed import TRUST_BANDS
 
-    # The edition this bundle is: the atlas build it came from, and the regulation year it
-    # is good until. `valid_until` is empty when the corpus does not state one — empty is
-    # readable as "no expiry known", where a fabricated date would be read as a promise.
+    # The edition this bundle is: the atlas build it came from, and the last day its
+    # regulations are in force — the synopsis period's end, READ OFF THE BOOK'S COVER
+    # (`edition_valid_until`; owner 2026-10-22 late). The release copies it into
+    # `manifest.regulations.valid_until`, so the app can say when the regulations lapse.
     from pipeline.common.section_handles import digest_for as _digest_for
 
     _handles_digest = _digest_for(build_dir)
     _version = f"{build_dir.name}+{GENERATED.reaches.name}"
-    _valid_until = ""
+    _valid_until = edition_valid_until(data_dir)
     _reach_digest, _reach_run_name = "", ""
     if _reaches is not None:
         # NO FALLBACK: a run whose report cannot be read, or states no digest, stops the build —
