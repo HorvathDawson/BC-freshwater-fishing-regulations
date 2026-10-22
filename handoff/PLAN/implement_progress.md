@@ -98,6 +98,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- RUNNING: side channels option A (owner 2026-10-22) wf_a3a90e27-906 (task wnrcwqr2u). After merge: bundle + release rebuild
+  via heavy.sh (deliver all, alone), then taps/fixture re-cut if answers moved, strict check, smoke.
 - MERGED (wf_199d0858-41a): LAYERS MENU B a3b43827 (one water colouring for all features; layer registry; coming soon
   greyed; always shown incl Indigenous land [indigenous_land tile layer, 780 features]; private-land switch; palette
   -> menu Display page; credits -> map attribution + Data sources page; count badge on the rail). Small fixes:
