@@ -93,12 +93,12 @@ describe("emit-fish: the mobile require map", () => {
   const { mobile } = emit(manifest, sha, tips);
   const required = [...mobile.matchAll(/require\("\.\.\/assets\/fish\/([^"]+)"\)/g)].map((m) => m[1]);
 
-  it("requires every coded .webp in the folder exactly once, each one present", () => {
+  it("requires every coded .webp in the folder exactly once, each one present (and T38's two hatch drawings)", () => {
     const onDisk = readdirSync(assets).filter((f) => f.endsWith(".webp"));
     const coded = manifest.images.filter((i: { code: string | null }) => i.code !== null)
       .map((i: { file: string }) => i.file);
     for (const f of required) expect(onDisk).toContain(f);
-    expect([...required].sort()).toEqual([...coded].sort());
+    expect([...required].sort()).toEqual([...coded, "adipose-wild.webp", "adipose-clipped.webp"].sort());
     expect(new Set(required).size).toBe(required.length);
   });
 

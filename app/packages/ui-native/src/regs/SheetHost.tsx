@@ -9,13 +9,13 @@
  * The open key lives with the caller (RegsView; T23's RegsScreen when it lands). No logic: `page.sheet` is core's (T36).
  */
 import { useEffect, useMemo, useRef } from "react";
-import type { ImageSourcePropType, ScrollView } from "react-native";
+import type { ScrollView } from "react-native";
 import type { RegsPage, SheetKey, Tab } from "@app/core";
 import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
 import { SheetBody } from "./SheetBody";
-import type { FishImages } from "./types";
+import type { AdiposeImages, FishImages } from "./types";
 
 export interface SheetHostProps {
   page: RegsPage;                       // page.sheet(key) is lazy + pure (T36)
@@ -26,7 +26,7 @@ export interface SheetHostProps {
   onTab?: (t: Tab) => void;             // "Steelhead stamp ›" when it sits in a sheet
   palette: Palette;
   fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
-  adipose?: { wild: ImageSourcePropType; clipped: ImageSourcePropType };   // T38
+  adipose?: AdiposeImages;              // T38 the hatch sheet's two drawings (apps/mobile ADIPOSE_IMAGES)
   onBook?: (pdf: number) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
   layout?: LayoutClass;                 // (T45/T46) absent → the app's (`useLayoutClass`)
 }

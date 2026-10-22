@@ -468,6 +468,30 @@
    "source": "GoFishBC",
    "width": 800,
    "height": 400
+  },
+  {
+   "file": "adipose-wild.webp",
+   "code": null,
+   "caption": "Wild · adipose fin there",
+   "phase": null,
+   "stand_in_for": null,
+   "credit": "drawn for this app (FISHART, page v36)",
+   "type": "Drawing",
+   "source": "this app",
+   "width": 800,
+   "height": 300
+  },
+  {
+   "file": "adipose-clipped.webp",
+   "code": null,
+   "caption": "Hatchery · clipped, a healed scar instead",
+   "phase": null,
+   "stand_in_for": null,
+   "credit": "drawn for this app (FISHART, page v36)",
+   "type": "Drawing",
+   "source": "this app",
+   "width": 800,
+   "height": 300
   }
  ]
 }

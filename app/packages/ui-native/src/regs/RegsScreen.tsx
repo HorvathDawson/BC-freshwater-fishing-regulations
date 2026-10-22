@@ -32,7 +32,7 @@ import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import type { LayoutClass } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
-import type { FishImages } from "./types";
+import type { AdiposeImages, FishImages } from "./types";
 
 /** A section slot: a node, or a node drawn with this screen's actions. */
 export type Slot = React.ReactNode | ((actions: KeepActions) => React.ReactNode);
@@ -41,6 +41,8 @@ export interface RegsScreenProps {
   page: RegsPage;
   palette: Palette;
   images?: FishImages;
+  /** (T38) the hatch sheet's two drawings (apps/mobile `ADIPOSE_IMAGES`); absent → an empty ground of their size */
+  adipose?: AdiposeImages;
   /** what a Keep link does (the tab links are this screen's: they scroll to the section) */
   actions: Omit<KeepActions, "onTab">;
   /**
@@ -76,7 +78,7 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
   );
 }
 
-export function RegsScreen({ page, palette, images, actions, onDate, onMap, onParts,
+export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts,
                              gear, methods, licence, footer, store: injected, layout = "phone" }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
@@ -155,7 +157,7 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
           {pageScroll}
         </View>
       ) : pageScroll}
-      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
+      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
   );

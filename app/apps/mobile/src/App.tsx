@@ -44,7 +44,7 @@ import { DATA_SOURCE, ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
  * and nothing is sent in the background (owner 2026-10-21).
  */
 teeConsoleErrors(console);
-import { FISH_IMAGES } from "./fishImages.generated";
+import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
 
 /**
  * Where everything is served from: ONE base, in `config.ts` (P10). In production these are R2 URLs and nothing else
@@ -176,6 +176,7 @@ export default function App() {
                status={data.status} pairing={data.pairing}
                spots={spots}
                fishImages={FISH_IMAGES}
+               adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
                locate={locate}
                weather={weather}

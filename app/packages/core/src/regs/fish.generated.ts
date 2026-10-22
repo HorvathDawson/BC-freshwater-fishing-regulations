@@ -9,7 +9,7 @@ export interface FishImage { readonly file: string; readonly caption: string; re
 export type FishManifest = Readonly<Record<string, readonly FishImage[]>>;
 
 /** sha256 of manifest.json's bytes, for `--check`. */
-export const FISH_MANIFEST_SHA256: string = "fd80a7c96f2aa76633f81b3bee98c889b7de6cf33fb162c2745c47ddd208d5de";
+export const FISH_MANIFEST_SHA256: string = "11d3bd2d5d7c7da20fe2adc54323b2b5b919ac06a9cb91d103799d6bacfa80ad";
 
 export const FISH: FishManifest = {
   "BB": [

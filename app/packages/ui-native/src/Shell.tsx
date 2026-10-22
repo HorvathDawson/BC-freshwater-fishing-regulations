@@ -44,7 +44,7 @@ import { WaterConditions, WaterMap } from "./WaterViews";
 import { WaterMapView } from "./water/WaterMapView";
 import { MenuContext } from "./menu/MenuButton";
 import { MenuHost, type MenuInfo } from "./menu/MenuHost";
-import type { FishImages } from "./regs/types";
+import type { AdiposeImages, FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
 
@@ -70,7 +70,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       spotsError, attribution, fishImages, photos, status = null, pairing = null,
+                       spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
                        systemBack = null, loader = null, initialRoute, locate = null, menuInfo }: {
   source: RegsSource; palette: Palette;
   /**
@@ -106,6 +106,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   attribution?: readonly string[];
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */
   fishImages?: FishImages;
+  /** (T38) the hatch sheet's two drawings (Wild / Hatchery · clipped), registered by the app. */
+  adiposeImages?: AdiposeImages;
   /** S1: a spot's photographs — the store and the platform's picker (the app's). Absent -> no photos offered. */
   photos?: SpotPhotos;
   /** G1: the platform's own back (Android `BackHandler`, the browser's history), from the app. Absent -> ‹ only. */
@@ -482,7 +484,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                           // another water opens on top (back returns here)
                           onOtherSection={(sid) => opener.tap(sid, null, "regs", item)} />
           </WaterMap>
-        : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
+        : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
                        // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                        loader={loader} day={mapDay} onDay={setMapDay} section={frame.tapSid}
                        part={frame.part}

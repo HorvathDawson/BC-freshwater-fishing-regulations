@@ -9,27 +9,28 @@
  * the global click handler's `data-open` / `data-rule` / `data-gl` / `data-fish` / `data-howtell` (here each a run or a
  * block carrying its `SheetKey`).
  */
-import { Linking, Text, View, type ImageSourcePropType } from "react-native";
+import { Linking, Text, View } from "react-native";
 import { bookUrl, type SheetBlock, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
 import { LineText, type KeepActions } from "./LineText";
-import type { FishImages } from "./types";
+import type { AdiposeImages, FishImages } from "./types";
 import { Fold } from "./sheet/Fold";
 import { Example, Head, List, Para, Quote } from "./sheet/Para";
 import { RuleRow } from "./sheet/RuleRow";
 import { LadderView } from "./sheet/LadderView";
 import { SourcesView } from "./sheet/SourcesView";
 import { WeekBox } from "./sheet/WeekBox";
-import { Adipose, FishImage, FishLooks } from "./sheet/FishImage";
+import { FishImage, FishLooks } from "./sheet/FishImage";
+import { AdiposeArt } from "./AdiposeArt";
 import type { LayoutClass } from "@app/ui";
 import { PartsChoice } from "./sheet/PartsChoice";
 import { TermSection } from "./sheet/TermSection";
 
 export interface SheetBodyProps {
   palette: Palette; fish?: FishImages;
-  adipose?: { wild: ImageSourcePropType; clipped: ImageSourcePropType };
+  adipose?: AdiposeImages;                                   // T38: apps/mobile's ADIPOSE_IMAGES
   onOpen: (k: SheetKey) => void; onPart?: (i: number) => void; onTab?: (t: Tab) => void;
   /** a Rule book page (default: open the synopsis at that page, D6 a) */
   onBook?: (pdf: number) => void;
@@ -41,7 +42,7 @@ const openBook = (pdf: number) => { void Linking.openURL(bookUrl(pdf)); };
 const actionsOf = (p: SheetBodyProps): KeepActions =>
   ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? openBook });
 
-export function SheetBlockView(p: { b: SheetBlock } & SheetBodyProps) {
+export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);
   const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} b={x} />);
   switch (b.k) {
@@ -59,7 +60,7 @@ export function SheetBlockView(p: { b: SheetBlock } & SheetBodyProps) {
     case "sources": return <SourcesView groups={b.groups} overruled={b.overruled} palette={palette} actions={actions} />;
     case "pictures": return <Pictures pics={b.pics} palette={palette} actions={actions} images={p.fish} />;
     case "image": return <FishImage code={b.code} file={b.file} alt={b.alt} credit={b.credit} width={b.width} height={b.height} fish={p.fish} palette={palette} />;
-    case "adipose": return <Adipose figures={b.figures} images={p.adipose} palette={palette} actions={actions} />;
+    case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
     case "choice": return <PartsChoice items={b.items} palette={palette} onPart={p.onPart} />;
@@ -91,7 +92,7 @@ export function SheetBody(p: { vm: SheetVM; layout?: LayoutClass } & SheetBodyPr
     <View testID="sheet-body">
       {grouped(vm.blocks).map((b, i) => Array.isArray(b)
         ? <FishLooks key={i} looks={b} layout={layout} fish={rest.fish} palette={rest.palette} />
-        : <SheetBlockView key={i} {...rest} b={b} />)}
+        : <SheetBlockView key={i} {...rest} layout={layout} b={b} />)}
     </View>
   );
 }

@@ -27,7 +27,7 @@ import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRe
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
-import type { FishImages } from "./regs/types";
+import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen, TabPending } from "./regs/RegsScreen";
 import { GearTab } from "./regs/GearTab";
@@ -38,7 +38,7 @@ import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 export function WaterScreen({ source, item, palette, onBack,
-                              loader = null, day = null, onDay, section = null, part = null, fishImages }: {
+                              loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages }: {
   source: RegsSource; item: ItemId;
   /**
    * T01: everything the Regulations page reads (T21 draws it: `useRegsStore(loader)` opens the store on the first water).
@@ -59,6 +59,8 @@ export function WaterScreen({ source, item, palette, onBack,
    * The fish pictures by species code (T20), for the regulations panel (the app registers the assets; T21 draws them).
    */
   fishImages?: FishImages;
+  /** (T38) the hatch sheet's two drawings, registered by the app. */
+  adiposeImages?: AdiposeImages;
 }) {
   const sheet = useWater(source, item);
   // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
@@ -120,7 +122,7 @@ export function WaterScreen({ source, item, palette, onBack,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)} layout={layout}
+      <RegsScreen page={regs} palette={palette} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{

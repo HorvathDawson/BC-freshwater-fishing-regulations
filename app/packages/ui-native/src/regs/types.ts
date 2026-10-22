@@ -9,3 +9,6 @@
 import type { ImageSourcePropType } from "react-native";
 
 export type FishImages = Readonly<Record<string, readonly ImageSourcePropType[]>>;
+
+/** (T38) The hatch sheet's two drawings, by variant: apps/mobile's `ADIPOSE_IMAGES` (tools/emit-adipose.mjs, emit-fish). */
+export type AdiposeImages = { readonly wild: ImageSourcePropType; readonly clipped: ImageSourcePropType };
