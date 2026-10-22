@@ -31,9 +31,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - QUEUED T53 (owner: unnamed stream shows no regulations): app-only — frameViews/openWater/WaterScreen gate item:null
   to Conditions; data answers all 1,893,082 unnamed sections. Start AFTER the back lane merges (same files: openWater,
   route.ts). Live release now r-66f94fa635c1 (valid_until; id covers manifest); dev fixture a44b232.
-- RUNNING: wf_b88d9e03-10e (owner: HYDAT
-  maintenance notices — detect, notify once via FEED_NOTIFY_URL, scripts/update-hydat.sh, app HYDAT line follows the
-  notice; decisions.md "upstream updates the owner runs"). THEN: merge both, full strict check + smoke once.
+- MERGED: desktop search close (d5f6bbc8 797175e9 d57f4701); HYDAT maintenance notices + notify-once (FEED_NOTIFY_URL)
+  + scripts/update-hydat.sh (6894b406..24d43bd8). RUNNING agent: HYDAT line current only when the release's
+  sources.hydat.date matches the feed's latest. TICKETS: T53 unnamed regs (queued after back lane), T54 no-access.
+- RUNNING wf_d6aefe12-cec (owner: Twin Lakes 2-8 closure on BOTH lakes; matcher build_id_index first-writer drops
+  multi-polygon lakes; 15 entries). Merger: backfill_matched (dry-run, then apply), reach rerun + binding diff, deliver.
 - FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
   index hydat.stale; dark water names now near status.base blue and flow f5 (owner may want to see).
 
