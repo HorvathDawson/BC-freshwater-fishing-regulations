@@ -172,9 +172,9 @@ Process: add strict consistency auditors (Fable model) that check data and UI ag
 reaches the SAME screen (e.g. a water's Regulations/Conditions opened from the Map tab vs the Conditions map), with no
 duplicate menus; then finish the remaining implementation and do the mass cleanup.
 
-## OWNER 2026-10-22 — T47: option C
-"lets use option c" (status-colour candidate C: the clearer red for closed). Combined with the earlier answer: grey region
-and unit boundaries, and the status colours pushed MORE apart than the candidates. So: start from C (its closed red),
-keep the neutral boundaries, maximise the minimum ΔE between status pairs, apply, gate. If C's closed moves the regs
-prototype's --closed token, follow the port sync rule. (The finishing round's T47 lane started from B before this
-answer; a follow-up rebases its palette on C, reusing its scripts, renders and gate.)
+## OWNER 2026-10-22 — icons: Lucide, rounded 1.75 (corrects a misread)
+"no C. Open licence: Lucide (ISC), rounded 1.75." The "option C" the owner picked was the ICON direction, not a status
+colour candidate: the app's icons (bottom bar Map · Conditions · Spots · More, the side rail's Layers, and search / sync /
+back where they share the set) come from Lucide (ISC licence; record it with the other credits), drawn with rounded joins
+and caps at a 1.75 px stroke on the 24 px grid. T47 stays as decided before: palette D derived from B, grey boundaries,
+status colours more distinct than A/B/C.
