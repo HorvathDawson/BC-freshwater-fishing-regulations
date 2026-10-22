@@ -134,6 +134,21 @@ describe("<DayCalendar>", () => {
       "October 2026 / Wednesday, October 21, today, chosen",
     ]);
   });
+
+  it("the month and day-step buttons keep keyboard focus when pressed: the same node, still focused", () => {
+    function Held() {
+      const [day, setDay] = useState<Date | null>(null);
+      return <DayCalendar palette={LIGHT} day={day} onDay={setDay} range={YEAR} now={NOW} />;
+    }
+    render(<Held />);
+    for (const name of ["Next month", "Previous month", "One day earlier", "One day later", "Back to today"]) {
+      const before = btn(name);
+      act(() => { before.focus(); });
+      act(() => { fireEvent.click(before); });
+      const after = btn(name);
+      expect([name, after === before, document.activeElement === after]).toEqual([name, true, true]);
+    }
+  });
 });
 
 describe("<MapDayButton> — the map's calendar icon", () => {

@@ -47,6 +47,25 @@ export function MapDayButton({ palette, day, onPress, now }: {
   );
 }
 
+/**
+ * A month or day-step button. AT MODULE SCOPE, never inside `DayCalendar`'s render: a component declared there is a new
+ * type every render, so React would remount the button on each press and a keyboard user's focus would fall to the page.
+ */
+function Btn({ palette, text, label, onPress, enabled = true, strong = false }:
+  { palette: Palette; text: string; label: string; onPress: () => void; enabled?: boolean; strong?: boolean }) {
+  return (
+    <Pressable onPress={onPress} disabled={!enabled} accessibilityRole="button" accessibilityLabel={label}
+               aria-disabled={!enabled}
+               style={({ pressed }) => ({
+                 minHeight: TARGET, minWidth: TARGET, paddingHorizontal: 10, alignItems: "center",
+                 justifyContent: "center", backgroundColor: pressed ? palette.tint : "transparent",
+                 borderWidth: strong ? 1.5 : 0, borderColor: palette.accent, opacity: enabled ? 1 : 0.35,
+               })}>
+      <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{text}</Text>
+    </Pressable>
+  );
+}
+
 export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
   palette: Palette;
   /** THE day (the Shell's `mapDay`); null = today */
@@ -105,7 +124,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
       go();
     },
   } as object;
-  const canEarlier =stepDay(day, -1, now, range) !== undefined;
+  const canEarlier = stepDay(day, -1, now, range) !== undefined;
   const canLater = stepDay(day, 1, now, range) !== undefined;
   const moveMonth = (n: number) => setView((v) => {
     const d = new Date(v.year, v.month + n, 1);
@@ -115,26 +134,13 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
   const cellsShown = m.weeks.flat().filter((c) => c !== null);
   const tabStop = (cellsShown.find((c) => c!.chosen) ?? cellsShown.find((c) => !c!.disabled))?.iso;
 
-  const Btn = ({ text, label, onPress, enabled = true, strong = false }:
-    { text: string; label: string; onPress: () => void; enabled?: boolean; strong?: boolean }) => (
-    <Pressable onPress={onPress} disabled={!enabled} accessibilityRole="button" accessibilityLabel={label}
-               aria-disabled={!enabled}
-               style={({ pressed }) => ({
-                 minHeight: TARGET, minWidth: TARGET, paddingHorizontal: 10, alignItems: "center",
-                 justifyContent: "center", backgroundColor: pressed ? palette.tint : "transparent",
-                 borderWidth: strong ? 1.5 : 0, borderColor: palette.accent, opacity: enabled ? 1 : 0.35,
-               })}>
-      <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{text}</Text>
-    </Pressable>
-  );
-
   return (
     <View testID="day-calendar" style={{ width: "100%", maxWidth: 380, alignSelf: "center", gap: 6 }}>
       <Text style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{showingLine(day, now)}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Btn text="‹" label={DAY_PICKER.prevMonth} onPress={() => moveMonth(-1)} enabled={m.prev} />
+        <Btn palette={palette} text="‹" label={DAY_PICKER.prevMonth} onPress={() => moveMonth(-1)} enabled={m.prev} />
         <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, fontSize: 16, color: palette.ink }}>{m.title}</Text>
-        <Btn text="›" label={DAY_PICKER.nextMonth} onPress={() => moveMonth(1)} enabled={m.next} />
+        <Btn palette={palette} text="›" label={DAY_PICKER.nextMonth} onPress={() => moveMonth(1)} enabled={m.next} />
       </View>
       <View style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
         {m.weekdays.map((w) => (
@@ -172,9 +178,9 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
         <Text testID="day-reason" style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{m.reason}</Text>
       )}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-        <Btn text={DAY_PICKER.earlier} label={DAY_PICKER.earlierLabel} onPress={() => step(-1)} enabled={canEarlier} />
-        <Btn text={DAY_PICKER.today} label={DAY_PICKER.todayLabel} onPress={() => onDay(null)} strong />
-        <Btn text={DAY_PICKER.later} label={DAY_PICKER.laterLabel} onPress={() => step(1)} enabled={canLater} />
+        <Btn palette={palette} text={DAY_PICKER.earlier} label={DAY_PICKER.earlierLabel} onPress={() => step(-1)} enabled={canEarlier} />
+        <Btn palette={palette} text={DAY_PICKER.today} label={DAY_PICKER.todayLabel} onPress={() => onDay(null)} strong />
+        <Btn palette={palette} text={DAY_PICKER.later} label={DAY_PICKER.laterLabel} onPress={() => step(1)} enabled={canLater} />
       </View>
     </View>
   );
