@@ -301,3 +301,17 @@ same two). `wide-measure.mjs` now hides scrollbars (`Emulation.setScrollbarsHidd
 "could we just put into app and if I have an issue with palette I ask you to change it later?" Palette D (T47 part 2) is
 the app's palette; its three open trade-offs (light restricted near-black aubergine, base periwinkle, open no longer
 green) are accepted as built. The owner raises any change after using it. Not an open question any more.
+
+## OWNER 2026-10-22 — refinement pass ("right now it just feels unrefined")
+MAP: (1) the Conditions WATERSHED (basin) colouring starts at a slightly HIGHER zoom, and while it is visible the lakes,
+streams etc. are hidden (no double layer). (2) Names, labels and icons tuned to read well in EVERY mode — regulations,
+conditions, plain, satellite, light/dark — one universal label/icon style. (3) Private land is too abrasive when on: softer
+styling, and visible from slightly more zoomed out. (4) Restricted and closed AREAS look nicer at every zoom. (5) A nicer
+scale bar. (6) The Conditions map's legend/histogram bar at the bottom made nicer.
+MORE TAB: data sources & dates always shown at the TOP, minimal, with a badge (freshness), tap for the detailed references;
+nicer display options; Contact at the bottom inline (not a nested page); each feed's last update and whether it is likely
+out of date. A back control at the top that returns to the previous tab.
+TOP BAR: no "Flows checked 27h ago" text in the search bar. Instead a SYNC ICON up there that indicates when a refresh is
+needed (stale feed / new release); the details live in More.
+MOTION: when a menu/sheet closes, the dim backdrop must NOT slide down with it — it stays in place and fades out after the
+sheet has slid away (and fades in in place on open).
