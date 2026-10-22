@@ -3,6 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
+- Branch redesign/stream-sections. Live data release r-f734cbb93724 (option A side channels + own gauge lead; served by
+  `pnpm tiles` from app/ on :39217 — restart it if down). Strict `REGS_STORE_REQUIRED=1 pnpm -C app check` 7466 + smoke
+  green at 36ec882a. Owner answers for this round: decisions.md "OWNER 2026-10-22 — answers".
+- RUNNING wf_70e5b37a-2d5 (script workflows/scripts/finish-nav-colours-regs-polish-wf_70e5b37a-2d5.js, session 368da779):
+  T48 nav (top search + sync line; bottom bar Map · Conditions · Spots · More; rail Layers only), T47 part 2 (palette D,
+  more distinct, applied + gate), regs polish (R1 spacing, sheet kickers, report link once, Done, paper tint — Claude
+  decides). Resume with Workflow({scriptPath, resumeFromRunId}); merge each lane (cherry-pick, conflict-marker grep,
+  fixtures if VMs moved, strict check, smoke, remove worktrees).
+- THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
+  by file); (2) Fable-model consistency auditors — every route into a screen reaches the SAME screen, no duplicate menus,
+  data and UI agree — then fix what they find; (3) the MASS CLEANUP (owner 2026-10-22 asked for it after the last
+  implementation). D1 phone testing needs the owner's phone / an R2 bucket.
+- Hygiene: agents must never pkill; after any web-check lane, kill leftover headless Chromes on /var/folders/*/T/regs-*
+  profiles by PID (12 orphans were found 2026-10-22).
+
 ## IN FLIGHT (2026-10-20 evening) — check these first on a restart
 - Heavy: (1) DONE 2026-10-20: live `deliver all` (9.3 min): card gate 0 problems, strict vintage agrees, 9 files
   promoted + release data/release/r-6960fe8201e3 (13.89 MB gz). Live Tier 2 data checks: test_release + test_part_geo +
