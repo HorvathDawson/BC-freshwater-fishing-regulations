@@ -11,7 +11,7 @@ import { appKeyOf, type RegsPage, type SheetKey, type SheetVM } from "@app/core"
 import { BackLayerContext, type BackLayers } from "@app/ui";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { SheetHost } from "./SheetHost";
-import { RegsView } from "./RegsView";
+import { RegsScreen } from "./RegsScreen";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
@@ -88,7 +88,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     let close: (() => void) | null = null;
     const layers: BackLayers = { register: (c) => { log.push("register"); close = c; return () => { log.push("unregister"); }; },
       back: () => { log.push("back"); close?.(); return true; } };
-    render(<BackLayerContext.Provider value={layers}><RegsView page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} /></BackLayerContext.Provider>);
+    render(<BackLayerContext.Provider value={layers}><RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} day={null} onDay={() => {}} /></BackLayerContext.Provider>);
     fireEvent.click(screen.getByText("Kokanee"));
     act(() => { close!(); });
     expect([log, screen.queryByLabelText("Done"), !!screen.getByTestId("regs-view")]).toEqual([["register", "unregister"], null, true]);
@@ -102,7 +102,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
   });
 
   it("6. the sheet sits over the regs view: the header's place and date stay mounted (howtell-current-water)", () => {
-    render(<RegsView page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} />);
+    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }} day={null} onDay={() => {}} />);
     fireEvent.click(screen.getByText("Kokanee"));
     expect(screen.getByRole("heading", { name: "Kokanee" })).toBeTruthy();
     expect(screen.getByText(VEDDER.header.date)).toBeTruthy();
@@ -117,8 +117,8 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(h.onBook).toHaveBeenCalledWith(10);
     cleanup();
     host("gl:catch_and_release");
-    // the release ships no printed → PDF map yet (T36 PIPELINE NEED): the glossary page is drawn unlinked
-    expect(screen.getByTestId("sheet-body").textContent).toContain("Rule book p.4");
+    // the release ships the printed → PDF map (export.pdf_pages): the glossary page is a link
+    expect(screen.getByTestId("sheet-body").textContent).toContain("Rule book p.4 ↗");
   });
 
   it("8. a picture in an other: sheet opens the fish sheet", () => {
@@ -161,8 +161,8 @@ describe("C. golden mount: every vedder_1010 sheet draws every golden line, in o
       const text = bare(screen.getByRole("heading", { name: want.title }).textContent! + screen.getByTestId("sheet-body").textContent!);
       let at = 0;
       for (const line of want.lines) {
-        // the release has no printed → PDF map (T36 PIPELINE NEED): a glossary page is drawn without its ↗
-        const l = bare(/^(gl:|hatch$)/.test(gk) ? line.replace(/ ↗/g, "") : line);
+        // the release ships the printed → PDF map (export.pdf_pages): glossary and hatch pages are links, as on the page
+        const l = bare(line);
         const i = text.indexOf(l, at);
         if (i < 0) { missing.push(`${gk}: ${line}`); continue; }
         at = i + l.length;
