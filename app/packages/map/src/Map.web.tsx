@@ -789,8 +789,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // shapes as well as their ends, so a river that bends outside its gauges stays on screen.
     const withTrace = (b: Bbox | null) =>
       (traceBox.current ? unionBbox(b, traceBox.current) : b);
-    // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
-    if (fit.camera) { r.easeTo(fit.camera, { duration: 450 }); return done; }
+    // (T48) an exact camera to return to (search's cancel): put back as it was. The box IS measured first: closing
+    // search brings the legend strip back, so the map's box has just shrunk, and GL JS's easeTo pins the centre to the
+    // canvas's middle as it was when the ease began — eased on the stale (taller) canvas, the map came back half the
+    // strip low, and drifted further with every search.
+    if (fit.camera) { syncSize(m); r.easeTo(fit.camera, { duration: 450 }); return done; }
     const first = fit.bbox ? withTrace([...fit.bbox] as Bbox) : null;
     if (first) go(first);
     if (!fit.refine) return done;

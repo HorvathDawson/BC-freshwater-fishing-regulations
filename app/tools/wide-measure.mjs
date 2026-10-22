@@ -22,6 +22,9 @@ const { jobs } = JSON.parse(process.argv[2]);
 const out = [];
 const b = await open("about:blank", { width: 390, height: 844 });
 try {
+  // Scrollbars take no room, whatever the host does: macOS draws a classic 15 px bar (laid out INSIDE the page) when a
+  // mouse is attached and an overlay one when not, so the same page measured 15 px narrower on one machine.
+  await b.send("Emulation.setScrollbarsHidden", { hidden: true });
   for (const { page, size: [w, h], measure, shot } of jobs) {
     await b.send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: false });
     const url = pathToFileURL(page).href;

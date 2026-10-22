@@ -26,8 +26,8 @@ let answer: (layers: readonly string[], phone: boolean) => { id?: unknown }[] = 
 // ---- maplibre-gl, recorded -------------------------------------------------------------------------------------------
 type Handler = (e?: unknown) => void;
 const web: { map: FakeGl | null; opts: Record<string, unknown> | null; rotationOff: boolean;
-             keyboardRotationOff: boolean; tilesIn: boolean; fitOpts: unknown[] } =
-  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [] };
+             keyboardRotationOff: boolean; tilesIn: boolean; fitOpts: unknown[]; canvasH: number } =
+  { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [], canvasH: 800 };
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
@@ -51,8 +51,9 @@ class FakeGl {
   setPaintProperty() {} setLayoutProperty() {} setLayerZoomRange() {} setFilter() {}
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
-  getCanvas() { return { style: { width: "400px", height: "800px" } }; }
-  resize() {}
+  /** The canvas as last sized: a test sets `web.canvasH` to leave it stale (its box changed, the observer not yet run). */
+  getCanvas() { return { style: { width: "400px", height: `${web.canvasH}px` } }; }
+  resize() { if (web.canvasH !== 800) log.push(`resize ${web.canvasH}->800`); web.canvasH = 800; }
   getCenter() { return { lng: -122, lat: 49 }; }
   /** Screen x: a degree of longitude east of -122.2 is 1000 px (so -121.83788 sits at 362 of the 400 px map). */
   project(l: { lng: number; lat: number }) { return { x: Math.round((l.lng + 122.2) * 1000), y: 400 }; }
@@ -154,7 +155,7 @@ afterEach(() => {
   log.length = 0;
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
-  web.fitOpts = [];
+  web.fitOpts = []; web.canvasH = 800;
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false;
 });
 
@@ -493,6 +494,16 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     const onPhone = log.filter((l) => l.startsWith("ease") || l.startsWith("fit"));
     expect({ onWeb, onPhone }).toEqual({ onWeb: ["ease [-121.85,49.15] z9.4 450ms"],
                                          onPhone: ["ease [-121.85,49.15] z9.4 450ms"] });
+  });
+  it("(T48) web: a camera put back measures its box FIRST — eased on a stale canvas, it lands half the change off", async () => {
+    // Search hides the legend strip, so the map is taller while it is open; closing brings the strip back. GL JS's
+    // easeTo pins the centre to the canvas's middle AS IT WAS when the ease began, so easing before the canvas follows
+    // its (now shorter) box put the reader's map back ~33 px low — and each search drifted it further.
+    web.canvasH = 866;
+    render(<WebMap {...base({ fit: { key: "restore:1", bbox: null, camera: { lon: -121.85, lat: 49.15, zoom: 9.4 } } })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease"))).toBe(true));
+    expect(log.filter((l) => l.startsWith("ease") || l.startsWith("resize")))
+      .toEqual(["resize 866->800", "ease [-121.85,49.15] z9.4 450ms"]);
   });
 });
 
