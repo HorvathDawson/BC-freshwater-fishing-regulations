@@ -398,3 +398,12 @@ Shots: handoff/PLAN/app-data/more-tab/ (before-* / after-*, 390x844 light+dark, 
   right above). Wide screens: one 640 px column ruled at its sides.
 - BACK FROM MORE goes to the tab it was opened from (route `prev`, only on More) for the ‹ AND the system back — one
   back rule; then the Map tab as before. More from the Map tab is the plain route (unchanged).
+
+## OWNER 2026-10-22 (late) — silent gauges, and "use best judgement" on the open items
+- Silent panel members are HIDDEN from the Conditions gauge table, but mentioned: one line naming them with each one's
+  last data time (e.g. "Not reporting: Liard at Upper Crossing (last 14 Oct 09:00)"). Never-reporting stations say so.
+- The rest is Claude's call. Owner: "gauge data is much faster turnover than other feeds". So:
+  - More sync stale cadences are PER FEED: gauge readings go stale in hours, forecasts in about a day, regulations /
+    map data on their release cycle. One table in core, not per screen.
+  - Dark-mode water ink: bring it back to the blue family of light-mode water (it read sea-green); palette D otherwise kept.
+  - The release stamps `valid_until` (the synopsis period end) so the app can say when the regulations lapse.
