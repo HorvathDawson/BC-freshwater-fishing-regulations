@@ -665,3 +665,12 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - Rule: opening a water FROM SEARCH consumes the search: the water's `from` is the map tab with search closed, and the
   map camera is framed on that water (the same framing the water's own map uses), so back and × both arrive on the
   map at the place just viewed. The search text is not kept. Opening from a spot or the map is unchanged.
+
+## OWNER 2026-10-22 (late) — Main Lake / Mine Lake, and "See X" group entries
+- Main Lake (Quadra) 1-15 ALSO applies to Mine Lake: "a gazette issue where it has both names really". Mine Lake gets
+  both entries' rules (stamped f455228).
+- Group entries that only say "See X" (Tee Pee Lakes "See Friday, Saturday, and Sunday Lakes"; Cameron Lakes "See
+  North and South Cameron lakes"; Garbutt "See Norbury Lake") are POINTERS: the member lakes show their regulations
+  under their own names; the group name leads the reader to those waters ("see X" with a way to open each). A "See X"
+  pointer is never drawn as a regulation line on the lakes it points to. Group entries with real rules (McCulloch
+  Reservoir) still apply to their member lakes; an identical rule from two entries reads once.
