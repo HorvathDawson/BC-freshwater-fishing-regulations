@@ -18,9 +18,11 @@ THE SOURCES (each a fetch away, `data/source/`):
 
 THE JOIN IS THE FWA'S OWN KEY, CONFIRMED BY A NAME (`pipeline/bathymetry`, `pipeline/stocking`). Both rosters key on
 the 50K waterbody identifier (`02322SAJR`), the same string as the lakes layer's `WATERBODY_KEY_GROUP_CODE_50K`; the
-lake's section is `lake:<WATERBODY_KEY>` in the atlas's handle table. An identifier binds to EVERY lake under its code
-when one of the source's names agrees with one of the FWA's three gazetted names (generic word dropped, "(formerly)"
-read as the same water), or when the FWA names none of them; a code whose names all disagree is REFUSED — a migrated
+lake's section is `lake:<WATERBODY_KEY>` in the atlas's handle table. When one of the source's names agrees with one
+of the FWA's three gazetted names (generic word dropped, "(formerly)" read as the same water), the identifier binds to
+EVERY lake under its code whose names agree, plus the code's unnamed parts — a differently-named lake sharing the code
+(BUNTZEN's code also carries McCombe Lake) is not bound. When the FWA names none of them, it binds every lake under the
+code. A code whose names all disagree is REFUSED — a migrated
 50K key landing on the wrong water is the failure the audits found, and a stocking record on the wrong lake tells
 somebody there are fish where there are none. The counts of every verdict are printed; nothing is dropped silently.
 
@@ -84,18 +86,20 @@ def core(name: str) -> str:
 
 
 def bind(ident: str, names: Set[str], lakes: Mapping[str, Sequence[FwaLake]]) -> Tuple[Tuple[str, ...], str]:
-    """(the waterbody keys an identifier binds to, the verdict): `verified` | `fwa_unnamed` bind every lake under the
-    code; `no_polygon` | `name_disagrees` bind none."""
+    """(the waterbody keys an identifier binds to, the verdict): `verified` binds the lakes under the code whose names
+    agree, plus its unnamed parts — never a differently-named neighbour that shares the code; `fwa_unnamed` binds every
+    (unnamed) lake under the code; `no_polygon` | `name_disagrees` bind none."""
     cands = lakes.get(ident) or ()
     if not cands:
         return (), "no_polygon"
     fwa = {core(g) for c in cands for g in c.gnis if g}
-    wbks = tuple(sorted({c.wbk for c in cands}))
     if not fwa:
-        return wbks, "fwa_unnamed"
-    if {core(n) for n in names if n} & fwa:
-        return wbks, "verified"
-    return (), "name_disagrees"
+        return tuple(sorted({c.wbk for c in cands})), "fwa_unnamed"
+    src = {core(n) for n in names if n}
+    if not src & fwa:
+        return (), "name_disagrees"
+    agree = lambda c: not any(c.gnis) or bool({core(g) for g in c.gnis if g} & src)    # noqa: E731
+    return tuple(sorted({c.wbk for c in cands if agree(c)})), "verified"
 
 
 def surveys(csv_rows: Iterable[Mapping], wfs_rows: Iterable[Mapping]) -> Dict[str, Tuple[Set[str], int]]:

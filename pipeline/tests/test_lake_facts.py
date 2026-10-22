@@ -33,6 +33,10 @@ LAKES = {
     "00002BURN": [LF.FwaLake("329000010", ("North Burnie Lake", "", "")),
                   LF.FwaLake("329000011", ("South Burnie Lake", "", ""))],
     "00003RENM": [LF.FwaLake("329000020", ("Nendatoo Lake", "Cripple Lake(formerly)", ""))],
+    # one code: the named water, a differently-named neighbour, and an unnamed piece
+    "00004MEAD": [LF.FwaLake("329000030", ("Meadow Lake", "", "")),
+                  LF.FwaLake("329000031", ("Pigeon Lake", "", "")),
+                  LF.FwaLake("329000032", ("", "", ""))],
 }
 
 
@@ -40,8 +44,14 @@ def test_an_identifier_binds_only_when_a_name_agrees_or_the_fwa_names_nothing():
     assert LF.bind("00330VICT", {"LANGFORD"}, LAKES) == (("329676318",), "verified")
     assert LF.bind("00001BRID", {"BOBBS LAKE", "BOBB'S LAKE"}, LAKES) == (("329060781",), "verified")
     assert LF.bind("00999UNNM", {"MYSTERY LAKE"}, LAKES) == (("329000001",), "fwa_unnamed")
-    # EVERY water under the code, not the first: freezing one would lose the other silently
-    assert LF.bind("00002BURN", {"SOUTH BURNIE L."}, LAKES) == (("329000010", "329000011"), "verified")
+    # only the waters whose names agree: a name that corroborates ONE lake under a shared code is no licence to
+    # colour its differently-named neighbour (review: BUNTZEN bound McCombe Lake, MARA LAKE bound Rosemond Lake)
+    assert LF.bind("00002BURN", {"SOUTH BURNIE L."}, LAKES) == (("329000011",), "verified")
+    # every agreeing water, not the first: freezing one would lose the other silently
+    assert LF.bind("00002BURN", {"SOUTH BURNIE L.", "NORTH BURNIE LAKE"}, LAKES) == \
+        (("329000010", "329000011"), "verified")
+    # an unnamed part under a verified code is the same water's piece: it binds too
+    assert LF.bind("00004MEAD", {"MEADOW LAKE"}, LAKES) == (("329000030", "329000032"), "verified")
     # a renaming the FWA records as "(formerly)" is the same water
     assert LF.bind("00003RENM", {"CRIPPLE LAKE"}, LAKES) == (("329000020",), "verified")
     # a key that no name corroborates is more likely a stale identifier than a surprise: refused, never a coin toss
@@ -89,7 +99,8 @@ def test_facts_by_section_join_the_bound_waters_to_their_handles():
               "00330VICT": ({"ELK LAKE"}, LF.SHEET)}                    # a name that disagrees: no survey for Langford
     stocked = {"00330VICT": ({"LANGFORD"}, 20381), "00001BRID": ({"BOBBS"}, 7425), "00999UNNM": ({"X"}, 100)}
     facts, report = LF.facts(survey, stocked, LAKES, handles)
-    assert facts == {3: (LF.SHEET, 7425), 7: (LF.NONE, 20381), 12: (LF.DIGITISED, None), 13: (LF.DIGITISED, None)}
+    # North Burnie (12) is not South Burnie: the sheet titled for the south lake leaves it unsurveyed
+    assert facts == {3: (LF.SHEET, 7425), 7: (LF.NONE, 20381), 13: (LF.DIGITISED, None)}
     # every identifier is accounted for: bound, or refused with the reason (00999UNNM's lake has no section)
     assert report == {"survey": {"verified": 2, "name_disagrees": 1},
                       "stocked": {"verified": 2, "fwa_unnamed:no_section": 1}}
