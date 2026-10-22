@@ -89,10 +89,18 @@ above apply.
    double back.
 5. Add a row to this table and a case to `apps/mobile/src/back.test.tsx` (mount the Shell, open it, `hardwareBack()`).
 
-`tools/back-layers.test.ts` fails on a `.tsx` that draws a Modal, a `role="dialog"`/`aria-modal`, takes
-`onClose`/`onDismiss`/`onCancel`, or declares a component named `…Sheet|Menu|Drawer|Dialog|Popover|Popup|Overlay|
-Viewer|Lightbox|Picker|Pop|Confirm|Prompt` without `useBackLayer(` or a `<Sheet>` — so an unregistered surface
-cannot merge silently. It also lists the surfaces it finds today by name: a new one is added there, on purpose.
+`tools/back-layers.test.ts` checks **each component** (not each file — a registered neighbour clears nothing) that
+draws a Modal or a `role="dialog"`/`aria-modal`; takes a close or back prop (`onClose`/`onDismiss`/`onCancel`/
+`onBack`/`onHide`/`onDiscard`/`onExit`, as `onX:` or `onX(): void`, on itself or on a props interface it names, or a
+bare `close`/`hide`/`dismiss`/`cancel` function); is named `…Sheet|Menu|Drawer|Dialog|Popover|Popup|Overlay|Viewer|
+Lightbox|Gallery|Picker|Pop|Confirm|Prompt|Page`; or keeps open state (`const [menuOpen, setMenuOpen] = useState`)
+for something drawn inline. Each must call `useBackLayer(` or draw a `<Sheet>`; open state must be handed to
+`useBackLayer(` or to a registered surface's element (`<LayersSheet open={layersOpen}>`). So a hamburger page
+`AboutPage({ onBack })`, a `SpotsPanel({ onHide })`, an inline `menuOpen` menu in the Shell all fail until they
+register. A component whose back another layer already takes (an on-screen ‹ the Shell's route layer answers; a
+step or confirm its parent's layer steps back from) goes in the test's `COVERED` map, keyed `path#Component: why`,
+with the reason — and a stale entry fails too. The test also lists every surface it finds today by name: a new one
+is added there, on purpose.
 
 ---
 
