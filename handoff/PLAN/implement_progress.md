@@ -98,6 +98,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- ORDER AGREED (owner 2026-10-22 "ok happy"): A -> own gauge (flow only) + deliver all -> T47 -> T49 -> T44 -> Level view in
+  Conditions layers -> T48 -> T45 -> T46 -> T38, T42, T43, T39, T40, T41 -> P14/P17 -> S2 -> D1 (phone) -> native engine.
+  RUNNING wf_da80e97d-547 (task w2eqvy6x0): T47 part 1 (candidates for owner pick, no token change) + T49 calendar.
 - NEXT after option A merges (same panel code, one rebuild for both): "own gauge first" (decisions.md OWNER 2026-10-22):
   the Pitt uses 08MH035 (level-only) instead of North Alouette; label the quantity; check tidal swing.
 - RUNNING: side channels option A (owner 2026-10-22) wf_a3a90e27-906 (task wnrcwqr2u). After merge: bundle + release rebuild
