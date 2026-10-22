@@ -86,26 +86,34 @@ describe("the top bar (T48): the search field alone, always open, the sync icon 
       .toEqual([[true, true], true, "Search waters and towns"]);
   });
 
-  it("(owner 2026-10-22) NO status text over the field: a sync icon says, aloud and by its dot, that the flows are old",
+  it("(owner 2026-10-22) NO status text over the field; a feed the server has not published lately is said, not dotted",
      async () => {
     mount();
     await waitFor(() => expect(syncSaid()).not.toBe("Refresh data: checking now"));
     expect([screen.queryByTestId("sync-status"), syncSaid(), !!screen.queryByTestId("sync-dot"),
             screen.queryByText(/Flows checked/)])
-      .toEqual([null, "Refresh data: river flows last checked 3h ago", true, null]);
+      .toEqual([null, "Refresh data: nothing newer to fetch; river flows last published 3h ago", false, null]);
   });
 
-  it("the sync icon's tap refreshes the feed and re-checks: checking, then fresh with no dot; it opens nothing", async () => {
-    let at = FETCHED;
+  it("the sync icon's tap re-checks what a tap can fix: an unreached feed dots the icon, the tap clears it; it opens nothing",
+     async () => {
+    let up = false;
     const forgot: string[] = [];
-    mount(HOME, feedAt(() => at, () => forgot.push("cache")));
-    await waitFor(() => expect(syncSaid()).toBe("Refresh data: river flows last checked 3h ago"));
-    at = new Date().toISOString();
+    const feed = { index: async () => { if (!up) throw new Error("offline"); return { fetchedAt: new Date().toISOString(), stations: {} }; },
+                   refresh: () => forgot.push("cache") } as never;
+    mount(HOME, feed);
+    await waitFor(() => expect(syncSaid()).toBe("Refresh data: river flows could not be reached"));
+    const dot = screen.getByTestId("sync-dot").firstElementChild as HTMLElement;
+    const dotColour = getComputedStyle(dot).backgroundColor;
+    up = true;
     act(() => { fireEvent.click(screen.getByTestId("sync-button")); });
     const during = syncSaid();
     await waitFor(() => expect(syncSaid()).toBe("Refresh data: up to date"), { timeout: 2000 });
     expect([during, forgot, !!screen.queryByTestId("sync-dot"), sheet(), tabOn()])
       .toEqual(["Refresh data: checking now", ["cache"], false, "no sheet", "Map"]);
+    // the dot is the attention token, never the closed-water colour beside it on the map
+    const rgb = (hex: string) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
+    expect([dotColour === rgb(LIGHT.attention), dotColour === rgb(LIGHT.closed)]).toEqual([true, false]);
   });
 
   it("the sync icon gives way to the clear ✕ while search is open", async () => {

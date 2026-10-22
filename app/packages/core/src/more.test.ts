@@ -3,7 +3,7 @@
  * More, its summary badge, the tab's sections, and the sync icon's three states as said aloud.
  */
 import { describe, expect, it } from "vitest";
-import { dataVM, menuVM, syncVM, type DataInput } from "./more";
+import { dataVM, menuVM, SYNC_CHECK_STALE_MIN, syncVM, type DataInput } from "./more";
 
 const NOW = Date.parse("2026-10-22T18:00:00Z");
 const H = 3_600_000;
@@ -55,18 +55,35 @@ describe("the Data block: always at the top of More, one line per source", () =>
       sum(LIVE),
       sum({ ...fresh, validUntil: null }),
       sum(fresh),
-      // DFO is on the details page only, but a stale DFO is still counted
-      sum({ ...fresh, sources: { ...fresh.sources, dfo: { date: "2026-01-01" } } }),
     ]).toEqual([
       "stale: Newer data available",
       "stale: 2 likely out of date",
       "stale: 1 likely out of date",
       "unknown: Some dates not recorded",
       "fresh: All up to date",
-      "stale: 1 likely out of date",
     ]);
     expect([dataVM({ ...LIVE, newRelease: "r-new" }).newRelease, dataVM(LIVE).newRelease])
       .toEqual(["A newer data release is available. Reopen the app to use it.", null]);
+  });
+
+  it("the summary counts ONLY the lines the block draws: a stale source listed on Details alone sends the reader there", () => {
+    // DFO, the atlas (FWA) and HYDAT are on the Data sources & dates page, not in the block: with DFO past its 120 days
+    // (Dec 26, 2026 on the live dates) the block must not say "2 likely out of date" over one red dot
+    const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
+    const oldDfo = { ...fresh.sources, dfo: { date: "2026-01-01" } };
+    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
+    const dots = (d: DataInput) => dataVM(d).lines.filter((l) => l.badge.kind === "stale").length;
+    expect([
+      sum({ ...fresh, sources: oldDfo }),
+      sum({ ...LIVE, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } }),
+      sum({ ...fresh, sources: { ...fresh.sources, fwa: undefined } }),
+    ]).toEqual([
+      "stale: 1 likely out of date · see Details",
+      "stale: 1 likely out of date · 1 more in Details",
+      "unknown: Some dates not recorded · see Details",
+    ]);
+    expect([dots({ ...fresh, sources: oldDfo }), dots({ ...LIVE, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } })])
+      .toEqual([0, 1]);
   });
 });
 
@@ -96,29 +113,45 @@ describe("the More tab, top to bottom", () => {
 
 describe("the sync icon: fresh, needs a refresh, checking — said aloud", () => {
   const sync = (s: Partial<Parameters<typeof syncVM>[0]>) => {
-    const v = syncVM({ feed: true, feedFetchedAt: new Date(NOW - H).toISOString(), checking: false, newRelease: null,
-                       now: NOW, ...s });
+    const v = syncVM({ feed: true, feedFetchedAt: new Date(NOW - H).toISOString(), checkedAt: NOW - 60_000,
+                       checking: false, newRelease: null, now: NOW, ...s });
     return `${v.kind} | ${v.label}`;
   };
-  it("each state, with the feed's own cadence (2 h) as the edge", () => {
+  it("the dot means a tap or a reopen fixes it: this device's check past the feed's 30-minute cadence, the feed not reached, a newer release", () => {
+    expect(SYNC_CHECK_STALE_MIN).toBe(30);
     expect([
       sync({}),
       sync({ checking: true }),
       sync({ newRelease: "r-new" }),
-      sync({ feedFetchedAt: new Date(NOW - 2 * H).toISOString() }),
-      sync({ feedFetchedAt: new Date(NOW - 27 * H).toISOString() }),
-      sync({ feedFetchedAt: null }),
-      sync({ feed: false, feedFetchedAt: null }),
+      sync({ checkedAt: NOW - 30 * 60_000 }),
+      sync({ checkedAt: NOW - 31 * 60_000 }),
+      sync({ checkedAt: NOW - 5 * H }),
+      sync({ checkedAt: null, feedFetchedAt: null }),
+      sync({ feed: false, feedFetchedAt: null, checkedAt: null }),
     ]).toEqual([
       "fresh | Refresh data: up to date",
       "checking | Refresh data: checking now",
-      "stale | Refresh data: a newer data release is available",
+      "stale | Refresh data: a newer data release is available; reopen the app to use it",
       "fresh | Refresh data: up to date",
-      "stale | Refresh data: river flows last checked 27h ago",
-      "stale | Refresh data: river flows could not be checked",
+      "stale | Refresh data: last checked on this device 1h ago",
+      "stale | Refresh data: last checked on this device 5h ago",
+      "stale | Refresh data: river flows could not be reached",
       "fresh | Refresh data: up to date",
     ]);
-    expect(syncVM({ feed: true, feedFetchedAt: null, checking: false, newRelease: null, now: NOW }).hint)
+    expect(syncVM({ feed: true, feedFetchedAt: null, checkedAt: null, checking: false, newRelease: null, now: NOW }).hint)
       .toBe("Checks the river flows and the data release again");
+  });
+
+  it("a feed the SERVER has not published lately is no refresh prompt (a tap cannot fix it): no dot, said quietly", () => {
+    // the live release today: the feed 27h old on the server, this device checked a minute ago
+    expect([
+      sync({ feedFetchedAt: new Date(NOW - 27 * H).toISOString() }),
+      sync({ feedFetchedAt: new Date(NOW - 2 * H).toISOString() }),
+      sync({ feedFetchedAt: new Date(NOW - 27 * H).toISOString(), checkedAt: NOW - 2 * H }),
+    ]).toEqual([
+      "fresh | Refresh data: nothing newer to fetch; river flows last published 27h ago",
+      "fresh | Refresh data: up to date",
+      "stale | Refresh data: last checked on this device 2h ago",
+    ]);
   });
 });

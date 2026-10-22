@@ -133,7 +133,7 @@ function DataBlock({ vm, palette, onOpen }: { vm: MoreVM["data"]; palette: Palet
           {vm.newRelease !== null && (
             <View testID="data-new-release"
                   style={{ marginHorizontal: GUTTER, marginTop: SPACE.s3, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
-                           borderLeftWidth: 3, borderLeftColor: palette.closed, backgroundColor: palette.tint }}>
+                           borderLeftWidth: 3, borderLeftColor: palette.attention, backgroundColor: palette.tint }}>
               <Text style={{ ...TYPE.small, color: palette.ink }}>{vm.newRelease}</Text>
             </View>
           )}

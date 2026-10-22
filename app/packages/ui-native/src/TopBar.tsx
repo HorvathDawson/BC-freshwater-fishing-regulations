@@ -110,8 +110,8 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
 /**
  * The sync icon: a hairline divides it from the field (it is a control, not part of what is typed); the dot sits on
  * the glyph's upper right, ringed in the card so it reads on the stroke. Needs-a-refresh is the one state that asks
- * for attention, so it alone is drawn in a status colour (`closed`, the app's "act on this" red); checking dims the
- * glyph to `faint` while it turns.
+ * for a look, so it alone is dotted — in `attention`, never a water-status colour (a red dot beside closed water reads
+ * as "closed"); checking dims the glyph to `faint` while it turns.
  */
 function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM; onPress?: () => void }) {
   const reduced = useReducedMotion();
@@ -141,7 +141,7 @@ function SyncButton({ palette, sync, onPress }: { palette: Palette; sync: SyncVM
           <View testID="sync-dot"
                 style={{ position: "absolute", top: -3, right: -4, width: D + 3, height: D + 3, borderRadius: (D + 3) / 2,
                          backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.closed }} />
+            <View style={{ width: D, height: D, borderRadius: D / 2, backgroundColor: palette.attention }} />
           </View>
         )}
       </View>

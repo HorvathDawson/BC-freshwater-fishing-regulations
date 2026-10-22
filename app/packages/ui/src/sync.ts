@@ -9,6 +9,11 @@
  * dot, More's Data block), never loaded under the reader: on a phone it installs in the background at launch (P11) and
  * on the web a reload takes it, so the state on screen is never swapped mid-use.
  *
+ * WHAT THE DOT ASKS FOR (`syncVM`, core more.ts) is only what a tap or a reopen fixes: `checkedAt` — when THIS DEVICE
+ * last reached the feed, by its own clock — past the feed's cadence, or null (not reached), or a newer release. The
+ * feed's `fetchedAt` is the publisher's clock: when the server itself is behind, a tap cannot help, so it is said, not
+ * dotted.
+ *
  * Read again on its own every `SYNC_POLL_MS` (the feed's own cache lives as long), so the icon turns stale by itself.
  * Only the feed's index is asked, never the bundle: a cold start opens no core for the icon.
  */
@@ -24,6 +29,8 @@ export const SYNC_MIN_CHECK_MS = 600;
 export interface SyncState {
   /** the feed index's `fetchedAt`, or null (no feed, not reached, or not answered yet) */
   readonly feedFetchedAt: string | null;
+  /** when this device last reached the feed (epoch ms, its clock), or null (never, or the last check failed) */
+  readonly checkedAt: number | null;
   /** a newer data release the server names than `release`, or null */
   readonly newRelease: string | null;
   /** a check is under way */
@@ -42,8 +49,9 @@ export function useSync({ feed, release, checkRelease }: {
 }): SyncState {
   const [epoch, setEpoch] = useState(0);
   const tick = usePoll(SYNC_POLL_MS, !!feed || !!checkRelease);
-  const [st, setSt] = useState<{ feedFetchedAt: string | null; latest: string | null; checking: boolean }>(
-    { feedFetchedAt: null, latest: null, checking: !!feed || !!checkRelease });
+  const [st, setSt] = useState<{ feedFetchedAt: string | null; checkedAt: number | null; latest: string | null;
+                                 checking: boolean }>(
+    { feedFetchedAt: null, checkedAt: null, latest: null, checking: !!feed || !!checkRelease });
   useEffect(() => {
     if (!feed && !checkRelease) return;
     let live = true;
@@ -53,10 +61,12 @@ export function useSync({ feed, release, checkRelease }: {
       feed ? feed.index().then((i) => i?.fetchedAt ?? null, () => null) : Promise.resolve(null),
       checkRelease ? checkRelease().catch(() => null) : Promise.resolve(null),
       asked ? new Promise((r) => setTimeout(r, SYNC_MIN_CHECK_MS)) : null,
-    ]).then(([feedFetchedAt, latest]) => { if (live) setSt({ feedFetchedAt, latest, checking: false }); });
+    ]).then(([feedFetchedAt, latest]) => {
+      if (live) setSt({ feedFetchedAt, checkedAt: feedFetchedAt !== null ? Date.now() : null, latest, checking: false });
+    });
     return () => { live = false; };
   }, [feed, checkRelease, epoch, tick]);
   const refresh = useCallback(() => { feed?.refresh?.(); setEpoch((e) => e + 1); }, [feed]);
   const newRelease = st.latest !== null && release !== null && st.latest !== release ? st.latest : null;
-  return { feedFetchedAt: st.feedFetchedAt, newRelease, checking: st.checking, epoch, refresh };
+  return { feedFetchedAt: st.feedFetchedAt, checkedAt: st.checkedAt, newRelease, checking: st.checking, epoch, refresh };
 }

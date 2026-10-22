@@ -3,7 +3,8 @@
  * same badge from the same rule (`sourceFreshness`, core/menu.ts), so the two never disagree.
  *
  *   fresh    a filled dot in `live` (the app's live-data teal)
- *   stale    a filled dot in `closed` — the one state that asks the reader to act, in the app's "act on this" red
+ *   stale    a filled dot in `attention` — the one state that asks the reader to look; never a water-status hue, since
+ *            the badge's twin (the sync dot) sits over a map drawn in those
  *   unknown  an empty ring in `faint`: nothing to say, said quietly
  *   live     an empty ring in `live`: fetched when needed, so it has no age
  *
@@ -17,7 +18,7 @@ import type { Palette } from "../theme";
 export const FRESH_DOT = 8;
 
 export function freshColour(p: Palette, k: SourceFreshness): string {
-  return k === "fresh" || k === "live" ? p.live : k === "stale" ? p.closed : p.faint;
+  return k === "fresh" || k === "live" ? p.live : k === "stale" ? p.attention : p.faint;
 }
 
 /** The dot alone (a line's lead): filled for an age (fresh, stale), a ring for none (unknown, live). */

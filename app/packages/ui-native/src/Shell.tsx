@@ -407,7 +407,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     []);
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
   const sync = feed || checkRelease
-    ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checking: syncState.checking,
+    ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checkedAt: syncState.checkedAt,
+               checking: syncState.checking,
                newRelease: syncState.newRelease, now: Date.now() })
     : null;
   /** What More's Data block and the Data sources page read: the release's dates, the pair, the feed's age. */

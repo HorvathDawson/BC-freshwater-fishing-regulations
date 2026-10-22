@@ -2146,6 +2146,7 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
+      "color.ui.attention": "#15181C",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#373708",
       "color.ui.donor.2": "#670848",
@@ -2250,6 +2251,7 @@
       "color.ui.accent": "#A97CFF",
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
+      "color.ui.attention": "#F0F2F0",
       "color.ui.place-band": "#231A12",
       "color.ui.donor.1": "#37D6EA",
       "color.ui.donor.2": "#FF9B54",
@@ -2354,6 +2356,7 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
+      "color.ui.attention": "#15181C",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#04879B",
       "color.ui.donor.2": "#B5480B",
@@ -2747,6 +2750,11 @@
       "type": "color",
       "themeable": true,
       "$comment": "a live feed — the gauge, the fish spinner. Distinct from `accent`, which means 'you chose this'"
+    },
+    "color.ui.attention": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "ATTENTION, not a water's status: the sync icon's needs-a-refresh dot and a source's 'likely out of date' badge. It sits beside water drawn in the status colours, so it is none of them (it was the closed red, and a red dot over the map read as 'closed'). The ink: neutral, and the strongest mark on the card."
     },
     "color.ui.place-band": {
       "type": "color",

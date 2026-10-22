@@ -5,8 +5,10 @@
  *             minimal: one line per source with its date and a freshness badge, tap for the detailed references (the
  *             Data sources & dates page); Display (the app's colours as preview tiles); the pages that open over the
  *             tab (Glossary, About, Report a problem); and Contact, inline at the bottom
- *   syncVM    the top bar's sync icon: fresh / needs a refresh (the feed past its cadence or not reached, or a newer
- *             data release) / checking — said in its accessible label, drawn as a dot
+ *   syncVM    the top bar's sync icon: fresh / needs a refresh (what a tap or a reopen fixes: this device's last check
+ *             past the feed's cadence, the feed not reached, or a newer data release) / checking — said in its
+ *             accessible label, drawn as a dot. A feed the SERVER has not published lately is the Data block's fact
+ *             ("likely out of date"), not a refresh prompt: a tap re-reads the same old index
  *
  * Freshness itself — each source's rule and cadence — is `sourceFreshness` / `STALE_AFTER` (menu.ts), the same badges the
  * detailed page draws: the block and the page never disagree.
@@ -27,6 +29,10 @@ export const MORE_WORDS = {
     summary: {
       fresh: "All up to date",
       stale: (n: number) => `${n} likely out of date`,
+      /** after the count, when sources listed on Details alone are out of date too */
+      more: (n: number) => `${n} more in Details`,
+      /** when the only sources out of date (or undated) are listed on Details alone */
+      seeDetails: "see Details",
       unknown: "Some dates not recorded",
       release: "Newer data available",
     },
@@ -103,18 +109,26 @@ function lineWhen(k: DataLineKey, s: SourcesInput): string {
 
 export function dataVM(s: DataInput): DataBlockVM {
   const W = MORE_WORDS.data;
-  // the summary reads EVERY source the detailed page lists (DFO, the atlas and HYDAT too), not only the block's lines
-  const all = SOURCE_ORDER.map((k: SourceDateKey) => ({ k, b: sourceFreshness(k, s) }));
-  const stale = all.filter((x) => x.b.kind === "stale").length;
+  const lines = DATA_LINES.map((k) => ({ k, name: W.names[k], when: lineWhen(k, s), badge: sourceFreshness(k, s) }));
+  // the summary counts the lines the block DRAWS, so its number matches the dots under it; the sources listed on the
+  // Data sources & dates page alone (DFO, the atlas, HYDAT) are named as "in Details", never folded into the count
+  const shown = new Set<SourceDateKey>(DATA_LINES);
+  const rest = SOURCE_ORDER.filter((k) => !shown.has(k)).map((k) => sourceFreshness(k, s));
+  const stale = lines.filter((l) => l.badge.kind === "stale").length;
+  const staleRest = rest.filter((b) => b.kind === "stale").length;
   // the in-season changes are unknown by design (not read): they do not make the whole block "unknown"
-  const unknown = all.some((x) => x.b.kind === "unknown" && x.k !== "inseason");
-  const summary = s.newRelease !== null ? { kind: "stale" as const, label: W.summary.release }
-    : stale > 0 ? { kind: "stale" as const, label: W.summary.stale(stale) }
-    : unknown ? { kind: "unknown" as const, label: W.summary.unknown }
-    : { kind: "fresh" as const, label: W.summary.fresh };
+  const unknown = lines.some((l) => l.badge.kind === "unknown" && l.k !== "inseason");
+  const unknownRest = rest.some((b) => b.kind === "unknown");
+  const S = W.summary;
+  const summary = s.newRelease !== null ? { kind: "stale" as const, label: S.release }
+    : stale > 0 ? { kind: "stale" as const, label: staleRest > 0 ? `${S.stale(stale)} · ${S.more(staleRest)}` : S.stale(stale) }
+    : staleRest > 0 ? { kind: "stale" as const, label: `${S.stale(staleRest)} · ${S.seeDetails}` }
+    : unknown ? { kind: "unknown" as const, label: S.unknown }
+    : unknownRest ? { kind: "unknown" as const, label: `${S.unknown} · ${S.seeDetails}` }
+    : { kind: "fresh" as const, label: S.fresh };
   return {
     title: W.title, summary, details: W.details, detailsLabel: W.detailsLabel, detailsHint: W.detailsHint,
-    lines: DATA_LINES.map((k) => ({ k, name: W.names[k], when: lineWhen(k, s), badge: sourceFreshness(k, s) })),
+    lines,
     newRelease: s.newRelease !== null ? W.newRelease : null,
   };
 }
@@ -157,22 +171,33 @@ export function menuVM(i: { data: DataInput; back: string; contact: string | nul
 
 export type SyncKind = "fresh" | "stale" | "checking";
 
+/**
+ * How old THIS DEVICE's last check of the feed may be before the icon asks for a refresh: the feed's own publishing
+ * cadence (every 30 minutes, pipeline/gauges/feed/publish.py's cron). Open, the app re-checks every 5 minutes
+ * (`SYNC_POLL_MS`), so this is reached when the app sat in the background, or a check failed — what a tap fixes.
+ */
+export const SYNC_CHECK_STALE_MIN = 30;
+
 export const SYNC_WORDS = {
   /** the icon's name aloud, before its state */
   name: "Refresh data",
   hint: "Checks the river flows and the data release again",
   checking: "checking now",
-  release: "a newer data release is available",
-  feedOld: (ago: string) => `river flows last checked ${ago}`,
-  feedNot: "river flows could not be checked",
+  release: "a newer data release is available; reopen the app to use it",
+  checkedOld: (ago: string) => `last checked on this device ${ago}`,
+  feedNot: "river flows could not be reached",
+  /** fresh here, but the server's feed is old: nothing a tap can fetch, said without the dot */
+  serverOld: (ago: string) => `nothing newer to fetch; river flows last published ${ago}`,
   fresh: "up to date",
 } as const;
 
 export interface SyncInput {
   /** this build reads a live gauge feed */
   feed: boolean;
-  /** the feed index's own `fetchedAt`, or null (not reached, or not answered yet) */
+  /** the feed index's own `fetchedAt` (the publisher's clock), or null (not reached, or not answered yet) */
   feedFetchedAt: string | null;
+  /** when THIS DEVICE last reached the feed (epoch ms, its own clock), or null (never reached) */
+  checkedAt: number | null;
   /** a check is under way (the first one at start, or one the reader asked for) */
   checking: boolean;
   /** a newer data release the server names, or null */
@@ -183,9 +208,11 @@ export interface SyncInput {
 export interface SyncVM { readonly kind: SyncKind; readonly label: string; readonly hint: string }
 
 /**
- * THE SYNC ICON'S STATE: checking while a check is under way; NEEDS A REFRESH when a newer data release is available
- * or the feed is past its cadence (`STALE_AFTER.feedHours`, the Data block's own rule) or could not be reached; fresh
- * otherwise. The accessible label states it ("Refresh data: river flows last checked 27h ago").
+ * THE SYNC ICON'S STATE. The dot ("stale") is only for what a tap or a reopen fixes: a newer data release (reopen),
+ * the feed not reached, or this device's last check older than `SYNC_CHECK_STALE_MIN` (tap). A feed the server itself
+ * has not published past `STALE_AFTER.feedHours` is NOT dotted — a tap re-reads the same old index, so the dot would
+ * never clear (and would sit in regs mode too, where flows are irrelevant); it is said in the label, quietly, and the
+ * More tab's Data block badges it "likely out of date". Checking while a check is under way; fresh otherwise.
  */
 export function syncVM(s: SyncInput): SyncVM {
   const w = SYNC_WORDS;
@@ -193,9 +220,11 @@ export function syncVM(s: SyncInput): SyncVM {
   if (s.checking) return say("checking", w.checking);
   if (s.newRelease !== null) return say("stale", w.release);
   if (s.feed) {
+    if (s.checkedAt === null) return say("stale", w.feedNot);
+    if (s.now - s.checkedAt > SYNC_CHECK_STALE_MIN * 60_000)
+      return say("stale", w.checkedOld(agoWords(new Date(s.checkedAt).toISOString(), s.now)));
     const b = sourceFreshness("feed", { sources: null, validUntil: null, tiles: null, feedFetchedAt: s.feedFetchedAt, now: s.now });
-    if (b.kind === "unknown") return say("stale", w.feedNot);
-    if (b.kind === "stale") return say("stale", w.feedOld(agoWords(s.feedFetchedAt!, s.now)));
+    if (b.kind === "stale") return say("fresh", w.serverOld(agoWords(s.feedFetchedAt!, s.now)));
   }
   return say("fresh", w.fresh);
 }

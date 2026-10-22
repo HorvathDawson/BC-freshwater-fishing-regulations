@@ -106,3 +106,14 @@ describe("status colours on a row are the map's", () => {
       for (const s of WATER_STATUSES) expect(p.waterStatus[s]).toBe(waterStatusColour(name, s));
   });
 });
+
+describe("the attention dot (sync icon, a stale source) is no water's status", () => {
+  it("`attention` is ΔE-clear of every status colour on the map, in every theme; the stale badge and the sync dot draw it", async () => {
+    const { freshColour } = await import("./menu/Fresh");
+    for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const) {
+      for (const s of [p.closed, p.restricted, p.open, ...Object.values(p.waterStatus)])
+        expect(deltaE(p.attention, s), `${name}: attention vs ${s}`).toBeGreaterThanOrEqual(MIN_DELTA_E);
+      expect(freshColour(p, "stale"), name).toBe(p.attention);
+    }
+  });
+});

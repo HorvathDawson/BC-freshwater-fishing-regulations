@@ -86,6 +86,7 @@
     "color.ui.accent": "#A97CFF",
     "color.ui.on-accent": "#100A22",
     "color.ui.live": "#37D6EA",
+    "color.ui.attention": "@color.ui.ink",
     "color.ui.place-band": "#231A12",
     "color.ui.donor.1": "@color.ui.live",
     "color.ui.donor.2": "#FF9B54",

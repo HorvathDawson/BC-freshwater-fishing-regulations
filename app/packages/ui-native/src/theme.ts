@@ -39,6 +39,12 @@ export interface Palette {
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
   /**
+   * ATTENTION, NOT A WATER'S STATUS — `color.ui.attention`: the sync icon's needs-a-refresh dot and a source's
+   * "likely out of date" badge. It sits a few pixels from water drawn in the status colours, so it is none of them
+   * (it was `closed`, and a red dot over the map read as "closed"); `theme.test.ts` holds it ΔE-clear of every status.
+   */
+  attention: string;
+  /**
    * A TOWN, not a water — `color.label.place`. The search results put places in their own
    * group above the waters, and the pin that marks a town on the map wears the same colour,
    * so "this row is that pin" reads without a legend. Neutral, like the basemap's own town
@@ -215,7 +221,7 @@ export function paletteFor(theme: string): Palette {
     ink: c("color.ui.ink"), sub: c("color.ui.sub"), faint: c("color.ui.faint"),
     ...statusColours(theme),
     quiet: c("color.ui.quiet"), accent: c("color.ui.accent"), onAccent: c("color.ui.on-accent"),
-    live: c("color.ui.live"),
+    live: c("color.ui.live"), attention: c("color.ui.attention"),
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
     stock: [c("color.stock.season"), c("color.stock.year"), c("color.stock.recent"),
             c("color.stock.decade"), c("color.stock.old")],
