@@ -18,7 +18,13 @@ the measure on the receiving line where it joins):
         the North and South Thompson 145 m apart the Thompson; Cowichan Lake's outlet sits 635 m above Oliver Creek,
         at the Cowichan's top), and
       · no piece of B itself comes in lower down that piece (the upper Cottonwood joins the Cottonwood's top piece
-        448 m below the Swift: the Cottonwood goes on as itself).
+        448 m below the Swift: the Cottonwood goes on as itself);
+  - and the FWA WATERSHED CODES do not say the flow is backwards: B's code is never a descendant of A's (B's code
+    extending A's — `100-1` and `100-1-2` — says B is a TRIBUTARY of A, so "A flows into B" is the data reversed). The
+    owner's case: the added streams say Eagle Trib.5 (`…-757900`) flows into Eagle Trib.5-3 (`…-757900-384000`), an
+    added-streams orientation defect (owner 2026-10-21 late: "we could just trim out those bad ones"). A missing code
+    is no evidence; A's code extending B's (a tributary that is all there is above B's top) is kept, as the owner kept
+    the municipal ones.
 
 WHY THE GRAPH, NOT THE BUNDLE'S `section_down` (review 2026-10-21). `section_down` stores gauge-shed members only, so
 "the only inflow at B's top" read from it was blind to most inflows: the first cut shipped 92 rows, 89 of them
@@ -38,6 +44,8 @@ import sqlite3
 from collections import Counter, defaultdict
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
+from pipeline.common.utils.wsc import trim_wsc
+
 Line = Tuple[str, int]
 
 #: How far B's line may go on above A's mouth and still be "A's mouth is B's top": the atlas's snapping, not a reach of
@@ -54,17 +62,18 @@ class ContinuationError(SystemExit):
 
 class Flow:
     """The atlas graph in section HANDLES: `edges` (from, to, at — the measure on `to`'s line where `from` joins), each
-    piece's top measure (`top`), and which waters own each section (`owners`). `from` may be 0: an inflow the handle
-    table does not name still comes in."""
+    piece's top measure (`top`), which waters own each section (`owners`) and each piece's FWA watershed code (`wsc`,
+    where known). `from` may be 0: an inflow the handle table does not name still comes in."""
 
     def __init__(self, edges: Iterable[Tuple[int, int, float]], top: Mapping[int, float],
-                 owners: Mapping[int, Set[int]]):
+                 owners: Mapping[int, Set[int]], wsc: Optional[Mapping[int, str]] = None):
         self._out: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
         self._in: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
         for f, t, at in edges:
             self._out[f].append((t, at))
             self._in[t].append((f, at))
         self.top, self.owners = top, owners
+        self.wsc: Mapping[int, str] = wsc or {}
 
     def out(self, sid: int) -> List[Tuple[int, float]]:
         return self._out.get(sid, [])
@@ -96,10 +105,19 @@ def _main(sids: Iterable[int], line: Callable[[int], Optional[Line]]) -> Optiona
     return max(n, key=lambda k: (n[k], top[k], k)) if n else None
 
 
+def drains_into(code: str, into: str) -> bool:
+    """Whether the FWA watershed code `code` names a tributary (at any depth) of the water coded `into`: `into`'s groups
+    are a proper prefix of `code`'s, after the `-000000` padding is trimmed. An empty code says nothing."""
+    c, i = trim_wsc(code or ""), trim_wsc(into or "")
+    return bool(c and i) and c.startswith(i + "-")
+
+
 def _goes_on(a_ord: int, a: int, b_ord: int, b: int, same_line: bool, flow: Flow) -> bool:
     """Whether A's mouth piece `a` is the watercourse at B's top piece `b` (THE RULE, above)."""
     joins = [at for to, at in flow.out(a) if to == b]
     if not joins:
+        return False
+    if drains_into(flow.wsc.get(b, ""), flow.wsc.get(a, "")):
         return False
     if same_line:
         return True
@@ -144,19 +162,24 @@ def continuations(streams: Set[int], secs: Dict[int, Set[int]], item_down: Itera
 
 def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: Iterable[int]) -> Flow:
     """The `Flow` of the atlas graph (`StreamGraph`) for the pieces that matter: the edges into the candidate top pieces
-    `tops` (handles) and out of every piece flowing into them, in handles (`ids[h-1]` names handle `h`)."""
+    `tops` (handles) and out of every piece flowing into them, in handles (`ids[h-1]` names handle `h`), with each of
+    those pieces' FWA watershed code."""
     hid = {s: h for h, s in enumerate(ids, 1)}
-    edges, top = [], {}
+    edges, top, wsc = [], {}, {}
     for h in tops:
         node = ids[h - 1]
         n = graph.nodes.get(node)
         if n is None:
             continue
-        top[h] = float(n.up_m)
+        top[h], wsc[h] = float(n.up_m), n.wsc
         for ix in graph.up_adj.get(node, ()):
             e = graph.edges[ix]
-            edges.append((hid.get(e.from_node, 0), h, float(e.at_measure)))
-    return Flow(edges, top, owners)
+            f = hid.get(e.from_node, 0)
+            edges.append((f, h, float(e.at_measure)))
+            fn = graph.nodes.get(e.from_node)
+            if f and fn is not None:
+                wsc[f] = fn.wsc
+    return Flow(edges, top, owners, wsc)
 
 
 def rows(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, int, int, int]]:

@@ -23,10 +23,13 @@ Water A continues as water B when all of the following hold:
     - A joins within **100 m** of that piece's top. The Chilliwack joins 25 m below the top (snapping). The genuine tributaries that were shipped joined 238 m or more below it.
     - No other stream and no lake outlet joins within **200 m** of A's mouth, or above it. This covers the confluences seen in the data: 64 m (Somass), 77 m (Fort Nelson), 90 m (Taku) and 145 m (Thompson).
     - No piece of B itself joins lower down. The upper Cottonwood joins 448 m below the Swift, so the Cottonwood continues as itself.
+- The FWA watershed codes do not say the flow is backwards (added 2026-10-21 late, owner: "the issue seems to be eagle trib 5-3 turns into 5? we could just trim out those bad ones?"). The rule reads the code of A's mouth piece and of B's top piece from the graph. If B's code extends A's (A `100-1`, B `100-1-2`), B is a tributary of A by code, so "A flows into B" is the data reversed and the link is refused. Padding (`-000000`) is trimmed first. A missing code is no evidence. A's code extending B's (A is B's tributary by code) is kept: that is every real row below, and the municipal ones the owner kept ("we can just leave them"). Pinned in `test_water_continue.py` (`test_a_link_into_a_water_the_codes_call_a_tributary_of_it_is_refused` and its neighbours).
 
 The release builder loads `graph.pkl` from the bundle's atlas, using the same digest check as `section_handles.txt`. It uses the graph only for this step and then frees it. The load takes about 6 to 16 s, and peak RSS is about 6 GB.
 
-## The rows the fixed rule ships: 18 (release r-f579fe5eac3e, built in this worktree)
+## The rows the fixed rule ships: 18 (release r-f579fe5eac3e), now 17
+
+The code rule (above) drops one row, Eagle Trib.5 → Eagle Trib.5-3. Every other row's codes agree with its direction: A's code extends B's (Chilliwack `100-064535-057628-998041` → Vedder `100-064535-057628`; Jeperson Side Channel is `100` on both items). Checked from the registry's `wsc:` ref ids, not from a rebuilt release; `test_release.py::test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does` pins the 17 on the next release build.
 
 | water (ord) | continues as | note |
 |---|---|---|
@@ -42,14 +45,14 @@ The release builder loads `graph.pkl` from the bundle's atlas, using the same di
 | Beecher Trib.4 | Beecher Creek | municipal stream, as above (A's mouth is 27 m below B's top) |
 | Crayfish Creek Trib.3-1 | Crayfish Creek Trib.3 | municipal stream, as above (A's mouth is 39 m below B's top) |
 | Eagle Trib.4-1 | Eagle Trib.4 | municipal stream, as above (A's mouth is 99 m below B's top) |
-| Eagle Trib.5 | Eagle Trib.5-3 | municipal stream. The flow looks REVERSED: by its watershed code Trib.5-3 is a tributary of Trib.5, yet the data says Trib.5 flows into it. This is an added-streams orientation defect, not a defect in this rule. (A's mouth is 0 m below B's top) |
+| ~~Eagle Trib.5~~ | ~~Eagle Trib.5-3~~ | DROPPED by the code rule (2026-10-21 late). The flow is REVERSED: by its watershed code Trib.5-3 (`100-019698-794100-757900-384000`) is a tributary of Trib.5 (`100-019698-794100-757900`), yet the data says Trib.5 flows into it. The added-streams orientation defect stays in the data; the link no longer ships. (A's mouth is 0 m below B's top) |
 | Jr 4-1-2 | Jr 4-1 | municipal stream, as above (A's mouth is 15 m below B's top) |
 | Noble Creek Trib.1 Trib.1 | Noble Creek Trib.1 | municipal stream, as above (A's mouth is 96 m below B's top) |
 | Rochester Creek | Holmes Creek | municipal stream. Its watershed code ends in 999999, which puts it at the top of the Holmes. (A's mouth is 0 m below B's top) |
 | Westway Avenue Drainage Ditch | Magnolia Creek Trib 1 | a municipal ditch (A's mouth is 54 m below B's top) |
 | Finch Connector (Unnamed) | Logger's Lane Connector | a municipal connector (A's mouth is 50 m below B's top) |
 
-Ten of the 18 are municipal added streams (the `Trib` names, a ditch and a connector). Topologically each one is the only water above its receiver. By name, most are tributaries. Keeping or dropping these is a call for the owner. Dropping them would require a name-based or source-based rule, and this one uses neither. Eagle Trib.5 → Trib.5-3 looks like a reversed flow direction in the added-streams data.
+Ten of the 17 are municipal added streams (the `Trib` names, a ditch and a connector). Topologically each one is the only water above its receiver. By name, most are tributaries. The owner kept them (2026-10-21 late: "we can just leave them I think"). Eagle Trib.5 → Trib.5-3 was a reversed flow direction in the added-streams data and is now refused by the code rule.
 
 ## Rename rivers checked for misses
 

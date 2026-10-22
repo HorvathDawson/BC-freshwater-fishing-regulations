@@ -119,3 +119,60 @@ def test_a_water_continued_twice_or_continuing_twice_is_refused():
     flow = C.Flow(EDGES + [(1, 50, 190.0)], {**TOP, 50: 200.0}, owners)
     assert "continues as two waters" in refused(streams={1, 2, 3, 5}, secs=secs, item_down=[(1, 2), (1, 5)],
                                                 line=line.get, flow=flow)
+
+
+# ---- REVERSED LINKS (owner 2026-10-21 late: "the issue seems to be eagle trib 5-3 turns into 5? we could just trim out
+# those bad ones?"). The added-streams data says Eagle Trib.5 (wsc 100-019698-794100-757900) flows into Eagle Trib.5-3
+# (…-757900-384000), whose code says it is a TRIBUTARY of Trib.5: the flow is reversed, and the link would send ▲ down.
+
+def _coded(code_a, code_b, *, line=LINE, secs=SECS):
+    """`continuations` on the Chilliwack / Vedder shape with FWA watershed codes on A's mouth piece (s1) and B's top
+    piece (s12)."""
+    owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
+    flow = C.Flow(EDGES, TOP, owners, wsc={1: code_a, 12: code_b})
+    return C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], line.get, flow)
+
+
+def test_a_link_into_a_water_the_codes_call_a_tributary_of_it_is_refused():
+    # Eagle Trib.5 -> Eagle Trib.5-3: B's code extends A's, so B drains into A — the data's flow is backwards
+    assert _coded("100-019698-794100-757900", "100-019698-794100-757900-384000") == []
+    # padded codes are the same codes (trim_wsc): the FWA's -000000 padding changes nothing
+    assert _coded("100-019698-794100-757900-000000-000000", "100-019698-794100-757900-384000-000000") == []
+    # deeper down the tree is still B draining into A
+    assert _coded("100-019698", "100-019698-794100-757900-384000") == []
+
+
+def test_a_link_the_codes_agree_with_or_do_not_order_is_kept():
+    # A is B's tributary by code (Aliceville Trib.1-1 -> Trib.1; Rochester Creek's 999999 at the top of the Holmes)
+    assert _coded("900-059194-358500-866100", "900-059194-358500") == [(1, 1, 2, 12)]
+    assert _coded("100-019698-429300-999999", "100-019698-429300") == [(1, 1, 2, 12)]
+    # one code (one watercourse), sibling codes, a code that only SHARES leading digits with the other
+    assert _coded("100-064535", "100-064535") == [(1, 1, 2, 12)]
+    assert _coded("100-019698-794100-757900-138900", "100-019698-794100-757900-384000") == [(1, 1, 2, 12)]
+    assert _coded("100-01969", "100-019698-794100") == [(1, 1, 2, 12)]
+    # no code on either end (a lake handle, an unnamed inflow) is no evidence either way
+    assert _coded("", "100-019698-794100-757900-384000") == [(1, 1, 2, 12)]
+    assert _coded("100-019698-794100-757900", "") == [(1, 1, 2, 12)]
+
+
+def test_a_reversed_link_is_refused_on_the_same_blue_line_too():
+    assert _coded("100-1", "100-1-2", line={**LINE, 1: ("Y", 12950)}, secs={**SECS, 1: {1}}) == []
+    assert _coded("100-1-2", "100-1", line={**LINE, 1: ("Y", 12950)}, secs={**SECS, 1: {1}}) == [(1, 1, 2, 12)]
+
+
+def test_the_graph_flow_carries_each_pieces_code():
+    class N:
+        def __init__(self, up_m, wsc):
+            self.up_m, self.wsc = up_m, wsc
+
+    class E:
+        def __init__(self, f, t, at):
+            self.from_node, self.to_node, self.at_measure = f, t, at
+
+    class G:
+        nodes = {"Y:12723": N(12950.0, "100-1"), "X:0": N(4000.0, "100-1-2")}
+        edges = [E("X:0", "Y:12723", 12925.0)]
+        up_adj = {"Y:12723": [0]}
+
+    flow = C.graph_flow(G(), ["X:0", "Y:12723"], {}, [2])
+    assert (flow.into(2), flow.top, flow.wsc) == ([(1, 12925.0)], {2: 12950.0}, {2: "100-1", 1: "100-1-2"})

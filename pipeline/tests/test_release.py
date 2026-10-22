@@ -225,8 +225,19 @@ def test_the_chilliwack_continues_as_the_vedder_and_no_tributary_does(rel, tmp_p
     # the name changes the rule finds besides (the list and its review: handoff/PLAN/app-data/p15/continuations.md)
     name = dict(core.execute("SELECT ord, name FROM item"))
     pairs = {(name[a], name[n]) for a, _, n, _ in rows}
-    assert {("Hatzis Slough", "Lower Hatzic Slough"), ("Chilqua Creek", "Chilqua Slough"),
-            ("Page Creek", "Matsqui Slough")} <= pairs
+    # OWNER 2026-10-21 (late): the 18 rows reviewed there, less the one the FWA codes call reversed (Eagle Trib.5 "flows
+    # into" Eagle Trib.5-3, whose code makes it Trib.5's tributary); the 10 municipal continuations stay
+    assert sorted(pairs) == sorted({
+        ("Chilliwack River", "Vedder River"), ("Hatzis Slough", "Lower Hatzic Slough"),
+        ("Chilqua Creek", "Chilqua Slough"), ("Page Creek", "Matsqui Slough"), ("Marblehill Creek", "Semmihault Creek"),
+        ("Davidson Creek", "Tomat Creek"), ("Pass Creek", "Screw Creek"),
+        ("Jeperson Side Channel", "Jeperson Side Channel"),
+        ("Aliceville Trib.1-1", "Aliceville Trib.1"), ("Beecher Trib.4", "Beecher Creek"),
+        ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
+        ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
+        ("Westway Avenue Drainage Ditch", "Magnolia Creek Trib 1"),
+        ("Finch Connector (Unnamed)", "Logger's Lane Connector")})
+    assert len(rows) == 17
     print("water_continue rows:", len(rows))
 
 
