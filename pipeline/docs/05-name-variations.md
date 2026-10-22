@@ -73,7 +73,7 @@ when the chosen display tuple is all-caps — override/gazette (already correctl
     displays. So "Arrow Reservoir" (no `display`) stays searchable while "Upper Arrow Lake"
     (gazette) is the label — replaces the old override-vs-alias hack.
 
-## Compiler (`pipeline/hack/name_variants_compile.py`) — one-off bootstrap
+## Compiler (one-off bootstrap, retired 2026-10-22; in git history as `pipeline/hack/name_variants_compile.py`)
 
 Reads the current sources and emits `name_variants.json`. Future sources (stocking/bathy/gauges
 in new formats) get their own small appenders; this is just the initial merge.

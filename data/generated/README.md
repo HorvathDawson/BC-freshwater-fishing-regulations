@@ -27,7 +27,7 @@ construction.
 | `stocking/`, `bathymetry/` | the domain audits | identifier audits awaiting a matcher |
 | `municipal/` | `added_streams` cleaning | cleaned source layers |
 | `added_streams/` | `pipeline.atlas.waters.added_streams` | mapcheck / verify html, demo gpkg |
-| `scratch/` | `pipeline/hack/*` | one-shot candidate dumps; nothing reads these |
+| `scratch/` | one-off audits (`pipeline/tools`) | one-shot candidate dumps; nothing reads these |
 
 ## Addressing it
 

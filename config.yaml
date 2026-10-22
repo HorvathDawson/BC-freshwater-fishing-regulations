@@ -37,7 +37,7 @@ generated:
   # verify_map html, the demo gpkg, and OSM candidates.
   added_streams: "data/generated/added_streams"
 
-  # Ad-hoc candidate dumps from pipeline/hack/*. Nothing downstream reads these; they are
+  # Ad-hoc candidate dumps from one-off audits. Nothing downstream reads these; they are
   # eyeballed once and thrown away. Kept out of the domain folders on purpose.
   scratch: "data/generated/scratch"
 

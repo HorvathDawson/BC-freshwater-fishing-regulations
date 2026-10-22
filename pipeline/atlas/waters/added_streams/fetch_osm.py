@@ -8,7 +8,7 @@ Fetches `waterway` ways from Overpass, merges same-name connected ways into chan
 
 HUMAN-RUN: this hits the public Overpass API (external network). It is NOT part of the build — the
 build only reads the curated pipeline/added_streams.geojson. Reuses the paced/multi-endpoint pattern
-from pipeline/oneoff/resolvers/osm_batch.py.
+from the retired one-off `osm_batch.py` (git history: `pipeline/hack/resolvers/`).
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.fetch_osm \
         --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson

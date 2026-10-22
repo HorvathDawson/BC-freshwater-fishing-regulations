@@ -1,13 +1,12 @@
-"""OLD -> NEW split accuracy audit: for every split in pipeline/atlas/splits.json, resolve it and measure
-how far the RESOLVED cut landed from the CURATED coord (`_coord`) in waterbody-splits.json (ground
-truth). The curated coords were hand-verified, so a large distance flags a bad conversion.
+"""Split accuracy audit: for every curated split (`CURATED.waters.splits`), resolve it and measure
+how far the RESOLVED cut landed from its curated coord (`_coord`, ground truth). The curated coords were hand-verified, so a large distance flags a bad conversion.
 
 Per waterbody: bbox = union(_coord of its splits) ∪ applies_to target bounds (200km-capped),
 buffered 3km. Resolve; recover each SplitPoint's lon/lat via chain.geometry.interpolate(measure);
 distance (m, EPSG:3005) to the split's `_coord`. Offset splits store `_coord` inconsistently (some =
 base feature, some = final post-offset location), so the score is min(raw, |raw - offset|).
 
-Run:  python -m pipeline.hack.audit_splits [--json]
+Run:  python -m pipeline.tools.audit_splits [--json]
 This reads small bbox windows but touches the full GPKG per waterbody, so it takes a couple minutes.
 """
 

@@ -13,9 +13,9 @@ An agent (or you) answers inline right below, so it reads as a thread:
 
 Then, back in service:
 
-    .venv/bin/python -m pipeline.hack.review_comments            # scan the docs
-    .venv/bin/python -m pipeline.hack.review_comments --open     # only unanswered
-    .venv/bin/python -m pipeline.hack.review_comments path/ ...   # custom paths
+    .venv/bin/python -m pipeline.tools.review_comments            # scan the docs
+    .venv/bin/python -m pipeline.tools.review_comments --open     # only unanswered
+    .venv/bin/python -m pipeline.tools.review_comments path/ ...   # custom paths
 
 Works in code/JSON too (a `@REVIEW:` inside a `#`/`//` comment, or in a locator `notes` field —
 for the locators JSON prefer the `label` loop's `n`/`a` actions). Markdown is the primary target.
