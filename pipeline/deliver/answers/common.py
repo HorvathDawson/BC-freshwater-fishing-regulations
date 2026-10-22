@@ -198,7 +198,7 @@ def check_export(B: Bundle, data: dict, guide: dict, model: Optional[dict] = Non
 # Part keys: the export's parts, keyed by what their answers can depend on
 # --------------------------------------------------------------------------------------------
 
-#: The part key's fields, in order: the reference harness's `partKey` (`reference/golden.js`),
+#: The part key's fields, in order: the v35 harness's `partKey` (`archive/pipeline/answers-reference-v35/golden.js`),
 #: with `steelhead_rules` the bundle's fact, then what the licence and the card read beyond it: the
 #: water's KIND (lake, stream, wetland — `item.kind`) and whether the part is TIDAL water. Every
 #: section of a part agrees on both, or the build stops.

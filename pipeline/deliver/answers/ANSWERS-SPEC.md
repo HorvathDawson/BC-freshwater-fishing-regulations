@@ -1276,7 +1276,7 @@ settle fact; R7 ICU collation for fish names; R8 the real daily limit reads ever
 structurally.
 
 **Rows fixes** (`rows.DECISIONS` F1-F10, handoff ROWS-REVIEW; where the page contradicts the book
-the card follows the book and the port names the page bug, `reference/port.py` `PAGE_BUGS`):
+the card follows the book and the port names the page bug, `PAGE_BUGS` in `pipeline/tests/answers_v35_port.py`):
 F1 one item per kind (Anderson R.: brook/brown/cutthroat "up to 4, only 1 over 50", not "keep 1
 over 60"); F1b a cap missing only the steelhead-filtered rainbow is general with `except: [RB]`;
 F2 origin2 also when the other origin's keep RANGE differs ("No wild trout over 50 cm",

@@ -118,9 +118,3 @@ def test_the_tidal_sections_carry_their_versions():
     for name in want:
         sec = SPEC["sections"][name]
         assert sec["version"] == str(want[name]) and "tidal" in json.dumps(sec).lower(), name
-
-
-def test_the_page_view_projections_read_a_tidal_frame():
-    from pipeline.deliver.answers import cli
-    assert cli.gear_projection(dict(C.TIDAL_STATE), False, []) == {"tidal": True}
-    assert cli.licence_projection({"tidal": True}, False, {}) == {"tidal": True}

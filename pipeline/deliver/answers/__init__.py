@@ -18,7 +18,7 @@ THE PRODUCERS ARE PURE (no file is written; the answers encoder adds them as sec
     dump.py     `python -m pipeline.deliver.answers.dump --out DIR`: the producers' output
                 interned for inspection, with sizes and times (not the shipping encoder)
 
-A part is named by agent C's part key (`display.parts_of_bundle`, `reference/golden.js partKey`);
+A part is named by agent C's part key (`display.parts_of_bundle`, `archive/pipeline/answers-reference-v35/golden.js` partKey);
 an undecidable value stops the build with a named error (`PartKeyError`, `UnknownAxis`,
 `NoFishToAsk`) or is a documented state, never a default. Nothing here edits the reader or the
 export, and nothing reads a curated file.

@@ -1,6 +1,6 @@
 """THE ROWS OF TODAY'S CARD — consumer Stages 5.2 step 5 to 5.8, from the reader's traced ladder.
 
-The consumer page v35 (`reference/page_v35.js`, the SPECIFICATION ported here) turns the ladder's
+The consumer page v35 (`archive/pipeline/answers-reference-v35/page_v35.js`, the SPECIFICATION ported here) turns the ladder's
 speaking rules into the card an angler reads: the number they may keep after the winner's clauses
 (5.2 step 5), the lines under it (steps 6-11), the fish grouped into one row per shared limit with
 the fish that go back and the cross-references (5.3), the conditions on keeping (`rowConds`), the

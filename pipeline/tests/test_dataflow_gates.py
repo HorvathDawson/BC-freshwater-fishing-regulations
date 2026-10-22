@@ -306,9 +306,9 @@ def calendar_tables_py(sources: dict[str, str]) -> set[tuple[str, str]]:
 
 
 #: Hand-written TypeScript / JS the gate reads: the app's sources and tools, and the reference
-#: page's scripts. GENERATED files are the copies the spec writes, and page_v35.js is pinned by
-#: sha256 in `test_answers_reference.py` (a frozen exhibit, never edited).
-CALENDAR_JS_EXEMPT = {"pipeline/deliver/answers/reference/page_v35.js"}
+#: page's scripts. GENERATED files are the copies the spec writes. Nothing is exempt: the one frozen
+#: exhibit (page_v35.js) is archived in `archive/pipeline/answers-reference-v35/` (audit F12, 2026-10-22), outside these roots.
+CALENDAR_JS_EXEMPT: set = set()
 
 
 def _js_sources() -> dict[str, str]:
