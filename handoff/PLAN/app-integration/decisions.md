@@ -569,3 +569,28 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   tap at half still opens the water. No defect found.
 - Back: search was already route state (`route.search`, T48), so back already closed it; nothing in the back model was
   touched (a test now pins it on wide too).
+## CLAUDE 2026-10-22 (late, owner delegated) — HYDAT notices, as built
+- FEED (`publish.py`): `index.json` gains `maintenance` (always written; `[]` when nothing is due), sorted by kind.
+  `hydat` when the listing names a newer release than `clim.json`'s (`current` = the envelope's release, `action` =
+  `scripts/update-hydat.sh`); `roster` when ECCC's list drifts from the roster (`current` = the roster file, `latest` =
+  `+joined -left` ids, `action` = rm + re-fetch + `pipeline build` via heavy.sh). `since` = the first run that saw the
+  SAME kind+latest, carried from the previous index (a later HYDAT is a new notice, new `since`). Calls: a check that
+  could not run (listing GET failed or `--no-release-check`; no station list) KEEPS the previous notice — one failed
+  GET must not flip the app to "Up to date" and back; a kept HYDAT notice is dropped once the envelope reaches its
+  `latest`. No envelope (`--clim` absent): no HYDAT notice either way. The old `hydat` block stays (nothing migrated).
+- NOTIFY (`notify.py`): once per kind+latest; sent keys in `<feed dir>.notified.json`, BESIDE the feed dir (the dir
+  itself syncs to the public origin). A seen key is never re-sent, so a roster set flapping back is not re-announced.
+  Failure: not recorded, retried next run, never raises. Unset URL: one stdout line, only when a notice exists.
+- SCRIPT: `scripts/update-hydat.sh` (not run). `pipeline build` is the whole rebuild (deliver reruns on the hydat
+  stamp + clim hash; tiles are not keyed on HYDAT so skip themselves); upload of the new release is not in it.
+- APP: `STALE_AFTER.hydat = {by: "notice", ms: 548 d}` — the notice decides, the age line only with no word.
+  `hydatNotice(index)` (core): `due` = a hydat notice; `current` = notices present, none for hydat, and this run's
+  `hydat` block names release AND latest; else null (older index, or a run that could not check) -> age. Read off the
+  same index read as the sync state (poll + tap); not passed to `syncVM` (no dot).
+- WORDS: the badge is **"Newer release out"** (`FRESHNESS_WORDS.newerRelease`). Not "Likely out of date" — the
+  publisher SAW the release, nothing is guessed; not "Out of date" — the records in use are still correct, a release
+  only adds the last year (that word is kept for a lapsed edition, which is wrong to fish by); "· update pending" from
+  the design was dropped: a badge is one state, and "pending" promises a timing the reader cannot see or act on. The
+  More block's summary still counts it with the other Details-only lines ("1 likely out of date · see Details") — a
+  separate summary wording for one Details row was not worth a second rule.
+- NOT DONE: the roster notice is owner-only (the app ignores it); no feed run/notification was made for real.

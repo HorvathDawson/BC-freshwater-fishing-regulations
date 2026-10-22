@@ -641,3 +641,12 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     onto Vedder Crossing, the Vedder's downstream-of-the-crossing rules walked up the whole Chilliwack, 1,805 sections).
     A piece on the reach's own watershed code is a side channel, not own water (Old Kootenay River Channel). Before
     promoting any split or name change, DIFF THE REACH RUN'S PER-RULE BINDINGS against live — atlas parity cannot see this.
+
+## Runbook: upstream updates the owner runs
+
+64. **A newer HYDAT: `scripts/update-hydat.sh`** (fetch HYDAT → rebuild `clim.json` into the feed dir → republish the
+    feed with `--clim` → `pipeline build` through `scripts/heavy.sh`). Every feed run checks HYDAT's listing and ECCC's
+    real-time list and writes what is due into `index.json` `maintenance` (`{kind, since, current, latest, action}`;
+    kinds `hydat`, `roster`; `action` is the exact command); a notice clears itself on the next run once current ==
+    latest. The owner is told ONCE per kind+latest through `FEED_NOTIFY_URL` (ntfy plain POST; Discord/Slack JSON),
+    off when unset (`pipeline/gauges/feed/notify.py`, state in `<feed dir>.notified.json`). Agents never run the script.
