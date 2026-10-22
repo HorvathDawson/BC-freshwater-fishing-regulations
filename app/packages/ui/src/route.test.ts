@@ -293,6 +293,17 @@ describe("back steps out one layer: moves inside a water replace, a different wa
       true]);
   });
 
+  it("(owner 2026-10-22 late, 'one system') a cross, THEN a tributary opened from inside: the tributary is one layer " +
+     "over the water crossed into; back is that water, back again leaves the system", () => {
+    const cross = (item: ItemId, part: number): RouteAction => ({ type: "cross", item, part });
+    const trib = run(opened, cross(VEDDER, 0), { type: "openWater", item: HARRISON, tapSid: 4 as SectionId, view: "regs" });
+    const back1 = reduce(trib, { type: "back" });
+    expect([trib, back1, reduce(back1, { type: "back" })]).toEqual([
+      { mode: "water", from, stack: [frame(VEDDER, 0, "map"), frame(HARRISON, null, "regs", 4)] },
+      { mode: "water", from, stack: [frame(VEDDER, 0, "map")] },
+      from]);
+  });
+
   it("close leaves every water at once, for where the first was opened from (search and all); nothing in browse", () => {
     const deep = run(opened, { type: "openWater", item: VEDDER, view: "regs" }, { type: "flowInto", item: FRASER, part: 0 });
     expect([deep.mode === "water" && deep.stack.length, reduce(deep, { type: "close" }), reduce(opened, { type: "close" }),
