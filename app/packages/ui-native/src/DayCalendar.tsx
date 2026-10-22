@@ -60,10 +60,18 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
   const now = nowProp ?? new Date();
   const shown = day ?? now;
   const [view, setView] = useState({ year: shown.getFullYear(), month: shown.getMonth() });
-  // the month follows the day when the day moves (a step, a key, Today)
+  // the month follows the day when the day moves (a step, a key, Today) — IN THE SAME RENDER, not an effect after it:
+  // the focus effect below must see the new month's cells in the commit the day lands, or a key across a month edge
+  // drops focus to the page (the old cell is unmounted) and the grid takes no more keys
   const shownKey = `${shown.getFullYear()}-${shown.getMonth()}-${shown.getDate()}`;
-  useEffect(() => { setView({ year: shown.getFullYear(), month: shown.getMonth() }); }, [shownKey]);
-  const m = monthVM(view.year, view.month, day, now, range);
+  const [followed, setFollowed] = useState(shownKey);
+  let shownView = view;
+  if (followed !== shownKey) {
+    shownView = { year: shown.getFullYear(), month: shown.getMonth() };
+    setFollowed(shownKey);
+    setView(shownView);
+  }
+  const m = monthVM(shownView.year, shownView.month, day, now, range);
 
   // the keyboard moved the day: focus follows it to its cell once drawn
   const cellRefs = useRef(new Map<string, { focus?: () => void } | null>());
@@ -140,7 +148,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
               ? <View key={`b${ci}`} style={{ flex: 1, minHeight: TARGET }} />
               : (
                 <Pressable key={c.iso} ref={(el) => { cellRefs.current.set(c.iso, el as never); }}
-                           onPress={() => onDay(chooseDay(new Date(view.year, view.month, c.n, 12), now))}
+                           onPress={() => onDay(chooseDay(new Date(shownView.year, shownView.month, c.n, 12), now))}
                            disabled={c.disabled} accessibilityRole="button" accessibilityLabel={c.label}
                            aria-selected={c.chosen} aria-disabled={c.disabled}
                            tabIndex={c.iso === tabStop ? 0 : -1}

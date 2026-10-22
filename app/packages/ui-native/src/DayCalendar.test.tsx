@@ -5,7 +5,8 @@
  * keys on the web. It moves THE day (the Shell's `mapDay`, null = today) through `onDay` and holds no day of its own.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { dayRange } from "@app/core";
 import { DayCalendar, MapDayButton } from "./DayCalendar";
 import { LIGHT } from "./theme";
@@ -106,6 +107,32 @@ describe("<DayCalendar>", () => {
     // only the chosen day is in the tab order; the arrows move within the grid
     expect([...cells()].filter((c) => c.getAttribute("tabindex") === "0").map((c) => c.getAttribute("aria-label")))
       .toEqual(["Saturday, October 10, chosen"]);
+  });
+
+  it("the keyboard across a month edge: focus follows the day into the new month, and the grid keeps taking keys", () => {
+    // the Shell holds THE day; this holds it the same way so a key's day comes back as the prop
+    function Held() {
+      const [day, setDay] = useState<Date | null>(new Date(2026, 9, 29, 12));
+      return <DayCalendar palette={LIGHT} day={day} onDay={setDay} range={YEAR} now={NOW} />;
+    }
+    render(<Held />);
+    const focused = () => (document.activeElement as HTMLElement | null)?.getAttribute("aria-label") ?? "(none)";
+    const press = (key: string) => {
+      act(() => { fireEvent.keyDown(document.activeElement ?? document.body, { key }); });
+      return [screen.getByRole("heading").textContent, focused()].join(" / ");
+    };
+    act(() => { (btn("Thursday, October 29, chosen") as HTMLElement).focus(); });
+    expect(focused()).toBe("Thursday, October 29, chosen");
+    expect([press("ArrowDown"), press("ArrowRight"), press("PageUp"), press("PageUp"), press("PageDown"),
+            press("ArrowLeft"), press("Home")]).toEqual([
+      "November 2026 / Thursday, November 5, chosen",
+      "November 2026 / Friday, November 6, chosen",
+      "October 2026 / Tuesday, October 6, chosen",
+      "September 2026 / Sunday, September 6, chosen",
+      "October 2026 / Tuesday, October 6, chosen",
+      "October 2026 / Monday, October 5, chosen",
+      "October 2026 / Wednesday, October 21, today, chosen",
+    ]);
   });
 });
 
