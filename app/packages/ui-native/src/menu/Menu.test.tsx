@@ -80,12 +80,12 @@ describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
       headings: screen.getAllByRole("heading").map((e) => e.textContent),
       rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
     }).toEqual({
-      back: ["‹  Map", "Back to Map"],
+      back: ["Map", "Back to Map"],
       headings: ["More", "Data", "Display", "Contact"],
       rows: [
-        "GlossaryWhat the regulations' words mean›",
-        "AboutWhat this app is, and what it is not›",
-        "Report a problemSomething wrong, missing or confusing›",
+        "GlossaryWhat the regulations' words mean",
+        "AboutWhat this app is, and what it is not",
+        "Report a problemSomething wrong, missing or confusing",
       ],
     });
   });

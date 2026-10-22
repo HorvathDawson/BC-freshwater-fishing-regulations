@@ -230,8 +230,8 @@ describe("spots and the rail, through the Shell (T48)", () => {
     const capture = look();
     act(() => { androidBack(); });
     expect([picking, tapped, capture, look(), saved]).toEqual([
-      [`${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,9.4 | pick banner`, "Tap where your spot isCancel"],
-      `${BAR} (Map) | pin 49.2,-122.1 · fit none · camera 49.15,-121.85,9.4 | drop sheet`,
+      [`${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,10 | pick banner`, "Tap where your spot isCancel"],
+      `${BAR} (Map) | pin 49.2,-122.1 · fit none · camera 49.15,-121.85,10 | drop sheet`,
       "no bar | pin 49.2,-122.1 · fit none · camera 49.2,-122.1,14 | capture: near the pin",
       ROOT, []]);
   });
@@ -266,7 +266,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
     press("tap a water");
     press("Cancel");
     expect([handled, backed, left, cancelled, escaped, away, look(), saved]).toEqual([
-      true, ROOT, false, ROOT, ROOT, `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`,
+      true, ROOT, false, ROOT, ROOT, `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,10 | nothing`,
       ROOT, []]);
   });
 });

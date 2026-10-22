@@ -1,7 +1,7 @@
 /**
  * THE MORE TAB (T48; owner 2026-10-22 refinement pass: "inside the more tab we should format it nicer"). Top to bottom:
  *
- *   ‹ <tab>     back to the tab More was opened from (the route's `prev`; the system back does the same)
+ *   back <tab>  back to the tab More was opened from (the route's `prev`; the system back does the same)
  *   DATA        ALWAYS SHOWN, minimal: one line per source — a freshness dot, its name, its date in few words — under
  *               ONE summary badge in words; the whole block opens the detailed references (Data sources & dates)
  *   DISPLAY     the app's colours as three preview tiles (a radiogroup): each tile is a miniature of that palette — its
@@ -18,6 +18,7 @@ import { menuVM, WATER_STATUSES, type DataInput, type MenuPageKey, type MoreVM }
 import { TYPE } from "../type";
 import { GUTTER, SHEET_DIALOG, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
+import { Icon } from "../icons";
 
 export interface MoreScreenProps {
   palette: Palette;
@@ -77,8 +78,9 @@ function Head({ vm, palette, onBack }: { vm: MoreVM; palette: Palette; onBack: (
     <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s1,
                    backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <Pressable testID="more-back" onPress={onBack} accessibilityRole="button" accessibilityLabel={vm.back.label}
-                 hitSlop={8} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
-        <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`‹  ${vm.back.to}`}</Text>
+                 hitSlop={8} style={{ alignSelf: "flex-start", minHeight: 32, flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Icon name="back" colour={palette.accent} size={16} />
+        <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{vm.back.to}</Text>
       </Pressable>
       <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{vm.title}</Text>
     </View>
@@ -108,8 +110,7 @@ function Group({ palette, children, testID }: { palette: Palette; children: Reac
 
 function Chevron({ palette }: { palette: Palette }) {
   return (
-    <Text importantForAccessibility="no" aria-hidden
-          style={{ ...TYPE.bodyStrong, fontSize: 20, lineHeight: 22, color: palette.faint }}>›</Text>
+    <Icon name="next" colour={palette.faint} size={18} />
   );
 }
 
@@ -160,9 +161,8 @@ function DataBlock({ vm, palette, onOpen }: { vm: MoreVM["data"]; palette: Palet
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: SPACE.s1,
                          paddingHorizontal: GUTTER, paddingTop: SPACE.s1, paddingBottom: SPACE.s3,
                          marginTop: SPACE.s1, borderTopWidth: 1, borderTopColor: palette.line }}>
-            <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent, paddingTop: SPACE.s2 }}>
-              {`${vm.details}  ›`}
-            </Text>
+            <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent, paddingTop: SPACE.s2 }}>{vm.details}</Text>
+            <View style={{ paddingTop: SPACE.s2 }}><Icon name="next" colour={palette.accent} size={14} /></View>
           </View>
         </Pressable>
       </Group>
