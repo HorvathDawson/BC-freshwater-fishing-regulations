@@ -96,6 +96,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- RESTARTED 2026-10-21 after the computer restart: step (1) DONE — deliver all r-0efa5d05fc92 (rows 32 / licence 7 /
+  pdf_pages; card gate 0 problems; 13.67 MB gz), taps + regs fixture re-cut (1173321a), blob test id 2002; strict 6735,
+  smoke pass; pipeline-needs tests 22 pass. WIP commits tagged wip/* in the main repo (sheets-fix, lake-values,
+  water-map, map-rail-spots, menu-info, android-back). RESUMED wave B (task wn4xiw5gi, only fix:sheets) and
+  follow-ups (task wgw0lg80t; water-map lane told to cherry-pick f3974f89 + wip/water-map). Map chrome
+  (wf_5f5e25c3-271, lanes told to cherry-pick their wip/* tag) STARTS when one of those finishes (memory).
 - PAUSED 2026-10-21 ~20:15 for a COMPUTER RESTART (memory). Everything stopped; orphan workers killed; main tree clean.
   RESTART STEPS, in order:
   (1) `deliver all` FIRST, alone, on a quiet machine (no workflows running): `~/.claude/projects/-Users-dawson-horvath-dev-
