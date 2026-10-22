@@ -19,8 +19,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   cleanup waves 2-4 + app test cleanup + knip; S2; determinism proof (heavy.sh); T50 Android.
 - MERGED: per-feed staleness table core/staleness.ts (869512ba), dark water names #2498FC (8a5e5130 684b6f61), release
   valid_until from the synopsis cover (41b4d232 a9c41c21 a5492dec) + integration fix 809bfdb.
-- RUNNING: wf_1060af7b-2d2 (silent donors hidden, one line with last data time); deliver all for valid_until (scratchpad
-  deliver-vu.sh/.log). THEN: re-cut fixtures, merge silent donors, full strict check + smoke once.
+- valid_until stamped (2027-03-31). FOUND + FIXED 1c2b671: the release id hashed only the files, so a manifest-only
+  change kept the same id (apps would never refetch). RUNNING: deliver-id.sh (re-deliver under the new id + fixture re-cut;
+  log scratchpad deliver-id.log) — commit the new dev fixture dir afterwards.
+- RUNNING: wf_1060af7b-2d2 (silent donors hidden, one line with last data time); wf_b88d9e03-10e (owner: HYDAT
+  maintenance notices — detect, notify once via FEED_NOTIFY_URL, scripts/update-hydat.sh, app HYDAT line follows the
+  notice; decisions.md "upstream updates the owner runs"). THEN: merge both, full strict check + smoke once.
 - FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
   index hydat.stale; dark water names now near status.base blue and flow f5 (owner may want to see).
 
