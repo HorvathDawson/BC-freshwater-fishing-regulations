@@ -296,3 +296,8 @@ bait-ways-compact (was 9).
 Also fixed (environment, not design): Chrome 155's headless draws a classic 15 px scrollbar, which took 15 px from every
 width `tools/wide-measure.mjs` measured and failed T45/T46 on an unchanged tree (another lane's baseline check failed the
 same two). `wide-measure.mjs` now hides scrollbars (`Emulation.setScrollbarsHidden`), as `shoot.mjs` already did.
+
+## OWNER 2026-10-22 — palette D stands
+"could we just put into app and if I have an issue with palette I ask you to change it later?" Palette D (T47 part 2) is
+the app's palette; its three open trade-offs (light restricted near-black aubergine, base periwinkle, open no longer
+green) are accepted as built. The owner raises any change after using it. Not an open question any more.
