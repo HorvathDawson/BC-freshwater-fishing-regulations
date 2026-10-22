@@ -193,6 +193,51 @@ def roster_drift(roster: list[dict], listed: set[str] | None) -> dict | None:
     return {"joined": sorted(listed - was), "left": sorted(was - listed)}
 
 
+# OWNER-RUN UPSTREAM UPDATES, SAID IN THE INDEX (owner 2026-10-22 late). Each run already learns two things only the
+# owner can act on: a newer HYDAT on the listing, and ECCC's real-time list drifting from the roster snapshot. Both
+# were console lines nobody reads on a cron. They are now `maintenance` notices in index.json — ONE list for every
+# owner task, so another kind joins it without a new field — sent to the owner once (`pipeline.gauges.feed.notify`)
+# and read by the app (the Data sources page's HYDAT line). Each names the exact command that clears it.
+HYDAT_ACTION = "scripts/update-hydat.sh"
+ROSTER_PATH = "data/source/bc_hydrometric_stations.json"
+ROSTER_ACTION = (f"rm {ROSTER_PATH} && "
+                 "(cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations) && "
+                 "scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build")
+
+
+def maintenance_notices(*, release: str | None, latest: str | None, drift: dict | None,
+                        previous: list | None, at: str) -> list[dict]:
+    """The owner tasks due this run, sorted by kind: `[{kind, since, current, latest, action}]`; empty when none.
+
+    `since` is the first run that saw the SAME notice (kind and latest), carried from the previous index; a different
+    latest is a new notice. A check that could not run this run (`latest` None: the HYDAT listing failed or was
+    skipped; `drift` None: no station list) KEEPS the previous notice of its kind rather than calling the task done on
+    one failed GET — except a HYDAT notice the envelope has since caught up with. No envelope (`release` None): no
+    HYDAT claim either way, there is nothing in use to compare.
+    """
+    prev = {n.get("kind"): n for n in previous or [] if isinstance(n, dict)}
+
+    def notice(kind: str, current: str, newest: str, action: str) -> dict:
+        p = prev.get(kind)
+        since = p["since"] if p and p.get("latest") == newest and p.get("since") else at
+        return {"kind": kind, "since": since, "current": current, "latest": newest, "action": action}
+
+    out: list[dict] = []
+    if release:
+        if latest:
+            if latest != release:
+                out.append(notice("hydat", release, latest, HYDAT_ACTION))
+        elif (p := prev.get("hydat")) and p.get("latest") and p["latest"] != release:
+            out.append(notice("hydat", release, p["latest"], HYDAT_ACTION))
+    if drift is not None:
+        if drift.get("joined") or drift.get("left"):
+            said = " ".join([f"+{s}" for s in drift.get("joined", [])] + [f"-{s}" for s in drift.get("left", [])])
+            out.append(notice("roster", ROSTER_PATH, said, ROSTER_ACTION))
+    elif (p := prev.get("roster")) and p.get("latest"):
+        out.append(notice("roster", ROSTER_PATH, p["latest"], ROSTER_ACTION))
+    return sorted(out, key=lambda n: n["kind"])
+
+
 def percentile_of(value: float | None, band: list[float | None] | None) -> float | None:
     """Where `value` sits in a p10..p90 band, as 0..1. None when either side is unknown.
 
@@ -613,14 +658,21 @@ def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float
 
 def publish(out: Path, stations: list[str], clim: dict | None = None,
             forecast: dict | None = None, latest_release: str | None = None,
-            now: datetime | None = None, listed: set[str] | None = None) -> dict:
+            now: datetime | None = None, listed: set[str] | None = None,
+            drift: dict | None = None) -> dict:
     """Fetch every station and write the feed. Returns a small summary for the caller.
 
     `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
     `listed` is ECCC's real-time list this run (`listed_stations`); published in the index
     when known, so "not a real-time gauge" and "real-time but quiet today" can be told apart.
+    `drift` is `roster_drift` this run (None: no list), written as a `roster` maintenance notice.
     """
     out.mkdir(parents=True, exist_ok=True)
+    # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there
+    try:
+        before = json.loads((out / "index.json").read_text(encoding="utf-8")).get("maintenance")
+    except Exception:                                           # noqa: BLE001 — no or unreadable index: a first run
+        before = None
     envelope = (clim or {}).get("stations", {})
     release = (clim or {}).get("release")
     forecast = forecast or {}
@@ -809,9 +861,15 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     # what the number was measured against, and lets the app show the record length behind
     # "below normal for the date" instead of asserting it bare.
     stale = bool(latest_release and release and latest_release != release)
+    fetched_at = now.isoformat(timespec="seconds").replace("+00:00", "Z")
+    maintenance = maintenance_notices(release=release, latest=latest_release, drift=drift,
+                                      previous=before, at=fetched_at)
     (out / "index.json").write_text(json.dumps({
-        "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "fetchedAt": fetched_at,
+        # `hydat` is this run's own check (kept for any reader of it); `maintenance` is what the owner must do — the
+        # app's HYDAT line reads the notice, which survives a run whose listing check failed.
         "hydat": {"release": release, "latest": latest_release, "stale": stale},
+        "maintenance": maintenance,
         "stations": index,
         # WHICH STATIONS ECCC CALLS REAL-TIME this run. Absent from `stations` still means
         # nothing to show; this says why. Listed and absent: a live gauge silent this run.
@@ -825,7 +883,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     # bundle's climatology, never from a second file that can fall out of step with it.
 
     return {"asked": len(stations), "answered": len(got), "release": release,
-            "stale": stale, "latest": latest_release,
+            "stale": stale, "latest": latest_release, "maintenance": maintenance,
             "withPercentile": sum(1 for v in index.values() if v["percentile"] is not None),
             "archive": {"asked": len(gappy), "filled": sum(1 for v in backfill.values() if v)},
             "gapsBeyondWindow": beyond_window}
@@ -860,8 +918,7 @@ def main() -> None:
               f"calls silent ({', '.join(drift['joined'])}) and no longer lists "
               f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}).\n"
               f"     The feed follows ECCC; the bundle follows the roster. Refresh with:\n"
-              f"       rm {args.stations} && python data/fetch_data.py --layers hydrometric_stations\n"
-              f"     then rebuild the bundle.")
+              f"       {ROSTER_ACTION}")
     if args.limit:
         ids = ids[: args.limit]
 
@@ -911,7 +968,7 @@ def main() -> None:
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
 
     summary = publish(args.out, ids, clim=clim, forecast=fcast, latest_release=latest,
-                      listed=listed)
+                      listed=listed, drift=drift)
     print(f"  ✅ {args.out}  {summary['answered']}/{summary['asked']} answered, "
           f"{summary['withPercentile']} with a percentile")
     if fcast:
@@ -926,11 +983,13 @@ def main() -> None:
               f"`python -m pipeline.gauges.feed.year_backfill --out {args.out}` reaches them")
     if summary["release"]:
         print(f"     envelope from HYDAT {summary['release']}")
-    if summary["stale"]:
-        print(f"  ⚠️  A NEWER HYDAT IS OUT: {summary['latest']} (envelope is on "
-              f"{summary['release']}). Refresh with:\n"
-              f"       python data/fetch_data.py --layers hydat\n"
-              f"       python -m pipeline.gauges.feed.climatology --out <clim.json>")
+    for n in summary["maintenance"]:
+        if n["kind"] == "hydat":
+            print(f"  ⚠️  A NEWER HYDAT IS OUT: {n['latest']} (envelope is on {n['current']}, "
+                  f"noticed {n['since']}). Refresh with:\n       {n['action']}")
+    # TELL THE OWNER ONCE (FEED_NOTIFY_URL; off when unset). Never fails the run.
+    from pipeline.gauges.feed import notify as _notify        # noqa: PLC0415
+    _notify.send_due(summary["maintenance"], args.out)
 
 
 if __name__ == "__main__":
