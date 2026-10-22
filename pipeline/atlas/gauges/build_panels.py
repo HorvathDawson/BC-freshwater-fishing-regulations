@@ -23,7 +23,9 @@ import heapq
 import math
 from dataclasses import dataclass
 
-from pipeline.atlas.gauges.panel import MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, Donor, may_lead, panel_for
+from pipeline.atlas.gauges.panel import (
+    MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, Donor, area_scale, may_lead, panel_for,
+)
 
 #: The quantities a gauge is ranked in, as `gauge_stats.parameter` names them and the app's Flow / Level views ask.
 QUANTITIES = ("discharge", "level")
@@ -316,7 +318,8 @@ def build(graph, model: AreaModel,
           max_ratio: float = MAX_AREA_RATIO,
           water_of: dict[str, str] | None = None,
           live: set[str] | None = None,
-          measures: dict[str, set[str]] | None = None) -> Panels:
+          measures: dict[str, set[str]] | None = None,
+          published: dict[str, float] | None = None) -> Panels:
     """Candidates, gates, weights, and the dictionary — the whole pass.
 
     `water_of` (section -> water item) is what says which donors are a section's OWN gauges; without it nothing
@@ -332,6 +335,10 @@ def build(graph, model: AreaModel,
     gauges are near enough and big enough (11 with a level record, 4 with discharge), and a panel of 16 donors is a
     table nobody reads; with 4 per quantity it holds at most 10, and Hope — 4th of the discharge ones — still leads Flow.
     None treats every station as measuring both.
+
+    `published` is each station's published catchment (`gauge.area_km2`, the stations roster's `area_km2`). It sets
+    the scale of "far" (`panel.area_scale`: Hack's law wants real catchments and the area model runs low on big
+    rivers) and breaks a tie between own gauges standing at the same distance and modelled size. None: the model's.
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
@@ -348,13 +355,18 @@ def build(graph, model: AreaModel,
             continue
         at = area_of(node)
         by_station = {station: ad for station, _r, ad, *_ in cs}
-        # THE OWN GAUGES THAT MAY LEAD, nearest first; ties go to the one nearer this section in size. See
-        # "a water's own gauge comes first" in panel.py.
+        # THE OWN GAUGES THAT MAY LEAD, nearest first; ties go to the one nearer this section in size, then to the
+        # one whose PUBLISHED catchment agrees with the model where it stands. Two gauges matched to one section get
+        # the same modelled area: on the Chilliwack (1235783, 644 km²) the lake outlet (08MH016, 335 km² published)
+        # and "above Slesse" (08MH103, 650) tie on both, and station order made the lake outlet lead the reach above
+        # Slesse. See "a water's own gauge comes first" in panel.py.
         near = own.get(sec, {})
-        leads = [st for _d, _r, st in sorted(
-            (d, abs(math.log(by_station[st] / at)), st) for st, d in near.items()
+        pub = published or {}
+        leads = [st for *_key, st in sorted(
+            (d, abs(math.log(by_station[st] / at)), abs(math.log(area_scale(by_station[st], pub.get(st)))), st)
+            for st, d in near.items()
             if st in by_station and at and by_station[st] and (live is None or st in live)
-            and may_lead(at, by_station[st], d))]
+            and may_lead(at, by_station[st], d, pub.get(st)))]
         # AT MOST `OWN_LEADS_PER_QUANTITY` PER QUANTITY, the nearest: in Flow the best-ranked one reporting discharge
         # leads, in Level the best-ranked one reporting level, so a quantity needs its own few and no more.
         wanted: set[str] = set()

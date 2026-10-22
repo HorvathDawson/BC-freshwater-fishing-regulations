@@ -299,11 +299,23 @@ OWN_SMALLER_RATIO = 10.0
 
 #: "Far from click", scaled to the river: past a fifth of the river's own length at the larger of the two catchments
 #: (Hack's law, `river_length_km`), and never closer than `OWN_FAR_MIN_KM`. A fixed distance cannot serve both ends of
-#: the province: 50 km on the lower Fraser adds 5% to its catchment, on a creek it is another valley. Measured:
-#: Hope leads the lower Fraser to 193 km below it (Mission, the Fraser mouth), Hansard 807 km up does not; a 100 km²
-#: creek's own gauge leads for 10 km.
+#: the province: 50 km on the lower Fraser adds 5% to its catchment, on a creek it is another valley.
+#:
+#: HACK'S LAW IS FED REAL CATCHMENTS, NOT THE AREA MODEL'S. The model runs 2-3.6x under the published areas on big
+#: rivers (Fraser at Hope 216,600 km² published, 60,356 modelled; Similkameen near Hedley 5,568 vs 2,084), and the
+#: law was fitted to real ones, so fed the model it cut the limit 1.6-2.2x short. Both catchments are scaled by the
+#: gauge's published / modelled ratio (`area_scale`) — the tapped section is on the gauge's own water, so the model's
+#: bias there is the gauge's. Measured: Hope's limit is 415 km, so it leads the whole Fraser below it (158 km to the
+#: mouth), Hansard 807 km up does not; Hedley leads the Similkameen 47 km below it (limit 58 km, 32 km at the model's
+#: areas); Usk leads the lower Skeena (126 km); a 100 km² creek's gauge leads 10 km.
 OWN_FAR_FRACTION = 0.2
 OWN_FAR_MIN_KM = 10.0
+
+#: How far the published catchment may sit from the modelled one, either way, and still be believed as the scale for
+#: `far_limit_km`. Past it the gauge or the model is wrong about where the gauge stands (08MH028, a Fraser gauge of
+#: 232,000 km² matched to a 1.4 km² stub, is 163,265x) and the modelled areas are used as they are. Ten is the
+#: "much smaller" bound again; 95% of real-time gauges sit within 0.62-3.66x.
+OWN_AREA_TRUST = 10.0
 
 #: How many own gauges per quantity a section keeps as lead candidates, nearest first. They ride on top of
 #: `MAX_MEMBERS` (`panel_for`), so this bounds how big a panel can grow; the app leads with the best-ranked one that
@@ -321,18 +333,33 @@ def river_length_km(area_km2: float) -> float:
     return HACK_C * max(0.0, area_km2) ** HACK_H
 
 
-def far_limit_km(area_target: float, area_gauge: float) -> float:
-    """How far along the water an own gauge may sit from the tapped section and still lead."""
-    return max(OWN_FAR_MIN_KM, OWN_FAR_FRACTION * river_length_km(max(area_target, area_gauge)))
+def area_scale(area_gauge: float | None, published_km2: float | None) -> float:
+    """Published / modelled catchment at the gauge: what the area model's figures are multiplied by to be real ones.
+    1 when there is no published area, or it is past `OWN_AREA_TRUST` from the model either way."""
+    if not area_gauge or not published_km2 or area_gauge <= 0 or published_km2 <= 0:
+        return 1.0
+    k = published_km2 / area_gauge
+    return k if 1.0 / OWN_AREA_TRUST <= k <= OWN_AREA_TRUST else 1.0
 
 
-def may_lead(area_target: float | None, area_gauge: float | None, distance_m: float) -> bool:
-    """Whether an own gauge this far along the water, this big against the tapped section, leads it."""
+def far_limit_km(area_target: float, area_gauge: float, scale: float = 1.0) -> float:
+    """How far along the water an own gauge may sit from the tapped section and still lead. The areas are the model's;
+    `scale` (`area_scale`) makes them the real catchments Hack's law speaks of."""
+    return max(OWN_FAR_MIN_KM, OWN_FAR_FRACTION * river_length_km(max(area_target, area_gauge) * scale))
+
+
+def may_lead(area_target: float | None, area_gauge: float | None, distance_m: float,
+             published_km2: float | None = None) -> bool:
+    """Whether an own gauge this far along the water, this big against the tapped section, leads it.
+
+    `area_*` are the area model's (as every weight is); `published_km2` is the gauge's published catchment
+    (`gauge.area_km2`), which only sets the scale of "far". "Much smaller" is a ratio, the same at either scale."""
     if not area_target or not area_gauge or area_target <= 0 or area_gauge <= 0:
         return False
     if area_target > area_gauge * OWN_SMALLER_RATIO:
         return False
-    return distance_m <= far_limit_km(area_target, area_gauge) * 1000.0
+    scale = area_scale(area_gauge, published_km2)
+    return distance_m <= far_limit_km(area_target, area_gauge, scale) * 1000.0
 
 
 def leader_of(ranks: list[int], weights: list[float]) -> int | None:

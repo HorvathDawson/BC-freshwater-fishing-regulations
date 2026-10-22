@@ -718,7 +718,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
             measures[st].add(param)
         panels = build_panels(graph, model, donors, water_of=owner,
                               live={s["station"] for s in stations if s.get("realtime")},
-                              measures=measures)
+                              measures=measures,
+                              published={s["station"]: s["area_km2"] for s in stations
+                                         if s.get("area_km2")})
         db.executemany("INSERT INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
                        [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
         db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?)",

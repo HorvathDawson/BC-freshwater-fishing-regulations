@@ -23,8 +23,8 @@ import pytest
 from pipeline.atlas.gauges import panel as P
 from pipeline.atlas.gauges.build_panels import build
 from pipeline.atlas.gauges.panel import (
-    MAX_MEMBERS, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_LEAD_SHARE, OWN_LEADS_PER_QUANTITY, OWN_SMALLER_RATIO,
-    far_limit_km, lead_shares,
+    MAX_MEMBERS, OWN_AREA_TRUST, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_LEAD_SHARE, OWN_LEADS_PER_QUANTITY,
+    OWN_SMALLER_RATIO, area_scale, far_limit_km, lead_shares,
     leader_of, may_lead, river_length_km,
 )
 from pipeline.tests.test_build_panels import MODEL, E, N, g
@@ -34,7 +34,8 @@ from pipeline.tests.test_build_panels import MODEL, E, N, g
 
 def test_the_defaults_are_the_ones_the_report_proposes():
     """handoff/PLAN/app-data/own-gauge/REPORT.md. Changing one is an owner decision, not a tidy-up."""
-    assert (OWN_LEAD_SHARE, OWN_SMALLER_RATIO, OWN_FAR_FRACTION, OWN_FAR_MIN_KM) == (0.7, 10.0, 0.2, 10.0)
+    assert (OWN_LEAD_SHARE, OWN_SMALLER_RATIO, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_AREA_TRUST) == (
+        0.7, 10.0, 0.2, 10.0, 10.0)
 
 
 # ------------------------------------------------------------------ what leading means
@@ -110,12 +111,43 @@ def combine_mid(values, lead=None):
 # ------------------------------------------------------------------ who may lead
 
 def test_far_scales_with_the_river():
-    """A fifth of the river's length at the larger of the two catchments (Hack's law), never under 10 km. On the
-    Fraser below Hope (63,113 km² in the area model) that is 193 km, so the lower Fraser is led by Hope; on a
-    100 km² creek it is the 10 km floor."""
+    """A fifth of the river's length at the larger of the two catchments (Hack's law), never under 10 km. At the
+    area model's own figures (no published scale) the Fraser below Hope (63,113 km²) gives 193 km; on a 100 km²
+    creek it is the 10 km floor. The published scale is `test_far_is_measured_at_the_published_catchment`."""
     assert round(river_length_km(60_356.3), 1) == 938.1
     assert round(far_limit_km(63_113.0, 60_356.3), 1) == 192.7
     assert far_limit_km(100.0, 80.0) == 10.0
+
+
+def test_far_is_measured_at_the_published_catchment():
+    """Hack's law speaks of real catchments; the area model runs 2-3.6x under them on big rivers. THE SIMILKAMEEN at
+    sid 316754 (3,193 km² modelled): Hedley, 08NL038, 47.2 km up, is 2,084 km² modelled and 5,568 published. At the
+    model's areas the limit is 32.2 km and Hedley is "far"; at the published scale (x2.671) it is 58.0 km and Hedley
+    leads. The Fraser below Hope (216,600 km² published, 60,356 modelled): 414.8 km, not 192.7."""
+    assert round(far_limit_km(3193.0, 2084.473), 1) == 32.2
+    assert round(area_scale(2084.473, 5568.0), 3) == 2.671
+    assert round(far_limit_km(3193.0, 2084.473, area_scale(2084.473, 5568.0)), 1) == 58.0
+    assert not may_lead(3193.0, 2084.473, 47_217.0)
+    assert may_lead(3193.0, 2084.473, 47_217.0, published_km2=5568.0)
+    assert round(far_limit_km(63_113.0, 60_356.3, area_scale(60_356.3, 216_600.0)), 1) == 414.8
+
+
+def test_a_published_catchment_below_the_model_shortens_far():
+    """The scale runs both ways: 5,000 km² modelled reaches 42.1 km; published at 2,000 it reaches 24.3 km."""
+    assert may_lead(5000.0, 5000.0, 40_000.0)
+    assert not may_lead(5000.0, 5000.0, 40_000.0, published_km2=2000.0)
+
+
+def test_a_published_catchment_past_the_trust_bound_is_not_believed():
+    """08MH028, a Fraser gauge publishing 232,000 km², is matched to a 1.42 km² stub: x163,265. The model is used as
+    it is (scale 1), so its reach is the 10 km floor, not the length of the Fraser."""
+    assert area_scale(1.421, 232_000.0) == 1.0
+    assert area_scale(100.0, 1000.0) == 10.0
+    assert area_scale(100.0, 10.0) == pytest.approx(0.1)
+    assert area_scale(100.0, 1001.0) == 1.0
+    assert area_scale(100.0, None) == 1.0
+    assert area_scale(100.0, 0.0) == 1.0
+    assert not may_lead(1.5, 1.421, 50_000.0, published_km2=232_000.0)
 
 
 def test_a_near_own_gauge_of_comparable_size_may_lead():
@@ -180,6 +212,26 @@ def test_a_far_own_gauge_gets_no_lead():
     graph, water = _river(n=10)
     panels = build(graph, MODEL, [("OWN", "s0", 40, False)], water_of=water)
     assert [_leads(panels, f"s{i}")["OWN"] for i in range(10)] == [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+
+
+def test_the_build_measures_far_at_the_published_catchment():
+    """The ten-section river again, its gauge publishing 9x the modelled 100 km²: the limit at s4 (104 km² modelled,
+    936 real) is 15.4 km, so s4 at 15 km now leads and s5 at 20 km does not."""
+    graph, water = _river(n=10)
+    panels = build(graph, MODEL, [("OWN", "s0", 40, False)], water_of=water, published={"OWN": 900.0})
+    assert [_leads(panels, f"s{i}")["OWN"] for i in range(10)] == [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
+
+
+def test_own_gauges_tied_on_distance_and_size_go_to_the_one_the_model_agrees_with():
+    """THE CHILLIWACK. 08MH016 (outlet of Chilliwack Lake, 335 km² published) and 08MH103 (above Slesse Creek, 650)
+    are both matched to sid 1235783, both 644 km² in the model, both 0 km away. Station order made the lake outlet
+    lead; the one whose published catchment agrees with the model at that section leads instead. Named here so
+    station order would pick the wrong one."""
+    graph, water = _river(n=2, mag=644)
+    donors = [("A_LAKE", "s0", 40, False), ("B_SLESSE", "s0", 40, False)]
+    panels = build(graph, MODEL, donors, water_of=water, published={"A_LAKE": 335.0, "B_SLESSE": 650.4})
+    assert _leads(panels, "s0") == {"A_LAKE": 2, "B_SLESSE": 1}
+    assert _leads(build(graph, MODEL, donors, water_of=water), "s0") == {"A_LAKE": 1, "B_SLESSE": 2}
 
 
 def test_a_much_smaller_own_gauge_gets_no_lead():
@@ -291,9 +343,21 @@ def _mutant(fn, old, new):
 
 
 def test_the_far_condition_is_what_holds_the_far_tests():
-    mutant = _mutant(may_lead, "distance_m <= far_limit_km(area_target, area_gauge) * 1000.0", "True")
+    mutant = _mutant(may_lead, "distance_m <= far_limit_km(area_target, area_gauge, scale) * 1000.0", "True")
     assert not may_lead(63_113.0, 9_245.7, 807_100.0)
     assert mutant(63_113.0, 9_245.7, 807_100.0)
+
+
+def test_the_published_scale_is_what_holds_the_published_far_test():
+    mutant = _mutant(may_lead, "scale = area_scale(area_gauge, published_km2)", "scale = 1.0")
+    assert may_lead(3193.0, 2084.473, 47_217.0, published_km2=5568.0)
+    assert not mutant(3193.0, 2084.473, 47_217.0, published_km2=5568.0)
+
+
+def test_the_trust_bound_is_what_holds_the_untrusted_test():
+    mutant = _mutant(area_scale, "if 1.0 / OWN_AREA_TRUST <= k <= OWN_AREA_TRUST else 1.0", "")
+    assert area_scale(1.421, 232_000.0) == 1.0
+    assert mutant(1.421, 232_000.0) == pytest.approx(232_000.0 / 1.421)
 
 
 def test_the_smaller_condition_is_what_holds_the_smaller_tests():
@@ -324,6 +388,14 @@ def test_the_per_quantity_limit_is_what_holds_the_candidate_test():
     measures = {**{f"G{i}": {"level"} for i in range(1, 6)}, "G0": {"discharge"}}
     got = mutant(graph, MODEL, donors, water_of=water, measures=measures)
     assert _leads(got, "s6") == {"G5": 1, "G4": 2, "G3": 3, "G2": 4, "G1": 5, "G0": 6}
+
+
+def test_the_published_tie_break_is_what_holds_the_chilliwack_test():
+    mutant = _build_mutant("abs(math.log(area_scale(by_station[st], pub.get(st)))), ", "")
+    graph, water = _river(n=2, mag=644)
+    donors = [("A_LAKE", "s0", 40, False), ("B_SLESSE", "s0", 40, False)]
+    got = mutant(graph, MODEL, donors, water_of=water, published={"A_LAKE": 335.0, "B_SLESSE": 650.4})
+    assert _leads(got, "s0") == {"A_LAKE": 1, "B_SLESSE": 2}
 
 
 def test_the_real_time_condition_is_what_holds_the_real_time_test():
