@@ -98,6 +98,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
+  NOT LIVE until deliver all. RUNNING own-gauge-leads wf_3c35e1af-596 (task wwqu8q52r); after it merges: ONE
+  `deliver all` via heavy.sh (alone, when T47/T49 agents are idle or done), then strict check + smoke.
 - ORDER AGREED (owner 2026-10-22 "ok happy"): A -> own gauge (flow only) + deliver all -> T47 -> T49 -> T44 -> Level view in
   Conditions layers -> T48 -> T45 -> T46 -> T38, T42, T43, T39, T40, T41 -> P14/P17 -> S2 -> D1 (phone) -> native engine.
   RUNNING wf_da80e97d-547 (task w2eqvy6x0): T47 part 1 (candidates for owner pick, no token change) + T49 calendar.
