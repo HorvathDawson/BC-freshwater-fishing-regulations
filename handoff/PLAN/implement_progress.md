@@ -28,7 +28,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
-- READY TO MERGE after the running reach/deliver chain finishes (it edits curated region-6.json, which reach reads):
+- MERGED (2026-10-22 afternoon, on redesign/stream-sections): pipeline cleanup lanes A+B (22 commits) + curated-pick
+  f2bc9fd3; T48 nav 349968b0+3f8c277f; T47 palette D daf61b67..5473776d; regs polish 459811a8+8421137b. Typecheck clean.
+  FULL CHECK + SMOKE PENDING until the rebuild chain finishes (memory). RUNNING: rebuild chain (2nd run, with the
+  curated pick; expect 0 binding changes) and icons-lucide wf_312e4dbd-8c1 (task wof4ijphk).
+  OWNER QUESTIONS (palette D): restricted near-black aubergine in light; base periwinkle; open no longer green.
+- (done) READY TO MERGE after the running reach/deliver chain finishes (it edits curated region-6.json, which reach reads):
   branch worktree-agent-a369ec71bb77b7d8f commit 3a64d300 "a curated pick outranks the general ambiguous-cut rule"
   (Extent.cut_pick; skeena_river_2 keeps the lower crossing). Then the NEXT reach rerun restores skeena_river_2's 5
   licensing sections; run test_skeena_river_2_keeps_the_reserves_lower_mainstem_crossing via heavy.sh with ATLAS_BUILD.
