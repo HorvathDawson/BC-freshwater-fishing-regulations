@@ -93,6 +93,16 @@ describe("a silent panel member", () => {
       + "Coal River (not a real-time gauge; last 3 Mar 2024) · Gone Creek (has never reported)");
   });
 
+  it("a file that could not be read (404, offline) is not known — never \"has never reported\"", () => {
+    const a = answer();
+    const rows = withLastReports(a.rows, new Map([["GONE", undefined]]));
+    expect(rows).toBe(a.rows);
+    const vm = donorView({ ...a, rows }, opts());
+    if (!vm.ok) throw new Error("expected an estimate");
+    expect(vm.silent).toBe("Not reporting: Liard River at Upper Crossing (last 14 Oct, 09:00 PDT) · "
+      + "Coal River (not a real-time gauge) · Gone Creek (last report not known)");
+  });
+
   it("on a day ahead, a member with no forecast is silent however fresh its last report", () => {
     // +3: only LEAD carries a forecast.
     const ahead = { ...INDEX, stations: { ...INDEX.stations,

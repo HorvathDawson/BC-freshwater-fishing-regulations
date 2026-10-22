@@ -207,8 +207,19 @@ describe("when a quiet gauge last reported (owner 2026-10-21)", () => {
     expect(await f.lastReport(S)).toBe("2026-09-25T21:35:00-08:00");
   });
 
-  it("is null, not a failure, when there is no file to ask", async () => {
-    const f = httpFeed("http://x/feeds/gauge", server({ "index.json": { fetchedAt: "x", stations: {} } }));
+  it("is undefined — not known, never \"nothing\" — when there is no file to ask or the network is not there", async () => {
+    // A 404 or an offline blip says nothing about the station's history: the silent line must not hear
+    // "has never reported" from it (review 2026-10-22).
+    const missing = httpFeed("http://x/feeds/gauge", server({ "index.json": { fetchedAt: "x", stations: {} } }));
+    expect(await missing.lastReport(S)).toBeUndefined();
+    const offline = httpFeed("http://x/feeds/gauge", (async () => { throw new TypeError("offline"); }) as never);
+    expect(await offline.lastReport(S)).toBeUndefined();
+  });
+
+  it("is null only when the station's own file was read and holds nothing", async () => {
+    const f = httpFeed("http://x/feeds/gauge", server({
+      "08MH001.json": { fetchedAt: "x", station: "08MH001",
+                        now: { discharge: null, level: null, at: null, percentile: null }, recent: [] } }));
     expect(await f.lastReport(S)).toBeNull();
   });
 });

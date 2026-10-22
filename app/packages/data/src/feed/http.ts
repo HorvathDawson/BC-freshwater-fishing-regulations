@@ -175,9 +175,11 @@ export interface GaugeFeed {
   /**
    * When the station last reported (ISO instant, or a bare "YYYY-MM-DD" when only a daily mean survives), from its own
    * file — read EVEN WHEN THE INDEX HAS DROPPED IT, because a dropped station is exactly the quiet one whose last report
-   * the reader asked for (owner 2026-10-21). Null when there is no file or nothing in it.
+   * the reader asked for (owner 2026-10-21). Null ONLY when the file was read and holds nothing — the station has no
+   * data at all. Undefined when the file could not be read (404, offline): that is "not known", never "nothing", and
+   * the silent line must not say "has never reported" from it (review 2026-10-22).
    */
-  lastReport(station: StationId): Promise<string | null>;
+  lastReport(station: StationId): Promise<string | null | undefined>;
   /**
    * (Owner 2026-10-22, the sync icon) Forget what was fetched, so the next ask goes to the network rather than the
    * short-lived cache. Optional: a feed with no cache (a fixture) has nothing to forget.
@@ -247,7 +249,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
     refresh() { cache.clear(); },
 
     async lastReport(station) {
-      return lastReportAt(await load<StationFile>(`${station}.json`));
+      const f = await load<StationFile>(`${station}.json`);
+      return f ? lastReportAt(f) : undefined;
     },
 
     async live() {
