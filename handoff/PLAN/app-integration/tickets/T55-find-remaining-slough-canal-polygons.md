@@ -1,4 +1,4 @@
-# T54 — Find the sloughs and canals still drawn as lakes (POSTPONED)
+# T55 — Find the sloughs and canals still drawn as lakes (POSTPONED)
 
 Owner 2026-10-22 (late), decisions.md "sloughs and canals look like streams in Conditions": the book treats sloughs and
 canals as streams. Many such polygons are already marked as stream items; "the rest are still to be found … and stays

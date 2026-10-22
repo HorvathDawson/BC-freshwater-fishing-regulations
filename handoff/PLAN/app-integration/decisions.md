@@ -643,7 +643,7 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   STREAM item's polygon the panel + target area of the nearest panelled line of the same water (downstream first,
   never another water's), keyed on the item's kind — the one colouring engine then paints it like its lines, with no
   app change. Lake items untouched. Needs a `pipeline.deliver` rerun (no tile/atlas/reach rebuild). Lines boxed
-  between polygons (Nicomen 59620) and finding the rest: T54.
+  between polygons (Nicomen 59620) and finding the rest: T55.
 - CLAUDE (review, measured on the REAL graph with the live `section_panel`, before any rebuild): the pass answers 38
   of the 45; the other 7 (Nation River 4, West Road (Blackwater) 2, Honna 1) sit among lines of their own water that are
   unanswered too — beyond lakes of other waters the walk may not cross — so they stay honestly grey with their lines.

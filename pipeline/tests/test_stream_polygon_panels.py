@@ -58,7 +58,7 @@ def _answers(panels) -> dict[str, tuple[tuple[str, ...], float | None]]:
 
 def test_a_stream_water_s_polygons_take_the_answer_of_its_line_below():
     """Whole value. The polygons paint like the slough; the lake stays a lake; `mid` keeps the walk's (non-)answer —
-    it is a line, and why the walk cannot reach it is the separate, postponed question (T54)."""
+    it is a line, and why the walk cannot reach it is the separate, postponed question (T55)."""
     graph, water_of, donors = _nicomen()
     panels = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
     assert _answers(panels) == {
