@@ -93,7 +93,7 @@ const look = () => {
   return `${bar}${on ? ` (${on})` : ""} | ${map} | ${up}`;
 };
 const BAR = "Map Conditions Spots More";
-const ROOT = `${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`;
+const ROOT = `${BAR} (Map) | pin none · fit none · camera 49.15,-121.85,10 | nothing`;
 const tab = (name: string) => act(() => { fireEvent.click(screen.getByRole("tab", { name })); });
 
 describe("spots and the rail, through the Shell (T48)", () => {
@@ -112,7 +112,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
     const asked = look();
     press("Cancel");
     expect([asked, look(), saved]).toEqual([
-      `${BAR} (Map) | pin 49.0974,-121.9675 · fit none · camera 49.15,-121.85,9.4 | drop sheet`, ROOT, []]);
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit none · camera 49.15,-121.85,10 | drop sheet`, ROOT, []]);
   });
 
   it("Android's back closes the drop sheet (and its pin) first, then at the root leaves the app", () => {
@@ -157,7 +157,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
       `${BAR} (Spots) | no map | spots tab`,
       `${BAR} (Spots) | no map | spot screen`,
       `${BAR} (Spots) | no map | spots tab`,
-      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing`,
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`,
       true, ROOT, false,
     ]);
   });
@@ -182,8 +182,8 @@ describe("spots and the rail, through the Shell (T48)", () => {
     press("Show Tamihi run on the map");
     tab("Conditions");
     expect([shown, returned, look()]).toEqual([
-      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,9.4 | nothing`, ROOT,
-      `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,9.4 | nothing`,
+      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`, ROOT,
+      `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,10 | nothing`,
     ]);
   });
 

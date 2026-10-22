@@ -61,15 +61,19 @@ describe("each source stops where its archive stops", () => {
         .map(([k, v]) => [k, v.maxzoom ?? "none"]));
       const imagery = (JSON.parse(read("app/packages/map/style/layers.source.json")) as
         { sources: Record<string, Src> }).sources.imagery.maxzoom;
-      const want = { atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, imagery };
+      // THE FIELD'S SOURCE stops where the archive's BASINS stop (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in the tile
+      // builder), so MapLibre overzooms the last tile that carries them up to the field's handover rather than asking for
+      // deeper tiles with no basins in them — a field that vanished a zoom early (refinement pass, 2026-10-22).
+      const basins = pyConst("pipeline/deliver/tiles/layers.py", "BASIN_HANDOVER_Z") - 1;
+      const want = { atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, basins, imagery };
       expect({ web: tiled(web), phone: tiled(phone) }).toEqual({ web: want, phone: want });
       // OUR ARCHIVES stop short of the camera. The satellite imagery is Esri's live service (owner 2026-10-21), not an
       // archive of ours: its maxzoom is Esri's (z19; its tiles are 256 px, so the z18 camera asks for z19 tiles —
       // measured in the web check, handoff/PLAN/app-data/satellite/esri/results.json), and where it has none the source's `blankTile=false` answers 404 and MapLibre overzooms the parent
       // (tools/imagery.test.ts pins the URL).
       expect({ atlas: want.atlas < CAMERA_MAX_ZOOM, basemap: want.basemap < CAMERA_MAX_ZOOM,
-               imagery: imagery >= CAMERA_MAX_ZOOM })
-        .toEqual({ atlas: true, basemap: true, imagery: true });
+               basins: basins < STYLE_META.field!.handover, imagery: imagery >= CAMERA_MAX_ZOOM })
+        .toEqual({ atlas: true, basemap: true, basins: true, imagery: true });
     });
 
   it("a fit stops at the atlas's deepest zoom; the camera goes four past it", () => {

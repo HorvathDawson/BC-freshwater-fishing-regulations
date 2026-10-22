@@ -65,8 +65,6 @@ export interface MapChrome {
    * no colour to set — the image has to be inverted. `"none"` on light.
    */
   iconFilter: string;
-  /** The scale bar's panel. Translucent, so the map still reads through it. */
-  scaleBg: string;
 }
 
 export interface MapProps {

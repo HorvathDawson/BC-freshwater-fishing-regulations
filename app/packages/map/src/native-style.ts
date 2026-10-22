@@ -24,7 +24,7 @@ import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { applyLook, type Look } from "./look";
 import { runtimeStyle, type TileEndpoints } from "./runtime-style";
 import { colour } from "./chrome";
-import { SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
+import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
 import { STYLE_META } from "./style";
 
 type Json = Record<string, unknown>;
@@ -51,7 +51,7 @@ export function areaLayer(layerId: string): boolean {
   const prop = STYLE_META.featureIds[layerId];
   if (prop === undefined || prop === "section_id") return false;
   const t = stateTarget(layerId);
-  return t?.source === "atlas" && !SECTION_SOURCE_LAYERS.includes(t.sourceLayer);
+  return t !== null && ATLAS_SOURCES.includes(t.source) && !SECTION_SOURCE_LAYERS.includes(t.sourceLayer);
 }
 
 /** Every `["feature-state", key]` in `expr` replaced by `lookup(key)`. */
@@ -112,8 +112,7 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
   const imagery = s.sources.imagery;
   if (imagery && o.basemap !== "satellite") delete imagery.attribution;
 
-  const atlas = s.sources.atlas;
-  if (atlas) delete atlas.promoteId;
+  for (const id of ATLAS_SOURCES) if (s.sources[id]) delete s.sources[id]!.promoteId;
   for (const l of s.layers) {
     if (l.paint && "fill-pattern" in l.paint) {
       const { "fill-pattern": _dropped, ...rest } = l.paint;

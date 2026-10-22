@@ -58,5 +58,5 @@ export function applyLook(adapter: MapAdapter, h: MapHandle, has: (layerId: stri
   for (const [id, on] of Object.entries(look.groups ?? {})) {
     try { adapter.setGroupVisible(h, id, on); } catch (e) { report(asError(e)); }
   }
-  if (look.basemap !== undefined) adapter.setBasemap(h, look.basemap);
+  if (look.basemap !== undefined) adapter.setBasemap(h, look.basemap, theme);
 }

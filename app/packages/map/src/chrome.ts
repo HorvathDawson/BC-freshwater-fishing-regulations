@@ -60,8 +60,5 @@ export function mapChrome(theme: string): MapChrome {
     // are black on near-black. There is no colour property to change — the image has to be
     // inverted.
     iconFilter: darkGround(theme) ? "invert(1)" : "none",
-    // Translucent: the scale bar sits over the map and the map should read through it,
-    // which is what OpenStreetMap's own bar does.
-    scaleBg: translucent(theme, "color.ui.card", "opacity.ui.scale"),
   };
 }

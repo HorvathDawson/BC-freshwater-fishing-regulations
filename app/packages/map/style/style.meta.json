@@ -93,7 +93,11 @@
       },
       "hide": [
         "mu",
-        "region"
+        "mu__edge",
+        "mu__label",
+        "region",
+        "region__edge",
+        "region__label"
       ],
       "show": [
         "stream__arrows"
@@ -1308,7 +1312,7 @@
         "label": "indigenous_land label",
         "scale": "static",
         "color": {
-          "token": "color.indigenous.fill"
+          "token": "color.label.place"
         }
       }
     },
@@ -1317,7 +1321,7 @@
         "label": "no_access label",
         "scale": "static",
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         }
       }
     },
@@ -1326,7 +1330,7 @@
         "label": "no_access_permit label",
         "scale": "static",
         "color": {
-          "token": "color.status.restricted"
+          "token": "color.label.place"
         }
       }
     },
@@ -1335,7 +1339,7 @@
         "label": "eco_reserve label",
         "scale": "static",
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         }
       }
     },
@@ -1344,7 +1348,7 @@
         "label": "park label",
         "scale": "static",
         "color": {
-          "token": "color.park.edge"
+          "token": "color.label.place"
         }
       }
     },
@@ -1353,7 +1357,7 @@
         "label": "park_closed label",
         "scale": "static",
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         }
       }
     },
@@ -1592,10 +1596,78 @@
     },
     "parcel_private__edge": "width.parcel.edge",
     "indigenous_land__edge": "width.admin.edge",
-    "no_access__edge": "width.closure.edge",
-    "no_access_permit__edge": "width.closure.edge",
-    "eco_reserve__edge": "width.closure.edge",
-    "park_closed__edge": "width.closure.edge",
+    "no_access__edge": {
+      "token": "width.closure.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          0.6
+        ],
+        [
+          13,
+          1.2
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    },
+    "no_access_permit__edge": {
+      "token": "width.closure.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          0.6
+        ],
+        [
+          13,
+          1.2
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    },
+    "eco_reserve__edge": {
+      "token": "width.closure.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          0.6
+        ],
+        [
+          13,
+          1.2
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    },
+    "park_closed__edge": {
+      "token": "width.closure.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          0.6
+        ],
+        [
+          13,
+          1.2
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    },
     "lake__edge": {
       "token": "width.stream.base",
       "by": "area_m2",
@@ -1630,6 +1702,80 @@
     "region__edge": "width.region.edge",
     "mu__edge": "width.admin.edge"
   },
+  "opacityRamps": {
+    "no_access": [
+      [
+        6,
+        0.45
+      ],
+      [
+        9,
+        0.7
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        16,
+        0.8
+      ]
+    ],
+    "no_access_permit": [
+      [
+        6,
+        0.45
+      ],
+      [
+        9,
+        0.7
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        16,
+        0.8
+      ]
+    ],
+    "eco_reserve": [
+      [
+        6,
+        0.45
+      ],
+      [
+        9,
+        0.7
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        16,
+        0.8
+      ]
+    ],
+    "park_closed": [
+      [
+        6,
+        0.45
+      ],
+      [
+        9,
+        0.7
+      ],
+      [
+        12,
+        1
+      ],
+      [
+        16,
+        0.8
+      ]
+    ]
+  },
   "opacities": {
     "parcel_private": "opacity.parcel",
     "indigenous_land": "opacity.admin.area",
@@ -1651,67 +1797,90 @@
     "under_lake": "dash.route",
     "mu__edge": "dash.mu"
   },
+  "field": {
+    "layer": "basin",
+    "handover": 10,
+    "drawnIn": [
+      "standing"
+    ],
+    "covers": {
+      "stream": 0,
+      "stream__label": 11,
+      "stream__arrows": 10,
+      "lake": 0,
+      "lake__edge": 0,
+      "lake__label": 8,
+      "lake_flowing": 0,
+      "wetland": 0,
+      "wetland_flowing": 0,
+      "under_lake": 0,
+      "contour": 0,
+      "stream-nobaseline": 0,
+      "water_river": 9
+    }
+  },
   "minzoomByMode": {
     "wetland_flowing": {
-      "standing": 9
+      "standing": 10
     },
     "lake": {
-      "standing": 9
+      "standing": 10
     },
     "lake_flowing": {
-      "standing": 9
+      "standing": 10
     },
     "stream": {
-      "standing": 9
+      "standing": 10
     }
   },
   "edgeOpacities": {
+    "parcel_private__edge": "opacity.parcel.edge",
     "indigenous_land__edge": "opacity.admin.edge",
-    "no_access__edge": "opacity.admin.edge",
-    "no_access_permit__edge": "opacity.admin.edge",
-    "eco_reserve__edge": "opacity.admin.edge",
-    "park_closed__edge": "opacity.admin.edge"
+    "no_access__edge": "opacity.closure.edge",
+    "no_access_permit__edge": "opacity.closure.edge",
+    "eco_reserve__edge": "opacity.closure.edge",
+    "park_closed__edge": "opacity.closure.edge"
   },
   "labelHalos": {
     "indigenous_land__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "no_access__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "no_access_permit__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "eco_reserve__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "park__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "park_closed__label": {
       "color": "color.outside",
-      "width": 1.6
+      "width": 1.4
     },
     "lake__label": {
       "color": "color.outside",
-      "width": 1.2
+      "width": 1.4
     },
     "stream__label": {
       "color": "color.outside",
-      "width": 2
+      "width": 1.5
     },
     "region__label": {
       "color": "color.outside",
-      "width": 2.5
+      "width": 2
     },
     "mu__label": {
       "color": "color.outside",
-      "width": 2
+      "width": 1.8
     },
     "stream__arrows": {
       "color": "color.outside",
@@ -1722,37 +1891,37 @@
     "no_access": {
       "token": "color.status.closed",
       "ground": 0,
-      "stripe": 0.55,
+      "stripe": 0.6,
       "darken": 0,
-      "spacing": 11,
-      "weight": 1.3,
+      "spacing": 8,
+      "weight": 1,
       "cross": true
     },
     "no_access_permit": {
       "token": "color.status.restricted",
       "ground": 0,
-      "stripe": 0.55,
+      "stripe": 0.6,
       "darken": 0,
-      "spacing": 11,
-      "weight": 1.3,
-      "cross": true
+      "spacing": 6,
+      "weight": 1.2,
+      "cross": false
     },
     "eco_reserve": {
       "token": "color.status.closed",
       "ground": 0,
-      "stripe": 0.55,
+      "stripe": 0.6,
       "darken": 0,
-      "spacing": 11,
-      "weight": 1.3,
+      "spacing": 8,
+      "weight": 1,
       "cross": true
     },
     "park_closed": {
       "token": "color.status.closed",
       "ground": 0,
-      "stripe": 0.55,
+      "stripe": 0.6,
       "darken": 0,
-      "spacing": 10,
-      "weight": 1.6,
+      "spacing": 8,
+      "weight": 1,
       "cross": false
     },
     "wetland": {
@@ -1814,10 +1983,10 @@
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
-      "color.label.water": "#123C63",
+      "color.label.water": "#0030B8",
       "color.parcel.private": "#6E5140",
-      "opacity.parcel": 0.22,
-      "width.parcel.edge": 1.5,
+      "opacity.parcel": 0.1,
+      "width.parcel.edge": 0.8,
       "color.region.edge": "#8B857F",
       "width.region.edge": 3,
       "opacity.admin.fill": 0.04,
@@ -1829,7 +1998,7 @@
       "opacity.closure": 0.55,
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
-      "width.closure.edge": 1.6,
+      "width.closure.edge": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
       "color.stock.season": "#00224E",
@@ -1862,7 +2031,12 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
-      "opacity.ui.scale": 0.78
+      "opacity.parcel.edge": 0.5,
+      "opacity.closure.edge": 0.85,
+      "color.ui.imagery.label": "#FAFBF8",
+      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.halo": "#0B0E10",
+      "color.label.minor": "#8B857F"
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
@@ -1912,10 +2086,10 @@
       "color.water.ungauged": "#39434B",
       "color.mask": "#595956",
       "opacity.route": 0.4,
-      "color.label.water": "#A8CDF2",
-      "color.parcel.private": "#D6A08A",
-      "opacity.parcel": 0.24,
-      "width.parcel.edge": 1.5,
+      "color.label.water": "#C8D0F0",
+      "color.parcel.private": "#C49377",
+      "opacity.parcel": 0.08,
+      "width.parcel.edge": 0.8,
       "color.region.edge": "#B8B8B8",
       "width.region.edge": 3,
       "opacity.admin.fill": 0.06,
@@ -1927,7 +2101,7 @@
       "opacity.closure": 0.6,
       "opacity.park": 0.14,
       "opacity.admin.area": 0.16,
-      "width.closure.edge": 1.6,
+      "width.closure.edge": 1,
       "opacity.admin.edge": 0.45,
       "opacity.basin": 0.55,
       "color.stock.season": "#2ED573",
@@ -1960,7 +2134,12 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.85,
       "opacity.ui.scrim": 0.28,
-      "opacity.ui.scale": 0.72
+      "opacity.parcel.edge": 0.42,
+      "opacity.closure.edge": 0.85,
+      "color.ui.imagery.label": "#FAFBF8",
+      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.halo": "#0B0E10",
+      "color.label.minor": "#B8B8B8"
     },
     "light": {
       "color.water.mapped": "#4A90E2",
@@ -2010,10 +2189,10 @@
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
-      "color.label.water": "#0D47A1",
-      "color.parcel.private": "#7A4A3A",
-      "opacity.parcel": 0.22,
-      "width.parcel.edge": 1.5,
+      "color.label.water": "#0820A8",
+      "color.parcel.private": "#9A6A4E",
+      "opacity.parcel": 0.1,
+      "width.parcel.edge": 0.8,
       "color.region.edge": "#7F7C79",
       "width.region.edge": 3,
       "opacity.admin.fill": 0.04,
@@ -2025,7 +2204,7 @@
       "opacity.closure": 0.55,
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
-      "width.closure.edge": 1.6,
+      "width.closure.edge": 1,
       "opacity.admin.edge": 0.35,
       "opacity.basin": 0.55,
       "color.stock.season": "#12873F",
@@ -2058,7 +2237,12 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
-      "opacity.ui.scale": 0.78
+      "opacity.parcel.edge": 0.5,
+      "opacity.closure.edge": 0.85,
+      "color.ui.imagery.label": "#FAFBF8",
+      "color.ui.imagery.label-water": "#D3EBFF",
+      "color.ui.imagery.halo": "#0B0E10",
+      "color.label.minor": "#7F7C79"
     }
   },
   "tokens": {
@@ -2265,7 +2449,7 @@
     "color.label.water": {
       "type": "color",
       "themeable": true,
-      "$comment": "Every water name, stream and lake alike. ONE token, not two: v1 drew rivers in #0D47A1 and lakes in #1565C0, which is a distinction a reader cannot make and does not need — the shape under the word already says which it is. Darker than the water it names, so the name reads as a caption rather than as another channel."
+      "$comment": "Every water name, stream and lake alike. ONE token, not two: v1 drew rivers in #0D47A1 and lakes in #1565C0, which is a distinction a reader cannot make and does not need — the shape under the word already says which it is. Darker than the water it names, so the name reads as a caption rather than as another channel. MOVED IN THE REFINEMENT PASS (2026-10-22): #0D47A1 / #A8CDF2 / #123C63 sat 7.0 from status.open under tritanopia (light) and under 12 from restricted or open in every theme, so a water name could read as a status; now each holds the build floor of 12 from all five statuses for the worst reader, and 4.5:1 on the paper (tools/label-colours.test.ts)."
     },
     "color.parcel.private": {
       "type": "color",
@@ -2275,12 +2459,12 @@
     "opacity.parcel": {
       "type": "number",
       "themeable": true,
-      "$comment": "A WASH, and a faint one. Ownership covers essentially all the land, so it sits under every other overlay; anything heavier and the water it exists to get you to disappears under it."
+      "$comment": "A WASH, and a faint one — fainter since the refinement pass (owner 2026-10-22: abrasive when on). Ownership covers much of the settled land, so it sits under every other overlay; anything heavier and the water it exists to get you to disappears under it."
     },
     "width.parcel.edge": {
       "type": "number",
       "themeable": false,
-      "$comment": "The border carries the shape at this opacity — the fill alone is too faint to read a boundary from."
+      "$comment": "A HAIRLINE. It was 1.5 px at full strength and drew every titled lot in the Fraser Valley as a brown fence; the shape reads from a hairline at `opacity.parcel.edge`."
     },
     "color.region.edge": {
       "type": "color",
@@ -2310,7 +2494,7 @@
     "opacity.closure": {
       "type": "number",
       "themeable": true,
-      "$comment": "v1's hatch fill-opacity, and it is FOUR TIMES what this started at. The stripe carries its own alpha (0.55) and this multiplies it, so 0.16 gave an effective 0.09 — a closure you had to go looking for. v1 shipped 0.50-0.60 and was right: this is the one mark on the map that has to be seen before the reader has decided to look."
+      "$comment": "The hatch's fill-opacity at its strongest (z12, `opacity.ramp` on the layer thins it zoomed out). v1's value: the stripe carries its own alpha (0.55) and this multiplies it. This is the one mark on the map that has to be seen before the reader has decided to look — and zoomed out, where a closure is a few pixels of dense weave, it is thinned so it stays a mark rather than a smudge."
     },
     "opacity.park": {
       "type": "number",
@@ -2324,7 +2508,7 @@
     "width.closure.edge": {
       "type": "number",
       "themeable": false,
-      "$comment": "Heavier than an ordinary admin edge. Crossing this line changes what you may do; crossing a provincial park's does not, which is why that one has no edge at all."
+      "$comment": "Scales the closure edge's zoom curve (`outline.width.ramp` on the closed and permit layers): a hairline where the edge first appears at z10, firm by street scale. Heavier than an ordinary admin edge close in — crossing this line changes what you may do; crossing a provincial park's does not, which is why that one has no edge at all."
     },
     "opacity.admin.edge": {
       "type": "number",
@@ -2481,10 +2665,35 @@
       "themeable": true,
       "$comment": "the scrim behind a bottom sheet"
     },
-    "opacity.ui.scale": {
+    "color.ui.imagery.label": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "EVERY NAME OVER SATELLITE IMAGERY — light text on a dark halo, whatever the theme. Aerial photography is a dark, busy ground in both themes; the light theme's dark-on-paper names sat on it as pale stickers (owner 2026-10-22: labels must read in every mode). Not themeable, like the other imagery swatches: the ground it is chosen for does not change with the theme. `ui` so the map-token ΔE gate does not compare it with colours it is never beside."
+    },
+    "color.ui.imagery.label-water": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "Water names over satellite imagery: the imagery label's light ink with the water names' blue cast, so a river's name still reads as WATER over a photograph."
+    },
+    "color.ui.imagery.halo": {
+      "type": "color",
+      "themeable": false,
+      "$comment": "The halo behind every name over satellite imagery: near-black, so light text is cut out of any ground — snow, cloud, a gravel bar."
+    },
+    "opacity.parcel.edge": {
       "type": "number",
       "themeable": true,
-      "$comment": "the map's scale-bar panel: the card, translucent, so the map reads through it"
+      "$comment": "PRIVATE LAND'S BOUNDARY, as a hairline (owner 2026-10-22: \"private land is very abrasive when turned on\"). The fill is a tint you read past; the edge is where the land changes hands, and at this opacity it says so without drawing every lot line in the valley as a hard brown fence."
+    },
+    "opacity.closure.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "A CLOSED OR PERMIT AREA'S EDGE, close in: crisp, because crossing it changes what you may do. The hatch carries the area at a distance; from z10 the edge says exactly where it runs."
+    },
+    "color.label.minor": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "THE QUIET NAMES: roads, addresses, neighbourhoods, the province's own name, and the basemap's points of interest (runtime-style.ts paints the Protomaps labels with it). One neutral grey for everything that is orientation rather than an answer — Protomaps drew points of interest in its own greens and a station blue a step from `status.base`, so a bus stop's name read like water with base regulations. The boundary's own grey (an alias): the two are the same kind of quiet, and a second grey that close would be a second meaning nobody could see."
     }
   },
   "enums": {

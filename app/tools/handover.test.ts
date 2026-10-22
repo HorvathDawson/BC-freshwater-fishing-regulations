@@ -1,25 +1,30 @@
 /**
- * ONE ZOOM, THREE PLACES, held equal by this test.
+ * ONE ZOOM, HELD EQUAL BY THIS TEST.
  *
- * Below the handover the Conditions map is a field of catchments; above it, rivers. Three
- * separate things have to agree about where that line is:
+ * Below the handover the Conditions map is a field of catchments; above it, rivers. The
+ * places that have to agree about where that line is:
  *
- *   the TILE BUILDER  stops writing basin polygons above it   (BASIN_HANDOVER_Z)
- *   the STYLE         stands the rivers down below it         (minzoomByView)
+ *   the STYLE         ends the field there and stands the rivers down below it
+ *                     (the basin layer's maxzoom, `minzoomByMode`, `field.handover`)
  *   the APP           refuses taps below it                   (HANDOVER_Z)
+ *   the TILE BUILDER  writes basin polygons up to a zoom AT OR BELOW it (BASIN_HANDOVER_Z - 1),
+ *                     and the field's own source stops exactly there, so MapLibre overzooms
+ *                     the last tile that carries basins up to the handover. z10 since the
+ *                     refinement pass (owner 2026-10-22: the watershed colouring "at a slightly
+ *                     higher zoom"); the tiles still stop at z8.
  *
- * Disagree by one and the map has a zoom where nothing is drawn, or one where two answers
- * are drawn over each other and the smaller wins by being on top. Neither failure throws.
+ * Disagree and the map has a zoom where nothing is drawn, or one where two answers are
+ * drawn over each other and the smaller wins by being on top. Neither failure throws.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { STYLE_META } from "@app/map";
+import { STYLE_META, baseAdapter, type MapHandle } from "@app/map";
 // The style itself is not exported — it is the generated artifact, and reading
 // it here is reading what actually ships rather than a re-export of it.
 const MAP_STYLE = JSON.parse(
   readFileSync(new URL("../packages/map/style/style.json", import.meta.url)
-    .pathname, "utf8")) as { layers: { id: string; maxzoom?: number }[] };
+    .pathname, "utf8")) as { layers: { id: string; maxzoom?: number }[]; sources: Record<string, unknown> };
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PY = `${ROOT}.venv/bin/python`;
@@ -55,8 +60,8 @@ describe("the basin/river handover", () => {
      * which is exactly what happened: the field was built, the tiles carried it, and the
      * rivers stayed drawn over the top of it at every zoom.
      */
-    expect(STYLE_META.minzoomByMode.stream).toEqual({ standing: 9 });
-    expect(STYLE_META.minzoomByMode.lake).toEqual({ standing: 9 });
+    expect(STYLE_META.minzoomByMode.stream).toEqual({ standing: 10 });
+    expect(STYLE_META.minzoomByMode.lake).toEqual({ standing: 10 });
     // Under closure or plain they keep the style's own floor — switching to Regulations at
     // z6 must not show a province with no rivers on it.
     expect(STYLE_META.minzoomByMode.stream!.closure).toBeUndefined();
@@ -114,6 +119,7 @@ describe("the basin/river handover", () => {
      * from it, and there is no zoom that is both or neither.
      */
     expect(basin.maxzoom).toBe(app);
+    expect(STYLE_META.field!.handover).toBe(app);
     expect(STYLE_META.minzoomByMode.stream!.standing).toBe(app);
   });
 
@@ -131,9 +137,57 @@ describe("the basin/river handover", () => {
 
   it.skipIf(!has)("agrees with the tile builder, which decides what exists at all", () => {
     const py = fromPipeline();
-    expect(py.handover).toBe(fromShell());
+    const sources = MAP_STYLE.sources as Record<string, { url?: string; maxzoom?: number }>;
+    const basin = MAP_STYLE.layers.find((l) => l.id === "basin") as { source?: string };
+    // THE FIELD'S SOURCE STOPS WHERE THE BASINS STOP: one zoom deeper and MapLibre asks the archive for tiles with no
+    // basins in them, and the field vanishes before the rivers come back.
+    expect(sources[basin.source!]).toMatchObject({ url: "pmtiles://atlas", maxzoom: py.basinMax });
     expect(py.basinMax).toBe(py.handover - 1);
+    // and the handover is at or past the tiles' own: overzooming carries the field forward, never back
+    expect(fromShell()).toBeGreaterThanOrEqual(py.handover);
     // And the field must reach the zoom the map opens at its widest.
     expect(py.basinMin).toBeLessThanOrEqual(4);
+  });
+
+  /** A handle that records each layer's floor and visibility as the adapter sets them. */
+  const recorder = () => {
+    const floor: Record<string, number> = {};
+    const shown: Record<string, boolean> = {};
+    const h: MapHandle = {
+      setVisibility: (id, v) => { shown[id] = v; },
+      setPaint: () => {},
+      setFeatureState: () => {},
+      clearFeatureStates: () => {},
+      setZoomRange: (id, z) => { floor[id] = z; },
+    };
+    return { h, floor, shown };
+  };
+
+  it("draws nothing under the field: every water layer, name, outline and dash starts where it stops", () => {
+    // owner 2026-10-22: "make it so the lakes and streams etc disappear when it is visible". Under the field before:
+    // the lake outlines, the lake names from z8, the no-baseline dashes and the basemap's rivers.
+    const a = baseAdapter("web");
+    const { h, floor, shown } = recorder();
+    a.setLayerMode(h, "stream", "standing", "light");
+    a.setLayerMode(h, "lake", "standing", "light");
+    a.setLayerMode(h, "basin", "standing", "light");
+    expect(shown.basin).toBe(true);
+    expect(floor).toEqual({
+      stream: 10, "selection-casing": 10, stream__arrows: 10, lake: 10, lake__edge: 10,
+      "stream-nobaseline": 10, water_river: 10, stream__label: 11, lake__label: 10, lake_flowing: 10,
+      wetland: 10, wetland_flowing: 10, under_lake: 10, contour: 10,
+    });
+  });
+
+  it("releases every floor with the field, and does not draw it in plain", () => {
+    // `plain` is the Map tab and the temperature view: the basin layer's plain colour was a #D5D5D5 wash at 0.55 over
+    // the whole province below z9 on the Map tab. Not drawn, and not fetched.
+    const a = baseAdapter("web");
+    const { h, floor, shown } = recorder();
+    a.setLayerMode(h, "basin", "standing", "light");
+    a.setLayerMode(h, "stream", "plain", "light");
+    a.setLayerMode(h, "basin", "plain", "light");
+    expect(shown.basin).toBe(false);
+    expect(floor).toMatchObject({ stream: 0, "stream-nobaseline": 0, water_river: 9, lake__label: 8, wetland: 0 });
   });
 });

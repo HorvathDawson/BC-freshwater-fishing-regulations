@@ -17,9 +17,10 @@
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
-import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers } from "./style";
+import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { casingPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
+import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
 
 export interface TileEndpoints {
   /** Where the two archives are served from, with byte-range support. */
@@ -164,7 +165,7 @@ function rampExpression(theme: string): unknown {
 }
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
-function splitBasemap(flavor: Parameters<typeof basemapLayers>[1]) {
+function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
   /*
    * THE BASEMAP'S OWN PARKS COME OUT — AND NOTHING ELSE DOES.
    *
@@ -203,9 +204,16 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1]) {
       ? { ...l, filter: (l.filter as unknown[]).filter(
             (v) => typeof v !== "string" || !OURS_NOW.includes(v)) }
       : l));
-  const i = all.findIndex((l) => l.type === "symbol");
-  return i < 0 ? { below: all, labels: [] as typeof all }
-               : { below: all.slice(0, i), labels: all.slice(i) };
+  /*
+   * AND ITS NAMES WEAR OUR INKS (`labels.ts`): one label style across the map, the basemap's included. Painted for the
+   * drawn ground here; `setBasemap` repaints them for imagery and back.
+   */
+  const named = all.map((l) => (BASEMAP_LABELS.includes(l.id)
+    ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
+    : l));
+  const i = named.findIndex((l) => l.type === "symbol");
+  return i < 0 ? { below: named, labels: [] as typeof named }
+               : { below: named.slice(0, i), labels: named.slice(i) };
 }
 
 /**
@@ -227,6 +235,21 @@ function externalRasters(imagery?: string): Record<string, Record<string, unknow
     }]));
 }
 
+/**
+ * Every vector source the generated style declares besides `atlas` — the field's `basins` — pointed at the atlas archive
+ * with its own maxzoom, and promoting its layers' ids as `atlas` does (feature-state is how the field is coloured).
+ */
+function fieldSources(atlasUrl: string): Record<string, Record<string, unknown>> {
+  return Object.fromEntries(Object.entries(MAP_STYLE.sources as Record<string, { type?: string; url?: string; maxzoom?: number }>)
+    .filter(([id, s]) => id !== "atlas" && s.type === "vector" && s.url === "pmtiles://atlas")
+    .map(([id, s]) => [id, {
+      type: "vector" as const, url: `pmtiles://${atlasUrl}`, maxzoom: s.maxzoom,
+      promoteId: Object.fromEntries((MAP_STYLE.layers as { id: string; source?: string; "source-layer"?: string }[])
+        .filter((l) => l.source === id && STYLE_META.featureIds[l.id] !== undefined)
+        .map((l) => [l["source-layer"] ?? l.id, STYLE_META.featureIds[l.id]!])),
+    }]));
+}
+
 /** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
 const isRaster = (l: { type?: string }) => l.type === "raster";
 
@@ -235,7 +258,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
   // hues changed, not the ground under them, so cvd rides on the light ground.
   const flavor = namedFlavor(theme === "dark" ? "black" : "light");
-  const { below: baseBelowLabels, labels: baseLabels } = splitBasemap(flavor);
+  const { below: baseBelowLabels, labels: baseLabels } = splitBasemap(flavor, resolveTheme(theme));
   const paper = resolveTheme(theme)["color.outside"] as string;
   // A lake's outline takes the lake's mode on the FIRST frame too — see `withFollowers`.
   const layerModes = withFollowers(modes);
@@ -305,6 +328,12 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
               prop,
             ])),
       },
+      /*
+       * THE FIELD'S OWN SOURCE: the same archive, stopped at the last zoom it carries basins at, so MapLibre overzooms
+       * those tiles up to the handover instead of asking for deeper ones that have none (`sources.basins` in
+       * layers.source.json says why). Only the basin layer reads it, and only while the field is drawn.
+       */
+      ...fieldSources(at.atlas),
       // THE ROUTE OVERLAY's two sources, empty until a panel fills them — see trace-overlay.ts.
       ...traceSources(),
     },
@@ -406,7 +435,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
         const view = defaultView();
         const mode = layerModes[l.id] ?? view?.modes[l.id];
-        const painted = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
+        const coloured = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
+        // THE FIELD IS NOT DRAWN outside the modes it draws in — on the first frame too (`fieldMoved` in the adapter)
+        const painted = l.id === STYLE_META.field?.layer && !(STYLE_META.field.drawnIn).includes(mode ?? "")
+          ? { ...coloured, layout: { ...(coloured as { layout?: Record<string, unknown> }).layout, visibility: "none" } } as unknown as typeof coloured
+          : coloured;
         /*
          * THE GLOW IS GONE, AND THE FIELD IS WHY.
          *

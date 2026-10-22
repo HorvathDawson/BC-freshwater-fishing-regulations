@@ -343,18 +343,22 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         ))}
       </MLMap>
       {bare ? null : (
-        // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-right, a heavy rule on three sides, the
-        // distance inside it in our ink, so the bar's LENGTH is the measurement and the number only names it.
+        // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-right, a RULER — a hairline with a tick at
+        // each end, the distance above its left end, a paper halo and no box — so the bar's LENGTH is the measurement
+        // and the number only names it.
         // A SIBLING of the map, positioned in the map's own container — NOT a wrapper View around the map: wrapped,
         // the map's surface left a black rectangle over the next screen on Android when it unmounted (emulator, N2
         // review; the unwrapped map does not)
         <View pointerEvents="none" accessibilityLabel="scale"
-              style={{ position: "absolute", right: 10, bottom: 24, width: Math.round(scale.width),
-                       borderWidth: 2, borderTopWidth: 0, borderColor: furniture.ink,
-                       backgroundColor: furniture.scaleBg, paddingHorizontal: 5, paddingBottom: 2, paddingTop: 1 }}>
+              style={{ position: "absolute", right: 10, bottom: 24, width: Math.round(scale.width) }}>
           <Text numberOfLines={1}
-                style={{ color: furniture.ink, fontSize: 10, lineHeight: 13.5, letterSpacing: 0.6,
-                         fontFamily: "Archivo_700Bold", textAlign: "center" }}>{scale.label}</Text>
+                style={{ color: furniture.ink, fontSize: 11, lineHeight: 13, letterSpacing: 0.2, paddingLeft: 4,
+                         marginBottom: 2, fontFamily: "Archivo_600SemiBold", fontVariant: ["tabular-nums"],
+                         textShadowColor: furniture.card, textShadowRadius: 2, textShadowOffset: { width: 0, height: 0 } }}>
+            {scale.label}
+          </Text>
+          <View style={{ height: 7, borderLeftWidth: 1.5, borderRightWidth: 1.5, borderBottomWidth: 1.5,
+                         borderColor: furniture.ink }} />
         </View>
       )}
     </>

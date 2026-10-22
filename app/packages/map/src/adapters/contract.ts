@@ -9,6 +9,7 @@
 import type { Bbox, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
+import { BASEMAP_LABELS, OWN_LABELS, basemapLabelPaint, ownLabelOnImagery } from "../labels";
 import {
   MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
   resolveTheme, type ChannelValues, type Tokens,
@@ -139,8 +140,12 @@ export interface MapAdapter {
    * Not `setGroupVisible`: the `imagery` group is deliberately not toggleable, so no screen
    * can reach it through `groups`. This is the one switch, on the contract, so the native
    * adapter owes the same behaviour the web one has.
+   *
+   * AND EVERY NAME FOLLOWS THE GROUND (`labels.ts`): light text on a dark halo over imagery, the theme's inks on the drawn
+   * map — ours and the basemap's — when `themeName` is given (the look pass always gives it). Without it only the ground
+   * moves.
    */
-  setBasemap(h: MapHandle, kind: "map" | "satellite"): void;
+  setBasemap(h: MapHandle, kind: "map" | "satellite", themeName?: string, overrides?: Tokens): void;
   /**
    * A CHANNEL'S VALUES (the colouring engine, `colouring.ts`). `status`: the day's label sets (@app/core `dayProfiles`),
    * which the `profile` modes paint — repaints exactly the layers now in a profile mode, and is remembered, so a later
@@ -291,7 +296,12 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
   const opacity = (STYLE_META.opacities ?? {})[layerId];
   if (opacity !== undefined && type) {
     const o = tokens[opacity];
-    if (o !== undefined) out[`${type}-opacity`] = o;
+    // a zoom curve where the layer declares one (`opacity.ramp`): the token at full strength, times each factor
+    const ramp = (STYLE_META.opacityRamps ?? {})[layerId];
+    if (o !== undefined)
+      out[`${type}-opacity`] = ramp && typeof o === "number"
+        ? ["interpolate", ["linear"], ["zoom"], ...ramp.flatMap(([z, k]) => [z, Math.round(o * k * 1000) / 1000])]
+        : o;
   }
 
   /**
@@ -358,15 +368,27 @@ function withinZoomCurve(expr: unknown, f: (value: unknown) => unknown): unknown
  * throws. Reset to the style's own floor whenever the mode has no rule, or the restriction
  * would outlive the mode that asked for it.
  */
-function zoomFor(h: MapHandle, layerId: string, mode: string): void {
+function zoomFor(h: MapHandle, layerId: string, mode: string | undefined, fieldOn: boolean): void {
   const byMode = (STYLE_META.minzoomByMode ?? {})[layerId];
-  if (!byMode || !h.setZoomRange) return;
-  const base = (MAP_STYLE.layers.find((x) => x.id === layerId) as
-                { minzoom?: number } | undefined)?.minzoom;
-  h.setZoomRange(layerId, byMode[mode] ?? base ?? 0);
+  const field = STYLE_META.field;
+  const covered = field !== null && field !== undefined && layerId in field.covers;
+  if ((!byMode && !covered) || !h.setZoomRange) return;
+  const base = covered ? field.covers[layerId]!
+    : (MAP_STYLE.layers.find((x) => x.id === layerId) as { minzoom?: number } | undefined)?.minzoom ?? 0;
+  /*
+   * UNDER THE FIELD, NOTHING (owner 2026-10-22): while the basins are drawn, a covered layer starts where they stop. A
+   * floor, never a ceiling — the mode's own rule still applies above it — and released with the field, so the Map tab and
+   * the temperature view keep every layer's own floor.
+   */
+  const floor = Math.max(byMode?.[mode ?? ""] ?? base, covered && fieldOn ? field.handover : 0);
+  h.setZoomRange(layerId, floor);
   // the selection's casing is drawn where its stream is, never as an outline round nothing
-  if (layerId === "stream") h.setZoomRange(SELECTION_CASING, byMode[mode] ?? base ?? 0);
+  if (layerId === "stream") h.setZoomRange(SELECTION_CASING, floor);
 }
+
+/** Is the field drawn in this mode (`field.drawnIn`)? */
+const fieldDrawnIn = (mode: string | undefined): boolean =>
+  mode !== undefined && (STYLE_META.field?.drawnIn ?? []).includes(mode);
 
 /** The style group holding satellite imagery — see `layers.source.json`. */
 export const IMAGERY_GROUP = "imagery";
@@ -401,6 +423,19 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
     }
   };
+  /** Is the field drawn now — its layer in a mode it draws in? */
+  const fieldOn = () => STYLE_META.field != null && fieldDrawnIn(modeOf[STYLE_META.field.layer]);
+  /**
+   * The field's mode moved: draw it or not (`drawnIn` — its `plain` was a grey wash over the whole Map tab below the
+   * handover, and a drawn layer is a fetched source), then give every layer it covers its floor again, in the mode each
+   * was last set to. Covered layers no mode ever reached (the wetlands, the basemap's rivers) take their own floor.
+   */
+  const fieldMoved = (h: MapHandle) => {
+    const f = STYLE_META.field;
+    if (!f) return;
+    h.setVisibility(f.layer, fieldOn());
+    for (const id of Object.keys(f.covers)) zoomFor(h, id, modeOf[id], fieldOn());
+  };
   /** The channel a layer's mode reads its values from, if any. */
   const channelOf = (layerId: string, mode: string): keyof ChannelValues | null => {
     const m = STYLE_META.colorModes[layerId]?.[mode];
@@ -423,8 +458,9 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
        * the smaller one wins by being on top. Reset to the style's own floor in every other
        * view, or the restriction would persist after the reader switches away.
        */
-      zoomFor(h, layerId, mode);
+      zoomFor(h, layerId, mode, fieldOn());
     }
+    fieldMoved(h);
   };
 
   return {
@@ -454,7 +490,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       // THE ZOOM GOES WITH THE COLOUR. This is the path the app actually uses — it renders
       // one view and sets each layer's mode — so a rule applied only in `applyView` would
       // never fire in the running app.
-      zoomFor(h, layerId, mode);
+      zoomFor(h, layerId, mode, fieldOn());
       /*
        * AND EVERY LAYER THAT FOLLOWS IT — a lake's outline. The app names only `lake`, so
        * without this the edge kept its plain water-blue under a status-, stocked- or
@@ -464,8 +500,9 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       for (const follower of followersOf(layerId)) {
         const m = followerMode(follower, mode);
         paint(h, follower, m, tokens);
-        zoomFor(h, follower, m);
+        zoomFor(h, follower, m, fieldOn());
       }
+      if (layerId === STYLE_META.field?.layer) fieldMoved(h);
     },
 
     setChannel(h, channel, next, themeName, overrides = {}) {
@@ -496,9 +533,18 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       }
     },
 
-    setBasemap(h, kind) {
+    setBasemap(h, kind, themeName, overrides = {}) {
       for (const [layerId, gid] of Object.entries(STYLE_META.layerGroup))
         if (gid === IMAGERY_GROUP) h.setVisibility(layerId, kind === "satellite");
+      if (themeName === undefined) return;
+      const tokens = resolveTheme(themeName, overrides);
+      for (const id of OWN_LABELS) {
+        if (kind === "satellite")
+          for (const [prop, value] of Object.entries(ownLabelOnImagery(id, tokens))) h.setPaint(id, prop, value);
+        else paint(h, id, modeOf[id] ?? "plain", tokens);
+      }
+      for (const id of BASEMAP_LABELS)
+        for (const [prop, value] of Object.entries(basemapLabelPaint(id, tokens, kind))) h.setPaint(id, prop, value);
     },
 
     setData(h, layerId, values) {

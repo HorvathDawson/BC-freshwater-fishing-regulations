@@ -37,7 +37,7 @@ describe("the flow arrows are the Conditions view's own", () => {
     const l = arrowLayer()!;
     expect({ type: l.type, sourceLayer: l["source-layer"], minzoom: l.minzoom, visibility: l.layout?.visibility,
              placement: l.layout?.["symbol-placement"] })
-      .toEqual({ type: "symbol", sourceLayer: "stream", minzoom: 9, visibility: "none", placement: "line" });
+      .toEqual({ type: "symbol", sourceLayer: "stream", minzoom: 10, visibility: "none", placement: "line" });
   });
 
   it("only the Conditions view draws them", () => {

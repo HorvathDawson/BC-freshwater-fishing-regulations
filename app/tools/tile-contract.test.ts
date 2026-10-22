@@ -45,8 +45,13 @@ const source = JSON.parse(
  * The layers drawn FROM THE ATLAS — the only ones the tile contract speaks for. The
  * satellite imagery is a third-party raster with no source-layer, no attributes and no
  * id; holding it to our tile contract would be asking Esri's JPEGs for a `section_id`.
+ *
+ * EVERY SOURCE ON THE ATLAS ARCHIVE, not only the one named `atlas`: the Conditions field reads the same archive through
+ * `basins`, a second source stopped at the last zoom the tiles carry basins at so it overzooms (layers.source.json).
  */
-source.layers = source.layers.filter((l) => (l as { source?: string }).source === "atlas");
+const sources = (source as unknown as { sources: Record<string, { url?: string }> }).sources;
+source.layers = source.layers.filter((l) =>
+  sources[(l as { source?: string }).source ?? ""]?.url === "pmtiles://atlas");
 
 describe("the style and the tiles agree", () => {
   it("every layer the style draws exists in the tiles", () => {
@@ -366,7 +371,8 @@ describe("the gauges draw on top of the water", () => {
       { maxzoom?: number; type?: string; source?: string; "source-layer"?: string };
     const dot = style.layers[at("gauge-dot")] as { minzoom?: number };
     expect(field.type).toBe("fill");
-    expect(field.source).toBe("atlas");
+    // its own source on the atlas archive, which overzooms the tiles' last basin zoom up to the handover
+    expect(field.source).toBe("basins");
     expect(field["source-layer"]).toBe("basin");
     expect(field.maxzoom).toBeDefined();
     expect(dot.minzoom).toBeDefined();

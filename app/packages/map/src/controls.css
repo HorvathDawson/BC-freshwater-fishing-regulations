@@ -55,30 +55,39 @@
 .maplibregl-ctrl-group button:active { background: var(--map-tint); }
 
 /*
- * The scale bar, the way every map draws one.
+ * THE SCALE BAR: A RULER, NOT A BOX (refinement pass, owner 2026-10-22: "make the scale bar nicer").
  *
- * This was a bracket with the label UNDER it, on a 9px box with `content-box` sizing — a
- * hand-rolled shape that only held together at one font size, and it lived in the top-left
- * where the date pill also sits, so it spent most of its life clipped against the top edge
- * of the screen.
+ * It was OpenStreetMap's default squared off: a translucent card with a 2px rule on three sides and the distance
+ * centred inside — a little framed panel, the heaviest object in the map's corner after the controls. Every consumer
+ * map draws the scale as a RULER instead: a hairline with a tick at each end, the distance written above its left
+ * end, and nothing behind it but a halo of the map's own paper. The LENGTH is the measurement and the number names it,
+ * exactly as before; the frame was never information.
  *
- * MapLibre's own default is OpenStreetMap's: a translucent panel with a heavy rule on three
- * sides and the distance inside it, so the bar's LENGTH is the measurement and the number
- * only names it. That is the shape a reader already knows, and the renderer keeps it
- * accurate through a pinch. Squared off and put in our ink, it needs nothing else.
+ * Drawn from background gradients (the rule and two 7px ticks) so MapLibre's control keeps sizing the element's width
+ * to the distance through every frame of a pinch — the ruler IS the element. One halo (`drop-shadow` in the card
+ * colour, stacked so it reads as a cut-out rather than a glow) carries both the line and the words over any ground:
+ * forest, a lake, the dark theme, satellite. App type (Archivo semibold, tabular figures so "200 m" and "500 m" sit
+ * the same), 11px. The phone draws the same ruler (`Map.native.tsx`).
  */
 .maplibregl-ctrl-scale {
+  border: 0;
   border-radius: 0;
-  border: 2px solid var(--map-ink);
-  border-top: none;
-  background: var(--map-scale-bg);
+  background:
+    linear-gradient(var(--map-ink), var(--map-ink)) left bottom / 1.5px 7px no-repeat,
+    linear-gradient(var(--map-ink), var(--map-ink)) right bottom / 1.5px 7px no-repeat,
+    linear-gradient(var(--map-ink), var(--map-ink)) left bottom / 100% 1.5px no-repeat;
   color: var(--map-ink);
-  font: 700 10px/1.35 Archivo, system-ui, sans-serif;
-  letter-spacing: 0.06em;
-  padding: 1px 5px 2px;
-  margin: 0 0 6px;
-  text-align: center;
+  font: 11px/1 Archivo_600SemiBold, Archivo, system-ui, sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  padding: 0 0 5px 4px;
+  margin: 0 0 8px;
+  text-align: left;
+  white-space: nowrap;
   box-sizing: border-box;
+  filter: drop-shadow(0 0 0.6px var(--map-card)) drop-shadow(0 0 0.6px var(--map-card))
+          drop-shadow(0 0 1px var(--map-card));
 }
 
 /*

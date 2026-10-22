@@ -55,7 +55,7 @@ describe("the layers a section is read from", () => {
     h.clearFeatureStates("stream");
     expect(log).toEqual([
       'set atlas/lake number:311274 {"status":"open"}',
-      'set atlas/basin string:08MF-a {"standing":2}',
+      'set basins/basin string:08MF-a {"standing":2}',
       "remove atlas/stream number:7 selected",
       "remove atlas/stream number:7 water",
       "remove atlas/stream number:8 selected",
@@ -67,7 +67,7 @@ describe("the layers a section is read from", () => {
       .toEqual([
         { source: "atlas", sourceLayer: "stream" }, { source: "atlas", sourceLayer: "lake" },
         { source: "atlas", sourceLayer: "lake" }, { source: "atlas", sourceLayer: "wetland" },
-        { source: "atlas", sourceLayer: "wetland" }, { source: "atlas", sourceLayer: "basin" }, null,
+        { source: "atlas", sourceLayer: "wetland" }, { source: "basins", sourceLayer: "basin" }, null,
       ]);
   });
 });

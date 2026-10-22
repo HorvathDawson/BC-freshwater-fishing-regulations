@@ -210,7 +210,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
       [`search open · half · "chilliwack river" · tab Map`, "true"],
       `search closed · no sheet · "chilliwack river" · tab Map`,
       // the framing; then, as search closes, one render with no fit (nothing sent), the camera put back, and no fit again
-      ["none", "item:gnis:8634", "none", "restore:1 camera 49.15,-121.85,9.4", "none"],
+      ["none", "item:gnis:8634", "none", "restore:1 camera 49.15,-121.85,10", "none"],
     ]);
   });
 

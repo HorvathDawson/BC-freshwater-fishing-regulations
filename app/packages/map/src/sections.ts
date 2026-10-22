@@ -80,6 +80,13 @@ export function stateTarget(layerId: string): { source: string; sourceLayer: str
   return { source: l.source, sourceLayer: l["source-layer"] };
 }
 
+/**
+ * The style's sources that read the ATLAS archive: `atlas` itself, and the field's `basins` (the same archive, stopped at
+ * the last zoom it carries basins at so it overzooms — layers.source.json `sources.basins`).
+ */
+export const ATLAS_SOURCES: readonly string[] = Object.entries(MAP_STYLE.sources as Record<string, { url?: string }>)
+  .filter(([, s]) => s.url === "pmtiles://atlas").map(([id]) => id);
+
 /** A feature-state key: a section's number when the key is one (data arrives keyed by strings), else as given. */
 export function featureKey(id: string | number): string | number {
   return sectionIdOf(id) ?? id;

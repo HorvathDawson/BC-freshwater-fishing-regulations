@@ -322,6 +322,21 @@ const ARROW_GLYPH = { mouth_to_source: "◀", source_to_mouth: "▶" };
  */
 const ARROW_FONT = ["Noto Sans Regular"];
 
+/**
+ * `field` with a trailing " [<id>]" cut off — see `trimId` on a label. `index-of` finds the FIRST " [", and every name
+ * that carries an id carries exactly one bracket, at the end; a name that merely contains a bracket elsewhere and does
+ * not end in "]" is drawn whole.
+ */
+const trimmedName = (field) => {
+  const name = ["get", field];
+  const at = ["index-of", " [", name];
+  const n = ["length", name];
+  return ["case",
+    ["all", [">", at, 0], ["==", ["slice", name, ["-", n, 1]], "]"]],
+    ["slice", name, 0, at],
+    name];
+};
+
 for (const l of src.layers ?? []) {
   const where = `layer "${l.id}"`;
   if (!groups.has(l.group)) err(`${where}: unknown group "${l.group}"`);
@@ -422,7 +437,22 @@ for (const l of src.layers ?? []) {
       err(`${w}: unknown scale "${m.scale}"`);
     }
   }
-  if (l.opacity) tokenValue(l.opacity, `${where} opacity`);
+  if (l.opacity) {
+    tokenValue({ token: l.opacity.token }, `${where} opacity`);
+    /*
+     * AN OPACITY THAT MOVES WITH ZOOM: `ramp` is [[zoom, factor]], the token's value times each factor, interpolated.
+     * The closure hatch is a dense weave of a few pixels zoomed out and a texture you read through close in; one
+     * opacity is wrong at one end or the other.
+     */
+    const r = l.opacity.ramp;
+    if (r !== undefined) {
+      if (!Array.isArray(r) || r.length < 2 || r.some((s) => !Array.isArray(s) || s.length !== 2
+          || typeof s[0] !== "number" || typeof s[1] !== "number" || s[1] < 0 || s[1] > 1))
+        err(`${where} opacity ramp: needs >= 2 [zoom, factor] stops, factors in 0..1`);
+      else if (r.some(([z], i) => i > 0 && z <= r[i - 1][0]))
+        err(`${where} opacity ramp: zooms must ascend`);
+    }
+  }
   if (l.pattern) tokenValue({ token: l.pattern.token }, `${where} pattern colour`);
   if (l.dash) tokenValue(l.dash, `${where} dash`);
   if (l.width) {
@@ -475,6 +505,8 @@ for (const l of src.layers ?? []) {
     const id = `${l.id}__edge`;
     tokenValue(l.outline.color, `${where} outline colour`);
     if (l.outline.width) tokenValue({ token: l.outline.width.token }, `${where} outline width`);
+    if (l.outline.width?.ramp && !l.outline.width.by && l.outline.width.mode !== "zoom")
+      err(`${where}: an outline width ramp with no "by" must declare mode "zoom"`);
     if (l.outline.dash) tokenValue(l.outline.dash, `${where} outline dash`);
     if (l.outline.opacity) tokenValue(l.outline.opacity, `${where} outline opacity`);
     /*
@@ -567,7 +599,14 @@ for (const l of src.layers ?? []) {
       layout: {
         ...geom.layout,
         "symbol-placement": lab.placement,
-        "text-field": ["get", lab.field],
+        /*
+         * `trimId`: THE NAME WITHOUT ITS SOURCE ID. The access and protected-area names carry the source's record id
+         * in brackets ("Codd Wetland Ecological Conservancy Area [14448346]") — a key for the pipeline, noise on a
+         * map (owner 2026-10-22: "makes names and labels universally well labelled"). Everything from the last " ["
+         * on is dropped when the name ends in "]"; a name with no bracket is drawn as it is. In the style rather than
+         * the tiles so it needs no rebuild; the pipeline can stop writing the id into `name` and this stays harmless.
+         */
+        "text-field": lab.trimId ? trimmedName(lab.field) : ["get", lab.field],
         "text-font": lab.font ?? ["Noto Sans Regular"],
         "text-size": size,
         ...(lab.letterSpacing !== undefined ? { "text-letter-spacing": lab.letterSpacing } : {}),
@@ -789,6 +828,52 @@ for (const id of arrows.keys())
   if (!shownAnywhere.has(id)) err(`layer "${id}": no view shows it, so it can never draw`);
 
 /*
+ * A HIDDEN LAYER TAKES ITS COMPANIONS WITH IT. Conditions hides `region` and `mu` — and drew their generated edges and
+ * numbers anyway, because `hide` named the fills and an edge is a layer of its own: a grey boundary and a "3" across a
+ * flow field the view had said it does not draw. A view hides a layer as a THING, so its edge, its name and its arrows
+ * are hidden with it; written out here so the generated list is the whole truth and no adapter has to know the suffixes.
+ */
+for (const v of src.views ?? [])
+  if (v.hide)
+    v.hide = [...new Set(v.hide.flatMap((id) => [id, ...["__edge", "__label", "__arrows"]
+      .map((s) => `${id}${s}`).filter((c) => outById.has(c))]))];
+
+/*
+ * THE FIELD (`field` on one polygon layer — the Conditions basins): the colour modes in which it is drawn at all, and the
+ * layers it COVERS — each of which takes the field's maxzoom as its floor while the field is drawn (adapters/contract.ts
+ * `zoomFor`). Emitted as {layer, handover, drawnIn, covers: {id: the floor it returns to}} so the adapter needs nothing
+ * else: a generated layer's own minzoom, or for a layer the runtime adds (`covers.runtime`) the floor given here.
+ */
+let field = null;
+for (const l of src.layers ?? []) {
+  if (!l.field) continue;
+  const where = `layer "${l.id}" field`;
+  if (field) err(`${where}: a second field — the map has one`);
+  if (l.geometry !== "polygon") err(`${where}: a field is an area`);
+  if (typeof l.maxzoom !== "number") err(`${where}: needs a maxzoom — the zoom it hands over at`);
+  const drawnIn = l.field.drawnIn ?? [];
+  if (!drawnIn.length) err(`${where}: drawnIn names no mode, so it never draws`);
+  for (const m of drawnIn) if (!l.colorModes?.[m]) err(`${where}: drawnIn names "${m}", which is not one of its modes`);
+  const covers = {};
+  for (const id of l.field.covers?.layers ?? []) {
+    const out = outById.get(id);
+    if (!out) err(`${where}: covers unknown layer "${id}"`);
+    else covers[id] = out.minzoom ?? 0;
+  }
+  for (const [id, z] of Object.entries(l.field.covers?.runtime ?? {})) {
+    if (outById.has(id)) err(`${where}: "${id}" is a style layer — list it under covers.layers`);
+    if (typeof z !== "number") err(`${where}: runtime layer "${id}" needs the floor it returns to`);
+    covers[id] = z;
+  }
+  field = { layer: l.id, handover: l.maxzoom, drawnIn, covers };
+  // EVERY FLOOR A MODE GIVES A COVERED LAYER IS THE HANDOVER OR BELOW: a covered layer that came back later than the
+  // field leaves would open a band drawing neither (tools/handover.test.ts holds the band itself).
+  for (const id of Object.keys(covers))
+    for (const [m, z] of Object.entries(layersById.get(id)?.minzoomByMode ?? {}))
+      if (z > l.maxzoom) err(`${where}: "${id}" in mode "${m}" starts at z${z}, after the field hands over at z${l.maxzoom}`);
+}
+
+/*
  * LAYERS THE RUNTIME ADDS, which a view may still switch.
  *
  * The gauge dots are not in this file and cannot be: they are drawn from a live GeoJSON
@@ -858,11 +943,14 @@ const meta = {
             mode: l.width.mode ?? "linear", ramp: l.width.ramp }
         : l.width.token]),
     ...[...edges].filter(([, l]) => l.outline.width)
-      .map(([id, l]) => [id, l.outline.width.by
-        ? { token: l.outline.width.token, by: l.outline.width.by,
+      .map(([id, l]) => [id, (l.outline.width.by || l.outline.width.mode === "zoom")
+        ? { token: l.outline.width.token, ...(l.outline.width.by ? { by: l.outline.width.by } : {}),
             mode: l.outline.width.mode ?? "linear", ramp: l.outline.width.ramp }
         : l.outline.width.token]),
   ]),
+  /** layer id -> [[zoom, factor]]: its opacity token times a zoom curve (`opacity.ramp`). Absent: the token, flat. */
+  opacityRamps: Object.fromEntries((src.layers ?? []).filter((l) => l.opacity?.ramp)
+    .map((l) => [l.id, l.opacity.ramp])),
   // Opacity rides the same rail as width: a token, applied at runtime, themeable. It is
   // NOT baked into the style's paint because a theme may want a different value — and
   // because wetland at full opacity buried every other layer on the map, which is the
@@ -899,6 +987,8 @@ const meta = {
    * same number and the app's tap handling is the third place that has to agree, which is
    * why this is emitted rather than written into three files.
    */
+  /** The field and what it covers — see `field` above. null: the style has none. */
+  field,
   minzoomByMode: Object.fromEntries(
     (src.layers ?? []).filter((l) => l.minzoomByMode)
       .map((l) => [l.id, l.minzoomByMode])),

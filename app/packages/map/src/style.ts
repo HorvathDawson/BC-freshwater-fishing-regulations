@@ -116,6 +116,14 @@ export const STYLE_META = meta as unknown as {
    * the rivers down below z9 so the basin field can answer instead.
    */
   minzoomByMode: Record<string, Record<string, number>>;
+  /**
+   * THE FIELD (the Conditions basins): drawn only in the modes `drawnIn`, and while drawn every layer in `covers` takes
+   * `handover` (the field's own maxzoom) as its floor; otherwise the floor it maps to. One answer per zoom, nothing
+   * drawn through it (owner 2026-10-22). null: no field.
+   */
+  field: { layer: string; handover: number; drawnIn: string[]; covers: Record<string, number> } | null;
+  /** layer id -> [[zoom, factor]]: its opacity token times this curve. */
+  opacityRamps: Record<string, [number, number][]>;
   edgeOpacities: Record<string, string>;
   themes: Record<string, Tokens>;
   /** Layers a view may switch that are added at runtime, not defined here. */

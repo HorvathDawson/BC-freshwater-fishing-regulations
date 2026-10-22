@@ -17,6 +17,12 @@
       "external": true,
       "attribution": "Powered by <a href=\"https://www.esri.com\">Esri</a> · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community",
       "$comment": "SATELLITE IMAGERY — Esri World Imagery, ONLINE-ONLY (owner 2026-10-21, handoff/PLAN/app-integration/decisions.md; research and terms: handoff/PLAN/app-data/satellite/README.md). The URL is Esri's own ArcGIS Online World_Imagery MapServer tile endpoint, as the original app used it (2026-03); a build with an ArcGIS Location Platform key swaps it whole at run time (`imageryTiles`, EXPO_PUBLIC_ARCGIS_API_KEY) — never a key in this file. `blankTile=false`: where Esri has no imagery at a zoom (rural BC stops at z17-18) it answers 404 instead of a grey 'Map data not yet available' tile, and the renderer overzooms the parent. maxzoom 19 is Esri's (urban BC goes deeper); its tiles are 256 px, so the z18 camera asks for z19 tiles, and rural holes 404 to the parent. Never stored or packaged: Esri's item terms say the layer is 'not intended to be used to export tiles for offline'. The attribution is Esri's required form ('Powered by Esri' + the service's copyrightText, read 2026-10-21) and rides on the source so MapLibre's control shows it exactly while the layer is drawn; @app/core IMAGERY_CREDIT holds the same words for the app's credit list (tools/imagery.test.ts). Tiles send Access-Control-Allow-Origin: *, which WebGL needs."
+    },
+    "basins": {
+      "type": "vector",
+      "url": "pmtiles://atlas",
+      "maxzoom": 8,
+      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z8 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the field can be drawn to the handover (z10, owner 2026-10-22: \"the watershed colouring happens at a slightly higher zoom\") from the z8 tiles it already has, with no tile rebuild and no z9 basin tiles. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
     }
   },
   "groups": [
@@ -81,7 +87,7 @@
       "sourceLayer": "parcel",
       "geometry": "polygon",
       "highlightable": false,
-      "minzoom": 12,
+      "minzoom": 11,
       "colorModes": {
         "plain": {
           "label": "Private land",
@@ -100,9 +106,12 @@
         },
         "width": {
           "token": "width.parcel.edge"
+        },
+        "opacity": {
+          "token": "opacity.parcel.edge"
         }
       },
-      "$comment": "PRIVATE TITLE, dissolved to one polygon. The question a person has at a gate: is the ground in front of me somebody's?\n\nIt sits at the BOTTOM of the draw order, under everything. It is the ground: a park is Crown land, a lake is nobody's, and a wash over either would say a general thing louder than the specific one.\n\nThe other eight ownership classes are not drawn. Crown, agency, federal, municipal and untitled is most of British Columbia — the default state, not news — and drawing them cost 308 MB of layer file to say 'as you were'.\n\nTOGGLEABLE AND OFF BY DEFAULT, and that asymmetry against `protected` and `access` is the point: a closure is an instruction and title is context. This is the layer you open deliberately when you are working out where to park and which bank to walk."
+      "$comment": "QUIET ON PURPOSE (owner 2026-10-22: \"private land is very abrasive when turned on\" and \"should show slightly more zoomed out\"). A warm tint at `opacity.parcel` and a hairline edge at `opacity.parcel.edge`, under every water colour (first of our layers). From z11 in the style; the tiles carry the parcel layer from z12 (pipeline/deliver/tiles/layers.py `parcel` minzoom), so z11 draws only after a tile rebuild with that minzoom lowered — until then the layer simply starts at z12, as before."
     },
     {
       "id": "indigenous_land",
@@ -153,18 +162,23 @@
           ],
           [
             13,
-            12
+            11.5
+          ],
+          [
+            15,
+            13
           ]
         ],
-        "maxWidth": 9,
-        "letterSpacing": 0.04,
+        "maxWidth": 8,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.indigenous.fill"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       }
     },
     {
@@ -189,12 +203,27 @@
           "token": "color.status.closed"
         },
         "width": {
-          "token": "width.closure.edge"
+          "token": "width.closure.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              10,
+              0.6
+            ],
+            [
+              13,
+              1.2
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
         },
-        "minzoom": 11,
-        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "minzoom": 10,
+        "$comment": "CRISP CLOSE IN (owner 2026-10-22: restricted and closed areas nicer at every zoom). From z10 a solid edge in the area's own status colour, a hairline at first and firm by street scale — where the hatch alone made the boundary a guess at the edge of a weave. Below z10 there is no edge at all: the hatch carries the area.",
         "opacity": {
-          "token": "opacity.admin.edge"
+          "token": "opacity.closure.edge"
         }
       },
       "filter": [
@@ -206,15 +235,33 @@
         "closed"
       ],
       "opacity": {
-        "token": "opacity.closure"
+        "token": "opacity.closure",
+        "ramp": [
+          [
+            6,
+            0.45
+          ],
+          [
+            9,
+            0.7
+          ],
+          [
+            12,
+            1.0
+          ],
+          [
+            16,
+            0.8
+          ]
+        ]
       },
       "pattern": {
         "token": "color.status.closed",
         "ground": 0,
-        "stripe": 0.55,
+        "stripe": 0.6,
         "darken": 0,
-        "spacing": 11,
-        "weight": 1.3,
+        "spacing": 8,
+        "weight": 1.0,
         "cross": true
       },
       "label": {
@@ -232,18 +279,23 @@
           ],
           [
             13,
-            12
+            11.5
+          ],
+          [
+            15,
+            13
           ]
         ],
         "maxWidth": 8,
-        "letterSpacing": 0.04,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       }
     },
     {
@@ -272,28 +324,61 @@
         }
       },
       "opacity": {
-        "token": "opacity.closure"
+        "token": "opacity.closure",
+        "ramp": [
+          [
+            6,
+            0.45
+          ],
+          [
+            9,
+            0.7
+          ],
+          [
+            12,
+            1.0
+          ],
+          [
+            16,
+            0.8
+          ]
+        ]
       },
       "pattern": {
         "token": "color.status.restricted",
         "ground": 0,
-        "stripe": 0.55,
+        "stripe": 0.6,
         "darken": 0,
-        "spacing": 11,
-        "weight": 1.3,
-        "cross": true
+        "spacing": 6,
+        "weight": 1.2,
+        "cross": false
       },
       "outline": {
         "color": {
           "token": "color.status.restricted"
         },
         "width": {
-          "token": "width.closure.edge"
+          "token": "width.closure.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              10,
+              0.6
+            ],
+            [
+              13,
+              1.2
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
         },
-        "minzoom": 11,
-        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "minzoom": 10,
+        "$comment": "CRISP CLOSE IN (owner 2026-10-22: restricted and closed areas nicer at every zoom). From z10 a solid edge in the area's own status colour, a hairline at first and firm by street scale — where the hatch alone made the boundary a guess at the edge of a weave. Below z10 there is no edge at all: the hatch carries the area.",
         "opacity": {
-          "token": "opacity.admin.edge"
+          "token": "opacity.closure.edge"
         }
       },
       "label": {
@@ -311,18 +396,23 @@
           ],
           [
             13,
-            12
+            11.5
+          ],
+          [
+            15,
+            13
           ]
         ],
         "maxWidth": 8,
-        "letterSpacing": 0.04,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.status.restricted"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       },
       "$comment": "LAND YOU MAY ENTER, WITH PERMISSION — the UBC Malcolm Knapp Research Forest and three others. AMBER, NOT CRIMSON, and hatched like a closure because it is one until you have asked. v1 used the same two-tier red/amber language. These four were dropped from the map entirely until the `permit_land_access` area def existed."
     },
@@ -349,24 +439,57 @@
           "token": "color.status.closed"
         },
         "width": {
-          "token": "width.closure.edge"
+          "token": "width.closure.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              10,
+              0.6
+            ],
+            [
+              13,
+              1.2
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
         },
-        "minzoom": 11,
-        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "minzoom": 10,
+        "$comment": "CRISP CLOSE IN (owner 2026-10-22: restricted and closed areas nicer at every zoom). From z10 a solid edge in the area's own status colour, a hairline at first and firm by street scale — where the hatch alone made the boundary a guess at the edge of a weave. Below z10 there is no edge at all: the hatch carries the area.",
         "opacity": {
-          "token": "opacity.admin.edge"
+          "token": "opacity.closure.edge"
         }
       },
       "opacity": {
-        "token": "opacity.closure"
+        "token": "opacity.closure",
+        "ramp": [
+          [
+            6,
+            0.45
+          ],
+          [
+            9,
+            0.7
+          ],
+          [
+            12,
+            1.0
+          ],
+          [
+            16,
+            0.8
+          ]
+        ]
       },
       "pattern": {
         "token": "color.status.closed",
         "ground": 0,
-        "stripe": 0.55,
+        "stripe": 0.6,
         "darken": 0,
-        "spacing": 11,
-        "weight": 1.3,
+        "spacing": 8,
+        "weight": 1.0,
         "cross": true
       },
       "label": {
@@ -384,18 +507,23 @@
           ],
           [
             12,
-            12
+            11.5
+          ],
+          [
+            15,
+            13
           ]
         ],
         "maxWidth": 8,
-        "letterSpacing": 0.04,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       }
     },
     {
@@ -441,18 +569,23 @@
           ],
           [
             12,
-            12
+            11.5
+          ],
+          [
+            15,
+            13
           ]
         ],
         "maxWidth": 8,
-        "letterSpacing": 0.04,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.park.edge"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       },
       "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS — open water, in v1's green. NO OUTLINE, deliberately: a border is an assertion that the line matters, and here it does not. You may fish on both sides of it. Every bordered area on this map is one where crossing the line changes what you may do, and provincial parks would have been the only exception, which is exactly how a reader learns to stop trusting borders."
     },
@@ -488,15 +621,33 @@
         }
       },
       "opacity": {
-        "token": "opacity.closure"
+        "token": "opacity.closure",
+        "ramp": [
+          [
+            6,
+            0.45
+          ],
+          [
+            9,
+            0.7
+          ],
+          [
+            12,
+            1.0
+          ],
+          [
+            16,
+            0.8
+          ]
+        ]
       },
       "pattern": {
         "token": "color.status.closed",
         "ground": 0,
-        "stripe": 0.55,
+        "stripe": 0.6,
         "darken": 0,
-        "spacing": 10,
-        "weight": 1.6,
+        "spacing": 8,
+        "weight": 1.0,
         "cross": false
       },
       "outline": {
@@ -504,12 +655,27 @@
           "token": "color.status.closed"
         },
         "width": {
-          "token": "width.closure.edge"
+          "token": "width.closure.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              10,
+              0.6
+            ],
+            [
+              13,
+              1.2
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
         },
-        "minzoom": 11,
-        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "minzoom": 10,
+        "$comment": "CRISP CLOSE IN (owner 2026-10-22: restricted and closed areas nicer at every zoom). From z10 a solid edge in the area's own status colour, a hairline at first and firm by street scale — where the hatch alone made the boundary a guess at the edge of a weave. Below z10 there is no edge at all: the hatch carries the area.",
         "opacity": {
-          "token": "opacity.admin.edge"
+          "token": "opacity.closure.edge"
         }
       },
       "label": {
@@ -523,34 +689,39 @@
         "size": [
           [
             7,
-            10
+            10.5
           ],
           [
             11,
-            13
+            12
+          ],
+          [
+            15,
+            13.5
           ]
         ],
         "maxWidth": 8,
-        "letterSpacing": 0.04,
+        "letterSpacing": 0.03,
         "color": {
-          "token": "color.status.closed"
+          "token": "color.label.place"
         },
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.6
+        "haloWidth": 1.4,
+        "trimId": true
       },
       "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL — federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer — a park with a kind of its own is a park with its own closing authority."
     },
     {
       "id": "basin",
       "group": "water",
-      "source": "atlas",
+      "source": "basins",
       "sourceLayer": "basin",
       "geometry": "polygon",
       "featureIdProperty": "basin_id",
       "highlightable": false,
-      "maxzoom": 9,
+      "maxzoom": 10,
       "colorModes": {
         "plain": {
           "label": "Hidden",
@@ -620,7 +791,32 @@
       "opacity": {
         "token": "opacity.basin"
       },
-      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree.\n\nMAXZOOM IS EXCLUSIVE, and this was written as if it were inclusive. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` meant the field stopped at 8.0 while the rivers, standing down below 9, did not start until 9.0 — a full zoom level, and a common resting place, drawing NEITHER. Zooming out of Conditions showed the rivers vanish and the province stay blank until the next step. It is the handover zoom itself: the field draws below 9, the rivers from 9, and the two meet exactly. The TILE still stops at z8 — z8 tiles overzoom to cover 8.x — which is why the builder's maxzoom and this one are different numbers for different questions."
+      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree.\n\nMAXZOOM IS EXCLUSIVE, and this was written as if it were inclusive. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` meant the field stopped at 8.0 while the rivers, standing down below 9, did not start until 9.0 — a full zoom level, and a common resting place, drawing NEITHER. Zooming out of Conditions showed the rivers vanish and the province stay blank until the next step. It is the handover zoom itself: the field draws below 9, the rivers from 9, and the two meet exactly. The TILE still stops at z8 — z8 tiles overzoom to cover 8.x — which is why the builder's maxzoom and this one are different numbers for different questions.",
+      "field": {
+        "drawnIn": [
+          "standing"
+        ],
+        "covers": {
+          "layers": [
+            "stream",
+            "stream__label",
+            "stream__arrows",
+            "lake",
+            "lake__edge",
+            "lake__label",
+            "lake_flowing",
+            "wetland",
+            "wetland_flowing",
+            "under_lake",
+            "contour"
+          ],
+          "runtime": {
+            "stream-nobaseline": 0,
+            "water_river": 9
+          }
+        },
+        "$comment": "ONE ANSWER PER ZOOM, AND NOTHING UNDER IT (owner 2026-10-22: \"the lakes and streams etc disappear when it is visible\"). While the field is drawn (`drawnIn`: its colour modes that draw at all — `plain` is not drawn, it was a #D5D5D5 wash at 0.55 over the whole Map tab below z9), every layer in `covers` takes the field's maxzoom as its floor: the rivers and lakes and their names, outlines, arrows and dashes, the wetlands, the routes through lakes, and the basemap's own river lines (`runtime`: layers the style does not generate, with the floor each returns to). Under the field before, the lake outlines, the lake names from z8 and the no-baseline dashes all drew through it — two answers, one of them a hairline. Released the moment the field is: the Map tab and the temperature view keep every layer's own floor."
+      }
     },
     {
       "id": "wetland",
@@ -800,7 +996,7 @@
         "token": "opacity.wetland"
       },
       "minzoomByMode": {
-        "standing": 9
+        "standing": 10
       },
       "$comment": "The same for a slough drawn as a WETLAND polygon (Taylor Slough): stream colours, no hatch — the weave says 'marsh' and this is not one. See `lake_flowing`."
     },
@@ -1040,14 +1236,18 @@
         "size": [
           [
             8,
-            10
+            10.5
           ],
           [
-            14,
-            14
+            12,
+            12.5
+          ],
+          [
+            15,
+            15
           ]
         ],
-        "letterSpacing": 0.1,
+        "letterSpacing": 0.06,
         "maxWidth": 9,
         "sortBy": "area_m2",
         "showAll": 11,
@@ -1071,12 +1271,12 @@
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 1.2,
+        "haloWidth": 1.4,
         "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder — 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 — and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
         "priority": 1
       },
       "minzoomByMode": {
-        "standing": 9
+        "standing": 10
       },
       "filter": [
         "!=",
@@ -1230,7 +1430,7 @@
         "token": "opacity.lake"
       },
       "minzoomByMode": {
-        "standing": 9
+        "standing": 10
       },
       "$comment": "A STREAM'S POLYGON — a river's wide reach, a slough, a canal (the Vedder Canal, the Stellako's) — drawn from the `lake` source-layer but in STREAM colours, in every mode (user ruling 2026-10-03: a slough is a stream everywhere, and must look like one). The tile's `water` property is the registry's water kind, the same `item.kind` the bundle carries, so the map and the sheet cannot disagree about what the water is; `lake` draws the rest (its inverse filter). No label and no outline: the river's own route is written into the `stream` layer under this polygon's section id (pipeline tiles/export.py), which carries the name along the line and fills the hole at the zooms the polygon is not yet drawn at. Status is pushed on the `lake` source-layer (`statusData`), and feature-state is per source-layer, so this layer sees it. Not in `highlight`'s own id space: `selected` on `lake` already lights it."
     },
@@ -1478,11 +1678,15 @@
             11
           ],
           [
-            14,
+            13,
+            12.5
+          ],
+          [
+            15,
             14
           ]
         ],
-        "letterSpacing": 0.12,
+        "letterSpacing": 0.08,
         "maxAngle": 25,
         "spacing": 300,
         "color": {
@@ -1491,19 +1695,15 @@
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 2,
+        "haloWidth": 1.5,
         "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 — at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
         "priority": 0
       },
       "arrows": {
         "follow": true,
-        "minzoom": 9,
+        "minzoom": 10,
         "by": "ord",
         "showAbove": [
-          [
-            9,
-            6
-          ],
           [
             10,
             5
@@ -1540,7 +1740,7 @@
         "$comment": "WHICH WAY THE WATER GOES, on the Conditions map (owner 2026-10-21). A glyph laid along the line and CHOSEN to point DOWNSTREAM by the tile contract's `flows` (stream lines run mouth to source, measured on the live atlas), in the stream's own colour with a paper halo, drawn only where a view shows it (`views[].show`: Conditions). From z9, where the Conditions rivers come back after the basin field; big water first (Strahler order 6+ at z9, everything from z13) so a valley is not a field of chevrons, and placed after every name so a name never loses its spot to an arrow. A glyph, not an `addImage` icon: the phone has no runtime-image API (N2-F1) and the fonts ship with every release."
       },
       "minzoomByMode": {
-        "standing": 9
+        "standing": 10
       }
     },
     {
@@ -1583,11 +1783,11 @@
         "size": [
           [
             4,
-            14
+            13
           ],
           [
             6,
-            18
+            16
           ]
         ],
         "color": {
@@ -1596,7 +1796,7 @@
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 2.5,
+        "haloWidth": 2,
         "$comment": "The big number in the middle, z4 to z7 — and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face — every range 404s — so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
       },
       "$comment": "SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
@@ -1649,12 +1849,12 @@
             11
           ],
           [
-            9,
-            13
+            10,
+            12.5
           ],
           [
-            12,
-            15
+            13,
+            14
           ]
         ],
         "color": {
@@ -1663,7 +1863,7 @@
         "halo": {
           "token": "color.outside"
         },
-        "haloWidth": 2,
+        "haloWidth": 1.8,
         "$comment": "INSIDE THE UNIT, NOT ALONG ITS EDGE.\nThis was `placement: line` on a POLYGON, which puts the number on the boundary itself, repeated every 200px. Two units share that boundary, so both numbers landed on the same line and neither said which side it belonged to — the one question a reader has at a boundary is 'which unit am I standing in', and a number sitting on the fence answers it for neither side.\nPoint placement on a polygon anchors the label at the shape's interior, so 4-18 reads inside 4-18. MapLibre places one symbol per polygon PER TILE, and a unit spans many tiles at z8+, so the number follows you around inside the unit instead of appearing once at a centroid you may never have on screen.\n`region` one layer up has always done this; the unit label was the odd one out."
       }
     }

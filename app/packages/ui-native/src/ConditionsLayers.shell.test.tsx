@@ -118,7 +118,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges+ Flow arrows+",
       "low flow for the date",
       { standing: "discharge", gauges: "flow" },
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show stream__arrows · ground map · changed 0`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
     ]);
   });
 
@@ -132,13 +132,13 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
       "low stage for the date",
       { standing: "level", gauges: "level" },
       // the SAME modes object (#1), the same groups, hidden and shown layers and ground: nothing for the map to repaint
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show stream__arrows · ground map · changed 1`,
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show stream__arrows · ground map · changed 0`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
     ]);
     // and back to Flow: the flow roster again, still no new look
     pick("Flow");
     expect([asked, map()]).toEqual([{ standing: "discharge", gauges: "flow" },
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show stream__arrows · ground map · changed 0`]);
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`]);
   });
 
   it("the Conditions switches: gauges off stops the roster, arrows off leaves the view's own layer undrawn; each counts", async () => {
@@ -149,7 +149,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     expect([sheet(), asked.gauges, map()]).toEqual([
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges Flow arrows",
       "off",
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show - · ground map · changed 2`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show - · ground map · changed 2`,
     ]);
   });
 
@@ -170,7 +170,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
         + " | Depth contours Private land Pools and runs Relief",
       'modes #1 · groups {"depth":false,"ownership":true} · hide - · show - · ground map · changed 1',
       // (the fixture is no proven pair, so both tabs' modes are plain — the same object; the private land is the point)
-      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,region · show stream__arrows · ground map · changed 1`,
+      `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
       'modes #1 · groups {"depth":false,"ownership":true} · hide - · show - · ground map · changed 1',
     ]);
   });

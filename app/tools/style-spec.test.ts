@@ -25,6 +25,8 @@ describe("the generated style", () => {
       ...style,
       sources: {
         atlas: { type: "vector", tiles: ["https://example.invalid/{z}/{x}/{y}.pbf"] },
+        // the field's own source on the same archive (overzoomed past the tiles' last basin zoom)
+        basins: { type: "vector", tiles: ["https://example.invalid/{z}/{x}/{y}.pbf"], maxzoom: 8 },
         // The imagery source as the runtime hands it over: our authoring keys stripped.
         ...Object.fromEntries(Object.entries(style.sources as Record<string, object>)
           .filter(([, v]) => (v as { type?: string }).type === "raster")

@@ -48,10 +48,10 @@
     "color.water.ungauged": "#D5D5D5",
     "color.mask": "#505950",
     "opacity.route": 0.35,
-    "color.label.water": "#0D47A1",
-    "color.parcel.private": "#7A4A3A",
-    "opacity.parcel": 0.22,
-    "width.parcel.edge": 1.5,
+    "color.label.water": "#0820A8",
+    "color.parcel.private": "#9A6A4E",
+    "opacity.parcel": 0.1,
+    "width.parcel.edge": 0.8,
     "color.region.edge": "#7F7C79",
     "width.region.edge": 3.0,
     "opacity.admin.fill": 0.04,
@@ -63,7 +63,7 @@
     "opacity.closure": 0.55,
     "opacity.park": 0.12,
     "opacity.admin.area": 0.14,
-    "width.closure.edge": 1.6,
+    "width.closure.edge": 1.0,
     "opacity.admin.edge": 0.35,
     "opacity.basin": 0.55,
     "color.stock.season": "#12873F",
@@ -96,6 +96,11 @@
     "color.ui.imagery.scrub": "#6E7F53",
     "opacity.ui.shadow": 0.9,
     "opacity.ui.scrim": 0.28,
-    "opacity.ui.scale": 0.78
+    "opacity.parcel.edge": 0.5,
+    "opacity.closure.edge": 0.85,
+    "color.ui.imagery.label": "#FAFBF8",
+    "color.ui.imagery.label-water": "#D3EBFF",
+    "color.ui.imagery.halo": "#0B0E10",
+    "color.label.minor": "@color.region.edge"
   }
 }

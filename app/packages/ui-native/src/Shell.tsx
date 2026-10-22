@@ -60,17 +60,21 @@ const NONE: readonly SectionKey[] = [];
 const NONE_PINS: readonly never[] = [];
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
-const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
+// z10, AT the field's handover (was 9.4): the app opens on rivers you can tap on the Conditions map too, not on the
+// catchment field that now runs to z10 (refinement pass, 2026-10-22)
+const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 
 /**
- * WHERE THE FIELD HANDS OVER TO THE RIVERS. Mirrors `BASIN_HANDOVER_Z` in the tile builder
- * and `minzoomByView` in the style — three places, one number, and a test holds them equal.
+ * WHERE THE FIELD HANDS OVER TO THE RIVERS. The style's number — the basin layer's maxzoom and the rivers'
+ * `minzoomByMode` — and a test holds them equal (tools/handover.test.ts). z10 since the refinement pass (owner
+ * 2026-10-22: the watershed colouring "at a slightly higher zoom"): the field is drawn from the tiles' z8 basins,
+ * overzoomed (`sources.basins` in layers.source.json), so the tile builder's `BASIN_HANDOVER_Z` (9) no longer bounds it.
  *
  * Below it the Conditions map is catchments and NOTHING IS TAPPABLE: a tap would open a
  * reach sheet for a shape the size of a valley, answering a question nobody asked. Above it
  * the rivers are back and they are what you tap.
  */
-const HANDOVER_Z = 9;
+const HANDOVER_Z = 10;
 
 /** A temperature band's colour: the "may I fish here" colours, as the map paints the dots (runtime-style). */
 const tempColour = (p: Palette): Record<TempBand, string> =>

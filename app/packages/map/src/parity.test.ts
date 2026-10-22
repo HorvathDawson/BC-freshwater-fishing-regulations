@@ -200,7 +200,7 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     baseAdapter("native").setData(nativeRenderer(bindingRecorder(nlog), () => {}).states(() => []), "basin",
                                   { B1: { standing: 4 } });
     await Promise.resolve();
-    expect({ wlog, nlog }).toEqual({ wlog: ['set atlas/basin string:B1 {"standing":4}'], nlog: [] });
+    expect({ wlog, nlog }).toEqual({ wlog: ['set basins/basin string:B1 {"standing":4}'], nlog: [] });
   });
 
   it("each platform's style adapter is the one style adapter", () => {
@@ -517,9 +517,11 @@ describe("the flow ramp's units", () => {
 
   it("the Conditions view is the one that hides the boundaries", () => {
     // Named, so deleting it from the style fails here rather than silently restoring lines
-    // over the flow field.
+    // over the flow field. AND THEIR EDGES AND NUMBERS: `hide` named the fills and the generated `__edge`/`__label`
+    // layers drew anyway — a grey boundary and a "3" across the field (refinement pass, 2026-10-22).
     const conditions = STYLE_META.views.find((v) => v.id === "conditions");
-    expect([...(conditions?.hide ?? [])].sort()).toEqual(["mu", "region"]);
+    expect([...(conditions?.hide ?? [])].sort())
+      .toEqual(["mu", "mu__edge", "mu__label", "region", "region__edge", "region__label"]);
   });
 });
 

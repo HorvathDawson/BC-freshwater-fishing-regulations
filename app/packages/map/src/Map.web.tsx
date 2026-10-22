@@ -1005,7 +1005,6 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     "--map-sub": furniture.sub,
     "--map-shadow": furniture.shadow,
     "--map-icon-filter": furniture.iconFilter,
-    "--map-scale-bg": furniture.scaleBg,
     // (T48) the app's own bar over the map's top: the top-right controls start under it
     "--map-inset-top": `${insetTop}px`,
   } as React.CSSProperties), [furniture, insetTop]);
