@@ -15,8 +15,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - TILE REBUILD PENDING: parcels from z11 + basins coverage simplify (100 m), batched with S2 tile-size work.
 - NEXT: app reads feed `listed` ("not a real-time gauge"); spots on/off in Layers; T51; T52; Fable consistency auditors;
   cleanup waves 2-4 + app test cleanup + knip; S2; determinism proof (heavy.sh); T50 Android.
-- OPEN OWNER QUESTIONS: dark water ink reads sea-green; More sync stale cadences; release has no `valid_until`; hide silent
-  donor rows in the Conditions table?
+- RUNNING wf_9621cf41-0e0 (spots toggle in Layers; feed `listed` -> "not a real-time gauge") and wf_5087364a-96e (per-feed
+  stale cadences; dark water back to blue; release `valid_until`). Owner answers: decisions.md "OWNER 2026-10-22 (late)".
+- QUEUED after wf_9621cf41 merges: silent donors HIDDEN from the Conditions gauge table, one line naming them with last data time.
 
 ## EARLIER STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections. Live data release r-f734cbb93724 (option A side channels + own gauge lead; served by
