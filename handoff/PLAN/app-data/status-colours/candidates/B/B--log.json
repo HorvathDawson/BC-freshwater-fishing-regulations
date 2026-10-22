@@ -1,0 +1,88 @@
+{
+ "palette": "B",
+ "url": "http://localhost:39482/",
+ "at": "2026-10-22T06:13:59.306Z",
+ "shots": [
+  {
+   "file": "B--vedder-z11--light.jpg",
+   "view": "vedder-z11",
+   "ground": "light"
+  },
+  {
+   "file": "B--kootenay-z9--light.jpg",
+   "view": "kootenay-z9",
+   "ground": "light"
+  },
+  {
+   "file": "B--province-z6--light.jpg",
+   "view": "province-z6",
+   "ground": "light"
+  },
+  {
+   "file": "B--boundary-z10--light.jpg",
+   "view": "boundary-z10",
+   "ground": "light"
+  },
+  {
+   "file": "B--vedder-z11--dark.jpg",
+   "view": "vedder-z11",
+   "ground": "dark"
+  },
+  {
+   "file": "B--kootenay-z9--dark.jpg",
+   "view": "kootenay-z9",
+   "ground": "dark"
+  },
+  {
+   "file": "B--province-z6--dark.jpg",
+   "view": "province-z6",
+   "ground": "dark"
+  },
+  {
+   "file": "B--boundary-z10--dark.jpg",
+   "view": "boundary-z10",
+   "ground": "dark"
+  },
+  {
+   "file": "B--vedder-z11--cvd.jpg",
+   "view": "vedder-z11",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--kootenay-z9--cvd.jpg",
+   "view": "kootenay-z9",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--province-z6--cvd.jpg",
+   "view": "province-z6",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--boundary-z10--cvd.jpg",
+   "view": "boundary-z10",
+   "ground": "cvd"
+  },
+  {
+   "file": "B--vedder-z11--satellite.jpg",
+   "view": "vedder-z11",
+   "ground": "satellite"
+  },
+  {
+   "file": "B--kootenay-z9--satellite.jpg",
+   "view": "kootenay-z9",
+   "ground": "satellite"
+  },
+  {
+   "file": "B--province-z6--satellite.jpg",
+   "view": "province-z6",
+   "ground": "satellite"
+  },
+  {
+   "file": "B--boundary-z10--satellite.jpg",
+   "view": "boundary-z10",
+   "ground": "satellite"
+  }
+ ],
+ "errors": []
+}

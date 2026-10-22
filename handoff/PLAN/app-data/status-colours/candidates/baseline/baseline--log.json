@@ -1,0 +1,70 @@
+{
+ "palette": "baseline",
+ "url": "http://localhost:39482/",
+ "at": "2026-10-22T05:56:29.883Z",
+ "shots": [
+  {
+   "file": "baseline--vedder-z11--light.jpg",
+   "view": "vedder-z11",
+   "ground": "light"
+  },
+  {
+   "file": "baseline--kootenay-z9--light.jpg",
+   "view": "kootenay-z9",
+   "ground": "light"
+  },
+  {
+   "file": "baseline--province-z6--light.jpg",
+   "view": "province-z6",
+   "ground": "light"
+  },
+  {
+   "file": "baseline--boundary-z10--light.jpg",
+   "view": "boundary-z10",
+   "ground": "light"
+  },
+  {
+   "file": "baseline--vedder-z11--dark.jpg",
+   "view": "vedder-z11",
+   "ground": "dark"
+  },
+  {
+   "file": "baseline--kootenay-z9--dark.jpg",
+   "view": "kootenay-z9",
+   "ground": "dark"
+  },
+  {
+   "file": "baseline--province-z6--dark.jpg",
+   "view": "province-z6",
+   "ground": "dark"
+  },
+  {
+   "file": "baseline--boundary-z10--dark.jpg",
+   "view": "boundary-z10",
+   "ground": "dark"
+  },
+  {
+   "file": "baseline--vedder-z11--satellite.jpg",
+   "view": "vedder-z11",
+   "ground": "satellite"
+  },
+  {
+   "file": "baseline--kootenay-z9--satellite.jpg",
+   "view": "kootenay-z9",
+   "ground": "satellite"
+  },
+  {
+   "file": "baseline--province-z6--satellite.jpg",
+   "view": "province-z6",
+   "ground": "satellite"
+  },
+  {
+   "file": "baseline--boundary-z10--satellite.jpg",
+   "view": "boundary-z10",
+   "ground": "satellite"
+  }
+ ],
+ "errors": [
+  "cvd FAILED: TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Close menu', exact: true }).first()\n"
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "palette": "baseline-cvd",
+ "url": "http://localhost:39482/",
+ "at": "2026-10-22T06:00:06.584Z",
+ "shots": [
+  {
+   "file": "baseline-cvd--vedder-z11--cvd.jpg",
+   "view": "vedder-z11",
+   "ground": "cvd"
+  },
+  {
+   "file": "baseline-cvd--kootenay-z9--cvd.jpg",
+   "view": "kootenay-z9",
+   "ground": "cvd"
+  },
+  {
+   "file": "baseline-cvd--province-z6--cvd.jpg",
+   "view": "province-z6",
+   "ground": "cvd"
+  },
+  {
+   "file": "baseline-cvd--boundary-z10--cvd.jpg",
+   "view": "boundary-z10",
+   "ground": "cvd"
+  }
+ ],
+ "errors": []
+}

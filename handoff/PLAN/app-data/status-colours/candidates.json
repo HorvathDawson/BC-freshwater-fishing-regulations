@@ -1,0 +1,47 @@
+{
+  "$comment": "T47 candidate palettes (part 1: for the owner to pick from; NOT applied). Each candidate lists ONLY the tokens it changes, per theme (app/packages/map/style/themes/<theme>.json). `baseline` is today's palette. scripts/apply-palette.mjs writes a candidate into the theme files for a render; `git checkout -- app/packages/map/style/` puts them back. Every candidate passes tools/build-style.mjs (house floors: no shared hex, CIE76 >= 12 between map tokens drawn together, status >= 3:1 on the card) and the existing gates (tools/cvd.test.ts, tools/water-status-cvd.test.ts, packages/map) — see T47-colours.md 'Gates on each candidate'. The unit boundary is an ALIAS of the region boundary (`@color.region.edge`): one neutral on purpose, the two told apart by width and dash, which is the alias mechanism build-style.mjs documents ('one colour on purpose').",
+  "baseline": {
+    "label": "Today",
+    "summary": "As shipped: own dark amber, closed dark crimson, base O&I blue; region boundary raspberry (light) / pink (dark) 2.4 px; management units brown, dashed 1.2 px.",
+    "themes": { "light": {}, "dark": {}, "cvd": {} }
+  },
+  "A": {
+    "label": "A · Lightness ladder",
+    "summary": "Separates the statuses by LIGHTNESS as well as hue, keeping Okabe & Ito where it works: closed stays today's crimson (it cannot go darker: the town-name ink and the low-flow red sit just below it), base stays the O&I blue, own moves to the O&I orange taken to the lightest the card allows (3.0:1). Boundaries: one warm grey, region solid 2.4 px, units dashed 1.2 px. Dark: statuses kept, base one step deeper; boundaries a light grey. Colour-blind palette: closed one step darker, own the same orange, restricted deep indigo (keeps the cvd gate's closed/restricted floor).",
+    "themes": {
+      "light": { "color.status.closed": "#940018", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.region.edge": "#7F7C79", "color.mu.edge": "@color.region.edge" },
+      "dark":  { "color.status.closed": "#FC4164", "color.status.own": "#F0E442", "color.status.base": "#3D9BE0",
+                 "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge" },
+      "cvd":   { "color.status.closed": "#9A0A00", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.status.restricted": "#2E0A55", "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge" }
+    }
+  },
+  "B": {
+    "label": "B · Ladder, lakes, pattern",
+    "summary": "A's colours, plus: lakes filled at 0.6 in the light theme (was 0.4) so a lake's status reads from its fill and not only its edge (this also deepens the plain map's lake blue); region boundary 3 px; unit boundary DOTTED (1 on, 2.5 off) so region and unit are told apart by pattern at a glance.",
+    "themes": {
+      "light": { "color.status.closed": "#940018", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.region.edge": "#7F7C79", "color.mu.edge": "@color.region.edge", "opacity.lake": 0.6,
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "dark":  { "color.status.closed": "#FC4164", "color.status.own": "#F0E442", "color.status.base": "#3D9BE0",
+                 "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "cvd":   { "color.status.closed": "#9A0A00", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.status.restricted": "#2E0A55", "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] }
+    }
+  },
+  "C": {
+    "label": "C · Clearer red",
+    "summary": "Closed is a brighter, unmistakable RED (#A3001E) rather than maroon, own the O&I orange, base the O&I blue, light lakes at 0.6, boundaries as A. Gives up a little closed-vs-own separation for colour-blind readers (still above today on every measure but the satellite line) in exchange for a closed that a reader names 'red' on a thin line.",
+    "themes": {
+      "light": { "color.status.closed": "#A3001E", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.region.edge": "#7F7C79", "color.mu.edge": "@color.region.edge", "opacity.lake": 0.6 },
+      "dark":  { "color.status.closed": "#FC4164", "color.status.own": "#F0E442", "color.status.base": "#3D9BE0",
+                 "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge" },
+      "cvd":   { "color.status.closed": "#9A0A00", "color.status.own": "#D68100", "color.status.base": "#0072B2",
+                 "color.status.restricted": "#2E0A55", "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge" }
+    }
+  }
+}
