@@ -9,7 +9,10 @@
 //          coverage. LINE_ALPHA = 0.6 is the mean coverage of a 1.2 px line rasterised at device-pixel ratio 1-2 (measured
 //          on the baseline screenshots: the Vedder's #B37B00 renders as #af750a at the core and ~#c4a060 at the fringe).
 //          Both colours of a pair are laid over the SAME ground — two lines meet on the same land — and the worst ground wins.
-//   lake   a lake's fill is the status colour at `opacity.lake` over the land (light 0.4, dark 0.85).
+//   lake   a lake's fill is the status colour at `opacity.lake` over the basemap's WATER (light 0.4, dark 0.85): the status
+//          lake layer is drawn on top of the basemap's own water polygon, so its ground is water, never land. Checked
+//          against the renders (colour-math.test.mjs): Kootenay Lake in today's light shot is #94aa86 = own #B37B00 at
+//          0.4 over #82cdd9 exactly; over land the model would say #c39b7a.
 //   card   status words / swatches on the card (`color.ui.card`) and as pill text on a 13.3% tint of themselves.
 // Every pair is reported as the WORST of normal vision and protan / deutan / tritan under Viénot 1999 AND Machado 2009 —
 // the worst-of-both-models rule tools/water-status-cvd.test.ts already holds the map to.
@@ -59,8 +62,10 @@ export function themeTokens(name, overrides = {}) {
  * flavour: the app's basemap is its own (look.ts), and the flavour's #e2dfda earth is not what a reader sees.
  */
 export const GROUNDS = {
-  // light: Vedder z11 PNG + JPEG quantised (10 colours): land, the two forest greens, river, open meadow
-  light: { land: "#d9cecc", forest: "#b0caa8", "forest-dark": "#94aa86", river: "#82cdd9", meadow: "#e9e7e1" },
+  // light: Vedder z11 PNG + JPEG quantised (10 colours): land, forest green, river, open meadow. A fifth sample,
+  // "forest-dark" #94aa86, was Cultus Lake's own fill (today's own at 0.4 over water) and is gone: it disappears from
+  // the A renders when own changes (22 302 -> 3 351 pixels in vedder-z11), so it was a status pixel, not a ground.
+  light: { land: "#d9cecc", forest: "#b0caa8", river: "#82cdd9", meadow: "#e9e7e1" },
   // dark: Coquihalla + Kootenay dark shots: the land is a warm near-black, darker hollows, the basemap's river
   dark: { land: "#372e2f", hollow: "#221e1e", river: "#31353f" },
   // satellite: Kootenay + Coquihalla satellite shots (Esri World Imagery): dark conifer, olive, shadow, brown scrub, the
@@ -68,10 +73,36 @@ export const GROUNDS = {
   satellite: { conifer: "#28290d", olive: "#353b1a", shadow: "#1c1a0b", scrub: "#61512c", water: "#2A333B", snow: "#e6e8ea" },
 };
 
+/** The ground under a status LAKE: the basemap's water (cvd rides on the light basemap). */
+export const LAKE_GROUND = { light: GROUNDS.light.river, dark: GROUNDS.dark.river };
+LAKE_GROUND.cvd = LAKE_GROUND.light;
+
 export const STATUSES = ["closed", "own", "base", "restricted", "open"];
-/** Statuses that are drawn as lines / lake fills next to each other on the Map tab (WATER_STATUSES). */
+/** The water statuses (WATER_STATUSES): drawn as stream lines and lake fills next to each other on the Map tab. */
 export const MAP_STATUSES = ["closed", "own", "base"];
 export const BOUNDARIES = ["region", "mu"];
+
+/**
+ * WHICH PAIRS A READER SEES SIDE BY SIDE ON THE MAP (and so which pairs are held to a floor).
+ *   water        closed / own / base, as stream lines and lake fills.
+ *   permit       restricted is the permit-area hatch, outline and label (layers.source.json, `color.status.restricted`)
+ *                laid over whatever water runs through it: restricted against every water status.
+ *   temperature  the gauge dots in temperature mode (runtime-style.ts tempExpression): cool = open, warm = restricted,
+ *                critical = closed, side by side.
+ *   boundary     a region or unit boundary crosses or runs beside every one of them: boundary against all five statuses.
+ * Not adjacent: own / base against open (open is only ever a temperature dot, and that view draws no status water).
+ * `cond` "lake": only water statuses are ever lake fills, and boundaries never are.
+ */
+export function isMapPair(a, b, cond) {
+  const isB = (n) => BOUNDARIES.includes(n);
+  if (isB(a) && isB(b)) return false;
+  if (cond === "lake") return MAP_STATUSES.includes(a) && MAP_STATUSES.includes(b);
+  if (isB(a) || isB(b)) return true;
+  const has = (x, y) => (a === x && b === y) || (a === y && b === x);
+  if (MAP_STATUSES.includes(a) && MAP_STATUSES.includes(b)) return true;
+  if (MAP_STATUSES.some((s) => has("restricted", s))) return true;
+  return has("open", "restricted") || has("open", "closed");
+}
 
 export function colours(t) {
   return {
@@ -107,7 +138,7 @@ export function measure(themeOverrides) {
     const conds = {
       pure: [["-", null, 1]],
       line: Object.entries(groundsFor(theme)).map(([g, hex]) => [g, hex, LINE_ALPHA]),
-      lake: [["land", groundsFor(theme).land, Number(t["opacity.lake"])]],
+      lake: [["water", LAKE_GROUND[theme], Number(t["opacity.lake"])]],
       satellite: Object.entries(GROUNDS.satellite).map(([g, hex]) => [g, hex, LINE_ALPHA]),
     };
     out.pairs[theme] = {};
@@ -141,7 +172,7 @@ export function measure(themeOverrides) {
     }]));
     // ground: each status / boundary against each ground it is drawn on (pure colour vs ground, worst vision)
     out.ground[theme] = {};
-    for (const s of [...MAP_STATUSES, ...BOUNDARIES]) {
+    for (const s of [...STATUSES, ...BOUNDARIES]) {
       let w = { dE: Infinity, under: "", ground: "" };
       for (const [g, hex] of Object.entries(groundsFor(theme))) {
         const x = worst(c[s], hex);

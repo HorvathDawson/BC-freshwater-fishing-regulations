@@ -10,7 +10,7 @@
 // HARD (a candidate failing one is discarded): pill text 4.5:1 for closed on its tint, own/base 3:1 on the card, closed
 // stays a red and base a blue (water-status-cvd.test.ts "base is blue, closed is red"), boundaries are neutral.
 // Random restarts + coordinate descent; deterministic (seeded).
-import { contrast, groundsFor, GROUNDS, LINE_ALPHA, over, themeTokens, VISIONS, dEUnder, parseHex } from "./colour-math.mjs";
+import { contrast, groundsFor, GROUNDS, LAKE_GROUND, LINE_ALPHA, over, themeTokens, VISIONS, dEUnder, parseHex } from "./colour-math.mjs";
 
 const [theme = "light", fixedArg = "{}", nArg = "4000"] = process.argv.slice(2);
 const fixed = JSON.parse(fixedArg);
@@ -59,7 +59,7 @@ function score(c, explain = false) {
     for (let j = i + 1; j < 3; j++) {
       const [a, b] = [c[S[i]], c[S[j]]];
       push(`${S[i]}/${S[j]} line`, pairWorst(a, b, grounds, LINE_ALPHA, LINE_ALPHA));
-      push(`${S[i]}/${S[j]} lake`, pairWorst(a, b, [groundsFor(theme).land], lakeAlpha, lakeAlpha));
+      push(`${S[i]}/${S[j]} lake`, pairWorst(a, b, [LAKE_GROUND[theme === "cvd" ? "cvd" : theme]], lakeAlpha, lakeAlpha));
       push(`${S[i]}/${S[j]} satellite`, pairWorst(a, b, sat, LINE_ALPHA, LINE_ALPHA));
     }
   for (const bnd of ["region", "mu"])

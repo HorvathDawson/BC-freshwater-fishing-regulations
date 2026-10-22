@@ -127,8 +127,8 @@ td.n {{ text-align: right; }}
 </div>
 <div class="grid" id="grid"></div>
 <p class="note">Numbers: <em>line</em> = both colours as thin lines over the same ground (coverage 0.6, boundaries 0.8), worst
-ground; <em>lake</em> = both as lake fills; <em>sat</em> = thin lines over the satellite grounds. <em>boundary</em> = the
-worst of the region and unit boundary against closed, own and base. The colour-blind palette and satellite rows use their
+ground; <em>lake</em> = both as lake fills over the basemap's water; <em>sat</em> = thin lines over the satellite grounds. <em>boundary</em> = the
+worst of the region and unit boundary against all five statuses (closed, own, base, restricted, open). The colour-blind palette and satellite rows use their
 own theme's colours (satellite draws the light theme). Source: T47-colours.md, scripts/measure.mjs.
 In A, B and C the unit boundary wears the region's colour on purpose and is told apart by width and dash.</p>
 <script>
@@ -157,7 +157,7 @@ function numbers(id) {{
   const val = (cond, k) => {{ const r = P[cond][k]; return r ? (sim ? Math.min(r[sim], r.normal) : r.worst) : null; }};
   const row = (label, k) => `<tr><td>${{label}}</td>` + ["pure", "line", "lake", "satellite"].map((c) => {{
     const v = val(c, k); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("") + "</tr>";
-  const bnd = (c) => Math.min(...["region", "mu"].flatMap((b) => ["closed", "own", "base"].map((s) => val(c, `${{s}}/${{b}}`) ?? 99)));
+  const bnd = (c) => Math.min(...["region", "mu"].flatMap((b) => ["closed", "own", "base", "restricted", "open"].map((s) => val(c, `${{s}}/${{b}}`) ?? 99)));
   const b = ["pure", "line", "lake", "satellite"].map((c) => {{ const v = c === "lake" ? null : bnd(c); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("");
   return `<table><thead><tr><th>${{th}}${{sim ? " · " + sim : " · worst"}}</th><th>pure</th><th>line</th><th>lake</th><th>sat</th></tr></thead><tbody>`
     + row("closed / own", "closed/own") + row("closed / base", "closed/base") + row("own / base", "own/base")
