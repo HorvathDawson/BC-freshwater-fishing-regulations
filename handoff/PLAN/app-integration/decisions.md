@@ -658,3 +658,10 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   and propagated through exactly like a stream line (its drainage area from the network it sits on), and is not a
   lake crossing. A polygon-only stream item (Seton Canal, Bowman, Lewis, Hansen, Taylor …) gets a panel whenever a
   line in its place would. True lakes keep lake treatment. Before/after panel diff on the real graph before shipping.
+
+## OWNER 2026-10-22 (late) — back from a searched water lands on the map, at the water
+- Owner: after searching and opening a water (its regulations), back returns to the search list. It should land on
+  the MAP at that location instead.
+- Rule: opening a water FROM SEARCH consumes the search: the water's `from` is the map tab with search closed, and the
+  map camera is framed on that water (the same framing the water's own map uses), so back and × both arrive on the
+  map at the place just viewed. The search text is not kept. Opening from a spot or the map is unchanged.
