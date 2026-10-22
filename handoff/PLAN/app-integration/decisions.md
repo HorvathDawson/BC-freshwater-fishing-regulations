@@ -237,3 +237,55 @@ sheet, and no `@app/map` in the sheet or the bar). Decisions not spelled out by 
 OWNER QUESTIONS (defaults built): (1) should the search sheet keep the old "open on the best match while typing"
 preview? (default no); (2) should Spots' "Add a spot here" from the Spots tab say "at the middle of the map as you left
 it"? (default: the existing words).
+## CLAUDE 2026-10-22 (owner delegated) — regs polish: R1 rhythm, Q3 report link, O4 sheet type, Q4 Done, T39 Q2 paper tint
+The owner handed these to Claude ("the prototype is a reference, not the end-all"). Each decision, why, and how to undo it.
+Measured with `app/tools/regs-heights.mjs` (new: prototype v38 staged at the goldens' ref vs the app on Expo web, 390 px,
+the prototype's today); side-by-sides in `T41-polish-shots/` (`heights-before.json`, `heights-after.json`).
+
+| state · section | prototype | app before | app after |
+|---|---|---|---|
+| vedder_1010 Gear | 652.4 | 731.5 (+12.1 %) | 650.0 (−0.4 %) |
+| vedder_1010 Methods | 501.6 | 605.2 (+20.6 %) | 511.8 (+2.0 %) |
+| vedder_1010 Licence | 800.3 | 926.5 (+15.8 %) | 839.8 (+4.9 %) |
+| klwa_1010 Gear | 529.2 | 631.2 (+19.3 %) | 549.8 (+3.9 %) |
+| klwa_1010 Methods | 559.6 | 673.3 (+20.3 %) | 569.7 (+1.8 %) |
+| klwa_1010 Licence | 660.3 | 764.7 (+15.8 %) | 695.4 (+5.3 %) |
+| bc1_501 Gear | 600.4 | 663.6 (+10.5 %) | 591.6 (−1.5 %) |
+| bc1_501 Methods | 634.3 | 767.3 (+21.0 %) | 663.9 (+4.7 %) |
+| bc1_501 Licence | 660.3 | 764.7 (+15.8 %) | 695.4 (+5.3 %) |
+
+(“before” includes each section's own 52 px report line.) Kootenay LWA Methods now has 61 px to spare under
+bait-ways-compact (was 9).
+
+- **R1 rhythm — tightened to the prototype, by mechanism, not by shaving margins.** The measured cause was one thing: a
+  note or price drawn as a NESTED run inside its item's name Text inherited the name's line box, so every ✓/✕ note line
+  drew at 20.25 px and every licence "when"/price line at 21.3 px instead of the prototype's `--t4/1.3` (16.22). Fix:
+  the item stays ONE Text (the golden lines read name + note as one line; a screen reader reads the item whole), its strut
+  is the small run's size and line box, and the name is a run at its own size and height (`YesNoList`, `LicenceAnswer`
+  `NeedItem`). Then Gear/Methods' own 24 px foot → 8 (the prototype's `.gpart` 8 + nothing): Vedder Gear lands on the
+  prototype's 652 px. KEPT taller on purpose (measured reasons): the 44 px segmented "Who is fishing?" rows (T40 44 × 44)
+  and the line wraps a pixel of column apart (Bella Coola "Spear or bow — …" wraps in the app). The section head's rule
+  + 16 px is the prototype's own (`.gpart` padding-top 16 + its 1.5 px rule) — not changed. T40's 200 % layout test passes
+  with the nested runs (they scale with the text). Undo: one style per component (rhythm.test.tsx pins each value).
+- **Q3 report link — once, at the page's foot, prefilled with the tab in view WHEN PRESSED.** Four identical links cost
+  ~52 px a section, sat inside each section as if they were one of its rules, and a reader scrolling the one page met the
+  same link four times. `ReportLink` takes `tab: () => Tab` (the pin store's `getTab`, the tab row's own selection) and is
+  drawn after Licence, before the picture credits; the menu's Report a problem (ReportPage) is unchanged and still the
+  other way in; the link keeps T40's 44 × 44. Undo: `RegsScreen` draws it inside `sec()` again (one line).
+- **O4 sheet typography — sentence-case sheet headings; rule titles and licence documents stay at body size.** The
+  prototype's own round-20 rule #7 says caps only on section kickers (`.sbody .lbl { text-transform: none }`) — the app's
+  sheet `Head` ("To fish here", "These decide it (12)", "What to look for") drew caps against it; now bold sub sentence
+  case (the Keep tab's style gate rule, applied to sheets). NOT ported: the prototype's 12.5 px rule titles and its small
+  `.doc` lines in licsrc — in the v38 shots those lines run together ("…to fish.Province") and they are the legal
+  requirements a reader opened the sheet to read; body size reads better. The kicker of a Sources group (`kicker:where`,
+  the prototype's `.lvh`) stays caps (it is a kicker in the prototype too).
+- **Q4 Done — "Done", sentence case, body size (14.5 semibold), accent, in EVERY sheet in the app** (the one shared
+  `Sheet`: map, layers, spots, regs). The prototype settled sentence case (`.done { text-transform: none }`); 11 px caps
+  was the smallest and loudest-shaped word on a sheet. Still grown to 44 × 44 (`hitProps`). Undo: `DONE_WORD` in Sheet.tsx.
+- **T39 Q2 paper note tint — kept.** "Carry your paper licence … record it right away" is the one thing on the Licence
+  tab an angler must DO at the water, so it is the one tinted box there (prototype `.gtopic .paper`, --wash = --tint at
+  v38). The census keeps its keyed exception (`note:paper`, reason updated); ink on tint passes the light / dark / CVD gates.
+
+Also fixed (environment, not design): Chrome 155's headless draws a classic 15 px scrollbar, which took 15 px from every
+width `tools/wide-measure.mjs` measured and failed T45/T46 on an unchanged tree (another lane's baseline check failed the
+same two). `wide-measure.mjs` now hides scrollbars (`Emulation.setScrollbarsHidden`), as `shoot.mjs` already did.

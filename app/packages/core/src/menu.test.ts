@@ -286,7 +286,7 @@ describe("report a problem, from a regulations tab", () => {
                  partLabel: null, section: 812345, day: "Today, Oct 21" });
   });
 
-  it("words the link at the foot of each tab", () => {
+  it("words the link at the foot of the Regulations page", () => {
     expect(MENU_WORDS.report.fromRegs).toBe("Report a problem with this page");
   });
 });

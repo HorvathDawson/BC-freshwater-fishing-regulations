@@ -25,7 +25,7 @@ export function MethodsTab({ vm, palette, actions, referenceOpen = false }: {
       </View>
     );
   return (
-    <View testID="methods-tab" style={{ paddingBottom: 24 }}>
+    <View testID="methods-tab" style={{ paddingBottom: SPACE.s2 }}>
       {(vm.ways || vm.boats) && (
         <TabSection title={WORDS.TAB_METHODS} palette={palette}>
           <View style={{ borderTopWidth: 1, borderTopColor: palette.line2 }}>

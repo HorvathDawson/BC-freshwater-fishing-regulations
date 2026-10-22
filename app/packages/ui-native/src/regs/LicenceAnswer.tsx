@@ -24,11 +24,16 @@ function SourceWord({ open, palette, actions }: { open: SheetKey; palette: Palet
 function NeedItem({ it, palette, actions }: { it: NeedItemVM; palette: Palette; actions: Acts }) {
   return (
     <View style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Text style={[TYPE.regsBodyBold, { color: palette.ink }]}>
-        {it.name}
-        <Terms ids={it.terms} palette={palette} actions={actions} />
-        {it.when !== "" && <Text style={[TYPE.meta, { color: palette.sub }]}>{"\n"}{it.when}</Text>}
-        {it.price !== null && <Text style={[TYPE.metaSemi, { color: palette.ink, fontVariant: ["tabular-nums"] }]}>{"\n"}{it.price}</Text>}
+      {/* (T41 R1) one Text per document, its strut the price's small line box and font: the name, the when and the price
+          each a run at its own size and height (they inherited the name's 21.3 px, ~11 px a document taller than the
+          prototype's `.needs li`) */}
+      <Text testID="need-item" style={[TYPE.meta, { lineHeight: TYPE.metaSemi.lineHeight, color: palette.ink }]}>
+        <Text testID="need-name" style={TYPE.regsBodyBold}>
+          {it.name}
+          <Terms ids={it.terms} palette={palette} actions={actions} />
+        </Text>
+        {it.when !== "" && <Text testID="need-when" style={[TYPE.meta, { color: palette.sub }]}>{"\n"}{it.when}</Text>}
+        {it.price !== null && <Text testID="need-price" style={[TYPE.metaSemi, { color: palette.ink, fontVariant: ["tabular-nums"] }]}>{"\n"}{it.price}</Text>}
       </Text>
     </View>
   );

@@ -22,6 +22,7 @@ import { MoreScreen } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
 import { ReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
+import { createPinStore } from "../regs/pinStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
@@ -263,7 +264,7 @@ describe("the glossary page", () => {
   });
 });
 
-describe("the report link at the foot of a Regulations tab", () => {
+describe("the report link at the foot of the Regulations page", () => {
   const page = {
     target: { kind: "part", item: "gnis:3062", partIx: 1 },
     header: { name: "Vedder River", dayWord: "Today", date: "Oct 21", dateAria: "", dot: "open", action: null,
@@ -273,15 +274,17 @@ describe("the report link at the foot of a Regulations tab", () => {
   } as unknown as Pick<RegsPage, "target" | "header">;
 
   it("draws nothing without the Shell's menu (a Regs screen mounted alone is unchanged)", () => {
-    render(<ReportLink page={page} tab="gear" palette={LIGHT} />);
-    expect(screen.queryByTestId("report-link-gear")).toBeNull();
+    render(<ReportLink page={page} tab={() => "gear"} palette={LIGHT} />);
+    expect(screen.queryByTestId("report-link")).toBeNull();
   });
 
-  it("opens Report a problem prefilled with the water, the part, the day and the tab", () => {
+  it("opens Report a problem prefilled with the water, the part, the day and the tab in view AT THE PRESS", () => {
     const report = vi.fn();
     const menu = { report } as unknown as MenuControls;
-    render(<MenuContext.Provider value={menu}><ReportLink page={page} tab="gear" palette={LIGHT} /></MenuContext.Provider>);
-    expect(text("report-link-gear")).toBe("Report a problem with this page");
+    let inView: "keep" | "gear" | "methods" | "licence" = "keep";
+    render(<MenuContext.Provider value={menu}><ReportLink page={page} tab={() => inView} palette={LIGHT} /></MenuContext.Provider>);
+    expect(text("report-link")).toBe("Report a problem with this page");
+    inView = "gear";   // the reader scrolled: the link reads the tab when pressed, not when drawn
     press("Report a problem with this page");
     expect(report.mock.calls).toEqual([[{
       screen: "water · regulations", tab: "Gear", place: "Vedder River", water: "gnis:3062", part: 1,
@@ -297,7 +300,7 @@ describe("the report link at the foot of a Regulations tab", () => {
       return (
         <BackLayerContext.Provider value={b.layers}>
           <MenuContext.Provider value={menu}>
-            <ReportLink page={page} tab="licence" palette={LIGHT} />
+            <ReportLink page={page} tab={() => "licence"} palette={LIGHT} />
             <MenuHost menu={menu} palette={LIGHT} loader={null} info={INFO} tiles={null} feedFetchedAt={null}
                       route={route} day={null} />
           </MenuContext.Provider>
@@ -310,25 +313,28 @@ describe("the report link at the foot of a Regulations tab", () => {
   });
 });
 
-describe("the Regulations screen's four tabs", () => {
-  it("each ends with the report link, prefilled with its own tab (one line per tab in RegsScreen)", () => {
+describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once, at the page's foot)", () => {
+  it("is drawn ONCE, after the Licence section and before the picture credits — no tab section ends with one", () => {
     const report = vi.fn();
     const menu = { report } as unknown as MenuControls;
+    const store = createPinStore();
     render(
       <MenuContext.Provider value={menu}>
-        <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT}
+        <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT} store={store}
                     actions={{ onSheet() {}, onDay() {}, onBook() {} }} onDate={() => {}}
                     gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
                     licence={<Text>licence section</Text>} />
       </MenuContext.Provider>);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "report-link-keep", "regs-gear", "regs-methods", "regs-licence", "regs-fish-credits"]);   // (T43) the foot credits last
-    for (const t of ["gear", "methods", "licence"] as const)
-      expect(screen.getByTestId(`regs-${t}`).lastElementChild!.getAttribute("data-testid")).toBe(`report-link-${t}`);
-    for (const t of ["keep", "gear", "methods", "licence"] as const)
-      act(() => { fireEvent.click(screen.getByTestId(`report-link-${t}`)); });
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "report-link", "regs-fish-credits"]);   // (T43) the foot credits last
+    expect(screen.getAllByText("Report a problem with this page")).toHaveLength(1);
+    // prefilled with the tab in view when pressed (the pin store's: the tab row's own selection)
+    for (const t of ["methods", "keep", "licence", "gear"] as const) {
+      act(() => store.selectTab(t));
+      act(() => { fireEvent.click(screen.getByTestId("report-link")); });
+    }
     expect(report.mock.calls.map(([w]) => [w.tab, w.place, w.day])).toEqual([
-      ["What you can keep", "Vedder River", "Today, Oct 10"], ["Gear", "Vedder River", "Today, Oct 10"],
-      ["Methods", "Vedder River", "Today, Oct 10"], ["Licence", "Vedder River", "Today, Oct 10"]]);
+      ["Methods", "Vedder River", "Today, Oct 10"], ["What you can keep", "Vedder River", "Today, Oct 10"],
+      ["Licence", "Vedder River", "Today, Oct 10"], ["Gear", "Vedder River", "Today, Oct 10"]]);
   });
 });

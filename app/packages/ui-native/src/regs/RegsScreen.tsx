@@ -162,7 +162,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     return (
       <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>
         {node}
-        <ReportLink page={page} tab={tab} palette={palette} />
       </View>
     );
   };
@@ -171,10 +170,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>
-      <ReportLink page={page} tab="keep" palette={palette} />
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
+      {/* (T41 Q3) once, at the page's foot: the report names the tab in view when it is pressed */}
+      <ReportLink page={page} tab={store.getTab} palette={palette} />
       {credits.length > 0 && (
         <WaterInset style={{ paddingTop: 20 }} testID="regs-fish-credits">
           <Credits palette={palette} ink={palette.sub} lines={credits} label={WORDS.FISH_PICTURES} />

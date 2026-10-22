@@ -127,11 +127,10 @@ async function walkState(id, theme) {
 
     // 6 bait-ways-compact
     if (METHODS_COMPACT.includes(id)) {
-      // the Methods section itself (methods-tab): the section's foot line "Report a problem with this page" (owner 2026-10-21,
-      // menu) is not Methods content and is reported beside it
-      const m = await b.evaluate(`(() => { const e = ${tid('methods-tab')}, s = ${tid('regs-methods')}; return e ? [e.getBoundingClientRect().height, s.getBoundingClientRect().height] : null; })()`);
+      // the whole Methods slot (regs-methods): since T41 Q3 the report line sits once at the page's foot, not under Methods
+      const m = await b.evaluate(`(() => { const s = ${tid('regs-methods')}; return s ? s.getBoundingClientRect().height : null; })()`);
       const room = PHONE.height - h0.h.bottom;
-      say(m !== null && m[0] <= room, 'bait-ways-compact', tag, `Methods ${m === null ? 'absent' : `${m[0].toFixed(1)} px (${m[1].toFixed(1)} with its report line)`} (≤ ${room.toFixed(1)}: the viewport under the header)`);
+      say(m !== null && m <= room, 'bait-ways-compact', tag, `Methods ${m === null ? 'absent' : `${m.toFixed(1)} px`} (≤ ${room.toFixed(1)}: the viewport under the header)`);
     }
 
     // 9 tabs: a press lands its section head ≤ 3 px under the header, unless the page ends first

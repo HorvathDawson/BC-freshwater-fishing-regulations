@@ -18,10 +18,14 @@ import { NATIVE_DRIVER } from "./motion";
 import { hitProps } from "./regs/hit";
 
 /**
- * (T40) "DONE" is an 11 px tracked word (about 34 × 14): grown to 44 × 44 to the touch (it was a flat 10 px of slop, 34 tall).
+ * (T40) "Done" is a short word (about 34 × 21 at the body size): grown to 44 × 44 to the touch.
  * A segmented choice's option is at least 44 tall (`minHeight`) and shares the row with one other: 44 × 44 by its style.
  */
-const DONE_HIT = hitProps({ w: 30, h: 14 });
+const DONE_HIT = hitProps({ w: 34, h: TYPE.bodyStrong.lineHeight });
+/** (T41 Q4, Claude 2026-10-22) "Done" in sentence case at the body size, in the accent: ONE close word for every sheet in
+ *  the app (map and regs alike). It was "DONE", 11 px caps — the only all-caps control on a regs sheet, against the
+ *  prototype's own rule (#7: caps only on section kickers; `.done { text-transform: none }`) and the smallest word in it. */
+const DONE_WORD = TYPE.bodyStrong;
 const OPTION_HIT = hitProps({ w: 44, h: 44 });
 
 export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
@@ -114,7 +118,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                borderBottomColor: palette.ink }}>
                   <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
                   <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" {...DONE_HIT}>
-                    <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
+                    <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
                   </Pressable>
                 </View>
                 {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
@@ -159,8 +163,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
                            {...DONE_HIT}>
-                  {/* Uppercase and tracked, like every other label in this design. */}
-                  <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
+                  <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
                 </Pressable>
               </View>
               {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}

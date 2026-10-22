@@ -28,9 +28,14 @@ export function Example({ text, palette, actions }: { text: Line; palette: Palet
   );
 }
 
-/** a small heading (the prototype's `.lbl`: "How this was decided", "These decide it (12)", "What to look for") */
+/**
+ * a small heading (the prototype's `.sbody .lbl`: "How this was decided", "These decide it (12)", "What to look for") —
+ * (T41 O4, Claude 2026-10-22) in SENTENCE CASE, bold, in sub: the prototype's own round-20 rule #7 (caps only on section
+ * kickers; `.sbody .lbl { text-transform: none }`), the same rule the Keep tab's style gate holds. Caps here read as a
+ * second, louder kind of heading inside a sheet whose title is the heading.
+ */
 export function Head({ text, palette }: { text: string; palette: Palette }) {
-  return <Text accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginTop: 14 }]}>{text}</Text>;
+  return <Text accessibilityRole="header" style={[TYPE.metaBold, { color: palette.sub, marginTop: 14 }]}>{text}</Text>;
 }
 
 /** the book's own words, set off by a rule (`blockquote.exact`) */

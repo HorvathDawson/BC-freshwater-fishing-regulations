@@ -64,18 +64,18 @@ function audit(root: Element) {
 }
 
 /**
- * The Keep tab as the app draws it: the tab and, at its foot, the menu's "Report a problem with this page" link (RegsScreen
- * puts it under every tab; it draws only under the Shell's MenuContext, so the gate provides one).
+ * The Keep tab and the menu's "Report a problem with this page" link drawn under it (RegsScreen draws it once, at the page's foot (T41 Q3);
+ * it draws only under the Shell's MenuContext, so the gate provides one): its style is held to the page's tokens too.
  */
 function keepOf(id: string) {
   const page = STATES[id]!;
   const { container } = render(
     <MenuContext.Provider value={{ report() {} } as unknown as MenuControls}>
       <KeepTab keep={page.keep as KeepVM} dateLabel={page.header.date} palette={LIGHT} actions={NO_ACTIONS} />
-      <ReportLink page={page} tab="keep" palette={LIGHT} />
+      <ReportLink page={page} tab={() => "keep"} palette={LIGHT} />
     </MenuContext.Provider>);
   expect(container.querySelector('[data-testid="keep-tab"]')).not.toBeNull();
-  expect(container.querySelector('[data-testid="report-link-keep"]')).not.toBeNull();
+  expect(container.querySelector('[data-testid="report-link"]')).not.toBeNull();
   return container;
 }
 

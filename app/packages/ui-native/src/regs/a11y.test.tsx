@@ -69,7 +69,7 @@ function Licence({ actions }: { actions: Parameters<typeof LicenceTab>[0]["actio
   return <LicenceTab vm={LIC[`${who.age}|${who.residency}`]!} who={who} palette={LIGHT} actions={actions} onWho={setWho} />;
 }
 
-/** the Shell's menu, so the foot of each tab draws its "Report a problem with this page" link as the app does */
+/** the Shell's menu, so the page's foot draws its "Report a problem with this page" link as the app does */
 const MENU = { report() {} } as unknown as MenuControls;
 
 function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createPinStore()) {
@@ -150,8 +150,8 @@ describe("4. every press is named and reaches 44 × 44", () => {
         // the key: only runs inside a sentence (LineText's link / ⓘ / book runs), each named — a nested Text press that
         // is not one of LineText's runs is in `bad` above ("not a line run")
         expect(inline.every((x) => x.role === "link" || x.role === "button")).toBe(true);
-        // the menu's report link at the foot of each tab drawn is audited like any press (it is in `sized`, not exempt)
-        expect(container.querySelectorAll('[data-testid^="report-link-"]').length).toBeGreaterThan(0);
+        // the menu's report link at the page's foot (T41 Q3: once) is audited like any press (it is in `sized`, not exempt)
+        expect(container.querySelectorAll('[data-testid="report-link"]').length).toBe(1);
       });
 
   it("vedder_1010: exactly these runs ride on the key — the ⓘs, the book pages and the line's own links", () => {

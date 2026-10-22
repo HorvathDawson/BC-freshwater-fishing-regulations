@@ -47,7 +47,9 @@ export const ALLOW: readonly { testID: string; rule: "border" | "tint"; side?: "
     reason: "the closed banner's 1.5 px top rule is `closed` (prototype .banner border-top), over its own st:closed words" },
   { testID: "note:paper", rule: "tint",
     reason: "the licence paper note (prototype .gtopic .paper: background --wash, which IS --tint at v38) — a note "
-      + "box outside any card, which r20g/r20h never measured; owner question in the T39 report" },
+      + "box outside any card, which r20g/r20h never measured. KEPT (T39 Q2, Claude 2026-10-22, owner delegated): it is "
+      + "the one thing on the Licence tab an angler must DO at the water (carry the paper licence, record the fish at "
+      + "once), so it is the one tinted box there; ink on tint holds the contrast gates light / dark / CVD" },
 ];
 
 const ROLE_OF_PREFIX: readonly [string, Role][] = [["st:", "status"], ["n:", "number"], ["chip:", "chip"], ["btn:", "button"]];

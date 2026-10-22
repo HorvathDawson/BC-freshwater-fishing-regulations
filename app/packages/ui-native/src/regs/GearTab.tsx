@@ -21,7 +21,7 @@ export function GearTab({ vm, palette, actions }: { vm: GearVM; palette: Palette
       </View>
     );
   return (
-    <View testID="gear-tab" style={{ paddingBottom: 24 }}>
+    <View testID="gear-tab" style={{ paddingBottom: SPACE.s2 }}>
       <TabSection title={WORDS.TAB_GEAR} palette={palette}>
         {vm.day !== null && <Text style={[TYPE.metaBold, { color: palette.sub, marginBottom: 4 }]}>{vm.day}</Text>}
         <GearLines mode={vm.mode} lines={vm.lines} palette={palette} actions={actions} />
