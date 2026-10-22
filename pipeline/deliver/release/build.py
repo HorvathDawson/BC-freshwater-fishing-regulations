@@ -199,9 +199,9 @@ def gate_problems(release_dir: Path) -> List[str]:
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None) -> Path:
-    """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap` are the
-    manifest's blocks (manifest.py); `lakes` an optional lakes/1 file
+          lakes: Optional[Path] = None, sources: Optional[dict] = None) -> Path:
+    """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
+    are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file
     (pipeline/deliver/lake_facts.py), shipped as the file `lakes`; None (the default, and `deliver all`) ships none."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
@@ -275,7 +275,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                       {**regs, "format": FORMATS["regs-sid"]})
 
         return ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
-                    basemap=basemap, valid_until=bmeta.get("valid_until") or None,
+                    basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources,
                     regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
     finally:
         b.close()
@@ -308,7 +308,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
 
 def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, data_release: Optional[str] = None,
          tiles: Optional[dict] = None, basemap: Optional[dict] = None, valid_until: Optional[str] = None,
-         regs_versions: Optional[dict] = None) -> Path:
+         regs_versions: Optional[dict] = None, sources: Optional[dict] = None) -> Path:
     """Gzip + sha-name every file, write the manifest, and move `work` to `out_root/<release id>`; the id is the
     content's digest unless one is given."""
     from pipeline.deliver.release import manifest as MAN
@@ -326,7 +326,7 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
     for e in entries.values():
         e["url"] = f"{rid}/{e['url']}"
     man = MAN.manifest(rid, entries, handles, tiles=tiles, basemap=basemap, valid_until=valid_until,
-                       regs_versions=regs_versions)
+                       regs_versions=regs_versions, sources=sources)
     (work / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
     final = out_root / rid
     if final.exists():

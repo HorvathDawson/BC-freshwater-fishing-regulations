@@ -928,6 +928,12 @@ export interface ManifestFile {
   url: string; bytes: number; gz: number; sha256: string; format: string; section_handles: string;
 }
 export interface TileRef { id?: string; url: string; bytes?: number; sha256?: string }
+
+/** The sources a release dates (`sources`, pipeline/deliver/release/manifest.py SOURCE_KEYS), in the app's order. */
+export const SOURCE_KEYS = ["synopsis", "dfo", "fwa", "basemap", "hydat"] as const;
+export type SourceKey = (typeof SOURCE_KEYS)[number];
+/** One source's last update, read from the pipeline's inputs: an ISO day, or null where they record none. */
+export interface SourceFact { date: string | null; title?: string }
 export interface Manifest {
   format: typeof MANIFEST_FORMAT;
   data_release: string;
@@ -936,4 +942,6 @@ export interface Manifest {
   basemap: TileRef | null;
   files: Record<string, ManifestFile>;
   regulations: { valid_until: string | null; versions: Record<string, number> | null };
+  /** Absent on a release built before it (or a fixture release): every source then reads as not recorded. */
+  sources?: Partial<Record<SourceKey, SourceFact>>;
 }

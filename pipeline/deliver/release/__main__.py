@@ -9,12 +9,13 @@ import json
 import sys
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 
 
 def main(argv=None) -> int:
     from pipeline.deliver.release import build as B
-    from pipeline.deliver.release.manifest import tiles_block
+    from pipeline.deliver.answers.common import BOOK_TITLE
+    from pipeline.deliver.release.manifest import sources_block, tiles_block
     from pipeline.deliver.store import OUT as STORE
     from pipeline.tools.export_ui_rules import OUT as EXPORT
     ap = argparse.ArgumentParser(prog="pipeline.deliver.release", description=__doc__.split("\n\n")[0])
@@ -32,7 +33,9 @@ def main(argv=None) -> int:
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"))
+                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(GENERATED.release, handles, GENERATED.tiles / "atlas.meta.json"),
+                # the date each source was last updated, read from the fetched inputs (the app's Data sources screen)
+                sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules"))
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     bad = B.gate_problems(d)
