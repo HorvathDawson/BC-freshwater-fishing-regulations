@@ -17,8 +17,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - TILE REBUILD PENDING: parcels from z11 + basins coverage simplify (100 m), batched with S2 tile-size work.
 - NEXT: app reads feed `listed` ("not a real-time gauge"); spots on/off in Layers; T51; T52; Fable consistency auditors;
   cleanup waves 2-4 + app test cleanup + knip; S2; determinism proof (heavy.sh); T50 Android.
-- RUNNING wf_1060af7b-2d2 (silent donors hidden, one line with last data time) and wf_5087364a-96e (per-feed
-  stale cadences; dark water back to blue; release `valid_until`). Owner answers: decisions.md "OWNER 2026-10-22 (late)".
+- MERGED: per-feed staleness table core/staleness.ts (869512ba), dark water names #2498FC (8a5e5130 684b6f61), release
+  valid_until from the synopsis cover (41b4d232 a9c41c21 a5492dec) + integration fix 809bfdb.
+- RUNNING: wf_1060af7b-2d2 (silent donors hidden, one line with last data time); deliver all for valid_until (scratchpad
+  deliver-vu.sh/.log). THEN: re-cut fixtures, merge silent donors, full strict check + smoke once.
+- FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
+  index hydat.stale; dark water names now near status.base blue and flow f5 (owner may want to see).
 
 ## EARLIER STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections. Live data release r-f734cbb93724 (option A side channels + own gauge lead; served by
