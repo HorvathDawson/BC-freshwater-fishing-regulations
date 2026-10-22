@@ -113,7 +113,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   dialog vs side panel; landscape fish looks; small notes ~103 chars. MERGED T38 e924a347 (adipose drawings + How to tell), T42 b2e116c6+0e36a2d5 (edge states), T43 b4e5734c (book link,
   picture credits; merge fix: credits list outside pictures only). Strict 7202, smoke. Owner questions: T38 image
   before caption / no tile behind drawings / side by side on wide; T42 tabs outside B.C. / caveat look / tidal licence box;
-  T43 amend D15 (permissions not a ship gate) / 18-line Fish pictures foot. RUNNING T39 + T40 wf_d7cd1904-018 (task wrrc6uri8); then T41.
+  T43 amend D15 (permissions not a ship gate) / 18-line Fish pictures foot. MERGED T39 e4a5bef9+2ebe4055 (palette render gate light/dark/CVD; census tool) and T40 d9cb96fa+cdc1edb8 (a11y,
+  200% text, 44x44, style-token gate). Strict 7446, smoke. Owner questions: dark fish cut-outs OK (D4)?; licence paper
+  note tint; Keep colour bound 7; inline links stay small (no hitSlop in RN Text)?; licence radiogroups named "Age" /
+  "Residency"?; ⓘ label wording; 2x text wraps tabs. NEXT: T41 (final web walk vs the prototype).
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
