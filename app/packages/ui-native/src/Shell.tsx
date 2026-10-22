@@ -455,8 +455,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /**
    * Tapping a map. A tile carries a `section_id`, and a section is not something a person asked about — they tapped a
    * river. `opener.tap` resolves it to the water and opens the water screen (`@app/ui` openWater.ts): with Regulations
-   * in front from the Map tab, Conditions in front from the Conditions map. An unnamed reach has no page of rules, so
-   * from either map it opens the same Conditions-only frame.
+   * in front from the Map tab, Conditions in front from the Conditions map. An unnamed reach (T53) opens the same way:
+   * its frame offers Regulations (the store answers its section) and Conditions; only the water Map is a named water's.
    *
    * NOTHING IS TAPPABLE ON THE CONDITIONS MAP BELOW THE HANDOVER. Down there it is catchments, and the only thing under
    * a finger is a shape the size of a valley — a reach panel for it would answer a question about one river with a
@@ -552,9 +552,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     );
 
   const body = frame !== null
-    ? frame.view === "conditions" || item === null
+    ? frame.view === "conditions"
       // THE ONE CONDITIONS PANEL OF A SECTION, from either map (a frame with no item is an unnamed reach).
-      ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette}
+      ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette} loader={loader}
                          tiles={tiles} theme={theme}
                          // Temperature is not a hydrograph, so the chart falls back to whatever the station itself
                          // leads with; Flow and Level pass straight through — the map and the chart ask one question.
@@ -564,7 +564,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          feed={feed}
                          credits={credits} horizon={horizon}
                          onHorizon={hz.pick} />
-      : frame.view === "map"
+      // the water Map is a named water's (the reducer never puts an unnamed reach on it: `frameViews`)
+      : frame.view === "map" && item !== null
         ? <WaterMap source={source} item={item} palette={palette}>
             {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
             <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
@@ -584,6 +585,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           </WaterMap>
         : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
                        // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
+                       // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                        loader={loader} day={mapDay} onDay={setMapDay} section={frame.tapSid}
                        part={frame.part} start={start} onStarted={() => setStart(null)}
                        // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one

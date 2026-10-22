@@ -31,6 +31,8 @@ export interface RegsPageOpts {
   readonly canMap?: boolean;
   /** the fish manifest (T20); default the generated one */
   readonly fish?: FishManifest;
+  /** (T53) an unnamed section: the named water it flows into, for the header's label slot (`downstreamLabel`) */
+  readonly downstream?: string | null;
   /** test-harness page id only — sheet keys never embed it (contracts §6 #1) */
   readonly pid?: string;
 }
@@ -53,7 +55,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
-    header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true }),
+    header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true, downstream: opts.downstream ?? null }),
     keep,
     gear, methods,
     licence: buildLicence(inp, opts.who, { closed: settled.status?.status === "closed",   // (T33)

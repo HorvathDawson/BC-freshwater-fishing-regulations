@@ -85,6 +85,9 @@ export const WORDS = Object.freeze({
   MAP_ARIA: (full: string) => `View on map: where these rules apply${full ? `, ${full}` : ""}`,
   PARTS_ARIA: (full: string) => `Other parts${full ? ` — now ${full}` : ""}`,
   SUB_CLOSED_ALL_YEAR: "closed all year",
+  /** (T53) an unnamed section's label slot: the named water it flows into (a stream is that water's tributary) */
+  TRIBUTARY_OF: (name: string) => `Tributary of ${name}`,
+  FLOWS_INTO: (name: string) => `Flows into ${name}`,
   // T15 standing.ts: page v36 inheritedHtml / whereHtml / possessionHtml; prototype buildKeep (.inh, section.nofish, .posrow)
   INHERITED_LABEL: "By another water’s rule",
   WHERE_NOT: "Where you can’t fish",

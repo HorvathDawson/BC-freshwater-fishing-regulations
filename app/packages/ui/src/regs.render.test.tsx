@@ -95,6 +95,21 @@ describe("useRegsTarget / useRegulations (through the T09 seam)", () => {
     expect([off.result.current.state, seen.length]).toEqual(["loading", 1]);
   });
 
+  it("(T53) an unnamed reach (no item): the target is its tapped section, never a part; nothing without a section", async () => {
+    const st = await fixtureStore();
+    const seen: unknown[] = [];
+    const targetFor = async (_s: RegsStore, item: string, section: number | null): Promise<RegsTarget> => {
+      seen.push([item, section]);
+      return { kind: "part", item, partIx: 0 };
+    };
+    const { result } = renderHook(() => useRegsTarget(st, null, 634 as never, targetFor));
+    await waitFor(() => expect(result.current.state).toBe("ready"));
+    expect([result.current.value, seen]).toEqual([{ kind: "section", handle: 634 }, []]);
+    const none = renderHook(() => useRegsTarget(st, null, null, targetFor));
+    await act(async () => { await Promise.resolve(); });
+    expect([none.result.current.state, seen]).toEqual(["loading", []]);
+  });
+
   it("7–8. asks for the Shell's day (local date, real weekday, its year); a new day is a new question; a stale answer never lands", async () => {
     const st = await fixtureStore();
     const { asks, load, marker } = recorder();

@@ -99,4 +99,21 @@ describe("headerOf", () => {
     expect([h.name, h.place, h.action, h.tabs.map((t) => `${t.tab}:${t.label}`)]).toEqual(["Unnamed stream", null, null,
       ["keep:What you can keep", "gear:Gear", "methods:Methods", "licence:Licence"]]);
   });
+  it("(T53) an unnamed section that flows into a named water: the label slot says which — a stream is its tributary", () => {
+    const of = (kind: string | null, downstream: string | null | undefined, unnamed = true) => {
+      const inp = { ...inputs({ unnamed }), key: kind === null ? null : { kind } } as unknown as RegsInputs;
+      return headerOf(inp, { today, status: "open", canMap: true, downstream }).place;
+    };
+    expect([of("stream", "Eve River"), of("lake", "Salmon River"), of("wetland", "Fraser River"), of(null, "Eve River"),
+            of("stream", null), of("stream", undefined)]).toEqual([
+      { full: "Tributary of Eve River", short: "Tributary of Eve River" },
+      { full: "Flows into Salmon River", short: "Flows into Salmon River" },
+      { full: "Flows into Fraser River", short: "Flows into Fraser River" },
+      { full: "Flows into Eve River", short: "Flows into Eve River" },
+      null, null]);
+    // a named water's label slot is its part's, never the downstream water's
+    expect([of("stream", "Eve River", false), of("stream", null, false)]).toEqual([
+      { full: "From the mouth up to the falls", short: "Mouth → falls" },
+      { full: "From the mouth up to the falls", short: "Mouth → falls" }]);
+  });
 });

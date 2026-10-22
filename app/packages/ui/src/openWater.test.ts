@@ -27,19 +27,19 @@ describe("openTap: a map tap, resolved in one place", () => {
     expect([reduce(fromCond, { type: "back" }), reduce(fromMap, { type: "back" })]).toEqual([condMap, mapTab]);
   });
 
-  it("an unnamed reach: the same reach-only frame from either map (Conditions is its only view)", async () => {
+  it("an unnamed reach (T53): the same frame from either map, Regulations in front from the Map tab", async () => {
     const [cond, map] = [await openTap(source, 501 as SectionId, AT, "conditions"),
                          await openTap(source, 501 as SectionId, AT, "regs")];
     expect([cond, map]).toEqual([
       { type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" },
-      { type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" },
+      { type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "regs" },
     ]);
     const fromCond = reduce(condMap, cond!);
     const fromMap = reduce(mapTab, map!);
-    // both open (neither map is a dead end for it), the same frame, and back returns each to its own map
+    // both open (neither map is a dead end for it), the same frame but for `view`, and back returns each to its own map
     expect([waterFrame(fromCond), waterFrame(fromMap)]).toEqual([
       { item: null, part: null, tapSid: 501, at: AT, view: "conditions" },
-      { item: null, part: null, tapSid: 501, at: AT, view: "conditions" },
+      { item: null, part: null, tapSid: 501, at: AT, view: "regs" },
     ]);
     expect([reduce(fromCond, { type: "back" }), reduce(fromMap, { type: "back" })]).toEqual([condMap, mapTab]);
   });
@@ -63,9 +63,10 @@ describe("openTap: a map tap, resolved in one place", () => {
 });
 
 describe("openWater: the one builder", () => {
-  it("an unnamed reach has only Conditions: the builder puts it in front whatever view was asked", () => {
-    expect(openWater({ item: null, tapSid: 501 as SectionId, at: AT, view: "regs" }))
-      .toEqual({ type: "openWater", item: null, tapSid: 501, at: AT, part: null, view: "conditions" });
+  it("an unnamed reach has Regulations and Conditions (T53): asked for either, that is in front; asked for Map, Regulations", () => {
+    const rows = (["regs", "conditions", "map", undefined] as const)
+      .map((view) => (openWater({ item: null, tapSid: 501 as SectionId, at: AT, view }) as { view?: string }).view);
+    expect(rows).toEqual(["regs", "conditions", "regs", "regs"]);
   });
 
   it("a water by id opens on its Regulations unless told; nothing tapped", () => {

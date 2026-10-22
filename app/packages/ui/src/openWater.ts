@@ -8,17 +8,17 @@
  * which map it came from. That they could differ is what this file makes impossible; `openWater.test.ts` pins it, and
  * pins that nothing else in the app builds an `openWater` action or resolves a tapped section.
  *
- * AN UNNAMED REACH (no registry item — most gauged reaches) has no regulations page, so its frame (`item: null`) offers
- * the Conditions view alone. It opens the SAME frame from either map: the builder puts Conditions in front whatever view
- * was asked, so a Map-tab tap on it opens exactly what a Conditions-map tap opens (only where back goes differs). Neither
- * map is a dead end for a stream the other one opens.
+ * AN UNNAMED REACH (no registry item — most streams) opens as a frame with `item: null` offering Regulations and
+ * Conditions (T53, owner 2026-10-22: an unnamed stream is fished under its region's base and any override reaching it,
+ * which the pipeline answers per section). A Map-tab tap puts Regulations in front, a Conditions-map tap Conditions —
+ * the same frame either way; the water Map stays a named water's (asked for it, the frame's first view, Regulations).
  */
 import { useMemo } from "react";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { frameViews, type LatLon, type RouteAction, type View } from "./route";
 
 export interface WaterOpen {
-  /** The water; null for an unnamed reach (then `tapSid` is required, and Conditions — its only view — is in front). */
+  /** The water; null for an unnamed reach (then `tapSid` is required; it offers Regulations and Conditions). */
   item: ItemId | null;
   /** The section the reader tapped, null when not opened by a tap. */
   tapSid?: SectionId | null;
@@ -32,7 +32,7 @@ export interface WaterOpen {
 
 /**
  * THE ONE BUILDER of an `openWater` route action. The view asked for is put in front when the frame offers it, else the
- * frame's first view (`frameViews`): an unnamed reach opens on Conditions whichever map it was tapped on.
+ * frame's first view (`frameViews`): an unnamed reach asked for the water Map opens on its Regulations.
  */
 export function openWater(o: WaterOpen): RouteAction {
   const asked = o.view ?? "regs";

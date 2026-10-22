@@ -269,13 +269,17 @@ describe("a view swipe moves between a water's views, Regulations · Conditions 
     ]);
   });
 
-  it("an unnamed reach offers Conditions alone: nothing either way; nothing anywhere in browse", () => {
+  it("an unnamed reach offers Regulations · Conditions (T53): no Map past Conditions; nothing anywhere in browse", () => {
+    const regsReach: Route = { ...reach, stack: [{ ...reach.stack[0]!, view: "regs" }] } as Route;
     const rows: [string, Route, "next" | "prev"][] = [
       ["reach prev", reach, "prev"], ["reach next", reach, "next"],
+      ["regs prev", regsReach, "prev"], ["regs next", regsReach, "next"],
       ["conditions map", { ...HOME, tab: "conditions" }, "prev"], ["browse map", HOME, "prev"],
     ];
     expect(rows.map(([k, r, s]) => [k, viewSwipeAction(r, s)])).toEqual([
-      ["reach prev", null], ["reach next", null], ["conditions map", null], ["browse map", null],
+      ["reach prev", { type: "view", view: "regs" }], ["reach next", null],
+      ["regs prev", null], ["regs next", { type: "view", view: "conditions" }],
+      ["conditions map", null], ["browse map", null],
     ]);
   });
 });

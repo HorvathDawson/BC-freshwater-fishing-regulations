@@ -62,12 +62,25 @@ export function partLabels(inp: RegsInputs): { full: string; short: string } | n
 
 const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 
+/**
+ * (T53) An unnamed section's label slot: the named water it flows into (`downstream`, the first named water down its flow
+ * pointers — the app asks the bundle; no regulation rides on it), worded by the section's own kind: an unnamed stream is
+ * that water's tributary, anything else flows into it. Null for a named water (its slot is its part's) or nothing known.
+ */
+export function downstreamLabel(inp: RegsInputs, downstream: string | null | undefined): string | null {
+  if (inp.item || !downstream) return null;
+  return inp.key?.kind === "stream" ? WORDS.TRIBUTARY_OF(downstream) : WORDS.FLOWS_INTO(downstream);
+}
+
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
- *  outside); `canMap` whether the map can frame the part (D1). */
-export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown"; canMap: boolean }): HeaderVM {
+ *  outside); `canMap` whether the map can frame the part (D1); `downstream` (T53, an unnamed section only) the named
+ *  water it flows into. */
+export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown"; canMap: boolean;
+                                               downstream?: string | null }): HeaderVM {
   const name = inp.item?.name ?? inp.place?.name ?? "";
   const date = fmtDay(inp.day);
-  const lab = partLabels(inp);
+  const down = downstreamLabel(inp, o.downstream);
+  const lab = down ? { full: down, short: down } : partLabels(inp);
   // prototype placeRow: no label slot when the short label is the water's own name; the action's words keep the full one
   const lbl = lab && lab.short !== name ? lab.short : "";
   const full = lab?.full || lbl;

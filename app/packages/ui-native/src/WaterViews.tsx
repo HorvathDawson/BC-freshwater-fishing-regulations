@@ -9,7 +9,8 @@
  *               same reach the reader TAPPED, the same "you are here". There is no browse-mode Conditions screen
  *               (the old browse-mode reach drill is folded in here). Opened from search or a list there is no tap,
  *               and it opens on the water's first reach until P14 supplies the part's midpoint (`mid_sid`). An
- *               unnamed reach (no registry item) is a frame with `item: null` and this view alone.
+ *               unnamed reach (no registry item) is a frame with `item: null` offering this view and its Regulations
+ *               (T53); titled here with the store's name for it, as its Regulations page is.
  *   Map         the water framed and lit on the map (`usePickFocus`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
@@ -17,15 +18,18 @@ import { View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useWater, useWaterName } from "@app/ui";
+import { useRegsStore, useUnnamedName, useWater, useWaterName } from "@app/ui";
+import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { FishSpinner } from "./FishSpinner";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
-                                  credits, horizon, onHorizon }: {
+                                  credits, horizon, onHorizon, loader = null }: {
   source: RegsSource;
+  /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
+  loader?: ReleaseLoader | null;
   /** The water; null for an unnamed reach (then `tapSid` is its section). */
   item: ItemId | null;
   /** The section the reader tapped — the reach this view is about. Null when the water was not opened by a tap. */
@@ -49,7 +53,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const section = tapSid ?? (sheet.state === "ready" ? sheet.value?.sections[0] ?? null : null);
   // THE WATER'S NAME, in the same place the Regulations view puts it — one water, one header, every view.
   const water = useWaterName(source, section);
-  const name = water.state === "ready" ? water.value?.name ?? null : null;
+  // (T53) an unnamed reach: the store's name for it ("Unnamed stream · Region 1"), the one its Regulations view shows
+  const store = useRegsStore(item === null ? loader : null);
+  const unnamed = useUnnamedName(store.value ?? null, item, tapSid);
+  const name = (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>

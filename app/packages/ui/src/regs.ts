@@ -17,7 +17,7 @@
  */
 import { useMemo, useSyncExternalStore } from "react";
 import { buildRegsPage, tapDay, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
-import type { ItemId, SectionId } from "@app/data";
+import { downstreamWater, type ItemId, type RegsSource, type SectionId } from "@app/data";
 import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsExpect, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 
@@ -74,11 +74,39 @@ export type TargetFor = (store: RegsStore, item: string, section: number | null)
 /** A target as a key: `part:<item>:<partIx>` | `section:<handle>`. */
 export const regsTargetKey = (t: RegsTarget): string => (t.kind === "part" ? `part:${t.item}:${t.partIx}` : `section:${t.handle}`);
 
-/** The part the water screen opens for `item` (and the tapped section, when one was tapped). */
+/**
+ * The part the water screen opens for `item` (and the tapped section, when one was tapped). (T53) An UNNAMED reach (no
+ * item) is answered by its section: the target is `{kind: "section", handle}` (the store's `section_akey` →
+ * `section_place`, T09's section branch), never a part.
+ */
 export function useRegsTarget(store: RegsStore | null, item: ItemId | null, section: SectionId | null,
                               targetForPart: TargetFor = targetFor): Async<RegsTarget | null> {
   const key = `regs-target:${store ? idOf(store) : ""}:${item ?? ""}:${section ?? ""}`;
-  return useAsync(async () => (store && item ? targetForPart(store, item, section) : null), key, !!store && !!item);
+  const asks = !!store && (item !== null || section !== null);
+  return useAsync(async () => (!store ? null : item ? targetForPart(store, item, section)
+    : section !== null ? { kind: "section", handle: section } as RegsTarget : null), key, asks);
+}
+
+/**
+ * (T53) An unnamed reach's name, as the store words it ("Unnamed stream · Region 1": `unnamedName`, the same name its
+ * Regulations page heads with), so its Conditions view is titled as its Regulations view is. Disabled for a named water.
+ */
+export function useUnnamedName(store: RegsStore | null, item: ItemId | null, section: SectionId | null): Async<string | null> {
+  const asks = !!store && item === null && section !== null;
+  return useAsync(async () => (asks ? store!.unnamedName(section!) : null),
+    `unnamed-name:${store ? idOf(store) : ""}:${asks ? section : ""}`, asks);
+}
+
+// ── where an unnamed reach flows (T53) ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * `downstreamWater` (@app/data: the first named water down the reach's flow pointers) for an unnamed reach on screen;
+ * disabled (loading, never asked) for a named water or no section. Feeds the header's "Tributary of …" line.
+ */
+export function useDownstreamWater(source: Pick<RegsSource, "traceToGauge" | "waterFor">, item: ItemId | null,
+                                   section: SectionId | null): Async<{ item: ItemId; name: string; kind: string } | null> {
+  const asks = item === null && section !== null;
+  return useAsync(async () => (asks ? downstreamWater(source, section!) : null), `downstream:${asks ? section : ""}`, asks);
 }
 
 /**
@@ -97,8 +125,10 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
  * The page for those inputs (core `buildRegsPage`, T21): a `who` change rebuilds from the same inputs, no reload. Every
  * screen uses this; nobody calls buildRegsPage in a component.
  */
-export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day): RegsPage | null {
-  return useMemo(() => (inputs ? buildRegsPage(inputs, { today, who }) : null), [inputs, who, today.month, today.day]);
+export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null): RegsPage | null {
+  // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`)
+  return useMemo(() => (inputs ? buildRegsPage(inputs, { today, who, downstream }) : null),
+    [inputs, who, today.month, today.day, downstream]);
 }
 
 // ── the one day ──────────────────────────────────────────────────────────────────────────────────────────────────────

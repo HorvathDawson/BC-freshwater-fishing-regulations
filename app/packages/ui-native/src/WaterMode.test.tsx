@@ -87,7 +87,7 @@ const look = () => {
   return `${back} | ${views} | ${title} | ${body} | ${bar}`;
 };
 
-async function mount(tab: "map" | "conditions", sid?: SectionId) {
+async function mount(tab: "map" | "conditions", sid?: SectionId, loader?: ReturnType<typeof openRegsFixture>) {
   const source = makeFixtureSource();
   const water = await source.water(CHILLIWACK);
   TAP.sid = sid ?? water!.sections[1]!;
@@ -96,7 +96,7 @@ async function mount(tab: "map" | "conditions", sid?: SectionId) {
   render(
     <GestureHandlerRootView>
       <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
-             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} />
+             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={loader} />
     </GestureHandlerRootView>);
   return TAP.sid;
 }
@@ -171,30 +171,48 @@ describe("one water screen, whichever map you tapped", () => {
     expect(look()).toBe("no back | no strip | no title | the map | Map* Conditions Spots More");
   });
 
-  it("an unnamed reach: the same Conditions-only screen from the Conditions map and the Map tab", async () => {
+  it("(T53) an unnamed reach: Regulations · Conditions (no Map) from either map; the Map tab puts Regulations in front", async () => {
     await mount("conditions", UNNAMED);
     await tapMap();
     await until(() => panel() !== "no panel");
     const opened = look();
-    swipe("view-swipe-conditions", 120);                    // nothing to the left of Conditions for it
+    swipe("view-swipe-conditions", 120);                    // its Regulations is to the left of Conditions
+    await until(regsShown);
     const swiped = look();
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     const backed = look();
     cleanup();
     await mount("map", UNNAMED);
     await tapMap();
-    await until(() => panel() !== "no panel");
+    await until(regsShown);
     const mapOpened = look();
+    const on = screen.getByTestId("regs-on").textContent;
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
-    expect([opened, swiped, backed, mapOpened, look()]).toEqual([
-      `Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
-      `Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+    expect([opened, swiped, backed, mapOpened, on, look()]).toEqual([
+      `Conditions | Regulations · Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+      "Conditions | Regulations* · Conditions | no title | regs page | no bar",
+      // a view move replaced the frame: one back leaves the reach
       "no back | no strip | no title | the map | Map Conditions* Spots More",
-      // the Map tab opens the very same screen; only where back goes differs
-      `Map | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
+      // the Map tab opens the very same screen with Regulations in front; only where back goes differs
+      "Map | Regulations* · Conditions | no title | regs page | no bar",
+      "regs on null part null",
       "no back | no strip | no title | the map | Map* Conditions Spots More",
     ]);
   });
+
+  it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
+    await mount("conditions", 634 as SectionId, openRegsFixture());
+    await tapMap();
+    const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
+    await until(() => panel() !== "no panel" && title() !== "");
+    const cond = [title(), panel()];
+    swipe("view-swipe-conditions", 120);
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+    // the Regulations view's name row carries its date pill too: the heading is the name
+    expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
+            screen.getByTestId("regs-on").textContent]).toEqual([
+      ["Unnamed stream · Region 1", "panel for 634 at 49.1"], "Unnamed stream · Region 1", "regs on null part null"]);
+  }, 40_000);
 });
 
 describe("the water's Map view and the rest of the water screen agree (P15 follow-ups, on the regs fixture release)", () => {

@@ -14,6 +14,11 @@
  * holds no regulations), while the store loads, or when it cannot answer, the view draws the name row under
  * the frame's header, then the placeholder / spinner / why.
  *
+ * AN UNNAMED REACH (T53, `item` null): the same view, answered by the tapped section (`RegsTarget` kind "section" —
+ * the store's region base plus whatever override reaches it, as the pipeline answered it). Its name is the store's
+ * ("Unnamed stream · Region 1"), and the header's label slot names the water it flows into when the flow pointers reach
+ * one ("Tributary of Eve River": `useDownstreamWater`, worded by core). No water sheet is read for it.
+ *
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
@@ -22,8 +27,8 @@ import { ScrollView, Text, View } from "react-native";
 import { dayRange, regsLapsedNote, WATER_BACK, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
-         useWater, type RegsStart } from "@app/ui";
+import { mapDayOf, regsDay, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget,
+         useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -41,7 +46,8 @@ import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
                               start = null, onStarted }: {
-  source: RegsSource; item: ItemId;
+  /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
+  source: RegsSource; item: ItemId | null;
   /**
    * T01: everything the Regulations page reads (T21 draws it: `useRegsStore(loader)` opens the store on the first water).
    *
@@ -71,12 +77,14 @@ export function WaterScreen({ source, item, palette, onBack,
   // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
   const store = useRegsStore(loader);
   const found = useRegsTarget(store.value ?? null, item, part === null ? section : null);
-  const target: RegsTarget | null = useMemo(() => (part !== null ? { kind: "part", item, partIx: part } : found.value ?? null),
-    [part, item, found.value]);
+  const target: RegsTarget | null = useMemo(
+    () => (part !== null && item !== null ? { kind: "part", item, partIx: part } : found.value ?? null), [part, item, found.value]);
   const inputs = useRegulations(store.value ?? null, target, day);
   const [who, setWho] = useAnglerProfile();
   const d = regsDay(day);
-  const regs = useRegsPage(inputs.value ?? null, who, d.today);
+  // (T53) an unnamed reach: the named water down its flow, for the header's "Tributary of …" (none for a named water)
+  const down = useDownstreamWater(source, item, section);
+  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
@@ -102,14 +110,15 @@ export function WaterScreen({ source, item, palette, onBack,
     <WaterFrame palette={palette} face="regulations" onBack={onBack} backLabel={WATER_BACK} title={title}>{body}</WaterFrame>
   );
 
-  if (sheet.state === "loading") {
+  // an unnamed reach has no water sheet: its name is the store's, on the page
+  if (item !== null && sheet.state === "loading") {
     return frame(<WaterTitle name={null} palette={palette} />, (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <FishSpinner palette={palette} size={110} label="Loading this water" />
       </View>
     ));
   }
-  if (sheet.state === "failed" || !sheet.value) {
+  if (item !== null && (sheet.state === "failed" || !sheet.value)) {
     return frame(<WaterTitle name={null} palette={palette} />, (
       <WaterInset style={{ paddingTop: SPACE.s4 }}>
         <Text style={{ ...TYPE.body, color: palette.closed }}>
@@ -119,7 +128,7 @@ export function WaterScreen({ source, item, palette, onBack,
     ));
   }
 
-  const s = sheet.value;
+  const s = sheet.value;   // null only for an unnamed reach
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError) {
@@ -164,7 +173,7 @@ export function WaterScreen({ source, item, palette, onBack,
   // the day sheet in the SAME place as beside the page above, so a reload's loading frame keeps it (it does not remount)
   return (
     <>
-    {frame(<WaterTitle name={s.name} palette={palette} />, (
+    {frame(<WaterTitle name={s?.name ?? null} palette={palette} />, (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
         {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{page}</ViewSwipe> : page}
       </ScrollView>

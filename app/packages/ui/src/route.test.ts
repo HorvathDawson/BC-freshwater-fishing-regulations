@@ -192,22 +192,34 @@ describe("the views are lateral: the strip or a swipe moves them, back leaves th
   });
 });
 
-describe("an unnamed reach (no registry item) opens on its Conditions only", () => {
+/**
+ * T53 (owner 2026-10-22): an unnamed stream HAS regulations (its region's base plus any override reaching it, answered
+ * by the pipeline per section), so its frame offers Regulations and Conditions; only the water Map stays named-only.
+ */
+describe("an unnamed reach (no registry item) offers Regulations and Conditions, never the water Map", () => {
   const AT = { lat: 49.2, lon: -121.5 };
   const condMap = reduce(HOME, { type: "tab", tab: "conditions" });
-  it("opened on Conditions it is a frame with no item; it offers Conditions alone, and back is the Conditions map", () => {
+  it("opened on Conditions it is a frame with no item; Regulations is a view of it, Map is not; back is the Conditions map", () => {
     const r = reduce(condMap, { type: "openWater", item: null, tapSid: 501 as SectionId, at: AT, view: "conditions" });
     expect(waterFrame(r)).toEqual({ item: null, part: null, tapSid: 501, at: AT, view: "conditions" });
-    expect(frameViews(waterFrame(r)!)).toEqual(["conditions"]);
-    expect(["regs", "map"].map((v) => reduce(r, { type: "view", view: v as "regs" | "map" }))).toEqual([r, r]);
+    expect(frameViews(waterFrame(r)!)).toEqual(["regs", "conditions"]);
+    const regs = reduce(r, { type: "view", view: "regs" });
+    expect([waterFrame(regs), reduce(r, { type: "view", view: "map" })]).toEqual([
+      { item: null, part: null, tapSid: 501, at: AT, view: "regs" }, r]);
     expect(reduce(r, { type: "part", part: 1 })).toBe(r);
-    expect(reduce(r, { type: "back" })).toBe(condMap);
+    // a view move replaces the frame, so back from Regulations is still the Conditions map (back steps out one layer)
+    expect([reduce(r, { type: "back" }), reduce(regs, { type: "back" }), reduce(regs, { type: "close" })])
+      .toEqual([condMap, condMap, condMap]);
   });
 
-  it("refused off Conditions, and refused with no section to stand on", () => {
+  it("opened from the Map tab it is the same frame with Regulations in front; refused on Map, and with no section", () => {
     expect([reduce(HOME, { type: "openWater", item: null, tapSid: 501 as SectionId, view: "regs" }),
             reduce(HOME, { type: "openWater", item: null, tapSid: 501 as SectionId }),
-            reduce(condMap, { type: "openWater", item: null, view: "conditions" })]).toEqual([HOME, HOME, condMap]);
+            reduce(HOME, { type: "openWater", item: null, tapSid: 501 as SectionId, view: "map" }),
+            reduce(condMap, { type: "openWater", item: null, view: "conditions" })]).toEqual([
+      { mode: "water", from: HOME, stack: [{ item: null, part: null, tapSid: 501, at: null, view: "regs" }] },
+      { mode: "water", from: HOME, stack: [{ item: null, part: null, tapSid: 501, at: null, view: "regs" }] },
+      HOME, condMap]);
   });
 
   it("a named water offers all three views", () => {

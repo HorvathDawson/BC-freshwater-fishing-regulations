@@ -21,9 +21,10 @@
  * second Conditions screen in browse mode (the old `cond` drill is gone): the Conditions view of the water screen IS
  * the reach panel. Every water is opened by `openWater` (openWater.ts), the one place a tap's item is resolved.
  *
- * AN UNNAMED REACH (no registry item: most gauged reaches) has no regulations page of its own, so its frame has
- * `item: null` and offers the Conditions view only (`frameViews`). `openWater` puts Conditions in front for it from
- * either map, so both maps open the same frame; the reducer refuses any other view for it.
+ * AN UNNAMED REACH (no registry item: most streams) is a frame with `item: null`, identified by its section. It HAS
+ * regulations (T53, owner 2026-10-22: its region's base plus any override reaching it, which the pipeline answers per
+ * section), so it offers Regulations and Conditions (`frameViews`); only the water Map is a named water's. From the Map
+ * tab Regulations is in front, from the Conditions map Conditions — the same frame either way.
  *
  * ONE BACK RULE: the views are lateral, not history — in water mode back leaves the water on screen whatever view is in
  * front: to the water the reader flowed in from, else to the browse state underneath, whole (the tab, the open spot,
@@ -54,7 +55,7 @@ export type SpotId = string;
 export interface LatLon { lat: number; lon: number }
 
 /**
- * One water on screen. `item` null: an unnamed reach (then `tapSid` is set and `view` is "conditions"). `at`: where on
+ * One water on screen. `item` null: an unnamed reach (then `tapSid` is set and `view` is not "map"). `at`: where on
  * `tapSid` the tap landed (the Conditions view's "you are here"), null when not tapped there.
  */
 export interface WaterFrame {
@@ -85,7 +86,7 @@ export type RouteAction =
   | { type: "tab"; tab: BrowseTab }
   /**
    * Built ONLY by `openWater` (openWater.ts). `at`: where on `tapSid` the tap landed — kept only with a `tapSid`.
-   * `view`: the view in front ("regs" when absent). `item` null: an unnamed reach, opened on Conditions only.
+   * `view`: the view in front ("regs" when absent). `item` null: an unnamed reach (Regulations or Conditions; T53).
    */
   | { type: "openWater"; item: ItemId | null; tapSid?: SectionId | null; part?: number | null; at?: LatLon | null;
       view?: View }
@@ -121,8 +122,11 @@ export const STACK_CAP = 8;
 
 export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: null, search: false };
 
-/** The views a frame offers: all three for a water; an unnamed reach has no regulations or water map, only Conditions. */
-export const REACH_ONLY: readonly WaterView[] = ["conditions"];
+/**
+ * The views a frame offers: all three for a water. An unnamed reach (T53) has its Regulations (the store answers its
+ * section: `RegsTarget` kind "section") and its Conditions, but no water map — the map frames a named water's parts.
+ */
+export const REACH_ONLY: readonly WaterView[] = ["regs", "conditions"];
 export function frameViews(f: Pick<WaterFrame, "item">): readonly WaterView[] {
   return f.item === null ? REACH_ONLY : WATER_VIEWS;
 }
@@ -145,7 +149,7 @@ const enter = (r: WaterRoute, f: WaterFrame): WaterRoute => {
   return i < 0 ? push(r, f) : { ...r, stack: [...r.stack.slice(0, i), f] };
 };
 
-/** THE ONE FRAME BUILDER (an open and a flow alike); null for a frame that cannot be (an unnamed reach off Conditions). */
+/** THE ONE FRAME BUILDER (an open and a flow alike); null for a frame that cannot be (an unnamed reach on Map, or none). */
 const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | null => {
   const tapSid = a.tapSid ?? null;
   const f: WaterFrame = { item: a.item, part: a.part ?? null, tapSid, at: tapSid !== null ? a.at ?? null : null,

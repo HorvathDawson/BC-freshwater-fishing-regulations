@@ -578,6 +578,7 @@ export { httpFeed, type GaugeFeed } from "./feed/http";
 export * from "./panel";
 // The Conditions map's standings, per class of section (the static half) and per feed (the changing half) — ./standing.ts.
 export * from "./standing";
+export { DOWNSTREAM_WALK, downstreamWater } from "./downstream";
 // THE RELEASE (P10): verified fetches, the manifest's diff and pairing
 export { fetchVerified, verify, ungzip, VerifyError } from "./fetchVerified";
 export { loadManifest, parseManifest, diff, pair, compatible, ManifestError, type Held, type Pairing,
