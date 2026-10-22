@@ -13,7 +13,7 @@
  * map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
 import { useEffect, useMemo, useState } from "react";
-import { SafeAreaView, StatusBar, Text, View, useColorScheme } from "react-native";
+import { SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { useFonts } from "expo-font";
 import {
   BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
@@ -30,7 +30,7 @@ import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { devStatus, releaseMapInput, releaseStatus, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
@@ -137,7 +137,12 @@ export default function App() {
     JetBrainsMono_500Medium,
   });
 
+  // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
+  // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
+  const { width } = useWindowDimensions();
+
   return (
+    <LayoutWidthContext.Provider value={width}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -221,5 +226,6 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    </LayoutWidthContext.Provider>
   );
 }

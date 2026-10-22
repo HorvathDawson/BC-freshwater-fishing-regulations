@@ -26,6 +26,17 @@ shared elements in headless Chrome at 390 / 768 / 1440 (whole-pixel equal). The 
 sideways swipe moves only the view's body, wherever it starts: the headers' detectors are `still` and drive the frame's
 one offset (`SwipeOffsetContext`; `tools/water-frame-swipe.test.ts`).
 
+**Wide screens (T45).** ONE layout class, `useLayoutClass(): "phone" | "tablet" | "desktop"` (@app/ui `layout.ts`,
+breakpoints `LAYOUT_BREAKPOINTS` 900 / 1280), from the window width the app shell provides once (`LayoutWidthContext`,
+`useWindowDimensions` in apps/mobile App.tsx); no provider is a phone. Components take the class (a prop, or the hook);
+none reads the window. A phone is drawn exactly as before. Regulations (`regs/RegsWide.tsx`): a reading column of
+`REGS_WIDE.measure` (560 px, ~70 characters of body, ≤ 80 measured by `tools/regs-wide-layout.test.ts`) centred in the
+room the page has — a measure INSIDE the frame, which stays 1,280 so the three views keep one header and one left edge
+(the owner's "frame ~720 for regs reading?" is answered here for Regulations without changing `WATER_FRAME`); on a desktop
+a side column at the frame's left holds the date pill, the sections as a list and the pinned lines. `Sheet` on a tablet
+or desktop is a centred dialog (`SHEET_DIALOG`, 640 wide at most, sized to its content; Done, the scrim, back and Escape
+close it — no drag).
+
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is
 live, the hydrograph with envelope + prior years + a TODAY rule, the model's disclaimer

@@ -41,7 +41,7 @@ const GLYPH = {
   parts: ["M4 6h15M4 11.5h15M4 17h15"],
 } as const;
 
-export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, side = false }: {
   header: HeaderVM; palette: Palette;
   /** where the selected tab is read from (the pin store) */
   tabs: TabSource;
@@ -49,22 +49,17 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab }
   /** Map / Parts pressed. Absent → the slot stays (44 px, so the name does not reflow between waters) with nothing in it. */
   onAction?: (kind: "map" | "parts") => void;
   onTab: (t: Tab) => void;
+  /**
+   * (T45) the desktop arrangement: the date pill and the tabs are drawn in the side column (`RegsSide`), so the header
+   * keeps the name row (with Map) and the place label. false (a phone, a tablet): the header as it always was.
+   */
+  side?: boolean;
 }) {
-  const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill and Map in it */}
       <WaterTitle name={h.name} palette={palette}>
-        <Pressable testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria}
-                   style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
-          <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
-          <View>
-            <Text style={[TYPE.metaHeavy, { color: palette.accent }]}>
-              {h.dayWord}<Text style={{ fontSize: 10 }}>{WORDS.DATE_CARET}</Text>
-            </Text>
-            <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
-          </View>
-        </Pressable>
+        {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
         <View style={{ minWidth: 44, minHeight: 44 }}>
           {h.action && onAction && (
             <Pressable testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
@@ -81,8 +76,25 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab }
         </View>
       </WaterTitle>
       <Place place={h.place} palette={palette} />
-      <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />
+      {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
+  );
+}
+
+/** The date pill: the status dot, "Today ▾" / the weekday over the date; a press asks "Which day?" (T49). */
+export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette; onDate: () => void }) {
+  const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
+  return (
+    <Pressable testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria}
+               style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
+      <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
+      <View>
+        <Text style={[TYPE.metaHeavy, { color: palette.accent }]}>
+          {h.dayWord}<Text style={{ fontSize: 10 }}>{WORDS.DATE_CARET}</Text>
+        </Text>
+        <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -99,6 +111,30 @@ function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette 
         <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasured(e.nativeEvent.layout.height)}
               style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{place.full}</Text>
       )}
+    </View>
+  );
+}
+
+/**
+ * (T45) The tabs as the desktop side column's section list: the same four tabs (one tablist, the same labels, the
+ * selected one read from the pin store), one under another, the selected one underlined in ink as in the tab row, its
+ * words at the gutter. A press scrolls the page to its section, as the tab row's does.
+ */
+export function SectionList({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
+  const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab);
+  return (
+    <View testID="regs-section-list" accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL} aria-orientation="vertical"
+          style={{ gap: 4 }}>
+      {h.tabs.map((t) => {
+        const on = t.tab === selected;
+        return (
+          <Pressable key={t.tab} onPress={() => onTab(t.tab)} accessibilityRole="tab" aria-selected={on}
+                     style={{ minHeight: 36, alignSelf: "flex-start", justifyContent: "center", borderBottomWidth: 3,
+                              borderBottomColor: on ? palette.ink : "transparent" }}>
+            <Text style={[TYPE.regsTab, { color: on ? palette.ink : palette.sub }]}>{t.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

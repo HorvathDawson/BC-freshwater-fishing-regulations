@@ -146,6 +146,28 @@ export const WATER_FRAME = {
 } as const;
 
 /**
+ * T45 — THE REGULATIONS VIEW ON A WIDE SCREEN (layout class `tablet` / `desktop`, @app/ui `useLayoutClass`), inside the
+ * water frame's column (WATER_FRAME — unchanged: the frame stays 1280 so the three views share one header and one left
+ * edge; the reading measure below is what keeps a line of the page short, the owner's "~720 for regs reading?"):
+ *
+ *   measure   the reading column, gutters included: about 70 characters of `regsBody` (15 px Archivo) a line, centred
+ *             in the space beside the side column (measured in Chrome by tools/regs-wide-layout.test.ts: ≤ 80)
+ *   side      the desktop side column (the day control, the sections as a list, the pinned lines), at the frame's left
+ *   phone     nothing: a phone draws the page exactly as before (golden parity)
+ */
+export const REGS_WIDE = { measure: 560, side: 264 } as const;
+
+/**
+ * T45 — A SHEET ON A WIDE SCREEN is a centred dialog sized to its content, not a phone-height bottom sheet stretched
+ * across the window (owner: "on desktop the sheet spans the whole 1280 px window … capped?"):
+ *
+ *   maxWidth   the dialog's width cap (a sheet's words wrap a little wider than the page's measure)
+ *   inset      the least room left around it, every side
+ *   maxHeight  its tallest, as a share of the window (its body scrolls past that)
+ */
+export const SHEET_DIALOG = { maxWidth: 640, inset: 24, maxHeight: 0.82 } as const;
+
+/**
  * A HARD OFFSET SHADOW, not a blur.
  *
  * v1's signature, used on the search bar and every floating panel:

@@ -36,11 +36,14 @@ export * from "./waterMap";
 export * from "./mapRail";
 export * from "./imagery";
 
+export * from "./layout";
+import { LAYOUT_BREAKPOINTS } from "./layout";
+
 export type FormFactor = "phone" | "desktop";
 
-/** Which component set to render. The ONLY place the split is decided. */
+/** Which component set to render. The ONLY place the split is decided (where the T45 tablet class starts). */
 export function formFactorFor(widthPx: number): FormFactor {
-  return widthPx < 900 ? "phone" : "desktop";
+  return widthPx < LAYOUT_BREAKPOINTS.tablet ? "phone" : "desktop";
 }
 export { gaugeGeoJSON, gaugeLabel, type GaugePoint, type GaugeQuantity }
   from "./gaugePoints";

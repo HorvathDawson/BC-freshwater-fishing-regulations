@@ -22,7 +22,8 @@ import { Linking, Platform, ScrollView, Text, View } from "react-native";
 import { bookUrl, dayRange, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapDayOf, regsDay, useAnglerProfile, useRegsPage, useRegsStore, useRegsTarget, useRegulations, useWater } from "@app/ui";
+import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
+         useWater } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -70,6 +71,8 @@ export function WaterScreen({ source, item, palette, onBack,
   const d = regsDay(day);
   const regs = useRegsPage(inputs.value ?? null, who, d.today);
   const regsError = store.error ?? found.error ?? inputs.error;
+  // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
+  const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
   const views = useContext(WaterViewsContext);
   const swipe = views?.bodySwipe ?? null;
@@ -117,7 +120,7 @@ export function WaterScreen({ source, item, palette, onBack,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)}
+      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)} layout={layout}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{

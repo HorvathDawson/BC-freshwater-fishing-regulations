@@ -35,9 +35,22 @@ function Line({ l, store, palette }: { l: PinLine; store: PinStore; palette: Pal
   );
 }
 
-export function PinBar({ store, palette }: { store: PinStore; palette: Palette }) {
+export function PinBar({ store, palette, placement = "over" }: {
+  store: PinStore; palette: Palette;
+  /** "over": over the scroll's top edge (the phone, the tablet); "side": in the desktop side column (T45 `RegsSide`) */
+  placement?: "over" | "side";
+}) {
   const lines = useSyncExternalStore(store.subscribe, store.getLines);
   if (!lines.length) return null;
+  // (T45) on a desktop the lines stand in the side column, beside the page rather than over its top edge: they cover
+  // nothing, so the bar reports no stack height of its own
+  if (placement === "side")
+    return (
+      <View testID="pin-bar" pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
+            style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
+        {lines.map((l) => <Line key={`${l.cls}|${l.text}`} l={l} store={store} palette={palette} />)}
+      </View>
+    );
   return (
     <View testID="pin-bar" pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
           onLayout={(e) => store.setStackHeight(e.nativeEvent.layout.height)}

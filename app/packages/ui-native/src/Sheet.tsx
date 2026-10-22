@@ -2,16 +2,18 @@
  * A bottom sheet. Not a modal dialog: on a phone, the thing you were looking at should
  * stay visible behind the thing you are adjusting, because every control in here changes
  * what the map is showing and you want to see it change.
+ *
+ * (T45) On a wide screen (layout class tablet / desktop) the same sheet is a centred dialog sized to its content.
  */
 import { useEffect, useMemo, useRef } from "react";
 import { Animated, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import { useBackLayer, useSheetDrag } from "@app/ui";
+import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { TYPE } from "./type";
-import { GUTTER, SPACE, type Palette } from "./theme";
+import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER } from "./motion";
 
-export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
   /** (T37) the body scrolls inside the sheet, at most 82% of the window tall (the regs sheets); default false: as before */
@@ -20,8 +22,11 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   sub?: string | null;
   /** (T37) the inner ScrollView, so a sheet opened in this one's place can start at its top */
   scrollRef?: React.Ref<ScrollView>;
+  /** (T45) the layout class; absent → the app's (`useLayoutClass`). A phone: the bottom sheet; wider: a centred dialog. */
+  layout?: LayoutClass;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const shellLayout = useLayoutClass();
   /*
    * DRAG TO DISMISS (G1), from the grabber and the title row, or — with a scrolling body — from the content when it
    * is scrolled to its top. The sheet follows the finger downward; past a third of its height or on a downward flick it
@@ -71,6 +76,46 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
    * rather than going under it. Android's back reaches the Modal's own `onRequestClose`, which is that same back.
    */
   const requestClose = useBackLayer(open, onClose);
+  const wide = (layout ?? shellLayout) !== "phone";
+  /*
+   * (T45) ON A WIDE SCREEN, A CENTRED DIALOG sized to its content (owner: "on desktop the sheet spans the whole 1280 px
+   * window … capped?"): at most SHEET_DIALOG.maxWidth across and maxHeight of the window tall (the body scrolls past
+   * that), over the same scrim, with the same title row, Done and sub line. No drag (a window has no bottom edge to pull
+   * it to); Done, the scrim and the one back — the browser's back, Escape (the Modal's onRequestClose) — close it.
+   */
+  if (wide) {
+    return (
+      <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
+            <Pressable accessibilityLabel="Close" onPress={onClose}
+                       style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.scrim }} />
+            <View testID="sheet-dialog" accessibilityViewIsModal
+                  style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, maxHeight: windowHeight * SHEET_DIALOG.maxHeight,
+                           backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink }}>
+              <View testID="sheet-handle" style={{ paddingTop: 14 }}>
+                <View style={{ flexDirection: "row", alignItems: "center",
+                               justifyContent: "space-between", paddingHorizontal: 18,
+                               paddingBottom: 10, borderBottomWidth: 1.5,
+                               borderBottomColor: palette.ink }}>
+                  <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" hitSlop={10}>
+                    <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
+                  </Pressable>
+                </View>
+                {sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{sub}</Text> : null}
+              </View>
+              {scroll
+                ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1 }}
+                              keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
+                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{children}</ScrollView>
+                : <View style={{ paddingBottom: 28 }}>{children}</View>}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+    );
+  }
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={requestClose}>
       {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). */}

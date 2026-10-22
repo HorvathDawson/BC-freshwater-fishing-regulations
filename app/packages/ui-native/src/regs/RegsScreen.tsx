@@ -10,6 +10,10 @@
  * (`tabScrollY`), and the scroll moves the selected tab (`tabInView`). No words of its own and no regulation logic:
  * every string is the RegsPage's.
  *
+ * (T45) ON A WIDE SCREEN (`layout`, the water screen's `useLayoutClass`) the same page is arranged by `RegsWide`: the
+ * page and its pin bar in a reading column of about 70 characters (tablet), and beside it a side column holding the date
+ * pill, the sections as a list and the pinned lines (desktop). A phone is drawn exactly as before.
+ *
  * Owner rule "one water screen": the Map button frames THIS water's map view through the water's own view strip
  * (WaterScreen hands `onMap`); it is not another way into a water.
  */
@@ -22,10 +26,11 @@ import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { GUTTER, type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import type { KeepActions } from "./LineText";
-import { PinBar } from "./PinBar";
 import { createPinStore, type PinStore } from "./pinStore";
 import { RegsHeader } from "./RegsHeader";
+import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
+import type { LayoutClass } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import type { FishImages } from "./types";
 
@@ -52,6 +57,12 @@ export interface RegsScreenProps {
   gear?: Slot; methods?: Slot; licence?: Slot;
   /** the last child of the scroll */
   footer?: React.ReactNode;
+  /**
+   * (T45) how much room there is (@app/ui `useLayoutClass`, handed down by the water screen; this screen never reads the
+   * window). "phone" (the default): the page as it always was. "tablet": the page and its pin bar held to the reading
+   * column. "desktop": that, beside the side column (the date pill, the sections, the pinned lines) — `RegsWide`.
+   */
+  layout?: LayoutClass;
   /** a test injects its store (golden anchors); the app makes its own */
   store?: PinStore;
 }
@@ -66,7 +77,7 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
 }
 
 export function RegsScreen({ page, palette, images, actions, onDate, onMap, onParts,
-                             gear, methods, licence, footer, store: injected }: RegsScreenProps) {
+                             gear, methods, licence, footer, store: injected, layout = "phone" }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -95,7 +106,8 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
   const onAction = action?.kind === "map" ? onMap && (() => onMap())
     : action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
-  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onAction={onAction} onTab={toTab} />;
+  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onAction={onAction} onTab={toTab}
+                           side={layout === "desktop"} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
@@ -120,18 +132,29 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
     </View>
   );
 
+  // (T45) the page in the reading column (a phone: as it is); on a desktop, beside the side column
+  const read = <ReadingColumn layout={layout} testID="regs-reading">{body}</ReadingColumn>;
+  const pageScroll = (
+    <View style={{ flex: 1 }}>
+      <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+                  onScroll={(e) => store.setScroll(e.nativeEvent.contentOffset.y)}
+                  onLayout={(e) => store.setViewport(e.nativeEvent.layout.height)}
+                  onContentSizeChange={(_w, h) => { store.setContentHeight(h); remeasure(); }}>
+        {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
+      </ScrollView>
+      {layout !== "desktop" && <PinOver layout={layout} store={store} palette={palette} />}
+    </View>
+  );
+
   return (
     <View testID="regs-view" style={{ flex: 1, backgroundColor: palette.card }}>
       {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
-      <View style={{ flex: 1 }}>
-        <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                    onScroll={(e) => store.setScroll(e.nativeEvent.contentOffset.y)}
-                    onLayout={(e) => store.setViewport(e.nativeEvent.layout.height)}
-                    onContentSizeChange={(_w, h) => { store.setContentHeight(h); remeasure(); }}>
-          {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{body}</ViewSwipe> : body}
-        </ScrollView>
-        <PinBar store={store} palette={palette} />
-      </View>
+      {layout === "desktop" ? (
+        <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
+          <RegsSide header={page.header} store={store} palette={palette} onDate={onDate} onTab={toTab} />
+          {pageScroll}
+        </View>
+      ) : pageScroll}
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} />
     </View>
