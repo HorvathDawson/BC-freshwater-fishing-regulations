@@ -105,8 +105,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   questions (tidal level gauges leading Level; Vedder own gauge via the Chilliwack line; far = river-size scaled; 70%);
   T49 questions (day range = this calendar year; button stays in the strip; Sunday-first). MERGED T44 825cf1a8 + review fix f2e98e0d (one WaterFrame; nothing shifts between views at 390/768/1440; header
   swipe moves only the body). Strict 7078, smoke. T44 owner questions: name size on Conditions/Map (now the 17 px regs
-  row); desktop column 1280 vs ~720 for regs; Map view full-bleed vs column; wheel outside the column. NEXT: Level view
-  in Conditions layers + T48 bottom-bar mocks.
+  row); desktop column 1280 vs ~720 for regs; Map view full-bleed vs column; wheel outside the column. RUNNING wf_e0887ad5-3e6 (task
+  w0vbdvf6l): Level view in Conditions layers + T48 part 1 mocks (owner picks the bottom bar before T48 is built).
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
