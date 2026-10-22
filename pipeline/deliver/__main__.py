@@ -77,8 +77,7 @@ def canonical_homes() -> dict:
     return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
             "status_index.bin": b / "status_index.bin", "regs.sqlite": _STORE_OUT,
             "ui-rules-export.json": _EXPORT_OUT, "ui-rules-guide.json": r / "ui-rules-guide.json",
-            "ui-rules-answers.json": r / "ui-rules-answers.json",
-            "ui-rules-answers.json.gz": r / "ui-rules-answers.json.gz", STAMP_NAME: r / STAMP_NAME}
+            "ui-rules-answers.json": r / "ui-rules-answers.json", STAMP_NAME: r / STAMP_NAME}
 
 
 def _all(a) -> int:

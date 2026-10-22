@@ -1,8 +1,8 @@
 """The answers layer's command line.
 
   python -m pipeline.deliver.answers.cli build --bundle FILE --export-dir DIR --out FILE [--workers N]
-      build `ui-rules-answers.json` (+ `.gz`) for the export pair in DIR, check that it decodes
-      back to what was built, print its sizes
+      build `ui-rules-answers.json` for the export pair in DIR, check that it decodes back to
+      what was built, print its sizes (raw and gzipped; no `.gz` file is written)
   python -m pipeline.deliver.answers.cli tap --answers FILE --export-dir DIR ITEM PART MM-DD FISH ORIGIN
       what one tap reads
   python -m pipeline.deliver.answers.cli page-view --answers FILE --export-dir DIR --golden DIR --out DIR
@@ -30,10 +30,10 @@ def _raw(wire: dict) -> bytes:
 
 
 def _write(raw: bytes, out: Path) -> dict:
+    """Write the answers JSON alone. The gzip size is reported, not written: a `.gz` copy beside it had no reader
+    (audit F19, 2026-10-22); the release gzips what it ships."""
     out.write_bytes(raw)
-    gz = gzip.compress(raw, compresslevel=9, mtime=0)
-    Path(str(out) + ".gz").write_bytes(gz)
-    return {"raw": len(raw), "gz": len(gz)}
+    return {"raw": len(raw), "gz": len(gzip.compress(raw, compresslevel=9, mtime=0))}
 
 
 def cmd_build(a) -> int:

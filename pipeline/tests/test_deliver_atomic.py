@@ -18,7 +18,7 @@ from pipeline.deliver import __main__ as D
 #: what each step writes, by the names `deliver all` gives them
 WRITES = {"bundle": ["bundle.sqlite"], "verdicts": ["verdicts.sqlite"], "status_index": ["status_index.bin"],
           "export": ["ui-rules-export.json", "ui-rules-guide.json"],
-          "answers": ["ui-rules-answers.json", "ui-rules-answers.json.gz"], "card_check": ["card-check.json"],
+          "answers": ["ui-rules-answers.json"], "card_check": ["card-check.json"],
           "store": ["regs.sqlite"], "release": []}
 
 
@@ -95,3 +95,15 @@ def test_the_canonical_run_promotes_each_file_to_its_own_home():
     homes = D.canonical_homes()
     assert set(homes) == {f for fs in WRITES.values() for f in fs}
     assert homes["regs.sqlite"].name == "regs.sqlite" and homes["card-check.json"].parent == homes["ui-rules-answers.json"].parent
+
+
+def test_the_answers_step_writes_one_file_and_no_gzip_copy(tmp_path):
+    """F19 (audit 2026-10-22): `ui-rules-answers.json.gz` was written and promoted, and nothing read it (the release
+    gzips its own copies). The answers step writes the JSON alone; a second file would also be refused by `deliver
+    all`, which promotes only files that have a canonical home."""
+    from pipeline.deliver.answers.cli import _write
+    out = tmp_path / "ui-rules-answers.json"
+    sizes = _write(b'{"a":1}\n', out)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["ui-rules-answers.json"]
+    assert out.read_bytes() == b'{"a":1}\n' and sizes["raw"] == 8
+    assert not any(n.endswith(".gz") for n in D.canonical_homes())
