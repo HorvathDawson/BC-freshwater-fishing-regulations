@@ -108,3 +108,18 @@ we even might want the toggles grey/disabled for now."
 "riffle html is obsolete we dont need to reference it anymore." app/design/riffle.html is no longer a design reference.
 Regulations screens follow the regs prototype (regs-v11 / v38); everything else follows the app's own tokens and
 components plus explicit owner direction. Older mentions of Riffle in comments and docs are history, not spec.
+
+## OWNER 2026-10-21 (late) — layers menu, water map, imagery
+Layers menu: build direction B ("map · colour the water · on the map"), with these owner changes:
+- Data sources and credits leave the layers menu: they live in the hamburger menu (Data sources & dates) and in the
+  map's own attribution. The colour palette choice (light / dark / colour-blind) moves to the hamburger menu too.
+- NO SPLIT between stream and lake colouring: "it is dangerous to have the divergent layers for features". One choice
+  colours ALL water features (streams, lakes, wetlands) by the same thing; a feature the chosen measure doesn't cover
+  draws neutral and the legend says so. (B's separate stream "Plain" mode stays rejected.)
+- Coming-soon items are shown greyed with "Coming soon".
+- Keep B's "always shown" line, and it must include Indigenous land (reserves).
+Water map: keep the 10 municipal continuations; the crossing button SAYS where it goes ("▲ Upstream into Chilliwack
+River"); drop reversed continuations like Eagle Trib.5-3 → Trib.5 (fix the rule, not a hand list where possible).
+Imagery: use Esri World Imagery WITHOUT a key, as the original app did ("this is a non profit app"); a key stays optional
+config. No offline 10 m base ("10m is useless"). Add network-status detection on phones (netinfo). The Satellite choice
+does not need to persist across launches.
