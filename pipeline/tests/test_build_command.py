@@ -79,3 +79,47 @@ def test_a_failed_stage_is_recorded_and_not_marked_done(world, monkeypatch, tmp_
 def test_the_curated_digest_sees_every_curated_file():
     """No literal path: every path the CURATED model names, the whole tree under `base`."""
     assert len(B.curated_digest()) == 16
+
+
+# ------------------------------------------------------------------ N7: the deliver key covers every input
+
+@pytest.fixture
+def inputs(tmp_path: Path, monkeypatch):
+    """The files the deliver step reads from outside the atlas and the corpus, as tmp files."""
+    src = {k: tmp_path / f"{k}.bin" for k in ("gpkg", "stations", "places", "hydat")}
+    for p in src.values():
+        p.write_text("v1")
+    clim = tmp_path / "clim.json"
+    clim.write_text('{"release": "2026-01"}')
+    monkeypatch.setattr(B, "sources", lambda: src)
+    monkeypatch.setattr(B, "CLIM_PATH", clim)
+    return src, clim
+
+
+def test_a_refreshed_gpkg_changes_the_deliver_key(inputs):
+    """The bundle reads the RAW gpkg (the catchment-area fit, the drainage groups); a fetch that
+    refreshed it left the bundle 'up to date' (F06)."""
+    src, _ = inputs
+    before = B._sha(B.deliver_sources())
+    src["gpkg"].write_text("v2, refreshed")
+    assert B._sha(B.deliver_sources()) != before
+
+
+def test_a_new_envelope_changes_the_deliver_key_even_at_the_same_size_and_time(inputs):
+    """clim.json is made outside `pipeline build` (scripts/dev-build.sh): its CONTENT is keyed, so a
+    rewrite that kept size and mtime still reruns the bundle."""
+    import os
+    _, clim = inputs
+    before = B._sha(B.deliver_sources())
+    st = clim.stat()
+    clim.write_text('{"release": "2026-02"}')
+    os.utime(clim, ns=(st.st_atime_ns, st.st_mtime_ns))
+    assert clim.stat().st_size == st.st_size
+    assert B._sha(B.deliver_sources()) != before
+
+
+def test_a_missing_envelope_is_refused_with_the_command_that_makes_it(inputs):
+    _, clim = inputs
+    clim.unlink()
+    with pytest.raises(SystemExit, match="pipeline.gauges.feed.climatology"):
+        B.deliver_sources()

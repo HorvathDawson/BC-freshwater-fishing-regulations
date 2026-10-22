@@ -30,6 +30,7 @@ import time
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
+from pipeline.deliver.bundle.build import CLIM_PATH
 from pipeline.deliver.store import OUT as STORE_OUT
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
@@ -108,6 +109,20 @@ def sources() -> dict:
             "hydat": SOURCE / "hydat.sqlite3"}
 
 
+def deliver_sources() -> dict:
+    """What the deliver step reads from OUTSIDE the atlas and the corpus (N7, F06): every source
+    stamp — the raw gpkg too (the bundle fits its catchment-area model and drainage groups from it)
+    — and the gauge envelope `clim.json` by CONTENT, since it is made outside `pipeline build`
+    (scripts/dev-build.sh) and a rewrite need not change its size or time. A missing one raises."""
+    out = {k: stamp(p) for k, p in sources().items()}
+    if not Path(CLIM_PATH).exists():
+        raise SystemExit(f"build: no {CLIM_PATH} — the bundle snapshots the gauge envelope; make it:\n"
+                         f"    python -m pipeline.gauges.feed.climatology --hydat "
+                         f"{SOURCE / 'hydat.sqlite3'} --out {CLIM_PATH}")
+    out["clim"] = hashlib.sha256(Path(CLIM_PATH).read_bytes()).hexdigest()[:16]
+    return out
+
+
 def keys(build_dir: Path) -> dict[str, dict]:
     """Every stage's inputs, as digests (the key is `_sha` of these)."""
     from pipeline.atlas.registry import load_registry
@@ -117,12 +132,11 @@ def keys(build_dir: Path) -> dict[str, dict]:
 
     atlas = {"handles": digest_for(build_dir), "registry": registry_digest_for(build_dir)}
     corpus = corpus_digest(read_all_entries(registry=load_registry(str(build_dir / "registry.json"))))
-    src = {k: stamp(p) for k, p in sources().items()}
     return {
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
-                        sources={k: v for k, v in src.items() if k != "gpkg"},
+                        sources=deliver_sources(),
                         code=code_digest(CODE["deliver"])),
         "tiles": tiles_key(build_dir),
     }
