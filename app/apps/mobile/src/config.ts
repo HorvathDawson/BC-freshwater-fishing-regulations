@@ -35,11 +35,12 @@ export const MENU_INFO = {
 } as const;
 
 /**
- * THE SATELLITE IMAGERY'S TILES (owner 2026-10-21: Esri World Imagery, online-only). `EXPO_PUBLIC_ARCGIS_API_KEY` is an
- * ArcGIS Location Platform key the OWNER sets for a production build (restricted by referrer / app in the ArcGIS
- * dashboard); with it the tiles come from Esri's keyed endpoint and count against that account's free tier. Unset, the
- * template is Esri's own ArcGIS Online World_Imagery MapServer, as the original app used — see
- * handoff/PLAN/app-data/satellite/README.md for why production should carry a key. Never a key in the code.
+ * THE SATELLITE IMAGERY'S TILES (owner 2026-10-21: Esri World Imagery, online-only). KEYLESS BY DEFAULT — the owner's
+ * decision (2026-10-21 late: "we used esri free without a key in original app lets do that again. this is a non profit
+ * app"): unset, the template is Esri's own ArcGIS Online World_Imagery MapServer, as the original app used, and that is
+ * what ships. `EXPO_PUBLIC_ARCGIS_API_KEY` is OPTIONAL config: an ArcGIS Location Platform key (restricted by referrer /
+ * app in the ArcGIS dashboard) switches the tiles to Esri's keyed endpoint, counted against that account's free tier.
+ * Esri's terms on the keyless path: handoff/PLAN/app-data/satellite/esri/README.md. Never a key in the code.
  */
 export const IMAGERY_TILES = imageryTiles(process.env.EXPO_PUBLIC_ARCGIS_API_KEY?.trim() || null);
 

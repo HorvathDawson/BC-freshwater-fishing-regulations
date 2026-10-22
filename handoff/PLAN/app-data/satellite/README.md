@@ -55,6 +55,9 @@ the app ships for its own layers.
   https://developers.arcgis.com/documentation/mapping-and-location-services/mapping/basemaps/introduction-static-basemap-tiles-service/
   Calling the old token-free `services.arcgisonline.com/.../World_Imagery/MapServer/tile` URL from a
   non-Esri app is not a licensed path, so use the Location Platform route.
+  **Owner decision 2026-10-21 (late):** the app ships the keyless URL anyway, as the original app did ("we used
+  esri free without a key in original app lets do that again. this is a non profit app"); the key stays optional
+  config (`esri/README.md`).
 - **Offline / bulk / redistribution: NO** outside Esri software.
   - World Imagery item: "This layer is not intended to be used to export tiles for offline. If you would
     like to export imagery for offline use in ArcGIS applications, you may use the World Imagery (for
