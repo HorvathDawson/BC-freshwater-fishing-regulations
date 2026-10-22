@@ -137,7 +137,10 @@ gauges but own gauge should be main (unless far from click) low magnitude compar
 gauge (matched to that water) carries the MAIN weight, in whatever it measures; other donors still count as auxiliary,
 with a smaller share. The own gauge stops leading only when it is far from the tapped spot along the water, or its
 catchment is much smaller than the spot's (low magnitude relative to the tapped spot); then the usual weighting applies.
-When the chosen quantity isn't recorded on the own gauge but the other is, the own gauge leads in that other quantity,
-labelled ("Level — this gauge records level only"). Check and disclose tidal
-or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
+NEVER MIX QUANTITIES (owner, same day: "we care about flow. so we dont want to mix flow and level for now. we could have
+a way to separately view level"): the Flow view uses flow gauges only; the own-gauge rule applies within the chosen
+quantity. A level-only own gauge (the Pitt's 08MH035) does not lead the Flow view — it leads the Level view. Level stays a
+separate view of its own (today the Conditions legend's Flow / Level switch; the owner suggests it may move into the
+layers menu — decide with the layers registry). In the Level view, check and
+disclose tidal or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
 before the data rebuild; the estimate stays pipeline-generated with the app mirror held equal.
