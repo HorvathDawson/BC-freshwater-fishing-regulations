@@ -32,7 +32,7 @@ export interface MenuInfo {
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
 export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, tilesPaired = null, feedFetchedAt, route,
-                           day }: {
+                           day, newRelease = null }: {
   menu: MenuControls; palette: Palette;
   /** the release (null: the dev bundle, which holds no regulations and no manifest) */
   loader: RegsLoader | null;
@@ -43,6 +43,8 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
   tilesPaired?: boolean | null;
   /** when the gauge feed was last fetched (its ISO instant), or null */
   feedFetchedAt: string | null;
+  /** a newer data release the server names (the sync icon's re-read), or null: the regulations and map rows go stale */
+  newRelease?: string | null;
   /** where the reader is now (the Shell's route) and the map's day (null = today) — a report is prefilled with them */
   route: Route;
   day: Date | null;
@@ -85,7 +87,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
       </MenuPage>
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         sources: m?.sources ?? null, validUntil: m?.regulations.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
-        now: Date.now() })} />)}
+        newRelease, now: Date.now() })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
         edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}

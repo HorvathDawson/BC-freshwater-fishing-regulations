@@ -10,13 +10,14 @@
  *             accessible label, drawn as a dot. A feed the SERVER has not published lately is the Data block's fact
  *             ("likely out of date"), not a refresh prompt: a tap re-reads the same old index
  *
- * Freshness itself — each source's rule and cadence — is `sourceFreshness` / `STALE_AFTER` (menu.ts), the same badges the
- * detailed page draws: the block and the page never disagree.
+ * Freshness itself — each source's rule and line — is `sourceFreshness` (menu.ts) over THE ONE TABLE `STALE_AFTER`
+ * (staleness.ts), the same badges the detailed page draws: the block, the page and the sync dot never disagree.
  */
 import {
   agoWords, contactVM, sourceFreshness, isoDayWords, MENU_WORDS, SOURCE_ORDER, type ContactVM,
   type FreshnessVM, type MenuPageKey, type SourceDateKey, type SourcesInput,
 } from "./menu";
+import { byCadence } from "./staleness";
 
 export const MORE_WORDS = {
   /** the back control at the top: where it goes, aloud */
@@ -171,13 +172,6 @@ export function menuVM(i: { data: DataInput; back: string; contact: string | nul
 
 export type SyncKind = "fresh" | "stale" | "checking";
 
-/**
- * How old THIS DEVICE's last check of the feed may be before the icon asks for a refresh: the feed's own publishing
- * cadence (every 30 minutes, pipeline/gauges/feed/publish.py's cron). Open, the app re-checks every 5 minutes
- * (`SYNC_POLL_MS`), so this is reached when the app sat in the background, or a check failed — what a tap fixes.
- */
-export const SYNC_CHECK_STALE_MIN = 30;
-
 export const SYNC_WORDS = {
   /** the icon's name aloud, before its state */
   name: "Refresh data",
@@ -209,8 +203,8 @@ export interface SyncVM { readonly kind: SyncKind; readonly label: string; reado
 
 /**
  * THE SYNC ICON'S STATE. The dot ("stale") is only for what a tap or a reopen fixes: a newer data release (reopen),
- * the feed not reached, or this device's last check older than `SYNC_CHECK_STALE_MIN` (tap). A feed the server itself
- * has not published past `STALE_AFTER.feedHours` is NOT dotted — a tap re-reads the same old index, so the dot would
+ * the feed not reached, or this device's last check past `STALE_AFTER.feedCheck` (tap). A feed the server itself
+ * has not published past `STALE_AFTER.feed` is NOT dotted — a tap re-reads the same old index, so the dot would
  * never clear (and would sit in regs mode too, where flows are irrelevant); it is said in the label, quietly, and the
  * More tab's Data block badges it "likely out of date". Checking while a check is under way; fresh otherwise.
  */
@@ -221,7 +215,7 @@ export function syncVM(s: SyncInput): SyncVM {
   if (s.newRelease !== null) return say("stale", w.release);
   if (s.feed) {
     if (s.checkedAt === null) return say("stale", w.feedNot);
-    if (s.now - s.checkedAt > SYNC_CHECK_STALE_MIN * 60_000)
+    if (byCadence("feedCheck", s.now - s.checkedAt) === "stale")
       return say("stale", w.checkedOld(agoWords(new Date(s.checkedAt).toISOString(), s.now)));
     const b = sourceFreshness("feed", { sources: null, validUntil: null, tiles: null, feedFetchedAt: s.feedFetchedAt, now: s.now });
     if (b.kind === "stale") return say("fresh", w.serverOld(agoWords(s.feedFetchedAt!, s.now)));

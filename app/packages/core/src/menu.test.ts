@@ -5,12 +5,13 @@
 import { describe, expect, it } from "vitest";
 import {
   aboutVM, agoWords, contactVM, diagnosticRows, sourceFreshness, glossaryRows, isoDayWords, mailtoUrl, regsReportWhere,
-  reportMessage, sourcesVM, STALE_AFTER, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
+  reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
 import { STALE_AFTER_MS } from "./index";
+import { STALE_AFTER } from "./staleness";
 
 const term = (id: string, t: string, says: string): GlossaryTerm => ({ id, term: t, says, pages: [80], quote: "", source: "" });
 const TERMS = [
@@ -184,11 +185,17 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     `${k} ${sourceFreshness(k, { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now, ...s }).label}`;
   const now = Date.parse("2026-10-22T18:00:00Z");
 
-  it("names its cadences once: the feed's 30-minute cron gets 2 h — a reading's own stale line — then 120 / 730 / 365 / " +
-     "548 days", () => {
-    expect(STALE_AFTER).toEqual({ feedHours: 2, dfoDays: 120, fwaDays: 730, basemapDays: 365, hydatDays: 548 });
+  it("ONE table names every feed's rule (core staleness.ts): gauges in hours, forecasts in a day and a half, sources " +
+     "in days, the regulations and the map by their release", () => {
+    expect(STALE_AFTER).toEqual({
+      feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "age", ms: 36 * H },
+      dfo: { by: "age", ms: 120 * D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
+      hydat: { by: "age", ms: 548 * D },
+      synopsis: { by: "release" }, tiles: { by: "release" },
+      inseason: { by: "notRead" }, weather: { by: "live" }, imagery: { by: "live" },
+    });
     // ONE line for "the feed is old": the Data block and the sync icon draw the line a reading's age is held to (P02)
-    expect(STALE_AFTER.feedHours * H).toBe(STALE_AFTER_MS);
+    expect(STALE_AFTER.feed.ms).toBe(STALE_AFTER_MS);
   });
 
   it("the live feed: up to date through 2 h, likely out of date past it, unknown when never reached", () => {
@@ -208,19 +215,38 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
   });
 
-  it("the regulations: in force THROUGH their last day, likely out of date the day after, unknown with no last day", () => {
+  it("the regulations: in force THROUGH their last day, likely out of date the day after, unknown with no last day — " +
+     "and likely out of date once a newer release is known", () => {
     const last = "2027-03-31";
     expect([at("synopsis", { validUntil: last }, Date.parse("2027-03-31T23:59:00Z")),
             at("synopsis", { validUntil: last }, Date.parse("2027-04-01T00:00:00Z")),
-            at("synopsis", { validUntil: null }, now)])
-      .toEqual(["synopsis Up to date", "synopsis Likely out of date", "synopsis Unknown"]);
+            at("synopsis", { validUntil: null }, now),
+            at("synopsis", { validUntil: last, newRelease: "r-new" }, now),
+            at("synopsis", { validUntil: null, newRelease: "r-new" }, now)])
+      .toEqual(["synopsis Up to date", "synopsis Likely out of date", "synopsis Unknown", "synopsis Likely out of date",
+                "synopsis Likely out of date"]);
   });
 
-  it("the map tiles by the proven pair; the in-season changes not read; weather and imagery live", () => {
+  it("the map tiles by the proven pair and the release; the in-season changes not read; weather and imagery live", () => {
     expect([at("tiles", { tilesPaired: true }, now), at("tiles", { tilesPaired: false }, now),
-            at("tiles", { tilesPaired: null }, now), at("inseason", {}, now), at("weather", {}, now), at("imagery", {}, now)])
-      .toEqual(["tiles Up to date", "tiles Likely out of date", "tiles Unknown", "inseason Not read", "weather Live",
-                "imagery Live"]);
+            at("tiles", { tilesPaired: null }, now), at("tiles", { tilesPaired: true, newRelease: "r-new" }, now),
+            at("inseason", {}, now), at("weather", {}, now), at("imagery", {}, now)])
+      .toEqual(["tiles Up to date", "tiles Likely out of date", "tiles Unknown", "tiles Likely out of date",
+                "inseason Not read", "weather Live", "imagery Live"]);
+  });
+
+  it("MUTATION PIN: the gauges and the regulations do not share one line — a feed past its hours is stale while the " +
+     "regulations and the map, months into their release, are not; a newer release dates them while the feed is fresh", () => {
+    expect([STALE_AFTER.feed.by, STALE_AFTER.synopsis.by, STALE_AFTER.tiles.by]).toEqual(["age", "release", "release"]);
+    expect(STALE_AFTER.forecast.ms).not.toBe(STALE_AFTER.feed.ms);
+    // the printing 19 months old, the edition still in force, the pair proven: only the gauge feed's 2 h has passed
+    const release = { validUntil: "2027-03-31", tilesPaired: true, sources: { synopsis: { date: "2025-03-20" } } };
+    const gaugeOld = { ...release, feedFetchedAt: new Date(now - 2 * H - 60_000).toISOString() };
+    expect([at("feed", gaugeOld, now), at("synopsis", gaugeOld, now), at("tiles", gaugeOld, now)])
+      .toEqual(["feed Likely out of date", "synopsis Up to date", "tiles Up to date"]);
+    const releaseNew = { ...release, newRelease: "r-new", feedFetchedAt: new Date(now - 60_000).toISOString() };
+    expect([at("feed", releaseNew, now), at("synopsis", releaseNew, now), at("tiles", releaseNew, now)])
+      .toEqual(["feed Up to date", "synopsis Likely out of date", "tiles Likely out of date"]);
   });
 });
 

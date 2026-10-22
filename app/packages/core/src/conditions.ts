@@ -13,6 +13,7 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { localStamp } from "./day";
+import { byCadence } from "./staleness";
 
 /* ------------------------------------------------------------------- horizons ---- */
 
@@ -63,6 +64,8 @@ export function horizonChipLabel(d: Horizon, on: boolean): string {
 
 /** Fixed words on the conditions surfaces, in one table rather than spelled in JSX. */
 export const CONDITIONS_WORDS = {
+  /** after a forecast run past `STALE_AFTER.forecast` — the Data block's "Likely out of date", in a line */
+  runOld: "likely out of date",
   noEstimate: "NO ESTIMATE",
   tapToChart: "TAP A GAUGE TO SEE ITS CHART",
   donorList: "The gauges behind this estimate",
@@ -392,12 +395,17 @@ export interface ForecastRunFacts { model: string; horizonDays: number }
  * the reading's "observed" (`localStamp`). It printed the ISO string's own clock unlabelled,
  * then labelled UTC; neither is the reader's clock. A time that does not parse is left out
  * rather than guessed. `zone` is for tests; left out, it is the device's.
+ *
+ * A run older than the forecast's line in THE ONE staleness table (`STALE_AFTER.forecast`, staleness.ts — a day and
+ * a half: the models issue daily) says "likely out of date" after it, the same words the Data block's badge uses.
+ * `now` is for tests; left out, it is the device's clock.
  */
 export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
-                                zone?: string): string {
+                                zone?: string, now: number = Date.now()): string {
   const t = Date.parse(run.issuedAt);
   const when = Number.isFinite(t) ? ` issued ${localStamp(t, zone)}` : "";
-  return `${run.model} run${when} · ${run.horizonDays}-day outlook`;
+  const old = Number.isFinite(t) && byCadence("forecast", now - t) === "stale" ? ` · ${CONDITIONS_WORDS.runOld}` : "";
+  return `${run.model} run${when} · ${run.horizonDays}-day outlook${old}`;
 }
 
 /* ------------------------------------------------------------- the read-out ---- */

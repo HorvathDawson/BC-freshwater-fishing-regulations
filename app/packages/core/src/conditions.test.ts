@@ -277,15 +277,25 @@ describe("the chart's words", () => {
 
   it("names a forecast run, its issue time local and labelled (P16)", () => {
     const VAN = "America/Vancouver";
+    const SOON = Date.parse("2026-09-04T12:00:00Z");
     expect(forecastRunLine({ model: "CLEVER", issuedAt: "2026-09-04T06:00:00Z",
-                             horizonDays: 10 }, VAN))
+                             horizonDays: 10 }, VAN, SOON))
       .toBe("CLEVER run issued 2026-09-03 at 23:00 PDT · 10-day outlook");
     // An offset is converted to the reader's zone, not printed as if it were theirs.
     expect(forecastRunLine({ model: "ELF", issuedAt: "2026-09-04T06:00:00-04:00",
-                             horizonDays: 30 }, VAN))
+                             horizonDays: 30 }, VAN, SOON))
       .toBe("ELF run issued 2026-09-04 at 03:00 PDT · 30-day outlook");
     expect(forecastRunLine({ model: "ELF", issuedAt: "garbage", horizonDays: 30 }))
       .toBe("ELF run · 30-day outlook");
+    // its own line from the ONE staleness table (core staleness.ts): a day and a half, a minute inside and a minute past
+    const issued = Date.parse("2026-09-04T06:00:00Z"), H = 3_600_000;
+    expect([issued + 36 * H - 60_000, issued + 36 * H + 60_000].map((now) =>
+      forecastRunLine({ model: "CLEVER", issuedAt: "2026-09-04T06:00:00Z", horizonDays: 10 }, VAN, now)))
+      .toEqual(["CLEVER run issued 2026-09-03 at 23:00 PDT · 10-day outlook",
+                "CLEVER run issued 2026-09-03 at 23:00 PDT · 10-day outlook · likely out of date"]);
+    // a reading's 2 h is NOT a forecast's line: three hours after issue a run is still current
+    expect(forecastRunLine({ model: "CLEVER", issuedAt: "2026-09-04T06:00:00Z", horizonDays: 10 }, VAN, issued + 3 * H))
+      .toBe("CLEVER run issued 2026-09-03 at 23:00 PDT · 10-day outlook");
     expect(forecastChartLabel({ model: "CLEVER", horizonDays: 10 })).toBe("CLEVER · 10 days");
     expect(forecastModelOption({ model: "CLEVER", horizonDays: 10 })).toBe("CLEVER · 10d");
   });

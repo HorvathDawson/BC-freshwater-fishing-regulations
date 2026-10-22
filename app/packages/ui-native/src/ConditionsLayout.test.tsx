@@ -210,8 +210,9 @@ describe("P16: one reading order", () => {
     // The forecast IS drawn (its run line is under the chart) …
     await waitFor(() => expect(screen.getByText(forecastRunLine(
       { model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30 }))).toBeTruthy());
+    // the fixture's run is weeks old on any real clock: past the forecast's 36 h line (core staleness.ts), it says so
     const runLine = screen.getByText(
-      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook`);
+      `ELF run issued ${localStamp(Date.parse("2026-08-30T00:00:00Z"))} · 30-day outlook · likely out of date`);
     // … and its disclaimer is on screen with the fold SHUT (required wherever a forecast appears), right after it.
     const disclaimer = screen.getByText(DISCLAIMER);
     expect(precedes(runLine, disclaimer)).toBe(true);

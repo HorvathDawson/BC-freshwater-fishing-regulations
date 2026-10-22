@@ -407,3 +407,31 @@ Shots: handoff/PLAN/app-data/more-tab/ (before-* / after-*, 390x844 light+dark, 
     map data on their release cycle. One table in core, not per screen.
   - Dark-mode water ink: bring it back to the blue family of light-mode water (it read sea-green); palette D otherwise kept.
   - The release stamps `valid_until` (the synopsis period end) so the app can say when the regulations lapse.
+
+## CLAUDE 2026-10-22 (owner delegated) — staleness per feed, from one table
+Owner: "gauge data is much faster turnover than other feeds"; "use best judgement". What was built and why:
+- ONE TABLE: `STALE_AFTER` in `app/packages/core/src/staleness.ts`, a rule per feed (`age` + ms / `release` / `notRead`
+  / `live`). Every staleness reads it: the More Data block + Data sources & dates (`sourceFreshness`), the sync dot
+  (`syncVM`), a reading's age line (`STALE_AFTER_MS` is now `STALE_AFTER.feed.ms`, not a second constant) and a forecast
+  run's line (`forecastRunLine`). `SYNC_CHECK_STALE_MIN` (more.ts) and the old `{feedHours, dfoDays, …}` (menu.ts) are gone.
+- THE LINES, from the real publish cadences:
+  - Gauge feed index (`fetchedAt`) **2 h**, unchanged: publish.py runs every 30 min over ECCC's hourly real-time CSVs, so
+    2 h is four missed runs (two missed ECCC hours). A few hours was the owner's word; going longer would hide a dead cron
+    for a whole morning. **This device's last check 30 min** (the sync dot): one publisher tick, what a tap can fix.
+  - Forecast run (`issuedAt`) **36 h**: ELF / COFFEE issue daily, CLEVER once or twice a day (forecast.py); a day plus
+    half a day's slack for a late morning run. Shown as "· likely out of date" after the run line on the Conditions chart
+    (same words as the Data block's badge). 2 h would have called every forecast stale by lunch.
+  - Regulations and map tiles: **release-ruled, never by age**. Stale only when a newer release is known (the sync
+    icon's manifest re-read), the regulations' `valid_until` has passed, or the tiles and data are a mixed pair. New:
+    a known newer release now marks both lines "Likely out of date" on the block AND the Details page (MenuHost gets
+    `newRelease`), where before only the summary said it.
+  - DFO 120 d, FWA 730 d, basemap 365 d, HYDAT 548 d: unchanged (upstream snapshot ages, each justified in the table).
+- The sync DOT still means only "a tap or reopen fixes this" (newer release, feed not reached, device check > 30 min);
+  a feed the server has not published lately and an old forecast are said, not dotted (a tap cannot fix them).
+- Pinned: whole-string badges at a minute inside / past each line (menu.test, more.test, conditions.test); a mutation
+  pin that the gauge feed and the regulations/map do not share a line (setting synopsis/tiles to the feed's 2 h age
+  fails it; so does giving forecasts the feed's 2 h).
+- NOT DONE: no "Forecasts" line on the More Data block — the feed index carries no feed-wide forecast issue time (only
+  per-station files do). Adding one is a publish.py field (`forecastIssuedAt`, newest run) + the feed reader + a line;
+  needs a feed republish, nothing heavier. The feed index's own `hydat.stale` (a newer HYDAT known) is read by
+  @app/data but not yet used for the HYDAT row (still age-ruled).

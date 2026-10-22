@@ -10,6 +10,7 @@
  */
 
 import { localStamp } from "./day";
+import { STALE_AFTER } from "./staleness";
 
 export * from "./flow";
 export * from "./trace";
@@ -34,15 +35,16 @@ export * from "./menu";
 export * from "./iconSet";
 export * from "./more";
 export * from "./imagery";
+export * from "./staleness";
 
 export type Freshness =
   | { state: "live"; ageMs: number }
   | { state: "stale"; ageMs: number }
   | { state: "unknown" };
 
-/** A feed reading older than this is stale: the publisher writes every 30 minutes, so two hours is four
- *  missed runs (P02). */
-export const STALE_AFTER_MS = 2 * 60 * 60_000;
+/** A feed reading older than this is stale (P02): the gauge feed's line in THE ONE staleness table (staleness.ts) —
+ *  the publisher writes every 30 minutes, so two hours is four missed runs. */
+export const STALE_AFTER_MS = STALE_AFTER.feed.ms;
 
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
 export function freshness(

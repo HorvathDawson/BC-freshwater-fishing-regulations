@@ -836,7 +836,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
-                feedFetchedAt={syncState.feedFetchedAt} tilesPaired={vintage.ok}
+                feedFetchedAt={syncState.feedFetchedAt} tilesPaired={vintage.ok} newRelease={syncState.newRelease}
                 route={route} day={mapDay} />
     </View>
     </MenuContext.Provider>

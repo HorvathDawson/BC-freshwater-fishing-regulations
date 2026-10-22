@@ -22,6 +22,7 @@ import { ICON_CREDIT } from "./iconSet";
 import { WORDS } from "./regs/words";
 import type { GlossaryTerm } from "./regs/inputs";
 import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
+import { byCadence, STALE_AFTER, type AgeKey, type StaleRule } from "./staleness";
 
 // ── words ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -258,6 +259,11 @@ export interface SourcesInput {
    * (null / absent) — the only freshness a tile set has, since the release dates no tile build.
    */
   tilesPaired?: boolean | null;
+  /**
+   * The data release the server names now, when it differs from the one in use (the sync icon's re-read); else null /
+   * absent. Known, the release-ruled sources (the regulations, the map) are likely out of date.
+   */
+  newRelease?: string | null;
   now: number;
 }
 
@@ -289,62 +295,52 @@ export const FRESHNESS_WORDS = {
   notRead: "Not read",
 } as const;
 
-/**
- * EACH SOURCE'S EXPECTED CADENCE: past it, the source is LIKELY out of date. Named here, once; pinned by whole-string
- * tests at each edge (menu.test.ts).
- */
-export const STALE_AFTER = {
-  /**
-   * The live gauge feed is published every 30 minutes (pipeline/gauges/feed/publish.py's cron): 2 h is four missed
-   * ticks — THE SAME LINE as a reading's own staleness (`STALE_AFTER_MS`, core index.ts, P02); a test holds them equal.
-   */
-  feedHours: 2,
-  /** DFO's salmon notices turn over in season (~half the rules a year): a scrape older than 120 days has likely missed one. */
-  dfoDays: 120,
-  /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
-  fwaDays: 730,
-  /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */
-  basemapDays: 365,
-  /** HYDAT is published quarterly and a release takes it yearly: 18 months is a missed year. */
-  hydatDays: 548,
-} as const;
-
 const DAY_MS = 86_400_000;
-/** The age in days of an ISO day at `now` (its start, UTC), or null when it is not one. */
-const dayAge = (day: string | null | undefined, now: number): number | null =>
-  isoDayWords(day) === null ? null : (now - Date.parse(`${day}T00:00:00Z`)) / DAY_MS;
+/** The age in ms of an ISO day at `now` (from its start, UTC), or null when it is not one. */
+const dayAgeMs = (day: string | null | undefined, now: number): number | null =>
+  isoDayWords(day) === null ? null : now - Date.parse(`${day}T00:00:00Z`);
 const badge = (kind: SourceFreshness, label: string = FRESHNESS_WORDS[kind]): FreshnessVM => ({ kind, label });
-/** By age against a cadence: within it fresh, past it stale, no age unknown. */
-const byAge = (age: number | null, limit: number): FreshnessVM =>
-  badge(age === null ? "unknown" : age > limit ? "stale" : "fresh");
+
+/** An age-ruled source's age at `now`: the feed by its index's `fetchedAt`, the rest by the release's date for them. */
+function ageMs(k: AgeKey, s: SourcesInput): number | null {
+  if (k === "feed") {
+    const t = s.feedFetchedAt === null ? NaN : Date.parse(s.feedFetchedAt);
+    return Number.isFinite(t) ? s.now - t : null;
+  }
+  if (k === "dfo" || k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
+  return null;
+}
 
 /**
- * ONE SOURCE'S FRESHNESS — the rules, per source:
+ * A release-ruled source: likely out of date once a newer release is known (whatever else holds), else —
  *   synopsis  in force through its last day (`valid_until`): fresh through that day, stale after; no last day, unknown
- *   inseason  not read by the app: unknown ("Not read")
- *   dfo / fwa / basemap / hydat   the release's date for it, against `STALE_AFTER`
  *   tiles     the proven pair: paired fresh, a mixed pair stale, not established unknown
- *   feed      the feed index's own `fetchedAt`, against `STALE_AFTER.feedHours`; never checked, unknown
- *   weather / imagery   live
+ */
+function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
+  if ((s.newRelease ?? null) !== null) return badge("stale");
+  if (k === "synopsis") {
+    if (isoDayWords(s.validUntil) === null) return badge("unknown");
+    // in force THROUGH its last day: stale only once that whole day (UTC) has passed
+    return badge(s.now >= Date.parse(`${s.validUntil}T00:00:00Z`) + DAY_MS ? "stale" : "fresh");
+  }
+  return badge(s.tilesPaired === true ? "fresh" : s.tilesPaired === false ? "stale" : "unknown");
+}
+
+/**
+ * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
+ *   age       the feed (its index's own `fetchedAt`) and dfo / fwa / basemap / hydat (the release's date for each)
+ *             against the table's line; never checked or not recorded, unknown
+ *   release   synopsis / tiles (`byRelease`)
+ *   notRead   the in-season changes: unknown ("Not read")
+ *   live      weather / imagery
  */
 export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM {
-  const a = STALE_AFTER;
-  switch (k) {
-    case "synopsis":
-      if (isoDayWords(s.validUntil) === null) return badge("unknown");
-      // in force THROUGH its last day: stale only once that whole day (UTC) has passed
-      return badge(s.now >= Date.parse(`${s.validUntil}T00:00:00Z`) + DAY_MS ? "stale" : "fresh");
-    case "inseason": return badge("unknown", FRESHNESS_WORDS.notRead);
-    case "dfo": return byAge(dayAge(s.sources?.dfo?.date, s.now), a.dfoDays);
-    case "fwa": return byAge(dayAge(s.sources?.fwa?.date, s.now), a.fwaDays);
-    case "basemap": return byAge(dayAge(s.sources?.basemap?.date, s.now), a.basemapDays);
-    case "hydat": return byAge(dayAge(s.sources?.hydat?.date, s.now), a.hydatDays);
-    case "tiles": return badge(s.tilesPaired === true ? "fresh" : s.tilesPaired === false ? "stale" : "unknown");
-    case "feed": {
-      const t = s.feedFetchedAt === null ? NaN : Date.parse(s.feedFetchedAt);
-      return byAge(Number.isFinite(t) ? (s.now - t) / 3.6e6 : null, a.feedHours);
-    }
-    case "weather": case "imagery": return badge("live");
+  const rule: StaleRule = STALE_AFTER[k];
+  switch (rule.by) {
+    case "age": return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
+    case "release": return byRelease(k, s);
+    case "notRead": return badge("unknown", FRESHNESS_WORDS.notRead);
+    case "live": return badge("live");
   }
 }
 

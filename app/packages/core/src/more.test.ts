@@ -3,7 +3,8 @@
  * More, its summary badge, the tab's sections, and the sync icon's three states as said aloud.
  */
 import { describe, expect, it } from "vitest";
-import { dataVM, menuVM, SYNC_CHECK_STALE_MIN, syncVM, type DataInput } from "./more";
+import { dataVM, menuVM, syncVM, type DataInput } from "./more";
+import { STALE_AFTER } from "./staleness";
 
 const NOW = Date.parse("2026-10-22T18:00:00Z");
 const H = 3_600_000;
@@ -37,6 +38,26 @@ describe("the Data block: always at the top of More, one line per source", () =>
       syn({ sources: { synopsis: { title: "S", date: "2025-03-20" } } }),
       syn({ sources: null }),
     ]).toEqual(["In force to Mar 31, 2027", "Printed Mar 20, 2025", "Date not recorded"]);
+  });
+
+  it("a newer release known: the regulations and the map lines are likely out of date; the flows keep their own hours", () => {
+    const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
+    expect(lines({ ...fresh, newRelease: "r-new" })).toEqual([
+      "Regulations · In force to Mar 31, 2027 · Likely out of date",
+      "In-season changes · Check the Province's notices · Not read",
+      "River flows · Checked 1h ago · Up to date",
+      "Weather · With each saved spot · Live",
+      "Map · Matches the data · Likely out of date",
+      "Basemap · Updated Mar 5, 2026 · Up to date",
+      "Satellite imagery · Online only · Live",
+    ]);
+  });
+
+  it("the River flows line at its 2 h edge, whole: a minute inside, a minute past", () => {
+    const flows = (ago: number) => dataVM({ ...LIVE, feedFetchedAt: new Date(NOW - ago).toISOString() })
+      .lines.find((l) => l.k === "feed")!;
+    expect([flows(2 * H - 60_000), flows(2 * H + 60_000)].map((l) => `${l.name} · ${l.when} · ${l.badge.label}`))
+      .toEqual(["River flows · Checked 2h ago · Up to date", "River flows · Checked 2h ago · Likely out of date"]);
   });
 
   it("the map line by the proven pair; the flows line before the feed answers", () => {
@@ -118,7 +139,7 @@ describe("the sync icon: fresh, needs a refresh, checking — said aloud", () =>
     return `${v.kind} | ${v.label}`;
   };
   it("the dot means a tap or a reopen fixes it: this device's check past the feed's 30-minute cadence, the feed not reached, a newer release", () => {
-    expect(SYNC_CHECK_STALE_MIN).toBe(30);
+    expect(STALE_AFTER.feedCheck).toEqual({ by: "age", ms: 30 * 60_000 });
     expect([
       sync({}),
       sync({ checking: true }),
