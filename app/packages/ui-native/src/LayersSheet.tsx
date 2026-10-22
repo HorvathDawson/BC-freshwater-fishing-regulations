@@ -1,6 +1,7 @@
 /**
  * THE LAYERS SHEET — direction B (owner 2026-10-21 late): Map · Colour the water by · On the map, then the layers that
- * are always shown. It draws `@app/core` `layersVM` and decides nothing: which tiles exist, which are greyed and why,
+ * are always shown. On the Conditions map (owner 2026-10-22) it opens with Show — Flow · Level · Temperature, ONE
+ * quantity at a time — then the ground and that map's own switches (the gauges, the flow arrows). It draws `@app/core` `layersVM` and decides nothing: which tiles exist, which are greyed and why,
  * what is chosen and what the map is handed all come from the layer registry (`core/layers.ts`), so a new layer is one
  * registry entry and no change here.
  *
@@ -38,6 +39,9 @@ function swatch(p: Palette, id: string): Option["swatch"] {
     case "water.regulations": return [p.waterStatus.closed, p.waterStatus.own, p.waterStatus.base];
     case "water.stocked": return [p.stock[0], p.stock[2], p.stock[4]];
     case "water.depth": return [p.survey[0], p.survey[1], p.water[0]];
+    // the flow ramp for both percentiles (one scale, one quantity at a time); the temperature bands' own colours
+    case "show.flow": case "show.level": return p.flow;
+    case "show.temperature": return [p.open, p.restricted, p.closed];
     default: return [p.quiet, p.quiet, p.quiet];
   }
 }
@@ -56,6 +60,13 @@ export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
   const chosen = (ts: readonly LayerTileVM[]) => ts.find((t) => t.chosen)?.id ?? "";
   return (
     <Sheet open={open} onClose={onClose} title={vm.title} palette={palette} scroll>
+      {/* THE CONDITIONS MAP'S ONE QUANTITY, first: what the water is coloured by there (never two on one ramp) */}
+      {vm.show.tiles.length > 0 && (
+        <Section palette={palette} title={vm.show.title}>
+          <OptionRow palette={palette} shape="line" label={vm.show.title} value={chosen(vm.show.tiles)}
+                     options={vm.show.tiles.map((t) => option(palette, t))} onChange={onChoose} />
+        </Section>
+      )}
       {vm.ground.tiles.length > 0 && (
         <Section palette={palette} title={vm.ground.title}>
           <OptionRow palette={palette} shape="square" label={vm.ground.title} value={chosen(vm.ground.tiles)}

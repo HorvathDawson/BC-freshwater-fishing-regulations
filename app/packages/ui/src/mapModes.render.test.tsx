@@ -35,6 +35,18 @@ describe("useMapModes", () => {
     });
   });
 
+  it("FLOW -> LEVEL (owner 2026-10-22, Level as its own view): the same `modes` and `activeGroups` objects — the map "
+     + "makes no paint call; only the standing channel's quantity and the gauge roster move", () => {
+    const r = renderHook((i: MapModeInput) => useMapModes(i), { initialProps: base });
+    const first = r.result.current;
+    r.rerender({ ...base, flowParam: "level" });
+    const next = r.result.current;
+    expect({ modes: next.modes === first.modes, groups: next.activeGroups === first.activeGroups,
+             stream: next.modes.stream, before: [first.standingParam, first.quantity],
+             after: [next.standingParam, next.quantity] })
+      .toEqual({ modes: true, groups: true, stream: "standing", before: ["discharge", "flow"], after: ["level", "level"] });
+  });
+
   it("new-but-equal groups (a caller's fresh object) keep the same `activeGroups`", () => {
     const r = renderHook((i: MapModeInput) => useMapModes(i), { initialProps: base });
     const first = r.result.current.activeGroups;

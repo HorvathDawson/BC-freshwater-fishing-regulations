@@ -11,6 +11,16 @@
  * features"): there is no separate lake choice. "Colour the water by" colours streams, lakes and wetlands together; a
  * feature the chosen measure does not cover draws neutral and the legend says so.
  *
+ * ONE QUANTITY ON THE CONDITIONS MAP (owner 2026-10-22: "we care about flow. so we dont want to mix flow and level for
+ * now. we could have a way to separately view level. (a toggle in layer maybe?)"): its "Show" choice — Flow (the
+ * default), Level, Temperature — is ONE choice here, and it drives the one colouring engine's standing channel, the gauge
+ * roster and the panel's chart together. Flow is answered from flow gauges only and Level from level gauges only; the
+ * legend strip carries no second switch.
+ *
+ * WHAT A VIEW LISTS IS WHAT IT DRAWS: each entry names the views it belongs to, the sheet on a view lists only those,
+ * and a switch from another view is never drawn on it (private land does not follow a reader onto the Conditions map
+ * with no way to turn it off there). The rail's badge counts the choices that view lists.
+ *
  * AVAILABILITY IS DERIVED, never set by hand (`availability`): an entry not built yet is "coming-soon"; one whose
  * values the loaded release does not carry is "no-data" (Stocked, Depth: prepared, not fed — owner 2026-10-21); one
  * that streams and cannot be reached is "online-only" (Satellite). Each says why in the reader's words.
@@ -20,19 +30,27 @@ import { STOCK_RECENCY, type StockRecency } from "./lakeFacts";
 import { MAP_RAIL } from "./mapRail";
 import { WATER_STATUS, WATER_STATUSES, type WaterStatus } from "./status";
 
-/** The map views a layer can belong to. The sheet opens from the Map tab only (today); the field is the slot. */
+/** The map views a layer can belong to: the sheet opens from the Map tab ("map") and the Conditions map ("conditions"); "water"
+ *  (a water's own map view) is declared, not opened yet. */
 export type LayerView = "map" | "water" | "conditions";
 
 /** How the water is coloured: ONE choice, for every water feature at once. */
 export type WaterColour = "regulations" | "stocked" | "depth";
 
 /**
+ * What the Conditions map shows: ONE quantity at a time (owner 2026-10-22, NEVER MIX QUANTITIES). The names are the
+ * data layer's (`Parameter` "discharge" | "level", plus "temperature"), so the choice goes to the panel unchanged.
+ */
+export type ConditionsShow = "discharge" | "level" | "temperature";
+
+/**
+ *   show      one tile of "Show" (the Conditions map's quantity): a radio
  *   ground    one tile of the "Map" set (what is under the water): a radio
  *   water     one tile of "Colour the water by": a radio, for streams, lakes and wetlands together
  *   overlay   an "On the map" switch: a style group drawn over the water
  *   always    drawn on every map and never switched off (safety and orientation); listed, not offered
  */
-export type LayerKind = "ground" | "water" | "overlay" | "always";
+export type LayerKind = "show" | "ground" | "water" | "overlay" | "always";
 
 /** What the release must carry for an entry to be offered (`LakeFacts.surveyed` / `.stocked` > 0). */
 export type ReleaseValues = "stocked" | "surveyed";
@@ -43,11 +61,16 @@ export interface LayerEntry {
   readonly views: readonly LayerView[];
   /** The default choice of its set (ground, water), or a switch's default state. */
   readonly default: boolean;
-  /** What it sets — ONLY `mapModes` inputs. A style group must be a toggleable one (tests hold this). */
+  /**
+   * What it sets — ONLY `mapModes` inputs. A style group must be a toggleable one; a layer must be one a view alone
+   * draws (`views[].show`) or a runtime layer (`$runtimeLayers`) — tests hold both.
+   */
   readonly sets?: {
+    readonly show?: ConditionsShow;
     readonly basemap?: Basemap;
     readonly water?: WaterColour;
     readonly groups?: readonly string[];
+    readonly layers?: readonly string[];
   };
   /** Style groups / layers an `always` entry names (tests hold that they exist and are not toggleable). */
   readonly draws?: { readonly groups?: readonly string[]; readonly layers?: readonly string[] };
@@ -60,7 +83,7 @@ export interface LayerEntry {
 
 export const LAYER_WORDS = {
   title: "Layers",
-  sections: { ground: "Map", water: "Colour the water by", overlay: "On the map" },
+  sections: { show: "Show", ground: "Map", water: "Colour the water by", overlay: "On the map" },
   /** The rail button's spoken name, with how many choices differ from the defaults. */
   railLabel: (changed: number) => (changed > 0 ? `${MAP_RAIL.layersLabel}, ${changed} changed` : MAP_RAIL.layersLabel),
   tags: {
@@ -102,6 +125,13 @@ export type Availability = { readonly state: "ok" } | { readonly state: LayerRea
  * build — owner 2026-10-21 late.
  */
 export const LAYERS: readonly LayerEntry[] = [
+  // ── Show (the Conditions map's one quantity: never two on one ramp) ──
+  { id: "show.flow", kind: "show", views: ["conditions"], default: true,
+    sets: { show: "discharge" }, label: "Flow", note: "How much water, against its record for the date" },
+  { id: "show.level", kind: "show", views: ["conditions"], default: false,
+    sets: { show: "level" }, label: "Level", note: "How high the water stands, from level gauges only" },
+  { id: "show.temperature", kind: "show", views: ["conditions"], default: false,
+    sets: { show: "temperature" }, label: "Temperature", note: "At the gauges that measure it; the rivers stay plain" },
   // ── Map (the ground) ──
   { id: "ground.map", kind: "ground", views: ["map", "water", "conditions"], default: true,
     sets: { basemap: "map" }, label: "Map", note: "Drawn · works offline" },
@@ -126,6 +156,10 @@ export const LAYERS: readonly LayerEntry[] = [
     needs: { built: false }, label: "Pools and runs", note: "Slow and fast water, read from lidar" },
   { id: "overlay.relief", kind: "overlay", views: ["map", "water"], default: false,
     needs: { built: false }, label: "Relief", note: "Lidar hillshade" },
+  { id: "overlay.gauges", kind: "overlay", views: ["conditions"], default: true,
+    sets: { layers: ["gauges"] }, label: "Gauges", note: "The stations, coloured by what they read" },
+  { id: "overlay.arrows", kind: "overlay", views: ["conditions"], default: true,
+    sets: { layers: ["stream__arrows"] }, label: "Flow arrows", note: "Which way the water runs" },
   // ── Always shown (never switched off): the safety layers, and the lines that say whose regulations apply ──
   { id: "always.protected", kind: "always", views: ["map", "water", "conditions"], default: true,
     draws: { groups: ["protected"], layers: ["park", "park_closed", "eco_reserve"] },
@@ -158,6 +192,8 @@ export function availability(e: LayerEntry, f: LayerFacts): Availability {
 
 /** The reader's choice: one ground, one water colouring, and the switches. The only layer state the Shell keeps. */
 export interface LayerChoice {
+  /** The Conditions map's quantity (a `show` entry). */
+  readonly show: string;
   readonly ground: string;
   readonly water: string;
   readonly on: Readonly<Record<string, boolean>>;
@@ -168,6 +204,7 @@ const byId = (id: string) => LAYERS.find((e) => e.id === id);
 const defaultOf = (kind: LayerKind) => of(kind).find((e) => e.default)!.id;
 
 export const LAYER_DEFAULTS: LayerChoice = Object.freeze({
+  show: defaultOf("show"),
   ground: defaultOf("ground"),
   water: defaultOf("water"),
   on: Object.freeze(Object.fromEntries(of("overlay").map((e) => [e.id, e.default]))),
@@ -178,8 +215,12 @@ export interface LayerEffective {
   /** The ground the reader chose (`mapModes` turns it into the ground drawn, with `imageryUp`). */
   readonly basemap: Basemap;
   readonly water: WaterColour;
-  /** Every style group an entry sets, on or off. */
+  /** The Conditions map's one quantity: the standing channel, the gauge roster and the panel's chart all ask it. */
+  readonly show: ConditionsShow;
+  /** Every style group an entry sets, on or off — on only where the view lists the switch. */
   readonly groups: Readonly<Record<string, boolean>>;
+  /** Every view-drawn or runtime layer an entry sets (the gauges, the flow arrows), on or off, the same way. */
+  readonly layers: Readonly<Record<string, boolean>>;
 }
 
 export interface LayerTileVM {
@@ -197,6 +238,8 @@ export interface LayerTileVM {
 
 export interface LayersVM {
   readonly title: string;
+  /** The Conditions map's quantity (empty on the Map tab). */
+  readonly show: { readonly title: string; readonly tiles: readonly LayerTileVM[] };
   readonly ground: { readonly title: string; readonly tiles: readonly LayerTileVM[]; readonly note: string | null };
   readonly water: { readonly title: string; readonly tiles: readonly LayerTileVM[]; readonly note: string | null;
                     /** The colouring the map draws (an unavailable choice falls back to Regulations). */
@@ -204,12 +247,13 @@ export interface LayersVM {
   readonly overlays: { readonly title: string; readonly rows: readonly LayerTileVM[] };
   /** "Always shown: …. They are never switched off." */
   readonly always: string;
-  /** How many choices differ from the defaults (the rail's badge). */
+  /** How many choices THIS VIEW LISTS differ from the defaults (the rail's badge). */
   readonly changed: number;
   readonly effective: LayerEffective;
 }
 
 const DEFAULT_WATER: WaterColour = "regulations";
+const DEFAULT_SHOW: ConditionsShow = "discharge";
 
 /** The sheet's view model, pure: the sections for `view`, each tile's state and words, and what the map is handed. */
 export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): LayersVM {
@@ -240,22 +284,34 @@ export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): L
     return tile(e, waterOk ? e.id === waterChosen.id : e.id === LAYER_DEFAULTS.water,
                 a.state === "ok" ? null : LAYER_WORDS.tags[a.state]);
   });
+  // the Conditions map's quantity: always available (every quantity is answered, or refused, by the panel)
+  const showChosen = byId(choice.show)?.kind === "show" ? byId(choice.show)! : byId(LAYER_DEFAULTS.show)!;
+  const showTiles = here("show").map((e) => tile(e, e.id === showChosen.id));
   const waiting = here("water").filter((e) => avail(e).state === "no-data");
   const overlayRows = here("overlay").map((e) => {
     const a = avail(e);
     return tile(e, a.state === "ok" && (choice.on[e.id] ?? e.default), a.state === "ok" ? null : LAYER_WORDS.tags[a.state]);
   });
-  // the groups the map is handed: every group an entry names, on when an available choice sets it
+  // the groups and layers the map is handed: every one an entry names, on when an available choice IN THIS VIEW sets it
   const groups: Record<string, boolean> = {};
-  for (const e of LAYERS) for (const g of e.sets?.groups ?? []) groups[g] = false;
-  for (const r of overlayRows) if (r.chosen) for (const g of byId(r.id)!.sets?.groups ?? []) groups[g] = true;
-  if (waterOk) for (const g of waterChosen.sets?.groups ?? []) groups[g] = true;
+  const layers: Record<string, boolean> = {};
+  for (const e of LAYERS) {
+    for (const g of e.sets?.groups ?? []) groups[g] = false;
+    for (const l of e.sets?.layers ?? []) layers[l] = false;
+  }
+  for (const r of overlayRows) if (r.chosen) {
+    for (const g of byId(r.id)!.sets?.groups ?? []) groups[g] = true;
+    for (const l of byId(r.id)!.sets?.layers ?? []) layers[l] = true;
+  }
+  if (waterOk && waterChosen.views.includes(view)) for (const g of waterChosen.sets?.groups ?? []) groups[g] = true;
   const always = here("always").map((e) => e.label);
   const changed = (choice.ground !== LAYER_DEFAULTS.ground ? 1 : 0)
-    + (choice.water !== LAYER_DEFAULTS.water && waterOk ? 1 : 0)
+    + (showTiles.length > 0 && showChosen.id !== LAYER_DEFAULTS.show ? 1 : 0)
+    + (waterTiles.length > 0 && choice.water !== LAYER_DEFAULTS.water && waterOk ? 1 : 0)
     + overlayRows.filter((r) => r.enabled && r.chosen !== (byId(r.id)!.default)).length;
   return {
     title: LAYER_WORDS.title,
+    show: { title: LAYER_WORDS.sections.show, tiles: showTiles },
     ground: { title: LAYER_WORDS.sections.ground, tiles: groundTiles,
               note: groundA.state === "ok" ? null : groundA.reason },
     water: { title: LAYER_WORDS.sections.water, tiles: waterTiles, drawn,
@@ -264,7 +320,8 @@ export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): L
     overlays: { title: LAYER_WORDS.sections.overlay, rows: overlayRows },
     always: `${LAYER_WORDS.always.lead} ${listWords(always)}. ${LAYER_WORDS.always.tail}`,
     changed,
-    effective: { basemap: groundChosen.sets?.basemap ?? "map", water: drawn, groups },
+    effective: { basemap: groundChosen.sets?.basemap ?? "map", water: drawn,
+                 show: showChosen.sets?.show ?? DEFAULT_SHOW, groups, layers },
   };
 }
 
@@ -278,10 +335,20 @@ function listWords(xs: readonly string[]): string {
 export function chooseLayer(choice: LayerChoice, id: string, f: LayerFacts): LayerChoice {
   const e = byId(id);
   if (!e || availability(e, f).state !== "ok") return choice;
+  if (e.kind === "show") return { ...choice, show: id };
   if (e.kind === "ground") return { ...choice, ground: id };
   if (e.kind === "water") return { ...choice, water: id };
   if (e.kind === "overlay") return { ...choice, on: { ...choice.on, [id]: !(choice.on[id] ?? e.default) } };
   return choice;
+}
+
+/**
+ * The Conditions panel's own chart quantity sets the SAME one choice (it is the map's "Show", seen from the panel): a
+ * pick there recolours the map, and the map's pick is the chart's.
+ */
+export function chooseShow(choice: LayerChoice, q: ConditionsShow): LayerChoice {
+  const e = LAYERS.find((x) => x.kind === "show" && x.sets?.show === q);
+  return e ? { ...choice, show: e.id } : choice;
 }
 
 /** A legend swatch, named by what it colours — the component reads the colour from the theme's map tokens. */

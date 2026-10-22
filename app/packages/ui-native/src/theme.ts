@@ -77,6 +77,8 @@ export interface Palette {
   survey: readonly [string, string];
   /** The plain basemap's own colours, for the basemap chooser's preview. */
   water: readonly [string, string];
+  /** The flow ramp's low, normal and high (`color.flow.f1/f4/f7`), for the Layers sheet's Show preview. */
+  flow: readonly [string, string, string];
   /** The satellite basemap's preview: water, forest, scrub. The same in every theme. */
   imagery: readonly [string, string, string];
   /** The dimming behind a bottom sheet. */
@@ -190,6 +192,7 @@ export function paletteFor(theme: string): Palette {
             c("color.ui.donor.4")],
     survey: [c("color.survey.digitised"), c("color.survey.sheet")],
     water: [c("color.lake.fill"), c("color.water.mapped")],
+    flow: [c("color.flow.f1"), c("color.flow.f4"), c("color.flow.f7")],
     imagery: [c("color.ui.imagery.water"), c("color.ui.imagery.forest"),
               c("color.ui.imagery.scrub")],
     scrim: translucent(theme, "color.ui.shadow", "opacity.ui.scrim"),

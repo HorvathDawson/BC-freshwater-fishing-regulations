@@ -80,14 +80,14 @@ const look = () => {
 };
 
 describe("the map rail, through the Shell", () => {
-  it("three tabs (Spots moved to the rail), and the rail on both maps — Layers on the Map tab only", () => {
+  it("three tabs (Spots moved to the rail), and the rail on both maps — Layers on both (owner 2026-10-22)", () => {
     mount();
     const map = [look(), screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots") !== null];
     cleanup();
     mount({ start: { ...HOME, tab: "conditions" } });
     expect([map, screen.queryByLabelText("Choose layers") !== null, screen.queryByLabelText("Your spots") !== null])
       .toEqual([["Map Search Conditions | pin none · fit none · camera 49.15,-121.85,9.4 | nothing", true, true],
-                false, true]);
+                true, true]);
   });
 
   it("a long press drops a provisional pin and asks; Cancel removes it and nothing is saved", () => {

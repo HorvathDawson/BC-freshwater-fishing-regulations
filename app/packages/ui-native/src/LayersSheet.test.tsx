@@ -45,6 +45,20 @@ describe("the layer registry against the style", () => {
     ]);
   });
 
+  it("every layer an entry sets is one the Conditions view alone draws, or a runtime layer (the gauge dots)", () => {
+    const viewShow = (id: string) => STYLE_META.views.filter((v) => (v.show ?? []).includes(id)).map((v) => v.id);
+    const set = LAYERS.flatMap((e) => (e.sets?.layers ?? []).map((l) =>
+      `${e.id}:${l}:${viewShow(l).join("+") || "-"}:${STYLE_META.runtimeLayers.includes(l)}`));
+    expect(set).toEqual(["overlay.gauges:gauges:-:true", "overlay.arrows:stream__arrows:conditions:false"]);
+  });
+
+  it("every layer the Conditions view alone draws has a switch there (a layer with no switch cannot be turned off)", () => {
+    const shown = STYLE_META.views.find((v) => v.id === "conditions")!.show ?? [];
+    const switched = LAYERS.filter((e) => e.kind === "overlay" && e.views.includes("conditions"))
+      .flatMap((e) => e.sets?.layers ?? []);
+    expect(shown.filter((l) => !switched.includes(l))).toEqual([]);
+  });
+
   it("each water colouring is a lake mode the style has (Regulations = the day's status)", () => {
     const lake = Object.keys(STYLE_META.colorModes.lake ?? {});
     expect(["status", "profile", "stocked", "surveyed"].filter((m) => lake.includes(m)))
@@ -61,10 +75,12 @@ const NONE: LayerFacts = { carries: { stocked: false, surveyed: false }, online:
 const FED: LayerFacts = { carries: { stocked: true, surveyed: true }, online: true };
 
 /** The Shell's wiring of the sheet, and nothing else: the choice, the VM over the facts, a press through chooseLayer. */
-function Wired({ facts, start = LAYER_DEFAULTS, out }: { facts: LayerFacts; start?: LayerChoice; out: { c?: LayerChoice } }) {
+function Wired({ facts, start = LAYER_DEFAULTS, out, view = "map" }: {
+  facts: LayerFacts; start?: LayerChoice; out: { c?: LayerChoice }; view?: "map" | "conditions";
+}) {
   const [c, setC] = useState(start);
   out.c = c;
-  return <LayersSheet open onClose={() => {}} palette={LIGHT} vm={layersVM("map", c, facts)}
+  return <LayersSheet open onClose={() => {}} palette={LIGHT} vm={layersVM(view, c, facts)}
                       onChoose={(id) => setC((x) => chooseLayer(x, id, facts))} />;
 }
 
@@ -144,6 +160,22 @@ describe("the Layers sheet, mounted", () => {
             screen.getByRole("radio", { name: "Satellite" }).textContent, text("basemap-note")]).toEqual([
       ["Map", "Satellite * (off)"], "MapDrawn · works offlineSHOWING", "SatelliteEsri imagery · online onlyNEEDS A CONNECTION",
       "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself."]);
+  });
+
+  it("ON CONDITIONS: Show (Flow · Level · Temperature) first, the ground, the gauges and arrows — nothing of the Map tab's", () => {
+    const out: { c?: LayerChoice } = {};
+    render(<Wired facts={NONE} out={out} view="conditions" />);
+    const before = [screen.getAllByRole("heading").map((h) => h.textContent), radios(), switches(),
+                    text("water-legend"), text("layers-always")];
+    fireEvent.click(screen.getByRole("radio", { name: "Level" }));
+    expect([before, radios().slice(0, 3), out.c!.show]).toEqual([
+      [["Layers", "SHOW", "MAP", "ON THE MAP"],
+       ["Flow *", "Level", "Temperature", "Map *", "Satellite"],
+       ["Gauges on", "Flow arrows on"],
+       null,
+       "Always shown: parks and ecological reserves, Indigenous land (reserves), and no-access and permit-only land. "
+       + "They are never switched off."],
+      ["Flow", "Level *", "Temperature"], "show.level"]);
   });
 
   it("carries no data sources, live data, credits or palette any more (they moved to the menu and the map)", () => {

@@ -26,7 +26,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, onSpots }: {
    * ("Choose layers, 2 changed") — after Done, the closed map still says it is not showing the defaults.
    */
   layersChanged?: number;
-  /** Absent: no Layers button (the Conditions map decides its own colouring, so the sheet would control nothing). */
+  /** Absent: no Layers button. Both browse maps pass it (owner 2026-10-22): each opens the sheet with its own entries. */
   onLayers?: () => void;
   /** Absent: no Spots button (spots cannot be read or saved here). */
   onSpots?: () => void;

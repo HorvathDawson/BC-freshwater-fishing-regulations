@@ -7,7 +7,7 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
+import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
          waterLegend, withImageryCredit, type LayerChoice, type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
@@ -26,7 +26,6 @@ import { hiddenLayers, shownLayers,
          type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
 import { imageryProbe } from "./imageryProbe";
-import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { MapDayButton } from "./DayCalendar";
 import { DaySheet } from "./regs/DaySheet";
@@ -234,19 +233,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     // one here, at the single point where map ids become bundle keys.
     (ids: readonly SectionKey[]) =>
       setVisible(ids.map((i) => Number(i) as SectionId)), []);
-  // Which quantity the Conditions map is coloured by. Held here rather than in the map,
-  // because the sheet a tap opens has to be about the same thing the map is showing.
-  /*
-   * WHICH QUESTION THE CONDITIONS VIEW IS ASKING — one control for all of them.
-   *
-   * This already existed as Both/Flow/Level and drove the water colouring. Temperature
-   * joins it rather than getting a picker of its own: a second control offering Flow and
-   * Depth beside one offering Flow and Level is two answers to "where do I change this",
-   * which is how a screen stops being learnable. `both` stays because the WATER can be
-   * coloured by either percentile at once; temperature cannot join that, because it is
-   * not a percentile and nothing can carry it to the water yet.
-   */
-  const [flowParam, setFlowParam] = useState<FlowParam>("discharge");
   /*
    * HOW FAR AHEAD the Conditions map is painted and the panel answers — ONE state, two
    * controls (owner 2026-10-20): the map's corner chips and the panel header's both draw
@@ -259,8 +245,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   /*
-   * THE LAYERS CHOICE (owner 2026-10-21 late, layers menu B): one ground, ONE water colouring for every feature, and
-   * the switches — the only layer state kept here. What the map is handed is the registry's (`layersVM(...).effective`,
+   * THE LAYERS CHOICE (owner 2026-10-21 late, layers menu B): one ground, ONE water colouring for every feature, the
+   * Conditions map's ONE quantity (Show: Flow · Level · Temperature — owner 2026-10-22, never two on one ramp) and the
+   * switches — the only layer state kept here. The quantity is held here, not in the map, because the panel a tap opens
+   * has to be about the same thing the map is showing: its chart's own quantity control sets this same choice. What the map is handed is the registry's (`layersVM(...).effective`,
    * below): an unavailable choice falls back while the choice itself is kept.
    */
   const [layerChoice, setLayerChoice] = useState<LayerChoice>(LAYER_DEFAULTS);
@@ -309,12 +297,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * THE LAYERS SHEET'S VIEW MODEL, and what every map is handed (`effective`): from the layer registry over what the
    * release carries (Stocked, Depth: prepared, not fed) and whether streamed imagery can be reached. The sheet opens on
-   * the Map tab only (the Conditions map decides its own colouring), so its view is "map".
+   * both browse maps, each with ITS entries (owner 2026-10-22): the Conditions map's is Show, the ground and its gauges
+   * and arrows; the Map tab's (and a water's map view's) the ground, the water colouring and its switches.
    */
   const carried = lakeValuesCarried(lakeReady);
-  const layers = useMemo(() => layersVM("map", layerChoice, { carries: carried, online: imagery.up }),
+  const layersView = mapTab === "conditions" ? "conditions" : "map";
+  const layers = useMemo(() => layersVM(layersView, layerChoice, { carries: carried, online: imagery.up }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `carried` is rebuilt each render; its two facts are the deps
-    [layerChoice, carried.stocked, carried.surveyed, imagery.up]);
+    [layersView, layerChoice, carried.stocked, carried.surveyed, imagery.up]);
+  /** What the Conditions view shows — ONE quantity, the registry's Show (`effective.show`): map, gauges and chart. */
+  const flowParam: FlowParam = layers.effective.show;
+  // the panel's chart quantity control sets the same choice (a Level chart is the Level map)
+  const setFlowParam = useCallback((q: FlowParam) => setLayerChoice((c) => chooseShow(c, q)), []);
   const onChooseLayer = useCallback((id: string) =>
     setLayerChoice((c) => chooseLayer(c, id, { carries: carried, online: imagery.up })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -332,7 +326,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
                                      horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible });
-  const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
+  // the dots: the Conditions map's, while its Gauges switch is on (off, the roster is not even asked)
+  const gauges = useGaugeGeoJSON(source, feed, onConditions && layers.effective.layers.gauges === true, quantity);
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
   const conditionData = cond.data;
@@ -548,19 +543,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The list is the style's; the trigger is this screen's, because the
                      // app drives by mode and never renders the named view.
                      hide={tab === "conditions" ? hiddenLayers("conditions") : []}
-                     // And the layers only that view draws: the flow arrows.
-                     show={tab === "conditions" ? shownLayers("conditions") : []}
+                     // And the layers only that view draws (the flow arrows), while their switch is on
+                     show={tab === "conditions"
+                       ? shownLayers("conditions").filter((l) => layers.effective.layers[l] !== false) : []}
                      // The forecast horizons, on the Conditions tab (owner 2026-10-20, after
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — see `hz` above.
                      horizons={mm.horizonsShown ? { chips: hz.chips, onPick: hz.pick } : undefined}
-                     // NO LAYERS BUTTON IN THE CONDITIONS VIEW. Everything the sheet
-                     // offers — how to colour streams and lakes — is decided by the
-                     // Showing control here instead, so the button would open a sheet
-                     // whose choices this tab overrides. A control that does nothing is
-                     // worse than a missing one.
-                     onLayers={onConditions ? undefined : () => setLayersOpen(true)}
-                     // how many layer choices differ from the defaults: the rail's badge, said aloud
+                     // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
+                     // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
+                     onLayers={() => setLayersOpen(true)}
+                     // how many of THIS map's layer choices differ from the defaults: the rail's badge, said aloud
                      layersChanged={layers.changed}
                      // THE RAIL'S SPOTS (owner 2026-10-21): on both browse maps, where the Spots tab was
                      onSpots={rail.openSpots}
@@ -642,27 +635,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       </View>
       {showLegend && (
         <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
-          {onConditions && (
-            /*
-             * THE CONTROL LIVES IN THE LEGEND, not floating over the map.
-             *
-             * It was absolutely positioned above the legend, which works on a desktop
-             * viewport and overlaps it on a phone — the two things at the bottom of the
-             * screen were fighting for the same rows. Putting it IN the strip makes the
-             * layout do the spacing, so it cannot collide at any width.
-             *
-             * It also sits directly above the scale it controls, which is the right place
-             * for it: the ramp underneath is the answer to whichever of these is chosen.
-             */
-            <View style={{ flexDirection: "row", justifyContent: "flex-end",
-                           marginBottom: 8 }}>
-              <ChartControls<FlowParam> palette={palette} value={flowParam}
-                                        label="Showing" onPick={setFlowParam}
-                                        options={[["discharge", "Flow"],
-                                                  ["level", "Level"],
-                                                  ["temperature", "Temp"]] as const} />
-            </View>
-          )}
+          {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
+              choice — a second switch in the strip would be two answers to "where do I change this". The ramp below
+              names the quantity shown; the horizon control stays on the map (`horizons`). */}
           {tab === "conditions" ? (
             // READ FROM THE STYLE, never restated. These seven hex values used to be
             // written out here while the map's own ramp resolved to three shades of one
