@@ -27,7 +27,7 @@ import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { GUTTER, type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
-import type { KeepActions } from "./LineText";
+import { TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
@@ -158,7 +158,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     </View>
   );
 
+  // (T40) every ⓘ under the page — its sheets too — names its word for a screen reader from the page's glossary titles
   return (
+    <TermTitles.Provider value={page.terms}>
     <View testID="regs-view" style={{ flex: 1, backgroundColor: palette.card }}>
       {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
       {layout === "desktop" ? (
@@ -170,5 +172,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
+    </TermTitles.Provider>
   );
 }

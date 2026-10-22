@@ -32,6 +32,9 @@ export interface RegsPage {
   readonly gear: GearVM | null;            // (T21) null until T30–T32 build it
   readonly methods: MethodsVM | null;      // (T21) null until T32 builds it
   readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden) — and until T33 builds it
+  /** (T40) glossary id → its title (`statics.glossary.terms[].term`), what a one-word ⓘ says to a screen reader
+   *  ("What does Bait ban mean?", contracts §1 `term`); a term run carries ids only */
+  readonly terms: Readonly<Record<string, string>>;
   readonly sheet: (key: SheetKey) => SheetVM | null;   // lazy; pure over the same inputs
 }
 

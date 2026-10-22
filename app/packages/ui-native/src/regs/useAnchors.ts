@@ -15,7 +15,7 @@
  * anchors itself).
  */
 import { createContext, useCallback, useEffect, useMemo, useRef } from "react";
-import type { LayoutChangeEvent, View } from "react-native";
+import { Dimensions, type LayoutChangeEvent, type View } from "react-native";
 import type { GroupVM, PinAnchor, PinTierAnchor, RegsPage, Tab, TreeNodeVM } from "@app/core";
 import type { PinSections, PinStore } from "./pinStore";
 
@@ -130,6 +130,13 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | nu
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
   // a new page (another day, part or profile): measure again
   useEffect(() => { changed(); }, [page, changed]);
+  // (T40) anchors are layout, never kept across a change of the window or the OS text size: react-native emits a
+  // Dimensions change carrying the new fontScale (a text-size change re-lays out every line), the web a resize — measure
+  // again (the elements whose own size changed report through onLayout too; this catches the ones that only moved)
+  useEffect(() => {
+    const sub = Dimensions.addEventListener("change", () => changed());
+    return () => sub.remove();
+  }, [changed]);
 
   const sink = useMemo<AnchorSink>(() => ({
     ref(id, key) {

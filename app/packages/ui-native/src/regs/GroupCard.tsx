@@ -5,11 +5,12 @@
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
 import { Fragment, useContext } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, type KeepActions } from "./LineText";
+import { RegsPress } from "./RegsPress";
 import { AnchorContext, type AnchorKey } from "./useAnchors";
 import type { FishImages } from "./types";
 
@@ -22,6 +23,19 @@ function useAnchor(id: string, key: AnchorKey): { ref?: (n: View | null) => void
   return sink ? { ref: sink.ref(id, key), onLayout: sink.changed } : {};
 }
 
+/**
+ * "How to tell ›" under an origin line: the hatch sheet. (T40) A press of its own, not a Text with onPress: it stands in a
+ * row beside the Rule book link, 32 tall (its `minHeight`) by its words (about 80 wide) — grown to 44 to the touch.
+ */
+function HowTell({ palette, actions, top = 0 }: { palette: Palette; actions: KeepActions; top?: number }) {
+  return (
+    <RegsPress accessibilityRole="link" onPress={() => actions.onSheet("hatch")} box={{ w: 44, h: 32 }}
+               style={{ minHeight: 32, paddingTop: top }}>
+      <Text style={[TYPE.metaBold, { color: palette.accent }]}>{WORDS.HOW_TELL}</Text>
+    </RegsPress>
+  );
+}
+
 export function Pictures({ pics, palette, actions, images }: { pics: readonly FishPicVM[]; palette: Palette; actions: KeepActions; images?: FishImages }) {
   const shown = pics.filter((p) => !p.sil);
   if (!shown.length) return null;
@@ -30,12 +44,14 @@ export function Pictures({ pics, palette, actions, images }: { pics: readonly Fi
       {shown.map((p) => {
         const src = images?.[p.code]?.[0];
         return (
-          <Pressable key={p.code} testID={`pic:${p.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(p.name)}
+          <RegsPress key={p.code} testID={`pic:${p.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(p.name)} box={{ w: 80, h: 44 }}
                      onPress={() => !p.sil && actions.onSheet(p.open)} style={{ minWidth: 80, maxWidth: 132, paddingVertical: 4, minHeight: 44 }}>
             {src ? <Image source={src} style={{ width: 80, height: 40 }} resizeMode="contain" accessibilityIgnoresInvertColors />
               : <View style={{ width: 80, height: 40, backgroundColor: palette.line2 }} />}
-            {!p.sil && <Text numberOfLines={2} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.accent, marginTop: 2 }]}>{p.caption}</Text>}
-          </Pressable>
+            {/* (T40) never clamped: at 2× text "Coastal cutthroat trout ›" takes three lines of the 132 px column, and a
+                two-line clamp cut its name (at 1× every caption fits two) */}
+            {!p.sil && <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.accent, marginTop: 2 }]}>{p.caption}</Text>}
+          </RegsPress>
         );
       })}
     </View>
@@ -72,7 +88,7 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
   const body = (
     <>
       <View {...head}>
-      {t.kicker && <Text style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
+      {t.kicker && <Text testID="kicker:tier" style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
       {t.line.length > 0 && (
         <View style={{ paddingTop: t.kicker ? 2 : small ? (t.tier === "size" ? 12 : 8) : 16, paddingBottom: 8 }}>
           <LineText line={t.line} testID={t.tier === "size" ? "tier:size" : undefined} style={small ? TYPE.tierSmall : TYPE.tier} color={t.tier === "size" ? palette.rule : palette.ink} palette={palette} actions={actions} />
@@ -84,7 +100,7 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
         <View style={{ paddingTop: 8, paddingBottom: 4 }}>
           <LineText line={t.origin.says} style={TYPE.metaSemi} color={palette.ink} palette={palette} actions={actions} />
           <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 6 }}>
-            {t.origin.howtell && <Text accessibilityRole="link" onPress={() => actions.onSheet("hatch")} style={[TYPE.metaBold, { color: palette.accent, minHeight: 32 }]}>{WORDS.HOW_TELL}</Text>}
+            {t.origin.howtell && <HowTell palette={palette} actions={actions} />}
             {t.origin.book.length > 0 && <LineText line={t.origin.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
           </View>
         </View>
@@ -150,7 +166,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
       <View {...pin} style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: 1.5, borderTopColor: palette.ink, backgroundColor: palette.card }}>
         {titled && (
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
-            {g.title}{g.scope ? <Text style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
+            {g.title}{g.scope ? <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
           </Text>)}
         {h.lead && <LineText line={h.lead} style={{ ...TYPE.metaBold, lineHeight: 19.97 }} num={TYPE.numeralMid} color={palette.ink} palette={palette} actions={actions} />}
         {h.ofTotal
@@ -168,7 +184,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
             </Text>
           )}
           <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 6, alignItems: "center" }}>
-            {g.origin.howtell && <Text accessibilityRole="link" onPress={() => actions.onSheet("hatch")} style={[TYPE.metaBold, { color: palette.accent, minHeight: 32, paddingTop: 8 }]}>{WORDS.HOW_TELL}</Text>}
+            {g.origin.howtell && <HowTell palette={palette} actions={actions} top={8} />}
             {g.origin.book.length > 0 && <View style={{ minHeight: 32, paddingTop: 8 }}><LineText line={g.origin.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} /></View>}
           </View>
         </View>
@@ -176,7 +192,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
       {g.year && (
         // prototype UR5 `.gyear`: the label on its own line, then the year window in the data's words
         <View testID="keep-group-year" style={{ marginTop: 4, marginBottom: 8 }}>
-          <Text style={[TYPE.kicker, { color: palette.sub }]}>{g.year.label}</Text>
+          <Text testID="kicker:year" style={[TYPE.kicker, { color: palette.sub }]}>{g.year.label}</Text>
           <Text style={[TYPE.metaSemi, { color: palette.ink }]}>{g.year.says}</Text>
         </View>
       )}
@@ -184,7 +200,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && (
         <View style={{ marginTop: 16, paddingTop: 8, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
-          <Text style={[TYPE.kicker, { color: palette.sub, paddingTop: 6, paddingBottom: 4 }]}>{g.worked.label}</Text>
+          <Text testID="kicker:worked" style={[TYPE.kicker, { color: palette.sub, paddingTop: 6, paddingBottom: 4 }]}>{g.worked.label}</Text>
           {g.worked.says && <Text style={[TYPE.meta, { color: palette.sub, marginTop: 2, marginBottom: 4 }]}>{g.worked.says}</Text>}
           {g.worked.lines.map((l, i) => (
             <View key={i} style={{ paddingVertical: 6, borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
@@ -199,9 +215,9 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
         </View>
       )}
       {g.quiet && <View style={{ marginTop: 8 }}><LineText line={g.quiet} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
-      <Pressable accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
+      <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
         <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
-      </Pressable>
+      </RegsPress>
     </View>
   );
 }

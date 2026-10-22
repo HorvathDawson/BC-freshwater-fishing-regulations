@@ -106,3 +106,10 @@ export const TYPE = {
   /** The strip's month initials (.smonths: JetBrains Mono .625rem/1). */
   month:       { fontFamily: FACE.figure, fontSize: 10, lineHeight: 10 },
 } as const satisfies Record<string, TextStyle>;
+
+/**
+ * (T40) How far a capped Text follows the OS text size (`maxFontSizeMultiplier`): 2×. Capped are the Regulations page's
+ * numbers (a 26 px numeral at 3× would outgrow its line) and the water's header (the name, the date pill, Map, the place
+ * label, the tabs: the fixed rows above the one scroll). Every other Text follows the reader's setting all the way.
+ */
+export const CAPPED_SCALE = 2;

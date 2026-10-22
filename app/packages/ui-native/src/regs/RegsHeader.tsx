@@ -13,12 +13,14 @@
  * prototype's 56). The name row itself is the frame's `WaterTitle` (T44), the box every view's name sits in.
  */
 import { useState, useSyncExternalStore } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { WORDS, type HeaderVM, type Tab } from "@app/core";
-import { TYPE } from "../type";
+import { CAPPED_SCALE, TYPE } from "../type";
+import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
+import { RegsPress } from "./RegsPress";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
@@ -62,16 +64,16 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, 
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
         <View style={{ minWidth: 44, minHeight: 44 }}>
           {h.action && onAction && (
-            <Pressable testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
-                       accessibilityLabel={h.action.aria}
+            <RegsPress testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
+                       accessibilityLabel={h.action.aria} box={{ w: 44, h: 44 }}
                        style={{ minWidth: 44, minHeight: 44, paddingHorizontal: 4, gap: 1, alignItems: "center", justifyContent: "center" }}>
               <Svg width={20} height={20} viewBox="0 0 23 23" fill="none">
                 {GLYPH[h.action.kind].map((d) => (
                   <Path key={d} d={d} stroke={palette.accent} strokeWidth={1.7} strokeLinejoin="round" />
                 ))}
               </Svg>
-              <Text style={[TYPE.metaBold, { lineHeight: 13.73, color: palette.accent }]}>{h.action.label}</Text>
-            </Pressable>
+              <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaBold, { lineHeight: 13.73, color: palette.accent }]}>{h.action.label}</Text>
+            </RegsPress>
           )}
         </View>
       </WaterTitle>
@@ -85,30 +87,35 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, 
 export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette; onDate: () => void }) {
   const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
   return (
-    <Pressable testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria}
+    <RegsPress testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria} box={{ w: 44, h: 44 }}
                style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
       <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
       <View>
-        <Text style={[TYPE.metaHeavy, { color: palette.accent }]}>
-          {h.dayWord}<Text style={{ fontSize: 10 }}>{WORDS.DATE_CARET}</Text>
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: palette.accent }]}>
+          {h.dayWord}<Text maxFontSizeMultiplier={CAPPED_SCALE} style={{ fontSize: 10 }}>{WORDS.DATE_CARET}</Text>
         </Text>
-        <Text style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
       </View>
-    </Pressable>
+    </RegsPress>
   );
 }
 
-/** The place row: ALWAYS present (an empty slot of the same height when there is no label — the header is one size). */
+/**
+ * The place row: ALWAYS present (an empty slot of the same height when there is no label — the header is one size). Two
+ * lines at the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
+ * cut to one line); the measuring twin lays out again at the new size and the fit re-runs on its new height.
+ */
 function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette }) {
   const [measured, setMeasured] = useState<number | null>(null);
-  const shown = place ? pickPlace(place, measured, PLACE_LH) : "";
+  const lh = PLACE_LH * useCappedScale();
+  const shown = place ? pickPlace(place, measured, lh) : "";
   return (
     <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
-      <Text testID="regs-place" numberOfLines={2} accessibilityLabel={place?.full}
-            style={[TYPE.metaSemi, { height: PLACE_LH * 2, color: palette.sub }]}>{shown}</Text>
+      <Text testID="regs-place" numberOfLines={2} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
+            style={[TYPE.metaSemi, { height: lh * 2, color: palette.sub }]}>{shown}</Text>
       {place && (
         // the measuring twin: the full label at the same width, invisible (react-native-web has no onTextLayout)
-        <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasured(e.nativeEvent.layout.height)}
+        <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasured(e.nativeEvent.layout.height)} maxFontSizeMultiplier={CAPPED_SCALE}
               style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{place.full}</Text>
       )}
     </View>
@@ -128,29 +135,36 @@ export function SectionList({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: Ta
       {h.tabs.map((t) => {
         const on = t.tab === selected;
         return (
-          <Pressable key={t.tab} onPress={() => onTab(t.tab)} accessibilityRole="tab" aria-selected={on}
+          <RegsPress key={t.tab} onPress={() => onTab(t.tab)} accessibilityRole="tab" aria-selected={on} box={TAB_BOX_SIDE}
                      style={{ minHeight: 36, alignSelf: "flex-start", justifyContent: "center", borderBottomWidth: 3,
                               borderBottomColor: on ? palette.ink : "transparent" }}>
-            <Text style={[TYPE.regsTab, { color: on ? palette.ink : palette.sub }]}>{t.label}</Text>
-          </Pressable>
+            <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.regsTab, { color: on ? palette.ink : palette.sub }]}>{t.label}</Text>
+          </RegsPress>
         );
       })}
     </View>
   );
 }
 
+/**
+ * (T40) A tab's known box: its row (34 px; the side list's 36) by the shortest label's run ("Gear", 12.48 px bold, about
+ * 30 px; 28 is the floor). The slop (5 above and below, 8 each side) stays inside the row's 16 px gap.
+ */
+export const TAB_BOX = { w: 28, h: 34 } as const, TAB_BOX_SIDE = { w: 28, h: 36 } as const;
+
 function TabRow({ h, tabs, palette, onTab }: { h: HeaderVM; tabs: TabSource; palette: Palette; onTab: (t: Tab) => void }) {
   const selected = useSyncExternalStore(tabs.subscribe, tabs.getTab);
   return (
+    // (T40) the row wraps: at 2× text the four tabs are wider than a phone (one row at 1×, as before)
     <View accessibilityRole="tablist" accessibilityLabel={WORDS.TABS_LABEL}
-          style={{ paddingHorizontal: GUTTER, gap: 16, flexDirection: "row" }}>
+          style={{ paddingHorizontal: GUTTER, columnGap: 16, flexDirection: "row", flexWrap: "wrap" }}>
       {h.tabs.map((t) => {
         const on = t.tab === selected;
         return (
-          <Pressable key={t.tab} onPress={() => onTab(t.tab)} accessibilityRole="tab" aria-selected={on} hitSlop={{ top: 5, bottom: 5 }}
+          <RegsPress key={t.tab} onPress={() => onTab(t.tab)} accessibilityRole="tab" aria-selected={on} box={TAB_BOX}
                      style={{ minHeight: 34, paddingTop: 2, justifyContent: "center", borderBottomWidth: 3, borderBottomColor: on ? palette.ink : "transparent" }}>
-            <Text style={[TYPE.regsTab, { color: on ? palette.ink : palette.sub }]}>{t.label}</Text>
-          </Pressable>
+            <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.regsTab, { color: on ? palette.ink : palette.sub }]}>{t.label}</Text>
+          </RegsPress>
         );
       })}
     </View>

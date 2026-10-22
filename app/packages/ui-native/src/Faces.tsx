@@ -22,6 +22,7 @@ import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
 import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
+import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -45,8 +46,9 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   return (
     <View style={{ gap: SPACE.s1 }}>
       {back && (
+        // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
         <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back"
-                   hitSlop={8} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
+                   {...hitProps({ w: 36, h: 32 })} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
           <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`‹  ${label}`}</Text>
         </Pressable>
       )}
@@ -72,6 +74,8 @@ export function ViewTabs({ palette, views, on, onView }: {
           <Pressable key={v} onPress={() => { if (!sel) onView(v); }}
                      accessibilityRole="tab" aria-selected={sel} accessibilityLabel={WATER_VIEW_LABEL[v]}
                      accessibilityHint={v === "regs" ? TO_REGULATIONS.hint : undefined}
+                     // (T40) the strip's row is 38 tall and "Map" (14 px bold) about 30 wide: grown to 44 × 44 inside the 22 px gap
+                     {...hitProps({ w: 28, h: 38 })}
                      style={{ minHeight: 38, justifyContent: "flex-end", paddingTop: 2, marginBottom: -1,
                               borderBottomWidth: 3, borderBottomColor: sel ? palette.ink : "transparent" }}>
             <Text style={{ ...TYPE.regsTab, fontSize: 14, lineHeight: 18, paddingBottom: 6,

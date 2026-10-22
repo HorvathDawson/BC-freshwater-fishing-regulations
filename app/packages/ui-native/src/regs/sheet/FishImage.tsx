@@ -26,7 +26,7 @@ export function FishImage({ code, file, alt, credit, width, height, fish, palett
   return (
     <View testID="fish-look" style={{ marginTop: 8, width: "100%", maxWidth: FISH_PICTURE.maxWidth }}>
       {/* the box keeps the picture's own proportions; the image fills it (an Image's own aspectRatio is not kept on web) */}
-      <View testID="fish-look-box" accessibilityLabel={alt}
+      <View testID="fish-look-box" accessible accessibilityRole="image" accessibilityLabel={alt}
             style={{ width: "100%", aspectRatio: width / height, backgroundColor: src ? undefined : palette.tint }}>
         {src ? <Image source={src} accessibilityIgnoresInvertColors resizeMode="contain" style={{ width: "100%", height: "100%" }} /> : null}
       </View>

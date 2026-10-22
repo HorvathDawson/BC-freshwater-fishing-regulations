@@ -239,7 +239,7 @@ Columns: **check** · **means** (one line) · **port** = the test that replaces 
 | r20d-pinned-stack | pin stack under the header; lines by scroll geometry; ≤ 90 px | A `core/pins.test.ts` · "pinChain(anchors, y) = golden samples" (T28) + C `rn/PinBar.test.tsx` (T29) + D T41 "stack ≤ 90 px" |
 | r20d-flat | no side borders / indents on tiers; one text edge | MANUAL (T41 compare-regs side-by-side) + C `rn/Group.test.tsx` · "no borderLeft, no paddingLeft on children" (T26) |
 | r20d-compact-head | head ≤ 66 px + lead; total on one line | MANUAL (D T41 measure on Expo web) |
-| r20c-style-tokens | ≤ 4 font sizes, ≤ 4 weights, caps only on kickers, hit areas ≥ 32 | C `rn/style-tokens.test.tsx` (T40) — RN styles are objects, so this is a static census over rendered style props (§5 of T40) |
+| r20c-style-tokens | ≤ 4 font sizes, ≤ 4 weights, caps only on kickers, hit areas ≥ 32 | C `ui-native/src/regs/style-tokens.test.tsx` (T40, DONE): a type census of the rendered Keep tab (`regs/testing/textCensus.ts`) on vedder_1010 · x35p_1010 · klwa_1012 · glenn_615; hit areas are `a11y.test.tsx`'s 44 × 44 (`regs/testing/a11yAudit.ts`). 200 % text laid out in Chrome: `tools/regs-text-scale.test.ts` (T40) |
 
 ### 2.6 ONLY=20e / 20f / 20g
 | check | means | port |

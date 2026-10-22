@@ -4,13 +4,17 @@
  * each draws its VM slice.
  */
 import { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { WORDS, type BannerVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
-import { LineText, type KeepActions } from "./LineText";
+import { LineText, TermText, type KeepActions } from "./LineText";
+import { RegsPress } from "./RegsPress";
 import type { FishImages } from "./types";
+
+/** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
+const ROW = { w: 44, h: 44 } as const;
 
 export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; palette: Palette; actions: KeepActions }) {
   const tone = palette.closed;   // the prototype draws the tidal banner in the closed rule too (.banner)
@@ -21,16 +25,16 @@ export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; p
       {banner.chain.map((c, i) => (
         <View key={i} style={{ minHeight: 44, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Text style={[TYPE.regsBody, { color: palette.ink, flexShrink: 1 }]}>{c.text} <Text style={[TYPE.meta, { color: palette.sub }]}>{c.scope}</Text></Text>
-          <Pressable accessibilityRole="button" onPress={() => actions.onSheet(`rule:${c.rule}`)} style={{ minHeight: 32, justifyContent: "center" }}>
+          <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${c.rule}`)} box={{ w: 44, h: 32 }} style={{ minHeight: 32, justifyContent: "center" }}>
             <Text testID="chip:source" style={[TYPE.metaBold, { color: palette.sub, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{WORDS.SOURCE}</Text>
-          </Pressable>
+          </RegsPress>
           <LineText line={c.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />
         </View>
       ))}
       {banner.reopen && (
-        <Pressable accessibilityRole="link" onPress={() => actions.onDay(banner.reopen!.day)} style={{ minHeight: 44, justifyContent: "center" }}>
+        <RegsPress accessibilityRole="link" onPress={() => actions.onDay(banner.reopen!.day)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
           <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{banner.reopen.text}</Text>
-        </Pressable>
+        </RegsPress>
       )}
       {banner.merged && (
         <View style={{ marginTop: 8 }}>
@@ -54,7 +58,7 @@ export function InheritedLine({ inherited, palette, actions }: { inherited: Inhe
   return (
     <View testID="keep-inherited" style={{ marginTop: 8, marginHorizontal: GUTTER, paddingTop: 6, paddingBottom: 6, paddingLeft: 10, borderLeftWidth: 3, borderLeftColor: palette.accent }}>
       <View pointerEvents="none" style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.accent, opacity: 0.06 }} />
-      <Text style={[TYPE.kicker, { color: palette.accent }]}>{inherited.label}</Text>
+      <Text testID="kicker:inherited" style={[TYPE.kicker, { color: palette.accent }]}>{inherited.label}</Text>
       {inherited.lines.map((l, i) => (
         <View key={i}>
           <LineText line={l.says} style={TYPE.regsBody} color={palette.ink} palette={palette} actions={actions} />
@@ -84,9 +88,9 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
     return (
       <View key={i} testID="keep-caveat-item" style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
         {x.rule ? (
-          <Pressable accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} style={{ minHeight: 44, justifyContent: "center" }}>
+          <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
             {words}
-          </Pressable>
+          </RegsPress>
         ) : words}
         {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
       </View>
@@ -99,7 +103,7 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
       {caveat.items.map(item)}
       {caveat.later && caveat.later.length > 0 && (
         <>
-          <Text style={[TYPE.kicker, { color: palette.sub, marginTop: 8 }]}>{WORDS.OTHER_DATES(caveat.later.length)}</Text>
+          <Text testID="kicker:later" style={[TYPE.kicker, { color: palette.sub, marginTop: 8 }]}>{WORDS.OTHER_DATES(caveat.later.length)}</Text>
           {caveat.later.map(item)}
         </>
       )}
@@ -107,9 +111,9 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
   );
   if (caveat.kind === "inpart") return (
     <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER }}>
-      <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} style={{ minHeight: 44, justifyContent: "center" }}>
+      <RegsPress accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
         <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"} ${head}`}</Text>
-      </Pressable>
+      </RegsPress>
       {open && body}
     </View>
   );
@@ -125,7 +129,7 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
 export function WhereNot({ whereNot, palette, actions }: { whereNot: WhereNotVM; palette: Palette; actions: KeepActions }) {
   return (
     <View testID="keep-wherenot" style={{ marginTop: 6, marginHorizontal: GUTTER, paddingTop: 10, paddingBottom: 6, borderTopWidth: 1, borderTopColor: palette.line2 }}>
-      <Text accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{whereNot.heading}</Text>
+      <Text testID="kicker:wherenot" accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{whereNot.heading}</Text>
       {whereNot.scope && <Text style={[TYPE.meta, { color: palette.sub }]}>{whereNot.scope}</Text>}
       {whereNot.items.map((x, i) => (
         <View key={i} style={{ paddingVertical: 3 }}>
@@ -138,12 +142,12 @@ export function WhereNot({ whereNot, palette, actions }: { whereNot: WhereNotVM;
 
 export function PossessionRow({ possession, palette, actions }: { possession: PossessionVM; palette: Palette; actions: KeepActions }) {
   return (
-    <Pressable testID="keep-possession" accessibilityRole="button" onPress={() => actions.onSheet(possession.open)}
+    <RegsPress testID="keep-possession" accessibilityRole="button" onPress={() => actions.onSheet(possession.open)} box={ROW}
                style={{ marginTop: 8, marginHorizontal: GUTTER, paddingVertical: 9, minHeight: 44, flexDirection: "row", alignItems: "center", borderTopWidth: 1.5, borderTopColor: palette.ink }}>
       <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{possession.label}</Text>
       <Text style={[TYPE.regsBodyBold, { color: palette.ink }]}>{possession.value}</Text>
       <Text style={[TYPE.regsBody, { color: palette.sub, marginLeft: 8 }]}>›</Text>
-    </Pressable>
+    </RegsPress>
   );
 }
 
@@ -172,7 +176,7 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
     <View testID="keep-otherfish" style={{ paddingTop: 18, paddingHorizontal: GUTTER, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
       <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8 }]}>{WORDS.OTHER_FISH}</Text>
       {rows.map((o) => [
-        <Pressable key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)}
+        <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Thumb code={o.thumb} images={images} palette={palette} />
           <View style={{ flex: 1 }}>
@@ -183,7 +187,7 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}
           </Text>
           <Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text>
-        </Pressable>,
+        </RegsPress>,
         // prototype .ostamps (rows 32): the row's stored licence documents under it, each "You need <document ›> <when>"
         ...o.stamps.map((s, i) => (
           <View key={`${o.open}|s${i}`} testID="otherfish-stamp" style={{ marginTop: -4, marginBottom: 6 }}>
@@ -196,7 +200,7 @@ export function OtherFish({ rows, keys, palette, actions, images }: {
             <Text key={k.status} style={[TYPE.meta, { color: palette.sub, marginBottom: 6 }]}>
               <Text testID={`st:${k.status}`} style={[TYPE.metaBold, { color: k.status === "release" ? palette.restricted : palette.closed }]}>{k.status}</Text>
               {` ${k.says} `}
-              <Text accessibilityRole="button" onPress={() => actions.onSheet(`gl:${k.term}`)} style={{ color: palette.accent }}>{WORDS.TERM_ONE}</Text>
+              <TermText ids={[k.term]} palette={palette} actions={actions} />
             </Text>
           ))}
         </View>

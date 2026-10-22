@@ -96,6 +96,12 @@ export function goldenLinesJson(): string {
  * `buildRegsPage` over no key).
  */
 export const EDGE_FIXTURE_STATES = ["x31p_1010", "x15p2_1010"] as const;
+
+/**
+ * (T40) The style-token gate's states (check.mjs `r20c-style-tokens`: vedder_1010, x35p_1010, klwa_1012, glenn_615 — the
+ * Keep tab of each): `<id>.json`, a frozen golden page as above, beside the fixture states it does not already share.
+ */
+export const STYLE_FIXTURE_STATES = ["x35p_1010", "klwa_1012", "glenn_615"] as const;
 export const EDGE_UNNAMED_HANDLE = 1178240;
 export async function unnamedJson(handle: number = EDGE_UNNAMED_HANDLE): Promise<string> {
   const st = await parityStore();
@@ -115,6 +121,7 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
     ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
     ...EDGE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id)]),
     [`edge_unnamed_${EDGE_UNNAMED_HANDLE}`, `${FIXTURE_DIR}/edge_unnamed_${EDGE_UNNAMED_HANDLE}.json`, () => unnamedJson()],
+    ...STYLE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
   ];
   for (const [id, path, make] of files) {
     const fresh = await make();

@@ -89,6 +89,8 @@ export interface RegsPage {
   readonly gear: GearVM | null;            // (T21) null until T30–T32 build it
   readonly methods: MethodsVM | null;      // (T21) null until T32 builds it
   readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden) — and until T33 builds it
+  readonly terms: Readonly<Record<string, string>>;   // (T40, CONTRACT ADDITION) glossary id → its title (statics.glossary.terms[].term):
+                                           // what a one-word ⓘ says to a screen reader, "What does <title> mean?" (§1 `term`)
   readonly sheet: (key: SheetKey) => SheetVM | null;   // lazy; pure over the same inputs
 }
 export function buildRegsPage(inp: RegsInputs, opts: { today: Day; who: Who; tot?: "a" | "b"; pid?: string }): RegsPage;   // (T30) pid: test-harness page id only — sheet keys never embed it (§6 #1)

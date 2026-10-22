@@ -26,6 +26,10 @@ export const WORDS = Object.freeze({
   FISH_PICTURES: "Fish pictures",
   TERMS_MANY: "What these words mean",   // plain() of a term run with 2+ ids
   TERM_ONE: "ⓘ",
+  /** (T40) what a screen reader says for a one-word ⓘ (contracts §1 `term`): the glossary's own title for the word */
+  TERM_A11Y: (title: string) => `What does ${title} mean?`,
+  /** (T40) a one-word ⓘ whose title the page does not carry (a component drawn outside a RegsScreen) */
+  TERM_A11Y_UNTITLED: "What this word means",
   // species words (names.ts: page v36 join, lcNames, lc, writtenName)
   AND: " and ", OR: " or ",
   MORE: (n: number) => ` + ${n} more`,
@@ -200,7 +204,7 @@ export const WORDS = Object.freeze({
   // ── T21 the Keep composition (keep.ts: page v36 renderCard's outside-B.C. foot) ──
   OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
   /** a fish picture's accessible name (prototype fishBtn aria-label) */
-  LOOKS_LIKE: (name: string) => `What a ${name} looks like`,
+  LOOKS_LIKE: (name: string) => `${name} — what it looks like`,   // (T40) a fish picture's name: the fish first
   /** the water screen while a tab's presenter is not built yet (T30–T35), and when the store cannot answer */
   TAB_PENDING: (tab: string) => `${tab}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`,
   REGS_LOADING: "Loading the regulations",

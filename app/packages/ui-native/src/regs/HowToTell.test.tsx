@@ -40,9 +40,11 @@ describe("T38 How to tell: the hatch sheet", () => {
   it("1. two figures, the drawing then its caption: labelled by their captions, in order, each with its own drawing", () => {
     hatch();
     const figs = screen.getAllByTestId("adipose-figure");
-    expect(figs.map((f) => [f.getAttribute("role"), f.getAttribute("aria-label"), srcOf(f)])).toEqual([
-      ["img", "Wild · adipose fin there", "adipose-wild.webp"],
-      ["img", "Hatchery · clipped, a healed scar instead", "adipose-clipped.webp"],
+    // (T40) the drawing is the image, named by the caption; the figure carries no label (it would hide the caption's text)
+    const pic = (f: HTMLElement) => f.querySelector<HTMLElement>('[data-testid="adipose-picture"]')!;
+    expect(figs.map((f) => [f.getAttribute("aria-label"), pic(f).getAttribute("role"), pic(f).getAttribute("aria-label"), srcOf(f)])).toEqual([
+      [null, "img", "Wild · adipose fin there", "adipose-wild.webp"],
+      [null, "img", "Hatchery · clipped, a healed scar instead", "adipose-clipped.webp"],
     ]);
     // inside each figure: the picture box first, the caption after it (the prototype's figure.fishart order)
     expect(figs.map((f) => [...f.children].map((c) => [c.getAttribute("data-testid"), squash(c.textContent)]))).toEqual([
@@ -120,7 +122,7 @@ describe("T38 How to tell: the hatch sheet", () => {
 
   it("an app that registered no drawings still draws both figures, captioned, with an empty ground of the same size", () => {
     hatch({ adipose: null });
-    expect(screen.getAllByTestId("adipose-figure").map((f) => [f.getAttribute("aria-label"), srcOf(f)])).toEqual([
+    expect(screen.getAllByTestId("adipose-picture").map((f) => [f.getAttribute("aria-label"), srcOf(f)])).toEqual([
       ["Wild · adipose fin there", null], ["Hatchery · clipped, a healed scar instead", null]]);
   });
 

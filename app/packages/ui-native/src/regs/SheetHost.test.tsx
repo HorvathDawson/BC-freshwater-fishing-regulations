@@ -135,7 +135,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 
   it("8. a picture in an other: sheet opens the fish sheet", () => {
     const h = host("other:o0");
-    fireEvent.click(screen.getByRole("button", { name: "What a Kokanee looks like" }));
+    fireEvent.click(screen.getByRole("button", { name: "Kokanee — what it looks like" }));
     expect(h.opened).toEqual(["sp:KO"]);
   });
 

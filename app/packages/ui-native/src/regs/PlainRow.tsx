@@ -5,11 +5,12 @@
  * regulation line ›". No logic.
  */
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { WORDS, type LadderVM, type PlainRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
-import { LineText, type KeepActions } from "./LineText";
+import { LineText, TermText, type KeepActions } from "./LineText";
+import { RegsPress } from "./RegsPress";
 import { Pictures } from "./GroupCard";
 import type { FishImages } from "./types";
 
@@ -17,12 +18,12 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
   const [open, setOpen] = useState(false);
   return (
     <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} style={{ minHeight: 44, justifyContent: "center" }}>
+      <RegsPress accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
         <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"}  ${ladder.label}`}</Text>
-      </Pressable>
+      </RegsPress>
       {open && ladder.sections.map((s, i) => (
         <View key={i} style={{ paddingBottom: 6 }}>
-          {s.q && <Text style={[TYPE.kicker, { color: palette.sub }]}>{s.q}</Text>}
+          {s.q && <Text testID="kicker:ladder" style={[TYPE.kicker, { color: palette.sub }]}>{s.q}</Text>}
           {s.result && <Text style={[TYPE.regsBodySemi, { color: palette.ink, marginTop: 2 }]}>{WORDS.CHECK + s.result}</Text>}
           {s.steps.map((st, j) => (
             <View key={j} style={{ marginTop: 6 }}>
@@ -43,7 +44,7 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
       ))}
       {open && ladder.lost.length > 0 && (
         <View style={{ marginTop: 4 }}>
-          <Text style={[TYPE.kicker, { color: palette.sub }]}>{WORDS.RULES_NOT_APPLY(ladder.lost.length)}</Text>
+          <Text testID="kicker:lost" style={[TYPE.kicker, { color: palette.sub }]}>{WORDS.RULES_NOT_APPLY(ladder.lost.length)}</Text>
           {ladder.lost.map((l, i) => (
             <Text key={i} style={[TYPE.meta, { color: palette.sub, paddingVertical: 3 }]}>
               {`${l.text} `}<Text style={{ color: palette.ink }}>{l.status}</Text>{" "}
@@ -53,9 +54,9 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
         </View>
       )}
       {open && (
-        <Pressable accessibilityRole="link" onPress={() => actions.onSheet(more.open)} style={{ minHeight: 44, justifyContent: "center" }}>
+        <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
           <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{more.text}</Text>
-        </Pressable>
+        </RegsPress>
       )}
     </View>
   );
@@ -71,11 +72,11 @@ export function PlainRow({ row, palette, actions, images }: { row: PlainRowVM; p
         {row.pill && (
           <Text testID={`st:${row.pill.kind}`} style={[TYPE.regsBodyBold, { color: tone }]}>
             {row.pill.text}
-            {row.pill.term ? <Text accessibilityRole="button" onPress={() => actions.onSheet(`gl:${row.pill!.term}`)} style={{ color: palette.accent }}>{` ${WORDS.TERM_ONE}`}</Text> : null}
+            {row.pill.term ? <>{" "}<TermText ids={[row.pill.term]} palette={palette} actions={actions} /></> : null}
           </Text>
         )}
       </View>
-      {row.scope && <Text style={[TYPE.kicker, { color: palette.sub, marginTop: 2 }]}>{row.scope}</Text>}
+      {row.scope && <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub, marginTop: 2 }]}>{row.scope}</Text>}
       {row.sum && <Text style={[TYPE.regsBody, { color: palette.ink, marginTop: 6 }]}>{row.sum}</Text>}
       {row.week && (
         <View style={{ marginTop: 6 }}>

@@ -65,7 +65,10 @@ export function YearStrip({ strip, dateLabel, palette }: { strip: StripVM; dateL
           : <Text key={i} testID={l.kind === "soonOpen" ? "st:open" : "st:closed"} style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
               color: l.kind === "soonOpen" ? palette.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.open : palette.closed }]}>{l.text}</Text>)}
       </View>
-      <View style={{ marginTop: 22, height: H }} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+      {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
+          header pill's, so it is hidden inside it. The legend below stays text. */}
+      <View testID="strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => setW(e.nativeEvent.layout.width)}
+            accessible accessibilityRole="image" accessibilityLabel={strip.line.map((l) => l.text).join(" ")}>
         {w > 0 && (
           <Svg width={w} height={H}>
             <Patterns id="ys" palette={palette} />
@@ -73,15 +76,15 @@ export function YearStrip({ strip, dateLabel, palette }: { strip: StripVM; dateL
           </Svg>
         )}
         {w > 0 && (
-          <View pointerEvents="none" style={{ position: "absolute", top: -6, left: w * strip.todayAt - 1, width: 2, height: 22, backgroundColor: palette.ink }}>
+          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants" style={{ position: "absolute", top: -6, left: w * strip.todayAt - 1, width: 2, height: 22, backgroundColor: palette.ink }}>
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
           </View>
         )}
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
+      <View testID="strip-months" style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
         {strip.months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
       </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 12, marginTop: 6 }}>
+      <View testID="strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 12, marginTop: 6 }}>
         {strip.legend.map((l) => (
           <View key={l.bit} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Svg width={l.bit <= 1 ? 14 : 12} height={10}>

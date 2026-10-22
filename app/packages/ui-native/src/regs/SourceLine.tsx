@@ -3,11 +3,13 @@
  * opens the Sources sheet of exactly those rules), then one "Rule book p.N ↗" per page, wrapping. The Licence tab's line
  * has no pages. No logic: every word and key is the VM's.
  */
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import type { SourceLineVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import type { KeepActions } from "./LineText";
+import { MIN_HIT } from "./hit";
+import { RegsPress } from "./RegsPress";
 import { RuleBookLink } from "./RuleBookLink";
 
 export function SourceLine({ src, palette, actions, pages = true, spaced = false }: {
@@ -20,11 +22,12 @@ export function SourceLine({ src, palette, actions, pages = true, spaced = false
 }) {
   return (
     <View testID="regs-src" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 10, marginTop: spaced ? SPACE.s2 : SPACE.s1 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={src.aria} onPress={() => actions.onSheet(src.open)}
-                 hitSlop={{ top: 12, bottom: 12, left: 4, right: 4 }}>
+      <RegsPress accessibilityRole="button" accessibilityLabel={src.aria} onPress={() => actions.onSheet(src.open)}
+                 // (T40) it may wrap: at 2× text "Province · Region 2 · This water’s ›" is wider than a phone
+                 box={{ w: MIN_HIT, h: TYPE.metaBold.lineHeight }} style={{ flexShrink: 1, maxWidth: "100%" }}>
         <Text style={[TYPE.metaBold, { color: palette.accent }]}>{src.who}</Text>
-      </Pressable>
-      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} palette={palette} onBook={actions.onBook} />)}
+      </RegsPress>
+      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} palette={palette} onBook={actions.onBook} alone />)}
     </View>
   );
 }

@@ -37,7 +37,8 @@ import { useContext, useRef } from "react";
 import { Animated, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { FaceBar, type Face } from "./Faces";
 import { SwipeFollow, SwipeOffsetContext, ViewSwipe, WaterViewsContext } from "./ViewSwipe";
-import { TYPE } from "./type";
+import { useCappedScale } from "./textScale";
+import { CAPPED_SCALE, TYPE } from "./type";
 import { WATER_FRAME, type Palette } from "./theme";
 
 /** The column: the frame's measure, centred. */
@@ -93,7 +94,7 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
 
 /**
  * The water's name row, the same box on every view: `titleHeight` tall, the name at the gutter in the regs header's
- * face (two lines at most), and beside it whatever the view puts there (the regs header's date pill and Map button).
+ * face (two lines at most — more at the OS's larger text, T40), and beside it whatever the view puts there (the regs header's date pill and Map button).
  * `name` null: the row is held empty (the name is still loading) so nothing under it moves when it arrives.
  */
 export function WaterTitle({ name, palette, children }: {
@@ -101,11 +102,14 @@ export function WaterTitle({ name, palette, children }: {
   /** Beside the name, right-aligned. */
   children?: React.ReactNode;
 }) {
+  // (T40) at the OS's larger text the name keeps its words: two lines at 1×, as many more as the scale (four at 2×), the
+  // row at least its one-scale height and growing with them rather than cutting the name off
+  const lines = Math.ceil(2 * useCappedScale());
   return (
     <View testID="water-title"
-          style={{ height: WATER_FRAME.titleHeight, paddingLeft: WATER_FRAME.gutter, paddingRight: 8, gap: 8,
+          style={{ minHeight: WATER_FRAME.titleHeight, paddingLeft: WATER_FRAME.gutter, paddingRight: 8, gap: 8,
                    flexDirection: "row", alignItems: "center" }}>
-      <Text accessibilityRole={name ? "header" : undefined} numberOfLines={2}
+      <Text accessibilityRole={name ? "header" : undefined} numberOfLines={lines} maxFontSizeMultiplier={CAPPED_SCALE}
             style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{name ?? ""}</Text>
       {children}
     </View>

@@ -39,10 +39,12 @@ export function AdiposeArt({ figures, images, palette, layout = "phone" }: {
         const src: ImageSourcePropType | undefined = images?.[f.variant];
         const [name, ...rest] = f.caption;
         const fig = (
-          <View key={f.variant} testID="adipose-figure" accessible accessibilityRole="image" accessibilityLabel={plain(f.caption)}
-                style={{ marginTop: 8, width: "100%", maxWidth: FISH_PICTURE.maxWidth }}>
-            {/* the box keeps the drawing's proportions; the image fills it (an Image's own aspectRatio is not kept on web) */}
-            <View testID="adipose-picture" style={{ width: "100%", aspectRatio: ASPECT, backgroundColor: src ? undefined : palette.tint }}>
+          <View key={f.variant} testID="adipose-figure" style={{ marginTop: 8, width: "100%", maxWidth: FISH_PICTURE.maxWidth }}>
+            {/* the box keeps the drawing's proportions; the image fills it (an Image's own aspectRatio is not kept on web).
+                (T40) the drawing is the image, named by its caption; the caption under it stays text (a label on the figure
+                would hide it) */}
+            <View testID="adipose-picture" accessible accessibilityRole="image" accessibilityLabel={plain(f.caption)}
+                  style={{ width: "100%", aspectRatio: ASPECT, backgroundColor: src ? undefined : palette.tint }}>
               {src ? <Image source={src} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: "100%", height: "100%" }} /> : null}
             </View>
             <Text testID="adipose-caption" style={[TYPE.meta, { color: palette.ink, marginTop: 4 }]}>

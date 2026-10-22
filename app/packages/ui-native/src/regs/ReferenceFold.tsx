@@ -4,11 +4,12 @@
  * group's head and its items, then the source line. The fold's state is local (it changes no answer). No logic.
  */
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import type { MethodsVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import type { KeepActions } from "./LineText";
+import { RegsPress } from "./RegsPress";
 import { SourceLine } from "./SourceLine";
 
 export function ReferenceFold({ vm, palette, actions, initiallyOpen = false }: {
@@ -19,14 +20,14 @@ export function ReferenceFold({ vm, palette, actions, initiallyOpen = false }: {
   const [open, setOpen] = useState(initiallyOpen);
   return (
     <View testID="methods-reference" style={{ marginTop: SPACE.s3, borderTopWidth: 1.5, borderTopColor: palette.ink, paddingBottom: SPACE.s2 }}>
-      <Pressable testID="methods-reference-summary" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)}
+      <RegsPress testID="methods-reference-summary" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 56 }}
                  style={{ minHeight: 56, flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8, rowGap: 2, paddingVertical: 10 }}>
-        <Text style={[TYPE.kicker, { width: "100%", color: palette.sub }]}>{vm.label}</Text>
+        <Text testID="kicker:reference" style={[TYPE.kicker, { width: "100%", color: palette.sub }]}>{vm.label}</Text>
         <Text style={[TYPE.regsChip, { color: palette.ink }]}>{vm.title}</Text>
         <Text style={[TYPE.metaSemi, { flex: 1, color: palette.sub }]}>{vm.sub}</Text>
         <View aria-hidden style={{ width: 8, height: 8, marginRight: 4, alignSelf: "center", borderRightWidth: 2, borderBottomWidth: 2,
                                    borderColor: palette.sub, transform: [{ rotate: open ? "-135deg" : "45deg" }] }} />
-      </Pressable>
+      </RegsPress>
       {open && (
         <View testID="methods-reference-body">
           {vm.groups.map((g, i) => (

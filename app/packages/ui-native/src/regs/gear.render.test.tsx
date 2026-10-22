@@ -68,7 +68,10 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect(domLines(screen.getByTestId("gear-bait"))).toEqual(["Bait", "Next May 1–31: bait ban", "Allowed", "✓ Worms",
       "✓ Roe (fish eggs) the fish or fish parts ban excepts it", "✓ Water insects and crayfish on streams", "Not allowed",
       "✕ Fish or fish parts", "Province › Rule book p.8 ↗"]);
-    expect(screen.getByLabelText("Allowed: Roe (fish eggs), the fish or fish parts ban excepts it")).toBeTruthy();
+    // (T40) no row label (it would hide the row's words and its ⓘ from a screen reader): the column head is read as text,
+    // then each row's own words; the ✓ / ✕ that repeats the head is hidden
+    expect(screen.queryByLabelText("Allowed: Roe (fish eggs), the fish or fish parts ban excepts it")).toBeNull();
+    expect([...screen.getByTestId("gear-bait").querySelectorAll('[aria-hidden="true"]')].map((e) => e.textContent)).toEqual(["✓", "✓", "✓", "✕"]);
     fireEvent.click(within(screen.getByTestId("gear-bait")).getByRole("button", { name: "Sources: Province" }));
     expect(sheets).toEqual(["srcs:bait"]);
   });

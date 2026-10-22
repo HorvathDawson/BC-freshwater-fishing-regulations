@@ -15,6 +15,14 @@ import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@a
 import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER } from "./motion";
+import { hitProps } from "./regs/hit";
+
+/**
+ * (T40) "DONE" is an 11 px tracked word (about 34 × 14): grown to 44 × 44 to the touch (it was a flat 10 px of slop, 34 tall).
+ * A segmented choice's option is at least 44 tall (`minHeight`) and shares the row with one other: 44 × 44 by its style.
+ */
+const DONE_HIT = hitProps({ w: 30, h: 14 });
+const OPTION_HIT = hitProps({ w: 44, h: 44 });
 
 export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
   open: boolean; onClose: () => void; title: string;
@@ -105,7 +113,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
                   <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
-                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" hitSlop={10}>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" {...DONE_HIT}>
                     <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
                   </Pressable>
                 </View>
@@ -150,7 +158,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              borderBottomColor: palette.ink }}>
                 <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{title}</Text>
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
-                           hitSlop={10}>
+                           {...DONE_HIT}>
                   {/* Uppercase and tracked, like every other label in this design. */}
                   <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
                 </Pressable>
@@ -193,7 +201,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
         {options.map((o, i) => {
           const on = o.k === value;
           return (
-            <Pressable key={o.k} testID={`btn:${o.k}`} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t}
+            <Pressable key={o.k} testID={`btn:${o.k}`} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t} {...OPTION_HIT}
                        style={{ flex: 1, minHeight: 44, paddingVertical: 4, paddingHorizontal: 6, alignItems: "center", justifyContent: "center",
                                 backgroundColor: on ? palette.ink : "transparent",
                                 borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }}>
