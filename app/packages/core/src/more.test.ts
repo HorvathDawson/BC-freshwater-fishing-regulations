@@ -62,12 +62,15 @@ describe("the Data block: always at the top of More, one line per source", () =>
     const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
     expect([
       sum({ ...fresh, hydatNotice: "due" }),
-      sum({ ...fresh, hydatNotice: "current", sources: old }),
+      sum({ ...fresh, hydatNotice: { current: "2023-01-01" }, sources: old }),
+      // the feed is clear on a newer HYDAT than the release carries: the app's data has not caught up
+      sum({ ...fresh, hydatNotice: { current: "2026-07-17" }, sources: old }),
       sum({ ...fresh, hydatNotice: null, sources: old }),
       sum({ ...fresh, sources: old }),
     ]).toEqual([
       "stale: 1 likely out of date · see Details",
       "fresh: All up to date",
+      "stale: 1 likely out of date · see Details",
       "stale: 1 likely out of date · see Details",
       "stale: 1 likely out of date · see Details",
     ]);

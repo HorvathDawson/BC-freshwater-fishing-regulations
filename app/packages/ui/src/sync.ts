@@ -40,7 +40,7 @@ export interface SyncState {
   readonly newRelease: string | null;
   /** a check is under way */
   readonly checking: boolean;
-  /** what the feed's index says about HYDAT ("due" / "current"), or null (no word: the age line decides) */
+  /** what the feed's index says about HYDAT ("due" / { current: the newest HYDAT, ISO day }), or null (no word) */
   readonly hydatNotice: HydatNotice | null;
   /** bumped by every refresh the reader asks for: what else re-asks the feed keys on it */
   readonly epoch: number;

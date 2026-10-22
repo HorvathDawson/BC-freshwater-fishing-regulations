@@ -11,7 +11,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type HydatNotice, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { BackLayerContext, ERROR_LOG, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
@@ -40,7 +40,7 @@ const DATA: DataInput = {
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host. */
 function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, hydatNotice }: {
   info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
-  theme?: ThemeName; onTheme?: (t: ThemeName) => void; hydatNotice?: "due" | "current" | null;
+  theme?: ThemeName; onTheme?: (t: ThemeName) => void; hydatNotice?: HydatNotice | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
@@ -225,9 +225,9 @@ describe("a page", () => {
       + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
   });
 
-  it("the HYDAT row reads the feed's notice: due says 'Newer release out'; current is up to date however old; no " +
-     "word, its age (owner 2026-10-22 late)", () => {
-    const at = (date: string, hydatNotice: "due" | "current" | null | undefined) => {
+  it("the HYDAT row reads the feed's notice: due says 'Newer release out'; clear is up to date however old only when " +
+     "the release carries that HYDAT, else the app has not caught up; no word, its age (owner 2026-10-22 late)", () => {
+    const at = (date: string, hydatNotice: HydatNotice | null | undefined) => {
       const loader = {
         release: "r-0efa5d05fc92",
         manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: null, versions: null },
@@ -240,10 +240,12 @@ describe("a page", () => {
       return got;
     };
     const head = "Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada";
-    expect([at("2026-07-17", "due"), at("2023-01-10", "current"), at("2023-01-10", null), at("2023-01-10", undefined)])
+    expect([at("2026-07-17", "due"), at("2023-01-10", { current: "2023-01-10" }),
+            at("2026-07-17", { current: "2026-10-20" }), at("2023-01-10", null), at("2023-01-10", undefined)])
       .toEqual([
         `${head}Updated Jul 17, 2026Newer release out`,
         `${head}Updated Jan 10, 2023Up to date`,
+        `${head}Updated Jul 17, 2026Newer release out`,
         `${head}Updated Jan 10, 2023Likely out of date`,
         `${head}Updated Jan 10, 2023Likely out of date`,
       ]);

@@ -362,8 +362,9 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
  *   age       the feed (its index's own `fetchedAt`) and dfo / fwa / basemap / hydat (the release's date for each)
  *             against the table's line; never checked or not recorded, unknown
- *   notice    hydat: the feed's notice — due "Newer release out", current up to date, whatever the age; no word,
- *             the age line as above
+ *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
+ *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is
+ *             older (the app's data has not caught up); no word or no release date, the age line as above
  *   release   synopsis / tiles (`byRelease`)
  *   notRead   the in-season changes: unknown ("Not read")
  *   live      weather / imagery
@@ -375,7 +376,13 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
     case "notice": {
       const n = s.hydatNotice ?? null;
       if (n === "due") return badge("stale", FRESHNESS_WORDS.newerRelease);
-      if (n === "current") return badge("fresh");
+      // the feed is clear; the APP is current only when its release carries that same HYDAT (ISO days compare as
+      // days), and an older one has not caught up yet. No release date (or a newer one): the age line
+      const own = isoDayWords(s.sources?.hydat?.date) === null ? null : s.sources!.hydat!.date!;
+      if (n !== null && own !== null) {
+        if (own === n.current) return badge("fresh");
+        if (own < n.current) return badge("stale", FRESHNESS_WORDS.newerRelease);
+      }
       return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
     }
     case "release": return byRelease(k, s);

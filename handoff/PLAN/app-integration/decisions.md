@@ -494,6 +494,10 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   4. THE APP PICKS IT UP LIKE A RELEASE: it already re-reads the feed while in service, so a new envelope reaches
      readers with no app change. The More "HYDAT" line reads the notice ("Newer release out · update pending") instead
      of guessing by age. No sync dot: a reader cannot fix it.
+  5. FEED CLEAR IS NOT APP CURRENT (fix 2026-10-22): the feed clears once ITS envelope catches up, but the app's bundle
+     (gauge_clim, gauge_stats, section_panel) moves only with the next data release — so HYDAT reads "Up to date" only
+     when the notice is clear AND the release's `sources.hydat.date` is the feed's `hydat.latest` (same day); clear but
+     the release older reads "Newer release out"; no release date or no feed word, the 548-day age line.
 
 ## OWNER 2026-10-22 (late) — back must leave a water, not replay every move inside it
 - Owner: moving around sections and then hitting back takes many presses, "undoing" each move, before you reach the

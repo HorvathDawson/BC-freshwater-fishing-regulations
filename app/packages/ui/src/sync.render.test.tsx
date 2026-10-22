@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import type { GaugeFeed } from "@app/data";
+import type { HydatNotice } from "@app/core";
 import { useSync, type SyncState } from "./sync";
 
 afterEach(cleanup);
@@ -26,7 +27,7 @@ const settle = () => act(async () => { for (let i = 0; i < 5; i++) await Promise
 
 describe("useSync: HYDAT's notice rides the feed-index read", () => {
   it("due, current, an index from before notices, and no feed answer", async () => {
-    const got: (string | null)[] = [];
+    const got: (HydatNotice | null)[] = [];
     for (const idx of [
       { fetchedAt: "2026-10-22T21:00:00Z", stations: {}, hydat: { release: "20260717", latest: "20261020", stale: true },
         maintenance: [DUE] },
@@ -41,7 +42,7 @@ describe("useSync: HYDAT's notice rides the feed-index read", () => {
       got.push(out.s!.hydatNotice);
       cleanup();
     }
-    expect(got).toEqual(["due", "current", null, null]);
+    expect(got).toEqual(["due", { current: "2026-07-17" }, null, null]);
   });
 
   it("a tap re-reads it: the notice clears once the publisher has caught up", async () => {
@@ -56,6 +57,6 @@ describe("useSync: HYDAT's notice rides the feed-index read", () => {
     act(() => out.s!.refresh());
     // a tap shows "checking" for at least SYNC_MIN_CHECK_MS (600 ms)
     await act(async () => { await new Promise((r) => setTimeout(r, 700)); });
-    expect([before, out.s!.hydatNotice, out.s!.newRelease]).toEqual(["due", "current", null]);
+    expect([before, out.s!.hydatNotice, out.s!.newRelease]).toEqual(["due", { current: "2026-10-20" }, null]);
   });
 });

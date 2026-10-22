@@ -88,22 +88,33 @@ export function byCadence(k: AgeKey, ageMs: number | null): "fresh" | "stale" | 
  * into its index as `maintenance` notices (pipeline/gauges/feed/publish.py `maintenance_notices`); the app re-reads
  * the index while in service (the sync state), so a notice reaches the reader with no app change.
  *
- *   "due"      a `hydat` notice: a newer HYDAT is listed than the one the flows are measured against
- *   "current"  the index carries notices, none for HYDAT, and this run checked (its `hydat` block names both the
- *              release in use and the newest listed)
- *   null       no word: no index, an index from before notices, or a run that could not check — the age line decides
+ *   "due"                a `hydat` notice: a newer HYDAT is listed than the one the flows are measured against
+ *   { current: <day> }   the index carries notices, none for HYDAT, and this run checked (its `hydat` block names both
+ *                        the release in use and the newest listed): the FEED is clear as of HYDAT <day> (`latest`, an
+ *                        ISO day). Not yet the APP: its bundle (gauge_clim, gauge_stats, section_panel) moves to a new
+ *                        HYDAT only with the next data release, so the HYDAT line is current only when the release's
+ *                        `sources.hydat.date` is that same day (menu.ts `sourceFreshness`)
+ *   null                 no word: no index, an index from before notices, or a run that could not check — the age
+ *                        line decides
  *
  * Structural, so core reads the index without importing @app/data's types.
  */
-export type HydatNotice = "due" | "current";
+export type HydatNotice = "due" | { readonly current: string };
 
 export interface MaintenanceIndex {
   readonly hydat?: { readonly release: string | null; readonly latest: string | null; readonly stale?: boolean } | null;
   readonly maintenance?: readonly { readonly kind: string }[] | null;
 }
 
+/** The feed's HYDAT release word (YYYYMMDD, HYDAT's own) as an ISO day, the manifest's form; null when it is no day. */
+function hydatDay(release: string | null | undefined): string | null {
+  const m = /^(\d{4})-?(\d{2})-?(\d{2})$/.exec(release ?? "");
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+}
+
 export function hydatNotice(index: MaintenanceIndex | null | undefined): HydatNotice | null {
   if (!index || !Array.isArray(index.maintenance)) return null;
   if (index.maintenance.some((n) => n?.kind === "hydat")) return "due";
-  return index.hydat?.release && index.hydat?.latest ? "current" : null;
+  const latest = hydatDay(index.hydat?.latest);
+  return index.hydat?.release && latest ? { current: latest } : null;
 }
