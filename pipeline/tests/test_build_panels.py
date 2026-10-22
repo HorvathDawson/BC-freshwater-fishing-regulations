@@ -306,3 +306,93 @@ def test_an_ordinary_reach_is_left_alone():
     graph = g([N("upper", 100), N("gauged", 110)], [E("upper", "gauged")])
     panels = build(graph, MODEL, [("S", "gauged", 40, False)])
     assert "upper" in panels.by_section
+
+
+# ------------------------------------------------------------------ side channels follow their OWN river
+#
+# OWNER 2026-10-22 (option A): "just follows its own river at that point." FWA gives a
+# secondary channel its river's watershed code, so the river a side channel is a channel OF
+# is the one carrying that same code. The 4-hop walk is long enough to leave that river and
+# reach the one it flows into; it must never adopt a reach there.
+
+PITT, FRASER, KLESILKWA, SKAGIT = "100-025956", "100", "970-106243-844109", "970-106243"
+
+
+def _widgeon():
+    """Widgeon Slough: a channel OF the Pitt, two hops from the far bigger Fraser."""
+    return g([N("pitt_up", 1100, wsc=PITT), N("slough", 2, wsc=PITT, edge_types=("1350",)),
+              N("pitt", 1181, wsc=PITT), N("fraser", 64_682, wsc=FRASER)],
+             [E("pitt_up", "slough"), E("slough", "pitt"), E("pitt", "fraser")]), \
+        [("ALOUETTE", "pitt", 40, False), ("HOPE", "fraser", 60, False)]
+
+
+def _klesilkwa():
+    """A Klesilkwa braid piece welded to the Skagit, with no Klesilkwa reach in range."""
+    return g([N("braid", 2, wsc=KLESILKWA, edge_types=("1100",)), N("skagit", 10_000, wsc=SKAGIT)],
+             [E("braid", "skagit")]), \
+        [("OWN", "braid", 40, False), ("SKAGIT_ABOVE", "skagit", 60, False)]
+
+
+def _stations(panels, sec):
+    return sorted(m.station for m in panels.members[panels.by_section[sec][0]])
+
+
+def test_a_channel_of_a_tributary_follows_the_tributary_not_the_river_it_joins():
+    """Widgeon Slough adopted the Fraser (64,682 km²) and read the Fraser's 50th percentile
+    while the Pitt on both sides of it read 17th."""
+    graph, donors = _widgeon()
+    panels = build(graph, MODEL, donors)
+    assert panels.by_section["slough"] == panels.by_section["pitt"]
+    assert panels.by_section["slough"] != panels.by_section["fraser"]
+    assert panels.by_section["slough"][1] == 1181
+
+
+def test_a_braid_with_no_reach_of_its_own_river_keeps_its_own_panel():
+    """The Klesilkwa braids read 08PA012 'Skagit River ABOVE Klesilkwa' — a gauge no
+    Klesilkwa water passes. With no Klesilkwa reach to follow, the braid keeps its own."""
+    graph, donors = _klesilkwa()
+    panels = build(graph, MODEL, donors)
+    assert _stations(panels, "braid") == ["OWN"]
+    assert panels.by_section["braid"][1] == 2
+
+
+def test_a_braid_with_no_reach_of_its_own_river_and_no_panel_of_its_own_is_silent():
+    graph, donors = _klesilkwa()
+    panels = build(graph, MODEL, [d for d in donors if d[0] != "OWN"])
+    assert "braid" not in panels.by_section
+
+
+def test_a_true_channel_of_the_main_river_still_follows_that_river():
+    """Nicomen / Herrling: the channel carries the Fraser's own code, so the Fraser is its
+    river — even with a bigger-than-the-channel tributary of another code right beside it."""
+    graph = g([N("fraser", 100_000, wsc=FRASER), N("stub", 8, wsc=FRASER),
+               N("side", 2, wsc=FRASER, edge_types=("1350",)), N("creek", 50, wsc="100-123456"),
+               N("gauged", 100_000, wsc=FRASER)],
+              [E("gauged", "fraser"), E("fraser", "stub"), E("stub", "side"), E("creek", "side")])
+    panels = build(graph, MODEL, [("HOPE", "gauged", 60, False), ("CREEK", "creek", 40, False)])
+    assert panels.by_section["side"] == panels.by_section["fraser"]
+    assert _stations(panels, "side") == ["HOPE"]
+
+
+def test_the_same_code_condition_is_what_holds_the_side_channel_tests():
+    """MUTATION PIN: the same tests against `mainstem_of` with the code condition removed
+    must fail — otherwise they pass for some other reason and pin nothing."""
+    import inspect
+    import textwrap
+
+    import pipeline.atlas.gauges.build_panels as bp
+
+    src = textwrap.dedent(inspect.getsource(bp.mainstem_of))
+    cond = " or o.wsc != node.wsc"
+    assert src.count(cond) == 1, "the code condition moved; update this pin to match"
+    ns = dict(vars(bp))
+    exec(compile(src.replace(cond, ""), bp.__file__, "exec"), ns)
+    mutant = ns["mainstem_of"]
+
+    graph, donors = _widgeon()
+    assert bp.mainstem_of(graph, AREA)["slough"] == "pitt"
+    assert mutant(graph, AREA)["slough"] == "fraser"
+
+    graph, donors = _klesilkwa()
+    assert "braid" not in bp.mainstem_of(graph, AREA)
+    assert mutant(graph, AREA)["braid"] == "skagit"

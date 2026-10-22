@@ -89,3 +89,47 @@ D: the downstream walk must not record a node under half the gauge's area.
 - 33 sections, 42 km. Ships with A.
 
 Excluding tidal sloughs is not proposed: there is no tidal data to drive it.
+
+## Option A — built (2026-10-21, owner decision 2026-10-22 "a is what i want. just follows its own river at that point")
+
+THE CHANGE: one condition in `mainstem_of` (pipeline/atlas/gauges/build_panels.py). A candidate reach is adopted only
+when `o.wsc == node.wsc`. A reach on another code is still walked THROUGH (the 4-hop budget and the "largest" rule are
+unchanged, so the Herrling braid stubs stay fixed), it is just never adopted. No same-code reach in range → the channel
+is not adopted and keeps its own panel (none where its own river is silent). B, C1, C2 and D are NOT built.
+
+TESTS (pipeline/tests/test_build_panels.py, written first and red before the change):
+- Widgeon/Pitt/Fraser shape: the slough adopts the Pitt, not the Fraser two hops on.
+- Klesilkwa/Skagit shape: a braid with no same-code reach keeps its own panel; with none of its own it is silent.
+- Nicomen/Herrling shape: a Fraser-coded channel still adopts the Fraser past a stub and a bigger other-code creek.
+- Mutation pin: `mainstem_of`'s own source with the code condition removed adopts the Fraser and the Skagit. Separately
+  checked by hand: removing the condition from the file fails 4 tests.
+
+PROOF ON REAL DATA, against the CHANGED code (not the prototype's reimplementation):
+- `prototype.py OUT baseline same_wsc` run in the change's worktree, so `baseline` calls the shipped `mainstem_of`.
+- Built code vs the prototype's `same_wsc` today: 246,619 sections, 0 differ. Vs the report's earlier `same_wsc`: 0 differ.
+- compare.py, old baseline (still identical to the live bundle on all 249,415 sections) against the built panels:
+
+| | report (option A) | built |
+|---|---|---|
+| sections that change panel | 13,639 (7,865 km) | 13,639 (7,865 km), all side channels |
+| moves under 10 points | 6,852 | 6,852 |
+| moves 10 to 25 points | 394 | 394 |
+| moves 25 points or more | 193 | 193 |
+| loses its answer | 3,788 | 3,788 |
+| gains an answer | 120 | 120 |
+| silent before and after | 2,292 | 2,292 |
+
+Named examples, live → built (feed index of 2026-10-21):
+- Widgeon Slough 60045: 50th (Hansard/Shelley/Hope 33% each, 64,682 km²) → 17th, 08MH006 100%, 1,191 km². Pitt side
+  piece 60043 the same; Pitt main 308351 17th in both.
+- Klesilkwa braids 317336 and 317795: 21st from 08PA012 → no-record (110.6 km², the Klesilkwa main's own panel).
+- Chilako braid 60853: 25th from the Nechako → no-record, the same as Chilako main 313115.
+- Mess Creek braid 766463: 69th → no-record. Rushton Slough 60081: 36th → 22nd (North Thompson gauges). Gravel Slough
+  61198: 50th → no-record.
+- True main-river channels unchanged: of the 10,480 side channels that already adopted a same-code reach, 0 change; the
+  197 Fraser-coded (wsc 100) ones among them, Nicomen 59618 included, 0 change.
+
+APP: no app test or fixture pins a changed panel. The dev fixture bundle (app/packages/data/dev/bundle.sqlite) is its own
+2,822-section set and carries none of the example sids; pipeline/tests/test_release.py builds its own synthetic panels.
+
+SHIPS WITH: a bundle rebuild and a release (heavy, via heavy.sh). Tiles and app do not change.

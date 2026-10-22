@@ -194,7 +194,10 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
 
     The parent is found by walking the network out from the channel and taking the largest
     non-side-channel reach within `MAINSTEM_HOPS` steps, and only one LARGER than the
-    channel itself.
+    channel itself — and only one on the channel's OWN river, i.e. carrying the same FWA
+    watershed code. With no such reach in range the channel is not adopted at all: it keeps
+    the panel its own walk gave it (often none, where its own river is silent too). It
+    never borrows the answer of the river its river flows into.
 
     Largest rather than nearest, and searched to the full hop budget rather than stopping at
     the first river found: a braid is a mesh of small unnamed stubs welded to one big river,
@@ -227,7 +230,12 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
                         if o is None:
                             continue
                         nxt.append(other)
-                        if _is_side_channel(o) or _kind(o) != "stream":
+                        # ITS OWN RIVER ONLY (owner 2026-10-22, option A). FWA gives a
+                        # secondary channel its river's watershed code; four hops is enough
+                        # to leave that river and reach the one it flows into, and Widgeon
+                        # Slough (the Pitt's code) adopted the Fraser that way. A reach on
+                        # another code is walked THROUGH, never adopted.
+                        if _is_side_channel(o) or _kind(o) != "stream" or o.wsc != node.wsc:
                             continue
                         a = area_of(o)
                         # BIGGER THAN THE CHANNEL, ALWAYS. A side channel adopts the water
