@@ -96,6 +96,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- 2026-10-21 evening (after the 7:30 PM credit reset): all three interrupted workflows RESUMED (wave B wf_e2463c2d-be5 —
+  only fix:sheets reran; follow-ups wf_3d498e10-baf — lake-values review + water-map impl reran; map-chrome
+  wf_5f5e25c3-271 — all 3 impl reran). MERGED: T23 header + T29 pin bar (+ fix), T34 Gear + T35 Methods/Licence (+ fix;
+  RegsView gone, RegsScreen slots take render functions with the screen's actions), engine polish (2 commits). Strict
+  6728, smoke pass. Pipeline lane cd0a2a59 (rows 32 / licence 7 / pdf_pages) merged; deliver all RUNNING under heavy.sh
+  (log scratchpad deliver-rows32.log); after it: taps.py, pnpm regs-fixture, UPDATE_REGS_FIXTURES harness, strict check.
 - OWNER 2026-10-21 ~16:20 asks, RUNNING wf_5f5e25c3-271 (script map-chrome-menu-back-wf_5f5e25c3-271.js): lanes
   map-rail-spots (long-press -> Add a spot here / Cancel -> existing spot flow; spots + layers buttons on a map side
   rail, Fish Washington style; spots menu), menu-info (top-left hamburger: glossary, about, contact [placeholder
