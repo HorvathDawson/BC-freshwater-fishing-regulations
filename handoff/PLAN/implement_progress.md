@@ -116,7 +116,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   T43 amend D15 (permissions not a ship gate) / 18-line Fish pictures foot. MERGED T39 e4a5bef9+2ebe4055 (palette render gate light/dark/CVD; census tool) and T40 d9cb96fa+cdc1edb8 (a11y,
   200% text, 44x44, style-token gate). Strict 7446, smoke. Owner questions: dark fish cut-outs OK (D4)?; licence paper
   note tint; Keep colour bound 7; inline links stay small (no hitSlop in RN Text)?; licence radiogroups named "Age" /
-  "Residency"?; ⓘ label wording; 2x text wraps tabs. RUNNING T41 wf_ab98736d-d44 (task wfoyl6f56). After T41: P14/P17 Shell slimming, S2 size wins, then D1 (phone).
+  "Residency"?; ⓘ label wording; 2x text wraps tabs. MERGED T41 bf2a0dda..5dcce89d (start link ?regs=&date=&tab=&sheet=; walk 736 PASS / 0 FAIL over 23 states x light+dark;
+  109 side-by-sides: 27 match, 2 deliberate, 4 fixed [possession/hatch/sources sheets], 76 open = mostly R1 spacing).
+  Report handoff/PLAN/app-integration/T41-walk/REPORT.md. Strict 7466, smoke. Owner Qs: R1 Gear/Methods/Licence 15-45%
+  taller than prototype (tighten?); O4 sheet kicker style; report link per tab or once; "DONE" vs "Done". Human: run the
+  reader gate (compare-regs --reader) per tests.md §4. After T41: P14/P17 Shell slimming, S2 size wins, then D1 (phone).
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
