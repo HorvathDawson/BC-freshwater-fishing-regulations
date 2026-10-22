@@ -7865,7 +7865,10 @@
        "splits": [
         "area:SKEENA RIVER ECOLOGICAL RESERVE",
         "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-       ]
+       ],
+       "cut_pick": {
+        "area:SKEENA RIVER ECOLOGICAL RESERVE": "lower"
+       }
       }
      ],
      "steelhead_stamp_waived": {

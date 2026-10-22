@@ -7,7 +7,7 @@ DFO salmon locations store their bindings with them.
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -197,6 +197,18 @@ class Extent(BaseModel):
         "how such a lake is taken back out; it is also the 'except X Lake' a `within` could not say.",
     )
 
+    cut_pick: Dict[str, Union[Literal["lower", "upper"], float]] = Field(
+        default_factory=dict,
+        description="WHICH CROSSING A CUT MEANS, stated by a curator: split id -> 'lower' (the "
+        "candidate nearest the line's mouth), 'upper' (nearest its source) or a route measure (the "
+        "candidate within 25 m of it; none = the extent fails `cut_pick_not_a_candidate`). One split "
+        "id can land at two measures on one line (a lake's outlet and inlet, a reserve the river "
+        "crosses twice); without this the builder takes the candidate nearest the rule's other end "
+        "(RULINGS E16). A curated pick OUTRANKS that rule (owner 2026-10-22): skeena_river_2 starts "
+        "at the Skeena River Ecological Reserve's LOWER mainstem crossing as a stand-in for the "
+        "Exchamsiks confluence. Keys must be this extent's own `splits`.",
+    )
+
     walk_past: bool = Field(
         default=False,
         description="ON A `tributary_excludes` CARVE-OUT ONLY: remove the named water's own "
@@ -270,6 +282,9 @@ class Extent(BaseModel):
                                  f"waters — it takes no {extra}")
         elif self.siblings:
             raise ValueError(f"siblings belongs to op rest, not {self.op.value}")
+        stray = sorted(set(self.cut_pick) - set(self.splits))
+        if stray:
+            raise ValueError(f"cut_pick names {stray}, which are not this extent's splits")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:

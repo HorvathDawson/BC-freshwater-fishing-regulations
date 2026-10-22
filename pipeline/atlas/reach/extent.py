@@ -533,6 +533,35 @@ def _nearest_pair(a, b):
     return _take(a, x), _take(b, y)
 
 
+#: A CURATED PICK OUTRANKS THE GENERAL RULE (owner 2026-10-22, decisions.md "Ambiguous cuts,
+#: refinement"). Where a curated extent says which crossing a cut means (`Extent.cut_pick`: split id
+#: -> "lower" | "upper" | a route measure), that candidate is taken BEFORE
+#: `AMBIGUOUS_CUT_NEAREST_THE_OTHER_END` looks at the cut, and the general rule then sees only the
+#: pinned candidate (the other cut of a `between` still follows the general rule, toward the pinned
+#: one). The known case: skeena_river_2 starts at the Skeena River Ecological Reserve's LOWER
+#: mainstem crossing (LS-1), a stand-in for the Exchamsiks confluence, where the general rule would
+#: take the upper one. The diagnostic records every candidate, the one taken, `toward: "curated"`,
+#: `reason: "curated"` and the curated `pick`. False ignores the field (the mutation pin). Not in
+#: the reach cache's POLICY_VERSION: a rule's extents (`cut_pick` with them) are in its entry key,
+#: and licensing records are placed fresh every run.
+CURATED_CUT_PICK_OUTRANKS = True
+
+#: How far a curated measure may sit from the candidate it names (metres along the line).
+CUT_PICK_TOLERANCE_M = 25.0
+
+
+def _curated_pick(at, pick):
+    """`at` re-pointed at the curated `pick` ("lower", "upper" or a measure), or None when a measure
+    names no candidate (stale: the atlas moved the crossing — refused, never snapped elsewhere)."""
+    every = sorted({at[1], *at[2]})
+    if pick == "lower":
+        return _take(at, every[0])
+    if pick == "upper":
+        return _take(at, every[-1])
+    m = min(every, key=lambda x: (abs(x - float(pick)), x))
+    return _take(at, m) if abs(m - float(pick)) <= CUT_PICK_TOLERANCE_M else None
+
+
 def _majority_side(g, universe: set[str], blk: str, lo: float, hi: float, pieces: set[str],
                    said: dict[str, str], inside: set[str], outside: set[str], nbrs_of,
                    marks: dict | None) -> set[str]:
@@ -1120,19 +1149,44 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         lines intersects two halves, so the side one half judged is not the answer by itself."""
         return {p: dict(m, side="in" if p in final else "out") for p, m in sorted(marks.items())}
 
+    #: split id -> the cut as its CURATED pick left it, every candidate kept (`_pin`)
+    curated: dict = {}
+    picks = dict(ex.get("cut_pick") or {}) if CURATED_CUT_PICK_OUTRANKS else {}
+
     def _note(sid: str, at, toward: str) -> None:
         """Record an ambiguous cut: every candidate, the one used, and the end it was taken toward
-        (`mouth`, `source`, or the split id of the stretch's other end)."""
+        (`mouth`, `source`, or the split id of the stretch's other end) — or `curated`, with the
+        curated `pick`, when a curated record decided it (`CURATED_CUT_PICK_OUTRANKS`)."""
+        at = curated.get(sid, at)
         if at[2]:
-            ambiguous.append({"split_id": sid, "used": round(at[1], 2),
-                              "also_at": [round(x, 2) for x in at[2]],
-                              "candidates": sorted(round(x, 2) for x in (at[1], *at[2])),
-                              "toward": toward})
+            row = {"split_id": sid, "used": round(at[1], 2),
+                   "also_at": [round(x, 2) for x in at[2]],
+                   "candidates": sorted(round(x, 2) for x in (at[1], *at[2])),
+                   "toward": toward}
+            if sid in curated:
+                row.update(toward="curated", reason="curated", pick=picks[sid])
+            ambiguous.append(row)
+
+    def _pin(sid: str, at):
+        """The cut with its curated pick applied: the general rule then sees ONLY the pinned
+        candidate. None = the pick names no candidate (reported, the extent fails)."""
+        if at is None or sid not in picks:
+            return at
+        got = _curated_pick(at, picks[sid])
+        if got is None:
+            _fail("cut_pick_not_a_candidate",
+                  f"{sid}: {picks[sid]} vs {sorted({at[1], *at[2]})}")
+            return None
+        curated[sid] = got
+        return got[0], got[1], []
 
     if op in ("upstream_of", "downstream_of"):
         at = _cut_at(g, _refs(ids[0]), universe)
         if at is None:
             _fail("cut_not_on_this_water", ids[0])
+            return None
+        at = _pin(ids[0], at)
+        if at is None:
             return None
         at = _toward_end(at, upper=(op == "upstream_of"))
         _note(ids[0], at, "source" if op == "upstream_of" else "mouth")
@@ -1146,6 +1200,9 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         b = _cut_at(g, _refs(ids[1]), universe)
         if a is None or b is None:
             _fail("cut_not_on_this_water", ids[0] if a is None else ids[1])
+            return None
+        a, b = _pin(ids[0], a), _pin(ids[1], b)
+        if a is None or b is None:
             return None
         if a[0] == b[0]:
             a, b = _nearest_pair(a, b)

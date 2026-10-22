@@ -196,7 +196,103 @@ def test_between_across_lines_never_takes_a_candidate_above_the_other_cut():
                                          "candidates": [300, 600], "toward": "bridge"}]
 
 
+# ------------------------------------------------------------------ a curated pick outranks it
+
+def _picked(g, op, splits, pick):
+    return X.resolve_extent(_reg(g, splits), g, ["gnis:1"],
+                            {"op": op, "splits": list(splits), "cut_pick": pick})
+
+
+def test_a_curated_pick_outranks_the_nearest_the_other_end_rule():
+    """Owner 2026-10-22 (decisions.md "Ambiguous cuts, refinement"): where a curated record says
+    which crossing a cut means, that pick stands. "Between the lake and the falls" would start at the
+    lake's inlet (6,000); a curator who means the outlet (as skeena_river_2 means the reserve's LOWER
+    mainstem crossing) says `cut_pick: {lake: lower}` and the stretch starts at 2,000. The diagnostic
+    still lists both candidates and the one taken, with `curated` as the reason."""
+    got = _picked(_river(), "between", ("lake", "falls"), {"lake": "lower"})
+    assert got["window"] == ("M", 2000, 8000)
+    assert got["sections"] == ["M:2000", "M:6000"]
+    assert got["ambiguous_cut"] == [{"split_id": "lake", "used": 2000, "also_at": [6000],
+                                     "candidates": [2000, 6000], "toward": "curated",
+                                     "reason": "curated", "pick": "lower"}]
+
+
+def test_a_curated_pick_on_one_cut():
+    got = _picked(_river(), "upstream_of", ("lake",), {"lake": "lower"})
+    assert got["window"] == ("M", 2000, INF)
+    assert got["ambiguous_cut"][0]["toward"] == "curated"
+    got = _picked(_river(), "downstream_of", ("lake",), {"lake": "upper"})
+    assert got["window"] == ("M", 0.0, 6000)
+    assert got["ambiguous_cut"][0]["used"] == 6000
+
+
+def test_a_curated_pick_by_measure_takes_that_candidate():
+    got = _picked(_river(), "between", ("lake", "falls"), {"lake": 2000.4})
+    assert got["window"] == ("M", 2000, 8000)
+    assert got["ambiguous_cut"][0]["pick"] == 2000.4
+
+
+def test_a_curated_measure_that_is_no_candidate_fails_loudly():
+    """A stale measure (the atlas moved the crossing) is refused, never snapped to something else."""
+    reasons: list = []
+    g = _river()
+    got = X.resolve_extent(_reg(g, ("lake", "falls")), g, ["gnis:1"],
+                           {"op": "between", "splits": ["lake", "falls"],
+                            "cut_pick": {"lake": 4000}}, reasons=reasons)
+    assert got is None
+    assert reasons and reasons[0][0] == "cut_pick_not_a_candidate"
+
+
+def test_a_curated_pick_leaves_the_other_cut_to_the_general_rule():
+    """Marble-like: both cuts are lakes. Pinning `alice` to its LOWER crossing leaves `vic` to the
+    general rule, which now takes the candidate nearest the pinned one (vic's outlet, 5,000)."""
+    a_lo, a_hi, b_lo, b_hi = _b("alice", 1000), _b("alice", 3000), _b("vic", 5000), _b("vic", 8000)
+    g = _graph([
+        _s("M:0", "M", 0, 1000, upper=a_lo),
+        _s("M:1000", "M", 1000, 3000, lower=a_lo, upper=a_hi),
+        _s("M:3000", "M", 3000, 5000, lower=a_hi, upper=b_lo),
+        _s("M:5000", "M", 5000, 8000, lower=b_lo, upper=b_hi),
+        _s("M:8000", "M", 8000, 9000, lower=b_hi),
+    ])
+    got = _picked(g, "between", ("alice", "vic"), {"alice": "lower"})
+    assert got["window"] == ("M", 1000, 5000)
+    used = {a["split_id"]: (a["used"], a["toward"]) for a in got["ambiguous_cut"]}
+    assert used == {"alice": (1000, "curated"), "vic": (5000, "alice")}
+
+
+def test_a_curated_pick_across_two_lines():
+    """"From the bridge down to the lake" would end at the lake's inlet (600); a curated `lower`
+    runs it on to the outlet (300)."""
+    got = _picked(_two_lines(), "between", ("bridge", "lake"), {"lake": "lower"})
+    assert "200:300" in got["sections"]
+    assert got["ambiguous_cut"] == [{"split_id": "lake", "used": 300, "also_at": [600],
+                                     "candidates": [300, 600], "toward": "curated",
+                                     "reason": "curated", "pick": "lower"}]
+
+
+def test_the_extent_model_reads_cut_pick():
+    from pipeline.regs.parsing.entry_models import Extent
+    ok = Extent.model_validate({"op": "between", "splits": ["a", "b"],
+                                "cut_pick": {"a": "lower", "b": 12.5}})
+    assert ok.cut_pick == {"a": "lower", "b": 12.5}
+    for bad in ({"c": "lower"}, {"a": "middle"}):
+        with pytest.raises(ValueError):
+            Extent.model_validate({"op": "between", "splits": ["a", "b"], "cut_pick": bad})
+
+
 # ------------------------------------------------------------------------- mutation pins
+
+def test_the_curated_pick_is_what_keeps_the_crossing(monkeypatch):
+    """Mutation pin: ignore the curated field and the general rule takes the inlet again. If this
+    passes with the flag off, the curated-pick tests above prove nothing."""
+    monkeypatch.setattr(X, "CURATED_CUT_PICK_OUTRANKS", False)
+    got = _picked(_river(), "between", ("lake", "falls"), {"lake": "lower"})
+    assert got["window"] == ("M", 6000, 8000)
+    assert got["ambiguous_cut"][0]["toward"] == "falls"
+    got = _picked(_two_lines(), "between", ("bridge", "lake"), {"lake": "lower"})
+    assert "200:300" not in got["sections"]
+
+
 
 def test_the_ruling_is_what_moves_the_cut(monkeypatch):
     """Mutation pin: with the policy off, the old nearest-the-mouth pick comes back and the stretch
@@ -284,3 +380,37 @@ def test_cayoosh_below_the_falls_starts_at_the_lower_crossing(real):
 
 MOHUN = "r1:mohun_creek@1-10"
 CAYOOSH = "r3:cayoosh_creek@3-16"
+
+
+@pytest.mark.needs_atlas
+@pytest.mark.slow
+def test_skeena_river_2_keeps_the_reserves_lower_mainstem_crossing(real):
+    """Owner 2026-10-22: skeena_river_2 ("from Exchamsiks River to 1.5 km upstream of Kitsumkalum",
+    Class II) deliberately starts at the Skeena River Ecological Reserve's LOWER mainstem crossing
+    (~63,480 m) as a stand-in for the Exchamsiks confluence (LS-1). The general rule would take the
+    upper crossing (66,554) and drop licensing sections; the curated `cut_pick` keeps the lower one.
+    Read from the live curated data."""
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.licensing import as_rule
+    g, reg, corpus = real
+    e, rec = next((e, r) for e in corpus.values() for r in e.get("licensing") or []
+                  if r.get("id") == SKEENA_2)
+    _b, diags = build_reach(e, as_rule(rec, rec["extents"]), reg, g, regional=False)
+    amb = {d.payload["split_id"]: d.payload for d in diags if d.kind == "ambiguous_cut"}
+    got = amb[SKEENA_RESERVE]
+    assert round(got["used"]) == 63480, got
+    assert any(round(x) == 66554 for x in got["candidates"]), got
+    assert got["toward"] == "curated" and got["reason"] == "curated"
+
+
+def test_skeena_river_2_states_its_crossing_in_the_curated_data():
+    """No atlas: the record carries the structured pick, never only the prose of its review_reason."""
+    import json
+    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue/region-6.json"
+    data = json.loads(path.read_text())
+    rec = next(r for e in data["entries"] for r in e.get("licensing") or [] if r["id"] == SKEENA_2)
+    assert rec["extents"][0]["cut_pick"] == {SKEENA_RESERVE: "lower"}
+
+
+SKEENA_2 = "skeena_river_2"
+SKEENA_RESERVE = "area:SKEENA RIVER ECOLOGICAL RESERVE"

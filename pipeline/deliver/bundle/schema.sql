@@ -489,7 +489,8 @@ CREATE TABLE section_straddle (sid      INTEGER NOT NULL,
 -- route measures on one blue line — a lake the river runs through is met at its outlet and its inlet
 -- ("Harrison River … Harrison Lake": km 20 and km 84). The reach builder takes the candidate nearest
 -- the rule's OTHER end (`extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`: `toward` is 'mouth' for
--- downstream_of, 'source' for upstream_of, or the split id at the stretch's other end for between),
+-- downstream_of, 'source' for upstream_of, or the split id at the stretch's other end for between;
+-- 'curated' when a curated `cut_pick` on the extent named the crossing, which outranks that rule),
 -- so the stretch stays on the river and never spans the lake. Deterministic; listed here — read from
 -- the run's `rule_diagnostic.jsonl` — so a reader can say where the choice was made. `candidates` is
 -- a JSON array of every measure (metres along the line), `used` the one taken. `extent` is the
