@@ -32,7 +32,10 @@ K. T50 Android emulator parity (after cleanup). D1 phone testing needs the owner
 L. CURATION REVIEW (owner 2026-10-22: make it usable for a person to review every curated regulation, and sound in
    how it integrates, BEFORE anyone puts effort in). RUNNING wf_168b1ba9-6b5 (read-only audit → 3 designs → critique →
    handoff/PLAN/curation-review/PLAN.md). Then: show the owner the plan; build the agreed tool changes as lanes.
-POSTPONED by owner: T55 remaining slough/canal polygons; braids. NEVER: parser runs (human-only), merging to main.
+M. T55 REOPENED (owner 2026-10-22): wf_937ae915-731 finds lake/wetland polygons that are by the book streams (by name,
+   shape/position, regs) → scratchpad sloughs/candidates.json → publish an ARTIFACT for the owner to review; then
+   make the confirmed ones stream items (registry) + reach + deliver. BRAIDS reopened as a SEPARATE track: the same
+   workflow writes sloughs/braids-assessment.md (build-step fix?) → plan → owner. NEVER: parser runs (human-only), merging to main.
 
 ## CURRENT STATE (2026-10-22 ~15:20) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections (NEVER main). REFINEMENT PASS MERGED (map-style 48c4fa3c..6b5da3ce, legend+scrim
