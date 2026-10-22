@@ -15,6 +15,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - ALSO RUNNING (read-only) wf_bdacabdc-f09 (script workflows/scripts/audit-cleanup-pipeline-icons-wf_bdacabdc-f09.js):
   app cleanup finder, pipeline data-flow audit, docs/tickets audit, bottom-bar icon directions; each verified; output
   scratchpad audit/PLAN.md + icons/compare.html (copy into handoff/PLAN/audit/ when done; show the owner).
+- OWNER 2026-10-22: T47 = option C (decisions.md). After the T47 lane merges, run a short follow-up that rebases palette
+  D on C (closed red from C, grey boundaries, more distinct), reusing that lane's scripts/gate; show the owner the render.
 - THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
   by file); (2) Fable-model consistency auditors — every route into a screen reaches the SAME screen, no duplicate menus,
   data and UI agree — then fix what they find; (3) the MASS CLEANUP (owner 2026-10-22 asked for it after the last

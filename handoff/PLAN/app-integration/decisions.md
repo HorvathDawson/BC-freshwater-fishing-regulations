@@ -171,3 +171,10 @@ sheet's Done word, improving on the prototype where there is a better way.
 Process: add strict consistency auditors (Fable model) that check data and UI agree and that every route into a screen
 reaches the SAME screen (e.g. a water's Regulations/Conditions opened from the Map tab vs the Conditions map), with no
 duplicate menus; then finish the remaining implementation and do the mass cleanup.
+
+## OWNER 2026-10-22 — T47: option C
+"lets use option c" (status-colour candidate C: the clearer red for closed). Combined with the earlier answer: grey region
+and unit boundaries, and the status colours pushed MORE apart than the candidates. So: start from C (its closed red),
+keep the neutral boundaries, maximise the minimum ΔE between status pairs, apply, gate. If C's closed moves the regs
+prototype's --closed token, follow the port sync rule. (The finishing round's T47 lane started from B before this
+answer; a follow-up rebases its palette on C, reusing its scripts, renders and gate.)
