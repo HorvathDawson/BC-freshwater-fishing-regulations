@@ -1,4 +1,11 @@
 # T43 — Rule book links on native, fish credits, the image-permissions ship gate
+
+> **Owner 2026-10-20 (IMPLEMENT-HANDOFF §6 item 1): the owner HAS permission for every image — not a ship gate; the
+> permissions part is dropped.** Built (2026-10-22): goals 1 and 2 only. No `fish_credits.tsv`, no `check-fish-credits`,
+> no `--ship`; manifest `_about` already records the permission. As built: `openBook.ts` (the one open, every caller),
+> `RuleBookLink` (also drawn by LineText's book runs; label = core `bookText`), `FISH_CREDIT_OF` + `FISH_CREDITS` emitted,
+> `creditsFor(page, fish?, creditOf?)` (file → line map rather than the line list), the regs foot "Fish pictures" (this
+> page's lines), and the whole list once on the menu's Data sources page.
 Phase 4 · Depends on T20 (fish manifest → `fish.generated.ts` + image map), T25/T34 (`RuleBookLink`), T36/T37 (sheet
 `book`/`pages` blocks, `sp:` image credits), T38 (adipose drawings in the manifest) · Blocks release · Decisions **D6**
 (a: open the PDF URL plainly on native), **D15** (a: stand-ins ship captioned, behind the permission gate) · Size ½ day

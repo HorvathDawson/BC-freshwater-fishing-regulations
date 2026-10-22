@@ -20,6 +20,10 @@ export const WORDS = Object.freeze({
   BOOK: "Rule book",
   PAGE: "p.",
   LINK_OUT: "↗",
+  /** (T43) what a screen reader says for a linked book run (the link names the PRINTED page; it opens the PDF) */
+  BOOK_A11Y: (printed: number) => `Rule book page ${printed}, opens the PDF`,
+  /** (T43) the regs page foot's credit block: the pictures this page shows (Credits heads it in capitals) */
+  FISH_PICTURES: "Fish pictures",
   TERMS_MANY: "What these words mean",   // plain() of a term run with 2+ ids
   TERM_ONE: "ⓘ",
   // species words (names.ts: page v36 join, lcNames, lc, writtenName)

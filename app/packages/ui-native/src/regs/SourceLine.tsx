@@ -24,7 +24,7 @@ export function SourceLine({ src, palette, actions, pages = true, spaced = false
                  hitSlop={{ top: 12, bottom: 12, left: 4, right: 4 }}>
         <Text style={[TYPE.metaBold, { color: palette.accent }]}>{src.who}</Text>
       </Pressable>
-      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} palette={palette} actions={actions} />)}
+      {pages && (src.pages ?? []).map((p) => <RuleBookLink key={p.printed} printed={p.printed} pdf={p.pdf} palette={palette} onBook={actions.onBook} />)}
     </View>
   );
 }

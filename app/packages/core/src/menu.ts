@@ -16,6 +16,8 @@
  *                   without the user pressing send, and nothing is sent in the background
  */
 import { monthAbbr } from "./flow";
+import { FISH_CREDITS } from "./regs/fish.generated";
+import { WORDS } from "./regs/words";
 import type { GlossaryTerm } from "./regs/inputs";
 import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
 
@@ -271,7 +273,12 @@ export interface SourceDateRowVM { readonly k: SourceDateKey; readonly name: str
 const SOURCE_ORDER: readonly SourceDateKey[] =
   ["synopsis", "inseason", "dfo", "fwa", "tiles", "basemap", "hydat", "feed", "weather", "imagery"];
 
-export function sourcesVM(s: SourcesInput): { intro: string; rows: readonly SourceDateRowVM[]; footnote: string } {
+/** (T43) the app's one list of fish picture credits: every picture it can show (the manifest's lines, emitted). */
+export interface SourcesPicturesVM { readonly label: string; readonly lines: readonly string[] }
+
+export function sourcesVM(s: SourcesInput): {
+  intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM;
+} {
   const w = MENU_WORDS.sources;
   const dated = (f: SourceDate | undefined) => {
     const d = isoDayWords(f?.date);
@@ -304,6 +311,8 @@ export function sourcesVM(s: SourcesInput): { intro: string; rows: readonly Sour
       when: when(k),
     })),
     footnote: w.checkFirst,
+    // (T43) the regs page's foot lists only its own pictures' lines; this is the whole list, once
+    pictures: { label: WORDS.FISH_PICTURES, lines: FISH_CREDITS },
   };
 }
 

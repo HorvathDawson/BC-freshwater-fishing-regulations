@@ -18,8 +18,8 @@
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
 import { useContext, useMemo, useState } from "react";
-import { Linking, Platform, ScrollView, Text, View } from "react-native";
-import { bookUrl, dayRange, WORDS, type RegsTarget } from "@app/core";
+import { ScrollView, Text, View } from "react-native";
+import { dayRange, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
@@ -33,6 +33,7 @@ import { RegsScreen, TabPending } from "./regs/RegsScreen";
 import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
+import { openBook } from "./regs/openBook";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
@@ -129,7 +130,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
-                    onBook: (pdf) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); },   // D6 a: native opens the bare PDF
+                    onBook: (pdf) => { void openBook(pdf); },   // D6 a: native opens the bare PDF (T43 openBook)
                   }}
                   // Gear / Methods / Licence (T34/T35); a part with no such section says it is not in the app yet —
                   // (T42) except outside B.C., where the page has none (no key: the Keep tab's foot line is the page)

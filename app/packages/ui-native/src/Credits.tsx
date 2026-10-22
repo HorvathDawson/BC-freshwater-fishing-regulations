@@ -17,18 +17,21 @@ import { Text, View } from "react-native";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
-export function Credits({ palette, lines, label = "Sources" }: {
+export function Credits({ palette, lines, label = "Sources", ink = palette.faint, testID }: {
   palette: Palette; lines?: readonly string[]; label?: string;
+  /** the text colour (default faint). The regs page passes `sub`: faint is banned as text there (decisions D3, T39) */
+  ink?: string;
+  testID?: string;
 }) {
   if (!lines || lines.length === 0) return null;
   // No rule of its own: it sits inside the Conditions fold (P16), which draws the line.
   return (
-    <View style={{ gap: SPACE.s1 }}>
-      <Text style={{ ...TYPE.kicker, color: palette.faint }}>{label.toUpperCase()}</Text>
+    <View style={{ gap: SPACE.s1 }} testID={testID}>
+      <Text style={{ ...TYPE.kicker, color: ink }}>{label.toUpperCase()}</Text>
       {lines.map((l) => (
         // Meta-size and faint: this is a legal notice, not something a reader came for. It
         // has to be present and legible, and it must not compete with the answer above it.
-        <Text key={l} style={{ ...TYPE.meta, color: palette.faint }}>
+        <Text key={l} style={{ ...TYPE.meta, color: ink }}>
           {l}
         </Text>
       ))}

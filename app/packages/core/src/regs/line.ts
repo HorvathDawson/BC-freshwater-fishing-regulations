@@ -36,12 +36,19 @@ function runText(r: Run): string {
   switch (r.t) {
     case "text": case "num": case "link": return r.s;
     case "term": return r.ids.length >= 2 ? WORDS.TERMS_MANY : WORDS.TERM_ONE;
-    case "book": {
-      if (r.pdf === null) return `${WORDS.PAGE}${r.printed}`;
-      const link = `${WORDS.PAGE}${r.printed} ${WORDS.LINK_OUT}`;
-      return r.bare ? link : `${WORDS.BOOK} ${link}`;
-    }
+    case "book": return bookText(r);
   }
+}
+
+/**
+ * (T43) A book run's label — THE one spelling (the golden's, RuleBookLink's, LineText's): "Rule book p.21 ↗"; bare
+ * "p.21 ↗" (after a "Rule book" label); a page the PDF map lacks (pdf null) "p.21", unlinked. The printed page is the
+ * data's; the PDF page is never computed from it (the repo synopsis is not byte-identical to the Province's).
+ */
+export function bookText(r: { readonly printed: number; readonly pdf: number | null; readonly bare?: boolean }): string {
+  if (r.pdf === null) return `${WORDS.PAGE}${r.printed}`;
+  const link = `${WORDS.PAGE}${r.printed} ${WORDS.LINK_OUT}`;
+  return r.bare ? link : `${WORDS.BOOK} ${link}`;
 }
 
 /** The golden comparison form of one Line: its runs concatenated AS IS (no space is invented), then collapse + trim. */

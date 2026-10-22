@@ -7,6 +7,7 @@ import {
   aboutVM, agoWords, contactVM, diagnosticRows, glossaryRows, isoDayWords, mailtoUrl, menuVM, regsReportWhere,
   reportMessage, sourcesVM, whereLines, type Diagnostics,
 } from "./menu";
+import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
 
@@ -142,6 +143,15 @@ describe("data sources & dates", () => {
     ]);
     expect(vm.footnote).toBe("The Province's in-season changes and Fisheries and Oceans Canada's notices can change a "
       + "regulation at short notice. Check them before you fish.");
+  });
+
+  it("(T43) credits every fish picture the app can show, once: the manifest's own lines (FISH_CREDITS), under \"Fish pictures\"", () => {
+    const vm = sourcesVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now });
+    expect(vm.pictures.label).toBe("Fish pictures");
+    expect(vm.pictures.lines).toBe(FISH_CREDITS);
+    expect([vm.pictures.lines.length, vm.pictures.lines[0], vm.pictures.lines.at(-1)]).toEqual([39,
+      "Arctic grayling — The Fishes of Alaska (1907), A. Hoen & Co. (Commons)",
+      "Yellow perch — Freshwater Fisheries Society of BC (GoFishBC)"]);
   });
 
   it("says how long the edition is in force when the release dates no printing", () => {

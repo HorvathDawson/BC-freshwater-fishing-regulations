@@ -19,7 +19,9 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ScrollView, Text, View } from "react-native";
-import { tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { Credits } from "../Credits";
+import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
@@ -108,6 +110,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const onAction = action?.kind === "map" ? onMap && (() => onMap())
     : action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
+  // (T43) the pictures this page can show, credited at its foot (the app's whole list is the menu's Data sources page)
+  const credits = useMemo(() => creditsFor(page), [page]);
+
   const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onAction={onAction} onTab={toTab}
                            side={layout === "desktop"} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
@@ -130,6 +135,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
+      {credits.length > 0 && (
+        <WaterInset style={{ paddingTop: 20 }} testID="regs-fish-credits">
+          <Credits palette={palette} ink={palette.sub} lines={credits} label={WORDS.FISH_PICTURES} />
+        </WaterInset>
+      )}
       {footer}
     </View>
   );

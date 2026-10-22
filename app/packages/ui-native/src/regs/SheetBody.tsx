@@ -9,12 +9,13 @@
  * the global click handler's `data-open` / `data-rule` / `data-gl` / `data-fish` / `data-howtell` (here each a run or a
  * block carrying its `SheetKey`).
  */
-import { Linking, Text, View } from "react-native";
-import { bookUrl, type SheetBlock, type SheetKey, type SheetVM, type Tab } from "@app/core";
+import { Text, View, type ImageSourcePropType } from "react-native";
+import { type SheetBlock, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
 import { LineText, type KeepActions } from "./LineText";
+import { openBook } from "./openBook";
 import type { AdiposeImages, FishImages } from "./types";
 import { Fold } from "./sheet/Fold";
 import { Example, Head, List, Para, Quote } from "./sheet/Para";
@@ -36,11 +37,9 @@ export interface SheetBodyProps {
   onBook?: (pdf: number) => void;
 }
 
-const openBook = (pdf: number) => { void Linking.openURL(bookUrl(pdf)); };
-
 /** The actions a Line's runs take inside a sheet. */
 const actionsOf = (p: SheetBodyProps): KeepActions =>
-  ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? openBook });
+  ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf) => { void openBook(pdf); }) });
 
 export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);

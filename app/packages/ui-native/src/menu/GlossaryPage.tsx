@@ -7,16 +7,15 @@
  * names the term and its ‹ returns to the list.
  */
 import { useMemo, useState } from "react";
-import { FlatList, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { bookUrl, glossaryRows, glossBlocks, MENU_WORDS, type SheetKey } from "@app/core";
+import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { glossaryRows, glossBlocks, MENU_WORDS, type SheetKey } from "@app/core";
 import { useBackLayer, type Async, type Glossary } from "@app/ui";
 import { FishSpinner } from "../FishSpinner";
 import { SheetBlockView } from "../regs/SheetBody";
+import { openBook } from "../regs/openBook";
 import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";
 
-/** a term's "Rule book p.N ↗": as the regs page opens it (D6 a: native opens the bare PDF, the web at its page) */
-const openBook = (pdf: number) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); };
 
 export function GlossaryPage({ glossary, term, onTerm, onCloseTerm, palette }: {
   glossary: Async<Glossary | null>; term: string | null; onTerm: (id: string) => void; onCloseTerm: () => void;
@@ -45,7 +44,7 @@ export function GlossaryPage({ glossary, term, onTerm, onCloseTerm, palette }: {
         <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s3 }}>
           {glossBlocks({ statics: { pdfPages: g.pdfPages } }, open).map((b, i) => (
             // a term named inside another opens in its place, as a gl: sheet does; nothing else here opens a sheet
-            <SheetBlockView key={i} b={b} palette={palette} onBook={openBook}
+            <SheetBlockView key={i} b={b} palette={palette} onBook={(pdf) => { void openBook(pdf); }}
                             onOpen={(k: SheetKey) => { if (/^gl:[a-z0-9_]+$/.test(k)) onTerm(k.slice(3)); }} />
           ))}
         </ScrollView>

@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
-import { MENU_WORDS, regsReportWhere, type GlossaryTerm, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { BackLayerContext, ERROR_LOG, useBack, useMenu, useRoute, type Back, type BackLayers, type MenuControls }
   from "@app/ui";
@@ -219,6 +219,9 @@ describe("a page", () => {
         + "The federal salmon limits, openings and closures for B.C.'s fresh water, by regionDate not recorded in this release",
       "Live gauge readingsEnvironment and Climate Change Canada, and the BC River Forecast Centre's forecastsNot checked yet",
     ]);
+    // (T43) the app's one list of fish picture credits, every line whole, after the sources
+    const pics = screen.getByTestId("sources-fish-credits");
+    expect([...pics.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["FISH PICTURES", ...FISH_CREDITS]);
   });
 });
 
@@ -373,7 +376,7 @@ describe("the Regulations screen's four tabs", () => {
                     licence={<Text>licence section</Text>} />
       </MenuContext.Provider>);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "report-link-keep", "regs-gear", "regs-methods", "regs-licence"]);
+      .toEqual(["keep-tab", "report-link-keep", "regs-gear", "regs-methods", "regs-licence", "regs-fish-credits"]);   // (T43) the foot credits last
     for (const t of ["gear", "methods", "licence"] as const)
       expect(screen.getByTestId(`regs-${t}`).lastElementChild!.getAttribute("data-testid")).toBe(`report-link-${t}`);
     for (const t of ["keep", "gear", "methods", "licence"] as const)

@@ -27,6 +27,25 @@ function mount(p: Partial<RegsScreenProps> = {}, onBack?: () => void) {
                 </WaterFrame>);
 }
 const scrollEl = () => screen.getByTestId("regs-scroll");
+/** (T43) the frozen page's own pictures (Keep groups + Other fish thumbs; a fixture has no sheets to open), creditsFor's lines */
+const VEDDER_KEEP_CREDITS: readonly string[] = [
+  "Black crappie — Duane Raver / USFWS (fws.gov)",
+  "Brook trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Brown trout — Duane Raver / USFWS (fws.gov)",
+  "Bull trout — Joel Sartore / National Geographic (Commons)",
+  "Coastal cutthroat trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Dolly Varden — WDFW (eRegulations WA)",
+  "Kokanee · spawning — WDFW (sockeye male) (eRegulations WA)",
+  "Kokanee — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Lake trout — Sherman F. Denton (Commons)",
+  "Lake whitefish — Sherman F. Denton (Commons)",
+  "Largemouth bass — Duane Raver / USFWS (Commons)",
+  "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Steelhead · ocean — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Steelhead · spawning — WDFW (eRegulations WA)",
+  "Westslope cutthroat trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "White sturgeon — Joseph Huët (Paris Museum) (Commons)",
+];
 
 describe("<RegsScreen>", () => {
   it("header-one-shape: the header is not in the scroll, and a scroll leaves its words and test ids as they were", () => {
@@ -50,12 +69,22 @@ describe("<RegsScreen>", () => {
   it("licence-last: Keep, Gear, Methods, Licence, then the footer, in the one scroll; absent sections are not drawn", () => {
     mount({ footer: <Text testID="foot">foot</Text> });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "foot"]);
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-fish-credits", "foot"]);
     cleanup();
     mount({ gear: undefined, methods: undefined, licence: undefined });
-    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab"]);
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-fish-credits"]);
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
       .toEqual(["What you can keep", "Gear", "Methods", "Licence"]);
+  });
+
+  it("(T43) the foot credits the pictures THIS page shows, after Licence: \"FISH PICTURES\", then each line whole, not the app's 39", () => {
+    mount();
+    const foot = screen.getByTestId("regs-fish-credits");
+    expect([...foot.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["FISH PICTURES", ...VEDDER_KEEP_CREDITS]);
+    // a page that pictures nothing has no credits block at all (no empty heading)
+    cleanup();
+    mount({ page: { ...page, keep: { ...page.keep, order: [], groups: [], plainRows: [], otherFish: null, caveats: [] } } as RegsPage });
+    expect(screen.queryByTestId("regs-fish-credits")).toBeNull();
   });
 
   it("no part strip: nothing between the header and the Keep tab's year strip", () => {

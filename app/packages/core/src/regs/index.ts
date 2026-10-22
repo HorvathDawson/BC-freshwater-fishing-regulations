@@ -42,3 +42,4 @@ export * from "./bait";
 export * from "./methods";
 export * from "./licence";
 export * from "./fish.generated";
+export * from "./credits";

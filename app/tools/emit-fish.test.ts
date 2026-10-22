@@ -12,7 +12,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { emit, fishTips, CORE_OUT, MOBILE_OUT, MANIFEST, TIPS_SOURCE } from "./emit-fish.mjs";
-import { FISH, FISH_MANIFEST_SHA256, FISH_TIPS } from "../packages/core/src/regs/fish.generated";
+import { FISH, FISH_CREDIT_OF, FISH_CREDITS, FISH_MANIFEST_SHA256, FISH_TIPS } from "../packages/core/src/regs/fish.generated";
 
 const app = fileURLToPath(new URL("..", import.meta.url));
 const assets = `${app}apps/mobile/assets/fish/`;
@@ -62,6 +62,35 @@ describe("emit-fish: the core manifest", () => {
 
   it("stamps the manifest's sha256", () => {
     expect(FISH_MANIFEST_SHA256).toBe(sha);
+  });
+});
+
+describe("emit-fish: the credit lines (T43 FISH_CREDITS / FISH_CREDIT_OF)", () => {
+  it("one line per picture, keyed by file — every manifest image credited, none invented", () => {
+    expect(Object.keys(FISH_CREDIT_OF).sort()).toEqual(manifest.images.map((i: { file: string }) => i.file).sort());
+    expect(Object.keys(FISH_CREDIT_OF).length).toBe(39);
+  });
+  it("words a line \"<caption>[ · <phase>] — <credit> (<source>)\" (the pictured fish, a stand-in by its own caption)", () => {
+    expect([FISH_CREDIT_OF["rainbow-trout.webp"], FISH_CREDIT_OF["steelhead-ocean-phase.webp"],
+      FISH_CREDIT_OF["steelhead-spawning-phase.webp"], FISH_CREDIT_OF["longnose-dace-nooksack-dace-stand-in.webp"]]).toEqual([
+      "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+      "Steelhead · ocean — Freshwater Fisheries Society of BC (GoFishBC)",
+      "Steelhead · spawning — WDFW (eRegulations WA)",
+      "Longnose dace — Jordan & Evermann (1900) (Commons)"]);
+  });
+  it("FISH_CREDITS is every line, sorted and unique", () => {
+    const all = [...new Set(Object.values(FISH_CREDIT_OF))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    expect(FISH_CREDITS).toEqual(all);
+    expect(FISH_CREDITS.length).toBe(39);
+    expect(FISH_CREDITS.slice(0, 3)).toEqual(["Arctic grayling — The Fishes of Alaska (1907), A. Hoen & Co. (Commons)",
+      "Black crappie — Duane Raver / USFWS (fws.gov)", "Brook trout — Freshwater Fisheries Society of BC (GoFishBC)"]);
+  });
+  it("de-duplicates two pictures that credit alike (mutation: a copied image adds no line)", () => {
+    const twin = { ...manifest, images: [...manifest.images, { ...manifest.images[0], file: "twin.webp" }] };
+    const { core } = emit(twin, sha, tips);
+    const block = core.slice(core.indexOf("export const FISH_CREDITS"));
+    expect(block.match(/"Arctic grayling — /g)?.length).toBe(1);
+    expect(core).toContain('  "twin.webp": "Arctic grayling — The Fishes of Alaska (1907), A. Hoen & Co. (Commons)",\n');
   });
 });
 

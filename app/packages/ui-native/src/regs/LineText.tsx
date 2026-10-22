@@ -7,6 +7,7 @@ import { Text } from "react-native";
 import { WORDS, type Line, type Run, type SheetKey, type Day, type Tab } from "@app/core";
 import { TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
+import { RuleBookLink } from "./RuleBookLink";
 
 /** What a tap on a Keep link does. Sheets (T36/T37) are not built yet: `onSheet` may be a no-op. */
 export interface KeepActions {
@@ -16,10 +17,6 @@ export interface KeepActions {
   onBook(pdf: number): void;
 }
 export const NO_ACTIONS: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
-
-/** A book run's label ("Rule book p.8 ↗"; bare "p.8 ↗"; no pdf "p.8") — the one spelling, RuleBookLink's too. */
-export const bookWords = (r: { readonly printed: number; readonly pdf: number | null; readonly bare?: boolean }): string =>
-  r.pdf === null ? `${WORDS.PAGE}${r.printed}` : `${r.bare ? "" : WORDS.BOOK + " "}${WORDS.PAGE}${r.printed} ${WORDS.LINK_OUT}`;
 
 /** A term run's ⓘ (one id) or "What these words mean" (two or more), opening `gl:<ids>` — nested inside a line's Text. */
 export function TermText({ ids, palette, actions }: { ids: readonly string[]; palette: Palette; actions: Pick<KeepActions, "onSheet"> }) {
@@ -48,12 +45,9 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
               : <Text key={i} style={{ fontFamily: num.fontFamily, fontSize: num.fontSize, color: numColor ?? color }}>{r.s}</Text>;
           case "term":
             return <TermText key={i} ids={r.ids} palette={palette} actions={actions} />;
-          case "book":
-            return (
-              <Text key={i} accessibilityRole={r.pdf === null ? undefined : "link"} onPress={r.pdf === null ? undefined : () => actions.onBook(r.pdf!)}
-                    style={[linkStyle ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize }, { color: palette.accent }]}>
-                {bookWords(r)}
-              </Text>);
+          case "book":   // (T43) the one book link, nested in this line's Text
+            return <RuleBookLink key={i} printed={r.printed} pdf={r.pdf} bare={r.bare} palette={palette} onBook={actions.onBook}
+                                 style={linkStyle ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize }} />;
           case "link": {
             const o = r.open;
             const go = () => (typeof o === "string" ? actions.onSheet(o) : "day" in o ? actions.onDay(o.day) : actions.onTab(o.tab));

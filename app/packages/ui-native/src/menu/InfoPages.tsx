@@ -3,8 +3,9 @@
  * nothing; a link only says where it goes.
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { MENU_WORDS, type AboutVM, type ContactVM, type SourceDateRowVM } from "@app/core";
+import { MENU_WORDS, type AboutVM, type ContactVM, type SourceDateRowVM, type SourcesPicturesVM } from "@app/core";
 import { Button } from "../Button";
+import { Credits } from "../Credits";
 import { Choice } from "../Sheet";
 import { TYPE } from "../type";
 import { SPACE, type Palette, type ThemeName } from "../theme";
@@ -39,7 +40,7 @@ export function AboutPage({ vm, palette }: { vm: AboutVM; palette: Palette }) {
 }
 
 export function SourcesPage({ vm, palette }: {
-  vm: { intro: string; rows: readonly SourceDateRowVM[]; footnote: string }; palette: Palette;
+  vm: { intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM }; palette: Palette;
 }) {
   return (
     <>
@@ -55,6 +56,8 @@ export function SourcesPage({ vm, palette }: {
         ))}
       </View>
       <Text style={{ ...TYPE.small, color: palette.ink }}>{vm.footnote}</Text>
+      {/* (T43) every fish picture the app can show, credited once (the regs page's foot lists its own) */}
+      <Credits palette={palette} ink={palette.sub} lines={vm.pictures.lines} label={vm.pictures.label} testID="sources-fish-credits" />
     </>
   );
 }
