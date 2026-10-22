@@ -10,7 +10,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { horizonChips, type Horizon } from "@app/ui";
+import { horizonChips, type Horizon, type MenuControls } from "@app/ui";
+import { MenuContext } from "./menu/MenuButton";
 import { LIGHT } from "./theme";
 
 /*
@@ -90,6 +91,20 @@ describe("<MapScreen> corner", () => {
     expect(pill.textContent).toBe("‹ Search");
     pill.click();
     expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives the horizons their own row under the menu, so the hamburger does not push +10d under the zoom", () => {
+    // REVIEW 2026-10-21: in one row the hamburger moved the chips ~45px right; at 390 wide +10d ran under MapLibre's
+    // zoom control (top-right) and past the edge at 360. Under the menu, the chips start at the corner's left edge as
+    // they did before the menu came, and the row they used to fit in is theirs alone.
+    const menu = { open: () => {} } as unknown as MenuControls;
+    render(<MenuContext.Provider value={menu}><MapScreen {...BASE} horizons={horizons(0)} /></MenuContext.Provider>);
+    const row = screen.getByTestId("map-corner-row");
+    const chips = screen.getByTestId("map-horizons");
+    expect(row.contains(screen.getByTestId("menu-button"))).toBe(true);
+    expect(row.contains(chips)).toBe(false);
+    expect(getComputedStyle(row.parentElement as Element).flexDirection).toBe("column");
+    expect(row.parentElement?.contains(chips)).toBe(true);
   });
 
   it("offers no layers button when the caller gives no handler", () => {

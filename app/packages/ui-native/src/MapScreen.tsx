@@ -94,29 +94,17 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         so the map and the panel cannot disagree. (The corner held a date pill before, for
         seasonal regulations; it went with them.)
       */}
-      {/* THE TOP-LEFT ROW: the menu (owner 2026-10-21, on every browse map), then the horizons or the way back to search */}
-      <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 6,
-                     alignItems: "center" }} pointerEvents="box-none">
+      {/*
+        THE TOP-LEFT CORNER, a column: the menu row (the hamburger, owner 2026-10-21, on every browse map, and the way
+        back to search beside it), then the horizons on a row of their own. Not one row: the hamburger in front of the
+        chips pushed +10d under MapLibre's zoom (top-right) at 390 wide and off a 360 screen (review 2026-10-21). Under
+        it, the chips start at the corner's left edge, where they fitted before the menu came.
+      */}
+      <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "column", gap: 8,
+                     alignItems: "flex-start" }} pointerEvents="box-none">
+      <View testID="map-corner-row" style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
+            pointerEvents="box-none">
       <MenuButton palette={palette} />
-      {horizons && (
-        <View style={{ flexDirection: "row", gap: 6 }}>
-          {horizons.chips.map((h) => (
-            <Pill key={h.day} palette={palette} onPress={() => horizons.onPick(h.day)}
-                  // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map at
-                  // 13px, and a text-colour change alone is not a state a reader notices —
-                  // the whole map is repainted by this control, so which one is on has to
-                  // be readable at a glance and from the corner of an eye.
-                  style={h.on ? { backgroundColor: palette.accent,
-                                  borderColor: palette.accent } : undefined}
-                  label={h.label}>
-              <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
-                             color: h.on ? palette.onAccent : palette.ink }}>
-                {h.chip}
-              </Text>
-            </Pill>
-          ))}
-        </View>
-      )}
 
       {/* NO satellite button here. MapLibre's own control stack lives in this corner and
           ours overlapped it — and the choice already exists in the Layers sheet under
@@ -133,6 +121,26 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
             {`‹ ${SEARCH_MAP.back}`}
           </Text>
         </Pill>
+      )}
+      </View>
+      {horizons && (
+        <View testID="map-horizons" style={{ flexDirection: "row", gap: 6 }}>
+          {horizons.chips.map((h) => (
+            <Pill key={h.day} palette={palette} onPress={() => horizons.onPick(h.day)}
+                  // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map at
+                  // 13px, and a text-colour change alone is not a state a reader notices —
+                  // the whole map is repainted by this control, so which one is on has to
+                  // be readable at a glance and from the corner of an eye.
+                  style={h.on ? { backgroundColor: palette.accent,
+                                  borderColor: palette.accent } : undefined}
+                  label={h.label}>
+              <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
+                             color: h.on ? palette.onAccent : palette.ink }}>
+                {h.chip}
+              </Text>
+            </Pill>
+          ))}
+        </View>
       )}
       </View>
 
