@@ -1,9 +1,22 @@
 {
-  "$comment": "T47 candidate palettes (part 1: for the owner to pick from; NOT applied). Each candidate lists ONLY the tokens it changes, per theme (app/packages/map/style/themes/<theme>.json). `baseline` is today's palette. scripts/apply-palette.mjs writes a candidate into the theme files for a render; `git checkout -- app/packages/map/style/` puts them back. Every candidate passes tools/build-style.mjs (house floors: no shared hex, CIE76 >= 12 between map tokens drawn together, status >= 3:1 on the card) and the existing gates (tools/cvd.test.ts, tools/water-status-cvd.test.ts, packages/map) — see T47-colours.md 'Gates on each candidate'. The unit boundary is an ALIAS of the region boundary (`@color.region.edge`): one neutral on purpose, the two told apart by width and dash, which is the alias mechanism build-style.mjs documents ('one colour on purpose').",
+  "$comment": "T47 candidate palettes. Part 1 (A, B, C) was for the owner to pick from; part 2 APPLIED D (2026-10-22), so the theme files now hold D. `baseline` is the palette BEFORE T47, written out in full; every other candidate lists only the tokens it changes FROM THE BASELINE (measure.mjs, gate-proposal.mjs and apply-palette.mjs lay the baseline under it), so A / B / C still measure as they did in part 1 although the theme files moved. scripts/apply-palette.mjs writes a candidate into the theme files for a render; `git checkout -- app/packages/map/style/` puts them back. Every candidate passes tools/build-style.mjs (house floors: no shared hex, CIE76 >= 12 between map tokens drawn together, status >= 3:1 on the card) and the existing gates (tools/cvd.test.ts, tools/water-status-cvd.test.ts, packages/map) — see T47-colours.md 'Gates on each candidate'. The unit boundary is an ALIAS of the region boundary (`@color.region.edge`): one neutral on purpose, the two told apart by width and dash, which is the alias mechanism build-style.mjs documents ('one colour on purpose').",
   "baseline": {
-    "label": "Today",
-    "summary": "As shipped: own dark amber, closed dark crimson, base O&I blue; region boundary raspberry (light) / pink (dark) 2.4 px; management units brown, dashed 1.2 px.",
-    "themes": { "light": {}, "dark": {}, "cvd": {} }
+    "label": "Before T47",
+    "summary": "As shipped until 2026-10-22: own dark amber, closed dark crimson, base O&I blue, restricted brown-amber, open mid green; region boundary raspberry (light) / pink (dark) 2.4 px; management units brown, dashed 1.2 px.",
+    "themes": {
+      "light": { "color.status.closed": "#940018", "color.status.own": "#B37B00", "color.status.base": "#0072B2",
+                 "color.status.restricted": "#8f5c00", "color.status.open": "#1D7741",
+                 "color.region.edge": "#8E2F52", "color.mu.edge": "#8A7A62", "opacity.lake": 0.4,
+                 "width.region.edge": 2.4, "dash.mu": [2, 3] },
+      "dark":  { "color.status.closed": "#FC4164", "color.status.own": "#F0E442", "color.status.base": "#56B4E9",
+                 "color.status.restricted": "#e8a733", "color.status.open": "#48b07a",
+                 "color.region.edge": "#E29AB4", "color.mu.edge": "#A6947A",
+                 "width.region.edge": 2.4, "dash.mu": [2, 3] },
+      "cvd":   { "color.status.closed": "#C80D00", "color.status.own": "#B37B00", "color.status.base": "#0072B2",
+                 "color.status.restricted": "#5C0453", "color.status.open": "#0063D2",
+                 "color.region.edge": "#8E2F52", "color.mu.edge": "#8A7A62",
+                 "width.region.edge": 2.4, "dash.mu": [2, 3] }
+    }
   },
   "A": {
     "label": "A · Lightness ladder",
@@ -42,6 +55,24 @@
                  "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge" },
       "cvd":   { "color.status.closed": "#9A0A00", "color.status.own": "#D68100", "color.status.base": "#0072B2",
                  "color.status.restricted": "#2E0A55", "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge" }
+    }
+  },
+  "D": {
+    "label": "D · Five apart (applied)",
+    "summary": "Part 2, after the owner's answer of 2026-10-22 ('push own / closed / restricted / base / open further apart'). B's boundaries and lakes are kept (one neutral grey, region 3 px, unit dotted, light lakes 0.6); ALL FIVE status colours are re-chosen together by scripts/search-d.mjs to maximise the minimum ΔE2000 over every pair a reader sees side by side on the map, as tokens, thin lines, lake fills and over satellite, for normal vision and protan / deutan / tritan under Viénot and Machado. Lightness AND hue: light runs restricted deep aubergine (darkest) · closed red · open cerulean (off the mid green: open is a cool temperature dot and a card word, never water) · base periwinkle blue · own amber (lightest). Dark keeps the hue families, light enough for the dark card (pale cyan open, mauve restricted, coral red closed, yellow own, deep blue base), and holds the owner's closed/own pair at least where it was before T47 as a thin line. The colour-blind palette takes the light statuses (D is chosen under all three simulations already) except open, a deeper blue there (#1154C3) because the cvd theme's mapped-water teal sits on the light cerulean; its open and base are no longer one blue.",
+    "themes": {
+      "light": { "color.status.closed": "#8F0901", "color.status.own": "#C68900", "color.status.base": "#6E87E9",
+                 "color.status.restricted": "#1D002B", "color.status.open": "#1B6A91",
+                 "color.region.edge": "#7F7C79", "color.mu.edge": "@color.region.edge", "opacity.lake": 0.6,
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "dark":  { "color.status.closed": "#F4505E", "color.status.own": "#FFD208", "color.status.base": "#0364E2",
+                 "color.status.restricted": "#B37CA8", "color.status.open": "#94E1FF",
+                 "color.region.edge": "#B8B8B8", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] },
+      "cvd":   { "color.status.closed": "#8F0901", "color.status.own": "#C68900", "color.status.base": "#6E87E9",
+                 "color.status.restricted": "#1D002B", "color.status.open": "#1154C3",
+                 "color.region.edge": "#8B857F", "color.mu.edge": "@color.region.edge",
+                 "width.region.edge": 3.0, "dash.mu": [1, 2.5] }
     }
   }
 }

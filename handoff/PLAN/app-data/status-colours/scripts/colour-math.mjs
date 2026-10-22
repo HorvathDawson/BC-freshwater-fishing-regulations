@@ -49,6 +49,17 @@ export function worst(a, b) {
   return w;
 }
 
+/**
+ * A candidate's per-theme overrides LAID ON THE BASELINE (the palette before T47, written out in candidates.json).
+ * Part 2 applied D to the theme files, so a candidate that names only what it changes (A, B, C) must sit on the
+ * baseline, not on whatever the theme files hold now, to measure and render as it did in part 1.
+ */
+export function layered(cands, id) {
+  const base = cands.baseline?.themes ?? {};
+  const own = cands[id]?.themes ?? {};
+  return Object.fromEntries(["light", "dark", "cvd"].map((th) => [th, { ...(base[th] ?? {}), ...(own[th] ?? {}) }]));
+}
+
 /** A theme's tokens with `@ref` values resolved, and any overrides applied first. */
 export function themeTokens(name, overrides = {}) {
   const raw = JSON.parse(readFileSync(join(REPO, `app/packages/map/style/themes/${name}.json`), "utf8")).values;

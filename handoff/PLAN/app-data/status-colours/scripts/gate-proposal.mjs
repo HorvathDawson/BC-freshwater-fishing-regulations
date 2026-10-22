@@ -6,7 +6,7 @@
 // results table in the doc is reproducible without writing a test into app/tools/. Exports gate() for the tests.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BOUNDARIES, colours, GROUNDS, LAKE_GROUND, MAP_STATUSES, over, REPO, STATUSES, themeTokens, worst } from "./colour-math.mjs";
+import { BOUNDARIES, colours, GROUNDS, LAKE_GROUND, layered, MAP_STATUSES, over, REPO, STATUSES, themeTokens, worst } from "./colour-math.mjs";
 
 export const FLOORS = { status: 20, line: 18, lake: 15, boundary: 20, boundaryLine: 10, neutralSpread: 16 };
 const LINE = 0.6, EDGE = 0.8;
@@ -52,7 +52,7 @@ export function gate(overrides = {}, floors = FLOORS) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cands = JSON.parse(readFileSync(join(REPO, "handoff/PLAN/app-data/status-colours/candidates.json"), "utf8"));
   const out = {};
-  for (const id of Object.keys(cands).filter((k) => !k.startsWith("$"))) out[id] = gate(cands[id].themes);
+  for (const id of Object.keys(cands).filter((k) => !k.startsWith("$"))) out[id] = gate(layered(cands, id));
   if (process.argv.includes("--json")) console.log(JSON.stringify(out, null, 1));
   else for (const [id, r] of Object.entries(out)) {
     console.log(`== ${id}: ${r.checks - r.fails.length} / ${r.checks} assertions pass`);

@@ -50,3 +50,23 @@ closed or regulated water.
 ## Acceptance
 - The owner has picked from the side-by-side shots. The gate is green in all themes. The Keep tab and map legend use
   the new tokens. T39's census holds.
+
+## As built — part 2 (2026-10-22)
+Owner (2026-10-22): grey boundaries good; the STATUS colours must be more different than A / B / C. Applied **palette D**
+(handoff/PLAN/app-data/status-colours/T47-colours.md "Part 2"; `candidates.json` "D"; renders `candidates/D/`; compare.html
+column 5): B's neutral boundaries, dotted unit and light lakes 0.6 kept; ALL FIVE statuses re-chosen together by
+`scripts/search-d.mjs` to maximise the worst ΔE2000 of every adjacent pair as tokens / thin lines / lakes / satellite under
+normal + protan / deutan / tritan (Viénot and Machado), inside every existing app gate. Light: closed `#8F0901`, own
+`#C68900`, base `#6E87E9`, restricted `#1D002B`, open `#1B6A91` (off the mid green). Dark: `#F4505E` / `#FFD208` /
+`#0364E2` / `#B37CA8` / `#94E1FF`. cvd: light's, open `#1154C3`.
+- Gate: `app/tools/status-colours-distinct.test.ts` — floors at what D reaches (light restricted/open pairs 8.9 → 25.7 as
+  tokens, 5.7 → 18.8 as lines; boundary 7.0 → 20.0 token, 0.5 → 12.7 line; closed/own 22.5 → 29.3 token, 17.0 → 24.4
+  lake). Under the ticket's 20: thin lines in every theme (no palette reaches 20), dark restricted/base tokens 15.9 (no dark
+  palette reaches 20 inside the pill rule), dark/cvd boundary tokens 15.1 / 18.9. Mutation pins: the palette before T47
+  and B both fail it.
+- Port sync: closed / open / restricted are prototype tokens (regs-tokens parity), so `regs-v11.html` + `watermap.js`
+  took D and `port/tokens.mjs --ref <that commit>` regenerated `golden/tokens.json`.
+- Legend and Keep tab: read `palette.waterStatus` / `palette.closed|restricted|open` (tokens) — verified in the renders
+  (legend swatches are D's) and by the T39 palette render gate (green).
+- Not done: boundaries still drawn above water (part 1 question 4, no owner answer); `tools/cvd.test.ts` `status()` not
+  widened to own / base (the new gate holds the cvd theme's five already).

@@ -9,7 +9,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { REPO } from "./colour-math.mjs";
+import { layered, REPO } from "./colour-math.mjs";
 
 const id = process.argv[2];
 const THEMES = ["light", "dark", "cvd"];
@@ -31,7 +31,7 @@ if (!existsSync(BACKUP)) {
   mkdirSync(BACKUP, { recursive: true });
   for (const t of THEMES) writeFileSync(join(BACKUP, `${t}.json`), readFileSync(themeFile(t)));
 }
-for (const [theme, values] of Object.entries(cand.themes)) {
+for (const [theme, values] of Object.entries(layered(all, id))) {   // the baseline under the candidate
   // always from the backup (today's palette), so applying B after A never inherits A
   const doc = JSON.parse(readFileSync(join(BACKUP, `${theme}.json`), "utf8"));
   for (const [k, v] of Object.entries(values)) {

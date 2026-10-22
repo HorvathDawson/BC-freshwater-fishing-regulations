@@ -20,7 +20,7 @@ finish() { stop; node "$S/apply-palette.mjs" --restore >/dev/null; (cd "$ROOT/ap
 trap finish EXIT
 for id in "$@"; do
   echo "== $id"
-  if [ "$id" != "baseline" ]; then node "$S/apply-palette.mjs" "$id" >/dev/null || exit 1; fi
+  node "$S/apply-palette.mjs" "$id" >/dev/null || exit 1   # baseline too: the theme files hold D since part 2
   (cd "$ROOT/app" && node tools/build-style.mjs 2>&1 | tail -1)
   (cd "$ROOT/app/apps/mobile" && EXPO_PUBLIC_DATA_BASE="http://localhost:$TILE_PORT" CI=1 exec node "$EXPO" start --web --port "$APP_PORT" \
      > "${TMPDIR:-/tmp}/t47-expo-$id.log" 2>&1) &

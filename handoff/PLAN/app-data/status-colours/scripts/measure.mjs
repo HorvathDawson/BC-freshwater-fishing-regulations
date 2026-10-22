@@ -2,11 +2,11 @@
 //
 //   node handoff/PLAN/app-data/status-colours/scripts/measure.mjs
 //
-// Reads candidates.json and today's theme files (so run it on a checkout with today's palette — apply-palette.mjs
-// --restore first). Rewrites only the text between the GENERATED markers in T47-colours.md.
+// Reads candidates.json (each candidate laid on the baseline, colour-math.mjs `layered`) and the theme files for every
+// token no candidate names. Rewrites only the text between the GENERATED markers in T47-colours.md.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { BOUNDARIES, GROUNDS, isMapPair, LAKE_GROUND, LINE_ALPHA, measure, REPO, STATUSES, VISIONS, themeTokens } from "./colour-math.mjs";
+import { BOUNDARIES, GROUNDS, isMapPair, LAKE_GROUND, layered, LINE_ALPHA, measure, REPO, STATUSES, VISIONS, themeTokens } from "./colour-math.mjs";
 
 const DIR = join(REPO, "handoff/PLAN/app-data/status-colours");
 const cands = JSON.parse(readFileSync(join(DIR, "candidates.json"), "utf8"));
@@ -14,7 +14,7 @@ const ids = Object.keys(cands).filter((k) => !k.startsWith("$"));
 const THEMES = ["light", "dark", "cvd"];
 
 const results = {};
-for (const id of ids) results[id] = measure(cands[id].themes);
+for (const id of ids) results[id] = measure(layered(cands, id));
 
 const f1 = (x) => (x === undefined ? "–" : x.toFixed(1));
 const V = { normal: "n", protan: "p", deutan: "d", tritan: "t" };
@@ -75,6 +75,30 @@ for (const th of THEMES) {
     const co = ["pure", "line", "lake", "satellite"].map((k) => bold(f1(P[k]["closed/own"].worst.dE), P[k]["closed/own"].worst.dE, 20)).join(" · ");
     out.push(`| ${id} | ${c.closed} | ${c.own} | ${c.base} | ${c.region}${c.mu === c.region ? " (= unit)" : ` / unit ${c.mu}`} | ${co} | ` +
       `${bold(f1(P.line["closed/base"].worst.dE), P.line["closed/base"].worst.dE, 20)} | ${bold(f1(P.line["own/base"].worst.dE), P.line["own/base"].worst.dE, 20)} | ${bnd("pure")} | ${bnd("line")} | ${bnd("satellite")} |`);
+  }
+}
+
+// ---- 3b. all five statuses (part 2): the minima search-d.mjs maximised, per palette
+out.push("\n### 3b · All five statuses, the minima palette D maximised (worst ΔE2000 over all visions and both models)\n");
+out.push("Each cell is the WORST pair of its group, with the pair and the reader. `water` = closed / own / base against each other; " +
+  "`permit · temperature` = restricted against closed, own and base (the permit-area hatch over water) and open against restricted and closed " +
+  "(the temperature dots); `boundary` = the region and unit boundaries against all five. Satellite = thin lines over the Esri imagery grounds.\n");
+const WATER_P = ["closed/own", "closed/base", "own/base"];
+const OTHER_P = ["closed/restricted", "own/restricted", "base/restricted", "restricted/open", "closed/open"];
+const BND_P = STATUSES.flatMap((s) => BOUNDARIES.map((b) => `${s}/${b}`));
+for (const th of THEMES) {
+  out.push(`\n#### ${th}\n`);
+  out.push("| palette | water token | water line | water lake | water satellite | permit · temperature token | … line | … satellite | boundary token | boundary line |");
+  out.push("|---|---|---|---|---|---|---|---|---|---|");
+  for (const id of ids) {
+    const P = results[id].pairs[th];
+    const min = (cond, keys) => {
+      let w = null;
+      for (const k of keys) { const r = P[cond][k]; if (r && (!w || r.worst.dE < w.dE)) w = { ...r.worst, k }; }
+      return w ? `${bold(f1(w.dE), w.dE, 20)} ${V[w.under]} ${w.k}` : "–";
+    };
+    out.push(`| ${id} | ${min("pure", WATER_P)} | ${min("line", WATER_P)} | ${min("lake", WATER_P)} | ${min("satellite", WATER_P)} | ` +
+      `${min("pure", OTHER_P)} | ${min("line", OTHER_P)} | ${min("satellite", OTHER_P)} | ${min("pure", BND_P)} | ${min("line", BND_P)} |`);
   }
 }
 

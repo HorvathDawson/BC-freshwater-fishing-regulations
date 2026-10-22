@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { GROUNDS, isMapPair, LAKE_GROUND, measure, over, parseHex, REPO, STATUSES } from "./colour-math.mjs";
+import { GROUNDS, isMapPair, LAKE_GROUND, layered, measure, over, parseHex, REPO, STATUSES } from "./colour-math.mjs";
 
 const dist = (a, b) => Math.max(...parseHex(a).map((c, i) => Math.abs(c - parseHex(b)[i])));
 
@@ -32,7 +32,8 @@ test("no ground is a status-coloured pixel", () => {
 });
 
 test("the lake column is measured over water", () => {
-  const m = measure({});
+  const cands = JSON.parse(readFileSync(join(REPO, "handoff/PLAN/app-data/status-colours/candidates.json"), "utf8"));
+  const m = measure(layered(cands, "baseline"));   // the palette before T47 (the theme files hold D now)
   for (const th of ["light", "dark", "cvd"]) assert.equal(m.pairs[th].lake["closed/own"].worst.ground, "water", th);
   // today's light closed/own as lake fills over water (17.0), not over land (12.8)
   assert.ok(Math.abs(m.pairs.light.lake["closed/own"].worst.dE - 17.0) < 0.1, String(m.pairs.light.lake["closed/own"].worst.dE));
@@ -86,16 +87,16 @@ test("the doc's gate results are what the proposed gate computes", async () => {
   const cands = JSON.parse(readFileSync(join(REPO, "handoff/PLAN/app-data/status-colours/candidates.json"), "utf8"));
   const md = MD();
   for (const id of ["baseline", "A", "B", "C"]) {
-    const r = gate(cands[id].themes);
+    const r = gate(layered(cands, id));
     const label = id === "baseline" ? "today" : id;
     const pass = r.checks - r.fails.length;
     assert.match(md, new RegExp(`\\| ${label} \\| ${pass} / ${r.checks} pass`), `${id}: ${pass} / ${r.checks}`);
   }
   // the corrected model: A's closed/own lake passes (15.2 over water); every candidate fails boundary vs open (14.9, deutan)
-  const a = gate(cands.A.themes);
+  const a = gate(layered(cands, "A"));
   assert.ok(!a.fails.some((f) => f.check === "status lake" && f.what.startsWith("closed/own")));
   for (const id of ["A", "B", "C"])
-    assert.ok(gate(cands[id].themes).fails.some((f) => f.theme === "light" && f.what.startsWith("region/open") && f.dE === 14.9), id);
+    assert.ok(gate(layered(cands, id)).fails.some((f) => f.theme === "light" && f.what.startsWith("region/open") && f.dE === 14.9), id);
   assert.doesNotMatch(md, /lakes still 12\.6 apart|lake fill pairs 12\.6|only one that fixes lakes|\*\*8 fail\*\*|9 pass \/ \*\*1 fail|12\.8 \(tritan\)/);
 });
 

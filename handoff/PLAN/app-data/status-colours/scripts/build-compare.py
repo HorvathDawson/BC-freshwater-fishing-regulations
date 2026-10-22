@@ -50,11 +50,12 @@ filters = "".join(
     + " ".join(" ".join(f"{x:.6f}" for x in row) + " 0 0" for row in m) + ' 0 0 0 1 0"/></filter>'
     for k, m in MACHADO.items())
 
-intro = ("Today's palette and three candidates, shot on the same four map views (the app's Map tab, today's statuses, "
+intro = ("The palette before T47, part 1's three candidates (A, B, C) and D, the palette part 2 applied, shot on the same four map views (the app's Map tab, today's statuses, "
          "Expo web at a 390 × 844 phone viewport). Pick a view, a ground and a colour-vision simulation; the numbers under "
          "each map are the worst ΔE2000 for that theme across normal vision and protan, deutan and tritan simulation "
          "(Viénot 1999 and Machado 2009). Twenty is a different category at a glance on a thin line; under twelve, two lines "
-         "read as one. Tap a map for the full-size shot.")
+         "read as one. D was searched (scripts/search-d.mjs) to push all FIVE statuses apart, restricted and open included; "
+         "A to C were judged on closed / own / base only. Tap a map for the full-size shot.")
 
 page = f"""<!doctype html>
 <html lang="en">
@@ -130,7 +131,8 @@ td.n {{ text-align: right; }}
 ground; <em>lake</em> = both as lake fills over the basemap's water; <em>sat</em> = thin lines over the satellite grounds. <em>boundary</em> = the
 worst of the region and unit boundary against all five statuses (closed, own, base, restricted, open). The colour-blind palette and satellite rows use their
 own theme's colours (satellite draws the light theme). Source: T47-colours.md, scripts/measure.mjs.
-In A, B and C the unit boundary wears the region's colour on purpose and is told apart by width and dash.</p>
+In A to D the unit boundary wears the region's colour on purpose and is told apart by width and dash. Restricted pairs are the
+permit-area hatch over water; open pairs are the temperature dots (cool / warm / critical); neither is ever a lake fill.</p>
 <script>
 const D = {json.dumps(data)};
 const state = {{ view: "boundary-z10", ground: "light", sim: "none" }};
@@ -154,19 +156,24 @@ function numbers(id) {{
   const th = state.ground === "dark" ? "dark" : state.ground === "cvd" ? "cvd" : "light";
   const T = D.meas[id].themes[th], P = T.pairs;
   const sim = state.sim === "none" ? null : state.sim;
-  const val = (cond, k) => {{ const r = P[cond][k]; return r ? (sim ? Math.min(r[sim], r.normal) : r.worst) : null; }};
+  // only closed / own / base are ever lake fills: no lake number for a restricted or open pair
+  const lakeless = (k) => /restricted|open/.test(k);
+  const val = (cond, k) => {{ if (cond === "lake" && lakeless(k)) return null;
+    const r = P[cond][k]; return r ? (sim ? Math.min(r[sim], r.normal) : r.worst) : null; }};
   const row = (label, k) => `<tr><td>${{label}}</td>` + ["pure", "line", "lake", "satellite"].map((c) => {{
     const v = val(c, k); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("") + "</tr>";
   const bnd = (c) => Math.min(...["region", "mu"].flatMap((b) => ["closed", "own", "base", "restricted", "open"].map((s) => val(c, `${{s}}/${{b}}`) ?? 99)));
   const b = ["pure", "line", "lake", "satellite"].map((c) => {{ const v = c === "lake" ? null : bnd(c); return `<td class="n ${{v == null ? "" : cls(v)}}">${{f1(v)}}</td>`; }}).join("");
   return `<table><thead><tr><th>${{th}}${{sim ? " · " + sim : " · worst"}}</th><th>pure</th><th>line</th><th>lake</th><th>sat</th></tr></thead><tbody>`
     + row("closed / own", "closed/own") + row("closed / base", "closed/base") + row("own / base", "own/base")
+    + row("restricted / closed", "closed/restricted") + row("restricted / own", "own/restricted")
+    + row("restricted / base", "base/restricted") + row("open / restricted", "restricted/open") + row("open / closed", "closed/open")
     + `<tr><td>boundary</td>${{b}}</tr></tbody></table>`;
 }}
 function swatches(id) {{
   const th = state.ground === "dark" ? "dark" : state.ground === "cvd" ? "cvd" : "light";
   const c = D.meas[id].themes[th].colours;
-  return ["closed", "own", "base"].map((s) => `<span class="sw"><i style="background:${{c[s]}}"></i>${{s}} ${{c[s]}}</span>`).join("")
+  return ["closed", "own", "base", "restricted", "open"].map((s) => `<span class="sw"><i style="background:${{c[s]}}"></i>${{s}} ${{c[s]}}</span>`).join("")
     + `<span class="sw"><i style="background:${{c.region}}"></i>region ${{c.region}}</span>`
     + `<span class="sw"><i class="dash" style="border-color:${{c.mu}}"></i>unit ${{c.mu}}</span>`;
 }}
