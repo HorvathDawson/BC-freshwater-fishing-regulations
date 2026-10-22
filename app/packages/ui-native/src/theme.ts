@@ -126,6 +126,24 @@ export const SPACE = { s1: 4, s2: 8, s3: 12, s4: 16 } as const;
 export const GUTTER = 16;
 
 /**
+ * T44 — THE WATER FRAME's layout (`WaterFrame`): what every view of a water (Regulations · Conditions · Map) shares, so
+ * a view switch moves nothing both views draw (owner 2026-10-21: "switching between regulation and condition tab makes
+ * the margin on the left change and everything move"). Only the frame reads these; a view sets no outer gutter, width
+ * or header of its own (`tools/water-frame.test.ts`).
+ *
+ *   gutter        the side inset of the header and of every inset block (`WaterInset`) — the regs page's gutter
+ *   maxWidth      the measure on a wide screen: the frame's column stops here and centres (was the Conditions view's
+ *                 own `CONDITIONS_MAX`, which the other two views did not share — the desktop jump)
+ *   headerTop     above the back row
+ *   headerBottom  under the view strip
+ *   headerHeight  the header box (top + the back row 32 + 4 + the strip 38 + bottom), held even with no back drawn
+ *   titleHeight   the water's name row under it (`WaterTitle`: the regs header's name row, on every view)
+ */
+export const WATER_FRAME = {
+  gutter: GUTTER, maxWidth: 1280, headerTop: SPACE.s3, headerBottom: SPACE.s2, headerHeight: 94, titleHeight: 48,
+} as const;
+
+/**
  * A HARD OFFSET SHADOW, not a blur.
  *
  * v1's signature, used on the search bar and every floating panel:

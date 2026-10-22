@@ -131,7 +131,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
 const COVERED: Record<string, string> = {
   "packages/ui-native/src/Shell.tsx#Shell: takes onBack": "the Shell IS the route layer (useEdgeBack); `onBack: back` hands that one back to the water's ‹",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
-  "packages/ui-native/src/regs/RegsScreen.tsx#RegsScreen: takes onBack (RegsScreenProps)": "the on-screen ‹; system back is the Shell's route layer (T49: its date pill's DaySheet is the water screen's, and registers itself)",
+  "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
   "packages/ui-native/src/MapScreen.tsx#MapScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
@@ -200,6 +200,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotScreen.tsx#SpotScreen: takes onBack",
       "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel",
       "packages/ui-native/src/SpotsSheet.tsx#SpotsSheet: takes onClose",
+      "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack",
       "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",
       "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",

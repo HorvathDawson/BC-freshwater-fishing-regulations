@@ -20,6 +20,7 @@ import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { useBackLayer, useRegsStore, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
+import { WaterInset } from "../WaterFrame";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 
@@ -81,8 +82,11 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         {vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
         {vm?.chooser && <Chooser vm={vm} palette={palette} act={act} />}
       </View>
-      <View style={{ paddingHorizontal: 12, paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5,
-                     borderTopColor: palette.ink, backgroundColor: palette.card }}>
+      {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
+          the frame's column, at the gutter every view's content starts at */}
+      <View style={{ paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
+                     backgroundColor: palette.card }}>
+        <WaterInset column>
         {vm ? (
           <>
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{vm.where}</Text>
@@ -113,6 +117,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         ) : (
           <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{status}</Text>
         )}
+        </WaterInset>
       </View>
     </View>
   );

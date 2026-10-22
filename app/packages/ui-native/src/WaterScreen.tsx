@@ -1,5 +1,6 @@
 /**
- * One water's Regulations view. Drawn to `design/riffle.html`; the header is the water's (`FaceBar`).
+ * One water's Regulations view, drawn inside the water frame (T44 `WaterFrame`: the back, the view strip and the name
+ * row are the frame's, at the same place on every view; this view sets no gutter, width or header of its own).
  *
  * THE REGULATIONS VIEW OF A WATER, one of three (Regulations · Conditions · Map — the strip in the header, and a
  * sideways swipe, move between them; the Shell draws the other two). It used to carry a door to the conditions ("and
@@ -7,22 +8,21 @@
  * the reach the reader tapped, not `sections[0]`.
  *
  * THE REGULATIONS (T21): the store answers for the tapped part on THE ONE DAY (`useRegsStore` → `useRegsTarget` →
- * `useRegulations` → `useRegsPage`, @app/ui), and `RegsScreen` (T23/T29) draws the page: the water's header row and the
+ * `useRegulations` → `useRegsPage`, @app/ui), and `RegsScreen` (T23/T29) draws the page under the frame's header: the
  * regs header fixed above ONE scroll of the four tab sections — What you can keep, Gear, Methods, Licence (T21, T34, T35;
  * the Licence tab's angler is `useAnglerProfile`'s, D8 a) — the pin bar over it. With no release loader (the dev bundle
- * holds no regulations), while the store loads, or when it cannot answer, the view keeps its old frame (the header row,
- * the name, then the placeholder / spinner / why).
+ * holds no regulations), while the store loads, or when it cannot answer, the view draws the name row under
+ * the frame's header, then the placeholder / spinner / why.
  *
  * Every value here arrived from a hook in @app/ui (rule 25). NO CONDITIONS HOOK RUNS HERE: a number on this view
  * would be a second, poorer copy of the Conditions view one swipe away (AGENTS rule 23).
  */
 import { useContext, useMemo, useState } from "react";
-import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Platform, ScrollView, Text, View } from "react-native";
 import { bookUrl, dayRange, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAnglerProfile, useRegsPage, useRegsStore, useRegsTarget, useRegulations, useWater } from "@app/ui";
-import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -33,7 +33,8 @@ import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
 import { TYPE } from "./type";
-import { GUTTER, SPACE, type Palette } from "./theme";
+import { SPACE, type Palette } from "./theme";
+import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages }: {
@@ -85,33 +86,38 @@ export function WaterScreen({ source, item, palette, onBack,
               range={dayRange(new Date(), loader.manifest?.regulations?.valid_until ?? null)} />
   );
 
+  // EVERY STATE IS DRAWN IN THE WATER FRAME (T44): the header (back, the view strip) and the name row sit where they sit
+  // on the Conditions and Map views; this view draws only its content.
+  const frame = (title: React.ReactNode, body: React.ReactNode) => (
+    <WaterFrame palette={palette} face="regulations" onBack={onBack} backLabel="Back" title={title}>{body}</WaterFrame>
+  );
+
   if (sheet.state === "loading") {
-    return (
-      <View style={{ flex: 1, backgroundColor: palette.card,
-                     alignItems: "center", justifyContent: "center" }}>
+    return frame(<WaterTitle name={null} palette={palette} />, (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <FishSpinner palette={palette} size={110} label="Loading this water" />
       </View>
-    );
+    ));
   }
   if (sheet.state === "failed" || !sheet.value) {
-    return (
-      <View style={{ flex: 1, backgroundColor: palette.card, padding: 20, gap: 10 }}>
-        {onBack && <Back palette={palette} onPress={onBack} />}
+    return frame(<WaterTitle name={null} palette={palette} />, (
+      <WaterInset style={{ paddingTop: SPACE.s4 }}>
         <Text style={{ ...TYPE.body, color: palette.closed }}>
           {sheet.state === "failed" ? String(sheet.error) : "No such water in this bundle."}
         </Text>
-      </View>
-    );
+      </WaterInset>
+    ));
   }
 
   const s = sheet.value;
 
-  // THE REGULATIONS PAGE (T23): its own header fixed above ONE scroll (RegsScreen); the states below keep the old frame
+  // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError) {
     const label = (t: string) => regs.header.tabs.find((x) => x.tab === t)?.label ?? "";
     return (
       <>
-      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)} onBack={onBack}
+      {frame(null, (
+      <RegsScreen page={regs} palette={palette} images={fishImages} onDate={() => setDayOpen(true)}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
                   onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
@@ -126,44 +132,29 @@ export function WaterScreen({ source, item, palette, onBack,
                     : <TabPending label={label("methods")} palette={palette} />}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : <TabPending label={label("licence")} palette={palette} />} />
+      ))}
       {daySheet}
       </>
     );
   }
 
+  // No "Regulations" heading: the strip's selected view already says it.
   const page = (
-    <>
-      {/* THE SAME INSETS AS THE CONDITIONS VIEW, so the header does not move when the view changes. */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, gap: SPACE.s2 }}>
-        {/* THE WATER'S HEADER, the same row in the same place on every view of it — see FaceBar. */}
-        <FaceBar palette={palette} face="regulations" onBack={onBack} backLabel="Back" onFace={() => {}} />
-        <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
-      </View>
-      {/* No "Regulations" heading: the strip's selected view already says it. */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 32 }}>
-        {!loader ? <RegulationsPlaceholder palette={palette} />
-          : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
-          : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
-      </View>
-    </>
+    <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
+      {!loader ? <RegulationsPlaceholder palette={palette} />
+        : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
+        : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
+    </WaterInset>
   );
   // the day sheet in the SAME place as beside the page above, so a reload's loading frame keeps it (it does not remount)
   return (
     <>
-    <ScrollView style={{ flex: 1, backgroundColor: palette.card }} contentContainerStyle={{ flexGrow: 1 }}>
-      {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{page}</ViewSwipe> : page}
-    </ScrollView>
+    {frame(<WaterTitle name={s.name} palette={palette} />, (
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+        {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{page}</ViewSwipe> : page}
+      </ScrollView>
+    ))}
     {daySheet}
     </>
   );
 }
-
-/** The plain back link, for the states where there is no sheet to put a FaceBar over. */
-function Back({ palette, onPress }: { palette: Palette; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Back">
-      <Text style={{ ...TYPE.micro, color: palette.accent }}>‹  Back</Text>
-    </Pressable>
-  );
-}
-

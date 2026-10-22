@@ -1,7 +1,8 @@
 /**
- * T23 + T29 — the Regulations view of one tap (prototype regs v38 page layout): the water's header row (FaceBar: back and
- * the view strip, the same row on every view of the water) and the regs header (name, date pill, Map, place label, the
- * four tabs) FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
+ * T23 + T29 — the Regulations view of one tap (prototype regs v38 page layout), drawn inside the water frame (T44
+ * `WaterFrame`: the back and the view strip, the same row on every view of the water, are the frame's — this screen
+ * draws no header row, gutter or width of its own): the regs header (name, date pill, Map, place label, the four tabs)
+ * FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
  *
  * Owns the layout state only: the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
@@ -15,11 +16,10 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ScrollView, Text, View } from "react-native";
 import { tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
-import { FaceBar } from "../Faces";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
-import { GUTTER, SPACE, type Palette } from "../theme";
+import { GUTTER, type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import type { KeepActions } from "./LineText";
 import { PinBar } from "./PinBar";
@@ -43,8 +43,6 @@ export interface RegsScreenProps {
    * (this screen remounts on the next day's answer), and a sheet kept here closed under the reader at every step.
    */
   onDate: () => void;
-  /** back, drawn in the water's header row (FaceBar) */
-  onBack?: () => void;
   /** the Map button: this water's map view. Absent → the button is not drawn (its slot stays). */
   onMap?: () => void;
   /** the Parts button; absent → it opens the page's own Parts sheet (T37). */
@@ -67,14 +65,14 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
   );
 }
 
-export function RegsScreen({ page, palette, images, actions, onDate, onBack, onMap, onParts,
+export function RegsScreen({ page, palette, images, actions, onDate, onMap, onParts,
                              gear, methods, licence, footer, store: injected }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
-  // the sideways swipe between the water's views (Regulations · Conditions · Map): the fixed header and the scroll's
-  // content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx
+  // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
+  // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx
   const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
   const still = useRef(false);
   useEffect(() => {
@@ -96,16 +94,7 @@ export function RegsScreen({ page, palette, images, actions, onDate, onBack, onM
   const onAction = action?.kind === "map" ? onMap && (() => onMap())
     : action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
-  const head = (
-    <View>
-      {/* THE SAME INSETS AS THE CONDITIONS AND MAP VIEWS, so the water's header row does not move between them */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s2 }}>
-        <FaceBar palette={palette} face="regulations" onBack={onBack} backLabel="Back" onFace={() => {}} />
-      </View>
-      <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate}
-                  onAction={onAction} onTab={toTab} />
-    </View>
-  );
+  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onAction={onAction} onTab={toTab} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;

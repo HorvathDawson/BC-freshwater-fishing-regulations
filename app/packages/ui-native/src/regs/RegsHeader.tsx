@@ -8,14 +8,16 @@
  * row reads the selected tab from the pin store (T29) in its own child, so a scroll re-renders the tabs and not the
  * header.
  *
- * THE BACK IS NOT HERE: in the app it is the water's header row above (FaceBar, one water screen — the same row on every
- * view of the water), so the name and the place label start at the gutter, not after a 44 px back (the prototype's 56).
+ * THE BACK IS NOT HERE: in the app it is the water's header row above (FaceBar, drawn by the water frame — the same row
+ * on every view of the water), so the name and the place label start at the gutter, not after a 44 px back (the
+ * prototype's 56). The name row itself is the frame's `WaterTitle` (T44), the box every view's name sits in.
  */
 import { useState, useSyncExternalStore } from "react";
 import { Pressable, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { WORDS, type HeaderVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
+import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
@@ -51,8 +53,8 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab }
   const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
-      <View style={{ height: 48, paddingLeft: GUTTER, paddingRight: 8, gap: 8, flexDirection: "row", alignItems: "center" }}>
-        <Text accessibilityRole="header" numberOfLines={2} style={[TYPE.headerName, { flex: 1, color: palette.ink }]}>{h.name}</Text>
+      {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill and Map in it */}
+      <WaterTitle name={h.name} palette={palette}>
         <Pressable testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria}
                    style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
           <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
@@ -77,7 +79,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab }
             </Pressable>
           )}
         </View>
-      </View>
+      </WaterTitle>
       <Place place={h.place} palette={palette} />
       <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />
     </View>

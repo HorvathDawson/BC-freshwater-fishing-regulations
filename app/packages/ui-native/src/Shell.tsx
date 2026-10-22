@@ -583,14 +583,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * THE WATER'S HEADER (FaceBar): the views its frame offers (all three; an unnamed reach, Conditions alone), the one on
    * screen, and where back goes, in the reader's words — the views are lateral, so back always leaves the water: to
    * the tab it was opened from (the Conditions map or the Map tab), or "Back" to the water flowed in from. The swipe
-   * listens on the header and on the body: on Regulations the body's detector holds the header (so only that one is
-   * set); on Conditions the header sits above the panel's ScrollView and both listen, the panel's maps and chart
-   * shielded; on Map the canvas is the body, header only.
+   * listens on the header and on the body: the header is the water frame's (T44 `WaterFrame`, above every view's body,
+   * a sibling of it) and always listens; Regulations and Conditions listen on their bodies too (the panel's maps and
+   * chart shielded); on Map the canvas is the body, header only.
    */
   const waterViews: WaterViews | null = route.mode === "water" && frame !== null
     ? { views: frameViews(frame), on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
         backLabel: route.stack.length > 1 ? "Back" : TABS.find((t) => t.k === route.from.tab)!.t,
-        swipe: frame.view === "regs" ? null : viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
+        swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : null;
 
   const showLegend = route.mode === "browse"

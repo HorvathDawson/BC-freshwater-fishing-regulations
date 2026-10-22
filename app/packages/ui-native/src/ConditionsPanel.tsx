@@ -34,9 +34,6 @@ export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
 
 export type Span = ChartSpan;
 
-/** The Conditions view's widest measure (desktop), content and header alike. */
-export const CONDITIONS_MAX = 1280;
-
 const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
@@ -249,12 +246,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     </>
   );
 
-  // ONE MEASURE ON A DESKTOP: the content stops at `CONDITIONS_MAX` and centres, so a 2,560 px window is not one
-  // line of text across the whole screen. The donor panel goes to two columns inside it (`WIDE_PANEL`).
-  // The body is also a water's VIEW SWIPE when it has one (Regulations · Conditions · Map); the plot and minimap
-  // inside are shielded so their own drags stay theirs.
-  const pad = { paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4,
-                width: "100%" as const, maxWidth: CONDITIONS_MAX, alignSelf: "center" as const };
+  // ONE MEASURE ON A DESKTOP is the water frame's (T44 `WaterFrame`, `WATER_FRAME.maxWidth`): the panel fills the
+  // frame's column, which stops and centres, so a 2,560 px window is not one line of text across the whole screen —
+  // and the Conditions view's left edge is the Regulations view's. The donor panel goes to two columns inside it
+  // (`WIDE_PANEL`). The body is also a water's VIEW SWIPE when it has one (Regulations · Conditions · Map); the plot
+  // and minimap inside are shielded so their own drags stay theirs.
+  const pad = { paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 };
   return scroll
     ? bodySwipe
       ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}>

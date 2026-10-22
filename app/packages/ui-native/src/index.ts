@@ -17,6 +17,7 @@ export { SpotCapture, type SpotCaptureProps } from "./SpotCapture";
 export { ChartControls } from "./ChartControls";
 export { ConditionsPanel } from "./ConditionsPanel";
 export { FaceBar, ViewTabs, type Face } from "./Faces";
+export { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export { SpotScreen } from "./SpotScreen";
 export { TabBar, TABS, type TabKey } from "./TabBar";
 export { Pill, LegendStrip, LegendCount, LegendRamp } from "./Chrome";

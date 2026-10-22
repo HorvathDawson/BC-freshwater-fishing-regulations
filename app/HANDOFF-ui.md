@@ -16,6 +16,14 @@ Conditions view (`WaterConditions`). One water screen, whichever map you tapped 
 `openWater`/`openTap` and open the same frame, differing only in the view in front; back leaves
 the water for the map it was tapped on. An unnamed reach opens on its Conditions view alone, from either map.
 
+**One frame for the water screen's views (T44, owner 2026-10-21: "switching between regulation and condition tab makes
+the margin on the left change").** Every view draws inside `WaterFrame` (ui-native): the frame owns the background, the
+column (`WATER_FRAME.maxWidth` 1,280, centred), the header (FaceBar — drawn there and nowhere else), the header's swipe
+and the gutter; the name row is `WaterTitle` on every view (the regs header's own first row on Regulations); an inset
+block is `WaterInset`. A view sets no outer gutter, width or header of its own (`tools/water-frame.test.ts` lists every
+horizontal spacing a view may set); `tools/water-frame-layout.test.ts` mounts the Shell, switches views and measures the
+shared elements in headless Chrome at 390 / 768 / 1440 (whole-pixel equal). The Map canvas alone goes full-bleed.
+
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is
 live, the hydrograph with envelope + prior years + a TODAY rule, the model's disclaimer

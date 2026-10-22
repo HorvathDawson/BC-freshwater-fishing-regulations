@@ -8,12 +8,12 @@
  * view written to the right. The strip and the swipe can never disagree because they read the same list.
  *
  * IT DOES NOT MOVE. The row sits in the same place on Regulations, Conditions and Map, so the control you just used
- * is where you left it.
+ * is where you left it: it is drawn by the water frame ONLY (`WaterFrame`, T44), never by a view.
  *
  * TWO SOURCES, ONE DRAWING. In water mode, and on a Conditions-tab reach, the Shell provides `WaterViewsContext`: the
- * views on offer, the one on screen, where back goes and the swipe, which the row then listens for (on the Map view
- * the header is the ONLY place it listens — the canvas pans). Without it (a screen mounted alone) the row falls back
- * to the `face` / `onFace` props, offering Regulations and Conditions.
+ * views on offer, the one on screen and where back goes. Without it (a screen mounted alone) the row falls back to the
+ * `face` / `onFace` props, offering Regulations and Conditions. The header's swipe is the frame's (it wraps this row
+ * and the name row under it).
  *
  * Both labels stay visible rather than showing only the alternative: which questions this water answers is itself
  * information, and a reader who does not know Conditions exists will never go looking for it.
@@ -21,7 +21,7 @@
 import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
 import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
-import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
+import { WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -42,7 +42,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   const back = ctx?.onBack ?? onBack;
   const label = ctx?.backLabel ?? backLabel ?? "Back";
 
-  const row = (
+  return (
     <View style={{ gap: SPACE.s1 }}>
       {back && (
         <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back"
@@ -53,8 +53,6 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
       <ViewTabs palette={palette} views={views} on={on} onView={pick} />
     </View>
   );
-  return ctx?.swipe ? <ViewSwipe swipe={ctx.swipe} fill={false} testId="view-swipe-header">{row}</ViewSwipe>
-                    : row;
 }
 
 /**

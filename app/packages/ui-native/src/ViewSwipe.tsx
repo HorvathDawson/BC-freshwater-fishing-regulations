@@ -8,8 +8,9 @@
  * fails on a vertical move (direction lock) and, on the web, leaves `pan-y` and pinch-zoom to the browser (and the
  * reader's text selection and context menu: see WEB_PAGE_PROPS).
  *
- * WHERE IT LISTENS is the caller's: a map canvas pans, so on the Map view only the header (the back row and the view
- * strip) takes the swipe; `WaterViews` carries the swipe to the header (`FaceBar`) of whatever screen is drawn.
+ * WHERE IT LISTENS is the caller's: a map canvas pans, so on the Map view only the header (the back row, the view
+ * strip and the name row) takes the swipe; `WaterViews` carries the swipe to the water frame's header (`WaterFrame`,
+ * T44) on whatever view is drawn.
  *
  * SHIELDS (`useSwipeShield`): on a body that also holds things a finger works on (the Conditions view's route map, gauge
  * minimap and chart), those things wear a shield. A press that lands on one claims the drag for it: the swipe does not
@@ -93,10 +94,9 @@ export function useSwipeShield(): { onTouchStart?: () => void; onPointerDown?: (
 /**
  * The water's views as the Shell has them, for the header of whichever screen is drawn (`FaceBar` reads it): the
  * views on offer in strip order, the one on screen, how to move, where back goes and what it is called, and the swipe
- * for the header (`swipe`) and for the view's body (`bodySwipe`: Regulations, and Conditions with its maps and chart
- * shielded — see useSwipeShield; Map has none, its canvas is the body). Where the header sits INSIDE the body
- * (Regulations) only `bodySwipe` is set: nested detectors would race. On Conditions the header is above the panel's
- * ScrollView, a sibling, so both are set.
+ * for the header (`swipe`: the water frame's header, T44, on every view) and for the view's body (`bodySwipe`:
+ * Regulations, and Conditions with its maps and chart shielded — see useSwipeShield; Map has none, its canvas is the
+ * body). The frame's header is a SIBLING of every body, never inside it: nested detectors would race.
  *
  * WHY THE BODY'S DETECTOR IS THE SCREEN'S, inside its ScrollView: a browser decides who owns a touch from `touch-action`
  * on the elements between the finger and the NEAREST SCROLL CONTAINER only. A detector wrapped around a ScrollView is

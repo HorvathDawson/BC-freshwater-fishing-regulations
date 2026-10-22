@@ -1,5 +1,5 @@
 /**
- * T23 — the Regulations screen: the water's header row and the regs header FIXED above ONE ScrollView of the four tab
+ * T23 — the Regulations screen (mounted in the water frame, T44, which draws the water's header row): the regs header FIXED above ONE ScrollView of the four tab
  * sections (header-one-shape, one scroll, licence-last, no part strip), the date pill (D7 a; T49: it asks the water
  * screen for "Which day?", the map's own calendar sheet — WaterScreen.regs-props.test), and (T29) a tab press scrolling to its section. Mounted over the frozen golden page
  * (fixtures/vedder_1010.json, buildRegsPage over the parity store).
@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { Text } from "react-native";
 import type { RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
+import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import { createPinStore } from "./pinStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -17,10 +18,13 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const page = vedder1010 as unknown as RegsPage;
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
-function mount(p: Partial<RegsScreenProps> = {}) {
-  return render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
-                            gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
-                            licence={<Text>licence section</Text>} {...p} />);
+/** The screen as the app draws it: inside the water frame (T44), which draws the back and the view strip above it. */
+function mount(p: Partial<RegsScreenProps> = {}, onBack?: () => void) {
+  return render(<WaterFrame palette={LIGHT} face="regulations" onBack={onBack}>
+                  <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
+                              gear={<Text>gear section</Text>} methods={<Text>methods section</Text>}
+                              licence={<Text>licence section</Text>} {...p} />
+                </WaterFrame>);
 }
 const scrollEl = () => screen.getByTestId("regs-scroll");
 
@@ -61,9 +65,12 @@ describe("<RegsScreen>", () => {
     expect(screen.queryAllByRole("radiogroup").filter((r) => !/Regulations|Conditions/.test(r.textContent ?? ""))).toEqual([]);
   });
 
-  it("the water's header row: back and the view strip (FaceBar); Conditions is offered", () => {
+  it("the water's header row is the frame's (T44): back and the view strip (FaceBar), Conditions offered; the screen draws neither", () => {
     const back = vi.fn();
-    mount({ onBack: back });
+    mount({}, back);
+    const frameHeader = screen.getByTestId("water-frame-header");
+    expect([frameHeader.contains(screen.getByRole("button", { name: "Back" })),
+            screen.getByTestId("regs-view").contains(screen.getAllByRole("tablist")[0]!)]).toEqual([true, false]);
     const strip = screen.getAllByRole("tablist")[0]!;
     expect(within(strip).getAllByRole("tab").map((t) => [t.getAttribute("aria-label"), t.getAttribute("aria-selected")]))
       .toEqual([["Regulations", "true"], ["Conditions", "false"]]);

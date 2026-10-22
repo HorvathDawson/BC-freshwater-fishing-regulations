@@ -1,7 +1,7 @@
 /**
- * The Conditions and Map views of a water in water mode (the Regulations view is `WaterScreen`). Each draws the
- * water's header (`FaceBar`, through `WaterViewsContext`) above its body, so the back row and the view strip sit in
- * the same place on all three views and a swipe on that row moves between them.
+ * The Conditions and Map views of a water in water mode (the Regulations view is `WaterScreen`). Each is drawn inside
+ * the water frame (T44 `WaterFrame`: the back row, the view strip and the name row are the frame's, at the same place
+ * on all three views, and a swipe on them moves between the views); a view sets no gutter, width or header of its own.
  *
  *   Conditions  THE ONLY SCREEN THAT DRAWS A SECTION'S CONDITIONS PANEL (owner rule 2026-10-21, "one water screen,
  *               whichever map you tapped"). A tap on the Conditions map opens the water screen with this view in
@@ -13,16 +13,15 @@
  *   Map         the water framed and lit on the map (`usePickFocus`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
 import { useWater, useWaterName } from "@app/ui";
-import { CONDITIONS_MAX, ConditionsPanel } from "./ConditionsPanel";
-import { FaceBar } from "./Faces";
+import { ConditionsPanel } from "./ConditionsPanel";
 import { FishSpinner } from "./FishSpinner";
-import { TYPE } from "./type";
-import { GUTTER, SPACE, type Palette } from "./theme";
+import { type Palette } from "./theme";
+import { WaterFrame, WaterTitle } from "./WaterFrame";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
                                   credits, horizon, onHorizon }: {
@@ -53,15 +52,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const name = water.state === "ready" ? water.value?.name ?? null : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
-      {/* The header shares the panel's measure, so on a desktop the title sits over the content's own left edge. */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, gap: SPACE.s2,
-                     width: "100%", maxWidth: CONDITIONS_MAX, alignSelf: "center" }}>
-        <FaceBar palette={palette} face="conditions" onFace={() => {}} />
-        {/* Rendered only once it is known. A placeholder here would be a title that
-            changes after the reader has started reading it. */}
-        {name && <Text style={{ ...TYPE.title, color: palette.ink }}>{name}</Text>}
-      </View>
+    <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
       {section === null ? (
         sheet.state === "loading" && (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -74,7 +65,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
                          parameter={parameter} onParameter={onParameter} from={from}
                          credits={credits} horizon={horizon} onHorizon={onHorizon} />
       )}
-    </View>
+    </WaterFrame>
   );
 }
 
@@ -85,14 +76,10 @@ export function WaterMap({ source, item, palette, children }: {
 }) {
   const sheet = useWater(source, item);
   const name = sheet.state === "ready" ? sheet.value?.name ?? null : null;
+  // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it
   return (
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
-      {/* THE SAME INSETS AS THE OTHER TWO VIEWS, so the header does not move when the view changes. */}
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s2, gap: SPACE.s2 }}>
-        <FaceBar palette={palette} face="regulations" onFace={() => {}} />
-        {name && <Text style={{ ...TYPE.title, color: palette.ink }} numberOfLines={1}>{name}</Text>}
-      </View>
-      <View style={{ flex: 1 }}>{children}</View>
-    </View>
+    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} />} bleed>
+      {children}
+    </WaterFrame>
   );
 }
