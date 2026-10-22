@@ -594,3 +594,16 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   More block's summary still counts it with the other Details-only lines ("1 likely out of date · see Details") — a
   separate summary wording for one Details row was not worth a second rule.
 - NOT DONE: the roster notice is owner-only (the app ignores it); no feed run/notification was made for real.
+
+## OWNER 2026-10-22 (late) — Twin Lakes (MU 2-8): the closure must reach BOTH lakes
+- Owner: "in region 2-8 only one twin lakes gets the closure it should get both the lakes."
+- Cause (Claude): the curated override binds GNIS 30212 ("2 polygons"); both lake items carry gnis:30212, but the
+  matcher's id index (`build_id_index`, pipeline/regs/matching/matcher.py) maps a ref to ONE item, first writer wins.
+  That rule exists for side channels that inherit a mainstem's gnis (the Fraser case); for a lake drawn as several
+  polygons that share their OWN gnis it drops all but one. The catalogue's `matched` then carries one wbk.
+- Systemic: 15 catalogue entries curated to several polygons carry only the first (Illusion Lakes 1-6, Thetis 1-1,
+  Twin Lakes 2-8 and 8-1, Garbutt 4-22, Tagish 6-27, Cameron Lakes 7-31, La Salle 7-3, Rainbow Lakes 7-52, Sundance
+  7-32, Tatlatui 7-39, Yellowhead 7-1, Arlington Lakes 8-12, McCulloch Reservoir 8-10, Tee Pee Lakes 8-6).
+- Rule: a typed id an override pins resolves to EVERY lake item whose own polygon carries it, when no item owns it as
+  its id; side channels that only inherit a name's gnis still do not. Then backfill `matched` (dry-run first), reach
+  rerun + deliver, binding diff reviewed before promoting.
