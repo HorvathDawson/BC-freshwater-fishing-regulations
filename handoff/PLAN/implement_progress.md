@@ -96,6 +96,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- NEW TICKETS (owner 2026-10-21): T44 one frame for the water screen (no left-margin shift between Regulations/Conditions/
+  Map; FaceBar drawn once), T45 Regulations desktop layout, T46 fish ID looks side by side + max picture width on desktop,
+  T47 status colours distinct (own vs closed vs restricted; region boundary red reads as closed -> neutral boundaries;
+  CVD gate; owner picks from side-by-side renders).
 - ~22:00: tile server restarted (pnpm tiles, :39217, serves r-0efa5d05fc92). Follow-ups wf_3d498e10-baf DONE: engine-polish
   already merged; lake-values reviewed+fixed (worktree-wf_3d498e10-baf-2, 5 commits) -> CORRECTION PASS agent running
   (prepared-not-fed; FFSBC source has no open licence); water-map lane was BLOCKED by the permission classifier, finished
