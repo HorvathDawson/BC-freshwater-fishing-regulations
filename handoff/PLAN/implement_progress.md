@@ -22,7 +22,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - valid_until stamped (2027-03-31). FOUND + FIXED 1c2b671: the release id hashed only the files, so a manifest-only
   change kept the same id (apps would never refetch). RUNNING: deliver-id.sh (re-deliver under the new id + fixture re-cut;
   log scratchpad deliver-id.log) — commit the new dev fixture dir afterwards.
-- RUNNING: wf_1060af7b-2d2 (silent donors hidden, one line with last data time); wf_b88d9e03-10e (owner: HYDAT
+- MERGED: silent donors hidden + one line with last data (00d17da4..a4af7e52 picked; reviewer fixed 3 defects).
+- RUNNING: wf_e3d5fe4e-dcc (owner: back steps out ONE layer; moves inside a water replace history; close to main);
+  wf_54c90876-8ac (owner: desktop search close — Esc, outside click, panel close, field X clears only). Both touch
+  navigation: merge back first, then reconcile search's back layer.
+- RUNNING: wf_b88d9e03-10e (owner: HYDAT
   maintenance notices — detect, notify once via FEED_NOTIFY_URL, scripts/update-hydat.sh, app HYDAT line follows the
   notice; decisions.md "upstream updates the owner runs"). THEN: merge both, full strict check + smoke once.
 - FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
