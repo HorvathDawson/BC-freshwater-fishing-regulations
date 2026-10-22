@@ -14,7 +14,10 @@ used anywhere.
   - `blankTile=false` makes a place with no imagery at a zoom answer 404, so MapLibre overzooms the parent tile. Without
     it, Esri serves its grey "Map data not yet available" tile (2,521 bytes). Probes: the far north (59.5 N) has a hole
     at z18, and north-central BC (56.26 N) has one at z19.
-- **Key, as config** (`app/apps/mobile/src/config.ts` → `IMAGERY_TILES`): `EXPO_PUBLIC_ARCGIS_API_KEY`, when set,
+- **No key by default — the owner's decision** (2026-10-21 late, decisions.md "layers menu, water map, imagery": "we used
+  esri free without a key in original app lets do that again. this is a non profit app"). The app ships the keyless
+  `server.arcgisonline.com` URL above, as the original app did.
+- **Key, as OPTIONAL config** (`app/apps/mobile/src/config.ts` → `IMAGERY_TILES`): `EXPO_PUBLIC_ARCGIS_API_KEY`, when set,
   switches the tiles to `https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false&token=<key>`
   (`imageryTiles` in `@app/map`). No key appears anywhere in the code.
 - **One toggle, one colouring pathway:** the Layers sheet's Basemap → `mapModes` (which now takes `basemap` and
@@ -28,8 +31,11 @@ used anywhere.
     there instead of `onError`.
   - **Both platforms:** a probe for one z0 tile when Satellite is chosen, repeated every 30 s while unreachable. On a
     phone it also repeats every 120 s while reachable.
-  - **Native:** NetInfo is NOT a dependency, so `connectivity.native.ts` never reports a state and the probe is the
-    phone's only signal. No new dependency was added.
+  - **Native:** ~~NetInfo is NOT a dependency~~ — 2026-10-21 (late), owner: "Add network-status detection on phones
+    (netinfo)". `@react-native-community/netinfo` 12.0.1 (Expo SDK 57's version) now feeds `connectivity.native.ts`
+    (read in `netInfoConnectivity.ts`): offline and back online are instant. The probe stays as the fallback — on
+    choosing satellite, on coming back, and every 120 s while up (the phone's map reports no failed tile) — and is the
+    only signal where NetInfo's native module is not linked (a development client built before it; rebuild it).
 
   The reader's choice stays Satellite. Layers says: "Satellite needs a connection. Showing the map until you are back
   online; satellite returns by itself."
@@ -49,13 +55,12 @@ used anywhere.
 - **Licence:** the Esri Master License Agreement and Product-Specific Terms (item 10df2279f9684e4a9f6a7f08febac2a9).
   The item says the layer "is not intended to be used to export tiles for offline", which is why nothing is cached or
   packaged (`no-store` probe, external source).
-- **Production needs a key.** The research (`../README.md`) found that calling the token-free
-  `server.arcgisonline.com` tiles from a non-Esri app is not a licensed path. The licensed route is ArcGIS Location
-  Platform:
-  - The owner creates an API key, restricts it by referrer and app, and sets `EXPO_PUBLIC_ARCGIS_API_KEY` for builds.
+- **The keyless URL ships (owner's decision, 2026-10-21 late).** The facts stay recorded: the research (`../README.md`)
+  found that calling the token-free `server.arcgisonline.com` tiles from a non-Esri app is not, by Esri's terms, a
+  licensed path; Esri's licensed route is ArcGIS Location Platform. The owner weighed that and chose keyless, as the
+  original app ran ("this is a non profit app"). The key stays optional config, for if the owner ever wants it:
+  - Create an API key, restrict it by referrer and app, and set `EXPO_PUBLIC_ARCGIS_API_KEY` for builds.
   - Billing is 2M basemap tiles a month free, then $0.15 per 1,000; basemap sessions are an alternative.
-  - Until a key is set, the app uses the token-free URL the original app used. That is fine for development; do not
-    ship it.
 - The keyed endpoint (`ibasemaps-api.arcgis.com`) was **not exercised** because no key is available here. It is
   Esri's documented Location Platform path for this MapServer, but `blankTile=false` on it is assumed, not measured.
 
@@ -75,4 +80,4 @@ There were 51 Esri requests, all 200, and no console errors.
 - **Native was not run on a device.** MapLibre Native's handling of a 404 raster tile (parent overzoom or a
   transparent hole) is unmeasured; the worst case is the drawn map showing through at z18 in rural BC. The probe path
   is covered in jsdom only.
-- `EXPO_PUBLIC_ARCGIS_API_KEY` needs adding to whatever build or CI environment ships the app.
+- `EXPO_PUBLIC_ARCGIS_API_KEY` is optional; unset (the owner's choice) the keyless URL ships.

@@ -3,13 +3,14 @@
  * the words are in @app/core (`imagery.ts`); `mapModes` turns this answer and the reader's choice into the ground drawn.
  *
  * Three signals, any one down is down:
- *   - the device's own word (`Connectivity`): the web's `navigator.onLine` and its online/offline events. A phone has
- *     no such source without a new dependency (NetInfo is not one of ours), so its `watches` is false and it never says;
+ *   - the device's own word (`Connectivity`): the web's `navigator.onLine` and its online/offline events; a phone's
+ *     NetInfo (owner 2026-10-21 late). Where NetInfo's module is not linked the phone has no source: `watches` is
+ *     false and it never says;
  *   - an imagery tile failing on the web map (`tileFailed`, from `MapProps.onImageryError`): a 404 is a hole Esri has
  *     no imagery for, not an outage (`isImageryOutage`);
  *   - a PROBE of one z0 tile, run when satellite is chosen and then every `recheckMs` while it is down — which is how
- *     it comes back by itself where nothing would say so. On a phone, which cannot hear the device go offline, the
- *     probe also rechecks (4× slower) while it is up.
+ *     it comes back by itself where nothing would say so. On a phone, whose map reports no failed tile
+ *     (`probeWhileUp`), the probe also rechecks (4× slower) while it is up: the fallback for what NetInfo cannot see.
  * Nothing is asked while satellite is not chosen, and nothing while the device says it is offline: its online event
  * brings satellite back.
  */
@@ -19,6 +20,8 @@ import { IMAGERY_START, imageryReach, imageryUp, isImageryOutage } from "@app/co
 export interface Connectivity {
   /** Can this platform say whether the device is online at all. */
   watches: boolean;
+  /** This platform's map reports no failed imagery tile (the phone's binding), so the probe also rechecks while up. */
+  probeWhileUp: boolean;
   /** The device's word now; `true` where it cannot say. */
   online(): boolean;
   /** Every change of the device's word; returns the unsubscribe. Never called where it cannot say. */
@@ -59,12 +62,12 @@ export function useImageryReach({ wanted, connectivity, probe, recheckMs = 30_00
   const asks = wanted && (!connectivity.watches || s.online);
   // the first word on choosing satellite (and on the device coming back): one probe
   useEffect(() => { if (asks) check(); }, [asks, check]);
-  // and again while it is down; a phone, which never hears the device go offline, also while it is up
+  // and again while it is down; a phone, whose map never says a tile failed, also while it is up
   useEffect(() => {
-    if (!asks || (!s.failed && connectivity.watches)) return;
+    if (!asks || (!s.failed && !connectivity.probeWhileUp)) return;
     const id = setInterval(check, s.failed ? recheckMs : recheckMs * 4);
     return () => clearInterval(id);
-  }, [asks, s.failed, connectivity.watches, recheckMs, check]);
+  }, [asks, s.failed, connectivity.probeWhileUp, recheckMs, check]);
 
   const tileFailed = useCallback((status: number | undefined) => {
     if (isImageryOutage(status)) dispatch({ type: "failed" });

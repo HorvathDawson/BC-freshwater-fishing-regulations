@@ -126,6 +126,17 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   on every update — so they get a file of their own that no update touches. Web uses browser
   storage instead; nothing above the store can tell which it got. It also holds a spot's
   photographs (`documentDirectory/spots/photos/`, `packages/data/src/spots/photoStore.native.ts`).
+- `@react-native-community/netinfo` — **12.0.1, exact: the version Expo SDK 57's `bundledNativeModules.json` names**
+  (pinned in the root `overrides` too: native code, like react-native-svg). Owner 2026-10-21 (late): "Add network-status
+  detection on phones (netinfo)". Satellite imagery is online-only; without this a phone could not hear itself go
+  offline, and the only signal was a one-tile probe every 30-120 s, so satellite lingered as blank tiles for up to two
+  minutes and came back as late. With it the switch is instant both ways. The probe stays as the fallback for what
+  NetInfo cannot see (Esri down while the phone is online; the phone's map reports no failed tile). Named in ONE file,
+  `packages/ui-native/src/connectivity.native.ts`, loaded lazily: NetInfo throws on import where its native module is
+  not linked (a development client built before it), and that falls back to the probe instead of a crash. Listed by
+  `apps/mobile` for autolinking (it needs a rebuilt development build, like the map). Not used on the web
+  (`navigator.onLine` does that job). Cost: a small native module (Android/iOS) and ~25 KB of TypeScript source before minification. Not a data package:
+  the owner's "minimal prod packages" rule (2026-10-20) is about the release's data files and is untouched.
 - `expo-image-picker` — pinned 57.0.20 (the SDK 57 line; `npx expo install` names `~57.0.14`). Adds a photograph to
   a spot on iOS and Android, from the library or the camera, through the system picker — so the app draws no picker
   of its own. Used ONLY by `apps/mobile/src/pickPhoto.native.ts`; the web side is a plain

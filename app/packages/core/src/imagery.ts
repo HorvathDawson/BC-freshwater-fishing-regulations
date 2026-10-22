@@ -7,7 +7,7 @@
  * reached again it comes back by itself.
  *
  * "Can be reached" is two facts: the device says it is online (the web's `navigator.onLine` and its online/offline
- * events; a phone has no such source without a new dependency, so it stays `online`), and the imagery itself has not
+ * events; a phone's NetInfo — where its module is not linked the phone stays `online`), and the imagery itself has not
  * failed (a tile error on the web map, or the probe both platforms run). Either one down is down.
  */
 

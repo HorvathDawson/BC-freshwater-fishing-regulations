@@ -67,6 +67,20 @@ Shots: `handoff/PLAN/app-data/layers-menu/built/`.
 ramp as the water; below z7 the water fades and each station becomes a soft disc. Route
 reaches paint in `color.highlight` with downstream arrowheads.
 
+**Satellite and the phone's connection (owner 2026-10-21, late).** Esri World Imagery ships KEYLESS, as the original
+app did ("this is a non profit app"); `EXPO_PUBLIC_ARCGIS_API_KEY` is optional config (`apps/mobile/src/config.ts`,
+`handoff/PLAN/app-data/satellite/esri/README.md`). A phone hears itself go offline through
+`@react-native-community/netinfo` 12.0.1 (Expo SDK 57's version; why it is worth a native module: `deps.md`): one file
+names it (`ui-native/src/connectivity.native.ts`, loaded lazily), `netInfoConnectivity.ts` reads it (offline only on a
+definite no; each change said once). The one-tile probe stays as the fallback (`useImageryReach`: on choosing, on
+coming back, and every 120 s while up on a phone, whose map reports no failed tile — `Connectivity.probeWhileUp`), and
+it is the only signal where the module is not linked. The "minimal prod packages" rule is about the release's DATA
+files; this adds none. Needs a rebuilt development build (`expo prebuild`) to take effect on a device.
+
+**Water map crossing (owner 2026-10-21, late).** ▲ / ▼ that cross into another water (`water_continue`) SAY where:
+"▲ Upstream into Chilliwack River" on the button itself, two lines at most, centred, then an ellipsis (the full words
+stay the accessible name). Words: `@app/core` `WATER_MAP_WORDS.upInto` / `downInto`, composed by `crossLabel`.
+
 ---
 
 ## Back, everywhere

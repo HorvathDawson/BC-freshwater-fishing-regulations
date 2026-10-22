@@ -37,7 +37,7 @@ vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 /** The device: online until a test says otherwise, and its events. */
 const device: { online: boolean; cb: ((on: boolean) => void) | null } = { online: true, cb: null };
 vi.mock("./connectivity", () => ({
-  connectivity: { watches: true, online: () => device.online,
+  connectivity: { watches: true, probeWhileUp: false, online: () => device.online,
                   subscribe: (on: (o: boolean) => void) => { device.cb = on; return () => { device.cb = null; }; } },
 }));
 /** The one-tile probe: answers while `reachable`. */

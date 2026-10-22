@@ -1,24 +1,27 @@
 /**
  * CAN THE SATELLITE IMAGERY BE REACHED (owner 2026-10-21: satellite is online-only). The device's word where it has
- * one (the web), an imagery tile failing, and a probe of one tile — on a phone with no connectivity source, the probe
- * is the only signal. The hook only reports; `mapModes` decides the ground from it.
+ * one (the web; a phone through NetInfo), an imagery tile failing, and a probe of one tile — the only signal on a phone
+ * whose NetInfo module is not linked, and on any phone the recheck while up (its map reports no failed tile). The hook
+ * only reports; `mapModes` decides the ground from it.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useImageryReach, type Connectivity, type ImageryReachInput } from "./imagery";
 
-/** A device that can say whether it is online, and change its mind. */
-function webDevice(online = true) {
+/** A device that can say whether it is online, and change its mind: the web, or a phone through NetInfo
+ *  (`probeWhileUp`: its map reports no failed tile). */
+function webDevice(online = true, probeWhileUp = false) {
   let cb: ((on: boolean) => void) | null = null;
   const c: Connectivity = {
     watches: true,
+    probeWhileUp,
     online: () => online,
     subscribe: (on) => { cb = on; return () => { cb = null; }; },
   };
   return { c, set: (on: boolean) => { online = on; act(() => cb?.(on)); } };
 }
-/** A phone: no connectivity source (no NetInfo dependency), so it never says. */
-const phone: Connectivity = { watches: false, online: () => true, subscribe: () => () => {} };
+/** A phone whose NetInfo module is not linked (a dev client built before it): no source, so it never says. */
+const phone: Connectivity = { watches: false, probeWhileUp: true, online: () => true, subscribe: () => () => {} };
 
 const flush = () => act(async () => { await Promise.resolve(); await Promise.resolve(); });
 
@@ -38,6 +41,35 @@ describe("useImageryReach", () => {
     d.set(true);
     expect(r.result.current.up).toBe(true);
   });
+
+  it("web: once up, nothing is asked again — a failed tile says when it is down", async () => {
+    const d = webDevice(true);
+    const probe = vi.fn(async () => true);
+    const r = renderHook(() => useImageryReach({ wanted: true, connectivity: d.c, probe, recheckMs: 1000 }));
+    await flush();
+    await act(async () => { vi.advanceTimersByTime(10_000); });
+    expect([r.result.current.up, probe.mock.calls.length]).toEqual([true, 1]);
+  });
+
+  it("phone with NetInfo: offline is down at once with no probe; back online asks once; up, it still rechecks (4× slower)",
+    async () => {
+      const d = webDevice(true, true);
+      const probe = vi.fn(async () => true);
+      const r = renderHook(() => useImageryReach({ wanted: true, connectivity: d.c, probe, recheckMs: 1000 }));
+      await flush();
+      const seen = [`${r.result.current.up} ${probe.mock.calls.length}`];
+      await act(async () => { vi.advanceTimersByTime(4000); });
+      await flush();
+      seen.push(`${r.result.current.up} ${probe.mock.calls.length}`);
+      d.set(false);
+      seen.push(`${r.result.current.up} ${probe.mock.calls.length}`);
+      await act(async () => { vi.advanceTimersByTime(20_000); });
+      seen.push(`${r.result.current.up} ${probe.mock.calls.length}`);
+      d.set(true);
+      await flush();
+      seen.push(`${r.result.current.up} ${probe.mock.calls.length}`);
+      expect(seen).toEqual(["true 1", "true 2", "false 2", "false 2", "true 3"]);
+    });
 
   it("web: a device already offline starts down", () => {
     const d = webDevice(false);
@@ -63,7 +95,7 @@ describe("useImageryReach", () => {
     expect(r.result.current.up).toBe(true);
   });
 
-  it("phone: the probe is the signal — down when it fails, up when a later probe answers", async () => {
+  it("phone without NetInfo: the probe is the signal — down when it fails, up when a later probe answers", async () => {
     let answers = false;
     const probe = vi.fn(async () => answers);
     const r = renderHook(() => useImageryReach({ wanted: true, connectivity: phone, probe, recheckMs: 1000 }));
