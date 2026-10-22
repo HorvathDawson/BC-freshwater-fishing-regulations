@@ -123,3 +123,9 @@ River"); drop reversed continuations like Eagle Trib.5-3 → Trib.5 (fix the rul
 Imagery: use Esri World Imagery WITHOUT a key, as the original app did ("this is a non profit app"); a key stays optional
 config. No offline 10 m base ("10m is useless"). Add network-status detection on phones (netinfo). The Satellite choice
 does not need to persist across launches.
+
+## OWNER 2026-10-22 — side channels follow their own river (option A)
+"a is what i want. just follows its own river at that point." A side channel's Conditions panel comes from a reach on
+its OWN river (same FWA watershed code) — `mainstem_of` in pipeline/atlas/gauges/build_panels.py never adopts another
+river's reach. Where its own river is silent, the channel is silent too. Options B (an explanatory line), C1 (share-of-
+flow weighting) and D (the downstream-walk area rule) are NOT part of this. See handoff/PLAN/app-data/side-channels/REPORT.md.
