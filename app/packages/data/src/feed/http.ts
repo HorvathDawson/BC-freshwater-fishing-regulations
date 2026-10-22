@@ -42,6 +42,11 @@ interface IndexFile {
   fetchedAt: string;
   /** Which HYDAT release every percentile in this file was measured against. */
   hydat?: { release: string | null; latest: string | null; stale: boolean };
+  /**
+   * The station ids ECCC listed as real-time on the publishing run (`publish.py`). A panel member absent from it is
+   * "not a real-time gauge" rather than "not reporting". Absent on an older feed: every station reads as listed.
+   */
+  listed?: string[];
   stations: Record<string, {
     percentile: number | null;
     observedAt: string | null;

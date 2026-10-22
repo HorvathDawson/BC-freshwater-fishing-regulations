@@ -7,6 +7,8 @@ describe("the route map's words", () => {
     expect(donorMapLabel({ weight: 0.62, percentile: 0.3 })).toBe("62%");
     expect(donorMapLabel({ weight: 0.004, percentile: 0.3 })).toBe("<1%");
     expect(donorMapLabel({ weight: 0, percentile: null })).toBe("not reporting");
+    expect(donorMapLabel({ weight: 0, percentile: null, realtime: true })).toBe("not reporting");
+    expect(donorMapLabel({ weight: 0, percentile: null, realtime: false })).toBe("not a real-time gauge");
   });
 
   it("keys a gauge with the same words its dot carries", () => {
@@ -14,6 +16,8 @@ describe("the route map's words", () => {
       .toBe("08MH001 · 62%");
     expect(donorMapKey({ station: "08MH024", weight: 0, percentile: null }))
       .toBe("08MH024 · not reporting");
+    expect(donorMapKey({ station: "08MH024", weight: 0, percentile: null, realtime: false }))
+      .toBe("08MH024 · not a real-time gauge");
   });
 
   it("names the spot as its key does", () => {
@@ -35,6 +39,7 @@ describe("the route map's words", () => {
       down: "gauge downstream: your water flows on to it",
       up: "gauge upstream: its water flows down to you",
       quiet: "not reporting",
+      notRealtime: "not a real-time gauge",
       fit: "Fit",
       fitLabel: "Fit the map to you and the gauges",
       larger: "Larger map",

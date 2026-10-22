@@ -312,6 +312,19 @@ describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)"
     expect(donorReads(row({ percentile: null, observedAt: "2026-10-20T20:30:00-08:00" })))
       .toBe("Not reporting today.");
   });
+  it("a station ECCC does not list as real-time is not a real-time gauge, never 'not reporting'", () => {
+    // `realtime: false` comes from the feed index's `listed`; a listed gauge that is silent keeps today's words.
+    expect(donorReads(row({ percentile: null, realtime: false }), { ref: REF }))
+      .toBe("Not a real-time gauge.");
+    expect(donorReads(row({ percentile: null, realtime: false, observedAt: "2026-10-20T20:30:00-08:00" }),
+                      { ref: REF, horizon: 3 }))
+      .toBe("Not a real-time gauge.");
+    expect(donorReads(row({ percentile: null, realtime: true }), { ref: REF })).toBe("Not reporting today.");
+    expect(donorRowLabel(row({ percentile: null, realtime: false }), false, false))
+      .toBe("08MH001, upstream, 2.4× apart, not a real-time gauge, so it counts for nothing");
+    expect(donorRowLabel(row({ percentile: null, realtime: true }), false, false))
+      .toBe("08MH001, upstream, 2.4× apart, not reporting today, so it counts for nothing");
+  });
   it("a day ahead with no forecast is a missing forecast", () => {
     expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))
       .toBe("No forecast for this gauge that far ahead.");

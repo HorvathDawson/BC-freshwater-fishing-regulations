@@ -14,6 +14,8 @@ export const ROUTE_MAP_WORDS = {
   up: "gauge upstream: its water flows down to you",
   /** Beside a gauge that is not reporting — it counts for nothing today. */
   quiet: "not reporting",
+  /** Beside a gauge ECCC does not list as real-time (the feed index's `listed`) — it never reports live. */
+  notRealtime: "not a real-time gauge",
   fit: "Fit",
   fitLabel: "Fit the map to you and the gauges",
   larger: "Larger map",
@@ -21,12 +23,13 @@ export const ROUTE_MAP_WORDS = {
 } as const;
 
 /** What a gauge's dot says on the map: its share of the estimate, or that it is quiet. */
-export function donorMapLabel(r: Pick<DonorFacts, "weight" | "percentile">): string {
-  return r.percentile === null ? ROUTE_MAP_WORDS.quiet : donorShare(r);
+export function donorMapLabel(r: Pick<DonorFacts, "weight" | "percentile" | "realtime">): string {
+  if (r.percentile !== null) return donorShare(r);
+  return r.realtime === false ? ROUTE_MAP_WORDS.notRealtime : ROUTE_MAP_WORDS.quiet;
 }
 
 /** A gauge's entry in the map's key: its station and the same words its dot carries. */
-export function donorMapKey(r: Pick<DonorFacts, "station" | "weight" | "percentile">): string {
+export function donorMapKey(r: Pick<DonorFacts, "station" | "weight" | "percentile" | "realtime">): string {
   return `${r.station} · ${donorMapLabel(r)}`;
 }
 

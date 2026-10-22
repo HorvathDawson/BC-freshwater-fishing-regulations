@@ -49,6 +49,12 @@ export interface DonorRow {
    * station: a quiet gauge then says its last report is not known rather than inventing one (owner 2026-10-21).
    */
   observedAt?: string;
+  /**
+   * `false` only: the feed's index lists ECCC's real-time stations (`listed`) and this one is not among them, so the
+   * row says "not a real-time gauge" rather than "not reporting". Absent when it is listed, or when an older index
+   * carries no list (every station then reads as listed — today's words).
+   */
+  realtime?: false;
 }
 
 export interface PanelAnswer {
@@ -103,7 +109,9 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           /** The station's last observation (ISO), from the feed. */
                                           observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
-                                          ahead?: Ahead }> } | null;
+                                          ahead?: Ahead }>;
+               /** ECCC's real-time station ids on the publishing run; absent on an older feed (= all listed). */
+               listed?: readonly string[] } | null;
 
 /**
  * One station's percentile for the day being asked about, in one quantity.
@@ -177,6 +185,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const contributions = contributionsOf(panel, index, chosen, horizon);
   const { answer, stoodBack } = answering(panel.areaKm2, contributions);
   const raw: (DonorRow & { _w: number })[] = [];
+  const listed = index.listed ? new Set(index.listed) : null;
   let at = 0;   // this member's index in `contributions`, which holds the reporting members in panel order
   for (const m of panel.members) {
     const row = index.stations[m.station];
@@ -195,7 +204,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
                years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
                factors: f, _w: w,
-               ...(row?.observedAt ? { observedAt: row.observedAt } : {}) });
+               ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
+               ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}) });
   }
   /*
    * A DAY AHEAD THAT NO RUN REACHES is said as that. With no donor reading at the horizon

@@ -133,6 +133,11 @@ export interface DonorFacts {
   route?: { path: readonly unknown[]; name?: string | null } | undefined;
   /** When the station last reported, from the feed's index (ISO), where the feed says. */
   observedAt?: string | null;
+  /**
+   * `false`: ECCC does not list this station as real-time on the feed's last run (the index's `listed`), so it is
+   * "not a real-time gauge", not "not reporting". Absent (or true) where it is listed, or the index carries no list.
+   */
+  realtime?: boolean;
 }
 
 const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream" };
@@ -173,6 +178,8 @@ const DAY = 86_400_000;
  */
 export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
   if (r.percentile !== null) return `Reads ${inTen(r.percentile)}.`;
+  // Not on ECCC's real-time list at all: it is not silent today, it never speaks live — on any day asked about.
+  if (r.realtime === false) return "Not a real-time gauge.";
   if (o.horizon) return "No forecast for this gauge that far ahead.";
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
   if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY)
@@ -226,7 +233,7 @@ export function donorBecause(r: DonorFacts): string {
 /** The row's screen-reader name; the weight is drawn as a bar, invisible to a reader. */
 export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean): string {
   const said = r.percentile === null
-    ? "not reporting today, so it counts for nothing"
+    ? `${r.realtime === false ? "not a real-time gauge" : "not reporting today"}, so it counts for nothing`
     : `${Math.round(r.weight * 100)} per cent of the answer`;
   const base = `${r.station}, ${ROLE[r.role]}, ${sizeApart(r.areaRatio)}, ${said}`;
   return pickable ? `${base}. ${on ? "Showing" : "Show"} this gauge's chart` : base;

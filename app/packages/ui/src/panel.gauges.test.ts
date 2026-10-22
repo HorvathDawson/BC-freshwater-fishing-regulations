@@ -62,6 +62,44 @@ describe("a quiet gauge says when it last reported", () => {
   });
 });
 
+describe("a gauge ECCC does not list as real-time (index.json `listed`)", () => {
+  // GONE is a panel member but not on ECCC's real-time list this run; STALE is listed and silent.
+  const LISTED = { ...INDEX, listed: ["LEAD", "RANKLESS", "STALE"] };
+  const at = (index: typeof INDEX & { listed?: string[] }) => donorView(answerFrom(PANEL, index),
+    { day: DAY, horizon: 0, from: null, size: { width: 360, height: 210 }, selected: null, pickable: false,
+      zone: VAN });
+
+  it("marks only the unlisted member, and only when the index carries a list", () => {
+    expect(Object.fromEntries(answerFrom(PANEL, LISTED).rows.map((r) => [r.station, r.realtime ?? null])))
+      .toEqual({ LEAD: null, STALE: null, RANKLESS: null, GONE: false });
+    expect(answerFrom(PANEL, INDEX).rows.map((r) => r.realtime ?? null)).toEqual([null, null, null, null]);
+  });
+
+  it("says 'not a real-time gauge' for the unlisted row and 'not reporting' for a listed silent one", () => {
+    const vm = at(LISTED);
+    if (!vm.ok) throw new Error("expected an estimate");
+    expect(vm.rows.map((r) => [r.station, r.reads, r.label])).toEqual([
+      ["LEAD", "Reads lower than 8 days in 10 at this time of year.",
+       "LEAD, upstream, same size, 100 per cent of the answer"],
+      ["STALE", "Not reporting today.", "STALE, upstream, same size, not reporting today, so it counts for nothing"],
+      ["RANKLESS", "Reporting, but its reading cannot be ranked today.",
+       "RANKLESS, downstream, same size, not reporting today, so it counts for nothing"],
+      ["GONE", "Not a real-time gauge.", "GONE, upstream, same size, not a real-time gauge, so it counts for nothing"],
+    ]);
+  });
+
+  it("an older index without `listed` keeps today's wording", () => {
+    const vm = at(INDEX);
+    if (!vm.ok) throw new Error("expected an estimate");
+    expect(vm.rows.map((r) => [r.station, r.reads])).toEqual([
+      ["LEAD", "Reads lower than 8 days in 10 at this time of year."],
+      ["STALE", "Not reporting today."],
+      ["RANKLESS", "Reporting, but its reading cannot be ranked today."],
+      ["GONE", "Not reporting today."],
+    ]);
+  });
+});
+
 describe("the chart's gauge switcher", () => {
   it("lists every donor in weight order, the charted one on, with the share the list says", () => {
     const rows = answerFrom(PANEL, INDEX).rows;

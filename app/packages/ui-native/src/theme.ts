@@ -67,7 +67,9 @@ export interface Palette {
    * These say "this pin is that row", nothing more. They are deliberately not a ramp: a
    * ramp would encode weight a second time, and the bar and the percentage already do
    * that, so the strongest colour would land on the heaviest donor and read as a severity.
-   * Four, because a panel holds at most four members (MAX_MEMBERS in panel.py).
+   * Four, for the CORE_MEMBERS = 4 that usually carry the answer. A panel holds up to eight members per quantity
+   * (MEMBERS_PER_QUANTITY in pipeline/atlas/gauges/panel.py), so `donorTone` cycles these by row: a fifth donor
+   * repeats the first's hue, and its row, pin and switch dot still match each other.
    *
    * Separate from `stock` even though both are four-or-five arbitrary hues: reusing that
    * ramp would mean a change to how stocking recency is drawn silently repainting the
