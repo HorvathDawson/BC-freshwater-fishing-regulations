@@ -132,8 +132,12 @@ flow weighting) and D (the downstream-walk area rule) are NOT part of this. See 
 
 ## OWNER 2026-10-22 — a water's own gauge comes first
 "the pitt could use its own gauge." The Pitt's own gauge, 08MH035 Pitt River near Port Coquitlam, records LEVEL only
-(2017–2024), so in Flow mode the Pitt borrowed North Alouette (26 km²). Rule: a water's OWN gauge (matched to that water)
-outranks borrowed donors in whatever it measures. When the chosen quantity isn't recorded there but the other is, that
-water shows its own gauge's other quantity, labelled ("Level — this gauge records level only"). Check and disclose tidal
+(2017–2024), so in Flow mode the Pitt borrowed North Alouette (26 km²). Refined by the owner: "it can still use auxiliary
+gauges but own gauge should be main (unless far from click) low magnitude compared to click spot." Rule: a water's OWN
+gauge (matched to that water) carries the MAIN weight, in whatever it measures; other donors still count as auxiliary,
+with a smaller share. The own gauge stops leading only when it is far from the tapped spot along the water, or its
+catchment is much smaller than the spot's (low magnitude relative to the tapped spot); then the usual weighting applies.
+When the chosen quantity isn't recorded on the own gauge but the other is, the own gauge leads in that other quantity,
+labelled ("Level — this gauge records level only"). Check and disclose tidal
 or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
 before the data rebuild; the estimate stays pipeline-generated with the app mirror held equal.
