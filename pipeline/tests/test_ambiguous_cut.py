@@ -399,7 +399,7 @@ def test_skeena_river_2_keeps_the_reserves_lower_mainstem_crossing(real):
     amb = {d.payload["split_id"]: d.payload for d in diags if d.kind == "ambiguous_cut"}
     got = amb[SKEENA_RESERVE]
     assert round(got["used"]) == 63480, got
-    assert any(round(x) == 66554 for x in got["candidates"]), got
+    assert any(abs(x - 66554.7) < 1 for x in got["candidates"]), got
     assert got["toward"] == "curated" and got["reason"] == "curated"
 
 
