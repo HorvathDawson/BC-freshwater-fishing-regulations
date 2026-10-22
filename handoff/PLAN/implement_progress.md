@@ -41,8 +41,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   graph). NEEDS deliver — batched with Twin Lakes: ONE rebuild = backfill_matched (dry-run, apply) → reach rerun →
   binding diff → deliver all → pytest test_stream_polygon_panels.py (no ALLOW_PREDATING) → fixtures.
   Remaining sloughs/canals = T55. RUNNING wf_31731618-a9b (one river system: Vedder/Chilliwack, Atnarko/Bella Coola).
-- RUNNING wf_d6aefe12-cec (owner: Twin Lakes 2-8 closure on BOTH lakes; matcher build_id_index first-writer drops
-  multi-polygon lakes; 15 entries). Merger: backfill_matched (dry-run, then apply), reach rerun + binding diff, deliver.
+- MERGED Twin Lakes matcher fix ae5554fc; catalogue stamped ad77fda (18 entries, +31 ids, none removed). Main Lake
+  (Quadra) 1-15 HELD: would also bind Mine Lake (own entry) — owner decides. RUNNING twin-reach.sh (reach into
+  reaches/full_twin + binding diff → handoff/PLAN/audit/binding-diff-twin.json). THEN wait for wf_3976eddc-bba (polygon
+  walk) → swap reaches → deliver all ONCE → test_stream_polygon_panels.py → fixtures → strict + smoke.
 - FOLLOW-UPS noted by lanes: Forecasts line on More needs feed-wide forecastIssuedAt in publish.py; HYDAT row could use
   index hydat.stale; dark water names now near status.base blue and flow f5 (owner may want to see).
 
