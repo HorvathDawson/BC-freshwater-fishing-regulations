@@ -73,6 +73,17 @@ describe("<MapScreen> corner", () => {
     expect(bg(chosen)).not.toBe(bg(other));
   });
 
+  it("(refinement pass) is ONE joined strip — one card, hairline dividers — each segment a 44 × 44 press", () => {
+    render(<MapScreen {...BASE} horizons={horizons(3)} />);
+    const strip = screen.getByTestId("map-horizons");
+    const segs = [...strip.children] as HTMLElement[];
+    expect(segs.map((s) => [s.getAttribute("aria-label"), s.getAttribute("data-hitslop"),
+                            (s.firstElementChild as HTMLElement).style.borderLeftWidth || "0px"]))
+      .toEqual([["Conditions now", "46 33 6 0 5 0", "0px"], ["Forecast 1 day ahead", "46 33 6 0 5 0", "1px"],
+                ["Forecast 3 days ahead, showing", "46 33 6 0 5 0", "1px"],
+                ["Forecast 5 days ahead", "46 33 6 0 5 0", "1px"], ["Forecast 10 days ahead", "46 33 6 0 5 0", "1px"]]);
+  });
+
   it("hands back the day that was tapped, ten included", () => {
     const onPick = vi.fn();
     render(<MapScreen {...BASE} horizons={horizons(0, onPick)} />);

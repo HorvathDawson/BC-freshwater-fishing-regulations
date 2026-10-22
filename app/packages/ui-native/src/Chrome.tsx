@@ -4,8 +4,9 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { percentileOrdinal } from "@app/core";
+import { percentileOrdinal, standing } from "@app/core";
 import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -105,12 +106,41 @@ export function LegendCount({ palette, colour, n, label, line }:
   );
 }
 
+
+/**
+ * WHERE "NORMAL" IS ON THE SCALE: the percentiles core's `standing` calls normal (the middle half of the record, 25–75),
+ * read from that function rather than restated, so the legend's bracket and every "NORMAL" word agree.
+ */
+const NORMAL: readonly [number, number] = (() => {
+  const at = Array.from({ length: 101 }, (_, i) => i / 100).filter((p) => standing(p) === "normal");
+  return [at[0] ?? 0.25, Math.min(1, (at.at(-1) ?? 0.74) + 0.01)];
+})();
+/** the legend's widest: past this a ramp across a desktop window is a stripe, not a scale (centred in the strip) */
+export const LEGEND_RAMP_MAX = 560;
+const BAR = 10, TICKS = 14;
+
 /**
  * The Conditions legend: a continuous ramp, because flow against the record is continuous.
  * Discrete swatches would imply buckets the data does not have.
+ *
+ * (refinement pass, owner 2026-10-22: "the histogram bar at bottom of condition map could be made a little better") —
+ * what changed, and why:
+ *   - THE RAMP IS THE MAP'S, STOP FOR STOP: a gradient with each colour at the percentile it names (`stops`, from the
+ *     style's metadata via `flowRampStops`). Seven equal blocks put a 20th-percentile gauge's mark on f2 while the map
+ *     painted it nearly f3, and squeezed "normal" into one seventh of the bar.
+ *   - IT SAYS WHAT THE SCALE IS: a title ("Flow vs. past years, this date") and a bracket under the middle half marked
+ *     Normal, with Low and High at the ends — the percentile's meaning without a number. It was three faint 10.5 px words.
+ *   - IT SAYS HOW MANY: "12 gauges in view" beside the title, the count the histogram is of.
+ *   - Words in `sub`, not `faint` (T40: a legend's words are read, so they meet the text contrast floor), at 11.5–12 px.
+ *   - At most `LEGEND_RAMP_MAX` wide, centred: on a desktop the 1250 px stripe read as decoration.
  */
-export function LegendRamp({ palette, stops, low, high, marks, mid }: {
-  palette: Palette; stops: readonly string[]; low: string; high: string;
+export function LegendRamp({ palette, stops, title, low, high, marks, mid }: {
+  palette: Palette;
+  /** the map's ramp: each colour at its percentile, 0–1, in order (`flowRampStops`) */
+  stops: readonly { at: number; colour: string }[];
+  /** what is being ranked, e.g. "Flow vs. past years, this date" */
+  title: string;
+  low: string; high: string;
   /**
    * Where the gauges currently on screen sit on this scale, 0–1.
    *
@@ -119,23 +149,14 @@ export function LegendRamp({ palette, stops, low, high, marks, mid }: {
    * here" — which is the whole question a person opened this view to ask.
    */
   marks?: readonly number[];
-  /** Optional centre label, e.g. "normal". */
-  mid?: string;
+  /** the word under the bracket over the middle half, e.g. "Normal" */
+  mid: string;
 }) {
   /*
-   * A DISTRIBUTION, NOT A KEY — which is what the marks were always for and what the old
-   * size would not let them be.
-   *
-   * At 7 px tall and 2.5 px wide, forty gauges on the same stretch of the scale drew as
-   * one indistinguishable smear: you could see THAT the rivers were low and not HOW low,
-   * or how tightly they agreed. The bar is now tall enough for the marks to have height,
-   * and the marks are binned so that where many gauges land the tick is TALLER rather than
-   * merely repainted over itself. That is a histogram, and reading it is the point: a
-   * narrow spike at the bottom is a province uniformly in drought, and a wide spread is
-   * one doing several things at once.
-   *
-   * Full width, because it is the answer to the question the view was opened for and it
-   * was sharing a line with a control.
+   * A DISTRIBUTION, NOT A KEY. The marks are binned so that where many gauges land the tick is TALLER rather than merely
+   * repainted over itself: a narrow spike at the bottom is a province uniformly in drought, a wide spread one doing
+   * several things at once. THE TICKS STAND ON THE BAR RATHER THAN CROSSING IT: crossing, they hid the very colour they
+   * were pointing at.
    */
   const BINS = 40;
   const counts = new Array<number>(BINS).fill(0);
@@ -144,40 +165,54 @@ export function LegendRamp({ palette, stops, low, high, marks, mid }: {
     counts[i] = (counts[i] ?? 0) + 1;
   }
   const peak = Math.max(1, ...counts);
-  const H = 26;
+  const n = marks?.length ?? 0;
+  const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
+  const word = { ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub } as const;
 
   return (
-    <View style={{ width: "100%", gap: 5 }}>
-      <View style={{ height: H, justifyContent: "flex-end" }}>
-        <View style={{ flexDirection: "row", height: 14, borderRadius: palette.r.chip,
-                       overflow: "hidden" }}>
-          {stops.map((c, i) => (
-            <View key={i} style={{ flex: 1, backgroundColor: c }} />
-          ))}
-        </View>
-        {/*
-          THE TICKS STAND ON THE BAR RATHER THAN CROSSING IT. Crossing, they hid the very
-          colour they were pointing at; standing, the height is free to mean something.
-        */}
-        {counts.map((n, i) => n === 0 ? null : (
+    <View testID="legend-ramp" style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12,
+                     marginBottom: 2 }}>
+        <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 12.5, lineHeight: 17, color: palette.ink,
+                                         flexShrink: 1 }}>{title}</Text>
+        {n > 0 && (
+          <Text testID="legend-count" style={{ ...word, fontSize: 12, lineHeight: 17 }}>
+            {`${n} ${n === 1 ? "gauge" : "gauges"} in view`}
+          </Text>
+        )}
+      </View>
+      <View style={{ height: TICKS + BAR }}>
+        {counts.map((c, i) => c === 0 ? null : (
           <View key={i}
-                accessibilityLabel={`${n} ${n === 1 ? "gauge" : "gauges"} near the `
+                accessibilityLabel={`${c} ${c === 1 ? "gauge" : "gauges"} near the `
                                     + `${percentileOrdinal((i + 0.5) / BINS)} percentile`}
-                style={{ position: "absolute", bottom: 14,
-                         left: `${(i / BINS) * 100}%`, width: `${(1 / BINS) * 100}%`,
+                style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                          paddingHorizontal: 0.5 }}>
-            <View style={{ height: Math.max(3, (n / peak) * (H - 14)),
-                           backgroundColor: palette.ink, opacity: 0.75,
-                           borderTopLeftRadius: 1, borderTopRightRadius: 1 }} />
+            <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
           </View>
         ))}
+        <View testID="legend-bar" accessibilityLabel={`${title}: colours from ${low.toLowerCase()} to ${high.toLowerCase()}; `
+                                                      + `${mid.toLowerCase()} is the middle half of past years`}
+              style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
+          <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
+            <Defs>
+              <LinearGradient id="legend-ramp" x1="0" y1="0" x2="1" y2="0">
+                {stops.map((s) => <Stop key={s.at} offset={s.at} stopColor={s.colour} />)}
+              </LinearGradient>
+            </Defs>
+            <Rect x={0} y={0} width={100} height={BAR} fill="url(#legend-ramp)" />
+          </Svg>
+        </View>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{low}</Text>
-        {mid && (
-          <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{mid}</Text>
-        )}
-        <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{high}</Text>
+      {/* THE SCALE UNDER IT: Low · a bracket over the middle half, "Normal" · High */}
+      <View style={{ height: 24 }}>
+        <View testID="legend-normal"
+              style={{ position: "absolute", top: 2, height: 5, left: pct(NORMAL[0]), width: pct(NORMAL[1] - NORMAL[0]),
+                       borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: palette.sub }} />
+        <Text style={{ ...word, position: "absolute", top: 8, left: 0 }}>{low}</Text>
+        <Text style={{ ...word, position: "absolute", top: 8, left: pct(NORMAL[0]), width: pct(NORMAL[1] - NORMAL[0]),
+                       textAlign: "center" }}>{mid}</Text>
+        <Text style={{ ...word, position: "absolute", top: 8, right: 0 }}>{high}</Text>
       </View>
     </View>
   );

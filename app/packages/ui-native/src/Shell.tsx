@@ -53,7 +53,7 @@ import { MenuHost, type MenuInfo } from "./menu/MenuHost";
 import { MoreScreen } from "./menu/MoreScreen";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { TYPE } from "./type";
-import { flowRamp, type Palette, type ThemeName } from "./theme";
+import { flowRampStops, type Palette, type ThemeName } from "./theme";
 
 /** No highlight — one frozen empty list, so the map's effect is not re-run every render. */
 const NONE: readonly SectionKey[] = [];
@@ -759,11 +759,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               </View>
             ) : (
               <LegendRamp palette={palette}
-                          low={flowParam === "level" ? "low stage for the date"
-                               : flowParam === "discharge" ? "low flow for the date"
-                               : "low for the date"}
-                          mid="normal" high="high"
-                          stops={flowRamp(theme)} marks={visibleMarks} />
+                          title={flowParam === "level" ? "Water level vs. past years, this date"
+                                 : "Flow vs. past years, this date"}
+                          low="Low" mid="Normal" high="High"
+                          stops={flowRampStops(theme)} marks={visibleMarks} />
             )
           ) : layers.water.drawn !== "regulations" ? (
             // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why

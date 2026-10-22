@@ -7,14 +7,17 @@
  * colour the same river differently.
  */
 import type { SectionKey } from "@app/core";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
-import { Pill } from "./Chrome";
+import { hitProps } from "./regs/hit";
 import { MapRail } from "./MapRail";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
+
+/** a horizon segment: at least 46 wide and 33 tall by its style (8 + 17 + 8), grown to 44 × 44 to the touch */
+const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
@@ -109,21 +112,27 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
-        <View testID="map-horizons" style={{ flexDirection: "row", gap: 6 }}>
-          {horizons.chips.map((h) => (
-            <Pill key={h.day} palette={palette} onPress={() => horizons.onPick(h.day)}
-                  // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map at
-                  // 13px, and a text-colour change alone is not a state a reader notices —
-                  // the whole map is repainted by this control, so which one is on has to
-                  // be readable at a glance and from the corner of an eye.
-                  style={h.on ? { backgroundColor: palette.accent,
-                                  borderColor: palette.accent } : undefined}
-                  label={h.label}>
-              <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
-                             color: h.on ? palette.onAccent : palette.ink }}>
-                {h.chip}
-              </Text>
-            </Pill>
+        /*
+          (refinement pass) ONE CONTROL, DRAWN AS ONE: a joined segmented strip — a single card with hairline dividers — in
+          place of five loose floating pills, five shadows and five borders over the map for what is one choice of day.
+          The chosen day is FILLED, not merely tinted: this control repaints the whole map, so which one is on has to be
+          readable at a glance and from the corner of an eye. Each segment is a 44 × 44 press (`hitProps`).
+        */
+        <View testID="map-horizons"
+              style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
+                       borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
+          {horizons.chips.map((h, i) => (
+            <Pressable key={h.day} onPress={() => horizons.onPick(h.day)} accessibilityRole="button"
+                       accessibilityLabel={h.label} {...HORIZON_HIT}>
+              <View style={{ minWidth: 46, paddingVertical: 8, paddingHorizontal: 10, alignItems: "center",
+                             backgroundColor: h.on ? palette.accent : palette.card,
+                             borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
+                <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: 17, fontWeight: "600",
+                               color: h.on ? palette.onAccent : palette.ink }}>
+                  {h.chip}
+                </Text>
+              </View>
+            </Pressable>
           ))}
         </View>
       )}

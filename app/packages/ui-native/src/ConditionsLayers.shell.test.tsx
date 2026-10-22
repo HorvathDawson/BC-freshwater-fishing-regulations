@@ -104,7 +104,8 @@ const sheet = () => [
     .map((r) => `${r.getAttribute("aria-label")}${r.getAttribute("aria-checked") === "true" ? "+" : ""}`).join(" "),
 ].join(" | ");
 const map = () => screen.getByTestId("map-look").textContent;
-const ramp = () => (["low flow for the date", "low stage for the date"].find((t) => screen.queryByText(t)) ?? "no ramp");
+// the ramp names the quantity in its title (refinement pass: "Flow vs. past years, this date")
+const ramp = () => (["Flow vs. past years, this date", "Water level vs. past years, this date"].find((t) => screen.queryByText(t)) ?? "no ramp");
 
 const CONDITIONS_GROUPS = '{"depth":false,"ownership":false}';
 
@@ -116,7 +117,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     expect([legendSwitch, sheet(), ramp(), asked, map()]).toEqual([
       false,
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges+ Flow arrows+",
-      "low flow for the date",
+      "Flow vs. past years, this date",
       { standing: "discharge", gauges: "flow" },
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
     ]);
@@ -129,7 +130,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     pick("Level");
     expect([sheet(), ramp(), asked, map(), before]).toEqual([
       "SHOW · MAP · ON THE MAP | Flow Level* Temperature Map* Satellite | Gauges+ Flow arrows+",
-      "low stage for the date",
+      "Water level vs. past years, this date",
       { standing: "level", gauges: "level" },
       // the SAME modes object (#1), the same groups, hidden and shown layers and ground: nothing for the map to repaint
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,

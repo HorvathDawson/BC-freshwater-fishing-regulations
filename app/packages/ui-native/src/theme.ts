@@ -1,4 +1,4 @@
-import { colour, translucent, waterStatusColour,
+import { colour, translucent, waterStatusColour, STYLE_META,
          mapChrome as chromeOf, type MapChrome } from "@app/map";
 import { WATER_STATUSES, type WaterStatus } from "@app/core";
 /**
@@ -261,6 +261,17 @@ export type ThemeName = keyof typeof THEMES;
  */
 export function flowRamp(theme: string): readonly string[] {
   return [1, 2, 3, 4, 5, 6, 7].map((i) => colour(theme, `color.flow.f${i}`));
+}
+
+/**
+ * (refinement pass) THE RAMP AS THE MAP INTERPOLATES IT: each colour at the percentile its stop names (0, 10, 25, 50, 75,
+ * 90, 100 — `colorModes.stream.standing.stops` in the style metadata, which the map's own expression reads), as 0–1.
+ * The legend drew the seven colours as seven EQUAL blocks, so a gauge mark at the 20th percentile stood on f2's block
+ * while the map painted it nearly f3, and "normal" (the middle half of the record) looked like one seventh of the scale.
+ */
+export function flowRampStops(theme: string): readonly { at: number; colour: string }[] {
+  const mode = STYLE_META.colorModes.stream?.standing as { stops?: [number, { token: string }][] } | undefined;
+  return (mode?.stops ?? []).filter(([at]) => at >= 0).map(([at, ref]) => ({ at: at / 100, colour: colour(theme, ref.token) }));
 }
 
 /**

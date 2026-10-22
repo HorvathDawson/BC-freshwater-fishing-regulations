@@ -343,3 +343,35 @@ location." Panels are built over EVERY station with a usable record that could d
 weights' inputs), not only those the roster calls real-time; at READ time the estimate uses the members reporting now,
 re-normalising the weights among them, and the own-gauge lead goes to the best-ranked own gauge reporting now. A station
 joining or leaving ECCC's real-time list changes estimates on the next feed, with no rebuild. Never mix quantities.
+
+## CLAUDE 2026-10-22 (refinement pass, lane: conditions legend + sheet motion) — what changed and why
+- **SHEET BACKDROP: the sheet slides, the scrim stays and fades** (owner: "the screen opacity slides down with the menu").
+  Cause: the shared `Sheet` used the Modal's own `animationType="slide"`, which translates EVERYTHING in the Modal, scrim
+  included — the dim travelled down the window as a band (recorded: `app-data/sheet-motion/before-trace.json`, the
+  scrim's top edge 844 → 0 on open and 0 → 844 on close). Now the Modal animates nothing and stays up while the sheet
+  leaves; two Animated values on the platform driver (`NATIVE_DRIVER`): `slide` moves only the sheet panel, `dim` is only
+  the scrim's opacity, and the scrim (now a full-window layer BEHIND the sheet, so no bright band opens up under a
+  leaving sheet) never has a transform. Timings `SHEET_MOTION` (motion.ts): open — rise 260 ms ease-out, dim in 200 ms;
+  close — fall 220 ms ease-in, dim HOLDS 160 ms then fades 180 ms (gone 120 ms after the sheet: the dim is the last thing
+  to go, as the owner described). Reduced motion: no slide, sheet + scrim fade together in 120 ms. While leaving it takes
+  no touches. A closed sheet slides out WITH what it showed (Sheet keeps its last title/sub/children; SheetHost keeps
+  its last page sheet mounted closed) — before, a regs sheet vanished on Done. Reopened mid-close it turns round from
+  where it is. The wide dialog (T45) keeps its Modal `fade` (nothing translates there). SearchSheet already had a
+  separate fixed dim (`search-dim`); MenuPage is a full page with no scrim. Pinned: `SheetMotion.test.tsx` (react-native-
+  web's REAL Animated, not its test double — every 20 ms through open/close the scrim's transform is none, it holds then
+  falls monotonically, the sheet has left before it has faded; mutation-checked: a translating scrim or a zero delay
+  fails 3 of 5). After: `after-trace.json` — scrim top 0 on every frame; on close the scrim is 1.0 until ~190 ms,
+  0.69 when the sheet reaches the bottom at 255 ms, gone at ~380 ms. (`record.mjs` reproduces both; the PNG strips are
+  coarse — a screenshot takes longer than a frame — the trace is the per-frame record.)
+- **CONDITIONS LEGEND** (owner: "the histogram bar … could be made a little better"):
+  - the ramp is the MAP'S, stop for stop — a gradient with each colour at the percentile its stop names (0/10/25/50/75/
+    90/100, `flowRampStops` reading the style metadata the map's expression reads). It was seven EQUAL blocks: a gauge
+    mark at the 20th percentile stood on f2 while the map painted it nearly f3, and "normal" was one seventh of the bar.
+  - it says what the scale is: a title ("Flow vs. past years, this date" / "Water level vs. …"), Low · Normal · High,
+    and a bracket over the middle half where core's `standing()` says NORMAL (read from that function, not restated).
+  - it counts what the histogram is of ("39 gauges in view").
+  - words in `sub` at 11.5–12.5 px (was `faint` 10.5 px: under the T40 text contrast floor); title in ink.
+  - capped at 560 px and centred (desktop drew a 1250 px stripe).
+  - the horizon chips are ONE joined segmented strip (one card, hairline dividers, chosen day filled) instead of five
+    loose shadowed pills; each segment a 44 × 44 press. Same words, same labels, same order.
+  Shots: `app-data/conditions-legend/{before,after}-{390,1280}-{light,dark}.png`, `after-360-light.png`.
