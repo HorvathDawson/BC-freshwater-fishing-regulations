@@ -333,9 +333,13 @@ def test_a_frozen_card_replays_to_the_rows_it_was_cut_from():
 @pytest.fixture(scope="module")
 def frozen():
     if not H.FIXTURE.exists():
-        pytest.fail(f"missing {H.FIXTURE} — make it with: python -m pipeline.tests.answers_v35_port BUNDLE "
-                    "EXPORT_DIR GOLDEN_DIR pipeline/tests/fixtures/answers_v35_port.json.gz (module docstring)",
-                    pytrace=False)
+        # A MERGE GATE, not a skip: this test runs in the no-data tier, so the fixture must be COMMITTED
+        # before this branch merges (it is golden regeneration, a heavy job: made once through heavy.sh).
+        pytest.fail(f"missing {H.FIXTURE} — make and commit it before merging (repo root, golden dir made by the "
+                    "archived v35 harness for the live export):\n  heavy.sh v35-port-fixture 60 -- .venv/bin/python "
+                    "-m pipeline.tests.answers_v35_port data/generated/bundle/bundle.sqlite data/generated/regs "
+                    "data/generated/scratch/answers_reference/<stamp>/golden "
+                    "pipeline/tests/fixtures/answers_v35_port.json.gz 60", pytrace=False)
     return H.load()
 
 

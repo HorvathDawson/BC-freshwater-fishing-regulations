@@ -688,4 +688,9 @@ P20 part DONE: stats.json + record() gone.
   Every step after `fixture` passes when run alone.
 
 ## Not verified
+- MERGE GATE (cleanup lane A, worktree-wf_3c34e85f-9c5-1): `pipeline/tests/fixtures/answers_v35_port.json.gz` is NOT on
+  the branch. `test_port_on_the_pages_own_ladder` runs in the CI no-data tier and FAILS (by design, never skips) until it is
+  committed. Before merging, from the main repo root (golden dir c3ff564eb6b2a43d matches the live export's stamp):
+  `~/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/handoff/tools/heavy.sh v35-port-fixture 60 -- .venv/bin/python -m pipeline.tests.answers_v35_port data/generated/bundle/bundle.sqlite data/generated/regs data/generated/scratch/answers_reference/c3ff564eb6b2a43d/golden pipeline/tests/fixtures/answers_v35_port.json.gz 60`
+  then `git add` the fixture (not gitignored; checked) and commit it on the branch before the merge.
 (fill in)
