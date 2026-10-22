@@ -28,6 +28,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
+- QUEUE (owner 2026-10-22, spots): add-a-spot = my location / pick on map (agent running); lead-up refresh BUG (agent
+  running); spots on/off toggle in Layers (after the refinement pass merges — layers registry); T51 spot similarity
+  forecast (after the add-spot + bug lanes merge). Icons MERGED 5c968853+ca4b29a6 (strict 7524).
 - 2026-10-22 evening: cleanup rebuild DONE (no rule binding changed; 93 ambiguous cuts recorded; Skeena curated pick;
   water_continue 17 in the bundle) → release r-81d40ad73176 live; fixtures re-cut 9b598a33; strict check 7500 pass;
   smoke: 1 timing flake in Search.shell's sync-line test (that line is being removed by the refinement pass).
