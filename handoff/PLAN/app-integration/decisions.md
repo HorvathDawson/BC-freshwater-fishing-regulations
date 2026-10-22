@@ -649,3 +649,12 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   unanswered too — beyond lakes of other waters the walk may not cross — so they stay honestly grey with their lines.
   All 4 off-stem ones are answered; each answer is a (panel, area) pair of the polygon's own water; no lake or wetland
   section gains a panel. The bundle invariant is local: a stem polygon touching an answered stem line of its water.
+
+## OWNER 2026-10-22 (late) — a polygon-only slough or canal gets gauges like a stream
+- Owner: "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours if the
+  propagation means it would have values if it was just a stream itself ... doesn't have to only be instances where it
+  is stream and polygon, could just be poly."
+- Rule: the panel walk reads the WATER'S kind, not the node's geometry. A polygon of a stream item is walked, sized
+  and propagated through exactly like a stream line (its drainage area from the network it sits on), and is not a
+  lake crossing. A polygon-only stream item (Seton Canal, Bowman, Lewis, Hansen, Taylor …) gets a panel whenever a
+  line in its place would. True lakes keep lake treatment. Before/after panel diff on the real graph before shipping.
