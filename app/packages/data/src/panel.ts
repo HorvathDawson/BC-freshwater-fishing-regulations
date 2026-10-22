@@ -55,6 +55,11 @@ export interface DonorRow {
    * carries no list (every station then reads as listed — today's words).
    */
   realtime?: false;
+  /**
+   * `true` only: the station's own file was asked (`withLastReports` in @app/ui) and holds no data at all, so the
+   * silent line says it "has never reported". Absent where nobody asked, or the file said when (`observedAt`).
+   */
+  noData?: true;
 }
 
 export interface PanelAnswer {

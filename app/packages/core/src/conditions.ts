@@ -12,7 +12,7 @@
 import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plainStanding,
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
-import { localStamp } from "./day";
+import { localStamp, shortDay, shortStamp } from "./day";
 import { byCadence } from "./staleness";
 
 /* ------------------------------------------------------------------- horizons ---- */
@@ -141,6 +141,11 @@ export interface DonorFacts {
    * "not a real-time gauge", not "not reporting". Absent (or true) where it is listed, or the index carries no list.
    */
   realtime?: boolean;
+  /**
+   * `true`: the station's own file was read and holds no data at all (`withLastReports`), so it "has never reported"
+   * in the live feed. Absent where nobody asked, or the file said when — then the last report is `observedAt`.
+   */
+  noData?: boolean;
 }
 
 const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream" };
@@ -184,10 +189,60 @@ export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon }
   // Not on ECCC's real-time list at all: it is not silent today, it never speaks live — on any day asked about.
   if (r.realtime === false) return "Not a real-time gauge.";
   if (o.horizon) return "No forecast for this gauge that far ahead.";
-  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
-  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY)
-    return "Reporting, but its reading cannot be ranked today.";
+  if (reportingUnranked(r, o.ref)) return "Reporting, but its reading cannot be ranked today.";
   return "Not reporting today.";
+}
+
+/** No percentile, but a report within a day of `ref`: it speaks, its reading just cannot be ranked. */
+function reportingUnranked(r: DonorFacts, ref: number | undefined): boolean {
+  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
+  return ref !== undefined && Number.isFinite(t) && Math.abs(ref - t) < DAY;
+}
+
+/**
+ * A SILENT MEMBER: no reading at the horizon asked about (owner 2026-10-22). Not on the real-time list, no forecast
+ * that far ahead, or not reporting — every `donorReads` branch but a reading and "Reporting, but … cannot be ranked",
+ * which is a gauge that speaks today and stays a row. A silent member is not drawn as a row or a pin; `silentLine`
+ * names it instead.
+ */
+export function donorSilent(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): boolean {
+  if (r.percentile !== null) return false;
+  if (r.realtime === false || o.horizon) return true;
+  return !reportingUnranked(r, o.ref);
+}
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * When a station last had data, SHORT, for inside a line: "14 Oct, 09:00 PDT", local and labelled (P16); a day-only
+ * report (a daily mean) is that calendar day, "14 Oct"; a year other than `ref`'s is named. Null when it is not known.
+ */
+export function lastDataStamp(observedAt: string | null | undefined, ref: number, zone?: string): string | null {
+  if (!observedAt || !Number.isFinite(Date.parse(observedAt))) return null;
+  return ISO_DAY.test(observedAt) ? shortDay(observedAt, ref, zone) : shortStamp(Date.parse(observedAt), ref, zone);
+}
+
+/** One silent member, as the line says it: its name (its station id when the name is not in yet) and when. */
+function silentMember(r: DonorFacts, ref: number, zone?: string): string {
+  const name = r.route?.name || r.station;
+  const at = lastDataStamp(r.observedAt, ref, zone);
+  const last = at ? `last ${at}` : r.noData ? "has never reported" : "last report not known";
+  if (r.realtime === false) return `${name} (not a real-time gauge${at ? `; ${last}` : ""})`;
+  return `${name} (${last})`;
+}
+
+/**
+ * THE SILENT MEMBERS, IN ONE LINE under the gauge table (owner 2026-10-22: "hidden but mentioned with a last data
+ * time"): "Not reporting: Liard River at Upper Crossing (last 14 Oct, 09:00 PDT) · Coal River (not a real-time
+ * gauge)". On a day ahead the members are silent because no forecast reaches it, and the line says that instead.
+ * Null when every member speaks. `ref` is the instant the answer is for; `zone` is for tests.
+ */
+export function silentLine(rows: readonly DonorFacts[],
+                           o: { ref: number; horizon?: Horizon; zone?: string }): string | null {
+  const silent = rows.filter((r) => donorSilent(r, o));
+  if (!silent.length) return null;
+  const kicker = o.horizon ? "No forecast this far ahead" : "Not reporting";
+  return `${kicker}: ${silent.map((r) => silentMember(r, o.ref, o.zone)).join(" · ")}`;
 }
 
 /**

@@ -99,11 +99,30 @@ describe("the donor panel", () => {
     expect(screen.getByText("downstream · drains 120 km² · 2.4× apart")).toBeTruthy();
   });
 
-  it("says a station is quiet rather than dropping it or printing a zero", () => {
+  it("says a reporting station with nothing to rank is quiet rather than printing a zero", () => {
     const v = answer();
-    draw({ value: { ...v, rows: [row("08MH001", { percentile: null })] } });
+    // Reporting the evening before the chosen day: it speaks, so it stays a row.
+    draw({ value: { ...v, rows: [row("08MH001", { percentile: null,
+                                                   observedAt: new Date(2026, 8, 4, 2).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
-    expect(screen.getByText("Not reporting today.")).toBeTruthy();
+    expect(screen.getByText("Reporting, but its reading cannot be ranked today.")).toBeTruthy();
+  });
+
+  it("hides a silent station from the table and names it in one line under it (owner 2026-10-22)", () => {
+    const v = answer();
+    draw({ value: { ...v, rows: [row("08MH001"), row("08MH024", { percentile: null, weight: 0 })] } });
+    expect(screen.queryByText("08MH024")).toBeNull();
+    expect(screen.queryByText("Not reporting today.")).toBeNull();
+    expect(screen.getByText("Not reporting: 08MH024 (last report not known)")).toBeTruthy();
+  });
+
+  it("every member silent: the no-record refusal, and the line naming them", () => {
+    draw({ value: { answer: { ok: false, why: "no-record" }, areaKm2: 50, routesReady: false,
+                    rows: [row("08MH001", { percentile: null, weight: 0, realtime: false }),
+                           row("08MH024", { percentile: null, weight: 0 })] } });
+    expect(screen.getByText(donorReason("no-record"))).toBeTruthy();
+    expect(screen.getByText("Not reporting: 08MH001 (not a real-time gauge) · 08MH024 (last report not known)"))
+      .toBeTruthy();
   });
 
   it("warns in words when the gauges disagree, in the fold (P16)", () => {
@@ -217,7 +236,8 @@ describe("the donor panel", () => {
 
   it("says a gauge is quiet in the key, never that it contributed nothing", () => {
     const v = answer();
-    draw({ value: { ...v, rows: [row("08MH001", { percentile: null, weight: 0 })] } });
+    draw({ value: { ...v, rows: [row("08MH001", { percentile: null, weight: 0,
+                                                   observedAt: new Date(2026, 8, 4, 2).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
     expect(screen.queryByText("0% of this estimate")).toBeNull();
   });

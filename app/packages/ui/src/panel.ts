@@ -10,7 +10,7 @@ import { answerFrom, basinStandings, sectionStanding, type BasinMember, type Don
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
 import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel, donorLastReport,
-         gaugeChoiceLabel, donorShare,
+         donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
@@ -36,7 +36,10 @@ export type PanelFeed = {
   lastReport?(station: StationId): Promise<string | null>;
 };
 
-/** The quiet donors whose last report the index does not carry — the ones worth asking their own file about. */
+/**
+ * The quiet donors whose last report the index does not carry — the ones worth asking their own file about. A file
+ * that holds nothing (null) marks its row `noData`, so the silent line can say the station "has never reported".
+ */
 export function lastReportWanted(rows: readonly DonorRow[]): string[] {
   return rows.filter((r) => r.percentile === null && !r.observedAt).map((r) => r.station);
 }
@@ -47,10 +50,11 @@ export function lastReportWanted(rows: readonly DonorRow[]): string[] {
  */
 export function withLastReports(rows: readonly DonorRow[], got: ReadonlyMap<string, string | null>): DonorRow[] {
   const want = new Set(lastReportWanted(rows));
-  if (![...want].some((s) => got.get(s))) return rows as DonorRow[];
+  if (![...want].some((s) => got.has(s))) return rows as DonorRow[];
   return rows.map((r) => {
-    const at = want.has(r.station) ? got.get(r.station) : null;
-    return at ? { ...r, observedAt: at } : r;
+    if (!want.has(r.station) || !got.has(r.station)) return r;
+    const at = got.get(r.station);
+    return at ? { ...r, observedAt: at } : { ...r, noData: true as const };
   });
 }
 
@@ -322,6 +326,11 @@ export function usePanelRoutes(source: RegsSource, section: SectionId | null,
 /** One donor row, every line finished. */
 export interface DonorRowVM {
   station: string;
+  /**
+   * The member's index in the panel's weight order (`PanelAnswer.rows`) — its TONE. The same index its pin, its route,
+   * its key and its switch chip carry, so a row and its pin are one colour though silent members are not drawn.
+   */
+  row: number;
   name: string | null;
   /** Not reporting: drawn in the quiet tone, contributes nothing. */
   quiet: boolean;
@@ -418,6 +427,8 @@ export type DonorVM =
       /** The chips, kept when the refusal is about the CHOSEN DAY (`no-forecast`), so the
        *  reader can step back from it; null when another day would not change the answer. */
       horizons: readonly HorizonChipVM[] | null;
+      /** Every member is silent (no-record, no-forecast): the line naming them. Null with no members. */
+      silent: string | null;
     }
   | {
       ok: true;
@@ -432,7 +443,10 @@ export type DonorVM =
       map: DonorMapVM | null;
       tapToChart: string;
       listLabel: string;
+      /** Only the members that speak at this horizon; the silent ones are in `silent`. */
       rows: readonly DonorRowVM[];
+      /** "Not reporting: …" — the members hidden from the table and the map, each with its last data time. */
+      silent: string | null;
       shortRecord: string | null;
       regulated: string | null;
       disagree: string | null;
@@ -457,12 +471,27 @@ export interface DonorViewOptions {
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
 export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const { answer, rows } = value;
+  /*
+   * SILENT MEMBERS ARE HIDDEN, AND NAMED (owner 2026-10-22). A member with no reading at this horizon is not a row and
+   * not a pin; `silentLine` names it under the table with its last data time. Core decides which are silent (the same
+   * rule `donorReads` words), against the CHOSEN day.
+   */
+  const ref = o.day.getTime();
+  const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   if (!answer.ok)
     return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why),
-             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon) : null };
+             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon) : null, silent };
   const e = answer.value;
+  /*
+   * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
+   * every member by that index, so the switch's dot, the row and the pin are one colour; and silent members weigh 0
+   * and sort last, so the speaking ones keep the first tones anyway — a hidden member never shifts a shown one's hue.
+   */
+  const tone = new Map(rows.map((r, i) => [r, i]));
+  const shown = rows.filter((r) => !donorSilent(r, { ref, horizon: o.horizon }));
+  const toneOf = (r: DonorRow) => tone.get(r)!;
 
-  const placed = rows.filter((r) => r.route?.lat != null && r.route?.lon != null);
+  const placed = shown.filter((r) => r.route?.lat != null && r.route?.lon != null);
   const camera = panelCamera(placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })),
                              o.from, o.size);
   // A gauge AT the tap absorbs "you are here" — two pins on one pixel read as one lost.
@@ -487,7 +516,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
     pins: [
       ...placed.map((r): DonorPinVM => {
-        const row = rows.indexOf(r);
+        const row = toneOf(r);
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
                  title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r), rank: row };
       }),
@@ -497,11 +526,11 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),
-      ...placed.map((r) => ({ row: rows.indexOf(r), label: donorMapKey(r) })),
+      ...placed.map((r) => ({ row: toneOf(r), label: donorMapKey(r) })),
     ],
-    unplaced: unplacedNote(rows.length - placed.length),
-    chain: [...new Set(rows.flatMap((r) => r.route?.path ?? []))],
-    routes: drawn.map((r) => ({ row: rows.indexOf(r), role: r.role, path: r.route!.path,
+    unplaced: unplacedNote(shown.length - placed.length),
+    chain: [...new Set(shown.flatMap((r) => r.route?.path ?? []))],
+    routes: drawn.map((r) => ({ row: toneOf(r), role: r.role, path: r.route!.path,
                                 from, to: { lat: r.route!.lat!, lon: r.route!.lon! } })),
     legend: routeLegend(drawn.map((r) => r.role)),
     bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
@@ -521,10 +550,10 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,
-    rows: rows.map((r: DonorRow): DonorRowVM => {
+    rows: shown.map((r: DonorRow): DonorRowVM => {
       const on = o.selected != null && r.station === o.selected;
       return {
-        station: r.station, name: r.route?.name ?? null, quiet: r.percentile === null, on,
+        station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: r.percentile === null, on,
         bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
         weightLine: donorWeightLine(r),
         reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
@@ -534,6 +563,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         label: donorRowLabel(r, o.pickable, on),
       };
     }),
+    silent,
     shortRecord: shortRecordNote(rows),
     regulated: regulatedNote(rows),
     disagree: disagreeNote(e),
@@ -650,8 +680,12 @@ export function useConditionsView(
   const traced = useGaugeTrace(source, section);
   const panel = useLastReports(feed, usePanelRoutes(source, section,
                                                     usePanel(source, feed, section, quantity, horizon)));
+  const today = useMemo(() => day ?? new Date(), [day]);
+  // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
+  // route is not coloured either.
   const chain = useMemo<readonly SectionKey[]>(
-    () => [...new Set(panel.rows.flatMap((r) => r.route?.path ?? []))], [panel.rows]);
+    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref: today.getTime(), horizon }))
+                                .flatMap((r) => r.route?.path ?? []))], [panel.rows, today, horizon]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
                                       horizon);
   // THE ROUTE AS THE ENGINE'S CLASSES, kept while the route is. A horizon change re-asks the panel, which answers no rows
@@ -685,7 +719,6 @@ export function useConditionsView(
     ?? lead ?? "";
   const c = lead === matched?.station && !live?.fetchedAt ? matched : live;
 
-  const today = useMemo(() => day ?? new Date(), [day]);
   let reading: ReadingVM | null = null;
   if (c && (c.discharge != null || c.level != null)) {
     const shown: Parameter = c.discharge != null ? "discharge" : "level";

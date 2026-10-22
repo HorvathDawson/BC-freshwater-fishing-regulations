@@ -55,6 +55,14 @@ export function localDateTime(ms: number): string {
  * names the label falls back to the offset ("UTC−7") — still labelled, never bare.
  */
 export function localStamp(ms: number, zone?: string): string {
+  const z = zonedParts(ms, zone);
+  return `${z.y}-${pad2(z.mo)}-${pad2(z.d)} at ${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
+}
+
+/** An instant's calendar and clock in `zone` (the device's when left out), with the zone's short label. */
+interface ZonedParts { y: number; mo: number; d: number; h: number; mi: number; tz: string }
+
+function zonedParts(ms: number, zone?: string): ZonedParts {
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit",
@@ -62,14 +70,34 @@ export function localStamp(ms: number, zone?: string): string {
     }).formatToParts(new Date(ms));
     const part = (t: string) => parts.find((p) => p.type === t)?.value;
     const [y, mo, d, h, mi, tz] = ["year", "month", "day", "hour", "minute", "timeZoneName"].map(part);
-    if (y && mo && d && h && mi && tz) return `${y}-${mo}-${d} at ${h}:${mi} ${tz}`;
+    if (y && mo && d && h && mi && tz) return { y: +y, mo: +mo, d: +d, h: +h, mi: +mi, tz };
   } catch {
     // No Intl, or no zone data: the device's own clock and its offset, below.
   }
-  const off = -new Date(ms).getTimezoneOffset();
+  const x = new Date(ms);
+  const off = -x.getTimezoneOffset();
   const hh = Math.floor(Math.abs(off) / 60), mm = Math.abs(off) % 60;
-  const label = off === 0 ? "UTC" : `UTC${off < 0 ? "−" : "+"}${hh}${mm ? `:${pad2(mm)}` : ""}`;
-  return `${localDateTime(ms)} ${label}`;
+  const tz = off === 0 ? "UTC" : `UTC${off < 0 ? "−" : "+"}${hh}${mm ? `:${pad2(mm)}` : ""}`;
+  return { y: x.getFullYear(), mo: x.getMonth() + 1, d: x.getDate(), h: x.getHours(), mi: x.getMinutes(), tz };
+}
+
+/**
+ * "14 Oct, 09:00 PDT" — an instant SHORT, for a time said inside a line of other words (a silent gauge's last data).
+ * Local and labelled like `localStamp` (P16); the year is named only when it is not `ref`'s year in the same zone.
+ */
+export function shortStamp(ms: number, ref: number, zone?: string): string {
+  const z = zonedParts(ms, zone);
+  const year = z.y === zonedParts(ref, zone).y ? "" : ` ${z.y}`;
+  return `${z.d} ${monthAbbr(z.mo - 1)}${year}, ${pad2(z.h)}:${pad2(z.mi)} ${z.tz}`;
+}
+
+/**
+ * "14 Oct" — a CALENDAR DAY ("YYYY-MM-DD"), said as that day in every zone (parsed as an instant it is UTC midnight,
+ * the evening before on this coast); the year only when it is not `ref`'s year in `zone`.
+ */
+export function shortDay(isoDay: string, ref: number, zone?: string): string {
+  const [y, m, d] = isoDay.split("-").map(Number) as [number, number, number];
+  return `${d} ${monthAbbr(m - 1)}${y === zonedParts(ref, zone).y ? "" : ` ${y}`}`;
 }
 
 /**

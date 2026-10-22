@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { chartLabel, CONDITIONS_WORDS, donorLastReport, noGaugeSentence, readingHeading } from "@app/core";
+import { chartLabel, CONDITIONS_WORDS, donorLastReport, lastDataStamp, noGaugeSentence, readingHeading } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
@@ -88,13 +88,14 @@ describe("the gauge switch sits by the plot", () => {
       .getAttribute("aria-checked")).toBe("true");
   });
 
-  it("says when the quiet gauge last reported", async () => {
+  it("hides the silent gauge from the list and says when it last reported, in one line (owner 2026-10-22)", async () => {
     await draw();
-    expect(screen.getByText("Not reporting today.")).toBeTruthy();
-    // core's sentence for that instant, in the device's zone — the whole line, as drawn
-    expect(screen.getByText(donorLastReport("2026-08-30T10:00:00-08:00"))).toBeTruthy();
-    expect(donorLastReport("2026-08-30T10:00:00-08:00", "America/Vancouver"))
-      .toBe("Last reported 2026-08-30 at 11:00 PDT.");
+    await waitFor(() => expect(screen.getByText("Dam Creek below the Dam")).toBeTruthy());
+    expect(screen.queryByText("Not reporting today.")).toBeNull();
+    // core's stamp for that instant, in the device's zone — the whole line, as drawn
+    expect(screen.getByText(
+      `Not reporting: Quiet River (last ${lastDataStamp("2026-08-30T10:00:00-08:00", DAY.getTime())})`)).toBeTruthy();
+    expect(lastDataStamp("2026-08-30T10:00:00-08:00", DAY.getTime(), "America/Vancouver")).toBe("30 Aug, 11:00 PDT");
   });
 });
 

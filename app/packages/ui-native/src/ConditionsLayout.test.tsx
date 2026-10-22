@@ -131,6 +131,14 @@ const UTC_STAMP = /(\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/g;
 const retime = (l: string) =>
   l.replace(UTC_STAMP, (_m, d: string, t: string) => localStamp(Date.parse(`${d}T${t}:00Z`)));
 
+/**
+ * THE ONE DECLARED REMOVAL (owner 2026-10-22, "yes they should be hidden but mentioned with a last data time"): QUIET
+ * is silent, so its row is no longer drawn — these four lines were that row — and one line names it instead.
+ */
+const SILENT_ROW = ["Quiet River", "not counted today", "Not reporting today.",
+                    "upstream · drains 300 km² · 6.0× apart · on this reach"];
+const SILENT_LINE = "Not reporting: Quiet River (last report not known)";
+
 describe("P16: the same content", () => {
   // RECORD MODE ran once, on the pre-P16 panel; it is left here so the record can be
   // re-made from a checkout of that commit (`P16_RECORD=1 pnpm -C app test ConditionsLayout`).
@@ -152,7 +160,9 @@ describe("P16: the same content", () => {
         await draw(s);
         openFold();
         const after = new Set(lines());
-        expect(before.filter((l) => !after.has(l))).toEqual([]);
+        // Whole: exactly the silent member's row is gone, and the line naming it is there instead.
+        expect(before.filter((l) => !after.has(l))).toEqual(s === "estimate" ? SILENT_ROW : []);
+        expect(after.has(SILENT_LINE)).toBe(s === "estimate");
       });
   }
 

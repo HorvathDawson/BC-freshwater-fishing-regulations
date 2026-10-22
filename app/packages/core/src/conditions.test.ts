@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CONDITIONS_WORDS, chartCaption, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
-  donorFacts, donorLastReport,
+  donorFacts, donorLastReport, donorSilent, lastDataStamp, silentLine,
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
@@ -380,5 +380,79 @@ describe("the chart's read-out and controls", () => {
       .toBe("Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.");
     expect(CONDITIONS_WORDS.zoomHint.pointer)
       .toBe("Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.");
+  });
+});
+
+/*
+ * SILENT MEMBERS (owner 2026-10-22: "yes they should be hidden but mentioned with a last data time"). A member with no
+ * reading at the horizon is not drawn as a row or a pin; ONE line under the table names them, each with when it last
+ * had data. Pinned whole, in a fixed zone, against a fixed reference instant.
+ */
+describe("silent panel members", () => {
+  const VAN = "America/Vancouver";
+  const REF = Date.parse("2026-10-21T05:00:00Z");          // 2026-10-20 22:00 PDT
+  const named = (name: string, over: Partial<DonorFacts>): DonorFacts =>
+    row({ route: { path: [], name }, ...over });
+
+  it("is silent only with no reading AT THE HORIZON — a reporting, unrankable gauge still speaks", () => {
+    expect(donorSilent(row({ percentile: 0.3 }), { ref: REF })).toBe(false);
+    expect(donorSilent(row({ percentile: null }), { ref: REF })).toBe(true);
+    expect(donorSilent(row({ percentile: null, observedAt: "2026-10-17T09:00:00-08:00" }), { ref: REF })).toBe(true);
+    // Within a day of the reference: "Reporting, but its reading cannot be ranked today." — a row, not the line.
+    expect(donorSilent(row({ percentile: null, observedAt: "2026-10-20T20:35:00-08:00" }), { ref: REF })).toBe(false);
+    expect(donorSilent(row({ percentile: null, realtime: false, observedAt: "2026-10-20T20:35:00-08:00" }),
+                       { ref: REF })).toBe(true);
+    // A day ahead with no forecast has nothing to say on that day, however fresh its last report.
+    expect(donorSilent(row({ percentile: null, observedAt: "2026-10-20T20:35:00-08:00" }),
+                       { ref: REF, horizon: 3 })).toBe(true);
+    expect(donorSilent(row({ percentile: 0.3 }), { ref: REF, horizon: 3 })).toBe(false);
+  });
+
+  it("agrees with what the row would have read (one rule, two sayings)", () => {
+    const cases = [row({ percentile: null }), row({ percentile: null, observedAt: "2026-10-20T20:35:00-08:00" }),
+                   row({ percentile: null, realtime: false }), row({ percentile: 0.4 })];
+    expect(cases.map((r) => [donorSilent(r, { ref: REF }), donorReads(r, { ref: REF })])).toEqual([
+      [true, "Not reporting today."],
+      [false, "Reporting, but its reading cannot be ranked today."],
+      [true, "Not a real-time gauge."],
+      [false, "Reads lower than 6 days in 10 at this time of year."],
+    ]);
+  });
+
+  it("stamps the last data short, local and labelled; a day-only report is its own day; another year is named", () => {
+    expect(lastDataStamp("2026-10-14T08:00:00-08:00", REF, VAN)).toBe("14 Oct, 09:00 PDT");
+    expect(lastDataStamp("2026-10-14", REF, VAN)).toBe("14 Oct");
+    expect(lastDataStamp("2025-12-03T08:05:00-08:00", REF, VAN)).toBe("3 Dec 2025, 08:05 PST");
+    expect(lastDataStamp("2024-03-03", REF, VAN)).toBe("3 Mar 2024");
+    expect(lastDataStamp("2026-10-14T16:00:00Z", REF, "UTC")).toBe("14 Oct, 16:00 UTC");
+    expect(lastDataStamp(null, REF, VAN)).toBeNull();
+    expect(lastDataStamp("garbage", REF, VAN)).toBeNull();
+  });
+
+  it("names every silent member in one line, each with its last data time — the whole string", () => {
+    const rows = [
+      named("Liard River at Upper Crossing", { station: "10BE001", percentile: null,
+                                               observedAt: "2026-10-14T08:00:00-08:00" }),
+      named("Coal River", { station: "10BE004", percentile: null, realtime: false }),
+      named("Hyland River", { station: "10AD002", percentile: 0.5 }),
+      named("Rancheria River", { station: "10AA004", percentile: null, noData: true }),
+      row({ station: "10AB001", percentile: null }),
+      named("Frances River", { station: "10AB002", percentile: null, realtime: false, observedAt: "2024-03-03" }),
+      named("Fresh", { station: "10ZZ001", percentile: null, observedAt: "2026-10-20T20:35:00-08:00" }),
+    ];
+    expect(silentLine(rows, { ref: REF, zone: VAN })).toBe(
+      "Not reporting: Liard River at Upper Crossing (last 14 Oct, 09:00 PDT) · Coal River (not a real-time gauge) · "
+      + "Rancheria River (has never reported) · 10AB001 (last report not known) · "
+      + "Frances River (not a real-time gauge; last 3 Mar 2024)");
+  });
+
+  it("says a day ahead as a missing forecast, and nothing at all when every member speaks", () => {
+    const rows = [named("Liard River at Upper Crossing", { percentile: null,
+                                                            observedAt: "2026-10-20T20:35:00-08:00" }),
+                  named("Hyland River", { percentile: 0.5 })];
+    expect(silentLine(rows, { ref: REF, horizon: 3, zone: VAN }))
+      .toBe("No forecast this far ahead: Liard River at Upper Crossing (last 20 Oct, 21:35 PDT)");
+    expect(silentLine(rows, { ref: REF, zone: VAN })).toBeNull();
+    expect(silentLine([], { ref: REF, zone: VAN })).toBeNull();
   });
 });

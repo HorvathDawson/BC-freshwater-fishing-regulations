@@ -40,7 +40,7 @@ describe("donorView", () => {
     const vm = donorView({ answer: { ok: false, why: "offline" }, rows: [], areaKm2: null,
                            routesReady: true }, opts);
     expect(vm).toEqual({ ok: false, heading: "NO ESTIMATE", reason: donorReason("offline"),
-                         horizons: null });
+                         horizons: null, silent: null });
   });
 
   it("keeps the horizons on a refusal that is about the chosen day, so the reader can step back", () => {
@@ -58,6 +58,7 @@ describe("donorView", () => {
         { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false },
         { day: 10, chip: "+10d", label: "Forecast 10 days ahead, showing", on: true },
       ],
+      silent: null,
     });
   });
 
@@ -97,21 +98,26 @@ describe("donorView", () => {
   });
 
   it("gives each row its finished lines and its bar", () => {
+    // 08MH024 reported in the small hours of the chosen day with nothing to rank — quiet, but it speaks, so a row.
+    // 08MH099 is silent and is not a row (owner 2026-10-22); the line names it instead.
+    const early = new Date(2026, 8, 4, 2).toISOString();
     const v = value({ rows: [row("08MH001", { regulated: true }),
-                             row("08MH024", { percentile: null, weight: 0 })] });
+                             row("08MH024", { percentile: null, weight: 0, observedAt: early }),
+                             row("08MH099", { percentile: null, weight: 0 })] });
     const vm = donorView(v, { ...opts, selected: "08MH024" as never, pickable: true });
     if (!vm.ok) throw new Error("expected an estimate");
     const [a, b] = [v.rows[0]!, v.rows[1]!];
     expect(vm.rows).toEqual([
-      { station: "08MH001", name: null, quiet: false, on: false, bar: "60%",
+      { station: "08MH001", row: 0, name: null, quiet: false, on: false, bar: "60%",
         weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a),
         because: donorBecause(a), label: donorRowLabel(a, true, false) },
-      // A quiet gauge says when it last reported — here the feed did not say (owner 2026-10-21).
-      { station: "08MH024", name: null, quiet: true, on: true, bar: "1%",
-        weightLine: donorWeightLine(b), reads: "Not reporting today.",
-        lastReport: "When it last reported is not known.", facts: donorFacts(b),
+      // A quiet gauge says when it last reported (owner 2026-10-21).
+      { station: "08MH024", row: 1, name: null, quiet: true, on: true, bar: "1%",
+        weightLine: donorWeightLine(b), reads: "Reporting, but its reading cannot be ranked today.",
+        lastReport: donorLastReport(early), facts: donorFacts(b),
         because: null, label: donorRowLabel(b, true, true) },
     ]);
+    expect(vm.silent).toBe("Not reporting: 08MH099 (last report not known)");
     expect(vm.regulated).not.toBeNull();
   });
 
@@ -142,7 +148,7 @@ describe("donorView", () => {
       station: station as never, name: null, lat, lon: -121.5, role, path: path as never });
     const v = value({ rows: [
       row("08MH001", { route: route("08MH001", 49.2, "up", ["s", "a"]) }),
-      row("08MH024", { weight: 0.4, role: "down", percentile: null,
+      row("08MH024", { weight: 0.4, role: "down", percentile: null, observedAt: new Date(2026, 8, 4, 2).toISOString(),
                        route: route("08MH024", 49.0, "down", ["s", "b", "c"]) }),
       // Placed but with no walkable chain: a dot, no line, no key line for its role.
       row("08MF005", { weight: 0, route: { ...route("08MF005", 49.1, "up", []) } }),

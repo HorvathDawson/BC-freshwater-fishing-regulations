@@ -33,9 +33,13 @@ const route = (station: string, lat: number, role: "up" | "down", path: number[]
 const VALUE: PanelAnswer = {
   answer: { ok: true, value: { percentile: 0.15, plusMinus: 12, trust: "close",
                                spread: 6, donors: 2 } },
+  // 08MH024 reports with nothing to rank (the evening before): a quiet, grey pin. 08MH099 is SILENT — no report at
+  // all — so it is not drawn, though placed (owner 2026-10-22: hidden as rows and pins).
   rows: [row("08MH001", { route: route("08MH001", 49.2, "up", [1, 2]) }),
          row("08MH024", { weight: 0.4, role: "down", percentile: null,
-                          route: route("08MH024", 49.0, "down", [1, 3, 4]) })],
+                          observedAt: new Date(2026, 8, 3, 20).toISOString(),
+                          route: route("08MH024", 49.0, "down", [1, 3, 4]) }),
+         row("08MH099", { weight: 0, percentile: null, route: route("08MH099", 50.5, "up", [9]) })],
   areaKm2: 50, routesReady: true,
 };
 const FROM = { lat: 49.1, lon: -122 };

@@ -509,3 +509,24 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
     is never more than one tap from the main tabs.
   - Same on the web (browser back), the in-app back control, and Android's system back (T50). The back-layers check
     holds this as a rule.
+## CLAUDE 2026-10-22 — silent gauges hidden and named: the calls made
+- **Silent = no reading AT THE HORIZON** (`donorSilent` in core, the same rule `donorReads` words): not on ECCC's
+  real-time list, not reporting, or (a day ahead) no forecast reaching it. A gauge that reports today but cannot be
+  ranked ("Reporting, but its reading cannot be ranked today.") SPEAKS and stays a row — hiding it would call a live
+  gauge silent.
+- **Hidden everywhere it is drawn**: table rows, route-map pins, routes, key entries, the route chain the map colours,
+  and the camera/fit box. Not hidden from the chart's gauge switch: picking a silent gauge there still opens the quiet
+  head ("not reporting today, last reported …"), which is the only place its own chart can be asked for.
+- **One line under the table** (`silentLine`, core): "Not reporting: Liard River at Upper Crossing (last 14 Oct, 09:00
+  PDT) · Coal River (not a real-time gauge)". Times are SHORT but still local and labelled (P16), so the zone is
+  named; a day-only report says its calendar day ("14 Oct"); another year is named ("3 Mar 2024"). A not-real-time
+  gauge adds its last data when known ("(not a real-time gauge; last 3 Mar 2024)"). A day ahead reads "No forecast this
+  far ahead: …". Name = the route's station name, else the station id (before routes arrive).
+- **"Has never reported"** is said only when the station's own file was ASKED and held nothing (`withLastReports` marks
+  the row `noData`; a 404 counts — the live feed has never carried it). Not asked / not known yet: "(last report not
+  known)" — never "never".
+- **All silent** keeps the no-record (or no-forecast) refusal and the quiet head, and the refusal carries the same line.
+- **Colour follows the member's index in the panel's weight order, not its shown position.** The gauge switch lists
+  every member by that index, so the switch dot, the row and the pin are one colour by construction; silent members
+  weigh 0 and sort last, so the speaking ones hold the first tones anyway and hiding one never shifts a shown hue.
+  Pinned: `DonorPanel.silent.test.tsx` (a silent member between two shown ones; row dot == pin tone == switch tone).

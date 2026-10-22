@@ -147,6 +147,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         <Block palette={palette} first>
           <Kicker palette={palette}>{vm.heading}</Kicker>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.reason}</Text>
+          {/* EVERY MEMBER SILENT: the same line the table carries, naming them all (owner 2026-10-22). */}
+          {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
         </Block>
         {chart && <Block palette={palette}>{chart}</Block>}
@@ -157,8 +159,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   /**
    * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes
    * nothing, and a live tone would say otherwise; grey is the map's own "nothing to say".
+   * BY THE ROW'S TONE INDEX (`r.row`, its place in the panel's weight order), which its pin, route and key carry too:
+   * silent members are not drawn, so a row's place in the list is not its index.
    */
-  const toneOf = (i: number | null) => donorTone(palette, i, i !== null && !!vm.rows[i]?.quiet);
+  const quietAt = new Map(vm.rows.map((r) => [r.row, r.quiet]));
+  const toneOf = (i: number | null) => donorTone(palette, i, i !== null && !!quietAt.get(i));
   const map = vm.map;
   const because = vm.rows.filter((r) => r.because);
 
@@ -225,11 +230,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
                            // already carries a colour that means something (its pin).
                            paddingLeft: SPACE.s2, marginLeft: -SPACE.s2 - 3,
                            borderLeftWidth: 3,
-                           borderLeftColor: r.on ? toneOf(i) : "transparent" }}>
+                           borderLeftColor: r.on ? toneOf(r.row) : "transparent" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
                 {/* The same tone as its pin, so the map and the table are one thing. */}
-                <View style={{ width: 9, height: 9, borderRadius: 5,
-                               backgroundColor: toneOf(i) }} />
+                <View testID={`donor-dot-${r.station}`}
+                      style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: toneOf(r.row) }} />
                 <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
                 {r.name ? (
                   <Text style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1 }}>
@@ -242,7 +247,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
                              marginLeft: INSET }}>
                 <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
                                borderRadius: 3, overflow: "hidden" }}>
-                  <View style={{ width: r.bar, height: 5, backgroundColor: toneOf(i) }} />
+                  <View style={{ width: r.bar, height: 5, backgroundColor: toneOf(r.row) }} />
                 </View>
                 <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
               </View>
@@ -261,6 +266,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
             );
           })}
         </View>
+        {/* THE SILENT MEMBERS, NAMED (owner 2026-10-22): not rows, not pins — one line, each with its last data. */}
+        {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
       </Block>
 
       {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
@@ -345,6 +352,11 @@ export function Block({ palette, children, first }: {
       {children}
     </View>
   );
+}
+
+/** The one line naming the panel's silent members — quieter than a row, never a row. */
+function Silent({ palette, children }: { palette: Palette; children: ReactNode }) {
+  return <Text style={{ ...TYPE.meta, color: palette.sub }}>{children}</Text>;
 }
 
 /** A note that qualifies the answer, marked by a rule on its left. */
