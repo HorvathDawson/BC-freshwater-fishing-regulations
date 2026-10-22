@@ -95,7 +95,11 @@ feed
 ```
 
 **No liveness column anywhere in the bundle.** Not `realtime`, not `active`. A station is
-transmitting iff it is present in `gauge/index.json`. Any boolean baked into a per-build
+transmitting iff it is present in `gauge/index.json`. The publisher asks the stations on
+ECCC's real-time list **as of that run** (`hydrometric_StationList.csv`, one request), not the
+roster's snapshot `realtime` flag, and publishes that list as `index.json.listed`: a station
+absent from `stations` but in `listed` is a live gauge quiet this run; one not in `listed` has
+no real-time data at ECCC at all. Every run prints ROSTER DRIFT when the snapshot disagrees. Any boolean baked into a per-build
 artifact is right the week it is cut and wrong months later — slowly enough that nobody
 notices. `GaugeLink.live` is therefore three-valued: absent feed means `null`, not `false`.
 

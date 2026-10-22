@@ -112,8 +112,11 @@ def fetch_station(station: str) -> dict | None:
     app decides a gauge is transmitting.
     """
     text = _get(f"{BASE}/hourly/BC_{station}_hourly_hydrometric.csv")
-    if not text:
-        return None
+    return _parse_hourly(station, text) if text else None
+
+
+def _parse_hourly(station: str, text: str) -> dict | None:
+    """`fetch_station` without the request: one hourly CSV, or None if it holds no reading."""
     rows = [r for r in csv.DictReader(io.StringIO(text)) if r.get("Date")]
     if not rows:
         return None
@@ -136,6 +139,57 @@ def fetch_station(station: str) -> dict | None:
         # half-hour, which is what v1 settled on after shipping raw 5-minute by accident.
         "recent": [[t, lv, q] for i, (t, lv, q) in enumerate(series) if i % 6 == 0],
     }
+
+
+# WHO IS TRANSMITTING TODAY, from ECCC itself — the same file `data/fetch_data.py` reads to
+# set the roster's `realtime` flag, but read EVERY RUN instead of once.
+#
+# The roster is a snapshot, and a snapshot drifts. Fetched 1 Sep 2026; by 22 Oct ECCC had
+# dropped 13 of its 439 "live" stations (08EG012 Exchamsiks, 08LG028 Nicola at Douglas Lake,
+# five Fraser mainstem level gauges...) and begun transmitting from six it marked silent
+# (08NM139, 10CD005 among the matched). Driving the feed from the snapshot asked 13 stations
+# for 404s every half hour and never asked the six. One request makes the feed's own answer
+# to "who is live" as fresh as the readings in it.
+STATION_LIST = "https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_StationList.csv"
+
+
+def listed_stations(text: str | None) -> set[str] | None:
+    """The BC stations ECCC lists as real-time, or None when the list says nothing usable.
+
+    NONE, NOT EMPTY, for a failed or empty answer: an empty set would claim no gauge in the
+    province is transmitting and empty the feed on the strength of one bad response.
+    """
+    if not text:
+        return None
+    out = {(r.get("ID") or "").strip() for r in csv.DictReader(io.StringIO(text))
+           if (r.get("Prov/Terr") or "").strip() == "BC"}
+    out.discard("")
+    return out or None
+
+
+def stations_to_ask(roster: list[dict], listed: set[str] | None) -> tuple[list[str], str]:
+    """`(ids, source)`: ECCC's list when there is one, else the roster's `realtime` flag.
+
+    The list wins outright, including over a station the roster never heard of — the feed is
+    addressed by station id and knows nothing else (see the module note). A station the
+    roster calls live and ECCC no longer lists is not asked: its answer would be a 404.
+    """
+    if listed is not None:
+        return sorted(listed), "eccc"
+    return sorted(s["station"] for s in roster if s.get("realtime")), "roster"
+
+
+def roster_drift(roster: list[dict], listed: set[str] | None) -> dict | None:
+    """How far the roster's `realtime` flag is from ECCC's list today. None without the list.
+
+    `joined`: listed now, not live in the roster. `left`: live in the roster, no longer
+    listed. The BUNDLE reads the roster flag (only a live station may lead a panel), so drift
+    here is a bundle that leads water with a silent gauge — said every run, like a stale HYDAT.
+    """
+    if listed is None:
+        return None
+    was = {s["station"] for s in roster if s.get("realtime")}
+    return {"joined": sorted(listed - was), "left": sorted(was - listed)}
 
 
 def percentile_of(value: float | None, band: list[float | None] | None) -> float | None:
@@ -558,10 +612,12 @@ def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float
 
 def publish(out: Path, stations: list[str], clim: dict | None = None,
             forecast: dict | None = None, latest_release: str | None = None,
-            now: datetime | None = None) -> dict:
+            now: datetime | None = None, listed: set[str] | None = None) -> dict:
     """Fetch every station and write the feed. Returns a small summary for the caller.
 
     `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
+    `listed` is ECCC's real-time list this run (`listed_stations`); published in the index
+    when known, so "not a real-time gauge" and "real-time but quiet today" can be told apart.
     """
     out.mkdir(parents=True, exist_ok=True)
     envelope = (clim or {}).get("stations", {})
@@ -756,6 +812,12 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
         "hydat": {"release": release, "latest": latest_release, "stale": stale},
         "stations": index,
+        # WHICH STATIONS ECCC CALLS REAL-TIME this run. Absent from `stations` still means
+        # nothing to show; this says why. Listed and absent: a live gauge silent this run.
+        # Not listed: ECCC publishes no real-time data for it at all — a HYDAT-only or
+        # seasonal station, or one retired since the bundle's roster. The key is left out
+        # when the list could not be fetched: unknown, never "nobody".
+        **({"listed": sorted(listed)} if listed is not None else {}),
     }, separators=(",", ":")), encoding="utf-8")
 
     # NO stats.json (P20, owner Q16): nothing read it. A record length shown beside a percentile comes from the
@@ -783,9 +845,22 @@ def main() -> None:
     args = ap.parse_args()
 
     roster = json.loads(args.stations.read_text(encoding="utf-8"))
-    # Only stations ECCC lists as transmitting. Asking the other 1,885 is 1,885 requests
-    # for 1,885 404s.
-    ids = [s["station"] for s in roster if s.get("realtime")]
+    # Only stations ECCC lists as transmitting — TODAY, from ECCC's own list (see
+    # STATION_LIST); the roster's snapshot flag only when that list cannot be had. Asking
+    # the other ~1,885 is 1,885 requests for 1,885 404s.
+    listed = listed_stations(_get(STATION_LIST))
+    ids, source = stations_to_ask(roster, listed)
+    drift = roster_drift(roster, listed)
+    if source == "roster":
+        print("  ⚠️  ECCC real-time station list unavailable; asking the roster's "
+              f"{len(ids)} realtime stations", file=sys.stderr)
+    if drift and (drift["joined"] or drift["left"]):
+        print(f"  ⚠️  ROSTER DRIFT: ECCC now lists {len(drift['joined'])} station(s) the roster "
+              f"calls silent ({', '.join(drift['joined'])}) and no longer lists "
+              f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}).\n"
+              f"     The feed follows ECCC; the bundle follows the roster. Refresh with:\n"
+              f"       rm {args.stations} && python data/fetch_data.py --layers hydrometric_stations\n"
+              f"     then rebuild the bundle.")
     if args.limit:
         ids = ids[: args.limit]
 
@@ -834,7 +909,8 @@ def main() -> None:
         except Exception as exc:                                # noqa: BLE001
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
 
-    summary = publish(args.out, ids, clim=clim, forecast=fcast, latest_release=latest)
+    summary = publish(args.out, ids, clim=clim, forecast=fcast, latest_release=latest,
+                      listed=listed)
     print(f"  ✅ {args.out}  {summary['answered']}/{summary['asked']} answered, "
           f"{summary['withPercentile']} with a percentile")
     if fcast:
