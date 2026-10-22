@@ -34,6 +34,7 @@ import { devStatus, releaseMapInput, releaseStatus, useReleaseBoot, useSpots, ty
          type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
+import { locate } from "./locate";
 
 import { DATA_SOURCE, ENDPOINTS } from "./config";
 import { FISH_IMAGES } from "./fishImages.generated";
@@ -161,6 +162,7 @@ export default function App() {
                spots={spots}
                fishImages={FISH_IMAGES}
                systemBack={systemBack}
+               locate={locate}
                weather={weather}
                photos={photos}
                onSaveSpot={spotsHook.save}

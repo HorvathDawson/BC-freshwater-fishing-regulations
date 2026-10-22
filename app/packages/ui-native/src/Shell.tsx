@@ -1,5 +1,5 @@
 /**
- * The app: four tabs, the map as home, and a legend that always says what the colours mean.
+ * The app: three tabs, the map as home (its rail: Layers, Spots), and a legend that always says what the colours mean.
  *
  * Drawn to `design/riffle.html`. The shell owns the state that more than one screen needs —
  * which tab, which water, which colouring, which layers, which palette — and hands it down.
@@ -16,6 +16,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
+import { spotsMenu, useMapRail, type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
@@ -28,7 +29,8 @@ import { MapDay } from "./MapDay";
 import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
-import { SpotsScreen } from "./SpotsScreen";
+import { SpotsSheet } from "./SpotsSheet";
+import { SpotDropSheet } from "./SpotDropSheet";
 import { SpotCapture } from "./SpotCapture";
 import { SpotScreen } from "./SpotScreen";
 import { TABS, TabBar, type TabKey } from "./TabBar";
@@ -64,7 +66,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, photos, status = null, pairing = null,
-                       systemBack = null, loader = null, initialRoute }: {
+                       systemBack = null, loader = null, initialRoute, locate = null }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -88,7 +90,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   onRefreshSpots?: () => void | Promise<void>;
   /** Awaited like a save: a rejection is shown and the spot stays open (P01). */
   onDeleteSpot?: (id: string) => void | Promise<void>;
-  /** The spots could not be read (a corrupt file, set aside): said on the Spots tab, never an empty list (P01). */
+  /** The spots could not be read (a corrupt file, set aside): said in the Spots menu, never an empty list (P01). */
   spotsError?: string | null;
   /**
    * The live gauge feed. Absent means the Conditions view colours nothing — which is the
@@ -107,6 +109,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   loader?: ReleaseLoader | null;
   /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
   initialRoute?: Route;
+  /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
+  locate?: Locate | null;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -130,7 +134,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // the water's regulations read (P11): on the release, opening it opens core, water and its region's file — a water in
   // another region fetches that region's. The page that draws them is T01/T03's; until then the placeholder stands.
   useRegulationKeys(source, item);
-  const adding = route.mode === "browse" && route.adding;
+  const adding = route.mode === "browse" ? route.adding : null;
   const openSpot = route.mode === "browse" ? route.spot : null;
   const toTab = (k: BrowseTab) => go({ type: "tab", tab: k });
   /*
@@ -170,6 +174,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const pickFocus = usePickFocus(source, shown);
   const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
   const [layersOpen, setLayersOpen] = useState(false);
+  /*
+   * THE MAP RAIL (owner 2026-10-21): the Spots menu, the provisional pin a long press drops, and where "Show" sent the
+   * map — `@app/ui` `useMapRail`. Every way of adding a spot ends in the route's `addSpot` at a point: one capture.
+   */
+  const rail = useMapRail(go, locate, route);
   // the figures are drawn by the search screen (its total) and the layers sheet (reaches, stations, age)
   const factsWanted = tab === "search" || layersOpen;
   const facts = useDataFacts(source, feed, factsWanted);
@@ -397,13 +406,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   if (adding && onSaveSpot)
     return layered(
       <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
+                   // started at a point (a long press, the map's middle, your location): the pin is already down
+                   at={adding.at}
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
                    feed={feed}
                    theme={theme} camera={camera.current}
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
-                   onSaved={async (s) => { await onSaveSpot(s); toTab("spots"); }} />
+                   // saved: the spot itself, over the map it was added from (back returns to that map)
+                   onSaved={async (s) => { await onSaveSpot(s); go({ type: "openSpot", id: s.id }); }} />
     );
 
   const body = frame !== null
@@ -452,14 +464,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // the way back to search, while the map shows what search's eye sent it to
                      onBack={tab === "map" && shown !== null ? back : undefined}
                      camera={camera.current}
-                     marker={focus}
+                     // the provisional pin a long press dropped, else the spot "Show" sent the map to
+                     marker={rail.drop ?? rail.fly?.at ?? focus}
                      basemap={layers.basemap}
                      // THE CHOSEN WATER, whole, on the Map tab only — the Conditions view
                      // lights a gauge's route with the same feature-state and must not
                      // inherit a search.
                      fit={tab === "map" && pickFocus
                        ? { key: pickFocus.key, bbox: pickFocus.bbox, refine: pickFocus.refine }
-                       : null}
+                       : rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox } : null}
                      highlight={tab === "map" ? pickFocus?.highlight ?? NONE : NONE}
                      data={tab === "conditions" ? conditionData : statusMapData}
                      standing={cond.standing}
@@ -503,13 +516,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // whose choices this tab overrides. A control that does nothing is
                      // worse than a missing one.
                      onLayers={onConditions ? undefined : () => setLayersOpen(true)}
+                     // THE RAIL'S SPOTS (owner 2026-10-21): on both browse maps, where the Spots tab was
+                     onSpots={rail.openSpots}
+                     // press and hold: a provisional pin, and the sheet that asks before anything is made
+                     onLongPress={onSaveSpot ? rail.pressLong : undefined}
                      // either map's tap opens the ONE water screen (see onPressFeature): only the view in front differs
                      onPressFeature={onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
-        : <SpotsScreen palette={palette} spots={spots} error={spotsError ?? null} photoStore={photos?.store}
-                       onOpen={(id) => go({ type: "openSpot", id })}
-                       onAdd={() => go({ type: "addSpot" })}
-                       onRefresh={onRefreshSpots} refreshing={refreshing} />;
+        : null;
 
   /*
    * THE LEGEND BELONGS TO THE MAP, so it goes when the map does: in water mode (any view, from either map) the browse
@@ -663,6 +677,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
                    attribution={attribution} ready={lakeReady} />
+      <SpotsSheet open={rail.spotsOpen && route.mode === "browse"} onClose={rail.closeSpots} palette={palette}
+                  vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
+                                         permission: rail.permission })}
+                  onOpen={(id) => { rail.closeSpots(); go({ type: "openSpot", id }); }}
+                  onShow={(id) => { const s = spots.find((x) => x.id === id); if (s) rail.show(s); }}
+                  onAdd={(k) => (k === "mine" ? void rail.addMine()
+                                 : rail.addAt({ lat: camera.current.lat, lon: camera.current.lon }))}
+                  onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
+                  photoStore={photos?.store} />
+      <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
+                     onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
     </View>
   );
 }

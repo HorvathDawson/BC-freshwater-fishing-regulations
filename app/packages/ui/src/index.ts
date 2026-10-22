@@ -33,6 +33,7 @@ export * from "./release";
 export * from "./boot";
 export * from "./regs";
 export * from "./waterMap";
+export * from "./mapRail";
 
 export type FormFactor = "phone" | "desktop";
 

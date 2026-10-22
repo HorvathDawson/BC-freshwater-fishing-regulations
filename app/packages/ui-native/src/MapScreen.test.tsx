@@ -19,9 +19,10 @@ import { LIGHT } from "./theme";
  * offered, which is chosen, and what it reports. Stubbing the map is the difference between
  * testing that control and testing nothing.
  */
+const mapProps: { last: Record<string, unknown> | null } = { last: null };
 vi.mock("@app/map", async (orig) => ({
   ...(await orig<Record<string, unknown>>()),
-  Map: () => null,
+  Map: (p: Record<string, unknown>) => { mapProps.last = p; return null; },
 }));
 
 const { MapScreen } = await import("./MapScreen");
@@ -96,5 +97,39 @@ describe("<MapScreen> corner", () => {
     // would open a sheet whose answers the tab ignores.
     render(<MapScreen {...BASE} horizons={horizons(0)} />);
     expect(screen.queryByText("Layers")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Choose layers" })).toBeNull();
+  });
+});
+
+describe("<MapScreen> rail (owner 2026-10-21: Layers and Spots stacked on the side, Fish Washington style)", () => {
+  const rail = () => {
+    const bar = screen.queryByRole("toolbar", { name: "Map tools" });
+    return bar ? [...bar.querySelectorAll("[role=button]")].map((b) => b.getAttribute("aria-label")).join(" · ")
+      : "no rail";
+  };
+  it("Layers then Spots, each said aloud; the Conditions map (no layers handler) keeps Spots; neither: no rail", () => {
+    const { rerender } = render(<MapScreen {...BASE} onLayers={() => {}} onSpots={() => {}} />);
+    const both = rail();
+    rerender(<MapScreen {...BASE} onSpots={() => {}} />);
+    const spots = rail();
+    rerender(<MapScreen {...BASE} />);
+    expect([both, spots, rail()]).toEqual(["Choose layers · Your spots", "Your spots", "no rail"]);
+  });
+
+  it("each button opens its own sheet", () => {
+    const layers = vi.fn(), spots = vi.fn();
+    render(<MapScreen {...BASE} onLayers={layers} onSpots={spots} />);
+    fireEvent.click(screen.getByRole("button", { name: "Your spots" }));
+    fireEvent.click(screen.getByRole("button", { name: "Choose layers" }));
+    fireEvent.click(screen.getByRole("button", { name: "Your spots" }));
+    expect([layers.mock.calls.length, spots.mock.calls.length]).toEqual([1, 2]);
+  });
+
+  it("the long press reaches the map as given, and only when given", () => {
+    const held = vi.fn();
+    const { rerender } = render(<MapScreen {...BASE} onLongPress={held} />);
+    const given = mapProps.last!.onLongPress;
+    rerender(<MapScreen {...BASE} />);
+    expect([given === held, mapProps.last!.onLongPress]).toEqual([true, undefined]);
   });
 });

@@ -16,9 +16,13 @@
  * one-pixel river, that is a coin toss: you get whichever water your thumb happened to
  * cover and no chance to see it was wrong before it is a permanent record. Highlighting
  * the choice and asking is the difference between picking and guessing.
+ *
+ * STARTED AT A POINT (owner 2026-10-21): a long press on the map, the Spots menu's "Add a spot here" (the map's middle)
+ * or "At my location" hands the point in (`at`). The pin is then already down: the map opens on it, step 1 picks the
+ * water near it, and Next goes straight to step 3 — step 2 is still there, one ‹ Back away, to move the pin.
 
  */
-import { VISIT_QUICK_DAYS, type SectionKey, type VisitSteps } from "@app/core";
+import { SPOT_CAPTURE_AT, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { RegsSource, SectionId } from "@app/data";
@@ -36,6 +40,9 @@ type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
 const PREV: Record<Step, Step | null> = { water: null, point: "water", when: "point", details: "when", saving: "when" };
 
+/** How close the map opens on a spot started at a point: near enough to pick one channel from the next. */
+const AT_ZOOM = 14;
+
 export interface SpotCaptureProps {
   /**
    * The live index, so the ESTIMATE is frozen as the reader saw it.
@@ -51,6 +58,8 @@ export interface SpotCaptureProps {
   palette: Palette;
   theme: string;
   camera: Camera;
+  /** The point the spot was started at (a long press, the map's middle, the reader's location); absent: picked here. */
+  at?: LatLon | null;
   onCancel: () => void;
   /** S1: the photo store and the platform's picker. Absent -> the draft offers no photos. */
   photos?: SpotPhotos;
@@ -62,7 +71,11 @@ export function SpotCapture(props: SpotCaptureProps) {
   const { palette, tiles, theme, camera, source, feed } = props;
   const [step, setStep] = useState<Step>("water");
   const [water, setWater] = useState<CaptureWater | null>(null);
-  const [point, setPoint] = useState<{ lat: number; lon: number } | null>(null);
+  const [point, setPoint] = useState<{ lat: number; lon: number } | null>(props.at ?? null);
+  // a spot started at a point opens the map ON it, close enough to tell one channel from the next
+  const [start] = useState<Camera>(() => props.at
+    ? { lat: props.at.lat, lon: props.at.lon, zoom: Math.max(camera.zoom, AT_ZOOM) } : camera);
+  const preset = props.at != null;
   // The visit's day and hour, the capture and the save: `useCaptureSpot` (P12b).
   const cap = useCaptureSpot({ source, weather: props.weather, feed, photos: props.photos });
   // Leaving without saving deletes the photos the draft added (S1): nothing else would ever hold them.
@@ -134,7 +147,7 @@ export function SpotCapture(props: SpotCaptureProps) {
   const ready = step === "water" ? water !== null : point !== null;
   return (
     <View style={{ flex: 1 }}>
-      <MapScreen at={tiles} palette={palette} theme={theme} camera={camera}
+      <MapScreen at={tiles} palette={palette} theme={theme} camera={start}
                  view="plain"
                  onPressFeature={step === "water"
                    ? pickWater
@@ -150,15 +163,16 @@ export function SpotCapture(props: SpotCaptureProps) {
         </View>
       )}
       <Coach palette={palette}
-             title={step === "water" ? "Pick the water" : "Now the exact spot"}
+             title={step === "water" ? (preset ? SPOT_CAPTURE_AT.title : "Pick the water") : "Now the exact spot"}
              detail={step === "water"
-               ? "Tap the stream or lake your spot is on."
+               ? (preset ? SPOT_CAPTURE_AT.detail : "Tap the stream or lake your spot is on.")
                : `Tap the point on ${water?.name ?? "this reach"}.`}
              chose={step === "water" ? water?.name ?? null
                                      : point && `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`}
              // Cancel leaves the whole capture: asks first when the draft holds what the reader put in
              onCancel={leave}
-             onNext={ready ? () => setStep(step === "water" ? "point" : "when") : undefined} />
+             // the pin is already down when the spot was started at a point: on to when you were there
+             onNext={ready ? () => setStep(step === "water" && !preset ? "point" : "when") : undefined} />
     </View>
   );
 }

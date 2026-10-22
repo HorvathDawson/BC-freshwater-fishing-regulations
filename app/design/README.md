@@ -30,7 +30,7 @@ with this file, this file is right.
 
 | | |
 |---|---|
-| navigation | four tabs — **Map · Search · Conditions · Spots** — with the map as home, not a page you navigate to |
+| navigation | three tabs — **Map · Search · Conditions** — with the map as home, not a page you navigate to; Spots (and Layers) on the maps' side rail (owner 2026-10-21) |
 | type | **Bricolage Grotesque** for display, **Archivo** for text, **JetBrains Mono** for figures |
 | colour | outcome carries the colour, provenance carries the line weight |
 | the map | generic OSM-flavoured base, our water drawn over it, four colour layers (rules / flow / depth / stocking) |

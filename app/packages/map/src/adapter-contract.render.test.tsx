@@ -56,6 +56,8 @@ class FakeGl {
   getCenter() { return { lng: -122, lat: 49 }; }
   /** Screen x: a degree of longitude east of -122.2 is 1000 px (so -121.83788 sits at 362 of the 400 px map). */
   project(l: { lng: number; lat: number }) { return { x: Math.round((l.lng + 122.2) * 1000), y: 400 }; }
+  /** Its inverse, and a degree of latitude north of 49 is 1000 px up from y 400. */
+  unproject([x, y]: [number, number]) { return { lng: x / 1000 - 122.2, lat: 49 + (400 - y) / 1000 }; }
   getZoom() { return 9; }
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { return []; }
@@ -174,6 +176,10 @@ const PLATFORMS = {
       act(() => web.map!.fire("click", { point: { x, y }, lngLat: { lng: lon, lat } }));
     },
     settle: () => { act(() => web.map!.fire("idle")); },
+    // the browser's own long press (Chrome on Android) or a right click: `contextmenu` at the point
+    hold: (x: number, y: number, _lon: number, _lat: number) => {
+      act(() => web.map!.fire("contextmenu", { point: { x, y }, originalEvent: { preventDefault: () => {} } }));
+    },
   },
   native: {
     Map: NativeMap,
@@ -183,6 +189,12 @@ const PLATFORMS = {
       const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
       act(() => { (native.props!.onPress as (e: Press) => void)(e); });
       e.nativeEvent = null;              // React Native recycles the event once the handler yields (N1 §3)
+    },
+    // MapLibre Native's own long press, recycled once the handler yields like a tap
+    hold: (x: number, y: number, lon: number, lat: number) => {
+      const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
+      act(() => { (native.props!.onLongPress as (e: Press) => void)(e); });
+      e.nativeEvent = null;
     },
     // a camera that stopped, then the frame with the tiles in: the order a phone reports them
     settle: () => {
@@ -270,6 +282,31 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
     expect(press.mock.calls.length).toBe(1);
   });
 
+  it("a long press answers WHERE, once, and asks the map nothing (owner 2026-10-21: a spot is dropped there)", async () => {
+    const held = vi.fn();
+    const press = vi.fn();
+    render(<P.Map {...base({ data: undefined, highlight: undefined, onLongPress: held, onPressFeature: press })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    log.length = 0;
+    P.hold(362, 300, -121.838, 49.1);
+    await act(async () => {});
+    expect({ held: held.mock.calls.map(([lat, lon]) => [lat.toFixed(4), lon.toFixed(4)]), log, press: press.mock.calls })
+      .toEqual({ held: [["49.1000", "-121.8380"]], log: [], press: [] });
+  });
+
+  it("a long press still answers on a map rebuilt for new tile endpoints (the release's tiles replacing the dev ones)", async () => {
+    const held = vi.fn();
+    const r = render(<P.Map {...base({ data: undefined, highlight: undefined, onLongPress: held })} />);
+    await waitFor(() => expect(native.props ?? web.map).toBeTruthy());
+    const first = web.map;
+    r.rerender(<P.Map {...base({ data: undefined, highlight: undefined, onLongPress: held,
+                                 at: { ...AT, atlas: `${AT.atlas}?release` } })} />);
+    await waitFor(() => expect(native.props !== null || (web.map !== null && web.map !== first)).toBe(true));
+    P.hold(362, 300, -121.838, 49.1);
+    await act(async () => {});
+    expect(held.mock.calls.map(([lat, lon]) => [lat.toFixed(4), lon.toFixed(4)])).toEqual([["49.1000", "-121.8380"]]);
+  });
+
   it("what is on screen: the visible water's sections, as numbers, once each", async () => {
     const seen = vi.fn();
     answer = (layers, phone) => (layers.length === 4
@@ -285,6 +322,57 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
 });
 
 describe("web only", () => {
+  it("a finger held still 500 ms drops it; its click is not a tap; a pan or a second finger drops nothing", async () => {
+    vi.useFakeTimers();
+    try {
+      const held = vi.fn();
+      const tapped = vi.fn();
+      render(<WebMap {...base({ data: undefined, highlight: undefined, onLongPress: held, onMapPoint: tapped })} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      const touch = (ev: string, x: number, y: number, n = 1) =>
+        act(() => web.map!.fire(ev, { point: { x, y }, originalEvent: { touches: { length: n } } }));
+      touch("touchstart", 362, 400);
+      touch("touchmove", 366, 403);                    // 5 px: still a press
+      act(() => { vi.advanceTimersByTime(500); });
+      touch("touchend", 366, 403);
+      act(() => web.map!.fire("click", { point: { x: 366, y: 403 }, lngLat: { lng: -121.834, lat: 48.997 } }));
+      touch("touchstart", 100, 400);
+      touch("touchmove", 110, 400);                    // a pan
+      act(() => { vi.advanceTimersByTime(800); });
+      touch("touchstart", 100, 400);
+      touch("touchmove", 100, 400, 2);                 // a pinch
+      act(() => { vi.advanceTimersByTime(800); });
+      act(() => web.map!.fire("click", { point: { x: 100, y: 400 }, lngLat: { lng: -122.1, lat: 49 } }));
+      expect({ held: held.mock.calls.map(([lat, lon]) => [lat.toFixed(3), lon.toFixed(3)]), tapped: tapped.mock.calls })
+        .toEqual({ held: [["49.000", "-121.838"]], tapped: [[49, -122.1]] });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("the lift that ends a long press is cancelled, so the browser makes no click of it on the sheet now under the " +
+     "finger; a tap's lift is left alone", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<WebMap {...base({ data: undefined, highlight: undefined, onLongPress: () => {} })} />);
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      const lifts: string[] = [];
+      const press = (ms: number) => {
+        act(() => web.map!.fire("touchstart", { point: { x: 200, y: 400 }, originalEvent: { touches: { length: 1 } } }));
+        act(() => { vi.advanceTimersByTime(ms); });
+        act(() => web.map!.fire("touchend", { point: { x: 200, y: 400 },
+                                              originalEvent: { touches: { length: 0 },
+                                                               preventDefault: () => lifts.push(`${ms} ms`) } }));
+      };
+      press(120);
+      press(600);
+      press(120);
+      expect(lifts).toEqual(["600 ms"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("pushed data that arrives mid tile burst is applied (no `load` fires again on a zoom out)", async () => {
     const r = render(<WebMap {...base({ highlight: undefined, data: WEB_DATA })} />);
     await waitFor(() => expect(log.length).toBe(2));
@@ -391,6 +479,12 @@ describe("the gesture policy reaches each renderer", () => {
 });
 
 describe("native only", () => {
+it("no listener, no long press: the binding is handed no handler (its long press stays the SDK's no-op)", async () => {
+  render(<NativeMap {...base({ data: undefined, highlight: undefined })} />);
+  await waitFor(() => expect(native.props).toBeTruthy());
+  expect(native.props!.onLongPress).toBeUndefined();
+});
+
   it("is handed the style with nothing promoted, and a camera held to the province's zooms and bounds", async () => {
     render(<NativeMap {...base()} />);
     await waitFor(() => expect(native.camera).toBeTruthy());

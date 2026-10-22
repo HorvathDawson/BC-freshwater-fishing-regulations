@@ -95,7 +95,6 @@ describe("edgeBackDepth: the iOS edge swipe has no tab-to-tab step (iOS tabs are
     const rows: [string, Route, number][] = [
       ["map root", HOME, 0],
       ["search root", at([{ type: "tab", tab: "search" }]), 0],
-      ["spots root", at([{ type: "tab", tab: "spots" }]), 0],
       ["a spot", at([{ type: "openSpot", id: "s1" }]), 1],
       ["search's eye", at([{ type: "tab", tab: "search" }, { type: "show", item: VEDDER }]), 1],
       ["a water from conditions", at([{ type: "tab", tab: "conditions" }, { type: "openWater", item: VEDDER }]), 1],
@@ -103,7 +102,7 @@ describe("edgeBackDepth: the iOS edge swipe has no tab-to-tab step (iOS tabs are
     ];
     const layers = 1;
     expect(rows.map(([k, r, n]) => `${k}: ${edgeBackDepth(r, backDepth(r))}/${n} +sheet ${edgeBackDepth(r, backDepth(r) + layers)}`))
-      .toEqual(["map root: 0/0 +sheet 1", "search root: 0/0 +sheet 1", "spots root: 0/0 +sheet 1",
+      .toEqual(["map root: 0/0 +sheet 1", "search root: 0/0 +sheet 1",
                 "a spot: 1/1 +sheet 2", "search's eye: 1/1 +sheet 2",
                 "a water from conditions: 1/1 +sheet 2", "a water from the map: 1/1 +sheet 2"]);
   });

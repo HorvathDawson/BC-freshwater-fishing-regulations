@@ -10,6 +10,8 @@
  *   sheet      a bottom sheet dragged down closes past a third of its height or on a flick (`sheetDismiss`)
  *   map        one policy for both map bindings (`MAP_GESTURES`): pan, pinch, double-tap and wheel zoom; no rotate,
  *              no tilt; a tap is a press that moved less than `TAP_SLOP`
+ *   long press one finger held `LONG_PRESS.ms` within the tap slop drops a spot on the browse map (owner 2026-10-21);
+ *              a pan or a second finger ends it (`longPressHolds`), so it never fights pan or pinch
  */
 
 /** A press that moved less than this (px) is a tap — the prototype's rule. A small pan never selects a section. */
@@ -30,6 +32,17 @@ export const SHEET_DRAG = { fraction: 1 / 3, flick: 800 } as const;
 
 /** How far a view may be pulled when there is nowhere to go (the first or last view): a short resistance, no wrap. */
 export const RESIST = { factor: 0.3, max: 32 } as const;
+
+/**
+ * A LONG PRESS on the map: one finger held this long (ms) without moving past `slop` px. The web binding times it
+ * itself (a phone browser's own `contextmenu` is not on every browser); MapLibre Native reports its own long press.
+ */
+export const LONG_PRESS = { ms: 500, slop: TAP_SLOP } as const;
+
+/** Is a press with `touches` fingers down, moved (dx, dy) from where it began, still a long press in the making? */
+export function longPressHolds(dx: number, dy: number, touches: number): boolean {
+  return touches === 1 && Math.hypot(dx, dy) < LONG_PRESS.slop;
+}
 
 /** Did a press that moved (dx, dy) stay a tap? Strictly under `TAP_SLOP`. */
 export function isTap(dx: number, dy: number): boolean {

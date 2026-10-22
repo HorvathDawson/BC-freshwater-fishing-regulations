@@ -11,13 +11,13 @@ import { Text, View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
 import { Pill } from "./Chrome";
-import { LayersIcon } from "./icons";
+import { MapRail } from "./MapRail";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
-                            onLayers, onPressFeature, onMoved, onMapPoint, horizons,
+                            onLayers, onSpots, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, status, standing, lakes, gauges, onVisible, onError,
                             fit, basemap, onBack, water, marks, onPressMark }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -54,6 +54,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   marker?: { lat: number; lon: number } | null;
   camera: Camera;
   onLayers?: () => void;
+  /** The rail's Spots button (owner 2026-10-21): opens the Spots menu. Absent -> no button. */
+  onSpots?: () => void;
+  /** A long press on the map, where (owner 2026-10-21: drops a provisional spot) — see MapProps.onLongPress. */
+  onLongPress?: MapProps["onLongPress"];
   /**
    * The forecast horizons, on the Conditions tab only: `horizonChips` from @app/ui (core's
    * days and words) and the Shell's one `pick`, the same pair the panel header draws.
@@ -71,7 +75,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
-           onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
+           onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} />
@@ -128,15 +132,11 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       </View>
       )}
 
-      {onLayers && (
-      <View style={{ position: "absolute", bottom: 14, left: 14 }}>
-        <Pill palette={palette} onPress={onLayers} label="Choose layers">
-          <LayersIcon colour={palette.ink} size={15} />
-          <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600",
-                         color: palette.ink }}>Layers</Text>
-        </Pill>
-      </View>
-      )}
+      {/*
+        THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill, with Spots under it — the map's own
+        buttons in one stack on the right, under MapLibre's zoom stack (`MapRail`).
+      */}
+      <MapRail palette={palette} onLayers={onLayers} onSpots={onSpots} />
     </View>
   );
 }

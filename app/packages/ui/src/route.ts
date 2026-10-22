@@ -3,7 +3,9 @@
  * implicit priority chain (open spot → adding → item → search → conditions → map, with the tab bar clearing four
  * separate states), so "back" is a function a test can call.
  *
- *   browse   the four tabs (Map · Search · Conditions · Spots), the bottom bar shown.
+ *   browse   the three tabs (Map · Search · Conditions), the bottom bar shown. The spots are the maps' rail's (owner
+ *            2026-10-21): a spot opens over the map it was picked on, and adding one starts at a point when the
+ *            reader gave one (a long press, the map's middle, their location).
  *   water    one water latched (APP-PREP §0): a STACK of frames, each a water at a part and a view (regs · map ·
  *            conditions). The bottom bar is hidden. `from` is the browse state underneath, kept whole, so leaving
  *            restores the tab (the Conditions map or the Map tab) and the open spot exactly. The camera is not here (it would
@@ -33,7 +35,7 @@ import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 
-export type BrowseTab = "map" | "search" | "conditions" | "spots";
+export type BrowseTab = "map" | "search" | "conditions";
 export type View = WaterView;
 export type SpotId = string;
 /** Where on a reach a Conditions tap landed: the "you are here" end of its route map. */
@@ -46,9 +48,11 @@ export interface LatLon { lat: number; lon: number }
 export interface WaterFrame {
   item: ItemId | null; part: number | null; tapSid: SectionId | null; at: LatLon | null; view: View;
 }
+/** A spot being added: at the point the reader gave (a long press, the map's middle, their location), or none yet. */
+export interface AddingSpot { at: LatLon | null }
 export interface BrowseRoute {
   mode: "browse"; tab: BrowseTab;
-  spot: SpotId | null; adding: boolean;
+  spot: SpotId | null; adding: AddingSpot | null;
   /**
    * A water SHOWN on the main map by search's eye — framed and lit there, the bar still up. Back returns to search
    * (which keeps its query and selection: the Shell holds them). Any tab change forgets it.
@@ -73,12 +77,13 @@ export type RouteAction =
   | { type: "flowInto"; item: ItemId; part: number }
   | { type: "back" }
   | { type: "openSpot"; id: SpotId }
-  | { type: "addSpot" };
+  /** Start adding a spot, at a point when one was given (a long press, the map's middle, the reader's location). */
+  | { type: "addSpot"; at?: LatLon | null };
 
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */
 export const STACK_CAP = 8;
 
-export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: false, shown: null };
+export const HOME: BrowseRoute = { mode: "browse", tab: "map", spot: null, adding: null, shown: null };
 
 /** The views a frame offers: all three for a water; an unnamed reach has no regulations or water map, only Conditions. */
 export const REACH_ONLY: readonly WaterView[] = ["conditions"];
@@ -103,16 +108,17 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
 export function reduce(r: Route, a: RouteAction): Route {
   if (r.mode === "browse") {
     switch (a.type) {
-      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: false, shown: null };
-      case "show": return { mode: "browse", tab: "map", spot: null, adding: false, shown: a.item };
+      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: null, shown: null };
+      case "show": return { mode: "browse", tab: "map", spot: null, adding: null, shown: a.item };
       case "openWater": {
         const f = opened(a);
         return f === null ? r : { mode: "water", from: r, stack: [f] };
       }
-      case "openSpot": return { ...r, tab: "spots", spot: a.id, adding: false };
-      case "addSpot": return { ...r, adding: true, spot: null };
+      // a spot opens over the map it was picked on (the rail's menu); back returns to that map
+      case "openSpot": return { ...r, spot: a.id, adding: null };
+      case "addSpot": return { ...r, adding: { at: a.at ?? null }, spot: null };
       case "back":
-        if (r.adding) return { ...r, adding: false };
+        if (r.adding !== null) return { ...r, adding: null };
         if (r.spot !== null) return { ...r, spot: null };
         if (r.shown !== null) return { ...r, tab: "search", shown: null };
         if (r.tab !== HOME.tab) return HOME;
@@ -149,7 +155,7 @@ export function waterFrame(r: Route): WaterFrame | null {
 
 /** The bottom bar: shown while browsing, hidden in water mode and while a spot is being added. */
 export function bottomBarShown(r: Route): boolean {
-  return r.mode === "browse" && !r.adding;
+  return r.mode === "browse" && r.adding === null;
 }
 
 export function useRoute(initial: Route = HOME): [Route, (a: RouteAction) => void] {

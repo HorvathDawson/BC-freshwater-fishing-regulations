@@ -30,6 +30,7 @@ import type { MapRenderer } from "./adapters/contract";
 import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
+import { longPressWatch, type LongPressWatch } from "./longPress";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
          unionBbox, type Bbox } from "@app/core";
 import type { MapHandle } from "./adapters/contract";
@@ -220,7 +221,7 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
-                      onError, onMoved, onMapPoint, highlight, water, marker, style,
+                      onError, onMoved, onMapPoint, onLongPress, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace,
                       zoomControls, status, standing, lakes, marks, onPressMark }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
@@ -545,10 +546,58 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     return () => { m.off("moveend", report); };
   }, [onMoved]);
 
+  /*
+   * THE LONG PRESS (owner 2026-10-21, `onLongPress`): a held finger timed by the one policy (`longPressWatch`), or the
+   * browser's own long press / a right click (`contextmenu`) — whichever comes first, once per press. Any pan, a second
+   * finger, a lift or the map starting to move ends it, so it never fights pan or pinch. Keyed on whether there is a
+   * listener (the latest one is read through a ref), so an inline arrow from a caller cannot make it thrash.
+   */
+  const longPressCb = useRef(onLongPress);
+  longPressCb.current = onLongPress;
+  const longPress = useRef<LongPressWatch | null>(null);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || onLongPress === undefined) return;
+    const w = longPressWatch((x, y) => {
+      const at = m.unproject([x, y]);
+      longPressCb.current?.(at.lat, at.lng);
+    });
+    longPress.current = w;
+    const fingers = (e: maplibregl.MapTouchEvent) => e.originalEvent.touches.length;
+    const down = (e: maplibregl.MapTouchEvent) => w.down(e.point.x, e.point.y, fingers(e));
+    const move = (e: maplibregl.MapTouchEvent) => w.move(e.point.x, e.point.y, fingers(e));
+    const mouse = (e: maplibregl.MapMouseEvent) => w.down(e.point.x, e.point.y, 0);
+    const up = () => w.up();
+    // a finger lifted: the mousedown the browser makes up next is this touch. After a long press that lift is
+    // cancelled: the drop sheet is now under the finger, and the click the browser would make of it lands on the
+    // sheet's scrim — which closes the sheet the press just raised
+    const lift = (e: maplibregl.MapTouchEvent) => {
+      if (w.fired()) e.originalEvent?.preventDefault?.();
+      w.up(true);
+    };
+    const context = (e: maplibregl.MapMouseEvent) => {
+      e.originalEvent?.preventDefault?.();          // the browser's own menu would cover the sheet
+      w.context(e.point.x, e.point.y);
+    };
+    m.on("touchstart", down); m.on("touchmove", move); m.on("touchend", lift); m.on("touchcancel", lift);
+    m.on("mousedown", mouse); m.on("movestart", up); m.on("contextmenu", context);
+    return () => {
+      m.off("touchstart", down); m.off("touchmove", move); m.off("touchend", lift); m.off("touchcancel", lift);
+      m.off("mousedown", mouse); m.off("movestart", up); m.off("contextmenu", context);
+      w.dispose();
+      longPress.current = null;
+    };
+    // ...and on the map's own keys: new endpoints (the release's tiles replacing the dev ones) build a NEW map, and
+    // a listener left on the old one would never hear a press again
+  }, [onLongPress !== undefined, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
+
   useEffect(() => {
     const m = map.current;
     if (!m || !onMapPoint) return;
-    const onTap = (e: maplibregl.MapMouseEvent) => onMapPoint(e.lngLat.lat, e.lngLat.lng);
+    // the click a long press may leave behind is not also a tap
+    const onTap = (e: maplibregl.MapMouseEvent) => {
+      if (!longPress.current?.fired()) onMapPoint(e.lngLat.lat, e.lngLat.lng);
+    };
     m.on("click", onTap);
     return () => { m.off("click", onTap); };
   }, [onMapPoint]);
@@ -887,6 +936,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const m = map.current, r = renderer.current;
     if (!m || !r || !onPressFeature) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
+      if (longPress.current?.fired()) return;       // the click a long press may leave behind is not a tap
       /**
        * A BOX, not a point.
        *

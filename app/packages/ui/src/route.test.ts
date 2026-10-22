@@ -37,7 +37,8 @@ describe("route (P13): one value, one back rule", () => {
 
   it("a tab or a spot is impossible in water mode: there is no bar", () => {
     const w = reduce(HOME, { type: "openWater", item: VEDDER });
-    for (const a of [{ type: "tab", tab: "spots" }, { type: "openSpot", id: "s1" }] as RouteAction[]) {
+    for (const a of [{ type: "tab", tab: "search" }, { type: "openSpot", id: "s1" },
+                     { type: "addSpot", at: { lat: 49, lon: -122 } }] as RouteAction[]) {
       expect(reduce(w, a)).toBe(w);
     }
   });
@@ -46,28 +47,41 @@ describe("route (P13): one value, one back rule", () => {
     const r = run(HOME, { type: "openSpot", id: "s1" }, { type: "addSpot" });
     expect(bottomBarShown(r)).toBe(false);
     const a = reduce(r, { type: "back" });
-    expect(a).toEqual({ ...HOME, tab: "spots" });
+    expect(a).toEqual(HOME);
     expect(reduce(HOME, { type: "back" })).toBe(HOME);
   });
 
   it("back on another tab's root goes to the Map tab (the start tab); back on the Map tab stays (Android leaves)", () => {
-    const tabs = ["map", "search", "conditions", "spots"] as const;
+    const tabs = ["map", "search", "conditions"] as const;
     const after = tabs.map((t) => {
       const at = reduce(HOME, { type: "tab", tab: t });
       const b = reduce(at, { type: "back" });
       return `${t} -> ${b === at ? "stays" : b.mode === "browse" ? b.tab : b.mode}`;
     });
-    expect(after.join(" | ")).toBe("map -> stays | search -> map | conditions -> map | spots -> map");
-    // and a spot's list is reached from a spot first: spot -> Spots -> Map, one step each
-    const spot = run(HOME, { type: "openSpot", id: "s1" });
-    expect([reduce(spot, { type: "back" }), run(spot, { type: "back" }, { type: "back" })])
-      .toEqual([{ ...HOME, tab: "spots" }, HOME]);
+    expect(after.join(" | ")).toBe("map -> stays | search -> map | conditions -> map");
+  });
+
+  it("the spots are the maps' rail's (owner 2026-10-21): a spot opens over the map it was picked on, back returns there", () => {
+    const cond = reduce(HOME, { type: "tab", tab: "conditions" });
+    const spot = reduce(cond, { type: "openSpot", id: "s1" });
+    expect([spot, bottomBarShown(spot), reduce(spot, { type: "back" })]).toEqual([
+      { mode: "browse", tab: "conditions", spot: "s1", adding: null, shown: null }, true, cond]);
+  });
+
+  it("adding a spot keeps the point it was started at (a long press, the map's middle, the reader's location)", () => {
+    const at = { lat: 49.0974, lon: -121.9675 };
+    const add = reduce(HOME, { type: "addSpot", at });
+    const plain = reduce(HOME, { type: "addSpot" });
+    expect([add, plain, bottomBarShown(add), reduce(add, { type: "back" })]).toEqual([
+      { mode: "browse", tab: "map", spot: null, adding: { at }, shown: null },
+      { mode: "browse", tab: "map", spot: null, adding: { at: null }, shown: null },
+      false, HOME]);
   });
 
   it("search's eye SHOWS the water on the main map; back returns to search", () => {
     const search = reduce(HOME, { type: "tab", tab: "search" });
     const shown = reduce(search, { type: "show", item: VEDDER });
-    expect(shown).toEqual({ mode: "browse", tab: "map", spot: null, adding: false, shown: VEDDER });
+    expect(shown).toEqual({ mode: "browse", tab: "map", spot: null, adding: null, shown: VEDDER });
     expect(bottomBarShown(shown)).toBe(true);
     expect(reduce(shown, { type: "back" })).toEqual(search);
   });

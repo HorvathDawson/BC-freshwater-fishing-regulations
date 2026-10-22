@@ -108,8 +108,8 @@ async function mount(initialRoute: Route, system: SystemBack = nativeBack, loade
  */
 function where(): string {
   const parts: string[] = [];
-  const bar = screen.queryByRole("tab", { name: "Spots" });
-  const tab = bar ? ["Map", "Search", "Conditions", "Spots"]
+  const bar = screen.queryByRole("tab", { name: "Search" });   // only the bottom bar has a Search tab (a water's view strip has Conditions too)
+  const tab = bar ? ["Map", "Search", "Conditions"]
     .find((k) => screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true") : null;
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   if (strip) {
@@ -164,7 +164,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 
   it("another tab's root goes to the Map tab first, then Android leaves", async () => {
     const seen = [];
-    for (const tab of ["search", "conditions", "spots"] as const) {
+    for (const tab of ["search", "conditions"] as const) {
       await mount({ ...HOME, tab });
       seen.push(backs(2).join(" | "));
       cleanup();
@@ -172,7 +172,6 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(seen).toEqual([
       "tab Search | handled -> tab Map | ANDROID -> tab Map",
       "tab Conditions | handled -> tab Map | ANDROID -> tab Map",
-      "tab Spots | handled -> tab Map | ANDROID -> tab Map",
     ]);
   });
 
@@ -237,26 +236,26 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(backs(2)).toEqual(["water near a town · tab Search", "handled -> tab Search", "handled -> tab Map"]);
   });
 
-  it("a spot: back to the Spots list, then the map", async () => {
-    await mount({ ...HOME, tab: "spots", spot: "s1" });
-    expect(backs(3)).toEqual(["spot · tab Spots", "handled -> tab Spots", "handled -> tab Map", "ANDROID -> tab Map"]);
+  it("a spot (opened from the map rail, over the map it was picked on): back returns to that map, then Android leaves", async () => {
+    await mount({ ...HOME, spot: "s1" });
+    expect(backs(2)).toEqual(["spot · tab Map", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
   it("a spot being edited, nothing changed: back ends the edit and stays on the spot", async () => {
-    await mount({ ...HOME, tab: "spots", spot: "s1" });
+    await mount({ ...HOME, spot: "s1" });
     await click("Edit spot");
-    expect(backs(2)).toEqual(["spot, editing · tab Spots", "handled -> spot · tab Spots", "handled -> tab Spots"]);
+    expect(backs(2)).toEqual(["spot, editing · tab Map", "handled -> spot · tab Map", "handled -> tab Map"]);
   });
 
   it("a spot being edited with changes: back ASKS (nothing dropped); back again keeps editing", async () => {
-    await mount({ ...HOME, tab: "spots", spot: "s1" });
+    await mount({ ...HOME, spot: "s1" });
     await click("Edit spot");
     fireEvent.change(screen.getByPlaceholderText("Name this spot"), { target: { value: "Tamihi run, low" } });
     const out = backs(2);
     expect([...out, (screen.getByPlaceholderText("Name this spot") as HTMLInputElement).value]).toEqual([
-      "spot, editing · tab Spots",
-      "handled -> spot, editing · asking: Unsaved changes · tab Spots",
-      "handled -> spot, editing · tab Spots",
+      "spot, editing · tab Map",
+      "handled -> spot, editing · asking: Unsaved changes · tab Map",
+      "handled -> spot, editing · tab Map",
       "Tamihi run, low",
     ]);
   });
@@ -267,16 +266,16 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     render(
       <GestureHandlerRootView>
         <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
-               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={{ ...HOME, tab: "spots", spot: "s1" }}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={{ ...HOME, spot: "s1" }}
                systemBack={nativeBack} spots={[SPOT]} onSaveSpot={async () => {}} onDeleteSpot={onDelete} />
       </GestureHandlerRootView>);
     await click("Delete spot");
     expect([...backs(1), `deleted ${onDelete.mock.calls.length}`])
-      .toEqual(["spot · asking: Confirm delete · tab Spots", "handled -> spot · tab Spots", "deleted 0"]);
+      .toEqual(["spot · asking: Confirm delete · tab Map", "handled -> spot · tab Map", "deleted 0"]);
   });
 
   it("adding a spot: each back is one step back, the first step's back leaves", async () => {
-    await mount({ ...HOME, adding: true });
+    await mount({ ...HOME, adding: { at: null } });
     await click("tap the map");
     await until(() => screen.queryAllByText("Chilliwack River").length > 0);
     await click("Next");
@@ -292,7 +291,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
   });
 
   it("adding a spot with notes typed: back never drops them unasked — it asks, and back again keeps them", async () => {
-    await mount({ ...HOME, adding: true });
+    await mount({ ...HOME, adding: { at: null } });
     await click("tap the map");
     await until(() => screen.queryAllByText("Chilliwack River").length > 0);
     await click("Next");
@@ -325,21 +324,23 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
   const browserBack = async () => { await act(async () => { window.history.back(); await new Promise((r) => setTimeout(r, 30)); }); };
 
   it("Layers sheet, then a water, then a tab: one entry each, closed innermost first", async () => {
-    await mount({ ...HOME, tab: "spots" }, webBack);
+    await mount({ ...HOME, tab: "search" }, webBack);
     const seen = [where()];
-    await click("Map"); seen.push(where());
+    // leaving a tab's root steps the history back; jsdom delivers that popstate later, as a browser does — let it land
+    // before the next press (a person is never faster than a few milliseconds)
+    await click("Map"); await act(async () => { await new Promise((r) => setTimeout(r, 30)); }); seen.push(where());
     await click("Layers"); seen.push(where());
     await browserBack(); seen.push(where());
     await click("tap the map");
     await until(() => screen.queryByText("Chilliwack River") !== null);
     seen.push(where());
     await browserBack(); seen.push(where());
-    await click("Spots"); seen.push(where());
+    await click("Search"); seen.push(where());
     await browserBack(); seen.push(where());
     expect(seen).toEqual([
-      "tab Spots", "tab Map", "Layers sheet · tab Map", "tab Map",
+      "tab Search", "tab Map", "Layers sheet · tab Map", "tab Map",
       "water Chilliwack River on Regulations · no bar", "tab Map",
-      "tab Spots", "tab Map",
+      "tab Search", "tab Map",
     ]);
   });
 });

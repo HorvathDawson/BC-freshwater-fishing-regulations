@@ -3,8 +3,8 @@
  * so a moved threshold fails with the full picture rather than the first row that differs.
  */
 import { describe, expect, it } from "vitest";
-import { EDGE_BACK, MAP_GESTURES, RESIST, SHEET_DRAG, SWIPE, TAP_SLOP, classifySwipe, edgeBackCommits,
-         edgeBackEnabled, edgeBackStarts, follow, isTap, sheetDismiss, viewSwipeStarts } from "./gestures";
+import { EDGE_BACK, LONG_PRESS, MAP_GESTURES, RESIST, SHEET_DRAG, SWIPE, TAP_SLOP, classifySwipe, edgeBackCommits,
+         edgeBackEnabled, edgeBackStarts, follow, isTap, longPressHolds, sheetDismiss, viewSwipeStarts } from "./gestures";
 
 const table = <A extends unknown[], R>(f: (...a: A) => R, rows: readonly A[]) =>
   rows.map((a) => [...a, f(...a)]);
@@ -22,6 +22,17 @@ describe("the numbers (the ticket's, not re-derived)", () => {
   it("the map: pan, pinch, double-tap and wheel zoom; no rotate, no tilt; the tap slop", () => {
     expect(MAP_GESTURES).toEqual({ pan: true, pinch: true, doubleTapZoom: true, wheel: true,
                                    rotate: false, tilt: false, tapSlop: 8 });
+  });
+  it("a long press (owner 2026-10-21, a spot dropped on the map): held 500 ms, still a tap's slop", () => {
+    expect(LONG_PRESS).toEqual({ ms: 500, slop: 8 });
+  });
+});
+
+describe("a long press holds while one finger stays within the tap slop", () => {
+  it("moved, at and past the slop; a second finger is a pinch, never a press", () => {
+    expect(table(longPressHolds, [[0, 0, 1], [7.9, 0, 1], [8, 0, 1], [0, 0, 2], [5, 5, 1], [6, 6, 1], [0, 0, 0]]))
+      .toEqual([[0, 0, 1, true], [7.9, 0, 1, true], [8, 0, 1, false], [0, 0, 2, false], [5, 5, 1, true],
+                [6, 6, 1, false], [0, 0, 0, false]]);
   });
 });
 

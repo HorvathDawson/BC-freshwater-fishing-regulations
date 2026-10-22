@@ -70,8 +70,8 @@ const look = () => {
   const views = strip ? within(strip).getAllByRole("tab").map((t) =>
     `${t.getAttribute("aria-label")}${t.getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" · ") : "no strip";
   const back = screen.queryAllByLabelText("Back").map((b) => b.textContent).join() || "no back";
-  const bar = screen.queryByRole("tab", { name: "Spots" })
-    ? ["Map", "Search", "Conditions", "Spots"].map((k) =>
+  const bar = screen.queryByRole("tab", { name: "Search" })
+    ? ["Map", "Search", "Conditions"].map((k) =>
       `${k}${screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" ")
     : "no bar";
   const title = screen.queryByText("Chilliwack River") ? "Chilliwack River" : "no title";
@@ -144,13 +144,13 @@ describe("one water screen, whichever map you tapped", () => {
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     seen.push(look());
     expect(seen).toEqual([
-      "no back | no strip | no title | the map | Map Search Conditions* Spots",
+      "no back | no strip | no title | the map | Map Search Conditions*",
       `‹  Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
       "‹  Conditions | Regulations* · Conditions · Map | Chilliwack River | regs page | no bar",
       `‹  Conditions | Regulations · Conditions* · Map | Chilliwack River | panel for ${sid} at 49.1 | no bar`,
       "‹  Conditions | Regulations · Conditions · Map* | Chilliwack River | the map | no bar",
       // back from any view leaves the water: the Conditions map, as it was
-      "no back | no strip | no title | the map | Map Search Conditions* Spots",
+      "no back | no strip | no title | the map | Map Search Conditions*",
     ]);
   });
 
@@ -160,7 +160,7 @@ describe("one water screen, whichever map you tapped", () => {
     await until(() => regsShown() && titled());
     fireEvent.click(screen.getByRole("tab", { name: "Conditions" }));
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
-    expect(look()).toBe("no back | no strip | no title | the map | Map* Search Conditions Spots");
+    expect(look()).toBe("no back | no strip | no title | the map | Map* Search Conditions");
   });
 
   it("an unnamed reach: the same Conditions-only screen from the Conditions map and the Map tab", async () => {
@@ -181,10 +181,10 @@ describe("one water screen, whichever map you tapped", () => {
     expect([opened, swiped, backed, mapOpened, look()]).toEqual([
       `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
       `‹  Conditions | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
-      "no back | no strip | no title | the map | Map Search Conditions* Spots",
+      "no back | no strip | no title | the map | Map Search Conditions*",
       // the Map tab opens the very same screen; only where back goes differs
       `‹  Map | Conditions* | no title | panel for ${UNNAMED} at 49.1 | no bar`,
-      "no back | no strip | no title | the map | Map* Search Conditions Spots",
+      "no back | no strip | no title | the map | Map* Search Conditions",
     ]);
   });
 });

@@ -198,6 +198,13 @@ export interface MapProps {
    * ground. Step two of adding a spot is the latter — a gravel bar is not a feature.
    */
   onMapPoint?: (lat: number, lon: number) => void;
+  /**
+   * A LONG PRESS on the map, and where (owner 2026-10-21: press and hold the browse map to drop a spot). One finger held
+   * still (`@app/core` `LONG_PRESS`): MapLibre Native's own long press on a phone; on the web a held touch timed by the
+   * same policy, or the browser's own long press / a right click (`contextmenu`). It never fights a pan or a pinch, and
+   * the tap that may follow it is not also a tap.
+   */
+  onLongPress?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
   highlight?: readonly SectionKey[];
   /**

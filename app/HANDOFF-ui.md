@@ -21,6 +21,23 @@ The panel carries: the reading and its standing, quantity and span controls (flo
 live, the hydrograph with envelope + prior years + a TODAY rule, the model's disclaimer
 verbatim, and the route panel with a mini-map showing both ends of the trace.
 
+**The map rail and spots (owner 2026-10-21).** The browse maps (Map tab and Conditions map) carry a side rail on the
+right, Fish Washington style, drawn as riffle's `.tr .stack` (`MapRail`): **Layers** (moved from the bottom-left pill;
+Map tab only — the Conditions map decides its own colouring) and **Spots**. The Spots TAB IS GONE (three tabs now):
+the rail's Spots button opens `SpotsSheet` — your spots (tap opens one over the map, back returns to that map; "Show"
+frames it on the map with a pin), "Add a spot here" (the map's middle) and "At my location" (web: offered when the
+browser says granted, or labelled "Asks for your location first" when the tap itself will prompt; native: not offered
+— no location module yet, `apps/mobile/src/locate.native.ts`). A **long press** on a browse map (`MapProps.onLongPress`:
+MapLibre Native's own on a phone; on the web a held finger timed by `@app/core` `LONG_PRESS`, or `contextmenu` — right
+click / Chrome's long press — whichever first, once; the click after it is not a tap, and the finger's lift is
+cancelled so the browser makes no click of it on the sheet now under the finger) drops a provisional pin and
+raises `SpotDropSheet`: Cancel, back, Done, the scrim or a drag removes it and saves nothing; "Add a spot here" goes on
+into the ONE capture (`SpotCapture`, now able to start `at` a point: the map opens on the pin, step 1 picks the water
+near it, then straight to "when"). Every add is the route's `addSpot` with `at` (`@app/ui` `useMapRail`, `spotsMenu`);
+words in `@app/core` `mapRail.ts`. Each new sheet is a back layer, so Android's back closes it first. The menu, the
+provisional pin and Show's pin + framing belong to the map they were made on: the route moving anywhere forgets them
+on that render (`railPlace`), so a map remounted on the way back is never framed on an old spot again.
+
 **Map.** Conditions colours by Flow, Level or Both. Gauge dots carry pill labels on the same
 ramp as the water; below z7 the water fades and each station becomes a soft disc. Route
 reaches paint in `color.highlight` with downstream arrowheads.

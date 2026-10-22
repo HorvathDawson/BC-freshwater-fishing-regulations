@@ -1,9 +1,10 @@
 /**
- * Four tabs, and the map is home.
+ * Three tabs, and the map is home.
  *
  * That ordering is the design's central claim (`design/riffle.html`): you arrive at a map
- * and everything else is a way back to one. Search and Spots both hand you a water; the
- * map is where a water means something.
+ * and everything else is a way back to one. Search hands you a water; the map is where a
+ * water means something. Spots moved to the maps' rail (owner 2026-10-21, `MapRail`): a
+ * spot is a place on a map, so it is reached from one.
  */
 import { Pressable, Text, View } from "react-native";
 import { Icon, type IconName } from "./icons";
@@ -14,7 +15,6 @@ export const TABS = [
   { k: "map", t: "Map" },
   { k: "search", t: "Search" },
   { k: "conditions", t: "Conditions" },
-  { k: "spots", t: "Spots" },
 ] as const satisfies readonly { k: IconName; t: string }[];
 
 export type TabKey = (typeof TABS)[number]["k"];

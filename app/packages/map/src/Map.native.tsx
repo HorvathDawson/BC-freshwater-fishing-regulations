@@ -64,7 +64,7 @@ type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number } |
 type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
-                      onMoved, onMapPoint, highlight, water, marker, style, gauges, onVisible, pins, bare, fit,
+                      onMoved, onMapPoint, onLongPress, highlight, water, marker, style, gauges, onVisible, pins, bare, fit,
                       basemap, marks, onPressMark }: MapProps) {
   const adapter = useRef(baseAdapter("native"));
   const mapRef = useRef<MapRef | null>(null);
@@ -87,8 +87,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // Callbacks through refs: the SDK handlers are registered once, and an inline arrow from a caller must not
   // re-register them (or, for the style, swap it).
-  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onVisible });
-  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onVisible };
+  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onVisible, onLongPress });
+  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onVisible, onLongPress };
   const report = useCallback((e: unknown) =>
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
 
@@ -245,6 +245,17 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     } catch (err) { report(err); }
   }, [report, renderer]);
 
+  /**
+   * A LONG PRESS (owner 2026-10-21): MapLibre Native's own, decided by its gesture detector beside its pan and pinch, so
+   * it cannot fight them; the tap it replaces is not reported. Only where the place under the finger is.
+   */
+  const onLongPressed = useCallback((e: PressEvent) => {
+    const ne = e.nativeEvent;          // before anything else, as with a press: React Native recycles the event
+    if (!ne) return;
+    const [lon, lat] = ne.lngLat;
+    cb.current.onLongPress?.(lat, lon);
+  }, []);
+
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;          // before anything async, as with a press
     if (ne?.center && ne.zoom !== undefined) {
@@ -286,6 +297,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         scaleBar
         scaleBarPosition={OFF_SCREEN}
         onPress={onPress as never}
+        onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
