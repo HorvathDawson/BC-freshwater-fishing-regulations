@@ -126,6 +126,12 @@ export interface WaterViews {
   onView: (v: WaterView) => void;
   onBack: () => void;
   backLabel: string;
+  /**
+   * (Owner 2026-10-22 late) The header's ×: leave every water at once for the tab the first was opened from (route
+   * `close`), however deep the chain; `closeLabel` says where, for a screen reader (`@app/core` `waterExit`).
+   */
+  close: () => void;
+  closeLabel: string;
   swipe: ViewSwipeState | null;
   bodySwipe: ViewSwipeState | null;
 }

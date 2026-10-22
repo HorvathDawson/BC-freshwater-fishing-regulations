@@ -1,8 +1,8 @@
 /**
  * A water's header: the way back, and its views as ONE strip — identical on every screen a water is read on.
  *
- *   ‹ Back-to-where-you-came-from
- *   Regulations   Conditions   Map          (the selected view underscored in ink: the regs header's tabs, v11)
+ *   ‹ Back-to-where-you-came-from                                   ×   (× leaves every water: owner 2026-10-22 late)
+ *   Regulations   Conditions   Map         (the selected view underscored in ink: the regs header's tabs, v11)
  *
  * ONE ORDER, LEFT TO RIGHT, and it is the swipe's (`@app/core` `WATER_VIEWS`): a finger moving left brings in the
  * view written to the right. The strip and the swipe can never disagree because they read the same list.
@@ -20,9 +20,9 @@
  */
 import { useContext } from "react";
 import { Pressable, Text, View } from "react-native";
-import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
+import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
-import { IconText } from "./icons";
+import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
@@ -42,16 +42,31 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   const on = ctx?.on ?? toView(face);
   const pick = ctx?.onView ?? ((v: WaterView) => { if (v !== "map") onFace(v === "regs" ? "regulations" : "conditions"); });
   const back = ctx?.onBack ?? onBack;
-  const label = ctx?.backLabel ?? backLabel ?? "Back";
+  const label = ctx?.backLabel ?? backLabel ?? WATER_BACK;
+  const close = ctx?.close ?? null;
 
   return (
     <View style={{ gap: SPACE.s1 }}>
-      {back && (
-        // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
-        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back"
-                   {...hitProps({ w: 36, h: 32 })} style={{ alignSelf: "flex-start", minHeight: 32, justifyContent: "center" }}>
-          <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
-        </Pressable>
+      {(back || close) && (
+        // ‹ at the left, × at the right of the same 32-tall row: the row's height does not change
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 32 }}>
+          {back ? (
+            // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
+            <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={WATER_BACK}
+                       {...hitProps({ w: 36, h: 32 })} style={{ minHeight: 32, justifyContent: "center" }}>
+              <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
+            </Pressable>
+          ) : <View />}
+          {close && (
+            // (owner 2026-10-22 late) one tap out of every water, to the tab the first was opened from; 32 drawn,
+            // 44 × 44 to the touch, at the row's right edge where a sheet's × sits
+            <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={ctx!.closeLabel}
+                       testID="water-close" {...hitProps({ w: 32, h: 32 })}
+                       style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+              <Icon name="close" colour={palette.sub} size={20} />
+            </Pressable>
+          )}
+        </View>
       )}
       <ViewTabs palette={palette} views={views} on={on} onView={pick} />
     </View>

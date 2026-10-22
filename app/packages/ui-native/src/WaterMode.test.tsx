@@ -228,27 +228,29 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
       "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
   }, 40_000);
 
-  it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part; ▼ there opens the Vedder; back returns", async () => {
+  it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part; ▼ there IS back to the Vedder " +
+     "(owner 2026-10-22 late: crossing to and fro never stacks); back from the Chilliwack returns", async () => {
     await onMap("gnis:3062", 0);
     const seen = [where()];
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4 · Chilliwack River"));
-    seen.push(where());
+    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
     await until(() => where().startsWith("Part 1 of 1"));
-    seen.push(where());
-    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
+    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4"));
-    seen.push(where());
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });
     await until(() => where().startsWith("Part 1 of 1"));
     seen.push(where());
+    act(() => { fireEvent.click(screen.getByLabelText("Back")); });
+    seen.push(screen.queryByTestId("water-map-where") ? where() : "the Map tab");
     expect(seen).toEqual([
       "Part 1 of 1 | Vedder River",
-      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge",
+      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Back",
+      // the Vedder is the water under the Chilliwack: ▼ goes back to it, so its ‹ names the tab again
+      "Part 1 of 1 | Vedder River | Map",
       "Part 1 of 1 | Vedder River",
-      // back walks the waters opened on top, newest first
-      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge",
-      "Part 1 of 1 | Vedder River"]);
+      "the Map tab"]);
   }, 40_000);
 });

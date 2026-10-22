@@ -24,6 +24,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { ItemId, SectionId } from "@app/data";
+import { HOME, crossAction, exitAction, openWater, partAction, reduce as reduceRoute, showRegsActions, viewSwipeAction,
+         type Route, type RouteAction } from "@app/ui";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
 const ROOTS = ["apps/mobile/src", "apps/web/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
@@ -259,5 +262,114 @@ export function AboutPage({ onBack }: { onBack: () => void }) { return <View />;
   return <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} />;
 }`, S)).toEqual([]);
     expect(unregistered("x.tsx", 'export function GlossarySheet() { return <Sheet open={open} onClose={onClose} title="Glossary" palette={palette}>x</Sheet>; }', S)).toEqual([]);
+  });
+});
+
+/**
+ * BACK STEPS OUT ONE LAYER (owner 2026-10-22 late: "it gets extremely hard to go from the regulation, condition, map
+ * page for a specific body back to the main view"). Back never undoes a move: every move within one water — a part
+ * step, a view through the strip or the swipe, "Show regulations for this part", a split lake's other closure area,
+ * the same water tapped again — REPLACES its frame; a DIFFERENT water opened from inside is one layer, and a water
+ * already under it is gone back to rather than stacked again; close leaves every water at once. The browser's
+ * history and Android's back count the same frames (`backDepth` is the reducer's own), so pinning the route pins all
+ * three inputs; apps/mobile/src/back.test.tsx drives the same walks through the real Shell on Android and the web.
+ *
+ * The walks use the app's own action builders (`partAction`, `showRegsActions`, `crossAction`, `exitAction`,
+ * `viewSwipeAction`, `openWater`), so a builder that starts pushing fails here as surely as the reducer.
+ */
+type Reduce = (r: Route, a: RouteAction) => Route;
+type Move = RouteAction | readonly RouteAction[] | ((r: Route) => RouteAction | readonly RouteAction[] | null);
+const VEDDER = "gnis:3062" as ItemId, CHW = "gnis:8634" as ItemId, TRIB = "gnis:11481" as ItemId;
+const LAKE_A = "wbk:-21" as ItemId, LAKE_B = "wbk:-22" as ItemId;
+const onScreen = (r: Route) => (r.mode === "water" ? r.stack[r.stack.length - 1]!.item! : null)!;
+
+/** Every walk the rule is about, as one whole value: the stack after each move and where ONE back (or close) lands. */
+export function layerWalks(reduce: Reduce) {
+  const name = (r: Route) => r.mode === "water"
+    ? r.stack.map((f) => `${f.item}@${f.part ?? "-"}/${f.view}`).join(" > ")
+    : `main ${r.tab}${r.search ? " +search" : ""}`;
+  const step = (r: Route, m: Move): Route => {
+    const a = typeof m === "function" ? m(r) : m;
+    return a === null ? r : (Array.isArray(a) ? a : [a as RouteAction]).reduce(reduce, r);
+  };
+  const walk = (start: Route, moves: readonly Move[]) => {
+    const seen = [name(start)];
+    let r = start;
+    for (const m of moves) { r = step(r, m); seen.push(name(r)); }
+    return { r, seen };
+  };
+  const BACK: RouteAction = { type: "back" }, CLOSE: RouteAction = { type: "close" };
+  const from: Route = { ...HOME, tab: "conditions", search: true };
+  const a = reduce(from, openWater({ item: VEDDER, tapSid: 5 as SectionId, view: "conditions" }));
+
+  const inside = walk(a, [
+    (r) => partAction(onScreen(r), VEDDER, 1), { type: "view", view: "regs" },
+    (r) => viewSwipeAction(r, "next"), (r) => viewSwipeAction(r, "next"),
+    (r) => partAction(onScreen(r), VEDDER, 2), (r) => showRegsActions(onScreen(r), VEDDER, 0),
+    openWater({ item: VEDDER, tapSid: 6 as SectionId, view: "map" }),
+  ]);
+  const lake = walk(reduce(from, openWater({ item: LAKE_A, part: 0, view: "map" })), [
+    (r) => partAction(onScreen(r), LAKE_B, 0), (r) => showRegsActions(onScreen(r), LAKE_A, 1),
+  ]);
+  const cross = walk(a, [crossAction(CHW, 0), crossAction(VEDDER, 0), crossAction(CHW, 0), crossAction(VEDDER, 0)]);
+  const chain = walk(a, [openWater({ item: TRIB, tapSid: 9 as SectionId, view: "regs" }),
+                         (r) => partAction(onScreen(r), TRIB, 1), { type: "view", view: "map" }, BACK, BACK]);
+  const revisit = walk(a, [exitAction(CHW, 2), openWater({ item: TRIB, view: "regs" }), exitAction(VEDDER, 0)]);
+  const close = walk(a, [openWater({ item: TRIB, view: "regs" }), exitAction(CHW, 0), CLOSE]);
+  return {
+    inside: [...inside.seen, `one back: ${name(reduce(inside.r, BACK))}`],
+    lake: [...lake.seen, `one back: ${name(reduce(lake.r, BACK))}`],
+    cross: [...cross.seen, `one back: ${name(reduce(cross.r, BACK))}`],
+    chain: chain.seen,
+    revisit: [...revisit.seen, `one back: ${name(reduce(revisit.r, BACK))}`],
+    close: close.seen,
+  };
+}
+
+const EXPECTED_WALKS = {
+  inside: [
+    "gnis:3062@-/conditions", "gnis:3062@1/conditions", "gnis:3062@1/regs",
+    "gnis:3062@1/conditions", "gnis:3062@1/map", "gnis:3062@2/map", "gnis:3062@0/regs", "gnis:3062@-/map",
+    "one back: main conditions +search"],
+  lake: ["wbk:-21@0/map", "wbk:-22@0/map", "wbk:-21@1/regs", "one back: main conditions +search"],
+  cross: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:8634@0/map", "gnis:3062@0/map",
+          "gnis:3062@0/map > gnis:8634@0/map", "gnis:3062@0/map", "one back: main conditions +search"],
+  chain: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:11481@-/regs", "gnis:3062@-/conditions > gnis:11481@1/regs",
+          "gnis:3062@-/conditions > gnis:11481@1/map", "gnis:3062@-/conditions", "main conditions +search"],
+  revisit: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:8634@2/regs",
+            "gnis:3062@-/conditions > gnis:8634@2/regs > gnis:11481@-/regs", "gnis:3062@0/regs",
+            "one back: main conditions +search"],
+  close: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:11481@-/regs",
+          "gnis:3062@-/conditions > gnis:11481@-/regs > gnis:8634@0/regs", "main conditions +search"],
+};
+
+describe("back steps out one layer (owner 2026-10-22 late)", () => {
+  it("N moves inside one water then ONE back is where it was opened from; A -> B, back is A, back is main; close is main", () => {
+    expect(layerWalks(reduceRoute)).toEqual(EXPECTED_WALKS);
+  });
+
+  it("MUTATION PIN: a section change, a view change or a revisit that pushes again — or a close that only backs — fails", () => {
+    const top = (r: Route & { mode: "water" }) => r.stack[r.stack.length - 1]!;
+    const pushing = (when: RouteAction["type"], patch: (a: RouteAction) => object): Reduce => (r, a) =>
+      r.mode === "water" && a.type === when ? { ...r, stack: [...r.stack, { ...top(r), ...patch(a) }] } : reduceRoute(r, a);
+    const mutants: Record<string, Reduce> = {
+      partPushes: pushing("part", (a) => (a.type === "part" ? { part: a.part, ...(a.item ? { item: a.item } : {}) } : {})),
+      viewPushes: pushing("view", (a) => (a.type === "view" ? { view: a.view } : {})),
+      revisitStacks: (r, a) => (r.mode === "water" && a.type === "openWater"
+        ? { ...r, stack: [...r.stack, { item: a.item, part: a.part ?? null, tapSid: a.tapSid ?? null, at: null, view: a.view ?? "regs" }] }
+        : reduceRoute(r, a)),
+      closeIsBack: (r, a) => reduceRoute(r, a.type === "close" ? { type: "back" } : a),
+    };
+    const broken = Object.fromEntries(Object.entries(mutants).map(([k, m]) => {
+      const w = layerWalks(m);
+      return [k, (Object.keys(EXPECTED_WALKS) as (keyof typeof EXPECTED_WALKS)[])
+        .filter((j) => JSON.stringify(w[j]) !== JSON.stringify(EXPECTED_WALKS[j]))];
+    }));
+    expect(broken).toEqual({
+      partPushes: ["inside", "lake", "chain"],
+      viewPushes: ["inside", "lake", "chain"],
+      revisitStacks: ["inside", "cross", "revisit"],
+      closeIsBack: ["close"],
+    });
   });
 });

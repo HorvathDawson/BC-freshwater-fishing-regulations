@@ -32,6 +32,12 @@
  * Spots or More goes to the map, as it does in Google's own apps and on the web's history), and on the Map tab itself
  * stays: depth 0, where Android's back leaves the app. ONE EXCEPTION (owner 2026-10-22): More is a detour, so back from
  * it returns first to the tab it was opened from (`prev`) — the ‹ at its top and the system back alike.
+ *
+ * BACK STEPS OUT ONE LAYER, IT NEVER UNDOES A MOVE (owner 2026-10-22 late): every move within one water — a view, a part,
+ * a split lake's other closure area, the same water opened again — REPLACES the top frame; only a DIFFERENT water opened
+ * from inside is a new frame, and one already held is gone back to rather than stacked again (`enter`). `close` (the
+ * header's ×) leaves every water at once. The browser's history and Android's back count these same frames
+ * (`backDepth`), so all three inputs agree; `tools/back-layers.test.ts` holds the rule, mutation-pinned.
  */
 import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
@@ -92,6 +98,11 @@ export type RouteAction =
   | { type: "part"; part: number; item?: ItemId }
   | { type: "flowInto"; item: ItemId; part: number }
   | { type: "back" }
+  /**
+   * (Owner 2026-10-22 late) The water header's ×: leave EVERY water at once, for where the first was opened from
+   * (`from`, whole). Nothing in browse mode.
+   */
+  | { type: "close" }
   | { type: "openSpot"; id: SpotId }
   /** Start adding a spot, at a point when one was given (a long press, a tap in pick mode, the reader's location). */
   | { type: "addSpot"; at?: LatLon | null };
@@ -111,6 +122,19 @@ const top = (r: WaterRoute): WaterFrame => r.stack[r.stack.length - 1]!;
 const withTop = (r: WaterRoute, f: Partial<WaterFrame>): WaterRoute =>
   ({ ...r, stack: [...r.stack.slice(0, -1), { ...top(r), ...f }] });
 const push = (r: WaterRoute, f: WaterFrame): WaterRoute => ({ ...r, stack: [...r.stack, f].slice(-STACK_CAP) });
+/** A frame's water: its item, or for an unnamed reach (no item) the section it stands on. */
+const sameWater = (a: WaterFrame, b: WaterFrame) =>
+  a.item !== null || b.item !== null ? a.item === b.item : a.tapSid === b.tapSid;
+/**
+ * BACK STEPS OUT ONE LAYER (owner 2026-10-22 late): a water opened from inside water mode is ONE layer only when it is
+ * a different water from every frame held. The water on screen opened again (a tap on its own section) replaces its
+ * frame — a move within it; a water already under the top (A -> B -> A, ▲ then ▼ across a name change) is gone BACK
+ * to, the frames above it dropped, so crossing back and forth never stacks and back from it is where A was opened from.
+ */
+const enter = (r: WaterRoute, f: WaterFrame): WaterRoute => {
+  const i = r.stack.findIndex((s) => sameWater(s, f));
+  return i < 0 ? push(r, f) : { ...r, stack: [...r.stack.slice(0, i), f] };
+};
 
 /** THE ONE FRAME BUILDER (an open and a flow alike); null for a frame that cannot be (an unnamed reach off Conditions). */
 const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | null => {
@@ -157,15 +181,16 @@ export function reduce(r: Route, a: RouteAction): Route {
         : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null });
     case "flowInto": {
       const f = opened({ type: "openWater", item: a.item, part: a.part });
-      return f === null ? r : push(r, f);
+      return f === null ? r : enter(r, f);
     }
     case "openWater": {
       const f = opened(a);
-      return f === null ? r : push(r, f);
+      return f === null ? r : enter(r, f);
     }
     case "back":                    // the views are lateral: back leaves the water, whatever view is in front
       if (r.stack.length > 1) return { ...r, stack: r.stack.slice(0, -1) };
       return r.from;
+    case "close": return r.from;    // every water at once
     default: return r;              // a tab or a spot is impossible: there is no bar
   }
 }

@@ -19,7 +19,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, regsLapsedNote, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, regsLapsedNote, WATER_BACK, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAnglerProfile, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
@@ -99,7 +99,7 @@ export function WaterScreen({ source, item, palette, onBack,
   // EVERY STATE IS DRAWN IN THE WATER FRAME (T44): the header (back, the view strip) and the name row sit where they sit
   // on the Conditions and Map views; this view draws only its content.
   const frame = (title: React.ReactNode, body: React.ReactNode) => (
-    <WaterFrame palette={palette} face="regulations" onBack={onBack} backLabel="Back" title={title}>{body}</WaterFrame>
+    <WaterFrame palette={palette} face="regulations" onBack={onBack} backLabel={WATER_BACK} title={title}>{body}</WaterFrame>
   );
 
   if (sheet.state === "loading") {

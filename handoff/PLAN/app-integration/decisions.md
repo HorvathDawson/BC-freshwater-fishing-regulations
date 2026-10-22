@@ -513,6 +513,26 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
     is never more than one tap from the main tabs.
   - Same on the web (browser back), the in-app back control, and Android's system back (T50). The back-layers check
     holds this as a rule.
+## CLAUDE 2026-10-22 — back steps out one layer: the calls made
+- **One model, three inputs.** The rule lives in the route reducer only (`@app/ui` route.ts); the browser's history
+  (`historySync`), the in-app ‹ and Android's BackHandler all count `backDepth`, which the reducer computes, so they
+  cannot disagree. Sheets (fish, hatch, rule, day, legend, mark popup, fork chooser) stay back layers on top: back
+  closes the sheet first, as before.
+- **A move within a water replaces the frame**: a view (strip or swipe), a part step (▲ / ▼, a tap on the map), "Show
+  regulations for this part", and a split lake's other closure area (it was an `openWater` push from "Show regulations";
+  now the same `partAction` the step uses). The same water opened again from inside itself replaces too.
+- **A water already in the stack is gone back to, not stacked again** (`enter`): A → B → A is A alone, so ▲ / ▼ to and
+  fro across a name change (Vedder ↔ Chilliwack, the likeliest source of "many backs") never grows the stack. Crossing
+  INTO a different water is still one layer (the brief: a different water). An unnamed reach is identified by its
+  section.
+- **The ×** sits at the right end of the header's ‹ row (the row keeps its 32 px height; 32 px drawn, 44 × 44 to the
+  touch), on every water view, also at depth 1 (where it equals ‹), so it never moves. Icon: the set's existing
+  `close` (Lucide `x`; no new licence line). Accessibility label: "Close, back to <tab>" — the tab the first water was
+  opened from (`@app/core` `waterExit`, which also owns the ‹'s "Back" word now). It returns the browse state whole
+  (search, open spot), like back from the first water.
+- Pinned: `tools/back-layers.test.ts` "back steps out one layer" (walks through the real action builders; mutation pin:
+  a part or view that pushes, a revisit that stacks, a close that only backs), `apps/mobile/src/back.test.tsx` (real
+  Shell, Android and the browser: N moves → one back → the map, one history entry; A → B → back A → back map; × → map).
 ## CLAUDE 2026-10-22 — silent gauges hidden and named: the calls made
 - **Silent = no reading AT THE HORIZON** (`donorSilent` in core, the same rule `donorReads` words): not on ECCC's
   real-time list, not reporting, or (a day ahead) no forecast reaching it. A gauge that reports today but cannot be

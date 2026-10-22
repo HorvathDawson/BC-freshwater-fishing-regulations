@@ -150,6 +150,8 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | A More page (Glossary, Data sources, …) | closes the page to the More tab; a glossary term first | MenuPage `useBackLayer` | back.test "More page", Menu.test |
 | Water screen, any view (Regulations · Conditions · Map) | leaves the water for the map it was tapped on (views are lateral: back never walks the strip) | route | back.test "water screen" |
 | A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |
+| Moves inside one water (a part step, ▲ / ▼, a view, "Show regulations for this part", a split lake's other area) | none of them is a back step: they REPLACE the frame, so back still leaves the water; a water already held (A → B → A, ▲ then ▼ across a name change) is gone back to, not stacked | route (`enter`) | back-layers "back steps out one layer", back.test "N moves", "the same walks" |
+| The water header's × (every water view) | leaves EVERY water at once, for where the first was opened from | route `close` | back.test "tributary chain", "the same walks" |
 | Water map: a boundary mark open | closes the mark (the map stays) | WaterMapView `MarkPop` `useBackLayer` | WaterMapView.test |
 | Water map: the fork chooser | closes it, no way taken | WaterMapView `Chooser` `useBackLayer` | WaterMapView.test |
 | Pick on the map (pick mode's banner, owner 2026-10-22) | leaves pick mode, nothing made (= its Cancel; Escape on the web); the next back is the tab rule | SpotPickBanner `useBackLayer` | MapRail.shell "pick mode is a back layer" |

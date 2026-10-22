@@ -26,6 +26,16 @@ export const WATER_VIEW_LABEL: { readonly [V in WaterView]: string } = {
 /** The strip's own name for a screen reader. */
 export const WATER_VIEWS_LABEL = "Views of this water";
 
+/**
+ * LEAVING A WATER (owner 2026-10-22 late, "back must leave a water"): the header's ‹ steps out ONE layer — to the water
+ * this one was opened from inside ("Back"), or for the first water to the tab it was opened from (named) — and its ×
+ * leaves every water at once for that tab. `fromTab` is the tab's own name as the bottom bar prints it.
+ */
+export const WATER_BACK = "Back";
+export function waterExit(depth: number, fromTab: string): { back: string; close: string } {
+  return { back: depth > 1 ? WATER_BACK : fromTab, close: `Close, back to ${fromTab}` };
+}
+
 /** The one labelled way from a Conditions reach to its water's rules (and its screen-reader hint). */
 export const TO_REGULATIONS = { label: "Regulations", hint: "The fishing regulations for this water" } as const;
 

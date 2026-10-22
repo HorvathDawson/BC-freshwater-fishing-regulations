@@ -214,3 +214,71 @@ describe("an unnamed reach (no registry item) opens on its Conditions only", () 
     expect(frameViews({ item: VEDDER })).toEqual(["regs", "conditions", "map"]);
   });
 });
+
+/**
+ * (Owner 2026-10-22 late) BACK STEPS OUT ONE LAYER, it does not undo moves: a move within one water (its views, its
+ * parts, a split lake's other closure area, the same water opened again) REPLACES the frame; a DIFFERENT water opened
+ * from inside is one layer — and a water already under it is gone back to, not stacked again; close leaves every
+ * water at once, for exactly where the first one was opened from.
+ */
+describe("back steps out one layer: moves inside a water replace, a different water is one layer, close leaves all", () => {
+  const CHW = "gnis:8634" as ItemId, LAKE_A = "wbk:-21" as ItemId, LAKE_B = "wbk:-22" as ItemId;
+  const frame = (item: ItemId | null, part: number | null, view: "regs" | "map" | "conditions", tapSid: number | null = null) =>
+    ({ item, part, tapSid: tapSid as SectionId | null, at: null, view });
+  const from = { ...HOME, tab: "conditions" as const, search: true };
+  const opened = reduce(from, { type: "openWater", item: CHW, part: 1, view: "map" });
+
+  it("N moves inside one water: ONE frame, the last move's; ONE back is where the water was opened from", () => {
+    const moved = run(opened, { type: "part", part: 2 }, { type: "part", part: 3 }, { type: "view", view: "regs" },
+                      { type: "view", view: "conditions" }, { type: "part", part: 0 }, { type: "view", view: "map" },
+                      { type: "openWater", item: CHW, part: 2, view: "regs" });
+    expect([moved, reduce(moved, { type: "back" })]).toEqual([
+      { mode: "water", from, stack: [frame(CHW, 2, "regs")] }, from]);
+  });
+
+  it("the same water opened again from inside it (a tap on its own section) replaces its frame, tap and all", () => {
+    const r = reduce(opened, { type: "openWater", item: CHW, tapSid: 9 as SectionId, at: { lat: 49, lon: -121 }, view: "regs" });
+    expect(r).toEqual({ mode: "water", from,
+                        stack: [{ item: CHW, part: null, tapSid: 9, at: { lat: 49, lon: -121 }, view: "regs" }] });
+  });
+
+  it("a split lake's other closure area is the same water: a part move, never a layer", () => {
+    const lake = reduce(HOME, { type: "openWater", item: LAKE_A, part: 0, view: "map" });
+    const r = run(lake, { type: "part", part: 0, item: LAKE_B }, { type: "part", part: 1, item: LAKE_A });
+    expect([r, reduce(r, { type: "back" })]).toEqual([
+      { mode: "water", from: HOME, stack: [frame(LAKE_A, 1, "map")] }, HOME]);
+  });
+
+  it("a tributary chain A -> B: back is A, back again is the main view", () => {
+    const b = run(opened, { type: "openWater", item: VEDDER, tapSid: 5 as SectionId, view: "regs" },
+                  { type: "view", view: "map" }, { type: "part", part: 1 });
+    const back1 = reduce(b, { type: "back" });
+    expect([b, back1, reduce(back1, { type: "back" })]).toEqual([
+      { mode: "water", from, stack: [frame(CHW, 1, "map"), frame(VEDDER, 1, "map", 5)] },
+      { mode: "water", from, stack: [frame(CHW, 1, "map")] },
+      from]);
+  });
+
+  it("a water already under the top is gone back to, not stacked again: A -> B -> A is A alone, at the new move", () => {
+    const r = run(opened, { type: "flowInto", item: VEDDER, part: 0 }, { type: "openWater", item: FRASER, view: "regs" },
+                  { type: "openWater", item: CHW, part: 3, view: "map" });
+    const f = run(opened, { type: "openWater", item: VEDDER, part: 0, view: "map" }, { type: "flowInto", item: CHW, part: 2 });
+    expect([r, f]).toEqual([
+      { mode: "water", from, stack: [frame(CHW, 3, "map")] },
+      { mode: "water", from, stack: [frame(CHW, 2, "regs")] }]);
+  });
+
+  it("an unnamed reach is its section: the same reach replaces, another reach is a layer", () => {
+    const reach = reduce(HOME, { type: "openWater", item: null, tapSid: 7 as SectionId, view: "conditions" });
+    const same = reduce(reach, { type: "openWater", item: null, tapSid: 7 as SectionId, view: "conditions" });
+    const other = reduce(reach, { type: "openWater", item: null, tapSid: 8 as SectionId, view: "conditions" });
+    expect([same, other.mode === "water" && other.stack.map((s) => s.tapSid)]).toEqual([
+      { mode: "water", from: HOME, stack: [frame(null, null, "conditions", 7)] }, [7, 8]]);
+  });
+
+  it("close leaves every water at once, for where the first was opened from (search and all); nothing in browse", () => {
+    const deep = run(opened, { type: "openWater", item: VEDDER, view: "regs" }, { type: "flowInto", item: FRASER, part: 0 });
+    expect([deep.mode === "water" && deep.stack.length, reduce(deep, { type: "close" }), reduce(opened, { type: "close" }),
+            reduce(from, { type: "close" }) === from]).toEqual([3, from, from, true]);
+  });
+});

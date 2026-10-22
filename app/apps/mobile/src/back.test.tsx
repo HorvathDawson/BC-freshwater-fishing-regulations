@@ -169,6 +169,57 @@ function backs(n: number): string[] {
 const click = async (label: string) => { await act(async () => { fireEvent.click(screen.getByLabelText(label)); }); };
 const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
 
+/** A water's view strip (the bottom bar is hidden in water mode, so these tabs are the strip's). */
+const view = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("tab", { name })); }); };
+const press = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("button", { name })); }); };
+const mapWhere = () => screen.queryByTestId("water-map-where")?.textContent ?? "no water map";
+const onWaterMap = () => waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+const JEPERSON = "gnis:11481" as ItemId;
+
+/**
+ * (Owner 2026-10-22 late) Moves inside ONE water, from the Map tab: tap the Chilliwack open (Regulations in front), then
+ * Conditions, Map, ▲, ▼, ▼, Regulations, Map — each written down as where the reader is
+ * (and the water map's part while it is in front), with `extra` (the browser's history entry) beside it.
+ */
+async function movesInsideChilliwack(extra: () => string = () => ""): Promise<string[]> {
+  const out: string[] = [];
+  const note = (s: string) => out.push(`${s}${extra()}`);
+  await click("tap the map");
+  await until(() => screen.queryByText("Chilliwack River") !== null);
+  note(where());
+  await view("Conditions"); note(where());
+  await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
+  await press("▲ Upstream"); note(`${where()} · ${mapWhere()}`);
+  await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
+  await view("Regulations"); note(where());
+  await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
+  return out;
+}
+const MOVES_SEEN = [
+  "tab Map",
+  "water Chilliwack River on Regulations · no bar",
+  "water Chilliwack River on Conditions · no bar",
+  "water Chilliwack River on Map · no bar · Part 3 of 4 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 4 of 4 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 3 of 4 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 2 of 4 · Chilliwack River",
+  "water Chilliwack River on Regulations · no bar",
+  // the stepped part is the frame's: the map comes back on it
+  "water Chilliwack River on Map · no bar · Part 2 of 4 · Chilliwack River",
+];
+
+/** The tributary chain: tap the Chilliwack open, its Map, then a tap there on the Jeperson Side Channel (another water). */
+async function openTributary(): Promise<void> {
+  TAP.sid = (await makeFixtureSource().water(CHILLIWACK))!.sections[1]!;
+  await click("tap the map");
+  await until(() => screen.queryByText("Chilliwack River") !== null);
+  await view("Map"); await onWaterMap();
+  TAP.sid = (await makeFixtureSource().water(JEPERSON))!.sections[0]!;
+  await click("tap the map");
+  await until(() => screen.queryByText("Jeperson Side Channel") !== null);
+}
+
 describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", () => {
   it("the Map tab's root: not handled — Android leaves the app (no trap)", async () => {
     await mount(HOME);
@@ -240,6 +291,32 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
         "handled -> tab Map",
       ]);
   });
+
+  it("(owner 2026-10-22 late) N moves inside one water — its views, ▲ / ▼ along its parts — then ONE back is the " +
+     "map it was opened from, and the next is Android's", async () => {
+    await mount(HOME, nativeBack, openRegsFixture());
+    const seen = [where(), ...(await movesInsideChilliwack())];
+    expect([...seen, ...backs(2).slice(1)]).toEqual([...MOVES_SEEN, "handled -> tab Map", "ANDROID -> tab Map"]);
+  }, 60_000);
+
+  it("(owner 2026-10-22 late) a tributary chain A -> B: back is A, back is the map; × from B is the map at once", async () => {
+    await mount(HOME, nativeBack, openRegsFixture());
+    await openTributary();
+    const chain = [where()];
+    const h = hardwareBack();
+    await until(() => screen.queryByText("Chilliwack River") !== null);   // its map reads the release again
+    chain.push(`${h ? "handled" : "ANDROID"} -> ${where()}`, ...backs(1).slice(1));
+    cleanup();
+    await mount(HOME, nativeBack, openRegsFixture());
+    await openTributary();
+    const before = where();
+    await click("Close, back to Map");
+    expect({ chain, close: [before, where(), ...backs(1).slice(1)] }).toEqual({
+      chain: ["water Jeperson Side Channel on Regulations · no bar",
+              "handled -> water Chilliwack River on Map · no bar", "handled -> tab Map"],
+      close: ["water Jeperson Side Channel on Regulations · no bar", "tab Map", "ANDROID -> tab Map"],
+    });
+  }, 60_000);
 
   it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
      "goes to the Map tab, then Android leaves", async () => {
@@ -377,4 +454,32 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
       "tab Spots", "tab Map",
     ]);
   });
+
+  it("(owner 2026-10-22 late) the same walks: moves inside a water hold ONE entry and one browser back leaves it; " +
+     "A -> B is two entries, back A, back the map; × drops every water's entries at once", async () => {
+    const entry = () => {
+      const s: unknown = window.history.state;
+      const v = s && typeof s === "object" ? (s as Record<string, unknown>)["canifishthis.back"] : undefined;
+      return ` [entry ${typeof v === "number" ? v : 0}]`;
+    };
+    const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 30)); });
+    await mount(HOME, webBack, openRegsFixture());
+    const moves = [`${where()}${entry()}`, ...(await movesInsideChilliwack(entry))];
+    await browserBack(); moves.push(`${where()}${entry()}`);
+
+    await openTributary(); const chain = [`${where()}${entry()}`];
+    await browserBack();
+    await until(() => screen.queryByText("Chilliwack River") !== null); chain.push(`${where()}${entry()}`);
+    await browserBack(); chain.push(`${where()}${entry()}`);
+
+    await openTributary(); const close = [`${where()}${entry()}`];
+    await click("Close, back to Map"); await settle(); close.push(`${where()}${entry()}`);
+    const e = (n: number) => ` [entry ${n}]`;
+    expect({ moves, chain, close }).toEqual({
+      moves: [...MOVES_SEEN.map((s, i) => `${s}${e(i === 0 ? 0 : 1)}`), `tab Map${e(0)}`],
+      chain: [`water Jeperson Side Channel on Regulations · no bar${e(2)}`, `water Chilliwack River on Map · no bar${e(1)}`,
+              `tab Map${e(0)}`],
+      close: [`water Jeperson Side Channel on Regulations · no bar${e(2)}`, `tab Map${e(0)}`],
+    });
+  }, 60_000);
 });

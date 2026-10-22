@@ -10,7 +10,7 @@
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
 import { chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
-         unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type SectionKey,
+         unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit, type SectionKey,
          type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Platform, Text, View, useWindowDimensions, type TextInput } from "react-native";
@@ -704,9 +704,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * a sibling of it) and always listens; Regulations and Conditions listen on their bodies too (the panel's maps and
    * chart shielded); on Map the canvas is the body, header only.
    */
-  const waterViews: WaterViews | null = route.mode === "water" && frame !== null
+  const exit = route.mode === "water" ? waterExit(route.stack.length, TABS.find((t) => t.k === route.from.tab)!.t) : null;
+  const waterViews: WaterViews | null = route.mode === "water" && frame !== null && exit !== null
     ? { views: frameViews(frame), on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
-        backLabel: route.stack.length > 1 ? "Back" : TABS.find((t) => t.k === route.from.tab)!.t,
+        backLabel: exit.back,
+        // (owner 2026-10-22 late) the one-tap way out of every water, back to the tab the first was opened from
+        close: () => go({ type: "close" }), closeLabel: exit.close,
         swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : null;
 

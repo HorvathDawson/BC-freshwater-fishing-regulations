@@ -208,12 +208,12 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
 // ── leaving the map: the route actions ──────────────────────────────────────────────────────────────────────────────────
 
 /**
- * "Show regulations for this part": the Regulations view of the water on screen at that part; a split lake's other
- * closure area is its own water, opened on top (back returns to this map).
+ * "Show regulations for this part": the Regulations view of the water on screen at that part. A split lake's other
+ * closure area is the SAME water (owner 2026-10-22 late: a move within a water is no layer), so the frame moves there
+ * exactly as a step does (`partAction`) — back leaves the water, it does not return to this map.
  */
 export function showRegsActions(onScreen: ItemId, item: ItemId, partIx: number): readonly RouteAction[] {
-  return item === onScreen ? [{ type: "part", part: partIx }, { type: "view", view: "regs" }]
-    : [openWater({ item, part: partIx, view: "regs" })];
+  return [partAction(onScreen, item, partIx), { type: "view", view: "regs" }];
 }
 
 /** "Flows into …": the receiving water, opened on top at the part the mouth meets (the one `openWater` path). */
@@ -222,7 +222,8 @@ export function exitAction(item: ItemId, part: number | null): RouteAction {
 }
 
 /** ▲ / ▼ into the water this one goes on from or as: that water on top, its Map in front, on the part it meets this
- *  one (the one `openWater` path; back returns here). */
+ *  one (the one `openWater` path; back returns here). A different water, so one layer — and crossing back is going
+ *  back to it (the route's `enter`), so stepping to and fro across the boundary never stacks. */
 export function crossAction(item: ItemId, part: number): RouteAction {
   return openWater({ item, part, view: "map" });
 }

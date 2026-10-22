@@ -72,7 +72,8 @@ describe("the conditions panel in a water's views", () => {
     const release = vi.fn(() => null);
     const swipe = { enabled: true, starts: () => true, offset: (dx: number) => dx, release };
     const views: WaterViews = { views: ["regs", "conditions"], on: "conditions", onView: () => {}, onBack: () => {},
-                                backLabel: "Conditions", swipe: null, bodySwipe: swipe };
+                                backLabel: "Conditions", close: () => {}, closeLabel: "Close, back to Conditions",
+                                swipe: null, bodySwipe: swipe };
     render(
       <GestureHandlerRootView>
         <WaterViewsContext.Provider value={views}>

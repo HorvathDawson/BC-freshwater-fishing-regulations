@@ -198,6 +198,31 @@ describe("the browser's history stays in step with the route", () => {
     expect({ frames: a.frames(), history: b.state, pops: a.pops })
       .toEqual({ frames: ["browse:map"], history: { entries: [null, 1, 2], at: 0, left: false }, pops: 2 });
   });
+
+  it("(owner 2026-10-22 late) moves inside a water add no entry; one browser back leaves it; close drops every water's entries in one traversal", () => {
+    const moves: RouteAction[] = [{ type: "part", part: 2 }, { type: "view", view: "map" }, { type: "part", part: 3 },
+                                  { type: "view", view: "conditions" }, { type: "view", view: "regs" }];
+    const b = browser(); const a = app(b);
+    a.go({ type: "openWater", item: VEDDER, part: 1 }, ...moves);
+    const moved = { frames: a.frames(), history: b.state };
+    b.userBack();
+    const backed = { frames: a.frames(), history: b.state, pops: a.pops };
+
+    const b2 = browser(); const c = app(b2);
+    c.go({ type: "openWater", item: VEDDER }, { type: "openWater", item: FRASER, view: "map" }, ...moves,
+         { type: "flowInto", item: HARRISON, part: 0 });
+    const deep = { frames: c.frames(), history: b2.state };
+    c.go({ type: "close" }); b2.flush();
+    const closed = { frames: c.frames(), history: b2.state, pops: c.pops };
+    expect({ moved, backed, deep, closed }).toEqual({
+      moved: { frames: [`${VEDDER}/regs`], history: { entries: [null, 1], at: 1, left: false } },
+      backed: { frames: ["browse:map"], history: { entries: [null, 1], at: 0, left: false }, pops: 1 },
+      deep: { frames: [`${VEDDER}/regs`, `${FRASER}/regs`, `${HARRISON}/regs`],
+              history: { entries: [null, 1, 2, 3], at: 3, left: false } },
+      // the traversal's popstate lands on the index already held: no route pop rides on it
+      closed: { frames: ["browse:map"], history: { entries: [null, 1, 2, 3], at: 0, left: false }, pops: 0 },
+    });
+  });
 });
 
 describe("at the stack cap the history does not grow", () => {

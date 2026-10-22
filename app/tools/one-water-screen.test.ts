@@ -35,9 +35,9 @@ describe("one water screen: one way in, one Conditions panel", () => {
 
   it("the water map leaves its water only through openWater (the exit, ▲ / ▼ into another water) and steps the FRAME's part", () => {
     const wm = readFileSync(join(APP, "packages/ui/src/waterMap.ts"), "utf8");
+    // (owner 2026-10-22 late) "Show regulations for this part" on a split lake's other area is a part move, no openWater
     expect(wm.match(/openWater\(\{[^}]*\}\)/g)).toEqual([
-      'openWater({ item, part: partIx, view: "regs" })', 'openWater({ item, part, view: "regs" })',
-      'openWater({ item, part, view: "map" })']);
+      'openWater({ item, part, view: "regs" })', 'openWater({ item, part, view: "map" })']);
     const shell = readFileSync(join(APP, "packages/ui-native/src/Shell.tsx"), "utf8");
     expect([shell.includes("onCross={(id, p) => go(crossAction(id, p))}"),
             shell.includes("onPart={(id, p) => go(partAction(item, id, p))}")]).toEqual([true, true]);

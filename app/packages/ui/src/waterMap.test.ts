@@ -245,10 +245,11 @@ describe("leaving the map, through the route (P13)", () => {
     expect(r).toEqual({ ...onMap, stack: [{ item: CHW, part: 3, tapSid: null, at: null, view: "regs" }] });
   });
 
-  it("a split lake's other closure area opens that water on top; back returns to the map", () => {
+  it("(owner 2026-10-22 late) a split lake's other closure area is the same water: the frame moves there, no layer; " +
+     "back leaves the water", () => {
     const r = showRegsActions(CHW, "wbk:-21" as ItemId, 0).reduce(reduce, onMap);
-    expect([top(r), reduce(r, { type: "back" })]).toEqual([
-      { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "regs" }, onMap]);
+    expect([r, reduce(r, { type: "back" })]).toEqual([
+      { ...onMap, stack: [{ item: "wbk:-21", part: 0, tapSid: null, at: null, view: "regs" }] }, HOME]);
   });
 
   it("the exit opens the receiving water at the part the mouth meets; back returns to the map", () => {
@@ -278,5 +279,13 @@ describe("leaving the map, through the route (P13)", () => {
       { item: CHW, part: 1, tapSid: null, at: null, view: "map" }, onVedder]);
     expect(top(reduce(onMap, crossAction("gnis:3062" as ItemId, 0)))).toEqual(
       { item: "gnis:3062", part: 0, tapSid: null, at: null, view: "map" });
+  });
+
+  it("(owner 2026-10-22 late) ▲ / ▼ back and forth across the boundary never stacks: crossing back IS back", () => {
+    const onVedder: Route = { mode: "water", from: HOME,
+                              stack: [{ item: "gnis:3062" as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
+    const r = [crossAction(CHW, 1), crossAction("gnis:3062" as ItemId, 0), crossAction(CHW, 1),
+               crossAction("gnis:3062" as ItemId, 0)].reduce(reduce, onVedder);
+    expect([r, reduce(r, { type: "back" })]).toEqual([onVedder, HOME]);
   });
 });

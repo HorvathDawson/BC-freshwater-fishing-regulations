@@ -2,7 +2,8 @@
  * A water's views: the one order the strip draws and the swipe walks, every step from every view, both ends.
  */
 import { describe, expect, it } from "vitest";
-import { TO_REGULATIONS, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, stepView, type WaterView } from "./waterViews";
+import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, stepView, waterExit,
+         type WaterView } from "./waterViews";
 
 describe("the views and their words", () => {
   it("Regulations · Conditions · Map, left to right (owner 2026-10-21)", () => {
@@ -12,6 +13,17 @@ describe("the views and their words", () => {
       WATER_VIEWS_LABEL: "Views of this water",
       TO_REGULATIONS: { label: "Regulations", hint: "The fishing regulations for this water" },
     });
+  });
+});
+
+describe("leaving a water (owner 2026-10-22 late): ‹ one layer, × all of them", () => {
+  it("the first water's ‹ names the tab it was opened from; a water opened inside another says Back; × always names the tab", () => {
+    expect([WATER_BACK, waterExit(1, "Map"), waterExit(2, "Conditions"), waterExit(5, "Map")]).toEqual([
+      "Back",
+      { back: "Map", close: "Close, back to Map" },
+      { back: "Back", close: "Close, back to Conditions" },
+      { back: "Back", close: "Close, back to Map" },
+    ]);
   });
 });
 
