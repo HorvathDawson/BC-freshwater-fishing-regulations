@@ -402,6 +402,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "off_line_pieces_follow_their_flow": extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW,
         "straddling_braids_take_their_majority_side":
             extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE,
+        "ambiguous_cut_nearest_the_other_end": extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -410,8 +411,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "designations_stop_at_national_parks": True,
                      "order_zero_is_unknown": True,
                      "off_line_pieces_follow_their_flow": True,
-                     "straddling_braids_take_their_majority_side": True})
-    assert cache.POLICY_VERSION == "19", "update this pin with the version it was taken at"
+                     "straddling_braids_take_their_majority_side": True,
+                     "ambiguous_cut_nearest_the_other_end": True})
+    assert cache.POLICY_VERSION == "20", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

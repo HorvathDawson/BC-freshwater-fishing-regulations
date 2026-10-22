@@ -256,8 +256,9 @@ def _cut_at(g, refs: set[str], universe: set[str]):
       mints ONE split id for BOTH crossings, so "upstream of it" has two honest readings.
 
     Both cases used to be resolved by set-iteration order, so the same rule could return a different
-    reach on two page loads. Now the choice is fixed — nearest the mouth — and the alternatives are
-    handed back so `resolve_extent` can flag the extent instead of quietly picking for the curator."""
+    reach on two page loads. Now the order is fixed — the measure nearest the mouth first — and the
+    alternatives are handed back: `resolve_extent` takes the candidate nearest the rule's other end
+    (`AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`) and records every candidate as an `ambiguous_cut`."""
     by_blk: dict[str, float] = {}
     at: dict[str, set[float]] = {}
     for nid in universe:
@@ -493,6 +494,42 @@ OFF_LINE_PIECES_FOLLOW_THEIR_FLOW = True
 #: (`joins_a_straddling_braid`) follows it. An even split, or no geometry, stays unplaced with its
 #: typed reason — never a guess. Guarded by the reach cache's POLICY_VERSION (19).
 STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE = True
+
+#: AN AMBIGUOUS CUT TAKES THE CANDIDATE NEAREST THE RULE'S OTHER END (owner 2026-10-22, decisions.md
+#: "the audit plan"). One split id can land at two measures on one blue line — a lake the line runs
+#: through is met at its outlet AND its inlet ("Harrison River … Harrison Lake": km 20 and km 84).
+#: `_cut_at` hands back every candidate; the one taken is the one nearest the other end of the
+#: stretch, "because this will never be a lake regulation and under-lake streams have no regs":
+#: `downstream_of` the lowest (the other end is the mouth), `upstream_of` the highest (the source),
+#: `between` on one line the pair nearest each other, `between` across two lines the upper cut's
+#: lowest and the lower cut's highest. Every candidate and the one taken are still recorded
+#: (`ambiguous_cut`, carried to the bundle's `rule_ambiguous_cut`). False restores the old pick
+#: (nearest the mouth, whatever the rule). Guarded by the reach cache's POLICY_VERSION (20).
+AMBIGUOUS_CUT_NEAREST_THE_OTHER_END = True
+
+
+def _take(at, m: float):
+    """`at` = (blk, measure, alternatives) re-pointed at candidate `m`; the rest become alternatives."""
+    blk, used, alts = at
+    every = sorted({used, *alts})
+    return blk, m, [x for x in every if x != m]
+
+
+def _toward_end(at, upper: bool):
+    """The candidate nearest the line's source (`upper`) or its mouth."""
+    if not AMBIGUOUS_CUT_NEAREST_THE_OTHER_END or not at[2]:
+        return at
+    every = [at[1], *at[2]]
+    return _take(at, max(every) if upper else min(every))
+
+
+def _nearest_pair(a, b):
+    """Two cuts on ONE line: the pair of candidates nearest each other (ties: the lower pair)."""
+    if not AMBIGUOUS_CUT_NEAREST_THE_OTHER_END or not (a[2] or b[2]):
+        return a, b
+    pairs = [(x, y) for x in (a[1], *a[2]) for y in (b[1], *b[2])]
+    x, y = min(pairs, key=lambda p: (abs(p[0] - p[1]), min(p), max(p)))
+    return _take(a, x), _take(b, y)
 
 
 def _majority_side(g, universe: set[str], blk: str, lo: float, hi: float, pieces: set[str],
@@ -772,7 +809,7 @@ def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool)
 
 
 def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None,
-                          marks: dict | None = None):
+                          marks: dict | None = None, chosen: dict | None = None):
     """`between` when the two cuts sit on DIFFERENT blue lines, or None if they are not on one flow.
 
     A reach can span a name change: "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge" runs
@@ -784,17 +821,37 @@ def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None,
 
     Which cut is upstream is read off the halves themselves rather than by walking the flow graph
     (unreliable across braids): if B's own piece falls inside A's downstream half, then B is below A.
-    Both cuts keep their braid handling, and a piece that straddles EITHER cut stays unplaceable."""
-    (blk_a, m_a, _), (blk_b, m_b, _) = a, b
-    down_a, s_a = _half(g, universe, blk_a, m_a, upper=False, why=why, marks=marks)  # below A
-    down_b, s_b = _half(g, universe, blk_b, m_b, upper=False, why=why, marks=marks)  # below B
-    up_a, _ = _half(g, universe, blk_a, m_a, upper=True)
-    up_b, _ = _half(g, universe, blk_b, m_b, upper=True)
+    Both cuts keep their braid handling, and a piece that straddles EITHER cut stays unplaceable.
 
-    b_below_a = any(n in down_a for n in universe if n.startswith(f"{blk_b}:"))
-    a_below_b = any(n in down_b for n in universe if n.startswith(f"{blk_a}:"))
+    AN AMBIGUOUS CUT (`AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`): the order is read with the cuts as
+    given; then the UPPER cut takes its lowest candidate and the LOWER cut its highest — each the
+    one nearest the other end — and the halves are taken again. `chosen`, when given, receives the
+    two cuts actually used, as {"a": ..., "b": ...}."""
+
+    def _below(a, b, why=None, marks=None):
+        """(below A, straddling A, below B, straddling B, B below A?, A below B?)."""
+        (blk_a, m_a, _), (blk_b, m_b, _) = a, b
+        down_a, s_a = _half(g, universe, blk_a, m_a, upper=False, why=why, marks=marks)  # below A
+        down_b, s_b = _half(g, universe, blk_b, m_b, upper=False, why=why, marks=marks)  # below B
+        b_below_a = any(n in down_a for n in universe if n.startswith(f"{blk_b}:"))
+        a_below_b = any(n in down_b for n in universe if n.startswith(f"{blk_a}:"))
+        return down_a, s_a, down_b, s_b, b_below_a, a_below_b
+
+    if AMBIGUOUS_CUT_NEAREST_THE_OTHER_END and (a[2] or b[2]):
+        *_, b_below_a, a_below_b = _below(a, b)
+        if b_below_a == a_below_b:
+            return None                 # neither above the other (parallel branches): no reach between
+        upper_cut, lower_cut = (a, b) if b_below_a else (b, a)
+        upper_cut, lower_cut = _toward_end(upper_cut, upper=False), _toward_end(lower_cut, upper=True)
+        a, b = (upper_cut, lower_cut) if b_below_a else (lower_cut, upper_cut)
+    if chosen is not None:
+        chosen.update(a=a, b=b)
+    down_a, s_a, down_b, s_b, b_below_a, a_below_b = _below(a, b, why=why, marks=marks)
     if b_below_a == a_below_b:
         return None                     # neither above the other (parallel branches): no reach between
+    (blk_a, m_a, _), (blk_b, m_b, _) = a, b
+    up_a, _ = _half(g, universe, blk_a, m_a, upper=True)
+    up_b, _ = _half(g, universe, blk_b, m_b, upper=True)
     sec = (down_a & up_b) if b_below_a else (down_b & up_a)
     return sec, (s_a | s_b) - sec
 
@@ -1046,17 +1103,22 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         lines intersects two halves, so the side one half judged is not the answer by itself."""
         return {p: dict(m, side="in" if p in final else "out") for p, m in sorted(marks.items())}
 
-    def _note(sid: str, at) -> None:
+    def _note(sid: str, at, toward: str) -> None:
+        """Record an ambiguous cut: every candidate, the one used, and the end it was taken toward
+        (`mouth`, `source`, or the split id of the stretch's other end)."""
         if at[2]:
             ambiguous.append({"split_id": sid, "used": round(at[1], 2),
-                              "also_at": [round(x, 2) for x in at[2]]})
+                              "also_at": [round(x, 2) for x in at[2]],
+                              "candidates": sorted(round(x, 2) for x in (at[1], *at[2])),
+                              "toward": toward})
 
     if op in ("upstream_of", "downstream_of"):
         at = _cut_at(g, _refs(ids[0]), universe)
         if at is None:
             _fail("cut_not_on_this_water", ids[0])
             return None
-        _note(ids[0], at)
+        at = _toward_end(at, upper=(op == "upstream_of"))
+        _note(ids[0], at, "source" if op == "upstream_of" else "mouth")
         blk, m = at[0], at[1]
         lo, hi = (m, INF) if op == "upstream_of" else (0.0, m)
         window = (blk, lo, hi)
@@ -1068,9 +1130,10 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         if a is None or b is None:
             _fail("cut_not_on_this_water", ids[0] if a is None else ids[1])
             return None
-        _note(ids[0], a)
-        _note(ids[1], b)
         if a[0] == b[0]:
+            a, b = _nearest_pair(a, b)
+            _note(ids[0], a, ids[1])
+            _note(ids[1], b, ids[0])
             if a[1] == b[1]:
                 # Both ends landed on the SAME measure, so the range is empty and the rule would bind
                 # nothing while looking resolved. This is the alias case: a lake is one boundary
@@ -1084,10 +1147,16 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             window = (a[0], min(a[1], b[1]), max(a[1], b[1]))
             sec, braided = _by_measure(g, universe, *window, why=why, marks=marks)
         else:
-            got = _between_across_lines(g, universe, a, b, why=why, marks=marks)
+            chosen: dict = {}
+            got = _between_across_lines(g, universe, a, b, why=why, marks=marks, chosen=chosen)
             if got is None:
+                _note(ids[0], a, ids[1])
+                _note(ids[1], b, ids[0])
                 _fail("between_cuts_not_ordered", f"{ids[0]} / {ids[1]}")
                 return None
+            a, b = chosen["a"], chosen["b"]
+            _note(ids[0], a, ids[1])
+            _note(ids[1], b, ids[0])
             sec, braided = got
     else:
         _fail("unsupported_op", str(op))

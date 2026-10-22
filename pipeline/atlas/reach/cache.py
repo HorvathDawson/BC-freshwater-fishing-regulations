@@ -78,7 +78,10 @@ from typing import Callable
 #: 19: (R10, owner 2026-10-16) a braid straddling a cut takes the side holding most of its length,
 #:    projected onto the cut's line, and is marked (`extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE`);
 #:    a piece joining it follows it; an even split or no geometry stays unplaced.
-POLICY_VERSION = "19"
+#: 20: (owner 2026-10-22) an ambiguous cut — one split id at two measures on one line, a lake's outlet
+#:     and inlet — takes the candidate nearest the rule's OTHER end, not the one nearest the mouth
+#:     (`extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`). It moves `upstream_of` and some `between` cuts.
+POLICY_VERSION = "20"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

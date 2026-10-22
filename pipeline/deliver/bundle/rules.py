@@ -1325,6 +1325,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                    "VALUES (?,?,?,?,?,?)", [(x["sid"], x["entry_id"], x["rule_id"], x["how"],
                                              x["side"], x["share"]) for x in crossing])
     cov.filled("section_straddle", len(crossing))
+    # THE CUTS THAT MATCHED SEVERAL PLACES ON THEIR LINE (owner 2026-10-22, `rule_ambiguous_cut`),
+    # READ FROM THE RUN'S DIAGNOSTICS: every candidate and the one the builder took.
+    amb = ambiguous_cuts(read_table(reaches, "rule_diagnostic"))
+    db.executemany("INSERT INTO rule_ambiguous_cut (entry_id, rule_id, extent, split_id, used, "
+                   "candidates, toward) VALUES (?,?,?,?,?,?,?)", amb)
+    cov.filled("rule_ambiguous_cut", len(amb))
 
     # Licensing: the other half of each entry, placed by the same reach run.
     from pipeline.deliver.bundle import licensing as _licensing
@@ -1544,6 +1550,25 @@ def prove_steelhead_presence(db, code: dict, anadromous: set, applies: set) -> N
     if sr != applies:
         raise SystemExit(f"section_steelhead_rules: the stored form does not reproduce the reach "
                          f"run's sections where steelhead rules apply ({len(sr ^ applies)} differ)")
+
+
+def ambiguous_cuts(rows: list[dict]) -> list[tuple]:
+    """`rule_ambiguous_cut`'s rows from a run's `rule_diagnostic` rows. A run that predates the
+    ruling (no `candidates` / `toward`) picked nearest the mouth and recorded nothing about the
+    choice: refused, never shipped as if it had."""
+    out = []
+    for r in rows:
+        if r["kind"] != "ambiguous_cut":
+            continue
+        p = json.loads(r["payload"]) if isinstance(r["payload"], str) else r["payload"]
+        if "candidates" not in p or "toward" not in p:
+            raise SystemExit(f"rule_diagnostic: {r['entry_id']} {r['rule_id']} records an ambiguous cut "
+                             f"({p.get('split_id')}) without its candidates — the run predates the "
+                             f"2026-10-22 ruling; re-run the reach builder")
+        out.append((r["entry_id"], r["rule_id"], int(p["extent"]), p["split_id"], float(p["used"]),
+                    json.dumps([float(x) for x in p["candidates"]]), str(p["toward"])))
+    out.sort()
+    return out
 
 
 def straddle_crossing(rows: list[dict]) -> list[dict]:

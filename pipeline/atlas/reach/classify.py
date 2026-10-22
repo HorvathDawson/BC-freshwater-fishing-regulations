@@ -32,10 +32,10 @@ from pipeline.atlas.reach.models import Diagnostic, Outcome, Reason, RuleBinding
 STRADDLERS_INCLUDED_FOR = frozenset()
 
 #: A split id landing at more than one measure on the same blue line has two honest
-#: readings, and `_cut_at` silently takes the lower. The Mitchell River bug is proof the
-#: lower can be flat wrong (it collapsed a `between` to nothing). We keep the resolver's
-#: choice but ALWAYS emit a diagnostic, so it is visible rather than assumed.
-#: 63 rules.
+#: readings. The resolver takes the one nearest the rule's other end (owner 2026-10-22,
+#: `extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`) and ALWAYS emits a diagnostic naming every
+#: candidate and the one taken, which the bundle carries (`rule_ambiguous_cut`).
+#: 93 rule extents (86 rules) in the 2026-10-22 run.
 AMBIGUOUS_CUT_IS_FATAL = False
 
 #: A rule may carry several extents; the sections are unioned. If SOME resolve and some

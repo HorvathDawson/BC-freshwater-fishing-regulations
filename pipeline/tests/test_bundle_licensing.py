@@ -322,6 +322,8 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "outside_bc.jsonl").write_text(json.dumps({"section_id": "s:3"}) + "\n")
     # the braids the run placed across a cut (R10): none here; a test writes its own
     (run / "straddle.jsonl").write_text("")
+    # the run's diagnostics: none here; a test writes its own (`rule_ambiguous_cut`)
+    (run / "rule_diagnostic.jsonl").write_text("")
     _report(run, entries, ({"steelhead": {"by_entry": {},
                                                                "list_fingerprint": _LIST}}))
     build = tmp / "atlas"
@@ -420,6 +422,49 @@ def test_a_run_without_the_straddle_table_is_refused(tmp_path, monkeypatch):
     db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
     (run / "straddle.jsonl").unlink()
     with pytest.raises(SystemExit, match="predates the `straddle` table"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def _diag(eid, rid, kind, payload):
+    return json.dumps({"entry_id": eid, "rule_id": rid, "kind": kind,
+                       "payload": json.dumps(payload, sort_keys=True)}) + "\n"
+
+
+def test_an_ambiguous_cut_ships_in_the_bundle(tmp_path, monkeypatch):
+    """Owner 2026-10-22: a split point matching two places on its line takes the candidate nearest the
+    rule's other end, and the choice is RECORDED where a reader can see it — every candidate and the
+    one taken, in the bundle (`rule_ambiguous_cut`), not only in the run's jsonl. Other diagnostic
+    kinds stay in the run."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "rule_diagnostic.jsonl").write_text(
+        _diag("r1:x@1-1", "x.r1", "ambiguous_cut",
+              {"extent": 0, "split_id": "x__lake", "used": 6000.0, "also_at": [2000.0],
+               "candidates": [2000.0, 6000.0], "toward": "source"})
+        + _diag("r1:x@1-1", "x.r1", "tributaries", {"extent": 0}))
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT entry_id, rule_id, extent, split_id, used, candidates, toward "
+                      "FROM rule_ambiguous_cut").fetchall() == [
+        ("r1:x@1-1", "x.r1", 0, "x__lake", 6000.0, "[2000.0, 6000.0]", "source")]
+
+
+def test_a_run_whose_ambiguous_cuts_predate_the_ruling_is_refused(tmp_path, monkeypatch):
+    """A run made before the ruling recorded no candidates and picked nearest the mouth: shipping it
+    would say nothing about the choice (P2: no fallbacks)."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "rule_diagnostic.jsonl").write_text(_diag(
+        "r1:x@1-1", "x.r1", "ambiguous_cut",
+        {"extent": 0, "split_id": "x__lake", "used": 2000.0, "also_at": [6000.0]}))
+    with pytest.raises(SystemExit, match="re-run the reach builder"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def test_a_run_without_its_diagnostics_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "rule_diagnostic.jsonl").unlink()
+    with pytest.raises(SystemExit, match="predates the `rule_diagnostic` table"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
 
 

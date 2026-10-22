@@ -485,6 +485,24 @@ CREATE TABLE section_straddle (sid      INTEGER NOT NULL,
                                                                            AND share < 1))),
                                PRIMARY KEY (sid, entry_id, rule_id)) WITHOUT ROWID;
 
+-- A RULE WHOSE CUT MATCHED SEVERAL PLACES ON ITS LINE (owner 2026-10-22). One split id can land at two
+-- route measures on one blue line — a lake the river runs through is met at its outlet and its inlet
+-- ("Harrison River … Harrison Lake": km 20 and km 84). The reach builder takes the candidate nearest
+-- the rule's OTHER end (`extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`: `toward` is 'mouth' for
+-- downstream_of, 'source' for upstream_of, or the split id at the stretch's other end for between),
+-- so the stretch stays on the river and never spans the lake. Deterministic; listed here — read from
+-- the run's `rule_diagnostic.jsonl` — so a reader can say where the choice was made. `candidates` is
+-- a JSON array of every measure (metres along the line), `used` the one taken. `extent` is the
+-- rule's extent index.
+CREATE TABLE rule_ambiguous_cut (entry_id   TEXT NOT NULL,
+                                 rule_id    TEXT NOT NULL,
+                                 extent     INTEGER NOT NULL,
+                                 split_id   TEXT NOT NULL,
+                                 used       REAL NOT NULL,
+                                 candidates TEXT NOT NULL,
+                                 toward     TEXT NOT NULL,
+                                 PRIMARY KEY (entry_id, rule_id, extent, split_id)) WITHOUT ROWID;
+
 -- HOW SURE WE ARE THAT STEELHEAD ARE HERE (user rulings 2026-10-01/02; `pipeline.atlas.reach.steelhead`).
 -- A PRESENCE INDICATOR for display. Read it through the view `section_steelhead (sid, code)`:
 --   code 1  KNOWN     the book names steelhead here — a STEELHEAD ROW's own water, or a rule of one
