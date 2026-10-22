@@ -28,7 +28,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   navigation: merge back first, then reconcile search's back layer.
 - RUNNING: wf_d528f135-885 (owner: slough/canal stream-item polygons take the stream Conditions look; Nicomen Slough,
   Vedder River; may need deliver/tiles — lane says what; finding the remaining polygons stays postponed, ticketed).
-- QUEUED T53 (owner: unnamed stream shows no regulations): app-only — frameViews/openWater/WaterScreen gate item:null
+- MERGED back steps out one layer + × close (c07e8da6, 8635340). RUNNING wf_a9a1cfb6-35b = T53 unnamed regs.
+  Back follow-ups left: a split lake can stack twice via a tributary; ‹ label reads "Map" when opened from search;
+  parts-sheet rows do nothing (no onPart); Vedder ▲ Chilliwack crossing is one back step (owner may see it as one river).
+- (was) QUEUED T53 (owner: unnamed stream shows no regulations): app-only — frameViews/openWater/WaterScreen gate item:null
   to Conditions; data answers all 1,893,082 unnamed sections. Start AFTER the back lane merges (same files: openWater,
   route.ts). Live release now r-66f94fa635c1 (valid_until; id covers manifest); dev fixture a44b232.
 - MERGED: desktop search close (d5f6bbc8 797175e9 d57f4701); HYDAT maintenance notices + notify-once (FEED_NOTIFY_URL)
