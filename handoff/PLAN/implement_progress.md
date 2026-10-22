@@ -28,6 +28,10 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
+- MERGED: add-a-spot (dbdf8a68: my location / pick on the map) and the lead-up refresh fix (6630879d: still-to-come
+  days refill; unpublished stations settle). FINDING to investigate: 28 stations linked to sections have climatology
+  but NO feed file (3,456 sections, e.g. 08EG012 668, 08LG028 543) — why does the publisher not carry them? (queue as a
+  feed ticket). Flakes seen under load: Search.shell sync line, apps/mobile back.test browser-back step.
 - NEW TICKET T52 (owner 2026-10-22): Conditions "Expected change" chip after +10 from daily forecast series (spikes
   included); pipeline carries per-station daily series politely. Queued after T51.
 - QUEUE (owner 2026-10-22, spots): add-a-spot = my location / pick on map (agent running); lead-up refresh BUG (agent
