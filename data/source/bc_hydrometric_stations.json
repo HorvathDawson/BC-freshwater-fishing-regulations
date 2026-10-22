@@ -742,7 +742,7 @@
   "name": "ISKUT RIVER BELOW JOHNSON RIVER",
   "lon": -131.6689910888672,
   "lat": 56.73443984985352,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 9499.0
  },
@@ -1624,7 +1624,7 @@
   "name": "EXCHAMSIKS RIVER NEAR TERRACE",
   "lon": -129.31283569335938,
   "lat": 54.36219024658203,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 369.5
  },
@@ -5881,7 +5881,7 @@
   "name": "FRASER RIVER AT SOUTH FORT GEORGE",
   "lon": -122.73493957519533,
   "lat": 53.90077972412109,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 79880.0
  },
@@ -9571,7 +9571,7 @@
   "name": "NICOLA RIVER AT OUTLET OF DOUGLAS LAKE",
   "lon": -120.28363800048828,
   "lat": 50.13988876342773,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 1284.0
  },
@@ -11200,7 +11200,7 @@
   "name": "FRASER RIVER NEAR AGASSIZ",
   "lon": -121.7758331298828,
   "lat": 49.20368957519531,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 217500.0
  },
@@ -11227,7 +11227,7 @@
   "name": "FRASER RIVER AT CANNOR",
   "lon": -122.0708465576172,
   "lat": 49.14397811889648,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 226200.0
  },
@@ -11398,7 +11398,7 @@
   "name": "FRASER RIVER AT HARRISON MILLS",
   "lon": -121.94712829589844,
   "lat": 49.21805953979492,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 226000.0
  },
@@ -11407,7 +11407,7 @@
   "name": "FRASER RIVER ABOVE HERRLING ISLAND",
   "lon": -121.68128204345705,
   "lat": 49.26499938964844,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 217400.0
  },
@@ -11416,7 +11416,7 @@
   "name": "FRASER RIVER AT LOWER KENT",
   "lon": -121.90608215332033,
   "lat": 49.2264404296875,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 217500.0
  },
@@ -11425,7 +11425,7 @@
   "name": "FRASER RIVER ABOVE HUNTER CREEK",
   "lon": -121.5691909790039,
   "lat": 49.36064147949219,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 217000.0
  },
@@ -19390,7 +19390,7 @@
   "name": "ESPERON CREEK NEAR KELOWNA",
   "lon": -119.68624877929688,
   "lat": 50.07292175292969,
-  "realtime": false,
+  "realtime": true,
   "active": true,
   "area_km2": 14.670000076293944
  },
@@ -20065,7 +20065,7 @@
   "name": "TWO FORTY CREEK NEAR PENTICTON",
   "lon": -119.40003204345705,
   "lat": 49.6508903503418,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 4.869999885559082
  },
@@ -20524,7 +20524,7 @@
   "name": "SKAGIT RIVER AT INTERNATIONAL BOUNDARY",
   "lon": -121.06661987304688,
   "lat": 49.00025939941406,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 990.9000244140624
  },
@@ -20875,7 +20875,7 @@
   "name": "RASPBERRY CREEK NEAR THE MOUTH",
   "lon": -123.3188934326172,
   "lat": 58.892391204833984,
-  "realtime": true,
+  "realtime": false,
   "active": true,
   "area_km2": 274.79998779296875
  },
@@ -20893,7 +20893,7 @@
   "name": "ADSETT CREEK AT KILOMETRE 386.0 ALASKA HIGHWAY",
   "lon": -122.71558380126952,
   "lat": 58.10599899291992,
-  "realtime": false,
+  "realtime": true,
   "active": true,
   "area_km2": 110.8000030517578
  },
