@@ -46,7 +46,7 @@ function mountKeep(page: RegsPage) {
 describe("8. outside B.C.", () => {
   it("one line, the outside foot; no section below the Keep content; only the Keep tab listed", () => {
     const page = outsidePage();
-    // the water screen's rule (WaterScreen.tsx): outside B.C. no Gear / Methods / Licence slot is handed
+    // RegsScreen handed no Gear / Methods / Licence slot (WaterScreen.tsx does this outside B.C.: WaterScreen.outside.test.tsx)
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        gear={page.gear ? <Text>gear</Text> : undefined} methods={page.methods ? <Text>methods</Text> : undefined}
                        licence={page.licence ? <Text>licence</Text> : undefined} />);
