@@ -1,5 +1,12 @@
 # T53 — An unnamed stream shows no regulations (only Conditions)
 
+> **BUILT 2026-10-22, app only (decisions.md "CLAUDE 2026-10-22 — T53 built"):** an unnamed frame offers Regulations ·
+> Conditions (no Map); the Map tab puts Regulations in front; the page is the store's answer for the tapped section
+> (`RegsTarget` kind "section"); header "Unnamed stream · Region N" (the store's) + "Tributary of <water>" when the flow
+> pointers reach a named water. No pipeline change. NOT DONE from the acceptance list: the per-region real-data sample
+> (a sample of unnamed sections in each region against base + bound overrides) — the three ticket examples run on the
+> live release instead (conformance/src/regs/unnamed.release.test.ts).
+
 Owner 2026-10-22: "clicking on unnamed streams shows no regulations right now only conditions. this is definitely an
 issue that needs a ticket."
 

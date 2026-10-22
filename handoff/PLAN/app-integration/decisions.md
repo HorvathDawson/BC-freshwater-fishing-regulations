@@ -708,3 +708,23 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   (`-999439` over `-999074`) only when its upstream length / Strahler order is also the larger — else keep refusing.
   (1) alone covers both owner examples and cannot produce "continues as two waters". The app needs no change: a
   new `water_continue` row makes the Atnarko's ▼ read "▼ Downstream into Bella Coola River" and cross in place.
+## CLAUDE 2026-10-22 — T53 built: an unnamed stream opens its Regulations (supersedes (2) under "one water screen")
+- **App only, as the diagnosis found** (the pipeline already answers every unnamed section). A frame with `item: null`
+  offers Regulations · Conditions (`@app/ui` route.ts `REACH_ONLY`); the water Map stays a named water's (it frames a
+  water's parts). From the Map tab Regulations is in front, from the Conditions map Conditions; asked for Map, the
+  frame's first view (Regulations). Back / × unchanged: a view move replaces the frame and an unnamed reach is matched by
+  its section, so one back leaves it. Mutation pin: restoring `REACH_ONLY = ["conditions"]` fails 6 tests (route,
+  openWater, gestures, WaterMode).
+- **The page is the store's**: `WaterScreen` takes `item: null` + the tapped section; `useRegsTarget` answers
+  `{kind: "section", handle}` for it (T09's section branch). No regulation is assembled in TS.
+- **Title**: the store's name ("Unnamed stream · Region 1", `place.names[kind]`), on the Regulations header and now on
+  the Conditions view too (`useUnnamedName`, the same `unnamedName` read): one water, one header. The header's label slot
+  says where it flows when known — core `downstreamLabel`: "Tributary of <water>" for a stream, "Flows into <water>" for
+  an unnamed lake or wetland (sentence case: it stands alone on its line). The water is the first NAMED section down the
+  flow pointers (`@app/data` `downstreamWater`: `traceToGauge`, then `waterFor` past unnamed sections, at most 50). There
+  is no line when the pointers end; they exist only inside gauged watersheds, so most unnamed reaches get no line.
+  Geography only.
+- Tests: the ticket's three examples run on the live release (`conformance/src/regs/unnamed.release.test.ts`, skipped
+  without a release): 1408 shows the Eve River tributary closure, 64035 the Salmon River tributary closure, 59506 the
+  base only. The committed fixture holds none of the three, so the render test uses its unnamed 634 (Harris Creek
+  tributary rules) and 817454 (Region 1 base only).
