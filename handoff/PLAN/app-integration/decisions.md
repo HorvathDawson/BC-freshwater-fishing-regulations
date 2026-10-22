@@ -326,3 +326,9 @@ Icons merged (Lucide v0.460.0, ISC; credited under More › Data sources; app/LI
 tab keeps the ink underscore as its second cue besides colour, and gets no filled pill: the underscore already works
 without colour, it is the app's one "selected" style (the water view strip and the regs tabs use it), and a pill would add
 a second selection style and a new fill to gate. Ask to change it if it reads weakly on the phone.
+- SPOTS ON THE MAP (owner, same pass): "we wanted a way to toggle our spots on and off in the layer menu." Saved spots draw
+  on the map as a layer with a switch in Layers ("On the map"), on by default, on both the Map tab and the Conditions map
+  (a registry entry in core layers.ts; one pathway; no second spots list).
+- BUG (owner): "the refresh for week before isn't working" — a spot's lead-up (the week before the visit: weather + gauge,
+  S1) does not refresh/backfill. Investigate and fix.
+- NEW TICKET T51: spot similarity forecast (below).
