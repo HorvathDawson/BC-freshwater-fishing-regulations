@@ -539,7 +539,7 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - Owner: on desktop it is confusing to close search: the X sits inside the search bar and the menu is far away. On
   mobile the current layout may make more sense.
 - Claude's rule (owner delegated the details), WIDE layouts only (phone unchanged unless a defect is found):
-  - Esc closes search (first Esc clears a typed query? no: Esc always closes; the field's own X only clears text).
+  - Esc closes search, whether or not text is typed.
   - A click/tap on the map outside the search panel closes it.
   - The results panel carries its own visible close control at its top-right, next to the results, where the eye is.
   - The X inside the field is only "clear text", labelled so; it never doubles as close.
