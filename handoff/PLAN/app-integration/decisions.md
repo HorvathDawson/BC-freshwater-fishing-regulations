@@ -522,9 +522,13 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   named; a day-only report says its calendar day ("14 Oct"); another year is named ("3 Mar 2024"). A not-real-time
   gauge adds its last data when known ("(not a real-time gauge; last 3 Mar 2024)"). A day ahead reads "No forecast this
   far ahead: …". Name = the route's station name, else the station id (before routes arrive).
-- **"Has never reported"** is said only when the station's own file was ASKED and held nothing (`withLastReports` marks
-  the row `noData`; a 404 counts — the live feed has never carried it). Not asked / not known yet: "(last report not
-  known)" — never "never".
+- **"Has never reported"** is said only when the station's own file was READ and held nothing (`withLastReports` marks
+  the row `noData`). A 404 or an offline fetch is NOT that (review 2026-10-22: `lastReport` now answers `undefined` for
+  an unreadable file, `null` only for a read, empty one) — it and "not asked yet" say "(last report not known)".
+- **Review 2026-10-22, one rule per member word:** the one percentile-less member still drawn reports with nothing to
+  rank, so its pin, key and row label say "reporting, not ranked" / "reporting but not ranked today" (core
+  `donorUnranked`), never "not reporting" beside a row that says it reports. The quiet head reads at the sheet's
+  horizon (`quietHead`): a day ahead says "No forecast for this gauge that far ahead.", as the line does.
 - **All silent** keeps the no-record (or no-forecast) refusal and the quiet head, and the refusal carries the same line.
 - **Colour follows the member's index in the panel's weight order, not its shown position.** The gauge switch lists
   every member by that index, so the switch dot, the row and the pin are one colour by construction; silent members
