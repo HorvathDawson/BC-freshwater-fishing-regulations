@@ -22,6 +22,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - CLEANUP SCOPE decided (decisions.md "OWNER 2026-10-22 — the audit plan"): waves 1-4 with the owner's corrections
   (keep stocking/bathy/salmon code as "prepared"; prove every script unneeded before deleting), the calls 1-12, a big test
   cleanup, and the ambiguous-cut rule (nearest the other extent; reach rerun + deliver; diff bindings first).
+- DONE while the owner was away: scripts/heavy.sh in the repo (65240529); disk cleanup — 12 scratch builds + r9live/r10live
+  + 2 logs deleted from data/generated (79 → 158 GiB free; nothing in code referenced them). Old releases kept until N10.
+- RUNNING wf_3c34e85f-9c5 (task ws1zwh53z): pipeline cleanup lane A (wave-1 deletions + answers-reference archive + pipeline
+  test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
+  matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
+  binding diff before promoting.
 - T50 (owner 2026-10-22): Android emulator parity + system bars — runs AFTER the mass cleanup (owner: "android could come
   after all the cleanup too"), as its own HEAVY run (heavy.sh, alone). AVD n1_pixel exists; SDK at ~/Library/Android/sdk.
 - THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
