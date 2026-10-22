@@ -16,7 +16,7 @@ MAKE (once, from a golden made by the archived harness for the LIVE export; ~1-2
 bundle + verdicts; no node, no credits):
 
     python -m pipeline.tests.answers_v35_port BUNDLE EXPORT_DIR GOLDEN_DIR \
-        pipeline/tests/fixtures/answers_v35_port.json.gz [N_CLEAN=120]
+        pipeline/tests/fixtures/answers_v35_port.json.gz [N_CLEAN=60]
 
 It runs the port over EVERY golden card first and refuses to write when any difference is unexplained, then
 verifies the fixture: read back from its own JSON (a stub bundle), every chosen card gives the very output and
@@ -39,7 +39,9 @@ FIXTURE = Path(__file__).parent / "fixtures" / "answers_v35_port.json.gz"
 #: the stub bundle's path: `read._nearer_of` answers it from `read._NEARER_BY_PATH` (the fixture's pairs)
 STUB_PATH = "fixture:answers_v35_port"
 #: cards chosen per combination of documented classes (every combination the live run saw is kept)
-PER_CLASS = 4
+PER_CLASS = 3
+#: a committed fixture stays small: the maker refuses a bigger one (lower N_CLEAN)
+MAX_BYTES = 1_500_000
 
 
 # ------------------------------------------------------------------------------------------------
@@ -484,7 +486,7 @@ def card_inputs(ctx, B, keys, parts, pk2pi, lad, rec) -> dict:
             "at": None if at is None else list(at), "open": {k: list(v) for k, v in opens.items()}}
 
 
-def make(bundle: str, export_dir: str, golden: str, out_path: str, n_clean: int = 120) -> dict:
+def make(bundle: str, export_dir: str, golden: str, out_path: str, n_clean: int = 60) -> dict:
     from pipeline.deliver.answers import common
     from pipeline.deliver.answers.answers import Context
     from pipeline.deliver.bundle import read
@@ -552,11 +554,14 @@ def make(bundle: str, export_dir: str, golden: str, out_path: str, n_clean: int 
         got = run_card(S, c, ri, set(back["all_rules"]))
         if json.dumps(got, sort_keys=True) != json.dumps(want, sort_keys=True):
             raise SystemExit(f"answers_v35_port: card {c['w']} {c['date']} does not replay from the fixture")
-    Path(out_path).write_bytes(gzip.compress(raw, 9, mtime=0))
+    gz = gzip.compress(raw, 9, mtime=0)
+    if len(gz) > MAX_BYTES:
+        raise SystemExit(f"answers_v35_port: {len(gz):,} bytes gzipped > {MAX_BYTES:,} — nothing written; lower N_CLEAN")
+    Path(out_path).write_bytes(gz)
     print(f"wrote {out_path}: {len(cards)} cards, {len(fx['rules'])} rules, {len(raw):,} bytes raw", file=sys.stderr)
     return fx
 
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    make(a[0], a[1], a[2], a[3], int(a[4]) if len(a) > 4 else 120)
+    make(a[0], a[1], a[2], a[3], int(a[4]) if len(a) > 4 else 60)
