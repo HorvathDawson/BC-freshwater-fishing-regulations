@@ -158,6 +158,10 @@ def test_built_from_the_live_inputs_the_hand_checked_lakes_hold(request, tmp_pat
     assert at(329177886)[0] == LF.DIGITISED
     # Bobbs Lake (00001BRID): surveyed
     assert at(329060781)[0] in (LF.SHEET, LF.DIGITISED)
+    # a name corroborates ONE lake under a shared 50K code, never its differently-named neighbours (review 2026-10-21:
+    # BUNTZEN's code coloured McCombe Lake, MARA LAKE's Rosemond Lake, MEADOW LAKE's Pigeon Lake)
+    assert at(329532437) is not None and at(329518146) is not None            # Buntzen Lake, Mara Lake: bound
+    assert [at(w) for w in (329532487, 329518151, 329037136)] == [None, None, None]   # McCombe, Rosemond, Pigeon
     n_survey = sum(1 for s, _ in got["facts"].values() if s != LF.NONE)
     n_stocked = sum(1 for _, d in got["facts"].values() if d is not None)
     assert 2_000 < n_survey < 3_500 and 1_500 < n_stocked < 3_000

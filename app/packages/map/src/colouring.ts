@@ -313,11 +313,11 @@ export class Colouring {
 
 /**
  * THE KEYS ONLY THE ENGINE WRITES on a section on a map that labels its own tiles: the channels' labels (the
- * day-profile `p`, the `standing` value) and `status`, which only a pushed-data map (the phone) is handed in their
- * place. Pushed through `data` to such a map they would be a second pathway beside the engine (owner 2026-10-21: "it
+ * day-profile `p`, the `standing` value, the lake facts' `stocked` and `survey`) and `status`, which only a pushed-data
+ * map (the phone) is handed in their place. Pushed through `data` to such a map they would be a second pathway beside the engine (owner 2026-10-21: "it
  * should be a single pathway"): `Map.web.tsx` refuses them, and reports it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 
@@ -333,7 +333,7 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
       if (Object.keys(rest).length) kept[id] = rest;
     }
     if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the web map colours `
-                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing)"));
+                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }
   return out;

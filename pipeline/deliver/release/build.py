@@ -196,11 +196,11 @@ def gate_problems(release_dir: Path) -> List[str]:
     return out
 
 
-def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
-          data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None) -> Path:
+def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path, lakes: Path,
+          data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap` are the
-    manifest's blocks (manifest.py); `lakes` the lake facts (`lake_facts.bin`), shipped as the file `lakes`."""
+    manifest's blocks (manifest.py); `lakes` the lake facts (`lake_facts.bin`), shipped as the file `lakes` — required,
+    since the contract names it (a release without it is not the contract)."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -220,10 +220,9 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
         files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes())
-        if lakes is not None:
-            p = work / "lakes.bin"
-            p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
-            files["lakes"] = p
+        p = work / "lakes.bin"
+        p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
+        files["lakes"] = p
         regions = SH.akey_regions(st)
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                   if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]

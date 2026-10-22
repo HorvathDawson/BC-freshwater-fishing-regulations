@@ -517,9 +517,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // paint calls, each a no-op — on every feed refresh (the Conditions measurement, 2026-10-21). A ref, below.
   }, [lookKey]);
   /*
-   * PUSHED DATA, apart from the look: feature-state a mode reads that no engine channel sets. A section's status or
-   * standing is NEVER pushed on the web — those are the engine's channels (one pathway, tools/one-colouring-engine);
-   * a push of either is refused and reported (`withoutEngineKeys`), so a second pathway cannot creep back in.
+   * PUSHED DATA, apart from the look: feature-state a mode reads that no engine channel sets. A section's status,
+   * standing, stocked or survey is NEVER pushed on the web — those are the engine's channels (one pathway,
+   * tools/one-colouring-engine); a push of any is refused and reported (`withoutEngineKeys`), so a second pathway cannot creep back in.
    */
   useEffect(() => {
     const m = map.current, r = renderer.current;

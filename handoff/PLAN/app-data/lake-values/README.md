@@ -24,19 +24,28 @@ custom-download view only (no WFS, no file; licence "Access Only"), and FIDQ's s
 OWNER QUESTION: the FFSBC roster carries no stated open licence (gofishbc.com copyright); the app shows only a derived
 recency band per lake, but confirm that use is fine before shipping.
 
-The join (both sources): the 50K waterbody identifier = FWA lakes `WATERBODY_KEY_GROUP_CODE_50K` → every lake under
-the code (`lake:<WATERBODY_KEY>` in the handle table), accepted when a source name agrees with one of the FWA's three
-gazetted names (generic word dropped, "(formerly)" honoured) or the FWA names none; refused otherwise. Live counts:
+The join (both sources): the 50K waterbody identifier = FWA lakes `WATERBODY_KEY_GROUP_CODE_50K` → lakes under the
+code (`lake:<WATERBODY_KEY>` in the handle table). When a source name agrees with one of the FWA's three gazetted names
+(generic word dropped, "(formerly)" honoured) it binds the lakes whose names agree plus the code's unnamed parts —
+never a differently-named neighbour sharing the code (review 2026-10-21: the first cut bound every lake under the code,
+so BUNTZEN coloured McCombe Lake, MARA LAKE Rosemond Lake, MEADOW LAKE Pigeon Lake, CARP Lho Lakes, LNRS Intata Reach;
+`test_built_from_the_live_inputs_the_hand_checked_lakes_hold` pins three of them). When the FWA names none it binds
+every lake under the code; otherwise refused. Live counts (per identifier, unchanged by the fix):
 
 | | verified | FWA unnamed (bound) | name disagrees (refused) | no polygon |
 |---|---|---|---|---|
 | survey sheets | 2,122 | 143 | 12 | 17 |
 | FFSBC waters | 1,684 | 518 | 12 | 415 (292 are FFSBC's own pond ids) |
 
-The survey verdicts equal `data/generated/bathymetry/audit.json`'s exactly (2,122 / 143 / 12 / 17). 3,523 lake
-sections carry a fact; 15,435 B raw.
+The survey verdicts equal `data/generated/bathymetry/audit.json`'s exactly (2,122 / 143 / 12 / 17). 3,519 lake
+sections carry a fact (3,523 before the review fix); 15,417 B raw.
 
 ## Size
+
+After the review fix, against the current live bundle / store / status index / export (the release tests' inputs,
+`lakes` now required by `release.build`): scratch `data/generated/scratch_lakes/release2/r-89afadd26893` totals
+**13,677,305 B gz** with `lakes` = **8,962 B gz** (gate 14,000,000; 322,695 left). Before the fix (figures below, kept
+for the record) it was 8,967 B gz.
 
 Scratch release `data/generated/scratch_lakes/release/r-bef55d6dbc94` (worktree, gitignored), built by
 `release.build` from the live bundle, regs store, status index and export: **byte-identical to the live
@@ -58,7 +67,7 @@ every lake mode, so a mode switch stays one paint change.
   only the stocked bands; a new release clears, restores and relabels (status put back); withdrawn = cleared.
 - `one-engine.render.test.tsx` "A NEW RELEASE ALONE recolours the lakes": the real `Map.web.tsx` over a recording GL —
   feature-state only, no paint / layout / source / query call, the same map instance.
-- Live, expo web on :39732 + scratch data server :39731 (both stopped), Map tab at (−120.28, 50.56) z11, 1280×800:
+- (Built before the review's binding fix; the view below holds none of the over-bound lakes.) Live, expo web on :39732 + scratch data server :39731 (both stopped), Map tab at (−120.28, 50.56) z11, 1280×800:
   release r-bef55d6dbc94 → rendered lakes carry `stocked` (26: season 3, year 14, decade 1, old 8) and `survey` (17:
   sheet 13, digitised 4), release files fetched core, lakes, paint; the SAME tiles with r-1bb06fa28daf → 0 lakes with
   either key (only `p`). Shots: `with-lakes-stocked.png`, `with-lakes-depth.png`, `without-lakes-*.png`; numbers in

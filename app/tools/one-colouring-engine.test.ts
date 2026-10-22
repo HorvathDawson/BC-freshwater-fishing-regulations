@@ -68,13 +68,15 @@ describe("one colouring engine", () => {
 
   it("the web map REFUSES the engine's keys in pushed data, on every path into `setData`", () => {
     // the refused keys are the channels' own, plus the phone's pushed day — never restated
-    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status"]);
+    // — the lake facts' `stocked` / `survey` included: a pushed lake value would be a second path to the same labels
+    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey]);
     const why: string[] = [];
-    expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", stocked: 2 }, 2: { standing: 4 } },
-                               basin: { CHWK: { standing: 5 } }, lake: { 3: { survey: "sheet" } } },
+    expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", other: 2 }, 2: { standing: 4 } },
+                               basin: { CHWK: { standing: 5 } },
+                               lake: { 3: { survey: "sheet" }, 4: { stocked: "recent", other: 1 } } },
                              (e) => why.push(e.message)))
-      .toEqual({ stream: { 1: { stocked: 2 } }, lake: { 3: { survey: "sheet" } } });
-    expect(why.length).toBe(2);
+      .toEqual({ stream: { 1: { other: 2 } }, lake: { 4: { other: 1 } } });
+    expect(why.length).toBe(3);
     const src = read("packages/map/src/Map.web.tsx");
     const sets = src.match(/adapter\.current\.setData\(/g)?.length ?? 0;
     expect(sets).toBeGreaterThan(0);

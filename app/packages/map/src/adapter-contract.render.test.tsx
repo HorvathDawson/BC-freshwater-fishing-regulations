@@ -153,11 +153,11 @@ const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtil
 /** One object for the whole test: a NEW data object is new data, and both maps re-apply it (as they should). */
 const DATA = { stream: { 311274: { status: "open" } }, lake: { 1566515: { status: "closed" } } };
 /**
- * What the WEB map may be pushed: never a section's status or standing — those are the colouring engine's channels there
- * (one pathway, owner 2026-10-21; `withoutEngineKeys` refuses them). The pushed keys a lake mode reads, which no producer
- * fills yet (`stocked`, `survey`), carry the same contract through the same `data` path.
+ * What the WEB map may be pushed: never a section's status, standing, stocked or survey — those are the colouring
+ * engine's channels there (one pathway, owner 2026-10-21; `withoutEngineKeys` refuses them). Any other key carries the
+ * same contract through the same `data` path (`other` here: no colour mode reads it).
  */
-const WEB_DATA = { stream: { 311274: { stocked: 12 } }, lake: { 1566515: { survey: "sheet" } } };
+const WEB_DATA = { stream: { 311274: { other: 12 } }, lake: { 1566515: { other: "sheet" } } };
 const INITIAL = { lon: -122, lat: 49, zoom: 9 };
 const LIT = [311274];
 const base = (p: Partial<MapProps> = {}): MapProps => ({
@@ -169,7 +169,7 @@ const PLATFORMS = {
   web: {
     Map: WebMap,
     data: WEB_DATA,
-    pushed: ['set atlas/stream number:311274 {"stocked":12}', 'set atlas/lake number:1566515 {"survey":"sheet"}'],
+    pushed: ['set atlas/stream number:311274 {"other":12}', 'set atlas/lake number:1566515 {"other":"sheet"}'],
     tap: (x: number, y: number, lon: number, lat: number) => {
       act(() => web.map!.fire("click", { point: { x, y }, lngLat: { lng: lon, lat } }));
     },
@@ -291,22 +291,24 @@ describe("web only", () => {
     log.length = 0;
     web.tilesIn = false;                  // zoomed out: a long tile burst, and no `load` will ever fire again
     r.rerender(<WebMap {...base({ highlight: undefined,
-                                  data: { ...WEB_DATA, lake: { 1566515: { survey: "digitised" } } } })} />);
-    await waitFor(() => expect(log).toEqual(['set atlas/lake number:1566515 {"survey":"digitised"}']));
+                                  data: { ...WEB_DATA, lake: { 1566515: { other: "digitised" } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/lake number:1566515 {"other":"digitised"}']));
   });
 
-  it("ONE PATHWAY: a pushed status or standing is REFUSED on the web and reported; the rest of the data lands", async () => {
+  it("ONE PATHWAY: a pushed status, standing or lake fact is REFUSED on the web and reported; the rest lands", async () => {
     const errors: string[] = [];
     render(<WebMap {...base({ highlight: undefined, onError: (e) => errors.push(e.message), data: {
-      stream: { 311274: { status: "open", stocked: 3 } }, lake: { 1566515: { standing: 40 } },
+      stream: { 311274: { status: "open", other: 3 } },
+      lake: { 1566515: { standing: 40 }, 1566516: { stocked: "recent", survey: "sheet" } },
       basin: { CHWK: { standing: 5 } } } })} />);
-    await waitFor(() => expect(log).toEqual(['set atlas/stream number:311274 {"stocked":3}']));
+    await waitFor(() => expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']));
     await act(async () => {});
-    expect(log).toEqual(['set atlas/stream number:311274 {"stocked":3}']);
-    const why = "the web map colours sections through the colouring engine only (MapProps.status, MapProps.standing)";
-    expect(errors).toEqual([`pushed p/standing/status on "stream" refused: ${why}`,
-                            `pushed p/standing/status on "lake" refused: ${why}`,
-                            `pushed p/standing/status on "basin" refused: ${why}`]);
+    expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
+    const why = "the web map colours sections through the colouring engine only "
+      + "(MapProps.status, MapProps.standing, MapProps.lakes)";
+    expect(errors).toEqual([`pushed p/standing/status/stocked/survey on "stream" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey on "lake" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey on "basin" refused: ${why}`]);
   });
 
   it("P15 review: a mark's element is left to GL JS's absolute placement — nothing inline stacks it in normal flow", async () => {
