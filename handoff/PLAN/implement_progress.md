@@ -107,7 +107,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   swipe moves only the body). Strict 7078, smoke. T44 owner questions: name size on Conditions/Map (now the 17 px regs
   row); desktop column 1280 vs ~720 for regs; Map view full-bleed vs column; wheel outside the column. MERGED Level view in Conditions layers 476b06d8 (Show: Flow/Level/Temperature; legend switch removed) and T48
   mocks d1b5680a+f733ec5e, shown at https://claude.ai/artifact/UefSumgDKKB4dWMjQZL8dj (owner picks bottom bar 1/2a/2b
-  + 8 questions before T48 is built). Strict 7093, smoke. NEXT: T45 + T46 (desktop).
+  + 8 questions before T48 is built). Strict 7093, smoke. RUNNING T45 + T46 wf_d29a2e68-854 (task wbtkcpkbm).
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
