@@ -11,12 +11,13 @@
  * `MapScreen` passes to `@app/map`'s `<Map pins>`. Everything else is the app's, on the fixture.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { Spot } from "@app/data/spots";
-import { HOME, type BrowseTab, type LayerStore } from "@app/ui";
+import type { ItemId } from "@app/data";
+import { HOME, type BrowseTab, type LayerStore, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
 
 type Pin = { lat: number; lon: number; tone?: string; title?: string };
@@ -32,6 +33,7 @@ vi.mock("./MapScreen", () => ({
 }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
+const { openRegsFixture } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -96,4 +98,24 @@ describe("Spots on and off, from the Layers sheet", () => {
     expect([mapAfter, rowAfter, pins(), JSON.parse(store.text!).on["overlay.spots"]])
       .toEqual(["none", "Spots off", "none", false]);
   });
+
+  it("A WATER'S MAP VIEW is handed the same pins: every spot with Spots on; none with it kept off", async () => {
+    const onWaterMap = async (store: LayerStore) => {
+      const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
+                             stack: [{ item: "gnis:8634" as ItemId, part: 1, tapSid: null, at: null, view: "map" }] };
+      render(
+        <GestureHandlerRootView>
+          <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+                 tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={openRegsFixture()}
+                 spots={SPOTS} layerStore={store} />
+        </GestureHandlerRootView>);
+      await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+      const seen = pins();
+      cleanup();
+      return seen;
+    };
+    const off = memory();
+    off.text = JSON.stringify({ on: { "overlay.spots": false } });
+    expect([await onWaterMap(memory()), await onWaterMap(off)]).toEqual([ON, "none"]);
+  }, 60_000);
 });
