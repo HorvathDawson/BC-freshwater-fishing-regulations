@@ -178,3 +178,22 @@ colour candidate: the app's icons (bottom bar Map · Conditions · Spots · More
 back where they share the set) come from Lucide (ISC licence; record it with the other credits), drawn with rounded joins
 and caps at a 1.75 px stroke on the 24 px grid. T47 stays as decided before: palette D derived from B, grey boundaries,
 status colours more distinct than A/B/C.
+
+## OWNER 2026-10-22 — the audit plan (handoff/PLAN/audit/PLAN.md)
+- Waves 2 (merge old pathways, all items), 3 (split long files) and 4 (docs) approved as planned.
+- Wave 1 with two corrections: the STOCKING and BATHYMETRY code (and SALMON / DFO) are NOT dropped — they are not fed or
+  not implemented YET and will come back: keep them (tidy, document as "prepared", don't delete). And EVERY script is
+  double-checked before deletion: prove it produces nothing anything still needs (outputs, consumers, docs, CI).
+- Calls: (1) old outputs can go; dead code too, unless it is something planned to come back (bathy/stocking feeds,
+  salmon). (2) Archive the prototype answers reference, keep its useful tests as golden fixtures — AND do a big test
+  cleanup. (3) Keep only one Map entry (the view strip; drop the header's Map button). (4) One name normaliser, with a
+  reviewed binding diff. (5) Ambiguous cuts — the owner asked what they are; explained (below); awaiting a decision.
+  (6) Move the continuation links into the bundle. (7) Run the determinism proof in the background, mindful of memory
+  (heavy.sh, alone). (8) Clean the ~78 GB of old scratch builds and releases (never the live release, the served tiles
+  or anything a current file points at). (9) Archive the old prototype rounds and merged-ticket shots. (10) Keep the
+  own-gauge constants. (11) Claude makes judgement calls on the ~30 smaller pending questions and records them.
+  (12) Move heavy.sh into the repo.
+- Ambiguous cuts, explained: 93 rule edges (86 rules) say "from <a split point> …" where that split point matches TWO
+  places on the river line — e.g. "Harrison River … Harrison Lake" meets the lake at km 20 and km 84 (64 km apart). The
+  builder takes the first and only a diagnostics file notes it. Median gap between the two candidates 12.6 km, p90 58 km —
+  so a closure or rule may start at the wrong place.
