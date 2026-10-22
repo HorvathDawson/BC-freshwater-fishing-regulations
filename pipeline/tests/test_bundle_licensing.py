@@ -324,6 +324,8 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "straddle.jsonl").write_text("")
     # the run's diagnostics: none here; a test writes its own (`rule_ambiguous_cut`)
     (run / "rule_diagnostic.jsonl").write_text("")
+    # and the licensing half's (`licensing_ambiguous_cut`)
+    (run / "licensing_diagnostic.jsonl").write_text("")
     _report(run, entries, ({"steelhead": {"by_entry": {},
                                                                "list_fingerprint": _LIST}}))
     build = tmp / "atlas"
@@ -457,6 +459,44 @@ def test_a_run_whose_ambiguous_cuts_predate_the_ruling_is_refused(tmp_path, monk
         "r1:x@1-1", "x.r1", "ambiguous_cut",
         {"extent": 0, "split_id": "x__lake", "used": 2000.0, "also_at": [6000.0]}))
     with pytest.raises(SystemExit, match="re-run the reach builder"):
+        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+
+
+def _lic_diag(eid, rid, kind, payload):
+    return json.dumps({"entry_id": eid, "record_id": rid, "kind": kind,
+                       "payload": json.dumps(payload, sort_keys=True)}) + "\n"
+
+
+def test_a_licensing_ambiguous_cut_ships_in_the_bundle(tmp_path, monkeypatch):
+    """Reviewer 2026-10-22: `resolve_extent` places licensing records too, so the ruling moves their
+    cuts as well (Thompson below Kamloops Lake, Babine below Nilkitkwa, Dean between Anahim and
+    Iltasyuko, Skeena). Their choice ships beside the rules' (`licensing_ambiguous_cut`), keyed by
+    the record; other licensing diagnostic kinds stay in the run."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "licensing_diagnostic.jsonl").write_text(
+        _lic_diag("r3:thompson@3-13", "thompson_river", "ambiguous_cut",
+                  {"extent": 0, "split_id": "thompson_river__kamloops_lake", "used": 118114.66,
+                   "also_at": [144847.96], "candidates": [118114.66, 144847.96],
+                   "toward": "mouth"})
+        + _lic_diag("r3:thompson@3-13", "thompson_river", "national_park", {"extent": 0}))
+    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
+    assert db.execute("SELECT entry_id, record_id, extent, split_id, used, candidates, toward "
+                      "FROM licensing_ambiguous_cut").fetchall() == [
+        ("r3:thompson@3-13", "thompson_river", 0, "thompson_river__kamloops_lake", 118114.66,
+         "[118114.66, 144847.96]", "mouth")]
+    assert db.execute("SELECT count(*) FROM rule_ambiguous_cut").fetchone() == (0,)
+
+
+def test_a_run_whose_licensing_ambiguous_cuts_predate_the_ruling_is_refused(tmp_path, monkeypatch):
+    """The live run's four licensing ambiguous cuts carry no candidates: refused like the rules'."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
+    (run / "licensing_diagnostic.jsonl").write_text(_lic_diag(
+        "r3:thompson@3-13", "thompson_river", "ambiguous_cut",
+        {"extent": 0, "split_id": "thompson_river__kamloops_lake", "used": 118114.66,
+         "also_at": [144847.96]}))
+    with pytest.raises(SystemExit, match="licensing_diagnostic.*re-run the reach builder"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
 
 

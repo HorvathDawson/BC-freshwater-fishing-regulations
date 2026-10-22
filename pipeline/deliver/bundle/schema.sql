@@ -503,6 +503,19 @@ CREATE TABLE rule_ambiguous_cut (entry_id   TEXT NOT NULL,
                                  toward     TEXT NOT NULL,
                                  PRIMARY KEY (entry_id, rule_id, extent, split_id)) WITHOUT ROWID;
 
+-- THE SAME CHOICE FOR A LICENSING RECORD: the reach builder places licensing with the same resolver
+-- (Thompson "downstream of Kamloops Lake", Dean "between Anahim Lake and Iltasyuko"), so its cuts
+-- follow the same ruling. Read from the run's `licensing_diagnostic.jsonl`; columns as
+-- `rule_ambiguous_cut`, keyed by the record (`licensing_set.record_id`).
+CREATE TABLE licensing_ambiguous_cut (entry_id   TEXT NOT NULL,
+                                      record_id  TEXT NOT NULL,
+                                      extent     INTEGER NOT NULL,
+                                      split_id   TEXT NOT NULL,
+                                      used       REAL NOT NULL,
+                                      candidates TEXT NOT NULL,
+                                      toward     TEXT NOT NULL,
+                                      PRIMARY KEY (entry_id, record_id, extent, split_id)) WITHOUT ROWID;
+
 -- HOW SURE WE ARE THAT STEELHEAD ARE HERE (user rulings 2026-10-01/02; `pipeline.atlas.reach.steelhead`).
 -- A PRESENCE INDICATOR for display. Read it through the view `section_steelhead (sid, code)`:
 --   code 1  KNOWN     the book names steelhead here — a STEELHEAD ROW's own water, or a rule of one
