@@ -167,6 +167,35 @@ def test_between_across_lines_the_lower_cut_takes_its_highest_candidate():
                                          "candidates": [300, 600], "toward": "bridge"}]
 
 
+def _joins_on_the_lake():
+    """As `_two_lines`, but the upper river joins the lower one ON its lake piece (200:300, the
+    line through the lake from 300 to 600) — a tributary entering the lake. The lake's inlet (600)
+    is then ABOVE the junction, so it is not downstream of the bridge at all."""
+    lo, hi = _b("lake", 300), _b("lake", 600)
+    return _graph([
+        _s("100:1000", "100", 1000, 2000, lower=_b("bridge", 1000)),
+        _s("100:0", "100", 0, 1000, upper=_b("bridge", 1000)),
+        _s("200:600", "200", 600, 900, lower=hi),
+        _s("200:300", "200", 300, 600, lower=lo, upper=hi),
+        _s("200:0", "200", 0, 300, upper=lo),
+    ], [("100:1000", "100:0"), ("100:0", "200:300"), ("200:600", "200:300"),
+        ("200:300", "200:0")])
+
+
+def test_between_across_lines_never_takes_a_candidate_above_the_other_cut():
+    """Reviewer 2026-10-22: the lower cut takes its highest candidate STILL DOWNSTREAM of the upper
+    cut. The inlet (600) sits above where the bridge's river joins, so the two cuts would not be
+    ordered and a rule that bound before would fall to `between_cuts_not_ordered`. The outlet (300)
+    is the nearest candidate that keeps the stretch on one flow — the same binding as before the
+    ruling, and the choice is still recorded."""
+    for order in (("bridge", "lake"), ("lake", "bridge")):
+        got = _resolve(_joins_on_the_lake(), "between", *order)
+        assert got is not None, order
+        assert "100:0" in got["sections"]
+        assert got["ambiguous_cut"] == [{"split_id": "lake", "used": 300, "also_at": [600],
+                                         "candidates": [300, 600], "toward": "bridge"}]
+
+
 # ------------------------------------------------------------------------- mutation pins
 
 def test_the_ruling_is_what_moves_the_cut(monkeypatch):

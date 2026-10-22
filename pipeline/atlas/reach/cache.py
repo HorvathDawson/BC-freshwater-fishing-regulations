@@ -81,7 +81,10 @@ from typing import Callable
 #: 20: (owner 2026-10-22) an ambiguous cut — one split id at two measures on one line, a lake's outlet
 #:     and inlet — takes the candidate nearest the rule's OTHER end, not the one nearest the mouth
 #:     (`extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`). It moves `upstream_of` and some `between` cuts.
-POLICY_VERSION = "20"
+#: 21: (reviewer 2026-10-22) `between` across two lines takes the nearest candidate pair that still
+#:     keeps the upper cut above the lower one — a tributary joining the lower line on its lake piece
+#:     no longer leaves the cuts unordered.
+POLICY_VERSION = "21"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

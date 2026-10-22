@@ -502,9 +502,10 @@ STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE = True
 #: stretch, "because this will never be a lake regulation and under-lake streams have no regs":
 #: `downstream_of` the lowest (the other end is the mouth), `upstream_of` the highest (the source),
 #: `between` on one line the pair nearest each other, `between` across two lines the upper cut's
-#: lowest and the lower cut's highest. Every candidate and the one taken are still recorded
-#: (`ambiguous_cut`, carried to the bundle's `rule_ambiguous_cut`). False restores the old pick
-#: (nearest the mouth, whatever the rule). Guarded by the reach cache's POLICY_VERSION (20).
+#: lowest and the lower cut's highest that still keep the upper cut above the lower one. Every
+#: candidate and the one taken are still recorded (`ambiguous_cut`, carried to the bundle's
+#: `rule_ambiguous_cut`). False restores the old pick (nearest the mouth, whatever the rule).
+#: Guarded by the reach cache's POLICY_VERSION (20; 21 for the still-ordered rule across lines).
 AMBIGUOUS_CUT_NEAREST_THE_OTHER_END = True
 
 
@@ -825,7 +826,9 @@ def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None,
 
     AN AMBIGUOUS CUT (`AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`): the order is read with the cuts as
     given; then the UPPER cut takes its lowest candidate and the LOWER cut its highest — each the
-    one nearest the other end — and the halves are taken again. `chosen`, when given, receives the
+    one nearest the other end — unless that pair is no longer ordered (a candidate past where the
+    two lines join), when the nearest pair that is still ordered is taken; then the halves are
+    taken again. `chosen`, when given, receives the
     two cuts actually used, as {"a": ..., "b": ...}."""
 
     def _below(a, b, why=None, marks=None):
@@ -842,7 +845,21 @@ def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None,
         if b_below_a == a_below_b:
             return None                 # neither above the other (parallel branches): no reach between
         upper_cut, lower_cut = (a, b) if b_below_a else (b, a)
-        upper_cut, lower_cut = _toward_end(upper_cut, upper=False), _toward_end(lower_cut, upper=True)
+        # Each cut's candidates nearest the other end first: the upper cut's lowest, the lower
+        # cut's highest. A candidate past the junction of the two lines (a tributary entering the
+        # lower line's lake: the lake's inlet is ABOVE where it joins) leaves the cuts unordered,
+        # so the nearest pair that still keeps the upper cut above the lower one is taken; none
+        # = the cuts as given (reviewer 2026-10-22).
+        ups = sorted({upper_cut[1], *upper_cut[2]})
+        downs = sorted({lower_cut[1], *lower_cut[2]}, reverse=True)
+        pairs = sorted(((i, j) for i in range(len(ups)) for j in range(len(downs))),
+                       key=lambda p: (p[0] + p[1], p[0]))
+        for i, j in pairs:
+            u, lw = _take(upper_cut, ups[i]), _take(lower_cut, downs[j])
+            *_, lw_below_u, u_below_lw = _below(u, lw)
+            if lw_below_u and not u_below_lw:
+                upper_cut, lower_cut = u, lw
+                break
         a, b = (upper_cut, lower_cut) if b_below_a else (lower_cut, upper_cut)
     if chosen is not None:
         chosen.update(a=a, b=b)
