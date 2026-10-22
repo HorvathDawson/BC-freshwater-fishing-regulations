@@ -134,7 +134,7 @@ describe("<WaterMapView>", () => {
       return (
         <BackLayerContext.Provider value={layers}>
           <WaterMapView loader={loader} item={item as ItemId} part={part} tapSid={null} palette={LIGHT} map={MAP}
-                        onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} />
+                        onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />
         </BackLayerContext.Provider>);
     }
     const back = () => { let h = false; act(() => { h = press!(); }); return h; };
