@@ -13,7 +13,7 @@ import { chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, 
          unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type SectionKey,
          type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Platform, Text, View, type TextInput } from "react-native";
+import { Keyboard, Platform, Text, View, useWindowDimensions, type TextInput } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, crossAction, exitAction, partAction,
@@ -37,7 +37,7 @@ import { LayersSheet, legendColour } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchSheet } from "./SearchSheet";
 import { SpotsScreen } from "./SpotsScreen";
-import { TopBar, topBarBottom } from "./TopBar";
+import { TopBar, searchPanelWidth, topBarBottom } from "./TopBar";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SpotCapture } from "./SpotCapture";
@@ -216,6 +216,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins.
    */
   const searching = browse.search;
+  /** The screen's width: a wide one draws search as a panel beside the map (`searchPanelWidth`). */
+  const screenWidth = useWindowDimensions().width;
   const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
   const session = useSearchSession(source, searchMemory, searching);
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
@@ -417,6 +419,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   };
   const searchType = useCallback((q: string) => setSearchMemory((m) => ({ q, pick: searchStep(m.pick, { t: "typed" }).pick })),
     []);
+  /** Close search: the phone's ‹, Escape, and on a wide screen the panel's ✕ and a click on the map beside it. */
+  const closeSearch = useCallback(() => go({ type: "search", open: false }), [go]);
+  /** (owner 2026-10-22 late) A wide screen's search is a panel beside the map: a click on that map closes it. */
+  const wideSearch = searching && searchPanelWidth(screenWidth) !== null;
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
   const sync = feed || checkRelease
     ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checkedAt: syncState.checkedAt,
@@ -673,8 +679,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onLongPress={onSaveSpot ? rail.pressLong : undefined}
                      // either map's tap opens the ONE water screen (see onPressFeature): only the view in front differs
                      // — except in pick mode, where a tap is the spot's place and nothing else
-                     onPressFeature={picking ? undefined : onPressFeature}
-                     onMapPoint={picking ? rail.tapPick : undefined}
+                     // — and on a WIDE screen while search is open, a click on the map beside the panel closes search
+                     // and does nothing else (owner 2026-10-22 late): no water opens under it, no pin drops
+                     onPressFeature={picking || wideSearch ? undefined : onPressFeature}
+                     onMapPoint={picking ? rail.tapPick : wideSearch ? closeSearch : undefined}
                      onError={(e) => console.error("map:", e.message)} />
         : null;
 
@@ -755,6 +763,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        onAct={searchAct}
                        // the one way out of search into a water: the one opener, with the view this map puts in front
                        onOpenWater={(id) => opener.item(id, tab === "conditions" ? "conditions" : "regs")}
+                       onClose={closeSearch}
                        statusIndex={statusIndex} total={counts?.waters} />
         )}
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
@@ -766,7 +775,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                   open={searching}
                   query={searchMemory.q} onQuery={searchType}
                   onOpen={() => go({ type: "search", open: true })}
-                  onClose={() => go({ type: "search", open: false })} />
+                  onClose={closeSearch} />
         )}
       </View>
       {showLegend && (

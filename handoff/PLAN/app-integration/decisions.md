@@ -554,3 +554,16 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   type. A polygon of a stream item paints with its stream's flow colour (its section / panel), exactly like the lines
   of the same water, on every Conditions view (map, legend, water's map). Lake-only treatment (level, lake fill) is
   for lake items only. Applies to the polygons already marked; finding the rest is a separate, postponed ticket.
+## CLAUDE 2026-10-22 (late) — closing search on desktop: built
+- WIDE (≥ 720 px, `searchPanelWidth`): the panel's ✕ at its top-right ("Close search") is the ONE close control; the
+  field's left slot keeps the magnifier (no ‹ there), so the bar offers only the field's ✕. Escape closes from anywhere
+  (a window listener in `SearchSheet`; a page dialog — `aria-modal` — keeps its own Escape). A click on the map beside the
+  panel closes search and does NOTHING else: no water opens under it, no pin drops (the Shell hands the map
+  `onMapPoint = close` and no `onPressFeature` while wide search is open); a drag still pans. Closing restores the
+  camera as every close does.
+- The field's ✕ is "Clear search text" on every screen and only empties the field (pinned: mutating it to close fails
+  `Search.shell.test.tsx` "THE FIELD'S ✕ ONLY CLEARS").
+- PHONE UNCHANGED: ‹ in the field closes, ✕ clears, Escape in the field closes, the sheet has no close of its own, a map
+  tap at half still opens the water. No defect found.
+- Back: search was already route state (`route.search`, T48), so back already closed it; nothing in the back model was
+  touched (a test now pins it on wide too).

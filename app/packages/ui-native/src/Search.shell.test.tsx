@@ -7,7 +7,7 @@
  * WebGL in jsdom). Everything else is the app's, on the fixture.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useEffect } from "react";
 import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -17,7 +17,9 @@ import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
 type Fit = { key: string; bbox: unknown; camera?: { lon: number; lat: number; zoom: number } } | null | undefined;
-type Stub = { fit?: Fit; highlight?: readonly unknown[]; pins?: readonly { tone?: string }[]; insetTop?: number };
+type Stub = { fit?: Fit; highlight?: readonly unknown[]; pins?: readonly { tone?: string }[]; insetTop?: number;
+               onMapPoint?: (lat: number, lon: number) => void;
+               onPressFeature?: (layer: string, id: string, lat?: number, lon?: number) => void };
 const seen = vi.hoisted(() => ({ mounts: 0, fits: [] as string[] }));
 vi.mock("./MapScreen", () => ({
   MapScreen: (p: Stub) => {
@@ -30,6 +32,12 @@ vi.mock("./MapScreen", () => ({
         <Text testID="map-state">
           {`fit ${f?.key ?? "none"} · lit ${p.highlight?.length ?? 0} · pins ${(p.pins ?? []).map((x) => x.tone).join(",") || "none"}` +
            ` · inset ${p.insetTop}`}
+        </Text>
+        {/* a click on the map's ground, and one on a water: what the real map calls for each (both fire on a feature) */}
+        <Text testID="stub-map-click" onPress={() => p.onMapPoint?.(49.2, -121.9)}>ground</Text>
+        <Text testID="stub-feature-click"
+              onPress={() => { p.onMapPoint?.(49.15, -121.85); p.onPressFeature?.("streams", "1", 49.15, -121.85); }}>
+          water
         </Text>
       </View>
     );
@@ -258,5 +266,121 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     await typeIn("vedder");
     expect([half, where()]).toEqual([`search open · half · "chilliwack river" · tab Map`,
                                      `search open · full · "vedder" · tab Map`]);
+  });
+});
+
+/**
+ * (owner 2026-10-22 late, decisions.md "closing search on desktop") ON A WIDE SCREEN search closes where the eye is:
+ * Escape (typed or not, the field focused or not), a click on the map beside the panel, and the panel's own close at
+ * its top-right. The field's ✕ only clears what was typed. On a phone nothing changes.
+ */
+describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
+  const size = (w: number) => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+    window.dispatchEvent(new Event("resize"));
+  };
+  const wide = async (body: () => Promise<void>) => { size(1280); try { await body(); } finally { size(390); } };
+  const open = () => act(() => { fireEvent.focus(field()); });
+  const escape = () => act(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); });
+  const sheetEl = () => screen.queryByTestId("search-sheet-full") ?? screen.queryByTestId("search-sheet-half");
+  /** Every control the bar and the panel offer, by its spoken name: the whole list, in order. */
+  const controls = () => {
+    const names = (el: HTMLElement | null) =>
+      el ? within(el).queryAllByRole("button").map((b) => b.getAttribute("aria-label")) : [];
+    return { bar: names(screen.getByTestId("top-bar")), panel: names(sheetEl()) };
+  };
+  const water = () => !!screen.queryByRole("tablist", { name: "Views of this water" });
+
+  it("Escape closes it with nothing typed, with text typed, and after a pick took the focus out of the field", () =>
+    wide(async () => {
+      mount();
+      open();
+      escape();
+      const empty = where();
+      open();
+      await typeIn("chilliwack");
+      escape();
+      const typed = where();
+      open();
+      await typeIn("chilliwack river");
+      fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+      await settle();
+      const picked = [where(), document.activeElement === field()];
+      escape();
+      await settle();
+      expect([empty, typed, picked, where()]).toEqual([
+        `search closed · no sheet · "" · tab Map`,
+        `search closed · no sheet · "chilliwack" · tab Map`,
+        [`search open · half · "chilliwack river" · tab Map`, false],
+        `search closed · no sheet · "chilliwack river" · tab Map`]);
+    }));
+
+  it("a click on the map beside the panel closes it — on the ground or on a water, which it does not open", () =>
+    wide(async () => {
+      mount();
+      open();
+      await typeIn("chilliwack");
+      act(() => { fireEvent.click(screen.getByTestId("stub-map-click")); });
+      const ground = where();
+      open();
+      act(() => { fireEvent.click(screen.getByTestId("stub-feature-click")); });
+      await settle();
+      expect([ground, where(), water()]).toEqual([
+        `search closed · no sheet · "chilliwack" · tab Map`, `search closed · no sheet · "chilliwack" · tab Map`, false]);
+    }));
+
+  it("the panel carries the one close, at its top-right; the bar keeps only the field's clear", () =>
+    wide(async () => {
+      mount();
+      open();
+      await typeIn("zzqx");
+      const offered = controls();
+      act(() => { fireEvent.click(within(sheetEl()!).getByRole("button", { name: SEARCH_BAR.close })); });
+      await settle();
+      expect([offered, where()]).toEqual([
+        { bar: [SEARCH_BAR.clear], panel: [SEARCH_BAR.close] },
+        `search closed · no sheet · "zzqx" · tab Map`]);
+    }));
+
+  it("THE FIELD'S ✕ ONLY CLEARS: the text goes, search stays open (wide and phone alike)", async () => {
+    const clearOn = async (w: number) => {
+      size(w);
+      mount();
+      open();
+      await typeIn("chilliwack");
+      act(() => { fireEvent.click(screen.getByRole("button", { name: SEARCH_BAR.clear })); });
+      await settle();
+      const said = where();
+      cleanup();
+      return said;
+    };
+    try {
+      expect([await clearOn(1280), await clearOn(390)]).toEqual([
+        `search open · full · "" · tab Map`, `search open · full · "" · tab Map`]);
+    } finally { size(390); }
+  });
+
+  it("back (the system's, the browser's) closes it on a wide screen too", () =>
+    wide(async () => {
+      mount();
+      open();
+      await typeIn("chilliwack");
+      const h = back();
+      expect([h, where()]).toEqual([true, `search closed · no sheet · "chilliwack" · tab Map`]);
+    }));
+
+  it("ON A PHONE NOTHING CHANGES: the ‹ in the field closes, the ✕ clears, the sheet has no close of its own; a " +
+     "window Escape away from the field leaves it open", async () => {
+    mount();
+    open();
+    await typeIn("zzqx");
+    const offered = controls();
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    await settle();
+    escape();                                   // a window Escape is a wide screen's; the phone's is the field's
+    expect([offered, where()]).toEqual([
+      { bar: [SEARCH_BAR.close, SEARCH_BAR.clear], panel: [] },
+      `search open · half · "chilliwack river" · tab Map`]);
   });
 });

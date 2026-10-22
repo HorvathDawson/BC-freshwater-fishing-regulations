@@ -114,12 +114,12 @@ describe("the search map's words", () => {
 });
 
 describe("(T48) the top bar's search field and its results sheet", () => {
-  it("the words, whole: what the field is called aloud, its ‹, a row's open action, the sheet's lines", () => {
+  it("the words, whole: what the field is called aloud, its close, its clear, a row's open action, the sheet's lines", () => {
     expect({ ...SEARCH_BAR, open: SEARCH_BAR.open("Chilliwack River"), placeholders: SEARCH_BAR.placeholders.length })
       .toEqual({
         label: "Search waters and towns",
         close: "Close search",
-        clear: "Clear search",
+        clear: "Clear search text",
         open: "Open Chilliwack River",
         start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
         none: "Nothing by that name in this bundle.",

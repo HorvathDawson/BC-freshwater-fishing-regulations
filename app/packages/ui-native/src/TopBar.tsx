@@ -14,6 +14,10 @@
  * (`SearchSheet`; no second map). Closing — ‹, Escape, the system back — reverses it: search closes first (route
  * `search`), the keyboard drops, and the Shell puts the camera back exactly.
  *
+ * ON A WIDE SCREEN (owner 2026-10-22 late: "confusing to close search on desktop") the bar closes nothing: the magnifier
+ * stays, and search closes by the results panel's ✕, Escape anywhere, or a click on the map beside it (`SearchSheet`,
+ * the Shell). The ✕ inside the field, on every screen, only clears what was typed ("Clear search text").
+ *
  * The placeholder is ONE line per opening of the app (`placeholderFor`), never cycled while on screen; the field is
  * always called "Search waters and towns" aloud, whatever the line says.
  */
@@ -67,8 +71,9 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
             style={{ backgroundColor: palette.card, borderWidth: 1.5, borderRadius: palette.r.box,
                      borderColor: open ? palette.accent : palette.ink, ...palette.lift }}>
         <View style={{ height: TOP_BAR.field, flexDirection: "row", alignItems: "center" }}>
-          {/* THE SAME 40 PX SLOT before and after focus: the magnifier, or the ‹ that closes search — no jump */}
-          {open ? (
+          {/* THE SAME 40 PX SLOT before and after focus: the magnifier, or (phone) the ‹ that closes search — no jump.
+              A wide screen keeps the magnifier: its close is the results panel's ✕, by the results (`SearchSheet`). */}
+          {open && panel === null ? (
             <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.close} hitSlop={4}
                        style={{ width: TOP_BAR.slot, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }}>
               <Icon name="back" colour={palette.ink} size={22} />
@@ -83,7 +88,9 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                      value={query}
                      onChangeText={onQuery}
                      onFocus={() => { if (!open) onOpen(); }}
-                     onKeyPress={(e) => { if (e.nativeEvent.key === "Escape") onClose(); }}
+                     // a phone's Escape (a keyboard on the web) is the field's; a wide screen hears it window-wide
+                     // (`SearchSheet`), so it is not heard twice here
+                     onKeyPress={(e) => { if (panel === null && e.nativeEvent.key === "Escape") onClose(); }}
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}

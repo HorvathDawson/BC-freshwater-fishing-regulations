@@ -343,9 +343,13 @@ export function fixOf(fix: WaterFix): Extent | null {
 export const SEARCH_BAR = {
   /** What the field is called aloud, whatever its placeholder says. */
   label: "Search waters and towns",
-  /** The ‹ that replaces the magnifier while search is open: closes it and restores the map. */
+  /**
+   * What closes search and restores the map: on a phone the ‹ that replaces the magnifier while search is open; on a
+   * wide screen the results panel's ✕ at its top-right (owner 2026-10-22 late — the close sits by the results).
+   */
   close: "Close search",
-  clear: "Clear search",
+  /** The ✕ inside the field: empties what was typed and NEVER closes search (owner 2026-10-22 late). */
+  clear: "Clear search text",
   /** A selected water row's action: the water screen, through `openWater` (the one opener). */
   open: (name: string) => `Open ${name}`,
   /** The sheet before two letters are typed. */
