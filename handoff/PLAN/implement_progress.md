@@ -96,6 +96,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
+  regs "Which day?"); after the layers-B lane merges.
 - RUNNING wf_199d0858-41a (task wxllnpqcb; script layers-b-fixes-conditions-sidechannels-wf_199d0858-41a.js): lanes
   layers-b (B with owner changes: one water colouring for all features, sources/credits/palette to the hamburger,
   coming soon greyed, always-on incl Indigenous land), small-fixes (crossing label, reversed continuations rule,
