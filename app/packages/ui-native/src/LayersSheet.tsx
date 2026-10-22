@@ -153,8 +153,7 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
           <SourceRow palette={palette} title="Stream gauges"
                sub={`${stations ?? 0} stations · Environment Canada`}
                age={fetchedAt ? ago(fetchedAt) : "—"} />
-          <SourceRow palette={palette} title="Stocking releases"
-               sub="Province of BC · Fisheries Inventory" age="per season" />
+          {/* no stocking row: there is no stocking feed yet (owner 2026-10-21, decisions.md "prepared, not fed") */}
         </Section>
 
         <Section palette={palette} title="Palette">
