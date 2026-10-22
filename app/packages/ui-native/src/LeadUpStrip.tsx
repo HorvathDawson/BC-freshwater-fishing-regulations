@@ -34,6 +34,7 @@ export function LeadUpStrip({ view, palette }: { view: LeadUpView; palette: Pale
             ))}
           </View>
           {view.weather.rain ? note("leadup-rain", view.weather.rain) : null}
+          {view.weather.pending ? note("leadup-weather-pending", view.weather.pending) : null}
           {caption("leadup-weather-source", view.weather.source)}
         </View>
       ) : view.weatherNote ? note("leadup-weather-note", view.weatherNote) : null}
@@ -53,6 +54,7 @@ export function LeadUpStrip({ view, palette }: { view: LeadUpView; palette: Pale
             ))}
           </View>
           {view.gauge.trend ? note("leadup-trend", view.gauge.trend) : null}
+          {view.gauge.pending ? note("leadup-gauge-pending", view.gauge.pending) : null}
           {caption("leadup-gauge-meta", view.gauge.meta)}
         </View>
       ) : view.gaugeNote ? note("leadup-gauge-note", view.gaugeNote) : null}

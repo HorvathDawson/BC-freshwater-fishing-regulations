@@ -8,9 +8,10 @@ import { leadUpView } from "./leadUp";
 const WEEK = ["2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29"];
 const weather: DailyWeather[] = WEEK.map((date, i) => (
   { date, maxC: 16 + i, minC: 8, precipMm: i === 3 ? null : i === 1 ? 6 : 0, windMaxKph: 10, code: i === 1 ? 61 : 1 }));
+// the 25th: the feed had been published past it and held nothing (settled, `none`)
 const gauge: DailyGauge[] = WEEK.map((date, i) => (
   { date, discharge: i === 2 ? null : 50 - i * 5, level: null,
-    dischargePlace: i === 2 ? null : i === 6 ? "below" : 0.5, levelPlace: null }));
+    dischargePlace: i === 2 ? null : i === 6 ? "below" : 0.5, levelPlace: null, ...(i === 2 ? { none: true } : {}) }));
 
 describe("leadUpView", () => {
   it("draws a recorded week whole", () => {
@@ -35,6 +36,7 @@ describe("leadUpView", () => {
         ],
         rain: "6 mm of rain in the week before, on 1 day (1 day not recorded).",
         source: "Weather from Open-Meteo.com (CC BY 4.0)",
+        pending: null,
       },
       weatherNote: null,
       gauge: {
@@ -51,6 +53,7 @@ describe("leadUpView", () => {
         ],
         trend: "Flow fell over the week: 50.0 → 20.0 m³/s",
         meta: "08MH001 · daily means",
+        pending: null,
       },
       gaugeNote: null,
     });
@@ -63,6 +66,12 @@ describe("leadUpView", () => {
       "08MH001 · daily means · filled in afterwards"]);
   });
 
+  it("says it only under the half a refresh filled", () => {
+    const v = leadUpView({ weather, station: "08MH001", gauge, backfilled: true, filledIn: { gauge: true } })!;
+    expect([v.weather!.source, v.gauge!.meta]).toEqual([
+      "Weather from Open-Meteo.com (CC BY 4.0)", "08MH001 · daily means · filled in afterwards"]);
+  });
+
   it("says why a half is missing instead of drawing an empty grid", () => {
     const say = (lu: LeadUp) => { const v = leadUpView(lu)!; return [v.weatherNote, v.gaugeNote, !!v.weather, !!v.gauge]; };
     expect(say({ weather: null, station: null, gauge: null })).toEqual([
@@ -72,8 +81,34 @@ describe("leadUpView", () => {
       null, "The station's daily means for the week could not be read.", true, false]);
     expect(say({ weather, station: "08MH001",
                  gauge: WEEK.map((date) => ({ date, discharge: null, level: null, dischargePlace: null,
-                                              levelPlace: null })) })).toEqual([
+                                              levelPlace: null, none: true })) })).toEqual([
       null, "The station has no daily means for that week.", true, false]);
+    // a week saved before the feed had published any of it: still to come, never "nothing for that week"
+    expect(say({ weather, station: "08MH001",
+                 gauge: WEEK.map((date) => ({ date, discharge: null, level: null, dischargePlace: null,
+                                              levelPlace: null })) })).toEqual([
+      null, "The station had not published 7 of these days yet. Refresh fills them in.", true, false]);
+  });
+
+  it("says which days were not available yet, under their row, instead of leaving them empty (owner bug 2026-10-22)",
+     () => {
+    const v = leadUpView({
+      weather: weather.map((d, i) => (i === 6 ? { date: d.date, maxC: null, minC: null, precipMm: null,
+                                                  windMaxKph: null, code: null } : d)),
+      station: "08MH001",
+      gauge: gauge.map((d, i) => (i >= 4 ? { date: d.date, discharge: null, level: null, dischargePlace: null,
+                                             levelPlace: null } : d)),
+    })!;
+    expect(v.weather!.pending).toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
+    expect(v.weather!.days[6]!.label).toBe("Sat Aug 29: no weather for this day yet");
+    expect(v.gauge!.pending).toBe("The station had not published 3 of these days yet. Refresh fills them in.");
+    expect(v.gauge!.days.slice(4).map((d) => [d.value, d.place, d.label])).toEqual([
+      ["—", "not yet", "Thu Aug 27: no daily mean published yet"],
+      ["—", "not yet", "Fri Aug 28: no daily mean published yet"],
+      ["—", "not yet", "Sat Aug 29: no daily mean published yet"]]);
+    // the settled gap on the 25th stays a plain gap
+    expect(v.gauge!.days[2]).toEqual({ label: "Tue Aug 25: no daily mean recorded", day: "Tue 25", value: "—",
+                                       place: "" });
   });
 
   it("draws nothing for a spot with no lead-up — the refresh line says why", () => {

@@ -81,7 +81,9 @@ export interface SpotReading {
 /**
  * One day of the week before a visit, from Open-Meteo's DAILY series (S1).
  *
- * Every field nullable, and a day the service did not return is a day of nulls — never its neighbour's values.
+ * Every field nullable, and a day the service did not return is a day of nulls — never its neighbour's values. A day
+ * with EVERY field null is one the service did not have yet (Open-Meteo has every past day in the end): a refresh asks
+ * for it again (`leadUpPendingDays`). A day with any value is kept as captured, for ever.
  */
 export interface DailyWeather {
   /** The LOCAL day, "2026-08-29". */
@@ -98,7 +100,14 @@ export interface DailyWeather {
 /** Where a day's mean sat in the station's envelope: a percentile (0–1), or which side of the envelope it fell off. */
 export type DayPlace = number | "below" | "above";
 
-/** One day of the matched station's daily means (S1). A day the feed has no mean for stays null. */
+/**
+ * One day of the matched station's daily means (S1). A day the feed has no mean for stays null — and says which null:
+ *
+ *   `none: true`  the feed had been published past the day and held nothing for it, or does not carry the station at
+ *                 all: asked, and nothing there. Settled; never asked again.
+ *   no `none`     the day was not over, or not published yet, when the feed was written: still to come. A refresh asks
+ *                 for it again — and so for a week saved before `none` existed (owner bug 2026-10-22).
+ */
 export interface DailyGauge {
   date: string;
   /** m³/s */
@@ -108,6 +117,8 @@ export interface DailyGauge {
   /** Against the bundle's envelope for that day of the year; null where there is no envelope or no value. */
   dischargePlace: DayPlace | null;
   levelPlace: DayPlace | null;
+  /** Only on a day with no mean that will not get one (above). */
+  none?: true;
 }
 
 /**
@@ -125,6 +136,12 @@ export interface LeadUp {
   gauge: DailyGauge[] | null;
   /** Filled in after the visit was saved. */
   backfilled?: boolean;
+  /**
+   * WHICH half a refresh filled in, so the strip says "filled in afterwards" only under the row it is true of: a
+   * refresh that fills the gauge's last three days did not touch the weather (owner bug 2026-10-22). Absent on a
+   * week filled before this existed, where `backfilled` speaks for both halves, as it always did.
+   */
+  filledIn?: { weather?: true; gauge?: true };
 }
 
 export interface Spot {

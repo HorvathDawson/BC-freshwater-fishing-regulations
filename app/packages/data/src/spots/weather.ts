@@ -32,6 +32,9 @@ const DAILY = "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_spee
  */
 const ARCHIVE_LAG_MS = 5 * 86_400_000;
 
+/** How far back the forecast endpoint's `past_days` reaches (Open-Meteo's documented maximum). */
+const PAST_DAYS_MAX = 92;
+
 /** Midnight at the start of a local "YYYY-MM-DD". */
 const localMidnight = (d: string): number => {
   const [y, m, day] = d.split("-").map(Number) as [number, number, number];
@@ -48,36 +51,54 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
      * a day the service did not send is left out — the caller holds it as a day of nulls.
      */
     async days(lat, lon, days): Promise<DailyWeather[] | null> {
-      try {
-        const first = days[0], last = days[days.length - 1];
-        if (!first || !last) return null;
-        const endOfLast = localMidnight(last) + 86_400_000;
-        const where = `latitude=${lat}&longitude=${lon}`;
-        const archived = Date.now() - endOfLast > ARCHIVE_LAG_MS;
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        const pastDays = Math.min(92, Math.max(1, Math.round((today.getTime() - localMidnight(first)) / 86_400_000)));
-        const url = archived
-          ? `${ARCHIVE}?${where}&start_date=${first}&end_date=${last}&daily=${DAILY}&timezone=auto`
-          : `${CURRENT}?${where}&daily=${DAILY}&timezone=auto&past_days=${pastDays}&forecast_days=1`;
-        const res = await fetchImpl(url);
-        if (!res.ok) return null;
-        const body = await res.json() as { daily?: Record<string, (number | null)[] | string[]> };
-        const d = body.daily;
-        const time = (d?.time ?? []) as string[];
-        if (!d || !time.length) return null;
-        const col = (k: string, i: number): number | null => {
-          const v = (d[k] as (number | null)[] | undefined)?.[i];
-          return typeof v === "number" && Number.isFinite(v) ? v : null;
-        };
-        const wanted = new Set(days);
-        return time.flatMap((date, i) => (wanted.has(date) ? [{
-          date, maxC: col("temperature_2m_max", i), minC: col("temperature_2m_min", i),
-          precipMm: col("precipitation_sum", i), windMaxKph: col("wind_speed_10m_max", i),
-          code: col("weather_code", i),
-        }] : []));
-      } catch {
-        return null;
-      }
+      const first = days[0], last = days[days.length - 1];
+      if (!first || !last) return null;
+      const endOfLast = localMidnight(last) + 86_400_000;
+      const where = `latitude=${lat}&longitude=${lon}`;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const back = Math.round((today.getTime() - localMidnight(first)) / 86_400_000);
+      const recent = `${CURRENT}?${where}&daily=${DAILY}&timezone=auto` +
+                     `&past_days=${Math.min(PAST_DAYS_MAX, Math.max(1, back))}&forecast_days=1`;
+      const wanted = new Set(days);
+      /** One endpoint's days, only those asked for; null when it could not be read. */
+      const ask = async (url: string): Promise<DailyWeather[] | null> => {
+        try {
+          const res = await fetchImpl(url);
+          if (!res.ok) return null;
+          const body = await res.json() as { daily?: Record<string, (number | null)[] | string[]> };
+          const d = body.daily;
+          const time = (d?.time ?? []) as string[];
+          if (!d || !time.length) return null;
+          const col = (k: string, i: number): number | null => {
+            const v = (d[k] as (number | null)[] | undefined)?.[i];
+            return typeof v === "number" && Number.isFinite(v) ? v : null;
+          };
+          return time.flatMap((date, i) => (wanted.has(date) ? [{
+            date, maxC: col("temperature_2m_max", i), minC: col("temperature_2m_min", i),
+            precipMm: col("precipitation_sum", i), windMaxKph: col("wind_speed_10m_max", i),
+            code: col("weather_code", i),
+          }] : []));
+        } catch {
+          return null;
+        }
+      };
+      if (Date.now() - endOfLast <= ARCHIVE_LAG_MS) return ask(recent);
+      const archived = await ask(`${ARCHIVE}?${where}&start_date=${first}&end_date=${last}&daily=${DAILY}&timezone=auto`);
+      // THE ARCHIVE LAGS REAL TIME, and answers a day it has not reached with the day present and every value null
+      // (owner bug 2026-10-22). Such a day, or one it left out, is asked of the forecast's `past_days` while that
+      // reaches back far enough; a day neither has stays out, and the lead-up asks for it again on a refresh.
+      const has = (g: DailyWeather | undefined) =>
+        !!g && [g.maxC, g.minC, g.precipMm, g.windMaxKph, g.code].some((v) => v !== null);
+      const holes = days.filter((day) => !has(archived?.find((g) => g.date === day)));
+      if (!holes.length || back > PAST_DAYS_MAX) return archived;
+      const more = await ask(recent);
+      if (!more) return archived;
+      return days.flatMap((day) => {
+        const a = archived?.find((g) => g.date === day);
+        const m = more.find((g) => g.date === day);
+        const pick = has(a) ? a : has(m) ? m : a ?? m;
+        return pick ? [pick] : [];
+      });
     },
 
     async at(lat, lon, when): Promise<SpotWeather | null> {

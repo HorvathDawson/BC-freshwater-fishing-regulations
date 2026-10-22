@@ -198,8 +198,9 @@ export default function App() {
                onRefreshSpots={async () => {
                  setRefreshing(true);
                  // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
-                 // the source reads the station's daily means for a spot's week before (S1)
-                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, data.source)); }
+                 // the source reads the station's daily means for a spot's week before (S1); the feed's index tells a
+                 // station it does not carry (settled) from a feed not reached (asked again)
+                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, data.source, feed)); }
                  catch { /* said by spotsHook.error; the list keeps what was saved */ }
                  finally { setRefreshing(false); }
                }}

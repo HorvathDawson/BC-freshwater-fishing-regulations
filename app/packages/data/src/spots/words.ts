@@ -63,7 +63,8 @@ export function leadUpWeatherSentence(d: DailyWeather): string {
     d.precipMm === null ? null : d.precipMm === 0 ? "no rain" : `${tenth(d.precipMm)} mm of rain`,
     d.windMaxKph === null ? null : `wind up to ${Math.round(d.windMaxKph)} km/h`,
   ].filter((b): b is string => b !== null);
-  return `${p.wd} ${p.mon} ${p.d}: ${bits.length ? bits.join(", ") : "no weather recorded"}`;
+  // a day with nothing at all is one the service had not sent yet; a refresh asks for it again (`weatherDayPending`)
+  return `${p.wd} ${p.mon} ${p.d}: ${bits.length ? bits.join(", ") : "no weather for this day yet"}`;
 }
 
 /**
@@ -99,16 +100,21 @@ const placeOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.
 const placeChip = (p: DayPlace | null): string =>
   p === null ? "" : p === "below" ? "<p10" : p === "above" ? ">p90" : percentileLabel(p);
 
-/** A lead-up gauge day as the strip draws it. */
+/** A gauge day the feed had not published yet (no mean, not settled as none): a refresh asks for it again. */
+const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null && !d.none;
+
+/** A lead-up gauge day as the strip draws it; a day still to come says so under its dash. */
 export function leadUpGaugeCells(d: DailyGauge, q: "discharge" | "level"): { value: string; place: string } {
   const v = valueOf(d, q);
-  return { value: v === null ? DASH : figure(v, q), place: v === null ? "" : placeChip(placeOf(d, q)) };
+  return { value: v === null ? DASH : figure(v, q),
+           place: v === null ? (stillToCome(d) ? "not yet" : "") : placeChip(placeOf(d, q)) };
 }
 
 /** The day said whole: "Sun Aug 23: 50.0 m³/s, the 63rd percentile for the day". */
 export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): string {
   const p = parts(d.date);
   const v = valueOf(d, q);
+  if (v === null && stillToCome(d)) return `${p.wd} ${p.mon} ${p.d}: no daily mean published yet`;
   if (v === null) return `${p.wd} ${p.mon} ${p.d}: no daily mean recorded`;
   const at = placeOf(d, q);
   const where = at === null ? "no record to compare it with"
@@ -155,7 +161,25 @@ export const LEAD_UP_WORDS = {
   gaugeEmpty: "The station has no daily means for that week.",
   weatherFilledIn: `${OPEN_METEO_ATTRIBUTION} · filled in afterwards`,
   weatherSource: OPEN_METEO_ATTRIBUTION,
+  /** The refresh line: a whole half of the week was never read (offline, or saved before the week was kept). */
+  notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
+  /** The refresh line: the week was read, but some of its days were not out yet (owner bug 2026-10-22). */
+  someDaysPending: "Some days of the week before were not available yet when this was saved — they can be filled in now.",
 } as const;
+
+/** Under the weather row: how many of its days the service had not sent yet, and that a refresh asks again. */
+export function leadUpWeatherPending(n: number): string {
+  return n === 1
+    ? "1 day had no weather from Open-Meteo yet. Refresh fills it in."
+    : `${n} days had no weather from Open-Meteo yet. Refresh fills them in.`;
+}
+
+/** Under the gauge row: how many of its days the station had not published yet, and that a refresh asks again. */
+export function leadUpGaugePending(n: number): string {
+  return n === 1
+    ? "The station had not published 1 of these days yet. Refresh fills it in."
+    : `The station had not published ${n} of these days yet. Refresh fills them in.`;
+}
 
 /* ---- S1: photographs ---------------------------------------------------------------------------------------------- */
 

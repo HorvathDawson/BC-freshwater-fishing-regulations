@@ -3,8 +3,9 @@
  */
 import { describe, expect, it } from "vitest";
 import type { DailyGauge, DailyWeather } from "./model";
-import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence,
-         leadUpGaugeTrend, leadUpQuantity, leadUpRainLine, leadUpWeatherCells, leadUpWeatherSentence,
+import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
+         leadUpGaugeTrend, leadUpQuantity, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
+         leadUpWeatherSentence,
          photoFailed, PHOTO_WORDS, removePhotoLabel, skyWord, staleSpotsLine } from "./words";
 
 const w = (date: string, over: Partial<DailyWeather> = {}): DailyWeather =>
@@ -36,7 +37,8 @@ describe("a lead-up weather day", () => {
       .toBe("Mon Aug 24: clear, high 18°C, no rain, wind up to 22 km/h");
     expect(leadUpWeatherSentence({ date: "2026-08-26", maxC: null, minC: null, precipMm: null,
                                    windMaxKph: null, code: null }))
-      .toBe("Wed Aug 26: no weather recorded");
+      // a day with nothing at all is one the service had not sent yet: a refresh asks for it again
+      .toBe("Wed Aug 26: no weather for this day yet");
   });
 
   it("names the sky by the WMO code's group", () => {
@@ -70,7 +72,9 @@ describe("the week's rain", () => {
 });
 
 describe("the station's daily means", () => {
-  const week = [g("2026-08-23", 50, 0.625), g("2026-08-24", null, null), g("2026-08-25", 9.137, "below"),
+  // the 24th: the feed had been published past it and held nothing — settled
+  const week = [g("2026-08-23", 50, 0.625), { ...g("2026-08-24", null, null), none: true as const },
+                g("2026-08-25", 9.137, "below"),
                 g("2026-08-26", 120, "above"), g("2026-08-27", 20, 0.25)];
 
   it("shows flow where the station has it, and level only where it has no flow", () => {
@@ -97,6 +101,18 @@ describe("the station's daily means", () => {
     ]);
     expect(leadUpGaugeSentence(g("2026-08-23", 3.2, null), "discharge"))
       .toBe("Sun Aug 23: 3.20 m³/s, no record to compare it with");
+  });
+
+  it("says a day the station had not published yet apart from a day with nothing in it (owner bug 2026-10-22)", () => {
+    const later = g("2026-08-28", null, null);                     // no `none`: still to come
+    expect(leadUpGaugeCells(later, "discharge")).toEqual({ value: "—", place: "not yet" });
+    expect(leadUpGaugeSentence(later, "discharge")).toBe("Fri Aug 28: no daily mean published yet");
+    expect([1, 3].map(leadUpGaugePending)).toEqual([
+      "The station had not published 1 of these days yet. Refresh fills it in.",
+      "The station had not published 3 of these days yet. Refresh fills them in."]);
+    expect([1, 2].map(leadUpWeatherPending)).toEqual([
+      "1 day had no weather from Open-Meteo yet. Refresh fills it in.",
+      "2 days had no weather from Open-Meteo yet. Refresh fills them in."]);
   });
 
   it("names the week's direction from its first and last known days", () => {
@@ -131,6 +147,9 @@ describe("the fixed words", () => {
       gaugeEmpty: "The station has no daily means for that week.",
       weatherFilledIn: "Weather from Open-Meteo.com (CC BY 4.0) · filled in afterwards",
       weatherSource: "Weather from Open-Meteo.com (CC BY 4.0)",
+      notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
+      someDaysPending:
+        "Some days of the week before were not available yet when this was saved — they can be filled in now.",
     });
     expect(PHOTO_WORDS).toEqual({
       heading: "Photographs",

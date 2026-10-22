@@ -13,7 +13,7 @@ import { answerFrom, type PanelAnswer } from "../panel";
 import type { ItemId, RegsSource, SectionId } from "../index";
 import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
-import { leadUpFor } from "./leadup";
+import { leadUpFor, type FeedIndex } from "./leadup";
 
 /**
  * Weather, from wherever weather comes from.
@@ -93,7 +93,7 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
     panelFor(source, section, input.feed),
     // S1: the seven days before the visit — daily weather and the station's daily means.
-    leadUpOf(source, input.weather, at, section, visitedAt),
+    leadUpOf(source, input.weather, at, section, visitedAt, input.feed),
   ]);
 
   return {
@@ -113,10 +113,11 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
 
 /** The week before the visit. A failed station lookup is "no station", never a failed capture: a spot must save. */
 async function leadUpOf(source: RegsSource, weather: WeatherSource | undefined, at: { lat: number; lon: number },
-                        section: SectionId | null, visitedAt: number): Promise<LeadUp> {
+                        section: SectionId | null, visitedAt: number, feed?: FeedIndex): Promise<LeadUp> {
   let station: string | null = null;
   try { station = section ? (await source.gaugeForSection(section))?.station ?? null : null; } catch { /* none */ }
-  return leadUpFor(source, weather, at, station, leadUpDays(visitedAt));
+  // the live index tells a station the feed does not carry (settled) from a feed not reached (asked again)
+  return leadUpFor(source, weather, at, station, leadUpDays(visitedAt), feed);
 }
 
 async function readingFor(source: RegsSource, section: SectionId | null):

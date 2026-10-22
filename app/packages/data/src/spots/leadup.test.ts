@@ -10,7 +10,8 @@ import { captureSpot } from "./capture";
 import { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 import { weekGauge } from "./leadup";
 import { openSpotsWith, type SpotsFs } from "./core";
-import type { DailyWeather } from "./model";
+import type { DailyGauge, DailyWeather, Spot } from "./model";
+import { LEAD_UP_WORDS } from "./words";
 import type { WeatherSource } from "./capture";
 import type { Aged, Parameter, RegsSource, SectionId, Series } from "../index";
 
@@ -34,8 +35,11 @@ const weather = (got: DailyWeather[] | null = [
 };
 
 const BAND: Band = [10, 20, 40, 60, 100];
-/** A "year" series in this year: values only on the days given; the envelope the same every day. */
-function series(param: Parameter, values: Record<string, number | null>, fetchedAt: number | null = 1):
+/**
+ * A "year" series in this year: values only on the days given; the envelope the same every day. Published (fetched)
+ * at the visit unless said otherwise, so every day of the week was over when the feed was written.
+ */
+function series(param: Parameter, values: Record<string, number | null>, fetchedAt: number | null = VISIT):
   Aged<Series> {
   const v: (number | null)[] = Array.from({ length: 300 }, () => null);
   for (const [d, x] of Object.entries(values)) v[DOY_AUG_23 - 1 + WEEK.indexOf(d)] = x;
@@ -77,7 +81,8 @@ describe("the lead-up, captured", () => {
       { date: "2026-08-23", discharge: 50, level: 1.2, dischargePlace: 0.625, levelPlace: "below" },
       { date: "2026-08-24", discharge: 40, level: null, dischargePlace: 0.5, levelPlace: null },
       { date: "2026-08-25", discharge: 30, level: null, dischargePlace: 0.375, levelPlace: null },
-      { date: "2026-08-26", discharge: null, level: null, dischargePlace: null, levelPlace: null },
+      // a day the feed had published past and holds nothing for: asked, and nothing there — settled
+      { date: "2026-08-26", discharge: null, level: null, dischargePlace: null, levelPlace: null, none: true },
       { date: "2026-08-27", discharge: 9, level: null, dischargePlace: "below", levelPlace: null },
       { date: "2026-08-28", discharge: 120, level: null, dischargePlace: "above", levelPlace: null },
       { date: "2026-08-29", discharge: 20, level: 1.0, dischargePlace: 0.25, levelPlace: "below" },
@@ -97,11 +102,12 @@ describe("the lead-up, captured", () => {
   });
 
   it("holds seven days of nulls for a station with no envelope at all — read, and nothing there", async () => {
-    const s = await captureSpot({ ...base, weather: weather(),
+    // the whole week of weather, so only the gauge half is in question
+    const s = await captureSpot({ ...base, weather: weather(WEEK.map((d) => day(d, 20))),
                                   source: source({ gaugeParameters: async () => [],
                                                    gaugeSeries: async () => null }) });
     expect(s.leadUp!.gauge).toEqual(WEEK.map((date) => (
-      { date, discharge: null, level: null, dischargePlace: null, levelPlace: null })));
+      { date, discharge: null, level: null, dischargePlace: null, levelPlace: null, none: true })));
     expect(needsRefresh({ ...s, weather: { at: "x" } as never })).toBe(false);
   });
 
@@ -138,7 +144,12 @@ describe("the lead-up, backfilled", () => {
     expect(got.leadUp!.weather![3]).toEqual(blank("2026-08-26"));
     expect(got.leadUp!.gauge![0]).toEqual(
       { date: "2026-08-23", discharge: 50, level: 1.2, dischargePlace: 0.625, levelPlace: "below" });
-    expect(needsRefresh(got)).toBe(false);
+    // the 26th the service did not send is still to come: the spot keeps asking for it, and says so
+    expect(needsRefresh(got)).toBe(true);
+    expect(refreshReason(got)).toBe(LEAD_UP_WORDS.someDaysPending);
+    // every day the service did send is there: nothing else is outstanding
+    expect(needsRefresh({ ...got, leadUp: { ...got.leadUp!, weather: got.leadUp!.weather!.map((d) =>
+      d.maxC === null ? day(d.date, 19) : d) } })).toBe(false);
   });
 
   it("keeps what it already had and fills only the half that was missing", async () => {
@@ -216,7 +227,8 @@ describe("a visit in the first week of January", () => {
   const now = Array.from({ length: 40 }, () => null as number | null);
   now[0] = 5;                                                       // 1 Jan 2027
   const yearBand = Array.from({ length: 366 }, (_, i) => (i >= 300 ? HIGH : LOW));
-  const s: Aged<Series> = { fetchedAt: 1, value: {
+  // written on 3 January: every day of the week was over
+  const s: Aged<Series> = { fetchedAt: new Date(2027, 0, 3, 12).getTime(), value: {
     step: "1d", from: "2027-01-01", parameter: "discharge", at: [], values: now, band: yearBand.slice(0, 40), yearBand,
     now: null, forecast: null, forecasts: [], priorYears: [{ year: 2026, values: last }] } };
   it("reads last December's days and places them, instead of freezing them as nothing", async () => {
@@ -225,5 +237,149 @@ describe("a visit in the first week of January", () => {
     expect(got!.map((d) => d.discharge)).toEqual([3, null, null, null, 500, 5, null]);
     expect(got![0]!.dischargePlace).toBe(placeInBand(3, HIGH));
     expect(got![5]!.dischargePlace).toBe(placeInBand(5, LOW));
+  });
+});
+
+/**
+ * OWNER BUG 2026-10-22: "the refresh for week before isn't working".
+ *
+ * A week is frozen at capture with the days the sources had THEN. The days they did not have yet — the end of the week
+ * when the feed had not been published past it, a day the weather service did not send — were frozen as empty days
+ * and counted as recorded, so the refresh never asked for them again and the spot was not even offered one. The other
+ * half: a station the feed does not carry left the gauge "not read" for ever, so the spot was offered a refresh that
+ * could never fill anything.
+ */
+describe("the refresh fills the week before (owner bug 2026-10-22)", () => {
+  const ALL_WEEK = WEEK.map((d, i) => day(d, 16 + i));
+  const fullWeather = () => weather(ALL_WEEK);
+  /** Noon on a local day: when the feed was written. */
+  const noon = (d: string) => { const [y, m, dd] = d.split("-").map(Number) as [number, number, number];
+                                 return new Date(y, m - 1, dd, 12).getTime(); };
+  /** The feed as published on the 27th at noon: the 27th was not over, the 28th and 29th had not happened. */
+  const early = source({
+    gaugeParameters: async () => ["discharge"],
+    gaugeSeries: async () => series("discharge",
+      { "2026-08-23": 50, "2026-08-24": 40, "2026-08-25": 30, "2026-08-26": 25, "2026-08-27": 9 }, noon("2026-08-27")),
+  });
+  /** The feed a week later: the whole week, and different numbers for the days the spot already holds. */
+  const later = source({
+    gaugeParameters: async () => ["discharge"],
+    gaugeSeries: async () => series("discharge",
+      { "2026-08-23": 51, "2026-08-24": 41, "2026-08-25": 31, "2026-08-26": 26, "2026-08-27": 10, "2026-08-28": 120,
+        "2026-08-29": 20 }),
+  });
+  const pending = (date: string): DailyGauge =>
+    ({ date, discharge: null, level: null, dischargePlace: null, levelPlace: null });
+  const feedWith = (...stations: string[]) => ({ index: async () => ({ stations: Object.fromEntries(
+    stations.map((s) => [s, { percentile: null }])) }) as never });
+
+  it("keeps the days the feed had not published yet as still to come, and offers a refresh for them", async () => {
+    const s = await captureSpot({ ...base, source: early, weather: fullWeather() });
+    expect(s.leadUp!.gauge!.map((d) => d.discharge)).toEqual([50, 40, 30, 25, null, null, null]);
+    // the 27th was still going when the feed was written: its mean so far is not the day's, and is not frozen
+    expect(s.leadUp!.gauge!.slice(4)).toEqual([pending("2026-08-27"), pending("2026-08-28"), pending("2026-08-29")]);
+    const saved = { ...s, weather: { at: "x" } as never };
+    expect(needsRefresh(saved)).toBe(true);
+    expect(refreshReason(saved)).toBe(LEAD_UP_WORDS.someDaysPending);
+  });
+
+  it("a refresh fills only those days, never touches a day it already held, and says it filled them in", async () => {
+    const s = { ...(await captureSpot({ ...base, source: early, weather: fullWeather() })), weather: { at: "x" } as never };
+    const w = fullWeather();
+    const got = await refreshSpot(s, w, later);
+    expect(w.asked).toEqual([]);                                     // the weather was whole: not asked again
+    expect(got.leadUp!.gauge!.slice(0, 4)).toEqual(s.leadUp!.gauge!.slice(0, 4));   // 50, 40, 30, 25: as captured
+    expect(got.leadUp!.gauge!.map((d) => d.discharge)).toEqual([50, 40, 30, 25, 10, 120, 20]);
+    expect(got.leadUp!.weather).toBe(s.leadUp!.weather);
+    expect(got.leadUp!.backfilled).toBe(true);
+    // only the gauge row was filled in: only it says so
+    expect(got.leadUp!.filledIn).toEqual({ gauge: true });
+    expect(got.updatedAt).toBeGreaterThanOrEqual(s.updatedAt);
+    expect(needsRefresh(got)).toBe(false);
+  });
+
+  it("a refresh before the feed has moved on changes nothing, so nothing is written", async () => {
+    const s = { ...(await captureSpot({ ...base, source: early, weather: fullWeather() })), weather: { at: "x" } as never };
+    expect(await refreshSpot(s, fullWeather(), early)).toBe(s);
+  });
+
+  it("asks again for a day the weather service did not send, and keeps every day it did", async () => {
+    const s = { ...(await captureSpot({ ...base, source: later, weather: weather() })), weather: { at: "x" } as never };
+    expect(s.leadUp!.weather![3]).toEqual(blank("2026-08-26"));
+    expect(needsRefresh(s)).toBe(true);
+    // the service now has the 26th — and different numbers for the days the spot holds, which it keeps
+    const w = weather(WEEK.map((d) => day(d, 30)));
+    const got = await refreshSpot(s, w, later);
+    expect(w.asked).toEqual([WEEK]);
+    expect(got.leadUp!.weather!.map((d) => d.maxC)).toEqual([16, 17, 18, 30, 20, 21, 22]);
+    expect(got.leadUp!.gauge).toBe(s.leadUp!.gauge);
+    expect(needsRefresh(got)).toBe(false);
+  });
+
+  it("a week saved before this fix, with empty days in it, is offered the refresh and filled", async () => {
+    const old: Spot = { ...(await captureSpot({ ...base, source: later, weather: fullWeather() })),
+                        weather: { at: "x" } as never };
+    // as the app froze it then: the last three days empty, with nothing to say they were still to come
+    const legacy: Spot = { ...old, leadUp: { ...old.leadUp!, gauge: old.leadUp!.gauge!.map((d, i) =>
+      i >= 4 ? pending(d.date) : d) } };
+    expect(needsRefresh(legacy)).toBe(true);
+    const got = await refreshSpot(legacy, fullWeather(), later);
+    expect(got.leadUp!.gauge!.map((d) => d.discharge)).toEqual([51, 41, 31, 26, 10, 120, 20]);
+    expect(got.leadUp!.gauge!.slice(0, 4)).toEqual(legacy.leadUp!.gauge!.slice(0, 4));
+    expect(needsRefresh(got)).toBe(false);
+  });
+
+  it("a day the feed has published past with nothing in it is settled, not asked for for ever", async () => {
+    const gap = source({ gaugeParameters: async () => ["discharge"],
+                         gaugeSeries: async () => series("discharge", { "2026-08-23": 50 }) });
+    const s = { ...(await captureSpot({ ...base, source: gap, weather: fullWeather() })), weather: { at: "x" } as never };
+    expect(s.leadUp!.gauge!.slice(1).every((d) => d.none === true)).toBe(true);
+    expect(needsRefresh(s)).toBe(false);
+  });
+
+  describe("a station the feed does not carry", () => {
+    // the envelope is in the release, the feed has no file for the station: no observations, so no age
+    const unpublished = source({ gaugeSeries: async (_s: string, _sp: string, p?: Parameter) =>
+      series(p ?? "discharge", {}, null) } as never);
+
+    it("is settled at capture as a week with nothing in it — not a refresh that can never fill", async () => {
+      const s = await captureSpot({ ...base, source: unpublished, weather: fullWeather(), feed: feedWith("08MF005") });
+      expect(s.leadUp!.gauge).toEqual(WEEK.map((date) => ({ ...pending(date), none: true })));
+      expect(needsRefresh({ ...s, weather: { at: "x" } as never })).toBe(false);
+    });
+
+    it("a spot left waiting on it is settled by the refresh, and stops asking", async () => {
+      const s = await captureSpot({ ...base, source: unpublished, weather: fullWeather() });
+      const saved = { ...s, weather: { at: "x" } as never };
+      expect(saved.leadUp!.gauge).toBeNull();                      // no feed to ask: could not be read
+      expect(needsRefresh(saved)).toBe(true);
+      const got = await refreshSpot(saved, fullWeather(), unpublished, feedWith("08MF005"));
+      expect(got.leadUp!.gauge).toEqual(WEEK.map((date) => ({ ...pending(date), none: true })));
+      expect(needsRefresh(got)).toBe(false);
+    });
+
+    it("offline, the feed's index is not there either: still not read, and still asked again", async () => {
+      const s = { ...(await captureSpot({ ...base, source: unpublished, weather: fullWeather() })),
+                  weather: { at: "x" } as never };
+      expect(await refreshSpot(s, fullWeather(), unpublished, { index: async () => null } as never)).toBe(s);
+    });
+  });
+
+  it("through the store: the refresh writes what it filled, and a reload reads it back", async () => {
+    const files = new Map<string, string>();
+    const fs: SpotsFs = { exists: (n) => files.has(n), read: (n) => files.get(n)!, write: (n, t) => { files.set(n, t); },
+                          rename: (a, b) => { files.set(b, files.get(a)!); files.delete(a); },
+                          remove: (n) => { files.delete(n); } };
+    const store = openSpotsWith(fs, "s.json");
+    const s = { ...(await captureSpot({ ...base, source: early, weather: fullWeather() })), weather: { at: "x" } as never };
+    await store.put(s);
+    // the refresh loop `useSpots` runs (ui/spots.ts): fill each spot, write it through `patch` if it changed
+    for (const cur of await store.list()) {
+      const filled = await refreshSpot(cur, fullWeather(), later);
+      if (filled !== cur) await store.patch(cur.id, (now) => (now.updatedAt === cur.updatedAt ? filled : now));
+    }
+    const back = await openSpotsWith(fs, "s.json").get(s.id);
+    expect(back!.leadUp!.gauge!.map((d) => d.discharge)).toEqual([50, 40, 30, 25, 10, 120, 20]);
+    expect(needsRefresh(back!)).toBe(false);
   });
 });

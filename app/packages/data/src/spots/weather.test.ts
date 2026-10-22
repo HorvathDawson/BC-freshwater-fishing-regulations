@@ -194,6 +194,54 @@ describe("openMeteo: the week before a visit, DAILY (S1)", () => {
     ]);
   });
 
+  /**
+   * Owner bug 2026-10-22. The archive answers a week its data has not reached yet with the days present and every value
+   * null (it lags real time by days). Those days must come from the forecast endpoint's `past_days`, which carries the
+   * recent past, not be frozen empty.
+   */
+  describe("a week the archive has not caught up with", () => {
+    const empty = { ...DAILY, time: WEEK,
+      temperature_2m_max: [16, 17, 18, 19, 20, null, null], temperature_2m_min: [8, 9, 9, 10, 11, null, null],
+      precipitation_sum: [0, 4.2, 0, 0, 12, null, null], wind_speed_10m_max: [10, 22, 15, 9, 31, null, null],
+      weather_code: [1, 61, 3, 0, 63, null, null] };
+    const recent = { time: ["2026-08-28", "2026-08-29", "2026-08-30"], temperature_2m_max: [23, 24, 25],
+      temperature_2m_min: [12, 13, 14], precipitation_sum: [0, 1.5, 0], wind_speed_10m_max: [8, 12, 9],
+      weather_code: [1, 61, 0] };
+    const twoAnswers = () => vi.fn(async (url: string) => ({
+      ok: true, json: async () => ({ daily: url.includes("archive-api") ? empty : recent }) }));
+
+    it("fills the days the archive left empty from the forecast's past days, and keeps the archive's own", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 8, 6, 12));                 // 6 September: the week ended 8 days ago
+      try {
+        const fetchImpl = twoAnswers();
+        const got = await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
+        expect(fetchImpl.mock.calls.map((c) => String(c[0]))).toEqual([
+          "https://archive-api.open-meteo.com/v1/archive?latitude=49.1&longitude=-121.9" +
+          "&start_date=2026-08-23&end_date=2026-08-29" + FIELDS + "&timezone=auto",
+          "https://api.open-meteo.com/v1/forecast?latitude=49.1&longitude=-121.9" + FIELDS +
+          "&timezone=auto&past_days=14&forecast_days=1"]);
+        expect(got!.map((d) => d.maxC)).toEqual([16, 17, 18, 19, 20, 23, 24]);
+        expect(got![6]).toEqual({ date: "2026-08-29", maxC: 24, minC: 13, precipMm: 1.5, windMaxKph: 12, code: 61 });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("past the forecast's reach (92 days), keeps what the archive had and asks nothing more", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2027, 0, 6, 12));
+      try {
+        const fetchImpl = twoAnswers();
+        const got = await openMeteo(fetchImpl as never).days!(49.1, -121.9, WEEK);
+        expect(fetchImpl).toHaveBeenCalledTimes(1);
+        expect(got!.map((d) => d.maxC)).toEqual([16, 17, 18, 19, 20, null, null]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   it("is null offline, on a bad response, or with no daily series — never a plausible week", async () => {
     expect(await openMeteo(vi.fn(async () => { throw new Error("offline"); }) as never).days!(49, -122, WEEK))
       .toBeNull();

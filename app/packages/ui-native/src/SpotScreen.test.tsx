@@ -423,7 +423,7 @@ describe("<SpotScreen> the week before (S1)", () => {
     station: "08MH001",
     gauge: WEEK.map((date, i) => ({ date, discharge: i === 2 ? null : 50 - i * 5, level: null,
                                     dischargePlace: i === 2 ? null : i === 6 ? "below" as const : 0.5,
-                                    levelPlace: null })),
+                                    levelPlace: null, ...(i === 2 ? { none: true as const } : {}) })),
   };
 
   it("draws seven days of weather, each said whole, with the week's rain and its source", () => {
@@ -467,6 +467,32 @@ describe("<SpotScreen> the week before (S1)", () => {
     expect(getByText("The week before this visit was not recorded — it can be filled in from the days themselves."))
       .toBeTruthy();
     expect(queryByText("The week before")).toBeNull();
+  });
+
+  it("offers a refresh for days not available yet, and says under each row which (owner bug 2026-10-22)", () => {
+    const later = {
+      ...leadUp,
+      weather: leadUp.weather.map((d, i) => (i === 6 ? { date: d.date, maxC: null, minC: null, precipMm: null,
+                                                         windMaxKph: null, code: null } : d)),
+      gauge: leadUp.gauge.map((d, i) => (i >= 5 ? { date: d.date, discharge: null, level: null, dischargePlace: null,
+                                                    levelPlace: null } : d)),
+    };
+    const onRefresh = vi.fn();
+    const { getByLabelText, getByTestId, getByText } = render(
+      <SpotScreen palette={LIGHT} onBack={() => {}} onRefresh={onRefresh} spot={spot({
+        weather: { window: null, tempC: 14, windKph: 8, windDir: 210, rain3h: 0, pressureHpa: 1014, code: 3,
+                   at: "2026-08-30T09:00", backfilled: false },
+        leadUp: later,
+      })} />);
+    expect(getByText("Some days of the week before were not available yet when this was saved — they can be filled " +
+                     "in now.")).toBeTruthy();
+    expect(getByTestId("leadup-weather-pending").textContent)
+      .toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
+    expect(getByTestId("leadup-gauge-pending").textContent)
+      .toBe("The station had not published 2 of these days yet. Refresh fills them in.");
+    expect(getByLabelText("Sat Aug 29: no daily mean published yet").textContent).toBe("—not yet");
+    fireEvent.click(getByLabelText("Refresh this spot"));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 });
 
