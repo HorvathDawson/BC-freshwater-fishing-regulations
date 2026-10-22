@@ -23,7 +23,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import {
-  crossAria, crossDown, crossUp, exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
+  crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
   partName, partOfSection, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type WaterGroup,
 } from "@app/core";
@@ -167,8 +167,8 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
   const downs = stepsDown(g, at), ups = stepsUp(g, at);
   const step = (dir: "up" | "down", to: readonly number[], cross: NavCross | null): WaterMapStepVM => {
     const fwd = dir === "up" ? W.up : W.down, end = dir === "up" ? W.highest : W.lowest;
-    const label = to.length || cross ? fwd : end;
-    return { label, aria: cross ? crossAria(dir, cross) : label, disabled: !to.length && !cross, fork: to.length > 1,
+    const label = cross ? crossLabel(dir, cross) : to.length ? fwd : end;
+    return { label, aria: label, disabled: !to.length && !cross, fork: to.length > 1,
              cross: cross ? { item: cross.item, part: cross.part } : null };
   };
   const choice = s.choosing === null ? [] : s.choosing === "up" ? ups : downs;

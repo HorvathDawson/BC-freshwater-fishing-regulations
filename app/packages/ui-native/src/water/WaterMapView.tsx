@@ -90,7 +90,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                   testID="water-map-name" numberOfLines={3}>{vm.current.name}</Text>
             <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
               {([["down", vm.down], ["up", vm.up]] as const).map(([dir, st]) => (
-                <Step key={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
+                <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
                       onPress={() => (st.cross ? onCross(st.cross.item as ItemId, st.cross.part) : act({ type: dir }))} />
               ))}
             </View>
@@ -119,17 +119,21 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
 }
 
 /** ▼ / ▲: a 52 px button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
- *  water its words say which ("▲ Upstream into Chilliwack River"). */
-function Step({ palette, label, aria, disabled, onPress }: {
-  palette: Palette; label: string; aria: string; disabled: boolean; onPress: () => void;
+ *  water its words say where (owner 2026-10-21 late: "▲ Upstream into Chilliwack River"): half the bar at 390 px, so
+ *  the words wrap, centred, to two lines at most and a longer name is cut with an ellipsis (the full words stay the
+ *  button's accessible name). */
+function Step({ dir, palette, label, aria, disabled, onPress }: {
+  dir: "up" | "down"; palette: Palette; label: string; aria: string; disabled: boolean; onPress: () => void;
 }) {
   return (
     <Pressable onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={aria} aria-disabled={disabled}
-               style={{ flex: 1, minHeight: 52, alignItems: "center", justifyContent: "center", borderWidth: 1.5,
+               style={{ flex: 1, minWidth: 0, minHeight: 52, alignItems: "center", justifyContent: "center",
+                        paddingHorizontal: SPACE.s2, paddingVertical: 4, borderWidth: 1.5,
                         borderColor: palette.ink, borderStyle: disabled ? "dashed" : "solid" }}>
-      <Text style={{ ...TYPE.bodyStrong, fontFamily: disabled ? TYPE.bodyStrong.fontFamily : TYPE.metaBold.fontFamily,
-                     color: disabled ? palette.sub : palette.ink }}>{label}</Text>
+      <Text numberOfLines={2} ellipsizeMode="tail" testID={`water-map-step-${dir}`}
+            style={{ ...TYPE.bodyStrong, fontFamily: disabled ? TYPE.bodyStrong.fontFamily : TYPE.metaBold.fontFamily,
+                     textAlign: "center", color: disabled ? palette.sub : palette.ink }}>{label}</Text>
     </Pressable>
   );
 }

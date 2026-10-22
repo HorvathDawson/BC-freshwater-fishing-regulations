@@ -41,6 +41,11 @@ const bar = () => {
   return `${screen.getByTestId("water-map-where").textContent} | ${screen.getByTestId("water-map-name").textContent}`
     + ` | ${steps.join(" | ")}${screen.queryByTestId("water-map-exit") ? ` | ${screen.getByTestId("water-map-exit").textContent}` : ""}`;
 };
+/** ▼ / ▲'s words as drawn: the text, how many lines before it is cut (RN `numberOfLines`), its alignment. */
+const stepText = (dir: "up" | "down") => {
+  const e = screen.getByTestId(`water-map-step-${dir}`);
+  return { text: e.textContent, lines: Number(e.style.webkitLineClamp), align: e.style.textAlign };
+};
 const ready = () => waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
 const lit = () => ({ highlight: [...(seen.props?.highlight ?? [])], water: [...(seen.props?.water ?? [])] });
 
@@ -49,7 +54,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:8634", 1);
     await ready();
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
-      + " | ▼ Downstream | ▲ Upstream | Flows into Vedder River ›");
+      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       highlight: [60210, 60211, 60212, 62453, 62571, 62823, 1235779, 1235780, 1235825],
       water: [1235781, 1235826, 1235827, 59894, 59900, 61178, 62859, 1235782, 1235783, 1235784, 1235785] });
@@ -162,11 +167,15 @@ describe("<WaterMapView>", () => {
     const calls = mount("gnis:3062", 0);
     await ready();
     // (the fixture's core does not hold the Sumas River, so the Vedder's mouth has no exit here)
-    expect(bar()).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream");
+    expect(bar()).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River");
+    // the words wrap (two lines at most, then cut with an ellipsis) inside the half-width button at 390 px
+    expect(stepText("up")).toEqual({ text: "▲ Upstream into Chilliwack River", lines: 2, align: "center" });
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
     cleanup();
     const more = mount("gnis:8634", 1);
     await ready();
+    expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
+      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
     fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
     // the map did not move inside the water: each is the caller's to open (through openWater, Map in front)
     expect([screen.getByTestId("water-map-where").textContent, [...calls, ...more]]).toEqual([

@@ -303,6 +303,9 @@ export function groupBounds(g: WaterGroup): Bbox | null {
 export const WATER_MAP_WORDS = {
   down: "▼ Downstream",
   up: "▲ Upstream",
+  /** ▼ / ▲ into ANOTHER water (`water_continue`): the button says where it goes (owner 2026-10-21 late). */
+  downInto: "▼ Downstream into",
+  upInto: "▲ Upstream into",
   lowest: "Lowest part",
   highest: "Highest part",
   regs: "Show regulations for this part",
@@ -336,9 +339,9 @@ export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   return g.parts[i]?.kind === "lake" ? "Whole lake" : "Whole river";
 }
 
-/** ▲ / ▼ into another water, as a screen reader says it: "▲ Upstream into Chilliwack River". */
-export function crossAria(dir: "up" | "down", c: NavCross): string {
-  return `${dir === "up" ? WATER_MAP_WORDS.up : WATER_MAP_WORDS.down} into ${c.name}`;
+/** ▲ / ▼ into another water, on the button and to a screen reader alike: "▲ Upstream into Chilliwack River". */
+export function crossLabel(dir: "up" | "down", c: NavCross): string {
+  return `${dir === "up" ? WATER_MAP_WORDS.upInto : WATER_MAP_WORDS.downInto} ${c.name}`;
 }
 
 /** The link at the lowest part to the water its mouth flows into. */

@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  crossAria, crossDown, crossUp, exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName,
+  crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName,
   partOfSection, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeLabel, type ItemNavRows,
 } from "./waterNav";
 
@@ -264,14 +264,14 @@ describe("across waters: a stream that goes on as another (`water_continue`)", (
     expect([ved.prev, ved.next, crossUp(ved, 0), crossDown(ved, 0)]).toEqual([
       { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null,
       { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null]);
-    expect(crossAria("up", crossUp(ved, 0)!)).toBe("▲ Upstream into Chilliwack River");
+    expect(crossLabel("up", crossUp(ved, 0)!)).toBe("▲ Upstream into Chilliwack River");
   });
 
   it("the Chilliwack: ▼ at its lowest part into the Vedder's part 0; nowhere else crosses", () => {
     expect([chw.next, chw.prev]).toEqual([{ item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null]);
     expect([0, 1, 2, 3].map((i) => [crossDown(chw, i), crossUp(chw, i)])).toEqual([
       [{ item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null], [null, null], [null, null], [null, null]]);
-    expect(crossAria("down", chw.next!)).toBe("▼ Downstream into Vedder River");
+    expect(crossLabel("down", chw.next!)).toBe("▼ Downstream into Vedder River");
     // the mouth's exit is still there (the "Flows into" link stays)
     expect(chw.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
   });

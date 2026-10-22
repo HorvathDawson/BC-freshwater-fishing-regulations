@@ -37,7 +37,7 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
     expect(s.at).toBe(0);
     expect(bar(g, s)).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       // ▼ at the mouth part goes on into the Vedder (`water_continue`); "Flows into" stays
-      + " | ▼ Downstream | ▲ Upstream | Flows into Vedder River ›");
+      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
     expect(view(g, s).exit).toEqual({ label: "Flows into Vedder River ›", item: "gnis:3062", part: 0 });
     const seen = [bar(g, s)];
     for (let k = 0; k < 4; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
@@ -176,14 +176,14 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
 });
 
 describe("across waters: the Vedder goes on from the Chilliwack (`water_continue`)", () => {
-  it("the Vedder: ▲ is live and names the Chilliwack's lowest part; ▼ is its end", async () => {
+  it("the Vedder: ▲ is live and SAYS it goes into the Chilliwack (owner 2026-10-21 late); ▼ is its end", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
     const v = view(g, waterMapStart(0));
     expect([v.up, v.down, bar(g, waterMapStart(0))]).toEqual([
-      { label: "▲ Upstream", aria: "▲ Upstream into Chilliwack River", disabled: false, fork: false,
-        cross: { item: "gnis:8634", part: 1 } },
+      { label: "▲ Upstream into Chilliwack River", aria: "▲ Upstream into Chilliwack River", disabled: false,
+        fork: false, cross: { item: "gnis:8634", part: 1 } },
       { label: "Lowest part", aria: "Lowest part", disabled: true, fork: false, cross: null },
-      "Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream"]);
+      "Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River"]);
     // ▲ is not a step inside the group: the state does not move (the caller opens the Chilliwack)
     expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(0));
   });
@@ -191,7 +191,7 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
   it("the Chilliwack: ▼ at its lowest part names the Vedder's part 0, and 'Flows into' stays; no other part crosses", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     expect([view(g, waterMapStart(0)).down, view(g, waterMapStart(0)).exit?.label]).toEqual([
-      { label: "▼ Downstream", aria: "▼ Downstream into Vedder River", disabled: false, fork: false,
+      { label: "▼ Downstream into Vedder River", aria: "▼ Downstream into Vedder River", disabled: false, fork: false,
         cross: { item: "gnis:3062", part: 0 } }, "Flows into Vedder River ›"]);
     expect(g.parts.map((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross]))
       .toEqual([[{ item: "gnis:3062", part: 0 }, null], [null, null], [null, null], [null, null]]);
@@ -218,7 +218,7 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
 
   it("Vedder: one part; its mouth is its end (its ▲ goes on into the Chilliwack, above)", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
-    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream");
+    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River");
   });
 
   it("KLWA: the lake's three closure areas in the prototype's order, stepped by their exits, out into the Kootenay River; no placed marks", async () => {
