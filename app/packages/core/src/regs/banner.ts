@@ -91,7 +91,7 @@ export function chainOf(inp: RegsInputs, settled: Settled, day: Day, reopen: Day
 /** page closedBanner (closed day) or tidalHtml (tidal water), before the dedupe; null where neither is drawn. */
 export function rawBanner(inp: RegsInputs, settled: Settled): RawBanner | null {
   const f = settled.status;
-  if (inp.key?.tidal) {
+  if (inp.key?.tidal || f?.status === "tidal") {   // (T42) edge.ts edgeKind: a tidal key or a tidal display frame
     if (f?.status !== "tidal") return null;   // page: missing(…) — the store always carries the tidal frame
     return { kind: "tidal", big: WORDS.TIDAL_WATER, para: f.note, golink: null, chain: [], reopen: null, merged: null };
   }

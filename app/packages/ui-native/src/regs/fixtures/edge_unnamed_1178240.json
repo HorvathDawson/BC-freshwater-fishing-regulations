@@ -1,0 +1,190 @@
+{
+ "day": {
+  "day": 10,
+  "month": 10
+ },
+ "gear": {
+  "bait": null,
+  "closed": "No fishing here on any day of the year.",
+  "closedMore": [],
+  "day": null,
+  "lines": [],
+  "mode": null
+ },
+ "header": {
+  "action": null,
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "dayWord": "Today",
+  "dot": "closed",
+  "name": "Unnamed stream · Region 5",
+  "place": null,
+  "tabs": [
+   {
+    "label": "What you can keep",
+    "tab": "keep"
+   },
+   {
+    "label": "Gear",
+    "tab": "gear"
+   },
+   {
+    "label": "Methods",
+    "tab": "methods"
+   },
+   {
+    "label": "Licence",
+    "tab": "licence"
+   }
+  ]
+ },
+ "keep": {
+  "banner": {
+   "big": [
+    "Closed all year"
+   ],
+   "chain": [
+    {
+     "book": [
+      {
+       "pdf": 50,
+       "printed": 44,
+       "t": "book"
+      }
+     ],
+     "rule": "r5:dean_river@5-9::dean_river.r2",
+     "scope": "From downstream",
+     "text": "No fishing for any game fish."
+    }
+   ],
+   "kind": "closed",
+   "merged": null,
+   "paras": [],
+   "reopen": null
+  },
+  "caveats": [],
+  "groups": [],
+  "inherited": null,
+  "order": [
+   "strip",
+   "banner",
+   "whereNot"
+  ],
+  "otherFish": null,
+  "otherFishKey": [],
+  "outside": null,
+  "plainRows": [],
+  "possession": null,
+  "strip": {
+   "legend": [
+    {
+     "bit": 1,
+     "label": "closed",
+     "mark": "✕"
+    }
+   ],
+   "line": [
+    {
+     "kind": "status",
+     "text": "Closed"
+    },
+    {
+     "kind": "when",
+     "text": "today"
+    }
+   ],
+   "months": [
+    "J",
+    "F",
+    "M",
+    "A",
+    "M",
+    "J",
+    "J",
+    "A",
+    "S",
+    "O",
+    "N",
+    "D"
+   ],
+   "runs": [
+    {
+     "bits": 1,
+     "days": 365
+    }
+   ],
+   "status": "closed",
+   "todayAt": 0.7726027397260274
+  },
+  "whereNot": {
+   "heading": "Where you can’t fish",
+   "items": [
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r1",
+     "text": [
+      {
+       "s": "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    },
+    {
+     "rule": "zp:no_fishing_buffers::no_fishing_buffers.r2",
+     "text": [
+      {
+       "s": "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "pdf": 11,
+       "printed": 9,
+       "t": "book"
+      }
+     ]
+    }
+   ],
+   "scope": null
+  }
+ },
+ "licence": {
+  "axes": [],
+  "blocks": [],
+  "label": "",
+  "question": null,
+  "questionTerms": [],
+  "src": null
+ },
+ "methods": {
+  "boats": null,
+  "closed": "No fishing here on any day of the year.",
+  "closedMore": [],
+  "reference": null,
+  "ways": null
+ },
+ "sheets": {},
+ "status": "closed",
+ "target": {
+  "handle": 1178240,
+  "kind": "section"
+ },
+ "today": true,
+ "version": "regs-v38",
+ "weekday": "Saturday",
+ "who": {
+  "age": "adult",
+  "residency": "resident"
+ }
+}

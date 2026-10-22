@@ -29,20 +29,15 @@ import { settleAt, type Settled } from "./settle";
 import { inheritedOf, possessionOf, whereNotOf } from "./standing";
 import { bookIndex, BOOK_DAYS, runOf, stripOf } from "./strip";
 import { bannerOf } from "./banner";
+import { edgeKind, outsideKeep, tidalKeep } from "./edge";
 import { MORE, moreOf, notKeptOf, quietOf, workedOf } from "./tail";
 import { fishNames, pictures, treeEnv, treeOf } from "./tree";
-import { WORDS } from "./words";
 
 /** What the Keep composition reads besides the inputs (page.ts builds it once per page). */
 export interface KeepEnv {
   readonly place: RegsPlace; readonly settled: Settled; readonly card: CardModel;
   readonly fish: FishManifest; readonly today: Day; readonly tot: "a" | "b";
 }
-
-const NONE: Omit<KeepVM, "order"> = Object.freeze({
-  strip: null, inherited: null, banner: null, groups: [], plainRows: [], otherFish: null, otherFishKey: [], caveats: [], possession: null,
-  whereNot: null, outside: null,
-});
 
 /** The sibling seams T19b's plain rows read (plainrow.ts `PlainRowSeams`), bound to the merged presenters: T17 rowTitle /
  *  scopeOf, T18 pictures / fishName over the manifest, T13 runOf / bookIndex / BOOK_DAYS, T19 MORE. */
@@ -101,18 +96,17 @@ export function keepOrder(has: {
 
 /**
  * The Keep tab of one tap on one day.
- * - no key (outside B.C.): page v36 renderCard's one foot line, nothing else (`order: ["outside"]`; T42 draws it);
- * - tidal: the tidal banner alone (golden x31p_1010 `["div.banner"]`);
+ * - no key (outside B.C.): page v36 renderCard's one foot line, nothing else (edge.ts `outsideKeep`, T42);
+ * - tidal (a tidal key or display frame): the tidal banner alone (edge.ts `tidalKeep`; golden x31p_1010 `["div.banner"]`);
+ * - an unnamed section is built like any water (edge.ts `edgeKind` "unnamed": only the header differs);
  * - otherwise every block its presenter draws, in `keepOrder`; a drawn row is a group when its stored group has a
  *   headline, else a plain row. A closed day (the stored display status) draws no caveats, rows, Other fish or Possession.
  */
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
-  if (inp.key == null) return { ...NONE, order: ["outside"], outside: WORDS.OUTSIDE_BC };
+  const edge = edgeKind(inp);                                       // (T42) the two edges with no card
+  if (edge === "outside") return outsideKeep();
   const { settled, card } = env;
-  if (inp.key.tidal || settled.status?.status === "tidal") {
-    const banner = bannerOf(inp, settled, null);
-    return { ...NONE, order: banner ? ["banner"] : [], banner };
-  }
+  if (edge === "tidal") return tidalKeep(inp, settled);
 
   const strip: StripVM | null = stripOf(inp, settled, card, env.today);
   const inherited = inheritedOf(inp);

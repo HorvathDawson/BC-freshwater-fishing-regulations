@@ -1,0 +1,156 @@
+{
+ "day": {
+  "day": 10,
+  "month": 10
+ },
+ "gear": {
+  "bait": null,
+  "closed": "Tidal water",
+  "closedMore": [
+   "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required."
+  ],
+  "day": null,
+  "lines": [],
+  "mode": null
+ },
+ "header": {
+  "action": {
+   "aria": "View on map: where these rules apply, Whole water",
+   "kind": "map",
+   "label": "Map"
+  },
+  "date": "Oct 10",
+  "dateAria": "Change date, now Oct 10",
+  "dayWord": "Today",
+  "dot": "faint",
+  "name": "Nitinat Lake",
+  "place": {
+   "full": "Whole water",
+   "short": "Whole water"
+  },
+  "tabs": [
+   {
+    "label": "What you can keep",
+    "tab": "keep"
+   },
+   {
+    "label": "Gear",
+    "tab": "gear"
+   },
+   {
+    "label": "Methods",
+    "tab": "methods"
+   },
+   {
+    "label": "Licence",
+    "tab": "licence"
+   }
+  ]
+ },
+ "keep": {
+  "banner": {
+   "big": [
+    "Tidal water"
+   ],
+   "chain": [],
+   "kind": "tidal",
+   "merged": null,
+   "paras": [
+    "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required."
+   ],
+   "reopen": null
+  },
+  "caveats": [],
+  "groups": [],
+  "inherited": null,
+  "order": [
+   "banner"
+  ],
+  "otherFish": null,
+  "otherFishKey": [],
+  "outside": null,
+  "plainRows": [],
+  "possession": null,
+  "strip": null,
+  "whereNot": null
+ },
+ "licence": {
+  "axes": [
+   {
+    "aria": "Who is fishing?",
+    "axis": "age",
+    "options": [
+     {
+      "checked": true,
+      "text": "16 or older",
+      "value": "adult"
+     },
+     {
+      "checked": false,
+      "text": "Under 16",
+      "value": "u16"
+     }
+    ]
+   },
+   {
+    "aria": "Who is fishing?",
+    "axis": "res",
+    "options": [
+     {
+      "checked": true,
+      "text": "B.C. resident",
+      "value": "resident"
+     },
+     {
+      "checked": false,
+      "text": "Canadian, other province",
+      "value": "non_resident"
+     },
+     {
+      "checked": false,
+      "text": "From outside Canada",
+      "value": "non_resident_alien"
+     }
+    ]
+   }
+  ],
+  "blocks": [
+   {
+    "body": "federal Tidal Waters Sport Fishing Licence",
+    "cls": "classbox",
+    "head": "Tidal water",
+    "source": null,
+    "terms": []
+   }
+  ],
+  "label": "B.C. resident, 16 or older",
+  "question": "Who is fishing?",
+  "questionTerms": [
+   "under_16"
+  ],
+  "src": null
+ },
+ "methods": {
+  "boats": null,
+  "closed": "Tidal water",
+  "closedMore": [
+   "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; a federal Tidal Waters Sport Fishing Licence is required."
+  ],
+  "reference": null,
+  "ways": null
+ },
+ "sheets": {},
+ "status": "tidal",
+ "target": {
+  "item": "wbk:329504244",
+  "kind": "part",
+  "partIx": 0
+ },
+ "today": true,
+ "version": "regs-v38",
+ "weekday": "Saturday",
+ "who": {
+  "age": "adult",
+  "residency": "resident"
+ }
+}

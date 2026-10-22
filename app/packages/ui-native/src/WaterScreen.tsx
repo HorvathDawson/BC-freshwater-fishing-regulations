@@ -119,6 +119,7 @@ export function WaterScreen({ source, item, palette, onBack,
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError) {
     const label = (t: string) => regs.header.tabs.find((x) => x.tab === t)?.label ?? "";
+    const outside = regs.status === "outside";
     return (
       <>
       {frame(null, (
@@ -130,13 +131,14 @@ export function WaterScreen({ source, item, palette, onBack,
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
                     onBook: (pdf) => { void Linking.openURL(bookUrl(pdf, Platform.OS)); },   // D6 a: native opens the bare PDF
                   }}
-                  // Gear / Methods / Licence (T34/T35); a part with no such section says it is not in the app yet
+                  // Gear / Methods / Licence (T34/T35); a part with no such section says it is not in the app yet —
+                  // (T42) except outside B.C., where the page has none (no key: the Keep tab's foot line is the page)
                   gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} />
-                    : <TabPending label={label("gear")} palette={palette} />}
+                    : outside ? undefined : <TabPending label={label("gear")} palette={palette} />}
                   methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} />
-                    : <TabPending label={label("methods")} palette={palette} />}
+                    : outside ? undefined : <TabPending label={label("methods")} palette={palette} />}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
-                    : <TabPending label={label("licence")} palette={palette} />} />
+                    : outside ? undefined : <TabPending label={label("licence")} palette={palette} />} />
       ))}
       {daySheet}
       </>

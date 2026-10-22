@@ -11,6 +11,7 @@ import { buildModel } from "./card";
 import { buildBait } from "./bait";
 import { buildGearTop, gearCtxOf } from "./gear";
 import { buildMethods } from "./methods";
+import { edgeKind } from "./edge";
 import { FISH, type FishManifest } from "./fish.generated";
 import { headerOf } from "./header";
 import type { RegsInputs } from "./inputs";
@@ -41,10 +42,11 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled);
   const env = { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" } as const;
   const keep = keepOf(inp, env);
-  const status: RegsPage["status"] = inp.key == null ? "outside" : inp.key.tidal || settled.status?.status === "tidal" ? "tidal"
-    : keep.strip ? keep.strip.status : "unknown";
+  // (T42) the edge decides the status word: outside / tidal from the stored key and frame, else the strip's reading
+  const edge = edgeKind(inp);
+  const status: RegsPage["status"] = edge === "outside" || edge === "tidal" ? edge : keep.strip ? keep.strip.status : "unknown";
   // (T30–T32) the Gear and Methods tabs: none outside B.C. (no key: the tabs are not drawn)
-  const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
+  const gctx = edge === "outside" ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
   const gear = gctx && { ...buildGearTop(inp, gctx), bait: buildBait(inp, gctx) };
   const methods = gctx && buildMethods(inp, gctx);
   const page: Omit<RegsPage, "sheet"> = {

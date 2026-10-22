@@ -5,7 +5,8 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { buildRegsPage, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
-import { ADULT_RESIDENT, inputsOf, requestOf } from "./golden";
+import { loadRegsInputs } from "@app/data/regs";
+import { ADULT_RESIDENT, inputsOf, parityStore, requestOf } from "./golden";
 import { golden, REPO } from "./oracles";
 
 export const FIXTURE_STATES = ["vedder_1010", "vedder_615", "vedder_515", "klwa_1010", "bc1_501", "glenn_501"] as const;
@@ -88,6 +89,21 @@ export function goldenLinesJson(): string {
   ]));
 }
 
+/**
+ * (T42) The edge states the render test mounts (Edges.test.tsx): tidal water (x31p_1010) and the hours window's timed
+ * caveat (x15p2_1010) — each `edge_<id>.json`, a frozen golden page as above — and an unnamed section
+ * (`edge_unnamed_<handle>.json`, taps.json `unnamed`: no golden state, so no sheets). Outside B.C. needs no store (core
+ * `buildRegsPage` over no key).
+ */
+export const EDGE_FIXTURE_STATES = ["x31p_1010", "x15p2_1010"] as const;
+export const EDGE_UNNAMED_HANDLE = 1178240;
+export async function unnamedJson(handle: number = EDGE_UNNAMED_HANDLE): Promise<string> {
+  const st = await parityStore();
+  if (!st) throw new Error(`frozen unnamed page ${handle}: no paired regs store`);
+  const inp = await loadRegsInputs(st, { kind: "section", handle }, { month: 10, day: 10 }, "Saturday", 2026);
+  return stableJson(freezePage(buildRegsPage(inp, { today: { month: 10, day: 10 }, who: ADULT_RESIDENT }), []));
+}
+
 /** UPDATE_REGS_FIXTURES=1: write <FIXTURE_DIR>/<id>.json for each state; otherwise every committed file must equal a fresh one. */
 export async function syncFixtures(env: Readonly<Record<string, string | undefined>> = process.env): Promise<void> {
   const write = env.UPDATE_REGS_FIXTURES === "1";
@@ -97,6 +113,8 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
     ...FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
     ...LICENCE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`licence_${id}`, `${FIXTURE_DIR}/licence_${id}.json`, () => licenceJson(id)]),
     ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
+    ...EDGE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id)]),
+    [`edge_unnamed_${EDGE_UNNAMED_HANDLE}`, `${FIXTURE_DIR}/edge_unnamed_${EDGE_UNNAMED_HANDLE}.json`, () => unnamedJson()],
   ];
   for (const [id, path, make] of files) {
     const fresh = await make();

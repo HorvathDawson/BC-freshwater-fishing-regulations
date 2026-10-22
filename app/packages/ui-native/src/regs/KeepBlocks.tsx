@@ -64,15 +64,33 @@ export function InheritedLine({ inherited, palette, actions }: { inherited: Inhe
   );
 }
 
+/**
+ * A caveat block. The in-part block is page v36's fold (details.inpart). The others are the prototype's `.caveats`
+ * (CSS 113–117, 711–712, 827; T27 notes): a 3 px `restricted` rule on the left (it marks "restricted here at some times,
+ * sides or anglers" — T39's palette gate lists it), the label in `metaBold` `sub` (`.caveats .lbl`: 700 --t4, no caps, no
+ * tracking; `testID="kicker:<kind>"`), and each item a button (`.factbtn`) opening its rule's sheet, with the Rule book
+ * link after it (prototype citeBooks — never inside the button).
+ */
 export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; palette: Palette; actions: KeepActions }) {
   const [open, setOpen] = useState(false);   // page v36 details.inpart: folded, hot or not
-  const item = (x: CaveatVM["items"][number], i: number) => (
-    <View key={i} style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
-      <LineText line={x.what} style={TYPE.regsBodySemi} color={palette.ink} palette={palette} actions={actions} />
-      {x.where && <Text style={[TYPE.meta, { color: palette.sub }]}>{x.where}</Text>}
-      {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
-    </View>
-  );
+  const item = (x: CaveatVM["items"][number], i: number) => {
+    const words = (
+      <>
+        <LineText line={x.what} style={TYPE.regsBodySemi} color={palette.ink} palette={palette} actions={actions} />
+        {x.where && <Text style={[TYPE.meta, { color: palette.sub }]}>{x.where}</Text>}
+      </>
+    );
+    return (
+      <View key={i} testID="keep-caveat-item" style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
+        {x.rule ? (
+          <Pressable accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} style={{ minHeight: 44, justifyContent: "center" }}>
+            {words}
+          </Pressable>
+        ) : words}
+        {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
+      </View>
+    );
+  };
   const head = (caveat.kind === "inpart" ? WORDS.INPART_IC : "") + caveat.title;
   const body = (
     <>
@@ -86,14 +104,19 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
       )}
     </>
   );
+  if (caveat.kind === "inpart") return (
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER }}>
+      <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} style={{ minHeight: 44, justifyContent: "center" }}>
+        <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"} ${head}`}</Text>
+      </Pressable>
+      {open && body}
+    </View>
+  );
   return (
-    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER, paddingTop: caveat.kind === "inpart" ? 0 : 8, borderTopWidth: caveat.kind === "inpart" ? 0 : 1.5, borderTopColor: palette.line2 }}>
-      {caveat.kind === "inpart" ? (
-        <Pressable accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} style={{ minHeight: 44, justifyContent: "center" }}>
-          <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"} ${head}`}</Text>
-        </Pressable>
-      ) : <Text style={[TYPE.regsBodyBold, { color: palette.ink, marginBottom: 4 }]}>{head}</Text>}
-      {(caveat.kind !== "inpart" || open) && body}
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
+                                        borderLeftWidth: 3, borderLeftColor: palette.restricted }}>
+      <Text testID={`kicker:${caveat.kind}`} accessibilityRole="header" style={[TYPE.metaBold, { color: palette.sub, marginBottom: 2 }]}>{head}</Text>
+      {body}
     </View>
   );
 }

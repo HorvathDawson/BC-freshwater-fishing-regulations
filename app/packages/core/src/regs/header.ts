@@ -83,6 +83,7 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
     place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
     action,
-    tabs: tabs.map(([tab, label]) => ({ tab, label })),
+    // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed
+    tabs: (o.status === "outside" ? tabs.slice(0, 1) : tabs).map(([tab, label]) => ({ tab, label })),
   };
 }
