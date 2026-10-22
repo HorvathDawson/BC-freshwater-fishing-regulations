@@ -3,11 +3,13 @@
 # update-hydat.sh — the owner's ONE command when the feed says a newer HYDAT is out
 # (the index's `maintenance` notice of kind "hydat", the notification, or the publisher's console warning).
 #
-#   scripts/update-hydat.sh                         the served feed in data/generated/gauges/feeds
-#   FEED=<feed dir> scripts/update-hydat.sh         another feed directory
+#   scripts/update-hydat.sh                         the served feed in data/generated/gauges/feeds (the only one:
+#                                                   `pipeline build` packs the bundle from THAT clim.json)
 #
 # THE ORDER IS THE POINT (handoff/PLAN/app-integration/decisions.md, "upstream updates the owner runs: HYDAT first"):
-#   1. fetch HYDAT        data/source/hydat.sqlite3 + hydat.release (~266 MB; a no-op when already the newest)
+#   1. fetch HYDAT        data/source/hydat.sqlite3 + hydat.release (~266 MB; a no-op when already the newest).
+#                         fetch_data.py prints a failed listing or download and still exits 0, so the script then
+#                         asks the listing itself and STOPS unless data/source now holds the newest release.
 #   2. the envelope       clim.json, from that HYDAT, into the served feed directory
 #   3. republish the feed with the new envelope: every percentile re-measured; the notice clears here (current == latest)
 #   4. the bundle         `pipeline build` reruns the deliver stage (its key holds the hydat stamp and clim's hash):
@@ -18,11 +20,20 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
-FEED=${FEED:-data/generated/gauges/feeds}
+FEED=data/generated/gauges/feeds
 
 echo "-- 1/4 HYDAT --------------------------------------------"
 (cd data && PYTHONPATH=.. ../$PY fetch_data.py --layers hydat)
-echo "   now on HYDAT $(cat data/source/hydat.release)"
+latest=$($PY -c 'import sys; sys.path.insert(0, "data"); from fetch_data import hydat_latest_release as f; print(f() or "")' || true)
+have=$(cat data/source/hydat.release 2>/dev/null || true)
+if [ -z "$latest" ]; then
+  echo "   could not read the HYDAT listing; nothing rebuilt. Run this again." >&2; exit 1
+fi
+if [ "$have" != "$latest" ]; then
+  echo "   HYDAT $latest is listed but data/source holds ${have:-nothing}: the fetch failed (see above); nothing rebuilt." >&2
+  exit 1
+fi
+echo "   now on HYDAT $have"
 
 echo "-- 2/4 envelope -----------------------------------------"
 $PY -m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out "$FEED/clim.json"
