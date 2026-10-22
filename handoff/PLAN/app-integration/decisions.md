@@ -197,3 +197,9 @@ status colours more distinct than A/B/C.
   places on the river line — e.g. "Harrison River … Harrison Lake" meets the lake at km 20 and km 84 (64 km apart). The
   builder takes the first and only a diagnostics file notes it. Median gap between the two candidates 12.6 km, p90 58 km —
   so a closure or rule may start at the wrong place.
+- Ambiguous cuts, DECIDED (owner): "pick the end that is closest to the other extent, because this will never be a lake
+  regulation and under-lake streams have no regs." When a split point matches two places on the line, take the candidate
+  nearest the rule's OTHER extent (the stretch stays on the river and never spans the lake). Deterministic, so no review
+  list; the choice is still recorded (a bundle diagnostic row with both candidates and the one taken) and pinned by tests on
+  the real cases (Harrison, Ash, Mohun, Cayoosh). Needs a reach rerun + deliver; diff the rule bindings before promoting
+  (memory: split fixes change the trib walk).
