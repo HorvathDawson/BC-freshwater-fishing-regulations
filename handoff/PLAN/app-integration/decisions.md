@@ -103,3 +103,8 @@ we even might want the toggles grey/disabled for now."
   empty (or absent).
 - The Stocked and Depth lake-mode toggles are DISABLED (greyed, with a short "no data yet" note) while the release carries
   no lake values; they enable themselves when a release does — no app change needed when the feed arrives.
+
+## OWNER 2026-10-21 — Riffle is obsolete
+"riffle html is obsolete we dont need to reference it anymore." app/design/riffle.html is no longer a design reference.
+Regulations screens follow the regs prototype (regs-v11 / v38); everything else follows the app's own tokens and
+components plus explicit owner direction. Older mentions of Riffle in comments and docs are history, not spec.
