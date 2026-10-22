@@ -96,6 +96,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- LAYERS MENU design done (wf_dc903d04-d42): handoff/PLAN/app-data/layers-menu/ (inventory, 3 mockups A/B/C, RECOMMENDATION.md:
+  C compact + More layers with grafts). Shown to owner: https://claude.ai/artifact/UjhcUcXmStkGGcoyFZWuNm. Waiting on the owner's
+  pick + 5 questions; build after the map-rail lane merges.
 - MERGED: lake modes prepared-not-fed (6 commits 2ce772dd..f13f623a + layers sheet stocking row removed): optional `lakes`
   slot + reader + engine channels kept; FFSBC fetch, lake_facts step and derived data removed; Stocked/Depth greyed
   ("No data yet") until a release carries values. Strict 6827, smoke, release/lake/deliver tests 27 pass.
