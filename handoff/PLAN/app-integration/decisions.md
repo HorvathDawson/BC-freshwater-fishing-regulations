@@ -335,3 +335,11 @@ a second selection style and a new fill to gate. Ask to change it if it reads we
 - NEW TICKET T52 (owner 2026-10-22): an "Expected change" view on Conditions — a chip after +10 that flags rivers with a
   big expected change anywhere in the forecast window (spikes between the sampled days included), from each station's
   DAILY forecast series (CLEVER and the other models), flow only.
+
+## OWNER 2026-10-22 — estimates use every gauge that could inform a section, chosen live
+"make sure the section gauge percentage in prediction computes for all gauges we have possible so that even if some
+drop/get added in that list it is still able to make a prediction using all available gauges on the current flow at the
+location." Panels are built over EVERY station with a usable record that could describe the section (ranked, with their
+weights' inputs), not only those the roster calls real-time; at READ time the estimate uses the members reporting now,
+re-normalising the weights among them, and the own-gauge lead goes to the best-ranked own gauge reporting now. A station
+joining or leaving ECCC's real-time list changes estimates on the next feed, with no rebuild. Never mix quantities.
