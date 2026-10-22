@@ -38,6 +38,31 @@ words in `@app/core` `mapRail.ts`. Each new sheet is a back layer, so Android's 
 provisional pin and Show's pin + framing belong to the map they were made on: the route moving anywhere forgets them
 on that render (`railPlace`), so a map remounted on the way back is never framed on an old spot again.
 
+**The Layers menu, direction B (owner 2026-10-21 late).** Three sections: **Map** (Map · Satellite · Corridors
+[coming soon]), **Colour the water by** (Regulations · Stocked · Depth) and **On the map** (Depth contours, Private land,
+then Pools and runs and Relief [coming soon]), then one "Always shown:" line (parks and ecological reserves, Indigenous
+land (reserves), no-access and permit-only land, region and management-unit lines). Every row comes from the LAYER
+REGISTRY, `@app/core` `layers.ts` (`LAYERS`: id, kind ground/water/overlay/always, views, default, `sets` — only
+`mapModes` inputs — `needs` built/release/network, words). `availability` derives ok / no-data / online-only /
+coming-soon, each with its reason; `layersVM` is the whole sheet plus `effective` (what the maps are handed: an
+unavailable choice falls back, the choice is kept) and `changed` (the rail's numbered badge, said aloud as "Choose
+layers, 2 changed"). Adding a layer is one entry. Rules:
+- ONE water colouring for every feature. There is no lake-only choice. `mapModes` takes `water`. Under Stocked or
+  Depth the lakes wear the measure and streams, river polygons and wetlands draw plain. The legend (`waterLegend`,
+  shown under the chosen tile and in the Map-tab strip) ends with a line saying which waters draw neutral and why.
+  Stocked and Depth stay greyed "No data yet" until a release carries lake values (`lakeModesReady` →
+  `lakeValuesCarried`).
+- Satellite offline: Map is tagged SHOWING. Satellite stays chosen, greyed and dashed, tagged NEEDS A CONNECTION, with
+  the reason line under the row.
+- Private land (`ownership`) finally has a switch. A test holds that every toggleable style group has one, that no
+  entry sets protected/access/admin, and that each always-shown entry names real non-toggleable layers.
+- Data sources, live data and credits LEFT the sheet. They are on the menu's Data sources & dates page and in the
+  map's own attribution. The palette moved to the menu's new **Display** page (`MENU_WORDS.display`, `DisplayPage`).
+- The sheet still opens from the Map tab only (`layersVM("map", …)`). The registry's `views` is the slot if Layers
+  ever goes on the Conditions map.
+- The Map-tab legend strip WRAPS (`LegendStrip wrap`), so nothing overflows at 390 px.
+Shots: `handoff/PLAN/app-data/layers-menu/built/`.
+
 **Map.** Conditions colours by Flow, Level or Both. Gauge dots carry pill labels on the same
 ramp as the water; below z7 the water fades and each station becomes a soft disc. Route
 reaches paint in `color.highlight` with downstream arrowheads.

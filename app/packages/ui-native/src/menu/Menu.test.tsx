@@ -58,7 +58,7 @@ const pick = (id: string) => { act(() => { fireEvent.click(screen.getByTestId(id
 const text = (id: string) => screen.getByTestId(id).textContent;
 
 describe("the hamburger and the drawer", () => {
-  it("opens the drawer, which lists the five pages in order, each with its hint", () => {
+  it("opens the drawer, which lists the six pages in order, each with its hint", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);
     expect(screen.queryByTestId("menu-drawer")).toBeNull();
@@ -66,6 +66,7 @@ describe("the hamburger and the drawer", () => {
     expect(screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent)).toEqual([
       "GlossaryWhat the regulations' words mean",
       "Data sources & datesWhere each answer comes from, and how fresh it is",
+      "DisplayLight, dark or colour-blind colours",
       "AboutWhat this app is, and what it is not",
       "Report a problemSomething wrong, missing or confusing",
       "ContactGet in touch",
@@ -151,6 +152,39 @@ describe("a page", () => {
     expect([r, screen.queryByTestId("menu-page-about"), screen.queryByTestId("menu-drawer")]).toEqual([true, null, null]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
+  });
+
+  it("Display: the app's colours moved here from Layers — the three palettes, the one in use chosen, a press picks; back closes it", () => {
+    const picked: string[] = [];
+    function Themed({ out }: { out: { back?: Back } }) {
+      const [route, go] = useRoute();
+      const b = useBack(route, go, null);
+      out.back = b;
+      const menu = useMenu();
+      return (
+        <BackLayerContext.Provider value={b.layers}>
+          <MenuContext.Provider value={menu}>
+            <MenuButton palette={LIGHT} />
+            <MenuHost menu={menu} palette={LIGHT} loader={null} tiles={null} feedFetchedAt={null} route={route}
+                      day={null} theme="dark" onTheme={(t) => picked.push(t)} />
+          </MenuContext.Provider>
+        </BackLayerContext.Provider>
+      );
+    }
+    const out: { back?: Back } = {};
+    render(<Themed out={out} />);
+    press("Open menu");
+    pick("menu-item-display");
+    expect(text("display-palette")).toBe(
+      "ColoursLightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
+    expect(screen.getAllByRole("radio").map((r) => `${r.textContent}${r.getAttribute("aria-checked") === "true" ? " *" : ""}`))
+      .toEqual(["Light", "Dark *", "Colour-blind"]);
+    act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
+    expect(picked).toEqual(["cvd"]);
+    let r = false;
+    act(() => { r = out.back!.back(); });
+    settle();
+    expect([r, screen.queryByTestId("menu-page-display")]).toEqual([true, null]);
   });
 
   it("Contact: a placeholder until the owner supplies the one value; then that address", () => {

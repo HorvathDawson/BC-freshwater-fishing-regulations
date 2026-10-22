@@ -142,6 +142,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/InfoPages.tsx#DisplayPage: draws DisplayPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
 };
@@ -204,6 +205,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
       "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage",
+      "packages/ui-native/src/menu/InfoPages.tsx#DisplayPage: draws DisplayPage",
       "packages/ui-native/src/menu/MenuDrawer.tsx#MenuDrawer: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",

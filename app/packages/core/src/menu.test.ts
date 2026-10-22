@@ -19,12 +19,13 @@ const TERMS = [
 ];
 
 describe("the drawer", () => {
-  it("lists the five pages in the reader's order, each with its hint", () => {
+  it("lists the six pages in the reader's order, each with its hint", () => {
     expect(menuVM()).toEqual({
       title: "Menu",
       items: [
         { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
         { k: "sources", label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
+        { k: "display", label: "Display", hint: "Light, dark or colour-blind colours" },
         { k: "about", label: "About", hint: "What this app is, and what it is not" },
         { k: "report", label: "Report a problem", hint: "Something wrong, missing or confusing" },
         { k: "contact", label: "Contact", hint: "Get in touch" },

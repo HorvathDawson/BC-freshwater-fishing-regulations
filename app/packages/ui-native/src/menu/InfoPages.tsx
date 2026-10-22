@@ -1,12 +1,13 @@
 /**
- * The menu's reading pages — About, Data sources & dates, Contact. Each draws one VM from core/menu.ts and decides
+ * The menu's reading pages — About, Data sources & dates, Display, Contact. Each draws one VM from core/menu.ts and decides
  * nothing; a link only says where it goes.
  */
 import { Linking, Pressable, Text, View } from "react-native";
 import { MENU_WORDS, type AboutVM, type ContactVM, type SourceDateRowVM } from "@app/core";
 import { Button } from "../Button";
+import { Choice } from "../Sheet";
 import { TYPE } from "../type";
-import { SPACE, type Palette } from "../theme";
+import { SPACE, type Palette, type ThemeName } from "../theme";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
@@ -73,5 +74,23 @@ export function ContactPage({ vm, palette, onReport }: { vm: ContactVM; palette:
         )}
       <Button palette={palette} kind="ghost" label={MENU_WORDS.items.report.label} onPress={onReport} />
     </>
+  );
+}
+
+/**
+ * DISPLAY: the app's colours (owner 2026-10-21 late — moved here from the Layers menu, which is the map's only). A whole
+ * app setting: it repaints every screen and every map at once.
+ */
+export function DisplayPage({ palette, theme, onTheme }: {
+  palette: Palette; theme: ThemeName; onTheme: (t: ThemeName) => void;
+}) {
+  const W = MENU_WORDS.display;
+  return (
+    <View testID="display-palette" style={{ gap: SPACE.s3 }}>
+      <Text style={{ ...TYPE.section, color: palette.sub }}>{W.palette}</Text>
+      <Choice<ThemeName> palette={palette} label={W.palette} value={theme} onChange={onTheme}
+                         variant="segmented" options={W.options} />
+      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.cvd}</Text>
+    </View>
   );
 }

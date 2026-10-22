@@ -12,9 +12,9 @@ import { Platform } from "react-native";
 import { aboutVM, contactVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
-import type { Palette } from "../theme";
+import type { Palette, ThemeName } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
-import { AboutPage, ContactPage, SourcesPage } from "./InfoPages";
+import { AboutPage, ContactPage, DisplayPage, SourcesPage } from "./InfoPages";
 import { MenuDrawer } from "./MenuDrawer";
 import { MenuPage } from "./MenuPage";
 import { ReportPage } from "./ReportPage";
@@ -30,8 +30,12 @@ export interface MenuInfo {
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, feedFetchedAt, route, day }: {
+export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, feedFetchedAt, route, day,
+                           theme = "light", onTheme = () => {} }: {
   menu: MenuControls; palette: Palette;
+  /** the app's colours (the Display page): the palette in use and how to change it (App's theme state) */
+  theme?: ThemeName;
+  onTheme?: (t: ThemeName) => void;
   /** the release (null: the dev bundle, which holds no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
@@ -62,7 +66,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, fe
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "sources" | "about" | "contact" | "report", node: React.ReactNode) => (
+  const page = (k: "sources" | "display" | "about" | "contact" | "report", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -85,6 +89,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, fe
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         sources: m?.sources ?? null, validUntil: m?.regulations.valid_until ?? null, tiles, feedFetchedAt,
         now: Date.now() })} />)}
+      {page("display", <DisplayPage palette={palette} theme={theme} onTheme={onTheme} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
         edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}

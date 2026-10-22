@@ -1,0 +1,180 @@
+/**
+ * THE LAYER REGISTRY (owner 2026-10-21 late, layers menu direction B): availability is derived, one water colouring
+ * for every feature, coming-soon entries listed greyed, the always-shown line names Indigenous land, and what the map is
+ * handed falls back while the choice is kept. Whole-object asserts; the derivation is mutation-pinned (a fact that is
+ * ignored makes a case here fail — memory "checks seeded from input launder").
+ */
+import { describe, expect, it } from "vitest";
+import { LAYER_DEFAULTS, LAYERS, availability, chooseLayer, layersVM, waterLegend, type LayerFacts } from "./layers";
+
+const NONE: LayerFacts = { carries: { stocked: false, surveyed: false }, online: true };
+const FED: LayerFacts = { carries: { stocked: true, surveyed: true }, online: true };
+const OFFLINE: LayerFacts = { ...NONE, online: false };
+const tiles = (ts: readonly { id: string; chosen: boolean; enabled: boolean; tag: string | null }[]) =>
+  ts.map((t) => `${t.id}${t.chosen ? " *" : ""}${t.enabled ? "" : " (off)"}${t.tag ? ` [${t.tag}]` : ""}`);
+
+describe("the registry", () => {
+  it("lists every entry once, each set with exactly one default", () => {
+    expect(LAYERS.map((e) => `${e.kind}:${e.id}`)).toEqual([
+      "ground:ground.map", "ground:ground.satellite", "ground:ground.corridors",
+      "water:water.regulations", "water:water.stocked", "water:water.depth",
+      "overlay:overlay.contours", "overlay:overlay.private", "overlay:overlay.pools", "overlay:overlay.relief",
+      "always:always.protected", "always:always.indigenous", "always:always.noaccess", "always:always.admin",
+    ]);
+    expect(LAYERS.filter((e) => e.kind === "ground" && e.default).map((e) => e.id)).toEqual(["ground.map"]);
+    expect(LAYERS.filter((e) => e.kind === "water" && e.default).map((e) => e.id)).toEqual(["water.regulations"]);
+    expect(new Set(LAYERS.map((e) => e.id)).size).toBe(LAYERS.length);
+  });
+
+  it("an always-shown entry sets nothing (it is never a choice)", () => {
+    expect(LAYERS.filter((e) => e.kind === "always" && e.sets)).toEqual([]);
+  });
+
+  it("the defaults: the drawn map, regulations, every switch off", () => {
+    expect(LAYER_DEFAULTS).toEqual({ ground: "ground.map", water: "water.regulations",
+      on: { "overlay.contours": false, "overlay.private": false, "overlay.pools": false, "overlay.relief": false } });
+  });
+});
+
+describe("availability: built -> release -> network", () => {
+  const e = (id: string) => LAYERS.find((x) => x.id === id)!;
+  it("each branch, with its reason", () => {
+    expect([
+      availability(e("ground.corridors"), FED),
+      availability(e("water.stocked"), NONE),
+      availability(e("water.stocked"), FED),
+      availability(e("water.depth"), { ...NONE, carries: { stocked: true, surveyed: false } }),
+      availability(e("ground.satellite"), OFFLINE),
+      availability(e("ground.satellite"), NONE),
+      availability(e("ground.map"), OFFLINE),
+    ]).toEqual([
+      { state: "coming-soon", reason: "Coming soon." },
+      { state: "no-data", reason: "No data yet: the release carries no values for it. It turns on by itself when one does." },
+      { state: "ok" },
+      { state: "no-data", reason: "No data yet: the release carries no values for it. It turns on by itself when one does." },
+      { state: "online-only", reason:
+          "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself." },
+      { state: "ok" },
+      { state: "ok" },
+    ]);
+  });
+
+  it("MUTATION PIN: each needs is read from its OWN fact (stocked from stocked, depth from surveyed)", () => {
+    const only = (k: "stocked" | "surveyed") => ({ ...NONE, carries: { stocked: k === "stocked", surveyed: k === "surveyed" } });
+    expect([availability(e("water.stocked"), only("stocked")).state, availability(e("water.stocked"), only("surveyed")).state,
+            availability(e("water.depth"), only("surveyed")).state, availability(e("water.depth"), only("stocked")).state])
+      .toEqual(["ok", "no-data", "ok", "no-data"]);
+  });
+});
+
+describe("layersVM: the sheet, whole", () => {
+  it("the default sheet on the Map tab, with no lake values in the release", () => {
+    const vm = layersVM("map", LAYER_DEFAULTS, NONE);
+    expect({ ...vm, ground: { ...vm.ground, tiles: tiles(vm.ground.tiles) },
+             water: { ...vm.water, tiles: tiles(vm.water.tiles) }, overlays: { ...vm.overlays, rows: tiles(vm.overlays.rows) } })
+      .toEqual({
+        title: "Layers",
+        ground: { title: "Map", note: null,
+                  tiles: ["ground.map *", "ground.satellite", "ground.corridors (off) [Coming soon]"] },
+        water: { title: "Colour the water by", drawn: "regulations",
+                 note: "Stocked and Depth have no data yet. They turn on by themselves when a release carries their values.",
+                 tiles: ["water.regulations *", "water.stocked (off) [No data yet]", "water.depth (off) [No data yet]"] },
+        overlays: { title: "On the map",
+                    rows: ["overlay.contours", "overlay.private", "overlay.pools (off) [Coming soon]",
+                           "overlay.relief (off) [Coming soon]"] },
+        always: "Always shown: parks and ecological reserves, Indigenous land (reserves), no-access and permit-only land, "
+          + "and region and management-unit lines. They are never switched off.",
+        changed: 0,
+        effective: { basemap: "map", water: "regulations", groups: { depth: false, ownership: false } },
+      });
+  });
+
+  it("every tile carries its words", () => {
+    const vm = layersVM("map", LAYER_DEFAULTS, NONE);
+    expect([...vm.ground.tiles, ...vm.water.tiles, ...vm.overlays.rows].map((t) => `${t.label} · ${t.note}`)).toEqual([
+      "Map · Drawn · works offline", "Satellite · Esri imagery · online only", "Corridors · Detail imagery along a stream",
+      "Regulations · Open, closed or its own rules, on the day", "Stocked · When a lake was last stocked",
+      "Depth · Which lakes were surveyed",
+      "Depth contours · Traced lines on surveyed lakes", "Private land · Title, not access. Off by default",
+      "Pools and runs · Slow and fast water, read from lidar", "Relief · Lidar hillshade",
+    ]);
+  });
+
+  it("a stale Stocked choice with no values: Regulations drawn and shown chosen, the badge counts nothing", () => {
+    const vm = layersVM("map", { ...LAYER_DEFAULTS, water: "water.stocked" }, NONE);
+    expect([vm.water.drawn, tiles(vm.water.tiles), vm.changed, vm.effective.water])
+      .toEqual(["regulations", ["water.regulations *", "water.stocked (off) [No data yet]",
+                                "water.depth (off) [No data yet]"], 0, "regulations"]);
+  });
+
+  it("a release with values: Depth draws, turns the contours on with it, and counts as one change", () => {
+    const vm = layersVM("map", { ...LAYER_DEFAULTS, water: "water.depth" }, FED);
+    expect([vm.water.drawn, vm.water.note, tiles(vm.water.tiles), vm.effective, vm.changed]).toEqual([
+      "depth", null, ["water.regulations", "water.stocked", "water.depth *"],
+      { basemap: "map", water: "depth", groups: { depth: true, ownership: false } }, 1]);
+  });
+
+  it("satellite offline: Map tagged SHOWING, Satellite kept chosen but greyed and tagged, the reason said", () => {
+    const vm = layersVM("map", { ...LAYER_DEFAULTS, ground: "ground.satellite" }, OFFLINE);
+    expect([tiles(vm.ground.tiles), vm.ground.note, vm.effective.basemap, vm.changed]).toEqual([
+      ["ground.map [Showing]", "ground.satellite * (off) [Needs a connection]", "ground.corridors (off) [Coming soon]"],
+      "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.",
+      "satellite", 1]);
+  });
+
+  it("switches: private land and contours set their style groups, and each counts", () => {
+    const vm = layersVM("map", { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.private": true,
+                                                          "overlay.contours": true } }, NONE);
+    expect([vm.effective.groups, vm.changed]).toEqual([{ depth: true, ownership: true }, 2]);
+  });
+
+  it("a coming-soon switch somehow on draws nothing and counts nothing", () => {
+    const vm = layersVM("map", { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.pools": true } }, NONE);
+    expect([tiles(vm.overlays.rows)[2], vm.changed]).toEqual(["overlay.pools (off) [Coming soon]", 0]);
+  });
+
+  it("on Conditions: only the ground (the water's colouring is that view's own)", () => {
+    const vm = layersVM("conditions", LAYER_DEFAULTS, NONE);
+    expect([tiles(vm.ground.tiles), vm.water.tiles, vm.overlays.rows, vm.always]).toEqual([
+      ["ground.map *", "ground.satellite"], [], [],
+      "Always shown: parks and ecological reserves, Indigenous land (reserves), and no-access and permit-only land. "
+      + "They are never switched off."]);
+  });
+});
+
+describe("the waiting line", () => {
+  it("one colouring or several, each a whole sentence", () => {
+    expect([layersVM("map", LAYER_DEFAULTS, { ...NONE, carries: { stocked: true, surveyed: false } }).water.note,
+            layersVM("map", LAYER_DEFAULTS, FED).water.note]).toEqual([
+      "Depth has no data yet. It turns on by itself when a release carries its values.", null]);
+  });
+});
+
+describe("chooseLayer", () => {
+  it("a tile chooses; a switch flips; an unavailable entry is never chosen", () => {
+    expect([
+      chooseLayer(LAYER_DEFAULTS, "ground.satellite", NONE).ground,
+      chooseLayer(LAYER_DEFAULTS, "water.stocked", NONE).water,
+      chooseLayer(LAYER_DEFAULTS, "water.stocked", FED).water,
+      chooseLayer(LAYER_DEFAULTS, "overlay.private", NONE).on["overlay.private"],
+      chooseLayer(chooseLayer(LAYER_DEFAULTS, "overlay.private", NONE), "overlay.private", NONE).on["overlay.private"],
+      chooseLayer(LAYER_DEFAULTS, "overlay.pools", FED).on["overlay.pools"],
+      chooseLayer(LAYER_DEFAULTS, "always.indigenous", FED) === LAYER_DEFAULTS,
+    ]).toEqual(["ground.satellite", "water.regulations", "water.stocked", true, false, false, true]);
+  });
+});
+
+describe("waterLegend: the key to the colouring drawn", () => {
+  const rows = (w: "regulations" | "stocked" | "depth") =>
+    waterLegend(w).map((r) => `${Object.values(r.swatch).join(":")} = ${r.label}`);
+  it("each colouring, whole; a lake measure ends with what draws neutral and why", () => {
+    expect([rows("regulations"), rows("stocked"), rows("depth")]).toEqual([
+      ["status:closed = Closed", "status:own = Has its own regulations", "status:base = Base regulations only"],
+      ["stock:season = Stocked this season", "stock:year = Stocked this year", "stock:recent = Stocked 1–3 years ago",
+       "stock:decade = Stocked 3–10 years ago", "stock:old = Stocked over 10 years ago",
+       "neutral = Not stocked, or no record. Streams and wetlands draw plain: stocking is recorded for lakes only."],
+      ["survey:digitised = Contours traced", "survey:sheet = Surveyed, sheet only",
+       "neutral = Not surveyed. Streams and wetlands draw plain: depth surveys cover lakes only."],
+    ]);
+  });
+});

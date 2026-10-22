@@ -1,233 +1,150 @@
 /**
- * The Layers panel, rebuilt to `design/riffle.html`.
+ * THE LAYERS SHEET — direction B (owner 2026-10-21 late): Map · Colour the water by · On the map, then the layers that
+ * are always shown. It draws `@app/core` `layersVM` and decides nothing: which tiles exist, which are greyed and why,
+ * what is chosen and what the map is handed all come from the layer registry (`core/layers.ts`), so a new layer is one
+ * registry entry and no change here.
  *
- * WHAT I HAD WRONG, because it matters structurally and not just visually:
- *
- *  - Streams and lakes are coloured INDEPENDENTLY — they answer different questions. I had
- *    one global "view" forcing both, which is a preset, not a control. Streams currently
- *    have nothing to choose between: their only colouring on the Map tab was the
- *    regulation outcome, and regulations are not integrated, so they are drawn plain and
- *    the sheet offers no stream choice.
- *  - The choices are BUTTONS CARRYING THEIR OWN COLOURS, not switches. "Stocked" means
- *    nothing as a word; three swatches in the stocking ramp say what the map will look
- *    like before you commit to it.
- *  - Each section states its own scale — "6,967 REACHES", "35 SURVEYED" — so the reader
- *    knows how much map a choice affects.
- *
- * The palette picker stays here (Riffle has no colour-blind mode; this app does, and it
- * belongs with the other rendering choices rather than behind a debug-looking control).
+ *  - ONE water colouring for every feature (no lake-only choice): the legend under it says which waters it does not
+ *    cover, drawn neutral.
+ *  - Greyed tiles say why in their own tag: NO DATA YET (Stocked, Depth: prepared, not fed), NEEDS A CONNECTION
+ *    (Satellite offline, with SHOWING on the drawn map), COMING SOON (declared, not built).
+ *  - NOT HERE any more: the data sources, live data and credits (the menu's Data sources & dates page, and the map's own
+ *    attribution) and the app's colours (the menu's Display page).
  */
-import { ScrollView, Text, View } from "react-native";
-import { lakeModeOn, lakeModesNote, type LakeModesReady } from "@app/ui";
-import { Choice, Sheet } from "./Sheet";
+import { Pressable, Text, View } from "react-native";
+import { LAYER_WORDS, STOCK_RECENCY, waterLegend, type LayerTileVM, type LayersVM, type LegendSwatch }
+  from "@app/core";
+import { Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
-import type { Palette, ThemeName } from "./theme";
-import { ago, count } from "./format";
+import type { Palette } from "./theme";
 
-const THEME_OPTIONS = [
-  { k: "light" as ThemeName, t: "Light" },
-  { k: "dark" as ThemeName, t: "Dark" },
-  { k: "cvd" as ThemeName, t: "Colour-blind" },
-];
-
-/**
- * What a Layers choice DOES. Not every option is a colour.
- *
- * "Depth" is the one that made this necessary: it reads like a colouring but it is a
- * layer — the contours are their own tile layer, and the lake underneath goes plain so
- * they are visible. Passing "depth" through as a colour mode threw
- * `layer "lake" has no colour mode "depth"` from inside a render effect, which takes the
- * whole tree down. A choice that is not a mode must not be typed as one.
- */
-export interface LayerChoice {
-  k: string;
-  t: string;
-  /** The colour mode to put on the layer. Every one of these must exist in the style. */
-  mode: string;
-  /** A layer group to switch on while this choice is active. */
-  group?: string;
-  swatch: readonly [string, string, string];
+/** A legend swatch's colour, from the theme's map tokens (never restated): what the map draws for it. */
+export function legendColour(p: Palette, s: LegendSwatch): string {
+  switch (s.kind) {
+    case "status": return p.waterStatus[s.status];
+    case "stock": return p.stock[STOCK_RECENCY.findIndex((b) => b.band === s.band)]!;
+    case "survey": return p.survey[s.state === "digitised" ? 0 : 1];
+    case "neutral": return p.water[0];
+  }
 }
 
-/** How recently a lake was stocked, coarsest question first. Mirrors Riffle's SBANDS. */
-export const STOCK_BANDS = [
-  { days: 120, label: "this season" },
-  { days: 365, label: "this year" },
-  { days: 1095, label: "1–3 years" },
-  { days: 3650, label: "3–10 years" },
-  { days: Infinity, label: "over 10 years" },
-] as const;
-
-export interface LayersState {
-  lake: string;
-  basemap: "map" | "satellite";
+/** Each tile's three colours: what the map will look like before the reader commits to it. */
+function swatch(p: Palette, id: string): Option["swatch"] {
+  switch (id) {
+    case "ground.map": return [p.tint, p.water[0], p.water[1]];
+    // the same in every theme, on purpose (`color.ui.imagery.*`): aerial photography is dark water, forest and scrub
+    case "ground.satellite": case "ground.corridors": return p.imagery;
+    case "water.regulations": return [p.waterStatus.closed, p.waterStatus.own, p.waterStatus.base];
+    case "water.stocked": return [p.stock[0], p.stock[2], p.stock[4]];
+    case "water.depth": return [p.survey[0], p.survey[1], p.water[0]];
+    default: return [p.quiet, p.quiet, p.quiet];
+  }
 }
 
-export const lakeChoices = (p: Palette): LayerChoice[] => [
-  // Depth is BOTH: the contour layer turns on, and the lakes themselves colour by whether
-  // they were surveyed at all. Colouring by digitised contours alone showed a near-empty
-  // map — 2,741 bathymetric sheets exist and only a fraction were ever traced — which tells
-  // a reader the province was never surveyed. A scanned sheet is still a surveyed lake.
-  { k: "depth", t: "Depth", mode: "surveyed", group: "depth",
-    swatch: [p.quiet, p.survey[1], p.survey[0]] },
-  { k: "stocked", t: "Stocked", mode: "stocked",
-    swatch: [p.stock[0], p.stock[2], p.stock[4]] },
-  { k: "plain", t: "Plain", mode: "plain", swatch: [p.quiet, p.quiet, p.quiet] },
-];
+const option = (p: Palette, t: LayerTileVM): Option =>
+  ({ k: t.id, t: t.label, note: t.note ?? undefined, tag: t.tag ?? undefined, swatch: swatch(p, t.id),
+     disabled: !t.enabled });
 
-export function LayersSheet({ open, onClose, palette, state, onState, theme, onTheme,
-                             reaches, surveyed, stations, fetchedAt, attribution, ready, basemapNote = null }: {
+export function LayersSheet({ open, onClose, palette, vm, onChoose }: {
   open: boolean; onClose: () => void; palette: Palette;
-  state: LayersState; onState: (s: LayersState) => void;
-  theme: ThemeName; onTheme: (t: ThemeName) => void;
-  reaches?: number; surveyed?: number; stations?: number;
-  fetchedAt?: string | null;
-  attribution?: readonly string[];
-  /**
-   * Which lake modes have values to colour by (`lakeModesReady`, from the release the map is handed). PREPARED, NOT FED
-   * (owner 2026-10-21): no release carries lake values yet, so Depth and Stocked are greyed with a line saying so, and
-   * they enable themselves when a release does.
-   */
-  ready: LakeModesReady;
-  /** Why the ground drawn is not the Basemap chosen (satellite offline), else null — `MapModesVM.basemapNote`. */
-  basemapNote?: string | null;
+  /** `@app/core` layersVM — the Shell's, for the view the sheet opened on. */
+  vm: LayersVM;
+  /** A tile or a switch was pressed (`chooseLayer`); greyed ones never call it. */
+  onChoose: (id: string) => void;
 }) {
-  const lakeOpts = lakeChoices(palette).map((c) =>
-    ({ ...c, disabled: (c.k === "depth" || c.k === "stocked") && !ready[c.k] }));
-  const lake = lakeModeOn(state.lake, ready);
-  const waiting = lakeModesNote(lakeOpts.filter((c) => c.disabled).map((c) => c.t));
-
+  const chosen = (ts: readonly LayerTileVM[]) => ts.find((t) => t.chosen)?.id ?? "";
   return (
-    <Sheet open={open} onClose={onClose} title="Layers" palette={palette}>
-      <ScrollView style={{ maxHeight: 520 }}>
-        <Section palette={palette} title="Streams" note={count(reaches, "reaches")}>
-          <Fine palette={palette}>
-            Flow, depth and temperature live in the Conditions tab — they are questions
-            about the water, not paint jobs, and they are switched where they are asked.
-          </Fine>
+    <Sheet open={open} onClose={onClose} title={vm.title} palette={palette} scroll>
+      {vm.ground.tiles.length > 0 && (
+        <Section palette={palette} title={vm.ground.title}>
+          <OptionRow palette={palette} shape="square" label={vm.ground.title} value={chosen(vm.ground.tiles)}
+                     options={vm.ground.tiles.map((t) => option(palette, t))} onChange={onChoose} />
+          {/* SATELLITE IS ONLINE-ONLY (owner 2026-10-21): the choice is kept, the map draws its own ground, and this
+              says why until the imagery is back */}
+          {vm.ground.note && <Fine palette={palette} testID="basemap-note">{vm.ground.note}</Fine>}
         </Section>
+      )}
 
-        <Section palette={palette} title="Lakes" note={count(surveyed, "surveyed")}>
-          <OptionRow palette={palette} shape="square" options={lakeOpts} value={lake}
-                     onChange={(k) => onState({ ...state, lake: k })} label="Colour lakes by" />
-          {waiting && (
-            <Text testID="lake-modes-note"
-                  style={{ ...TYPE.small, fontSize: 11, lineHeight: 16.5, color: palette.faint, paddingTop: 8 }}>
-              {waiting}
-            </Text>
-          )}
-          {lake === "stocked" && (
-            <View style={{ marginTop: 10 }}>
-              {STOCK_BANDS.map((b, i) => (
-                <View key={b.label}
-                      style={{ flexDirection: "row", alignItems: "center", gap: 12,
-                               paddingVertical: 11, borderTopWidth: 1,
-                               borderTopColor: palette.line2 }}>
-                  <View style={{ width: 9, height: 9,
-                                 backgroundColor: palette.stock[i] }} />
-                  <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
-                    Stocked {b.label}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </Section>
-
-        <Section palette={palette} title="Basemap">
-          <OptionRow palette={palette} shape="square" value={state.basemap}
-                     onChange={(k) => onState({ ...state, basemap: k as "map" | "satellite" })}
-                     label="Basemap"
-                     options={[
-                       { k: "map", t: "Map",
-                         swatch: [palette.tint, palette.water[0], palette.water[1]] },
-                       { k: "satellite", t: "Satellite",
-                         /* The same in every theme, on purpose (`color.ui.imagery.*`,
-                            not themeable): this previews an imagery raster, and aerial
-                            photography is dark water, forest and scrub whatever theme the
-                            app is wearing. */
-                         swatch: palette.imagery },
-                     ]} />
-          {/* SATELLITE IS ONLINE-ONLY (owner 2026-10-21): the choice stays Satellite, the map draws its own ground,
-              and this says why until the imagery is back (`mapModes`' basemapNote) */}
-          {basemapNote && (
-            <Text testID="basemap-note"
-                  style={{ ...TYPE.small, fontSize: 11, lineHeight: 16.5, color: palette.faint, paddingTop: 8 }}>
-              {basemapNote}
-            </Text>
-          )}
-        </Section>
-
-        <Section palette={palette} title="Live data" note="every value has an age">
-          <SourceRow palette={palette} title="Stream gauges"
-               sub={`${stations ?? 0} stations · Environment Canada`}
-               age={fetchedAt ? ago(fetchedAt) : "—"} />
-          {/* no stocking row: there is no stocking feed yet (owner 2026-10-21, decisions.md "prepared, not fed") */}
-        </Section>
-
-        <Section palette={palette} title="Palette">
-          <Choice palette={palette} label="Palette" value={theme} onChange={onTheme}
-                  options={THEME_OPTIONS} />
-          <Fine palette={palette}>
-            The colour-blind palette changes the hues and nothing else.
-          </Fine>
-        </Section>
-
-        {attribution && attribution.length > 0 && (
-          <View style={{ paddingHorizontal: 20, paddingBottom: 22, gap: 4 }}>
-            {attribution.map((a) => (
-              <Text key={a} style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>
-                {a}
-              </Text>
+      {vm.water.tiles.length > 0 && (
+        <Section palette={palette} title={vm.water.title}>
+          <OptionRow palette={palette} shape="line" label={vm.water.title} value={chosen(vm.water.tiles)}
+                     options={vm.water.tiles.map((t) => option(palette, t))} onChange={onChoose} />
+          {/* THE KEY, inside the chosen colouring (it wraps at sheet width): what each colour means, and which waters
+              the measure does not reach */}
+          <View testID="water-legend" style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 6,
+                                               paddingTop: 10 }}>
+            {waterLegend(vm.water.drawn).map((r) => (
+              <View key={r.label} style={{ flexDirection: "row", alignItems: "center", gap: 6,
+                                           maxWidth: r.swatch.kind === "neutral" ? "100%" : undefined }}>
+                <View style={{ width: 9, height: 9, backgroundColor: legendColour(palette, r.swatch) }} />
+                <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub, flexShrink: 1 }}>{r.label}</Text>
+              </View>
             ))}
           </View>
-        )}
-      </ScrollView>
+          {vm.water.note && <Fine palette={palette} testID="lake-modes-note">{vm.water.note}</Fine>}
+        </Section>
+      )}
+
+      {vm.overlays.rows.length > 0 && (
+        <Section palette={palette} title={vm.overlays.title}>
+          {vm.overlays.rows.map((r) => <SwitchRow key={r.id} palette={palette} row={r} onPress={() => onChoose(r.id)} />)}
+        </Section>
+      )}
+
+      {/* ALWAYS SHOWN: the safety layers and the boundaries, Indigenous land included — listed, never offered */}
+      <Text testID="layers-always"
+            style={{ ...TYPE.small, fontSize: 12, lineHeight: 17, color: palette.sub, paddingTop: 14, paddingBottom: 6 }}>
+        <Text style={{ fontWeight: "700", color: palette.ink }}>{LAYER_WORDS.always.lead}</Text>
+        {vm.always.slice(LAYER_WORDS.always.lead.length)}
+      </Text>
     </Sheet>
   );
 }
 
-function Section({ palette, title, note, children }: {
-  palette: Palette; title: string; note?: string; children: React.ReactNode;
-}) {
+function Section({ palette, title, children }: { palette: Palette; title: string; children: React.ReactNode }) {
   return (
-    <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 2 }}>
-      <View style={{ flexDirection: "row", alignItems: "baseline", marginBottom: 11 }}>
-        <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                       color: palette.faint }}>{title.toUpperCase()}</Text>
-        {note && (
-          <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                         color: palette.faint, marginLeft: "auto" }}>
-            {note.toUpperCase()}
-          </Text>
-        )}
-      </View>
+    <View style={{ paddingTop: 16, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: palette.line }}>
+      <Text accessibilityRole="header"
+            style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6, color: palette.sub, marginBottom: 11 }}>
+        {title.toUpperCase()}
+      </Text>
       {children}
     </View>
   );
 }
 
-/** A named data source, what it is, and how old it is. */
-function SourceRow({ palette, title, sub, age }: {
-  palette: Palette; title: string; sub: string; age: string;
-}) {
+/** One "On the map" switch: what it is, a line saying more, and its state — or why it cannot be switched yet. */
+function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTileVM; onPress: () => void }) {
+  const off = !row.enabled;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12,
-                   borderTopWidth: 1, borderTopColor: palette.line }}>
+    <Pressable onPress={off ? undefined : onPress} disabled={off} testID={`layer-${row.id}`}
+               accessibilityRole="switch" aria-checked={row.chosen} aria-disabled={off} accessibilityLabel={row.label}
+               style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10,
+                        borderTopWidth: 1, borderTopColor: palette.line, opacity: off ? 0.45 : 1 }}>
       <View style={{ flex: 1 }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{title}</Text>
-        <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{sub}</Text>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{row.label}</Text>
+        {row.note && <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{row.note}</Text>}
       </View>
-      <Text style={{ ...TYPE.micro, fontSize: 11, color: palette.faint }}>{age}</Text>
-    </View>
+      {row.tag
+        ? <Text style={{ ...TYPE.section, fontSize: 10, letterSpacing: 1.2, color: palette.sub }}>
+            {row.tag.toUpperCase()}
+          </Text>
+        : (
+          // a square switch, as everything here is square: filled accent with its knob right when on
+          <View style={{ width: 40, height: 22, borderWidth: 1.5, borderColor: row.chosen ? palette.accent : palette.ink,
+                         backgroundColor: row.chosen ? palette.accent : "transparent", padding: 2,
+                         alignItems: row.chosen ? "flex-end" : "flex-start" }}>
+            <View style={{ width: 15, height: 15, backgroundColor: row.chosen ? palette.onAccent : palette.ink }} />
+          </View>
+        )}
+    </Pressable>
   );
 }
 
-function Fine({ palette, children }: { palette: Palette; children: React.ReactNode }) {
+function Fine({ palette, children, testID }: { palette: Palette; children: React.ReactNode; testID?: string }) {
   return (
-    <Text style={{ ...TYPE.small, fontSize: 11, lineHeight: 16.5, color: palette.faint,
-                   paddingTop: 10 }}>
+    <Text testID={testID} style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 16.5, color: palette.sub, paddingTop: 8 }}>
       {children}
     </Text>
   );

@@ -1,7 +1,8 @@
 /**
  * SATELLITE IS ONLINE-ONLY, THROUGH THE REAL SHELL (owner 2026-10-21): Esri World Imagery while the device can reach
- * it; offline, the drawn map, the Layers sheet saying why, and the reader's choice kept — so it comes back by itself.
- * Esri's credit is listed exactly while its imagery is drawn.
+ * it; offline, the drawn map, the Layers sheet saying why (the Map tile tagged SHOWING, the reason line), and the
+ * reader's choice kept — so it comes back by itself. Esri's credit is the map's own attribution, from the style
+ * (`tools/imagery.test.ts`): the Layers sheet carries no credits any more (owner 2026-10-21 late).
  *
  * The map renderer is replaced by a line saying which ground the Shell handed it (no WebGL in jsdom); the device's
  * connectivity and the one-tile probe are replaced by switches. Everything else is the app's, on the fixture.
@@ -14,7 +15,11 @@ import { makeFixtureSource } from "@app/data/fixture";
 import { HOME } from "@app/ui";
 import { LIGHT } from "./theme";
 
-type Stub = { onLayers?: () => void; basemap?: string; onImageryError?: (status: number | undefined) => void };
+// the sheet's credit block is gone: no credit line is drawn anywhere in the Shell's Layers sheet, satellite or not
+const ESRI = "Satellite imagery: Powered by Esri";
+
+type Stub = { onLayers?: () => void; basemap?: string; onImageryError?: (status: number | undefined) => void;
+              layersChanged?: number };
 const map: { imageryError?: (status: number | undefined) => void } = {};
 vi.mock("./MapScreen", () => ({
   MapScreen: (p: Stub) => {
@@ -24,6 +29,7 @@ vi.mock("./MapScreen", () => ({
         {p.onLayers && <Pressable accessibilityRole="button" accessibilityLabel="Choose layers"
                                   onPress={p.onLayers}><Text>layers</Text></Pressable>}
         <Text testID="ground">{`ground ${p.basemap ?? "unset"}`}</Text>
+        <Text testID="changed">{`changed ${p.layersChanged ?? "unset"}`}</Text>
       </View>);
   },
 }));
@@ -48,7 +54,6 @@ beforeAll(() => {
 });
 
 const CREDITS = ["Basemap © OpenStreetMap contributors · © Protomaps", "Weather from Open-Meteo.com (CC BY 4.0)"];
-const ESRI = "Satellite imagery: Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community";
 const NOTE = "Satellite needs a connection. Showing the map until you are back online; satellite returns by itself.";
 
 function mount() {
@@ -60,31 +65,34 @@ function mount() {
 }
 const flush = () => act(async () => { await Promise.resolve(); await Promise.resolve(); });
 const setDevice = (on: boolean) => act(() => { device.online = on; device.cb?.(on); });
-/** What a reader sees: the ground drawn, the Basemap choice, the sheet's reason line, and whether Esri is credited. */
+/** What a reader sees: the ground drawn, the Map choice, the sheet's reason line, and whether the Map tile says SHOWING. */
 const look = () => ({
   ground: screen.getByTestId("ground").textContent,
-  chosen: screen.getAllByRole("radio").filter((r) => ["Map", "Satellite"].includes(r.textContent ?? ""))
-    .find((r) => r.getAttribute("aria-checked") === "true")?.textContent ?? null,
+  chosen: screen.getAllByRole("radio").filter((r) => ["Map", "Satellite"].includes(r.getAttribute("aria-label") ?? ""))
+    .find((r) => r.getAttribute("aria-checked") === "true")?.getAttribute("aria-label") ?? null,
   note: screen.queryByTestId("basemap-note")?.textContent ?? null,
-  esri: screen.queryByText(ESRI) !== null,
+  showing: (screen.getByRole("radio", { name: "Map" }).textContent ?? "").endsWith("SHOWING"),
 });
 
 describe("satellite, online-only, through the Shell", () => {
-  it("on: Esri's imagery and credit; offline: the drawn map and the reason, the choice kept; online: satellite back", async () => {
+  it("on: Esri's imagery; offline: the drawn map and the reason, the choice kept; online: satellite back", async () => {
     mount();
     act(() => { fireEvent.click(screen.getByLabelText("Choose layers")); });
-    expect(look()).toEqual({ ground: "ground map", chosen: "Map", note: null, esri: false });
+    expect(look()).toEqual({ ground: "ground map", chosen: "Map", note: null, showing: false });
 
     act(() => { fireEvent.click(screen.getByRole("radio", { name: "Satellite" })); });
     await flush();
-    expect(look()).toEqual({ ground: "ground satellite", chosen: "Satellite", note: null, esri: true });
+    expect(look()).toEqual({ ground: "ground satellite", chosen: "Satellite", note: null, showing: false });
 
     setDevice(false);
-    expect(look()).toEqual({ ground: "ground map", chosen: "Satellite", note: NOTE, esri: false });
+    expect(look()).toEqual({ ground: "ground map", chosen: "Satellite", note: NOTE, showing: true });
 
     setDevice(true);
     await flush();
-    expect(look()).toEqual({ ground: "ground satellite", chosen: "Satellite", note: null, esri: true });
+    expect(look()).toEqual({ ground: "ground satellite", chosen: "Satellite", note: null, showing: false });
+    expect(document.body.textContent?.includes(ESRI)).toBe(false);
+    // the rail's badge: one choice differs from the defaults (the ground), handed to the map screen
+    expect(screen.getByTestId("changed").textContent).toBe("changed 1");
   });
 
   it("an imagery tile that fails with no response draws the map; a 404 hole does not", async () => {
@@ -95,15 +103,15 @@ describe("satellite, online-only, through the Shell", () => {
     act(() => map.imageryError?.(404));
     expect(look().ground).toBe("ground satellite");
     act(() => map.imageryError?.(undefined));
-    expect(look()).toEqual({ ground: "ground map", chosen: "Satellite", note: NOTE, esri: false });
+    expect(look()).toEqual({ ground: "ground map", chosen: "Satellite", note: NOTE, showing: true });
   });
 
-  it("the drawn map chosen: no probe, no note, no Esri credit, whatever the device says", async () => {
+  it("the drawn map chosen: no probe, no note, no SHOWING tag, whatever the device says", async () => {
     mount();
     act(() => { fireEvent.click(screen.getByLabelText("Choose layers")); });
     setDevice(false);
     await flush();
     expect({ ...look(), probes: probe.calls })
-      .toEqual({ ground: "ground map", chosen: "Map", note: null, esri: false, probes: 0 });
+      .toEqual({ ground: "ground map", chosen: "Map", note: null, showing: false, probes: 0 });
   });
 });

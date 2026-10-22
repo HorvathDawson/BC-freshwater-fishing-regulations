@@ -7,8 +7,8 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { dayLabel, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES, withImageryCredit,
-         type SectionKey, type TempBand } from "@app/core";
+import { chooseLayer, dayLabel, LAYER_DEFAULTS, layersVM, TEMP_LEGEND, unprovenLine, WATER_STATUS, WATER_STATUSES,
+         waterLegend, withImageryCredit, type LayerChoice, type SectionKey, type TempBand } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
@@ -18,18 +18,18 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { spotsMenu, useMapRail, type Locate } from "@app/ui";
-import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
+import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, useImageryReach, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
-import { hiddenLayers, shownLayers, toggleableGroups,
+import { hiddenLayers, shownLayers,
          type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
 import { imageryProbe } from "./imageryProbe";
 import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { MapDay } from "./MapDay";
-import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
+import { LayersSheet, legendColour } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
 import { SpotsSheet } from "./SpotsSheet";
@@ -188,9 +188,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const rail = useMapRail(go, locate, route);
   /** THE MENU (owner 2026-10-21): the hamburger's drawer and its pages, mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
-  // the figures are drawn by the search screen (its total), the layers sheet (reaches, stations, age) and the menu's
+  // the figures are drawn by the search screen (its total) and the menu's
   // Data sources page (the feed's age)
-  const factsWanted = tab === "search" || layersOpen || menu.state.page === "sources";
+  const factsWanted = tab === "search" || menu.state.page === "sources";
   const facts = useDataFacts(source, feed, factsWanted);
   const counts = facts.state === "ready" ? facts.value.counts : null;
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
@@ -251,12 +251,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const horizon = hz.horizon;
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
-  // Streams, lakes and gauges each carry their own colouring, as the design has it — plain rivers while the lakes
-  // show Stocked is a normal thing to want.
-  const [layers, setLayers] = useState<LayersState>(
-    { lake: "plain", basemap: "map" });
-  const [groups, setGroups] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(toggleableGroups().map((g) => [g.id, g.defaultVisible])));
+  /*
+   * THE LAYERS CHOICE (owner 2026-10-21 late, layers menu B): one ground, ONE water colouring for every feature, and
+   * the switches — the only layer state kept here. What the map is handed is the registry's (`layersVM(...).effective`,
+   * below): an unavailable choice falls back while the choice itself is kept.
+   */
+  const [layerChoice, setLayerChoice] = useState<LayerChoice>(LAYER_DEFAULTS);
   /*
    * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
    *
@@ -288,8 +288,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });
   // PREPARED, NOT FED (owner 2026-10-21): a lake mode with no values in the release is greyed in Layers and drawn plain
   const lakeReady = useMemo(() => lakeModesReady(lakeFeed), [lakeFeed]);
-  const lakeOn = lakeModeOn(layers.lake, lakeReady);
-  const lakeChoice = lakeChoices(palette).find((c) => c.k === lakeOn);
   /*
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
@@ -300,9 +298,23 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * choice into the ground every map is handed (`mm.basemap`) and the Layers sheet's reason line; the choice is kept.
    */
   const probe = useMemo(() => imageryProbe(tiles.imagery ?? imageryTiles(null)), [tiles.imagery]);
-  const imagery = useImageryReach({ wanted: layers.basemap === "satellite", connectivity, probe });
-  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake: lakeChoice,
-                           groups, basemap: layers.basemap, imageryUp: imagery.up });
+  const imagery = useImageryReach({ wanted: layerChoice.ground === "ground.satellite", connectivity, probe });
+  /*
+   * THE LAYERS SHEET'S VIEW MODEL, and what every map is handed (`effective`): from the layer registry over what the
+   * release carries (Stocked, Depth: prepared, not fed) and whether streamed imagery can be reached. The sheet opens on
+   * the Map tab only (the Conditions map decides its own colouring), so its view is "map".
+   */
+  const carried = lakeValuesCarried(lakeReady);
+  const layers = useMemo(() => layersVM("map", layerChoice, { carries: carried, online: imagery.up }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `carried` is rebuilt each render; its two facts are the deps
+    [layerChoice, carried.stocked, carried.surveyed, imagery.up]);
+  const onChooseLayer = useCallback((id: string) =>
+    setLayerChoice((c) => chooseLayer(c, id, { carries: carried, online: imagery.up })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [carried.stocked, carried.surveyed, imagery.up]);
+  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
+                           water: layers.effective.water, groups: layers.effective.groups,
+                           basemap: layers.effective.basemap, imageryUp: imagery.up });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   const { onConditions, quantity, modes, activeGroups } = mm;
@@ -541,6 +553,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // whose choices this tab overrides. A control that does nothing is
                      // worse than a missing one.
                      onLayers={onConditions ? undefined : () => setLayersOpen(true)}
+                     // how many layer choices differ from the defaults: the rail's badge, said aloud
+                     layersChanged={layers.changed}
                      // THE RAIL'S SPOTS (owner 2026-10-21): on both browse maps, where the Spots tab was
                      onSpots={rail.openSpots}
                      // press and hold: a provisional pin, and the sheet that asks before anything is made
@@ -574,7 +588,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
 
   const showLegend = route.mode === "browse"
     && (tab === "conditions"
-        || (tab === "map" && (lakeOn === "stocked" || statusOk)));
+        || (tab === "map" && (layers.water.drawn !== "regulations" || statusOk)));
 
   return layered(
     // the hamburger on each browse screen reads the menu from here (menu/MenuButton)
@@ -620,7 +634,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         </EdgeBack>
       </View>
       {showLegend && (
-        <LegendStrip palette={palette} full={onConditions}>
+        <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
           {onConditions && (
             /*
              * THE CONTROL LIVES IN THE LEGEND, not floating over the map.
@@ -672,10 +686,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                           mid="normal" high="high"
                           stops={flowRamp(theme)} marks={visibleMarks} />
             )
-          ) : lakeOn === "stocked" ? (
-            palette.stock.map((c, i) => (
-              <LegendCount key={c} palette={palette} colour={c}
-                           label={STOCK_BANDS[i]!.label} />
+          ) : layers.water.drawn !== "regulations" ? (
+            // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why
+            waterLegend(layers.water.drawn).map((r) => (
+              <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
             ))
           ) : (
             // The three statuses, in the words and colours every surface uses (@app/core
@@ -697,13 +711,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
 
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
-                   state={layers} onState={setLayers}
-                   theme={themeName} onTheme={onTheme}
-                   reaches={counts?.reaches} surveyed={counts?.surveyed ?? undefined}
-                   stations={facts.state === "ready"
-                     ? facts.value.liveStations ?? counts?.stations : undefined}
-                   fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
-                   attribution={credits} basemapNote={mm.basemapNote} ready={lakeReady} />
+                   vm={layers} onChoose={onChooseLayer} />
       <SpotsSheet open={rail.spotsOpen && route.mode === "browse"} onClose={rail.closeSpots} palette={palette}
                   vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
                                          permission: rail.permission })}
@@ -718,7 +726,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* the menu's drawer and pages: each open level a back layer (back closes a term, a page, the drawer) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
                 feedFetchedAt={facts.state === "ready" ? facts.value.fetchedAt ?? null : null}
-                route={route} day={mapDay} />
+                route={route} day={mapDay} theme={themeName} onTheme={onTheme} />
     </View>
     </MenuContext.Provider>
   );

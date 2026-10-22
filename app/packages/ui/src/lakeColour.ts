@@ -11,7 +11,7 @@
  * (`coloursEachTile`); the native map has no per-tile event yet (N2) and keeps its lakes plain.
  *
  * PREPARED, NOT FED (owner 2026-10-21): no feed makes the release's `lakes` yet, so no release carries values and the
- * layers menu greys Stocked and Depth (`lakeModesReady`). When a release carries them, the modes enable themselves —
+ * layers menu greys Stocked and Depth (`lakeModesReady`, read by the layer registry's availability). When a release carries them, the modes enable themselves —
  * no app change. Where the map is handed nothing (off a proven pair, the native map), they stay grey: a mode the map
  * cannot colour is not offered.
  */
@@ -47,15 +47,7 @@ export function lakeModesReady(feed: LakeFeedVM | null): LakeModesReady {
   return { depth: (feed?.facts.surveyed ?? 0) > 0, stocked: (feed?.facts.stocked ?? 0) > 0 };
 }
 
-/** The lake choice the map draws: a gated mode with no values is plain (a choice made before its values went away). */
-export function lakeModeOn(choice: string, ready: LakeModesReady): string {
-  return (choice === "depth" || choice === "stocked") && !ready[choice] ? "plain" : choice;
-}
-
-/** The layers menu's words for the gate (whole strings are composed by `lakeModesNote`). */
-export const LAKE_MODE_WORDS = Object.freeze({ NO_DATA_FOR: "No data yet for", AND: "and" });
-
-/** The line under the lake choices naming the modes waiting for data ("No data yet for Depth and Stocked"), or null. */
-export function lakeModesNote(off: readonly string[]): string | null {
-  return off.length ? `${LAKE_MODE_WORDS.NO_DATA_FOR} ${off.join(` ${LAKE_MODE_WORDS.AND} `)}` : null;
+/** What the layer registry reads (`@app/core` LayerFacts.carries): a release carrying survey / stocking values. */
+export function lakeValuesCarried(r: LakeModesReady): { stocked: boolean; surveyed: boolean } {
+  return { stocked: r.stocked, surveyed: r.depth };
 }

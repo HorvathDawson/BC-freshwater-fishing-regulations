@@ -24,8 +24,7 @@ export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
 export { ViewSwipe, WaterViewsContext, type WaterViews } from "./ViewSwipe";
 export { WaterConditions, WaterMap } from "./WaterViews";
-export { LayersSheet, STOCK_BANDS, lakeChoices,
-         type LayersState, type LayerChoice } from "./LayersSheet";
+export { LayersSheet, legendColour } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
 export { ago, count, plural } from "./format";

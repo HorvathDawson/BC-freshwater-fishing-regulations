@@ -18,7 +18,7 @@ import type { Palette } from "./theme";
 
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
-                            onLayers, onSpots, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
+                            onLayers, layersChanged = 0, onSpots, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, status, standing, lakes, gauges, onVisible, onError,
                             fit, basemap, onImageryError, onBack, water, marks, onPressMark }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -55,6 +55,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   marker?: { lat: number; lon: number } | null;
   camera: Camera;
   onLayers?: () => void;
+  /** How many layer choices differ from the defaults (`layersVM().changed`): the Layers button's badge. */
+  layersChanged?: number;
   /** The rail's Spots button (owner 2026-10-21): opens the Spots menu. Absent -> no button. */
   onSpots?: () => void;
   /** A long press on the map, where (owner 2026-10-21: drops a provisional spot) — see MapProps.onLongPress. */
@@ -150,7 +152,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill, with Spots under it — the map's own
         buttons in one stack on the right, under MapLibre's zoom stack (`MapRail`).
       */}
-      <MapRail palette={palette} onLayers={onLayers} onSpots={onSpots} />
+      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} onSpots={onSpots} />
     </View>
   );
 }

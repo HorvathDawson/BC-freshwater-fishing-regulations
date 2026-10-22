@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { decodeLakeFacts } from "@app/core";
-import { LAKE_MODE_WORDS, lakeModeOn, lakeModesNote, lakeModesReady } from "./lakeColour";
+import { lakeModesReady, lakeValuesCarried } from "./lakeColour";
 
 const HANDLES = [0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99];
 /** A lakes/1 file: header, then (sid delta, survey code, stocked day + 1, each under 128: one varint byte) per section. */
@@ -36,22 +36,9 @@ describe("lakeModesReady", () => {
   });
 });
 
-describe("lakeModeOn: the choice the map draws", () => {
-  it("a chosen mode with no values draws plain; one with values, or one the gate does not cover, draws as chosen", () => {
-    const off = { depth: false, stocked: false }, on = { depth: true, stocked: true };
-    expect(["depth", "stocked", "plain"].map((k) => [lakeModeOn(k, off), lakeModeOn(k, on)])).toEqual(
-      [["plain", "depth"], ["plain", "stocked"], ["plain", "plain"]]);
-  });
-});
-
-describe("lakeModesNote", () => {
-  it("names the modes waiting for data, in the menu's order; nothing when none is", () => {
-    expect([lakeModesNote(["Depth", "Stocked"]), lakeModesNote(["Stocked"]), lakeModesNote([])]).toEqual(
-      ["No data yet for Depth and Stocked", "No data yet for Stocked", null]);
-  });
-
-  it("is built from the words table only", () => {
-    expect(LAKE_MODE_WORDS).toEqual({ NO_DATA_FOR: "No data yet for", AND: "and" });
-    expect(Object.isFrozen(LAKE_MODE_WORDS)).toBe(true);
+describe("lakeValuesCarried: the registry's facts", () => {
+  it("survey values carry Depth's need, stocking values Stocked's — never crossed (mutation pin)", () => {
+    expect([lakeValuesCarried({ depth: true, stocked: false }), lakeValuesCarried({ depth: false, stocked: true })])
+      .toEqual([{ stocked: false, surveyed: true }, { stocked: true, surveyed: false }]);
   });
 });

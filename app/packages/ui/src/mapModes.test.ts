@@ -4,7 +4,7 @@ import { mapModes, statusFeed, type MapModeInput } from "./mapModes";
 
 const base: MapModeInput = {
   tab: "map", flowParam: "discharge", horizon: 3, zoomedOut: false, paired: true, statusOk: true, perTile: true,
-  lake: { mode: "plain" }, groups: { depth: false, admin: true }, basemap: "map", imageryUp: true,
+  water: "regulations", groups: { depth: false, admin: true }, basemap: "map", imageryUp: true,
 };
 const at = (over: Partial<MapModeInput>) => mapModes({ ...base, ...over });
 
@@ -63,11 +63,36 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
       basin: "plain" });
   });
 
-  it("a lake choice the reader asked for beats the status, and switches its group on", () => {
-    const m = at({ lake: { mode: "surveyed", group: "depth" } });
-    expect(m.modes.lake).toBe("surveyed");
-    expect(m.modes.stream).toBe("profile");
-    expect(m.activeGroups).toEqual({ depth: true, admin: true });
+  it("ONE WATER COLOURING (owner 2026-10-21 late): a lake measure colours the lakes by it and EVERY other water neutral", () => {
+    const look = (water: "regulations" | "stocked" | "depth", over: Partial<MapModeInput> = {}) => {
+      const m = at({ water, ...over }).modes;
+      return `${m.stream} ${m.lake} ${m.lake_flowing} ${m.wetland_flowing}`;
+    };
+    expect([look("regulations"), look("stocked"), look("depth"), look("stocked", { perTile: false }),
+            look("depth", { statusOk: false }), look("stocked", { paired: false })]).toEqual([
+      "profile profile profile profile",
+      "plain stocked plain plain",
+      "plain surveyed plain plain",
+      "plain stocked plain plain",
+      "plain surveyed plain plain",
+      "plain plain plain plain",
+    ]);
+  });
+
+  it("MUTATION PIN: no rule lets a stream keep the day's status while the lakes show a measure", () => {
+    for (const water of ["stocked", "depth"] as const)
+      for (const perTile of [true, false]) {
+        const m = at({ water, perTile }).modes;
+        expect([water, perTile, m.stream, m.lake_flowing, m.wetland_flowing]).toEqual([water, perTile, "plain", "plain", "plain"]);
+      }
+  });
+
+  it("the water colouring is the Map tab's: Conditions answers its own question for every water", () => {
+    expect(at({ tab: "conditions", water: "stocked" }).modes).toEqual(at({ tab: "conditions" }).modes);
+  });
+
+  it("the groups are the registry's, passed through untouched", () => {
+    expect(at({ groups: { depth: true, ownership: true } }).activeGroups).toEqual({ depth: true, ownership: true });
   });
 
   it("Conditions, flow, zoomed out: standings everywhere, the field on, the map's horizons offered", () => {

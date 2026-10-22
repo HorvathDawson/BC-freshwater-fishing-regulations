@@ -8,7 +8,8 @@
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
 import { useMemo, useRef } from "react";
-import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type SectionKey, type StatusIndex } from "@app/core";
+import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type SectionKey, type StatusIndex, type WaterColour }
+  from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
 import { statusData } from "./hooks";
 import type { GaugeQuantity } from "./gaugePoints";
@@ -44,9 +45,13 @@ export interface MapModeInput {
    * no caller can forget which renderer it draws on: `coloursEachTile(Platform.OS)` from @app/map.
    */
   perTile: boolean;
-  /** The Layers sheet's lake choice: its colour mode, and a layer group it switches on. */
-  lake: { mode: string; group?: string } | undefined;
-  /** The Layers sheet's group toggles. */
+  /**
+   * How the Map tab colours the water — ONE choice for streams, lakes and wetlands together (owner 2026-10-21 late:
+   * "it is dangerous to have the divergent layers for features"). The layer registry's `effective.water`
+   * (`@app/core` layersVM): an unavailable choice has already fallen back to "regulations".
+   */
+  water: WaterColour;
+  /** The style groups the layer registry sets (`effective.groups`): switches, and what a water colouring turns on. */
   groups: Readonly<Record<string, boolean>>;
   /** The Layers sheet's ground: the READER'S CHOICE, kept whatever the connection does. */
   basemap: Basemap;
@@ -93,7 +98,12 @@ export function mapModes(i: MapModeInput): MapModesVM {
   const temperature = i.flowParam === "temperature";
   const quantity: GaugeQuantity = temperature ? "temperature" : i.flowParam === "level" ? "level" : "flow";
   const standingParam: Parameter = temperature ? "discharge" : (i.flowParam as Parameter);
-  const lakeMode = i.lake?.mode ?? "plain";
+  /*
+   * A LAKE MEASURE (Stocked, Depth) COLOURS THE LAKES BY IT AND EVERY OTHER WATER NEUTRAL: stocking and surveys are
+   * recorded for lakes only, and a river still wearing the day's regulations beside lakes wearing a stocking ramp is
+   * two answers on one map (owner 2026-10-21 late). The legend says the neutral ones are not covered.
+   */
+  const lakeMeasure = i.water === "stocked" ? "stocked" : i.water === "depth" ? "surveyed" : null;
   /*
    * COLOURED FOR FLOW AND FOR LEVEL; PLAIN ONLY UNDER TEMPERATURE. A level question is answered from level donors or
    * not at all (see `Quantity` in @app/data), so a reach with nothing to say arrives with no standing and draws as
@@ -106,14 +116,15 @@ export function mapModes(i: MapModeInput): MapModesVM {
   const statusMode = i.perTile ? "profile" : "status";
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
+    : lakeMeasure ? "plain"
     : i.statusOk ? statusMode : "plain";
   const modes: MapModes = {
     stream: river,
-    // Lakes answer the same question as the rivers on Conditions (`lake_gauge`, a station IN the lake). On the Map tab
-    // a lake left "plain" in Layers wears the day's status; Stocked and Depth are questions the reader asked instead.
+    // Lakes answer the same question as the rivers, on both tabs (`lake_gauge` on Conditions, a station IN the lake);
+    // under a lake measure the lakes wear it and the rivers go neutral
     lake: !i.paired ? "plain"
       : onConditions ? (temperature ? "plain" : "standing")
-      : lakeMode === "plain" && i.statusOk ? statusMode : lakeMode,
+      : lakeMeasure ?? (i.statusOk ? statusMode : "plain"),
     lake_flowing: river,
     wetland_flowing: river,
     gauges: temperature ? "temperature" : "standing",
@@ -122,7 +133,6 @@ export function mapModes(i: MapModeInput): MapModesVM {
     basin: !i.paired ? "plain" : onConditions && !temperature ? "standing" : "plain",
   };
   const activeGroups = { ...i.groups };
-  if (i.lake?.group) activeGroups[i.lake.group] = true;
   return {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
@@ -143,13 +153,10 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake, groups, basemap, imageryUp } = i;
-  const lakeMode = lake?.mode, lakeGroup = lake?.group;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp } = i;
   const vm = useMemo(
-    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
-                     lake: lakeMode === undefined ? undefined : { mode: lakeMode, group: lakeGroup }, groups,
-                     basemap, imageryUp }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lakeMode, lakeGroup, groups, basemap, imageryUp]);
+    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp }),
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);

@@ -192,3 +192,20 @@ describe("the map rail, through the Shell", () => {
     ]);
   });
 });
+
+describe("the rail's Layers badge (layers menu B)", () => {
+  it("counts the choices that differ from the defaults, on the button and aloud; none draws no badge", async () => {
+    const { MapRail } = await import("./MapRail");
+    const seen = (n: number) => {
+      render(<MapRail palette={LIGHT} onLayers={() => {}} layersChanged={n} onSpots={() => {}} />);
+      const out = [screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")),
+                   screen.queryByTestId("rail-badge-layers")?.textContent ?? null];
+      cleanup();
+      return out;
+    };
+    expect([seen(0), seen(2)]).toEqual([
+      [["Choose layers", "Your spots"], null],
+      [["Choose layers, 2 changed", "Your spots"], "2"],
+    ]);
+  });
+});

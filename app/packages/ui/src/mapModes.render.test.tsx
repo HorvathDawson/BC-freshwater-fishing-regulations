@@ -10,7 +10,7 @@ import { useMapModes, type MapModeInput } from "./mapModes";
 const GROUPS = { water: true };
 const base: MapModeInput = {
   tab: "conditions", flowParam: "discharge", horizon: 0, zoomedOut: false, paired: true, statusOk: true,
-  perTile: true, lake: undefined, groups: GROUPS, basemap: "satellite", imageryUp: true,
+  perTile: true, water: "regulations", groups: GROUPS, basemap: "satellite", imageryUp: true,
 };
 
 describe("useMapModes", () => {

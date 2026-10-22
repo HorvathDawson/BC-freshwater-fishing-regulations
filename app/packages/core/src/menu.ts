@@ -1,6 +1,6 @@
 /**
- * THE MENU (owner 2026-10-21): the hamburger's drawer and its five pages — Glossary, Data sources & dates, About,
- * Report a problem, Contact. Every word they draw and every sentence they compose is here, where a test can pin the
+ * THE MENU (owner 2026-10-21): the hamburger's drawer and its six pages — Glossary, Data sources & dates, Display (the
+ * app's colours, moved here from the Layers menu, owner 2026-10-21 late), About, Report a problem, Contact. Every word they draw and every sentence they compose is here, where a test can pin the
  * finished string (AGENTS 33); the components draw these VMs and decide nothing.
  *
  *   menuVM          the drawer's items, in order
@@ -21,7 +21,7 @@ import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
 
 // ── words ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-export type MenuPageKey = "glossary" | "sources" | "about" | "report" | "contact";
+export type MenuPageKey = "glossary" | "sources" | "display" | "about" | "report" | "contact";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -34,10 +34,24 @@ export const MENU_WORDS = {
   items: {
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
     sources: { label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
+    display: { label: "Display", hint: "Light, dark or colour-blind colours" },
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
     contact: { label: "Contact", hint: "Get in touch" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
+  /**
+   * THE APP'S COLOURS (owner 2026-10-21 late: the palette left the Layers menu for the hamburger) — a whole-app setting,
+   * not a map layer: it repaints every screen and every map.
+   */
+  display: {
+    palette: "Colours",
+    options: [
+      { k: "light", t: "Light" },
+      { k: "dark", t: "Dark" },
+      { k: "cvd", t: "Colour-blind" },
+    ],
+    cvd: "The colour-blind palette changes the hues and nothing else. It has a light ground only.",
+  },
   glossary: {
     search: "Search the glossary",
     loading: "Loading the glossary",
@@ -141,7 +155,7 @@ export const MENU_WORDS = {
 // ── the drawer ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** The drawer's order: reading the regulations first, then where they come from, then the app, then talking to us. */
-export const MENU_ORDER: readonly MenuPageKey[] = ["glossary", "sources", "about", "report", "contact"];
+export const MENU_ORDER: readonly MenuPageKey[] = ["glossary", "sources", "display", "about", "report", "contact"];
 
 export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
 

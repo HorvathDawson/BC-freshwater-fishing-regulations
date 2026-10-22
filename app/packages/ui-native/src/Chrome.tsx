@@ -37,8 +37,24 @@ export function Pill({ palette, children, onPress, style, label }: {
  * It is a legend, not decoration: whatever the map is currently colouring by has to say
  * what its colours mean, or the map is a picture rather than an answer.
  */
-export function LegendStrip({ palette, children, full }:
-  { palette: Palette; children: React.ReactNode; full?: boolean }) {
+export function LegendStrip({ palette, children, full, wrap }:
+  { palette: Palette; children: React.ReactNode; full?: boolean;
+    /**
+     * WRAP instead of scrolling sideways (layers menu B, the Map tab): the key measured 613 px in a 390 px phone and
+     * hid "Has its own regulations" and "Base regulations only" off the edge, where nobody scrolls a caption. Wrapped,
+     * every entry is on screen at any width; a second row is the price.
+     */
+    wrap?: boolean }) {
+  if (wrap) {
+    return (
+      <View testID="legend-strip"
+            style={{ flexGrow: 0, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14,
+                     rowGap: 5, borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
+                     paddingHorizontal: 14, paddingVertical: 7 }}>
+        {children}
+      </View>
+    );
+  }
   /*
    * ONE LINE, and it scrolls sideways rather than wrapping, so adding a category can never
    * take a second row of the map. This was a two-row block of counted swatches that ate a
