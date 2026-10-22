@@ -98,11 +98,14 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
-- RUNNING wf_199d0858-41a (task wxllnpqcb; script layers-b-fixes-conditions-sidechannels-wf_199d0858-41a.js): lanes
-  layers-b (B with owner changes: one water colouring for all features, sources/credits/palette to the hamburger,
-  coming soon greyed, always-on incl Indigenous land), small-fixes (crossing label, reversed continuations rule,
-  keyless Esri recorded, netinfo), sidechannel-conditions (INVESTIGATION: Widgeon Slough, Klesilkwa; report only).
-  After small-fixes merges: release-only rebuild via heavy.sh (water_continue). Owner answers in decisions.md c2482b7d.
+- MERGED (wf_199d0858-41a): LAYERS MENU B a3b43827 (one water colouring for all features; layer registry; coming soon
+  greyed; always shown incl Indigenous land [indigenous_land tile layer, 780 features]; private-land switch; palette
+  -> menu Display page; credits -> map attribution + Data sources page; count badge on the rail). Small fixes:
+  reversed continuations refused by FWA code 9defa9a5 (17 rows), crossing button names the water 88478f44, keyless
+  Esri recorded 2b708201, netinfo 12.0.1 797bd0d5 (needs a dev-build rebuild on a device). Side-channel REPORT
+  f8f71d90 + scripts d343c2b8 (Option A recommended: mainstem_of must stay on its own watershed code). Release-only
+  rebuild r-8a55ff2506cd served. Strict 7028, smoke, release tests 26.
+  OWNER: pick side-channel option(s) A/B/C1/D; Pitt from North Alouette only OK?; sheets full-width on desktop (T45)?
 - MERGED: Esri online imagery 388e5e08 (World_Imagery, maxzoom 19, overzoom; offline -> drawn map + reason, comes back by
   itself; credit switches). Strict 6996, smoke pass. MUST NOT SHIP without an ArcGIS Location Platform key
   (EXPO_PUBLIC_ARCGIS_API_KEY): the token-free URL is dev-only. OWNER QUESTIONS: create the key (tile vs session
