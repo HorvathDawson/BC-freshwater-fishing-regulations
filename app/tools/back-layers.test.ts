@@ -3,7 +3,8 @@
  * to") — the parts a render test cannot reach: ONE back mechanism, and no surface that back would go under.
  *
  *   one mechanism   Android's `BackHandler` is named only by apps/mobile/src/systemBack.native.ts; the History API
- *                   only by systemBack.web.ts; a Modal's `onRequestClose` only by `<Sheet>` (where it is the one back).
+ *                   only by systemBack.web.ts; a Modal's `onRequestClose` is always the one back — the
+ *                   `requestClose` its own component got from `useBackLayer(` (Sheet, the menu's drawer and page).
  *                   Nothing else listens for a back of its own — two listeners is a double back.
  *   every surface   each COMPONENT (not file: a registered neighbour clears nothing) that draws something back must
  *                   close first — a Modal, a dialog (`role="dialog"`, `aria-modal`, `accessibilityViewIsModal`), a
@@ -138,6 +139,11 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel": "SpotScreen's layer answers back while a confirm is shown (keep)",
   "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack": "a capture step; SpotCapture's layer steps back from it",
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
+  "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
 };
 /** A finding's key: `path#Component: why` (one component can be covered for one reason and not another). */
 const keyOf = (m: string) => m.split(", ")[0]!;
@@ -152,8 +158,12 @@ describe("back, everywhere: one mechanism", () => {
       .toEqual(["apps/mobile/src/systemBack.web.ts"]);
   });
 
-  it("a Modal's own back (onRequestClose) is wired only by <Sheet>, to the one back", () => {
-    expect(where(/\bonRequestClose\b/)).toEqual(["packages/ui-native/src/Sheet.tsx"]);
+  it("a Modal's own back (onRequestClose) is always the one back: the requestClose its component got from useBackLayer", () => {
+    const wired = (src: string) => /\bconst requestClose = useBackLayer\(/.test(src)
+      && [...src.matchAll(/\bonRequestClose\s*=\s*\{([^}]*)\}/g)].every((m) => m[1]!.trim() === "requestClose");
+    const users = where(/\bonRequestClose\b/);
+    expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
+      "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuDrawer.tsx", "packages/ui-native/src/menu/MenuPage.tsx"], []]);
   });
 });
 
@@ -185,9 +195,19 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/Shell.tsx#Shell: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
+      "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotScreen.tsx#SpotScreen: takes onBack",
       "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel",
+      "packages/ui-native/src/SpotsSheet.tsx#SpotsSheet: takes onClose",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack",
+      "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",
+      "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",
+      "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
+      "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage",
+      "packages/ui-native/src/menu/MenuDrawer.tsx#MenuDrawer: a Modal",
+      "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
+      "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
+      "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
       "packages/ui-native/src/regs/RegsScreen.tsx#RegsScreen: opens dayOpen",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
