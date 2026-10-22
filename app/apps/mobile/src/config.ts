@@ -20,6 +20,18 @@ const BASE = (process.env.EXPO_PUBLIC_DATA_BASE ?? "http://localhost:39217").rep
  */
 export const DATA_SOURCE: "release" | "bundle" = process.env.EXPO_PUBLIC_DATA_SOURCE === "bundle" ? "bundle" : "release";
 
+/**
+ * THE MENU'S BUILD FACTS (owner 2026-10-21). `CONTACT` is THE ONE contact value the menu's Contact and Report a problem
+ * pages read: an email address (`name@domain`) or a web link (`https://…`). Unset, the menu says contact details are
+ * coming and a report goes out through the share sheet only — no address is ever written into the code; the owner sets
+ * `EXPO_PUBLIC_CONTACT` for a build. `APP_BUILD` names the build in About and in a report ("1.2.0 (34)"), set by the
+ * build (`EXPO_PUBLIC_APP_BUILD`); unset, the menu says it is not stated.
+ */
+export const MENU_INFO = {
+  appBuild: process.env.EXPO_PUBLIC_APP_BUILD?.trim() || null,
+  contact: process.env.EXPO_PUBLIC_CONTACT?.trim() || null,
+} as const;
+
 export const ENDPOINTS = {
   base: BASE,
   /** The release manifest (app-manifest/2); every release file's url is relative to `${base}/release/`. */

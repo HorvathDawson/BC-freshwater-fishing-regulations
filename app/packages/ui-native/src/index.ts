@@ -39,4 +39,7 @@ export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
 export { FishSpinner } from "./FishSpinner";
+export { MenuButton, MenuContext } from "./menu/MenuButton";
+export { MenuHost, NO_MENU_INFO, type MenuInfo } from "./menu/MenuHost";
+export { ReportLink } from "./menu/ReportLink";
 export * from "./theme";

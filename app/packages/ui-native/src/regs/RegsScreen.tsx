@@ -16,6 +16,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, ScrollView, Text, View } from "react-native";
 import { tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { FaceBar } from "../Faces";
+import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { GUTTER, SPACE, type Palette } from "../theme";
@@ -109,13 +110,19 @@ export function RegsScreen({ page, palette, images, actions, day, onDay, onBack,
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
     const s = section(tab);
-    return <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>{node}</View>;
+    return (
+      <View ref={s.ref} onLayout={s.onLayout} collapsable={false} nativeID={`regs-${tab}`} testID={`regs-${tab}`}>
+        {node}
+        <ReportLink page={page} tab={tab} palette={palette} />
+      </View>
+    );
   };
   const body = (
     <View ref={content} collapsable={false} testID="regs-content">
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>
+      <ReportLink page={page} tab="keep" palette={palette} />
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}

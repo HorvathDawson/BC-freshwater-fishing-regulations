@@ -30,6 +30,7 @@ export * from "./routeMap";
 export * from "./temperature";
 export * from "./install";
 export * from "./pairing";
+export * from "./menu";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

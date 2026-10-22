@@ -45,3 +45,5 @@ export { gaugeGeoJSON, gaugeLabel, type GaugePoint, type GaugeQuantity }
   from "./gaugePoints";
 export * from "./gestures";
 export * from "./leave";
+export * from "./menu";
+export * from "./errorLog";

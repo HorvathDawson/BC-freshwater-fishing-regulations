@@ -14,7 +14,7 @@
  * status on the day, read by T09 as `choicesOnDay`; null when the inputs do not carry it — never a guess).
  */
 import { ruleBook, ruleBookLine } from "./book";
-import type { GlossaryTerm, RegsInputs, RuleView } from "./inputs";
+import type { GlossaryTerm, RegsInputs, RuleView, Statics } from "./inputs";
 import { plain, squash, text, type Line, type Run } from "./line";
 import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
 import { parseSheetKey, type ProfileKey, type SheetKey } from "./sheetKey";
@@ -47,10 +47,10 @@ function ruleSheet(key: SheetKey, r: RuleView): SheetVM {
 
 /** prototype pageLink: a PRINTED page as a bare book run, its PDF page from the one printed → PDF map (`Statics.pdfPages`);
  *  a page the map lacks is unlinked (pdf null). */
-const pageRun = (inp: RegsInputs, printed: number): Run => ({ t: "book", printed, pdf: inp.statics.pdfPages[printed] ?? null, bare: true });
+const pageRun = (inp: { readonly statics: Pick<Statics, "pdfPages"> }, printed: number): Run => ({ t: "book", printed, pdf: inp.statics.pdfPages[printed] ?? null, bare: true });
 
 /** prototype glossBody: the plain words, the example, the book's own words folded, then "Rule book" + the pages. */
-export function glossBlocks(inp: RegsInputs, t: GlossaryTerm): SheetBlock[] {
+export function glossBlocks(inp: { readonly statics: Pick<Statics, "pdfPages"> }, t: GlossaryTerm): SheetBlock[] {
   const out: SheetBlock[] = [para(t.says)];
   if (t.example) out.push({ k: "example", text: [text(WORDS.SHEET_FOR_EXAMPLE), text(" "), text(t.example)] });
   if (t.quote) out.push({ k: "fold", summary: WORDS.SHEET_BOOK_WORDS, open: false, body: [{ k: "quote", text: t.quote }] });

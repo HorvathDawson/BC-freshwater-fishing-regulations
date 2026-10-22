@@ -12,6 +12,7 @@ import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
 import { Pill } from "./Chrome";
 import { MapRail } from "./MapRail";
+import { MenuButton } from "./menu/MenuButton";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -93,8 +94,12 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         so the map and the panel cannot disagree. (The corner held a date pill before, for
         seasonal regulations; it went with them.)
       */}
+      {/* THE TOP-LEFT ROW: the menu (owner 2026-10-21, on every browse map), then the horizons or the way back to search */}
+      <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 6,
+                     alignItems: "center" }} pointerEvents="box-none">
+      <MenuButton palette={palette} />
       {horizons && (
-        <View style={{ position: "absolute", top: 14, left: 14, flexDirection: "row", gap: 6 }}>
+        <View style={{ flexDirection: "row", gap: 6 }}>
           {horizons.chips.map((h) => (
             <Pill key={h.day} palette={palette} onPress={() => horizons.onPick(h.day)}
                   // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map at
@@ -123,14 +128,13 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         corner MapLibre leaves empty; the system back and the browser's back do the same (one back rule).
       */}
       {onBack && (
-      <View style={{ position: "absolute", top: 14, left: 14 }}>
         <Pill palette={palette} onPress={onBack} label={SEARCH_MAP.backLabel}>
           <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600", color: palette.accent }}>
             {`‹ ${SEARCH_MAP.back}`}
           </Text>
         </Pill>
-      </View>
       )}
+      </View>
 
       {/*
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill, with Spots under it — the map's own

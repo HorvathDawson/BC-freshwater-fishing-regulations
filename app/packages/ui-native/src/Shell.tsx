@@ -15,7 +15,7 @@ import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
-import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
+import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { spotsMenu, useMapRail, type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
@@ -39,6 +39,8 @@ import { EdgeBack } from "./EdgeBack";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { WaterConditions, WaterMap } from "./WaterViews";
 import { WaterMapView } from "./water/WaterMapView";
+import { MenuContext } from "./menu/MenuButton";
+import { MenuHost, type MenuInfo } from "./menu/MenuHost";
 import type { FishImages } from "./regs/types";
 import { TYPE } from "./type";
 import { flowRamp, type Palette, type ThemeName } from "./theme";
@@ -66,7 +68,7 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, photos, status = null, pairing = null,
-                       systemBack = null, loader = null, initialRoute, locate = null }: {
+                       systemBack = null, loader = null, initialRoute, locate = null, menuInfo }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -111,6 +113,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   initialRoute?: Route;
   /** The platform's location, for the Spots menu's "At my location" (the app's). Absent -> not offered. */
   locate?: Locate | null;
+  /** The menu's build facts (app build, the one contact value), from the app's config. Absent -> neither stated. */
+  menuInfo?: MenuInfo;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -179,8 +183,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * map — `@app/ui` `useMapRail`. Every way of adding a spot ends in the route's `addSpot` at a point: one capture.
    */
   const rail = useMapRail(go, locate, route);
-  // the figures are drawn by the search screen (its total) and the layers sheet (reaches, stations, age)
-  const factsWanted = tab === "search" || layersOpen;
+  /** THE MENU (owner 2026-10-21): the hamburger's drawer and its pages, mounted below as back layers (menu/MenuHost). */
+  const menu = useMenu();
+  // the figures are drawn by the search screen (its total), the layers sheet (reaches, stations, age) and the menu's
+  // Data sources page (the feed's age)
+  const factsWanted = tab === "search" || layersOpen || menu.state.page === "sources";
   const facts = useDataFacts(source, feed, factsWanted);
   const counts = facts.state === "ready" ? facts.value.counts : null;
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
@@ -554,6 +561,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         || (tab === "map" && (lakeOn === "stocked" || statusOk)));
 
   return layered(
+    // the hamburger on each browse screen reads the menu from here (menu/MenuButton)
+    <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       {/*
         * SAY WHY THE MAP IS GREY.
@@ -690,7 +699,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                   photoStore={photos?.store} />
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
+      {/* the menu's drawer and pages: each open level a back layer (back closes a term, a page, the drawer) */}
+      <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
+                feedFetchedAt={facts.state === "ready" ? facts.value.fetchedAt ?? null : null}
+                route={route} day={mapDay} />
     </View>
+    </MenuContext.Provider>
   );
 }
 

@@ -30,13 +30,20 @@ import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { devStatus, releaseMapInput, releaseStatus, useReleaseBoot, useSpots, type MapTiles, type PairingInput,
-         type SpotPhotos, type StatusSource } from "@app/ui";
+import { devStatus, releaseMapInput, releaseStatus, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+         type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 import { locate } from "./locate";
 
-import { DATA_SOURCE, ENDPOINTS } from "./config";
+import { DATA_SOURCE, ENDPOINTS, MENU_INFO } from "./config";
+
+/*
+ * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
+ * in-memory ring, which a reader sees — and can switch off — in a report before sending it. Nothing is stored on disk
+ * and nothing is sent in the background (owner 2026-10-21).
+ */
+teeConsoleErrors(console);
 import { FISH_IMAGES } from "./fishImages.generated";
 
 /**
@@ -155,7 +162,7 @@ export default function App() {
             {rolledBackLine(rolledBack)}
           </Text>
         )}
-        <Shell source={data.source} palette={palette} loader={data.loader}
+        <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
                status={data.status} pairing={data.pairing}

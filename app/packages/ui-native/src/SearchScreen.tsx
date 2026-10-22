@@ -38,6 +38,7 @@ import { NO_SEARCH, isSelected, resultGroups, rowStatus, searchStep, useBackLaye
 import { FishSpinner } from "./FishSpinner";
 import { EyeIcon } from "./icons";
 import { MiniMap } from "./MiniMap";
+import { MenuButton } from "./menu/MenuButton";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { count } from "./format";
@@ -144,9 +145,13 @@ export function SearchScreen({ source, palette, onPick, total, tiles, theme, bas
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12, gap: 14 }}>
-        <View style={{ flexDirection: "row", alignItems: "baseline",
+        <View style={{ flexDirection: "row", alignItems: "center",
                        justifyContent: "space-between" }}>
-          <Text style={{ ...TYPE.screen, color: palette.ink }}>Search</Text>
+          {/* the menu, top-left on every browse screen (owner 2026-10-21); nothing without the Shell's menu */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <MenuButton palette={palette} variant="bar" />
+            <Text style={{ ...TYPE.screen, color: palette.ink }}>Search</Text>
+          </View>
           {total !== undefined && (
             <Text style={{ ...TYPE.section, color: palette.faint }}>
               {count(total, "named waters")}

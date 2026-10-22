@@ -1,0 +1,413 @@
+/**
+ * THE MENU (owner 2026-10-21): the hamburger's drawer and its five pages — Glossary, Data sources & dates, About,
+ * Report a problem, Contact. Every word they draw and every sentence they compose is here, where a test can pin the
+ * finished string (AGENTS 33); the components draw these VMs and decide nothing.
+ *
+ *   menuVM          the drawer's items, in order
+ *   glossaryRows    the glossary's list, searched — the release's own terms (`answers.glossary`, the same terms the
+ *                   regs page's `gl:` sheets open); a term's definition is `glossBlocks` (regs/sheets.ts), never a copy
+ *   aboutVM         what the app is, the authority disclaimer, the official synopsis, the versions
+ *   sourcesVM       every source the app reads and the date it was last updated — from the release manifest's
+ *                   `sources` (the pipeline reads them off its inputs) and from what the app itself fetched; a date
+ *                   nobody recorded says so, never a guess
+ *   contactVM       the ONE contact value (app config), or a placeholder until the owner supplies it
+ *   diagnosticRows / reportMessage / mailtoUrl   a problem report: what the user wrote plus the diagnostics they can
+ *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
+ *                   without the user pressing send, and nothing is sent in the background
+ */
+import { monthAbbr } from "./flow";
+import type { GlossaryTerm } from "./regs/inputs";
+import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
+
+// ── words ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export type MenuPageKey = "glossary" | "sources" | "about" | "report" | "contact";
+
+/** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
+export const APP_NAME = "Can I Fish This?";
+
+export const MENU_WORDS = {
+  open: "Open menu",
+  close: "Close menu",
+  title: "Menu",
+  back: "Back",
+  items: {
+    glossary: { label: "Glossary", hint: "What the regulations' words mean" },
+    sources: { label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
+    about: { label: "About", hint: "What this app is, and what it is not" },
+    report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
+    contact: { label: "Contact", hint: "Get in touch" },
+  } satisfies Record<MenuPageKey, { label: string; hint: string }>,
+  glossary: {
+    search: "Search the glossary",
+    loading: "Loading the glossary",
+    none: (q: string) => `No term matches “${q}”.`,
+    unavailable: "The glossary comes with the regulations data, which this build does not hold.",
+    failed: (why: string) => `The glossary could not be read: ${why}`,
+  },
+  about: {
+    what: `${APP_NAME} reads British Columbia's freshwater fishing regulations onto a map: tap a stream or a `
+      + "lake and it says what the regulations allow there on the day you choose, alongside what the water is doing.",
+    notOfficial: "This app is not the official regulations. It is built from the B.C. Freshwater Fishing Regulations "
+      + "Synopsis and other public sources, and it can be wrong or out of date. The Synopsis, the Province's in-season "
+      + "changes and federal notices are the law: check them before you fish.",
+    official: "Open the official Synopsis",
+    versions: "Versions",
+    app: "App build",
+    release: "Data release",
+    tiles: "Map tiles",
+    regulations: "Regulations",
+    devBundle: "Development bundle",
+    notStated: "Not stated",
+  },
+  sources: {
+    intro: "Every answer in this app comes from one of these. Each says when it was last updated.",
+    notRecorded: "Date not recorded in this release",
+    updated: (day: string) => `Updated ${day}`,
+    inForce: (day: string) => `In force until ${day}`,
+    notRead: "Not read by this app: check them before you fish",
+    version: (v: string) => `Version ${v}`,
+    checked: (ago: string) => `Checked ${ago}`,
+    notChecked: "Not checked yet",
+    live: "Live, when online",
+    perSpot: "Fetched when a spot is saved",
+    checkFirst: "The Province's in-season changes and Fisheries and Oceans Canada's notices can change a regulation at "
+      + "short notice. Check them before you fish.",
+    /** What each source is, in the order the screen lists them: the regulations, the map, the water, the sky. The
+     *  imagery's provider is the map's own attribution (the style), never restated here. */
+    rows: {
+      synopsis: { name: "Freshwater Fishing Regulations Synopsis",
+                  what: "The Province of British Columbia's printed regulations, read water by water" },
+      inseason: { name: "In-season regulation changes",
+                  what: "The Province's changes to the Synopsis, announced during the season" },
+      dfo: { name: "Fisheries and Oceans Canada salmon regulations",
+             what: "The federal salmon limits, openings and closures for B.C.'s fresh water, by region" },
+      fwa: { name: "B.C. Freshwater Atlas", what: "Every stream and lake on the map, from the Province of British Columbia" },
+      tiles: { name: "Map tiles", what: "The atlas drawn for the map, with every regulation's section in it" },
+      basemap: { name: "Basemap", what: "Roads, towns and terrain: © OpenStreetMap contributors, Protomaps" },
+      hydat: { name: "Gauge records (HYDAT)", what: "Past years of flow and level, Environment and Climate Change Canada" },
+      feed: { name: "Live gauge readings",
+              what: "Environment and Climate Change Canada, and the BC River Forecast Centre's forecasts" },
+      weather: { name: "Weather", what: "Open-Meteo.com (CC BY 4.0)" },
+      imagery: { name: "Satellite imagery", what: "Shown only while online; never stored on this device" },
+    },
+  },
+  /** how old a live value is ("Checked 7h ago") — the app's one convention (ui-native format.ts `ago` reads it) */
+  ago: {
+    now: "just now",
+    hours: (n: number) => `${n}h ago`,
+    days: (n: number) => `${n}d ago`,
+    unknown: "unknown age",
+  },
+  contact: {
+    intro: "Questions, corrections and ideas are welcome.",
+    placeholder: "Contact details are coming soon. Until then, use Report a problem to share a note from your device.",
+    email: "Email",
+    link: "Website",
+  },
+  report: {
+    intro: "Tell us what is wrong. Nothing leaves this device until you send it yourself, and only what you can see below.",
+    what: "What's wrong?",
+    whatHint: "For example: the closure dates on this river do not match the Synopsis.",
+    diagnostics: "Include with your report",
+    diagnosticsHint: "Switch off anything you would rather not share.",
+    send: "Send by email",
+    share: "Share…",
+    noShare: "Sharing is not available here. Copy the report below and send it to us.",
+    empty: "Write a few words about the problem first.",
+    preview: "This is what will be sent",
+    subject: `${APP_NAME} problem report`,
+    subjectAt: (where: string) => `${APP_NAME} problem report: ${where}`,
+    fromRegs: "Report a problem with this page",
+    /** the diagnostics' switches, in the order the form lists them */
+    diag: {
+      app: "App build", platform: "Platform", release: "Data release", tiles: "Map tiles",
+      where: "Where you were", errors: "Recent errors",
+    },
+    /** "Where you were", one line per fact */
+    where: {
+      screen: (s: string) => `Screen: ${s}`,
+      tab: (t: string) => `Tab: ${t}`,
+      water: (w: string) => `Water: ${w}`,
+      part: (p: string) => `Part: ${p}`,
+      section: (n: number) => `Section: ${n}`,
+      day: (d: string) => `Day: ${d}`,
+      /** the screen a regulations tab's report names */
+      regs: "water · regulations",
+    },
+  },
+} as const;
+
+// ── the drawer ───────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** The drawer's order: reading the regulations first, then where they come from, then the app, then talking to us. */
+export const MENU_ORDER: readonly MenuPageKey[] = ["glossary", "sources", "about", "report", "contact"];
+
+export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
+
+export function menuVM(): { title: string; items: readonly MenuItemVM[] } {
+  return { title: MENU_WORDS.title, items: MENU_ORDER.map((k) => ({ k, ...MENU_WORDS.items[k] })) };
+}
+
+// ── the glossary ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export interface GlossaryRowVM { readonly id: string; readonly term: string; readonly says: string }
+
+const fold = (s: string): string => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[’']/g, "'");
+
+/**
+ * The terms in alphabetical order, narrowed by `query`: a term whose name holds every word of the query comes first,
+ * then one whose plain words do (a reader searching "barbless" wants the term, not every definition mentioning it).
+ */
+export function glossaryRows(terms: readonly GlossaryTerm[], query = ""): GlossaryRowVM[] {
+  const byName = [...terms].sort((a, b) => fold(a.term).localeCompare(fold(b.term)) || a.id.localeCompare(b.id));
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const row = (t: GlossaryTerm): GlossaryRowVM => ({ id: t.id, term: t.term, says: t.says });
+  if (!words.length) return byName.map(row);
+  const has = (s: string) => words.every((w) => fold(s).includes(w));
+  const named = byName.filter((t) => has(t.term));
+  const said = byName.filter((t) => !has(t.term) && has(`${t.term} ${t.says}`));
+  return [...named, ...said].map(row);
+}
+
+// ── dates ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** "2026-07-15" -> "Jul 15, 2026"; anything that is not an ISO day -> null (never a guess). */
+export function isoDayWords(day: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day ?? "");
+  if (!m) return null;
+  const mo = Number(m[2]), d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return `${monthAbbr(mo - 1)} ${d}, ${m[1]}`;
+}
+
+/**
+ * "7h ago" — how old a live value is (an ISO instant). Days past 48h, because "72h ago" is arithmetic the reader should
+ * not have to do. ONE convention for the app: the Layers sheet's feed age (ui-native format.ts `ago`) is this function.
+ */
+export function agoWords(iso: string, now: number): string {
+  const w = MENU_WORDS.ago;
+  const h = Math.round((now - Date.parse(iso)) / 3.6e6);
+  if (!Number.isFinite(h)) return w.unknown;
+  if (h < 1) return w.now;
+  if (h < 48) return w.hours(h);
+  return w.days(Math.round(h / 24));
+}
+
+// ── about ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export interface AboutInput {
+  /** The app build (app config); null when the build states none. */
+  appBuild: string | null;
+  /** The data release id (the manifest's `data_release`); null on the development bundle. */
+  release: string | null;
+  /** The tile version the map draws (`<handles16>.<tilebuild12>`); null when none is known. */
+  tiles: string | null;
+  /** The printed edition the regulations were read from (the manifest's `sources.synopsis.title`). */
+  edition: string | null;
+}
+
+export interface AboutVM {
+  readonly what: string;
+  readonly notOfficial: string;
+  readonly official: { readonly label: string; readonly url: string };
+  readonly versionsTitle: string;
+  readonly versions: readonly { readonly label: string; readonly value: string }[];
+}
+
+export function aboutVM(a: AboutInput, synopsisUrl: string): AboutVM {
+  const w = MENU_WORDS.about;
+  return {
+    what: w.what, notOfficial: w.notOfficial, official: { label: w.official, url: synopsisUrl },
+    versionsTitle: w.versions,
+    versions: [
+      { label: w.app, value: a.appBuild ?? w.notStated },
+      { label: w.release, value: a.release ?? w.devBundle },
+      { label: w.tiles, value: a.tiles ?? w.notStated },
+      { label: w.regulations, value: a.edition ?? w.notStated },
+    ],
+  };
+}
+
+// ── data sources & dates ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/** One source's last update as the release states it (`sources.<key>`, pack.generated.ts `SourceFact`). */
+export interface SourceDate { readonly date: string | null; readonly title?: string }
+
+/** The sources a release dates (the manifest's `sources`; pipeline manifest.py SOURCE_KEYS, @app/data `SOURCE_KEYS`). */
+export type ReleaseSourceKey = "synopsis" | "dfo" | "fwa" | "basemap" | "hydat";
+
+export interface SourcesInput {
+  /** The manifest's `sources` block; null/absent keys: not recorded (a release built before the block, or the dev bundle). */
+  sources: Partial<Record<ReleaseSourceKey, SourceDate>> | null;
+  /** The last day the edition is in force (the manifest's `regulations.valid_until`), or null. */
+  validUntil: string | null;
+  /** The tile version the map draws. */
+  tiles: string | null;
+  /** When the live gauge feed was last fetched (its ISO instant, the data facts' `fetchedAt`), or null. */
+  feedFetchedAt: string | null;
+  now: number;
+}
+
+export type SourceDateKey = keyof typeof MENU_WORDS.sources.rows;
+
+export interface SourceDateRowVM { readonly k: SourceDateKey; readonly name: string; readonly what: string; readonly when: string }
+
+/** The order the screen lists them: the regulations, the map, the water, the sky. */
+const SOURCE_ORDER: readonly SourceDateKey[] =
+  ["synopsis", "inseason", "dfo", "fwa", "tiles", "basemap", "hydat", "feed", "weather", "imagery"];
+
+export function sourcesVM(s: SourcesInput): { intro: string; rows: readonly SourceDateRowVM[]; footnote: string } {
+  const w = MENU_WORDS.sources;
+  const dated = (f: SourceDate | undefined) => {
+    const d = isoDayWords(f?.date);
+    return d ? w.updated(d) : w.notRecorded;
+  };
+  const when = (k: SourceDateKey): string => {
+    switch (k) {
+      case "synopsis": {
+        // the printing's own date when recorded, else how long the edition is in force, else not recorded
+        const printed = isoDayWords(s.sources?.synopsis?.date);
+        const until = isoDayWords(s.validUntil);
+        return printed ? w.updated(printed) : until ? w.inForce(until) : w.notRecorded;
+      }
+      case "inseason": return w.notRead;
+      case "dfo": case "fwa": case "basemap": case "hydat": return dated(s.sources?.[k]);
+      case "tiles": return s.tiles ? w.version(s.tiles) : w.notRecorded;
+      case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
+        ? w.checked(agoWords(s.feedFetchedAt, s.now)) : w.notChecked;
+      case "weather": return w.perSpot;
+      case "imagery": return w.live;
+    }
+  };
+  return {
+    intro: w.intro,
+    rows: SOURCE_ORDER.map((k) => ({
+      k,
+      // the edition's own title where the release names it ("2025–2027 BC Freshwater Fishing Regulations Synopsis")
+      name: k === "synopsis" ? s.sources?.synopsis?.title ?? w.rows[k].name : w.rows[k].name,
+      what: w.rows[k].what,
+      when: when(k),
+    })),
+    footnote: w.checkFirst,
+  };
+}
+
+// ── contact ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export type ContactVM =
+  | { readonly kind: "none"; readonly intro: string; readonly text: string }
+  | { readonly kind: "email" | "link"; readonly intro: string; readonly label: string; readonly value: string; readonly url: string };
+
+/** The app's ONE contact value (config): an email address, a web link, or nothing yet (a placeholder, never a guess). */
+export function contactVM(contact: string | null | undefined): ContactVM {
+  const w = MENU_WORDS.contact;
+  const c = (contact ?? "").trim();
+  if (/^https?:\/\/\S+$/i.test(c)) return { kind: "link", intro: w.intro, label: w.link, value: c, url: c };
+  if (/^[^\s@/:]+@[^\s@/:]+\.[^\s@/:]+$/.test(c)) return { kind: "email", intro: w.intro, label: w.email, value: c, url: `mailto:${c}` };
+  return { kind: "none", intro: w.intro, text: w.placeholder };
+}
+
+// ── report a problem ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Where the reader was when they asked to report (the Shell's route, the regs page's own words). Every field optional. */
+export interface ReportWhere {
+  /** the screen: a browse tab ("map", "search", …) or a water's view ("water · regs") */
+  screen?: string | null;
+  /** the water's durable id */
+  water?: string | null;
+  /** the water's name as the page wrote it */
+  place?: string | null;
+  /** the tapped section (only meaningful with the data release beside it) */
+  section?: number | null;
+  /** the part's index in its water (the route's), and its label as the page wrote it ("Mouth → Source") */
+  part?: number | null;
+  partLabel?: string | null;
+  /** the day the page answers for, as the page wrote it */
+  day?: string | null;
+  /** the Regulations tab the report was asked from */
+  tab?: string | null;
+}
+
+export interface Diagnostics {
+  appBuild: string | null;
+  platform: string | null;
+  release: string | null;
+  tiles: string | null;
+  where: ReportWhere;
+  /** the recent error log, oldest first */
+  errors: readonly string[];
+}
+
+export type DiagKey = "app" | "platform" | "release" | "tiles" | "where" | "errors";
+export const DIAG_KEYS: readonly DiagKey[] = ["app", "platform", "release", "tiles", "where", "errors"];
+
+export interface DiagnosticRowVM { readonly k: DiagKey; readonly label: string; readonly lines: readonly string[] }
+
+const DIAG_LABEL: Record<DiagKey, string> = MENU_WORDS.report.diag;
+
+/**
+ * Where a report asked from a regulations tab was asked from: the page's own words (the water's name, the day as the
+ * header writes it, the tab's label) and its target — prefilled into the report's "Where you were", which the reader
+ * still sees and can switch off.
+ */
+export function regsReportWhere(page: { readonly target: RegsTarget;
+                                         readonly header: Pick<HeaderVM, "name" | "dayWord" | "date" | "tabs" | "place"> },
+                                tab: Tab): ReportWhere {
+  const t = page.target;
+  return {
+    screen: MENU_WORDS.report.where.regs,
+    tab: page.header.tabs.find((x) => x.tab === tab)?.label ?? tab,
+    place: page.header.name,
+    water: t.kind === "part" ? t.item : null,
+    part: t.kind === "part" ? t.partIx : null,
+    partLabel: page.header.place?.full ?? null,
+    section: t.kind === "section" ? t.handle : null,
+    day: `${page.header.dayWord}, ${page.header.date}`,
+  };
+}
+
+/** "Screen: water · regs" / "Water: Vedder River (item 356…)" / … — one line per thing the reader was looking at. */
+export function whereLines(w: ReportWhere): string[] {
+  const say = MENU_WORDS.report.where;
+  const out: string[] = [];
+  if (w.screen) out.push(say.screen(w.screen));
+  if (w.tab) out.push(say.tab(w.tab));
+  if (w.place || w.water) out.push(say.water([w.place, w.water ? `(${w.water})` : null].filter(Boolean).join(" ")));
+  const part = [w.part ?? null, w.partLabel ? `(${w.partLabel})` : null].filter((x) => x !== null).join(" ");
+  if (part) out.push(say.part(part));
+  if (w.section !== null && w.section !== undefined) out.push(say.section(w.section));
+  if (w.day) out.push(say.day(w.day));
+  return out;
+}
+
+/** The diagnostics as the reader sees them before sending: one row per switch, its exact lines beneath. Empty rows go. */
+export function diagnosticRows(d: Diagnostics): DiagnosticRowVM[] {
+  const lines: Record<DiagKey, string[]> = {
+    app: d.appBuild ? [d.appBuild] : [],
+    platform: d.platform ? [d.platform] : [],
+    release: d.release ? [d.release] : [],
+    tiles: d.tiles ? [d.tiles] : [],
+    where: whereLines(d.where),
+    errors: [...d.errors],
+  };
+  return DIAG_KEYS.filter((k) => lines[k].length).map((k) => ({ k, label: DIAG_LABEL[k], lines: lines[k] }));
+}
+
+/** The report as it will be sent: what the reader wrote, then exactly the rows they left on. */
+export function reportMessage(what: string, d: Diagnostics, on: Partial<Record<DiagKey, boolean>>):
+  { subject: string; body: string } {
+  const w = MENU_WORDS.report;
+  const where = d.where.place && on.where !== false ? [d.where.place, d.where.tab].filter(Boolean).join(" · ") : "";
+  const parts = [what.trim()];
+  const kept = diagnosticRows(d).filter((r) => on[r.k] !== false);
+  if (kept.length) parts.push(["--", ...kept.flatMap((r) => (r.lines.length === 1 ? [`${r.label}: ${r.lines[0]}`]
+                                                                    : [`${r.label}:`, ...r.lines.map((l) => `  ${l}`)]))].join("\n"));
+  return { subject: where ? w.subjectAt(where) : w.subject, body: parts.join("\n\n") };
+}
+
+/** mailto: with the subject and body encoded (RFC 6068: spaces as %20, line breaks as %0D%0A). */
+export function mailtoUrl(to: string, m: { subject: string; body: string }): string {
+  const enc = (s: string) => encodeURIComponent(s).replace(/%0A/g, "%0D%0A");
+  return `mailto:${to}?subject=${enc(m.subject)}&body=${enc(m.body.replace(/\r\n/g, "\n"))}`;
+}

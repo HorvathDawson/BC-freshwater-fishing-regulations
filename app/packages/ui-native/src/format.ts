@@ -11,6 +11,8 @@
  * are none" are different claims, and only one of them is safe to show.
  */
 
+import { agoWords } from "@app/core";
+
 /** `count(60648, "reaches")` -> "60,648 reaches". Undefined in, undefined out. */
 export function count(n: number | null | undefined, word: string): string | undefined {
   return n === null || n === undefined ? undefined : `${n.toLocaleString()} ${word}`;
@@ -30,9 +32,5 @@ export function plural(n: number, one: string, many: string): string {
  * to do.
  */
 export function ago(iso: string, now: number = Date.now()): string {
-  const h = Math.round((now - Date.parse(iso)) / 3.6e6);
-  if (!Number.isFinite(h)) return "unknown age";
-  if (h < 1) return "just now";
-  if (h < 48) return `${h}h ago`;
-  return `${Math.round(h / 24)}d ago`;
+  return agoWords(iso, now);          // core's: the menu's Data sources page says a feed's age in the same words
 }
