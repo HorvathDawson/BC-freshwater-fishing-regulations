@@ -637,3 +637,10 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - Rule: stepping ▲/▼ off the end of a water into the water it CONTINUES AS / FROM (a name change on the same
   mainstem, through a lake included) REPLACES the current step; back still leaves the whole system in one press.
   A true tributary (a creek's mouth on another river, "Flows into …" from a side stream) stays one extra step.
+- CLAUDE (built): the cause was the pipeline, not the app. `build_panels` read the graph's NodeKind (a polygon is
+  `lake:<wbk>`) as the water's kind, so all 146 stream-item polygons had no panel; 45 on 20 waters (Nicomen 4, the
+  Vedder Canal on the Vedder River …) drew grey between coloured lines. Now `build_panels.stream_polygons` gives a
+  STREAM item's polygon the panel + target area of the nearest panelled line of the same water (downstream first,
+  never another water's), keyed on the item's kind — the one colouring engine then paints it like its lines, with no
+  app change. Lake items untouched. Needs a `pipeline.deliver` rerun (no tile/atlas/reach rebuild). Lines boxed
+  between polygons (Nicomen 59620) and finding the rest: T54.
