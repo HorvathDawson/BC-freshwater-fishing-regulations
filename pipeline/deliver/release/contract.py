@@ -20,6 +20,10 @@ _REGION_TABLES = {
     "meta": ["k", "v"],
 }
 
+#: the files a release may omit. `lakes` is the lake modes' slot, prepared and not fed (owner 2026-10-21): no producer
+#: makes one, `deliver all` ships none, and the app greys Stocked / Depth until a release carries it.
+OPTIONAL = frozenset({"lakes"})
+
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},

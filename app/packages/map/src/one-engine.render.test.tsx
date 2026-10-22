@@ -194,7 +194,8 @@ describe("one colouring engine in the web map", () => {
   it("A NEW RELEASE ALONE recolours the lakes (Stocked / Depth): feature-state only — no paint, no tile, no rebuild", async () => {
     const TODAY = 46314;
     const facts = (survey: Record<number, SurveyState>, stocked: Record<number, number>): LakeFacts =>
-      ({ handles: "0".repeat(16), asof: TODAY, sections: 2, survey: (s) => survey[s] ?? null,
+      ({ handles: "0".repeat(16), asof: TODAY, sections: 2, surveyed: Object.keys(survey).length,
+         stocked: Object.keys(stocked).length, survey: (s) => survey[s] ?? null,
          stockedDay: (s) => stocked[s] ?? null });
     const R1 = facts({ 12: "sheet" }, { 12: TODAY - 30 });
     const R2 = facts({ 12: "sheet", 15: "digitised" }, { 12: TODAY - 400, 15: TODAY - 5 });

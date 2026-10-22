@@ -6,7 +6,10 @@
  *
  * Layout (little-endian, varints LEB128): b"BCLK", u8 1, 8 bytes of the section_handles digest, asof + 1, count, then
  * per section (sid ascending) the sid delta, u8 survey (0 none, 1 sheet, 2 digitised), last stocked day + 1 (0 never).
- * Days count from 1900-01-01 (FFSBC's roster begins in 1901). A section the file does not list has neither.
+ * Days count from 1900-01-01 (stocking records reach back past 1901). A section the file does not list has neither.
+ *
+ * PREPARED, NOT FED (owner 2026-10-21): no feed produces this file yet and no release carries it; the layers menu greys
+ * Stocked and Depth until one does (`surveyed` / `stocked` below say whether a release carries values for each).
  */
 
 /** The style's `survey_state` enum, as the file codes it (1, 2). */
@@ -29,10 +32,14 @@ export type StockRecency = typeof STOCK_RECENCY[number]["band"];
 export interface LakeFacts {
   /** The section_handles digest the file was built against. */
   readonly handles: string;
-  /** The stocking roster's day (days since 1900-01-01), or null when the release had none. */
+  /** The feed's as-of day (days since 1900-01-01), or null when the file names none. */
   readonly asof: number | null;
   /** How many sections the file lists. */
   readonly sections: number;
+  /** How many sections carry a survey (sheet or digitised): 0 means the Depth mode has nothing to colour. */
+  readonly surveyed: number;
+  /** How many sections carry a last stocked day: 0 means the Stocked mode has nothing to colour. */
+  readonly stocked: number;
   survey(sid: number): SurveyState | null;
   /** The last day the section's lake was stocked (days since 1900-01-01), or null: never, or not known. */
   stockedDay(sid: number): number | null;
@@ -87,7 +94,7 @@ export function decodeLakeFacts(b: Uint8Array, handles: string): LakeFacts {
   }
   if (i !== b.length) throw new LakeFactsError(`lake facts: ${b.length - i} trailing bytes`);
   return {
-    handles: digest, asof: asof ? asof - 1 : null, sections: n,
+    handles: digest, asof: asof ? asof - 1 : null, sections: n, surveyed: survey.size, stocked: stocked.size,
     survey: (s) => survey.get(s) ?? null,
     stockedDay: (s) => stocked.get(s) ?? null,
   };

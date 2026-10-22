@@ -1,72 +1,63 @@
-"""LAKE FACTS: per lake SECTION, whether it was surveyed and when it was last stocked — what the map's Depth and
-Stocked lake modes colour by (owner 2026-10-21: one colouring pathway for every map view and mode, lake stocked and
-depth included, and colours that update from DATA ALONE — nothing about a lake's survey or stocking is baked into the
-tiles, whose lake features carry only `section_id, name, water, area_m2`).
+"""LAKE FACTS — PREPARED, NOT FED. Per lake SECTION, a survey state and a last stocked day: what the map's Depth and
+Stocked lake modes colour by, through the one colouring engine, from DATA ALONE (the tiles' lake features carry only
+`section_id, name, water, area_m2`, so a new release recolours the lakes with no tile change).
 
-    python -m pipeline.deliver lake_facts [--bundle FILE] [--out FILE] [--build DIR] [--gpkg FILE]
-                                          [--sheets-csv FILE] [--sheets-json FILE] [--stocking FILE]
+OWNER 2026-10-21 (handoff/PLAN/app-integration/decisions.md): "we dont have the stocking and bathy map data in a feed
+yet. but we just want it prepared for it when we do have the feed." So this module holds only what is source-agnostic:
+the file format (`lakes/1`), the binding rule a feed's identifiers must go through, and the per-section fold. NOTHING
+produces a lakes file today: there is no fetch, `deliver all` makes none, and the release ships no `lakes` unless
+`python -m pipeline.deliver.release --lake-facts FILE` is handed one. The app greys its Stocked and Depth toggles while
+the loaded release carries no lake values and enables them, with no app change, when one does.
 
-Written beside the bundle (`lake_facts.bin`) and pinned to its handle table, like `status_index.bin`; the release
-copies it as the file `lakes` (`release/build.py`, format `lakes/1`) and refuses one from another atlas.
+WHAT A FUTURE FEED MUST PROVIDE (a first lane used the FFSBC stocking report and the BC Data Catalogue's survey-sheet
+rosters; both were dropped — the first has no open licence, the catalogue entries are "Access Only"):
+  * a licence that permits redistributing a derived per-lake value;
+  * per water, an identifier the FWA lakes layer carries — the 50K waterbody identifier (`00330VICT`) is
+    `WATERBODY_KEY_GROUP_CODE_50K` in the lakes layer of `bc_fisheries_data.gpkg`, and the lake's section is
+    `lake:<WATERBODY_KEY>` in the atlas's handle table (`pipeline.common.section_handles`) — PLUS the water's name(s);
+  * survey: per water, none / sheet (a bathymetric sheet exists) / digitised (the sheet was traced into contours);
+  * stocking: per water, the release dates (ISO days); the file keeps the LATEST release on or before the feed's own
+    as-of day, and that as-of day itself (the app bands "how long ago" from today, `stock_recency`).
+  The output is keyed by section_id (integer handle), never by name: values are pinned to the bundle's
+  `section_handles`, and the release refuses a file built against another atlas.
 
-THE SOURCES (each a fetch away, `data/source/`):
-  survey    the two survey-sheet rosters, `wsa_bathymetry_maps.csv` and `bc_bathymetry_sheets.json`
-            (BATH_SURVEY_MAP_SHEETS_SVW; neither is complete — see `fetch_data.fetch_bathymetry_sheets`). A lake with a
-            sheet is SURVEYED; one whose sheet the province traced into contours (`vectorized_flag` Y) is DIGITISED.
-  stocking  the Freshwater Fisheries Society of BC's release roster (`stocking/ffsbc_releases.json`,
-            `python -m pipeline.stocking.fetch`): every release since 1901, by FIDQ waterbody identifier.
-
-THE JOIN IS THE FWA'S OWN KEY, CONFIRMED BY A NAME (`pipeline/bathymetry`, `pipeline/stocking`). Both rosters key on
-the 50K waterbody identifier (`02322SAJR`), the same string as the lakes layer's `WATERBODY_KEY_GROUP_CODE_50K`; the
-lake's section is `lake:<WATERBODY_KEY>` in the atlas's handle table. When one of the source's names agrees with one
-of the FWA's three gazetted names (generic word dropped, "(formerly)" read as the same water), the identifier binds to
-EVERY lake under its code whose names agree, plus the code's unnamed parts — a differently-named lake sharing the code
-(BUNTZEN's code also carries McCombe Lake) is not bound. When the FWA names none of them, it binds every lake under the
-code. A code whose names all disagree is REFUSED — a migrated
-50K key landing on the wrong water is the failure the audits found, and a stocking record on the wrong lake tells
-somebody there are fish where there are none. The counts of every verdict are printed; nothing is dropped silently.
+THE BINDING RULE (`bind`, learned the hard way): a 50K code can cover several FWA lakes. A source name that agrees with
+one of the FWA's three gazetted names (generic word dropped, "(formerly)" read as the same water) binds ONLY the lakes
+under the code whose names agree, plus the code's unnamed parts — never a differently-named neighbour sharing the code
+(the first cut bound every lake under the code, so Buntzen's record coloured McCombe Lake, Mara's Rosemond, Meadow's
+Pigeon). When the FWA names none of the code's lakes, every lake under it binds. A code whose names all disagree is
+REFUSED: a migrated key landing on the wrong water tells somebody there are fish where there are none. A feed reports
+the count of every verdict; nothing is dropped silently.
 
 THE FILE (`lakes/1`), little-endian, varints LEB128:
     magic    b"BCLK"
     version  u8 = 1
     handles  8 bytes: the bundle's `meta.section_handles` (16 hex digits) as raw bytes
-    asof     varint: the stocking roster's day (days since 1900-01-01, `EPOCH`) + 1, 0 = no roster
+    asof     varint: the feed's as-of day (days since 1900-01-01, `EPOCH`) + 1, 0 = none
     count    varint: sections listed
     then per section, ascending sid:
       sid delta  varint (from the previous sid; the first from 0)
       survey     u8: 0 none, 1 sheet, 2 digitised
-      stocked    varint: last release day + 1, 0 = never stocked (or no roster)
+      stocked    varint: last release day + 1, 0 = never stocked (or not known)
 A section the file does not list has no survey and no stocking: absence is the claim.
 """
 from __future__ import annotations
 
-import argparse
-import csv
 import datetime as dt
-import json
 import re
-import sqlite3
-import sys
 from collections import Counter
-from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, NamedTuple, Optional, Sequence, Set, Tuple
+from typing import Dict, List, Mapping, NamedTuple, Optional, Sequence, Set, Tuple
 
-from pipeline.common.curated import GENERATED, SOURCE
 from pipeline.deliver.tiles.names import normalise
 
 FORMAT = "lakes/1"
 MAGIC = b"BCLK"
 VERSION = 1
 NONE, SHEET, DIGITISED = 0, 1, 2
-#: day numbers count from here: FFSBC's roster begins in 1901, so 1970 would make the oldest releases negative
+#: day numbers count from here: stocking records reach back past 1901, so 1970 would make the oldest negative
 EPOCH = dt.date(1900, 1, 1)
 
-GPKG = "bc_fisheries_data.gpkg"
-SHEETS_CSV = "wsa_bathymetry_maps.csv"
-SHEETS_JSON = "bc_bathymetry_sheets.json"
-STOCKING = "stocking/ffsbc_releases.json"
-
-#: the generic word a name may carry or drop ("LANGFORD" is FFSBC's Langford Lake; "SOUTH BURNIE L." a sheet's title)
+#: the generic word a name may carry or drop ("LANGFORD" for Langford Lake; "SOUTH BURNIE L." a sheet's title)
 _GENERIC = re.compile(r"\s+(lake|lakes|l|pond|ponds|reservoir)$")
 _FORMERLY = re.compile(r"\s*\(\s*formerly\s*\)\s*", re.I)
 
@@ -100,47 +91,6 @@ def bind(ident: str, names: Set[str], lakes: Mapping[str, Sequence[FwaLake]]) ->
         return (), "name_disagrees"
     agree = lambda c: not any(c.gnis) or bool({core(g) for g in c.gnis if g} & src)    # noqa: E731
     return tuple(sorted({c.wbk for c in cands if agree(c)})), "verified"
-
-
-def surveys(csv_rows: Iterable[Mapping], wfs_rows: Iterable[Mapping]) -> Dict[str, Tuple[Set[str], int]]:
-    """{identifier: (every name either source gives it, SHEET | DIGITISED)}."""
-    out: Dict[str, Tuple[Set[str], int]] = {}
-    for row in csv_rows:
-        ident = (row.get("WATERBODY_IDENTIFIER_WSA_50K") or "").strip()
-        if ident:
-            names, kind = out.get(ident, (set(), SHEET))
-            names |= {row.get(k) for k in ("GAZETTED_NAME", "MAP_TITLE") if row.get(k)}
-            out[ident] = (names, kind)
-    for row in wfs_rows:
-        ident = (row.get("waterbody_identifier") or "").strip()
-        if ident:
-            names, kind = out.get(ident, (set(), SHEET))
-            names |= {row.get(k) for k in ("gazetted_name", "map_title") if row.get(k)}
-            if (row.get("vectorized_flag") or "").upper() == "Y":
-                kind = DIGITISED
-            out[ident] = (names, kind)
-    return dict(sorted(out.items()))
-
-
-def day_of(iso: str) -> int:
-    return (dt.date.fromisoformat(iso[:10]) - EPOCH).days
-
-
-def last_stocked(rows: Iterable[Mapping], asof: int) -> Dict[str, Tuple[Set[str], int]]:
-    """{identifier: (the names its releases carry, the latest release day on or before `asof`)}."""
-    out: Dict[str, Tuple[Set[str], int]] = {}
-    for r in rows:
-        ident = (r.get("wbid") or "").strip()
-        if not ident or not r.get("date"):
-            continue
-        d = day_of(r["date"])
-        if d > asof:
-            continue
-        names, best = out.get(ident, (set(), d))
-        if r.get("water"):
-            names.add(r["water"])
-        out[ident] = (names, max(best, d))
-    return out
 
 
 def facts(survey: Mapping[str, Tuple[Set[str], int]], stocked: Mapping[str, Tuple[Set[str], int]],
@@ -228,64 +178,3 @@ def handles_of(b: bytes) -> str:
     if b[:4] != MAGIC:
         raise ValueError("lake facts: not a lakes/1 file")
     return b[5:13].hex()
-
-
-# ---- the sources ---------------------------------------------------------------------------------------------------
-
-def fwa_lakes(gpkg: Path) -> Dict[str, List[FwaLake]]:
-    """{group code: the FWA lakes carrying it} — two columns of the lakes layer, read straight from the GeoPackage."""
-    con = sqlite3.connect(f"file:{gpkg}?mode=ro", uri=True)
-    out: Dict[str, List[FwaLake]] = {}
-    for code, wbk, g1, g2, g3 in con.execute(
-            "SELECT WATERBODY_KEY_GROUP_CODE_50K, WATERBODY_KEY, GNIS_NAME_1, GNIS_NAME_2, GNIS_NAME_3 FROM lakes "
-            "WHERE WATERBODY_KEY_GROUP_CODE_50K IS NOT NULL AND WATERBODY_KEY_GROUP_CODE_50K <> '' "
-            "AND WATERBODY_KEY IS NOT NULL ORDER BY WATERBODY_KEY_GROUP_CODE_50K, WATERBODY_KEY"):
-        out.setdefault(code.strip(), []).append(FwaLake(str(int(wbk)), (g1 or "", g2 or "", g3 or "")))
-    con.close()
-    return out
-
-
-def build(*, bundle: Path, build_dir: Path, gpkg: Path, sheets_csv: Path, sheets_json: Path,
-          stocking: Optional[Path]) -> Tuple[bytes, dict]:
-    from pipeline.common import section_handles as SHD
-    meta = dict(sqlite3.connect(f"file:{bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))
-    handles = meta["section_handles"]
-    if SHD.digest_for(build_dir) != handles:
-        raise SystemExit(f"lake facts: {build_dir} is not the atlas the bundle was built from")
-    _, index = SHD.read(build_dir)
-    with sheets_csv.open(encoding="utf-8-sig") as fh:
-        csv_rows = list(csv.DictReader(fh))
-    survey = surveys(csv_rows, json.loads(sheets_json.read_text()))
-    asof, stocked = None, {}
-    if stocking is not None:
-        roster = json.loads(stocking.read_text())
-        asof = day_of(roster["fetched"])
-        stocked = last_stocked(roster["rows"], asof)
-    f, report = facts(survey, stocked, fwa_lakes(gpkg), index)
-    return encode(f, handles=handles, asof=asof), {"sections": len(f), "asof": asof, **report}
-
-
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    ap = argparse.ArgumentParser(prog="pipeline.deliver lake_facts", description=__doc__.split("\n\n")[0])
-    ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
-    ap.add_argument("--out", type=Path, default=GENERATED.bundle / "lake_facts.bin")
-    ap.add_argument("--build", type=Path, default=None, help="the atlas build (default: the configured one)")
-    ap.add_argument("--gpkg", type=Path, default=SOURCE / GPKG)
-    ap.add_argument("--sheets-csv", type=Path, default=SOURCE / SHEETS_CSV)
-    ap.add_argument("--sheets-json", type=Path, default=SOURCE / SHEETS_JSON)
-    ap.add_argument("--stocking", type=Path, default=SOURCE / STOCKING)
-    a = ap.parse_args(argv)
-    if not a.stocking.exists():
-        print(f"lake facts: no stocking roster at {a.stocking} — run `python -m pipeline.stocking.fetch`",
-              file=sys.stderr)
-        return 1
-    raw, report = build(bundle=a.bundle, build_dir=a.build or GENERATED.require_build(), gpkg=a.gpkg,
-                        sheets_csv=a.sheets_csv, sheets_json=a.sheets_json, stocking=a.stocking)
-    a.out.parent.mkdir(parents=True, exist_ok=True)
-    a.out.write_bytes(raw)
-    print(json.dumps({"out": str(a.out), "bytes": len(raw), **report}, indent=1))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

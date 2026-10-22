@@ -13,8 +13,9 @@ writes paint, derives three per-water flags for search, converts the climatology
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
                  (bands float16: clim/2)
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
-  lakes          per lake section: surveyed (sheet / digitised), last stocked     lake_facts.bin
-                 day — the Depth and Stocked modes' values (lakes/1)              (pipeline.deliver.lake_facts)
+  lakes          OPTIONAL, absent today: per lake section, surveyed / last        a lakes/1 file, only when
+                 stocked — the Depth and Stocked modes' values (lakes/1)          handed one (`lakes=`); no feed
+                                                                                  makes one yet (lake_facts.py)
 
 Every SQLite file carries a `meta` table: format, section_handles, reach_digest (+ rule_ids_sha256 and the card-gate
 stamp where they apply). Each file ships as `<name>-<sha12>.<ext>.gz` (gzip -9, no timestamp); the manifest
@@ -200,7 +201,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
           lakes: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap` are the
-    manifest's blocks (manifest.py); `lakes` the lake facts (`lake_facts.bin`), shipped as the file `lakes`."""
+    manifest's blocks (manifest.py); `lakes` an optional lakes/1 file
+    (pipeline/deliver/lake_facts.py), shipped as the file `lakes`; None (the default, and `deliver all`) ships none."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())

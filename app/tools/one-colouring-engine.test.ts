@@ -27,7 +27,7 @@ import { statusFeed } from "../packages/ui/src/mapModes";
 const read = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
 /** The keys the engine's channels label a section with, from the channels themselves — never restated. */
 const index = { profileOf: () => null, profiles: 0 } as never;
-const lakes = { facts: { survey: () => null, stockedDay: () => null, sections: 0 } as never, day: 0 };
+const lakes = { facts: { survey: () => null, stockedDay: () => null, sections: 0, surveyed: 0, stocked: 0 } as never, day: 0 };
 const KEYS: Record<Channel, string> = {
   status: statusInput({ index, day: new Date(2026, 0, 1) }).labels.key,
   standing: standingInput({ labels: { classOf: () => null }, values: null }).labels.key,

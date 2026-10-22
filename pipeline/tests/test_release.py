@@ -80,13 +80,11 @@ def rel(request, tmp_path_factory):
     store = need(request, "bundle", STORE, BUNDLE_HINT)
     si = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
     exp = need(request, "bundle", EXPORT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
-    # the contract's `lakes` file: built beside the bundle by `python -m pipeline.deliver lake_facts`
-    lakes = need(request, "bundle", GENERATED.bundle / "lake_facts.bin", "python -m pipeline.deliver lake_facts")
     if not sqlite3.connect(f"file:{bundle}?mode=ro", uri=True).execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'part_geo'").fetchone():
         pytest.fail(f"{bundle} predates P09: point UI_EXPORT_BUNDLE at a bundle with part_geo")
     out = tmp_path_factory.mktemp("release")
-    kw = dict(bundle=bundle, store=store, status_index=si, export_dir=exp, lakes=lakes)
+    kw = dict(bundle=bundle, store=store, status_index=si, export_dir=exp)
     d = B.build(**kw, out_root=out / "a")
     d2 = B.build(**kw, out_root=out / "b")
     return d, d2, bundle, store, si
@@ -178,11 +176,12 @@ def test_two_builds_write_the_same_bytes_and_the_sizes_hold(rel):
 
 @pytest.mark.needs_bundle
 def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
-    from pipeline.deliver.release.contract import FILES
+    from pipeline.deliver.release.contract import FILES, OPTIONAL
     d = rel[0]
     m = json.loads((d / "manifest.json").read_text())
-    assert set(m["files"]) == set(FILES)
-    for name, spec in FILES.items():
+    # every file but the optional ones; `lakes` is prepared, not fed (owner 2026-10-21), so this release has none
+    assert set(m["files"]) == set(FILES) - OPTIONAL
+    for name, spec in ((n, s) for n, s in FILES.items() if n in m["files"]):
         assert m["files"][name]["format"] == spec["format"], name
         if spec["kind"] == "sqlite":
             con = _open(d, name, tmp_path)

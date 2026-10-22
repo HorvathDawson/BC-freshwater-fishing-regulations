@@ -16,7 +16,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, exitAction, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, useBack, useEdgeBack, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour,
+import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useLakeColour, lakeModeOn, lakeModesReady,
          NO_SEARCH, type SearchMemory, usePickFocus, usePairing, useRegulationKeys, useStatusIndex, statusFeed,
          useHorizon, type Horizon, type PairingInput, type StatusSource } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
@@ -255,13 +255,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const statusIndex = useStatusIndex(status);
   const statusOk = statusIndex !== null && paired;
-  const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
+  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native). */
+  const perTile = coloursEachTile(Platform.OS);
+  // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
+  const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });
+  // PREPARED, NOT FED (owner 2026-10-21): a lake mode with no values in the release is greyed in Layers and drawn plain
+  const lakeReady = useMemo(() => lakeModesReady(lakeFeed), [lakeFeed]);
+  const lakeOn = lakeModeOn(layers.lake, lakeReady);
+  const lakeChoice = lakeChoices(palette).find((c) => c.k === lakeOn);
   /*
    * WHAT EACH LAYER IS COLOURED BY (P12): the quantity, the percentile asked of the panel, the field and every layer's
    * mode, decided in `@app/ui` (`useMapModes`) and only drawn here.
    */
-  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native). */
-  const perTile = coloursEachTile(Platform.OS);
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, lake: lakeChoice,
                            groups });
   const { onConditions, quantity, modes, activeGroups } = mm;
@@ -272,8 +277,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
                                      horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible });
-  // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
-  const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });
   const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
@@ -524,7 +527,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
 
   const showLegend = route.mode === "browse"
     && (tab === "conditions"
-        || (tab === "map" && (layers.lake === "stocked" || statusOk)));
+        || (tab === "map" && (lakeOn === "stocked" || statusOk)));
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -620,7 +623,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                           mid="normal" high="high"
                           stops={flowRamp(theme)} marks={visibleMarks} />
             )
-          ) : layers.lake === "stocked" ? (
+          ) : lakeOn === "stocked" ? (
             palette.stock.map((c, i) => (
               <LegendCount key={c} palette={palette} colour={c}
                            label={STOCK_BANDS[i]!.label} />
@@ -652,7 +655,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    stations={facts.state === "ready"
                      ? facts.value.liveStations ?? counts?.stations : undefined}
                    fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
-                   attribution={attribution} />
+                   attribution={attribution} ready={lakeReady} />
       </BackLayerContext.Provider>
     </View>
   );

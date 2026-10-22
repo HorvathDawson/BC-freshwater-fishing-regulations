@@ -9,10 +9,12 @@
  * A menu is a list of promises about what the map can do. This checks them against the
  * generated style, which is the only thing that knows.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { STYLE_META } from "@app/map";
-import { STOCK_RECENCY } from "@app/core";
-import { STOCK_BANDS, lakeChoices } from "./LayersSheet";
+import { STOCK_RECENCY, decodeLakeFacts } from "@app/core";
+import { lakeModesReady, type LakeModesReady } from "@app/ui";
+import { LayersSheet, STOCK_BANDS, lakeChoices, type LayersState } from "./LayersSheet";
 import { LIGHT } from "./theme";
 
 const modesFor = (layer: string) => Object.keys(STYLE_META.colorModes[layer] ?? {});
@@ -51,5 +53,56 @@ describe("Layers choices", () => {
       expect(c.swatch, c.k).toHaveLength(3);
       for (const s of c.swatch) expect(s, `${c.k} swatch`).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
+  });
+});
+
+/*
+ * THE LAKE MODES' GATE (owner 2026-10-21: Stocked / Depth prepared, not fed). While the loaded release carries no lake
+ * values the two modes are greyed, not pressable, said disabled to a screen reader (`aria-disabled`, AGENTS 34), and one
+ * line says why; a release that carries values enables them with no app change.
+ */
+describe("Layers: the lake modes' gate", () => {
+  afterEach(cleanup);
+  const mount = (ready: LakeModesReady, lake = "plain") => {
+    const set: LayersState[] = [];
+    render(<LayersSheet open onClose={() => {}} palette={LIGHT} state={{ lake, basemap: "map" }}
+                        onState={(s) => set.push(s)} theme="light" onTheme={() => {}} ready={ready} />);
+    const radios = screen.getAllByRole("radio").filter((r) => ["Depth", "Stocked", "Plain"].includes(r.textContent ?? ""))
+      .map((r) => `${r.textContent}${r.getAttribute("aria-disabled") === "true" ? " (off)" : ""}`
+                  + `${r.getAttribute("aria-checked") === "true" ? " (chosen)" : ""}`);
+    return { set, radios };
+  };
+  const note = () => screen.queryByTestId("lake-modes-note")?.textContent ?? null;
+  /** A synthetic lakes/1 release file: sid 12 a sheet, last stocked on day 4 — no feed makes one yet. */
+  const FED = lakeModesReady({ day: 46314, facts: decodeLakeFacts(Uint8Array.from(
+    [0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 1, 5]), "d768d6e135e62b99") });
+
+  it("no lake values in the release: Depth and Stocked greyed and not pressable, and the note says why", () => {
+    const { set, radios } = mount(lakeModesReady(null));
+    expect(radios).toEqual(["Depth (off)", "Stocked (off)", "Plain (chosen)"]);
+    expect(note()).toBe("No data yet for Depth and Stocked");
+    fireEvent.click(screen.getByRole("radio", { name: "Stocked" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Depth" }));
+    expect(set).toEqual([]);
+  });
+
+  it("a stale choice with no values shows Plain chosen and no Stocked legend", () => {
+    mount(lakeModesReady(null), "stocked");
+    expect(screen.queryByText("Stocked this season")).toBeNull();
+    expect(screen.getByRole("radio", { name: "Plain" }).getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("a release carrying lake values: both enabled, no note, a press chooses the mode", () => {
+    const { set, radios } = mount(FED);
+    expect(radios).toEqual(["Depth", "Stocked", "Plain (chosen)"]);
+    expect(note()).toBeNull();
+    fireEvent.click(screen.getByRole("radio", { name: "Stocked" }));
+    expect(set).toEqual([{ lake: "stocked", basemap: "map" }]);
+  });
+
+  it("only the mode without values waits: survey values alone enable Depth, not Stocked", () => {
+    const { radios } = mount({ depth: true, stocked: false });
+    expect(radios).toEqual(["Depth", "Stocked (off)", "Plain (chosen)"]);
+    expect(note()).toBe("No data yet for Stocked");
   });
 });

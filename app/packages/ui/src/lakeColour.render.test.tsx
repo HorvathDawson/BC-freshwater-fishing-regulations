@@ -10,7 +10,7 @@ import type { RegsSource } from "@app/data";
 import { useLakeColour } from "./lakeColour";
 
 const facts = (tag: string): LakeFacts => ({
-  handles: tag, asof: 46314, sections: 1, survey: () => null, stockedDay: () => null,
+  handles: tag, asof: 46314, sections: 1, surveyed: 0, stocked: 0, survey: () => null, stockedDay: () => null,
 });
 const source = (f: LakeFacts | null, asked: string[] = []) =>
   ({ lakeFacts: async () => { asked.push("lakeFacts"); return f; } } as unknown as RegsSource);

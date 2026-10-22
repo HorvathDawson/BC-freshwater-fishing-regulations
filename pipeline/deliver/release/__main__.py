@@ -1,5 +1,5 @@
 """python -m pipeline.deliver.release [--bundle FILE] [--store FILE] [--status-index FILE] [--export-dir DIR]
-                                    [--out-root DIR] [--data-release ID]
+                                    [--out-root DIR] [--data-release ID] [--lake-facts FILE]
 
 Writes `<out-root>/<data_release>/` (default `data/release/`), prints the sizes and fails on a size gate."""
 from __future__ import annotations
@@ -24,8 +24,9 @@ def main(argv=None) -> int:
     ap.add_argument("--export-dir", type=Path, default=EXPORT.parent)
     ap.add_argument("--out-root", type=Path, default=GENERATED.release)
     ap.add_argument("--data-release", default=None, help="default: r-<sha12 of the files>")
-    ap.add_argument("--lake-facts", type=Path, default=GENERATED.bundle / "lake_facts.bin",
-                    help="the lake facts (python -m pipeline.deliver lake_facts); shipped as `lakes`")
+    ap.add_argument("--lake-facts", type=Path, default=None,
+                    help="a lakes/1 file (pipeline/deliver/lake_facts.py), shipped as `lakes`; none is made yet, so "
+                         "by default the release ships no `lakes` (owner 2026-10-21: prepared, not fed)")
     a = ap.parse_args(argv)
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[

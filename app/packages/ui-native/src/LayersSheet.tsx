@@ -18,6 +18,7 @@
  * belongs with the other rendering choices rather than behind a debug-looking control).
  */
 import { ScrollView, Text, View } from "react-native";
+import { lakeModeOn, lakeModesNote, type LakeModesReady } from "@app/ui";
 import { Choice, Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
@@ -76,15 +77,24 @@ export const lakeChoices = (p: Palette): LayerChoice[] => [
 ];
 
 export function LayersSheet({ open, onClose, palette, state, onState, theme, onTheme,
-                             reaches, surveyed, stations, fetchedAt, attribution }: {
+                             reaches, surveyed, stations, fetchedAt, attribution, ready }: {
   open: boolean; onClose: () => void; palette: Palette;
   state: LayersState; onState: (s: LayersState) => void;
   theme: ThemeName; onTheme: (t: ThemeName) => void;
   reaches?: number; surveyed?: number; stations?: number;
   fetchedAt?: string | null;
   attribution?: readonly string[];
+  /**
+   * Which lake modes have values to colour by (`lakeModesReady`, from the release the map is handed). PREPARED, NOT FED
+   * (owner 2026-10-21): no release carries lake values yet, so Depth and Stocked are greyed with a line saying so, and
+   * they enable themselves when a release does.
+   */
+  ready: LakeModesReady;
 }) {
-  const lakeOpts = lakeChoices(palette);
+  const lakeOpts = lakeChoices(palette).map((c) =>
+    ({ ...c, disabled: (c.k === "depth" || c.k === "stocked") && !ready[c.k] }));
+  const lake = lakeModeOn(state.lake, ready);
+  const waiting = lakeModesNote(lakeOpts.filter((c) => c.disabled).map((c) => c.t));
 
   return (
     <Sheet open={open} onClose={onClose} title="Layers" palette={palette}>
@@ -97,9 +107,15 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
         </Section>
 
         <Section palette={palette} title="Lakes" note={count(surveyed, "surveyed")}>
-          <OptionRow palette={palette} shape="square" options={lakeOpts} value={state.lake}
+          <OptionRow palette={palette} shape="square" options={lakeOpts} value={lake}
                      onChange={(k) => onState({ ...state, lake: k })} label="Colour lakes by" />
-          {state.lake === "stocked" && (
+          {waiting && (
+            <Text testID="lake-modes-note"
+                  style={{ ...TYPE.small, fontSize: 11, lineHeight: 16.5, color: palette.faint, paddingTop: 8 }}>
+              {waiting}
+            </Text>
+          )}
+          {lake === "stocked" && (
             <View style={{ marginTop: 10 }}>
               {STOCK_BANDS.map((b, i) => (
                 <View key={b.label}

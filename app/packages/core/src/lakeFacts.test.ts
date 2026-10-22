@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { dayNumber, decodeLakeFacts, LakeFactsError, STOCK_RECENCY, stockRecency } from "./lakeFacts";
 
-/** The bytes `pipeline/tests/test_lake_facts.py` pins for the same three sections — one layout, two languages. */
+/** The bytes `pipeline/tests/test_lake_facts.py` pins for the same three sections — one layout, two languages. Synthetic:
+ * no feed makes a lakes file yet (owner 2026-10-21, prepared not fed). */
 const RAW = Uint8Array.from([
   ...[0x42, 0x43, 0x4c, 0x4b], 1, ...[0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99],
   0x9f, 0x9f, 0x01,               // asof + 1 = 20383
@@ -14,10 +15,16 @@ const RAW = Uint8Array.from([
 describe("lake facts (lakes/1)", () => {
   it("decodes the pipeline's bytes: survey and last-stocked day per section, nothing for an unlisted one", () => {
     const f = decodeLakeFacts(RAW, "d768d6e135e62b99");
-    expect({ handles: f.handles, asof: f.asof, sections: f.sections }).toEqual(
-      { handles: "d768d6e135e62b99", asof: 20382, sections: 3 });
+    expect({ handles: f.handles, asof: f.asof, sections: f.sections, surveyed: f.surveyed, stocked: f.stocked }).toEqual(
+      { handles: "d768d6e135e62b99", asof: 20382, sections: 3, surveyed: 2, stocked: 2 });
     expect([3, 7, 300, 4].map((s) => [f.survey(s), f.stockedDay(s)])).toEqual(
       [["sheet", 7425], [null, 20381], ["digitised", null], [null, null]]);
+  });
+
+  it("an empty file (a release whose slot carries no values) counts nothing surveyed and nothing stocked", () => {
+    const f = decodeLakeFacts(Uint8Array.from([...RAW.slice(0, 13), 0, 0]), "d768d6e135e62b99");
+    expect({ asof: f.asof, sections: f.sections, surveyed: f.surveyed, stocked: f.stocked, s3: f.survey(3) }).toEqual(
+      { asof: null, sections: 0, surveyed: 0, stocked: 0, s3: null });
   });
 
   it("refuses another atlas's file, a foreign file and a truncated one", () => {

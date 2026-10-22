@@ -14,6 +14,8 @@ export interface Option {
   t: string;
   /** Three colours, drawn as stacked lines or a row of squares. */
   swatch: readonly [string, string, string];
+  /** Greyed and not pressable; said to a screen reader (`aria-disabled`, AGENTS 34). The row says why beside it. */
+  disabled?: boolean;
 }
 
 export function OptionRow({ palette, options, value, onChange, shape, label }: {
@@ -25,10 +27,13 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
           style={{ flexDirection: "row", gap: 8 }}>
       {options.map((o) => {
         const on = o.k === value;
+        const off = o.disabled === true;
         return (
-          <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
-                     aria-checked={on} accessibilityLabel={o.t}
+          <Pressable key={o.k} onPress={off ? undefined : () => onChange(o.k)} disabled={off}
+                     accessibilityRole="radio" aria-checked={on} aria-disabled={off} accessibilityLabel={o.t}
                      style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: palette.r.box,
+                              // greyed as the app's other disabled controls are (Button: 0.4)
+                              opacity: off ? 0.4 : 1,
                               paddingTop: 11, paddingBottom: 9,
                               // 1.5 in ink: a choice you have NOT made still has to look
                               // like a choice. In `line2` these read as empty space with a

@@ -282,7 +282,8 @@ describe("the standing channel: the same engine, the Conditions map's values", (
 describe("the lake channels: survey and stocked, the Depth and Stocked modes' values (owner 2026-10-21)", () => {
   const TODAY = 46314;                 // 2026-10-21, days since 1900-01-01
   const lakeFacts = (name: string, survey: Record<number, SurveyState>, stocked: Record<number, number>): LakeFacts =>
-    ({ handles: name, asof: TODAY, sections: 3, survey: (s) => survey[s] ?? null, stockedDay: (s) => stocked[s] ?? null });
+    ({ handles: name, asof: TODAY, sections: 3, surveyed: Object.keys(survey).length,
+       stocked: Object.keys(stocked).length, survey: (s) => survey[s] ?? null, stockedDay: (s) => stocked[s] ?? null });
   /** 12 a sheet stocked 30 days ago, 14 digitised and never stocked, 15 stocked 400 days ago; 16 nothing. */
   const F1 = lakeFacts("F1", { 12: "sheet", 14: "digitised" }, { 12: TODAY - 30, 15: TODAY - 400 });
   /** The next release: 15 has been surveyed. */

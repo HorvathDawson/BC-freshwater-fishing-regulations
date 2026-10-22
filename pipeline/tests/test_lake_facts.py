@@ -1,26 +1,18 @@
-"""LAKE FACTS (owner 2026-10-21: stocked lakes and the depth colouring go through the one colouring pathway, and their
-colours update from DATA ALONE — no tile change). The release ships, per lake SECTION, whether it was surveyed (a sheet,
-or a digitised chart) and the day it was last stocked: `lake_facts.bin` (`pipeline.deliver.lake_facts`), copied into
-the release as the file `lakes` (format `lakes/1`).
+"""LAKE FACTS — PREPARED, NOT FED (owner 2026-10-21, handoff/PLAN/app-integration/decisions.md: "we dont have the
+stocking and bathy map data in a feed yet. but we just want it prepared for it when we do have the feed"). The release's
+optional `lakes` slot (format `lakes/1`) carries, per lake SECTION, a survey state and a last stocked day; nothing
+produces one yet, and `deliver all` ships none.
 
-No data: the binding rule, the folding of sheets and releases, the byte layout and the refusals, on synthetic inputs.
-On the live inputs (`needs_bundle`): built from the atlas's handle table, the FWA lakes layer, both survey-sheet sources
-and the FFSBC release roster, then decoded back and held to hand-checked lakes.
+Synthetic inputs only: the binding rule a future feed's identifiers go through, the folding of bound values per
+section, the byte layout, the release's refusals, and that the release ships the slot only when it is handed a file.
 """
 from __future__ import annotations
 
-import datetime as dt
-import json
-import os
-from pathlib import Path
+import sqlite3
 
 import pytest
 
 from pipeline.deliver import lake_facts as LF
-
-
-def _day(s: str) -> int:
-    return (dt.date.fromisoformat(s) - dt.date(1900, 1, 1)).days
 
 
 # ---- the binding rule ------------------------------------------------------------------------------------------
@@ -56,7 +48,7 @@ def test_an_identifier_binds_only_when_a_name_agrees_or_the_fwa_names_nothing():
     assert LF.bind("00003RENM", {"CRIPPLE LAKE"}, LAKES) == (("329000020",), "verified")
     # a key that no name corroborates is more likely a stale identifier than a surprise: refused, never a coin toss
     assert LF.bind("00330VICT", {"ELK LAKE"}, LAKES) == ((), "name_disagrees")
-    assert LF.bind("FFSBC3893", {"SANCTUARY POND"}, LAKES) == ((), "no_polygon")
+    assert LF.bind("POND00001", {"SANCTUARY POND"}, LAKES) == ((), "no_polygon")
 
 
 def test_a_name_core_drops_only_the_generic_word():
@@ -65,33 +57,7 @@ def test_a_name_core_drops_only_the_generic_word():
         ["langford", "langford", "twin", "elk", "alexis", "south burnie", "lake errock", ""]
 
 
-# ---- folding the sources -------------------------------------------------------------------------------------
-
-def test_survey_is_digitised_where_either_source_says_vectorised_else_a_sheet():
-    csv_rows = [{"WATERBODY_IDENTIFIER_WSA_50K": "00001BRID", "GAZETTED_NAME": "BOBBS LAKE", "MAP_TITLE": "BOBB'S LAKE"},
-                {"WATERBODY_IDENTIFIER_WSA_50K": "00002BURN", "GAZETTED_NAME": "BURNIE LAKES", "MAP_TITLE": ""}]
-    wfs_rows = [{"waterbody_identifier": "00002BURN", "gazetted_name": "BURNIE LAKES", "map_title": "SOUTH BURNIE L.",
-                 "vectorized_flag": "Y"},
-                {"waterbody_identifier": "00330VICT", "gazetted_name": "LANGFORD LAKE", "map_title": None,
-                 "vectorized_flag": "N"}]
-    assert LF.surveys(csv_rows, wfs_rows) == {
-        "00001BRID": ({"BOBBS LAKE", "BOBB'S LAKE"}, LF.SHEET),
-        "00002BURN": ({"BURNIE LAKES", "SOUTH BURNIE L."}, LF.DIGITISED),
-        "00330VICT": ({"LANGFORD LAKE"}, LF.SHEET),
-    }
-
-
-def test_last_stocked_is_the_latest_release_on_or_before_the_roster_day():
-    rows = [{"wbid": "00330VICT", "water": "LANGFORD", "date": "2025-11-24"},
-            {"wbid": "00330VICT", "water": "LANGFORD LAKE", "date": "2026-10-20"},
-            {"wbid": "00330VICT", "water": "LANGFORD", "date": "2027-01-01"},   # after the roster's day: not yet
-            {"wbid": "00001BRID", "water": "BOBBS", "date": "1990-05-01"},
-            {"wbid": "", "water": "NOWHERE", "date": "2026-01-01"}]
-    assert LF.last_stocked(rows, asof=_day("2026-10-21")) == {
-        "00330VICT": ({"LANGFORD", "LANGFORD LAKE"}, _day("2026-10-20")),
-        "00001BRID": ({"BOBBS"}, _day("1990-05-01")),
-    }
-
+# ---- folding bound values per section ----------------------------------------------------------------------
 
 def test_facts_by_section_join_the_bound_waters_to_their_handles():
     handles = {"lake:329676318": 7, "lake:329060781": 3, "lake:329000010": 12, "lake:329000011": 13}
@@ -132,36 +98,27 @@ def test_a_file_from_another_atlas_is_refused_by_the_release():
 def test_the_contract_names_the_file_and_its_format():
     from pipeline.deliver.release import build as B
     from pipeline.deliver.release import contract as C
-    assert (B.FORMATS["lakes"], C.FILES["lakes"]) == ("lakes/1", {"format": "lakes/1", "kind": "bin", "tables": {}})
+    assert (B.FORMATS["lakes"], C.FILES["lakes"], C.OPTIONAL) == \
+        ("lakes/1", {"format": "lakes/1", "kind": "bin", "tables": {}}, frozenset({"lakes"}))
     assert C.UNITS["lakes"].startswith("lakes/1: 'BCLK'")
 
 
-# ---- on the live inputs ---------------------------------------------------------------------------------------
-
-@pytest.mark.needs_bundle
-def test_built_from_the_live_inputs_the_hand_checked_lakes_hold(request, tmp_path):
-    from pipeline.common.curated import GENERATED, SOURCE
-    from pipeline.deliver.bundle import read as R
-    from pipeline.tests.conftest import need, BUNDLE_HINT
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    roster = need(request, "bundle", SOURCE / LF.STOCKING, "python -m pipeline.stocking.fetch")
-    out = tmp_path / "lake_facts.bin"
-    assert LF.main(["--bundle", str(bundle), "--out", str(out), "--build", str(GENERATED.require_build())]) == 0
-    got = LF.decode(out.read_bytes())
-    from pipeline.common import section_handles as SHD
-    _, index = SHD.read(GENERATED.require_build())
-    at = lambda wbk: got["facts"].get(index[f"lake:{wbk}"])          # noqa: E731
-    assert got["asof"] == _day(json.loads(roster.read_text())["fetched"])
-    # Langford Lake (00330VICT): a sheet, and FFSBC's roster stocks it every few weeks
-    assert at(329676318)[0] == LF.SHEET and at(329676318)[1] >= _day("2026-10-01")
-    # Wahleach Lake (00338HARR): one of the digitised charts
-    assert at(329177886)[0] == LF.DIGITISED
-    # Bobbs Lake (00001BRID): surveyed
-    assert at(329060781)[0] in (LF.SHEET, LF.DIGITISED)
-    # a name corroborates ONE lake under a shared 50K code, never its differently-named neighbours (review 2026-10-21:
-    # BUNTZEN's code coloured McCombe Lake, MARA LAKE's Rosemond Lake, MEADOW LAKE's Pigeon Lake)
-    assert at(329532437) is not None and at(329518146) is not None            # Buntzen Lake, Mara Lake: bound
-    assert [at(w) for w in (329532487, 329518151, 329037136)] == [None, None, None]   # McCombe, Rosemond, Pigeon
-    n_survey = sum(1 for s, _ in got["facts"].values() if s != LF.NONE)
-    n_stocked = sum(1 for _, d in got["facts"].values() if d is not None)
-    assert 2_000 < n_survey < 3_500 and 1_500 < n_stocked < 3_000
+def test_the_release_ships_lakes_only_when_handed_a_file(monkeypatch, tmp_path):
+    # `deliver all` hands it none (test_deliver_atomic): the slot is prepared, and a release without it is the norm
+    from pipeline.deliver.release import __main__ as RM
+    from pipeline.deliver.release import build as B
+    from pipeline.deliver.release import manifest as M
+    bundle = tmp_path / "bundle.sqlite"
+    con = sqlite3.connect(bundle)
+    con.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    con.execute("INSERT INTO meta VALUES ('section_handles', 'd768d6e135e62b99')")
+    con.commit()
+    con.close()
+    seen = []
+    monkeypatch.setattr(B, "build", lambda **kw: seen.append(kw["lakes"]) or tmp_path)
+    monkeypatch.setattr(B, "sizes", lambda d: {})
+    monkeypatch.setattr(B, "gate_problems", lambda d: [])
+    monkeypatch.setattr(M, "tiles_block", lambda *a: None)
+    assert RM.main(["--bundle", str(bundle)]) == 0
+    assert RM.main(["--bundle", str(bundle), "--lake-facts", str(tmp_path / "lakes.bin")]) == 0
+    assert seen == [None, tmp_path / "lakes.bin"]
