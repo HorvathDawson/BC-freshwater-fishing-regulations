@@ -173,6 +173,11 @@ export interface GaugeFeed {
    * the reader asked for (owner 2026-10-21). Null when there is no file or nothing in it.
    */
   lastReport(station: StationId): Promise<string | null>;
+  /**
+   * (Owner 2026-10-22, the sync icon) Forget what was fetched, so the next ask goes to the network rather than the
+   * short-lived cache. Optional: a feed with no cache (a fixture) has nothing to forget.
+   */
+  refresh?(): void;
 }
 
 type Row = readonly [string, number | null, number | null];
@@ -232,6 +237,9 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
 
   return {
     index: () => load<IndexFile>("index.json"),
+
+    // in-flight requests are left to finish: the next ask after them is a fresh fetch
+    refresh() { cache.clear(); },
 
     async lastReport(station) {
       return lastReportAt(await load<StationFile>(`${station}.json`));

@@ -32,6 +32,7 @@ export * from "./install";
 export * from "./pairing";
 export * from "./menu";
 export * from "./iconSet";
+export * from "./more";
 export * from "./imagery";
 
 export type Freshness =

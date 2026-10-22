@@ -375,3 +375,26 @@ joining or leaving ECCC's real-time list changes estimates on the next feed, wit
   - the horizon chips are ONE joined segmented strip (one card, hairline dividers, chosen day filled) instead of five
     loose shadowed pills; each segment a 44 × 44 press. Same words, same labels, same order.
   Shots: `app-data/conditions-legend/{before,after}-{390,1280}-{light,dark}.png`, `after-360-light.png`.
+
+## REFINEMENT BUILT (2026-10-22) — More tab + sync icon: the calls Claude made, and why
+Shots: handoff/PLAN/app-data/more-tab/ (before-* / after-*, 390x844 light+dark, 1280x800).
+- SYNC ICON, not a line: Lucide `refresh-cw` at the search field's right end (40 px slot, hairline divider), a red dot
+  (`closed`, the "act on this" colour) when it NEEDS A REFRESH — the feed past its cadence or not reached, or the server
+  naming a newer data release — and a slow turn while CHECKING (still under reduced motion). Fresh: the glyph alone.
+  Said aloud: "Refresh data: river flows last checked 27h ago". It gives way to the clear ✕ while search is open. The
+  bar is 20 px shorter, so the map's chrome starts 20 px higher.
+- THE TAP refreshes what can be refreshed and nothing heavier: the feed forgets its 5-minute cache (`GaugeFeed.refresh`)
+  and is re-read (the Conditions colouring re-asks through `epoch`), and the manifest is re-read (`no-store`). A newer
+  release is SAID (dot + More's Data block "Reopen the app to use it"), never swapped under the reader.
+- ONE stale line for the feed: 2 h (four missed 30-min ticks) = `STALE_AFTER_MS`, the line a reading's own age is held
+  to (P02); a test holds them equal. Release-dated cadences: DFO 120 d, FWA 730 d, basemap 365 d, HYDAT 548 d (named in
+  `STALE_AFTER`). Regulations: fresh through `valid_until`, stale after; no `valid_until` (today's live release) =
+  Unknown. Tiles: the proven pair (`usePairing`). In-season: "Not read". Weather / imagery: "Live" (a 4th badge kind —
+  they are fetched on demand, so "up to date" would claim an age they do not have).
+- MORE TAB: ‹ <previous tab> at the top; DATA always shown (dot + name + short date per line, one summary badge in
+  words, the whole block opens Data sources & dates — which now carries the same badge per source); DISPLAY as three
+  preview tiles drawn in each palette's own tokens (no Display page any more); Glossary · About · Report a problem as
+  rows; CONTACT inline at the bottom (no Contact page; its duplicate "Report a problem" button dropped — the row is
+  right above). Wide screens: one 640 px column ruled at its sides.
+- BACK FROM MORE goes to the tab it was opened from (route `prev`, only on More) for the ‹ AND the system back — one
+  back rule; then the Map tab as before. More from the Map tab is the plain route (unchanged).

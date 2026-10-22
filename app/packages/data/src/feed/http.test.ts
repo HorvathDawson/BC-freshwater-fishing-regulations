@@ -52,6 +52,16 @@ describe("httpFeed", () => {
                           "http://x/feeds/gauge/08MH001.json"]);
   });
 
+  it("(the sync icon) refresh forgets the cache: the next index ask goes to the network again", async () => {
+    const seen: string[] = [];
+    const f = httpFeed("http://x/feeds/gauge", server({ "index.json": INDEX }, (u) => seen.push(u)));
+    await f.index();
+    await f.index();                 // cached: no second request
+    f.refresh!();
+    await f.index();
+    expect(seen).toEqual(["http://x/feeds/gauge/index.json", "http://x/feeds/gauge/index.json"]);
+  });
+
   it("does not ask for a station the index does not list", async () => {
     /*
      * The bundle and the feed are built separately, so the bundle can name a station the

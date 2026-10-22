@@ -1,6 +1,6 @@
 /**
- * (T48) SEARCH IN THE TOP BAR, THROUGH THE REAL SHELL: the always-open field over the browse maps, the sync status at
- * its top, the results sheet rising over the SAME map (never a second one), a place shown by its tap (no eye), a water
+ * (T48) SEARCH IN THE TOP BAR, THROUGH THE REAL SHELL: the always-open field over the browse maps, the sync icon at
+ * its right end (owner 2026-10-22: no status text over the field), the results sheet rising over the SAME map (never a second one), a place shown by its tap (no eye), a water
  * opened through the one opener, and back / Escape / ‹ closing search first and giving the camera back exactly.
  *
  * The map renderer is replaced by a stub that counts its mounts and writes down every framing the Shell sends it (no
@@ -47,16 +47,19 @@ beforeAll(() => {
 let androidBack: () => boolean = () => false;
 const android: SystemBack = (back) => { androidBack = back; return { sync: () => {}, dispose: () => {} }; };
 const FETCHED = new Date(Date.now() - 3 * 3.6e6).toISOString();
-const FEED = { index: async () => ({ fetchedAt: FETCHED, stations: {} }) } as never;
+const feedAt = (iso: () => string, refreshed?: () => void) =>
+  ({ index: async () => ({ fetchedAt: iso(), stations: {} }), refresh: refreshed }) as never;
+const FEED = feedAt(() => FETCHED);
 
-function mount(start: Route = HOME) {
+function mount(start: Route = HOME, feed: unknown = FEED) {
   render(
     <GestureHandlerRootView>
       <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
-             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} systemBack={android} feed={FEED}
+             tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} systemBack={android} feed={feed as never}
              spots={[]} onSaveSpot={async () => {}} />
     </GestureHandlerRootView>);
 }
+const syncSaid = () => screen.getByTestId("sync-button").getAttribute("aria-label");
 const field = () => screen.getByLabelText(SEARCH_BAR.label) as HTMLInputElement;
 const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 260)); });
 const typeIn = async (q: string) => { fireEvent.change(field(), { target: { value: q } }); await settle(); await settle(); };
@@ -70,7 +73,7 @@ const where = () => `${screen.queryByLabelText(SEARCH_BAR.close) ? "search open"
   ` · "${field().value}" · tab ${tabOn()}`;
 const back = () => { let h = false; act(() => { h = androidBack(); }); return h; };
 
-describe("the top bar (T48): the search field alone, always open, the sync status at its top", () => {
+describe("the top bar (T48): the search field alone, always open, the sync icon at its end", () => {
   it("the field is drawn on both maps, called the same aloud, with ONE placeholder from the list that never cycles", async () => {
     mount();
     await settle();
@@ -83,10 +86,33 @@ describe("the top bar (T48): the search field alone, always open, the sync statu
       .toEqual([[true, true], true, "Search waters and towns"]);
   });
 
-  it("the sync status sits at the top of the search area: the flows' age, as the Data sources page says it", async () => {
+  it("(owner 2026-10-22) NO status text over the field: a sync icon says, aloud and by its dot, that the flows are old",
+     async () => {
     mount();
-    await waitFor(() => expect(screen.queryByTestId("sync-status")).not.toBeNull());
-    expect(screen.getByTestId("sync-status").textContent).toBe("Flows checked 3h ago");
+    await waitFor(() => expect(syncSaid()).not.toBe("Refresh data: checking now"));
+    expect([screen.queryByTestId("sync-status"), syncSaid(), !!screen.queryByTestId("sync-dot"),
+            screen.queryByText(/Flows checked/)])
+      .toEqual([null, "Refresh data: river flows last checked 3h ago", true, null]);
+  });
+
+  it("the sync icon's tap refreshes the feed and re-checks: checking, then fresh with no dot; it opens nothing", async () => {
+    let at = FETCHED;
+    const forgot: string[] = [];
+    mount(HOME, feedAt(() => at, () => forgot.push("cache")));
+    await waitFor(() => expect(syncSaid()).toBe("Refresh data: river flows last checked 3h ago"));
+    at = new Date().toISOString();
+    act(() => { fireEvent.click(screen.getByTestId("sync-button")); });
+    const during = syncSaid();
+    await waitFor(() => expect(syncSaid()).toBe("Refresh data: up to date"), { timeout: 2000 });
+    expect([during, forgot, !!screen.queryByTestId("sync-dot"), sheet(), tabOn()])
+      .toEqual(["Refresh data: checking now", ["cache"], false, "no sheet", "Map"]);
+  });
+
+  it("the sync icon gives way to the clear ✕ while search is open", async () => {
+    mount();
+    await waitFor(() => expect(screen.queryByTestId("sync-button")).not.toBeNull());
+    act(() => { fireEvent.focus(field()); });
+    expect(screen.queryByTestId("sync-button")).toBeNull();
   });
 
   it("no top bar on the Spots and More tabs (no map there to search over), and none in water mode", () => {
@@ -120,10 +146,11 @@ describe("the top bar (T48): the search field alone, always open, the sync statu
     } finally { size(390); }
   });
 
-  it("the map's own chrome starts under the bar: the Shell hands it the bar's bottom edge", async () => {
+  it("the map's own chrome starts under the bar: the Shell hands it the bar's bottom edge (no status line: 20 px less)",
+     async () => {
     mount();
-    await waitFor(() => expect(screen.queryByTestId("sync-status")).not.toBeNull());
-    expect(screen.getByTestId("map-state").textContent).toMatch(/ · inset 80$/);
+    await waitFor(() => expect(screen.queryByTestId("sync-button")).not.toBeNull());
+    expect(screen.getByTestId("map-state").textContent).toMatch(/ · inset 60$/);
   });
 });
 
@@ -182,7 +209,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     expect([where(), state.replace(/lit \d+/, "lit N"), Number(/lit (\d+)/.exec(state)![1]) > 0,
             screen.queryAllByRole("button", { name: /^View / }).length]).toEqual([
       `search open · half · "chilliwack" · tab Map`,
-      `fit place:${/fit place:(\S+)/.exec(state)![1]} · lit N · pins ${LIGHT.place} · inset 80`, true, 0]);
+      `fit place:${/fit place:(\S+)/.exec(state)![1]} · lit N · pins ${LIGHT.place} · inset 60`, true, 0]);
     expect(back()).toBe(true);
     expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search open · full · "chilliwack" · tab Map`, null]);
   });

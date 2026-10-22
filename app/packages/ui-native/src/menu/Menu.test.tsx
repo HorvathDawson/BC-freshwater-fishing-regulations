@@ -11,11 +11,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type GlossaryTerm, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { BackLayerContext, ERROR_LOG, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
-import { LIGHT } from "../theme";
+import { LIGHT, type ThemeName } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
 import { MenuContext } from "./MenuContext";
 import { MoreScreen } from "./MoreScreen";
@@ -28,9 +28,20 @@ import vedder1010 from "../regs/fixtures/vedder_1010.json";
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
 
 const INFO: MenuInfo = { appBuild: "1.2.0 (34)", contact: null };
+const NOW = Date.now();
+/** The release the Data block reads in most tests: the edition named, the atlas and basemap dated, tiles paired. */
+const DATA: DataInput = {
+  sources: { synopsis: { title: "2025–2027 BC Freshwater Fishing Regulations Synopsis", date: null },
+             basemap: { date: "2026-03-05" } },
+  validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", tilesPaired: true,
+  feedFetchedAt: new Date(NOW - 27 * 3.6e6).toISOString(), now: NOW, newRelease: null,
+};
 
-/** The Shell's wiring, and nothing else: the one back, the menu, the More tab's list and the host. */
-function App({ info = INFO, loader = null, out }: { info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back } }) {
+/** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host. */
+function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {} }: {
+  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
+  theme?: ThemeName; onTheme?: (t: ThemeName) => void;
+}) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
   out.back = b;
@@ -38,9 +49,11 @@ function App({ info = INFO, loader = null, out }: { info?: MenuInfo; loader?: Re
   return (
     <BackLayerContext.Provider value={b.layers}>
       <MenuContext.Provider value={menu}>
-        <MoreScreen palette={LIGHT} onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
+        <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
+                    theme={theme} onTheme={onTheme}
+                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
         <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
-                  feedFetchedAt={null} route={route} day={null} />
+                  tilesPaired feedFetchedAt={null} route={route} day={null} />
       </MenuContext.Provider>
     </BackLayerContext.Provider>
   );
@@ -57,20 +70,65 @@ const settle = () => act(() => {
 const press = (label: string) => { act(() => { fireEvent.click(screen.getByLabelText(label)); }); settle(); };
 const pick = (id: string) => { act(() => { fireEvent.click(screen.getByTestId(id)); }); settle(); };
 const text = (id: string) => screen.getByTestId(id).textContent;
+const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
-describe("the More tab (T48)", () => {
-  it("lists the six pages in order, each with its hint, under its own title — the only list of them in the app", () => {
+describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
+  it("top to bottom: back to the previous tab, the title, Data, Display, the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
-    expect([screen.getByRole("heading").textContent, ...screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent)])
-      .toEqual([
-        "More",
-        "GlossaryWhat the regulations' words mean",
-        "Data sources & datesWhere each answer comes from, and how fresh it is",
-        "DisplayLight, dark or colour-blind colours",
-        "AboutWhat this app is, and what it is not",
-        "Report a problemSomething wrong, missing or confusing",
-        "ContactGet in touch",
-      ]);
+    expect({
+      back: [text("more-back"), said("more-back")],
+      headings: screen.getAllByRole("heading").map((e) => e.textContent),
+      rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
+    }).toEqual({
+      back: ["‹  Map", "Back to Map"],
+      headings: ["More", "Data", "Display", "Contact"],
+      rows: [
+        "GlossaryWhat the regulations' words mean›",
+        "AboutWhat this app is, and what it is not›",
+        "Report a problemSomething wrong, missing or confusing›",
+      ],
+    });
+  });
+
+  it("the Data block is always there: one summary badge, one line per source with its date, said aloud in full", () => {
+    render(<App out={{}} />);
+    expect({
+      summary: text("data-summary"),
+      lines: screen.getAllByTestId(/^data-line-/).map((e) => e.getAttribute("aria-label")),
+      shown: text("data-line-feed"),
+      block: said("more-data"),
+    }).toEqual({
+      summary: "1 likely out of date",
+      lines: [
+        "Regulations: 2025–2027 edition. Unknown",
+        "In-season changes: Check the Province's notices. Not read",
+        "River flows: Checked 27h ago. Likely out of date",
+        "Weather: With each saved spot. Live",
+        "Map: Matches the data. Up to date",
+        "Basemap: Updated Mar 5, 2026. Up to date",
+        "Satellite imagery: Online only. Live",
+      ],
+      shown: "River flowsChecked 27h ago",
+      block: "Data sources & dates. 1 likely out of date",
+    });
+    expect(screen.queryByTestId("data-new-release")).toBeNull();
+  });
+
+  it("a newer release is said at the top of the block, and in its badge", () => {
+    render(<App out={{}} data={{ ...DATA, newRelease: "r-newer" }} />);
+    expect([text("data-summary"), text("data-new-release")])
+      .toEqual(["Newer data available", "A newer data release is available. Reopen the app to use it."]);
+  });
+
+  it("the Data block opens the detailed references; back closes them to the tab", () => {
+    const out: { back?: Back } = {};
+    render(<App out={out} />);
+    pick("more-data");
+    expect(screen.getByTestId("menu-page-sources")).toBeTruthy();
+    let r = false;
+    act(() => { r = out.back!.back(); });
+    settle();
+    expect([r, screen.queryByTestId("menu-page-sources")]).toEqual([true, null]);
   });
 
   it("has no menu button, no drawer and nothing to close: it is a tab, not a surface", () => {
@@ -79,6 +137,27 @@ describe("the More tab (T48)", () => {
     let r = true;
     act(() => { r = out.back!.back(); });
     expect([screen.queryByLabelText("Open menu"), screen.queryByTestId("menu-drawer"), r]).toEqual([null, null, false]);
+  });
+
+  it("Display: the three palettes as preview tiles, the one in use chosen, a press picks — no page to open", () => {
+    const picked: string[] = [];
+    render(<App out={{}} theme="dark" onTheme={(t) => picked.push(t)} />);
+    expect(text("display-palette")).toBe(
+      "LightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
+    expect(screen.getAllByRole("radio").map((r) => `${r.textContent}${r.getAttribute("aria-checked") === "true" ? " *" : ""}`))
+      .toEqual(["Light", "Dark *", "Colour-blind"]);
+    expect(screen.getByRole("radiogroup").getAttribute("aria-label")).toBe("Colours");
+    act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
+    expect(picked).toEqual(["cvd"]);
+  });
+
+  it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
+    render(<App out={{}} />);
+    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome."
+      + "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
+    cleanup();
+    render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
+    expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
   });
 });
 
@@ -96,62 +175,19 @@ describe("a page", () => {
       + "recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"]]);
   });
 
-  it("back closes the page to the More tab's list", () => {
+  it("back closes the page to the More tab", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);
     pick("menu-item-about");
     let r = false;
     act(() => { r = out.back!.back(); });
     settle();
-    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 6]);
+    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 3]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
   });
 
-  it("Display: the app's colours moved here from Layers — the three palettes, the one in use chosen, a press picks; back closes it", () => {
-    const picked: string[] = [];
-    function Themed({ out }: { out: { back?: Back } }) {
-      const [route, go] = useRoute();
-      const b = useBack(route, go, null);
-      out.back = b;
-      const menu = useMenu();
-      return (
-        <BackLayerContext.Provider value={b.layers}>
-          <MenuContext.Provider value={menu}>
-            <MoreScreen palette={LIGHT} onPick={(k) => menu.show(k)} />
-            <MenuHost menu={menu} palette={LIGHT} loader={null} tiles={null} feedFetchedAt={null} route={route}
-                      day={null} theme="dark" onTheme={(t) => picked.push(t)} />
-          </MenuContext.Provider>
-        </BackLayerContext.Provider>
-      );
-    }
-    const out: { back?: Back } = {};
-    render(<Themed out={out} />);
-    pick("menu-item-display");
-    expect(text("display-palette")).toBe(
-      "ColoursLightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
-    expect(screen.getAllByRole("radio").map((r) => `${r.textContent}${r.getAttribute("aria-checked") === "true" ? " *" : ""}`))
-      .toEqual(["Light", "Dark *", "Colour-blind"]);
-    act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
-    expect(picked).toEqual(["cvd"]);
-    let r = false;
-    act(() => { r = out.back!.back(); });
-    settle();
-    expect([r, screen.queryByTestId("menu-page-display")]).toEqual([true, null]);
-  });
-
-  it("Contact: a placeholder until the owner supplies the one value; then that address", () => {
-    render(<App out={{}} />);
-    pick("menu-item-contact");
-    expect(text("contact-placeholder")).toBe(
-      "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
-    cleanup();
-    render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
-    pick("menu-item-contact");
-    expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
-  });
-
-  it("Data sources & dates: the release's own dates, and 'not recorded' where it states none", () => {
+  it("Data sources & dates: the release's own dates, 'not recorded' where it states none, each with its badge", () => {
     const loader = {
       release: "r-0efa5d05fc92",
       manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: null, versions: null },
@@ -159,15 +195,21 @@ describe("a page", () => {
                              fwa: { date: "2026-07-15" }, hydat: { date: "2026-07-17" } } },
     } as unknown as RegsLoader;
     render(<App out={{}} loader={loader} />);
-    pick("menu-item-sources");
+    pick("more-data");
     const row = (k: string) => text(`source-${k}`);
-    expect([row("synopsis"), row("fwa"), row("dfo"), row("feed")]).toEqual([
+    expect([row("synopsis"), row("fwa"), row("dfo"), row("tiles"), row("feed")]).toEqual([
       "2025–2027 BC Freshwater Fishing Regulations Synopsis"
-        + "The Province of British Columbia's printed regulations, read water by waterDate not recorded in this release",
-      "B.C. Freshwater AtlasEvery stream and lake on the map, from the Province of British ColumbiaUpdated Jul 15, 2026",
+        + "The Province of British Columbia's printed regulations, read water by waterDate not recorded in this release"
+        + "Unknown",
+      "B.C. Freshwater AtlasEvery stream and lake on the map, from the Province of British ColumbiaUpdated Jul 15, 2026"
+        + "Up to date",
       "Fisheries and Oceans Canada salmon regulations"
-        + "The federal salmon limits, openings and closures for B.C.'s fresh water, by regionDate not recorded in this release",
-      "Live gauge readingsEnvironment and Climate Change Canada, and the BC River Forecast Centre's forecastsNot checked yet",
+        + "The federal salmon limits, openings and closures for B.C.'s fresh water, by regionDate not recorded in this release"
+        + "Unknown",
+      "Map tilesThe atlas drawn for the map, with every regulation's section in it"
+        + "Version d768d6e135e62b99.c9f9604f12bfUp to date",
+      "Live gauge readingsEnvironment and Climate Change Canada, and the BC River Forecast Centre's forecastsNot checked yet"
+        + "Unknown",
     ]);
     // (T43) the app's one list of fish picture credits, every line whole, after the sources
     const pics = screen.getByTestId("sources-fish-credits");

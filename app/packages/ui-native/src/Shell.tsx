@@ -1,6 +1,6 @@
 /**
  * The app: the map as home, and ONE PLACE FOR EACH KIND OF THING (T48, owner 2026-10-22): the top bar is the search field
- * alone (with the sync status at its top), the side rail is Layers alone, and the bottom bar is where you go — Map ·
+ * alone (with the sync icon at its right end), the side rail is Layers alone, and the bottom bar is where you go — Map ·
  * Conditions · Spots · More. A legend always says what the colours mean.
  *
  * The shell owns the state that more than one screen needs —
@@ -9,7 +9,7 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, placeholderFor, syncLine, TEMP_LEGEND,
+import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
          unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type LayerChoice, type SectionKey,
          type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -21,7 +21,7 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { routeWhere, spotsMenu, useMapRail, type Locate } from "@app/ui";
-import { useConditionsColour, useDataFacts, useFeedAge, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried,
+import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
          useStatusIndex, statusFeed, useHorizon, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
@@ -83,7 +83,8 @@ const tempColour = (p: Palette): Record<TempBand, string> =>
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
-                       systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo }: {
+                       systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo,
+                       checkRelease = null }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -136,6 +137,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   locate?: Locate | null;
   /** The menu's build facts (app build, the one contact value), from the app's config. Absent -> neither stated. */
   menuInfo?: MenuInfo;
+  /**
+   * (The sync icon) Reads the data release the server names NOW (the manifest's `data_release`), to say when a newer
+   * one is available. Absent: nothing to check (the dev bundle). Its identity must be stable (the app's useCallback).
+   */
+  checkRelease?: (() => Promise<string | null>) | null;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -218,9 +224,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const rail = useMapRail(go, locate, route);
   /** THE MENU (owner 2026-10-21): its pages, listed by the More tab (T48), mounted below as back layers (menu/MenuHost). */
   const menu = useMenu();
-  // the figures are drawn by the search sheet (its total) and the menu's Data sources page (the feed's age)
-  const factsWanted = searching || menu.state.page === "sources";
-  const facts = useDataFacts(source, feed, factsWanted);
+  // the figures are drawn by the search sheet (its total); the feed's age is the sync state's (`useSync`, below)
+  const facts = useDataFacts(source, feed, searching);
   const counts = facts.state === "ready" ? facts.value.counts : null;
   // Non-null only while editing. The draft lives here rather than in SpotScreen so that
   // leaving the screen cannot strand half an edit inside an unmounted component.
@@ -344,8 +349,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * classes and the feed's values at the horizon (`standing` — one engine call per feed refresh or horizon change);
    * otherwise the visible sections' standings, pushed (`data`). Both FROM THE PANEL, through one arithmetic.
    */
+  /*
+   * THE SYNC STATE (owner 2026-10-22): when the flows were last published, whether a newer data release exists, and the
+   * icon's refresh — ONE reading of the feed's age for the top bar's icon and More's Data block alike.
+   */
+  const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease });
   const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
-                                     horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible });
+                                     horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible,
+                                     epoch: syncState.epoch });
   // the dots: the Conditions map's, while its Gauges switch is on (off, the roster is not even asked)
   const gauges = useGaugeGeoJSON(source, feed, onConditions && layers.effective.layers.gauges === true, quantity);
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
@@ -394,11 +405,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   };
   const searchType = useCallback((q: string) => setSearchMemory((m) => ({ q, pick: searchStep(m.pick, { t: "typed" }).pick })),
     []);
-  /** The SYNC STATUS at the top of the search area: the Data sources page's facts, on one line (`syncLine`). */
-  const feedAge = useFeedAge(feed);
-  const sync = syncLine({ validUntil: loader?.manifest?.regulations?.valid_until ?? null, feed: !!feed,
-                          feedFetchedAt: feedAge, now: Date.now() });
-  const barBottom = topBarBottom(sync !== null);
+  /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
+  const sync = feed || checkRelease
+    ? syncVM({ feed: !!feed, feedFetchedAt: syncState.feedFetchedAt, checking: syncState.checking,
+               newRelease: syncState.newRelease, now: Date.now() })
+    : null;
+  /** What More's Data block and the Data sources page read: the release's dates, the pair, the feed's age. */
+  const dataFacts = {
+    sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
+    tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: Date.now(),
+  };
+  const barBottom = topBarBottom();
   /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`), and the way this platform's map
    * takes it (`statusFeed`): the web map is handed the index and the day and labels each tile as it arrives
@@ -565,8 +582,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
                      photoStore={photos?.store} />
     : tab === "more"
-      // (T48) THE MORE TAB: what the hamburger held, moved — a page opens over it (MenuHost, a back layer)
+      // (T48) THE MORE TAB: the data's freshness, the display options, the pages (each opens over it: MenuHost, a back
+      // layer) and Contact; its ‹ returns to the tab it was opened from (the route's `prev`) — the one back
       ? <MoreScreen palette={palette}
+                    data={{ ...dataFacts, newRelease: syncState.newRelease }}
+                    back={TABS.find((t) => t.k === (browse.prev ?? "map"))!.t} onBack={back}
+                    contact={menuInfo?.contact ?? null}
+                    theme={themeName} onTheme={onTheme}
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
       : tab === "map" || tab === "conditions"
@@ -724,7 +746,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
           <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
         )}
         {topBar && (
-          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} open={searching}
+          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={syncState.refresh}
+                  open={searching}
                   query={searchMemory.q} onQuery={searchType}
                   onOpen={() => go({ type: "search", open: true })}
                   onClose={() => go({ type: "search", open: false })} />
@@ -797,8 +820,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
-                feedFetchedAt={facts.state === "ready" ? facts.value.fetchedAt ?? null : null}
-                route={route} day={mapDay} theme={themeName} onTheme={onTheme} />
+                feedFetchedAt={syncState.feedFetchedAt} tilesPaired={vintage.ok}
+                route={route} day={mapDay} />
     </View>
     </MenuContext.Provider>
   );

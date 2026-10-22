@@ -4,12 +4,13 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutVM, agoWords, contactVM, diagnosticRows, glossaryRows, isoDayWords, mailtoUrl, menuVM, regsReportWhere,
-  reportMessage, sourcesVM, syncLine, whereLines, type Diagnostics,
+  aboutVM, agoWords, contactVM, diagnosticRows, sourceFreshness, glossaryRows, isoDayWords, mailtoUrl, regsReportWhere,
+  reportMessage, sourcesVM, STALE_AFTER, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
+import { STALE_AFTER_MS } from "./index";
 
 const term = (id: string, t: string, says: string): GlossaryTerm => ({ id, term: t, says, pages: [80], quote: "", source: "" });
 const TERMS = [
@@ -18,41 +19,6 @@ const TERMS = [
   term("artificial_fly", "Artificial fly", "A single barbless hook dressed with feathers, hair or thread."),
   term("éclosion", "Éclosion", "A made-up accented term."),
 ];
-
-describe("(T48) the More tab: what the hamburger held, moved (never a second copy)", () => {
-  it("lists the six pages in the reader's order, each with its hint, under the tab's own name", () => {
-    expect(menuVM()).toEqual({
-      title: "More",
-      items: [
-        { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
-        { k: "sources", label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
-        { k: "display", label: "Display", hint: "Light, dark or colour-blind colours" },
-        { k: "about", label: "About", hint: "What this app is, and what it is not" },
-        { k: "report", label: "Report a problem", hint: "Something wrong, missing or confusing" },
-        { k: "contact", label: "Contact", hint: "Get in touch" },
-      ],
-    });
-  });
-});
-
-describe("(T48) the sync status line at the top of the search area", () => {
-  const NOW = Date.parse("2026-10-22T18:00:00Z");
-  it("today's two facts, from the Data sources page's own words: the regulations' last day and the feed's age", () => {
-    expect([
-      syncLine({ validUntil: "2027-03-31", feed: true, feedFetchedAt: "2026-10-22T15:00:00Z", now: NOW }),
-      syncLine({ validUntil: "2027-03-31", feed: true, feedFetchedAt: null, now: NOW }),
-      syncLine({ validUntil: null, feed: true, feedFetchedAt: "2026-10-22T17:59:00Z", now: NOW }),
-      syncLine({ validUntil: "2027-03-31", feed: false, feedFetchedAt: null, now: NOW }),
-      syncLine({ validUntil: "not a day", feed: false, feedFetchedAt: null, now: NOW }),
-    ]).toEqual([
-      "Regs to Mar 31, 2027 · Flows checked 3h ago",
-      "Regs to Mar 31, 2027 · Flows not checked yet",
-      "Flows checked just now",
-      "Regs to Mar 31, 2027",
-      null,
-    ]);
-  });
-});
 
 describe("the glossary", () => {
   it("lists every term alphabetically, accents folded, with its own plain words", () => {
@@ -137,28 +103,30 @@ describe("data sources & dates", () => {
     expect(vm.rows).toEqual([
       { k: "synopsis", name: "2025–2027 BC Freshwater Fishing Regulations Synopsis",
         what: "The Province of British Columbia's printed regulations, read water by water",
-        when: "Date not recorded in this release" },
+        when: "Date not recorded in this release", badge: { kind: "unknown", label: "Unknown" } },
       { k: "inseason", name: "In-season regulation changes",
         what: "The Province's changes to the Synopsis, announced during the season",
-        when: "Not read by this app: check them before you fish" },
+        when: "Not read by this app: check them before you fish", badge: { kind: "unknown", label: "Not read" } },
       { k: "dfo", name: "Fisheries and Oceans Canada salmon regulations",
         what: "The federal salmon limits, openings and closures for B.C.'s fresh water, by region",
-        when: "Updated Aug 28, 2026" },
+        when: "Updated Aug 28, 2026", badge: { kind: "fresh", label: "Up to date" } },
       { k: "fwa", name: "B.C. Freshwater Atlas",
         what: "Every stream and lake on the map, from the Province of British Columbia",
-        when: "Updated Jul 15, 2026" },
+        when: "Updated Jul 15, 2026", badge: { kind: "fresh", label: "Up to date" } },
       { k: "tiles", name: "Map tiles", what: "The atlas drawn for the map, with every regulation's section in it",
-        when: "Version d768d6e135e62b99.c9f9604f12bf" },
+        when: "Version d768d6e135e62b99.c9f9604f12bf", badge: { kind: "unknown", label: "Unknown" } },
       { k: "basemap", name: "Basemap", what: "Roads, towns and terrain: © OpenStreetMap contributors, Protomaps",
-        when: "Updated Mar 5, 2026" },
+        when: "Updated Mar 5, 2026", badge: { kind: "fresh", label: "Up to date" } },
       { k: "hydat", name: "Gauge records (HYDAT)",
-        what: "Past years of flow and level, Environment and Climate Change Canada", when: "Updated Jul 17, 2026" },
+        what: "Past years of flow and level, Environment and Climate Change Canada", when: "Updated Jul 17, 2026",
+        badge: { kind: "fresh", label: "Up to date" } },
       { k: "feed", name: "Live gauge readings",
         what: "Environment and Climate Change Canada, and the BC River Forecast Centre's forecasts",
-        when: "Checked 7h ago" },
-      { k: "weather", name: "Weather", what: "Open-Meteo.com (CC BY 4.0)", when: "Fetched when a spot is saved" },
+        when: "Checked 7h ago", badge: { kind: "stale", label: "Likely out of date" } },
+      { k: "weather", name: "Weather", what: "Open-Meteo.com (CC BY 4.0)", when: "Fetched when a spot is saved",
+        badge: { kind: "live", label: "Live" } },
       { k: "imagery", name: "Satellite imagery", what: "Shown only while online; never stored on this device",
-        when: "Live, when online" },
+        when: "Live, when online", badge: { kind: "live", label: "Live" } },
     ]);
     expect(vm.footnote).toBe("The Province's in-season changes and Fisheries and Oceans Canada's notices can change a "
       + "regulation at short notice. Check them before you fish.");
@@ -177,7 +145,8 @@ describe("data sources & dates", () => {
     const vm = sourcesVM({ sources: { synopsis: { title: "2025–2027 Synopsis", date: null } }, validUntil: "2027-03-31",
                            tiles: null, feedFetchedAt: null, now });
     expect(vm.rows[0]).toEqual({ k: "synopsis", name: "2025–2027 Synopsis",
-      what: "The Province of British Columbia's printed regulations, read water by water", when: "In force until Mar 31, 2027" });
+      what: "The Province of British Columbia's printed regulations, read water by water", when: "In force until Mar 31, 2027",
+      badge: { kind: "fresh", label: "Up to date" } });
     // a printing date, when one is recorded, is what the row says
     expect(sourcesVM({ sources: { synopsis: { title: "S", date: "2025-03-20" } }, validUntil: "2027-03-31", tiles: null,
                        feedFetchedAt: null, now }).rows[0]!.when).toBe("Updated Mar 20, 2025");
@@ -202,6 +171,56 @@ describe("data sources & dates", () => {
     expect(vm.rows.find((r) => r.k === "dfo")!.when).toBe("Date not recorded in this release");
     expect(vm.rows.find((r) => r.k === "synopsis")!.when).toBe("Date not recorded in this release");
     expect(vm.rows.find((r) => r.k === "feed")!.when).toBe("Not checked yet");
+    // and a date it cannot read is UNKNOWN, never fresh
+    expect(vm.rows.map((r) => `${r.k} ${r.badge.label}`)).toEqual(["synopsis Unknown", "inseason Not read",
+      "dfo Unknown", "fwa Unknown", "tiles Unknown", "basemap Unknown", "hydat Unknown", "feed Unknown", "weather Live",
+      "imagery Live"]);
+  });
+});
+
+describe("freshness: each source against its own cadence (owner 2026-10-22)", () => {
+  const H = 3_600_000, D = 24 * H;
+  const at = (k: SourceDateKey, s: Partial<SourcesInput>, now: number) =>
+    `${k} ${sourceFreshness(k, { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now, ...s }).label}`;
+  const now = Date.parse("2026-10-22T18:00:00Z");
+
+  it("names its cadences once: the feed's 30-minute cron gets 2 h — a reading's own stale line — then 120 / 730 / 365 / " +
+     "548 days", () => {
+    expect(STALE_AFTER).toEqual({ feedHours: 2, dfoDays: 120, fwaDays: 730, basemapDays: 365, hydatDays: 548 });
+    // ONE line for "the feed is old": the Data block and the sync icon draw the line a reading's age is held to (P02)
+    expect(STALE_AFTER.feedHours * H).toBe(STALE_AFTER_MS);
+  });
+
+  it("the live feed: up to date through 2 h, likely out of date past it, unknown when never reached", () => {
+    const fed = (ago: number) => at("feed", { feedFetchedAt: new Date(now - ago).toISOString() }, now);
+    expect([fed(0), fed(2 * H), fed(2 * H + 60_000), fed(27 * H), at("feed", {}, now)]).toEqual([
+      "feed Up to date", "feed Up to date", "feed Likely out of date", "feed Likely out of date", "feed Unknown"]);
+  });
+
+  it("each release-dated source at its edge: the day inside, the day past", () => {
+    // at midnight UTC, so a date N days back is exactly N days old
+    const midnight = Date.parse("2026-10-22T00:00:00Z");
+    const day = (k: "dfo" | "fwa" | "basemap" | "hydat", days: number) =>
+      at(k, { sources: { [k]: { date: new Date(midnight - days * D).toISOString().slice(0, 10) } } }, midnight);
+    expect([day("dfo", 120), day("dfo", 121), day("fwa", 730), day("fwa", 731), day("basemap", 365),
+            day("basemap", 366), day("hydat", 548), day("hydat", 549)]).toEqual([
+      "dfo Up to date", "dfo Likely out of date", "fwa Up to date", "fwa Likely out of date",
+      "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
+  });
+
+  it("the regulations: in force THROUGH their last day, likely out of date the day after, unknown with no last day", () => {
+    const last = "2027-03-31";
+    expect([at("synopsis", { validUntil: last }, Date.parse("2027-03-31T23:59:00Z")),
+            at("synopsis", { validUntil: last }, Date.parse("2027-04-01T00:00:00Z")),
+            at("synopsis", { validUntil: null }, now)])
+      .toEqual(["synopsis Up to date", "synopsis Likely out of date", "synopsis Unknown"]);
+  });
+
+  it("the map tiles by the proven pair; the in-season changes not read; weather and imagery live", () => {
+    expect([at("tiles", { tilesPaired: true }, now), at("tiles", { tilesPaired: false }, now),
+            at("tiles", { tilesPaired: null }, now), at("inseason", {}, now), at("weather", {}, now), at("imagery", {}, now)])
+      .toEqual(["tiles Up to date", "tiles Likely out of date", "tiles Unknown", "inseason Not read", "weather Live",
+                "imagery Live"]);
   });
 });
 

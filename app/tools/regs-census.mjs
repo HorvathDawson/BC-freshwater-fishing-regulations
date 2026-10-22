@@ -96,15 +96,14 @@ const LABEL = { light: /^Light/, dark: /^Dark/, cvd: /^Colour-blind/ };
 const result = { url, theme, tokens: TOK, states: [] };
 const b = await open(url, { width: 390, height: 844 });
 try {
-  await until(b, `!!${byLabel('/^Open menu$/')}`, 60000);
-  // the palette, as a reader picks it: Menu → Display → the choice → close
-  await tap(b, byLabel('/^Open menu$/'), 'menu'); await until(b, `!!document.querySelector('[data-testid=menu-item-display]')`);
-  await tap(b, `document.querySelector('[data-testid=menu-item-display]')`, 'Display');
+  await until(b, `!!${byLabel('/^More$/')}`, 60000);
+  // the palette, as a reader picks it: the More tab → the Display tile (owner 2026-10-22: on the tab, no page) → back
+  await tap(b, byLabel('/^More$/'), 'More tab');
   const radio = `[...document.querySelectorAll('[role=radio]')].find(e => ${String(LABEL[theme])}.test(e.getAttribute('aria-label')))`;
   await until(b, `!!${radio}`);
-  for (let i = 0; i < 5 && (await b.evaluate(`${radio}.getAttribute('aria-checked')`)) !== 'true'; i++) { await sleep(600); await tap(b, radio, theme); }   // the page slides in: tap once it has stopped
+  for (let i = 0; i < 5 && (await b.evaluate(`${radio}.getAttribute('aria-checked')`)) !== 'true'; i++) { await sleep(300); await tap(b, radio, theme); }
   await until(b, `${radio}.getAttribute('aria-checked') === 'true'`, 3000);
-  while (await b.evaluate(`!!${byLabel('/^(Close menu|Back)/')}`)) { await tap(b, byLabel('/^(Close menu|Back)/'), 'close'); await sleep(300); }
+  await tap(b, byLabel('/^Back to /'), 'back');
   for (const water of STATES) {
     await tap(b, `[...document.querySelectorAll('[role=tab]')].find(e => /^Search$/i.test(e.innerText.trim()) || e.getAttribute('aria-label') === 'Search')`, 'Search tab');
     await until(b, `!!document.querySelector('input')`);

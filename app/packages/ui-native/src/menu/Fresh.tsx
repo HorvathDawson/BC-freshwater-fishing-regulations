@@ -1,0 +1,45 @@
+/**
+ * A SOURCE'S FRESHNESS, drawn (owner 2026-10-22): the More tab's Data block and the Data sources & dates page draw the
+ * same badge from the same rule (`sourceFreshness`, core/menu.ts), so the two never disagree.
+ *
+ *   fresh    a filled dot in `live` (the app's live-data teal)
+ *   stale    a filled dot in `closed` — the one state that asks the reader to act, in the app's "act on this" red
+ *   unknown  an empty ring in `faint`: nothing to say, said quietly
+ *   live     an empty ring in `live`: fetched when needed, so it has no age
+ *
+ * Filled against ring is the shape difference, so the states hold apart without their hue (the CVD palette, greyscale).
+ */
+import { Text, View } from "react-native";
+import type { SourceFreshness, FreshnessVM } from "@app/core";
+import { TYPE } from "../type";
+import type { Palette } from "../theme";
+
+export const FRESH_DOT = 8;
+
+export function freshColour(p: Palette, k: SourceFreshness): string {
+  return k === "fresh" || k === "live" ? p.live : k === "stale" ? p.closed : p.faint;
+}
+
+/** The dot alone (a line's lead): filled for an age (fresh, stale), a ring for none (unknown, live). */
+export function FreshDot({ palette, kind, size = FRESH_DOT }: { palette: Palette; kind: SourceFreshness; size?: number }) {
+  const c = freshColour(palette, kind);
+  const filled = kind === "fresh" || kind === "stale";
+  return (
+    <View testID={`fresh-${kind}`} importantForAccessibility="no-hide-descendants" aria-hidden
+          style={{ width: size, height: size, borderRadius: size / 2, borderWidth: filled ? 0 : 1.5, borderColor: c,
+                   backgroundColor: filled ? c : "transparent" }} />
+  );
+}
+
+/** The dot and its word ("Likely out of date"): the badge where there is room to say it. */
+export function FreshBadge({ palette, badge, testID }: { palette: Palette; badge: FreshnessVM; testID?: string }) {
+  const stale = badge.kind === "stale";
+  return (
+    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <FreshDot palette={palette} kind={badge.kind} />
+      <Text style={{ ...(stale ? TYPE.metaBold : TYPE.metaSemi), color: stale ? palette.ink : palette.sub }}>
+        {badge.label}
+      </Text>
+    </View>
+  );
+}

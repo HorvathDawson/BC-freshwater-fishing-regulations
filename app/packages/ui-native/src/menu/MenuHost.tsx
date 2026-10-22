@@ -1,6 +1,7 @@
 /**
  * THE MENU'S PAGES, mounted once by the Shell: the page opened from the More tab (`MoreScreen`, T48 — the hamburger's
- * drawer is gone) or from a regulations tab's report link. Everything a page
+ * drawer is gone) or from a regulations tab's report link — Glossary, Data sources & dates, About, Report a problem.
+ * (Owner 2026-10-22) Display and Contact are no pages: the More tab draws them inline. Everything a page
  * says comes from core/menu.ts over facts handed in here — the release's manifest (its id, `sources`, the edition's
  * valid-until), the tile version the map draws, when the gauge feed was last fetched, the app's own config (build,
  * contact) and the recent error log. Nothing here is fetched for the menu except the glossary, read from the regs
@@ -10,12 +11,12 @@
  */
 import { useMemo } from "react";
 import { Platform } from "react-native";
-import { aboutVM, contactVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
-import type { Palette, ThemeName } from "../theme";
+import type { Palette } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
-import { AboutPage, ContactPage, DisplayPage, SourcesPage } from "./InfoPages";
+import { AboutPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
 import { ReportPage } from "./ReportPage";
 
@@ -30,17 +31,16 @@ export interface MenuInfo {
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, feedFetchedAt, route, day,
-                           theme = "light", onTheme = () => {} }: {
+export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, tilesPaired = null, feedFetchedAt, route,
+                           day }: {
   menu: MenuControls; palette: Palette;
-  /** the app's colours (the Display page): the palette in use and how to change it (App's theme state) */
-  theme?: ThemeName;
-  onTheme?: (t: ThemeName) => void;
   /** the release (null: the dev bundle, which holds no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
   /** the tile version the map draws, or null */
   tiles: string | null;
+  /** the tiles and the data proven one pair (P11 `usePairing`'s `ok`): the map tiles' freshness */
+  tilesPaired?: boolean | null;
   /** when the gauge feed was last fetched (its ISO instant), or null */
   feedFetchedAt: string | null;
   /** where the reader is now (the Shell's route) and the map's day (null = today) — a report is prefilled with them */
@@ -66,7 +66,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, fe
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "sources" | "display" | "about" | "contact" | "report", node: React.ReactNode) => (
+  const page = (k: "sources" | "about" | "report", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -84,13 +84,11 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, fe
         )}
       </MenuPage>
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
-        sources: m?.sources ?? null, validUntil: m?.regulations.valid_until ?? null, tiles, feedFetchedAt,
+        sources: m?.sources ?? null, validUntil: m?.regulations.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
         now: Date.now() })} />)}
-      {page("display", <DisplayPage palette={palette} theme={theme} onTheme={onTheme} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
         edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}
-      {page("contact", <ContactPage palette={palette} vm={contactVM(info.contact)} onReport={() => menu.report(where)} />)}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
     </>
   );

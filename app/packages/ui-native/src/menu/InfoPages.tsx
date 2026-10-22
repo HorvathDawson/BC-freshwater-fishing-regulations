@@ -1,14 +1,13 @@
 /**
- * The menu's reading pages — About, Data sources & dates, Display, Contact. Each draws one VM from core/menu.ts and decides
- * nothing; a link only says where it goes.
+ * The menu's reading pages — About, Data sources & dates. Each draws one VM from core/menu.ts and decides nothing; a link
+ * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import { MENU_WORDS, type AboutVM, type ContactVM, type SourceDateRowVM, type SourcesPicturesVM } from "@app/core";
-import { Button } from "../Button";
+import type { AboutVM, SourceDateRowVM, SourcesPicturesVM } from "@app/core";
 import { Credits } from "../Credits";
-import { Choice } from "../Sheet";
 import { TYPE } from "../type";
-import { SPACE, type Palette, type ThemeName } from "../theme";
+import { SPACE, type Palette } from "../theme";
+import { FreshBadge } from "./Fresh";
 
 const open = (url: string) => { void Linking.openURL(url); };
 
@@ -52,7 +51,12 @@ export function SourcesPage({ vm, palette }: {
                 style={{ paddingVertical: SPACE.s3, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
             <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.name}</Text>
             <Text style={{ ...TYPE.small, color: palette.sub }}>{r.what}</Text>
-            <Text style={{ ...TYPE.metaBold, fontSize: 12.5, color: palette.ink }}>{r.when}</Text>
+            {/* the date, then how fresh that makes it — the same badge as the More tab's Data block */}
+            <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: SPACE.s3, rowGap: 2,
+                           marginTop: 2 }}>
+              <Text style={{ ...TYPE.metaBold, fontSize: 12.5, color: palette.ink }}>{r.when}</Text>
+              <FreshBadge palette={palette} badge={r.badge} testID={`source-badge-${r.k}`} />
+            </View>
           </View>
         ))}
       </View>
@@ -62,41 +66,5 @@ export function SourcesPage({ vm, palette }: {
       {/* (N1) the icon set's ISC notice: the licence asks every copy to carry it */}
       <Credits palette={palette} ink={palette.sub} lines={vm.icons.lines} label={vm.icons.label} testID="sources-icon-credits" />
     </>
-  );
-}
-
-export function ContactPage({ vm, palette, onReport }: { vm: ContactVM; palette: Palette; onReport: () => void }) {
-  return (
-    <>
-      <Text style={{ ...TYPE.body, color: palette.ink }}>{vm.intro}</Text>
-      {vm.kind === "none"
-        ? <Text testID="contact-placeholder" style={{ ...TYPE.body, color: palette.sub }}>{vm.text}</Text>
-        : (
-          <Pressable onPress={() => open(vm.url)} accessibilityRole="link" accessibilityLabel={`${vm.label}: ${vm.value}`}
-                     style={{ gap: 2 }}>
-            <Text style={{ ...TYPE.section, color: palette.sub }}>{vm.label}</Text>
-            <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.value}</Text>
-          </Pressable>
-        )}
-      <Button palette={palette} kind="ghost" label={MENU_WORDS.items.report.label} onPress={onReport} />
-    </>
-  );
-}
-
-/**
- * DISPLAY: the app's colours (owner 2026-10-21 late — moved here from the Layers menu, which is the map's only). A whole
- * app setting: it repaints every screen and every map at once.
- */
-export function DisplayPage({ palette, theme, onTheme }: {
-  palette: Palette; theme: ThemeName; onTheme: (t: ThemeName) => void;
-}) {
-  const W = MENU_WORDS.display;
-  return (
-    <View testID="display-palette" style={{ gap: SPACE.s3 }}>
-      <Text style={{ ...TYPE.section, color: palette.sub }}>{W.palette}</Text>
-      <Choice<ThemeName> palette={palette} label={W.palette} value={theme} onChange={onTheme}
-                         variant="segmented" options={W.options} />
-      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.cvd}</Text>
-    </View>
   );
 }

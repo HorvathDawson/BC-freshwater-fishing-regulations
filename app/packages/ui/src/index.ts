@@ -35,6 +35,7 @@ export * from "./regs";
 export * from "./waterMap";
 export * from "./mapRail";
 export * from "./imagery";
+export * from "./sync";
 
 export * from "./layout";
 import { LAYOUT_BREAKPOINTS } from "./layout";

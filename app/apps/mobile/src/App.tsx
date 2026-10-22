@@ -12,7 +12,7 @@
  * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20. `atlas.meta.json` is read only while the manifest names no tile set: the
  * map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -24,7 +24,7 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
 import { makeBundleSource } from "@app/data/bundle";
-import { httpFeed, type RegsSource } from "@app/data";
+import { httpFeed, loadManifest, type RegsSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
@@ -103,6 +103,15 @@ export default function App() {
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
   } : null), [feed]));
   const dev = useDevBundle(!RELEASE);
+  /**
+   * (The sync icon, owner 2026-10-22) What data release the server names NOW — read again by the icon's tap and its
+   * poll, to SAY that a newer one exists (installed in the background at the next launch on a phone, by a reload on the
+   * web; never swapped under the reader). `no-store`: an HTTP cache must not answer "is there anything newer?".
+   */
+  const checkRelease = useCallback(
+    () => loadManifest(ENDPOINTS.manifest, undefined, (u, init) => fetch(u, { ...init, cache: "no-store" }))
+      .then((m) => m.data_release),
+    []);
 
   const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader | null } | null => {
@@ -179,6 +188,7 @@ export default function App() {
           </Text>
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
+               checkRelease={RELEASE ? checkRelease : null}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
                status={data.status} pairing={data.pairing}

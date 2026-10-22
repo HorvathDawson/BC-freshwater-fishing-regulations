@@ -19,7 +19,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 export type IconName =
   | "map" | "conditions" | "spots" | "more" | "layers"
-  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse";
+  | "search" | "back" | "next" | "close" | "calendar" | "parts" | "expand" | "collapse" | "sync";
 
 /** Which Lucide icon (lucide-static@0.460.0, `icons/<name>.svg`) each app icon is a copy of. */
 export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
@@ -36,6 +36,7 @@ export const LUCIDE_NAME: Readonly<Record<IconName, string>> = {
   parts: "list",
   expand: "chevron-down",
   collapse: "chevron-up",
+  sync: "refresh-cw",
 };
 
 /** The owner's stroke (Lucide ships 2): round caps and joins on the 24 grid. */
@@ -81,6 +82,12 @@ export const ICONS: Readonly<Record<IconName, readonly Shape[]>> = {
   close: [
     { path: "M18 6 6 18" },
     { path: "m6 6 12 12" },
+  ],
+  sync: [
+    { path: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" },
+    { path: "M21 3v5h-5" },
+    { path: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" },
+    { path: "M8 16H3v5" },
   ],
   calendar: [
     { path: "M8 2v4" },

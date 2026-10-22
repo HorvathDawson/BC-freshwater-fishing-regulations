@@ -112,6 +112,8 @@ export function useConditionsColour(i: {
   fieldOn: boolean;
   /** What the map reports on screen — the pushed path's question, and the legend's marks on both. */
   visible: readonly SectionId[];
+  /** (the sync icon) bumped by a refresh the reader asked for: the feed is re-asked now, not at the next poll */
+  epoch?: number;
 }): ConditionsColourVM {
   const { source, feed, perTile, paired, onConditions, quantity, horizon } = i;
   // THE PUSHED PATH (native): the viewport, through the panels — asked only where it is the path
@@ -136,7 +138,7 @@ export function useConditionsColour(i: {
     let v = memo.current.byKey.get(key);
     if (!v) memo.current.byKey.set(key, v = standingValues(labels, idx, quantity, horizon));
     return { labels, v };
-  }, `classstandings:${labels?.release ?? ""}:${quantity}:${horizon}:${tick}`,
+  }, `classstandings:${labels?.release ?? ""}:${quantity}:${horizon}:${tick}:${i.epoch ?? 0}`,
      labels !== null && onConditions && feed !== undefined,
      // A REFRESH, NOT A NEW QUESTION: the last table stays on the map until the next one is ready. Without it every
      // horizon change painted the whole map `missing` for a frame (the loading state) and then repainted it.

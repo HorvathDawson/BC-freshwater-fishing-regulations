@@ -1,18 +1,16 @@
 /**
- * THE MENU (owner 2026-10-21): six pages — Glossary, Data sources & dates, Display (the app's colours, moved here from
- * the Layers menu, owner 2026-10-21 late), About, Report a problem, Contact. (T48, owner 2026-10-22) They are the bottom
- * bar's MORE tab: the top-left hamburger and its drawer are gone, moved, never copied. Every word they draw and every
- * sentence they compose is here, where a test can pin the finished string (AGENTS 33); the components draw these VMs and
- * decide nothing.
+ * THE MENU (owner 2026-10-21; T48: the bottom bar's MORE tab — the top-left hamburger and its drawer are gone, moved,
+ * never copied). (Owner 2026-10-22, refinement pass) The More tab itself shows the data's sourceFreshness, the display options
+ * and Contact INLINE (more.ts `menuVM`); what opens as a page over it is Glossary, Data sources & dates (the detailed
+ * references), About and Report a problem. Every word they draw and every sentence they compose is here or in more.ts,
+ * where a test can pin the finished string (AGENTS 33); the components draw these VMs and decide nothing.
  *
- *   menuVM          the More tab's items, in order
- *   syncLine        the status line at the top of the search area (the slot update / sync fills later)
  *   glossaryRows    the glossary's list, searched — the release's own terms (`answers.glossary`, the same terms the
  *                   regs page's `gl:` sheets open); a term's definition is `glossBlocks` (regs/sheets.ts), never a copy
  *   aboutVM         what the app is, the authority disclaimer, the official synopsis, the versions
- *   sourcesVM       every source the app reads and the date it was last updated — from the release manifest's
- *                   `sources` (the pipeline reads them off its inputs) and from what the app itself fetched; a date
- *                   nobody recorded says so, never a guess
+ *   sourcesVM       every source the app reads, the date it was last updated and its freshness badge (more.ts
+ *                   `sourceFreshness`) — from the release manifest's `sources` (the pipeline reads them off its inputs) and from
+ *                   what the app itself fetched; a date nobody recorded says so, never a guess
  *   contactVM       the ONE contact value (app config), or a placeholder until the owner supplies it
  *   diagnosticRows / reportMessage / mailtoUrl   a problem report: what the user wrote plus the diagnostics they can
  *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
@@ -27,7 +25,8 @@ import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
 
 // ── words ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-export type MenuPageKey = "glossary" | "sources" | "display" | "about" | "report" | "contact";
+/** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
+export type MenuPageKey = "glossary" | "sources" | "about" | "report";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -39,16 +38,15 @@ export const MENU_WORDS = {
   items: {
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
     sources: { label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
-    display: { label: "Display", hint: "Light, dark or colour-blind colours" },
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
-    contact: { label: "Contact", hint: "Get in touch" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
   /**
    * THE APP'S COLOURS (owner 2026-10-21 late: the palette left the Layers menu for the hamburger) — a whole-app setting,
    * not a map layer: it repaints every screen and every map.
    */
   display: {
+    title: "Display",
     palette: "Colours",
     options: [
       { k: "light", t: "Light" },
@@ -119,6 +117,7 @@ export const MENU_WORDS = {
     unknown: "unknown age",
   },
   contact: {
+    title: "Contact",
     intro: "Questions, corrections and ideas are welcome.",
     placeholder: "Contact details are coming soon. Until then, use Report a problem to share a note from your device.",
     email: "Email",
@@ -156,43 +155,6 @@ export const MENU_WORDS = {
     },
   },
 } as const;
-
-// ── the sync status line ─────────────────────────────────────────────────────────────────────────────────────────────
-
-/** The status line's words: the Data sources page's own facts, shortened to one line over the map. */
-export const SYNC_WORDS = {
-  regs: (day: string) => `Regs to ${day}`,
-  flows: (ago: string) => `Flows checked ${ago}`,
-  flowsNot: "Flows not checked yet",
-} as const;
-
-/**
- * (T48) THE SYNC STATUS at the top of the search area: what the Data sources page says of freshness, on one line — the
- * edition's last day (the release's `regulations.valid_until`) and when the live flows were last checked (the feed's
- * index). `feed` false: this build reads no feed, so nothing is said of it. Null when there is nothing to say. When
- * "Update / sync" is built, its state takes this line; nothing else here changes.
- */
-export function syncLine(s: { validUntil: string | null; feed: boolean; feedFetchedAt: string | null; now: number }):
-    string | null {
-  const parts: string[] = [];
-  const until = isoDayWords(s.validUntil);
-  if (until) parts.push(SYNC_WORDS.regs(until));
-  if (s.feed)
-    parts.push(s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
-      ? SYNC_WORDS.flows(agoWords(s.feedFetchedAt, s.now)) : SYNC_WORDS.flowsNot);
-  return parts.length ? parts.join(" · ") : null;
-}
-
-// ── the More tab ─────────────────────────────────────────────────────────────────────────────────────────────────────
-
-/** The More tab's order: reading the regulations first, then where they come from, then the app, then talking to us. */
-export const MENU_ORDER: readonly MenuPageKey[] = ["glossary", "sources", "display", "about", "report", "contact"];
-
-export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
-
-export function menuVM(): { title: string; items: readonly MenuItemVM[] } {
-  return { title: MENU_WORDS.title, items: MENU_ORDER.map((k) => ({ k, ...MENU_WORDS.items[k] })) };
-}
 
 // ── the glossary ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -291,15 +253,103 @@ export interface SourcesInput {
   tiles: string | null;
   /** When the live gauge feed was last fetched (its ISO instant, the data facts' `fetchedAt`), or null. */
   feedFetchedAt: string | null;
+  /**
+   * The map's tiles and the data proven ONE PAIR (P11 `usePairing`): true, a mixed pair (false), or not established
+   * (null / absent) — the only freshness a tile set has, since the release dates no tile build.
+   */
+  tilesPaired?: boolean | null;
   now: number;
 }
 
 export type SourceDateKey = keyof typeof MENU_WORDS.sources.rows;
 
-export interface SourceDateRowVM { readonly k: SourceDateKey; readonly name: string; readonly what: string; readonly when: string }
+export interface SourceDateRowVM {
+  readonly k: SourceDateKey; readonly name: string; readonly what: string; readonly when: string;
+  readonly badge: FreshnessVM;
+}
+
+// ── freshness ────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * HOW FRESH A SOURCE IS (owner 2026-10-22: "when each feed was last updated … and if any are likely out of date"):
+ *   fresh    inside its expected cadence
+ *   stale    older than its expected cadence: LIKELY out of date (a cadence is an expectation, not a promise)
+ *   unknown  no date recorded, or a source the app does not read — never guessed fresh
+ *   live     fetched on demand (weather with a spot, imagery while online): it has no age to hold
+ */
+export type SourceFreshness = "fresh" | "stale" | "unknown" | "live";
+export interface FreshnessVM { readonly kind: SourceFreshness; readonly label: string }
+
+export const FRESHNESS_WORDS = {
+  fresh: "Up to date",
+  stale: "Likely out of date",
+  unknown: "Unknown",
+  live: "Live",
+  /** the in-season changes: the app does not read them, so their freshness is the reader's to check */
+  notRead: "Not read",
+} as const;
+
+/**
+ * EACH SOURCE'S EXPECTED CADENCE: past it, the source is LIKELY out of date. Named here, once; pinned by whole-string
+ * tests at each edge (menu.test.ts).
+ */
+export const STALE_AFTER = {
+  /**
+   * The live gauge feed is published every 30 minutes (pipeline/gauges/feed/publish.py's cron): 2 h is four missed
+   * ticks — THE SAME LINE as a reading's own staleness (`STALE_AFTER_MS`, core index.ts, P02); a test holds them equal.
+   */
+  feedHours: 2,
+  /** DFO's salmon notices turn over in season (~half the rules a year): a scrape older than 120 days has likely missed one. */
+  dfoDays: 120,
+  /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
+  fwaDays: 730,
+  /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */
+  basemapDays: 365,
+  /** HYDAT is published quarterly and a release takes it yearly: 18 months is a missed year. */
+  hydatDays: 548,
+} as const;
+
+const DAY_MS = 86_400_000;
+/** The age in days of an ISO day at `now` (its start, UTC), or null when it is not one. */
+const dayAge = (day: string | null | undefined, now: number): number | null =>
+  isoDayWords(day) === null ? null : (now - Date.parse(`${day}T00:00:00Z`)) / DAY_MS;
+const badge = (kind: SourceFreshness, label: string = FRESHNESS_WORDS[kind]): FreshnessVM => ({ kind, label });
+/** By age against a cadence: within it fresh, past it stale, no age unknown. */
+const byAge = (age: number | null, limit: number): FreshnessVM =>
+  badge(age === null ? "unknown" : age > limit ? "stale" : "fresh");
+
+/**
+ * ONE SOURCE'S FRESHNESS — the rules, per source:
+ *   synopsis  in force through its last day (`valid_until`): fresh through that day, stale after; no last day, unknown
+ *   inseason  not read by the app: unknown ("Not read")
+ *   dfo / fwa / basemap / hydat   the release's date for it, against `STALE_AFTER`
+ *   tiles     the proven pair: paired fresh, a mixed pair stale, not established unknown
+ *   feed      the feed index's own `fetchedAt`, against `STALE_AFTER.feedHours`; never checked, unknown
+ *   weather / imagery   live
+ */
+export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM {
+  const a = STALE_AFTER;
+  switch (k) {
+    case "synopsis":
+      if (isoDayWords(s.validUntil) === null) return badge("unknown");
+      // in force THROUGH its last day: stale only once that whole day (UTC) has passed
+      return badge(s.now >= Date.parse(`${s.validUntil}T00:00:00Z`) + DAY_MS ? "stale" : "fresh");
+    case "inseason": return badge("unknown", FRESHNESS_WORDS.notRead);
+    case "dfo": return byAge(dayAge(s.sources?.dfo?.date, s.now), a.dfoDays);
+    case "fwa": return byAge(dayAge(s.sources?.fwa?.date, s.now), a.fwaDays);
+    case "basemap": return byAge(dayAge(s.sources?.basemap?.date, s.now), a.basemapDays);
+    case "hydat": return byAge(dayAge(s.sources?.hydat?.date, s.now), a.hydatDays);
+    case "tiles": return badge(s.tilesPaired === true ? "fresh" : s.tilesPaired === false ? "stale" : "unknown");
+    case "feed": {
+      const t = s.feedFetchedAt === null ? NaN : Date.parse(s.feedFetchedAt);
+      return byAge(Number.isFinite(t) ? (s.now - t) / 3.6e6 : null, a.feedHours);
+    }
+    case "weather": case "imagery": return badge("live");
+  }
+}
 
 /** The order the screen lists them: the regulations, the map, the water, the sky. */
-const SOURCE_ORDER: readonly SourceDateKey[] =
+export const SOURCE_ORDER: readonly SourceDateKey[] =
   ["synopsis", "inseason", "dfo", "fwa", "tiles", "basemap", "hydat", "feed", "weather", "imagery"];
 
 /** (T43) the app's one list of fish picture credits: every picture it can show (the manifest's lines, emitted). */
@@ -340,6 +390,7 @@ export function sourcesVM(s: SourcesInput): {
       name: k === "synopsis" ? s.sources?.synopsis?.title ?? w.rows[k].name : w.rows[k].name,
       what: w.rows[k].what,
       when: when(k),
+      badge: sourceFreshness(k, s),
     })),
     footnote: w.checkFirst,
     // (T43) the regs page's foot lists only its own pictures' lines; this is the whole list, once

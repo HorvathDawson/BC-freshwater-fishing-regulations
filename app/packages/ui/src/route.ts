@@ -30,7 +30,8 @@
  * the map camera the Shell keeps). In browse mode back closes what is open on the tab (a spot being added, a spot,
  * search), then returns to the Map tab (the start tab: Android's "fixed start destination" — back from Conditions,
  * Spots or More goes to the map, as it does in Google's own apps and on the web's history), and on the Map tab itself
- * stays: depth 0, where Android's back leaves the app.
+ * stays: depth 0, where Android's back leaves the app. ONE EXCEPTION (owner 2026-10-22): More is a detour, so back from
+ * it returns first to the tab it was opened from (`prev`) — the ‹ at its top and the system back alike.
  */
 import { useReducer } from "react";
 import { WATER_VIEWS, type WaterView } from "@app/core";
@@ -62,6 +63,12 @@ export interface BrowseRoute {
    * and selection are the Shell's). Only on the maps (`SEARCH_TABS`).
    */
   search: boolean;
+  /**
+   * (Owner 2026-10-22, "add a back to top to go to previous tab") On the More tab only: the tab it was opened from, when
+   * that was not the Map tab. Back from More — its ‹ at the top, Android's back, the browser's — returns THERE (then
+   * the Map tab, as from any tab). Absent: the Map tab.
+   */
+  prev?: BrowseTab;
 }
 export interface WaterRoute { mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute }
 export type Route = BrowseRoute | WaterRoute;
@@ -117,7 +124,12 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
 export function reduce(r: Route, a: RouteAction): Route {
   if (r.mode === "browse") {
     switch (a.type) {
-      case "tab": return { mode: "browse", tab: a.tab, spot: null, adding: null, search: false };
+      case "tab": {
+        const next: BrowseRoute = { mode: "browse", tab: a.tab, spot: null, adding: null, search: false };
+        // More remembers the tab it came from (kept when More is pressed again); the Map tab is the default, unsaid
+        const prev = a.tab !== "more" ? undefined : r.tab === "more" ? r.prev : r.tab;
+        return prev !== undefined && prev !== HOME.tab ? { ...next, prev } : next;
+      }
       case "search":
         if (a.open === r.search || (a.open && !SEARCH_TABS.includes(r.tab))) return r;
         return { ...r, search: a.open };
@@ -132,7 +144,7 @@ export function reduce(r: Route, a: RouteAction): Route {
         if (r.adding !== null) return { ...r, adding: null };
         if (r.spot !== null) return { ...r, spot: null };
         if (r.search) return { ...r, search: false };
-        if (r.tab !== HOME.tab) return HOME;
+        if (r.tab !== HOME.tab) return r.prev !== undefined ? { ...HOME, tab: r.prev } : HOME;
         return r;
       default: return r;            // view / part / flowInto mean nothing without a water
     }

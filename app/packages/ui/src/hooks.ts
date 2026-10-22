@@ -478,17 +478,6 @@ export function useDataFacts(source: RegsSource, feed?: GaugeFeed, wanted = true
 }
 
 /**
- * (T48) WHEN THE FLOWS WERE LAST CHECKED — the feed index's own `fetchedAt` (the Data sources page's "Checked …"), for
- * the sync status line over the maps. Only the feed is asked (its index is fetched once and cached by the feed), never
- * the bundle's counts: a cold start opens no core for a status line. Null: no feed, not reached, or not answered yet.
- */
-export function useFeedAge(feed?: GaugeFeed): string | null {
-  const a = useAsync(async () => (feed ? (await feed.index().catch(() => null))?.fetchedAt ?? null : null),
-                     `feedage:${feed ? "feed" : "nofeed"}`, !!feed);
-  return a.state === "ready" ? a.value : null;
-}
-
-/**
  * THE DEV PATH ONLY (`EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20): the status index beside the
  * tiles, `status_index.bin`. The app reads the status from the release's paint (`./release.ts`).
  */

@@ -141,10 +141,10 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
   "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
-  "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
-  "packages/ui-native/src/menu/InfoPages.tsx#DisplayPage: draws DisplayPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
+  "packages/ui-native/src/menu/MoreScreen.tsx#MoreScreen: takes onBack (MoreScreenProps)": "owner 2026-10-22: the More TAB's ‹ to the tab it came from — a route tab (`prev`), not a layer: the Shell hands it the ONE back (`useBack`), which the system back also takes",
+  "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack": "the More tab's ‹ button; MoreScreen hands it the Shell's one back",
 };
 /** A finding's key: `path#Component: why` (one component can be covered for one reason and not another). */
 const keyOf = (m: string) => m.split(", ")[0]!;
@@ -205,10 +205,9 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",
       "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
-      "packages/ui-native/src/menu/InfoPages.tsx#ContactPage: draws ContactPage",
-      "packages/ui-native/src/menu/InfoPages.tsx#DisplayPage: draws DisplayPage",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
+      "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack",
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",

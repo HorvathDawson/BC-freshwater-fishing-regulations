@@ -259,6 +259,17 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(backs(3)).toEqual(["About page · tab More", "handled -> tab More", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
+  it("(owner 2026-10-22) More opened from Conditions: its ‹ and the system back return to Conditions, then the Map tab",
+     async () => {
+    await mount({ ...HOME, tab: "more", prev: "conditions" });
+    expect(screen.getByLabelText("Back to Conditions")).toBeTruthy();
+    expect(backs(3)).toEqual(["tab More", "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
+    cleanup();
+    await mount({ ...HOME, tab: "more", prev: "conditions" });
+    await click("Back to Conditions");
+    expect(backs(2)).toEqual(["tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
+  });
+
   it("a spot (opened over the map it was picked on): back returns to that map, then Android leaves", async () => {
     await mount({ ...HOME, spot: "s1" });
     expect(backs(2)).toEqual(["spot · tab Map", "handled -> tab Map", "ANDROID -> tab Map"]);

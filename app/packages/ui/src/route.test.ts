@@ -61,6 +61,26 @@ describe("route (P13): one value, one back rule", () => {
     expect(after.join(" | ")).toBe("map -> stays | conditions -> map | spots -> map | more -> map");
   });
 
+  it("(owner 2026-10-22) back from More returns to the tab it was opened from, then the Map tab; More again keeps it", () => {
+    const walk = (from: "map" | "conditions" | "spots") => {
+      let r = run(HOME, { type: "tab", tab: from }, { type: "tab", tab: "more" }, { type: "tab", tab: "more" });
+      const out: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const b = reduce(r, { type: "back" });
+        out.push(b === r ? "stays" : b.mode === "browse" ? b.tab : b.mode);
+        r = b;
+      }
+      return `${from}: ${out.join(" -> ")}`;
+    };
+    expect([walk("map"), walk("conditions"), walk("spots")]).toEqual([
+      "map: map -> stays -> stays", "conditions: conditions -> map -> stays", "spots: spots -> map -> stays"]);
+    // the Map tab is the default and unsaid: More from the map is the plain More route
+    expect(run(HOME, { type: "tab", tab: "more" })).toEqual({ ...HOME, tab: "more" });
+    // leaving More forgets it
+    expect(run(HOME, { type: "tab", tab: "spots" }, { type: "tab", tab: "more" }, { type: "tab", tab: "conditions" }))
+      .toEqual({ ...HOME, tab: "conditions" });
+  });
+
   it("the spots are the maps' rail's (owner 2026-10-21): a spot opens over the map it was picked on, back returns there", () => {
     const cond = reduce(HOME, { type: "tab", tab: "conditions" });
     const spot = reduce(cond, { type: "openSpot", id: "s1" });
