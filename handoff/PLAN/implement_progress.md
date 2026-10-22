@@ -3,7 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
+## CURRENT STATE (2026-10-22 ~15:20) — READ THIS FIRST ON A RESTART
+- Branch redesign/stream-sections (NEVER main). REFINEMENT PASS MERGED (map-style 48c4fa3c..6b5da3ce, legend+scrim
+  a25685e3..5a6399c1, More+sync e7ac4eb8+1086aa45, integration fix 7af2880); strict check 7609 pass + smoke 18/18 green.
+  wf_259c396f worktrees removed.
+- PANELS LANE MERGED (wf_ac3c87d1-cf6): every gauge per quantity (MEMBERS_PER_QUANTITY=8; CORE_MEMBERS=4 core, the rest a
+  reserve that may answer but never silences the core). Real data: Flow 100,020→100,095, Level 107,296→107,373, 0 losses.
+- RUNNING (scratchpad panels-rebuild.sh, log panels-rebuild.log): roster refresh (needs PYTHONPATH=.; the old roster is
+  kept in the scratchpad and restored on failure) → panel tests → deliver all via heavy.sh → data tests. THEN: re-cut fixtures
+  (taps.py, regs-fixture, harness/goldenSlices), strict check once, local feed run, commit fixtures.
+- TILE REBUILD PENDING: parcels from z11 + basins coverage simplify (100 m), batched with S2 tile-size work.
+- NEXT: app reads feed `listed` ("not a real-time gauge"); spots on/off in Layers; T51; T52; Fable consistency auditors;
+  cleanup waves 2-4 + app test cleanup + knip; S2; determinism proof (heavy.sh); T50 Android.
+- OPEN OWNER QUESTIONS: dark water ink reads sea-green; More sync stale cadences; release has no `valid_until`; hide silent
+  donor rows in the Conditions table?
+
+## EARLIER STATE (2026-10-22 ~11:00) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections. Live data release r-f734cbb93724 (option A side channels + own gauge lead; served by
   `pnpm tiles` from app/ on :39217 — restart it if down). Strict `REGS_STORE_REQUIRED=1 pnpm -C app check` 7466 + smoke
   green at 36ec882a. Owner answers for this round: decisions.md "OWNER 2026-10-22 — answers".
