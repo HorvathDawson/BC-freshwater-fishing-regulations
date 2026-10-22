@@ -98,6 +98,12 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
 - T49 (owner 2026-10-21): the map's day becomes a calendar icon + month-grid date sheet (one component for map and
   regs "Which day?"); after the layers-B lane merges.
+- MERGED ~01:45: T49 calendar (02570d07 + 2 focus fixes), T47 part 1 measurements + candidates (459d707c, 4e0b108d),
+  own gauge leads (d7ba348e, d1faab4f; report 85bec6d7). DELIVER ALL done: r-f734cbb93724 (option A + own gauge live;
+  card gate 0; 13.67 MB; answers unchanged). Strict 7069, smoke, pipeline 109. T47 compare page for the owner:
+  https://claude.ai/artifact/LAPkAZz8a8eFkCXuJZi37B (recommend B). Waiting on: T47 pick + its questions; own-gauge
+  questions (tidal level gauges leading Level; Vedder own gauge via the Chilliwack line; far = river-size scaled; 70%);
+  T49 questions (day range = this calendar year; button stays in the strip; Sunday-first). NEXT in order: T44.
 - 00:31 restart: credits ran out ~00:00 during both fix stages; RESUMED own-gauge (task whzdwc3j1) and T47+T49 (task
   w20bqpq58), same run ids; only the fix agents rerun. Tile server up.
 - MERGED option A a6e0df2e (side channels follow their own river; Widgeon 50->17 like the Pitt; 13,639 sections change).
