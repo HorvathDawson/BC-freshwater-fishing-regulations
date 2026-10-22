@@ -96,6 +96,15 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED ~23:30: MAP CHROME — Android/browser back everywhere (71a4a519, 06011c65), map side rail + Spots menu + long-press
+  drop (96a97c2a, c90553ad; Spots tab removed), menu (02542c85 release manifest `sources`, 5b686686 hamburger + drawer:
+  Glossary, Data sources & dates, About, Report a problem, Contact; 2a4f8a42 horizons row). Merge fixes a6fb1b66 (back
+  scan accepts useBackLayer-wired Modals; menu page content covered). Strict 6943, smoke, release tests 32 pass.
+  NEEDS a release-only rebuild so the live manifest carries `sources` (do it with water_continue after that merge).
+  OWNER QUESTIONS: rail is square (old Riffle style) not Fish Washington round; native "At my location" needs
+  expo-location; long press on the Conditions map also drops a spot?; app name "Can I Fish This?"; contact value;
+  synopsis publish date; ingest in-season changes?; back on Search/Conditions root -> Map first (Material) or exit?;
+  back on Search clears a selected row first?
 - LAYERS MENU design done (wf_dc903d04-d42): handoff/PLAN/app-data/layers-menu/ (inventory, 3 mockups A/B/C, RECOMMENDATION.md:
   C compact + More layers with grafts). Shown to owner: https://claude.ai/artifact/UjhcUcXmStkGGcoyFZWuNm. Waiting on the owner's
   pick + 5 questions; build after the map-rail lane merges.
