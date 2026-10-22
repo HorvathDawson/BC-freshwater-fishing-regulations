@@ -22,6 +22,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - CLEANUP SCOPE decided (decisions.md "OWNER 2026-10-22 — the audit plan"): waves 1-4 with the owner's corrections
   (keep stocking/bathy/salmon code as "prepared"; prove every script unneeded before deleting), the calls 1-12, a big test
   cleanup, and the ambiguous-cut rule (nearest the other extent; reach rerun + deliver; diff bindings first).
+- T50 (owner 2026-10-22): Android emulator parity + system bars. Starts as its own HEAVY run (heavy.sh, alone) right after
+  the finishing round (T48) merges. AVD n1_pixel exists; SDK at ~/Library/Android/sdk (not on PATH).
 - THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
   by file); (2) Fable-model consistency auditors — every route into a screen reaches the SAME screen, no duplicate menus,
   data and UI agree — then fix what they find; (3) the MASS CLEANUP (owner 2026-10-22 asked for it after the last
