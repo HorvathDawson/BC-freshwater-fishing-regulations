@@ -631,3 +631,9 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - Rule: a typed id an override pins resolves to EVERY lake item whose own polygon carries it, when no item owns it as
   its id; side channels that only inherit a name's gnis still do not. Then backfill `matched` (dry-run first), reach
   rerun + deliver, binding diff reviewed before promoting.
+
+## OWNER 2026-10-22 (late) — a river that changes its name is ONE system for back
+- Owner: "yes think of things like this as one system. bella coola atnarko is another example." (Vedder ↔ Chilliwack.)
+- Rule: stepping ▲/▼ off the end of a water into the water it CONTINUES AS / FROM (a name change on the same
+  mainstem, through a lake included) REPLACES the current step; back still leaves the whole system in one press.
+  A true tributary (a creek's mouth on another river, "Flows into …" from a side stream) stays one extra step.
