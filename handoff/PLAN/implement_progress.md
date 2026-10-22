@@ -12,6 +12,9 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   more distinct, applied + gate), regs polish (R1 spacing, sheet kickers, report link once, Done, paper tint — Claude
   decides). Resume with Workflow({scriptPath, resumeFromRunId}); merge each lane (cherry-pick, conflict-marker grep,
   fixtures if VMs moved, strict check, smoke, remove worktrees).
+- ALSO RUNNING (read-only) wf_bdacabdc-f09 (script workflows/scripts/audit-cleanup-pipeline-icons-wf_bdacabdc-f09.js):
+  app cleanup finder, pipeline data-flow audit, docs/tickets audit, bottom-bar icon directions; each verified; output
+  scratchpad audit/PLAN.md + icons/compare.html (copy into handoff/PLAN/audit/ when done; show the owner).
 - THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
   by file); (2) Fable-model consistency auditors — every route into a screen reaches the SAME screen, no duplicate menus,
   data and UI agree — then fix what they find; (3) the MASS CLEANUP (owner 2026-10-22 asked for it after the last
