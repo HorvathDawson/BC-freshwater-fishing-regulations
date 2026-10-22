@@ -19,7 +19,7 @@ import type { PinStore } from "./pinStore";
 function Bolded({ s }: { s: string }) {
   const b = boldFirst(s);
   if (!b) return <>{s}</>;
-  return <>{b.pre}<Text style={{ fontFamily: FACE.textHeavy }}>{b.n}</Text>{b.post}</>;
+  return <>{b.pre}<Text testID="n:pin" style={{ fontFamily: FACE.textHeavy }}>{b.n}</Text>{b.post}</>;
 }
 
 function Line({ l, store, palette }: { l: PinLine; store: PinStore; palette: Palette }) {
@@ -29,7 +29,7 @@ function Line({ l, store, palette }: { l: PinLine; store: PinStore; palette: Pal
           // the size line wears the size section's rule (prototype `#pins .pl[data-tier="size"]`: 3 px rule, 13 px in)
           style={[{ paddingVertical: 3, paddingRight: GUTTER, paddingLeft: group ? GUTTER : 26 },
                   size ? { paddingLeft: 13, borderLeftWidth: 3, borderLeftColor: palette.rule } : null]}>
-      <Text style={[group ? TYPE.pinGroup : TYPE.pinLine, { color: size ? palette.rule : palette.ink }]}><Bolded s={l.text} /></Text>
+      <Text testID={size ? "pin:size" : undefined} style={[group ? TYPE.pinGroup : TYPE.pinLine, { color: size ? palette.rule : palette.ink }]}><Bolded s={l.text} /></Text>
       {l.sub !== null && <Text style={[TYPE.pinSub, { color: palette.ink }]}><Bolded s={l.sub} /></Text>}
     </View>
   );

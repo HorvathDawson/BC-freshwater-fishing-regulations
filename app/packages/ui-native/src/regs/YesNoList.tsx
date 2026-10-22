@@ -18,7 +18,7 @@ export function YesNoList({ list, palette, actions }: { list: YesNoVM; palette: 
           {c.items.map((it, i) => (
             <View key={i} accessibilityLabel={`${c.head}: ${it.name}${it.note ? `, ${it.note}` : ""}`}
                   style={{ flexDirection: "row", alignItems: "baseline", paddingVertical: 3 }}>
-              <Text aria-hidden style={[TYPE.regsChip, { width: 20, color: c.col === "ok" ? palette.open : palette.closed }]}>{it.mark}</Text>
+              <Text aria-hidden testID={c.col === "ok" ? "st:open" : "st:closed"} style={[TYPE.regsChip, { width: 20, color: c.col === "ok" ? palette.open : palette.closed }]}>{it.mark}</Text>
               <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>
                 {it.name}
                 {it.terms.length > 0 && <> <TermText ids={it.terms} palette={palette} actions={actions} /></>}

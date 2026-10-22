@@ -83,3 +83,20 @@ node app/tools/regs-census.mjs --theme dark /tmp/census-dark.json   # needs pnpm
   accept either. If D3 flips to (b), test 2 still passes (sub is a token either way); only the cvd 6.5:1 case changes
   (it would fail on the app's `#6C737A` 4.80:1 — then it becomes `it.todo` with a pointer to decisions.md D3).
 - The scrim stays the app's .28 in dark (tokens.md: `opacity.ui.scrim`) — not a regs decision.
+
+## As built (2026-10-22)
+- `MAX_COLOURS` is `{ keep: 7, gear: 5, methods: 5, licence: 4 }`: the design target is v38, whose check.mjs r20g BOUND gives
+  Keep 7 (UR7, owner B: the size section's `rule` head and numbers). `rule` is a text token; a number under `tier:size` /
+  `pin:size` is held to `rule`, every other number to `ink`.
+- States: the frozen pages (render tests cannot open a store) — vedder_1010, vedder_515, bc1_501, klwa_1010 and glenn_501 (for
+  klwa_1012 / glenn_615, which have no frozen page), plus the closed vedder_615; × LIGHT / DARK / CVD × the four tabs.
+- The components carry the §2.7 testIDs now (contracts.md "AS BUILT"); the group containers keep `keep-group` /
+  `keep-plain` and the pin bar `pin-bar` (renaming them would break T21/T29 tests).
+- Keyed exceptions (census.ts `ALLOW`, each with its reason): the caveat block's `restricted` left rule (T42), the closed
+  banner's `closed` top rule, the licence paper note's `tint` ground (`note:paper`, prototype `.gtopic .paper`).
+- Rule 3 also covers rules (borders): a status colour on a border only on a status element or a keyed exception.
+- `theme.test.ts` unchanged: T22 already holds `sub` at the prototype's value (`tools/regs-tokens.test.ts`); `faint` is
+  NOT the prototype's in the app (it stays the app-wide token, banned as regs text by D3 — regs-tokens' lint + rule 2).
+- D tool run (own ports, Expo web over the live release r-f734cbb93724): Vedder River + Bella Coola River, today (Oct 22),
+  light / dark / CVD — Keep 7 / Gear 5 / Methods 5 / Licence 4 (Vedder), 6 / 4 / 5 / 4 (Bella Coola), no faults.
+  Dark Keep shot with the fish pictures for the owner (D4): `../T39-shots/vedder-keep-dark.png`; census `../T39-shots/census-dark.json`.

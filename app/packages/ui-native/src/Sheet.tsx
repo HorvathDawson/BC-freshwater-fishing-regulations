@@ -193,7 +193,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
         {options.map((o, i) => {
           const on = o.k === value;
           return (
-            <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t}
+            <Pressable key={o.k} testID={`btn:${o.k}`} onPress={() => onChange(o.k)} accessibilityRole="radio" aria-checked={on} accessibilityLabel={o.t}
                        style={{ flex: 1, minHeight: 44, paddingVertical: 4, paddingHorizontal: 6, alignItems: "center", justifyContent: "center",
                                 backgroundColor: on ? palette.ink : "transparent",
                                 borderLeftWidth: i ? 1.5 : 0, borderLeftColor: palette.ink }}>

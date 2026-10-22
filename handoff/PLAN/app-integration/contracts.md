@@ -402,6 +402,20 @@ export function Sheet(p: { /* …existing… */ scroll?: boolean; sub?: string |
 **testID prefixes** (every regs component T23–T35; the palette/census gate's selectors — RN has no classes):   // (T39)
 status words `st:<status>`, big/inline numbers `n:big|big2|inline`, chips `chip:size|change`, segmented buttons/pills
 `btn:<name>`. An element without one of these prefixes is role `text`.
+AS BUILT (T39, `ui-native/src/regs/testing/census.ts`): an element's role is its own or its NEAREST ANCESTOR's prefixed
+testID (a nested run inherits its Text's role). In use —
+- `st:open|closed` the strip's status word and its "Opens / Closed …" pill, the Gear/Methods ✓ / ✕ marks, the closed
+  banner's big lines (`st:closed`), the not-kept mark ✕; `st:closed|release` a not-kept row's words, a plain row's pill, an
+  Other-fish key word; `st:keep|release|closed|nolimit` an Other-fish row's value (its `tone`); `st:zero` a kind row whose
+  take is 0 (prototype `.kt.kzero .ks`); `st:contested` the licence's "?" flag.
+- `n:big|big2|inline` every number run of a `Line` (LineText), `n:pin` the pin bar's bold number.
+- `chip:size|also|change|source|level` the size chip, the also-counts chip (`.kac`), the changes chip (`.chgi`), the closed
+  chain's Source button and level label (`.srcbtn`) — the only text a `tint` ground may sit behind.
+- `btn:<value>` each segmented `Choice` option (the Licence tab's who-selector: `card` text on `ink` when checked).
+- non-role marks the gate reads: `tier:size` / `pin:size` (the size section's line: its numbers are drawn in `rule`, UR7
+  owner B), `pic:<code>` (a fish picture: no ground of its own, D4 a), `note:paper` (the licence paper note: keyed
+  `tint` exception, census.ts ALLOW), group containers `keep-group` / `keep-plain` and the pin bar `pin-bar` (the ticket's
+  `group:<i>` / `pins` were not renamed: T21/T29 tests read the existing ids).
 
 ### 2.8 Hooks (`@app/ui` `regs.ts`, T11)
 ```ts

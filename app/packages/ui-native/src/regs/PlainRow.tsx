@@ -69,7 +69,7 @@ export function PlainRow({ row, palette, actions, images }: { row: PlainRowVM; p
                      flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", columnGap: 8 }}>
         <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink, flexShrink: 1 }]}>{row.title}</Text>
         {row.pill && (
-          <Text style={[TYPE.regsBodyBold, { color: tone }]}>
+          <Text testID={`st:${row.pill.kind}`} style={[TYPE.regsBodyBold, { color: tone }]}>
             {row.pill.text}
             {row.pill.term ? <Text accessibilityRole="button" onPress={() => actions.onSheet(`gl:${row.pill!.term}`)} style={{ color: palette.accent }}>{` ${WORDS.TERM_ONE}`}</Text> : null}
           </Text>

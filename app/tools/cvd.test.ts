@@ -192,4 +192,17 @@ describe("the colour-blind theme", () => {
       expect(contrast(p.accent, p.card), `${name} accent`).toBeGreaterThanOrEqual(4.5);
     }
   });
+
+  it("reads secondary text on the card at 6.5:1 or better, light and dark", () => {
+    /*
+     * T39 / r20i-glare (D3 a): the Regulations page is read outdoors, so its one secondary grey holds 6.5:1 on the card,
+     * not AA's 4.5 — the prototype raised `--sub` for glare (v33: #555C62 on white 6.79:1, #B0B8BF on the dark card
+     * 8.87:1). The values are the theme's, read here; the threshold is the prototype's. The colour-blind theme keeps
+     * the light theme's grey, so it is held too. The app-wide `faint` grey (banned as regs text, D3) is the mutant that must fail.
+     */
+    const ratio = (fg: string, bg: string) => Math.round(contrast(fg, bg) * 100) / 100;
+    expect([["light", LIGHT], ["dark", DARK], ["cvd", CVD]].map(([n, p]) => [n, ratio((p as Palette).sub, (p as Palette).card) >= 6.5]))
+      .toEqual([["light", true], ["dark", true], ["cvd", true]]);
+    expect([ratio(LIGHT.faint, LIGHT.card) >= 6.5, ratio(DARK.faint, DARK.card) >= 6.5]).toEqual([false, false]);
+  });
 });

@@ -30,7 +30,7 @@ export function Pictures({ pics, palette, actions, images }: { pics: readonly Fi
       {shown.map((p) => {
         const src = images?.[p.code]?.[0];
         return (
-          <Pressable key={p.code} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(p.name)}
+          <Pressable key={p.code} testID={`pic:${p.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(p.name)}
                      onPress={() => !p.sil && actions.onSheet(p.open)} style={{ minWidth: 80, maxWidth: 132, paddingVertical: 4, minHeight: 44 }}>
             {src ? <Image source={src} style={{ width: 80, height: 40 }} resizeMode="contain" accessibilityIgnoresInvertColors />
               : <View style={{ width: 80, height: 40, backgroundColor: palette.line2 }} />}
@@ -47,17 +47,17 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
   const anchor = useAnchor(`k${at.row}:${at.path}`, { k: "krow", row: at.row, tids: at.tids });
   return (
     <View {...anchor} style={{ paddingVertical: 8, borderTopWidth: first ? 0 : 1, borderTopColor: inBand ? palette.line2 : palette.line }}>
-      {k.says && <LineText line={k.says} style={TYPE.regsBodySemi} color={k.zero ? palette.restricted : palette.ink} palette={palette} actions={actions}
+      {k.says && <LineText line={k.says} testID={k.zero ? "st:zero" : undefined} style={TYPE.regsBodySemi} color={k.zero ? palette.restricted : palette.ink} palette={palette} actions={actions}
                            linkStyle={TYPE.regsBodySemi} inlineBig />}
       {meta && (
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: 4 }}>
-          {k.size && <Text style={[k.size.rule ? { ...TYPE.regsChip, fontFamily: TYPE.regsBodyBold.fontFamily } : TYPE.regsChip,
+          {k.size && <Text testID="chip:size" style={[k.size.rule ? { ...TYPE.regsChip, fontFamily: TYPE.regsBodyBold.fontFamily } : TYPE.regsChip,
             { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{k.size.text}</Text>}
           {k.qualifiers && <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{k.qualifiers}</Text>}
         </View>
       )}
       <Pictures pics={k.pictures} palette={palette} actions={actions} images={images} />
-      {k.also.map((a, i) => <Text key={i} style={[TYPE.metaBold, { lineHeight: 16.85, color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8, marginTop: 4, alignSelf: "flex-start" }]}>{a}</Text>)}
+      {k.also.map((a, i) => <Text key={i} testID="chip:also" style={[TYPE.metaBold, { lineHeight: 16.85, color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8, marginTop: 4, alignSelf: "flex-start" }]}>{a}</Text>)}
       {k.duty && <View style={{ marginTop: 8 }}><LineText line={k.duty} style={TYPE.duty} color={palette.ink} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>}
       {k.presence && <View style={{ marginTop: 4 }}><LineText line={k.presence} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
     </View>
@@ -75,7 +75,7 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
       {t.kicker && <Text style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
       {t.line.length > 0 && (
         <View style={{ paddingTop: t.kicker ? 2 : small ? (t.tier === "size" ? 12 : 8) : 16, paddingBottom: 8 }}>
-          <LineText line={t.line} style={small ? TYPE.tierSmall : TYPE.tier} color={t.tier === "size" ? palette.rule : palette.ink} palette={palette} actions={actions} />
+          <LineText line={t.line} testID={t.tier === "size" ? "tier:size" : undefined} style={small ? TYPE.tierSmall : TYPE.tier} color={t.tier === "size" ? palette.rule : palette.ink} palette={palette} actions={actions} />
         </View>
       )}
       {t.relation && <Text style={[TYPE.meta, { lineHeight: 16.85, color: palette.sub, marginTop: 4 }]}>{t.relation}</Text>}
@@ -128,12 +128,12 @@ function NotKept({ x, palette, actions, images }: { x: NotKeptVM; palette: Palet
   return (
     <View style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line, flexDirection: "row", gap: 12 }}>
       <View style={{ flex: 1 }}>
-        <Text style={[TYPE.regsBodyBold, { lineHeight: 19.5, color: tone }]}>{x.says}</Text>
+        <Text testID={`st:${x.status}`} style={[TYPE.regsBodyBold, { lineHeight: 19.5, color: tone }]}>{x.says}</Text>
         <View style={{ marginTop: 2 }}><LineText line={x.whose} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>
         {x.presence && <View style={{ marginTop: 3 }}><LineText line={x.presence} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
         <Pictures pics={x.pictures} palette={palette} actions={actions} images={images} />
       </View>
-      {x.mark && <Text style={[TYPE.answer, { color: palette.closed }]}>{x.mark}</Text>}
+      {x.mark && <Text testID="st:closed" style={[TYPE.answer, { color: palette.closed }]}>{x.mark}</Text>}
     </View>
   );
 }
@@ -157,7 +157,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
           ? <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 1 }]}>{`${WORDS.OF_THE} `}<LineText line={h.words} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} /></Text>
           : <LineText line={h.words} style={{ ...TYPE.metaBold, lineHeight: 19.97 }} num={TYPE.numeralMid} color={palette.ink} palette={palette} actions={actions} />}
         {h.whyHere && <Text style={[TYPE.metaSemi, { lineHeight: 16.85, color: palette.sub, marginTop: 2 }]}>{h.whyHere}</Text>}
-        {h.shareOf && <LineText line={h.shareOf} style={TYPE.metaSemi} num={TYPE.metaBold} color={palette.sub} palette={palette} actions={actions} />}
+        {h.shareOf && <LineText line={h.shareOf} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} />}
       </View>
       {g.origin && (
         <View style={{ paddingTop: 8, paddingBottom: 4 }}>

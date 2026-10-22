@@ -12,7 +12,7 @@ export function ChangesLine({ change, palette }: { change: ChangeVM; palette: Pa
   const strong = { fontFamily: TYPE.metaBold.fontFamily, color: palette.ink };
   return (
     <View testID="regs-change" style={{ flexDirection: "row", alignItems: "baseline", columnGap: 6, marginTop: SPACE.s1 }}>
-      <Text style={[TYPE.chip, { color: palette.ink, backgroundColor: palette.tint, paddingHorizontal: 5 }]}>{change.chip}</Text>
+      <Text testID="chip:change" style={[TYPE.chip, { color: palette.ink, backgroundColor: palette.tint, paddingHorizontal: 5 }]}>{change.chip}</Text>
       <Text style={[TYPE.metaSemi, { color: palette.sub, flexShrink: 1, fontVariant: ["tabular-nums"] }]}>
         <Text style={strong}>{change.when}{WORDS.COLON}</Text> {change.says}
         {change.inForce && <> <Text style={strong}>{GEAR.IN_FORCE}</Text></>}

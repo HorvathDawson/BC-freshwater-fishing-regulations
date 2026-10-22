@@ -1,0 +1,183 @@
+{
+ "url": "http://localhost:39318",
+ "theme": "dark",
+ "tokens": {
+  "ink": "#F0F2F0",
+  "sub": "#B0B8BF",
+  "faint": "#7C858C",
+  "accent": "#A97CFF",
+  "onAccent": "#100A22",
+  "card": "#15181B",
+  "tint": "#1E2227",
+  "wash": "#101215",
+  "page": "#0A0B0D",
+  "line": "#252A2F",
+  "line2": "#343B42",
+  "rule": "#93A8BE",
+  "quiet": "#2F363D",
+  "open": "#48b07a",
+  "closed": "#FC4164",
+  "restricted": "#e8a733"
+ },
+ "states": [
+  {
+   "water": "Vedder River",
+   "date": "Today ▾ Oct 22",
+   "keep": {
+    "colours": [
+     [
+      "ink",
+      43
+     ],
+     [
+      "sub",
+      41
+     ],
+     [
+      "accent",
+      19
+     ],
+     [
+      "rule",
+      5
+     ],
+     [
+      "restricted",
+      3
+     ],
+     [
+      "closed",
+      2
+     ],
+     [
+      "open",
+      1
+     ]
+    ],
+    "count": 7,
+    "roles": {
+     "status": 10,
+     "number": 8,
+     "chip": 4,
+     "button": 0
+    },
+    "pics": 12,
+    "bad": []
+   },
+   "gear": {
+    "colours": [
+     [
+      "ink",
+      13
+     ],
+     [
+      "sub",
+      12
+     ],
+     [
+      "accent",
+      12
+     ],
+     [
+      "open",
+      3
+     ],
+     [
+      "closed",
+      1
+     ]
+    ],
+    "count": 5,
+    "roles": {
+     "status": 4,
+     "number": 0,
+     "chip": 2,
+     "button": 0
+    },
+    "pics": 0,
+    "bad": []
+   },
+   "methods": {
+    "colours": [
+     [
+      "ink",
+      9
+     ],
+     [
+      "sub",
+      8
+     ],
+     [
+      "closed",
+      5
+     ],
+     [
+      "open",
+      2
+     ],
+     [
+      "accent",
+      2
+     ]
+    ],
+    "count": 5,
+    "roles": {
+     "status": 7,
+     "number": 0,
+     "chip": 0,
+     "button": 0
+    },
+    "pics": 0,
+    "bad": []
+   },
+   "licence": {
+    "colours": [
+     [
+      "sub",
+      15
+     ],
+     [
+      "ink",
+      12
+     ],
+     [
+      "accent",
+      4
+     ],
+     [
+      "card",
+      2
+     ]
+    ],
+    "count": 4,
+    "roles": {
+     "status": 0,
+     "number": 0,
+     "chip": 0,
+     "button": 5
+    },
+    "pics": 0,
+    "bad": []
+   }
+  }
+ ],
+ "prototype": {
+  "version": "v38",
+  "textTokens": [
+   "accent",
+   "card",
+   "closed",
+   "ink",
+   "open",
+   "restricted",
+   "rule",
+   "sub"
+  ],
+  "bound": {
+   "keep": 7,
+   "gear": 5,
+   "methods": 5,
+   "licence": 4
+  }
+ }
+}

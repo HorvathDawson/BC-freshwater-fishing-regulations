@@ -41,8 +41,8 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
           case "text": return <Text key={i}>{r.s}</Text>;
           case "num":
             return r.size === "inline" && !inlineBig
-              ? <Text key={i} style={{ fontFamily: TYPE.regsBodyBold.fontFamily, color: numColor ?? color }}>{r.s}</Text>
-              : <Text key={i} style={{ fontFamily: num.fontFamily, fontSize: num.fontSize, color: numColor ?? color }}>{r.s}</Text>;
+              ? <Text key={i} testID={`n:${r.size}`} style={{ fontFamily: TYPE.regsBodyBold.fontFamily, color: numColor ?? color }}>{r.s}</Text>
+              : <Text key={i} testID={`n:${r.size}`} style={{ fontFamily: num.fontFamily, fontSize: num.fontSize, color: numColor ?? color }}>{r.s}</Text>;
           case "term":
             return <TermText key={i} ids={r.ids} palette={palette} actions={actions} />;
           case "book":   // (T43) the one book link, nested in this line's Text

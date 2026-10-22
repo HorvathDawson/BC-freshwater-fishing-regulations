@@ -50,7 +50,7 @@ function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; a
         </View>
       );
     case "flag":
-      return <Text style={[TYPE.meta, { color: palette.ink, marginVertical: SPACE.s1 }]}><Text style={[TYPE.metaBold, { color: palette.restricted }]}>{LIC.FLAG}</Text> {b.text}</Text>;
+      return <Text style={[TYPE.meta, { color: palette.ink, marginVertical: SPACE.s1 }]}><Text testID="st:contested" style={[TYPE.metaBold, { color: palette.restricted }]}>{LIC.FLAG}</Text> {b.text}</Text>;
     case "scopenote":
       return (
         <Text style={[...small, { marginVertical: SPACE.s1 }]}>
@@ -76,7 +76,7 @@ function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; a
       );
     case "paper":
       return (
-        <Text style={[TYPE.meta, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 8, paddingHorizontal: 10, marginVertical: 6 }]}>
+        <Text testID="note:paper" style={[TYPE.meta, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 8, paddingHorizontal: 10, marginVertical: 6 }]}>
           {b.lead}<Text style={{ fontFamily: TYPE.metaBold.fontFamily }}>{b.strong}</Text>{b.tail}
         </Text>
       );
