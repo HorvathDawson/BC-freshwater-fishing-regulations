@@ -12,7 +12,7 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { estimate, leaderOf, leadShares, trustFor, weightFactors, type Answer, type Contribution, type TrustClass }
+import { answering, CORE_MEMBERS, estimate, leaderOf, leadShares, trustFor, weightFactors, type Answer, type Contribution, type TrustClass }
   from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
@@ -175,10 +175,13 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const chosen: "discharge" | "level" = quantity;
 
   const contributions = contributionsOf(panel, index, chosen, horizon);
+  const { answer, stoodBack } = answering(panel.areaKm2, contributions);
   const raw: (DonorRow & { _w: number })[] = [];
+  let at = 0;   // this member's index in `contributions`, which holds the reporting members in panel order
   for (const m of panel.members) {
     const row = index.stations[m.station];
     const own = row ? reading(row, chosen, horizon) : null;
+    const back = own !== null && panel.areaKm2 ? stoodBack.has(at++) : false;
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;
@@ -186,7 +189,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     // A donor that is not reporting weighs NOTHING, but its factors are still real and are
     // still shown: "this gauge would have carried 60% of the answer and is quiet today" is
     // the most useful thing the table can say on a bad day.
-    const w = own === null ? 0 : f.share * f.role * f.record;
+    // A reserve member that stood back (core's `answering`) weighs nothing either: the answer above left it out.
+    const w = own === null || back ? 0 : f.share * f.role * f.record;
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
                years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
@@ -219,7 +223,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const rows = raw
     .map(({ _w, ...r }, i) => ({ ...r, weight: shares[i]! }))
     .sort((a, b) => b.weight - a.weight);
-  return { answer: estimate(panel.areaKm2, contributions), rows,
+  return { answer, rows,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
@@ -233,13 +237,14 @@ export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantit
                                 horizon: Horizon): Contribution[] {
   const out: Contribution[] = [];
   if (!panel.areaKm2) return out;
-  for (const m of panel.members) {
+  panel.members.forEach((m, i) => {
     const row = index.stations[m.station];
     const own = row ? reading(row, quantity, horizon) : null;
+    // past the core, a member is reserve: it answers, and stands back rather than silence the core (`answering`)
     if (own !== null)
       out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: m.years, sameRiver: m.sameRiver,
-                 ...(m.lead ? { lead: m.lead } : {}) });
-  }
+                 ...(m.lead ? { lead: m.lead } : {}), ...(i >= CORE_MEMBERS ? { reserve: true } : {}) });
+  });
   return out;
 }
 

@@ -149,7 +149,28 @@ export interface Contribution {
    * 0 when it may not. The pipeline decides it (`may_lead` in panel.py: not far, not much smaller); see `leadShares`.
    */
   lead?: number;
+  /**
+   * This donor sits in the panel's RESERVE — past its first `CORE_MEMBERS` — and stands back rather than silence the
+   * core (`answering`). Absent or false: a core member, or a caller with no panel order.
+   */
+  reserve?: boolean;
 }
+
+/**
+ * THE CORE OF A PANEL: its first this-many members, best weight first — the panel as it stood before the reserve
+ * (`MAX_MEMBERS` 4, the best four overall). MIRRORS `CORE_MEMBERS` in panel.py; `tools/trust-ladder.test.ts` holds the
+ * two equal.
+ *
+ * The panel behind it is a ranked reserve, every station that could describe the water (owner 2026-10-22, "estimates
+ * use every gauge that could inform a section, chosen live"), so that a silent member leaves an answer. A reserve
+ * member is there to ANSWER, never to silence: measured on the live graph (feed 2026-10-21T18:00Z), letting every
+ * reporting reserve member vote made 54 Level sections (384 km) lose an answer their core gave on the same feed —
+ * the Liard and the Thompson, where far tributary gauges disagree and the spread gate refuses. So where the reserve
+ * would make the answer too uncertain while a core member reports, the lowest-weight reserve members stand back,
+ * one at a time. The core's own disagreement still refuses, exactly as it did; and where the whole core is silent the
+ * reserve IS the panel, and its disagreement refuses too.
+ */
+export const CORE_MEMBERS = 4;
 
 /* ---------------------------------------------------------- a water's own gauge comes first --- */
 
@@ -328,19 +349,48 @@ export function probit(p: number): number {
  */
 export function estimate(targetAreaKm2: number | null,
                          contributions: readonly Contribution[]): Answer {
-  if (!contributions.length) return { ok: false, why: "no-station" };
-  if (!targetAreaKm2 || targetAreaKm2 <= 0) return { ok: false, why: "no-station" };
+  return answering(targetAreaKm2, contributions).answer;
+}
 
-  const votes: { z: number; w: number; ratio: number; sameRiver: boolean; lead: number }[] = [];
-  for (const c of contributions) {
-    if (!(c.percentile > 0 && c.percentile < 1)) continue;
-    if (!c.areaKm2 || c.areaKm2 <= 0) continue;
+type Vote = { z: number; w: number; ratio: number; sameRiver: boolean; lead: number; reserve: boolean; at: number };
+
+/**
+ * `estimate`, and which contributions STOOD BACK from it (their indices): the reserve members (`CORE_MEMBERS`) left
+ * out because bringing them in made the answer too uncertain while a core member reports. The lowest-weight reserve
+ * vote stands back first, then the next, until the answer is usable or no reserve vote is left. A table under the
+ * answer gives those zero, as the answer did.
+ */
+export function answering(targetAreaKm2: number | null, contributions: readonly Contribution[]):
+    { answer: Answer; stoodBack: ReadonlySet<number> } {
+  const stoodBack = new Set<number>();
+  if (!contributions.length) return { answer: { ok: false, why: "no-station" }, stoodBack };
+  if (!targetAreaKm2 || targetAreaKm2 <= 0) return { answer: { ok: false, why: "no-station" }, stoodBack };
+
+  const votes: Vote[] = [];
+  contributions.forEach((c, at) => {
+    if (!(c.percentile > 0 && c.percentile < 1)) return;
+    if (!c.areaKm2 || c.areaKm2 <= 0) return;
     const ratio = Math.max(targetAreaKm2, c.areaKm2) / Math.min(targetAreaKm2, c.areaKm2);
     const same = c.sameRiver !== false;
     const w = weightFor(Math.min(targetAreaKm2, c.areaKm2)
                         / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years, same);
-    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same, lead: c.lead ?? 0 });
+    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same, lead: c.lead ?? 0,
+                            reserve: c.reserve === true, at });
+  });
+  let answer = combineVotes(votes);
+  if (!votes.some((v) => !v.reserve)) return { answer, stoodBack };
+  while (!answer.ok && answer.why === "too-uncertain") {
+    let drop = -1;
+    votes.forEach((v, i) => { if (v.reserve && (drop < 0 || v.w <= votes[drop]!.w)) drop = i; });
+    if (drop < 0) break;
+    stoodBack.add(votes[drop]!.at);
+    votes.splice(drop, 1);
+    answer = combineVotes(votes);
   }
+  return { answer, stoodBack };
+}
+
+function combineVotes(votes: readonly Vote[]): Answer {
   if (!votes.length) return { ok: false, why: "no-record" };
   const total = votes.reduce((a, v) => a + v.w, 0);
   if (total < MIN_TOTAL_WEIGHT) return { ok: false, why: "too-uncertain" };

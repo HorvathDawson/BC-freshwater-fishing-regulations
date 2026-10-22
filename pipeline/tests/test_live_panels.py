@@ -26,7 +26,7 @@ import pytest
 from pipeline.atlas.gauges import panel as P
 from pipeline.atlas.gauges.build_panels import build
 from pipeline.atlas.gauges.panel import (
-    MEMBERS_PER_QUANTITY, OWN_LEADS_PER_QUANTITY, QUANTITIES, combine, lead_shares, leader_of, panel_for, weight_of,
+    CORE_MEMBERS, MEMBERS_PER_QUANTITY, OWN_LEADS_PER_QUANTITY, QUANTITIES, combine, lead_shares, leader_of, panel_for, weight_of,
 )
 from pipeline.tests.test_build_panels import MODEL, E, N, g
 
@@ -41,6 +41,12 @@ def test_the_reserve_depth_is_the_measured_one():
     """Measured (panel.py `MEMBERS_PER_QUANTITY`; handoff/PLAN/app-data/live-panels/scripts). Changing it moves the
     paint file against its 1 MB gzip gate."""
     assert (MEMBERS_PER_QUANTITY, OWN_LEADS_PER_QUANTITY, QUANTITIES) == (8, 4, ("discharge", "level"))
+
+
+def test_the_core_is_the_panel_before_the_reserve():
+    """`CORE_MEMBERS` is the old cap (the best four overall): the app's `estimate` lets reserve members past it stand
+    back rather than silence the core (review 2026-10-22). app/tools/trust-ladder.test.ts holds the app's equal."""
+    assert CORE_MEMBERS == 4
 
 
 # ------------------------------------------------------------------ the panel: a ranked reserve per quantity

@@ -164,6 +164,15 @@ QUANTITIES = ("discharge", "level")
 #: Liard) the deeper reserve is what still answers when several go quiet, for 1.4 KB more than 6.
 MEMBERS_PER_QUANTITY = 8
 
+#: THE CORE of a panel: its first this-many members, best weight first — the panel as it stood before the reserve (the
+#: old cap, the best four overall). The app's `estimate` (app/packages/core/src/trust.ts `answering`, mirrored for
+#: measurement by handoff/PLAN/app-data/live-panels/scripts/evaluate.py) lets the lowest-weight RESERVE members stand
+#: back when bringing them in makes the answer too uncertain while a core member reports: a reserve member is there to
+#: answer, never to silence. Measured (live graph, feed 2026-10-21T18:00Z): with every reserve member voting, 54 Level
+#: sections (384 km) lost the answer their core gave on the same feed; with the back-off, none does, and the shipped
+#: panels' answers are unchanged. app/tools/trust-ladder.test.ts holds the app's number equal to this one.
+CORE_MEMBERS = 4
+
 #: How close two catchments must be before a REGULATED station may speak.
 #:
 #: The regulation gate is right about TRANSFER and wrong about measurement, and the two were

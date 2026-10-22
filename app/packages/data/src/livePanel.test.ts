@@ -10,7 +10,7 @@
  * the panel is ever borrowed, and a level never stands in for a flow.
  */
 import { describe, expect, it } from "vitest";
-import { estimate, weightFor } from "@app/core";
+import { CORE_MEMBERS, estimate, weightFor } from "@app/core";
 import type { Panel, StationId } from "./index";
 import { answerFrom, contributionsOf, panelStanding } from "./panel";
 
@@ -110,5 +110,67 @@ describe("a panel whose members are all silent", () => {
 
   it("still says no-station where there is no panel at all", () => {
     expect(answerFrom(undefined, feed({ A: flow(0.3) })).answer).toEqual({ ok: false, why: "no-station" });
+  });
+});
+
+/**
+ * THE RESERVE NEVER SILENCES THE PANEL IT STANDS BEHIND (review 2026-10-22: the deeper reserve made 54 Level sections,
+ * 384 km, lose an answer they had on the same feed — reserve members reporting, disagreeing, and the spread gate
+ * refusing). The first `CORE_MEMBERS` of a panel are the panel as it stood before the reserve; its own disagreement is
+ * still an honest refusal. A reserve member is there to answer, never to silence: when bringing the reserve in would
+ * make the answer too uncertain while a core member reports, the lowest-weight reserve members stand back.
+ */
+describe("the reserve behind the core", () => {
+  const trib = (station: string) => m(station, 100, 40, { sameRiver: false });
+  // four core seats (A silent in every feed below), two reserve seats
+  const CORE: Panel = { areaKm2: 100, members: [trib("A"), trib("B"), trib("C"), trib("D")] };
+  const DEEP: Panel = { ...CORE, members: [...CORE.members, trib("R1"), trib("R2")] };
+  const agreeing = { B: flow(0.45), C: flow(0.5), D: flow(0.55) };
+
+  it("marks the members past the core as reserve", () => {
+    expect(CORE_MEMBERS).toBe(4);
+    const all = feed({ A: flow(0.5), ...agreeing, R1: flow(0.5), R2: flow(0.5) });
+    expect(contributionsOf(DEEP, all, "discharge", 0).map((c) => c.reserve ?? false))
+      .toEqual([false, false, false, false, true, true]);
+  });
+
+  it("stands back when it would silence the core: the answer is the core's", () => {
+    const f = feed({ ...agreeing, R1: flow(0.02), R2: flow(0.98) });
+    const core = answerFrom(CORE, f).answer;
+    expect(core.ok).toBe(true);
+    expect(answerFrom(DEEP, f).answer).toEqual(core);
+    expect(panelStanding(DEEP, f, "discharge", 0)).toBe(panelStanding(CORE, f, "discharge", 0));
+    // the table agrees with the number: the reserve that stood back carries nothing, and still shows its reading
+    const rows = answerFrom(DEEP, f).rows;
+    expect(rows.filter((r) => r.station === "R1" || r.station === "R2").map((r) => [r.station, r.weight, r.percentile]))
+      .toEqual([["R1", 0, 0.02], ["R2", 0, 0.98]]);
+    expect(round4(rows.reduce((a, r) => a + r.weight, 0))).toBe(1);
+  });
+
+  it("takes its share when it agrees", () => {
+    const f = feed({ ...agreeing, R1: flow(0.5), R2: flow(0.52) });
+    const got = answerFrom(DEEP, f).answer;
+    expect(got.ok && got.value.donors).toBe(5);
+  });
+
+  it("is the panel where the core is silent: its own disagreement still refuses", () => {
+    const f = feed({ R1: flow(0.02), R2: flow(0.98) });
+    expect(answerFrom(DEEP, f).answer).toEqual({ ok: false, why: "too-uncertain" });
+  });
+
+  it("leaves the core's own disagreement a refusal, as before", () => {
+    const f = feed({ B: flow(0.02), C: flow(0.98), D: flow(0.5) });
+    expect(answerFrom(CORE, f).answer).toEqual({ ok: false, why: "too-uncertain" });
+    expect(answerFrom(DEEP, f).answer).toEqual({ ok: false, why: "too-uncertain" });
+  });
+
+  it("is the same rule in estimate, given the reserve flag", () => {
+    const cs = (ps: [number, boolean][]) => ps.map(([p, reserve]) => ({ percentile: p, role: "up" as const,
+      areaKm2: 100, years: 40, sameRiver: false, ...(reserve ? { reserve } : {}) }));
+    const core = estimate(100, cs([[0.45, false], [0.5, false], [0.55, false]]));
+    expect(estimate(100, cs([[0.45, false], [0.5, false], [0.55, false], [0.02, true], [0.98, true]]))).toEqual(core);
+    // unflagged, the same five refuse: the back-off is the reserve's alone
+    expect(estimate(100, cs([[0.45, false], [0.5, false], [0.55, false], [0.02, false], [0.98, false]])))
+      .toEqual({ ok: false, why: "too-uncertain" });
   });
 });

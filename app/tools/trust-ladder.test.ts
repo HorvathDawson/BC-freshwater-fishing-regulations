@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ERROR_BY_RATIO, MAX_USEFUL_SPREAD, OWN_LEAD_SHARE, estimate, interval, trustFor, weightFor }
+import { CORE_MEMBERS, ERROR_BY_RATIO, MAX_USEFUL_SPREAD, OWN_LEAD_SHARE, estimate, interval, trustFor, weightFor }
   from "@app/core";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -172,6 +172,11 @@ describe("combining a panel", () => {
   it("leads with the same share of the answer as the pipeline", () => {
     // "a water's own gauge comes first" (owner 2026-10-22): the floor a leading own gauge carries.
     expect(OWN_LEAD_SHARE).toBe(Number(/OWN_LEAD_SHARE = ([\d.]+)/.exec(PY)![1]));
+  });
+
+  it("draws the core of a panel where the pipeline does", () => {
+    // the reserve behind it stands back rather than silence it (review 2026-10-22); evaluate.py measures with this
+    expect(CORE_MEMBERS).toBe(Number(/CORE_MEMBERS = (\d+)/.exec(PY)![1]));
   });
 
   it("matches the pipeline's own weighting constants", () => {

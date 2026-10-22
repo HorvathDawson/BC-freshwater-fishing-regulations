@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 from pipeline.atlas.gauges.panel import (  # noqa: E402
-    MAX_USEFUL_SPREAD, MIN_TOTAL_WEIGHT, error_for, lead_shares, leader_of, weight_of,
+    CORE_MEMBERS, MAX_USEFUL_SPREAD, MIN_TOTAL_WEIGHT, error_for, lead_shares, leader_of, weight_of,
 )
 from pipeline.deliver.release import build as RB  # noqa: E402
 from pipeline.deliver.release import paint as PAINT  # noqa: E402
@@ -57,11 +57,13 @@ def reading(row, q):
 
 
 def estimate(members, target, idx, q, drop=None):
-    """`(percentile 0-100 | None, why, [(station, weight)])` — the app's answer at horizon 0."""
+    """`(percentile 0-100 | None, why, [(station, weight)])` — the app's answer at horizon 0: `answering` in
+    trust.ts, members past `CORE_MEMBERS` (panel order) being reserve that stands back, lowest weight first, rather
+    than leave the answer too uncertain while a core member reports."""
     if not target or target <= 0:
         return None, "no-station", []
     votes = []
-    for st, role, area, years, _reg, same, lead in members:
+    for rank, (st, role, area, years, _reg, same, lead) in enumerate(members):
         if st == drop:
             continue
         p = reading(idx.get(st), q)
@@ -69,7 +71,21 @@ def estimate(members, target, idx, q, drop=None):
             continue
         w = weight_of(min(target, area) / max(target, area), role, years, bool(same))
         if w > 0:
-            votes.append((st, probit(p), w, max(target, area) / min(target, area), bool(same), lead))
+            votes.append((st, probit(p), w, max(target, area) / min(target, area), bool(same), lead,
+                          rank >= CORE_MEMBERS))
+    got = _combine(votes)
+    if not any(not v[6] for v in votes):
+        return got
+    while got[1] == "too-uncertain":
+        reserve = [i for i, v in enumerate(votes) if v[6]]
+        if not reserve:
+            break
+        votes.pop(min(reversed(reserve), key=lambda i: votes[i][2]))
+        got = _combine(votes)
+    return got
+
+
+def _combine(votes):
     if not votes:
         return None, "no-record", []
     if sum(v[2] for v in votes) < MIN_TOTAL_WEIGHT:
