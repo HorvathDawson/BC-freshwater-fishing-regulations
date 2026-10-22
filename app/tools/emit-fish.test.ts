@@ -66,8 +66,11 @@ describe("emit-fish: the core manifest", () => {
 });
 
 describe("emit-fish: the credit lines (T43 FISH_CREDITS / FISH_CREDIT_OF)", () => {
-  it("one line per picture, keyed by file — every manifest image credited, none invented", () => {
-    expect(Object.keys(FISH_CREDIT_OF).sort()).toEqual(manifest.images.map((i: { file: string }) => i.file).sort());
+  it("one line per OUTSIDE picture, keyed by file — every one credited, none invented; the app's own drawings are not credits", () => {
+    const outside = manifest.images.filter((i: { source: string }) => i.source !== "this app");
+    expect(Object.keys(FISH_CREDIT_OF).sort()).toEqual(outside.map((i: { file: string }) => i.file).sort());
+    expect(manifest.images.length - outside.length).toBe(2);   // T38's adipose drawings
+    expect(["adipose-wild.webp", "adipose-clipped.webp"].map((f) => f in FISH_CREDIT_OF)).toEqual([false, false]);
     expect(Object.keys(FISH_CREDIT_OF).length).toBe(39);
   });
   it("words a line \"<caption>[ · <phase>] — <credit> (<source>)\" (the pictured fish, a stand-in by its own caption)", () => {
