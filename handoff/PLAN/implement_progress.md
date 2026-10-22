@@ -96,6 +96,14 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- ~22:00: tile server restarted (pnpm tiles, :39217, serves r-0efa5d05fc92). Follow-ups wf_3d498e10-baf DONE: engine-polish
+  already merged; lake-values reviewed+fixed (worktree-wf_3d498e10-baf-2, 5 commits) -> CORRECTION PASS agent running
+  (prepared-not-fed; FFSBC source has no open licence); water-map lane was BLOCKED by the permission classifier, finished
+  by me: release built in its .scratch (r-2507b6dcc7fe, 13,670,048 B, water_continue 92 rows), fixture re-cut,
+  committed 1f1ffb11 on worktree-wf_3d498e10-baf-3 -> REVIEW+FINISH agent running (continuation rule check, web shots,
+  step time). OWNER QUESTION: Chilliwack and Vedder are different FWA blue lines; continuation rule = "A's main line
+  begins at the top of B's and is the only inflow there". Flaky: tools/no-localhost vs check-boundaries temp _bnd.ts race.
+  Layers-menu DESIGN workflow wf_dc903d04-d42 running (3 mockups + recommendation). Map chrome w72sww8p4 running.
 - OWNER 2026-10-21: lake Stocked/Depth = PREPARED, NOT FED (decisions.md). When follow-ups wgw0lg80t finishes, run a
   correction pass on lake-values (worktree-wf_3d498e10-baf-2 + wip/lake-values): keep slot/reader/engine channels,
   drop the stocking fetch + shipping from deliver, toggles disabled while the release has no lake values. Then merge.
