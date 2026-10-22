@@ -203,3 +203,7 @@ status colours more distinct than A/B/C.
   list; the choice is still recorded (a bundle diagnostic row with both candidates and the one taken) and pinned by tests on
   the real cases (Harrison, Ash, Mohun, Cayoosh). Needs a reach rerun + deliver; diff the rule bindings before promoting
   (memory: split fixes change the trib walk).
+- Ambiguous cuts, refinement (owner OK'd 2026-10-22): a HAND-CURATED choice outranks the general "nearest the other
+  extent" rule. Where a curated record states which crossing/end it means (e.g. skeena_river_2's review_reason LS-1: the
+  reserve's LOWER mainstem crossing standing in for the Exchamsiks confluence), that pick stands; the general rule
+  applies only where nothing curated says otherwise.
