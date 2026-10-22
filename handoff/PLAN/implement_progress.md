@@ -96,6 +96,28 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- PAUSED 2026-10-21 ~20:15 for a COMPUTER RESTART (memory). Everything stopped; orphan workers killed; main tree clean.
+  RESTART STEPS, in order:
+  (1) `deliver all` FIRST, alone, on a quiet machine (no workflows running): `~/.claude/projects/-Users-dawson-horvath-dev-
+      personal-BC-freshwater-fishing-regulations/handoff/tools/heavy.sh deliver 40 -- .venv/bin/python -m pipeline.deliver all`.
+      It was killed twice by the memory guard (free 2%). MAIN IS AHEAD OF THE LIVE DATA: cd0a2a59 bumps rows 32 / licence 7,
+      so the app refuses the live release r-1bb06fa28daf and strict store suites fail until this deliver lands. Then:
+      `.venv/bin/python app/design/regs-v11/port/taps.py`, `pnpm -C app regs-fixture`, `UPDATE_REGS_FIXTURES=1
+      REGS_STORE_REQUIRED=1 pnpm -C app exec vitest run conformance/src/regs/harness conformance/src/regs/goldenSlices`,
+      strict check, smoke, commit. Then remove worktree wf_e2463c2d-be5-4 (merged).
+  (2) Resume the 3 workflows ONE OR TWO AT A TIME (memory): each SETUP does `git reset --hard`, so first edit each
+      lane prompt to cherry-pick its WIP commit after the reset. WIP commits (reference, not reviewed):
+        wave B sheets fix  run wf_e2463c2d-be5 (wave-b-regs-screens-and-pipeline-needs-wf_e2463c2d-be5.js): branch
+          worktree-wf_e2463c2d-be5-3 = f8ca3491 T36p2 + 28046406 T37 (reviewed; 2 majors open: Sheet drag only on
+          grabber; parts sheet null) + WIP 9092951e of fix:sheets. Merge note: T37 must move sheet state +
+          SheetHost into RegsScreen (RegsView is gone).
+        follow-ups  run wf_3d498e10-baf (engine-and-water-map-followups-wf_3d498e10-baf.js): lake-values
+          worktree-wf_3d498e10-baf-2 = 29977b7e + 1f5cd065 (+ WIP 722815b3) awaiting review; water-map
+          worktree-wf_3d498e10-baf-3 = f3974f89 (+ WIP 0101b663) awaiting review. engine-polish MERGED.
+        map chrome  run wf_5f5e25c3-271 (map-chrome-menu-back-wf_5f5e25c3-271.js): WIP only — map-rail-spots
+          worktree-wf_5f5e25c3-271-1 f70763c8, menu-info -271-2 199690d5, android-back -271-3 1b2e80b4.
+      Lake-values merge also needs: `.venv/bin/python -m pipeline.stocking.fetch`, then lake_facts + release (or the
+      next deliver all).
 - 2026-10-21 evening (after the 7:30 PM credit reset): all three interrupted workflows RESUMED (wave B wf_e2463c2d-be5 —
   only fix:sheets reran; follow-ups wf_3d498e10-baf — lake-values review + water-map impl reran; map-chrome
   wf_5f5e25c3-271 — all 3 impl reran). MERGED: T23 header + T29 pin bar (+ fix), T34 Gear + T35 Methods/Licence (+ fix;
