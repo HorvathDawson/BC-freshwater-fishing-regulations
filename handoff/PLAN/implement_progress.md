@@ -29,6 +29,9 @@ H. Tiles: S2 tile-size easy wins + the pending rebuild (parcels from z11, basins
 I. N12 determinism proof (heavy, background, heavy.sh).
 J. T51 spot similarity forecast; T52 expected change; HYDAT: Forecasts line on More (feed forecastIssuedAt).
 K. T50 Android emulator parity (after cleanup). D1 phone testing needs the owner.
+L. CURATION REVIEW (owner 2026-10-22: make it usable for a person to review every curated regulation, and sound in
+   how it integrates, BEFORE anyone puts effort in). RUNNING wf_168b1ba9-6b5 (read-only audit → 3 designs → critique →
+   handoff/PLAN/curation-review/PLAN.md). Then: show the owner the plan; build the agreed tool changes as lanes.
 POSTPONED by owner: T55 remaining slough/canal polygons; braids. NEVER: parser runs (human-only), merging to main.
 
 ## CURRENT STATE (2026-10-22 ~15:20) — READ THIS FIRST ON A RESTART
