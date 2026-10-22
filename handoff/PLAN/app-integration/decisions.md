@@ -478,3 +478,19 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - SUMMARY (review fix): a lapsed edition leads the Data block's summary as "Regulations out of date" — never folded into
   the "N likely out of date" count beside a line that says "Out of date"; other stale lines follow it
   ("Regulations out of date · 1 likely out of date", "… · 1 more in Details"). A newer release still outranks it.
+
+## OWNER 2026-10-22 (late) — upstream updates the owner runs: HYDAT first
+- Owner: "the feed should check for hydat releases then have a way for a notification to be sent that the hydat needs to
+  be updated (user done) ... similar to bundle changes where the app checks when in service for updates. etc etc."
+- Claude's design (owner delegated the details):
+  1. DETECT: every feed run already asks HYDAT's listing (one GET). Keep it; record it as a MAINTENANCE NOTICE in the feed
+     index (`maintenance: [{kind, since, current, latest, action}]`), one list for every owner-run upstream task.
+     HYDAT is the first kind; ECCC roster drift (already detected) is the second. Others can join the same list.
+  2. NOTIFY ONCE: a notice is sent to the owner the first time it appears (deduped by kind + latest, state kept beside
+     the feed), through an optional webhook set by environment variable (works with ntfy / Discord / Slack style URLs).
+     Off when unset: the console warning and the index notice remain. Nothing is sent to end users.
+  3. THE OWNER RUNS ONE COMMAND (`scripts/update-hydat.sh`): fetch HYDAT, rebuild the climatology, republish the feed,
+     and any bundle step HYDAT feeds. The notice clears itself on the next feed run once current == latest.
+  4. THE APP PICKS IT UP LIKE A RELEASE: it already re-reads the feed while in service, so a new envelope reaches
+     readers with no app change. The More "HYDAT" line reads the notice ("Newer release out · update pending") instead
+     of guessing by age. No sync dot: a reader cannot fix it.
