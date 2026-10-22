@@ -35,6 +35,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   REBUILD: refresh the roster (`rm data/source/bc_hydrometric_stations.json && python data/fetch_data.py --layers
   hydrometric_stations`), diff panel leads (08EG012/08LG028 lead ~1,200 sections as live but don't transmit), deliver all,
   then a local feed run. App follow-up: read `listed` to say "not a real-time gauge" vs "not reporting". Flakes seen under load: Search.shell sync line, apps/mobile back.test browser-back step.
+- RUNNING wf_ac3c87d1-cf6 (task w022i2596): panels over every possible gauge, live choice at read time (owner). Its
+  merge + the roster refresh + deliver all go together in ONE rebuild (diff panel leads first).
 - NEW TICKET T52 (owner 2026-10-22): Conditions "Expected change" chip after +10 from daily forecast series (spikes
   included); pipeline carries per-station daily series politely. Queued after T51.
 - QUEUE (owner 2026-10-22, spots): add-a-spot = my location / pick on map (agent running); lead-up refresh BUG (agent
