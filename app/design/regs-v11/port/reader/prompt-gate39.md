@@ -2,7 +2,7 @@ You are an angler in British Columbia reading a phone app's fishing-regulations 
 named below (open them with the Read tool). Do NOT read any other file: no code, no HTML, no data, no notes, nothing in the repo,
 no web. If a screen does not say something, answer "not shown". Use what a careful reader of those screens would conclude.
 
-Screens are in two folders: TALL = /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/266b6a4b-cf8d-417b-b326-25e034ead4e0/scratchpad/r20i/gate-after  (whole cards / whole tabs, header on top) and FRAMES = /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/266b6a4b-cf8d-417b-b326-25e034ead4e0/scratchpad/r20i/rows-after  (one 390×844 phone
+Screens are in two folders: TALL = $OUT/TALL  (whole cards / whole tabs, header on top) and FRAMES = $OUT/FRAMES  (one 390×844 phone
 screenful each, mid-scroll; the bar under the header is a pinned summary of the sections you are scrolled inside).
 
 For each question give: the answer (short), a confidence 1-5, and one line on anything that confused you or that you had to read
@@ -46,7 +46,7 @@ F6. [bennett-row-lt.png] How many lake trout a day; may I keep a 70 cm one; is t
 F7. [chilliwack-p2-row-rb.png] From this stream, how many trout and char may I keep in all: 2 or 4?
 F8. [vedder-oct10-f01.png] Is the 2 a stream limit or a region limit? What is the region's limit?
 
-## New this round (one folder more: NEW = /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/266b6a4b-cf8d-417b-b326-25e034ead4e0/scratchpad/r20i/gate-after/NEW)
+## New this round (one folder more: NEW = $OUT/TALL/NEW)
 27. [NEW/vedder-may15-gear-tab.png] On the Vedder on May 15: may I fish with bait (worms, roe)? And what hook rule applies that day; when does the hook rule change back?
 28. [NEW/vedder-oct10-sheet-possession.png] How many fish may I have in my possession (camp, cooler, vehicle), and do the fish at home count?
 29. [ur1-vedder-oct10-cards.png] Today on the Vedder: how many trout and char may I keep FROM THE VEDDER, and how many anywhere in Region 2 in all (lakes and streams together)? Say both numbers and what you read them from.

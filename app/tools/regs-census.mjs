@@ -25,7 +25,7 @@ const out = args.find((a) => !a.startsWith('--'));
 if (!['light', 'dark', 'cvd'].includes(theme)) { console.error(`--theme light|dark|cvd, not ${theme}`); process.exit(2); }
 const statesFile = path.join(HERE, '../design/regs-v11/port/reader/states.json');
 const STATES = waters.length ? waters
-  : fs.existsSync(statesFile) ? JSON.parse(fs.readFileSync(statesFile, 'utf8')).map((s) => s.water).filter(Boolean) : ['Vedder River'];
+  : fs.existsSync(statesFile) ? [...new Set(JSON.parse(fs.readFileSync(statesFile, 'utf8')).map((s) => s.water).filter(Boolean))] : ['Vedder River'];
 
 /** The theme's tokens, aliases (`@color.ui.card`) resolved: Palette key → hex. The same keys `paletteFor` reads. */
 function tokens(name) {
