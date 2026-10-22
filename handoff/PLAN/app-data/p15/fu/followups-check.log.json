@@ -1,0 +1,829 @@
+{
+ "log": [
+  {
+   "water": "chilliwack",
+   "what": "opened",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {}
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 1",
+   "where": "Part 2 of 4 · Chilliwack River",
+   "name": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 12,
+    "wetland.water": 20,
+    "lake.selected": 12,
+    "lake.water": 20,
+    "stream.selected": 12,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 24,
+    "stateSetMs": 12,
+    "idleMs": 782,
+    "stateCalls": 119
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 2",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 19,
+    "wetland.water": 20,
+    "lake.selected": 19,
+    "lake.water": 20,
+    "stream.selected": 19,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 21,
+    "stateSetMs": 11,
+    "idleMs": 1137,
+    "stateCalls": 173
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ 3",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 20,
+    "wetland.water": 20,
+    "lake.selected": 20,
+    "lake.water": 20,
+    "stream.selected": 20,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 23,
+    "stateSetMs": 11,
+    "idleMs": 1152,
+    "stateCalls": 88
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "Regulations after ▲ ×3",
+   "tabs": "Regulations* · Conditions · Map",
+   "selectedPart": [
+    "What you can keep"
+   ]
+  },
+  {
+   "water": "chilliwack",
+   "what": "Map again",
+   "where": "Part 4 of 4 · Chilliwack River",
+   "name": "Chilliwack River Ecological Reserve boundary → Source",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 20,
+    "wetland.water": 20,
+    "lake.selected": 20,
+    "lake.water": 20,
+    "stream.selected": 20,
+    "stream.water": 20
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▼ 1 (back down)",
+   "where": "Part 3 of 4 · Chilliwack River",
+   "name": "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 7,
+    "wetland.water": 13,
+    "lake.selected": 7,
+    "lake.water": 13,
+    "stream.selected": 7,
+    "stream.water": 13
+   },
+   "timing": {
+    "uiMs": 33,
+    "stateSetMs": 14,
+    "idleMs": 1251,
+    "stateCalls": 221
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▼ 2 (back down)",
+   "where": "Part 2 of 4 · Chilliwack River",
+   "name": "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 10,
+    "wetland.water": 20,
+    "lake.selected": 10,
+    "lake.water": 20,
+    "stream.selected": 10,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 31,
+    "stateSetMs": 13,
+    "idleMs": 947,
+    "stateCalls": 81
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▼ 3 (back down)",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 19,
+    "wetland.water": 20,
+    "lake.selected": 19,
+    "lake.water": 20,
+    "stream.selected": 19,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 27,
+    "stateSetMs": 12,
+    "idleMs": 644,
+    "stateCalls": 90
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▼ into the next water",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {
+    "wetland.selected": 24,
+    "wetland.water": 20,
+    "lake.selected": 24,
+    "lake.water": 20,
+    "stream.selected": 24,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 41,
+    "stateSetMs": 14,
+    "idleMs": 1136,
+    "stateCalls": 109
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "after ▼ into",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {
+    "wetland.selected": 24,
+    "wetland.water": 20,
+    "lake.selected": 24,
+    "lake.water": 20,
+    "stream.selected": 24,
+    "stream.water": 20
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "▲ into the water above",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 24,
+    "wetland.water": 20,
+    "lake.selected": 24,
+    "lake.water": 20,
+    "stream.selected": 24,
+    "stream.water": 20
+   },
+   "timing": {
+    "uiMs": 30,
+    "stateSetMs": 10,
+    "idleMs": 833,
+    "stateCalls": 75
+   }
+  },
+  {
+   "water": "chilliwack",
+   "what": "after ▲ into",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 24,
+    "wetland.water": 20,
+    "lake.selected": 24,
+    "lake.water": 20,
+    "stream.selected": 24,
+    "stream.water": 20
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "opened",
+   "where": "Part 3 of 4 · Cowichan River",
+   "name": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {}
+  },
+  {
+   "water": "cowichan",
+   "what": "▼ 1",
+   "where": "Part 2 of 4 · Cowichan River",
+   "name": "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 2,
+    "wetland.water": 14,
+    "lake.selected": 2,
+    "lake.water": 14,
+    "stream.selected": 2,
+    "stream.water": 14
+   },
+   "timing": {
+    "uiMs": 18,
+    "stateSetMs": 10,
+    "idleMs": 911,
+    "stateCalls": 110
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "▼ 2",
+   "where": "Part 1 of 4 · Cowichan River",
+   "name": "Mouth → CNR Mile 66 Trestle",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 12,
+    "wetland.water": 14,
+    "lake.selected": 12,
+    "lake.water": 14,
+    "stream.selected": 12,
+    "stream.water": 14
+   },
+   "timing": {
+    "uiMs": 23,
+    "stateSetMs": 12,
+    "idleMs": 1559,
+    "stateCalls": 171
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 1",
+   "where": "Part 2 of 4 · Cowichan River",
+   "name": "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 12,
+    "wetland.water": 14,
+    "lake.selected": 12,
+    "lake.water": 14,
+    "stream.selected": 12,
+    "stream.water": 14
+   },
+   "timing": {
+    "uiMs": 34,
+    "stateSetMs": 15,
+    "idleMs": 777,
+    "stateCalls": 42
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 2",
+   "where": "Part 3 of 4 · Cowichan River",
+   "name": "CNR Bridge (mile 70.2) → Greendale Trestle",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 12,
+    "wetland.water": 14,
+    "lake.selected": 12,
+    "lake.water": 14,
+    "stream.selected": 12,
+    "stream.water": 14
+   },
+   "timing": {
+    "uiMs": 25,
+    "stateSetMs": 13,
+    "idleMs": 836,
+    "stateCalls": 42
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "▲ 3",
+   "where": "Part 4 of 4 · Cowichan River",
+   "name": "Greendale Trestle → Cowichan Lake outlet",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 14,
+    "wetland.water": 14,
+    "lake.selected": 14,
+    "lake.water": 14,
+    "stream.selected": 14,
+    "stream.water": 14
+   },
+   "timing": {
+    "uiMs": 24,
+    "stateSetMs": 14,
+    "idleMs": 1084,
+    "stateCalls": 62
+   }
+  },
+  {
+   "water": "cowichan",
+   "what": "a mark tapped",
+   "where": "Part 4 of 4 · Cowichan River",
+   "name": "Greendale Trestle → Cowichan Lake outlet",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 14,
+    "wetland.water": 14,
+    "lake.selected": 14,
+    "lake.water": 14,
+    "stream.selected": 14,
+    "stream.water": 14
+   }
+  },
+  {
+   "water": "klwa",
+   "what": "opened",
+   "where": "Part 3 of 3",
+   "name": "Kootenay Lake — Main Body",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {}
+  },
+  {
+   "water": "klwa",
+   "what": "▼ 1",
+   "where": "Part 2 of 3",
+   "name": "Kootenay Lake — Upper West Arm",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 2,
+    "wetland.water": 3,
+    "lake.selected": 2,
+    "lake.water": 3,
+    "stream.selected": 2,
+    "stream.water": 3
+   },
+   "timing": {
+    "uiMs": 17,
+    "stateSetMs": 10,
+    "idleMs": 992,
+    "stateCalls": 48
+   }
+  },
+  {
+   "water": "klwa",
+   "what": "▼ 2",
+   "where": "Part 1 of 3",
+   "name": "Kootenay Lake — Lower West Arm",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Kootenay River ›",
+   "selected": {
+    "wetland.selected": 3,
+    "wetland.water": 3,
+    "lake.selected": 3,
+    "lake.water": 3,
+    "stream.selected": 3,
+    "stream.water": 3
+   },
+   "timing": {
+    "uiMs": 19,
+    "stateSetMs": 10,
+    "idleMs": 856,
+    "stateCalls": 61
+   }
+  },
+  {
+   "water": "klwa",
+   "what": "▲ 1",
+   "where": "Part 2 of 3",
+   "name": "Kootenay Lake — Upper West Arm",
+   "steps": [
+    "▼ Downstream",
+    "▲ Upstream"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 3,
+    "wetland.water": 3,
+    "lake.selected": 3,
+    "lake.water": 3,
+    "stream.selected": 3,
+    "stream.water": 3
+   },
+   "timing": {
+    "uiMs": 20,
+    "stateSetMs": 10,
+    "idleMs": 824,
+    "stateCalls": 9
+   }
+  },
+  {
+   "water": "klwa",
+   "what": "▲ 2",
+   "where": "Part 3 of 3",
+   "name": "Kootenay Lake — Main Body",
+   "steps": [
+    "▼ Downstream",
+    "Highest part (off)"
+   ],
+   "exit": null,
+   "selected": {
+    "wetland.selected": 3,
+    "wetland.water": 3,
+    "lake.selected": 3,
+    "lake.water": 3,
+    "stream.selected": 3,
+    "stream.water": 3
+   },
+   "timing": {
+    "uiMs": 16,
+    "stateSetMs": 10,
+    "idleMs": 935,
+    "stateCalls": 18
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "opened",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {}
+  },
+  {
+   "water": "vedder",
+   "what": "▲ into the Chilliwack",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   },
+   "timing": {
+    "uiMs": 36,
+    "stateSetMs": 11,
+    "idleMs": 822,
+    "stateCalls": 75
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "after ▲ into",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "▼ into the Vedder",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   },
+   "timing": {
+    "uiMs": 31,
+    "stateSetMs": 10,
+    "idleMs": 901,
+    "stateCalls": 75
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "after ▼ into",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "Back 1",
+   "where": "Part 1 of 4 · Chilliwack River",
+   "name": "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+   "steps": [
+    "▼ Downstream into Vedder River",
+    "▲ Upstream"
+   ],
+   "exit": "Flows into Vedder River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   }
+  },
+  {
+   "water": "vedder",
+   "what": "Back 2",
+   "where": "Part 1 of 1",
+   "name": "Vedder River",
+   "steps": [
+    "Lowest part (off)",
+    "▲ Upstream into Chilliwack River"
+   ],
+   "exit": "Flows into Sumas River ›",
+   "selected": {
+    "wetland.selected": 14,
+    "lake.selected": 14,
+    "stream.selected": 14,
+    "wetland.water": 11,
+    "lake.water": 11,
+    "stream.water": 11
+   }
+  }
+ ],
+ "errors": [],
+ "timings": [
+  {
+   "what": "▲ 1",
+   "uiMs": 24,
+   "stateSetMs": 12,
+   "idleMs": 782,
+   "stateCalls": 119
+  },
+  {
+   "what": "▲ 2",
+   "uiMs": 21,
+   "stateSetMs": 11,
+   "idleMs": 1137,
+   "stateCalls": 173
+  },
+  {
+   "what": "▲ 3",
+   "uiMs": 23,
+   "stateSetMs": 11,
+   "idleMs": 1152,
+   "stateCalls": 88
+  },
+  {
+   "what": "▼ 1 (back down)",
+   "uiMs": 33,
+   "stateSetMs": 14,
+   "idleMs": 1251,
+   "stateCalls": 221
+  },
+  {
+   "what": "▼ 2 (back down)",
+   "uiMs": 31,
+   "stateSetMs": 13,
+   "idleMs": 947,
+   "stateCalls": 81
+  },
+  {
+   "what": "▼ 3 (back down)",
+   "uiMs": 27,
+   "stateSetMs": 12,
+   "idleMs": 644,
+   "stateCalls": 90
+  },
+  {
+   "what": "▼ into the next water",
+   "uiMs": 41,
+   "stateSetMs": 14,
+   "idleMs": 1136,
+   "stateCalls": 109
+  },
+  {
+   "what": "▲ into the water above",
+   "uiMs": 30,
+   "stateSetMs": 10,
+   "idleMs": 833,
+   "stateCalls": 75
+  },
+  {
+   "what": "▼ 1",
+   "uiMs": 18,
+   "stateSetMs": 10,
+   "idleMs": 911,
+   "stateCalls": 110
+  },
+  {
+   "what": "▼ 2",
+   "uiMs": 23,
+   "stateSetMs": 12,
+   "idleMs": 1559,
+   "stateCalls": 171
+  },
+  {
+   "what": "▲ 1",
+   "uiMs": 34,
+   "stateSetMs": 15,
+   "idleMs": 777,
+   "stateCalls": 42
+  },
+  {
+   "what": "▲ 2",
+   "uiMs": 25,
+   "stateSetMs": 13,
+   "idleMs": 836,
+   "stateCalls": 42
+  },
+  {
+   "what": "▲ 3",
+   "uiMs": 24,
+   "stateSetMs": 14,
+   "idleMs": 1084,
+   "stateCalls": 62
+  },
+  {
+   "what": "▼ 1",
+   "uiMs": 17,
+   "stateSetMs": 10,
+   "idleMs": 992,
+   "stateCalls": 48
+  },
+  {
+   "what": "▼ 2",
+   "uiMs": 19,
+   "stateSetMs": 10,
+   "idleMs": 856,
+   "stateCalls": 61
+  },
+  {
+   "what": "▲ 1",
+   "uiMs": 20,
+   "stateSetMs": 10,
+   "idleMs": 824,
+   "stateCalls": 9
+  },
+  {
+   "what": "▲ 2",
+   "uiMs": 16,
+   "stateSetMs": 10,
+   "idleMs": 935,
+   "stateCalls": 18
+  },
+  {
+   "what": "▲ into the Chilliwack",
+   "uiMs": 36,
+   "stateSetMs": 11,
+   "idleMs": 822,
+   "stateCalls": 75
+  },
+  {
+   "what": "▼ into the Vedder",
+   "uiMs": 31,
+   "stateSetMs": 10,
+   "idleMs": 901,
+   "stateCalls": 75
+  }
+ ],
+ "stepUiMs": {
+  "n": 19,
+  "median": 24,
+  "p95": 41,
+  "max": 41
+ }
+}

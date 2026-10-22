@@ -177,6 +177,7 @@ async function step(p, note, throttle, re, what) {
   const b = await bar(p);
   const aria = b.steps.find((s) => re.test(s) && !s.endsWith("(off)"));
   if (!aria) return false;
+  await installTimer(p);              // again: the Map view is mounted afresh after another view (a new GL map)
   await throttle(4);
   const t = await timedStep(p, aria);
   await throttle(1);
@@ -221,6 +222,15 @@ await app("Cowichan River", "cowichan", async ({ p, shot, note, throttle }) => {
   while (k < 4 && await step(p, note, throttle, DOWN, `▼ ${++k}`));
   await shot("2-mouth");
   for (let i = 1; i <= 3; i += 1) { await step(p, note, throttle, UP, `▲ ${i}`); await shot(`3-up${i}`); }
+  // the marks, re-taken with the outline: the first one tapped open
+  // (the first mark on screen: a mark of another part may sit outside the frame)
+  const marks = p.locator("button[data-mark]");
+  for (let i = 0; i < await marks.count(); i += 1) {
+    const box = await marks.nth(i).boundingBox();
+    if (!box || box.y < 280 || box.y > 640 || box.x < 0 || box.x > 360) continue;
+    await marks.nth(i).click(); await note("a mark tapped"); await shot("4-mark"); await marks.nth(i).click();
+    break;
+  }
 });
 
 await app("Kootenay Lake — Main Body", "klwa", async ({ p, shot, note, throttle }) => {
@@ -234,6 +244,17 @@ await app("Vedder River", "vedder", async ({ p, shot, note, throttle }) => {
   await p.waitForTimeout(3000);
   await note("after ▲ into");
   await shot("2-up-into-chilliwack");
+  // and back: ▼ from the Chilliwack's lowest part into the Vedder, then Back twice (the waters opened on top, newest first)
+  await step(p, note, throttle, /^▼ Downstream into /, "▼ into the Vedder");
+  await p.waitForTimeout(3000);
+  await note("after ▼ into");
+  await shot("3-down-into-vedder");
+  for (let i = 1; i <= 2; i += 1) {
+    await p.getByRole("button", { name: "Back" }).first().click();
+    await p.waitForTimeout(3000);
+    await note(`Back ${i}`);
+  }
+  await shot("4-back-twice");
 });
 
 await browser.close();

@@ -60,3 +60,32 @@ one `MapAdapter.highlight(h, selected, water)` call through `stateHandle`, which
   release swap.
 - `map/src/index.ts`: keep both, `MapMark` and the `./colouring` export.
 - `ui-native/src/MapScreen.tsx`: keep both prop sets (`standing` and `water`/`marks`/`onPressMark`).
+
+## Follow-ups, checked on the web (review, 2026-10-21)
+The web check used a phone viewport (390×844 @2x, touch, 4G). Expo web ran on :39762 against release
+**r-f579fe5eac3e**, served read-only on :39761 by `serve-tiles.mjs` (`RELEASE_ROOT=.scratch/release`). That release was
+built in the worktree with the fixed `water_continue`, and its tiles are the promoted ones. To repeat it, run
+`node followups-check.mjs <out dir> <app url>`. Its screenshots and its log (`followups-check.log.json`) are in `fu/`.
+
+- **The outline (owner: "keep the colour, add an outline").** On a stream, the current part keeps its regulation colour
+  and is cased in `color.highlight`. On a lake, the current part keeps its fill and gets a ring. Screenshots:
+  `fu-chilliwack-3-up1..3`, `fu-cowichan-2-mouth` / `-3-up1..3`, `fu-klwa-2-down1..2` (the lake ring) and
+  `fu-klwa-3-up-again`.
+- **The marks, re-taken.** `fu-cowichan-4-mark` shows Greendale Trestle open on the cased part, with its ring on the part's
+  end. KLWA still has no placed marks between its closure areas (as noted above).
+- **Across waters (owner: "like vedder from chilliwack").** On the Vedder, ▲ reads "▲ Upstream into Chilliwack River".
+  Pressing it opens the Chilliwack's map at Part 1 of 4, Vedder Crossing Bridge → Tamihi Rapids Bridge
+  (`fu-vedder-2-up-into-chilliwack`). On that part, ▼ "into Vedder River" opens the Vedder (`fu-vedder-3-down-into-vedder`).
+  Back walks the waters that were opened on top, newest first: the Chilliwack, then the Vedder (`fu-vedder-4-back-twice`).
+  The Chilliwack run steps through the same continuation from the other side (`fu-chilliwack-5..7`).
+- **The stepped part is the frame's part.** After ▲ three times, Regulations opened on the stepped part
+  (`fu-chilliwack-4-regs-after-steps`), and Map opened on Part 4 of 4 again. Part 4 (part_ix 3) and part 3 (part_ix 0)
+  are both closed all year. The release's picker makes them ONE choice ("Closed all year on 2 stretches"), so the page's
+  heading names the choice's first stretch. That is the picker as it already works, not a defect in this lane.
+- **Step time.** One press of ▼ / ▲ was timed from the press to the first frame where the bar had changed and the
+  map's selection had been set, at 4× CPU. Over 19 steps (5 of them across waters) the median was **24 ms**, the p95
+  **41 ms** and the max **41 ms**, all under the 50 ms target. The map's selection was set 10–15 ms after the press. The
+  camera's ease to the part ends at the map's next idle, 0.8–1.5 s later.
+- **The continuation list.** See `continuations.md`. The first cut shipped 92 rows, and 89 of them were wrong
+  (tributaries, lake outlets, confluences), because it read the gauge-shed-only `section_down`. The fix reads the atlas
+  graph, and the release now ships 18 rows.
