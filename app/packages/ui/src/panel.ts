@@ -630,6 +630,16 @@ export interface ReadingVM {
 /** A quiet donor at the head of the chart, in core's words. */
 export interface QuietVM { heading: string; reads: string; lastReport: string }
 
+/**
+ * THE QUIET HEAD, at the horizon the sheet is on: a day ahead with no forecast is a missing forecast, as the silent
+ * line under the table says it — never "Not reporting today" over a gauge that reported last night (review
+ * 2026-10-22). `zone` is for tests.
+ */
+export function quietHead(name: string, row: DonorRow, ref: number, horizon: Horizon, zone?: string): QuietVM {
+  return { heading: readingHeading(name), reads: donorReads(row, { ref, horizon }),
+           lastReport: donorLastReport(row.observedAt, zone) };
+}
+
 export interface ConditionsVM {
   /** The matched gauge is still being looked up. */
   loading: boolean;
@@ -738,11 +748,7 @@ export function useConditionsView(
 
   const row = reading ? undefined : panel.rows.find((r) => r.station === lead);
   // Said once the reading has been asked for and is not there — not while it is on its way.
-  const quiet: QuietVM | null = row && got.state !== "loading" ? {
-    heading: readingHeading(name),
-    reads: donorReads(row, { ref: today.getTime() }),
-    lastReport: donorLastReport(row.observedAt),
-  } : null;
+  const quiet: QuietVM | null = row && got.state !== "loading" ? quietHead(name, row, today.getTime(), horizon) : null;
 
   return {
     loading: conditions.state === "loading",

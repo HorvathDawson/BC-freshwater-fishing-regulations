@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { DonorRow, Panel, PanelAnswer } from "@app/data";
-import { answerFrom, donorView, withLastReports } from "./panel";
+import { answerFrom, donorView, quietHead, withLastReports } from "./panel";
 
 const PANEL: Panel = { areaKm2: 50, members: [
   { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false, sameRiver: true },
@@ -128,6 +128,19 @@ describe("a silent panel member", () => {
         + "Second Creek (last report not known) · Coal River (not a real-time gauge) · "
         + "Rankless Creek (last report not known) · Gone Creek (last report not known)",
     });
+  });
+
+  it("the quiet head over a silent gauge says what the line says — on a day ahead, a missing forecast", () => {
+    // SECOND reported at 21:00 last night: today it would be a reading; three days ahead it has no forecast, and the
+    // line names it under "No forecast this far ahead" — the head over its chart must not say "Not reporting today".
+    const second = answer(3).rows.find((r) => r.station === "SECOND")!;
+    expect(quietHead("Second Creek", second, DAY.getTime(), 3, VAN)).toEqual({
+      heading: "AT SECOND CREEK", reads: "No forecast for this gauge that far ahead.",
+      lastReport: "Last reported 2026-10-20 at 21:00 PDT." });
+    const stale = answer().rows.find((r) => r.station === "STALE")!;
+    expect(quietHead("Liard River at Upper Crossing", stale, DAY.getTime(), 0, VAN)).toEqual({
+      heading: "AT LIARD RIVER AT UPPER CROSSING", reads: "Not reporting today.",
+      lastReport: "Last reported 2026-10-14 at 09:00 PDT." });
   });
 
   it("a refusal with no members says no line at all", () => {
