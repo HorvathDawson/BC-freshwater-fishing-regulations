@@ -9,7 +9,9 @@ could have quirky search statements like 'cast your search' 'hook into a new spo
 search icon the text box for search opens up in top bar and the screen turns into the current search screen (maybe
 blend the transition so it looks like the map is being reused or something?) … we should think about it and if thought
 of as a good idea then we can roll with it."
-Recommendation given (accepted pattern: Google Maps, Apple Maps, onX, Fishbrain): yes.
+Recommendation given (accepted pattern: Google Maps, Apple Maps, onX, Fishbrain): yes. Owner follow-up: "or the search
+bar can be always open" — agreed: the field is ALWAYS VISIBLE in the top bar (never collapsed to an icon); tapping it
+focuses it and opens the results over the map.
 
 ## Design
 - TOP BAR on the browse screens: menu button (left) · a rounded search FIELD filling the middle · the reserved sync slot
@@ -18,7 +20,7 @@ Recommendation given (accepted pattern: Google Maps, Apple Maps, onX, Fishbrain)
   field searches, e.g. "Cast your search — any lake or river", "Drop a line: river, lake or creek…", "Hook a water by
   name", "Reel in a river…", "Where to next? Search waters", "Find your next water". Nothing that promises fish
   ("where they're biting"). accessibilityLabel is always the plain "Search waters".
-- TAP → the field widens IN PLACE (no jump), the keyboard comes up, and the map behind stays MOUNTED, dimmed and slightly
+- The field is always drawn (not an icon). TAP → it takes focus IN PLACE (no jump), the keyboard comes up, and the map behind stays MOUNTED, dimmed and slightly
   blurred. Today's SearchScreen becomes a results sheet sliding up over it. Its preview map is the SAME map (no second
   MapLibre instance): previewing a result frames the main map. Picking a result settles the sheet and flies the map to the
   water (or opens it through openWater — the one opener — when that is the action). Cancel / back / Escape reverse the
