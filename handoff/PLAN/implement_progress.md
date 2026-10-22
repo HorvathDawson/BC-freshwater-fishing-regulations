@@ -96,6 +96,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   FOUND: 08MH001 daily has 35 rows (feed began Aug 27; no publisher runs Sep 26-Oct 12, Oct 16-18; the 30-day ECCC
   backfill only runs for never-seen stations). Workflow conditions-chart-arrows-feed RUNNING (fix gap refill +
   research this year's provisional daily source). The feed only stays current with a SCHEDULED publisher (owner).
+- MERGED (after restart): WAVE B COMPLETE — T36 part 2 (src:/srcs:/licsrc:/sp:/other: sheets), T37 SheetHost (moved
+  into RegsScreen: one sheet over the whole page, Parts button opens the parts sheet), review fix (parts sheet from
+  stored day status; drag from content at top). Sheets parity 134/134, 7181 sheets incl. gl/hatch linked (pdf_pages)
+  and parts 98; only 3 D19 legacy-pool other: sheets not compared. Strict 6802, smoke pass. Map chrome RESUMED as task
+  w72sww8p4; follow-ups task wgw0lg80t still running.
 - RESTARTED 2026-10-21 after the computer restart: step (1) DONE — deliver all r-0efa5d05fc92 (rows 32 / licence 7 /
   pdf_pages; card gate 0 problems; 13.67 MB gz), taps + regs fixture re-cut (1173321a), blob test id 2002; strict 6735,
   smoke pass; pipeline-needs tests 22 pass. WIP commits tagged wip/* in the main repo (sheets-fix, lake-values,
