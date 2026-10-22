@@ -206,6 +206,21 @@ describe("the standing channel: the same engine, the Conditions map's values", (
     ]);
   });
 
+  it("a stream's polygon (a slough, a canal: the `lake` source-layer) wears its line's standing — the class decides, not the layer", () => {
+    // OWNER 2026-10-22 (late): Nicomen Slough's polygon 1265712 sits between its lines 59621 and 59622; the bundle gives
+    // the polygon its line's panel (build_panels.stream_polygons), so the two share a class and the engine — the ONE
+    // colouring path — labels them alike, whichever source-layer the feature is in.
+    const SLOUGH = { classOf: (s: number) => ({ 59621: 0, 1265712: 0, 59622: 1 } as Record<number, number>)[s] ?? null };
+    const r = rig(CONDITIONS);
+    r.take();
+    r.setTiles([{ stream: [59621, 59622], lake: [1265712] }]);
+    r.c.set(r.h, r.target, r.renderer, "standing", standingInput(standing(SLOUGH, FEED1)), "light");
+    expect(r.take()).toEqual([
+      'state stream 59621 {"standing":42.5}', 'state stream 59622 {"standing":-1}',
+      'state lake 1265712 {"standing":42.5}', 'basin 08MF {"standing":12}',
+    ]);
+  });
+
   it("before the feed answers nothing is labelled; when it does, the loaded tiles are labelled", () => {
     const r = rig(CONDITIONS);
     r.take();

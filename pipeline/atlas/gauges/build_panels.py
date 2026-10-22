@@ -261,6 +261,60 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
     return parent
 
 
+def stream_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
+                    panelled: dict[str, tuple]) -> dict[str, str]:
+    """`polygon section of a STREAM water -> the line section of that water whose answer it takes`.
+
+    THE WATER'S KIND, NEVER THE GEOMETRY (owner 2026-10-22 late, "sloughs and canals look like streams in
+    Conditions"). A slough or canal is a stream item (`flowing.py` folds its polygons into the river's item), yet its
+    polygons are `lake:<wbk>` nodes in the graph. The walk above sizes a reach by stream magnitude, which a polygon
+    has none of, and it read `NodeKind` as if it were the water's kind — so all 146 stream-item polygons had no
+    panel, and 45 of them (Nicomen Slough 4, the Vedder Canal on the Vedder River …) drew grey between coloured
+    lines of the same water.
+
+    A polygon has no catchment of its own to ask about: it is a wide piece of the stream it belongs to. So it takes
+    that stream's answer — the panel AND the target area of the nearest line of the SAME water that has one,
+    DOWNSTREAM first (the water leaving a polygon is the water that went through it), upstream only when nothing
+    below answers. The walk keeps to the water's own sections, through its other polygons and unanswered lines, and
+    never borrows another water's answer: a canal-only item with no answered line is honestly unmeasured.
+
+    A lake item's polygon is not touched — a lake's answer is `lake_gauge` (level), never a river's flow. `panelled`
+    is `by_section` as the walk and side channels left it; a line keeps its own walk's answer, or its lack of one.
+    """
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    out: dict[str, str] = {}
+    for sec, node in graph.nodes.items():
+        water = water_of.get(sec)
+        if water is None or kind_of.get(water) != "stream":
+            continue
+        if sec in panelled or _kind(node) == "stream":
+            continue            # a line has its own catchment and its own walk; only a polygon borrows
+        for adj in (down, up):
+            seen, frontier, hits = {sec}, [sec], []
+            while frontier and not hits:
+                nxt: list[str] = []
+                for cur in frontier:
+                    for other in adj[cur]:
+                        if other in seen or water_of.get(other) != water:
+                            continue
+                        seen.add(other)
+                        nxt.append(other)
+                        if other in panelled and _kind(graph.nodes.get(other)) == "stream":
+                            hits.append(other)
+                frontier = nxt
+            if hits:
+                # Two answered lines at one distance (a braid below the polygon): the larger target, then the id —
+                # the main channel, deterministically.
+                out[sec] = max(hits, key=lambda h: (panelled[h][1] or 0.0, h))
+                break
+    return out
+
+
 def own_distances(graph, water_of: dict[str, str],
                   donors: list[tuple[str, str, int, bool]]) -> dict[str, dict[str, float]]:
     """`section -> {station: metres along the water}` for every station on the section's OWN water.
@@ -315,7 +369,8 @@ def build(graph, model: AreaModel,
           max_ratio: float = MAX_AREA_RATIO,
           water_of: dict[str, str] | None = None,
           measures: dict[str, set[str]] | None = None,
-          published: dict[str, float] | None = None) -> Panels:
+          published: dict[str, float] | None = None,
+          kind_of: dict[str, str] | None = None) -> Panels:
     """Candidates, gates, weights, and the dictionary — the whole pass.
 
     `water_of` (section -> water item) is what says which donors are a section's OWN gauges; without it nothing
@@ -337,6 +392,9 @@ def build(graph, model: AreaModel,
     `published` is each station's published catchment (`gauge.area_km2`, the stations roster's `area_km2`). It sets
     the scale of "far" (`panel.area_scale`: Hack's law wants real catchments and the area model runs low on big
     rivers) and breaks a tie between own gauges standing at the same distance and modelled size. None: the model's.
+
+    `kind_of` (water item -> its kind: stream / lake / wetland) is what lets a STREAM water's polygons take that
+    water's answer (`stream_polygons`); it needs `water_of` too. Without both, polygons get nothing, as before.
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
@@ -413,4 +471,11 @@ def build(graph, model: AreaModel,
             by_section.pop(sec, None)      # the river has no panel; neither can its channel
         else:
             by_section[sec] = got
+
+    # A STREAM WATER'S POLYGONS TAKE ITS ANSWER — see `stream_polygons`. Last, after the side channels, so a polygon
+    # takes whatever its line finally says. The same (panel, area) pair, so the polygon and its line are one colour
+    # input to the one colouring engine — nothing for a client to derive.
+    if water_of and kind_of:
+        for sec, line in stream_polygons(graph, water_of, kind_of, by_section).items():
+            by_section[sec] = by_section[line]
     return Panels(by_section=by_section, members=members)
