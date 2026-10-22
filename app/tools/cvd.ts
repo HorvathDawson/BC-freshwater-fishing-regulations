@@ -108,6 +108,15 @@ function lab(colour: string): [number, number, number] {
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
 }
 
+/**
+ * CIE LCh: lightness, chroma and hue angle (degrees, 0..360) — what "a blue" means as a number. Blue sits near 275°
+ * (the light map's water, #4A90E2), sea-green near 170°.
+ */
+export function lch(colour: string): { L: number; C: number; h: number } {
+  const [L, a, b] = lab(colour);
+  return { L, C: Math.hypot(a, b), h: ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360 };
+}
+
 /** CIEDE2000. Long, but it is the only distance that matches how a person sorts colours. */
 export function deltaE(a: string, b: string): number {
   const [L1, a1, b1] = lab(a);

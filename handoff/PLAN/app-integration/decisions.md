@@ -435,3 +435,28 @@ Owner: "gauge data is much faster turnover than other feeds"; "use best judgemen
   per-station files do). Adding one is a publish.py field (`forecastIssuedAt`, newest run) + the feed reader + a line;
   needs a feed republish, nothing heavier. The feed index's own `hydat.stale` (a newer HYDAT known) is read by
   @app/data but not yet used for the HYDAT row (still age-ruled).
+## CLAUDE 2026-10-22 (owner delegated) — dark water ink back to blue
+What read sea-green was the dark water-NAME ink, `color.label.water` (#5AB49C, LCh hue 173°). The refinement pass had put
+it there to clear the label gate's floor (worst-reader ΔE00 12 from all five statuses). The stream and lake colours are
+unchanged. The fix is one token at its single source, `app/packages/map/style/themes/dark.json`: **#5AB49C → #2498FC**
+(hue 274°, the same hue as the light map's water #4A90E2 at 275°). `pnpm style:build` regenerated style.meta.json and
+style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI token moved.
+- **The floor costs one pair.** No dark blue clears 12 from all five palette-D statuses. For protans, restricted's mauve
+  falls toward blue; for tritans, open's mint falls toward cyan. Searching every blue at hue 250–290° that passes the
+  other gates (4.5:1 contrast, the place-ink step, ΔE76 12 from every other map token), the best is 10.6–10.9. I chose
+  #2498FC because its only pair under the floor is 10.6 from `status.restricted` under protanopia (Machado). Every other
+  status pair stays 12+ (base 12.6, open 21.0, closed 31.5, own 43.4). The test lists that pair WHOLE
+  (`UNDER_FLOOR` in tools/label-colours.test.ts), so a second pair or any further slip fails. A new test requires every
+  theme's water name to be a blue: hue within 30° of 275° and chroma 30+. Mutation-checked: the old #5AB49C fails both.
+- **Legibility (dark).** On its halo (`color.outside` #0A0B0D) the name is 6.54:1 (was 7.92; floor 4.5). Without the halo,
+  on the lake fill #205579, it would be 2.64:1 (was 3.20). Labels always draw on the halo, so the halo carries
+  legibility. Against place ink #D2D8E1 it is ΔE00 27.4 (worst reader 24.1; floor 15/10).
+- **The flow ramp.** The name used to sit ΔE00 6.6 from `flow.f4` (normal, #3FCBAE), so a water's name looked like
+  "normal flow". It now sits 6.3 from `flow.f5` (#63ACF2) and 10.5 from f6. Every ramp step is ΔE76 18+ from the new ink
+  (the build gate's floor is 12), and the ramp itself is unchanged. On the Conditions map the names read as blue words
+  beside the lines, not as one more line.
+- **Shots** (phone, dark, from the running :39218 app with :39217 tiles; read-only. "After" repaints the three
+  water-name layers `stream__label`, `lake__label` and `water_label_ocean` through `__map` with the new value, which is
+  what the runtime theme paints): `shots/dark-water-ink-{before,after}-{map-z9,map-z12,conditions-z12}.png`.
+- **Rebuild:** none for data. The app picks up the theme at runtime; the served :39218 app shows the new ink once
+  it runs this branch.

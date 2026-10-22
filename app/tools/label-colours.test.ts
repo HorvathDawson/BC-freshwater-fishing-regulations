@@ -15,7 +15,7 @@
 import { describe, expect, it } from "vitest";
 import { MAP_STYLE, resolveTheme, STYLE_META } from "../packages/map/src/style";
 import { BASEMAP_LABELS, basemapLabelPaint, OWN_LABELS, ownLabelOnImagery } from "../packages/map/src/labels";
-import { contrast, deltaE, MODELS, worstSeparation } from "./cvd";
+import { contrast, deltaE, lch, MODELS, worstSeparation } from "./cvd";
 
 const THEMES = ["light", "dark", "cvd"] as const;
 const STATUSES = ["closed", "own", "base", "restricted", "open"];
@@ -27,6 +27,26 @@ const INKS = ["color.label.water", "color.label.place", "color.label.minor", "co
  * were moved to reach it (light was 7.0 from `status.open` under tritanopia).
  */
 const FLOOR_DE = 12;
+/**
+ * THE ONE PAIR BELOW THE FLOOR, BY OWNER DIRECTION (2026-10-22 late: "dark-mode water ink: bring it back to the blue
+ * family of light-mode water (it read sea-green)"). Under palette D's dark statuses no blue clears 12 from all five for
+ * every reader — restricted's mauve collapses toward blue for protans and open's mint toward cyan for tritans, so the
+ * floor had pushed the ink to sea-green #5AB49C. The blue that gives up least is #2498FC: 12+ from four statuses and
+ * 10.6 from `status.restricted` under protanopia (Machado) — still several just-noticeable steps, between an italic
+ * word on a halo and a line. Listed WHOLE, so a further slip, a second pair, or any other theme going under fails.
+ */
+const UNDER_FLOOR: Record<(typeof THEMES)[number], string[]> = {
+  light: [],
+  dark: ["color.label.water ~ status.restricted: ΔE 10.6 (protan (machado))"],
+  cvd: [],
+};
+/**
+ * A water's name is a BLUE in every theme: its CIE LCh hue within 30° of the light map's water (#4A90E2, 275°), and
+ * coloured (chroma 30+), not a grey. Dark's ink had drifted to sea-green (#5AB49C, 173°) while clearing the floor above.
+ */
+const WATER_HUE = 275;
+const WATER_HUE_SPAN = 30;
+const WATER_MIN_CHROMA = 30;
 /** Water ink against place ink: a clear step for normal vision (CIEDE2000 15), and 10 for the worst reader. */
 const WATER_PLACE_DE = 15;
 const WATER_PLACE_WORST = 10;
@@ -51,7 +71,14 @@ describe("the map's names", () => {
           const w = worstSeparation(t[ink]!, t[`color.status.${s}`]!, MODELS);
           if (w.dE < FLOOR_DE) close.push(`${ink} ~ status.${s}: ΔE ${w.dE.toFixed(1)} (${w.under})`);
         }
-      expect(close).toEqual([]);
+      expect(close).toEqual(UNDER_FLOOR[theme]);
+    });
+
+    it(`a water's name is a blue, the light map's water family (${theme})`, () => {
+      const { C, h } = lch(t["color.label.water"]!);
+      const off = Math.abs(((h - WATER_HUE + 540) % 360) - 180);
+      expect({ ink: t["color.label.water"], blue: off <= WATER_HUE_SPAN, coloured: C >= WATER_MIN_CHROMA })
+        .toEqual({ ink: t["color.label.water"], blue: true, coloured: true });
     });
 
     it(`a water's name never reads as a town's (${theme})`, () => {
