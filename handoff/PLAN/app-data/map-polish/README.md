@@ -11,14 +11,19 @@ Lucide glyph paths.
 worktree's Expo web server, with data from the main checkout's `serve-tiles.mjs` (the live release, read-only, on a port
 of this lane's own). Names are `<before|after>-<mode>-<zoom>-<phone|desktop>-<light|dark>.jpg` (JPEG q85 at full 2x, `scripts/to_jpeg.py`):
 
-- **modes**: `regs` = the Map tab coloured by regulations; `plain` = the Map tab with the status index withheld, so every
-  water is neutral (the state before the day's index is in); `satellite` = regs over Esri imagery; `conditions` = the
-  Conditions tab (flow). Private land is switched ON in every shot, because the owner judged it on.
+- **modes**: `regs` = the Map tab coloured by regulations; `plain` = the Map tab with every regulations-coloured layer
+  repainted in its plain mode (`scripts/plain-paint.ts`: exactly what `paintFor` paints when no day is installed, set
+  through the dev-only `__map`); `satellite` = regs over Esri imagery; `conditions` = the Conditions tab (flow). Private
+  land is switched ON in every shot, because the owner judged it on.
+  - **The first `plain` shots were not plain** (review 2026-10-22). They blocked the status index by URL, but the
+    release path reads the day's status from `paint`, which nothing blocked, so every "plain" shot was the regs map.
+    Blocking `paint` is not an option: the web boot fetches it before the map. The app has no plain mode to switch to,
+    so the legend card in the `plain` frames still names Regulations; the WATER in them is plain.
 - **zooms**: z6 southern B.C. (regions, the basin field); z9 the Lower Mainland and Fraser Valley (towns, reserves,
   closures, rivers); z12 Pitt Meadows (Blaney Bog and Codd Wetland closed, UBC Malcolm Knapp Research Forest by permit,
   parcels); z15 the edge of Blaney Bog (a closure edge, private land, a creek).
 - **viewports**: phone 390x844 and desktop 1440x900, at 2x.
-- `after/handover-*`: the Conditions map either side of the new handover, z9.0 / z9.5 / z9.9 / z10.0.
+- `after/handover-*` (phone and desktop, light and dark): the Conditions map either side of the new handover, z9.0 / z9.5 / z9.9 / z10.0.
 
 Scripts: `scripts/shots.mjs` (every shot above; the camera is set exactly through the dev-only `__map`), `probe.mjs`,
 `features.mjs`, `eval.mjs` (finding scenes and reading paint off the live map), `sheet.py` (side-by-side sheets), and
@@ -39,18 +44,48 @@ Scripts: `scripts/shots.mjs` (every shot above; the camera is set exactly throug
   - **The home camera moved from z9.4 to z10** (Shell `HOME`). Any handover above 9.4 puts the app's first view of
     Conditions under the field, where taps are refused (`HANDOVER_Z`). At z10 both tabs still open on the Fraser Valley,
     slightly closer in, on tappable rivers. One zoom out shows the field.
-  - **No tile rebuild.** The tiles still carry basins only to z8 (`BASIN_HANDOVER_Z = 9` in the tile builder, unchanged).
-    The basin layer now reads its own source, `basins`. This is the same atlas archive with `maxzoom: 8`, so MapLibre
-    overzooms the z8 basin tiles up to z10 and never asks for z9 tiles, which have no basins in them. A basin is a
-    catchment of thousands of km², so z8 geometry at z10 has no visible stair-stepping. Feature-state goes to the new
-    source unchanged on the web (`stateTarget` reads the layer's source). On a phone the field's values were already
-    written into the style (`areaLayer`, now any source on the atlas archive). `promoteId` is set for both atlas sources.
+  - **No tile rebuild needed.** The tiles still carry basins only to z8 (`BASIN_HANDOVER_Z = 9` in the tile builder,
+    unchanged). The basin layer now reads its own source, `basins`. This is the same atlas archive with `maxzoom: 8`, so
+    MapLibre overzooms the z8 basin tiles up to z10 and never asks for z9 tiles, which have no basins in them.
+    Feature-state goes to the new source unchanged on the web (`stateTarget` reads the layer's source). On a phone the
+    field's values were already written into the style (`areaLayer`, now any source on the atlas archive). `promoteId`
+    is set for both atlas sources.
+  - **The overzoomed field opened gaps. That is fixed** (review 2026-10-22). The first version claimed "z8 geometry at
+    z10 has no visible stair-stepping". That was wrong: the first `after/handover-*` shots showed white and black
+    wedges along the basin borders at Gill Bar, Cheam and Chilliwack, and a sawtooth edge. The cause is in the tile
+    build, not in the zoom. `basins.py` simplified each basin on its own at 500 m, so two neighbours cut their shared
+    border differently. Measured on the shipped `basin.geojsonl`: 3,552 slivers and 3,694 overlaps, the widest about
+    700 m across. That is 7 px at z10, and the translucent field drew each overlap as a darker seam.
+    - **In the style, now:** the field is **opaque**. Each colour is pre-mixed on the paper at `opacity.basin`
+      (`field.solid`, `mixColours` in `adapters/contract.ts`), so a basin has the same colour the 0.55 field had on
+      blank paper and overlaps are invisible. A **seam** in each basin's own colour is drawn *under* the field
+      (`basin__edge`, `outline.under`). It shows only where no basin is drawn, and its width curve closes a 700 m gap at
+      every zoom the field draws (`width.basin.seam`; `tools/handover.test.ts` holds the curve to the measured gap).
+      The phone reads the seam's colour from the field's own table (`native-style.ts` `areaKey`).
+    - **At the source, on the next atlas build:** `basins.py` now simplifies the groups **as one coverage**
+      (`simplify_cover`, `shapely.coverage_simplify`), so every shared border is simplified once. On the real layer at
+      500 m: 0 overlaps and no slivers (one zero-width ring). Tested in `pipeline/tests/test_tiles.py`; the old
+      per-polygon simplify fails that test.
+    - **The sawtooth edge** (the right-hand basin in `after-conditions-z9-*`) is the 500 m tolerance itself: it was one
+      pixel at z8, and overzoomed to z10 every 500 m run is a 5 px straight edge. No style can add detail the tile
+      does not carry, so this one waits for the build. `SIMPLIFY_M` is now 100 m, one pixel at z10 at 49 N
+      (`handover.test.ts` holds it to a pixel at the handover): 494k vertices of the source's 5.46M, 8.5 s. The z8
+      tiles are thinned again by tippecanoe's own per-zoom simplification, so the low zooms do not grow much.
 - **Nothing under the field.** While the field is drawn, every layer it covers takes the handover as its floor. That is
   the streams and lakes, their names, outlines, arrows and no-baseline dashes, the wetlands, the routes through lakes,
   contours, and the basemap's own river lines (`field.covers` in `layers.source.json`, applied by `zoomFor` /
   `fieldMoved` in `adapters/contract.ts`). Before, the lake outlines, the lake names (from z8) and the dashes all drew
   through it (`before-conditions-z6-*`). The floor is released with the field, so the Map tab and the temperature view
   keep every layer's own floor.
+  - **The first version still let things through** (review 2026-10-22). The basemap's water (the Fraser, Harrison,
+    Stave and Pitt lakes) showed as darker shapes through the 0.55 field. The closed and permit hatches showed too
+    (Liumchen, Keyhole Canyon), and so did the gauge dots. Now the field is opaque, so nothing drawn under it (the
+    basemap's water, roads and landcover, our areas and hatches) can show through. The things drawn *above* every fill
+    are also covered: the parks, reserves, closures, permit areas and Indigenous land, with their edges and names, and
+    the gauge dots and their pills (`covers.runtime`: `gauge-dot`, `gauge-label`). Only the basemap's place names and
+    road shields stay on the field, because they are how you know where you are.
+  - **The cost:** the field hides the roads and the coastline detail under it below z10. That is the trade the owner
+    asked for ("disappear when it is visible"). Towns stay named, and the BC mask still draws the border.
 - **The field is not drawn when it answers nothing.** Its `plain` colour was a #D5D5D5 wash at 0.55 opacity over the
   WHOLE Map tab below z9. That is the grey cast in `before-regs-z6-*`, where the province looked drained of landcover.
   The layer is now drawn only in `standing` (`field.drawnIn`), so on the Map tab it is neither drawn nor fetched.
@@ -82,6 +117,16 @@ The rules live in `packages/map/src/labels.ts`, and `tools/label-colours.test.ts
   build's own floor; `scripts/label-search.ts` shows no blue reaches 15 in light or dark. The quiet inks (roads, admin
   numbers) are held to 3:1, the large-text and non-text floor, because a darker grey collides with the mask and the place
   ink.
+- **A water's name never reads as a town's** (review 2026-10-22). Dark's #C8D0F0 cleared the statuses, but it sat
+  ΔE 8.9 from the place ink #D2D8E1 (3.9 under tritanopia). In `after-regs-z9-desktop-dark` Pitt, Harrison and Chehalis
+  Lake looked the same pale grey-white as Hemlock Valley, and only the italic told them apart. No blue can be the dark
+  water ink: every blue that clears 4.5:1 on the dark paper is under 12 from `status.base`, `status.restricted` or
+  `status.open` for some reader (best: ΔE 11.0). So dark water names are now a muted sea-green, **#5AB49C**. It is
+  ΔE 26.7 from the place ink (15.7 for the worst reader), 13.5 from every status for the worst reader, ΔE76 ≥ 12 from
+  every map colour including the flow ramp (the style build's rule; #18C09C, the first pick, was 6.9 from `flow.f4`), and
+  7.9:1 on the paper. The imagery water ink moved #D3EBFF → **#B4DCFF**, from 12.1 to 18.0 against the imagery place
+  ink. `label-colours.test.ts` now holds water against place: ΔE ≥ 15 for normal vision and ≥ 10 for the worst reader,
+  on the drawn map and over imagery. Light (18.7 / 13.5) and cvd (19.2 / 15.1) already passed.
 - **Names without record ids.** The access and protected-area names carry the source id ("Codd Wetland Ecological
   Conservancy Area [14448346]"). The label drops a trailing " [...]" (`trimId`, a style expression, no rebuild).
 - **Priority** is unchanged: water names first, then admin numbers, then areas, then the basemap's, so the important
@@ -91,9 +136,15 @@ The rules live in `packages/map/src/labels.ts`, and `tools/label-colours.test.ts
 
 The fill went from 0.22 to 0.10 (0.08 in dark). The edge went from a 1.5 px solid line to a 0.8 px hairline at 0.5
 opacity (0.42 in dark). Light uses a softer brown, #9A6A4E. The very salmon dark-theme fill is gone. The layer still
-sits under every water colour. It starts at **z11 in the style**, but the tiles carry parcels only from z12, so **z11
-needs a tile rebuild** with `parcel` minzoom 11 in `pipeline/deliver/tiles/layers.py`. That is NOT done here (no heavy
-jobs). Until then the layer starts at z12, as it did before.
+sits under every water colour.
+
+**From z11: built in the pipeline, NOT yet on screen** (review 2026-10-22: the first version called this built when
+only the style had moved). The style asks for parcels from z11, and the tile builder now writes them from z11
+(`pipeline/deliver/tiles/layers.py` `parcel` minzoom 11, `tile-contract.json` regenerated, `test_tiles.py` holds it).
+The atlas served today was built at z12, so **nothing changes on screen until the next atlas build**, and none of the
+shots here show private land at z11. Cost, measured with the build's own tippecanoe flags on the shipped
+`parcel.geojsonl`: z11+z12 is 5.4 MB against 3.3 MB for z12 alone, so about **+2 MB** on a 521 MB atlas. The parcel
+layer file carries `tippecanoe.minzoom` per feature, so the rebuild has to re-export it (not `--tiles-only`).
 
 ### 4. Restricted and closed areas
 
@@ -132,14 +183,30 @@ and the `opacity.ui.scale` token went with the panel.
   Conditions hide list includes the companions); `style-spec.test.ts` (validates the `basins` source);
   `ConditionsLayers` / `MapRail` / `Search` shell tests (the expanded hide list, and the home camera at z10).
 
+- Review fixes (2026-10-22), each test written first and seen failing:
+  - `handover.test.ts`: the field is opaque with every colour pre-mixed on the paper (light, dark, cvd); the seam is
+    drawn directly under it, follows it, takes its colour, and is wider than the 700 m gap at every zoom it draws;
+    the areas, their edges and names and the gauge dots and pills are covered and released; the seam is hidden with
+    the field; the tile builder's `SIMPLIFY_M` is at most a pixel at the handover.
+  - `label-colours.test.ts`: water ink against place ink, on the drawn map and over imagery (failed in all three
+    themes before: dark 8.9 / 3.9, and 12.1 for the imagery pair).
+  - `native-style.test.ts`: the seam reads the field's own table on a phone (no feature-state).
+    `lake-outline.test.ts` names the seam as a third follower.
+  - `pipeline/tests/test_tiles.py`: basins simplified as one coverage do not gap or overlap (the per-polygon
+    simplify fails it); the parcel layer and the tile contract start at z11.
+
 ## For the merger
 
 - `pnpm -C app style:build` is clean and the generated files are committed. The full
   `REGS_STORE_REQUIRED=1 pnpm -C app check` gave exit 0: 292 test files passed and 4 skipped; 7496 tests passed and 41
-  skipped.
-- **No tile rebuild is needed for anything shipped here.** One item needs a rebuild to finish: private land from z11.
-  To do it, set `parcel` minzoom to 11 in `pipeline/deliver/tiles/layers.py` and rebuild the atlas. The parcel layer
-  gets bigger at z11, so measure that first. Until then, nothing changes below z12.
+  skipped. After the review fixes (run unfiltered): exit 0, 292 files passed and 4 skipped, 7506 tests passed and 41
+  skipped; `pipeline/tests/test_tiles.py` and the `test_tile_*` files pass.
+- **Nothing shipped here needs a tile rebuild to look right.** Two pipeline changes take effect only on the next atlas
+  build: **private land from z11** (`parcel` minzoom 11, about +2 MB) and **basins simplified as one coverage** (no
+  slivers at the source; the style's seam covers them until then). Both are in the export, so the rebuild must
+  re-export the `parcel` and `basin` layer files, not run `--tiles-only`. The basins re-export alone takes ~10 s;
+  the parcel layer is part of the admin export. Run it as one heavy job, and promote the archive and the bundle together
+  (same vintage).
 - If the tile builder's `BASIN_HANDOVER_Z` ever changes, set `sources.basins.maxzoom` in `layers.source.json` to the
   new basin maxzoom. `tools/handover.test.ts` and `tools/overzoom.test.ts` both fail until the two agree.
 - Conflict risk: `Shell.tsx` (`HOME`, `HANDOVER_Z`) and the shell tests whose strings include the camera (MapRail,
@@ -152,8 +219,9 @@ and the `opacity.ui.scale` token went with the panel.
   to other lanes.
 - Nothing was checked on a phone device. The native style is covered by the native-style and parity tests only: the
   floors, the field's visibility, the label paints and the ruler.
-- The basemap's own water still shows faintly through the field (the ocean and wide rivers are one Protomaps layer).
-  Hiding it would take the coastline with it.
+- Private land at z11 is not on screen until the next atlas build (see item 3 and "For the merger").
+- The basins in the shipped tiles still gap and overlap. The style hides that (opaque field plus seam), and the fix at
+  the source lands with the next atlas build.
 - Point-of-interest and shield icons keep the Protomaps sprites. Only their text was unified.
 - The record ids are trimmed from area names in the style. The pipeline still writes them into `name`; this needs a
   rebuild to fix at the source.

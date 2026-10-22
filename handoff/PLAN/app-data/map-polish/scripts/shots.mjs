@@ -5,8 +5,11 @@
 //   filters narrow the run: any of phone|desktop, light|dark, regs|conditions|plain|satellite, z6|z9|z12|z15, or a
 //   scene name (see SCENES). Several filters of one kind are OR'd; kinds are AND'd.
 //
-// Modes: regs = the Map tab coloured by Regulations; plain = the Map tab with the status index blocked (every water
-// neutral: the state before the day's index is in);
+// Modes: regs = the Map tab coloured by Regulations; plain = the Map tab with every regulations-coloured layer repainted
+// in its plain mode through `__map` (PLAIN_PAINT: `plain-paint.ts`, exactly what `paintFor` paints when no day is
+// installed). The first version tried to block the status index by URL; the release path reads status from `paint`, so
+// nothing was blocked and the "plain" shots were the regs map (review 2026-10-22). The legend card is the app's own and
+// still names Regulations in these frames: the app has no plain mode to switch to;
 // satellite = regs over Esri imagery; conditions = the Conditions tab (flow). Private land is switched ON for every
 // shot (the owner judged it ON). The camera is set exactly with the dev-only `__map` handle and each shot waits for
 // MapLibre's `idle` (all tiles in, no transition), then 600 ms for the label fade.
@@ -16,6 +19,9 @@ const { chromium } = require("playwright");
 const exe = "/Users/dawson.horvath/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 
 const [OUT, URL, PREFIX, ...filters] = process.argv.slice(2);
+import { readFileSync } from "node:fs";
+const PLAIN_PAINT = process.env.PLAIN_PAINT ? JSON.parse(readFileSync(process.env.PLAIN_PAINT, "utf8")) : null;
+if (filters.includes("plain") && !PLAIN_PAINT) throw new Error("plain shots need PLAIN_PAINT=<plain-paint.ts output>");
 
 /** Where each zoom is shot: chosen for what that zoom has to carry (see README). */
 const SCENES = {
@@ -71,8 +77,6 @@ const runs = [modes.filter((m) => m !== "plain"), modes.filter((m) => m === "pla
 for (const run of runs) for (const vp of pick(Object.keys(VIEWPORTS))) for (const theme of pick(THEMES)) {
   const ctx = await browser.newContext({ viewport: VIEWPORTS[vp], deviceScaleFactor: 2, colorScheme: theme });
   const p = await ctx.newPage();
-  // PLAIN = the map before the day's status index is in (or without one): every water in its neutral colour
-  if (run[0] === "plain") await p.route(/status_index|status-index|\/status\./, (r) => r.abort());
   p.on("pageerror", (e) => log.push({ vp, theme, error: String(e).slice(0, 200) }));
   try {
     await p.goto(URL, { waitUntil: "load", timeout: 300000 });
@@ -91,6 +95,12 @@ for (const run of runs) for (const vp of pick(Object.keys(VIEWPORTS))) for (cons
       for (const z of pick(Object.keys(SCENES))) {
         const s = SCENES[z];
         await p.evaluate(({ lat, lon, zoom }) => globalThis.__map.jumpTo({ center: [lon, lat], zoom }), s);
+        if (mode === "plain")
+          await p.evaluate((paint) => {
+            const m = globalThis.__map;
+            for (const [id, props] of Object.entries(paint))
+              if (m.getLayer(id)) for (const [k, v] of Object.entries(props)) m.setPaintProperty(id, k, v);
+          }, PLAIN_PAINT[theme]);
         const how = await idle(p);
         await p.waitForTimeout(z === "z6" ? 2500 : 1200);
         await idle(p);
