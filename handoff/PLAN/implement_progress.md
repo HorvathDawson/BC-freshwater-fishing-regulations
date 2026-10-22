@@ -28,6 +28,11 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
   test cleanup) and lane B (ambiguous cuts nearest the other extent; continuation into the bundle; deliver key inputs;
   matcher out of the bundle; atlas records the matches sha). Merger then: reach rerun + deliver all via scripts/heavy.sh,
   binding diff before promoting.
+- READY TO MERGE after the running reach/deliver chain finishes (it edits curated region-6.json, which reach reads):
+  branch worktree-agent-a369ec71bb77b7d8f commit 3a64d300 "a curated pick outranks the general ambiguous-cut rule"
+  (Extent.cut_pick; skeena_river_2 keeps the lower crossing). Then the NEXT reach rerun restores skeena_river_2's 5
+  licensing sections; run test_skeena_river_2_keeps_the_reserves_lower_mainstem_crossing via heavy.sh with ATLAS_BUILD.
+- RUNNING chain (scratchpad cleanup-rebuild.sh, log cleanup-rebuild.log): reach → binding diff → swap → stamp → deliver.
 - T50 (owner 2026-10-22): Android emulator parity + system bars — runs AFTER the mass cleanup (owner: "android could come
   after all the cleanup too"), as its own HEAVY run (heavy.sh, alone). AVD n1_pixel exists; SDK at ~/Library/Android/sdk.
 - THEN, in order: (1) Shell slimming P14/P17 + S2 tile/basemap size wins (tile rebuild via heavy.sh, alone; promote file
