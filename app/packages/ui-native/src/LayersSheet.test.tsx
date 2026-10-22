@@ -100,7 +100,7 @@ describe("the Layers sheet, mounted", () => {
     expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual(
       ["Layers", "MAP", "COLOUR THE WATER BY", "ON THE MAP"]);
     expect(radios()).toEqual(["Map *", "Satellite", "Corridors (off)", "Regulations *", "Stocked (off)", "Depth (off)"]);
-    expect(switches()).toEqual(["Depth contours", "Private land", "Pools and runs (off)", "Relief (off)"]);
+    expect(switches()).toEqual(["Spots on", "Depth contours", "Private land", "Pools and runs (off)", "Relief (off)"]);
     expect(text("layers-always")).toBe("Always shown: parks and ecological reserves, Indigenous land (reserves), "
       + "no-access and permit-only land, and region and management-unit lines. They are never switched off.");
   });
@@ -149,9 +149,22 @@ describe("the Layers sheet, mounted", () => {
     const out: { c?: LayerChoice } = {};
     render(<Wired facts={NONE} out={out} />);
     fireEvent.click(screen.getByRole("switch", { name: "Private land" }));
-    expect([switches()[1], out.c!.on["overlay.private"]]).toEqual(["Private land on", true]);
+    expect([switches()[2], out.c!.on["overlay.private"]]).toEqual(["Private land on", true]);
     fireEvent.click(screen.getByRole("switch", { name: "Private land" }));
-    expect([switches()[1], out.c!.on["overlay.private"]]).toEqual(["Private land", false]);
+    expect([switches()[2], out.c!.on["overlay.private"]]).toEqual(["Private land", false]);
+  });
+
+  it("SPOTS (owner 2026-10-22): its row wears the Spots tab's icon, is on by default, and flips off and on", () => {
+    const out: { c?: LayerChoice } = {};
+    render(<Wired facts={NONE} out={out} />);
+    const row = screen.getByRole("switch", { name: "Spots" });
+    const icons = () => [...row.querySelectorAll("[data-testid^='icon-']")].map((e) => e.getAttribute("data-testid"));
+    const before = [switches()[0], row.textContent, icons()];
+    fireEvent.click(row);
+    const off = [switches()[0], out.c!.on["overlay.spots"]];
+    fireEvent.click(screen.getByRole("switch", { name: "Spots" }));
+    expect([before, off, [switches()[0], out.c!.on["overlay.spots"]]]).toEqual([
+      ["Spots on", "SpotsYour saved spots", ["icon-spots"]], ["Spots", false], ["Spots on", true]]);
   });
 
   it("satellite offline: Map SHOWING, Satellite kept chosen but greyed, and the reason line", () => {
@@ -171,7 +184,7 @@ describe("the Layers sheet, mounted", () => {
     expect([before, radios().slice(0, 3), out.c!.show]).toEqual([
       [["Layers", "SHOW", "MAP", "ON THE MAP"],
        ["Flow *", "Level", "Temperature", "Map *", "Satellite"],
-       ["Gauges on", "Flow arrows on"],
+       ["Spots on", "Gauges on", "Flow arrows on"],
        null,
        "Always shown: parks and ecological reserves, Indigenous land (reserves), and no-access and permit-only land. "
        + "They are never switched off."],

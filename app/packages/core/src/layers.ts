@@ -52,6 +52,9 @@ export type ConditionsShow = "discharge" | "level" | "temperature";
  */
 export type LayerKind = "show" | "ground" | "water" | "overlay" | "always";
 
+/** The marker sets an entry can switch: the reader's saved spots, drawn as pins on every map (owner 2026-10-22). */
+export type PinSet = "spots";
+
 /** What the release must carry for an entry to be offered (`LakeFacts.surveyed` / `.stocked` > 0). */
 export type ReleaseValues = "stocked" | "surveyed";
 
@@ -71,6 +74,8 @@ export interface LayerEntry {
     readonly water?: WaterColour;
     readonly groups?: readonly string[];
     readonly layers?: readonly string[];
+    /** Markers the app places itself (not style layers): "spots", the reader's saved spots. */
+    readonly pins?: readonly PinSet[];
   };
   /** Style groups / layers an `always` entry names (tests hold that they exist and are not toggleable). */
   readonly draws?: { readonly groups?: readonly string[]; readonly layers?: readonly string[] };
@@ -148,6 +153,9 @@ export const LAYERS: readonly LayerEntry[] = [
     sets: { water: "depth", groups: ["depth"] }, needs: { release: "surveyed" },
     label: "Depth", note: "Which lakes were surveyed" },
   // ── On the map (switches) ──
+  // YOUR SPOTS, on every map (owner 2026-10-22: "toggle our spots on and off in the layer menu"): on by default
+  { id: "overlay.spots", kind: "overlay", views: ["map", "water", "conditions"], default: true,
+    sets: { pins: ["spots"] }, label: "Spots", note: "Your saved spots" },
   { id: "overlay.contours", kind: "overlay", views: ["map", "water"], default: false,
     sets: { groups: ["depth"] }, label: "Depth contours", note: "Traced lines on surveyed lakes" },
   { id: "overlay.private", kind: "overlay", views: ["map", "water"], default: false,
@@ -221,6 +229,8 @@ export interface LayerEffective {
   readonly groups: Readonly<Record<string, boolean>>;
   /** Every view-drawn or runtime layer an entry sets (the gauges, the flow arrows), on or off, the same way. */
   readonly layers: Readonly<Record<string, boolean>>;
+  /** Every marker set an entry switches (the saved spots), on or off, the same way. */
+  readonly pins: Readonly<Record<PinSet, boolean>>;
 }
 
 export interface LayerTileVM {
@@ -295,6 +305,7 @@ export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): L
   // the groups and layers the map is handed: every one an entry names, on when an available choice IN THIS VIEW sets it
   const groups: Record<string, boolean> = {};
   const layers: Record<string, boolean> = {};
+  const pins = { spots: false } as Record<PinSet, boolean>;
   for (const e of LAYERS) {
     for (const g of e.sets?.groups ?? []) groups[g] = false;
     for (const l of e.sets?.layers ?? []) layers[l] = false;
@@ -302,6 +313,7 @@ export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): L
   for (const r of overlayRows) if (r.chosen) {
     for (const g of byId(r.id)!.sets?.groups ?? []) groups[g] = true;
     for (const l of byId(r.id)!.sets?.layers ?? []) layers[l] = true;
+    for (const p of byId(r.id)!.sets?.pins ?? []) pins[p] = true;
   }
   if (waterOk && waterChosen.views.includes(view)) for (const g of waterChosen.sets?.groups ?? []) groups[g] = true;
   const always = here("always").map((e) => e.label);
@@ -321,7 +333,7 @@ export function layersVM(view: LayerView, choice: LayerChoice, f: LayerFacts): L
     always: `${LAYER_WORDS.always.lead} ${listWords(always)}. ${LAYER_WORDS.always.tail}`,
     changed,
     effective: { basemap: groundChosen.sets?.basemap ?? "map", water: drawn,
-                 show: showChosen.sets?.show ?? DEFAULT_SHOW, groups, layers },
+                 show: showChosen.sets?.show ?? DEFAULT_SHOW, groups, layers, pins },
   };
 }
 
@@ -340,6 +352,31 @@ export function chooseLayer(choice: LayerChoice, id: string, f: LayerFacts): Lay
   if (e.kind === "water") return { ...choice, water: id };
   if (e.kind === "overlay") return { ...choice, on: { ...choice.on, [id]: !(choice.on[id] ?? e.default) } };
   return choice;
+}
+
+/**
+ * THE CHOICE, KEPT (owner 2026-10-22: the Spots switch "persists like the other layer toggles"): the reader's whole
+ * layer choice as text for the app's own store, and back. Restoring trusts nothing it reads: an id the registry no
+ * longer has, or one of the wrong kind, falls back to its set's default, and a switch keeps only a boolean for an
+ * overlay that still exists — so a stored choice from an older app can never name a layer this one does not draw.
+ */
+export function saveLayers(c: LayerChoice): string {
+  return JSON.stringify({ show: c.show, ground: c.ground, water: c.water, on: c.on });
+}
+
+export function restoreLayers(text: string | null): LayerChoice {
+  let v: unknown = null;
+  try { v = text === null ? null : JSON.parse(text); } catch { v = null; }
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return LAYER_DEFAULTS;
+  const o = v as Record<string, unknown>;
+  const pick = (k: "show" | "ground" | "water"): string => {
+    const id = o[k];
+    return typeof id === "string" && byId(id)?.kind === k ? id : LAYER_DEFAULTS[k];
+  };
+  const on: Record<string, boolean> = { ...LAYER_DEFAULTS.on };
+  const stored = typeof o.on === "object" && o.on !== null ? o.on as Record<string, unknown> : {};
+  for (const id of Object.keys(on)) if (typeof stored[id] === "boolean") on[id] = stored[id] as boolean;
+  return { show: pick("show"), ground: pick("ground"), water: pick("water"), on };
 }
 
 /**

@@ -34,3 +34,20 @@ export function openSpots(): SpotsStore {
   // a spot deleted takes its photos with it (S1); the photos themselves are in IndexedDB
   return openSpotsWith(fs, KEY, Date.now, openPhotos());
 }
+
+/**
+ * THE LAYERS SHEET'S CHOICE (owner 2026-10-22: the Spots switch, and every other, kept across a reload): one key of
+ * its own beside the spots, never inside their file. A browser that refuses storage reads as nothing stored, and a
+ * refused write throws for `@app/ui` `useLayerChoice` to shrug off — it is a preference, not a record.
+ */
+export function openLayerStore(): { read(): string | null; write(text: string): void } {
+  const LAYERS_KEY = "canifishthis.layers.v1";
+  return {
+    read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },
+    write: (t) => {
+      const s = globalThis.localStorage;
+      if (!s) throw new Error("This browser is not letting the app store anything.");
+      s.setItem(LAYERS_KEY, t);
+    },
+  };
+}

@@ -15,6 +15,7 @@
 import { Pressable, Text, View } from "react-native";
 import { LAYER_WORDS, STOCK_RECENCY, waterLegend, type LayerTileVM, type LayersVM, type LegendSwatch }
   from "@app/core";
+import { Icon, type IconName } from "./icons";
 import { Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
@@ -45,6 +46,9 @@ function swatch(p: Palette, id: string): Option["swatch"] {
     default: return [p.quiet, p.quiet, p.quiet];
   }
 }
+
+/** A switch that names something the app has an icon for wears it (the one Icon table): Spots wears the Spots tab's. */
+const ROW_ICON: Readonly<Record<string, IconName>> = { "overlay.spots": "spots" };
 
 const option = (p: Palette, t: LayerTileVM): Option =>
   ({ k: t.id, t: t.label, note: t.note ?? undefined, tag: t.tag ?? undefined, swatch: swatch(p, t.id),
@@ -133,6 +137,7 @@ function SwitchRow({ palette, row, onPress }: { palette: Palette; row: LayerTile
                accessibilityRole="switch" aria-checked={row.chosen} aria-disabled={off} accessibilityLabel={row.label}
                style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10,
                         borderTopWidth: 1, borderTopColor: palette.line, opacity: off ? 0.45 : 1 }}>
+      {ROW_ICON[row.id] && <Icon name={ROW_ICON[row.id]!} colour={palette.ink} size={20} />}
       <View style={{ flex: 1 }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{row.label}</Text>
         {row.note && <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>{row.note}</Text>}

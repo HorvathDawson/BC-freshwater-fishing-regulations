@@ -27,7 +27,7 @@ import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, loadManifest, type RegsSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
+import { openLayerStore, openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -85,6 +85,8 @@ export default function App() {
   // Spots live in their own store — a `.spots` file on a phone, browser storage on the
   // web. Never in the release: that is replaced wholesale on every update.
   const spotStore = useMemo(() => openSpots(), []);
+  // The Layers sheet's choice (the Spots switch and the rest), kept beside the spots so a reload opens the maps as left
+  const layerStore = useMemo(() => openLayerStore(), []);
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
@@ -189,6 +191,7 @@ export default function App() {
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
                checkRelease={RELEASE ? checkRelease : null}
+               layerStore={layerStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
                status={data.status} pairing={data.pairing}

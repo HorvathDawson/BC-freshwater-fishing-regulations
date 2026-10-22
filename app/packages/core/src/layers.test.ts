@@ -5,8 +5,8 @@
  * ignored makes a case here fail — memory "checks seeded from input launder").
  */
 import { describe, expect, it } from "vitest";
-import { LAYER_DEFAULTS, LAYERS, availability, chooseLayer, chooseShow, layersVM, waterLegend, type LayerFacts }
-  from "./layers";
+import { LAYER_DEFAULTS, LAYERS, availability, chooseLayer, chooseShow, layersVM, restoreLayers, saveLayers, waterLegend,
+         type LayerFacts } from "./layers";
 
 const NONE: LayerFacts = { carries: { stocked: false, surveyed: false }, online: true };
 const FED: LayerFacts = { carries: { stocked: true, surveyed: true }, online: true };
@@ -20,7 +20,7 @@ describe("the registry", () => {
       "show:show.flow", "show:show.level", "show:show.temperature",
       "ground:ground.map", "ground:ground.satellite", "ground:ground.corridors",
       "water:water.regulations", "water:water.stocked", "water:water.depth",
-      "overlay:overlay.contours", "overlay:overlay.private", "overlay:overlay.pools", "overlay:overlay.relief",
+      "overlay:overlay.spots", "overlay:overlay.contours", "overlay:overlay.private", "overlay:overlay.pools", "overlay:overlay.relief",
       "overlay:overlay.gauges", "overlay:overlay.arrows",
       "always:always.protected", "always:always.indigenous", "always:always.noaccess", "always:always.admin",
     ]);
@@ -36,7 +36,7 @@ describe("the registry", () => {
 
   it("the defaults: Flow, the drawn map, regulations, the Map tab's switches off, the Conditions map's gauges and arrows on", () => {
     expect(LAYER_DEFAULTS).toEqual({ show: "show.flow", ground: "ground.map", water: "water.regulations",
-      on: { "overlay.contours": false, "overlay.private": false, "overlay.pools": false, "overlay.relief": false,
+      on: { "overlay.spots": true, "overlay.contours": false, "overlay.private": false, "overlay.pools": false, "overlay.relief": false,
             "overlay.gauges": true, "overlay.arrows": true } });
   });
 
@@ -45,9 +45,9 @@ describe("the registry", () => {
     const of = (v: "map" | "conditions") => LAYERS.filter((e) => e.views.includes(v)).map((e) => e.id);
     expect([of("conditions"), of("map")]).toEqual([
       ["show.flow", "show.level", "show.temperature", "ground.map", "ground.satellite",
-       "overlay.gauges", "overlay.arrows", "always.protected", "always.indigenous", "always.noaccess"],
+       "overlay.spots", "overlay.gauges", "overlay.arrows", "always.protected", "always.indigenous", "always.noaccess"],
       ["ground.map", "ground.satellite", "ground.corridors", "water.regulations", "water.stocked", "water.depth",
-       "overlay.contours", "overlay.private", "overlay.pools", "overlay.relief",
+       "overlay.spots", "overlay.contours", "overlay.private", "overlay.pools", "overlay.relief",
        "always.protected", "always.indigenous", "always.noaccess", "always.admin"],
     ]);
   });
@@ -98,13 +98,13 @@ describe("layersVM: the sheet, whole", () => {
                  note: "Stocked and Depth have no data yet. They turn on by themselves when a release carries their values.",
                  tiles: ["water.regulations *", "water.stocked (off) [No data yet]", "water.depth (off) [No data yet]"] },
         overlays: { title: "On the map",
-                    rows: ["overlay.contours", "overlay.private", "overlay.pools (off) [Coming soon]",
+                    rows: ["overlay.spots *", "overlay.contours", "overlay.private", "overlay.pools (off) [Coming soon]",
                            "overlay.relief (off) [Coming soon]"] },
         always: "Always shown: parks and ecological reserves, Indigenous land (reserves), no-access and permit-only land, "
           + "and region and management-unit lines. They are never switched off.",
         changed: 0,
         effective: { basemap: "map", water: "regulations", show: "discharge",
-                     groups: { depth: false, ownership: false }, layers: { gauges: false, stream__arrows: false } },
+                     groups: { depth: false, ownership: false }, layers: { gauges: false, stream__arrows: false }, pins: { spots: true } },
       });
   });
 
@@ -114,6 +114,7 @@ describe("layersVM: the sheet, whole", () => {
       "Map · Drawn · works offline", "Satellite · Esri imagery · online only", "Corridors · Detail imagery along a stream",
       "Regulations · Open, closed or its own rules, on the day", "Stocked · When a lake was last stocked",
       "Depth · Which lakes were surveyed",
+      "Spots · Your saved spots",
       "Depth contours · Traced lines on surveyed lakes", "Private land · Title, not access. Off by default",
       "Pools and runs · Slow and fast water, read from lidar", "Relief · Lidar hillshade",
     ]);
@@ -131,7 +132,7 @@ describe("layersVM: the sheet, whole", () => {
     expect([vm.water.drawn, vm.water.note, tiles(vm.water.tiles), vm.effective, vm.changed]).toEqual([
       "depth", null, ["water.regulations", "water.stocked", "water.depth *"],
       { basemap: "map", water: "depth", show: "discharge", groups: { depth: true, ownership: false },
-        layers: { gauges: false, stream__arrows: false } }, 1]);
+        layers: { gauges: false, stream__arrows: false }, pins: { spots: true } }, 1]);
   });
 
   it("satellite offline: Map tagged SHOWING, Satellite kept chosen but greyed and tagged, the reason said", () => {
@@ -150,7 +151,7 @@ describe("layersVM: the sheet, whole", () => {
 
   it("a coming-soon switch somehow on draws nothing and counts nothing", () => {
     const vm = layersVM("map", { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.pools": true } }, NONE);
-    expect([tiles(vm.overlays.rows)[2], vm.changed]).toEqual(["overlay.pools (off) [Coming soon]", 0]);
+    expect([tiles(vm.overlays.rows)[3], vm.changed]).toEqual(["overlay.pools (off) [Coming soon]", 0]);
   });
 
   it("on Conditions, whole: Show (Flow · Level · Temperature), the ground, the gauges and arrows; no water colouring", () => {
@@ -162,13 +163,13 @@ describe("layersVM: the sheet, whole", () => {
       show: { title: "Show", tiles: ["show.flow *", "show.level", "show.temperature"] },
       ground: ["ground.map *", "ground.satellite"],
       water: [],
-      overlays: { title: "On the map", rows: ["overlay.gauges *", "overlay.arrows *"] },
+      overlays: { title: "On the map", rows: ["overlay.spots *", "overlay.gauges *", "overlay.arrows *"] },
       always: "Always shown: parks and ecological reserves, Indigenous land (reserves), and no-access and permit-only land. "
         + "They are never switched off.",
       changed: 0,
       // a Map-tab switch is never drawn here: what the menu does not list, the map does not draw
       effective: { basemap: "map", water: "regulations", show: "discharge", groups: { depth: false, ownership: false },
-                   layers: { gauges: true, stream__arrows: true } },
+                   layers: { gauges: true, stream__arrows: true }, pins: { spots: true } },
     });
   });
 
@@ -228,8 +229,48 @@ describe("chooseLayer", () => {
       chooseLayer(LAYER_DEFAULTS, "always.indigenous", FED) === LAYER_DEFAULTS,
       chooseLayer(LAYER_DEFAULTS, "show.temperature", NONE).show,
       chooseLayer(LAYER_DEFAULTS, "overlay.gauges", NONE).on["overlay.gauges"],
+      chooseLayer(LAYER_DEFAULTS, "overlay.spots", NONE).on["overlay.spots"],
     ]).toEqual(["ground.satellite", "water.regulations", "water.stocked", true, false, false, true, "show.temperature",
-                false]);
+                false, false]);
+  });
+});
+
+describe("SPOTS (owner 2026-10-22: \"toggle our spots on and off in the layer menu\")", () => {
+  it("one switch, listed on every map, on by default; off hands every map no spot pins and counts as one change", () => {
+    const off = chooseLayer(LAYER_DEFAULTS, "overlay.spots", NONE);
+    const row = (v: "map" | "conditions" | "water", c = LAYER_DEFAULTS) =>
+      layersVM(v, c, NONE).overlays.rows.filter((r) => r.id === "overlay.spots").map((r) => `${r.label} · ${r.note}${r.chosen ? " *" : ""}`);
+    expect([row("map"), row("conditions"), row("water"), row("map", off), row("conditions", off),
+            layersVM("map", LAYER_DEFAULTS, NONE).effective.pins, layersVM("conditions", LAYER_DEFAULTS, NONE).effective.pins,
+            layersVM("water", LAYER_DEFAULTS, NONE).effective.pins,
+            layersVM("map", off, NONE).effective.pins, layersVM("conditions", off, NONE).effective.pins,
+            layersVM("water", off, NONE).effective.pins,
+            layersVM("map", off, NONE).changed, layersVM("conditions", off, NONE).changed]).toEqual([
+      ["Spots · Your saved spots *"], ["Spots · Your saved spots *"], ["Spots · Your saved spots *"],
+      ["Spots · Your saved spots"], ["Spots · Your saved spots"],
+      { spots: true }, { spots: true }, { spots: true }, { spots: false }, { spots: false }, { spots: false }, 1, 1]);
+  });
+});
+
+describe("the choice, kept (owner 2026-10-22: a switch stays as it was left)", () => {
+  it("round-trips whole through its text", () => {
+    const c = chooseLayer(chooseLayer(chooseLayer(LAYER_DEFAULTS, "overlay.spots", NONE), "ground.satellite", NONE),
+                          "show.level", NONE);
+    expect(restoreLayers(saveLayers(c))).toEqual({ show: "show.level", ground: "ground.satellite",
+      water: "water.regulations", on: { ...LAYER_DEFAULTS.on, "overlay.spots": false } });
+  });
+
+  it("nothing saved, unreadable text, or ids the registry no longer has: the defaults, kept where they still mean "
+     + "something", () => {
+    expect([
+      restoreLayers(null),
+      restoreLayers("{not json"),
+      restoreLayers("[1,2]"),
+      restoreLayers(JSON.stringify({ show: "show.gone", ground: "always.admin", water: 7,
+                                     on: { "overlay.spots": false, "overlay.gone": true, "ground.map": false,
+                                           "overlay.private": "yes" } })),
+    ]).toEqual([LAYER_DEFAULTS, LAYER_DEFAULTS, LAYER_DEFAULTS,
+                { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.spots": false } }]);
   });
 });
 

@@ -9,3 +9,6 @@
 import type { SpotsStore } from "./core";
 
 export declare function openSpots(): SpotsStore;
+
+/** The Layers sheet's choice, as whole text under one name (`@app/ui` `LayerStore`). */
+export declare function openLayerStore(): { read(): string | null; write(text: string): void };

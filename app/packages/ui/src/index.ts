@@ -34,6 +34,7 @@ export * from "./boot";
 export * from "./regs";
 export * from "./waterMap";
 export * from "./mapRail";
+export * from "./layerChoice";
 export * from "./imagery";
 export * from "./sync";
 

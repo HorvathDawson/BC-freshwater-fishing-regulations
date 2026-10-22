@@ -116,7 +116,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     press("Choose layers");
     expect([legendSwitch, sheet(), ramp(), asked, map()]).toEqual([
       false,
-      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges+ Flow arrows+",
+      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
       "Flow vs. past years, this date",
       { standing: "discharge", gauges: "flow" },
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 0`,
@@ -129,7 +129,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     const before = map();
     pick("Level");
     expect([sheet(), ramp(), asked, map(), before]).toEqual([
-      "SHOW · MAP · ON THE MAP | Flow Level* Temperature Map* Satellite | Gauges+ Flow arrows+",
+      "SHOW · MAP · ON THE MAP | Flow Level* Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
       "Water level vs. past years, this date",
       { standing: "level", gauges: "level" },
       // the SAME modes object (#1), the same groups, hidden and shown layers and ground: nothing for the map to repaint
@@ -148,7 +148,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     flip("Gauges");
     flip("Flow arrows");
     expect([sheet(), asked.gauges, map()]).toEqual([
-      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges Flow arrows",
+      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges Flow arrows",
       "off",
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show - · ground map · changed 2`,
     ]);
@@ -168,7 +168,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     act(() => { fireEvent.click(screen.getByRole("tab", { name: "Map" })); });
     expect([mapSheet, mapLook, condLook, map()]).toEqual([
       "MAP · COLOUR THE WATER BY · ON THE MAP | Map* Satellite Corridors Regulations* Stocked Depth"
-        + " | Depth contours Private land Pools and runs Relief",
+        + " | Spots+ Depth contours Private land Pools and runs Relief",
       'modes #1 · groups {"depth":false,"ownership":true} · hide - · show - · ground map · changed 1',
       // (the fixture is no proven pair, so both tabs' modes are plain — the same object; the private land is the point)
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
@@ -191,7 +191,7 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     press("Choose layers");
     expect([chart, after, asked.standing, sheet()]).toEqual([
       "chart level", "chart discharge", "discharge",
-      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Gauges+ Flow arrows+",
+      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
     ]);
   });
 });

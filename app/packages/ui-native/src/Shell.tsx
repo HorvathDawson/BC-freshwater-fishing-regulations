@@ -9,8 +9,8 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, chooseShow, dayLabel, dayRange, LAYER_DEFAULTS, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
-         unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type LayerChoice, type SectionKey,
+import { chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
+         unprovenLine, WATER_STATUS, WATER_STATUSES, waterLegend, withImageryCredit, type SectionKey,
          type TempBand } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Platform, Text, View, type TextInput } from "react-native";
@@ -20,7 +20,7 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { routeWhere, spotsMenu, useMapRail, type Locate } from "@app/ui";
+import { routeWhere, spotPins, spotsMenu, useLayerChoice, useMapRail, type LayerStore, type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
          useStatusIndex, statusFeed, useHorizon, useImageryReach, type Horizon, type PairingInput,
@@ -84,7 +84,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
                        systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo,
-                       checkRelease = null }: {
+                       checkRelease = null, layerStore }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -142,6 +142,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * one is available. Absent: nothing to check (the dev bundle). Its identity must be stable (the app's useCallback).
    */
   checkRelease?: (() => Promise<string | null>) | null;
+  /**
+   * Where the Layers sheet's choice is kept across a reload (`@app/data/spots` `openLayerStore`): the Spots switch and
+   * every other (owner 2026-10-22). Absent: the defaults, kept for the session only.
+   */
+  layerStore?: LayerStore;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -276,7 +281,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * has to be about the same thing the map is showing: its chart's own quantity control sets this same choice. What the map is handed is the registry's (`layersVM(...).effective`,
    * below): an unavailable choice falls back while the choice itself is kept.
    */
-  const [layerChoice, setLayerChoice] = useState<LayerChoice>(LAYER_DEFAULTS);
+  const [layerChoice, setLayerChoice] = useLayerChoice(layerStore);
   /*
    * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
    *
@@ -338,6 +343,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     setLayerChoice((c) => chooseLayer(c, id, { carries: carried, online: imagery.up })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [carried.stocked, carried.surveyed, imagery.up]);
+  /*
+   * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"): each saved spot is a
+   * pin in the accent on the Map tab, the Conditions map and a water's map view — while the Layers sheet's Spots switch
+   * is on (`effective.pins.spots`, default on); off, no map is handed one.
+   */
+  const savedPins = useMemo(() => spotPins(spots, layers.effective.pins.spots).map((p) => ({ ...p, tone: palette.accent })),
+    [spots, layers.effective.pins.spots, palette.accent]);
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up });
@@ -549,7 +561,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
             <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
                           map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
-                                 basemap: mm.basemap, data: statusMapData, status: mapStatus,
+                                 basemap: mm.basemap, data: statusMapData, status: mapStatus, pins: savedPins,
                                  onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
                                  view: "plain", modes, groups: activeGroups,
                                  onError: (e) => console.error("map:", e.message) }}
@@ -600,7 +612,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // the provisional pin a long press dropped, else the spot "Show" sent the map to
                      marker={rail.drop ?? rail.fly?.at ?? null}
                      // a searched town's pin, in the town's colour (its row's), so pin and row read as one thing
-                     pins={searching && session.focus?.marker ? [{ ...session.focus.marker, tone: palette.place }] : NONE_PINS}
+                     // and the saved spots, while the Layers sheet's Spots switch is on
+                     pins={searching && session.focus?.marker
+                       ? [...savedPins, { ...session.focus.marker, tone: palette.place }]
+                       : savedPins.length ? savedPins : NONE_PINS}
                      basemap={mm.basemap} onImageryError={imagery.tileFailed}
                      // WHERE THE CAMERA IS SENT, one subject at a time: a spot "Show" asked for (the rail forgets it
                      // whenever the route moves), else what search has picked (a water framed, a town flown to), else

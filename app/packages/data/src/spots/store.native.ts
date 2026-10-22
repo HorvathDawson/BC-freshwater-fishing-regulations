@@ -33,3 +33,17 @@ export function openSpots(): SpotsStore {
   // a spot deleted takes its photos with it (S1)
   return openSpotsWith(fs, NAME, Date.now, openPhotos());
 }
+
+/**
+ * THE LAYERS SHEET'S CHOICE (owner 2026-10-22: the Spots switch, and every other, kept across a launch): a small file
+ * of its own beside the spots file, never inside it. Unreadable reads as nothing stored; a failed write throws for
+ * `@app/ui` `useLayerChoice` to shrug off — it is a preference, not a record.
+ */
+export function openLayerStore(): { read(): string | null; write(text: string): void } {
+  const dir = new Directory(Paths.document, "spots");
+  const file = () => new File(dir, "layers.json");
+  return {
+    read: () => { try { const f = file(); return f.exists ? f.textSync() : null; } catch { return null; } },
+    write: (t) => { if (!dir.exists) dir.create({ intermediates: true }); file().write(t); },
+  };
+}
