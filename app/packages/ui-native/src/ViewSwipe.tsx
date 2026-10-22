@@ -12,6 +12,11 @@
  * strip and the name row) takes the swipe; `WaterViews` carries the swipe to the water frame's header (`WaterFrame`,
  * T44) on whatever view is drawn.
  *
+ * WHAT FOLLOWS THE FINGER is the view's own content, never what the views share (T44): a `still` detector (the frame's
+ * header, the regs header) listens without moving, and every detector inside one `WaterFrame` drives the frame's one
+ * offset (`SwipeOffsetContext`), which only the body follows. So a drag on the header slides the body, as a drag on
+ * the body does, and the back, the strip and the name row hold still wherever the drag began.
+ *
  * SHIELDS (`useSwipeShield`): on a body that also holds things a finger works on (the Conditions view's route map, gauge
  * minimap and chart), those things wear a shield. A press that lands on one claims the drag for it: the swipe does not
  * follow and does not move, however sideways the drag. The text, the estimate and the reading around them still swipe.
@@ -23,15 +28,19 @@ import type { WaterView } from "@app/core";
 import type { ViewSwipe as ViewSwipeState } from "@app/ui";
 import { NATIVE_DRIVER } from "./motion";
 
-export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true }: {
+export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true, still = false }: {
   swipe: ViewSwipeState; children: React.ReactNode;
   /** Takes the room it is given (a view's body); false: as tall as its content (a header). */
   fill?: boolean;
+  /** Listens but does not follow the finger (a header both views draw): it moves the frame's body instead. */
+  still?: boolean;
   style?: import("react-native").StyleProp<import("react-native").ViewStyle>;
   /** Two detectors on one screen (the header and a body) are told apart by this in tests. */
   testId?: string;
 }) {
-  const x = useRef(new Animated.Value(0)).current;
+  // the frame's one offset when there is a frame (a drag anywhere moves its body); else this detector's own
+  const own = useRef(new Animated.Value(0)).current;
+  const x = useContext(SwipeOffsetContext) ?? own;
   // when a shielded thing was last pressed (see useSwipeShield) — a drag that began on one is that thing's
   const heldAt = useRef(-Infinity);
   const shield = useRef<Shield>(() => { heldAt.current = Date.now(); }).current;
@@ -56,7 +65,7 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
   }, [swipe, x, testId]);
   return (
     <GestureDetector gesture={gesture} {...WEB_PAGE_PROPS}>
-      <Animated.View style={[fill ? { flex: 1 } : null, { transform: [{ translateX: x }] }, style]}>
+      <Animated.View style={[fill ? { flex: 1 } : null, still ? null : { transform: [{ translateX: x }] }, style]}>
         <ShieldContext.Provider value={shield}>{children}</ShieldContext.Provider>
       </Animated.View>
     </GestureDetector>
@@ -77,6 +86,15 @@ export const WEB_PAGE_PROPS = {
   userSelect: "auto",
   enableContextMenu: true,
 } as const satisfies Partial<ComponentProps<typeof GestureDetector>>;
+
+/** The water frame's one swipe offset: every detector in the frame writes it, only the view's body follows it. */
+export const SwipeOffsetContext = createContext<Animated.Value | null>(null);
+
+/** Content that follows the frame's swipe without a detector of its own (the Map view's canvas: the header moves it). */
+export function SwipeFollow({ children }: { children: React.ReactNode }) {
+  const x = useContext(SwipeOffsetContext);
+  return <Animated.View style={[{ flex: 1 }, x ? { transform: [{ translateX: x }] } : null]}>{children}</Animated.View>;
+}
 
 type Shield = () => void;
 const SHIELD_MS = 400;

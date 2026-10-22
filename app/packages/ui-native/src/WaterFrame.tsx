@@ -16,7 +16,10 @@
  *
  * WHAT IT OWNS: the background, the column (its measure and its centring on a wide screen), the header — the back row and
  * the view strip at the gutter, `headerHeight` tall whether or not a back is drawn — and the header's swipe (the
- * Shell's `WaterViewsContext.swipe`: a sideways swipe on the header moves between the views on every view). Each view
+ * Shell's `WaterViewsContext.swipe`: a sideways swipe on the header moves between the views on every view). The swipe
+ * moves nothing the views share: the header listens `still`, and every detector in the frame drives the frame's one
+ * offset (`SwipeOffsetContext`), which only the view's body follows (its own detector's, or `SwipeFollow` here when
+ * the body has none — the Map's canvas). Each view
  * remounts on a switch; the frame is the same element at the same place, so nothing both views draw moves (measured by
  * `tools/water-frame-layout.test.ts` at 390, 768 and 1440).
  *
@@ -30,10 +33,10 @@
  *
  * Safe areas are the app's (`apps/mobile` App.tsx wraps everything in a SafeAreaView); the frame adds none of its own.
  */
-import { useContext } from "react";
-import { Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { useContext, useRef } from "react";
+import { Animated, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { FaceBar, type Face } from "./Faces";
-import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
+import { SwipeFollow, SwipeOffsetContext, ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { TYPE } from "./type";
 import { WATER_FRAME, type Palette } from "./theme";
 
@@ -53,7 +56,10 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
   bleed?: boolean;
   children: React.ReactNode;
 }) {
-  const swipe = useContext(WaterViewsContext)?.swipe ?? null;
+  const views = useContext(WaterViewsContext);
+  const swipe = views?.swipe ?? null;
+  // the frame's one swipe offset: the header's detector and the body's both write it; only the body follows it
+  const offset = useRef(new Animated.Value(0)).current;
   const header = (
     <View testID="water-frame-header">
       <View style={{ paddingHorizontal: WATER_FRAME.gutter, paddingTop: WATER_FRAME.headerTop,
@@ -63,21 +69,25 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
       {title}
     </View>
   );
-  const head = swipe ? <ViewSwipe swipe={swipe} fill={false} testId="view-swipe-header">{header}</ViewSwipe> : header;
+  const head = swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-header">{header}</ViewSwipe> : header;
+  // a body with no detector of its own (Map) still follows a drag on the header
+  const body = swipe && !views?.bodySwipe ? <SwipeFollow>{children}</SwipeFollow> : children;
   return (
-    <View testID="water-frame" style={{ flex: 1, backgroundColor: palette.card }}>
-      {bleed ? (
-        <>
-          <View style={COLUMN}>{head}</View>
-          <View style={{ flex: 1 }}>{children}</View>
-        </>
-      ) : (
-        <View style={[COLUMN, { flex: 1 }]}>
-          {head}
-          <View style={{ flex: 1 }}>{children}</View>
-        </View>
-      )}
-    </View>
+    <SwipeOffsetContext.Provider value={offset}>
+      <View testID="water-frame" style={{ flex: 1, backgroundColor: palette.card }}>
+        {bleed ? (
+          <>
+            <View style={COLUMN}>{head}</View>
+            <View style={{ flex: 1 }}>{body}</View>
+          </>
+        ) : (
+          <View style={[COLUMN, { flex: 1 }]}>
+            {head}
+            <View style={{ flex: 1 }}>{body}</View>
+          </View>
+        )}
+      </View>
+    </SwipeOffsetContext.Provider>
   );
 }
 

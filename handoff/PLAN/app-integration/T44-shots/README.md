@@ -41,4 +41,12 @@ desktop), the strip at 16,48 (96,48) and the name row at 0,94 (80,94); the body 
 (`390x844-04-drag140.png`), and on release the view is Conditions with nothing shared having moved (`-06-released`,
 `-07-settled`). The blue word in the drag frames is the browser's text selection under a mouse drag, not the app.
 
+**A drag on the header (review of T44, fixed after).** The recording above drags the body only. A drag on a header used
+to carry that header with the finger: on Regulations the frame's back and strip and the regs header's name row slid
+separately, and on Conditions and Map the whole header slid. Now the headers listen without moving (`still`), and every
+detector inside the frame drives the frame's one offset, which only the view's body follows (on Map, the canvas via
+`SwipeFollow`). Pinned by `app/tools/water-frame-swipe.test.ts`: the real Shell, each detector (frame header, regs
+header, body) dragged on each view, back / strip / name / place carried 0 px and the content carried left, with a
+mutation pin (headers that follow the finger fail with exact rows). Not re-recorded in a browser.
+
 Not checked here: native (no emulator), dark theme, a real finger.

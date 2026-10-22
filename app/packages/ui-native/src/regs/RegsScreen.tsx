@@ -72,7 +72,8 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
   const content = useRef<View>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
-  // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx
+  // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
+  // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
   const swipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
   const still = useRef(false);
   useEffect(() => {
@@ -121,7 +122,7 @@ export function RegsScreen({ page, palette, images, actions, onDate, onMap, onPa
 
   return (
     <View testID="regs-view" style={{ flex: 1, backgroundColor: palette.card }}>
-      {swipe ? <ViewSwipe swipe={swipe} fill={false} testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
+      {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
       <View style={{ flex: 1 }}>
         <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
                     onScroll={(e) => store.setScroll(e.nativeEvent.contentOffset.y)}

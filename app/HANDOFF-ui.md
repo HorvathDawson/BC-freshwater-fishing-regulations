@@ -22,7 +22,9 @@ column (`WATER_FRAME.maxWidth` 1,280, centred), the header (FaceBar — drawn th
 and the gutter; the name row is `WaterTitle` on every view (the regs header's own first row on Regulations); an inset
 block is `WaterInset`. A view sets no outer gutter, width or header of its own (`tools/water-frame.test.ts` lists every
 horizontal spacing a view may set); `tools/water-frame-layout.test.ts` mounts the Shell, switches views and measures the
-shared elements in headless Chrome at 390 / 768 / 1440 (whole-pixel equal). The Map canvas alone goes full-bleed.
+shared elements in headless Chrome at 390 / 768 / 1440 (whole-pixel equal). The Map canvas alone goes full-bleed. A
+sideways swipe moves only the view's body, wherever it starts: the headers' detectors are `still` and drive the frame's
+one offset (`SwipeOffsetContext`; `tools/water-frame-swipe.test.ts`).
 
 The panel carries: the reading and its standing, quantity and span controls (flow/level,
 72 h/this year), a forecast-model picker when more than one BC River Forecast Centre run is
