@@ -7,7 +7,7 @@
  * only fades — in alongside the rise, out AFTER the sheet has gone; reduced motion slides nothing and fades quickly.
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Text } from "react-native";
 import { Sheet } from "./Sheet";
 import { SHEET_MOTION } from "./motion";
@@ -97,6 +97,30 @@ describe("the sheet's scrim stays in place and fades", () => {
     const rows = sample(SHEET_MOTION.inMs + 60);
     const ys = rows.map((r) => Number(/translateY\((-?[\d.]+)px\)/.exec(r!.sheetT)![1]));
     expect([ys[0]! > 0 && ys[0]! < 1000, ys.at(-1), [...new Set(rows.map((r) => r!.scrimT))]]).toEqual([true, 0, [""]]);
+  });
+
+  it("a dialog closed on a wide screen draws nothing when the window then narrows to a phone (no invisible overlay)", () => {
+    // SheetHost keeps its last sheet mounted closed, so the Sheet's state outlives the close: a wide close must leave it down
+    const dlg = (open: boolean, layout: "desktop" | "phone") => (
+      <Sheet dialog layout={layout} open={open} onClose={() => {}} title="Rule" palette={LIGHT}><Text>body</Text></Sheet>);
+    const { rerender } = render(dlg(true, "desktop"));
+    act(() => { vi.advanceTimersByTime(1000); });
+    rerender(dlg(false, "desktop"));
+    // the wide dialog's Modal fades out on a CSS animation that jsdom never ends: end it as a browser would (the Modal
+    // listens on its own element and ignores bubbled ends, so fire on each ancestor in turn; React picks the prefixed name
+    // when jsdom lacks AnimationEvent, so send both)
+    for (let el: HTMLElement | null = screen.getByTestId("sheet-dialog"); el && el !== document.body; el = el.parentElement)
+      for (const type of ["animationend", "webkitAnimationEnd"]) fireEvent(el, new Event(type, { bubbles: true }));
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.queryByText("body")).toBeNull();
+    rerender(dlg(false, "phone"));
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect([screen.queryByTestId("sheet-scrim"), screen.queryByTestId("sheet-panel"), screen.queryByText("body")])
+      .toEqual([null, null, null]);
+    // and it still opens as a phone sheet afterwards
+    rerender(dlg(true, "phone"));
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.getByTestId("sheet-panel").style.transform).toBe("translateY(0px)");
   });
 
   it("reduced motion: nothing slides; the sheet and the scrim fade together, quickly", async () => {

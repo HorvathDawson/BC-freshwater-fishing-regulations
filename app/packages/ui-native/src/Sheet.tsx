@@ -117,7 +117,16 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   if (open) kept.current = { title, sub, children };
   const shown = open ? { title, sub, children } : kept.current;
   useEffect(() => {
-    if (wide) return;
+    /*
+     * The wide dialog's Modal shows `open` itself and runs no motion of ours, so a close there must put `up` down at once:
+     * SheetHost keeps its last sheet mounted closed, and a window that later narrows to a phone would otherwise render the
+     * phone Modal still up with nothing in view — an invisible full-window overlay that eats every touch and whose Escape
+     * pops a route (review, refinement pass). Any phone motion still in flight is stopped; the next open starts below.
+     */
+    if (wide) {
+      if (!open) { run.current?.stop(); hidden.current = true; setUp(false); }
+      return;
+    }
     run.current?.stop();
     const timing = (v: Animated.Value, toValue: number, duration: number, easing: (t: number) => number, delay = 0) =>
       Animated.timing(v, { toValue, duration, easing, delay, useNativeDriver: NATIVE_DRIVER });
