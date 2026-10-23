@@ -662,7 +662,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     (`split_anchors.json`, `splits.anchor_digest` — the same digest the review fingerprint holds). Whether an entry
     is built is `pipeline.regs.review.vintage.entry_state`, nowhere else: until its digest agrees across reach, bundle
     and release on the served atlas, with every split it reads built as authored, it reads "awaiting build" and only
-    T and R may be marked (`refuse_unbuilt`); no bundle is awaiting build. "Bundle matches" is per rule — label AND
+    T and R may be marked (`refuse_unbuilt`); no bundle is awaiting build; a reach run that rebound the bundle's own
+    corpus (`vintage.bundle_rebound`: same `entries_digest`, other `digest` — a reach-code change) holds EVERY entry
+    until deliver, since no entry digest moves. "Bundle matches" is per rule — label AND
     section count, the bundle's (`fingerprint.rule_section_counts`) against the builder's now
     (`vintage.bundle_matches`). The review app re-reads the digests by file stamp: a rebuild clears it with no restart.
     `check_corpus` and the build stage keys are unchanged.

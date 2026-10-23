@@ -108,7 +108,9 @@ base, untouched by this lane: `test_one_data_flow` ×2 (`CURATED.gauges.tidal`; 
    function in `fingerprint.py` (`rule_section_counts`). *Default:* counts.
 6. **Per-entry, not whole-corpus.** An entry Y untouched by an edit to X stays current after X's reach rerun even though
    the bundle's `reach_digest` is older (PLAN: "that entry's digest"). Y's ANSWER can still depend on X (competition);
-   that shows as "answer changed" on Y's mark after the rebuild (phase 1). *Default:* as built.
+   that shows as "answer changed" on Y's mark after the rebuild (phase 1). *Default:* as built. (Review: the one
+   exception is a reach run of the SAME corpus with other bindings — a reach-code change — which no entry digest can
+   see; that holds every entry until deliver, `vintage.bundle_rebound`.)
 
 ## Follow-ups
 - Phase 3 (T134) puts the marking UI on this: the T/R checklist stays live while awaiting; P/A and the verdict bar
@@ -118,3 +120,58 @@ base, untouched by this lane: `test_one_data_flow` ×2 (`CURATED.gauges.tidal`; 
 - `bundle_matches` compares rules only; licensing records still show their bundle copy without a "now" count.
 - When the owner next runs `--atlas`, check `split_anchors.json` lands in the promoted build (then `splits_checked`
   reads `anchors`).
+
+## Adversarial review (2026-10-23, lane-T133)
+Tried to break it on the points the brief named; three real defects fixed, the rest held.
+
+**Fixed**
+- **A reach rerun on the same corpus read every entry as current.** `entry_state` compared per-entry digests only,
+  so a reach-code (or steelhead-list) change — rerun reach, bundle not yet rebuilt — changed no entry digest and every
+  entry stayed "current" while the builder's binding on screen and the bundle's were two different runs: the
+  2026-10-22 "reach 17:08 / bundle 15:49" pair the phase exists for. New `vintage.bundle_rebound(reach, bundle)`
+  (same `entries_digest`, other `digest` than the bundle's `reach_digest`) → `Waiting.bundle_reach` on every entry
+  until deliver (entry-fix command). Owner Q6 stands for a run of ANOTHER corpus (per entry). Tests:
+  `test_a_reach_rerun_of_the_same_corpus_holds_every_entry_until_deliver` + mutation pin
+  (`bundle_rebound` → False reads the old bundle as this run's).
+- **A second answer to "which release is current" in the shell.** `scripts/test-full.sh` (`ls -dt`) and
+  `scripts/update-hydat.sh` (`ls -1td`, the R2 upload) picked the release by folder mtime; both now ask
+  `release.manifest.latest`. The no-second-copy test scans `scripts/*.sh` for an `ls -t … release/r-*` picker
+  (fails on the old scripts).
+- **The split clause of `refuse_unbuilt` was unpinned** (mutating `held or scope == "split"` → `held` passed all 26):
+  a split mark with no answers (deferred, a note) is now pinned as refused while awaiting, an entry's as allowed.
+- (small) `pending_build` read the vintage twice; the summary it returns could describe a rebuild that landed
+  between the rows and the header. It now returns the one `built()` the rows were decided on.
+
+**Held (checked, no change)**
+- *Determinism.* Entry digests hash the entry only (no section ids); the reach `digest` (which holds section ids) is
+  only ever compared run→bundle→release, all cut from one run; split anchors exclude coordinates resolved by a build.
+  Nothing compares across two atlas builds.
+- *Digest matches, binding moved.* Registry / atlas: the reach run and bundle must be on the served atlas (handles +
+  registry digest). Split added/moved: `entry_split_ids` × the anchor record. Matcher overrides act at ingest (they
+  move `matched`, so the entry digest). Absorbed ids: the tool digests through the served registry, as reach does.
+  Residual (not fixed): a split added on a water a rule names only by `extents[].item_id` (not `matched`, not by
+  split id) is not in `entry_split_ids`; it only re-sections a water bound whole, and the served atlas check still
+  holds the binding on screen to one atlas.
+- *Release from an older bundle.* `release_is_of` (+ mutation pin) holds; `latest` replaces a re-cut id by rename
+  (fresh mtime). Residual: a bundle rebuilt by changed deliver code with identical corpus + reach digests is
+  indistinguishable to the release check (no bundle content digest exists in `meta`).
+- *Stale reach report / no restart.* `built()` is keyed on (mtime_ns, size) of report.json, the bundle, every release
+  manifest and the atlas files; the atlas half on its own four stamps; `ensure_fresh` drops the registry on a promote.
+  `test_curation_review_vintage` (3) passes through one TestClient.
+- *Verified mark while awaiting.* `post_mark` calls `refuse_unbuilt` for entry, rule and split scope before
+  fingerprints are stored; `Mark` requires all four checks `y` for verified, so T/R-only can never be verified.
+  App gate mutation pin holds.
+- *Second copy of the digest.* `entry_digest` / `anchor_digest` / `rule_section_counts` / `latest` each defined once
+  (test); the review fingerprint's old `digest(split_anchor(..))` serialisation is byte-identical to
+  `splits.anchor_digest` (same JSON options), so no phase-1 mark moved.
+- *Tacheeda / Twin / Main Lake.* The fixture shape reads `sections: 1 in the bundle, 2 now`. Live bundle (rebuilt
+  10-23 01:47), 31 entries (every Tacheeda / Twin / Main Lake entry + 25 random water rows, seed 7): 0 mismatched,
+  0 unchecked — no false mismatch.
+- Mutation sweep over `vintage.py` (13 mutants: moved split, reach/bundle atlas, release predates, no release, no
+  bundle, count compare, split ids, reach entry, reach/bundle predates, atlas commands, split clause): all killed
+  after the fixes, and so is the new `bundle_rebound` check.
+
+Checks (unfiltered, via heavy.sh): review / curation-review / marks / reaches / publish / release / splits test files —
+281 passed; 1 failed `test_fixture_release::test_the_bundle_half_only_paired_to_one_derived_handle_table` — the
+`access` file, pre-existing (fails identically with the branch base's release code).
+

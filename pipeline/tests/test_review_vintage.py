@@ -77,12 +77,13 @@ class World:
         elif rec.exists():
             rec.unlink()
 
-    def run_reach(self, *, digests: bool = True) -> None:
+    def run_reach(self, *, digests: bool = True, code: str = "") -> None:
         """A reach run: report.json as `reach.io.write_run` stamps it (handles and registry of the
-        atlas it ran on, the corpus, and — the T133 field — each entry's digest)."""
+        atlas it ran on, the corpus, and — the T133 field — each entry's digest). `code`: the
+        builder changed, so the same corpus binds differently (another bindings `digest`)."""
         from pipeline.common.section_handles import digest_for, registry_digest_for
         rep = {"handles": digest_for(self.atlas), "registry_digest": registry_digest_for(self.atlas),
-               "digest": io.corpus_digest(self.entries)[::-1],
+               "digest": (code + io.corpus_digest(self.entries)[::-1])[:16],
                "entries_digest": io.corpus_digest(self.entries)}
         if digests:
             rep["entry_digests"] = io.entry_digests(self.entries)
@@ -271,6 +272,23 @@ def test_the_split_check_is_pinned_by_mutation(world, monkeypatch):
 # Every artifact counts, and a missing one waits
 # --------------------------------------------------------------------------------------------
 
+def test_a_reach_rerun_of_the_same_corpus_holds_every_entry_until_deliver(world):
+    """Review (T133): a reach-code (or steelhead-list) change reruns reach on the SAME corpus. No
+    entry digest moves, yet every binding the builder shows now may differ from the bundle's —
+    the 2026-10-22 "reach run 17:08, bundle 15:49" pair. Every entry waits for deliver."""
+    world.run_reach(code="v2")
+    assert world.states() == {e: (V.AWAITING, [V.Waiting.bundle_reach.value]) for e in ALL_CURRENT}
+    assert world.state(BIG)["commands"] == ENTRY_FIX
+    world.deliver()
+    assert world.states() == ALL_CURRENT
+
+
+def test_the_rebound_check_is_pinned_by_mutation(world, monkeypatch):
+    monkeypatch.setattr(V, "bundle_rebound", lambda reach, bundle: False)
+    world.run_reach(code="v2")
+    assert world.states() == ALL_CURRENT, "the mutation must read the old bundle as this run's"
+
+
 def test_no_bundle_is_awaiting_build(world):
     """T97 owner Q4: a mark made with no bundle holds no bundle half and could never go stale, so
     with no bundle every entry awaits its build and no verified mark is taken."""
@@ -326,6 +344,11 @@ def test_while_awaiting_build_only_t_and_r_may_be_answered(world):
         V.refuse_unbuilt("rule", answers, st)
     with pytest.raises(ValueError, match="split"):
         V.refuse_unbuilt("split", {"P": "y"}, st)
+    # a split mark answers only P: even one that answers nothing (deferred, with a note) is a
+    # call on the built map, so it waits too — while an entry's may (review T133: pinned)
+    with pytest.raises(ValueError, match="split"):
+        V.refuse_unbuilt("split", {}, st)
+    V.refuse_unbuilt("entry", {}, st)
     V.refuse_unbuilt("entry", {k: "y" for k in "TRPA"}, world.state(BIG))   # current: anything
 
 
@@ -528,6 +551,11 @@ def test_no_second_copy_of_the_vintage_the_digests_or_the_counts():
     assert hits["ON s.set_id = r.set_id WHERE r.entry_id"] == ["pipeline/regs/review/fingerprint.py"]
     assert hits["<newest-release picker>"] == ["pipeline/deliver/release/manifest.py"]
     assert hits["def latest(release_root"] == ["pipeline/deliver/release/manifest.py"]
+    # nor in the shell: `ls -t data/release/r-*` was a second answer (by folder mtime) in
+    # test-full.sh and update-hydat.sh (review T133) — they ask `latest` too
+    sh = {str(p.relative_to(REPO)) for p in sorted((REPO / "scripts").glob("*.sh"))
+          if re.search(r"\bls\b[^\n|]*-\w*t\w*[^\n|]*release/r-\*", p.read_text(encoding="utf-8"))}
+    assert sh == set(), sh
     # the review app never decides the vintage itself: it reads digests and asks `vintage`
     reuse = (REPO / "curation-review" / "backend" / "reuse.py").read_text(encoding="utf-8")
     assert "entry_digests" not in reuse and "Waiting." not in reuse

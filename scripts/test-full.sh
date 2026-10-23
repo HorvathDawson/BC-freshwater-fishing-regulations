@@ -29,7 +29,8 @@ step "pytest slow" "$PY" -m pytest -q -m slow
 step "check.mjs" node app/design/regs-v11/tools/check.mjs
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check
 # the release (P08): parity of every single-file read against the bundle, the query plans and the perf budgets
-REL=$(/bin/ls -dt data/release/r-* 2>/dev/null | head -1)
+# THE release on disk: `release.manifest.latest`, the one answer every reader asks (T133)
+REL=$("$PY" -c 'from pipeline.deliver.release.manifest import latest; print(latest("data/release") or "")')
 if [ -n "$REL" ]; then
   step "release parity + perf" env RELEASE_DIR="$REL" BUNDLE=data/generated/bundle/bundle.sqlite \
        pnpm -C app exec vitest run release-perf

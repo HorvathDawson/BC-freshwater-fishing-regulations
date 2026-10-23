@@ -1160,9 +1160,10 @@ def pending_build() -> dict:
         if st["state"] != V.CURRENT:
             splits.append({"split_id": sid, "reasons": st["reasons"]})
             reasons.update(st["reasons"])
-    b = built()
-    return {"built": b.summary(), "entries": entries, "splits": splits,
-            "splits_checked": "anchors" if b.anchors is not None else "ids",
+    # the ONE vintage every row above was decided on (a second `built()` could read a rebuild
+    # that landed mid-request and describe another vintage than the rows)
+    return {"built": on.summary(), "entries": entries, "splits": splits,
+            "splits_checked": "anchors" if on.anchors is not None else "ids",
             "commands": V.rebuild_commands(reasons)}
 
 

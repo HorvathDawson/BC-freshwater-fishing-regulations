@@ -70,10 +70,9 @@ echo "-- 4/5 bundle + release (heavy) -------------------------"
 scripts/heavy.sh build 40 -- $PY -m pipeline build
 
 echo "-- 5/5 upload to R2 -------------------------------------"
-# the release `pipeline build` just wrote: the newest data/release/r-* (the publisher's own default, named here)
-# (`|| true`: with no match, ls fails and pipefail + set -e would end the script here with no word)
-REL=$(ls -1td data/release/r-*/ 2>/dev/null | head -n 1 || true)
-REL=${REL%/}
+# the release `pipeline build` just wrote: THE release on disk (`release.manifest.latest`, the publisher's own
+# default and the one answer every reader asks — T133), named here
+REL=$($PY -c 'from pipeline.deliver.release.manifest import latest; print(latest("data/release") or "")')
 if [ -z "$REL" ]; then
   echo "   no release under data/release; nothing to upload." >&2; exit 1
 fi

@@ -9,6 +9,7 @@ So the tool asks, per entry, whether every artifact was made from THIS entry as 
 
     the reach run   `report.json` `entry_digests[entry]` == the entry's digest now   (`io.entry_digest`)
     the bundle      `meta` `entry_digests[entry]`        == the entry's digest now
+                    and, of the same corpus as the reach run, made FROM it (`bundle_rebound`)
     the release     `manifest.json` `bundle`             == the bundle's `entries_digest` + `reach_digest`
                     (a release cut from this bundle carries the bundle's entries, so this entry's digest)
     the atlas       the reach run and the bundle were made on the SERVED atlas (handles + registry), and
@@ -56,6 +57,7 @@ class Waiting(str, Enum):
     bundle_predates = "the bundle predates per-entry digests"
     bundle_atlas = "the bundle was made on another atlas"
     bundle_entry = "the entry changed since the bundle"
+    bundle_reach = "the bundle was made from another reach run of the same corpus"
     no_release = "no release"
     release_predates = "the release predates its bundle digests"
     release_bundle = "the release was cut from another bundle"
@@ -153,6 +155,8 @@ def entry_state(entry_id: str, digest_now: str, anchors_now: Mapping[str, str],
             got.add(Waiting.bundle_predates)
         elif B["entry_digests"].get(entry_id) != digest_now:
             got.add(Waiting.bundle_entry)
+        if R is not None and bundle_rebound(R, B):
+            got.add(Waiting.bundle_reach)
     if L is None:
         got.add(Waiting.no_release)
     elif not L.get("bundle"):
@@ -167,6 +171,17 @@ def split_state(split_id: str, anchor_now: str, built: Built) -> dict:
     served atlas: a split it does not hold, or holds elsewhere, is awaiting build."""
     got, splits = _split_reasons({split_id: anchor_now}, built)
     return _state(got, splits, built)
+
+
+def bundle_rebound(reach: Mapping, bundle: Mapping) -> bool:
+    """The reach run REBOUND the corpus the bundle was made from: the same corpus
+    (`entries_digest`), other bindings (`digest` != the bundle's `reach_digest`) — a reach-code or
+    steelhead-list change, a run on another build. No entry changed, so no entry digest says so,
+    yet every binding on screen (the builder's now) may differ from the bundle's: every entry
+    waits for deliver. (A run of ANOTHER corpus is per entry — T133 owner Q6: an entry untouched
+    by an edit to another stays current; its answer going stale is phase 1's "answer changed".)"""
+    return (reach.get("entries_digest") == bundle.get("entries_digest")
+            and reach.get("digest") != bundle.get("reach_digest"))
 
 
 def release_is_of(release: Mapping, bundle: Mapping) -> bool:
