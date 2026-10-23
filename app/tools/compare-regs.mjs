@@ -16,6 +16,7 @@ import { APP_URL, PHONE, PROTO_TODAY, REF, TABS, WALK_STATES, appKeyOf, stateOf,
 import { PROTO_GEO, openProto, stageProto } from './regs-web/proto.mjs';
 import { closeCompose, compose, stack } from './regs-web/compose.mjs';
 import { END_BOTTOMS, tallEnd } from './regs-web/tall.mjs';
+import { rowTopExpr } from './regs-web/rows.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -166,14 +167,15 @@ async function frames(b, r, dir) {
     while ((n = w.nextNode())) { if (!n.textContent.trim()) continue; const rg = document.createRange(); rg.selectNodeContents(n);
       for (const q of rg.getClientRects()) if (q.top < foot - 1 && q.bottom > foot + 1) return foot - q.top + 4; } return 0; })()`;
   if (r.mode === 'row') {
-    const y = await b.evaluate(`(() => { const s = ${SCROLL}, p = document.querySelector('[data-testid="pic:${r.row}"]'); if (!p) return null;
-      /* the row: the picture strip's block (its title and size chip above the pictures) */
-      let blk = p; for (let i = 0; i < 3 && blk.parentElement && blk.parentElement.dataset.testid !== 'keep-group'; i++) blk = blk.parentElement;
-      return s.scrollTop + blk.getBoundingClientRect().top - s.getBoundingClientRect().top; })()`);
-    if (y === null) throw new Error(`${r.state}: no picture ${r.row}`);
-    let at = await scrollTo(b, Math.max(0, y - 70));
-    const bar = await b.evaluate(`(() => { const s = ${SCROLL}, bar = ${tid('pin-bar')}; return bar ? bar.getBoundingClientRect().height : 0; })()`);
-    at = await scrollTo(b, Math.max(0, y - bar - 8));
+    // (T138) the row whose own picture strip carries the fish, with its tier head when it opens the tier (rows.mjs), 8 px
+    // under the pin bar's foot. The bar's height changes with the scroll (its chain follows the rows), so settle in steps.
+    let at = await b.evaluate(`${SCROLL}.scrollTop`);
+    for (let k = 0; k < 4; k++) {
+      const d = await b.evaluate(rowTopExpr(barFoot, r.row));
+      if (d === null) throw new Error(`${r.state}: no row with picture ${r.row}`);
+      if (Math.abs(d - 8) < 1) break;
+      at = await scrollTo(b, Math.max(0, at + d - 8));
+    }
     fs.writeFileSync(path.join(dir, `${r.name}.png`), await frame());
     return;
   }

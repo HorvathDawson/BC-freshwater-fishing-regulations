@@ -62,7 +62,7 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
   const meta = !!(k.size || k.qualifiers);
   const anchor = useAnchor(`k${at.row}:${at.path}`, { k: "krow", row: at.row, tids: at.tids });
   return (
-    <View {...anchor} style={{ paddingVertical: 8, borderTopWidth: first ? 0 : 1, borderTopColor: inBand ? palette.line2 : palette.line }}>
+    <View {...anchor} testID="krow" style={{ paddingVertical: 8, borderTopWidth: first ? 0 : 1, borderTopColor: inBand ? palette.line2 : palette.line }}>
       {k.says && <LineText line={k.says} testID={k.zero ? "st:zero" : undefined} style={TYPE.regsBodySemi} color={k.zero ? palette.restricted : palette.ink} palette={palette} actions={actions}
                            linkStyle={TYPE.regsBodySemi} inlineBig />}
       {meta && (
@@ -87,7 +87,7 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
   const head = useAnchor(`h${at.row}:${t.tid}`, { k: "head", row: at.row, tid: t.tid, tids });
   const body = (
     <>
-      <View {...head}>
+      <View {...head} testID="khead">
       {t.kicker && <Text testID="kicker:tier" style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
       {t.line.length > 0 && (
         <View style={{ paddingTop: t.kicker ? 2 : small ? (t.tier === "size" ? 12 : 8) : 16, paddingBottom: 8 }}>
@@ -132,7 +132,7 @@ function Nodes({ nodes, inBand, at, palette, actions, images }: { nodes: readonl
 function Release({ names, pictures, at, palette, actions, images }: { names: string; pictures: readonly FishPicVM[]; at: At; palette: Palette; actions: KeepActions; images?: FishImages }) {
   const anchor = useAnchor(`k${at.row}:${at.path}`, { k: "krow", row: at.row, tids: at.tids });
   return (
-    <View {...anchor} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
+    <View {...anchor} testID="krow" style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
       <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{names}</Text>
       <Pictures pics={pictures} palette={palette} actions={actions} images={images} />
     </View>
@@ -142,7 +142,7 @@ function Release({ names, pictures, at, palette, actions, images }: { names: str
 function NotKept({ x, palette, actions, images }: { x: NotKeptVM; palette: Palette; actions: KeepActions; images?: FishImages }) {
   const tone = x.status === "closed" ? palette.closed : palette.restricted;
   return (
-    <View style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line, flexDirection: "row", gap: 12 }}>
+    <View testID="krow" style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line, flexDirection: "row", gap: 12 }}>
       <View style={{ flex: 1 }}>
         <Text testID={`st:${x.status}`} style={[TYPE.regsBodyBold, { lineHeight: 19.5, color: tone }]}>{x.says}</Text>
         <View style={{ marginTop: 2 }}><LineText line={x.whose} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>
