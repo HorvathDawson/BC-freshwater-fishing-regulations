@@ -38,8 +38,55 @@ import re
 import sys
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+# THE CENTRE'S CLOCK (T126). Its CSV stamps carry no zone, and they are PACIFIC STANDARD TIME all year — not UTC, and not
+# the PDT the province keeps in summer. Measured 2026-10-22 against the observed hourly readings of every CLEVER station
+# in the feed (`tests/fixtures/gauge_feed/clever_clock/`, `test_forecast_clock.py`): read as UTC-8 the forecast's own
+# first hours sit a median 0.88% from the gauge, against 0.99% at UTC-7 and 1.78% read as UTC. Read as UTC, every
+# +1/+3/+5/+10 sampled the step eight hours off.
+#
+# ONE READING OF THE CLOCK: `instant` below. The publisher's horizons (`publish.forecast_at`), its staleness and the
+# expected change (`change.py`) all ask it; none keeps its own zone. And the stamps are WRITTEN zoned at the source
+# (`series`), so the app's `Date.parse` reads the same instant instead of the device's own clock.
+CENTRE_UTC_OFFSET_H = -8
+CENTRE_ZONE = timezone(timedelta(hours=CENTRE_UTC_OFFSET_H))
+
+_BARE_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def is_day(at: object) -> bool:
+    """A stamp that names a calendar DAY (ELF's "2026-10-22"), not an instant: its value is the whole Centre day."""
+    return isinstance(at, str) and bool(_BARE_DAY.match(at.strip()))
+
+
+def instant(at: object) -> datetime | None:
+    """A forecast stamp as an aware instant — THE ONE READING OF THE CENTRE'S CLOCK (see CENTRE_ZONE).
+
+    A zoned stamp is the instant it states. A naive one — every stamp before T126, and `issuedAt` from the summary
+    layer's "Updated at: 10:35 AM" wording — is a Centre wall clock. A bare day is that Centre day's midnight (ask
+    `is_day` when the whole day is meant). Unreadable is None, never a guess.
+    """
+    if at is None:
+        return None
+    try:
+        t = datetime.fromisoformat(str(at).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=CENTRE_ZONE)
+
+
+def zoned(at: str) -> str:
+    """A stamp as the feed writes it: an instant with its offset ("2026-10-22T05:00:00-08:00"); a bare day stays a day.
+
+    Idempotent, so a run carried from an older station file (naive stamps) is rewritten the same way as a fresh one.
+    Unreadable is kept as it stands — the Centre's own words beat nothing.
+    """
+    if is_day(at):
+        return at
+    t = instant(at)
+    return t.isoformat(timespec="seconds") if t is not None else at
 
 # The Centre's ArcGIS org. Each map hub is one FeatureServer layer of per-station rows.
 _ARCGIS = "https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services"
@@ -60,10 +107,15 @@ ATTRIBUTION = (
 # choice: a flood model is asked "how high", a low-flow model "how low". Showing the average
 # of an ELF run would smooth away the entire question it exists to answer.
 MODELS: dict[str, dict] = {
+    # CLEVER'S SUMMARY IS TAKEN FROM ITS SERIES (T126, `summary_from_series`). Its layer's only forecast column is the
+    # maximum in FIVE days, on a ten-day run: 08MH090 on 2026-10-22 read 0.263 m3/s while the run peaks at 5.431 on day
+    # six. The column still says the run is in season (no series is fetched for a run not in the summary); once the
+    # series is attached, min/ave/max/value come from it.
     "CLEVER": {
         "service": "CLM_MapHub_forecast", "horizon_days": 10, "rep": "max",
         "obs": "Latest_Reading", "issued": "Issued_at",
         "fmax": "Forecast_maximum_in_5_days",
+        "summary_from_series": True,
         "csv": "https://bcrfc.env.gov.bc.ca/freshet/clever/{s}.CSV",
         "shape": "clever", "step": "1h",
     },
@@ -255,6 +307,14 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
             text = r.read().decode("utf-8", "replace")
     except Exception:                                  # noqa: BLE001 — 404 = not in season
         return None
+    return parse_series(text, model)
+
+
+def parse_series(text: str, model: str) -> dict | None:
+    """One model's per-station CSV as the feed's series (`series` without the request), stamps ZONED (`zoned`)."""
+    cfg = MODELS.get(model)
+    if not cfg:
+        return None
     head, rows = _csv_rows(text)
     if not head or not rows:
         return None
@@ -273,7 +333,7 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
         when = row[0].strip()
         if cfg["shape"] == "clever":
             hour = row[ix["HOUR"]].strip() if "HOUR" in ix and len(row) > ix["HOUR"] else "00"
-            out["at"].append(f"{when}T{hour.zfill(2)}:00:00")
+            out["at"].append(zoned(f"{when}T{hour.zfill(2)}:00:00"))     # a Centre wall clock (CENTRE_ZONE)
             out["mid"].append(col(row, "FORECAST_DISCHARGE"))
             out["lo"].append(col(row, "LOWER_BOUND"))
             out["hi"].append(col(row, "UPPER_BOUND"))
@@ -301,6 +361,49 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
     out["step"] = cfg["step"]
     out["disclaimer"] = CSV_DISCLAIMER
     return out
+
+
+def ahead_of_issue(run: dict) -> list[float]:
+    """The run's forecast trace (`mid`) from its issue instant to its end, in step order.
+
+    The CSV opens at midnight of the issue day, so its first hours are before the run was made; they are not ahead of
+    anyone. A run whose issue time does not read keeps every step (the Centre's own file, rather than nothing).
+    """
+    series = run.get("series") or {}
+    issued = instant(run.get("issuedAt"))
+    out: list[float] = []
+    for at, v in zip(series.get("at") or [], series.get("mid") or []):
+        if v is None:
+            continue
+        t = instant(at)
+        if issued is not None and (t is None or t < issued):
+            continue
+        out.append(float(v))
+    return out
+
+
+def summary_from_series(run: dict) -> dict:
+    """A run whose summary layer cannot be trusted for its horizon (`summary_from_series`: CLEVER) with min/ave/max and
+    `value` taken from its own series, ahead of the issue time. Any other run, or one with no series, as it stands.
+
+    ONE SOURCE (T126): T52's expected change already reads every day of the series; the headline now reads the same
+    numbers, so a peak on day six cannot be in the change and missing from the summary.
+    """
+    cfg = MODELS.get(str(run.get("model") or ""), {})
+    vals = ahead_of_issue(run) if cfg.get("summary_from_series") else []
+    if not vals:
+        return run
+    lo, hi, av = min(vals), max(vals), round(sum(vals) / len(vals), 4)
+    return {**run, "min": lo, "ave": av, "max": hi, "value": {"min": lo, "ave": av, "max": hi}[cfg["rep"]]}
+
+
+def settle(run: dict) -> dict:
+    """A run as the feed writes it once its series is attached: stamps zoned (a carried run's too) and, where the model
+    says so, the summary from the series. Idempotent."""
+    series = run.get("series")
+    if series and series.get("at"):
+        run = {**run, "series": {**series, "at": [zoned(str(a)) for a in series["at"]]}}
+    return summary_from_series(run)
 
 
 # THE MOST SERIES REQUESTS ONE PUBLISH MAY MAKE (T52: "fetched politely … bounded and logged"). A request is made only
@@ -362,18 +465,24 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
 
     want, carried, old = plan_series(summary, stations, keep, now)
     total = sum(len(r) for r in summary.values())
+    n = 0
+    if want:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
+        for (st, model), ser in got:
+            if ser:
+                summary[st][model]["series"] = ser
+                n += 1
+    # fetched and carried alike: zoned stamps, and CLEVER's summary from its series (T126)
+    for runs in summary.values():
+        for model, run in list(runs.items()):
+            if run.get("series"):
+                runs[model] = settle(run)
     if not want:
         print(f"  series   0 requests, 0 fetched ({carried} carried forward, {old} stale skipped, {total} runs)")
-        return summary
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
-    n = 0
-    for (st, model), ser in got:
-        if ser:
-            summary[st][model]["series"] = ser
-            n += 1
-    print(f"  series   {len(want)} requests, {n} fetched, {carried} carried forward, {old} stale skipped "
-          f"({total} runs)")
+    else:
+        print(f"  series   {len(want)} requests, {n} fetched, {carried} carried forward, {old} stale skipped "
+              f"({total} runs)")
     return summary
 
 

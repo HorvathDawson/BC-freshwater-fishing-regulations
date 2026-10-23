@@ -15,9 +15,9 @@ the forecast against the observed reading would turn that bias into a rise nobod
 model against ITSELF (`peak / base`, base = the model's value now), and only the percentile — which needs a flow on the
 gauge's scale — rescales the model's day by `observed / base` before ranking it.
 
-ITS DAYS ARE PACIFIC STANDARD TIME. The Centre's stamps carry no zone. Measured 2026-10-22 against the observed hourly
-readings of 305 CLEVER stations: the forecast fits the gauge best shifted by +8 h (median error 0.57%, against 1.49% read
-as UTC and 0.66% at +7), so a stamp is a PST wall clock and its date is the local day. `FORECAST_UTC_OFFSET_H`.
+ITS DAYS ARE PACIFIC STANDARD TIME. The Centre's stamps are a PST wall clock (measured against the gauges; T126), so a
+run's days are Centre days. The clock is read in ONE place, `forecast.instant` / `forecast.CENTRE_ZONE`; this file asks
+it and keeps no zone of its own.
 
 WHAT THIS DOES NOT DO: decide where a section's change is. A station's change rides the donor panels like any other
 reading (the index row's `change`, coded by `coded()`), so a section's expected change is weighed, led and refused by
@@ -27,8 +27,10 @@ exactly the rules every other horizon is.
 from __future__ import annotations
 
 import math
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from typing import Callable
+
+from pipeline.gauges.feed.forecast import CENTRE_ZONE, instant, is_day
 
 # THE WINDOW, in days after today: the same ten days the map's last horizon (+10) reaches. ELF publishes thirty; a
 # seasonal low-flow model's day 25 is not "about to change", and a window that differed per model would make one map
@@ -54,10 +56,6 @@ SPIKE_BACK = 0.5
 # CLEVER once or twice a day. The live feed still carried an ELF run issued 09-24 and a COFFEE run from 10-15.
 STALE_HOURS = 36.0
 
-# The Centre's stamps are PST wall clock (measured; see the module note).
-FORECAST_UTC_OFFSET_H = -8
-PST = timezone(timedelta(hours=FORECAST_UTC_OFFSET_H))
-
 # Which run answers for the station on the map when more than one speaks: CLEVER is the owner's named model and the
 # calibrated one (day 0 within 2% of the gauge); COFFEE next (daily, five days, biased high at day 0); ELF last (a
 # thirty-day low-flow model). The panel names EVERY run; this picks only the one colour (owner question Q1 in T52).
@@ -82,20 +80,18 @@ def coded(ratio: float) -> float:
 
 
 def _local(at: str) -> datetime | None:
-    """One forecast stamp as a naive PST wall clock. A zoned stamp is converted; a bare date is that day's midnight."""
-    try:
-        t = datetime.fromisoformat(str(at).replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return t.astimezone(PST).replace(tzinfo=None) if t.tzinfo else t
+    """One forecast stamp as a naive Centre wall clock (`forecast.instant`, then the Centre's zone); a bare date is that
+    day's midnight."""
+    t = instant(at)
+    return None if t is None else t.astimezone(CENTRE_ZONE).replace(tzinfo=None)
 
 
 def issued_age_h(issued_at: str | None, now: datetime) -> float | None:
-    """Hours since the run was issued (its stamp read as PST like every other), or None when it carries no time."""
+    """Hours since the run was issued (its stamp read on the Centre's clock like every other), or None when it carries no time."""
     t = _local(issued_at) if issued_at else None
     if t is None:
         return None
-    return (now.astimezone(PST).replace(tzinfo=None) - t).total_seconds() / 3600.0
+    return (now.astimezone(CENTRE_ZONE).replace(tzinfo=None) - t).total_seconds() / 3600.0
 
 
 def stale(run: dict | None, now: datetime) -> bool:
@@ -119,7 +115,7 @@ def daily_extremes(series: dict, start: datetime, last: date) -> list[tuple[str,
         if t is None or t.date() > last:
             continue
         # a daily step stamped midnight is the WHOLE day, so today's counts though midnight has passed
-        if t < start and not (t.date() == start.date() and (series.get("step") == "1d" or len(at) == 10)):
+        if t < start and not (t.date() == start.date() and (series.get("step") == "1d" or is_day(at))):
             continue
         days.setdefault(t.date().isoformat(), []).append(float(v))
     return [(d, min(vs), max(vs)) for d, vs in sorted(days.items())]
@@ -134,7 +130,7 @@ def base_of(series: dict, now_local: datetime) -> float | None:
         t = _local(at)
         if t is None:
             continue
-        if series.get("step") == "1d" or len(str(at)) == 10:
+        if series.get("step") == "1d" or is_day(at):
             if t.date() == now_local.date():
                 return float(v)
             continue
@@ -164,7 +160,7 @@ def run_change(run: dict, now: datetime, observed: float | None, rank: Rank | No
     series = run.get("series") or {}
     if not series or stale(run, now):
         return None
-    now_local = now.astimezone(PST).replace(tzinfo=None)
+    now_local = now.astimezone(CENTRE_ZONE).replace(tzinfo=None)
     base = base_of(series, now_local)
     if base is None or base <= 0:
         return None                 # a run whose today is 0.0 (six COFFEE runs) cannot carry a ratio

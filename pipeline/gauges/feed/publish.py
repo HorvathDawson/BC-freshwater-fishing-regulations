@@ -46,6 +46,9 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 from pipeline.gauges.feed.change import stale as _stale_run, station_change
 from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
+from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
+from pipeline.gauges.feed.forecast import instant as _instant
+from pipeline.gauges.feed.forecast import is_day as _is_day
 
 BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC"
 UA = "BC-FishRegs-Hydro/1.0"
@@ -234,7 +237,7 @@ def newest_forecast_issue(forecast: dict | None) -> str | None:
     for runs in (forecast or {}).values():
         for run in (runs or {}).values():
             s = (run or {}).get("issuedAt")
-            t = _parse(s) if isinstance(s, str) else None
+            t = _instant(s) if isinstance(s, str) else None
             if t is not None and (best is None or t > best[0]):
                 best = (t, s)
     return best[1] if best else None
@@ -325,15 +328,6 @@ FORECAST_TOLERANCE_H = 18.0
 MODEL_ORDER = ("CLEVER", "ELF")
 
 
-def _parse(when: str) -> datetime | None:
-    """One forecast timestamp. Naive stamps are UTC — the models publish in UTC."""
-    try:
-        t = datetime.fromisoformat(when.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
-
-
 def forecast_at(series: dict | None, when: datetime,
                 quantity: str) -> float | None:
     """The model's value NEAREST `when`, or None if no step is close enough.
@@ -347,6 +341,11 @@ def forecast_at(series: dict | None, when: datetime,
     Returns None past the end of the horizon rather than the last value, which would report
     day thirty's forecast as day five's.
 
+    THE CENTRE'S CLOCK (T126): every stamp is read by `forecast.instant` — a naive stamp is a PST wall clock, never
+    UTC (read as UTC, every horizon sampled the step eight hours off). A step stamped with a bare DAY (ELF) is that
+    whole Centre day: it answers for `when` exactly when `when` falls on it, never the next day's midnight because it
+    happened to be nearer.
+
     HALF A STEP OF SLACK, capped at FORECAST_TOLERANCE_H. Inside a run the nearest step is
     never more than half a step away, so anything further is past the run's end. This
     matters at +10 days, which sits at CLEVER's last hour: a flat 18 h of slack let an hourly
@@ -358,16 +357,21 @@ def forecast_at(series: dict | None, when: datetime,
     key = "level_mid" if quantity == "level" else "mid"
     vals = series.get(key) or []
     ats = series.get("at") or []
-    times = sorted(t for t in (_parse(str(a)) for a in ats) if t is not None)
+    times = sorted(t for t in (_instant(a) for a in ats) if t is not None)
     gaps = sorted(g for g in ((b - a).total_seconds() / 3600.0
                               for a, b in zip(times, times[1:])) if g > 0)
     tol = (min(FORECAST_TOLERANCE_H, gaps[len(gaps) // 2] / 2.0) if gaps
            else FORECAST_TOLERANCE_H)
+    day = when.astimezone(_CENTRE_ZONE).date().isoformat()
     best: tuple[float, float] | None = None                 # (hours off, value)
     for at, v in zip(ats, vals):
         if v is None:
             continue
-        t = _parse(str(at))
+        if _is_day(at):
+            if str(at).strip() == day:
+                return float(v)                             # the day itself: nothing nearer exists
+            continue
+        t = _instant(at)
         if t is None:
             continue
         off = abs((t - when).total_seconds()) / 3600.0

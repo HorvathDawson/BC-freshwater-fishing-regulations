@@ -22,7 +22,20 @@ def _no_network(monkeypatch):
     is a test that fails on a train."""
     monkeypatch.setattr(_f, "series", lambda station, model, timeout=25.0: None)
 
-SERIES = {"at": ["2026-09-04T00:00:00"], "mid": [11.0], "level_mid": [None]}
+# As the feed writes a series since T126: stamps zoned on the Centre's clock.
+SERIES = {"at": ["2026-09-04T00:00:00-08:00"], "mid": [11.0], "level_mid": [None]}
+
+
+def test_a_carried_run_from_an_older_file_has_its_stamps_zoned():
+    """T126: station files written before the fix carry naive CLEVER stamps. Carried across unchanged they would reach
+    the app naive, and `Date.parse` reads a naive stamp on the DEVICE's clock — so the carry zones them, the same
+    function as a fresh fetch (`forecast.zoned`). Whole value; mutation: drop `settle` from `with_series` -> fails."""
+    old = {"at": ["2026-09-04T00:00:00", "2026-09-05"], "mid": [11.0, 12.0], "level_mid": [None, None]}
+    summary = {"08MH001": {"ELF": {"model": "ELF", "issuedAt": "2026-09-04T09:51:00"}}}
+    keep = {"08MH001": {"ELF": {"issuedAt": "2026-09-04T09:51:00", "series": old}}}
+    out = with_series(summary, stations={"08MH001"}, keep=keep)
+    assert out["08MH001"]["ELF"]["series"] == {"at": ["2026-09-04T00:00:00-08:00", "2026-09-05"],
+                                               "mid": [11.0, 12.0], "level_mid": [None, None]}
 
 
 def test_a_still_current_run_keeps_its_series():
