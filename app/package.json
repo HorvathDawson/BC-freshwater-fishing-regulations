@@ -9,6 +9,7 @@
     "dev:ios": "pnpm --filter @app/mobile run ios",
     "boundaries": "node tools/check-boundaries.mjs",
     "typecheck": "tsc -b",
+    "clean": "node tools/clean.mjs",
     "test": "vitest run",
     "style": "node tools/build-style.mjs && node tools/check-style.mjs && git diff --exit-code packages/map/style/",
     "style:build": "node tools/build-style.mjs",
