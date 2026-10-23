@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
-import { ALL_WORDS, MONTH1, WD3, WORDS, waterNoun, wordsIn } from "./words";
+import { ALL_WORDS, MONTH1, WD3, WORDS, pageWaterNoun, waterNoun, wordsIn } from "./words";
 
 describe("WORDS", () => {
   it("is frozen, and every value is a non-empty string, a function or a frozen list", () => {
@@ -86,6 +86,12 @@ describe("waterNoun: the one noun for a kind of water (T116)", () => {
     expect(["stream", "lake", "wetland"].map((k) => WORDS.BY_WATER(waterNoun(k, "page"))))
       .toEqual(["this river’s rule", "this lake’s rule", "this wetland’s rule"]);
     expect(WORDS.CALM_BOAT(waterNoun("wetland", "page"))).toBe("Fishing rules are the same everywhere on this wetland.");
+  });
+
+  it("pageWaterNoun: a page's water by its item's kind, else its key's (an unnamed section), else a river", () => {
+    const of = (item: string | null, key: string | null) => pageWaterNoun({ item: item ? { kind: item } : null, key: key ? { kind: key } : null });
+    expect([of("lake", "stream"), of(null, "wetland"), of(null, "lake"), of(null, null), of("wetland", null)])
+      .toEqual(["lake", "wetland", "lake", "river", "wetland"]);
   });
 
   it("every noun it says is a word the no-hand-facts test knows", () => {

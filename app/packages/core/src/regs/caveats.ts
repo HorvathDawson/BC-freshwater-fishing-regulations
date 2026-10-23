@@ -29,7 +29,7 @@ import type { Settled } from "./settle";
 import { daySegments, tapDay } from "./tap";
 import { timeCond, winTxt } from "./time";
 import { ruleBook } from "./book";
-import { WD3, WORDS, waterNoun } from "./words";
+import { WD3, WORDS, pageWaterNoun } from "./words";
 
 export type { CaveatItemVM, CaveatVM } from "./model";
 
@@ -86,7 +86,7 @@ export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): 
   return {
     kind: "inpart", hot,
     title: hot ? WORDS.INPART_HOT : onlyBoat ? WORDS.INPART_BOAT : WORDS.INPART_SOME,
-    calm: hot ? WORDS.CALM_HOT : onlyBoat ? WORDS.CALM_BOAT(waterNoun(inp.item?.kind ?? "stream", "page")) : WORDS.CALM_LATER,
+    calm: hot ? WORDS.CALM_HOT : onlyBoat ? WORDS.CALM_BOAT(pageWaterNoun(inp)) : WORDS.CALM_LATER,
     items: (now.length ? now : later).map(li),
     later: now.length && later.length ? later.map(li) : null,
   };

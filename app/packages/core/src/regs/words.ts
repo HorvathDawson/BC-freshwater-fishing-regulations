@@ -241,6 +241,15 @@ export function waterNoun(kind: string, form: NounForm): string {
   }
 }
 
+/**
+ * (T116, review) The page noun for the water a regs page is about: its registry item's kind, else — an unnamed section
+ * (no item) — the kind its key was placed by (the same kind its place name is read with), else a stream. Before this,
+ * the callers fell back from a missing item straight to "river", so an unnamed lake or marsh read "this river’s rule".
+ */
+export function pageWaterNoun(inp: { readonly item: { readonly kind: string } | null; readonly key: { readonly kind: string } | null }): string {
+  return waterNoun(inp.item?.kind ?? inp.key?.kind ?? "stream", "page");
+}
+
 /** (T36) page v36 ROLE: a rule's role in a row's sources sheet (openRowSources), verbatim. */
 export const ROLE: Readonly<Record<string, string>> = Object.freeze({ governs: "Sets the number", contains: "The group total this counts toward",
   narrows: "Lowers the number", limit: "A limit inside the total", floor: "Size limit", season: "Yearly limit", possession_cap: "Possession limit",
