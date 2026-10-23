@@ -58,11 +58,13 @@ export function useCaptureSpot(opts: CaptureOptions): CaptureSpotApi {
   const [error, setError] = useState<string | null>(null);
   const steps = visitSteps(visitedAt, now());
   const photos = usePhotoEdit(opts.photos);
-  const begun = useRef(false);
+  // The draft's id once captured: a draft read again (the visit changed) is the same spot, so its photos, already
+  // named after this id, stay named after the spot they are saved on (T80 1).
+  const begun = useRef<string | null>(null);
 
   return {
     visitedAt, steps, draft, error, photos,
-    cancel: async () => { begun.current = false; await photos.discard(); },
+    cancel: async () => { begun.current = null; await photos.discard(); },
     clearError: () => setError(null),
     shiftDay: (n) => setVisitedAt((v) => shiftVisitDay(v, n, now())),
     toDay: (offset) => setVisitedAt((v) => shiftVisitDay(v, offset - visitSteps(v, now()).dayOffset, now())),
@@ -74,9 +76,10 @@ export function useCaptureSpot(opts: CaptureOptions): CaptureSpotApi {
           feed: opts.feed, source: opts.source, weather: opts.weather, at, visitedAt,
           item: water.item, section: water.section, waterName: water.name,
           title: title || water.name || "",
+          ...(begun.current ? { id: () => begun.current! } : {}),
         });
         // The photos belong to the draft, not to one reading of it: going back to change the hour keeps them.
-        if (!begun.current) { photos.begin(spot.id, []); begun.current = true; }
+        if (!begun.current) { photos.begin(spot.id, []); begun.current = spot.id; }
         setDraft(spot);
         return true;
       } catch (e) {

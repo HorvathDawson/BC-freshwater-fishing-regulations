@@ -2,9 +2,10 @@
  * S1: the words a spot's week-before strip and its photographs are shown with, pinned whole (AGENTS 33, P12).
  */
 import { describe, expect, it } from "vitest";
+import { CONDITIONS_WORDS } from "@app/core";
 import type { DailyGauge, DailyWeather } from "./model";
 import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
-         leadUpGaugeTrend, leadUpQuantity, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
+         leadUpGaugeTrend, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
          leadUpWeatherSentence,
          photoFailed, PHOTO_WORDS, removePhotoLabel, skyWord, staleSpotsLine } from "./words";
 
@@ -81,6 +82,11 @@ describe("the station's daily means", () => {
     expect(leadUpQuantity(week)).toBe("discharge");
     expect(leadUpQuantity([g("2026-08-23", null, null, 1.42, 0.5)])).toBe("level");
     expect(leadUpQuantity([g("2026-08-23", null, null)])).toBeNull();
+  });
+
+  it("names each quantity's unit in the Conditions words, one spelling (T80 1)", () => {
+    expect({ discharge: leadUpUnit("discharge"), level: leadUpUnit("level") }).toEqual(CONDITIONS_WORDS.unit);
+    expect(CONDITIONS_WORDS.unit).toEqual({ discharge: "m³/s", level: "m" });
   });
 
   it("draws each day as a value and its place in the envelope", () => {

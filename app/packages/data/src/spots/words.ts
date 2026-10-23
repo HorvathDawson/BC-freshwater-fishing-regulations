@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { localDate, localDateTime, monthAbbr, percentileLabel, percentileOrdinal } from "@app/core";
+import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, percentileLabel, percentileOrdinal } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 
@@ -89,7 +89,10 @@ export function leadUpQuantity(days: readonly DailyGauge[]): "discharge" | "leve
   return null;
 }
 
-const UNIT = { discharge: "m³/s", level: "m" } as const;
+// One spelling of the units: the Conditions words' (T80 1).
+const UNIT = CONDITIONS_WORDS.unit;
+/** The unit the strip's column is headed with: "m³/s" for flow, "m" for level. */
+export const leadUpUnit = (q: "discharge" | "level"): string => UNIT[q];
 /** A daily mean at the precision the number supports: "9.14", "41.2", "120"; a level to the centimetre. */
 const figure = (v: number, q: "discharge" | "level"): string =>
   q === "level" ? v.toFixed(2) : v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : String(Math.round(v));

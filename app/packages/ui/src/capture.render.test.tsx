@@ -129,6 +129,28 @@ describe("useCaptureSpot: the draft's photographs (S1)", () => {
     expect(out.api!.photos.refs).toEqual(refs);
   });
 
+  it("a draft read again keeps its id, so the saved spot's photos are named after the spot (T80 1)", async () => {
+    const f = photos();
+    const { out } = mount({ photos: f.photos });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    const first = out.api!.draft!.id;
+    await act(async () => { await out.api!.photos.add("library"); });
+    act(() => out.api!.shiftDay(-1));
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    const saved: Spot[] = [];
+    await act(async () => { await out.api!.save("", "", async (s) => { saved.push(s); }); });
+    expect({ id: saved[0]!.id, photos: saved[0]!.photos }).toEqual({ id: first, photos: [`photos/${first}-1.jpg`] });
+  });
+
+  it("a draft cancelled and captured again is a new spot with a new id", async () => {
+    const { out } = mount({ photos: photos().photos });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    const first = out.api!.draft!.id;
+    await act(async () => { await out.api!.cancel(); });
+    await act(async () => { await out.api!.capture(water, point, ""); });
+    expect(out.api!.draft!.id).not.toBe(first);
+  });
+
   it("cancelling the draft deletes the photos it added", async () => {
     const f = photos();
     const { out } = mount({ photos: f.photos });

@@ -17,6 +17,13 @@ const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
   r.onerror = () => rej(r.error ?? new Error("IndexedDB refused the request"));
 });
 
+const URLS = new WeakMap<IDBFactory, Map<string, string>>();
+const urlsOf = (idb: IDBFactory): Map<string, string> => {
+  let m = URLS.get(idb);
+  if (!m) URLS.set(idb, (m = new Map()));
+  return m;
+};
+
 /** Bytes by reference in one IndexedDB object store. A browser with no IndexedDB says so when it is used. */
 export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): PhotoFiles {
   let db: Promise<IDBDatabase> | null = null;
@@ -38,8 +45,10 @@ export function photoFiles(idb: IDBFactory | undefined = globalThis.indexedDB): 
     await done(job(tx.objectStore(STORE)));
     await committed;
   };
-  // One object URL per photo for as long as the page is open; revoked when the photo is deleted.
-  const urls = new Map<string, string>();
+  // One object URL per photo for as long as the page is open; revoked when the photo is deleted. Shared by every
+  // instance over the same IndexedDB: the app draws through one and the spots store deletes through another, and a
+  // delete there must revoke the URL drawn here and stop handing it out (T80 1).
+  const urls = idb ? urlsOf(idb) : new Map<string, string>();
 
   return {
     async keep(ref, picked) {

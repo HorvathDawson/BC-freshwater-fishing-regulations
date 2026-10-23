@@ -215,6 +215,22 @@ describe("in a browser: blobs in IndexedDB, drawn through object URLs (fake Inde
     expect([...data.get("photos")!.keys()]).toEqual(["photos/s2-1.jpg"]);
   });
 
+  it("a photo deleted through one store instance is revoked and gone in another over the same browser (T80 1)", async () => {
+    // the app opens one instance to draw (App.tsx) and the spots store another to delete (store.web.ts)
+    const { factory } = fakeIdb();
+    const drawer = openPhotosWith(idbPhotoFiles(factory), PINNED);
+    const deleter = openPhotosWith(idbPhotoFiles(factory), PINNED);
+    const ref = await drawer.add("s1", { blob: new Blob(["x"], { type: "image/jpeg" }) }, []);
+    const url = await drawer.uri(ref);
+    const revoke = vi.spyOn(URL, "revokeObjectURL");
+    try {
+      await deleter.remove(ref);
+      expect({ revoked: revoke.mock.calls, drawn: await drawer.uri(ref) }).toEqual({ revoked: [[url]], drawn: null });
+    } finally {
+      revoke.mockRestore();
+    }
+  });
+
   it("says so when the browser has no IndexedDB, rather than losing the photo quietly", async () => {
     const store = openPhotosWith(idbPhotoFiles(undefined), PINNED);
     await expect(store.add("s1", { blob: new Blob(["x"]) }, []))

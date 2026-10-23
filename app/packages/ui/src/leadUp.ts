@@ -6,7 +6,7 @@
  * the week was saved are said too, under their row, with the refresh that fills them (owner bug 2026-10-22).
  */
 import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
-         leadUpGaugeTrend, leadUpPendingDays, leadUpQuantity, leadUpRainLine, leadUpWeatherCells,
+         leadUpGaugeTrend, leadUpPendingDays, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells,
          leadUpWeatherPending, leadUpWeatherSentence, type LeadUp } from "@app/data/spots";
 
 export interface LeadUpView {
@@ -44,7 +44,7 @@ export function leadUpView(lu: LeadUp | null | undefined): LeadUpView | null {
   } : null;
   const q = lu.gauge ? leadUpQuantity(lu.gauge) : null;
   const gauge = lu.gauge && q && lu.station ? {
-    unit: q === "level" ? "m" : "m³/s",
+    unit: leadUpUnit(q),
     days: lu.gauge.map((d) => ({ label: leadUpGaugeSentence(d, q), day: leadUpDayLabel(d.date),
                                  ...leadUpGaugeCells(d, q) })),
     trend: leadUpGaugeTrend(lu.gauge, q),
