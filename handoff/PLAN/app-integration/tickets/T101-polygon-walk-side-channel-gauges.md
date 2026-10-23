@@ -2,7 +2,7 @@
 
 Status: BUILT, NOT MERGED — Q44 rule built and measured 2026-10-23; ready to merge + deliver. Branch
 worktree-wf_3976eddc-bba-1 (.claude/worktrees/wf_3976eddc-bba-1), rebased on redesign/stream-sections: polygon walk
-bf0afb28 40604204 7778cb9e 9cd07868 133f3ee4 3cf55b68 (were 8d57e759 … de39b70c), Q44 rule d53eab21.
+b808d9be 92af842e d148fdc4 8406b74e 5907ca73 709b6033 (were 8d57e759 … de39b70c), Q44 rule b73313d9.
 
 Owner 2026-10-22: "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours
 if the propagation means it would have values if it was just a stream itself."
@@ -34,7 +34,7 @@ May a gauge standing on a side channel or slough speak for the river it branched
 The lake-crossing flag depends on walk order (pre-existing): 2,074 records at 75 stations are flagged as crossing a
 lake although a lake-free path exists. Fixing it changes panels elsewhere → needs its own before/after diff.
 
-## As built (Q44 rule) — 2026-10-23, d53eab21
+## As built (Q44 rule) — 2026-10-23, b73313d9
 ONE decision, ONE function: `build_panels.across_branch(share)` → the quantities a reading keeps when the walk carries
 it across a BRANCH POINT: `{discharge}` when `share >= LARGE_SHARE`, else nothing. Level never.
 - `LARGE_SHARE = 0.5` (named constant, build_panels.py). Share = the smaller water's drainage (`area_of`, stream
