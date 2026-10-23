@@ -13,9 +13,17 @@ import { baseUnnamedStream, golden, inputsOf, paritySkip, regsStore, releasePair
 
 const T = taps();
 const ids = Object.keys(T.states);
-/** A golden state's rows frame id (taps.json, the Python reference decoder's): rows frames are re-interned whenever the rows
- *  layout moves (rows 30 added `rows[].year`), so the ticket's other literals stay and this one is the oracle's. */
-const rowsOf = (id: string): number => (T.states[id] as unknown as { cell: { rows: number } }).cell.rows;
+/** A golden state's key and cell (taps.json, the Python reference decoder's over the store the goldens were cut from):
+ *  akeys and frame ids are interned per build and move with every delivery (three rebuilds in a row broke the ticket's
+ *  literals), so the ids are the oracle's and only the facts about the water (name, sections, segments, status) are typed. */
+const tapOf = (id: string) => { const t = T.states[id]; if (!t) throw new Error(`taps.json has no state ${id}`); return t; };
+const cellOf = (id: string) => tapOf(id).cell;
+/** The Vedder's June closure, by its durable key (a rix moves when a rule ahead of it is added or dropped). */
+const VEDDER_JUNE = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8";
+const rixOf = async (st: RegsStore, key: string): Promise<number> => {
+  for (const [rix, r] of await st.rules()) if (`${r.export.entry_id}::${r.export.rule_id}` === key) return rix;
+  throw new Error(`no rule ${key}`);
+};
 const at = await releasePairing();
 const pairing = paritySkip(at);
 
@@ -38,32 +46,37 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     const inp = await load(st, "gnis:3062", 0, 5, 15, "Friday");
     const it_ = inp.item!;
     expect([it_.ord, it_.name, it_.kind, it_.sections, it_.id]).toEqual([7670, "Vedder River", "stream", 5, "gnis:3062"]);
-    expect([inp.key!.akey, inp.s, inp.cell]).toEqual([886, 1, { ladder: 1057, rows: rowsOf("vedder_515"), gear: 320, licence: 1, display: 64 }]);
+    expect([inp.key!.akey, inp.s, inp.cell]).toEqual([tapOf("vedder_515").akey, 1, cellOf("vedder_515")]);
     expect([inp.year!.cells.length, inp.year!.segStarts]).toEqual([4, [1, 122, 153, 183]]);
     expect(inp.frames!.display).toEqual({ status: "own", closing: [], strip: 20 });
     expect(inp.year!.displayByDay[166]!.status).toBe("closed");              // day 167, Jun 15
-    const r = inp.rules.get(529);
+    const r = inp.rules.get(await rixOf(st, VEDDER_JUNE));
     expect([r.rank, r.via]).toEqual([0, "reach"]);
     expect([inp.mergedParts, inp.place]).toEqual([null, null]);
   });
 
   it("2. vedder_615 and vedder_1010: the segment and cell of the day", async () => {
     const jun = await load(st, "gnis:3062", 0, 6, 15, "Monday"), oct = await load(st, "gnis:3062", 0, 10, 10, "Saturday");
-    expect([jun.s, jun.cell]).toEqual([2, { ladder: 2457, rows: rowsOf("vedder_615"), gear: 146, licence: 1, display: 305 }]);
-    expect([oct.s, oct.cell]).toEqual([3, { ladder: 1056, rows: rowsOf("vedder_1010"), gear: 146, licence: 1, display: 1 }]);
+    expect([jun.s, jun.cell]).toEqual([2, cellOf("vedder_615")]);
+    expect([oct.s, oct.cell]).toEqual([3, cellOf("vedder_1010")]);
+    expect([jun.frames!.display.status, oct.frames!.display.status]).toEqual(["closed", "own"]);
+    expect(new Set([jun.cell!.ladder, oct.cell!.ladder]).size).toBe(2);
   });
 
   it("3. klwa_1010 (Sat) and klwa_1012 (Mon): a weekday split — two moments, two ladder frames", async () => {
     const sat = await load(st, "wbk:-22", 0, 10, 10, "Saturday"), mon = await load(st, "wbk:-22", 0, 10, 12, "Monday");
-    expect([sat.s, sat.cell]).toEqual([1, { ladder: 3452, rows: rowsOf("klwa_1010"), gear: 433, licence: 2, display: 111 }]);
-    expect([mon.s, mon.cell]).toEqual([0, { ladder: 3451, rows: rowsOf("klwa_1012"), gear: 433, licence: 2, display: 111 }]);
-    expect([sat.year!.moments!.length, sat.year!.ladderBySeg.length, sat.year!.cells.map((c) => c.ladder)]).toEqual([2, 2, [3451, 3452]]);
+    expect([sat.s, sat.cell]).toEqual([1, cellOf("klwa_1010")]);
+    expect([mon.s, mon.cell]).toEqual([0, cellOf("klwa_1012")]);
+    // the split is in the ladder alone: same gear, licence and display frame both days, two ladder frames
+    expect([sat.cell!.gear, sat.cell!.licence, sat.cell!.display]).toEqual([mon.cell!.gear, mon.cell!.licence, mon.cell!.display]);
+    expect([sat.year!.moments!.length, sat.year!.ladderBySeg.length, sat.year!.cells.map((c) => c.ladder)])
+      .toEqual([2, 2, [cellOf("klwa_1012").ladder, cellOf("klwa_1010").ladder]]);
     expect(sat.year!.ladderBySeg[0]).not.toEqual(sat.year!.ladderBySeg[1]);
   });
 
   it("4. x15p7_1010 (an hours window: outside it) and x31p_1010 (tidal)", async () => {
     const x15 = await load(st, "gnis:39325", 7, 10, 10, "Saturday");
-    expect([x15.s, x15.cell!.display]).toEqual([4, 704]);
+    expect([x15.s, x15.cell!.display]).toEqual([4, cellOf("x15p7_1010").display]);
     const x31 = await load(st, "wbk:329504244", 0, 10, 10, "Saturday");
     expect([x31.key!.tidal, x31.frames!.display.status]).toEqual([true, "tidal"]);
   });

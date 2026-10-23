@@ -138,7 +138,7 @@ describe("T10 the committed regs fixture release", () => {
     const dicts = new Map((mut.water!.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]).map((r) => [r.tbl, r.d]));
     const common = (unpackBlob(lf.j, dicts.get("ladder_frame")!) as [number])[0];
     r2.prepare("DELETE FROM ladder_verdict WHERE id = ?").run(common);
-    const vedder = 886;
+    const vedder = TAPS.states.vedder_515!.akey;   // a Region 2 key with 4 segments (taps.json; its number moves per build)
     r2.prepare("DELETE FROM cell WHERE akey = ? AND s = 3").run(vedder);
     const blk = mut["regs-sid"]!.prepare("SELECT block, b FROM section_akey ORDER BY block LIMIT 1").get() as { block: number; b: Uint8Array };
     const b = new Uint8Array(blk.b);
@@ -152,7 +152,13 @@ describe("T10 the committed regs fixture release", () => {
   });
 
   it("4. every rule kept; the digests are the golden store's; the formats the app reads", () => {
-    expect([count(DB.water!, "rule"), count(DB.water!, "display_rule")]).toEqual([3406, 3406]);
+    // every rule: rix dense from 0 in both tables (no count typed here — 3,406 → 3,405 when T89 made Endako 7A a See twin);
+    // that they are the golden store's rules, in order and no other, is the conformance suite's content digest
+    // (regsConformance "whole": the rules' keys hash to rule_ids_sha256) plus the meta digests below.
+    const span = (t: string, k: string) => ({ ...DB.water!.prepare(`SELECT count(*) AS n, min(${k}) AS lo, max(${k}) AS hi FROM ${t}`).get() });
+    const rules = span("rule", "rix") as { n: number; lo: number; hi: number };
+    expect(rules.n).toBeGreaterThan(3000);
+    expect([rules.lo, rules.hi + 1, span("display_rule", "id")]).toEqual([0, rules.n, { n: rules.n, lo: 0, hi: rules.n - 1 }]);
     const g = TAPS.meta.store;
     for (const n of ["water", "regs-sid", ...Object.keys(MAN.files).filter((k) => /^regs-\d/.test(k))]) {
       const m = meta(DB[n]!);

@@ -7,6 +7,7 @@
  * Every expected value is the oracle's (taps.json) — never typed here and never read back from the store under test. The
  * suite reads; it decides nothing: the segment a day reads is core's `segmentIndex` (T05), the frames are the store's.
  */
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { daySegments, KNOWN_VERSIONS, SECTION_NAMES, segmentIndex, tapDay, type CellIds, type Moment, type Weekday } from "@app/core";
 import { RegsStoreError, type RegsStore } from "@app/data/regs";
@@ -129,8 +130,15 @@ export function runRegsConformance(label: string, open: () => Promise<RegsStore 
     it("whole: every rule, the statics (glossary 5, 60 licence profiles)", async () => {
       const st = await store();
       const s = await st.statics();
-      expect({ rules: (await st.rules()).size, glossary: s.glossary.version, profiles: s.profiles.length })
-        .toEqual({ rules: 3406, glossary: 5, profiles: 60 });
+      // Every rule, in rix order and no other: the rules' own keys hash to the oracle's rule_ids_sha256 (the pipeline's
+      // `derived.rule_ids_digest`: SHA-256 of "entry::rule" one per line, first 16 hex) — not a count typed here, which
+      // went stale with every corpus change (3,406 → 3,405 when T89 made Endako 7A a See twin).
+      const rules = await st.rules();
+      expect([...rules.keys()]).toEqual([...rules.keys()].map((_, i) => i));
+      const digest = createHash("sha256").update([...rules.values()].map((r) => `${r.export.entry_id}::${r.export.rule_id}`).join("\n"), "utf8")
+        .digest("hex").slice(0, 16);
+      expect({ rules: digest, glossary: s.glossary.version, profiles: s.profiles.length })
+        .toEqual({ rules: cases.store.rule_ids_sha256, glossary: 5, profiles: 60 });
       expect(st.refused()).toBeNull();
     });
   });

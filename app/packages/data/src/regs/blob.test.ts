@@ -64,30 +64,6 @@ const store: Db | null = (() => {
 })();
 const hasProvinceRegs = store !== null;
 
-/** [table, key column, key, expected prefix of JSON.stringify(value), whole?] — T02's table, read from the built store. */
-const ROWS: readonly (readonly [string, string, number | string, string, boolean])[] = [
-  ["display_frame", "id", 64, '{"status":"own","closing":[],"strip":20}', true],
-  ["licence_frame", "id", 1, "[1,1,0]", true],
-  ["ladder_frame", "id", 1057, "[3973,[[0,0],[1,1],[2,2],[3,3],[4,3971],", false],
-  // vedder_515's rows frame — its id is taps.json states.vedder_515.cell.rows, and moves with each delivery
-  ["rows_frame", "id", 2002, '[["RB","CT","LMB","SMB","BCB","CRA","KO","LW","MW","WSG","ST","GB","DV","LT","EB"],{"RB":[3820,3821]', false],
-  ["gear_frame", "id", 320, '{"counts":{"bait_possession_kg":{"by":[3322,0],"over":[],"cites":[3322]}', false],
-  ["display_rule", "id", 529, '{"kind":"gate","title":"No fishing, Jun 1–30","closure":true,"plain":"No fishing, Jun 1–30.","book":[[22,24]]', false],
-  ["rule", "rix", 529, '{"entry_id":"r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4","rule_id":"chilliwack_vedder', false],
-  ["ladder_verdict", "id", 0, "[[3079,3333,3339,3355,3356,3359],[],[3351,3352],[],[],[[3364,1,3079]]]", true],
-  ["rows_decided", "id", 0, '{"status":"keep","win":3083,"daily":20,"narrow":null,"lines":[]', false],
-  ["rows_row", "id", 0, '{"kind":"keep","pool":3091,"win":null,"members":["EB","GB","CT","DV","LT","RB","ST"]', false],
-  ["licence_hold", "id", 0, '{"holds":[131,96,98,106,110,111,128],"designations":[]', false],
-  ["licence_answer", "id", 0, '{"documents":[{"doc":"basic_licence"', false],
-  ["licence_doc", "id", 0, "[0,1,0,2,3,0,1,0,2,3,4,5", false],
-  ["licence_u16", "id", 0, '[{"residency":"resident","label":"B.C. resident","none_needed":true', false],
-  ["picker", "id", 0, '{"choices":[{"parts":[0],"closed":false,"sections":1', false],
-  ["xpart", "id", 0, '{"ruleset":"1","licensing_set":"0","steelhead":"possible","steelhead_rules":true}', true],
-  ["runs", "id", 0, '[{"from":"source","to":"mouth","km_from":1.46,"km_to":0}]', true],
-  ["ruleset", "set_id", 393, '{"sections":5,"reach":[525,526,527,528,529,530,3077', false],
-  ["static", "k", "licence.profile_dims", '[["residency",["resident","non_resident","non_resident_alien"]],["age",["16_plus","under_16"]]', false],
-];
-
 describe.skipIf(!hasProvinceRegs)("unpackBlob, the province store", () => {
   const db = store!;
   const bytes = (v: Cell) => new Uint8Array(v as Uint8Array);
@@ -96,14 +72,8 @@ describe.skipIf(!hasProvinceRegs)("unpackBlob, the province store", () => {
     return r ? bytes(r.d) : null;
   };
 
-  for (const [t, k, key, want, whole] of ROWS)
-    it(`${t} ${k}=${key}`, async () => {
-      const r = await db.get(`SELECT j FROM ${t} WHERE ${k} = ?`, key);
-      const got = JSON.stringify(unpackBlob(bytes(r!.j), await dict(t)));
-      if (whole) expect(got).toBe(want);
-      else expect(got.startsWith(want), got.slice(0, want.length + 40)).toBe(true);
-    });
-
+  // Each row decoded as the Python reference decodes it (by the golden taps' ids, not literals) is
+  // conformance/src/regs/blob.release.test.ts — this package may not run Python or name node:zlib.
   it("unpacks every display_frame and display_rule row", async () => {
     for (const t of ["display_frame", "display_rule"]) {
       const d = await dict(t);

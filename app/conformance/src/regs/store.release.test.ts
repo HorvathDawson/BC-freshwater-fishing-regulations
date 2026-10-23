@@ -4,15 +4,27 @@
  * one build with water. Expected values come from the golden's own store (taps.json `meta.store`, the build the port's
  * oracles were cut from), never typed here — so this also proves the release is the build the goldens describe.
  */
+import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
 import { openRegsStore, RegsStoreError } from "@app/data/regs";
-import { liveRelease, openReleaseDir } from "../fixtureRelease";
+import { liveRegsStore, liveRelease, openReleaseDir } from "../fixtureRelease";
 import { taps } from "./oracles";
 
 const LIVE = liveRelease();
 const T = taps();
 const golden = T.meta.store;
+/** The port tooling's province store (regs.sqlite), when it is the build taps.json was cut from (its store_digest). */
+const PROVINCE = ((): DatabaseSync | null => {
+  const p = liveRegsStore();
+  if (!p) return null;
+  const db = new DatabaseSync(p, { readOnly: true });
+  const d = (db.prepare("SELECT v FROM meta WHERE k = 'store_digest'").get() as { v: string } | undefined)?.v;
+  if (d === golden.store_digest) return db;
+  db.close();
+  return null;
+})();
+const REQUIRED = !!process.env.REGS_STORE_REQUIRED && process.env.REGS_STORE_REQUIRED !== "0";
 
 describe("the port's versions are the golden store's", () => {
   it("KNOWN_VERSIONS = taps.json meta.store.layout.versions (+ glossary 5)", () => {
@@ -32,14 +44,19 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
     expect(st.meta.glossaryVersion).toBe(5);
     expect(st.meta.blobCodec).toBe("zdict");
     expect(st.meta.layout).toEqual({ top: JSON.parse(golden.layout).top, sections: JSON.parse(golden.layout).sections });
-    // A vintage pin. The dictionary is `train_zdict` over the display frames: every 9th of the 1,027 frames (id order),
-    // concatenated, its last 32,768 bytes — so its length is the sampled frames' bytes. 29499 → 29459 with T56
-    // (r-2f33edfe8452): the same 1,027 frames, 5 reworded by own-row names ("Upper Little Slocan Lake’s exemption" →
-    // "Little Slocan Lake's Tributaries’s", "Tŝilhqox Biny’s" → "Chilko Lake's tributary streams’s") and ids 1006–1009
-    // holding the same four frames in another order: sampled frame 990 grew 8 bytes, the frame now sampled at 1008 is
-    // 48 shorter (−40). No frame was added or dropped (the boat-rule dedupe moved none).
-    expect(st.dict("display_frame")!.length).toBe(29459);
+    // No length pin: a dictionary's bytes move with every training change (best-of-8 since e0b09590) and every frame it
+    // samples — three rebuilds in a row broke a literal here. Its bytes are the province store's (the next test).
+    const d = st.dict("display_frame")!;
+    expect(d.length > 0 && d.length <= 32_768, `display_frame dictionary is ${d.length} bytes`).toBe(true);   // zlib's window
     expect(st.dict("ladder_verdict")).not.toBeNull();             // the region tables' dictionaries are water's
+  });
+
+  it.skipIf(!PROVINCE && !REQUIRED)("every dictionary is the province store's, byte for byte (regs.sqlite, taps.json's store_digest)", async () => {
+    expect(PROVINCE, `no province store with store_digest ${golden.store_digest} (REGS_STORE_REQUIRED is set)`).not.toBeNull();
+    const st = await openRegsStore(openReleaseDir(LIVE!));
+    const want = PROVINCE!.prepare("SELECT tbl, d FROM zdict ORDER BY tbl").all() as { tbl: string; d: Uint8Array }[];
+    expect(want.map((r) => r.tbl)).toEqual(expect.arrayContaining(["display_frame", "ladder_verdict", "rows_frame", "rule"]));
+    for (const r of want) expect(Buffer.from(st.dict(r.tbl) ?? []).equals(Buffer.from(r.d)), `zdict ${r.tbl}`).toBe(true);
   });
 
   it("every region file and regs-sid are water's build (opened one by one, each checked)", async () => {
@@ -59,10 +76,10 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
     expect(st.refused()).toBeNull();
   });
 
-  it("the Vedder (akey 886, Region 2) opens regs-2 and nothing else", async () => {
+  it("the Vedder (its akey from taps.json vedder_515; Region 2) opens regs-2 and nothing else", async () => {
     const loader = openReleaseDir(LIVE!);
     const st = await openRegsStore(loader);
-    await st.region(886);
+    await st.region(T.states.vedder_515!.akey);
     expect(loader.opened()).toEqual(["water", "regs-2"]);
   });
 

@@ -6,6 +6,7 @@
  * answers_sha256 is the release's (else that half says why it skipped).
  */
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { LadderFrameWire, VerdictWire } from "@app/core";
@@ -17,13 +18,23 @@ const LIVE = liveRelease();
 const STORE = liveRegsStore();
 const T = taps();
 
-/** The Vedder's rows frame ids on May 15 / Jun 15 (taps.json, the Python reference decoder's): rows frames are re-interned
- *  whenever the rows layout moves (rows 30 added `rows[].year`); the ticket's other ids stay literal. */
-const V515 = T.states.vedder_515!.cell.rows, V615 = T.states.vedder_615!.cell.rows;
+/** The Vedder's key and its May 15 / Jun 15 cells (taps.json, the Python reference decoder's over the build the goldens were
+ *  cut from). Every interned id — akey, frame ids, verdict ids, ruleset ids, rule numbers (rix) — moves with a delivery
+ *  (three rebuilds in a row broke the ticket's literals: T63), so ids come from taps.json, rules are named by their durable
+ *  "entry::rule" key, and only facts about the water (names, sections, segments, statuses, counts) are typed here. */
+const V = T.states.vedder_515!, VA = V.akey, C515 = V.cell, C615 = T.states.vedder_615!.cell;
+const V515 = C515.rows, V615 = C615.rows;
+const VEDDER = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers";
 
 describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, () => {
   let st: RegsStore;
-  beforeAll(async () => { st = await openRegsStore(openReleaseDir(LIVE!)); });
+  /** rix of a rule by its durable key */
+  let rix: (key: string) => number;
+  beforeAll(async () => {
+    st = await openRegsStore(openReleaseDir(LIVE!));
+    const by = new Map([...(await st.rules())].map(([i, r]) => [`${r.export.entry_id}::${r.export.rule_id}`, i]));
+    rix = (key) => { const i = by.get(key); if (i === undefined) throw new Error(`no rule ${key}`); return i; };
+  });
 
   it("1. itemOrd from core; item(7670) is the Vedder", async () => {
     expect(await st.itemOrd("gnis:3062")).toBe(7670);
@@ -34,44 +45,49 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
   });
 
   it("2. the Vedder's one part", async () => {
-    expect(await st.parts(7670)).toEqual([{ itemOrd: 7670, partIx: 0, akey: 886, sections: 5, facts: {
+    expect(await st.parts(7670)).toEqual([{ itemOrd: 7670, partIx: 0, akey: VA, sections: 5, facts: {
       order: 0, label: "From the mouth up to the Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge",
       runs: "From the mouth up to the Vedder Crossing Bridge", place: null, hint: "Whole water",
-      km: 12.95, closed_all_year: false, paper_licence: [3368, 3384] } }]);
+      km: 12.95, closed_all_year: false, paper_licence: [rix("zp:salmon_stamp::salmon_stamp.r1"), rix("zp:steelhead::steelhead.r4")] } }]);
   });
 
   it("3–4. keys, segments and moments", async () => {
-    expect(await st.akey(886)).toEqual({ akey: 886, ruleset: 393, licensingSet: 2, steelheadWater: true, steelhead: 1,
-      steelheadRules: true, kind: "stream", tidal: false, seg: 74, mom: null, nseg: 4 });
-    expect(await st.segStarts(74)).toEqual([1, 122, 153, 183]);
-    const k = await st.akey(1229);
-    expect({ seg: k.seg, mom: k.mom, nseg: k.nseg, licensingSet: k.licensingSet, kind: k.kind })
-      .toEqual({ seg: 3, mom: 21, nseg: 2, licensingSet: null, kind: "lake" });
-    expect(await st.segStarts(3)).toEqual([1, 1]);
-    expect(await st.segMoments(21)).toEqual([
+    const k = await st.akey(VA);
+    expect(k).toEqual({ akey: VA, ruleset: k.ruleset, licensingSet: 2, steelheadWater: true, steelhead: 1,
+      steelheadRules: true, kind: "stream", tidal: false, seg: V.seg, mom: null, nseg: 4 });
+    expect((await st.ruleset(k.ruleset)).reach).toContain(rix(`${VEDDER}.r8`));   // the key's ruleset is the Vedder's
+    expect(await st.segStarts(V.seg)).toEqual([1, 122, 153, 183]);
+    const kw = T.states.klwa_1010!;                     // Kalamalka Lake (wbk:-22): a weekday split
+    const k2 = await st.akey(kw.akey);
+    expect({ seg: k2.seg, mom: k2.mom, nseg: k2.nseg, licensingSet: k2.licensingSet, kind: k2.kind })
+      .toEqual({ seg: kw.seg, mom: kw.mom, nseg: 2, licensingSet: null, kind: "lake" });
+    expect(await st.segStarts(kw.seg)).toEqual([1, 1]);
+    expect(await st.segMoments(kw.mom!)).toEqual([
       { weekdays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], hours: null },
       { weekdays: ["Saturday", "Sunday"], hours: null }]);
   });
 
   it("5–6. cells and display frames", async () => {
-    expect(await st.cell(886, 1)).toEqual({ ladder: 1057, rows: V515, gear: 320, licence: 1, display: 64 });
-    expect(await st.cell(886, 2)).toEqual({ ladder: 2457, rows: V615, gear: 146, licence: 1, display: 305 });
-    expect((await st.cells(886)).length).toBe(4);
-    expect(await st.display(886, 64)).toEqual({ status: "own", closing: [], strip: 20 });
-    const d = await st.display(886, 305) as unknown as { status: string; closing: [number, unknown][] };
+    expect(await st.cell(VA, 1)).toEqual(C515);
+    expect(await st.cell(VA, 2)).toEqual(C615);
+    expect((await st.cells(VA)).length).toBe(4);
+    expect(await st.display(VA, C515.display)).toEqual({ status: "own", closing: [], strip: 20 });
+    const d = await st.display(VA, C615.display) as unknown as { status: string; closing: [number, unknown][] };
     expect(d.status).toBe("closed");
-    expect(d.closing[0]![0]).toBe(529);
+    expect(d.closing[0]![0]).toBe(rix(`${VEDDER}.r8`));
   });
 
   it("7. rows(vedder_515's frame), the Vedder on May 15", async () => {
-    const r = await st.rows(886, V515);
+    const r = await st.rows(VA, V515);
     expect(r.spp).toEqual(["RB", "CT", "LMB", "SMB", "BCB", "CRA", "KO", "LW", "MW", "WSG", "ST", "GB", "DV", "LT", "EB"]);
     expect(r.steelhead_line).toBe("known_with_rules");
     expect(r.rows.map((x) => x.kind)).toEqual(["keep", "release", "keep", "keep", "keep", "release", "keep", "closed"]);
-    expect({ pool: r.rows[0]!.pool, daily: r.rows[0]!.daily }).toEqual({ pool: 3091, daily: 2 });
+    expect({ pool: r.rows[0]!.pool, daily: r.rows[0]!.daily }).toEqual({ pool: rix("z2:trout_char_quota::trout_char_quota.r1"), daily: 2 });
     const lmb = r.fish.LMB!.hatchery!;
-    expect({ status: lmb.status, daily: lmb.daily, win: lmb.win }).toEqual({ status: "keep", daily: 20, win: 3083 });
-    expect({ h: r.fish.RB!.hatchery!.win, w: r.fish.RB!.wild!.win }).toEqual({ h: 527, w: 3098 });
+    expect({ status: lmb.status, daily: lmb.daily, win: lmb.win })
+      .toEqual({ status: "keep", daily: 20, win: rix("z2:species_quotas::species_quotas.r1") });
+    expect({ h: r.fish.RB!.hatchery!.win, w: r.fish.RB!.wild!.win })
+      .toEqual({ h: rix(`${VEDDER}.r6`), w: rix("z2:trout_char_quota::trout_char_quota.r6") });
     // rows 30: each row's stored year strip — page v36's own dayStatus for vedder_515 (hydrate.json), read, not derived
     expect(r.rows.map((x) => x.year)).toEqual([
       [["keep", 151], ["closed", 30], ["keep", 184]], [["release", 151], ["closed", 30], ["release", 184]],
@@ -80,41 +96,51 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
       [["keep", 151], ["closed", 30], ["keep", 184]], [["none", 365]]]);
   });
 
-  it("8. ladder(1057): wire verdicts, fish codes from statics.fish", async () => {
-    const l = await st.ladder(886, 1057), fish = (await st.statics()).fish as string[];
-    const region = await st.region(886);
+  it("8. ladder(vedder_515's frame): wire verdicts, fish codes from statics.fish", async () => {
+    const l = await st.ladder(VA, C515.ladder), fish = (await st.statics()).fish as string[];
+    const region = await st.region(VA);
     const verdict = async (id: number) => st.val<VerdictWire>("ladder_verdict",
       (await region.get("SELECT j FROM ladder_verdict WHERE id = ?", id))!.j);
-    expect(l.common).toEqual(await verdict(3973));
-    expect(l.rows[4]![0]).toBe("CT");
+    // the stored frame: [common verdict id, [[fish index, verdict id] | [fish index, none, hatchery, wild], …]] — its ids
+    // are interned per build, so they are read from the frame row, and the decode is held to them
+    const [common, own] = st.val<[number, number[][]]>("ladder_frame",
+      (await region.get("SELECT j FROM ladder_frame WHERE id = ?", C515.ladder))!.j);
+    expect(l.common).toEqual(await verdict(common));
+    expect(l.rows.length).toBe(own.length);
+    for (const [i, r] of own.entries()) {
+      expect(l.rows[i]![0]).toBe(fish[r[0]!]);
+      const ids = r.length === 2 ? [r[1]!, r[1]!, r[1]!] : r.slice(1);
+      expect(l.rows[i]!.slice(1)).toEqual(await Promise.all(ids.map(verdict)));
+    }
     expect(fish[4]).toBe("CT");
-    const v3971 = await verdict(3971);
-    expect(l.rows[4]!.slice(1)).toEqual([v3971, v3971, v3971]);
+    expect(l.rows.map((r) => r[0])).toContain("CT");
     for (const r of l.rows) expect(fish).toContain(r[0]);
   });
 
-  it("9–10. licence(1), gear(320)", async () => {
-    const li = await st.licence(886, 1);
+  it("9–10. licence(vedder_515's frame), gear(vedder_515's frame)", async () => {
+    const li = await st.licence(VA, C515.licence);
     expect(li.profiles.length).toBe(60);
     expect(Object.keys(li.holds)).toContain("holds");
     expect(li.under_16?.length).toBe(3);
-    const g = await st.gear(886, 320) as unknown as { summary: unknown; counts: { bait_possession_kg: { by: number[] } } };
+    const g = await st.gear(VA, C515.gear) as unknown as { summary: unknown; counts: { bait_possession_kg: { by: number[] } } };
     expect(g.summary).toBeDefined();
-    expect(g.counts.bait_possession_kg.by).toEqual([3322, 0]);
+    expect(g.counts.bait_possession_kg.by).toEqual([rix("zp:bait::bait.r6"), 0]);
   });
 
-  it("11–12. rules (all 3,406) and rulesets", async () => {
+  it("11–12. rules (every one: their keys hash to the oracle's rule_ids_sha256) and rulesets", async () => {
     const rules = await st.rules();
-    expect(rules.size).toBe(3406);
-    const r = rules.get(529)!;
+    const keys = [...rules.values()].map((r) => `${r.export.entry_id}::${r.export.rule_id}`);
+    expect([...rules.keys()]).toEqual(keys.map((_, i) => i));
+    expect(createHash("sha256").update(keys.join("\n"), "utf8").digest("hex").slice(0, 16)).toBe(T.meta.store.rule_ids_sha256);
+    const r = rules.get(rix(`${VEDDER}.r8`))!;
     expect({ entry: r.export.entry_id, rule: r.export.rule_id }).toEqual({
       entry: "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4", rule: "chilliwack_vedder_rivers.r8" });
     expect({ kind: r.facts.kind, closure: (r.facts as { closure?: boolean }).closure, book: (r.facts as { book?: unknown }).book })
       .toEqual({ kind: "gate", closure: true, book: [[22, 24]] });
-    expect(rules.get(3092)!.facts.kind).toBe("sizecap");
-    const rs = await st.ruleset(393);
-    expect({ sections: rs.sections, reach: rs.reach.length, trib: rs.trib, has529: rs.reach.includes(529) })
-      .toEqual({ sections: 5, reach: 101, trib: [], has529: true });
+    expect(rules.get(rix("z2:trout_char_quota::trout_char_quota.r2"))!.facts.kind).toBe("sizecap");
+    const rs = await st.ruleset((await st.akey(VA)).ruleset);
+    expect({ sections: rs.sections, reach: rs.reach.length, trib: rs.trib, hasJune: rs.reach.includes(rix(`${VEDDER}.r8`)) })
+      .toEqual({ sections: 5, reach: 101, trib: [], hasJune: true });
   });
 
   it("13. every unnamed handle of taps.json: akey, place and name from regs-sid", async () => {

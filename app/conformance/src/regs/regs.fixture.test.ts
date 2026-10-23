@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
+import { taps } from "./oracles";
 import { casesFromTaps, refusalOf, runRegsConformance } from "./regsConformance";
 
 /** A water of the live release (the Harrison River, ord 1938) that no golden state names: the cut dropped it. */
@@ -27,10 +28,11 @@ describe("the fixture release itself", () => {
     expect(await refusalOf(openRegsStore(openRegsFixture(), { tiles: `${st.meta.sectionHandles}.000000000000` }))).toBeNull();
   });
 
-  it("the Vedder (akey 886, Region 2) opens regs-2 and nothing else", async () => {
+  it("the Vedder (its akey from taps.json vedder_515; Region 2) opens regs-2 and nothing else", async () => {
     const loader = openRegsFixture();
     const st = await openRegsStore(loader);
-    await st.frames(886, await st.cell(886, 1));
+    const vedder = taps().states.vedder_515!.akey;
+    await st.frames(vedder, await st.cell(vedder, 1));
     expect(loader.opened()).toEqual(["water", "regs-2"]);
   });
 
