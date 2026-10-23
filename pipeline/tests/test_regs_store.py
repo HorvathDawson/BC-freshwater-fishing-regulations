@@ -334,8 +334,83 @@ def test_a_small_content_change_does_not_swing_the_packed_table():
 
     assert swing(_one_offset) > 0.05                                 # the fixture is sharp (old rule: +9%)
     assert abs(swing(train_zdict)) < 0.03
-    # and best-of-N never packs worse than the offset it replaced
-    assert _packed(base, train_zdict(base)) <= _packed(base, _one_offset(base))
+    # and the trainer never packs worse than the offset, or the best of the first eight (c7a0437a), it replaced
+    step = -(-sum(map(len, base)) // 32768)
+    first8 = min(_packed(base, b"".join(base[o::step])[-32768:]) for o in range(min(8, step)))
+    assert _packed(base, train_zdict(base)) <= first8 <= _packed(base, _one_offset(base))
+
+
+def _vocab_row(r, vocab: int, size: int) -> bytes:
+    """One text row of exactly `size` bytes over one vocabulary (`vocab` seeds it; two share no word)."""
+    import random
+    words = ["".join(random.Random(vocab * 1000 + k).choice("abcdefghijklmnopqrstuvwxyz") for _ in range(5 + k % 6))
+             for k in range(300)]
+    head = len(dumps({"kind": f"v{vocab}", "text": ""}))
+    text = " ".join(r.choice(words) for _ in range(size // 4))[:size - head]
+    return dumps({"kind": f"v{vocab}", "text": text})
+
+
+def _multi_region_table():
+    """A region-shard table (2026-10-22): its bulk is rows of one vocabulary that no shard (or one) ships, while rows
+    of another ship in all nine. Rows are 3,000 B, so the sample step is 26 rows: an offset under 7 draws the
+    nine-shard rows, the rest draw the bulk. Returns (blobs, {id: regions})."""
+    import random
+    from pipeline.deliver.release.shards import REGIONS
+    r = random.Random(3)
+    blobs, regions = [], {}
+    for i in range(280):
+        if i % 26 < 7:
+            regions[i] = set(REGIONS)
+            blobs.append(_vocab_row(r, 2, 3000))
+        else:
+            if i % 11 == 0:
+                regions[i] = {REGIONS[i % len(REGIONS)]}
+            blobs.append(_vocab_row(r, 1, 3000))
+    assert {len(b) for b in blobs} == {3000} and -(-sum(map(len, blobs)) // 32768) == 26
+    return blobs, regions
+
+
+def _shipped_gz(blobs, regions, zd) -> int:
+    """What the release ships of a table: per region, the packed rows its shard holds, gzip'd."""
+    import gzip
+    from pipeline.deliver.release.shards import REGIONS
+    return sum(len(gzip.compress(b"".join(pack(b, "zdict", zd) for i, b in enumerate(blobs) if r in regions.get(i, ())),
+                                 9, mtime=0)) for r in REGIONS)
+
+
+def test_a_shard_tables_dictionary_is_chosen_for_what_ships():
+    """The dictionary is scored by Σ shards × packed size, so a table whose bulk ships nowhere gets the dictionary
+    of the rows nine shards carry — never a larger shipped size than the whole-table choice."""
+    blobs, regions = _multi_region_table()
+    w = [len(regions.get(i, ())) for i in range(len(blobs))]
+    whole, chosen = train_zdict(blobs), train_zdict(blobs, w)
+    assert _shipped_gz(blobs, regions, chosen) <= _shipped_gz(blobs, regions, whole)
+    assert _shipped_gz(blobs, regions, chosen) < 0.95 * _shipped_gz(blobs, regions, whole)  # the fixture is sharp (-17%)
+    # all ones is the whole-table rule; a dictionary is the same bytes from the same table and weights
+    assert train_zdict(blobs, [1] * len(blobs)) == whole
+    assert train_zdict(list(blobs), list(w)) == chosen
+    with pytest.raises(StoreError, match="weights"):
+        train_zdict(blobs, w[:-1])
+
+
+def test_the_stores_shipped_weights_are_the_release_cut(synthetic):
+    """`shards.row_regions` (what the store's trainer weighs) holds a row in region r exactly when the release's
+    `shard_rows` puts it in regs-r."""
+    from pipeline.deliver.release import shards as SH
+    p, raw, A, sub = synthetic
+    s = Store(p)
+    try:
+        regs = SH.akey_regions(s.con)
+        cells = s.con.execute(f"SELECT akey, {', '.join(SH.TOP)} FROM cell").fetchall()
+        blobs = {t: dict(s.con.execute(f"SELECT id, j FROM {t}")) for t in SH.SHARD_TABLES if t != "cell"}
+        rr = SH.row_regions(regs, cells, lambda t, i: s.val(t, blobs[t][i]))
+    finally:
+        s.close()
+    assert any(rr.values())
+    for r in SH.REGIONS:
+        cut = SH.shard_rows(p, [a for a, rs in regs.items() if r in rs])
+        for t, ids in rr.items():
+            assert {i for i, rs in ids.items() if r in rs} == cut[t], (r, t)
 
 
 # --------------------------------------------------------------------------------------------

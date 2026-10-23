@@ -6,7 +6,7 @@ import hashlib
 import json
 import sqlite3
 import zlib
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, Optional, Sequence
 
 from pipeline.deliver.store import FORMAT  # noqa: F401  (re-exported)
 
@@ -91,30 +91,54 @@ def unpack(b: bytes, zd: Optional[bytes]) -> bytes:
     return bytes(b)
 
 
-#: Sample offsets `train_zdict` tries (best-of-N). Measured on the live set 2026-10-22: N=8 packs the
-#: release to 13,844,550 B gz where offset 0 alone gave 14,027,828 (over the 14,000,000 gate); N=32
-#: was 3 KB better and 6x slower.
+#: `train_zdict`: the first ZDICT_TRIES sample offsets (the best-of-8 rule of c7a0437a) and the
+#: ZDICT_PICK best of a prescore over up to ZDICT_SCAN offsets (every ZDICT_SUB-th shipped blob) are
+#: the finalists, scored on the whole table. Measured 2026-10-22 on rows_row (13.7 MB, 420 offsets):
+#: the first 8 offsets' best packed it to 1,044,024 B, the finalists to 864,442 — regs-3 had gone
+#: 319,894 -> 450,423 B gz on the first 8 alone. The prescore's top 1-2 held the whole table's best
+#: (old and new answers); PICK 8 found nothing PICK 4 missed and cost 9 s more.
 ZDICT_TRIES = 8
+ZDICT_SCAN = 512
+ZDICT_SUB = 16
+ZDICT_PICK = 4
 
 
-def train_zdict(blobs: Iterable[bytes]) -> bytes:
-    """A deterministic deflate dictionary for one table: every `step`-th blob (in id order; `step` the
-    table's bytes over `ZDICT_MAX`), concatenated, its last `ZDICT_MAX` bytes (zlib reaches the end of
-    a dictionary most cheaply) — tried at the first `ZDICT_TRIES` offsets, keeping the one that packs
-    the table smallest (ties: the lowest offset). One offset alone made the dictionary a handful of
-    whole rows that a 0.6% content change could swap for others, swinging the release by ±100 KB."""
+def train_zdict(blobs: Iterable[bytes], weights: Optional[Sequence[int]] = None) -> bytes:
+    """A deterministic deflate dictionary for one table. A candidate is every `step`-th blob (in id
+    order; `step` the table's bytes over `ZDICT_MAX`) from one offset, concatenated, its last
+    `ZDICT_MAX` bytes (zlib reaches the end of a dictionary most cheaply). The winner is the finalist
+    (`ZDICT_TRIES`, `ZDICT_PICK` above) whose table SHIPS smallest: Σ weight × packed size, `weights[i]` the copies of
+    blob i the release ships (a region-shard row is in every shard whose akeys reach it,
+    `release.shards.row_regions`; 0 = in none, costs nothing). None: every blob ships once (the tables
+    `water` carries whole). Ties: the lowest offset. The first offsets are always finalists, so the
+    winner never ships more than the best-of-8 rule it replaced.
+
+    One offset alone made the dictionary a handful of whole rows that a 0.6% content change could swap
+    for others, swinging the release by ±100 KB; eight offsets still left rows_row at the mercy of which
+    six rows they drew (+130 KB on regs-3 for +14 KB of content, 2026-10-22). The best of hundreds of
+    candidates is both smaller and steadier than the best of eight."""
     blobs = list(blobs)
     if not blobs:
         return b""
+    weights = [1] * len(blobs) if weights is None else list(weights)
+    if len(weights) != len(blobs) or any(type(w) is not int or w < 0 for w in weights):
+        raise StoreError("store: dictionary weights are not one non-negative integer per blob")
     total = sum(len(b) for b in blobs)
     step = max(1, -(-total // ZDICT_MAX))          # ~ZDICT_MAX bytes, spread over the table
-    best: Optional[tuple] = None
-    for off in range(min(ZDICT_TRIES, step)):
-        zd = b"".join(blobs[off::step])[-ZDICT_MAX:]
-        size = sum(len(pack(b, "zdict", zd)) for b in blobs)
-        if best is None or size < best[0]:
-            best = (size, zd)
-    return best[1]
+    live = [(b, w) for b, w in zip(blobs, weights) if w]
+
+    def cand(off: int) -> bytes:
+        return b"".join(blobs[off::step])[-ZDICT_MAX:]
+
+    def cost(zd: bytes, rows) -> int:
+        return sum(w * len(pack(b, "zdict", zd)) for b, w in rows)
+
+    finalists = set(range(min(ZDICT_TRIES, step)))
+    scan = [off for off in range(0, step, -(-step // ZDICT_SCAN)) if off not in finalists]
+    if scan:
+        sub = live[::ZDICT_SUB]
+        finalists |= {off for _, off in sorted((cost(cand(off), sub), off) for off in scan)[:ZDICT_PICK]}
+    return cand(min((cost(cand(off), live), off) for off in sorted(finalists))[1])
 
 
 # --------------------------------------------------------------------------------------------

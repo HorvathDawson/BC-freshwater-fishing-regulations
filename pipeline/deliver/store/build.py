@@ -487,14 +487,20 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     pending["ruleset"] = _sets(sub["rulesets"], rix, "rule set")
     pending["lset"] = _sets(sub["licensing_sets"], lix, "licensing set")
 
-    # ---- every blob through the codec (a dictionary per table under 'zdict')
+    # ---- every blob through the codec (a dictionary per table under 'zdict', chosen for what ships:
+    # a region-shard table's rows weigh the shards that carry them)
+    shipped = _shipped(con, pending) if codec == "zdict" else {}
     for tbl, rows in pending.items():
         col = BLOB_COLUMNS[tbl]
         names = [c[1] for c in con.execute(f"PRAGMA table_info({tbl})")]
         at = names.index(col)
         zd = None
         if codec == "zdict":
-            zd = train_zdict([r[at] for r in rows if r[at] is not None])
+            kept = [r for r in rows if r[at] is not None]
+            w = None
+            if tbl in shipped:
+                w = [len(shipped[tbl].get(r[0], ())) for r in kept]
+            zd = train_zdict([r[at] for r in kept], w)
             con.execute("INSERT INTO zdict VALUES (?, ?)", (tbl, zd))
         packed = [tuple(pack(v, codec, zd) if j == at and v is not None else v
                         for j, v in enumerate(r)) for r in rows]
@@ -525,6 +531,16 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     meta["counts"] = dumps_s(counts)
     con.executemany("INSERT INTO meta VALUES (?, ?)", sorted(meta.items()))
     return counts
+
+
+def _shipped(con, pending: Dict[str, List[tuple]]) -> Dict[str, Dict[int, set]]:
+    """{region-shard table: {id: the regions whose shard ships the row}} — the release's own cut
+    (`release.shards.row_regions`), read from the tables already written (place, section_akey,
+    section_place, cell) and the still-raw frames."""
+    from pipeline.deliver.release import shards as SH
+    raw = {t: {r[0]: r[1] for r in pending[t]} for t in SH.SHARD_TABLES if t in pending}
+    cells = con.execute(f"SELECT akey, {', '.join(SH.TOP)} FROM cell ORDER BY akey, s").fetchall()
+    return SH.row_regions(SH.akey_regions(con), cells, lambda t, i: json.loads(raw[t][i]))
 
 
 def _sets(sets: dict, ix: Dict[str, int], what: str) -> list:

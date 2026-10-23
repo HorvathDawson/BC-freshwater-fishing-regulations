@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections import defaultdict
-from typing import Dict, Iterable, List, Set
+from typing import Callable, Dict, Iterable, List, Set
 
 BLOCK_BITS, BLOCK = 12, 4096
 REGIONS = ("1", "2", "3", "4", "5", "6", "7a", "7b", "8")
@@ -60,6 +60,29 @@ def frame_refs(name: str, frame) -> Dict[str, List[int]]:
         h, d, *u = frame
         return {"licence_hold": [h], "licence_doc": [d], "licence_u16": list(u)}
     return {}
+
+
+def row_regions(akey_regs: Dict[int, Set[str]], cells: Iterable[tuple], frame: Callable[[str, int], object]
+                ) -> Dict[str, Dict[int, Set[str]]]:
+    """{table: {id: the regions whose shard holds that row}} for every blob table a shard holds — what `shard_rows`
+    cuts, for all regions at once. `cells` are the `cell` rows as (akey, ladder, rows, gear, licence, display);
+    `frame(table, id)` is a row's decoded value. The store's dictionary trainer weighs a row by how many shards ship
+    it (a row in no shard ships nowhere), so the dictionary is chosen for what ships, not for the whole table."""
+    out: Dict[str, Dict[int, Set[str]]] = {t: defaultdict(set) for t in SHARD_TABLES if t != "cell"}
+    for akey, *tops in cells:
+        rs = akey_regs.get(akey)
+        if rs:
+            for tbl, i in zip(TOP.values(), tops):
+                out[tbl][i] |= rs
+    for tbl in ("ladder_frame", "rows_frame", "licence_frame"):        # the frames that reach other rows
+        for i, rs in sorted(out[tbl].items()):
+            for sub, refs in frame_refs(tbl, frame(tbl, i)).items():
+                for r in refs:
+                    out[sub][r] |= rs
+    for i, rs in sorted(out["licence_doc"].items()):
+        for r in frame("licence_doc", i):
+            out["licence_answer"][r] |= rs
+    return {t: dict(v) for t, v in out.items()}
 
 
 def shard_rows(store_path, akeys: Iterable[int]) -> Dict[str, Set[int]]:
