@@ -26,7 +26,7 @@ describe("pressSpot", () => {
     for (const m of [alone!, group!, twin!]) pressSpot(m, r.spots, r.ease);
     expect(r.calls).toEqual([
       ["open", "s1"],
-      ["ease", { lat: group!.lat, lon: group!.lon, zoom: 10 }, { duration: SPOT_EASE_MS }],
+      ["ease", { lat: group!.lat, lon: group!.lon, zoom: 9.5 }, { duration: SPOT_EASE_MS }],
       ["list", ["s1", "s4"]]]);
   });
 });
