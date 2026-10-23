@@ -1136,3 +1136,64 @@ button.btn:disabled {
 .verify-row.awaiting-build { flex-wrap: wrap; margin-bottom: 4px; }
 code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-border); border-radius: 3px; user-select: all; }
 .pending-build { padding: 6px 10px; background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* ---- T134: the review screen — evidence first, the checklist, the verdict bar ---- */
+.mode-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
+.mode-chip.review { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+.mode-chip.fix { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); font-weight: 600; }
+.review-progress { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tier-chip { font-size: 11px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--border); background: #eef0f3; white-space: nowrap; }
+.tier-chip.tier-S0, .tier-chip.tier-P1 { border-color: var(--danger-border); color: var(--danger-text); }
+.tier-chip.tier-Z { border-color: var(--accent); color: var(--accent); }
+
+.evidence { margin-bottom: 10px; }
+.evidence-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.evidence-head h2 { margin: 4px 0; font-size: 18px; }
+.evidence-sub { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--muted); margin-bottom: 6px; }
+/* the legible crop: shown at its rendered size (2.6 px/pt), never stretched; narrower panes scale it down */
+.evidence-crop { display: block; max-width: 100%; height: auto; border: 1px solid var(--border); background: #fff; margin: 4px 0; }
+.evidence-actions { display: flex; gap: 10px; align-items: center; margin: 4px 0; }
+.coverage { white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 12px; line-height: 1.6; padding: 6px 8px; border: 1px solid var(--border); background: #fff; border-radius: 4px; margin-top: 6px; }
+.coverage .cov-quoted { background: var(--ok-bg); }
+.coverage .cov-unquoted { background: var(--danger-bg); color: var(--danger-text); text-decoration: underline wavy var(--danger-border); }
+.coverage-sum { font-size: 11px; margin-top: 2px; }
+
+.entry-review { margin: 8px 0 14px; }
+.checklist { border: 1px solid var(--border); border-radius: 4px; background: var(--panel); }
+.checklist-head { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.check-row { display: flex; gap: 8px; align-items: center; padding: 5px 10px; cursor: pointer; border-left: 3px solid transparent; }
+.check-row.active { background: #eef4ff; border-left-color: var(--accent); }
+.check-row.held { opacity: .55; cursor: default; }
+.check-row kbd, .answer-link kbd { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 0 5px; border: 1px solid var(--border); border-radius: 3px; background: #f7f7f9; }
+.check-q { flex: 1; }
+.check-a { display: inline-flex; gap: 4px; }
+.ans { min-width: 26px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 3px; background: #fff; cursor: pointer; font-weight: 600; }
+.ans.on.ans-y { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+.ans.on.ans-n { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.ans.on.ans-q { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+.check-wrong { padding: 4px 10px; }
+.check-note { display: block; width: calc(100% - 20px); margin: 4px 10px 8px; font-size: 12px; }
+.answer-link { margin: 6px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+/* the verdict bar is ALWAYS VISIBLE: it sticks to the bottom of the scrolling content column */
+.verdict-bar { position: sticky; bottom: -14px; z-index: 6; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px; margin: 8px -18px -14px; background: var(--panel); border-top: 2px solid var(--accent); }
+.verdict-answers { display: inline-flex; gap: 4px; }
+.va { font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--border); }
+.va-y { background: var(--ok-bg); color: var(--ok-text); }
+.va-n { background: var(--danger-bg); color: var(--danger-text); }
+.va-q { background: var(--warn-bg); color: var(--warn-text); }
+.verdict-bar .reviewer { width: 120px; font-size: 12px; padding: 3px 6px; }
+.verdict-bar .keys { margin-left: auto; font-size: 11px; }
+.zone-rules { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 6px; background: var(--panel); }
+.zone-rule { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; padding: 4px 10px; cursor: pointer; border-left: 3px solid transparent; }
+.zone-rule.active { background: #eef4ff; border-left-color: var(--accent); }
+.zone-rule-label { flex: 1; min-width: 200px; }
+.zone-impact { color: var(--muted); font-size: 12px; }
+.scope-read { font-size: 12px; display: grid; gap: 3px; }
+.scope-read .k { color: var(--muted); margin-right: 6px; }
+.pending-list { flex-basis: 100%; }
+.pending-list ul { margin: 4px 0; max-height: 240px; overflow-y: auto; }
+/* `m`: the map large */
+.detail-cols.map-big .detail-map { flex: 0 0 70%; }
+
+/* review mode: the evidence column gets more room (the crop reads closer to its rendered 2.6 px/pt) */
+.review-mode .detail-map { flex-basis: 34%; }

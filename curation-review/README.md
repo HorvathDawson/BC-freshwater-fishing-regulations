@@ -10,12 +10,52 @@ answer an angler gets — to correct what is wrong, and to mark each entry verif
 ## Run it
 
 ```bash
-bash curation-review/run.sh          # backend :8787 + frontend :5173, Ctrl-C stops both
+bash curation-review/run.sh          # REVIEW MODE: backend :8787 + frontend :5173, Ctrl-C stops both
+bash curation-review/run.sh --fix    # FIX MODE (the owner): the editors as well
 ```
 
 Then open **http://127.0.0.1:5173**. Local only — no LLM calls, no credits. Both servers bind
 127.0.0.1 only (Vite `host: "127.0.0.1"`, uvicorn `--host 127.0.0.1`), and the backend's CORS admits only the
-Vite origin: the tool is not reachable from another machine.
+Vite origin: the tool is not reachable from another machine. `PORT` / `CURATION_VITE_PORT` move
+the two ports (a second copy beside the owner's).
+
+**Two modes (T134).** REVIEW MODE, the default, serves reads and ONE write: a mark
+(`POST /api/marks`). The editors' routes are not registered at all, so nothing a reviewer clicks
+can change the catalogue or splits.json. FIX MODE (`--fix`, which sets `CURATION_FIX=1`) is the
+owner's: entry save and the live draft check, split add / move / delete / rename, and the
+pending-build panel's list of what waits. A fix in fix mode puts the entry (or split) in
+**awaiting build** with the exact commands to run (the tool never runs them); when the rebuild
+lands the screen picks it up with no restart, a new split is queued in tier S0 to confirm, the
+marks whose binding moved read "binding moved", and every other mark stands.
+
+### The review screen (T134)
+
+Evidence first, then the checklist, with the verdict bar always visible:
+
+- **Evidence.** The heading is the RAW name as printed ("ADAM RIVER (except Eve River)"; the
+  app's display name beside it). A water row is cropped from the PDF at 2.6 px/pt, its water column
+  above its regulation column, so it reads at ~17 px text (the extractor's crop was the whole 530 pt
+  row at 24 %); "show page" marks the row on its printed page. The boxes come from the
+  `row_boxes.json` sidecar (`python -m pipeline.regs.extraction.row_boxes`, a one-off, no credits,
+  ~2 min); without it the pane says so with that command. A zone entry's passage is FOUND BY TEXT
+  on its chapter page and the share of its words found is shown. The **coverage strip** is the
+  row's text with every stretch no rule or record quotes in red.
+- **Checklist** (PLAN §2): T text, R rules, P place, A answer, each y / n / ?. Any n is "wrong" and
+  asks for a problem category and a note; any ? is "unsure"; all y is "verified"; "defer" needs a
+  note. The server decides the verdict (`marks.verdict_from_answers`). While the entry awaits its
+  build, P and A wait. A zone entry is marked rule by rule, each rule with its impact ("binds N
+  sections in region R").
+- **The answer** is the app's own page, opened by its start link
+  (`<CURATION_APP_URL>?regs=<item>&part=<i>&date=<day>`, default `http://127.0.0.1:39218/`) in a
+  new tab — the part where the entry's rules hold, its own water first.
+- **Split points (tier S0)**: "work → split points" lists the cut-points still to verify, L grade
+  first, each as a card with its note, grade and the map; one check, P.
+- **Keys**: `t r p a` pick a check, `y n ?` answer it, Enter records the mark and moves on,
+  `j` / `k` next / previous, `u` the next unsure entry, `o` opens the app page, `m` the map large.
+  The URL hash is the open entry (`#r1:adam_river_except_eve_river@1-10`, `#split:<id>`): a reload
+  resumes in place, and a marked row stays in the list.
+- **Progress and ETA** per tier (S0 P1 Z P2 P3 P4 sweep, `pipeline.regs.review.tiers`) and
+  overall; the ETA is the reviewer's own median time over their last 20 entries in this browser.
 
 The build it serves is `GENERATED.build()` (`data/generated/atlas/full`); `reuse.py` reads it, so
 repointing the app at another build is a config edit, not a code change.
@@ -41,8 +81,8 @@ make the call the model couldn't.
 The queue's **order** is `book (page)` by default: region, then printed page, the region chapter's
 entries before that page's table rows. Each entry has a bar at the top:
 
-- The bar shows the marks in force on the entry (read only) and ← / → to step through the list.
-  Marking is `POST /api/marks`; the screen that makes marks (T/R/P/A keys) is phase 3 (T134).
+- The bar shows the marks in force on the entry and ← / → to step through the list; the
+  checklist below it makes them (`POST /api/marks`, T134 — see "The review screen").
 - **Marks (T97)** live in the append-only store `data/curated/regulations/review/marks.jsonl`
   (`CURATED.regulations.review.marks`; `CURATION_MARKS` overrides it), never inside an entry. Each
   mark names its reviewer, date, the book's sha256 and the printed pages, and holds the target's

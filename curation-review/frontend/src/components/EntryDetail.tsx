@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   Boundary, CheckResult, Entry, EntryDetail as EntryDetailT, EntryReaches, FieldError,
-  ItemSearchResult, LicensingRecord, Rule,
+  ItemSearchResult, LicensingRecord, Mode, ReviewView, Rule,
 } from "../types";
 import { api, type EntryRefused } from "../api";
 import { describeDiagnostic, reachIdentities } from "../format";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
+import { Evidence } from "./Evidence";
+import { EntryReview } from "./EntryReview";
+import { AddSplit } from "./AddSplit";
 import { ExtentEditor } from "./ExtentEditor";
 import { AttachItem } from "./AttachItem";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
@@ -24,6 +27,10 @@ interface Props {
   reloadKey?: number;
   /** where this entry sits in the queue being worked through, and how to move */
   nav?: QueueNav;
+  /** review mode (marks only) or the owner's fix mode (the editors) — T134 */
+  mode: Mode;
+  /** a mark was recorded; `final` when the entry is done */
+  onMarked: (final: boolean) => void;
 }
 
 // Curated-split state vs the built graph, for the colour-coded chip badge.
@@ -59,9 +66,23 @@ function stored(e: Entry): Entry {
   };
 }
 
-export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }: Props) {
+export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, mode, onMarked }: Props) {
   const vocab = useVocab();
-  const { item, unused_curated_splits, source_image } = detail;
+  const fix = mode.fix;
+  // T134: what the checklist is answered from — evidence, coverage, tier, impact, the app link
+  const [view, setView] = useState<ReviewView | null>(null);
+  const [viewDate, setViewDate] = useState<string | undefined>(undefined);
+  const [viewError, setViewError] = useState("");
+  const [mapBig, setMapBig] = useState(false);
+  useEffect(() => {
+    let live = true;
+    setViewError("");
+    api.review(detail.entry.entry_id, viewDate)
+      .then((v) => { if (live) setView(v); })
+      .catch((e) => { if (live) { setView(null); setViewError(String(e)); } });
+    return () => { live = false; };
+  }, [detail.entry, viewDate, reloadKey]);
+  const { item, unused_curated_splits } = detail;
   const related = detail.related_entries ?? [];
   const boundaries = item?.boundaries ?? [];
 
@@ -85,20 +106,16 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
   const [reaches, setReaches] = useState<EntryReaches | null>(null); // resolved reach per rule/extent
   const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
   useEffect(() => { api.synopsisPages().then(setPdfPages).catch(() => {}); }, []);
-  // the whole printed page — open by default where there is no row crop (a region chapter)
-  const [showPage, setShowPage] = useState<number | null>(null);
-  useEffect(() => {
-    setShowPage(!detail.source_image && (detail.entry.source_pages ?? []).length
-      ? (detail.entry.source_pages ?? [])[0] : null);
-  }, [detail.entry.entry_id, detail.source_image]);
   const rules = entry.rules ?? [];
   const licensing = entry.licensing ?? [];
 
   // THE LIVE CHECK. Every edit is sent to /api/check (debounced): the model validates the draft
   // and returns each error addressed to its field, plus the label every rule and record will
-  // show. Nothing is written — that is Save's job, which runs the same check again.
+  // show. Nothing is written — that is Save's job, which runs the same check again. FIX MODE
+  // ONLY: review mode edits nothing, and its server does not serve /api/check.
   const seq = useRef(0);
   useEffect(() => {
+    if (!fix) return;
     const n = ++seq.current;
     const ctl = new AbortController();
     const t = setTimeout(() => {
@@ -107,7 +124,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
         .catch(() => { /* aborted or offline: keep the last answer */ });
     }, 300);
     return () => { clearTimeout(t); ctl.abort(); };
-  }, [entry, detail.region]);
+  }, [entry, detail.region, fix]);
   const liveErrors = checked?.errors ?? [];
   const errors = saveErrors.length ? saveErrors : liveErrors;
 
@@ -234,17 +251,27 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
 
   return (
     <ErrorsCtx.Provider value={errors}>
-    <div className="detail">
-      <div className="detail-cols">
+    <div className={`detail${fix ? " fix-mode" : " review-mode"}`}>
+      <div className={`detail-cols${mapBig ? " map-big" : ""}`}>
         <div className="detail-content">
       <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage} />
       {/* ERRORS WITH NO FIELD PATH come first (T96): the gate's entry-level refusals — a lift
           outside what it lifts, a lake cut into parts — name no field, and below the identity
           block they were missed while the save button refused. */}
       <div className="entry-errors"><ErrorsAt path="" /></div>
+      {/* EVIDENCE FIRST, THEN THE CHECKLIST (T134): the raw name, the legible crop, the page with
+          it marked and the coverage strip; then T/R/P/A with the verdict bar always visible. */}
+      {view ? (
+        <>
+          <Evidence view={view} pdfPages={pdfPages} />
+          <EntryReview detail={detail} view={view} mode={mode} onMarked={onMarked}
+            onToggleMap={() => setMapBig((x) => !x)} onDate={setViewDate} />
+        </>
+      ) : (
+        <div className="section dim">{viewError || "loading the evidence…"}</div>
+      )}
       {/* Identity header */}
       <div className="entry-head">
-        <h2>{entry.display_name || entry.name}</h2>
         <div className="sub">
           <span>region {entry.region || detail.region}</span>
           {entry.entry_id.includes("@") && (
@@ -331,25 +358,31 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
 
       {/* matched — the items this entry covers. AUTHORITATIVE: empty binds nothing. */}
       <div className="section">
-        <F path="matched" deep hint="the registry items this row regulates, primary first — empty means it binds nothing">
+        {/* T134: a zone entry binds by its AREA, carried on its rules — "empty means it binds
+            nothing" is a water row's hint, and on a zone entry it misread every regional rule */}
+        <F path="matched" deep hint={detail.kind === "zone"
+          ? "a regional rule names no water: it binds by the area on its rules"
+          : "the registry items this row regulates, primary first — empty means it binds nothing"}>
           <span className="tag-input">
             {matched.map((id) => (
               <span className="tag" key={id}>
                 {itemNames[id] ?? id} <span className="dim">{id}</span>
-                <button type="button" aria-label={`remove ${id}`}
-                  onClick={() => edit((e) => ({ ...e, matched: (e.matched ?? []).filter((x) => x !== id) }))}>×</button>
+                {fix && (
+                  <button type="button" aria-label={`remove ${id}`}
+                    onClick={() => edit((e) => ({ ...e, matched: (e.matched ?? []).filter((x) => x !== id) }))}>×</button>
+                )}
               </span>
             ))}
             {matched.length === 0 && <span className="dim">none</span>}
           </span>
         </F>
-        {detail.match && matched.length === 0 && (
+        {fix && detail.match && matched.length === 0 && (
           <div className="dim">
             live matcher suggests: <code>{detail.match.item_id ?? "nothing"}</code> ({detail.match.status}
             {detail.match.reason ? ` — ${detail.match.reason}` : ""}) — attach it below if it is right
           </div>
         )}
-        {(isNoRegistry || detail.kind !== "zone") && (
+        {fix && (isNoRegistry || detail.kind !== "zone") && (
           <AttachItem matched={matched} onAttach={attach} />
         )}
       </div>
@@ -375,48 +408,44 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
         </div>
       )}
 
-      {/* Source synopsis row-crop — always shown so the curator reads the original alongside the
-          parse — and now WHICH PAGE it was printed on, so a curator who wants the surrounding
-          context can open the book rather than hunting for the row. `entry.source_pages` is a
-          list because seven MU 6-1 lakes are printed twice. */}
-      {(source_image || (entry.source_pages ?? []).length > 0) && (
-        <div className={`section source-image${showPage != null ? " with-page" : ""}`}>
-          <div className="dim" style={{ marginBottom: 4 }}>
-            {detail.kind === "zone" ? "regional / provincial chapter" : "source row (synopsis)"}
-            {(entry.source_pages ?? []).length > 0 && (
-              <> · {(entry.source_pages ?? []).length > 1 ? "pages" : "page"}{" "}
-                {(entry.source_pages ?? []).map((n: number, i: number) => (
-                  <span key={n}>
-                    {i > 0 && ", "}
-                    <a href={`${SYNOPSIS_PDF}#page=${pdfPages[String(n)] ?? n}`} target="_blank" rel="noreferrer"
-                      title={pdfPages[String(n)] ? `printed page ${n} = PDF page ${pdfPages[String(n)]}` : undefined}>{n}</a>
-                    {" "}
-                    <button type="button" className="btn small" data-testid={`show-page-${n}`}
-                      onClick={() => setShowPage((cur) => (cur === n ? null : n))}>
-                      {showPage === n ? "hide page" : "show page"}
-                    </button>
-                  </span>
-                ))}
-              </>
-            )}
-          </div>
-          {source_image && (
-            <a href={`/api/row-image/${source_image}`} target="_blank" rel="noreferrer" title="open full size">
-              <img src={`/api/row-image/${source_image}`} alt="source regulation row crop" />
-            </a>
-          )}
-          {showPage != null && (
-            <div className="page-image">
-              <a href={`/api/synopsis/page/${showPage}.png`} target="_blank" rel="noreferrer" title="open full size">
-                <img src={`/api/synopsis/page/${showPage}.png`} alt={`synopsis printed page ${showPage}`} />
-              </a>
-            </div>
-          )}
+      {/* The source row crop and the page are the EVIDENCE panel's now (T134, above): legible,
+          with the row or passage marked on its page. Every other printed page of the entry (seven
+          MU 6-1 lakes are printed twice) is linked here. */}
+      {(entry.source_pages ?? []).length > 1 && (
+        <div className="section dim">
+          also printed on{" "}
+          {(entry.source_pages ?? []).map((n: number, i: number) => (
+            <span key={n}>
+              {i > 0 && ", "}
+              <a href={`${SYNOPSIS_PDF}#page=${pdfPages[String(n)] ?? n}`} target="_blank" rel="noreferrer">p.{n}</a>
+              {" "}(<a href={`/api/synopsis/page/${n}.png`} target="_blank" rel="noreferrer">page image</a>)
+            </span>
+          ))}
         </div>
       )}
 
       {/* The entry's own fields: its reach (which CLIPS every rule, and is never a rule's reach),
-          whether it includes tributaries, and the scope note. */}
+          whether it includes tributaries, and the scope note. Review mode reads them; fix mode
+          edits them. */}
+      {!fix && (
+        <div className="section">
+          <h3>Entry scope (clips every rule)</h3>
+          <div className="scope-read" data-testid="scope-read">
+            <div><span className="k">extents</span> <code>{JSON.stringify(entry.extents ?? [])}</code></div>
+            <div><span className="k">includes_tributaries</span>{" "}
+              {entry.includes_tributaries == null ? <span className="dim">not stated by the row</span>
+                : String(entry.includes_tributaries)}</div>
+            {entry.scope_note && <div><span className="k">scope_note</span> {entry.scope_note}</div>}
+            {(entry.see ?? []).length > 0 && <div><span className="k">see</span> <code>{JSON.stringify(entry.see)}</code></div>}
+            {entry.anadromous_rainbow && <div><span className="k">anadromous_rainbow</span> true</div>}
+            {tribFlagMismatch && (
+              <div className="trib-warning">⚠ The printed symbol says <strong>[Includes Tributaries]</strong> but
+                <code> includes_tributaries</code> is false.</div>
+            )}
+          </div>
+        </div>
+      )}
+      {fix && (
       <div className="section">
         <h3>Entry scope (clips every rule)</h3>
         <F path="extents" hint="the stretch this row is about — it clips every rule; each rule still states its own reach">
@@ -456,13 +485,17 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
           </Check>
         </F>
       </div>
+      )}
 
       {/* The printed passage, then every rule and every licensing record as the app will say it
-          — the GENERATED label, recomputed by the backend on every edit — with its editor. */}
-      <div className="section">
-        <h3>Original regs</h3>
-        <div className="verbatim" data-testid="regs-verbatim">{entry.regs_verbatim}</div>
-      </div>
+          — the GENERATED label, recomputed by the backend on every edit — with its editor. In
+          review mode the row is the coverage strip above (the same text, quoted words marked). */}
+      {fix && (
+        <div className="section">
+          <h3>Original regs</h3>
+          <div className="verbatim" data-testid="regs-verbatim">{entry.regs_verbatim}</div>
+        </div>
+      )}
 
       <div className="section">
         <h3>Rules ({rules.length})</h3>
@@ -501,8 +534,10 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                   ) : reaches ? (
                     <span className="badge warn" title="this rule's extent does not resolve to any geometry">no reach</span>
                   ) : null}
-                  <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
-                    title="remove this rule" onClick={() => removeRule(idx)}>remove rule</button>
+                  {fix && (
+                    <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
+                      title="remove this rule" onClick={() => removeRule(idx)}>remove rule</button>
+                  )}
                 </div>
                 <div className="label" data-testid={`label-${path}`}
                   title="GENERATED from the fields below by catalogue.label — what the app will say">
@@ -540,11 +575,13 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                   );
                 })()}
                 <ErrorsAt path={path} />
-                <button type="button" className="btn small edit-toggle"
-                  onClick={() => setOpenRule((o) => ({ ...o, [rule.rule_id]: !(o[rule.rule_id] ?? bad) }))}>
-                  {(openRule[rule.rule_id] ?? bad) ? "▾ close editor" : "▸ edit rule"}
-                </button>
-                {(openRule[rule.rule_id] ?? bad) && (
+                {fix && (
+                  <button type="button" className="btn small edit-toggle"
+                    onClick={() => setOpenRule((o) => ({ ...o, [rule.rule_id]: !(o[rule.rule_id] ?? bad) }))}>
+                    {(openRule[rule.rule_id] ?? bad) ? "▾ close editor" : "▸ edit rule"}
+                  </button>
+                )}
+                {fix && (openRule[rule.rule_id] ?? bad) && (
                   <RuleEditor rule={rule} path={path} onChange={(r) => patchRule(idx, r)}
                     siblings={rules.map((r) => r.rule_id)} boundaries={boundaries}
                     itemNames={itemNames} matched={matched} />
@@ -552,9 +589,11 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
               </div>
             );
           })}
-          <button className="btn" style={{ padding: "3px 10px", marginTop: 6 }} onClick={addRule}>
-            + add rule
-          </button>
+          {fix && (
+            <button className="btn" style={{ padding: "3px 10px", marginTop: 6 }} onClick={addRule}>
+              + add rule
+            </button>
+          )}
         </div>
       </div>
 
@@ -575,8 +614,10 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                 <div className="rule-head">
                   <span className="badge">{rec.kind}</span>
                   <span className="rule-id">{rec.id}</span>
-                  <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
-                    onClick={() => removeRecord(idx)}>remove record</button>
+                  {fix && (
+                    <button className="btn" style={{ marginLeft: "auto", padding: "1px 8px" }}
+                      onClick={() => removeRecord(idx)}>remove record</button>
+                  )}
                 </div>
                 <div className="label" data-testid={`label-${path}`}
                   title="GENERATED by catalogue.licensing_label — what the app will say">
@@ -587,24 +628,28 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                   <div className="review-flag"><strong>⚠ review_reason</strong> {String(rec.review_reason)}</div>
                 )}
                 <ErrorsAt path={path} />
-                <button type="button" className="btn small edit-toggle"
-                  onClick={() => setOpenRule((o) => ({ ...o, [key]: !(o[key] ?? bad) }))}>
-                  {(openRule[key] ?? bad) ? "▾ close editor" : "▸ edit record"}
-                </button>
-                {(openRule[key] ?? bad) && (
+                {fix && (
+                  <button type="button" className="btn small edit-toggle"
+                    onClick={() => setOpenRule((o) => ({ ...o, [key]: !(o[key] ?? bad) }))}>
+                    {(openRule[key] ?? bad) ? "▾ close editor" : "▸ edit record"}
+                  </button>
+                )}
+                {fix && (openRule[key] ?? bad) && (
                   <LicensingEditor rec={rec} onChange={(x) => patchRecord(idx, x)}
                     ctx={{ path, rules: rules.map((r) => r.rule_id), boundaries, itemNames, matched }} />
                 )}
               </div>
             );
           })}
-          <div className="add-record">
-            <select value="" aria-label="add licensing record"
-              onChange={(e) => { if (e.target.value) addRecord(e.target.value); }}>
-              <option value="">+ add licensing record…</option>
-              {vocab.licensing_kinds.map((k) => <option key={k} value={k}>{k}</option>)}
-            </select>
-          </div>
+          {fix && (
+            <div className="add-record">
+              <select value="" aria-label="add licensing record"
+                onChange={(e) => { if (e.target.value) addRecord(e.target.value); }}>
+                <option value="">+ add licensing record…</option>
+                {vocab.licensing_kinds.map((k) => <option key={k} value={k}>{k}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -684,10 +729,22 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                 {b.in_graph && !b.in_splits && b.curated && " — in graph but removed from splits.json (will vanish on rebuild)"}
               </div>
               {!b.curated && <div className="dim">auto boundary (lake/outlet/headwaters) — not a curated split</div>}
-              {b.curated && <SplitEditor splitId={b.id} onChanged={onSaved} onPreviewPoint={setPendingPoint} />}
+              {fix && b.curated && <SplitEditor splitId={b.id} onChanged={onSaved} onPreviewPoint={setPendingPoint} />}
+              {!fix && b.curated && b.live?.review?.note && (
+                <div className={"split-review" + (b.live.review.grade ? " proposal" : "")}>
+                  {b.live.review.grade && <div className="split-review-grade">auto-proposal, grade <strong>{b.live.review.grade}</strong></div>}
+                  <div className="split-review-note">{b.live.review.note}</div>
+                </div>
+              )}
             </div>
           );
         })()}
+        {/* FIX MODE: add a split mid-review (owner 2026-10-23). It waits in the pending-build
+            panel with the commands; once the owner's atlas build lands it is queued in S0. */}
+        {fix && item && (
+          <AddSplit itemId={item.id} entryName={entry.name} onAdded={onSaved}
+            onPreviewPoint={setPendingPoint} />
+        )}
       </div>
 
       {/* Errors / toast — every error, with the field it is addressed to. The same errors also
@@ -709,7 +766,8 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
         </details>
       )}
 
-      {/* Actions */}
+      {/* Actions — fix mode only: review mode writes nothing but a mark */}
+      {fix && (
       <div className="actions">
         <button className="btn" disabled={saving || !dirty} onClick={() => doSave()}>
           Save edit
@@ -725,6 +783,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
         )}
         {toast && <span className="toast">{toast}</span>}
       </div>
+      )}
         </div>
         <div className="detail-map">
           <MapPanel

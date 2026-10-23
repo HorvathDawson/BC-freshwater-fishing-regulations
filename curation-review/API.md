@@ -8,6 +8,12 @@ out of parsing credits.
 TRUTH. Curator edits are written straight back to them through `pipeline.regs.parsing.io.write_entryfile`
 (see `README.md`). There is no confirm/lock: a catalogue entry has no such field.
 
+**Two modes (T134).** REVIEW MODE (the default) registers the reads and ONE write,
+`POST /api/marks`. FIX MODE (`run.sh --fix`, `CURATION_FIX=1`) also registers the editors:
+`POST /api/check`, `PUT /api/entries/{id}`, `POST /api/splits`, `PUT` / `DELETE /api/splits/{id}`,
+`POST /api/splits/{id}/rename`. In review mode those answer 404 / 405 from the router.
+`GET /api/mode` → `{fix, app_url, checks: {entry, rule, split}, problems: {T, R, P, A: [..]}}`.
+
 ---
 
 ## Queue
@@ -158,9 +164,14 @@ file order). Each row also carries `page` (first printed page), `pointer` (a "Se
 rules), `verify`, `verify_note` and `mark_reasons` (the stale reasons). `GET /api/regions` adds
 `by_verify` counts.
 
+`tier` filters on the review tier (`S0` is the split cards'; `P1 | Z | P2 | P3 | P4 | sweep`,
+`pipeline.regs.review.tiers.entry_tier`); each row carries `tier`.
+
 ### POST /api/marks  (T97)
-Body `{scope: entry | rule | split, target, rule_id?, verdict: verified | wrong | unsure | deferred,
+Body `{scope: entry | rule | split, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
 answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?}` (a split answers `P` only).
+**T134:** with no `verdict` the answers decide it (`marks.verdict_from_answers`: any n → wrong, else
+any ? → unsure, all y → verified; `422` while a check is unanswered); `deferred` is only ever sent.
 The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
 (`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
@@ -198,6 +209,28 @@ rule marks, the same shape).
 ### GET /api/marks/splits
 → `{split_id: {status, verdict, reasons}}` for every split in splits.json; a split nobody has
 confirmed is `unmarked` (a split added mid-review queues itself).
+
+### The review screen (T134)
+- `GET /api/entries/{id}/review?date=` → `{entry_id, name (the RAW name — the heading),
+  display_name, kind, region, tier, risks, evidence, coverage, vintage, answer, date, rules}`.
+  `evidence`: `{kind: row | passage | none | missing, printed, pdf_page, boxes, found, total, why,
+  crop_url, page_url, row_image}` — a water row's box from `row_boxes.json`
+  (`CURATION_ROW_BOXES`; `missing` with the command when there is none), a zone passage found by
+  text on its printed page (`found` / `total` words). `coverage`: `{segments: [{text, kind: quoted |
+  unquoted | gap}], unquoted_chars, missing: [record ids whose quote is not in the row]}`.
+  `answer` / each zone rule's `answer`: `{url, item, part, sections, via}` — the app's start link
+  (`CURATION_APP_URL`, default `http://127.0.0.1:39218/`), or `{url: null, why}` while awaiting
+  build. Each zone rule carries `impact` ("binds N sections in region R", the bundle's count).
+- `GET /api/entries/{id}/evidence/crop.png` — the row (water column above regulation column) or
+  passage at 2.6 px/pt; `…/evidence/page.png` — the printed page with it marked. `404` naming the
+  command when the sidecar is missing.
+- `GET /api/review/splits?all=` → the split cards (tier S0 unless `all`): `[{split_id, label, kind,
+  waterbody, grade, note, s0, item_id, status, verdict, reasons, vintage}]`, to-do first, grade L
+  first.
+- `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall}` (done = a
+  mark in force: verified, wrong, unsure, deferred).
+- `GET /api/items/{item_id}/split-groups` → the splits.json groups on the item (fix mode's add-split
+  form).
 
 ## What an angler is told (the live bundle)
 
@@ -341,8 +374,16 @@ the as-built geometry. No endpoint starts a process.
 and the auto-proposal grade it opens with (`[auto-proposal L]`), null when the cut is not an open
 auto-proposal (`reuse.split_review`). Each bindable boundary's `live` carries the same `review`.
 
+FIX MODE ONLY for the writes below (T134).
+
+### POST /api/splits  (T134: add a split mid-review)
+Body `{split: {id, label?, kind, anchor, note?, _note?, applies_to?}, waterbody?: <a group's
+name> | new_waterbody?: {name, applies_to}}` → `{ok, errors, split, waterbody}`. Validated by the
+pipeline's split loader; a duplicate id is refused. The note is stamped "Verify: added in fix mode
+<date> …" (tier S0). `GET /api/build` then lists the split with the atlas commands.
+
 ### PUT /api/splits/{split_id}
-Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`.
+Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`. A new anchor MOVES the split.
 
 ### DELETE /api/splits/{split_id}
 → `{ok, errors}` · 404 if absent.

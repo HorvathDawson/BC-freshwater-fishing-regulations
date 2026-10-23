@@ -461,6 +461,8 @@ export interface QueueRow {
   /** T133: is this entry built (`Vintage.state`), and if not why */
   vintage?: Vintage["state"];
   vintage_reasons?: string[];
+  /** T134: the review tier (PLAN §3) */
+  tier?: Tier;
 }
 
 export interface Boundary {
@@ -718,4 +720,101 @@ export interface GeoJSON {
 export interface SplitReview {
   note: string;
   grade: "L" | "M" | "H" | null;
+}
+
+// ---- The review screen (T134, PLAN §4 phase 3) ------------------------------------------------
+
+export type Check = "T" | "R" | "P" | "A";
+export type CheckAnswer = "y" | "n" | "?";
+export type Tier = "S0" | "P1" | "Z" | "P2" | "P3" | "P4" | "sweep";
+
+/** GET /api/mode — review (marks only) or the owner's fix mode. */
+export interface Mode {
+  fix: boolean;
+  /** the app the answer is checked in (its start link) */
+  app_url: string;
+  /** the checks each scope answers (`marks.CHECKS`) */
+  checks: Record<"entry" | "rule" | "split", Check[]>;
+  /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
+  problems: Record<Check, string[]>;
+}
+
+/** Where an entry is printed and how to see it (`evidence.locate`). */
+export interface Evidence {
+  kind: "row" | "passage" | "none" | "missing";
+  printed?: number | null;
+  pdf_page?: number;
+  boxes?: number[][];
+  /** a passage: the words of the entry's text found on the page / asked */
+  found?: number | null;
+  total?: number | null;
+  /** none / missing: why, with the command that fixes it when there is one */
+  why?: string;
+  crop_url?: string;
+  page_url?: string;
+  /** the extractor's own full-width crop, offered beside the legible one */
+  row_image?: string | null;
+}
+
+export interface CoverageSegment { text: string; kind: "quoted" | "unquoted" | "gap" }
+
+/** The app's own page for the answer: a start link (owner Q34 default: a new tab). */
+export interface AnswerLink {
+  url: string | null;
+  why?: string;
+  item?: string;
+  part?: number;
+  sections?: number;
+  via?: string;
+}
+
+/** GET /api/entries/{id}/review — what the T/R/P/A checklist is answered from. */
+export interface ReviewView {
+  entry_id: string;
+  /** THE RAW NAME — the heading ("ADAM RIVER (except Eve River)") */
+  name: string;
+  display_name?: string | null;
+  kind: EntryKind;
+  region: string;
+  tier: Tier;
+  risks: string[];
+  evidence: Evidence;
+  coverage: { segments: CoverageSegment[]; unquoted_chars: number; missing: string[] };
+  vintage: Vintage;
+  answer: AnswerLink;
+  date: string;
+  /** a zone entry's rules carry their impact line and their own answer link */
+  rules: { rule_id: string; impact?: string; answer?: AnswerLink }[];
+}
+
+/** GET /api/review/splits — a split card (tier S0). */
+export interface SplitCard {
+  split_id: string;
+  label: string | null;
+  kind: string | null;
+  waterbody: string | null;
+  grade: "L" | "M" | "H" | null;
+  note: string;
+  s0: boolean;
+  item_id: string | null;
+  status: VerifyStatus;
+  verdict: string | null;
+  reasons: string[];
+  vintage: Vintage | null;
+}
+
+export interface TierProgress { tier: Tier | "all"; total: number; done: number; stale: number; todo: number }
+export interface Progress { tiers: TierProgress[]; overall: TierProgress }
+
+/** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
+ *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
+export interface MarkPost {
+  scope: "entry" | "rule" | "split";
+  target: string;
+  rule_id?: string | null;
+  verdict?: "deferred";
+  answers: Partial<Record<Check, CheckAnswer>>;
+  problem?: string | null;
+  note?: string;
+  reviewer: string;
 }

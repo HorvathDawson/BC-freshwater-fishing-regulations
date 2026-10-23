@@ -27,6 +27,12 @@ import type {
   QueueOrder,
   VerifyStatus,
   MarkView,
+  MarkPost,
+  Mode,
+  ReviewView,
+  SplitCard,
+  Progress,
+  Tier,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -85,8 +91,9 @@ export const api = {
   regions: () => getJSON<RegionSummary[]>("/api/regions"),
 
   entries: (region?: string, status?: Status | "", kind?: EntryKind | "",
-            verify?: VerifyStatus | "todo" | "", order?: QueueOrder) => {
+            verify?: VerifyStatus | "todo" | "", order?: QueueOrder, tier?: Tier | "") => {
     const p = new URLSearchParams();
+    if (tier) p.set("tier", tier);
     if (region) p.set("region", region);
     if (status) p.set("status", status);
     if (kind) p.set("kind", kind);
@@ -210,10 +217,60 @@ export const api = {
     return await res.json();
   },
 
-  // --- review marks (T97: the append-only store; marking itself is the phase-3 review screen) ---
+  // --- review marks (T97: the append-only store; T134: the review screen makes them) ---
   /** the marks in force, each with its status and stale reasons now */
   marks: (target?: string) =>
     getJSON<MarkView[]>(`/api/marks${target ? `?target=${encodeURIComponent(target)}` : ""}`),
+
+  /** THE ONE WRITE OF REVIEW MODE: a mark. Throws an EntryRefused with the server's reasons. */
+  postMark: async (mark: MarkPost): Promise<MarkView> => {
+    const res = await fetch("/api/marks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(mark),
+    });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      const err = new Error(`mark refused (${res.status})`) as EntryRefused;
+      err.fieldErrors = asFieldErrors(payload?.detail ?? payload?.errors);
+      throw err;
+    }
+    return (await res.json()) as MarkView;
+  },
+
+  /** review or fix mode, the app's address, the checks and the problem categories */
+  mode: () => getJSON<Mode>("/api/mode"),
+  /** what the checklist is answered from: evidence, coverage, tier, impact, the app link */
+  review: (entryId: string, date?: string) =>
+    getJSON<ReviewView>(`/api/entries/${encodeURIComponent(entryId)}/review` +
+      (date ? `?date=${encodeURIComponent(date)}` : "")),
+  /** the split cards (tier S0 unless `all`) */
+  splitCards: (all = false) => getJSON<SplitCard[]>(`/api/review/splits${all ? "?all=true" : ""}`),
+  progress: () => getJSON<Progress>("/api/review/progress"),
+  /** fix mode: the splits.json groups on an item — where a new split may go */
+  splitGroups: (itemId: string) =>
+    getJSON<{ name: string; applies_to: Record<string, unknown>; n_splits: number }[]>(
+      `/api/items/${encodeURIComponent(itemId)}/split-groups`),
+  /** fix mode: ADD a split (it then waits in the pending-build panel for the owner's atlas build) */
+  addSplit: async (body: {
+    split: Record<string, unknown>; waterbody?: string | null;
+    new_waterbody?: { name: string; applies_to: Record<string, unknown> } | null;
+  }): Promise<SaveResult> => {
+    const res = await fetch("/api/splits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const p = await res.json().catch(() => ({}));
+      const d = (p && (p.detail ?? p.errors)) as unknown;
+      const err = new Error("add split refused") as ValidationError;
+      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? `${res.status}`)];
+      err.status = res.status;
+      throw err;
+    }
+    return (await res.json()) as SaveResult;
+  },
 
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),

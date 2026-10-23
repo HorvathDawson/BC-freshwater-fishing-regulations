@@ -672,3 +672,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     section count, the bundle's (`fingerprint.rule_section_counts`) against the builder's now
     (`vintage.bundle_matches`). The review app re-reads the digests by file stamp: a rebuild clears it with no restart.
     `check_corpus` and the build stage keys are unchanged.
+66. **Review mode writes one thing: a mark** (T134). The review app's editors' routes are registered only in fix mode
+    (`run.sh --fix`, `CURATION_FIX=1`, `app.register_fix_routes`); `test_curation_review_safety` pins review mode to
+    exactly `POST /api/marks`. Never add a write route to review mode. The verdict is `marks.verdict_from_answers`, the
+    tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.

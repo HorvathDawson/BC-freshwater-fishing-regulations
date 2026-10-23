@@ -6,11 +6,13 @@ import react from "@vitejs/plugin-react";
 // backend (a headless check runs one against a temp copy of the catalogue on another port).
 declare const process: { env: Record<string, string | undefined> };  // no @types/node here
 const API = process.env.CURATION_API ?? "http://127.0.0.1:8787";
+// `CURATION_VITE_PORT` (run.sh passes it to the backend too, whose CORS admits exactly this origin)
+const PORT = Number(process.env.CURATION_VITE_PORT ?? 5173);
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
+    port: PORT,
     // LOOPBACK ONLY, IPv4 (T96). `true` bound every interface, so anyone on the network could
     // reach the editor; `false` (Vite's `localhost`) resolves to ::1 on macOS and refuses the
     // `http://127.0.0.1:5173` run.sh prints. The backend's CORS admits exactly this origin.
