@@ -210,25 +210,25 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
       .toMatchInlineSnapshot(`
-      {
-        "glenn_501 desktop 1×": "title 48 place 32",
-        "glenn_501 desktop 2×": "title 48 place 65",
-        "glenn_501 phone 1×": "title 48 place 32",
-        "glenn_501 phone 2×": "title 62 place 65",
-        "klwa_1010 desktop 1×": "title 48 place 32",
-        "klwa_1010 desktop 2×": "title 48 place 65",
-        "klwa_1010 phone 1×": "title 48 place 32",
-        "klwa_1010 phone 2×": "title 156 place 65",
-        "vedder_1010 desktop 1×": "title 48 place 32",
-        "vedder_1010 desktop 2×": "title 48 place 65",
-        "vedder_1010 phone 1×": "title 48 place 32",
-        "vedder_1010 phone 2×": "title 78 place 65",
-        "vedder_615 desktop 1×": "title 48 place 32",
-        "vedder_615 desktop 2×": "title 48 place 65",
-        "vedder_615 phone 1×": "title 48 place 32",
-        "vedder_615 phone 2×": "title 78 place 65",
-      }
-    `);
+        {
+          "glenn_501 desktop 1×": "title 48 place 32",
+          "glenn_501 desktop 2×": "title 48 place 65",
+          "glenn_501 phone 1×": "title 48 place 32",
+          "glenn_501 phone 2×": "title 62 place 65",
+          "klwa_1010 desktop 1×": "title 48 place 32",
+          "klwa_1010 desktop 2×": "title 48 place 65",
+          "klwa_1010 phone 1×": "title 48 place 32",
+          "klwa_1010 phone 2×": "title 117 place 65",
+          "vedder_1010 desktop 1×": "title 48 place 32",
+          "vedder_1010 desktop 2×": "title 48 place 65",
+          "vedder_1010 phone 1×": "title 48 place 32",
+          "vedder_1010 phone 2×": "title 62 place 65",
+          "vedder_615 desktop 1×": "title 48 place 32",
+          "vedder_615 desktop 2×": "title 48 place 65",
+          "vedder_615 phone 1×": "title 48 place 32",
+          "vedder_615 phone 2×": "title 62 place 65",
+        }
+      `);
   }, 180_000);
 
   it("MUTATION: the measure's three rules each catch their planted fault (a clamp that cuts, two lines drawn over each other, a line past the edge)", () => {

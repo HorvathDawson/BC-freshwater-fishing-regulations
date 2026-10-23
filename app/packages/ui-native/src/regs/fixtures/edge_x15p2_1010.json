@@ -159,11 +159,6 @@
   "mode": null
  },
  "header": {
-  "action": {
-   "aria": "Other parts — now 2 stretches",
-   "kind": "parts",
-   "label": "Parts"
-  },
   "date": "Oct 10",
   "dateAria": "Change date, now Oct 10",
   "dayWord": "Today",

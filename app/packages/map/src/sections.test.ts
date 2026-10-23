@@ -56,9 +56,12 @@ describe("the layers a section is read from", () => {
     expect(log).toEqual([
       'set atlas/lake number:311274 {"status":"open"}',
       'set basins/basin string:08MF-a {"standing":2}',
+      // (T151) `part`: a water's Map view's part, cleared with the rest
       "remove atlas/stream number:7 selected",
+      "remove atlas/stream number:7 part",
       "remove atlas/stream number:7 water",
       "remove atlas/stream number:8 selected",
+      "remove atlas/stream number:8 part",
       "remove atlas/stream number:8 water",
     ]);
   });
