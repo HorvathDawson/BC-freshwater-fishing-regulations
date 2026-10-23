@@ -84,6 +84,9 @@ READER = {"effective_rules", "effective_rules_bound"}
 READER_ORACLES = {
     ("pipeline/deliver/status_index.py", "status_by_reader"),
     ("pipeline/tools/export_ui_rules.py", "closures_combine_problems"),
+    # T99 / RULINGS Z1: the base-plus-deltas check asks the reader twice (base alone, everything bound) to
+    # attribute every difference to a row — a checker of the answers, never a consumer of them
+    ("pipeline/tools/base_deltas.py", "answers"),
 }
 
 #: Call sites a later phase removes (phase in the value). Only shrinks.
