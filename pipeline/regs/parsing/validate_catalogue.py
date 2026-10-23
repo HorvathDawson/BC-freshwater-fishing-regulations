@@ -35,6 +35,7 @@ from pydantic import ValidationError
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, squash, RuleType, label, \
     licensing_label
+from pipeline.regs.parsing.catalogue_parts.gear_omission import gear_omissions
 
 # `squash` is the ONE normaliser and lives in catalogue.py, beside the model validator that
 # also needs it — two copies drifted once and cost a whole parse.
@@ -438,6 +439,11 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
                     f"{rule.rule_id}: takes {rule.take} inside a parent of {parent.take} — a "
                     f"sub-limit cannot exceed what it sits in. If it genuinely does, it REPLACES "
                     f"the parent for its species and is not a sub-limit."))
+
+    # PHRASE → FIELD, the other direction (T92). Every check above starts from a stored field, so
+    # a conjunct that was never written ("single barbless hook" stored as `barb` alone — eight
+    # lakes, a barbless treble legal per the data) had nothing to check.
+    out += gear_omissions(entry)
     return out
 
 
