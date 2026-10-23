@@ -12,18 +12,18 @@
 import { Text, View } from "react-native";
 import type { AccessNotice } from "@app/core";
 import { TYPE } from "../type";
-import { GUTTER, type Palette } from "../theme";
+import { GUTTER, RADIUS, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
 
 export function AccessNoticeBlock({ notice, palette, onMap }: { notice: AccessNotice; palette: Palette; onMap?: () => void }) {
   if (notice.tier === "no_access") {
     const colour = palette.waterStatus.no_access;
     return (
-      <View testID="access-banner" style={{ marginTop: 10, marginBottom: 4, marginHorizontal: GUTTER, borderRadius: 6,
+      <View testID="access-banner" style={{ marginTop: 10, marginBottom: 4, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
                                             backgroundColor: palette.noAccessBand, borderLeftWidth: 6, borderLeftColor: colour,
                                             paddingTop: 12, paddingBottom: onMap ? 2 : 12, paddingLeft: 12, paddingRight: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View testID="access-swatch" style={{ width: 22, height: 5, borderRadius: 2.5, backgroundColor: colour }} />
+          <View testID="access-swatch" style={{ width: 22, height: 5, borderRadius: RADIUS.pill, backgroundColor: colour }} />
           <Text testID="access-title" accessibilityRole="header" style={[TYPE.tier, { color: palette.ink, flex: 1 }]}>
             {notice.title}
           </Text>
