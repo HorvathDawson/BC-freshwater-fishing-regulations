@@ -21,6 +21,7 @@ from functools import lru_cache
 from typing import FrozenSet, List
 
 from pipeline.common.curated import GENERATED
+from pipeline.common import entry_id as EID
 
 BUNDLE = str(GENERATED.bundle / "bundle.sqlite")
 
@@ -144,10 +145,8 @@ class Source:
         return f"{wrote} · {where}"
 
 
-def region_words(regions) -> str:
-    r = [x.upper() for x in sorted(regions, key=lambda x: (int(re.sub(r"\D", "", x) or 0), x))]
-    return ("Region " + r[0]) if len(r) == 1 else \
-        "Regions " + ", ".join(r[:-1]) + " and " + r[-1]
+#: the one region wording (T109): "Region 7A", "Regions 3 and 8"
+region_words = EID.region_words
 
 
 def _area_words(area_id: str) -> str:
@@ -176,19 +175,19 @@ def source_of(rule: dict) -> Source:
     (`extent_text`, failing that `unresolved_locators`, failing that `undrawn_part`); one naming
     no place at all is refused — what it binds to is unknown."""
     entry = str(rule["entry"])
-    prefix = entry.split(":", 1)[0]
+    prefix = EID.head_of(entry)
     if "entry_extents" in rule:
         raise ValueError(f"source_of {rid(rule)}: `entry_extents` — a rule's scope is its own "
                          f"extents; nothing inherits the entry's")
     if prefix == "zp":
         auth, region = Authority.province, ""
     else:
-        auth, region = Authority.region, prefix[1:] if prefix[:1] in ("z", "r") else ""
+        auth, region = Authority.region, EID.region_of(entry) or ""
     if str(rule.get("authority") or "") == "superior":
         auth = Authority.superior
     place = str(rule.get("entry_name") or "")
     exts = list(rule.get("extents") or [])
-    if not prefix.startswith("z"):
+    if not EID.is_table(prefix):
         # AN AREA ROW OF A WATER TABLE (SP-3, 2026-09-29): "CRESTON VALLEY WILDLIFE MANAGEMENT
         # AREA (CVWMA) WATERS — Bass daily quota = unlimited … EXCEPT Duck Lake (see separate
         # entry)", Bowron Lake Park waters, the Liard River watershed. Every extent is `within` a
@@ -634,10 +633,7 @@ def _rules_of(path: str) -> dict:
 
 def base_region(entry_id: str) -> str | None:
     """`z3:…` -> "3", `z7a:…` -> "7a"; `None` for the province's table (`zp:`) and every row."""
-    head = str(entry_id).split(":", 1)[0]
-    if head.startswith("z") and head != "zp":
-        return head[1:]
-    return None
+    return EID.zone_region(entry_id)
 
 
 def _count(x: dict) -> float:
@@ -1026,7 +1022,7 @@ class _Ask:
         waters, Bowron Lake Park waters, the Liard River watershed). It ranks as an area, so a
         named water's own row beats it by place; against the ZONE it is still a row of the water
         tables, and the water-vs-zone rulings below read it as one (`water_side`)."""
-        return str(k[0]).startswith("r") and self.every[k]["_rank"] == 2
+        return EID.is_water_row(str(k[0])) and self.every[k]["_rank"] == 2
 
     def water_side(self, k) -> bool:
         """Written for this water (or reaching it by the walk), or a water table's area row."""
@@ -1112,7 +1108,7 @@ class _Ask:
         the water row's (`r…`) are the SAME STATEMENT (`rules.same_statement`), the row's speaks,
         as a water's number replaces the zone's (`water_and_zone`)."""
         from pipeline.deliver.bundle.rules import same_statement, yields_to_release
-        return (str(o[0]).startswith("r") and base_region(k[0]) is not None
+        return (EID.is_water_row(str(o[0])) and base_region(k[0]) is not None
                 and self.water_side(o) and self.water_side(k)
                 and bool(yields_to_release(self.every[o])) and bool(yields_to_release(self.every[k]))
                 and same_statement(self.every[o], self.every[k]))
@@ -1471,7 +1467,7 @@ def _on_its_water(x: dict) -> bool:
 
 
 def _own_water_closure(s: _Ask, k) -> bool:
-    return WATER_CLOSURE_DOMINANT and str(k[0]).startswith("r") and s.place(k) == 0 \
+    return WATER_CLOSURE_DOMINANT and EID.is_water_row(str(k[0])) and s.place(k) == 0 \
         and not s.row_area(k)
 
 
@@ -1856,11 +1852,11 @@ def requirements_in_force(db, section: int, on) -> dict:
     # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RU-12, 2026-10-04):
     # Region 4's "Classified Waters Licence … many East Kootenay rivers (map p.33)" is Region 4's
     # wording and held on the Dean (Region 5) and the Seymour (Region 1) beside the province's.
-    desig_regions = {_entry_region(d["entry_id"]) for d in desig}
+    desig_regions = {EID.region_of(d["entry_id"]) for d in desig}
 
     def own_region(eid: str) -> bool:
         r = base_region(eid)
-        return r is None or _book_region(r) in desig_regions
+        return r is None or EID.book_region(r) in desig_regions
     placed = {(e, r) for e, r in db.execute(
         "SELECT entry_id, req_id FROM requirement_section WHERE sid = ?", (section,))}
     tidal = db.execute("SELECT 1 FROM tidal WHERE sid = ?", (section,)).fetchone() is not None
@@ -1996,16 +1992,3 @@ def as_bound(r: dict, requirements: dict) -> dict:
     return r
 
 
-def _entry_region(entry_id: str) -> str | None:
-    """`r6:…` / `z4:…` -> "6" / "4"; `zp:` and anything else -> None."""
-    head = str(entry_id).split(":", 1)[0]
-    return head[1:] if head[:1] in ("r", "z") and head != "zp" and head[1:] else None
-
-
-def _book_region(region: str) -> str:
-    """A zone table's region as the ROWS name it: the book prints Region 7's rows under one
-    "Region 7" (`r7:`) while its zone tables are 7A and 7B (`z7a:`, `z7b:`) — so "7a" -> "7".
-    Without it a 7A/7B `on_designation` restatement could never hold on a Region 7 designation
-    (review F7; none exists today, only z3 and z4)."""
-    return region[:-1] if len(region) > 1 and region[-1] in "ab" and region[:-1].isdigit() \
-        else region

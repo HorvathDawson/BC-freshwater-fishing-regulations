@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Callable, Dict, Iterable, List, Mapping, Optional
 
 from pipeline.deliver import types as T
+from pipeline.common import entry_id as EID
 
 SPEAKS = T.code(T.RuleState.speaks)
 
@@ -48,4 +49,4 @@ def beyond_base(rule: dict, via: str) -> bool:
     rules those tables write about named waters; a row reaching a tributary by the walk is the
     row's rule there too (`via` is accepted for symmetry and unused). A key is `own` when any
     bound rule is (`key_meta.own`: the status index's floor, the water's "own regulations")."""
-    return not str(rule["entry"]).startswith("z")
+    return not EID.is_table(str(rule["entry"]))

@@ -186,6 +186,7 @@ def test_the_check_reads_every_start_day_and_every_fish(tmp_path):
 def test_a_zone_7a_or_7b_table_is_region_7_to_the_rows():
     """Review F7: rows print Region 7 as `r7:`; its zone tables are `z7a:`/`z7b:`. A 7A/7B
     `on_designation` restatement must compare as Region 7, or it never holds."""
-    assert R._book_region(R.base_region("z7a:classified")) == R._entry_region("r7:x@7-1") == "7"
-    assert R._book_region(R.base_region("z7b:classified")) == "7"
-    assert R._book_region(R.base_region("z4:classified")) == "4"
+    from pipeline.common import entry_id as EID
+    assert EID.book_region(R.base_region("z7a:classified")) == EID.region_of("r7:x@7-1") == "7"
+    assert EID.book_region(R.base_region("z7b:classified")) == "7"
+    assert EID.book_region(R.base_region("z4:classified")) == "4"

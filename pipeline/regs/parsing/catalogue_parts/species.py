@@ -13,6 +13,7 @@ from typing import List, Optional
 from .vocab import RuleType
 from .text import squash
 from .dates import _days
+from pipeline.common import entry_id as EID
 
 
 #: THE BOOK'S SPECIES — AND NOTHING ELSE (user ruling 2026-09-26). Page 80 ("Freshwater game fish
@@ -269,7 +270,7 @@ def steelhead_scope_problems(entry_id: str, rules) -> List[str]:
     its own ("1 over 50 cm (quota includes hatchery steelhead)", p.49): a hatchery steelhead IS one
     of the 1 — no exclusion. A line that prints the word steelhead names them in and never excludes
     them. Only a zone table's (`z…`) keeping size lines over the trout group are checked."""
-    if not entry_id.startswith("z"):
+    if not EID.is_table(entry_id):
         return []
     own_st = [q for q in rules if list(q.species) == ["ST"] and q.lengths
               and any((b.take or 0) > 0 for b in q.lengths) or (list(q.species) == ["ST"]

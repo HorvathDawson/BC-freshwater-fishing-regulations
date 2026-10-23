@@ -38,6 +38,7 @@ from pipeline.deliver.answers.display import bands as rule_bands
 from pipeline.deliver.answers.display import kind_of
 from pipeline.deliver.bundle import read
 from pipeline.deliver.bundle.rules import catch_and_release, closure_grade
+from pipeline.common import entry_id as EID
 
 INF = math.inf
 
@@ -526,7 +527,7 @@ def nearer_than(P: "Part", a: R, b: R) -> bool:
         return (a.entry_id, b.entry_id) in pairs
     if a.rank != b.rank:
         return a.rank < b.rank
-    return a.entry_id.startswith("r") and b.entry_id.startswith("z")
+    return EID.is_water_row(a.entry_id) and EID.is_table(b.entry_id)
 
 
 def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
@@ -546,7 +547,7 @@ def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
                     continue
                 if r.k == "pool" and restates(r, v["win"]):
                     out.append({"r": k, "of": v["win"].key, "says": restated_words(r)})
-                elif r.entry_id != v["win"].entry_id and (r.entry_id.startswith("r") or r.via == "trib") \
+                elif r.entry_id != v["win"].entry_id and (EID.is_water_row(r.entry_id) or r.via == "trib") \
                         and same_statement(r, v["win"]) and not nearer_than(P, r, v["win"]):
                     # a water's row, or a table's line reaching the stream by the walk ("Williston Lake and
                     # its tributaries") — two region tables' identical lines are RU-8's, not this
@@ -2488,7 +2489,7 @@ def no_answer_gate(out: dict, ladder_value: dict, by_id: Dict[str, dict], where:
                 continue
             lad = (ladder_value.get(S) or {}).get(o) or {}
             took = sorted(r for r, (st, *_rest) in lad.items()
-                          if st in ("speaks", "displaced") and r.startswith("z")
+                          if st in ("speaks", "displaced") and EID.is_table(r)
                           and (by_id.get(r) or {}).get("type") == "retention_limit")
             if took:
                 raise AnswersError(f"rows: {S} ({o}) has no decided answer at {where}, but the "

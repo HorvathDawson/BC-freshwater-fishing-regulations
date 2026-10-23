@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS as MAINSTEM
+from pipeline.common import entry_id as EID
 
 #: Why a frontier pair is not a miss, in the order they are asked. Each is a stop the walk makes ON
 #: PURPOSE, named after the switch or ruling that makes it:
@@ -262,8 +263,8 @@ def frontier(t: Topo, b: Bound) -> List[Miss]:
 
 def _region_of_entry(entry_id: str) -> str:
     """`r7:…` → "7"; the bundle's regions are "1".."8", "7a", "7b"."""
-    m = re.match(r"r(\d)", entry_id)
-    return m.group(1) if m else ""
+    p = EID.parse(entry_id)
+    return (p.book_region or "") if p.kind == EID.WATER else ""
 
 
 def explain(t: Topo, b: Bound, m: Miss) -> Optional[str]:
@@ -437,7 +438,7 @@ def bound_from(bundle: Path, reach_dir: Path, build: Optional[Path] = None) -> T
     meta = dict(db.execute("SELECT k, v FROM meta"))
     by_set: Dict[int, Dict[Rule, str]] = collections.defaultdict(dict)
     for set_id, e, r, via in db.execute("SELECT set_id, entry_id, rule_id, via FROM ruleset"):
-        if not e.startswith("z"):
+        if not EID.is_table(e):
             by_set[set_id][(e, r)] = via
     places = {p: tuple(regs.split(",")) for p, regs in db.execute("SELECT place, regions FROM region_place")}
     kind = dict(db.execute("SELECT up, kind FROM unnamed_part"))

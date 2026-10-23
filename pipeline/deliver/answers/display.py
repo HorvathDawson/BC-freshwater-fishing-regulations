@@ -39,6 +39,7 @@ import math
 import re
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+from pipeline.common import entry_id as EID
 from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, band_words, cap, clean, cm_in, join, lc,
                                              m_ft, range_txt, sp_name, when_dates)
 from pipeline.deliver.bundle.rules import closure_grade
@@ -600,12 +601,9 @@ def part_label(W: Water, i: int) -> str:
     return base
 
 
-_REGION = re.compile(r"^r(\d+[ab]?)")
-
-
 def _region(e: str) -> Optional[str]:
-    m = _REGION.match(e)
-    return m.group(1) if m else None
+    """A water row's region (`r7:…` -> "7"); None for a table entry."""
+    return EID.region_of(e) if EID.is_water_row(e) else None
 
 
 def part_place(W: Water, i: int) -> str:
@@ -1140,8 +1138,7 @@ def regions_label(regions: Sequence[str]) -> str:
     """The regions a section is in, as the book names them: "Region 5", "Regions 3 and 8"."""
     if not regions:
         raise AnswersError("display: a place in no region has no name")
-    rs = [r.upper() for r in regions]
-    return ("Region " if len(rs) == 1 else "Regions ") + join(rs)
+    return EID.region_words(regions)
 
 
 def place_label(kind: str, regions: Sequence[str]) -> str:
@@ -1490,9 +1487,8 @@ def reasons_table() -> Dict[str, dict]:
 
 
 def _region_of(entry_id: str) -> Optional[str]:
-    from pipeline.deliver.bundle.read import base_region
-    reg = base_region(entry_id)
-    return f"Region {reg.upper()}" if reg else None
+    reg = EID.zone_region(entry_id)
+    return EID.region_words([reg]) if reg else None
 
 
 def _lc_place(name: str, region: Optional[str] = None) -> str:
@@ -1609,8 +1605,8 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     region = _region_of(x["entry_id"])
     if region is None and rank == 2:
         # a water table's AREA row (the Liard watershed, Strathcona Park waters): its chapter
-        m = re.match(r"^r(\d+[ab]?)$", str(E.get("chapter") or ""))
-        region = f"Region {m.group(1).upper()}" if m else None
+        ch = str(E.get("chapter") or "")
+        region = EID.region_words([EID.region_of(ch)]) if EID.is_water_row(ch) and EID.region_of(ch) else None
     trib = None
     if rank is None:
         raise AnswersError(f"display: rule {x['id']} ships no provenance rank")

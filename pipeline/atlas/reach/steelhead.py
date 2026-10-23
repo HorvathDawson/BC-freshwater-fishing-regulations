@@ -68,6 +68,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.common import entry_id as EID
 
 #: The provincial steelhead entry: the streams its base rules bind are the streams that carry the
 #: steelhead rules, and those not known are "possible".
@@ -121,7 +122,7 @@ def _get(x, k):
 
 def names_steelhead(e) -> bool:
     """A water row (not a zone or provincial entry) with a rule whose fish names steelhead."""
-    return (not str(_get(e, "entry_id") or "").startswith("z")
+    return (not EID.is_table(str(_get(e, "entry_id") or ""))
             and any("ST" in (_get(r, "species") or []) for r in _get(e, "rules") or []))
 
 
@@ -136,7 +137,7 @@ def prints_steelhead(e) -> bool:
     waiver "(Steelhead Stamp not required)" and "not required unless fishing for steelhead"
     (`steelhead_stamp_waived`). A Classified Water designation that prints no steelhead ("Class
     II water when open, including tributaries" — the Elk, the Bull, the Kootenay) does not."""
-    if str(_get(e, "entry_id") or "").startswith("z"):
+    if EID.is_table(str(_get(e, "entry_id") or "")):
         return False
     for r in _get(e, "rules") or []:
         if "ST" in (_get(r, "species") or []) or _says_steelhead(_get(r, "verbatim")):
@@ -158,7 +159,7 @@ def steelhead_row(e) -> bool:
     or one flagged `anadromous_rainbow` (the Chilliwack/Vedder, by ruling: its row prints no
     steelhead). A Classified Water designation printing no steelhead is not one. A dict (the
     corpus) or a `CatalogueEntry`."""
-    return (not str(_get(e, "entry_id") or "").startswith("z")
+    return (not EID.is_table(str(_get(e, "entry_id") or ""))
             and (bool(_get(e, "anadromous_rainbow")) or prints_steelhead(e)))
 
 

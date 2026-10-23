@@ -40,6 +40,7 @@ from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
+from pipeline.common import entry_id as EID
 
 GEAR_FAMILIES = ("gear_and_method", "conduct", "vessel")
 
@@ -162,7 +163,7 @@ def says_about(c: dict, el: str) -> Optional[str]:
 def province_methods(rules: Iterable[dict]) -> List[str]:
     """The ways the PROVINCE allows you to sport fish: an `allow` on the `method` slot in a `zp:`
     rule with no `while` (`guide.gear.methods.allowed_by_the_province`, the same predicate)."""
-    return sorted({m for x in rules if str(x.get("entry_id")).startswith("zp:")
+    return sorted({m for x in rules if EID.is_province(str(x.get("entry_id")))
                    and not x.get("while")
                    for c in x.get("gear") or [] if c.get("slot") == "method"
                    for m in c.get("allow") or []})

@@ -67,9 +67,8 @@ def _row_entry_id(row: dict, m) -> str:
     """
     from pipeline.regs.matching.matcher import parse_reg_mus, region_num
 
-    mus = "+".join(sorted(parse_reg_mus(row)))
-    base = f"r{region_num(row) or '?'}:{_slug(m.water)[:60].strip('_')}"
-    return f"{base}@{mus}" if mus else base
+    from pipeline.common import entry_id as EID
+    return EID.mint_water_row(region_num(row), _slug(m.water)[:60].strip('_'), parse_reg_mus(row))
 
 
 def _row_pages(row: dict) -> tuple[int, ...]:

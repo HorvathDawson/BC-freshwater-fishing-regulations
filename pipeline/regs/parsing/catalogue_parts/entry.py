@@ -19,6 +19,7 @@ from .checks import LIST_MARKER, _dates_lost
 from .licensing import Alternative, Designation, LicensingRecord, licensing_verbatims
 from .see import See, _NOT_A_WATER, _POINTER_WORDS
 from .rule import CatalogueRule
+from pipeline.common import entry_id as EID
 
 
 # --------------------------------------------------------------------------------------- #
@@ -305,7 +306,7 @@ class CatalogueEntry(BaseModel):
 
         if has(self.extents):
             e.append("entry extents: op steelhead_waters belongs to a rule or a licensing record")
-        zone = self.entry_id.startswith("z")
+        zone = EID.is_table(self.entry_id)
         rules = {r.rule_id: r for r in self.rules}
         recs = {x.id: x for x in self.licensing}
         for kind, rid, exts, excl, pool in (
@@ -414,7 +415,7 @@ class CatalogueEntry(BaseModel):
         lic_ids: set = set()
         units: set = set()
         by_rule = {r.rule_id: r for r in self.rules}
-        region = self.entry_id.split(":", 1)[0]
+        region = EID.head_of(self.entry_id)
         for x in self.licensing:
             if x.id in lic_ids:
                 e.append(f"duplicate licensing id {x.id!r}")

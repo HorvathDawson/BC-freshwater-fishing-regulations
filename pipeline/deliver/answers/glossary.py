@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 from pipeline.deliver.answers.common import AnswersError
+from pipeline.common import entry_id as EID
 
 #: 2 (ROUND11 A2): `fly_fishing`, `artificial_fly` — the gear sentence's terms
 #: 3 (ROUND20g 3): the possession quota in one short line and one short example (the book's words stay in `quote`)
@@ -114,14 +115,14 @@ class Data:
 
     def zone_rules(self, pred: Callable[[dict], bool]) -> List[dict]:
         return [r for rid, r in sorted(self.rules.items())
-                if r["entry_id"].startswith("z") and not r["entry_id"].startswith("zp:")
+                if EID.is_zone(r["entry_id"])
                 and pred(r)]
 
     def zone_chapters(self) -> Dict[str, List[int]]:
         """{region code ("1", "7a", …): the printed pages of its region-wide tables}."""
         out: Dict[str, List[int]] = {}
         for eid, e in self.entries.items():
-            if e.get("kind") == "zone" and re.match(r"z\d", eid):
+            if e.get("kind") == "zone" and EID.zone_region(eid) is not None:
                 ch = e["chapter"][1:]
                 out.setdefault(ch, []).extend(e["pages"])
         return {k: sorted(set(v)) for k, v in sorted(out.items())}

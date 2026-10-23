@@ -54,6 +54,7 @@ from collections import Counter, defaultdict
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common import entry_id as EID
 
 Line = Tuple[str, int]
 
@@ -236,7 +237,7 @@ def pairs_of(b: sqlite3.Connection, heads: Iterable[Tuple[str, str, Sequence[str
     ordof = {i: (o, n) for o, i, n in b.execute("SELECT ord, item_id, name FROM item WHERE kind = 'stream'")}
     out: Set[Tuple[int, int]] = set()
     for eid, full, matched in sorted(heads, key=lambda h: h[0]):
-        if not eid.lower().startswith("r") or "/" not in (full or ""):
+        if not EID.is_water_row(eid.lower()) or "/" not in (full or ""):
             continue
         names = {i: ordof[i][1] for i in matched or () if i in ordof}
         for p in heading_pairs(full, names):

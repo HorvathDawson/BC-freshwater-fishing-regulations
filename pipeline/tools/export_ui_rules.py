@@ -53,6 +53,7 @@ from pipeline.deliver.bundle.read import Authority, Scope, Source, source_of
 from pipeline.regs.parsing.entry_models import Extent, Op
 from pipeline.tools import export_codec as K
 from pipeline.tools import guide_ladder as GL
+from pipeline.common import entry_id as EID
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
 OUT = GENERATED.base / "regs" / "ui-rules-export.json"
@@ -144,10 +145,9 @@ def _rows(db, sql, *args):
 def _entry_kind(entry_id: str, extents: list) -> str:
     """province (`zp:`), water (`r<n>:`), or — for a zone chapter (`z<n>:`) — `area` when the
     entry's own extents name a place smaller than a region, `zone` otherwise."""
-    head = entry_id.split(":", 1)[0]
-    if head == "zp":
+    if EID.is_province(entry_id):
         return "province"
-    if head.startswith("r"):
+    if EID.is_water_row(entry_id):
         return "water"
     for x in extents:
         if x.get("op") != "within":
@@ -664,7 +664,7 @@ def read(bundle: Path) -> dict:
         names[e["entry_id"]] = name or ""
         entries[e["entry_id"]] = {
             "kind": _entry_kind(e["entry_id"], extents),
-            "chapter": e["entry_id"].split(":", 1)[0],
+            "chapter": EID.head_of(e["entry_id"]),
             "name": name, **({"official_name": e["name"]} if name != e["name"] else {}),
             "full_name": e["full_name"],
             "item_id": e["item_id"], "matched": _j(e["matched"], []),
@@ -2307,7 +2307,7 @@ def guide_gear(d: dict) -> dict:
                                 + lpick(lambda x, a=a: a in (x["fields"].get("conduct") or []),
                                         "conduct", n=1))}
     methods_page = sorted((d["entries"].get("zp:allowable_methods") or {}).get("pages") or [])
-    allowed = sorted({m for x in rules.values() if x["entry_id"].startswith("zp:")
+    allowed = sorted({m for x in rules.values() if EID.is_province(x["entry_id"])
                       for c in _gear(x) if c.get("slot") == "method"
                       for m in (c.get("allow") or []) if not _f(x).get("while")})
     same_slot = lambda x: len([c["slot"] for c in _gear(x)]) > len({c["slot"] for c in _gear(x)})
@@ -2359,7 +2359,7 @@ def guide_gear(d: dict) -> dict:
                      "where": "the synopsis's 'Allowable Fishing Methods' list",
                      "pages": methods_page},
             "allowed_by_the_province": allowed,
-            "examples": pick(lambda x: x["entry_id"].startswith("zp:") and any(
+            "examples": pick(lambda x: EID.is_province(x["entry_id"]) and any(
                 c.get("slot") == "method" and c.get("allow") for c in _gear(x)), "gear", n=3),
         },
         "conduct": {
@@ -3697,8 +3697,8 @@ def cases(d: dict, bundle: Path) -> dict:
     K = _Cases(d, bundle)
     R, RD = K.R, K.RD
     rid = lambda k: f"{k[0]}::{k[1]}"                              # noqa: E731
-    water = lambda k: k[0].startswith("r") and R[k]["_rank"] == 0  # noqa: E731
-    zone = lambda k: k[0].startswith("z") and R[k]["_rank"] >= 2   # noqa: E731
+    water = lambda k: EID.is_water_row(k[0]) and R[k]["_rank"] == 0  # noqa: E731
+    zone = lambda k: EID.is_table(k[0]) and R[k]["_rank"] >= 2   # noqa: E731
     got: dict = {}
 
     def add(mech, case):
@@ -3707,13 +3707,13 @@ def cases(d: dict, bundle: Path) -> dict:
 
     # zone_only: no water row binds; the region's trout/char quota speaks for a rainbow
     def t(m):
-        if any(k[0].startswith("r") for k in m):
+        if any(EID.is_water_row(k[0]) for k in m):
             return
-        z = [k for k in m if k[0].startswith("z") and k[1].endswith("trout_char_quota.r1")]
+        z = [k for k in m if EID.is_table(k[0]) and k[1].endswith("trout_char_quota.r1")]
         if z:
             yield (7, 1), "RB", [rid(z[0])]
     add("zone_only", K.first("zone_only", K.by_set(t),
-                             lambda a: any(i.startswith("z") and "trout_char_quota" in i
+                             lambda a: any(EID.is_table(i) and "trout_char_quota" in i
                                            for i in _speaking(a))))
 
     # quota_beside: same fish or group, a size bound or other difference, smaller at the water
@@ -4016,13 +4016,13 @@ def cases(d: dict, bundle: Path) -> dict:
         if K.d["waters"][item]["kind"] != "stream":
             continue
         bases = {RD.base_region(k[0]) for k in m if zone(k)} - {None}
-        rows = {k[0].split(":", 1)[0][1:] for k in m if water(k) and m[k] == "reach"}
+        rows = {EID.region_of(k[0]) for k in m if water(k) and m[k] == "reach"}
         if len(bases) != 1 or not rows or any(fam(r) == fam(next(iter(bases))) for r in rows):
             continue
         w = sorted(k for k in m if water(k) and m[k] == "reach")[0]
         z = sorted(k for k in m if zone(k) and k[1].endswith("trout_char_quota.r1"))
         case = K.first("home_region_differs", [(item, part, (7, 1), "RB", [rid(w)] + [rid(k) for k in z])],
-                       lambda a: any(i.startswith("z") for i in _speaking(a)))
+                       lambda a: any(EID.is_table(i) for i in _speaking(a)))
         if case:
             add("home_region_differs", case)
             break
@@ -4404,7 +4404,7 @@ def cases(d: dict, bundle: Path) -> dict:
         case = K.first("undrawn_closure", [(item, part, on, f, [rid(k), rid(z)])],
                        lambda a, k=k: any(i["id"] == rid(k) and i["state"] == "not_yet_mapped"
                                           for i in a)
-                       and any(i.startswith("z") for i in _speaking(a)))
+                       and any(EID.is_table(i) for i in _speaking(a)))
         if case:
             add("undrawn_closure", case)
             break
@@ -4481,8 +4481,7 @@ def cases(d: dict, bundle: Path) -> dict:
                 straddle = K.first("straddling_named_lake",
                                    [(it, p_, (7, 1), "RB", [rid(k) for k in zs])],
                                    lambda a: len({i.split(":")[0] for i in _ids(a)
-                                                  if i.startswith("z")
-                                                  and not i.startswith("zp:")}) == 2)
+                                                  if EID.is_zone(i)}) == 2)
                 if straddle:
                     break
             if straddle:
@@ -4818,8 +4817,7 @@ def _bait_where(rules: dict, bait: dict) -> str:
     the zones whose all-year bait ban a row's dated ban replaces, and the zones banning bait all
     year where no row does."""
     lifted = {n["zone_rule"] for e in bait.values() for n in e["notes"]}
-    every = {i for i, x in rules.items() if x["entry_id"].startswith("z")
-             and not x["entry_id"].startswith("zp:") and x["type"] == "bait_restriction"
+    every = {i for i, x in rules.items() if EID.is_zone(x["entry_id"]) and x["type"] == "bait_restriction"
              and x.get("dimension") == "bait" and not x["fields"].get("when")}
     words = lambda ids: sorted({_zone_words(rules[i]["entry_id"]) for i in ids})  # noqa: E731
     have, rest = words(lifted), [w for w in words(every - lifted) if w not in words(lifted)]
@@ -4876,7 +4874,7 @@ def with_closure_gotchas(g: dict, d: dict, bundle: Path) -> dict:
     binds: dict = {}
     for x in d["rules"].values():
         binds.setdefault(x["entry_id"], []).append(x.get("binds"))
-    lost = sorted(i for i, e in d["entries"].items() if i.startswith("r") and e.get("kind") == "water"
+    lost = sorted(i for i, e in d["entries"].items() if EID.is_water_row(i) and e.get("kind") == "water"
                   and not e.get("matched") and not e.get("item_id") and binds.get(i)
                   and all(b == "nowhere" for b in binds[i]))
     g["gotchas"]["not_located"] = {
@@ -5327,7 +5325,7 @@ def add_steelhead_rules(waters: dict, applies: dict[tuple[str, int], bool]) -> N
 def _in_steelhead_region(rule_ids) -> bool:
     """A part is in a steelhead region when it carries that region's own zone table (a water
     takes the zone rules of the region it lies in; `ladder.region`)."""
-    return any(i.split(":", 1)[0] in {f"z{n}" for n in STEELHEAD_REGIONS} for i in rule_ids)
+    return any(EID.zone_region(i) in STEELHEAD_REGIONS for i in rule_ids)
 
 
 def province_set_missing(rule_ids, record_ids, R: dict, L: dict) -> list[str]:
@@ -5342,10 +5340,10 @@ def steelhead_rows(doc: dict) -> set[str]:
     steelhead (`ST`), and every row a water's `steelhead_rows` names (the rows flagged
     `anadromous_rainbow` or printing the Steelhead Stamp, whose own lines may name no fish)."""
     R = doc["rules"]
-    got = {x["entry_id"] for x in R.values() if x["entry_id"].startswith("r")
+    got = {x["entry_id"] for x in R.values() if EID.is_water_row(x["entry_id"])
            and "ST" in (x["fields"].get("species") or [])}
     got |= {e for w in doc["waters"].values() for e in w.get("steelhead_rows") or ()
-            if str(e).startswith("r")}
+            if EID.is_water_row(str(e))}
     return got
 
 
@@ -5729,7 +5727,7 @@ def _closure_scan(bundle: Path) -> dict:
     out: dict = {"release": [], "quota": []}
     seen: set = set()
     for s in sorted(members):
-        shut_here = [k for k in members[s] if str(k[0]).startswith("z")
+        shut_here = [k for k in members[s] if EID.is_table(str(k[0]))
                      and closure_grade(R[k]) == "full" and RD.base_region(k[0]) is not None
                      and not RD.not_yet_mapped(R[k])]
         if not shut_here:
@@ -5739,7 +5737,7 @@ def _closure_scan(bundle: Path) -> dict:
             cands = []
             for k in sorted(members[s]):
                 x = R[k]
-                if k in seen or not str(k[0]).startswith("r") or RD.not_yet_mapped(x) \
+                if k in seen or not EID.is_water_row(str(k[0])) or RD.not_yet_mapped(x) \
                         or closure_grade(x) is not None:
                     continue
                 if release_origins(x) and starts(x):
@@ -5776,7 +5774,7 @@ def _closure_scan(bundle: Path) -> dict:
                                     if y["state"] == "speaks" or y.get("reason") == "water_closure"}
                             got = cache[(on, fish, m)]
                             shut = [f"{e}::{r}" for (e, r) in sorted(got)
-                                    if str(e).startswith("z") and closure_grade(R[(e, r)]) == "full"
+                                    if EID.is_table(str(e)) and closure_grade(R[(e, r)]) == "full"
                                     and RD.base_region(e) is not None]
                             # a release that SPEAKS under the closure; a quota in force that does
                             # NOT
@@ -5884,7 +5882,7 @@ def closures_combine(bundle: Path) -> dict:
                 and not RD.not_yet_mapped(x) and bool((x.get("when") or {}).get("dates")))
 
     def row_closure(k):
-        return str(k[0]).startswith("r") and closure_grade(R[k]) is not None
+        return EID.is_water_row(str(k[0])) and closure_grade(R[k]) is not None
 
     # the candidate pairs per set, by their printed dates and fish (what could mislead)
     cands: dict = {}
@@ -6044,7 +6042,7 @@ def closures_combine(bundle: Path) -> dict:
                          re.I)
     for eid, v in sorted(verbatim.items()):
         m = subject.search(v or "")
-        if m and str(eid).startswith("r"):
+        if m and EID.is_water_row(str(eid)):
             note(eid, {"kind": "subject_to", "row_says": m.group(0),
                        "says": f"The row prints '{m.group(0)}': the region's {m.group(1).lower()} "
                                f"closure holds there beside the row's own rules — both apply, "
@@ -6209,11 +6207,11 @@ def dated_bait_ban_replaces_zone(rules: dict) -> dict:
     replace the zone's here (closures never: `closures_combine`)."""
     out: dict = {}
     for i, x in sorted(rules.items()):
-        if not x["entry_id"].startswith("r") or x["type"] != "bait_restriction":
+        if not EID.is_water_row(x["entry_id"]) or x["type"] != "bait_restriction":
             continue
         for y in x["fields"].get("exempts") or []:
             z = rules.get(f"{y['entry_id']}::{y['rule_id']}")
-            if not z or not z["entry_id"].startswith("z") or z["type"] != "bait_restriction" \
+            if not z or not EID.is_table(z["entry_id"]) or z["type"] != "bait_restriction" \
                     or z["fields"].get("when"):
                 continue
             bans = [b for b in rules.values() if b["entry_id"] == x["entry_id"]

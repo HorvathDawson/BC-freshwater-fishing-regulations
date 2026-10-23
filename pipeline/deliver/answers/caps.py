@@ -45,6 +45,7 @@ import math
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers import common
+from pipeline.common import entry_id as EID
 
 INF = math.inf
 PLACES = ("here", "stream", "lake")
@@ -329,7 +330,7 @@ def _said(E, c: dict, kinds: List[dict]) -> dict:
     r = c.get("rule") or E.P.by_key[c["by"]]
     by_id = {k["id"]: k for k in kinds}
     ks = c["kinds"]
-    region = "B.C." if r.entry_id.startswith("zp") else (r.x.get("entry_name") or "the region")
+    region = "B.C." if EID.is_province(r.entry_id) else (r.x.get("entry_name") or "the region")
     if not (ks["stream"] or ks["lake"]):
         scope, where = "here", ""
     elif c["if_kept_here"]:

@@ -38,6 +38,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import defaultdict
+from pipeline.common import entry_id as EID
 
 FORMAT = 2
 GUIDE_KEYS = ("guide", "field_dictionary", "species")
@@ -190,21 +191,16 @@ ENCODING_TEXT = {
 # Encoding
 # --------------------------------------------------------------------------------------------
 
-def _region_of(entry_id: str) -> str:
-    head = entry_id.split(":", 1)[0]
-    return head[1:] if head[:1] in ("z", "r") else ""
-
-
 def who_default(entry_id: str, authority: str, binds_to: str, entry_name: str) -> str | None:
     """`provenance.who` as `read.Source.words()` says it for the common shapes (see
     `ENCODING_TEXT["who_default"]`); None where only the shipped value can say it."""
     wrote = ("Federal or Parks" if authority == "superior" else "Provincial"
-             if authority == "province" else "Region " + _region_of(entry_id).upper())
+             if authority == "province" else "Region " + (EID.region_of(entry_id) or "").upper())
     if binds_to == "region":
         where = "province-wide" if authority == "province" else "region-wide"
     elif binds_to == "water":
         where = "for this water" + (f" ({entry_name})" if entry_name else "")
-    elif binds_to == "area" and entry_id.startswith("r") and entry_name:
+    elif binds_to == "area" and EID.is_water_row(entry_id) and entry_name:
         where = entry_name
     else:
         return None
@@ -319,7 +315,7 @@ def compact(doc: dict, *, family_of_type: dict, rank: dict) -> tuple[dict, dict]
         by_entry_l[_split_id(k, "#")[0]].append(k)
     out_entries = {}
     for eid, e in entries.items():
-        if e["chapter"] != eid.split(":", 1)[0] or e["rules"] != by_entry_r.get(eid, []) \
+        if e["chapter"] != EID.head_of(eid) or e["rules"] != by_entry_r.get(eid, []) \
                 or e["licensing"] != by_entry_l.get(eid, []):
             raise EncodeError(f"entry {eid}: chapter/rules/licensing are not derivable")
         out_entries[eid] = _drop({a: b for a, b in e.items()
@@ -327,7 +323,7 @@ def compact(doc: dict, *, family_of_type: dict, rank: dict) -> tuple[dict, dict]
 
     # sets: integers, and the rule sets' zone/province base interned
     def base_of(ids):
-        return tuple(rix[i] for i in ids if i.startswith("z"))
+        return tuple(rix[i] for i in ids if EID.is_table(i))
     rulesets_in = doc["rulesets"]
     if list(rulesets_in) != [str(i) for i in range(len(rulesets_in))]:
         raise EncodeError("rule set ids are not 0..n-1")
@@ -462,7 +458,7 @@ def expand(data: dict, guide: dict) -> dict:
         by_l[_split_id(k, "#")[0]].append(k)
     entries = {}
     for eid, e in E.items():
-        entries[eid] = {"chapter": eid.split(":", 1)[0], **_fill(e, ENTRY_DEFAULTS),
+        entries[eid] = {"chapter": EID.head_of(eid), **_fill(e, ENTRY_DEFAULTS),
                         "rules": by_r.get(eid, []), "licensing": by_l.get(eid, [])}
 
     R, L, B = data["rule_ids"], data["licensing_ids"], data["bases"]

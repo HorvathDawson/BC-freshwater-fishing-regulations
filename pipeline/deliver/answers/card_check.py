@@ -53,6 +53,7 @@ from functools import lru_cache
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.bundle import read
+from pipeline.common import entry_id as EID
 
 INF = math.inf
 PLACES = ("here", "stream", "lake")
@@ -85,7 +86,7 @@ class Engine:
                       and r.dimension != "lift" and not r.f.get("standing")]
         self.st_cm = read._steelhead_min_cm()
         # elsewhere: the zone's (and B.C.'s) rules in force today, by kind of water
-        self.zone = [r for r in self.rules if r.entry_id.startswith("z")
+        self.zone = [r for r in self.rules if EID.is_table(r.entry_id)
                      and read.in_force(r.f.get("when"), P.md, P.at) != "no"]
         self._zone = {id(r) for r in self.zone}
         # rows decision F17 (owner ruling 2026-10-21): the tally a water's steelhead quota raises a lifted size
@@ -156,7 +157,7 @@ class Engine:
                 return False
             return st in ("speaks", "lifted", "displaced")
         # elsewhere: the zone's rules for that water, and this water's own counts (rows F9)
-        return id(r) in self._zone or (not r.entry_id.startswith("z")
+        return id(r) in self._zone or (not EID.is_table(r.entry_id)
                                   and self.state(r, g[0], g[1]) in ("speaks", "lifted"))
 
     def _band(self, r, L: float):
@@ -488,7 +489,7 @@ def check_group(P, g: dict) -> List[str]:
         ok, got = proved(head["n"], no_lift.fish(kinds), no_lift)
         if not ok:
             probs.append(f"{where}: headline says {head['n']}, with no lift {got} may be kept here")
-    if E.T.entry_id.startswith("z"):
+    if EID.is_table(E.T.entry_id):
         # the zone's (or B.C.'s) total holds on every water of the region: here and elsewhere together
         ok, got = proved(g["total"], E.fish(kinds, PLACES))
         if not ok:

@@ -15,6 +15,7 @@ from .gear import CAUGHT_HOW, CONDUCT_ACTS, GearClause, Slot, _ANGLER_WORDS
 from .checks import part_words, strip_list_marker
 from .licensing import slug
 from .rule import CatalogueRule, Exempts
+from pipeline.common import entry_id as EID
 
 
 # --------------------------------------------------------------------------------------- #
@@ -492,7 +493,7 @@ def _lift_name(x: "Exempts", siblings: Optional[dict] = None,
         # A ZONE ENTRY'S `name` is what it is ("Spring stream closure"); its `display_name` is
         # where it is ("Every stream in Region 3"), which is not what was lifted.
         for eid, ce in entries.items():
-            if eid.startswith("z") and eid.split(":", 1)[1] == x.default_id:
+            if EID.is_table(eid) and EID.parse(eid).slug == x.default_id:
                 return ce.name
         return x.default_id.replace("_", " ")
     owner = entries.get(x.entry_id) if x.entry_id else None
@@ -505,7 +506,7 @@ def _lift_name(x: "Exempts", siblings: Optional[dict] = None,
             else (x.target or "").split(".", 1)[0]).replace("_", " ")
     if t is None:
         return slug
-    if owner is not None and not x.entry_id.startswith("z"):
+    if owner is not None and not EID.is_table(x.entry_id):
         # ANOTHER WATER'S RULE is named by that water: the lifter's reader knows the water.
         disp = owner.display_name or owner.name
         if _is_closure(t):

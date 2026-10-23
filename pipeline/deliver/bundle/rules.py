@@ -24,6 +24,7 @@ from array import array
 import re
 import sqlite3
 from pathlib import Path
+from pipeline.common import entry_id as EID
 
 
 def _when(r) -> str | None:
@@ -111,8 +112,9 @@ _NOT_CONDITIONS = frozenset({
 
 
 def _zone_region(entry_id: str) -> str:
-    """`r4:…` / `z4:…` -> "4", `z7a:…` -> "7a", `zp:…` -> "p"."""
-    return entry_id.split(":", 1)[0][1:]
+    """`r4:…` / `z4:…` -> "4", `z7a:…` -> "7a", `zp:…` -> "" (`entry_id.region_of`; never equal to a
+    region, as the "p" it used to say never was)."""
+    return EID.region_of(entry_id) or ""
 
 
 #: The keys of one resolved lift in the `exempts` column — and nothing else. Two name the lifted
@@ -135,7 +137,7 @@ def is_size_clause(lifted_eid: str, z) -> bool:
     province's) that caps how many fish over a length the quota may hold — Region 5's "Trout/char:
     5, but not more than 1 over 50 cm", Region 4's "1 rainbow trout or cutthroat trout over 50
     cm". One band, a lower bound only, the clause's own count."""
-    if not lifted_eid.startswith("z") or lifted_eid.startswith("zp:"):
+    if not EID.is_zone(lifted_eid):
         return False
     if z.type.value != "retention_limit" or not z.within or not z.take or not z.lengths:
         return False
@@ -150,7 +152,7 @@ def overrides_size_clause(lifter_eid: str, by, lifted_eid: str, z) -> bool:
     a water row (`r<region>:`) that keeps MORE of the fish than the clause allows (a larger
     `take`, or `unlimited`). A release that lifts the clause keeps none and overrides nothing;
     the region's own "20 brook trout from streams" is the table's own word, not a water's."""
-    if not lifter_eid.startswith("r") or not is_size_clause(lifted_eid, z):
+    if not EID.is_water_row(lifter_eid) or not is_size_clause(lifted_eid, z):
         return False
     return by.type.value == "retention_limit" and (
         bool(by.unlimited) or (by.take is not None and by.take > z.take))
@@ -514,7 +516,7 @@ def zone_closures(docs) -> dict[str, list[tuple[str, object]]]:
     out: dict[str, list] = {}
     for ce in docs:
         eid = ce.entry_id
-        if not eid.startswith("z") or eid.startswith("zp:"):
+        if not EID.is_zone(eid):
             continue
         for r in ce.rules:
             if _is_species_closure(r) and not prints_its_exemptions(ce, r) \
@@ -571,7 +573,7 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
     An origin or size term lifts IN PART: the angler and the fish are unknown until it is caught,
     so the closure stays and the reader marks it partly lifted. And a closure that prints its own
     exemption list accepts no derived lift at all (`zone_closures`)."""
-    if not entry_id.startswith("r") or r.type.value != "retention_limit" or r.may_target is False \
+    if not EID.is_water_row(entry_id) or r.type.value != "retention_limit" or r.may_target is False \
             or r.within or r.standing or r.lift_only or r.record_retention or r.undrawn_part:
         return []
     mine = named_leaves(r)
@@ -607,7 +609,7 @@ def is_size_constraint(lifted_eid: str, z) -> bool:
     rule — bands and no count of its own ("none under 30 cm", "none over 50 cm"). A quota printing
     its own sizes ("Bull trout: 1, 30-50 cm only") is not one: it competes with the water's quota on
     its own key, and the water's number already wins there."""
-    if not lifted_eid.startswith("z") or lifted_eid.startswith("zp:"):
+    if not EID.is_zone(lifted_eid):
         return False
     if z.type.value != "retention_limit" or not z.lengths or z.may_target is False:
         return False
@@ -625,7 +627,7 @@ def _any_size_lifts(entry_id: str, r, rules_of: dict[str, dict]) -> list[dict]:
     any_size` — the client never infers it. How far it lifts is `_lift_terms` (fish both name, its
     dates, origin); the lift holds only where the lifter is bound (the reader lifts on a section only
     while the lifter speaks there)."""
-    if not entry_id.startswith("r") or r.type.value != "retention_limit" or r.may_target is False \
+    if not EID.is_water_row(entry_id) or r.type.value != "retention_limit" or r.may_target is False \
             or not (r.unlimited or (r.take or 0) > 0) or r.within or r.lift_only \
             or not prints_any_size(r):
         return []
@@ -665,7 +667,7 @@ def blanket_closures(docs) -> dict[str, list[tuple[str, object]]]:
     out: dict[str, list] = {}
     for ce in docs:
         eid = ce.entry_id
-        if not eid.startswith("z") or eid.startswith("zp:"):
+        if not EID.is_zone(eid):
             continue
         for r in ce.rules:
             if is_blanket_closure(r):
@@ -979,7 +981,7 @@ def entry_name(ce) -> str:
     water names the same water (`place_names.row_name`: Haynes Lake, never "McCulloch Reservoir");
     a zone table's entry by its authored scope (`display_name`: "Every stream in Region 1")."""
     from pipeline.deliver.bundle.place_names import row_name
-    if ce.entry_id.startswith("r"):
+    if EID.is_water_row(ce.entry_id):
         return row_name(ce.name, ce.display_name)
     return ce.display_name or ce.name
 
@@ -1012,7 +1014,7 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
     out: list[tuple] = []
     across: set = set()
     for eid, ce in sorted(entries.items()):
-        if not ce.pointer_only or not eid.startswith("r"):
+        if not ce.pointer_only or not EID.is_water_row(eid):
             continue
         ix, said = 0, set()
         for s in ce.see:
@@ -1042,12 +1044,7 @@ def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
     is in it), called once per row — never a second copy of it."""
     from pipeline.atlas.reach.outside import water_regions
     return {ce.entry_id: frozenset(water_regions({"matched": list(ce.matched)}, registry))
-            for ce in docs if ce.entry_id.startswith("r") and ce.matched}
-
-
-def _book_region(zone_region: str) -> str:
-    """A zone table's region as the rows name it: Zones 7A and 7B are Region 7's (`r7:` rows)."""
-    return zone_region[:-1] if zone_region[-1:] in ("a", "b") else zone_region
+            for ce in docs if EID.is_water_row(ce.entry_id) and ce.matched}
 
 
 def _own_rows(docs) -> dict[str, frozenset[str]]:
@@ -1055,7 +1052,7 @@ def _own_rows(docs) -> dict[str, frozenset[str]]:
     itself — a row whose every rule is `tributaries_only` (Region 6's and Region 7's "West Road
     River's tributaries") speaks for the tributaries, not for the water."""
     return {ce.entry_id: frozenset(ce.matched) for ce in docs
-            if ce.entry_id.startswith("r") and ce.matched
+            if EID.is_water_row(ce.entry_id) and ce.matched
             and not all(r.tributaries_only for r in ce.rules)}
 
 
@@ -1076,15 +1073,15 @@ def co_bound_regions(sets, own_rows: dict | None = None) -> dict[tuple[str, str]
     sections), so a region still counts when ANY walked section there has no row of its own."""
     out: dict[tuple[str, str], set[str]] = {}
     for rows in sets:
-        zr = {_zone_region(e) for e, _, _ in rows if e.startswith("z") and not e.startswith("zp:")}
+        zr = {_zone_region(e) for e, _, _ in rows if EID.is_zone(e)}
         if own_rows is not None:
-            mine = {_book_region(_zone_region(e)) for e, _, via in rows
+            mine = {EID.book_region(_zone_region(e)) for e, _, via in rows
                     if via != "trib" and e in own_rows}
-            zr = {z for z in zr if _book_region(z) not in mine}
+            zr = {z for z in zr if EID.book_region(z) not in mine}
         if not zr:
             continue
         for e, r, via in rows:
-            if e.startswith("r") and via == "trib":
+            if EID.is_water_row(e) and via == "trib":
                 out.setdefault((e, r), set()).update(zr)
     return {k: frozenset(v) for k, v in out.items()}
 
@@ -1103,7 +1100,7 @@ def own_entry_regions(docs) -> dict[str, frozenset[str]]:
     out: dict[str, set[str]] = {}
     for eid, items in _own_rows(docs).items():
         for item in items:
-            out.setdefault(item, set()).add(_book_region(_zone_region(eid)))
+            out.setdefault(item, set()).add(EID.book_region(_zone_region(eid)))
     return {k: frozenset(v) for k, v in out.items()}
 
 
@@ -1118,11 +1115,11 @@ def equivalent_regions(ce, rule_id: str, water: dict[str, frozenset[str]],
     Region 3's or Zone 7A's spring closure; the Canim's Region 5 row never lifts Region 3's (its
     Region 3 row prints no exemption). West Road River has only TRIBUTARY rows in Region 6 and
     Zone 7A, so its mainstem pieces there keep the row's lift."""
-    home = _book_region(_zone_region(ce.entry_id))
+    home = EID.book_region(_zone_region(ce.entry_id))
     mine = set(water.get(ce.entry_id, frozenset())) | set(co_bound.get((ce.entry_id, rule_id),
                                                                         frozenset()))
     theirs = set().union(*(own.get(i, frozenset()) for i in ce.matched)) - {home}
-    return frozenset(r for r in mine if _book_region(r) not in theirs)
+    return frozenset(r for r in mine if EID.book_region(r) not in theirs)
 
 
 def _jsonl(path: Path):
@@ -1251,7 +1248,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     rules_of: dict[str, dict] = {}
     for _, ce in docs:
         rules_of[ce.entry_id] = {r.rule_id: r for r in ce.rules}
-        if ce.entry_id.startswith("z"):
+        if EID.is_table(ce.entry_id):
             zones.setdefault(ce.entry_id.split(":", 1)[1], []).append(ce.entry_id)
     entries_by_id = {ce.entry_id: ce for _, ce in docs}
     closures = zone_closures([ce for _, ce in docs])

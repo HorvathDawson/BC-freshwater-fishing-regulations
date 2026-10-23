@@ -28,6 +28,7 @@ import sqlite3
 from typing import Dict, Iterable, List, Mapping, Set, Tuple
 
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
+from pipeline.common import entry_id as EID
 
 #: a path through unnamed sections longer than this is the sea or the edge of the atlas
 MAX_STEPS = 200_000
@@ -191,7 +192,7 @@ def silent_nearer(bound: Iterable[Tuple[str, str, str]], rules: Mapping[Tuple[st
         by_entry.setdefault(e, []).append((r, via))
     out = []
     for e, rs in sorted(by_entry.items()):
-        if e == a or not e.startswith("r"):
+        if e == a or not EID.is_water_row(e):
             continue
         y = rules[(e, rs[0][0])]
         if read.source_of(y).rank != 0:                  # a water's own row, not an area row

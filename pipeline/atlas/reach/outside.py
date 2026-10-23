@@ -34,9 +34,9 @@ from __future__ import annotations
 
 import re
 
-REGION_PREFIX = "area:region:"
+from pipeline.common import entry_id as EID
 
-_ENTRY_REGION = re.compile(r"^r(\d+[a-z]?):")
+REGION_PREFIX = "area:region:"
 
 #: POLICY (user ruling 2026-09-25, 9144c975): a WATER row (its water printed by no other region)
 #: is not held to any region — neither its reach nor its tributary walk (`region_limit`).
@@ -100,29 +100,7 @@ def entry_regions(entry_id: str, registry=None) -> tuple[str, ...] | None:
     `r7:williston_lake_in_zone_a@7-30+7-37+7-38` is 7A only, and `@7-31+7-36` 7B only. Read as
     "7", the Zone A row's tributary walk bound 7,707 Zone B sections. A row whose MUs do not all
     resolve (or that names none) keeps the whole region, as before — never narrowed on a guess."""
-    m = _ENTRY_REGION.match(entry_id or "")
-    if not m:
-        return None
-    got = {m.group(1)}
-    mus: list[str] = []
-    if "@" in entry_id:
-        for mu in entry_id.split("@", 1)[1].split("+"):
-            mu = mu.strip()
-            head = mu.split("-", 1)[0]
-            if head:
-                got.add(head)
-                mus.append(mu)
-    if registry is not None and ZONES_FROM_UNITS:
-        for r in sorted(got):
-            zones = _zones_of(registry, r)
-            mine = [mu for mu in mus if mu.split("-", 1)[0] == r]
-            if not zones or not mine:
-                continue
-            hit = [{z for z, units in zones.items() if mu in units} for mu in mine]
-            if all(hit):
-                got.discard(r)
-                got |= set().union(*hit)
-    return tuple(sorted(got))
+    return EID.parse(entry_id or "", registry).regions
 
 
 def _zones_of(registry, region: str) -> dict[str, frozenset[str]]:
@@ -172,11 +150,11 @@ def shared_waters(entries) -> frozenset[str]:
     not count either."""
     by: dict[str, set[str]] = {}
     for e in entries:
-        m = _ENTRY_REGION.match(str(e.get("entry_id") or ""))
+        p = EID.parse(str(e.get("entry_id") or ""))
         rules = [r for r in e.get("rules") or [] if isinstance(r, dict)]
-        if not m or not rules or all(r.get("tributaries_only") for r in rules):
+        if p.regions is None or not rules or all(r.get("tributaries_only") for r in rules):
             continue
-        region = re.sub(r"[a-z]$", "", m.group(1))
+        region = p.book_region
         for i in e.get("matched") or ():
             by.setdefault(i, set()).add(region)
     return frozenset(i for i, rs in by.items() if len(rs) > 1)
@@ -201,7 +179,7 @@ def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
     for e in entries:
         eid = str(e.get("entry_id") or "")
         rules = [r for r in e.get("rules") or [] if isinstance(r, dict)]
-        if not _ENTRY_REGION.match(eid) or not rules \
+        if EID.parse(eid).regions is None or not rules \
                 or all(r.get("tributaries_only") for r in rules):
             continue
         sees = tuple(sorted({t for s in e.get("see") or [] if isinstance(s, dict)
