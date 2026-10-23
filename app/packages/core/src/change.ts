@@ -12,7 +12,7 @@
  * Change chip is greyed "Flow only" and a tap moves to Flow (T130, `horizonChips` / `pickHorizon` in @app/ui).
  */
 import { CHANGE_POLICY } from "./gauge-policy.generated";
-import { plainStanding, standing } from "./flow";
+import { monthAbbr, plainStanding, standing, weekdayAbbr } from "./flow";
 import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
@@ -101,8 +101,6 @@ export function changeDotLabel(ratio: number): string {
   return `${ratioShort(ratio)} today`;
 }
 
-const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
 const dayNumber = (iso: string): number => {
   const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
@@ -118,8 +116,8 @@ export function changeDay(iso: string, today: string): string {
   if (n === 0) return "today";
   if (n === 1) return "tomorrow";
   const [, m, d] = iso.split("-").map(Number) as [number, number, number];
-  const wd = WEEKDAY[new Date(dayNumber(iso) * 86_400_000).getUTCDay()]!;
-  return n > 1 && n < 7 ? wd : `${wd} ${d} ${MONTH[m - 1]}`;
+  const wd = weekdayAbbr(new Date(dayNumber(iso) * 86_400_000).getUTCDay());
+  return n > 1 && n < 7 ? wd : `${wd} ${d} ${monthAbbr(m - 1)}`;
 }
 
 const on = (iso: string, today: string) => {

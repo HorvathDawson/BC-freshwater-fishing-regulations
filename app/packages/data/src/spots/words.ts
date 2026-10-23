@@ -4,18 +4,17 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, percentileLabel, percentileOrdinal, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, percentileLabel, percentileOrdinal, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 
 /* ---- S1: the week before the visit ------------------------------------------------------------------------------ */
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DASH = "—";
 const parts = (date: string) => {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return { wd: WEEKDAYS[new Date(y, m - 1, d).getDay()]!, mon: monthAbbr(m - 1), d };
+  return { wd: weekdayAbbr(new Date(y, m - 1, d).getDay()), mon: monthAbbr(m - 1), d };
 };
 /** One decimal where it means something: "4.2", "0", "12". */
 const tenth = (v: number): string => String(Number(v.toFixed(1)));

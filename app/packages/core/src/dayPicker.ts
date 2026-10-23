@@ -11,7 +11,8 @@
  *
  * Pure: every function takes `now`, and a day is the reader's LOCAL calendar day (`day.ts`).
  */
-import { localDate, shiftDay } from "./day";
+import { isIsoDay, localDate, shiftDay } from "./day";
+import { MONTHS, WEEKDAY_NAMES, monthAbbr, weekdayAbbr } from "./flow";
 
 /** The picker's words: one table, so the map's button, the sheet and its cells say the same thing. */
 export const DAY_PICKER = {
@@ -39,23 +40,20 @@ export const DAY_PICKER = {
   /** why a day is greyed out */
   outsideYear: (year: number) => `Only days in ${year} can be chosen: the regulations here are one calendar year.`,
   afterUntil: (day: string) => `Days after ${day} can't be chosen: these regulations end then.`,
-  months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-           "November", "December"],
-  monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  /** Sunday first, as Canadian calendars print them */
-  weekdays: [["Sun", "Sunday"], ["Mon", "Monday"], ["Tue", "Tuesday"], ["Wed", "Wednesday"], ["Thu", "Thursday"],
-             ["Fri", "Friday"], ["Sat", "Saturday"]],
+  /** the one month table (`MONTHS`, flow.ts) */
+  months: MONTHS,
+  monthsShort: MONTHS.map((_, i) => monthAbbr(i)),
+  /** Sunday first, as Canadian calendars print them: the one weekday table (`WEEKDAY_NAMES`, flow.ts) */
+  weekdays: WEEKDAY_NAMES.map((w, i) => [weekdayAbbr(i), w] as const),
 } as const;
 
 /** The days the picker offers, as LOCAL ISO days ("2026-01-01"); `until` is the release's cut when it made one. */
 export interface DayRange { readonly year: number; readonly first: string; readonly last: string; readonly until: string | null }
 
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-
 export function dayRange(now: Date, validUntil: string | null): DayRange {
   const year = now.getFullYear();
   const first = `${year}-01-01`, dec31 = `${year}-12-31`, today = localDate(now.getTime());
-  const cut = validUntil && ISO_DAY.test(validUntil) && validUntil >= today && validUntil < dec31 ? validUntil : null;
+  const cut = validUntil && isIsoDay(validUntil) && validUntil >= today && validUntil < dec31 ? validUntil : null;
   return { year, first, last: cut ?? dec31, until: cut };
 }
 

@@ -114,6 +114,19 @@ export const MONTHS: readonly string[] = [
 export const monthAbbr = (month0: number): string =>
   (MONTHS[month0] ?? "").slice(0, 3);
 
+/**
+ * THE WEEKDAY NAMES, in `Date.getDay()` order (Sunday first, as Canadian calendars print them) — the one table beside
+ * the months (T125 item 8): the day picker, a spot's coming days, the change view and a lead-up day each typed
+ * `["Sun", "Mon", …]` again. The regulations' Monday-first `WEEKDAYS` (calendar.generated) is the same seven names.
+ */
+export const WEEKDAY_NAMES: readonly string[] = [
+  "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+];
+
+/** "Sat", for `Date.getDay()`. */
+export const weekdayAbbr = (day0: number): string =>
+  (WEEKDAY_NAMES[day0] ?? "").slice(0, 3);
+
 /** The month a reader would name, from a date — "early September", "late June". */
 export function seasonPhrase(when: Date): string {
   const month = MONTHS[when.getMonth()]!;

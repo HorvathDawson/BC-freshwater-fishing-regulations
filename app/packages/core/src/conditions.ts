@@ -12,7 +12,7 @@
 import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plainStanding,
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
-import { localStamp, shortDay, shortStamp } from "./day";
+import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byCadence } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
@@ -321,15 +321,13 @@ export function donorSilent(r: DonorReading, o: DonorAsk = {}): boolean {
   }
 }
 
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-
 /**
  * When a station last had data, SHORT, for inside a line: "14 Oct, 09:00 PDT", local and labelled (P16); a day-only
  * report (a daily mean) is that calendar day, "14 Oct"; a year other than `ref`'s is named. Null when it is not known.
  */
 export function lastDataStamp(observedAt: string | null | undefined, ref: number, zone?: string): string | null {
   if (!observedAt || !Number.isFinite(Date.parse(observedAt))) return null;
-  return ISO_DAY.test(observedAt) ? shortDay(observedAt, ref, zone) : shortStamp(Date.parse(observedAt), ref, zone);
+  return isIsoDay(observedAt) ? shortDay(observedAt, ref, zone) : shortStamp(Date.parse(observedAt), ref, zone);
 }
 
 /** One silent member, as the line says it: its name (its station id when the name is not in yet) and when. */
@@ -363,7 +361,7 @@ export function silentLine(rows: readonly DonorFacts[],
 export function donorLastReport(observedAt: string | null | undefined, zone?: string): string {
   // A DAY WITH NO CLOCK (the feed's daily mean, when nothing finer survives) names that calendar day: parsed as an
   // instant it is UTC midnight, which a Pacific reader would be told was the evening before.
-  if (observedAt && /^\d{4}-\d{2}-\d{2}$/.test(observedAt) && Number.isFinite(Date.parse(observedAt)))
+  if (isIsoDay(observedAt))
     return `Last reported on ${observedAt}.`;
   const t = observedAt ? Date.parse(observedAt) : NaN;
   return Number.isFinite(t) ? `Last reported ${localStamp(t, zone)}.`

@@ -20,7 +20,7 @@
  * a level (decisions.md "NEVER MIX QUANTITIES"). A visit with no flow is scored on the weather alone, said as that
  * ("No flow then to compare"); a coming day no forecast reaches the same ("No flow forecast for this day").
  */
-import { monthAbbr, percentileOrdinal } from "./flow";
+import { monthAbbr, percentileOrdinal, weekdayAbbr } from "./flow";
 import { localDate, shiftDay } from "./day";
 import { agoWords } from "./menu";
 
@@ -216,14 +216,12 @@ export function likeDays(now: number): string[] {
   return Array.from({ length: LIKE_DAYS }, (_, i) => localDate(shiftDay(d, i).getTime()));
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-
 /** A coming day's column head: "Today", "Tomorrow", else the weekday "Sat"; and its date, "24 Oct". */
 export function likeDayHead(date: string, now: number): { top: string; sub: string } {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   const days = likeDays(now);
   const top = date === days[0] ? LIKE_WORDS.today : date === days[1] ? LIKE_WORDS.tomorrow
-    : WEEKDAYS[new Date(y, m - 1, d).getDay()]!;
+    : weekdayAbbr(new Date(y, m - 1, d).getDay());
   return { top, sub: `${d} ${monthAbbr(m - 1)}` };
 }
 

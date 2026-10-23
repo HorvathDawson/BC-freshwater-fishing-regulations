@@ -10,6 +10,15 @@
 import { monthAbbr } from "./flow";
 
 const DAY_MS = 86_400_000;
+
+/**
+ * IS THIS A DAY, "YYYY-MM-DD" — the one test (T125 item 8): the day picker's release cut, a gauge's last report and its
+ * short stamp each had their own `/^\d{4}-\d{2}-\d{2}$/`, one of them also asking `Date.parse`. Both, here: the shape and
+ * a date the platform can read.
+ */
+export function isIsoDay(s: unknown): s is string {
+  return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s));
+}
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** "Oct 10" */
