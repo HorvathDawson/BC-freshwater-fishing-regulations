@@ -3,39 +3,19 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## WORK QUEUE (2026-10-22 night, owner away) — do in order; one heavy job at a time (scripts/heavy.sh)
-A. IN FLIGHT — merge each as it lands (cherry-pick, conflict-marker grep, targeted tests, remove worktree):
-   1. wf_a9a1cfb6-35b T53 unnamed streams get Regulations (+ "tributary of X" title).
-   2. wf_31731618-a9b one river system for back (Vedder/Chilliwack, Atnarko/Bella Coola).
-   3. wf_77e3c38a-472 back from a searched water → map at the water.
-   4. wf_3976eddc-bba gauge walk through stream polygons (polygon-only sloughs/canals).
-   5. wf_e4e2b70f-f21 "See X" group entries are pointers; identical rules read once.
-   6. twin-reach.sh (reach → reaches/full_twin + binding diff). Expect only lake sections of the 19 stamped entries.
-B. ONE DATA REBUILD after A4-A6 merge: swap reaches/full_twin in (after the diff is reviewed) → deliver all →
-   test_stream_polygon_panels.py (no ALLOW_PREDATING) → taps/regs-fixture/harness re-cut → strict check + smoke ONCE.
-C. T53 VERIFICATION SWEEP (owner: "unnamed streams have proper regs, incl. regs from being a trib of something"):
-   real-data audit over all regions — for a sample of unnamed sections per region, the Regulations page lines ==
-   region base + every override the reach run binds to that section (trib rules incl.); count sections where an
-   "and tributaries" rule of a named water should reach an unnamed trib but does not (reach trib walk). Pin it.
-D. T54 no-access streams (4th colour + banner; private/Indigenous gentle note). Owner questions unanswered → build
-   with the ticket's suggested defaults (permit = gentle tier; Conditions keeps flow colour + banner; lakes in no-access
-   areas get the colour) and list them for the owner. Needs pipeline section_access + deliver.
-E. Back follow-ups: split lake stacked twice via a tributary; parts-sheet rows do nothing (no onPart).
-F. Consistency auditors (N16, Fable model): route equality, one surface per action, data-vs-UI.
-G. Cleanup (handoff/PLAN/audit/PLAN.md): wave 2 (merges incl. one name normaliser — binding diff first), wave 3 (file
-   splits incl. Shell P14/P17, export_ui_rules), wave 4 docs, app test cleanup, knip (N23). Keep stocking/bathymetry/
-   salmon code; prove every script unneeded before deleting. N3 ticket ledger with status; N15 OPEN-QUESTIONS.md.
-H. Tiles: S2 tile-size easy wins + the pending rebuild (parcels from z11, basins 100 m simplify) — one tile build.
-I. N12 determinism proof (heavy, background, heavy.sh).
-J. T51 spot similarity forecast; T52 expected change; HYDAT: Forecasts line on More (feed forecastIssuedAt).
-K. T50 Android emulator parity (after cleanup). D1 phone testing needs the owner.
-L. CURATION REVIEW (owner 2026-10-22: make it usable for a person to review every curated regulation, and sound in
-   how it integrates, BEFORE anyone puts effort in). RUNNING wf_168b1ba9-6b5 (read-only audit → 3 designs → critique →
-   handoff/PLAN/curation-review/PLAN.md). Then: show the owner the plan; build the agreed tool changes as lanes.
-M. T55 REOPENED (owner 2026-10-22): wf_937ae915-731 finds lake/wetland polygons that are by the book streams (by name,
-   shape/position, regs) → scratchpad sloughs/candidates.json → publish an ARTIFACT for the owner to review; then
-   make the confirmed ones stream items (registry) + reach + deliver. BRAIDS reopened as a SEPARATE track: the same
-   workflow writes sloughs/braids-assessment.md (build-step fix?) → plan → owner. NEVER: parser runs (human-only), merging to main.
+## WORK QUEUE — ticket ids only. handoff/PLAN/app-integration/tickets/README.md is the sole source of future work.
+Owner 2026-10-22: "make sure it uses proper ticket system … use that as the sole source of future work." Work that is
+not a ticket is not planned; anything found becomes a ticket first. Status, what's left and owner questions live in the
+README ledger; this file only records what happened. One heavy job at a time (scripts/heavy.sh). ★ = owner.
+1. In flight: T56 → T66 ★ → T67 ★ → T55 ★
+2. After T56: T57, T82 ★, T58, T69, T71, T83, T81, T84, T96
+3. Next reach rerun / deliver (one heavy job): T59 → T76, T89, T90, T78, T80, T91 ★; then T73
+4. Cleanup: T70 → T61 → T62 → T63; T72; T92, T94, T60, T99
+5. Tiles window: T64 + T85 → T75; T65 (heavy, alone, in a quiet window)
+6. Native: T50 → T74 → T77 ★ → T86 ★ → T88 ★
+7. Features / pipeline: T54, T52, T51, T68, T93 ★, T79 ★, T97 ★, T100 ★
+8. Last: T87 ★, T95 ★, T98 ★ (POSTPONED)
+Partial, finished through the tickets above: T41 (→ T82, T50), T47 (→ T83).
 
 ## CURRENT STATE (2026-10-22 ~15:20) — READ THIS FIRST ON A RESTART
 - Branch redesign/stream-sections (NEVER main). REFINEMENT PASS MERGED (map-style 48c4fa3c..6b5da3ce, legend+scrim
