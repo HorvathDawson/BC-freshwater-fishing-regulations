@@ -47,12 +47,22 @@ def tree(tmp_path):
     _exe(tmp_path / "scripts/heavy.sh", HEAVY_STUB)
     (tmp_path / "data/source").mkdir(parents=True)
     (tmp_path / "data/source/hydat.release").write_text("20260717")
+    # (T68) step 5 uploads the NEWEST release by time: r-old is made second but dated older
+    (tmp_path / "data/release/r-new").mkdir(parents=True)
+    (tmp_path / "data/release/r-old").mkdir(parents=True)
+    os.utime(tmp_path / "data/release/r-old", (1_000_000, 1_000_000))
     return tmp_path
 
 
-def _run(tree: Path, lands: str, listed: str, **env) -> subprocess.CompletedProcess:
-    e = {**os.environ, "TREE": str(tree), "LANDS": lands, "LISTED": listed, **env}
-    return subprocess.run(["bash", str(tree / "scripts/update-hydat.sh")], env=e, capture_output=True, text=True)
+R2 = ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET")
+
+
+def _run(tree: Path, lands: str, listed: str, *args: str, r2: bool = False, **env) -> subprocess.CompletedProcess:
+    # the owner's own R2 credentials never reach a test run; `r2` sets dummies (the stubs send nothing)
+    e = {**{k: v for k, v in os.environ.items() if k not in R2}, "TREE": str(tree), "LANDS": lands, "LISTED": listed,
+         **({k: "x" for k in R2} if r2 else {}), **env}
+    return subprocess.run(["bash", str(tree / "scripts/update-hydat.sh"), *args], env=e, capture_output=True,
+                          text=True)
 
 
 def _log(tree: Path) -> list[str]:
@@ -70,7 +80,10 @@ def test_a_new_hydat_reruns_every_consumer_in_order_on_the_served_feed(tree):
         f"|-m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out {SERVED}/clim.json",
         f"|-m pipeline.gauges.feed.publish --out {SERVED} --clim {SERVED}/clim.json",
         "heavy|build 40 -- .venv/bin/python -m pipeline build",
+        # (T68) step 5 without --upload: the publisher's PLAN of the newest release; nothing is sent
+        "|-m pipeline.tools.publish --release data/release/r-new",
     ]
+    assert "  .venv/bin/python -m pipeline.tools.publish --release data/release/r-new --yes" in r.stdout
 
 
 def test_another_feed_dir_is_not_honoured(tree):
@@ -95,3 +108,42 @@ def test_an_unreadable_listing_stops_before_any_rebuild(tree):
     assert r.returncode != 0
     assert _log(tree) == ["/data|fetch_data.py --layers hydat", "|-c <latest>"]
     assert "could not read the HYDAT listing" in r.stderr
+
+
+# T68 review: the R2 upload step, run.
+PLAN = "|-m pipeline.tools.publish --release data/release/r-new"
+
+
+def test_upload_sends_the_planned_release_once_after_the_build(tree):
+    r = _run(tree, "20261020", "20261020", "--upload", r2=True)
+    assert r.returncode == 0, r.stderr
+    log = _log(tree)
+    # boto3 is checked up front AND again right before the send (the credentials are checked both times too)
+    assert log[0] == "|-c import boto3"
+    assert log[-4:] == ["heavy|build 40 -- .venv/bin/python -m pipeline build", PLAN, "|-c import boto3",
+                        PLAN + " --yes"]
+    assert "release uploaded to R2 (data/release/r-new)" in r.stdout
+
+
+def test_upload_without_credentials_stops_before_any_work(tree):
+    r = _run(tree, "20261020", "20261020", "--upload")
+    assert r.returncode == 1
+    assert not (tree / "log").exists()
+    assert "--upload: R2_ACCOUNT_ID is not set; nothing uploaded." in r.stderr
+
+
+def test_an_unknown_flag_is_usage_and_runs_nothing(tree):
+    r = _run(tree, "20261020", "20261020", "--yes")
+    assert r.returncode == 2
+    assert not (tree / "log").exists()
+    assert "usage: scripts/update-hydat.sh [--upload]" in r.stderr
+
+
+def test_no_release_after_the_build_says_so(tree):
+    # the build wrote no release: the script must SAY it (under `set -euo pipefail` an empty `ls` glob used to end
+    # the script silently, exit 1 and no word, right after the half-hour build)
+    shutil.rmtree(tree / "data/release")
+    r = _run(tree, "20261020", "20261020")
+    assert r.returncode == 1
+    assert "no release under data/release; nothing to upload." in r.stderr
+    assert not any("pipeline.tools.publish" in ln for ln in _log(tree))
