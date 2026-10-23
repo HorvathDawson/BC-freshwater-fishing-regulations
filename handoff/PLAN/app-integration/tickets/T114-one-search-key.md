@@ -1,6 +1,6 @@
 # T114 — One search key: the SQL filter and the ranking disagree on what matches ("barriere")
 
-Status: DONE — 72e0b223, 197b76d0 (app + pipeline code; the shipped bundle/release need a deliver to carry the keys — see As built).
+Status: DONE — 72e0b223, 197b76d0, review 993b2fa3 (app + pipeline code; the shipped bundle/release need a deliver to carry the keys — see As built).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding app 1
 (CONFIRMED on `bundle.sqlite`). The pipeline half (one name normaliser) is T61 2.8; this ticket is the app split.
@@ -75,3 +75,41 @@ Left / follow-ups:
 Owner questions:
 - Old-bundle tolerance: built with NONE (no raw-name fallback — that would be the second rule this ticket removes);
   the deliver and the app must ship together. Default kept unless you want a `withArea`-style fallback.
+
+## Adversarial review (2026-10-23)
+
+Fixed (993b2fa3):
+- **A third copy of the match decision:** `packages/data/src/fixture.ts` `makeFixtureSource().searchNames` matched by
+  `toLowerCase().includes` with no length guard. It now keys query, name and alias with `searchKey` and answers nothing
+  under two key characters, like both readers.
+- **No cross-source pin:** the conformance suite (`conformance/src/suite.ts`, run on the fixture and the fixture
+  release) gains "matches a name by its search key, not its spelling" (the water's own name capitalised, with "É" and a
+  curly apostrophe: "V’ÉDDER RIVER") and "a query whose search key is under two characters answers nothing" ("R’",
+  "''"). Mutations: fixture back to `toLowerCase().includes` → the spelling case fails (fixture); fixture guard
+  removed → the "R’" case fails; release SEARCH back to `i.name LIKE` + `likeEscape(query)` → the release spelling
+  case fails with 3 release-reader acceptance tests and 3 pin tests.
+- **Wrong wording:** `searchKey.test.ts` said dropping the length guard makes "''" answer every water. It does not:
+  `rankWaters` drops every row for an empty key, so "''" answers nothing with or without the guard; it is "é'" (key
+  "e") that pins it (mutation run: guard off → only the "é'" assertion fails, both readers).
+- **Node floor:** `tools/build-fixture.mjs` imports `searchKey.ts` (unflagged type stripping, Node ≥ 22.18) but
+  `engines.node` said `>=22`; now `>=22.18`.
+
+Checked and sound:
+- Parity beyond the table: every code point U+0000–U+10FFFF (surrogates aside) wrapped as "x?y" through both copies —
+  75 differ, all characters newer than Python's Unicode 15.1 (node's ICU lower-cases them, Python does not); none is
+  in a BC name. The Python `_WS` class equals JS `\s` exactly (25 code points, checked by enumeration).
+- Mutations re-run: tier `CASE` back to `i.name LIKE` (bundle) → the 2 pin tests fail; apostrophe delete dropped from
+  `searchKey` → 7 fail (both readers' "childrens", 4 table cases, core's ladder test); release alias filter back to
+  `a.alias LIKE` → the release alias test and 2 pins fail.
+- Other copies: no other `LIKE` on a water name/alias in the app; `menu.ts` `fold` (glossary) and the pipeline's
+  `tiles/names.normalise` (alias de-dupe in `_items`) are other decisions, already in Left / follow-ups.
+- Release build: `copy_file` takes the core columns from the contract, so `name_key`/`alias_key` flow from the bundle;
+  `conformance/src/release.test.ts` builds a fixture release from the dev bundle and passes.
+- Strict check (`REGS_STORE_REQUIRED=1 pnpm -C app check`): platform, fixture (deterministic), pack, typecheck pass;
+  vitest 7247 pass, 5 fail — all T02/T03/T07/T08/T09 store-vintage checks (`golden/taps.json` here predates the T128
+  re-cut on redesign/stream-sections); none touches search, and they clear once the lane is on the current dev branch.
+
+Left / follow-ups (review):
+- The 75 newer-Unicode letters: if a key ever needs them, pin Python's `unicodedata` version or lower-case in one
+  language only. Nothing to do for BC names.
+
