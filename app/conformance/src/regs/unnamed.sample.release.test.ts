@@ -112,5 +112,5 @@ describe.skipIf(!bundle.path)("(T53) unnamed sections in every region: the page'
     // counted here, not by the Region tests' side effects: this test alone (`-t T57`) must give the same answer
     const n = (which: "mu_line" | "lake_catchment") => REGIONS.reduce((a, r) => a + strata(r, which).length, 0);
     expect([n("mu_line") > 0, n("lake_catchment") > 0]).toEqual([true, true]);
-  });
+  }, 120_000);   // 18 strata scans of the bundle (≈ 15 s alone; past the 30 s default under the smoke's load)
 });

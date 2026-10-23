@@ -25,6 +25,7 @@ import { regsFixtureDir } from "@app/data/release/node";
 import { liveRelease, liveReleaseAt, openReleaseDir, regsStoreCandidates } from "../fixtureRelease";
 import { EXCLUDE, excluded } from "./exclusions";
 import { golden, oracleRixOver, taps, tapsOnce } from "./oracles";
+import { subcapRuled } from "./subcapTotal";
 
 export { golden, hydrate, HYDRATE, oracleRixOver, REPO, taps, TAPS } from "./oracles";
 export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
@@ -207,7 +208,10 @@ export async function storeLabel(): Promise<"province" | "fixture" | null> {
 /** `paritySkip` over the harness's store: describe.skipIf(gate.skip); gate.fail under REGS_STORE_REQUIRED=1. */
 export async function parityGate(env: Env = process.env): Promise<ReturnType<typeof paritySkip>> {
   const s = await paritySource(env);
-  return paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
+  const gate = paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
+  // (T128) the owner's sub-cap wording, applied to the golden once the paired store is open (subcapTotal.ts)
+  if (!gate.skip && !gate.fail) await subcapRuled(inputsOf);
+  return gate;
 }
 
 /**

@@ -90,11 +90,11 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   it("3. vedder_1010 kinds under t4: the size_rule chip, the pictures, the steelhead's How to tell, duty and stamp link, presence", async () => {
     const b = await kindNamed("vedder_1010", "Brook trout, brown trout and cutthroat trout");
     expect([plain(b.says), { ...b.size, text: norm(b.size!.text) }, b.pictures.map((p) => (p.sil ? p.code : p.caption.replace(/\s/g, " ")))]).toEqual([
-      "Up to 2 may be hatchery brook, brown or cutthroat trout", { text: "keep 30 cm (12 in) or longer; release the rest", rule: true },
+      "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout", { text: "keep 30 cm (12 in) or longer; release the rest", rule: true },
       ["Brook trout ›", "Brown trout ›", "Coastal cutthroat trout ›"]]);
     const s = await kindNamed("vedder_1010", "Steelhead");
     expect([plain(s.says), s.size?.text.replace(/\s/g, " "), s.qualifiers, plain(s.duty), plain(s.presence)]).toEqual([
-      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›", "over 50 cm (20 in)", "rainbow trout",
+      "Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›", "over 50 cm (20 in)", "rainbow trout",
       "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
       "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ"]);
     expect(s.duty!.at(-1)).toEqual({ t: "link", s: "Steelhead stamp ›", open: { tab: "licence" } });
@@ -123,8 +123,8 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   it("5, 8, 9. klwa_1010, bc1_501, x25p_1010: whole kind and tier lines", async () => {
     const k = await treeOfGroup("klwa_1010");
     expect(k.filter((x): x is KindVM => x.t === "kind").map((x) => [plain(x.says), x.also.map(norm), x.pictures.map((p) => p.code)])).toEqual([
-      ["Up to 2 may be brook, brown, cutthroat, lake or rainbow trout", ["Only 1 cutthroat or rainbow trout over 50 cm (20 in)"], ["EB", "GB", "CT", "LT", "RB"]],
-      ["Only 1 of the 2 may be Dolly Varden/bull trout", [], ["DV"]]]);
+      ["Of your 2 trout and char a day, up to 2 may be brook, brown, cutthroat, lake or rainbow trout", ["Only 1 cutthroat or rainbow trout over 50 cm (20 in)"], ["EB", "GB", "CT", "LT", "RB"]],
+      ["Of your 2 trout and char a day, only 1 may be Dolly Varden/bull trout", [], ["DV"]]]);   // T128 wording
     const own = (await treeOfGroup("bc1_501")).find((x) => x.t === "tier" && x.tier === "own") as TierVM;
     expect([plain(own.line), own.children.filter((x) => x.t === "tier").map((x) => plain((x as TierVM).line))]).toEqual([
       "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",

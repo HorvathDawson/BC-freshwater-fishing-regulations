@@ -132,7 +132,7 @@ describe("the dark census, measured (light beside it): each tab's text colours, 
   });
   it("vedder_1010 in light and CVD: the same counts (light onAccent IS the card, named onAccent)", () => {
     expect([drawPage(PAGES.vedder_1010!, LIGHT).colours, drawPage(PAGES.vedder_1010!, CVD).colours]).toEqual([want("onAccent"), want("onAccent")]);
-  });
+  }, 20_000);   // two whole pages drawn (≈ 1.3 s alone; past the render project's 5 s default under the smoke's load)
 });
 
 describe("the gate reads the palette, never a hex (T47 swaps the status colours later)", () => {
