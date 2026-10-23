@@ -338,6 +338,17 @@ _MAP_TAG = re.compile(r"\s*\(\s*map\s+(?:[A-Z]|\d{1,2})\s*\)")
 _SEE_MAP_ON_PAGE = re.compile(r"\bsee\s+(maps?)\s+(?:[A-Z]\s+|\d{1,2}\s+)?on\s+page\s+(\d{1,3})\b", re.I)
 _SEE_MAP_BELOW = re.compile(r"\bsee\s+(maps?)\s+below\b|\bmap\s+(?:[A-Z]|\d{1,2}),?\s*\(see\s+below\)", re.I)
 
+#: A ROW'S MAP THAT DOES NOT DRAW EVERY PART ON THE ROW (T100 review). A row heading's "(see map on
+#: page N)" is the row's, not each rule's: a part the printed map does not show must not cite it.
+#: (row name prefix, part pattern) — each verified against the printed map and pinned by
+#: test_t100_area_caveat (every pair still matches a widened rule).
+#:  * MAHOOD LAKE (p.31, map p.28 "for area closure"): the map shows only the western tip at the
+#:    Canim River mouth (the Jan 1-June 30 sign line); the Mahood River outlet is at the lake's far
+#:    (east) end, off the map.
+ROW_MAP_DOES_NOT_DRAW = (
+    ("MAHOOD LAKE", re.compile(r"\bMahood River outlet\b", re.I)),
+)
+
 
 def book_map(part: str, verbatim: str, entry: dict) -> dict | None:
     """THE BOOK'S MAP OF AN UNDRAWN PART, or None (T100: the one place this is decided). Only a
@@ -345,11 +356,15 @@ def book_map(part: str, verbatim: str, entry: dict) -> dict | None:
     for it even where its row prints one — the Cowichan River's "see map below"). The map's page is
     the first of: "see map(s) … on page N" in the rule's own line, the same in the row's heading,
     the row's own (single) printed page where it says the map is "below". A map NAMED but with no
-    page found is None here and refused by `undrawn_map_problems`.
+    page found is None here and refused by `undrawn_map_problems`. A part the row's map is known
+    not to draw (`ROW_MAP_DOES_NOT_DRAW`: Mahood's outlet) cites nothing.
 
     `{"name": "map A" | None, "page": <printed page>, "cite": "map A on p.28" | "the map on p.42" |
     "the maps on p.28"}` — `cite` is the words `says` uses."""
     if not str(part or "").strip() or not C.part_identifies_place(part):
+        return None
+    row = str(entry.get("full_name") or "").upper()
+    if any(row.startswith(n) and p.search(part) for n, p in ROW_MAP_DOES_NOT_DRAW):
         return None
     named = _MAP_NAMED.search(part) or _MAP_NAMED.search(verbatim or "")
     name = f"map {named.group(1)}" if named else None

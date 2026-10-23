@@ -1,6 +1,7 @@
 # T100 — Lakes divided into closure areas (RULINGS K5): Shuswap's maps A/B/C and the "widened" rules
 
-Status: DONE (owner Q43 default built: whole-water binding + area caveat) — fb648d5e, f54b21be, and the ticket commit.
+Status: DONE (owner Q43 default built: whole-water binding + area caveat) — fb648d5e, f54b21be, the ticket commit;
+adversarial review fix (Mahood outlet cites no map; 19 rules cite a map, not 23) — see "Adversarial review".
 Lane lane-T100 (worktree wf_144b677f-89c-4). Rebuild: deliver (export + answers + store; bundle, reach and atlas
 unchanged) and a regs fixture re-cut after it.
 
@@ -38,17 +39,18 @@ an AREA CAVEAT that is pipeline data; the app prints it as stored and words noth
   (`caveats.ts inPartOf`) already listed these rules at the top of the water and its book link reads `facts.book`,
   which now carries the map page.
 - Tests: `pipeline/tests/test_t100_area_caveat.py` pins the count of widened rules per row (`WIDENED`: 135 rules on 87
-  rows; a new one fails until looked at) and the map table (`MAPS`: 23 rules), whole caveat strings, applies/book, the
+  rows; a new one fails until looked at) and the map table (`MAPS`: 19 rules after review), whole caveat strings, applies/book, the
   refusal gate, and the export as built (`needs_bundle`). `test_export_ui_rules.py` reads the cited sentence on a
   mapped part. Mutations listed in the test's docstring.
 
 The ticket's "67 rules" (and the `_` text of `data/curated/waters/sub_lake_areas.json`) is stale: the corpus now holds
-135 widened rules on 87 rows (75 name their part, 23 of those cite a book map, 37 are rules "on parts" (vessel and speed rules) that the
-book never locates). One licensing record is in a part (the Creston Valley WMA permit, Kootenay Lake Main Body); it
+135 widened rules on 87 rows (98 name their part — 81 distinct parts on 64 rows —, 19 of those cite a book map, 37 are
+vessel rules "on parts" / "various locations" that the book never locates; corrected in review from "75" and "23"). One licensing record is in a part (the Creston Valley WMA permit, Kootenay Lake Main Body); it
 carries the caveat already and cites no map.
 
 Deferred lake-split rows (memory lake-splits-deferred): Shuswap (p.32, maps A/B/C + Salmon Arm Bay on p.28) and Mahood
-(p.31, area closures on p.28) are widened rows and now cite their maps. Ross Lake and Skagit River (p.25) have no
+(p.31, area closure on p.28) are widened rows and now cite their maps (Mahood: only the western-tip rules r1-r4; its
+Mahood River outlet rules r5-r8 are off the p.28 map and cite none). Ross Lake and Skagit River (p.25) have no
 widened rule: each row binds its own whole water by the book (the boundary between them is the signs), so nothing
 changes there. Kootenay, Williston and Shannon are already split into parts (`sub_lake_areas.json`) and are not
 widened.
@@ -65,6 +67,7 @@ widened.
   the water."; book = p.32 then p.28.
 
 ### Measured (scratch deliver of this lane's code from the live bundle; bundle, verdicts, status index untouched)
+- (Builder's run; the review's re-measure is under "Adversarial review": 19 export rules, 12 books.)
 - Export: exactly 23 rules change, only `not_yet_mapped` (gains `map`, `says` cites it), e.g. Shuswap r1 "… Little
   Shuswap Lake (map A) — which is not drawn on the map yet." -> "… Little Shuswap Lake — which is not drawn on the map
   yet; see map A on p.28 of the regulations."; Mahood r1-r8 "see the map on p.28", Canim r1 "see the map on p.42",
@@ -266,10 +269,10 @@ Now: `applies` ends with the caveat (citing the map where marked), book adds the
 - `mahood_lake.r2` book: "Trout/char catch and release" — part: *within fishing boundary signs at the western tip of the lake* — caveat cites the map on p.28 (PDF 30)
 - `mahood_lake.r3` book: "bait ban" — part: *within fishing boundary signs at the western tip of the lake* — caveat cites the map on p.28 (PDF 30)
 - `mahood_lake.r4` book: "single barbless hook" — part: *within fishing boundary signs at the western tip of the lake* — caveat cites the map on p.28 (PDF 30)
-- `mahood_lake.r5` book: "No Fishing within 200 m of the Mahood River outlet, Jan 1-June 30" — part: *within 200 m of the Mahood River outlet* — caveat cites the map on p.28 (PDF 30)
-- `mahood_lake.r6` book: "Trout/char catch and release" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat cites the map on p.28 (PDF 30)
-- `mahood_lake.r7` book: "bait ban" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat cites the map on p.28 (PDF 30)
-- `mahood_lake.r8` book: "single barbless hook" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat cites the map on p.28 (PDF 30)
+- `mahood_lake.r5` book: "No Fishing within 200 m of the Mahood River outlet, Jan 1-June 30" — part: *within 200 m of the Mahood River outlet* — caveat names the part (the p.28 map shows only the western tip; corrected in review)
+- `mahood_lake.r6` book: "Trout/char catch and release" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat names the part (the p.28 map shows only the western tip; corrected in review)
+- `mahood_lake.r7` book: "bait ban" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat names the part (the p.28 map shows only the western tip; corrected in review)
+- `mahood_lake.r8` book: "single barbless hook" — part: *within 200 m of the mouth of the Mahood River outlet* — caveat names the part (the p.28 map shows only the western tip; corrected in review)
 
 **MCARTHUR ISLAND SLOUGH** — `r3:mcarthur_island_slough@3-28`, p.31 (PDF 33), 1 rule(s)
 
@@ -486,3 +489,53 @@ Now: `applies` ends with the caveat (citing the map where marked), book adds the
 **WOOD LAKE** — `r8:wood_lake@8-22`, p.71 (PDF 77), 1 rule(s)
 
 - `wood_lake.r5` book: "Speed restriction (10 km/h) on parts" — part: *on parts* — caveat: part not identified ('on parts')
+
+## Adversarial review (2026-10-23)
+
+Read against the printed synopsis (p.28 = PDF 30 rendered, p.42 = PDF 48, p.51 = PDF 57) and re-measured on a fresh
+scratch deliver (export + answers + card_check of the reviewed code from the live bundle, diffed read-only).
+
+Findings:
+1. **DEFECT, fixed — Mahood's outlet rules cited a map that does not draw the outlet.** `book_map` took the row
+   heading's "(see map on page 28 for area closure)" for EVERY identified part on the row. The p.28 Mahood map shows
+   only the western tip (Canim River mouth, the Jan 1-June 30 sign line); "within 200 m of the Mahood River outlet"
+   (r5-r8) is the lake's far end, off the map. The app would have told anglers "see the map on p.28" for a place
+   that map does not show, and opened p.28 from their book link. Fix: `export_ui_rules.ROW_MAP_DOES_NOT_DRAW`
+   (row-name prefix + part pattern, each verified against the printed map); `book_map` returns None for a part in it.
+   Tests: `MAPS` drops Mahood r5-r8; `test_a_part_off_the_rows_map_cites_nothing` (Mahood outlet cites nothing, its
+   western tip still cites p.28, and every exclusion still matches a widened rule so none goes stale).
+2. **Test gap, fixed — the export gate wiring was untested.** Removing `undrawn_map_problems(doc)` from `problems()`
+   passed every test. Added `test_the_export_gate_refuses_an_unmapped_map_page` (needs_bundle): a cited page outside
+   `guide.pdf_pages` is refused by `problems()` itself.
+3. **Wrong measurement, corrected in this ticket** — "75 name their part" was 98 rules (81 distinct parts on 64 rows);
+   "23 cite a map" is 19 after fix 1 (24 in the commit message / test docstring was also wrong); answers `book`
+   changes 12, not 16.
+
+Checked, no defect:
+- Second copies: `applies` / `book` are composed only in `display.applies_here` / `book_pages` (one caller,
+  `display.rules`); the app prints `facts.applies` / `applies_trib` / `facts.book` (sheets.ts, decided.ts,
+  sources.ts, other.ts) and words nothing. The licensing in-part box (`licence.ts`) reads `part`, not `says`.
+- `applies_trib` never carries the caveat, correctly: no widened rule reaches a tributary (bundle `ruleset`:
+  0 rows `via='trib'` for a rule with `undrawn_part`), and live answers ship no `applies_trib` on them.
+- Mutations (each fails the named test, run against the live bundle): `book_map` -> None (7 fail), heading not read
+  (7), "(map A)" tag kept (3), `applies_here` drops the caveat (1), `book_pages` ignores the map (1), the gate's page
+  check off (1), `ROW_MAP_DOES_NOT_DRAW` emptied (3), gate unwired (1, after fix 2; 0 before).
+- Printed pages: Shuswap p.32 -> PDF 34, maps p.28 -> PDF 30, Canim p.43/42 -> PDF 49/48, François p.51 -> PDF 57.
+  Map A/B/C areas and Salmon Arm Bay match the p.28 drawings; Canim's "NO FISHING ZONE" at Eagle Creek is on p.42;
+  "MAP 1 FRANÇOIS LAKE - Outlet" is on p.51.
+
+Re-measured (scratch deliver of the fixed code vs live, read-only):
+- Export: 19 rules change, only `not_yet_mapped` (map 1 on p.51 x7, the map on p.28 x5 [Mahood r1-r4 + Salmon Arm
+  Bay], map A x2, map B, map C, the maps on p.28 x2 [the Salmon Arm pier exemptions], the map on p.42 [Canim]).
+  Mahood r5-r8 carry no `map`: "… within 200 m of the Mahood River outlet — which is not drawn on the map yet. It does
+  not apply to the rest of the water."
+- Answers: only `sections.display.rules` (+ spec text): `applies` 135, `book` 12 (Mahood r1-r4 and Shuswap's 7 add
+  [28,30]; Canim adds [42,48]).
+- card_check on the scratch answers: 0 problems (16,004 groups, 7,159 cards, 2,266 keys).
+
+Owner questions (defaults built):
+- Q-T100-a: the Salmon Arm community-pier exemptions (r5x, r11x) cite "the maps on p.28" from the row heading. The
+  pier is not marked on the Salmon Arm Bay map, though the City of Salmon Arm at the bay's head is. Default: keep the
+  cite (it locates the bay the pier is on); add the pier to `ROW_MAP_DOES_NOT_DRAW` if you would rather it cite none.
+
+Rebuild: unchanged — deliver (export + answers + store), then a regs fixture re-cut.

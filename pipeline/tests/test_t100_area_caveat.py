@@ -17,7 +17,10 @@ Mutations, each failing the named test:
   * `applies_here` drops the caveat                 -> test_applies_ends_with_the_area_caveat
   * `book_pages` ignores the map                    -> test_book_cites_the_map_page_after_the_row
   * `undrawn_map_problems` returns []              -> test_a_named_map_with_no_page_is_refused
+  * `problems` stops calling it                     -> test_the_export_gate_refuses_an_unmapped_map_page
   * a new rule with an `undrawn_part` in the corpus -> test_the_widened_rules_are_counted
+  * `ROW_MAP_DOES_NOT_DRAW` emptied / not read      -> test_the_book_maps_of_the_widened_rules (Mahood r5-r8),
+                                                      test_a_part_off_the_rows_map_cites_nothing
 """
 from __future__ import annotations
 
@@ -29,7 +32,8 @@ import pytest
 from pipeline.common.curated import CURATED
 from pipeline.deliver.answers.common import BOOK_TITLE
 from pipeline.deliver.answers.display import applies_here, book_pages
-from pipeline.tools.export_ui_rules import book_map, not_yet_mapped, undrawn_map_problems
+from pipeline.tools.export_ui_rules import (ROW_MAP_DOES_NOT_DRAW, book_map, not_yet_mapped,
+                                            undrawn_map_problems)
 
 TAIL = " It does not apply to the rest of the water."
 
@@ -98,7 +102,9 @@ WIDENED = {
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26::shuswap_lake"
 MAHOOD = "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46::mahood_lake"
 MAPS = {
-    **{f"{MAHOOD}.r{i}": "the map on p.28" for i in range(1, 9)},
+    # Mahood r1-r4 only: the western tip at the Canim River mouth. r5-r8 ("within 200 m of the
+    # Mahood River outlet") are at the far end of the lake, off the p.28 map (T100 review)
+    **{f"{MAHOOD}.r{i}": "the map on p.28" for i in range(1, 5)},
     f"{SHUSWAP}.r1": "map A on p.28", f"{SHUSWAP}.r2": "map A on p.28",
     f"{SHUSWAP}.r3": "map B on p.28", f"{SHUSWAP}.r4": "map C on p.28",
     f"{SHUSWAP}.r5": "the map on p.28",                       # Salmon Arm Bay, "(see map on page 28)"
@@ -122,12 +128,25 @@ def test_the_widened_rules_are_counted():
 
 
 def test_the_book_maps_of_the_widened_rules():
-    """`book_map` over the corpus as the bundle ships it: exactly these 24 rules cite a map. An
+    """`book_map` over the corpus as the bundle ships it: exactly these 19 rules cite a map. An
     unidentified "on parts" never does, even on a row that prints one (the Cowichan River)."""
     got = {f"{e['entry_id']}::{r['rule_id']}": mp["cite"] for e, book, r in _corpus()
            if str(r.get("undrawn_part") or "").strip()
            and (mp := book_map(r["undrawn_part"], r.get("verbatim") or "", book))}
     assert got == MAPS
+
+
+def test_a_part_off_the_rows_map_cites_nothing():
+    """T100 review: a row heading's "(see map on page N)" belongs to the row, not to each part on it.
+    Mahood's p.28 map draws only the western tip; its outlet rules must not send the angler to a map
+    that does not show the outlet. Every exclusion still matches a widened rule (none goes stale)."""
+    mahood = {"full_name": "MAHOOD LAKE (see map on page 28 for area closure)", "pages": [31]}
+    assert book_map("within 200 m of the Mahood River outlet", "No Fishing", mahood) is None
+    assert book_map("within fishing boundary signs at the western tip of the lake", "bait ban", mahood) == \
+        {"name": None, "page": 28, "cite": "the map on p.28"}
+    for name, pat in ROW_MAP_DOES_NOT_DRAW:
+        assert any(str(book["full_name"] or "").upper().startswith(name) and pat.search(r["undrawn_part"])
+                   for _, book, r in _corpus() if str(r.get("undrawn_part") or "").strip()), name
 
 
 # ---------------------------------------------------------------------------------------------
@@ -251,3 +270,18 @@ def test_the_export_carries_the_caveats(doc):
     assert len(nym) == sum(WIDENED.values())
     assert {k: n["map"]["cite"] for k, n in nym.items() if n.get("map")} == MAPS
     assert undrawn_map_problems(doc) == []
+
+
+@pytest.mark.needs_bundle
+def test_the_export_gate_refuses_an_unmapped_map_page(doc):
+    """T100 review: `undrawn_map_problems` is wired into the export's own gate (`problems`), so an
+    export citing a map page the PDF map lacks is refused, not just reported by this test file."""
+    from pipeline.tools import export_ui_rules as X
+    k = f"{SHUSWAP}.r3"
+    mp = doc["rules"][k]["not_yet_mapped"]["map"]
+    keep = mp["page"]
+    try:
+        mp["page"] = 999
+        assert f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map" in X.problems(doc)
+    finally:
+        mp["page"] = keep
