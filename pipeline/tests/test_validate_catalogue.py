@@ -363,3 +363,111 @@ def test_twice_is_a_possession_multiplier_and_nothing_else():
     assert count_in_words(2, "no more than twice the daily quota", "per_daily")
     assert not count_in_words(2, "no more than twice the daily quota", "take")
     assert not count_in_words(1, "once you have caught your quota", "per_daily")
+
+
+# --------------------------------------------------------------------------- #
+# A lift sits inside what it lifts — the PROVINCE holds every area (T96)
+# --------------------------------------------------------------------------- #
+#
+# `within area_kind: region` is the union of every `area:region:*` item — the whole province
+# (`reach.licensing` reads it so). Every other area is clipped to the B.C. outline, the exact union
+# of the units the regions are dissolved from (`areas.json` `_clip_policy`, AGENTS 59). So a lift in
+# Region 6 lakes, or in the Fraser basin, sits INSIDE a province-wide rule. The gate compared the
+# string 'area:region:6' with the string 'region' and refused four true provincial exemptions
+# (`zp:set_lining`, `zp:spear_fishing`, `zp:bait`, `zp:white_sturgeon_licence`).
+
+def _lift_entry(lift, target):
+    """One rule lifting another in the same entry; each extent list as given."""
+    return {"rules": [
+        {"rule_id": "x.r1", "extents": target},
+        {"rule_id": "x.r2", "extents": lift, "exempts": [{"target": "x.r1"}]},
+    ]}
+
+
+_PROVINCE = [{"op": "within", "area_kind": "region"}]
+
+
+@pytest.mark.parametrize("lift", [
+    [{"op": "within", "area_id": "area:region:6", "feature_types": ["lake"]},
+     {"op": "within", "area_id": "area:region:7a", "feature_types": ["lake"]}],   # zp:bait.r2
+    [{"op": "within", "area_id": "area:basin:100-382626-"}],                     # sturgeon r4x
+    [{"op": "within", "area_id": "area:national_parks:yoho"}],
+])
+def test_a_lift_anywhere_in_bc_sits_inside_a_province_wide_rule(lift):
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    assert exemptions_stay_inside_what_they_lift(_lift_entry(lift, _PROVINCE)) == []
+
+
+def test_a_member_of_a_family_sits_inside_the_family():
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    e = _lift_entry([{"op": "within", "area_id": "area:national_parks:yoho"}],
+                    [{"op": "within", "area_kind": "national_parks"}])
+    assert exemptions_stay_inside_what_they_lift(e) == []
+
+
+_OUTSIDE = ("x.r2: exempts x.r1, but they share no ground — this lift binds {mine} and the rule it "
+            "lifts binds {theirs}. A lift that sits outside what it lifts either names the wrong "
+            "rule or reaches further than the rule it is an exception to.")
+
+
+@pytest.mark.parametrize("lift,target,mine,theirs", [
+    # a lift in one region of a rule held in another — the zp:bait.r2 / Zone B defect
+    ([{"op": "within", "area_id": "area:region:6"}],
+     [{"op": "within", "area_id": "area:region:7b"}],
+     ["area:region:6"], ["area:region:7b"]),
+    # a region is not inside the national-parks family
+    ([{"op": "within", "area_id": "area:region:3"}],
+     [{"op": "within", "area_kind": "national_parks"}],
+     ["area:region:3"], ["national_parks"]),
+    # the province minus Region 6 does not hold a lift in Region 6
+    ([{"op": "within", "area_id": "area:region:6"}],
+     [{"op": "within", "area_kind": "region", "outside_area": "area:region:6"}],
+     ["area:region:6"], ["region"]),
+    # the province outside the national parks does not hold a lift in a national park
+    ([{"op": "within", "area_id": "area:national_parks:yoho"}],
+     [{"op": "within", "area_kind": "region", "outside_area_kind": "national_parks"}],
+     ["area:national_parks:yoho"], ["region"]),
+])
+def test_a_lift_outside_what_it_lifts_is_still_refused(lift, target, mine, theirs):
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    assert exemptions_stay_inside_what_they_lift(_lift_entry(lift, target)) == [
+        _OUTSIDE.format(mine=mine, theirs=theirs)]
+
+
+def _curated_entries():
+    import json
+    from pipeline.common.curated import CURATED
+    return [e for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
+            for e in json.loads(p.read_text())["entries"]]
+
+
+def test_moving_the_fin_fish_ban_out_of_region_6_refuses_the_set_lining_lift():
+    """MUTATION PIN on the real entry: `zp:bait.r2` (dead fin fish when set lining in Region 6 and
+    7A lakes) passes under the province-wide ban, and is refused the moment the ban it names is
+    held only in Zone B — the pairing the gate was written to catch."""
+    import copy
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    bait = next(e for e in _curated_entries() if e["entry_id"] == "zp:bait")
+    assert exemptions_stay_inside_what_they_lift(copy.deepcopy(bait)) == []
+    moved = copy.deepcopy(bait)
+    next(r for r in moved["rules"] if r["rule_id"] == "bait.r1")["extents"] = [
+        {"op": "within", "area_id": "area:region:7b"}]
+    assert exemptions_stay_inside_what_they_lift(moved) == [
+        "bait.r2: exempts bait.r1, but they share no ground — this lift binds "
+        "['area:region:6', 'area:region:7a'] and the rule it lifts binds ['area:region:7b']. A "
+        "lift that sits outside what it lifts either names the wrong rule or reaches further than "
+        "the rule it is an exception to."]
+
+
+def test_every_curated_entry_passes_the_ingest_gate():
+    """THE WHOLE CATALOGUE PASSES `check_entry` against its own printed passage (T96): ingest for a
+    region is all or nothing, so one refused entry breaks the region. Advisories are not refusals."""
+    import copy
+    entries = _curated_entries()
+    refused = {}
+    for e in entries:
+        _, errors = check_entry(copy.deepcopy(e), e.get("regs_verbatim") or "")
+        errors = [x for x in errors if not x.startswith("ADVISORY")]
+        if errors:
+            refused[e["entry_id"]] = errors
+    assert (len(entries), refused) == (1525, {})

@@ -225,6 +225,55 @@ def resolve_exempt_ids(data: dict) -> int:
     return n
 
 
+#: THE PROVINCE IS EVERY AREA. `within area_kind: region` is the union of every `area:region:*` item
+#: — the whole province, said the one way the corpus says it (`reach.licensing`). Every other area
+#: is clipped to the B.C. outline, the exact union of the units the regions are dissolved from
+#: (`data/curated/waters/areas.json` `_clip_policy`, AGENTS 59), so every area lies inside it.
+#: The gate compared the STRING 'area:region:6' with the STRING 'region', found no common element,
+#: and refused four true provincial exemptions (`zp:set_lining`, `zp:spear_fishing`, `zp:bait`,
+#: `zp:white_sturgeon_licence`, T96) — each a lift in some regions or one basin of a rule held
+#: province-wide, which is exactly inside what it lifts.
+PROVINCE_KIND = "region"
+
+
+def _area_family(token: str) -> str:
+    """'area:national_parks:yoho' -> 'national_parks'; a bare kind is its own family."""
+    return token.split(":")[1] if token.startswith("area:") and token.count(":") >= 2 else token
+
+
+def _holds(outer: dict, inner: dict) -> bool:
+    """Does `within` extent `outer` hold every place `inner` names? An area holds itself; an
+    `area_kind` holds every member of its family; the province kind holds every area. What the
+    outer extent subtracts (`outside_area`, `outside_areas`, `outside_area_kind`) is not held — a
+    lift in Region 6 is outside "the province minus Region 6"."""
+    o = str(outer.get("area_id") or "")
+    k = str(outer.get("area_kind") or "")
+    i = str(inner.get("area_id") or inner.get("area_kind") or "")
+    if not i:
+        return False
+    cut = {str(x) for x in ([outer.get("outside_area")] + list(outer.get("outside_areas") or []))
+           if x}
+    if i in cut or (outer.get("outside_area_kind")
+                    and _area_family(i) == str(outer.get("outside_area_kind"))):
+        return False
+    if o:
+        return o == i
+    if inner.get("area_kind") and not inner.get("area_id"):
+        return k == PROVINCE_KIND or k == i      # a family inside the province, or itself
+    return k == PROVINCE_KIND or _area_family(i) == k
+
+
+def _meets(a: dict, b: dict) -> bool:
+    """Two area extents share ground when they name the same area or one holds the other.
+    Overlap between two DIFFERENT areas (a park straddling a region line) is not provable from
+    ids, and is refused as before — the lift then names its ground in the target's terms."""
+    if (a.get("area_id") or a.get("area_kind")) == (b.get("area_id") or b.get("area_kind")) \
+            and not any(x.get(f) for x in (a, b)
+                        for f in ("outside_area", "outside_areas", "outside_area_kind")):
+        return True
+    return _holds(a, b) or _holds(b, a)
+
+
 def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
     """A LIFT MUST SIT INSIDE THE RULE IT LIFTS.
 
@@ -243,15 +292,15 @@ def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
     rules = {r.get("rule_id"): r for r in (entry_data.get("rules") or []) if isinstance(r, dict)}
     entry_ex = entry_data.get("extents") or []
 
+    def extents(rule: dict) -> list[dict]:
+        return [ex for ex in (rule.get("extents") or entry_ex or [])
+                if isinstance(ex, dict) and (ex.get("area_id") or ex.get("area_kind"))]
+
     def places(rule: dict) -> set:
-        got = set()
-        for ex in (rule.get("extents") or entry_ex or []):
-            if not isinstance(ex, dict):
-                continue
-            a = ex.get("area_id") or ex.get("area_kind")
-            if a:
-                got.add(str(a))
-        return got
+        return {str(ex.get("area_id") or ex.get("area_kind")) for ex in extents(rule)}
+
+    def share_ground(rule: dict, target: dict) -> bool:
+        return any(_meets(a, b) for a in extents(rule) for b in extents(target))
 
     for rid, rule in rules.items():
         lifts = rule.get("exempts")
@@ -260,7 +309,7 @@ def exemptions_stay_inside_what_they_lift(entry_data: dict) -> list[str]:
             if not target or target not in rules:
                 continue                       # a default_id, or a target in another entry
             mine, theirs = places(rule), places(rules[target])
-            if not mine or not theirs or mine & theirs:
+            if not mine or not theirs or share_ground(rule, rules[target]):
                 continue                       # unplaced, or overlapping — nothing provable
             out.append(
                 f"{rid}: exempts {target}, but they share no ground — this lift binds "
