@@ -22,7 +22,7 @@ import type { MapSpots } from "@app/map";
 import { LIGHT } from "./theme";
 
 type Stub = { onLayers?: () => void; spots?: MapSpots; layersChanged?: number;
-              marker?: { lat: number; lon: number } | null };
+              marker?: { lat: number; lon: number } | null; onMapPoint?: (lat: number, lon: number) => void };
 /**
  * (T131) The map draws what the real renderers draw for `spots`: the marks `spotMarkers` gives (at z14 here, every spot
  * its own), each the Shell's own face, its press the map's `pressSpot` — so a tap here is the tap a reader makes.
@@ -42,6 +42,9 @@ vi.mock("./MapScreen", async () => {
         {p.spots && spotMarkers(p.spots.points, 14, p.spots.selected).map((m) => (
           <View key={m.key}>{p.spots!.face(m, () => pressSpot(m, p.spots!, () => {}))}</View>))}
         <Text testID="map-changed">{`changed ${p.layersChanged ?? 0}`}</Text>
+        {/* (T145) a tap on the map itself, off every spot: what the renderers hand `onMapPoint` */}
+        <Pressable accessibilityRole="button" accessibilityLabel="Tap the map off the spots"
+                   onPress={() => p.onMapPoint?.(49.3, -121.5)}><Text>tap map</Text></Pressable>
       </View>),
   };
 });
@@ -178,5 +181,48 @@ describe("(T131) a spot's pin opens the spot", () => {
     act(() => { fireEvent.click(screen.getByRole("button", { name: "Back" })); });
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     expect([open, where()]).toEqual(["spot Tamihi run | ‹ Back", "water map | selected s1 marker no"]);
+  }, 60_000);
+});
+
+describe("(T145) a tap on the map off every spot clears the selected pin", () => {
+  const tapOff = () => act(() => { fireEvent.click(screen.getByRole("button", { name: "Tap the map off the spots" })); });
+  it.each(["map", "conditions"] as const)("on the %s map: the pin opened and come back to is selected; a tap off it " +
+    "clears it and opens nothing; a pin tap selects again; through the real Shell", (tab) => {
+    mount(tab, memory());
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Open spot Vedder River" })); });
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Back" })); });
+    const selected = where();
+    tapOff();
+    const cleared = where();
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Open spot Tamihi run" })); });
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Back" })); });
+    expect([selected, cleared, where()]).toEqual([
+      "map | selected s2 marker no", "map | selected - marker no", "map | selected s1 marker no"]);
+  });
+
+  it("Show's spot: selected on the Map tab; a tap off clears it (the framing stays, no marker comes back)", () => {
+    mount("spots", memory());
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Show Tamihi run on the map" })); });
+    const shown = where();
+    tapOff();
+    expect([shown, where()]).toEqual(["map | selected s1 marker no", "map | selected - marker no"]);
+  });
+
+  it("on a WATER'S map the same: back on the water, its pin selected; a tap off clears it", async () => {
+    const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
+                           stack: [{ item: "gnis:8634" as ItemId, part: 1, tapSid: null, at: null, view: "map" }] };
+    render(
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={openRegsFixture()}
+               spots={SPOTS} layerStore={memory()} />
+      </GestureHandlerRootView>);
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Open spot Tamihi run" })); });
+    act(() => { fireEvent.click(screen.getByRole("button", { name: "Back" })); });
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    const selected = where();
+    tapOff();
+    expect([selected, where()]).toEqual(["water map | selected s1 marker no", "water map | selected - marker no"]);
   }, 60_000);
 });

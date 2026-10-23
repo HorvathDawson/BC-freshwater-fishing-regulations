@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import type { Spot } from "@app/data/spots";
-import { spotsMenu, useMapRail, type Locate, type LocatePermission, type MapRail } from "./mapRail";
+import { mapPointTap, spotsMenu, useMapRail, type Locate, type LocatePermission, type MapRail } from "./mapRail";
 import { HOME, reduce, type Route, type RouteAction } from "./route";
 
 afterEach(cleanup);
@@ -256,6 +256,28 @@ describe("useMapRail", () => {
       [{ type: "tab", tab: "spots" }], [{ type: "close" }, { type: "tab", tab: "spots" }], SPOTS]);
   });
 
+  it("(T145) THE MAP TAPPED OFF A SPOT clears the selected pin — the one opened from its pin, and the one Show " +
+     "framed — and nothing else: Show's framing and the route stay; a later pin tap selects again", () => {
+    const opened = rig(null, HOME);
+    act(() => opened.out.r!.openPin("s2"));
+    const spot = reduce(HOME, opened.acts[0]!);
+    opened.at(spot);
+    opened.at(reduce(spot, { type: "back" }));
+    const before = opened.out.r!.selected;
+    act(() => opened.out.r!.deselect());
+    const after = opened.out.r!.selected;
+    act(() => opened.out.r!.openPin("s1"));
+    const shown = rig(null, SPOTS);
+    act(() => shown.out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
+    shown.at(HOME);
+    const framed = [shown.out.r!.selected, shown.out.r!.fly?.key];
+    act(() => shown.out.r!.deselect());
+    expect([before, after, opened.acts.length, opened.acts[1], framed,
+            [shown.out.r!.selected, shown.out.r!.fly?.key, shown.out.r!.marker(false)]]).toEqual([
+      "s2", null, 2, { type: "openSpot", id: "s1" }, ["s1", "spot:s1:1"],
+      [null, "spot:s1:1", { lat: 49.0974, lon: -121.9675 }]]);
+  });
+
   it("a spot's own Show (its screen, over any tab) lands on the Map tab the same way", () => {
     const seen: string[] = [];
     const out: { r?: MapRail } = {};
@@ -266,5 +288,26 @@ describe("useMapRail", () => {
     act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
     rerender(at(reduce(spotOnCond, acts[0]!)));
     expect([acts, seen[seen.length - 1]]).toEqual([[{ type: "tab", tab: "map" }], "drop:- perm:- err:- fly:spot:s1:1"]);
+  });
+});
+
+describe("(T145) mapPointTap: what a tap on a map, off every spot, does", () => {
+  it("pick mode: the new spot's place, only; else a wide search closes and the selection clears — each only when " +
+     "there is one; nothing to do, no listener", () => {
+    const calls: string[] = [];
+    const rail = (picking: boolean, selected: string | null) => ({
+      picking, selected, tapPick: (lat: number, lon: number) => { calls.push(`pick ${lat},${lon}`); },
+      deselect: () => { calls.push("deselect"); } });
+    const close = () => { calls.push("close search"); };
+    const run = (f: ((lat: number, lon: number) => void) | undefined) => {
+      calls.length = 0;
+      if (f === undefined) return "no listener";
+      f(49, -122);
+      return calls.join(" + ");
+    };
+    expect([run(mapPointTap(rail(true, "s1"), close)), run(mapPointTap(rail(false, "s1"), close)),
+            run(mapPointTap(rail(false, "s1"), null)), run(mapPointTap(rail(false, null), close)),
+            run(mapPointTap(rail(false, null), null))]).toEqual([
+      "pick 49,-122", "close search + deselect", "deselect", "close search", "no listener"]);
   });
 });

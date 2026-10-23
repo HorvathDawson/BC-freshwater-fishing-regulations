@@ -21,7 +21,7 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          regsGroupOf, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRail, type LayerStore,
+import { mapPointTap, routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRail, type LayerStore,
          type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
@@ -653,6 +653,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
                           map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
                                  basemap: mm.basemap, data: statusMapData, status: mapStatus, spots: spotLayer,
+                                 // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps
+                                 onMapPoint: mapPointTap(rail, null),
                                  onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
                                  view: "plain", modes, groups: activeGroups,
                                  onError: (e) => console.error("map:", e.message) }}
@@ -773,7 +775,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // — and on a WIDE screen while search is open, a click on the map beside the panel closes search
                      // and does nothing else (owner 2026-10-22 late): no water opens under it, no pin drops
                      onPressFeature={picking || wideSearch ? undefined : onPressFeature}
-                     onMapPoint={picking ? rail.tapPick : wideSearch ? closeSearch : undefined}
+                     // and anywhere off a spot, a tap clears the selected spot's pin (T145, `mapPointTap`)
+                     onMapPoint={mapPointTap(rail, wideSearch ? closeSearch : null)}
                      onError={(e) => console.error("map:", e.message)} />
         : null;
 

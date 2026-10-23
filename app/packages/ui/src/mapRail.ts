@@ -131,6 +131,12 @@ export interface MapRail {
   selected: string | null;
   /** (T131) A spot's pin tapped, on any map: that spot opens over the map (one back layer), as its row opens it. */
   openPin(id: string): void;
+  /**
+   * (T145) THE MAP TAPPED OFF EVERY SPOT (owner 2026-10-23: they "dont deselect if click off them"): no pin is selected
+   * any more — the spot last opened is forgotten, and Show's framing keeps its place but selects nothing. The map does
+   * not move and nothing else changes; a later Show or pin tap selects again.
+   */
+  deselect(): void;
   /** (T131) A group of spots no zoom parts was tapped: the Spots list (out of a water first, when on a water's map). */
   listSpots(): void;
   /**
@@ -138,6 +144,20 @@ export interface MapRail {
    * (`spotsShown`), when the selected spot's pin already marks it.
    */
   marker(spotsShown: boolean): LatLon | null;
+}
+
+/**
+ * WHAT A TAP ON A MAP, OFF EVERY SPOT, DOES to the spots flow (the map's `onMapPoint`; a tap ON a spot is the spot's own
+ * press and never reaches here — `@app/core` `spotUnder`): in pick mode it is the new spot's place and nothing else;
+ * otherwise it closes a wide search beside the map (`closeSearch`, when given) and clears the selected pin (T145).
+ * Undefined when it would do nothing, so the map listens for no tap it does not need.
+ */
+export function mapPointTap(rail: Pick<MapRail, "picking" | "tapPick" | "selected" | "deselect">,
+                            closeSearch: (() => void) | null): ((lat: number, lon: number) => void) | undefined {
+  if (rail.picking) return rail.tapPick;
+  const deselect = rail.selected === null ? null : rail.deselect;
+  if (closeSearch === null) return deselect ?? undefined;
+  return deselect === null ? closeSearch : () => { closeSearch(); deselect(); };
 }
 
 /** Where the route is, as far as the rail cares: any change of it forgets the pin and the framing. */
@@ -156,7 +176,8 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
   const [permission, setPermission] = useState<LocatePermission | null>(null);
   const [drop, setDrop] = useState<LatLon | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fly, setFly] = useState<(SpotFly & { for: string; spot: string }) | null>(null);
+  /** Show's framing, and the spot it selects (null once the map is tapped off it: T145). */
+  const [fly, setFly] = useState<(SpotFly & { for: string; spot: string | null }) | null>(null);
   /**
    * (T131) The spot last opened from its pin, and the map it was on: selected there again when back returns to it. Not
    * forgotten by the route moving (the spot's own screen is a move) — it simply is not that map any more.
@@ -240,6 +261,10 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
     openPin: (id) => {
       setOpened({ id, for: place });
       go({ type: "openSpot", id });
+    },
+    deselect: () => {
+      setOpened(null);
+      setFly((f) => (f === null || f.spot === null ? f : { ...f, spot: null }));
     },
     listSpots: () => {
       if (route?.mode === "water") go({ type: "close" });

@@ -39,7 +39,7 @@ import {
   type CameraRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
-         type Bbox, type SectionKey } from "@app/core";
+         spotUnder, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
@@ -133,6 +133,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const camera0 = useRef({ center: [initial.lon, initial.lat] as [number, number], zoom: initial.zoom });
   /** Where the camera is, for the scale bar: the latitude and zoom it last settled at. */
   const [scaleAt, setScaleAt] = useState({ lat: initial.lat, zoom: initial.zoom });
+  /** (T145) The spot marks drawn, and the zoom they were placed at: what a tap is checked against (`spotUnder`). */
+  const spotsAt = useRef<{ marks: readonly SpotMarker[]; zoom: number }>({ marks: [], zoom: initial.zoom });
 
   // The FIRST attach is news (the binding mounts the source only once the map is ready, maybe after the style
   // loaded); later ones are the binding re-creating its handle (`useImperativeHandle` with no deps), which must not
@@ -243,6 +245,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (!ne) return;
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
+    // (T145) a tap on a spot is the spot's (its annotation's press): never ALSO the map's — no water opens under it,
+    // and the off-spot tap that clears the selection does not clear the one this tap makes
+    if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return;
     cb.current.onMapPoint?.(lat, lon);
     const press = cb.current.onPressFeature;
     if (!press || !rendered.current) return;       // no renderer to query yet (see `rendered`)
@@ -290,6 +295,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const spotMarks = useMemo(() => (spots ? spotMarkers(spots.points, scaleAt.zoom, spots.selected) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [spotKey, scaleAt.zoom]);
+  spotsAt.current = { marks: spotMarks, zoom: scaleAt.zoom };
   return (
     <>
       <MLMap
