@@ -181,6 +181,76 @@ def test_the_graph_flow_carries_each_pieces_code():
     assert (flow.into(2), flow.top, flow.wsc) == ([(1, 12925.0)], {2: 12950.0}, {2: "100-1", 1: "100-1-2"})
 
 
+def test_the_graph_flow_keeps_lakes_apart_and_marks_a_creek_that_ends_in_one():
+    """T108: a LAKE draining into B's top is not a river meeting A (`Flow.lakes`), and a piece that also flows into a
+    lake ends there (`Flow.into_lake`) — the span words' old "it ends at the lake" now lives in `goes_on`."""
+    class N:
+        def __init__(self, up_m, kind="stream"):
+            self.up_m, self.wsc, self.kind = up_m, "", kind
+
+    class E:
+        def __init__(self, f, t, at, kind="confluence"):
+            self.from_node, self.to_node, self.at_measure, self.kind = f, t, at, kind
+
+    class G:
+        nodes = {"Y:0": N(500.0), "X:0": N(40.0), "lake:9": N(0.0, "lake")}
+        edges = [E("X:0", "Y:0", 480.0, "connector"), E("lake:9", "Y:0", 500.0, "lake_out"),
+                 E("X:0", "lake:9", 0.0, "lake_in")]
+        up_adj = {"Y:0": [0, 1], "lake:9": [2]}
+        down_adj = {"X:0": [0, 2], "lake:9": [1]}
+
+    flow = C.graph_flow(G(), ["X:0", "Y:0", "lake:9"], {}, [2])
+    assert (flow.into(2), dict(flow.lakes), flow.into_lake) == ([(1, 480.0)], {2: [500.0]}, {1})
+    assert C.goes_on(1, 1, 2, 2, False, flow) is C.NO
+    lakes, flow.lakes = flow.lakes, {}
+    assert C.goes_on(1, 1, 2, 2, False, flow) is C.NO                       # it ends at the lake
+    flow.lakes, flow.into_lake = lakes, set()
+    assert C.goes_on(1, 1, 2, 2, False, flow) is C.NO                       # B begins at the lake's outlet
+    flow.lakes = {}
+    assert C.goes_on(1, 1, 2, 2, False, flow) == C.YES                      # with neither, it goes on
+
+
+def test_no_water_goes_on_as_another_of_its_own_name():
+    owners = {s: {o for o, ss in SECS.items() if s in ss} for ss in SECS.values() for s in ss}
+    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Side  Channel"})
+    assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow) == []
+    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Creek"})
+    assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow) == [(1, 1, 2, 12)]
+
+
+def test_two_rivers_meeting_just_below_the_top_is_a_confluence_past_the_stub():
+    """T108, the one constant set: A 154 m below B's top (past `STUB_M`) with another river 65 m below it is the
+    Inklin and the Nakina making the Taku — a confluence, which only the book can make a link of; 250 m below it is a
+    tributary whatever the book says."""
+    owners = {s: {o for o, ss in SECS.items() if s in ss} for ss in SECS.values() for s in ss}
+    edges = [e for e in EDGES if e[0] != 1] + [(1, 12, 12950.0 - 154.0), (30, 12, 12950.0 - 65.0)]
+    flow = C.Flow(edges, TOP, owners)
+    assert C.goes_on(1, 1, 2, 12, False, flow) == C.CONFLUENCE
+    assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow, paired={(1, 2)}) == [(1, 1, 2, 12)]
+    edges = [e for e in EDGES if e[0] != 1] + [(1, 12, 12950.0 - 250.0), (30, 12, 12950.0 - 65.0)]
+    assert C.goes_on(1, 1, 2, 12, False, C.Flow(edges, TOP, owners)) is C.NO
+    # without the river near the top, 154 m below is a tributary
+    edges = [e for e in EDGES if e[0] != 1] + [(1, 12, 12950.0 - 154.0)]
+    assert C.goes_on(1, 1, 2, 12, False, C.Flow(edges, TOP, owners)) is C.NO
+
+
+def test_the_span_end_words_are_the_links():
+    """`lower_ends` (T108) turns `goes_on`'s answers into the span end words, deciding nothing again: a settled link
+    is `continues:`, an unsettled confluence names the comparable river meeting there (largest magnitude), a creek of
+    no comparable rank names nothing (Sixtyone Creek, order 3, beside Fiftynine Creek, order 5)."""
+    item = {1: "a", 2: "b", 3: "c", 4: "d"}
+    found = [(1, 10, 2, 20, True), (3, 30, 2, 20, True), (4, 40, 2, 20, True)]
+    rank = {10: (5, 700), 30: (6, 1600), 40: (6, 900), 20: (6, 2400)}
+    assert C.lower_ends(found, [], item, rank) == {10: "confluence:c", 30: "confluence:a", 40: "confluence:a"}
+    assert C.lower_ends(found, [(1, 10, 2, 20)], item, rank) == {10: "continues:b", 30: "confluence:a",
+                                                                 40: "confluence:a"}
+    # no comparable rank (3 beside 5 cannot make 5... nor 6): nothing named; no rank known: nothing named
+    assert C.lower_ends(found[:2], [], item, {10: (5, 253), 30: (3, 14), 20: (5, 288)}) == {}
+    assert C.lower_ends(found[:2], [], item, {}) == {}
+    # a YES link is settled by construction: always `continues:`
+    assert C.lower_ends([(1, 10, 2, 20, False)], [(1, 10, 2, 20)], item, {}) == {10: "continues:b"}
+
+
 # ---- the bundle writes it (audit F07, owner 2026-10-22 call 6): the release no longer opens graph.pkl -------------
 
 class _N:
@@ -332,7 +402,7 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
         ("Chilliwack River", "Vedder River"), ("Hatzis Slough", "Lower Hatzic Slough"),
         ("Chilqua Creek", "Chilqua Slough"), ("Page Creek", "Matsqui Slough"), ("Marblehill Creek", "Semmihault Creek"),
         ("Davidson Creek", "Tomat Creek"), ("Pass Creek", "Screw Creek"),
-        ("Jeperson Side Channel", "Jeperson Side Channel"),
+        # T108: ("Jeperson Side Channel", "Jeperson Side Channel") is gone — no water continues into itself
         ("Aliceville Trib.1-1", "Aliceville Trib.1"), ("Beecher Trib.4", "Beecher Creek"),
         ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
         ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
@@ -341,9 +411,48 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
         # T59 (owner 2026-10-22): two rivers meet, and the book's "ATNARKO/BELLA COOLA RIVERS" names the one that goes
         # on; the Talchako stays a tributary (above). The only row the pairing adds, reviewed on the live bundle + graph
         ("Atnarko River", "Bella Coola River")})
-    assert len(rows) == 18
+    assert len(rows) == 17
     atn, bc = ordof["gnis:17209"], ordof["gnis:11611"]
     assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 3, bc, 0)]
+
+
+@pytest.mark.needs_bundle
+def test_every_continuation_is_a_continues_end_and_every_continues_end_a_continuation(request):
+    """THE BUNDLE PIN (T108): "goes on as" is decided once (`continuation.goes_on`), so the ▲ button
+    (`water_continue`) and the part's end words (`section_span` lower end `continues:<B>`) are the same set: every
+    link's A part holds a section ending `continues:<B>`, every `continues:` end belongs to a linked A part, and no
+    water continues into itself."""
+    import os
+    import sqlite3
+    from pathlib import Path
+    from pipeline.deliver.bundle import read as R
+    from pipeline.tests.conftest import BUNDLE_HINT, need
+    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    item = dict(b.execute("SELECT ord, item_id FROM item"))
+    links = {(a, p, item[n]) for a, p, n, _q in b.execute("SELECT ord, part, next_ord, next_part FROM water_continue")}
+    ends = {(o, p, t.split(":", 1)[1]) for o, p, t in b.execute(
+        "SELECT ps.ord, ps.part_ix, e.token FROM section_span s JOIN span_end e ON e.eid = s.lo "
+        "JOIN part_section ps ON ps.sid = s.sid WHERE e.token LIKE 'continues:%'")}
+    assert links and links == ends
+    assert not [r for r in links if item[r[0]] == r[2]]
+    name = dict(b.execute("SELECT ord, name FROM item"))
+    nord = {i: o for o, i in item.items()}
+    assert not [r for r in links if name[r[0]].lower() == name[nord[r[2]]].lower()]
+
+
+def test_no_other_bundle_module_decides_continuation():
+    """THE GREP PIN (T108, with T61 2.10): the continuation tolerances and the decision live in `continuation.py`
+    alone — `spans.py` had its own (`_BEGINS_M` 100, `_MEET_M` 250, `lower_end_into`, `_strahler`) and disagreed on 11
+    of the 17 links. Mutation: re-adding `_MEET_M = 250.0` to spans.py fails here."""
+    import re
+    from pathlib import Path
+    here = Path(C.__file__).parent
+    bad = re.compile(r"^\s*_?(?:BEGINS|MEET|STUB|CONFLUENCE|OWN)_M\s*=|^\s*def\s+_?(?:lower_end_into|goes_on|strahler)\b",
+                     re.M)
+    hits = sorted(f.name for f in here.rglob("*.py") if f.name != "continuation.py" and bad.search(f.read_text()))
+    assert hits == []
+    assert bad.search(Path(C.__file__).read_text())        # the pattern still finds the one home
 
 
 # ---- TWO RIVERS MEET, AND THE BOOK NAMES ONE OF THEM WITH THE THIRD (T59; owner 2026-10-22: "think of things like this

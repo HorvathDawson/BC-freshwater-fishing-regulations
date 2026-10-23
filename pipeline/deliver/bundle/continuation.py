@@ -14,10 +14,10 @@ the measure on the receiving line where it joins):
   - and A is the watercourse there. Either A's mouth piece lies on B's own blue line (the FWA main stem), or:
       · A joins within `STUB_M` of the top of that piece — B's line does not go on above A's mouth (the Chilliwack
         joins 25 m below the Vedder line's end, the atlas's snapping), and
-      · nothing else joins B there: no other stream and no lake outlet within `CONFLUENCE_M` of A's mouth or above it
-        — two rivers meeting make a third, and neither is it (the Sproat and the Stamp 64 m apart make the Somass;
-        the North and South Thompson 145 m apart the Thompson; Cowichan Lake's outlet sits 635 m above Oliver Creek,
-        at the Cowichan's top), and
+      · nothing else joins B there: no other stream within `CONFLUENCE_M` of A's mouth or above it — two rivers
+        meeting make a third, and neither is it (the Sproat and the Stamp 64 m apart make the Somass; the North and
+        South Thompson 145 m apart the Thompson) — and no lake outlet (Cowichan Lake's outlet sits 635 m above Oliver
+        Creek, at the Cowichan's top: B begins at the lake, T108), and
       · no piece of B itself comes in within `OWN_M` below (the upper Cottonwood joins the Cottonwood's top piece
         448 m below the Swift: the Cottonwood goes on as itself);
   - TWO RIVERS MEET (T59, owner 2026-10-22: "think of things like this as one system; bella coola atnarko is another
@@ -33,6 +33,17 @@ the measure on the receiving line where it joins):
     added-streams orientation defect (owner 2026-10-21 late: "we could just trim out those bad ones"). A missing code
     is no evidence; A's code extending B's (a tributary that is all there is above B's top) is kept, as the owner kept
     the municipal ones.
+
+ONE DECISION (T108, owner 2026-10-22: "unify checks that decide the same thing"). `goes_on` is the only place that
+answers "at its lower end, does A go on as B, meet B at a confluence, or end?", with one constant set (`STUB_M`,
+`CONFLUENCE_M`, `OWN_M`). The bundle's span end words read it (`lower_ends` -> `spans.compute`): a `continues:<B>` end
+is exactly a `water_continue` link. `spans.py` used to decide it again (`lower_end_into`: 100 / 250 m and a magnitude
+test) and disagreed on 11 of 17 links. Folded in from there: a water never continues into ITSELF (two items of one
+name), a creek flowing into a LAKE ends at the lake, a LAKE draining in near B's top is where B begins (A ends: it was
+a confluence here, which only a book pairing could have turned into a link), and two rivers meeting a little below
+B's top — one within `STUB_M`, A within `CONFLUENCE_M` (the Nakina and the Inklin making the Taku) — are a
+confluence, not a tributary. Kept from there, for the WORDS only: a confluence names the other river only when it is
+of comparable rank (RULINGS P10, `lower_ends`).
 
 WHY THE GRAPH, NOT THE BUNDLE'S `section_down` (review 2026-10-21). `section_down` stores gauge-shed members only, so
 "the only inflow at B's top" read from it was blind to most inflows: the first cut shipped 92 rows, 89 of them
@@ -77,10 +88,16 @@ class ContinuationError(SystemExit):
 class Flow:
     """The atlas graph in section HANDLES: `edges` (from, to, at — the measure on `to`'s line where `from` joins), each
     piece's top measure (`top`), which waters own each section (`owners`) and each piece's FWA watershed code (`wsc`,
-    where known). `from` may be 0: an inflow the handle table does not name still comes in."""
+    where known). `from` may be 0: an inflow the handle table does not name still comes in.
+
+    And what only the lower-end words need (T108, all optional): `lakes` {top piece: [measure a LAKE drains in at]} (a
+    lake outlet is not a stream edge), `into_lake` the pieces that flow into a lake (a creek ends at the lake) and
+    `names` {ord: name} (no water continues into itself)."""
 
     def __init__(self, edges: Iterable[Tuple[int, int, float]], top: Mapping[int, float],
-                 owners: Mapping[int, Set[int]], wsc: Optional[Mapping[int, str]] = None):
+                 owners: Mapping[int, Set[int]], wsc: Optional[Mapping[int, str]] = None, *,
+                 lakes: Optional[Mapping[int, Sequence[float]]] = None, into_lake: Iterable[int] = (),
+                 names: Optional[Mapping[int, str]] = None):
         self._out: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
         self._in: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
         for f, t, at in edges:
@@ -88,6 +105,9 @@ class Flow:
             self._in[t].append((f, at))
         self.top, self.owners = top, owners
         self.wsc: Mapping[int, str] = wsc or {}
+        self.lakes: Mapping[int, Sequence[float]] = lakes or {}
+        self.into_lake: Set[int] = set(into_lake)
+        self.names: Mapping[int, str] = names or {}
 
     def out(self, sid: int) -> List[Tuple[int, float]]:
         return self._out.get(sid, [])
@@ -126,27 +146,51 @@ def drains_into(code: str, into: str) -> bool:
     return bool(c and i) and c.startswith(i + "-")
 
 
-#: `_goes_on`'s answers: A goes on as B; A goes on as B only if the book pairs them (two rivers meet there); A does not.
+#: `goes_on`'s answers: A goes on as B; A goes on as B only if the book pairs them (two rivers meet there); A does not.
 YES, CONFLUENCE, NO = "yes", "confluence", None
 
 
-def _goes_on(a_ord: int, a: int, b_ord: int, b: int, same_line: bool, flow: Flow) -> Optional[str]:
-    """Whether A's mouth piece `a` is the watercourse at B's top piece `b` (THE RULE, above): `YES`, `CONFLUENCE` (every
-    gate holds but another inflow joins within `CONFLUENCE_M`: only a book pairing decides, `settle`) or `NO`."""
+def _same_name(a: str, b: str) -> bool:
+    return bool(a) and " ".join(a.lower().split()) == " ".join(b.lower().split())
+
+
+def goes_on(a_ord: int, a: int, b_ord: int, b: int, same_line: bool, flow: Flow) -> Optional[str]:
+    """AT ITS LOWER END, DOES WATER A GO ON AS WATER B, MEET B AT A CONFLUENCE, OR END? (T108: the one place this is
+    decided — `water_continue` and the span end words both read it.) A's mouth piece `a`, B's top piece `b` (THE RULE,
+    above): `YES`, `CONFLUENCE` (two rivers meet at B's top: only a book pairing decides, `settle`; the span end names
+    the other river, `lower_ends`) or `NO` (A ends: a tributary's mouth, or a lake).
+
+    In order: A must flow into `b`; a water never goes on as ITSELF (two items of one name: Jeperson Side Channel); a
+    creek flowing into a LAKE ends at the lake (Still Creek into Burnaby Lake, though FWA also links it to the
+    Brunette's top); the FWA codes must not say the flow is backwards; on B's own blue line it goes on. Off it: a LAKE
+    draining into B within `CONFLUENCE_M` of A's mouth or above is where B begins (Cowichan Lake above Oliver Creek): A
+    ends. B's own piece within `OWN_M`: B goes on as itself. B's line going on more than `STUB_M` above A's mouth: A is a
+    tributary — unless another river joins within `STUB_M` of B's top and A within `CONFLUENCE_M` of it: two rivers
+    meet a little below the top (the Nakina 65 m below the Taku's, the Inklin 154 m; the Fontas 53 m below the Fort
+    Nelson's, the Sikanni Chief 130 m). Else any other inflow within `CONFLUENCE_M` (or B's own side channel farther
+    down) makes it a confluence; nothing else: YES."""
     joins = [at for to, at in flow.out(a) if to == b]
     if not joins:
+        return NO
+    if _same_name(flow.names.get(a_ord, ""), flow.names.get(b_ord, "")):
+        return NO
+    if a in flow.into_lake:
         return NO
     if drains_into(flow.wsc.get(b, ""), flow.wsc.get(a, "")):
         return NO
     if same_line:
         return YES
     at = max(joins)
-    if flow.top.get(b, at) - at > STUB_M:
+    if any(x >= at - CONFLUENCE_M for x in flow.lakes.get(b, ())):
         return NO
     others = [(f, x) for f, x in flow.into(b) if f != a]
     own = [x for f, x in others if b_ord in flow.owners.get(f, ())]
     if any(x >= at - OWN_M for x in own):
         return NO
+    top = flow.top.get(b, at)
+    if top - at > STUB_M:
+        meet = top - at <= CONFLUENCE_M and any(x >= top - STUB_M for _, x in others)
+        return CONFLUENCE if meet else NO
     return CONFLUENCE if own or any(x >= at - CONFLUENCE_M for _, x in others) else YES
 
 
@@ -173,7 +217,7 @@ def candidates(streams: Set[int], secs: Dict[int, Set[int]], item_down: Iterable
         if ae is None or be is None:
             continue
         (a_line, a), (b_line, b) = ae, be
-        how = _goes_on(a_ord, a, b_ord, b, a_line == b_line, flow)
+        how = goes_on(a_ord, a, b_ord, b, a_line == b_line, flow)
         if how is not NO:
             out.append((a_ord, a, b_ord, b, how == CONFLUENCE))
     return out
@@ -267,12 +311,73 @@ def item_pairs(b: sqlite3.Connection, settled: Iterable[Tuple[int, int, int, int
     return sorted((item[a], item[c]) for a, _s, c, _t in settled)
 
 
-def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: Iterable[int]) -> Flow:
+#: A section's FWA rank: (Strahler stream order, Shreve stream magnitude) — `ranks`.
+Rank = Tuple[int, int]
+
+
+def strahler(a: int, b: int) -> int:
+    """The Strahler order below two streams of orders a and b meeting."""
+    return a + 1 if a == b else max(a, b)
+
+
+def lower_ends(found: Iterable[Link], settled: Iterable[Tuple[int, int, int, int]], item_of: Mapping[int, str],
+               rank: Mapping[int, Rank]) -> Dict[int, str]:
+    """THE SPAN END WORDS OF A WATER'S NATURAL LOWER END (T108), from `goes_on`'s answers — the relation is never decided
+    again: {A's mouth section: token}. A settled link (`water_continue`) is `continues:<B>`. A link made at a
+    confluence the book did not settle is `confluence:<X>`, X the other river A meets at B's top — another candidate
+    into the same top piece of COMPARABLE RANK (RULINGS P10: Strahler orders within 1 that together make B's order;
+    `rank` by section, `ranks`), the largest by magnitude, then the lowest item id: the Sproat and the Stamp make the
+    Somass, the Talchako meets the Atnarko. With no such river, or no link, the section keeps its `mouth` (Sixtyone
+    Creek, order 3, beside Fiftynine Creek, order 5: a tributary). `item_of` is {ord: item_id}."""
+    found = sorted(set(found))
+    went = {(a_ord, a): b_ord for a_ord, a, b_ord, _b in settled}
+    at_top: Dict[Tuple[int, int], List[Tuple[int, int]]] = defaultdict(list)
+    for a_ord, a, b_ord, b, _c in found:
+        at_top[(b_ord, b)].append((a_ord, a))
+
+    def meets(a: int, x: int, b: int) -> bool:
+        if a not in rank or x not in rank or b not in rank:
+            return False
+        oa, ox = rank[a][0], rank[x][0]
+        return abs(oa - ox) <= 1 and strahler(oa, ox) == rank[b][0]
+
+    out: Dict[int, str] = {}
+    for a_ord, a, b_ord, b, conf in found:
+        if (a_ord, a) in went:
+            out[a] = f"continues:{item_of[went[(a_ord, a)]]}"
+        elif conf:
+            partners = sorted((-rank[x][1], item_of[xo]) for xo, x in at_top[(b_ord, b)]
+                              if xo != a_ord and meets(a, x, b))
+            if partners:
+                out[a] = f"confluence:{partners[0][1]}"
+    return out
+
+
+def ranks(graph, ids: Sequence[str], sids: Iterable[int]) -> Dict[int, Rank]:
+    """{section handle: (FWA stream order, stream magnitude)} from the atlas graph, for `lower_ends`; a piece the FWA
+    gives no order has no rank."""
+    out = {}
+    for h in sids:
+        n = graph.nodes.get(ids[h - 1]) if 0 < h <= len(ids) else None
+        if n is not None and getattr(n, "stream_order", None) is not None:
+            out[h] = (int(n.stream_order), int(getattr(n, "stream_magnitude", None) or 0))
+    return out
+
+
+def _kind(x) -> str:
+    k = getattr(x, "kind", None)
+    return str(getattr(k, "value", k) or "")
+
+
+def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: Iterable[int],
+               names: Optional[Mapping[int, str]] = None) -> Flow:
     """The `Flow` of the atlas graph (`StreamGraph`) for the pieces that matter: the edges into the candidate top pieces
     `tops` (handles) and out of every piece flowing into them, in handles (`ids[h-1]` names handle `h`), with each of
-    those pieces' FWA watershed code."""
+    those pieces' FWA watershed code; a LAKE draining into a top piece is kept apart (`Flow.lakes`), and a piece flowing
+    into it that also flows into a lake is marked (`Flow.into_lake`)."""
     hid = {s: h for h, s in enumerate(ids, 1)}
-    edges, top, wsc = [], {}, {}
+    down = getattr(graph, "down_adj", {})
+    edges, top, wsc, lakes, into_lake = [], {}, {}, defaultdict(list), set()
     for h in tops:
         node = ids[h - 1]
         n = graph.nodes.get(node)
@@ -281,12 +386,18 @@ def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: 
         top[h], wsc[h] = float(n.up_m), n.wsc
         for ix in graph.up_adj.get(node, ()):
             e = graph.edges[ix]
+            fn = graph.nodes.get(e.from_node)
+            if _kind(e) == "lake_out" or (fn is not None and _kind(fn) == "lake"):
+                lakes[h].append(float(e.at_measure))
+                continue
             f = hid.get(e.from_node, 0)
             edges.append((f, h, float(e.at_measure)))
-            fn = graph.nodes.get(e.from_node)
             if f and fn is not None:
                 wsc[f] = fn.wsc
-    return Flow(edges, top, owners, wsc)
+                if any(_kind(graph.edges[j]) == "lake_in" or _kind(graph.nodes.get(graph.edges[j].to_node)) == "lake"
+                       for j in down.get(e.from_node, ())):
+                    into_lake.add(f)
+    return Flow(edges, top, owners, wsc, lakes=lakes, into_lake=into_lake, names=names)
 
 
 def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
@@ -309,7 +420,8 @@ def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
         m = _main(secs.get(o, ()), line)
         if m is not None:
             tops.add(max((line(s)[1], s) for s in secs[o] if line(s) is not None and line(s)[0] == m)[1])  # type: ignore[index]
-    flow = graph_flow(graph, ids, owners, tops)
+    flow = graph_flow(graph, ids, owners, tops,
+                      names=dict(b.execute("SELECT ord, name FROM item WHERE kind = 'stream'")))
     return candidates(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
 
 

@@ -392,10 +392,6 @@ def _section_touch(db: sqlite3.Connection, build_dir: Path, graph, cov: Coverage
     pairs = touching_pairs(((e.from_node, e.to_node) for e in graph.edges), sid, waters_of)
     db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", pairs)
     cov.filled("section_touch", len(pairs))
-    # The same graph says where each section lies along its water and what ends it — the cuts
-    # a part's runs go between (`section_span`, `split`). Read here so it loads once.
-    from pipeline.deliver.bundle import spans as _spans
-    _spans.write(db, graph, build_dir, cov)
 
 
 def _place_id(p: dict) -> str:
@@ -891,11 +887,6 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     with graph_path.open("rb") as fh:
         graph = pickle.load(fh)
     _section_touch(db, build_dir, graph, cov)
-    places =_places(db, data_dir / "bc_places.json",
-                     data_dir / "bc_boundary.geojson", cov)
-    with geom_path.open("rb") as fh:
-        geoms = pickle.load(fh)
-    _place_water(db, build_dir, places, registry_items, geoms, cov)
     # WHICH WATER EACH WATER DRAINS INTO (ROUND14 1, `nearer.item_down`): read from the graph while it
     # is loaded; `trib_nearer` is derived from it once the rule sets are written
     from pipeline.deliver.bundle import nearer as _nearer
@@ -909,6 +900,19 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # SETTLED NOW, BEFORE THE GAUGES (T76), with the pairings read above (`_book`)
     _settled = _continuation.settle(_continues, _book)
     del _book
+    # The same graph says where each section lies along its water and what ends it — the cuts a part's runs go between
+    # (`section_span`, `split`). A natural lower end's words (`continues:` / `confluence:` / `mouth`) are the links just
+    # made (T108: `continuation.goes_on` decides it once; the span end and the ▲ button cannot disagree). Before the
+    # geometries load: `spans.write` parses registry.json again.
+    from pipeline.deliver.bundle import spans as _spans
+    _spans.write(db, graph, build_dir, cov, ends=_continuation.lower_ends(
+        _continues, _settled, dict(db.execute("SELECT ord, item_id FROM item")),
+        _continuation.ranks(graph, _handle_ids, {h for r in _continues for h in (r[1], r[3])})))
+    places =_places(db, data_dir / "bc_places.json",
+                     data_dir / "bc_boundary.geojson", cov)
+    with geom_path.open("rb") as fh:
+        geoms = pickle.load(fh)
+    _place_water(db, build_dir, places, registry_items, geoms, cov)
     _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov,
             continues=_continuation.item_pairs(db, _settled))
     # WHERE EACH WATER'S MOUTH FLOWS (T59: `water_exit` named Annacis Channel for the Fraser): read here, while the
