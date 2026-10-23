@@ -123,10 +123,11 @@ def test_the_named_stations_are_flagged_and_an_unaffected_one_is_not(tmp_path):
     Fraser at Hope and the Chilliwack at Vedder Crossing are not — against the REAL authored list and the record's own
     remark strings."""
     got = tidal_stations(_hydat(tmp_path, [MISSION, PORT_MANN, *NOT_TIDAL]), CURATED.gauges.tidal)
-    for st in ("08MH035", "08MH044", "08MH024", "08MH126"):
-        assert st in got, st
-    for st in (*UNAFFECTED, *(s for s, _ in NOT_TIDAL if s != "08MH044")):
-        assert st not in got, st
+    # WHOLE VALUE (review): the named four, the estuary three from the list, and nothing else — so an ice, beaver,
+    # slide or lake station, or Hope / Vedder, cannot slip in unseen.
+    assert sorted(got) == ["08MH024", "08MH028", "08MH032", "08MH035", "08MH044", "08MH053", "08MH126"]
+    assert got["08MH024"] == "HYDAT: " + MISSION[1] and got["08MH126"] == "HYDAT: " + PORT_MANN[1]
+    assert not (set(UNAFFECTED) | {s for s, _ in NOT_TIDAL if s != "08MH044"}) & set(got)
 
 
 def test_the_real_authored_list_is_exactly_the_lower_fraser():
@@ -135,8 +136,12 @@ def test_the_real_authored_list_is_exactly_the_lower_fraser():
 
 @pytest.mark.skipif(not (Path(SOURCE) / "hydat.sqlite3").exists(), reason="no HYDAT on disk (data/fetch_data.py)")
 def test_the_live_record_flags_mission_and_port_mann_and_not_hope():
+    """WHOLE VALUE against the live HYDAT (review 2026-10-22): the 7 lower-Fraser roster stations plus the 4 the
+    record calls tidal outside the roster (08MH025 a DFO tide station; 10LC002, 10LC021, 10MC011 Mackenzie delta).
+    A HYDAT refresh that adds a tidal remark fails here, so the new flag is looked at before it ships."""
     got = tidal_stations(Path(SOURCE) / "hydat.sqlite3", CURATED.gauges.tidal)
-    assert {"08MH024", "08MH126", "08MH035", "08MH044"} <= set(got)
+    assert sorted(got) == ["08MH024", "08MH025", "08MH028", "08MH032", "08MH035", "08MH044", "08MH053", "08MH126",
+                           "10LC002", "10LC021", "10MC011"]
     assert not set(UNAFFECTED) & set(got)
 
 
