@@ -234,6 +234,52 @@ def test_two_rivers_meeting_just_below_the_top_is_a_confluence_past_the_stub():
     assert C.goes_on(1, 1, 2, 12, False, C.Flow(edges, TOP, owners)) is C.NO
 
 
+def test_goes_on_reads_each_window_from_the_one_constant_set():
+    """T108 adversarial review: the windows `goes_on` reads, each on both sides of its edge. A joins B's top piece
+    (top 1000 m) at `at`; the answers as one whole value. Mutations each fails: a lake outlet counted only ABOVE A's
+    mouth (row 2); the two-rivers-past-the-stub branch taking ANY other inflow as the partner (row 6); the branch
+    without its `CONFLUENCE_M` limit (row 8)."""
+    def ask(at, others=(), lakes=()):
+        edges = [(1, 2, float(at))] + [(3 + i, 2, float(x)) for i, x in enumerate(others)]
+        return C.goes_on(1, 1, 9, 2, False, C.Flow(edges, {2: 1000.0}, {}, lakes={2: list(lakes)} if lakes else None))
+    got = [
+        ask(950, lakes=[1000]),          # a lake drains in at B's top, above A: B begins at the lake
+        ask(950, lakes=[800]),           # 150 m below A's mouth: still the lake's outlet where B begins
+        ask(950, lakes=[700]),           # 250 m below: a lake further down B, A is all there is at the top
+        ask(950),                        # alone within the stub: A goes on
+        ask(846),                        # 154 m below the top, alone: a tributary
+        ask(846, others=[500]),          # 154 m below, the other inflow far below too: a tributary
+        ask(846, others=[935]),          # 154 m below, a river 65 m below the top: two rivers meet (Inklin, Nakina)
+        ask(750, others=[935]),          # 250 m below the top: a tributary, whatever joins at the top
+        ask(950, others=[800]),          # within the stub, another inflow 150 m below: a confluence
+        ask(950, others=[700]),          # within the stub, another inflow 250 m below: A goes on
+    ]
+    assert got == [C.NO, C.NO, C.YES, C.YES, C.NO, C.NO, C.CONFLUENCE, C.NO, C.CONFLUENCE, C.YES]
+
+
+def test_the_graph_flow_marks_a_creek_into_a_lake_by_the_lakes_kind_too():
+    """T108 adversarial review: a piece whose edge into a lake is not typed `lake_in` (a plain confluence edge onto a
+    `lake` node) still ends at the lake — the old span rule read either. Mutation: `into_lake` reading the edge kind
+    alone fails here."""
+    class N:
+        def __init__(self, up_m, kind="stream"):
+            self.up_m, self.wsc, self.kind = up_m, "", kind
+
+    class E:
+        def __init__(self, f, t, at, kind="confluence"):
+            self.from_node, self.to_node, self.at_measure, self.kind = f, t, at, kind
+
+    class G:
+        nodes = {"Y:0": N(500.0), "X:0": N(40.0), "lake:9": N(0.0, "lake")}
+        edges = [E("X:0", "Y:0", 480.0), E("X:0", "lake:9", 0.0)]
+        up_adj = {"Y:0": [0], "lake:9": [1]}
+        down_adj = {"X:0": [0, 1]}
+
+    flow = C.graph_flow(G(), ["X:0", "Y:0", "lake:9"], {}, [2])
+    assert (flow.into(2), dict(flow.lakes), flow.into_lake, C.goes_on(1, 1, 2, 2, False, flow)) == (
+        [(1, 480.0)], {}, {1}, C.NO)
+
+
 def test_the_span_end_words_are_the_links():
     """`lower_ends` (T108) turns `goes_on`'s answers into the span end words, deciding nothing again: a settled link
     is `continues:`, an unsettled confluence names the comparable river meeting there (largest magnitude), a creek of

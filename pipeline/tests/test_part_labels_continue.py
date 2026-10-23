@@ -169,6 +169,20 @@ def test_two_rivers_meeting_a_little_below_the_top_meet():
         "Inklin": "mouth", "Nakina": "mouth", "Taku": "mouth"}
 
 
+def test_three_rivers_meeting_name_the_largest_by_the_graphs_magnitude():
+    """T108 adversarial review: where more than one river of comparable rank meets A at B's top, A's end names the
+    largest by the atlas's FWA magnitude (`continuation.ranks` -> `lower_ends`), not the first by id. A (order 5) meets
+    Xa (order 6, magnitude 900) and Xb (order 6, 1600) at the top of B (order 6): "Xb confluence". Xa and Xb (6 + 6
+    make 7, not B's 6) are no pair; each names A. Mutation: `ranks` dropping the magnitude names Xa."""
+    nodes = {"A:0": _piece("A:0", "A", 0, 5000, 5, 500), "P:0": _piece("P:0", "P", 0, 6000, 6, 900),
+             "Q:0": _piece("Q:0", "Q", 0, 7000, 6, 1600), "B:0": _piece("B:0", "B", 0, 1000, 6, 3000)}
+    edges = [_e("A:0", "B:0", 990), _e("P:0", "B:0", 960), _e("Q:0", "B:0", 930)]
+    items = [("A", "stream", ["A:0"]), ("Xa", "stream", ["P:0"]), ("Xb", "stream", ["Q:0"]),
+             ("B", "stream", ["B:0"])]
+    assert _lower_ends(nodes, edges, items) == (
+        {"A": "confluence:Xb", "Xa": "confluence:A", "Xb": "confluence:A", "B": "mouth"}, [])
+
+
 def test_a_creek_into_a_lake_whose_outlet_is_another_river_ends_at_the_lake():
     """Still Creek flows into Burnaby Lake and the Brunette leaves it; FWA also links the creek's last
     piece straight to the Brunette's top (a connector). The creek ends at the lake: the Brunette is
