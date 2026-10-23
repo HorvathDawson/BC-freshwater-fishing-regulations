@@ -55,6 +55,77 @@ def test_a_boundary_is_named_by_the_downstream_runs_start_else_the_upstream_runs
     assert T.split_label({"runs": []}, {"km": 2.0, "runs": []}, splits) is None
 
 
+class _N:
+    pass
+
+
+class _E:
+    def __init__(self, f, t, kind="continuation"):
+        self.from_node, self.to_node, self.kind = f, t, kind
+
+
+class _Fraser:
+    """T59: the Fraser's shape. Water 1 (line F) reaches the sea at F:0 (no edge out); water 2 (Annacis Channel, line A)
+    leaves F:200 and comes back into F:100 — item_down says each flows into the other. Water 3 (a creek, line C) flows
+    into F:200 through an unnamed piece U:0. Water 4's main line (G) ends in its own side piece H:0 (water 4 too), which
+    flows into the creek. Water 5 (line L) ends in a loop of unnamed pieces. Water 7 (the Atnarko's shape: line K) has
+    braid pieces of its own (B:0, D:0: one line each, so K is the main line) leaving and rejoining its mouth piece,
+    which flows into the Fraser; the braid's lower piece also has an edge out to Annacis Channel, never reached: the
+    mouth leaves the water first. Water 8's main line (M, two pieces) ends in an unnamed lake on its course, whose
+    outlet is water 8's own lower line R, which flows into the Fraser (Park Creek's shape)."""
+    nodes = {n: _N() for n in ("F:0", "F:100", "F:200", "A:0", "A:50", "C:0", "U:0", "G:0", "H:0", "L:0", "V:0", "V:1",
+                               "K:0", "B:0", "D:0", "M:0", "M:90", "lake:9", "R:0")}
+    edges = [_E("F:200", "F:100"), _E("F:100", "F:0"), _E("F:200", "A:50", "braid"), _E("A:50", "A:0"),
+             _E("A:0", "F:100"), _E("C:0", "U:0"), _E("U:0", "F:200"), _E("G:0", "H:0"), _E("H:0", "C:0", "trib"),
+             _E("L:0", "V:0"), _E("V:0", "V:1"), _E("V:1", "V:0"),
+             _E("K:0", "B:0", "confluence"), _E("B:0", "K:0", "confluence"), _E("K:0", "F:200", "confluence"),
+             _E("B:0", "D:0", "confluence"), _E("D:0", "A:50", "confluence"),
+             _E("M:90", "M:0"), _E("M:0", "lake:9", "lake_in"), _E("lake:9", "R:0", "lake_out"),
+             _E("R:0", "F:200", "confluence")]
+    down_adj = {}
+    for i, e in enumerate(edges):
+        down_adj.setdefault(e.from_node, []).append(i)
+
+
+def test_a_water_exits_where_its_mouth_flows_never_into_its_own_side_channel():
+    ids = ["F:0", "F:100", "F:200", "A:0", "A:50", "C:0", "U:0", "G:0", "H:0", "L:0", "V:0", "V:1",
+           "K:0", "B:0", "D:0", "M:0", "M:90", "lake:9", "R:0"]                                  # handles 1..19
+    secs = {1: {1, 2, 3}, 2: {4, 5}, 3: {6}, 4: {8, 9}, 5: {10}, 6: set(), 7: {13, 14, 15}, 8: {16, 17, 19}}
+    # the Fraser reaches the sea: no receiver; Annacis Channel and the creek flow into the Fraser; water 4 leaves its
+    # main line's mouth through its own piece H:0 into the creek; water 5's way down never meets a named water; water 7
+    # leaves by its mouth into the Fraser, not by its braid into Annacis Channel; water 8 goes on through the lake
+    assert T.mouth_downs(_Fraser(), ids, secs) == {1: set(), 2: {1}, 3: {1}, 4: {3}, 5: set(), 7: {1}, 8: {1}}
+
+
+def test_a_water_never_exits_into_a_water_that_flows_into_it():
+    # the Fraser (9697): item_down says it flows into Annacis Channel (176), Seabird Island North Side Channel (1) and
+    # Moose Lake (18837, a lake: no main line); each of them flows into the Fraser, so the Fraser exits into none
+    downs = {9697: [1, 176, 18837], 176: [9697], 1: [9697], 18837: [9697], 30: [176, 9697]}
+    mouths = {9697: set(), 176: {9697}, 1: {9697}, 30: {176}}
+    assert T.exit_receivers(9697, downs[9697], mouths, downs) == []
+    # Annacis Channel keeps the Fraser: the Fraser's mouth is the sea, not Annacis Channel
+    assert T.exit_receivers(176, downs[176], mouths, downs) == [9697]
+    # a creek touching both keeps both: neither flows into it (the nearest part still picks one)
+    assert T.exit_receivers(30, downs[30], mouths, downs) == [176, 9697]
+    # a side channel reaching the Fraser through another (the upper Jeperson Side Channel through the lower) is none
+    # either; a loop elsewhere in the chain ends the search
+    downs = {9697: [4, 519], 4: [519], 519: [9697]}
+    assert T.exit_receivers(9697, downs[9697], {9697: set(), 4: {519}, 519: {9697}}, downs) == []
+    assert T.exit_receivers(9697, [4], {9697: set(), 4: {519}, 519: {4}}, downs) == [4]
+    # two waters whose mouths each reach the other (the two Jeperson Side Channels): each keeps the other — its own
+    # mouth reaching it is evidence the other's cannot overrule
+    downs = {4: [519], 519: [4, 9697]}
+    mouths = {4: {519}, 519: {4, 9697}}
+    assert (T.exit_receivers(4, downs[4], mouths, downs), T.exit_receivers(519, downs[519], mouths, downs)) == (
+        [519], [4, 9697])
+    # a lake the creek runs out of (item_down both ways) is no exit; the lake it runs into is
+    downs = {5: [6, 7], 6: [5], 7: []}
+    assert T.exit_receivers(5, downs[5], {5: {7}}, downs) == [7]
+    # a lake (no main line) keeps every receiver, even a creek whose main line says it flows into the lake
+    downs = {6: [5], 5: [6, 7]}
+    assert T.exit_receivers(6, downs[6], {5: {6}}, downs) == [5]
+
+
 def test_the_water_map_export_reads_the_same_rules():
     from pipeline.tools import water_map_export as W
     assert W.order_parts is T.order_parts and W.split_label is T.split_label
@@ -110,6 +181,24 @@ def test_the_chilliwack_flows_into_the_vedder_at_vedder_crossing(request):
     row = db.execute("SELECT d.item_id, x.down_part, x.label FROM water_exit x JOIN item i ON i.ord = x.ord "
                      "JOIN item d ON d.ord = x.down_ord WHERE i.item_id = 'gnis:8634'").fetchone()
     assert row == ("gnis:3062", 0, "Vedder River")
+
+
+@pytest.mark.needs_bundle
+def test_the_fraser_reaches_the_sea_and_its_side_channels_flow_into_it(request):
+    """T59: the Fraser's exit was Annacis Channel, its own side channel (item_down lists 19 waters the Fraser "flows
+    into", every one of them flowing back into it). Reviewed on the live bundle + graph (469 exits change: each old one
+    was a water that flows into the water — mostly the headwater lake of a creek that reaches the sea)."""
+    db = _bundle(request)
+
+    def exit_of(item):
+        return db.execute("SELECT d.item_id FROM water_exit x JOIN item i ON i.ord = x.ord JOIN item d ON "
+                          "d.ord = x.down_ord WHERE i.item_id = ?", (item,)).fetchone()
+    assert [exit_of(i) for i in ("gnis:39325", "gnis:10494", "gnis:16471", "gnis:17209", "gnis:10631")] == [
+        None,                   # Fraser River: the sea
+        ("gnis:39325",),        # Annacis Channel: the Fraser
+        ("gnis:39325",),        # Nahatlatch River: the Fraser, not Frances Lake (its headwater lake)
+        ("gnis:11611",),        # Atnarko River: the Bella Coola
+        None]                   # Burman River: the sea, not Burman Lake
 
 
 @pytest.mark.needs_bundle

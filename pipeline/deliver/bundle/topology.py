@@ -19,8 +19,10 @@ THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/
             part: `rep_sid` and the polygon's representative point.
   marks     two parts closer than TOUCH_M; the point is the middle of their nearest points; the down part is the lower
             rank. Pairs meeting at one point with one down part are one mark with several up parts.
-  exit      `item_down` (from the graph). Where a water drains into several, the receiver whose part lies nearest
-            this water's mouth part (rank 0); `down_part` is that part.
+  exit      `item_down` (from the graph), less every receiver that itself flows into this water (`exit_receivers`,
+            T59: the Fraser "flowed into" Annacis Channel, its own side channel; a creek into the headwater lake it
+            runs out of). Where a water drains into several, the receiver whose part lies nearest this water's mouth
+            part (rank 0); `down_part` is that part. None left (the Fraser, a coastal creek): no exit row.
 
 Geometry is the atlas's (`geometries.pkl`, EPSG:3005 metres), kept for the NAMED sections only, from the moment it is
 loaded until these tables are written. Never key on `ord` across bundles (it is the insertion order).
@@ -122,10 +124,107 @@ def merge_marks(raw: Sequence[dict]) -> List[dict]:
     return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
 
 
+#: a way down through unnamed pieces longer than this is the sea or the edge of the atlas (as `nearer.MAX_STEPS`)
+MAX_STEPS = 200_000
+
+
+def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, set]:
+    """WHERE A WATER'S MOUTH FLOWS (T59: the Fraser's exit named Annacis Channel). {ord: the named waters first met
+    going down from the water's MOUTH} for every water with a main line. The mouth is the lowest piece of the water's
+    main line (`continuation._main`: the FWA blue line holding most of its sections). Its edges out that LEAVE the
+    water are followed (each down the mainstem edge first, `nearer._next`, through unnamed pieces) to the first piece
+    another water owns; only when every way out of the mouth comes back into the water's own pieces (a braid, a lower
+    line of its own, an unnamed lake on its course) are those pieces' edges tried next, nearest first. An empty set:
+    the mouth reaches the sea, the atlas's edge, a loop or only itself. A water with no main line (a lake) is absent.
+    The main line is a count, so on some waters it is an upper line and this is not the true mouth: it is used only as
+    evidence that a water flows INTO another (`exit_receivers`), never to pick an exit. `secs` is {ord: section
+    handles} (`ids[h-1]` names handle `h`)."""
+    from pipeline.deliver.bundle.continuation import _main, line_of
+    from pipeline.deliver.bundle.nearer import _next
+
+    def line(h: int):
+        return line_of(ids[h - 1]) if 0 < h <= len(ids) else None
+
+    owner: Dict[str, set] = defaultdict(set)
+    for o, ss in secs.items():
+        for h in ss:
+            if 0 < h <= len(ids):
+                owner[ids[h - 1]].add(o)
+
+    def below(o: int, v: Optional[str]) -> Tuple[set, Optional[str]]:
+        """(the named waters first met down from `v`, or the piece of `o` itself the way comes back into)."""
+        seen: set = set()
+        while v is not None and v not in seen and len(seen) < MAX_STEPS:
+            if v in owner:
+                return (set(), v) if o in owner[v] else (set(owner[v]), None)
+            seen.add(v)
+            v = _next(graph, v)
+        return set(), None
+
+    out: Dict[int, set] = {}
+    for o, ss in sorted(secs.items()):
+        m = _main(ss, line)
+        if m is None:
+            continue
+        frontier = [ids[min((line(h)[1], h) for h in ss if line(h) is not None and line(h)[0] == m)[1] - 1]]
+        done, got, left = set(frontier), set(), False
+        while frontier and not left:
+            nxt = []
+            for v in frontier:
+                for ix in sorted(graph.down_adj.get(v, ())):
+                    t = graph.edges[ix].to_node
+                    if t not in graph.nodes:
+                        continue
+                    back = t if o in owner.get(t, ()) else None
+                    if back is None:
+                        named, back = below(o, t)
+                        if back is None:                 # it left the water: named, the sea or the atlas's edge
+                            left = True
+                            got |= named
+                    if back is not None and back not in done:   # still the water (a braid, a lake on its course)
+                        done.add(back)
+                        nxt.append(back)
+            frontier = sorted(nxt)
+        out[o] = got
+    return out
+
+
+def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]]) -> List[int]:
+    """The waters water `o` may EXIT into (T59): of its `item_down` receivers `cands`, every one that does not itself
+    flow into `o`, directly or down a chain of waters — a side channel whose mouth is back on `o` (Annacis Channel on
+    the Fraser: `mouths`, from `mouth_downs`), one that reaches it through another (the upper Jeperson Side Channel
+    through the lower), or a water with no main line (a lake) that `item_down` says drains into `o` (Moose Lake on
+    the Fraser, a lake the creek runs out of). Flow has no cycles, so a water that flows into `o` is never where `o`
+    goes. Empty for the Fraser: its mouth is the sea. A LAKE (no main line: absent from `mouths`) keeps every
+    receiver: a creek running through it is both its inflow and its outlet, and a creek's main line (a count) can be
+    its upper line, so the creek's "mouth" is no evidence against the lake's outlet (Adsit Lake, Crooked Lake)."""
+    if o not in mouths:
+        return list(cands)
+
+    def into_o(d: int) -> bool:
+        if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, whatever d's says back
+            return False
+        seen, stack = {d}, [d]
+        while stack:
+            x = stack.pop()
+            nxt = mouths[x] if x in mouths else downs.get(x, ())
+            if o in nxt:
+                return True
+            for y in sorted(nxt):
+                if y not in seen:
+                    seen.add(y)
+                    stack.append(y)
+        return False
+    return [d for d in cands if not into_o(d)]
+
+
 # ---- the tables -------------------------------------------------------------------------------------------------
 
-def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov) -> None:
-    """Write `part_geo`, `part_mark`, `water_exit` from the bundle's own parts, spans, splits and `item_down`."""
+def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
+          mouths: Optional[Dict[int, set]] = None) -> None:
+    """Write `part_geo`, `part_mark`, `water_exit` from the bundle's own parts, spans, splits and `item_down`, the exit
+    never a water that flows into this one (`exit_receivers`, with `mouths` from `mouth_downs` while the graph was
+    loaded)."""
     from pyproj import Transformer
     from shapely.ops import nearest_points, unary_union
 
@@ -209,7 +308,9 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov) -> None:
     for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord, down_ord"):
         downs[a].append(b)
     for o, cands in sorted(downs.items()):
-        if o not in mouth:
+        if mouths is not None:
+            cands = exit_receivers(o, cands, mouths, downs)
+        if o not in mouth or not cands:
             continue
         here = shapes[(o, mouth[o])]
         best = None

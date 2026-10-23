@@ -18,8 +18,15 @@ the measure on the receiving line where it joins):
         — two rivers meeting make a third, and neither is it (the Sproat and the Stamp 64 m apart make the Somass;
         the North and South Thompson 145 m apart the Thompson; Cowichan Lake's outlet sits 635 m above Oliver Creek,
         at the Cowichan's top), and
-      · no piece of B itself comes in lower down that piece (the upper Cottonwood joins the Cottonwood's top piece
+      · no piece of B itself comes in within `OWN_M` below (the upper Cottonwood joins the Cottonwood's top piece
         448 m below the Swift: the Cottonwood goes on as itself);
+  - TWO RIVERS MEET (T59, owner 2026-10-22: "think of things like this as one system; bella coola atnarko is another
+    example"): where every gate above holds except that another inflow joins within `CONFLUENCE_M`, or B's own side
+    channel rejoins its top piece farther down than `OWN_M`, the atlas cannot say which river goes on — the BOOK can.
+    A synopsis row whose heading names A and B together as one water ("ATNARKO/BELLA COOLA RIVERS", matched to both;
+    `heading_pairs`) makes A the one that goes on, and the other river stays a tributary; a heading pairing two rivers
+    meeting there with B names neither (`settle`). Without a pairing nothing changes: the Somass and the Thompson
+    stay confluences. Not built: a fallback on upstream length / Strahler order where no heading pairs them;
   - and the FWA WATERSHED CODES do not say the flow is backwards: B's code is never a descendant of A's (B's code
     extending A's — `100-1` and `100-1-2` — says B is a TRIBUTARY of A, so "A flows into B" is the data reversed). The
     owner's case: the added streams say Eagle Trib.5 (`…-757900`) flows into Eagle Trib.5-3 (`…-757900-384000`), an
@@ -56,6 +63,10 @@ STUB_M = 100.0
 #: Another inflow this close to A's mouth (or above it) makes it a confluence: the Somass's two rivers 64 m apart, the
 #: Taku's 90, the Fort Nelson's 77, the Thompson's 145.
 CONFLUENCE_M = 200.0
+#: A piece of B itself joining B's top piece this close below A's mouth (or above it) is B going on as itself (the upper
+#: Cottonwood, 448 m below the Swift). Farther down it is B's own side channel rejoining a long top piece (the Bella
+#: Coola's braids join its 14 km top piece 7 km and more below the Atnarko): that leaves only a book pairing to decide.
+OWN_M = 1000.0
 
 
 class ContinuationError(SystemExit):
@@ -114,27 +125,38 @@ def drains_into(code: str, into: str) -> bool:
     return bool(c and i) and c.startswith(i + "-")
 
 
-def _goes_on(a_ord: int, a: int, b_ord: int, b: int, same_line: bool, flow: Flow) -> bool:
-    """Whether A's mouth piece `a` is the watercourse at B's top piece `b` (THE RULE, above)."""
+#: `_goes_on`'s answers: A goes on as B; A goes on as B only if the book pairs them (two rivers meet there); A does not.
+YES, CONFLUENCE, NO = "yes", "confluence", None
+
+
+def _goes_on(a_ord: int, a: int, b_ord: int, b: int, same_line: bool, flow: Flow) -> Optional[str]:
+    """Whether A's mouth piece `a` is the watercourse at B's top piece `b` (THE RULE, above): `YES`, `CONFLUENCE` (every
+    gate holds but another inflow joins within `CONFLUENCE_M`: only a book pairing decides, `settle`) or `NO`."""
     joins = [at for to, at in flow.out(a) if to == b]
     if not joins:
-        return False
+        return NO
     if drains_into(flow.wsc.get(b, ""), flow.wsc.get(a, "")):
-        return False
+        return NO
     if same_line:
-        return True
+        return YES
     at = max(joins)
     if flow.top.get(b, at) - at > STUB_M:
-        return False
+        return NO
     others = [(f, x) for f, x in flow.into(b) if f != a]
-    if any(x >= at - CONFLUENCE_M for _, x in others):
-        return False
-    return not any(b_ord in flow.owners.get(f, ()) for f, _ in others)
+    own = [x for f, x in others if b_ord in flow.owners.get(f, ())]
+    if any(x >= at - OWN_M for x in own):
+        return NO
+    return CONFLUENCE if own or any(x >= at - CONFLUENCE_M for _, x in others) else YES
 
 
-def continuations(streams: Set[int], secs: Dict[int, Set[int]], item_down: Iterable[Tuple[int, int]],
-                  line: Callable[[int], Optional[Line]], flow: Flow) -> List[Tuple[int, int, int, int]]:
-    """[(A ord, A's mouth section, B ord, B's top section)] for every A that continues as B, by A's ord."""
+#: A link: (A ord, A's mouth section, B ord, B's top section, made at a confluence).
+Link = Tuple[int, int, int, int, bool]
+
+
+def candidates(streams: Set[int], secs: Dict[int, Set[int]], item_down: Iterable[Tuple[int, int]],
+               line: Callable[[int], Optional[Line]], flow: Flow) -> List[Link]:
+    """Every A whose mouth meets B's top as THE RULE says, by A's ord; the last field says it was made at a confluence
+    (two rivers meet there), which only a book pairing keeps (`settle`)."""
     def end(o: int, lowest: bool) -> Optional[Tuple[str, int]]:
         m = _main(secs.get(o, ()), line)
         if m is None:
@@ -150,8 +172,21 @@ def continuations(streams: Set[int], secs: Dict[int, Set[int]], item_down: Itera
         if ae is None or be is None:
             continue
         (a_line, a), (b_line, b) = ae, be
-        if _goes_on(a_ord, a, b_ord, b, a_line == b_line, flow):
-            out.append((a_ord, a, b_ord, b))
+        how = _goes_on(a_ord, a, b_ord, b, a_line == b_line, flow)
+        if how is not NO:
+            out.append((a_ord, a, b_ord, b, how == CONFLUENCE))
+    return out
+
+
+def settle(found: Iterable[Link], paired: Set[Tuple[int, int]]) -> List[Tuple[int, int, int, int]]:
+    """[(A ord, A's mouth section, B ord, B's top section)]: every link not made at a confluence, and a confluence's
+    link only when the book pairs A with B (`paired`, either order: `heading_pairs`) and pairs no other river meeting
+    there with B — "ATNARKO/BELLA COOLA RIVERS" names the Atnarko; a heading pairing both would name neither. A water
+    continued twice or continuing twice stops the build."""
+    found = sorted(set(found))
+    pair = lambda a, b: (a, b) in paired or (b, a) in paired  # noqa: E731
+    named = Counter(r[2] for r in found if r[4] and pair(r[0], r[2]))
+    out = [r[:4] for r in found if not r[4] or (pair(r[0], r[2]) and named[r[2]] == 1)]
     for i, what in ((2, "is continued by two waters"), (0, "continues as two waters")):
         seen: Dict[int, int] = {}
         for r in out:
@@ -159,6 +194,52 @@ def continuations(streams: Set[int], secs: Dict[int, Set[int]], item_down: Itera
                 raise ContinuationError(f"water_continue: water ord {r[i]} {what} ({seen[r[i]]} and {r[2 - i]}); "
                                         f"the atlas's topology is wrong there")
             seen[r[i]] = r[2 - i]
+    return out
+
+
+def continuations(streams: Set[int], secs: Dict[int, Set[int]], item_down: Iterable[Tuple[int, int]],
+                  line: Callable[[int], Optional[Line]], flow: Flow,
+                  paired: Iterable[Tuple[int, int]] = ()) -> List[Tuple[int, int, int, int]]:
+    """[(A ord, A's mouth section, B ord, B's top section)] for every A that continues as B, by A's ord: `candidates`,
+    then `settle` with the book's pairings `paired` (ord pairs)."""
+    return settle(candidates(streams, secs, item_down, line, flow), set(paired))
+
+
+#: Plural kind words a heading naming two waters ends on ("ATNARKO/BELLA COOLA RIVERS"): each segment is one of them.
+_PLURAL_KINDS = frozenset({"rivers", "creeks", "sloughs", "channels"})
+
+
+def heading_pairs(heading: str, names: Mapping[str, str]) -> Set[frozenset]:
+    """THE BOOK'S PAIRING (T59): the pairs of waters `names` ({item_id: registry name}, the entry's matched waters) that
+    ONE heading names together as one row — "ATNARKO/BELLA COOLA RIVERS", "CHILLIWACK / Vedder Rivers". The heading's
+    name (`place_names.heading_name`: no notes, no "[Includes Tributaries] …" tail) split on "/"; a water is named by a
+    segment when the words saying which water it is are the SAME (`place_names._which_water`, the segments' plural
+    kind word dropped): "South Atnarko River" is not "Atnarko", and "KISPIOX RIVER CONFLUENCE" names a place."""
+    from pipeline.deliver.bundle.place_names import _which_water, heading_name
+    segs = [frozenset(_which_water(s) - _PLURAL_KINDS) for s in heading_name(heading or "", quotes=False).split("/")]
+    if len(segs) < 2:
+        return set()
+    at: Dict[int, List[str]] = defaultdict(list)
+    for item, name in sorted(names.items()):
+        w = _which_water(name)
+        for k, s in enumerate(segs):
+            if s and w == s:
+                at[k].append(item)
+    return {frozenset((x, y)) for i in at for j in at if i < j for x in at[i] for y in at[j] if x != y}
+
+
+def book_pairs(b: sqlite3.Connection) -> Set[Tuple[int, int]]:
+    """{(ord, ord)} both orders, of every two STREAMS one water row's heading pairs (`heading_pairs`) among its matched
+    waters (`entry.full_name`, `entry.matched`)."""
+    import json
+    ordof = {i: (o, n) for o, i, n in b.execute("SELECT ord, item_id, name FROM item WHERE kind = 'stream'")}
+    out: Set[Tuple[int, int]] = set()
+    for full, matched in b.execute("SELECT full_name, matched FROM entry WHERE entry_id LIKE 'r%' AND full_name LIKE "
+                                   "'%/%' ORDER BY entry_id"):
+        names = {i: ordof[i][1] for i in json.loads(matched or "[]") if i in ordof}
+        for p in heading_pairs(full, names):
+            x, y = sorted(ordof[i][0] for i in p)
+            out |= {(x, y), (y, x)}
     return out
 
 
@@ -184,11 +265,12 @@ def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: 
     return Flow(edges, top, owners, wsc)
 
 
-def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, int, int, int]]:
-    """[(A ord, A's mouth section, B ord, B's top section)] from the bundle `b` as far as it is built when the graph is
-    loaded (`item`, `item_section`, `item_down`), the atlas's section ids (`ids[h-1]` names handle `h`) and its graph
-    (`graph.pkl`, a `StreamGraph`). The bundle build calls this while it holds the graph; `write` turns the sections
-    into parts once `part_section` exists."""
+def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
+    """The `candidates` [(A ord, A's mouth section, B ord, B's top section, at a confluence)] from the bundle `b` as far
+    as it is built when the graph is loaded (`item`, `item_section`, `item_down`), the atlas's section ids (`ids[h-1]`
+    names handle `h`) and its graph (`graph.pkl`, a `StreamGraph`). The bundle build calls this while it holds the
+    graph; `write` settles them with the book's pairings and turns the sections into parts once `entry` and
+    `part_section` exist."""
     def line(sid: int) -> Optional[Line]:
         return line_of(ids[sid - 1]) if 0 < sid <= len(ids) else None
 
@@ -204,15 +286,15 @@ def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Tuple[int, i
         if m is not None:
             tops.add(max((line(s)[1], s) for s in secs[o] if line(s) is not None and line(s)[0] == m)[1])  # type: ignore[index]
     flow = graph_flow(graph, ids, owners, tops)
-    return continuations(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
+    return candidates(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
 
 
-def write(b: sqlite3.Connection, found: Iterable[Tuple[int, int, int, int]], cov) -> int:
-    """The bundle's `water_continue (ord, part, next_ord, next_part)` from `links`' rows, once `part_section` exists. A
-    linked section with no part stops the build."""
+def write(b: sqlite3.Connection, found: Iterable[Link], cov) -> int:
+    """The bundle's `water_continue (ord, part, next_ord, next_part)` from `links`' candidates, settled with the book's
+    pairings (`book_pairs`, from `entry`), once `part_section` exists. A linked section with no part stops the build."""
     part = {(o, s): p for o, s, p in b.execute("SELECT ord, sid, part_ix FROM part_section")}
     out = []
-    for a_ord, a, b_ord, bs in found:
+    for a_ord, a, b_ord, bs in settle(found, book_pairs(b)):
         pa, pb = part.get((a_ord, a)), part.get((b_ord, bs))
         if pa is None or pb is None:
             raise ContinuationError(f"water_continue: section {a if pa is None else bs} has no part")

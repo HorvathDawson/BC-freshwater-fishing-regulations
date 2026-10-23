@@ -208,11 +208,12 @@ def _bundle_tables():
     from pipeline.deliver.bundle.build import SCHEMA
     db = sqlite3.connect(":memory:")
     db.executescript("""
-        CREATE TABLE item (ord INTEGER PRIMARY KEY, kind TEXT);
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT, name TEXT, kind TEXT);
         CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
         CREATE TABLE item_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL);
         CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL);
-        INSERT INTO item VALUES (1, 'stream'), (2, 'stream');
+        CREATE TABLE entry (entry_id TEXT PRIMARY KEY, full_name TEXT, matched TEXT NOT NULL DEFAULT '[]');
+        INSERT INTO item VALUES (1, 'gnis:1', 'Chilliwack River', 'stream'), (2, 'gnis:2', 'Vedder River', 'stream');
         INSERT INTO item_section VALUES (1, 1), (2, 2), (2, 3);
         INSERT INTO item_down VALUES (1, 2);
     """)
@@ -236,7 +237,7 @@ def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_e
     db = _bundle_tables()
     ids = ["X:0", "Y:0", "Y:12723"]                          # handles 1, 2, 3
     links = C.links(db, ids, _G())
-    assert links == [(1, 1, 2, 3)]
+    assert links == [(1, 1, 2, 3, False)]
     db.executescript("INSERT INTO part_section VALUES (1, 1, 1), (2, 2, 1), (2, 3, 0);")
     cov = _Cov()
     C.write(db, links, cov)
@@ -244,17 +245,57 @@ def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_e
     assert cov.rows == {"water_continue": 1}
 
 
+class _G2(_G):
+    """`_G` with a second river (line Q, water 3) beginning 64 m from water 1's mouth: a confluence."""
+    nodes = {**_G.nodes, "Q:0": _N(3000.0)}
+    edges = _G.edges + [_E("Q:0", "Y:12723", 12861.0)]
+    up_adj = {"Y:12723": [0, 2], "Y:0": [1]}
+
+
+def _confluence_bundle(heading, matched):
+    db = _bundle_tables()
+    db.executescript("""
+        INSERT INTO item VALUES (3, 'gnis:3', 'Talchako River', 'stream');
+        INSERT INTO item_section VALUES (3, 4);
+        INSERT INTO item_down VALUES (3, 2);
+        INSERT INTO part_section VALUES (1, 1, 1), (2, 2, 1), (2, 3, 0), (3, 4, 0);
+    """)
+    import json
+    db.execute("INSERT INTO entry VALUES ('r5:x@5-1', ?, ?)", (heading, json.dumps(matched)))
+    return db
+
+
+def test_the_bundle_keeps_a_confluence_link_only_where_an_entry_heading_pairs_the_two():
+    """`links` (graph loaded) marks a link made at a confluence; `write` (entries written by then) keeps it only when
+    one entry's heading names A and B together and matched both."""
+    ids = ["X:0", "Y:0", "Y:12723", "Q:0"]                   # handles 1..4
+    db = _confluence_bundle("CHILLIWACK/VEDDER RIVERS", ["gnis:1", "gnis:2"])
+    links = C.links(db, ids, _G2())
+    assert links == [(1, 1, 2, 3, True), (3, 4, 2, 3, True)]
+    C.write(db, links, _Cov())
+    assert db.execute("SELECT ord, part, next_ord, next_part FROM water_continue").fetchall() == [(1, 1, 2, 0)]
+    # the heading names them, but the entry did not match the Chilliwack: no pairing
+    db = _confluence_bundle("CHILLIWACK/VEDDER RIVERS", ["gnis:2"])
+    C.write(db, C.links(db, ids, _G2()), _Cov())
+    assert db.execute("SELECT COUNT(*) FROM water_continue").fetchone() == (0,)
+    # a lone heading names no pair
+    db = _confluence_bundle("VEDDER RIVER", ["gnis:1", "gnis:2"])
+    C.write(db, C.links(db, ids, _G2()), _Cov())
+    assert db.execute("SELECT COUNT(*) FROM water_continue").fetchone() == (0,)
+
+
 def test_a_link_whose_section_has_no_part_stops_the_build():
     db = _bundle_tables()
     db.execute("INSERT INTO part_section VALUES (1, 1, 1)")
     with pytest.raises(C.ContinuationError, match="has no part"):
-        C.write(db, [(1, 1, 2, 3)], _Cov())
+        C.write(db, [(1, 1, 2, 3, False)], _Cov())
 
 
 @pytest.mark.needs_bundle
 def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     """On the real bundle: the link the owner asked for (the Chilliwack's mouth part into the Vedder's part 0), and the
-    17 reviewed links — the bundle is where `water_continue` is made now; the release copies it (`test_release.py`)."""
+    18 reviewed links (T59: the Atnarko as the Bella Coola) — the bundle is where `water_continue` is made now; the
+    release copies it (`test_release.py`)."""
     import os
     import sqlite3
     from pathlib import Path
@@ -278,7 +319,7 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     linked = {r[0] for r in rows} | {r[2] for r in rows}
     for trib in ("Slesse Creek", "North Thompson River", "Stewart Slough", "Lewis Slough", "Street Creek",
                  "Oliver Creek", "Sproat River", "Stamp River", "South Thompson River", "Chase Creek", "Puntledge River",
-                 "Tsolum River", "Fairmont Creek", "Poquette Creek", "Swift River", "Atnarko River"):
+                 "Tsolum River", "Fairmont Creek", "Poquette Creek", "Swift River", "Talchako River"):
         assert named(trib) and not named(trib) & linked, trib
     # both ends keyed; every part named is real
     assert len({r[0] for r in rows}) == len({r[2] for r in rows}) == len(rows) > 0
@@ -296,5 +337,84 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
         ("Crayfish Creek Trib.3-1", "Crayfish Creek Trib.3"), ("Eagle Trib.4-1", "Eagle Trib.4"), ("Jr 4-1-2", "Jr 4-1"),
         ("Noble Creek Trib.1 Trib.1", "Noble Creek Trib.1"), ("Rochester Creek", "Holmes Creek"),
         ("Westway Avenue Drainage Ditch", "Magnolia Creek Trib 1"),
-        ("Finch Connector (Unnamed)", "Logger's Lane Connector")})
-    assert len(rows) == 17
+        ("Finch Connector (Unnamed)", "Logger's Lane Connector"),
+        # T59 (owner 2026-10-22): two rivers meet, and the book's "ATNARKO/BELLA COOLA RIVERS" names the one that goes
+        # on; the Talchako stays a tributary (above). The only row the pairing adds, reviewed on the live bundle + graph
+        ("Atnarko River", "Bella Coola River")})
+    assert len(rows) == 18
+    atn, bc = ordof["gnis:17209"], ordof["gnis:11611"]
+    assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 3, bc, 0)]
+
+
+# ---- TWO RIVERS MEET, AND THE BOOK NAMES ONE OF THEM WITH THE THIRD (T59; owner 2026-10-22: "think of things like this
+# as one system; bella coola atnarko is another example"). The Bella Coola begins where the Atnarko and the Talchako
+# meet; FWA codes both as its tributaries, and the confluence gate refuses both. The synopsis prints ONE row for
+# "ATNARKO/BELLA COOLA RIVERS": that names the Atnarko as the river that goes on as the Bella Coola. The Talchako stays
+# a tributary. Every other gate still holds.
+
+#: The Atnarko / Talchako / Bella Coola shape on the Chilliwack / Vedder one: water 4 (line Q, the Talchako) begins 64 m
+#: from water 1's mouth, at the top of water 2's top piece s12.
+CONF_SECS = {**SECS, 4: {30, 31}}
+CONF_LINE = {**LINE, 30: ("Q", 0), 31: ("Q", 5000)}
+CONF_EDGES = EDGES + [(30, 12, 12861.0), (31, 30, 0.0)]
+
+
+def _conf(paired=(), *, edges=CONF_EDGES, secs=CONF_SECS, item_down=((1, 2), (3, 2), (4, 2)), wsc=None):
+    owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
+    return C.continuations({1, 2, 3, 4}, secs, list(item_down), CONF_LINE.get, C.Flow(edges, TOP, owners, wsc),
+                           paired=set(paired))
+
+
+def test_at_a_confluence_the_river_the_book_names_with_the_receiver_goes_on_as_it():
+    assert _conf() == []                                     # no pairing: two rivers make a third, as before
+    assert _conf(paired={(1, 2)}) == [(1, 1, 2, 12)]         # "ATNARKO/BELLA COOLA": the Atnarko goes on
+    assert _conf(paired={(4, 2)}) == [(4, 30, 2, 12)]        # the pairing, not which river is listed first, decides
+    # the book pairing BOTH rivers with the receiver names no one of them: nothing is guessed
+    assert _conf(paired={(1, 2), (4, 2)}) == []
+    # a pairing of two waters that do not meet there is no evidence for a third
+    assert _conf(paired={(1, 3)}) == []
+
+
+def test_a_pairing_never_lifts_the_other_gates():
+    # the stub gate: B's line goes on 450 m above A's mouth — A is a tributary, whatever the book says
+    # (and with A 450 m down, the other river alone joins at B's top: it goes on, by the old rule, unpaired)
+    edges = [e for e in CONF_EDGES if e[0] != 1] + [(1, 12, 12500.0)]
+    assert _conf(paired={(1, 2)}, edges=edges) == [(4, 30, 2, 12)]
+    # B's own piece comes in lower down its top piece (the Cottonwood): B goes on as itself
+    secs = {**CONF_SECS, 2: CONF_SECS[2] | {40}}
+    assert _conf(paired={(1, 2)}, secs=secs, edges=CONF_EDGES + [(40, 12, 12477.0)]) == []
+    # item_down must already say A flows into B
+    assert _conf(paired={(1, 2)}, item_down=((3, 2), (4, 2))) == []
+
+
+def test_b_rejoined_by_its_own_side_channel_far_down_its_top_piece_needs_the_book():
+    # the Bella Coola's braids rejoin its 14 km top piece 7 km below the Atnarko: no longer "B goes on as itself" (that
+    # is within OWN_M, the Cottonwood), but the atlas alone cannot say A goes on either — only a pairing does
+    secs = {**SECS, 2: SECS[2] | {40}}
+    edges = EDGES + [(40, 12, 12925.0 - 7000.0)]
+    assert _cont(secs=secs, edges=edges) == []
+    owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
+    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners),
+                           paired={(2, 1)}) == [(1, 1, 2, 12)]
+    # 999 m below is still the Cottonwood, paired or not
+    edges = EDGES + [(40, 12, 12925.0 - 999.0)]
+    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners),
+                           paired={(1, 2)}) == []
+    # the FWA codes saying B drains into A
+    assert _conf(paired={(1, 2)}, wsc={1: "100-1", 12: "100-1-2"}) == []
+
+
+def test_the_book_pairs_the_waters_one_heading_names_together():
+    names = {"gnis:17209": "Atnarko River", "gnis:11611": "Bella Coola River", "gnis:29411": "South Atnarko River"}
+    assert C.heading_pairs("ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of "
+                           "Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls", names) == {
+        frozenset({"gnis:17209", "gnis:11611"})}
+    assert C.heading_pairs("CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)",
+                           {"gnis:8634": "Chilliwack River", "gnis:3062": "Vedder River"}) == {
+        frozenset({"gnis:8634", "gnis:3062"})}
+    # one name, or a slash that names one matched water and a place (a confluence, not two waters)
+    assert C.heading_pairs("VEDDER RIVER", {"gnis:3062": "Vedder River"}) == set()
+    assert C.heading_pairs("SKEENA RIVER/KISPIOX RIVER CONFLUENCE", {"gnis:2936": "Skeena River"}) == set()
+    # a matched water the heading does not name exactly is not paired ("South Atnarko" is not "Atnarko")
+    assert C.heading_pairs("ATNARKO/BELLA COOLA RIVERS", {"gnis:29411": "South Atnarko River",
+                                                          "gnis:11611": "Bella Coola River"}) == set()

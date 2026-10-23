@@ -877,12 +877,20 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # (audit F07: the release used to unpickle graph.pkl again just for this)
     from pipeline.common.section_handles import read as _read_handles
     from pipeline.deliver.bundle import continuation as _continuation
-    _continues = _continuation.links(db, list(_read_handles(build_dir)[0]), graph)
+    _handle_ids = list(_read_handles(build_dir)[0])
+    _continues = _continuation.links(db, _handle_ids, graph)
+    # WHERE EACH WATER'S MOUTH FLOWS (T59: `water_exit` named Annacis Channel for the Fraser): read here, while the
+    # graph is loaded; `topology.write` keeps only the exits the mouth reaches
+    from pipeline.deliver.bundle import topology as _topology
+    _secs: dict = {}
+    for _o, _s in db.execute("SELECT ord, sid FROM item_section"):
+        _secs.setdefault(_o, set()).add(_s)
+    _mouths = _topology.mouth_downs(graph, _handle_ids, _secs)
+    del _secs, _handle_ids
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
     places = _water_places(build_dir, graph, registry_items)
     # P09: the named sections' shapes, kept until the parts exist (part_geo / part_mark / water_exit)
-    from pipeline.deliver.bundle import topology as _topology
     named_geo = _topology.keep_named(db, build_dir, geoms)
     del graph, geoms, registry_items
     # The regulations. The reach builder resolved which water every rule covers; this only
@@ -940,7 +948,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov)
-        _topology.write(db, named_geo, cov)
+        _topology.write(db, named_geo, cov, mouths=_mouths)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
         _nearer.write_trib_nearer(db, cov)
