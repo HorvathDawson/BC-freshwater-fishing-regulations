@@ -1,6 +1,6 @@
 # T134 — Curation review phase 3: a review screen separate from fixing
 
-Status: DONE — lane-T134 (see the commit list in the lane). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
+Status: DONE — 45b15369, 21e800b7 (lane-T134). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. The legible crops need the `row_boxes.json` sidecar, a one-off the owner runs
 (`python -m pipeline.regs.extraction.row_boxes`, no credits, ~2 min); until then the evidence pane says so with that
 command and offers the extractor's own crop.
