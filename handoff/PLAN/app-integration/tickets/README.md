@@ -150,17 +150,17 @@ use that as the sole source of future work."
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
-| T106 | one shown quantity: read the declared parameter (08ME030) | OPEN | — | all (app) |
-| T107 | one day's envelope: Python band_for vs TS bandAt | OPEN | — | all (app or feed) |
+| T106 | one shown quantity: read the declared parameter (08ME030) | DONE | 7276735f, f17523c2, 91ea0abc, 82a37db5 | publisher line lands on the next feed publish |
+| T107 | one day's envelope: Python band_for vs TS bandAt | DONE | 4a93cf64, 1399d3d7, a06c1b01, 4965f6ec | — |
 | T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | OPEN | — | all (deliver) |
 | T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
 | T110 | record years per quantity (Level-mode weights) | OPEN | — | all (deliver) |
 | T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
-| T114 | one search key for SQL filter and ranking (barriere) | OPEN | — | all (deliver + app; shares T61 2.8) |
+| T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60 | needs deliver (name_key/alias_key) — run after merge |
 | T115 | one home-filtered region membership (12 Fraser pairs) | OPEN | — | all (rides a reach rerun) |
-| T116 | one water noun: wetlands called "river" | OPEN | — | all (app) |
+| T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | OPEN | — | all (after T102 part B; reach rerun) |
 | T118 | one main line for spans and continuation | OPEN | — | all (deliver; with T108) |
 | T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
@@ -170,7 +170,7 @@ use that as the sole source of future work."
 | T123 | one donor state for Conditions and map labels | OPEN | — | all (app) |
 | T124 | one per-section layer list in map | OPEN | — | all (app) |
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
-| T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
+| T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
@@ -254,6 +254,12 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q71 | T131 | A spot opened from a water's map: its tab bar leaves the water for that tab? | yes | owner |
 | Q72 | T131 | Selected spot's name hidden when a neighbour pin sits there — drop it or place it below the pin? | drop it | owner |
 | Q73 | T131 | On Conditions a spot pin can cover a gauge reading label and takes the tap — ok? | as built | owner |
+| Q74 | T126 | Gauge dots under a forecast horizon or Change follow the horizon (no dot on a day no forecast reaches) — or stay at Now with a legend note? | follow the horizon | owner |
+| Q75 | T126 | Dot label under Change: "3× today" (the station's own ratio)? | as built | owner |
+| Q76 | T106 | A record with no declared quantity (old feed file, spot saved before T106) reads as discharge (the publisher's default)? | yes | owner |
+| Q77 | T107 | A value exactly on p10/p90 reads "at or below/above the 10th/90th percentile" (a dry creek at 0 when p10 is 0 included)? | yes | owner |
+| Q78 | T114 | No fallback to raw-name matching when the app meets an older bundle without search keys (that fallback is the second rule T114 removes)? | no fallback; ship app and release together | owner |
+| Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

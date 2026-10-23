@@ -1,6 +1,6 @@
 # T116 — One water noun: a wetland is called a "river" on its page
 
-Status: DONE — 71d2dd60, review fix 14677486.
+Status: DONE — 4cf77c7a, review fix 0c533d4a.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding app 2 and the
 TypeScript half of cross 8 (CONFIRMED).
@@ -25,7 +25,7 @@ A wetland fixture page reads "this wetland's rule" / "Whole wetland" (or the agr
 
 Rebuild: none (app only). Depends: none. Size: S. Owner: no.
 
-## As built (71d2dd60)
+## As built (4cf77c7a)
 - `waterNoun(kind: string, form: "page" | "row")` in `app/packages/core/src/regs/words.ts`: a `switch` over
   `WaterKind = keyof PlaceNames` (the atlas's `stream | lake | wetland`) with a `never` default, so a kind added to the
   generated `PlaceNames` is a compile error there. `page` is the in-sentence noun (river / lake / wetland); `row` is the
@@ -51,7 +51,7 @@ Rebuild: none (app only). Depends: none. Size: S. Owner: no.
   parity, store.release) failing on a digest mismatch in the shared `data/generated/bundle/regs.sqlite` vs taps.json
   oracles (environment, unrelated to this change).
 
-## Adversarial review (14677486)
+## Adversarial review (0c533d4a)
 Fixed:
 - **An unnamed section's page still said "river".** `decided.ts` and `caveats.ts` fell back from a missing item
   (`inp.item` null — an unnamed section tap) straight to `"stream"`, though the section's key carries its kind (the

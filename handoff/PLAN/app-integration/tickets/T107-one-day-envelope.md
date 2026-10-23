@@ -1,6 +1,6 @@
 # T107 — One day's envelope: Python and TypeScript place the band and rank the value differently
 
-Status: DONE — 0bb3ea68 (review 796efa34)
+Status: DONE — 4a93cf64 (review a06c1b01)
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 3 =
 cross 3 (CONFIRMED in code).
@@ -29,7 +29,7 @@ drops the centre offset.
 
 Rebuild: none (app), or a feed publish if the feed ships the band. Depends: none. Size: S. Owner: no.
 
-## As built (2026-10-23, 0bb3ea68)
+## As built (2026-10-23, 4a93cf64)
 Owner of the formula: the feed's Python (`band_for`, `percentile_of`, unchanged). The app ports it; nothing is
 published differently, so no rebuild and no feed publish.
 - `app/packages/core/src/flow.ts` `bandAt`: line-for-line port of `band_for` — `pos = (day-1)/5 - 0.5`, the two

@@ -1,6 +1,6 @@
 # T114 — One search key: the SQL filter and the ranking disagree on what matches ("barriere")
 
-Status: DONE — 72e0b223, 197b76d0, review 993b2fa3 (app + pipeline code; the shipped bundle/release need a deliver to carry the keys — see As built).
+Status: DONE — ebc435e5, 6a9384d3, review e7c4d3ca (app + pipeline code; the shipped bundle/release need a deliver to carry the keys — see As built).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding app 1
 (CONFIRMED on `bundle.sqlite`). The pipeline half (one name normaliser) is T61 2.8; this ticket is the app split.
@@ -78,7 +78,7 @@ Owner questions:
 
 ## Adversarial review (2026-10-23)
 
-Fixed (993b2fa3):
+Fixed (e7c4d3ca):
 - **A third copy of the match decision:** `packages/data/src/fixture.ts` `makeFixtureSource().searchNames` matched by
   `toLowerCase().includes` with no length guard. It now keys query, name and alias with `searchKey` and answers nothing
   under two key characters, like both readers.

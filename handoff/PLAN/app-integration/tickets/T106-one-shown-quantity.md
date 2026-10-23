@@ -1,6 +1,6 @@
 # T106 — One shown quantity: the headline infers discharge vs level instead of reading the declared one
 
-Status: DONE — 17e9d43d, review fix 18831b08 (app; plus a one-line publisher fix that lands on the next feed publish, see As built).
+Status: DONE — 7276735f, review fix 91ea0abc (app; plus a one-line publisher fix that lands on the next feed publish, see As built).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 2 =
 cross 4 (CONFIRMED on `data/generated/gauges/feeds/08ME030.json`).
@@ -28,7 +28,7 @@ stations each show the declared quantity (scripted check over the feed files).
 
 Rebuild: none (app only). Depends: none. Size: S. Owner: no.
 
-## As built (17e9d43d)
+## As built (7276735f)
 - **Core** `app/packages/core/src/conditions.ts`: `shownParameter(row)` returns the declared `parameter`, or
   `"discharge"` when nothing is declared (an old feed file, a spot saved before T106: the publisher's own default).
   It never looks at which value is present. `readingIn(row, q)` returns that quantity's value or null, and never the
@@ -77,7 +77,7 @@ Rebuild: none (app only). Depends: none. Size: S. Owner: no.
 - No envelope for either quantity: the publisher declares the quantity the station reported (`level` for the 9
   level-only stations). Default built: yes.
 
-- Review (18831b08): spots saved before T106 that hold only level days (a level-only station) now show no gauge
+- Review (91ea0abc): spots saved before T106 that hold only level days (a level-only station) now show no gauge
   strip in the week before, and the line under it says "The station has no daily means for that week." Before T106
   the strip showed their levels. Nothing on such a spot says which quantity it showed, and a refresh never runs on a
   full week, so it cannot learn one. Default built: core's undeclared default (discharge) applies, so no strip. The
@@ -90,7 +90,7 @@ Rebuild: none (app only). Depends: none. Size: S. Owner: no.
   map's chosen quantity, not a station's shown one, so it was left alone and the pin does not match it.
 
 ## Adversarial review (2026-10-23)
-**Fixed (18831b08).** The lead-up strip lost a level-only station's week when the spot was saved offline. Capture
+**Fixed (91ea0abc).** The lead-up strip lost a level-only station's week when the spot was saved offline. Capture
 then keeps `reading = {station, discharge: null, level: null, …}` with no `parameter`. A refresh later fills the days,
 and they hold only levels. `leadUpQuantity(days, reading)` read the undeclared reading as discharge. So the strip was
 hidden, and it said "The station has no daily means for that week." 237 BC stations measure only level, and an angler

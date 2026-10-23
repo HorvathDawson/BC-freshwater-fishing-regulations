@@ -1,6 +1,6 @@
 # T126 — Forecast reading bugs found by T52: CLEVER times 8 h off, a 5-day summary on a 10-day run, dots ignore horizon
 
-Status: DONE — a4d0d040 (pipeline) + 88a097b4 (app) + 01d2f772 (adversarial review), lane-T126; live after a feed republish (below). Found
+Status: DONE — e3688e2b (pipeline) + c7ccec1f (app) + d7b9ed24 (adversarial review), lane-T126; live after a feed republish (below). Found
 2026-10-22 while building T52 (correctness, band 2).
 
 1. **CLEVER timestamps are Pacific Standard Time, read as UTC.** Best fit against 305 gauges is 8 h off UTC. The
@@ -59,7 +59,7 @@ a2307766…: re-run `app/design/regs-v11/port/taps.py`), environment, not this c
 `.venv/bin/python -m pipeline.gauges.feed.publish --out data/generated/gauges/feeds --clim data/generated/gauges/feeds/clim.json`.
 It needs no re-fetch of the series: runs already on disk are zoned and re-summarised as they are carried.
 
-## Adversarial review (01d2f772)
+## Adversarial review (d7b9ed24)
 Fixed:
 - **"Is this step a day?" was decided twice.** `change.py` took a step as a whole Centre day when bare-dated OR its series
   is daily (`step: "1d"`, COFFEE's `…T00:00:00` midnights); `publish.forecast_at` only when bare-dated, so to the
