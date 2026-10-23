@@ -181,6 +181,7 @@ use that as the sole source of future work."
 | T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
+| T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | OPEN | — | then T82 reader gate re-run |
 
 ## Order for open tickets
 
