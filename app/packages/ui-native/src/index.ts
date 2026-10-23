@@ -1,10 +1,10 @@
 /**
- * @app/ui-native — the PHONE components.
+ * @app/ui-native — the app's components.
  *
- * Rendered by the native app AND by mobile web through react-native-web, so the two match
- * by construction rather than by discipline. Desktop gets its own DOM components in
- * apps/web; that split is free precisely because there is no logic in here to duplicate —
- * every one of these takes data from a hook and draws it.
+ * Rendered by the native app AND by the web through react-native-web, so the two match
+ * by construction rather than by discipline. Tablet and desktop are layout classes of these
+ * same components (`useLayoutClass`, T45), which stays cheap because there is no logic in
+ * here to duplicate — every one of these takes data from a hook and draws it.
  */
 export { WaterScreen } from "./WaterScreen";
 export { Shell } from "./Shell";

@@ -3,7 +3,7 @@
  * The hook itself is mounted in layout.render.test.tsx.
  */
 import { describe, expect, it } from "vitest";
-import { LAYOUT_BREAKPOINTS, formFactorFor, layoutClassFor } from "./index";
+import { LAYOUT_BREAKPOINTS, layoutClassFor } from "./index";
 
 describe("layoutClassFor (T45)", () => {
   it("phone below the tablet breakpoint, tablet below the desktop one, desktop from it", () => {
@@ -13,9 +13,8 @@ describe("layoutClassFor (T45)", () => {
     ]);
   });
 
-  it("the breakpoints are the tokens (900 and 1280, the ticket's), and the form factor splits where the tablet starts", () => {
+  it("the breakpoints are the tokens (900 and 1280, the ticket's)", () => {
     expect(LAYOUT_BREAKPOINTS).toEqual({ tablet: 900, desktop: 1280 });
-    expect([LAYOUT_BREAKPOINTS.tablet - 1, LAYOUT_BREAKPOINTS.tablet].map(formFactorFor)).toEqual(["phone", "desktop"]);
   });
 
   it("no width (not measured yet, a test with no provider) is a phone: the design, never a guess at a wide screen", () => {

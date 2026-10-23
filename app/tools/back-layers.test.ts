@@ -29,7 +29,7 @@ import { HOME, crossAction, exitAction, openWater, partAction, reduce as reduceR
          type Route, type RouteAction } from "@app/ui";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
-const ROOTS = ["apps/mobile/src", "apps/web/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
+const ROOTS = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
 
 function sources(dir: string, out: string[] = []): string[] {
   let names: string[];

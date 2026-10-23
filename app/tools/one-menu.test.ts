@@ -22,7 +22,7 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
-const ROOTS = ["apps/mobile/src", "apps/web/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
+const ROOTS = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
 
 function sources(dir: string, out: string[] = []): string[] {
   let names: string[];

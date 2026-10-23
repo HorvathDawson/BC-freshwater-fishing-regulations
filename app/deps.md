@@ -36,7 +36,7 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   it renders `@app/ui-native` unchanged in a browser. Without it "mobile web" would be a
   second component tree, which is the v1 failure this workspace exists to prevent.
 - `react-dom` — react-native-web's mount target. Never imported by our own source
-  (`layers.json` bans it outside `apps/web`); it is react-native-web's renderer, not ours.
+  (no layer in `layers.json` may import it); it is react-native-web's renderer, not ours.
 - `@expo/metro-runtime` — web dev-server client: Fast Refresh and the error overlay.
   Dev-only in effect, a no-op in a native bundle.
 - `babel-preset-expo` — declared explicitly because `babel.config.js` names it, and Babel

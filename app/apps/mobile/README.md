@@ -20,9 +20,9 @@ One project, three platforms, one `src/App.tsx`. `expo start --web` is the fast 
 Metro compiles the same React Native tree through react-native-web, so what a browser
 shows is the phone UI, not a web imitation of it.
 
-**Mobile web is served from here, not `apps/web`.** Expo's web output is a *platform* of
-this project — `layers.json` grants `expo` to `apps/mobile` and withholds it from
-`apps/web`. `apps/web` becomes the production web app when desktop exists; see its README.
+**The web app is served from here.** Expo's web output is a *platform* of this project, not
+a separate app. Desktop is a layout class of the same components (`useLayoutClass`, T45),
+not a second shell.
 
 ## Native directories are generated, never committed
 
@@ -46,8 +46,7 @@ Neither affects `pnpm dev:web`, which needs only Node.
 
 The real screens wait on the packaging spike (13-build-plan step 6), which decides what
 `data-mobile` reads. `src/App.tsx` renders `PlaceholderScreen` from `@app/ui-native` — a
-wiring probe, not product UI. It calls `freshness` (`@app/core`) and `formFactorFor`
-(`@app/ui`) and prints the results, so a broken workspace link fails on screen instead of
+wiring probe, not product UI. It calls `freshness` (`@app/core`) and prints the result, so a broken workspace link fails on screen instead of
 silently resolving to something stale.
 
 **Non-negotiable:** the bundle is downloaded on first run. It must never ship as an

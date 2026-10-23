@@ -271,7 +271,8 @@ and not done.
 **Map → Conditions flash on tab switch.** A fresh mount is clean; switching tabs shows a
 frame of the wrong colouring.
 
-**Desktop is scaffolding.** `apps/web/src/desktop/` exists; the DOM component set does not.
+**Desktop is a layout class** (T45, `useLayoutClass`), not a DOM component set; the empty
+`apps/web` placeholder was deleted (T70).
 
 **Contract gaps.** `app/design/data-contract.html` still names things the source cannot
 answer: `entry`, `rule`, `rule_section`, `chart`, `release`/`stock_water`, `edition`,

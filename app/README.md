@@ -24,32 +24,29 @@ Nothing here prevents that by convention. `layers.json` states the rule and
 packages/core       domain logic — pure TS, no React, no platform   100% shared
 packages/data       ONE RegsSource interface, one impl per platform interface shared
 packages/ui         headless React hooks (data, not elements)       100% shared
-packages/ui-native  PHONE components (RN primitives)                native app + mobile web
+packages/ui-native  the components (RN primitives), every layout     native app + web (phone, tablet, desktop)
 packages/map        the ONE <Map/>; both adapters behind it         100% shared
-apps/mobile         native app — built first
-apps/web            mobile web (via RNW) + desktop (its own DOM)    built second
+apps/mobile         the one app shell: native, and web through RNW
 conformance         one suite, run against EVERY RegsSource
 ```
 
-## Three form factors, two component sets
+## One component set; desktop is a layout class
 
 | target | components | why |
 |---|---|---|
 | native app | `@app/ui-native` | — |
 | **mobile web** | `@app/ui-native` via react-native-web | must look identical to the app **by construction**, not by discipline |
-| **desktop web** | its own DOM components in `apps/web` | a different layout, not a stretched phone |
+| **tablet / desktop web** | `@app/ui-native`, arranged by `useLayoutClass()` | a different arrangement, not a stretched phone |
 
-**Desktop having separate components costs nothing — provided components hold no logic.**
-Behaviour lives in `@app/ui` hooks, which all three targets call. So splitting desktop out
-is a purely presentational decision.
+The layout class (`@app/ui` `layout.ts`, T45) turns the window's width into `phone`,
+`tablet` or `desktop` from the breakpoint tokens; components take the class and arrange
+themselves (a reading column, a side column). There is no second app and no separate DOM
+component set (AGENTS rule 26).
 
-The test: *if you ever want to share a component with desktop in order to avoid duplicating
-logic, the logic is in the wrong place.* Move it to a hook and the urge disappears. That
-inversion is the whole design — it is why `ui/` exists as a separate package from any
-component set.
-
-`apps/web` code-splits on form factor, so a desktop visitor never downloads the RNW phone
-tree and vice versa.
+**That stays cheap only while components hold no logic.** Behaviour lives in `@app/ui`
+hooks, so a wider arrangement is a purely presentational decision. The test: *if a layout
+wants to duplicate logic, the logic is in the wrong place.* Move it to a hook. That
+inversion is why `ui/` exists as a separate package from the component set.
 
 **Hooks are shared; components are not.** A hook returns data, so it runs under both
 renderers. `<div>` and `<View>` do not. This is the opposite of where most teams draw
@@ -59,7 +56,7 @@ the line and it is why this works without committing to react-native-web up fron
 
 1. `core` + the `RegsSource` interface + the fixture implementation — **before either app exists**
 2. `apps/mobile` against a real bundle, offline on first run
-3. `apps/web` against the same store via range reads
+3. the same app on the web against the release store via range reads
 4. Conformance runs **both** implementations on every commit
 
 ## Commands
@@ -73,6 +70,7 @@ pnpm style        # rebuild the style, verify hash, fail if it was stale
 pnpm style:build  # after editing layers.source.json
 pnpm colours      # no colour literal outside tokens.json + themes/ (the one palette)
 pnpm deps         # every dependency justified in deps.md
+pnpm clean        # delete every workspace dist/ (typecheck output; nothing reads it)
 ```
 
 ### Running it
@@ -91,13 +89,9 @@ is not a port of the phone UI, it *is* the phone UI, compiled by react-native-we
 `expo prebuild` (Continuous Native Generation) on the first `run:` — a config change is one
 edit, not two hand-applied ones. `pnpm --filter @app/mobile run prebuild` regenerates them.
 
-**Where `dev:web` lives, and why it is not `apps/web`.** `layers.json` grants `expo` to
-`apps/mobile` and not to `apps/web` — the Expo project is the native one, and Expo's web
-output is a *platform* of that project, not a separate app. So today's mobile web is served
-by `apps/mobile`. `apps/web` stays empty until desktop exists, at which point it becomes the
-production web app: `formFactorFor(width)` picks between its own DOM tree
-(`src/desktop/`) and the react-native-web phone tree (`src/phone/`), which re-exports
-`@app/ui-native` and adds nothing.
+**Where `dev:web` lives.** Expo's web output is a *platform* of the `apps/mobile` project,
+not a separate app, so the web app — phone, tablet and desktop widths alike — is served by
+`apps/mobile`. Desktop is a layout class (above), not a second shell.
 
 ## One React
 

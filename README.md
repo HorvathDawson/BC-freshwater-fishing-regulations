@@ -48,7 +48,7 @@ pipeline/            Python pipeline
   common/            paths (config.yaml → pipeline.common.curated), models, digests
   build.py           the one rebuild command
   tests/             pytest (markers: slow, needs_bundle, needs_atlas, …)
-app/                 pnpm workspace: core/ui/map packages, apps/web and apps/mobile (Expo)
+app/                 pnpm workspace: core/data/ui/ui-native/map packages, apps/mobile (Expo: native + web)
 curation-review/     the curation tool (FastAPI backend + frontend) for reviewing entries
 data/
   source/            fetched inputs (FWA GeoPackage, gauges, synopsis PDF, …)

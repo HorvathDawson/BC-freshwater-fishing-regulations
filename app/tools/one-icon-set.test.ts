@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import { ICON_CREDIT, ICON_SET } from "@app/core";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
-const ROOTS = ["apps/mobile/src", "apps/web/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
+const ROOTS = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
 const ICONS_FILE = "packages/ui-native/src/icons.tsx";
 
 /** The data drawings: pictures of data, not chrome. Each may draw its own svg. */

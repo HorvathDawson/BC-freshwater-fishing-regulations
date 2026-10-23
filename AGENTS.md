@@ -150,12 +150,14 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     sheet on one and a page on the other — but the *answer* may not.
 24. **Hooks are shared; components are not.** A hook returns data, so it runs under both
     renderers. `<div>` and `<View>` do not.
-25. **Logic never lives in a component.** That is what makes desktop's separate component
-    set free. If you want to share a component with desktop *to avoid duplicating logic*,
-    the logic is in the wrong place — move it to a hook.
+25. **Logic never lives in a component.** That is what keeps a wider arrangement (tablet,
+    desktop) a purely presentational choice. If a layout wants to duplicate logic, the logic
+    is in the wrong place — move it to a hook.
 26. **Mobile web renders the same `packages/ui-native` components as the native app**, via
-    react-native-web, so the phone experience matches by construction. Desktop gets its own
-    DOM components in `apps/web/src/desktop/`.
+    react-native-web, so the phone experience matches by construction. **Desktop is a layout
+    class, not a second app:** the same `ui-native` components arrange themselves by
+    `useLayoutClass()` (`@app/ui` `layout.ts`, T45: phone / tablet / desktop from the
+    breakpoint tokens). There is no `apps/web` and no separate DOM component set.
 27. **One React version, workspace-wide**, pinned via `pnpm.overrides`. Two Reacts in one
     bundle is `Invalid hook call`, and it surfaces only at bundle time.
 28. **Map layers are only ever added by editing `app/packages/map/style/layers.source.json`**
