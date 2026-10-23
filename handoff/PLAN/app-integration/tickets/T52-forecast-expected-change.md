@@ -69,7 +69,7 @@ CLEVER and COFFEE disagree on a big rise at 40 stations. Index grows 183 KB → 
   is a median 1.45x the gauge, and the horizons rank the raw value. Change anchors on its own today, so it is safe there.
 - Q3 The map colours the RATIO (how much the flow moves), not the percentile move: a river already high for the date
   rising 3x would read "steady" by percentile (the envelope stops at p90). The percentile move is said in the words.
-- Q4 Ramp hues: light / colour-blind green (falling) to magenta (rising), dark olive to teal — the dark statuses hold
+- Q4 Ramp hues: light green (falling) to violet (rising), colour-blind green to magenta, dark olive to teal — the dark statuses hold
   mint, rose and lavender. Dark sits 17 (not 20) from the own-gauge yellow (recorded in tools/change-colours.test.ts).
 
 ## Found, not done (need tickets)

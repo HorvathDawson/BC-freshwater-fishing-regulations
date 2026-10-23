@@ -10,6 +10,10 @@
  *                         Machado);
  *   unmistakable at the ends  a big fall and a big rise far apart, and the two inner stops too;
  *   a reading when steady  steady is a colour a forecast gave, never the ungauged grey that means nothing speaks here;
+ *   not the selection     every stop at least MEANING_FLOOR (ΔE2000, normal vision) from `color.highlight`: the river
+ *                         you tapped is RINGED in it over its own Change colour (adapters/contract.ts `casingPaint`), so a
+ *                         stop in the highlight's hue hides the ring and makes every river rising that much look selected.
+ *                         The first light ramp's big rise sat 6.5 from the light magenta highlight (T52 review);
  *   diverging             each end further from steady than its inner stop.
  * The values were searched to these floors (T52, inside the style build's own ΔE76 ≥ 12 against everything drawn with
  * them); the floors are what they reach, rounded down to 0.5, so the ramp may move only to something as distinct.
@@ -56,6 +60,9 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
   hold("fall2 / rise2 (the ends)", worst(c("fall2"), c("rise2")), f.ends);
   hold("fall1 / rise1 (the inner stops)", worst(c("fall1"), c("rise1")), f.inner);
   hold("steady vs ungauged", worst(c("steady"), t["color.water.ungauged"] as string), f.ungauged);
+  for (const s of STOPS)
+    hold(`${s} ${c(s)} vs the selection ${t["color.highlight"]}`, deltaE(c(s), t["color.highlight"] as string),
+         MEANING_FLOOR);
   if (!(deltaE(c("fall2"), c("steady")) > deltaE(c("fall1"), c("steady"))
         && deltaE(c("rise2"), c("steady")) > deltaE(c("rise1"), c("steady"))))
     out.push(`${th}: not diverging — an end is no further from steady than its inner stop`);
@@ -79,6 +86,9 @@ describe("the expected-change ramp (T52)", () => {
     expect(failures("light", { ...light, "color.change.rise2": light["color.status.closed"] }).length).toBeGreaterThan(0);
     // two stops one colour
     expect(failures("light", { ...light, "color.change.rise1": light["color.change.rise2"] }).length).toBeGreaterThan(0);
+    // the big rise in the selection's own hue: the ring around a tapped river vanishes into it
+    expect(failures("light", { ...light, "color.change.rise2": light["color.highlight"] }))
+      .toContain(`light: rise2 ${light["color.highlight"]} vs the selection ${light["color.highlight"]} 0.0 < 20`);
     // steady drawn as nothing-speaks-here
     expect(failures("light", { ...light, "color.change.steady": light["color.water.ungauged"] }).length)
       .toBeGreaterThan(0);
