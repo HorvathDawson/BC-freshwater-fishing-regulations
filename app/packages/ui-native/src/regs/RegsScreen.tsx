@@ -96,8 +96,9 @@ export interface RegsScreenProps {
    */
   lapsed?: string | null;
   /**
-   * (T54) The section's access notice (core `accessNotice`, through `@app/ui` `useAccessNotice`): the no-access banner or
-   * the gentle note, drawn first in the scroll after the lapsed line. Null/absent: nothing to say.
+   * (T54) The section's access notice (core `accessNotice`, through `@app/ui` `useAccessNotice`; T147: the page's part's
+   * `waterAccessNotice` when no section was tapped): the no-access block or the gentle note, drawn FIRST in the scroll,
+   * above the lapsed line and the rules (T147). Null/absent: nothing to say.
    */
   access?: AccessNotice | null;
   /** (T54) the notice's link: show the area on the water's map. Absent → no link. */
@@ -175,13 +176,14 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   };
   const body = (
     <View ref={content} collapsable={false} testID="regs-content">
+      {/* (T147) the access fact LEADS the page: first in the scroll, before the lapsed line and the rules */}
+      {access && <AccessNoticeBlock notice={access} palette={palette} onMap={onAccessMap} />}
       {lapsed && (
         <WaterInset testID="regs-lapsed" style={{ paddingTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
           <View style={{ paddingTop: 4 }}><FreshDot palette={palette} kind="stale" /></View>
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
-      {access && <AccessNoticeBlock notice={access} palette={palette} onMap={onAccessMap} />}
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>

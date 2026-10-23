@@ -88,8 +88,13 @@ export function WaterScreen({ source, item, palette, onBack,
   const down = useDownstreamWater(source, item, section);
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
-  // (T54) the tapped section's access: the no-access banner or the gentle note (none when opened with no section)
-  const access = useAccessNotice(loader, section);
+  // (T54) the tapped section's access: the no-access banner or the gentle note; (T147) opened with no section, the
+  // page's own part's no-access banner (a water opened from search must still lead with the fact)
+  const pageItem = inputs.value?.item ?? null;
+  const accessPage = useMemo(() => (pageItem ? { ord: pageItem.ord, partIx: inputs.value!.partIx, parts: pageItem.parts.length } : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
+    [pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
+  const access = useAccessNotice(loader, section, store.value ?? null, accessPage);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)

@@ -97,6 +97,16 @@ describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)(
   });
 });
 
+describe("(T147) the no-access block's ground", () => {
+  for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)
+    it(`is the fourth colour at a glance, and its words read — ${name}`, () => {
+      // seen as a tint of the card, never as plain card
+      expect([name, deltaE(p.noAccessBand, p.card) >= 3]).toEqual([name, true]);
+      // every word on the block is ink, its link too (bold, underlined: the dark accent falls under 4.5:1 on the band)
+      expect([name, contrast(p.ink, p.noAccessBand) >= 7]).toEqual([name, true]);
+    });
+});
+
 describe("status colours on a row are the map's", () => {
   it("each palette's waterStatus is the map resolver's colour, theme by theme", async () => {
     const { waterStatusColour } = await import("@app/map");

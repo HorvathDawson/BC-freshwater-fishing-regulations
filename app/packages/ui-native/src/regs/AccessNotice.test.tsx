@@ -26,9 +26,15 @@ describe("T54: the access notice on the Regulations page", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={notice}
                        onAccessMap={() => { moved++; }} />);
     const banner = screen.getByTestId("access-banner");
-    expect(banner.textContent).toBe("No public access: this section is inside Coquitlam Watershed. The regulations below "
-      + "are the Province's, but you may not enter this area to fish.Show area on map");
-    expect(banner.style.borderTopColor).toBe(rgb(LIGHT.waterStatus.no_access));
+    expect(banner.textContent).toBe("No public accessThis section is inside Coquitlam Watershed. The public may not go "
+      + "there, so you can't fish here. The regulations below are the Province's; they don't give you access."
+      + "Show area on map");
+    // (T147) a block in the fourth colour: its bar, its tint as the ground, the legend's swatch beside a large title
+    expect([banner.style.borderLeftColor, banner.style.borderLeftWidth, banner.style.backgroundColor,
+            screen.getByTestId("access-swatch").style.backgroundColor])
+      .toEqual([rgb(LIGHT.waterStatus.no_access), "6px", rgb(LIGHT.noAccessBand), rgb(LIGHT.waterStatus.no_access)]);
+    expect([screen.getByTestId("access-title").textContent, screen.getByTestId("access-title").getAttribute("role")])
+      .toEqual(["No public access", "heading"]);
     // first in the scroll: before the Keep tab
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 2))
       .toEqual(["access-banner", "keep-tab"]);
@@ -41,6 +47,22 @@ describe("T54: the access notice on the Regulations page", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={notice} onAccessMap={() => {}} />);
     expect(screen.getByTestId("access-note").textContent)
       .toBe("Access may be restricted here: this section crosses private land. See the map.See the map");
+    expect(screen.queryByTestId("access-banner")).toBeNull();
+  });
+
+  it("(T147) the block leads even an out-of-date edition's page: above the lapsed line", () => {
+    const notice = accessNotice([{ area: { tier: "no_access", name: "Seymour Watershed" }, share: 1 }])!;
+    render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={notice}
+                       lapsed="These regulations ran to March 31, 2026." />);
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 3))
+      .toEqual(["access-banner", "regs-lapsed", "keep-tab"]);
+  });
+
+  it("permit-only land is the gentle note, never the block (T54 Q1 default)", () => {
+    const notice = accessNotice([{ area: { tier: "permit", name: "UBC Malcolm Knapp Research Forest" }, share: 1 }])!;
+    render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={notice} />);
+    expect(screen.getByTestId("access-note").textContent).toBe("Access may be restricted here: this section crosses "
+      + "permit-only land (UBC Malcolm Knapp Research Forest), where a permit is needed. See the map.");
     expect(screen.queryByTestId("access-banner")).toBeNull();
   });
 

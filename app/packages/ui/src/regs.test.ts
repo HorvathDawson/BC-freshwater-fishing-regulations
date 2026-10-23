@@ -7,7 +7,8 @@ import { loadRegsInputs, RegsStoreError, targetFor, type RegsLoader } from "@app
 import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
 import type { SectionId } from "@app/data";
-import { DEFAULT_WHO, loadRegsStore, mapDayOf, regsDay, regsStoreKey, regsTargetKey, sectionAccessNotice } from "./regs";
+import { DEFAULT_WHO, loadRegsStore, mapDayOf, pageAccessNotice, regsDay, regsStoreKey, regsTargetKey,
+         sectionAccessNotice } from "./regs";
 
 /** The fixture loader, counting how often the store asks it for water (once per `openRegsStore`). */
 function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: RegsLoader; water: () => number } {
@@ -120,11 +121,11 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
 
   it("no access wins on a section holding both; a section with only private land gets the gentle note", async () => {
     expect(await sectionAccessNotice(loader(true), 7 as SectionId)).toEqual({
-      tier: "no_access", link: "Show area on map",
-      text: "No public access: this section is inside Coquitlam Watershed. The regulations below are the Province's, "
-          + "but you may not enter this area to fish." });
+      tier: "no_access", title: "No public access", link: "Show area on map",
+      text: "This section is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
+          + "The regulations below are the Province's; they don't give you access." });
     expect(await sectionAccessNotice(loader(true), 8 as SectionId)).toEqual({
-      tier: "restricted", link: "See the map",
+      tier: "restricted", title: null, link: "See the map",
       text: "Access may be restricted here: this section crosses private land. See the map." });
     // a release with no access file: the no-access rows still speak, the gentle ones are silent
     expect((await sectionAccessNotice(loader(false), 7 as SectionId))?.tier).toBe("no_access");
@@ -139,13 +140,33 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
       expect(await sectionAccessNotice(broken, 7 as SectionId)).toEqual({
-        tier: "no_access", link: "Show area on map",
-        text: "No public access: this section is inside Coquitlam Watershed. The regulations below are the Province's, "
-            + "but you may not enter this area to fish." });
+        tier: "no_access", title: "No public access", link: "Show area on map",
+        text: "This section is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
+            + "The regulations below are the Province's; they don't give you access." });
       expect(await sectionAccessNotice(broken, 8 as SectionId)).toBeNull();
       expect(warn.mock.calls).toEqual([["access:", "offline"], ["access:", "offline"]]);
     } finally {
       warn.mockRestore();
     }
+  });
+});
+
+describe("(T147) a page opened with no tapped section: its part's no-access banner", () => {
+  const COQ = { tier: "no_access", name: "Coquitlam Watershed" } as const;
+  const PRIV = { tier: "private", name: "" } as const;
+  // sids 7, 8 inside Coquitlam; 9 private land only; part 0 = 7, 8; part 1 = 8, 9; part 2 = 9
+  const loader = { paint: async () => ({ access: accessOf([COQ, PRIV], [7, 8, 9], [0, 0, 1], [1000, 900, 1000]) }) as unknown as Paint };
+  const store = { navRows: async () => ({ sections: [{ sid: 7, partIx: 0 }, { sid: 8, partIx: 0 }, { sid: 8, partIx: 1 },
+                                                     { sid: 9, partIx: 1 }, { sid: 9, partIx: 2 }] }) as never };
+
+  it("reads only the page's part, names the water by its parts, and never notes the gentler land", async () => {
+    expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 0, parts: 1 })).toEqual({
+      tier: "no_access", title: "No public access", link: "Show area on map",
+      text: "This water is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
+          + "The regulations below are the Province's; they don't give you access." });
+    expect((await pageAccessNotice(loader, store, { ord: 1, partIx: 1, parts: 3 }))?.text).toBe(
+      "Some of this part of the water is inside Coquitlam Watershed. The public may not go there, so you can't fish "
+      + "that stretch. The regulations below are the Province's; they don't give you access.");
+    expect(await pageAccessNotice(loader, store, { ord: 1, partIx: 2, parts: 3 })).toBeNull();
   });
 });

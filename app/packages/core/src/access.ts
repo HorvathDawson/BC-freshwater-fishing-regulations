@@ -86,9 +86,14 @@ export const ACCESS_WORDS = {
   seeMap: "See the map",
 } as const;
 
-/** The notice that opens a section's Regulations tab: the banner (`no_access`) or the gentle note (`restricted`). */
+/**
+ * The notice that opens a Regulations page: the banner (`no_access`) or the gentle note (`restricted`). (T147) The banner
+ * LEADS the page: its `title` is the fact in two words, drawn large in the fourth colour's block, and `text` says what it
+ * means in plain words; the gentle note has no title (one small line, T54 Q1: permit-only land is this tier).
+ */
 export interface AccessNotice {
   readonly tier: "no_access" | "restricted";
+  readonly title: string | null;
   readonly text: string;
   /** The link under it, which shows the area on the water's map. */
   readonly link: string;
@@ -113,28 +118,59 @@ const cause = (a: AccessArea): string =>
   : a.name ? `permit-only land (${a.name}), where a permit is needed` : "permit-only land, where a permit is needed";
 
 /**
+ * What a notice is about: the section the reader tapped, or (T147) the page's own part of a water, or the whole water
+ * when it has one part — a water opened from search names no section, and its page must still lead with the fact.
+ */
+export type AccessSubject = "section" | "part" | "water";
+const SUBJECT: Record<AccessSubject, string> = { section: "this section", part: "this part of the water", water: "this water" };
+
+/**
+ * THE BANNER'S WORDS, once (T147: plain words — what the fact means for the reader, then why the rules below still
+ * show). `mostly`: the subject lies inside; otherwise only some of it does.
+ */
+function noAccessNotice(strong: readonly AccessArea[], mostly: boolean, subject: AccessSubject): AccessNotice {
+  const names = and(strong.map((a) => a.name || "land with no public access"));
+  const it = SUBJECT[subject];
+  const where = mostly
+    ? `${it[0]!.toUpperCase()}${it.slice(1)} is inside ${names}. The public may not go there, so you can't fish here.`
+    : `Some of ${it} is inside ${names}. The public may not go there, so you can't fish that stretch.`;
+  return {
+    tier: "no_access",
+    title: ACCESS_WORDS.legend,
+    text: `${where} The regulations below are the Province's; they don't give you access.`,
+    link: ACCESS_WORDS.showOnMap,
+  };
+}
+
+/**
  * WHAT THE PAGE SAYS about a section's access, or null. No-access land in any share is the banner (mostly inside: "is
- * inside"; otherwise "is partly inside"); else any gentler restriction is the note, naming its causes from the data —
- * permit-only land, then reserves, then private land.
+ * inside"; otherwise "some of … is inside"); else any gentler restriction is the note, naming its causes from the data
+ * — permit-only land, then reserves, then private land.
  */
 export function accessNotice(all: readonly AccessRow[]): AccessNotice | null {
   const rows = all.filter((r) => r.share >= TOUCH_ONLY);
   const strong = uniq(rows.filter((r) => r.area.tier === "no_access"));
-  if (strong.length) {
-    const mostly = noAccessShare(rows) > MOSTLY_INSIDE;
-    const names = and(strong.map((a) => a.name || "land with no public access"));
-    return {
-      tier: "no_access",
-      text: `No public access: this section is ${mostly ? "inside" : "partly inside"} ${names}. The regulations below `
-          + `are the Province's, but you may not enter ${mostly ? "this" : "that"} area to fish.`,
-      link: ACCESS_WORDS.showOnMap,
-    };
-  }
+  if (strong.length) return noAccessNotice(strong, noAccessShare(rows) > MOSTLY_INSIDE, "section");
   const gentle = uniq(rows).sort((a, b) => ACCESS_TIERS.indexOf(a.tier) - ACCESS_TIERS.indexOf(b.tier));
   if (!gentle.length) return null;
   return {
     tier: "restricted",
+    title: null,
     text: `Access may be restricted here: this section crosses ${and(gentle.map(cause))}. See the map.`,
     link: ACCESS_WORDS.seeMap,
   };
+}
+
+/**
+ * (T147) WHAT A PAGE OPENED WITH NO TAPPED SECTION SAYS: its part's (or one-part water's) sections, each one's rows.
+ * Only the banner: no-access land touching any of them (by TOUCH_ONLY) is named; "inside" when EVERY section is mostly
+ * inside (`noPublicAccess`'s rule, per section), else "some of". The gentle note is per section only — nearly every long
+ * river crosses private land somewhere, and a note on every such page would say nothing (T147, recorded).
+ */
+export function waterAccessNotice(sections: readonly (readonly AccessRow[])[],
+                                  subject: Exclude<AccessSubject, "section">): AccessNotice | null {
+  const kept = sections.map((rows) => rows.filter((r) => r.share >= TOUCH_ONLY));
+  const strong = uniq(kept.flat().filter((r) => r.area.tier === "no_access"));
+  if (!strong.length) return null;
+  return noAccessNotice(strong, kept.every((rows) => noAccessShare(rows) > MOSTLY_INSIDE), subject);
 }

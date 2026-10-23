@@ -66,6 +66,12 @@ export interface Palette {
    * drawn in `place`, which holds it; `ink` holds it with room to spare.
    */
   placeBand: string;
+  /**
+   * (T147) THE NO-ACCESS BLOCK'S GROUND: the fourth map colour (`waterStatus.no_access`) laid at NO_ACCESS_BAND over the
+   * card, so the block that leads a no-access water's Regulations page is that colour at a glance and the words on it
+   * stay ink, the link included (held 7:1, theme.test.ts).
+   */
+  noAccessBand: string;
   /** Stocking recency ramp, most recent first. Rule 29: every bucket coloured. */
   stock: readonly [string, string, string, string, string];
   /**
@@ -207,6 +213,15 @@ export const FISH_PICTURE = { maxWidth: 360, minWidth: 180, gap: SPACE.s3 } as c
 const HARD = (offset: number, colour: string) =>
   ({ boxShadow: `${offset}px ${offset}px 0 ${colour}`, elevation: offset });
 
+/** (T147) How much of the no-access colour tints its block's ground. */
+export const NO_ACCESS_BAND = 0.14;
+/** `fill` laid over `under` at `alpha`, as one opaque colour (what the eye gets from a tint). */
+const laid = (fill: string, under: string, alpha: number): string => {
+  const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [f, u] = [p(fill), p(under)];
+  return `#${f.map((c, i) => Math.round(c * alpha + u[i]! * (1 - alpha)).toString(16).padStart(2, "0")).join("")}`;
+};
+
 /** The status colours for one theme: the map's tokens, through the map's own resolver. */
 const statusColours = (theme: string) => ({
   closed: colour(theme, "color.status.closed"),
@@ -235,6 +250,7 @@ export function paletteFor(theme: string): Palette {
     live: c("color.ui.live"), attention: c("color.ui.attention"),
     spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
+    noAccessBand: laid(waterStatusColour(theme, "no_access"), c("color.ui.card"), NO_ACCESS_BAND),
     stock: [c("color.stock.season"), c("color.stock.year"), c("color.stock.recent"),
             c("color.stock.decade"), c("color.stock.old")],
     donor: [c("color.ui.donor.1"), c("color.ui.donor.2"), c("color.ui.donor.3"),

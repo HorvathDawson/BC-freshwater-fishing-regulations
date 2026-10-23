@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accessNotice, accessOf, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY, type AccessArea,
+import { accessNotice, accessOf, waterAccessNotice, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY, type AccessArea,
          type SectionAccess }
   from "./access";
 
@@ -49,22 +49,23 @@ describe("section access: the page's words (T54, core owns them)", () => {
   it("a section mostly inside: the banner, whole", () => {
     expect(accessNotice([{ area: COQ, share: 1 }])).toEqual({
       tier: "no_access",
-      text: "No public access: this section is inside Coquitlam Watershed. The regulations below are the Province's, "
-          + "but you may not enter this area to fish.",
+      title: "No public access",
+      text: "This section is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
+          + "The regulations below are the Province's; they don't give you access.",
       link: "Show area on map",
     });
   });
 
   it("a section partly inside: the banner says partly", () => {
     expect(accessNotice([{ area: SEY, share: 0.3 }])?.text).toBe(
-      "No public access: this section is partly inside Seymour Watershed. The regulations below are the Province's, "
-      + "but you may not enter that area to fish.");
+      "Some of this section is inside Seymour Watershed. The public may not go there, so you can't fish that stretch. "
+      + "The regulations below are the Province's; they don't give you access.");
   });
 
   it("two no-access areas are both named, and their shares add up to mostly", () => {
     expect(accessNotice([{ area: COQ, share: 0.4 }, { area: SEY, share: 0.3 }])?.text).toBe(
-      "No public access: this section is inside Coquitlam Watershed and Seymour Watershed. The regulations below are "
-      + "the Province's, but you may not enter this area to fish.");
+      "This section is inside Coquitlam Watershed and Seymour Watershed. The public may not go there, so you can't "
+      + "fish here. The regulations below are the Province's; they don't give you access.");
   });
 
   it("no access wins over a gentler note on the same section", () => {
@@ -74,6 +75,7 @@ describe("section access: the page's words (T54, core owns them)", () => {
   it("private land: the gentle note, whole", () => {
     expect(accessNotice([{ area: PRIV, share: 0.2 }])).toEqual({
       tier: "restricted",
+      title: null,
       text: "Access may be restricted here: this section crosses private land. See the map.",
       link: "See the map",
     });
@@ -99,7 +101,48 @@ describe("section access: the page's words (T54, core owns them)", () => {
     expect(accessNotice([{ area: COQ, share: 0.009 }, { area: PRIV, share: 0.01 }])?.tier).toBe("restricted");
   });
 
-  it("the legend's word is the status's", () => {
+  it("permit-only land stays the gentle note, with no title (T54 Q1 default, T147)", () => {
+    expect(accessNotice([{ area: UBC, share: 1 }])).toEqual({
+      tier: "restricted",
+      title: null,
+      text: "Access may be restricted here: this section crosses permit-only land (UBC Malcolm Knapp Research Forest), "
+          + "where a permit is needed. See the map.",
+      link: "See the map",
+    });
+  });
+
+  it("the legend's word is the status's, and the banner's title (one word for one fact)", () => {
+    expect(accessNotice([{ area: COQ, share: 1 }])?.title).toBe(ACCESS_WORDS.legend);
     expect(ACCESS_WORDS.legend).toBe("No public access");
+  });
+});
+
+describe("a page opened with no tapped section: its part or water (T147)", () => {
+  it("every section mostly inside: the water is inside, whole", () => {
+    expect(waterAccessNotice([[{ area: COQ, share: 1 }], [{ area: COQ, share: 0.8 }]], "water")).toEqual({
+      tier: "no_access",
+      title: "No public access",
+      text: "This water is inside Coquitlam Watershed. The public may not go there, so you can't fish here. "
+          + "The regulations below are the Province's; they don't give you access.",
+      link: "Show area on map",
+    });
+  });
+
+  it("one section outside (Seymour River's lowest, live data shape): some of the part, whole", () => {
+    expect(waterAccessNotice([[{ area: SEY, share: 1 }], [{ area: SEY, share: 1 }], []], "part")?.text).toBe(
+      "Some of this part of the water is inside Seymour Watershed. The public may not go there, so you can't fish "
+      + "that stretch. The regulations below are the Province's; they don't give you access.");
+  });
+
+  it("each no-access area once, across sections; a graze under 1% names nothing", () => {
+    expect(waterAccessNotice([[{ area: COQ, share: 1 }], [{ area: SEY, share: 1 }, { area: COQ, share: 0.6 }]], "water")
+      ?.text.startsWith("This water is inside Coquitlam Watershed and Seymour Watershed.")).toBe(true);
+    expect(waterAccessNotice([[{ area: COQ, share: 0.009 }]], "water")).toBeNull();
+    expect(waterAccessNotice([], "water")).toBeNull();
+  });
+
+  it("MUTATION PIN: gentler land never puts a banner on a water's page (no note at the water level either)", () => {
+    for (const a of [PRIV, CAP5, RES, UBC]) expect([a.tier, waterAccessNotice([[{ area: a, share: 1 }]], "water")])
+      .toEqual([a.tier, null]);
   });
 });

@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, tapDay, type AccessNotice, type Day, type RegsInputs, type RegsPage, type RegsTarget,
+import { accessNotice, buildRegsPage, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs, type RegsPage, type RegsTarget,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type RegsSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -137,11 +137,35 @@ export async function sectionAccessNotice(loader: Pick<ReleaseLoader, "paint" | 
   return accessNotice([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
 }
 
+/** (T147) The page a water opened with no tapped section shows: its item (by ord), its part, and how many parts it has. */
+export interface AccessPage { readonly ord: number; readonly partIx: number; readonly parts: number }
+
+/**
+ * (T147) WHAT A PAGE OPENED WITH NO TAPPED SECTION SAYS ABOUT ACCESS: the no-access banner over its part's sections (the
+ * water's `part_section`, read through the store's `navRows`), worded by core (`waterAccessNotice`): "this water" for a
+ * one-part water, "this part of the water" otherwise. Paint's no-access rows only — the gentle note stays per section.
+ */
+export async function pageAccessNotice(loader: Pick<ReleaseLoader, "paint">, store: Pick<RegsStore, "navRows">,
+                                       page: AccessPage): Promise<AccessNotice | null> {
+  const [paint, nav] = await Promise.all([loader.paint(), store.navRows(page.ord)]);
+  const sids = nav.sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
+  return waterAccessNotice(sids.map((sid) => paint.access.of(sid)), page.parts > 1 ? "part" : "water");
+}
+
+/**
+ * The notice a Regulations page leads with: the TAPPED section's (T54), else (T147) the page's own part's, when the
+ * store and the page's inputs are there to name it. Null: nothing to say, or not yet known.
+ */
 export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,
-                                section: SectionId | null): Async<AccessNotice | null> {
-  const asks = !!loader && section !== null;
-  return useAsync(async () => (asks ? sectionAccessNotice(loader!, section!) : null),
-                  `access:${loader ? idOf(loader) : ""}:${asks ? section : ""}`, asks);
+                                section: SectionId | null, store: Pick<RegsStore, "navRows"> | null = null,
+                                page: AccessPage | null = null): Async<AccessNotice | null> {
+  const bySection = !!loader && section !== null;
+  const byPage = !!loader && !bySection && !!store && !!page;
+  const asks = bySection || byPage;
+  return useAsync(async () => (bySection ? sectionAccessNotice(loader!, section!)
+                               : byPage ? pageAccessNotice(loader!, store!, page!) : null),
+                  `access:${loader ? idOf(loader) : ""}:${bySection ? `s${section}` : ""}:`
+                  + `${byPage ? `${idOf(store!)}:${page!.ord}:${page!.partIx}:${page!.parts}` : ""}`, asks);
 }
 
 /**
