@@ -189,7 +189,7 @@ use that as the sole source of future work."
 | T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
 | T143 | Conditions horizons say "no forecast" (Level: publisher stopped at the first model) | DONE | ce46639f, 90edf4ae, fd584a83, 92d47b1c, 3d17b1df, 8d3de7e0 | feed republish (local done; R2 owner) |
 | T144 | Change: CLEVER + COFFEE combined, ELF only last resort with a low-water caveat | DONE | 7b4d941f, b4fd96a9, a522525f, 89ee4423, a156e1c2 | feed republish (local done; R2 owner) |
-| T145 | spot markers: small capped squares, deselect on tap off | DONE | 43300623, de300379, fcbd8d0f, 43300623, de300379, fcbd8d0f | app; native guard needs the device run (T50) |
+| T145 | spot markers: small capped squares, deselect on tap off | DONE | fcbd8d0f, de300379, 43300623 | app; native guard needs the device run (T50) |
 | T146 | no-access colour apart from base (light spruce, dark ice cyan) | DONE | 01f76c76, 41ace93b, 38e6628b, df1c8bf1 | app |
 | T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
