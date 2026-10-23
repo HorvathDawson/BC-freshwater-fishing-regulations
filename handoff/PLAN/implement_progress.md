@@ -3,6 +3,16 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-23 midday)
+- Batch 4 merged + delivered: release **r-941dcc149b17** (13,631,132 B gz). Binding diff vs previous run: exactly T115's
+  12 Fraser pairs + 3 steelhead twins, 2 licensing (Chilko 355996084:17 via T117; 7A steelhead_targeting_known).
+  Reach digest b9be92114323aa22; POLICY_VERSION 26 (T117 24, T111 25, T115 26 — renumbered at merge).
+- Fixtures d5f0d785: Fraser 19 → 15 parts; taps.py keys golden states by part identity; x15p14/15/17/18 "gone"
+  (excluded with the T115 reason), x15p16 tapped at part 14. Smoke green (7952 app, 204 pytest, 18 checks).
+- row_boxes.json sidecar written (T134 evidence crops).
+- Running: workflow wf_71272fd0-ef1 "band2-batch-5" — T135+T142, T123+T124, T140+T141+T121 (reach/deliver,
+  measured), T118+T122 (deliver). Merge with the same recipe; reach lanes need a rerun + binding diff + post-release.
+
 ## CURRENT STATE (2026-10-23 morning) — work list = tickets/README.md; owner list = handoff/PLAN/OWNER-TODO.md
 - Live local release **r-b518a2b507fa** (13.65 MB gz, paint/4), reach rerun with T133 entry digests (no binding changed);
   fixtures 54050e22; smoke green (8,063 vitest / 202 pytest smoke / 18 checks). reaches/full_prev = the run before it.
