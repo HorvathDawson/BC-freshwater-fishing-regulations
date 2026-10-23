@@ -26,7 +26,8 @@ from pipeline.common.curated import CURATED
 REPO = Path(__file__).resolve().parents[2]
 TOOL = REPO / "curation-review"
 BACKEND = TOOL / "backend"
-_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes")
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
+                "review", "evidence")
 
 
 @pytest.fixture(scope="module")
@@ -39,6 +40,7 @@ def env(tmp_path_factory):
     splits = tmp / "splits.json"
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
+    mp.setenv("CURATION_FIX", "0")                       # review mode, the default (T134)
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
     (tmp / "marks.jsonl").write_text("")
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
@@ -179,3 +181,133 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
         "boundary=upstream of Eve River [human-review 2026-08-05 FWA-confluence] mouth of Eve "
         "River on mainstem (0 m validated); target blk/wsc set. [T96 2026-10-22] the Hwy 19 "
         "bridge auto-proposal text that sat here is the bridge's (adam_river__hwy_19_bridge).")
+
+
+# --------------------------------------------------------------------------- two modes (T134)
+
+#: every route fix mode adds — the editors (PLAN §4 phase 3)
+FIX_ROUTES = {("POST", "/api/check"), ("PUT", "/api/entries/{entry_id}"),
+              ("PUT", "/api/splits/{split_id}"), ("POST", "/api/splits"),
+              ("DELETE", "/api/splits/{split_id}"), ("POST", "/api/splits/{split_id}/rename")}
+MARK_ROUTE = {("POST", "/api/marks")}
+
+
+def _writes_of(fastapi_app) -> set[tuple[str, str]]:
+    """Every (method, path) the app answers that is not a read."""
+    return {(m, r.path) for r in fastapi_app.routes for m in getattr(r, "methods", None) or ()
+            if m not in ("GET", "HEAD")}
+
+
+def _load_app(monkeypatch, fix: str):
+    import importlib.util
+    monkeypatch.setenv("CURATION_FIX", fix)
+    spec = importlib.util.spec_from_file_location(f"app_mode_{fix}", BACKEND / "app.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_review_mode_serves_one_write_a_mark(env):
+    """Review mode (the default) exposes only POST /api/marks and reads (PLAN §4 phase 3)."""
+    assert env["app"].FIX is False
+    assert _writes_of(env["app"].app) == MARK_ROUTE
+
+
+def test_fix_mode_adds_exactly_the_editors(env, monkeypatch):
+    assert _writes_of(_load_app(monkeypatch, "1").app) == MARK_ROUTE | FIX_ROUTES
+    # anything but "1" is review mode: a typo never opens the editors
+    for value in ("0", "", "true", "yes"):
+        assert _writes_of(_load_app(monkeypatch, value).app) == MARK_ROUTE, value
+
+
+def test_the_one_write_check_is_pinned_by_mutation(env, monkeypatch):
+    """MUTATION: an app that registers the fix router whatever the flag (the `if FIX:` dropped)
+    fails `test_review_mode_serves_one_write_a_mark`'s check."""
+    mod = _load_app(monkeypatch, "0")
+    mod.register_fix_routes(mod.app)
+    assert _writes_of(mod.app) != MARK_ROUTE
+
+
+def _snapshot(root: Path) -> dict[str, bytes]:
+    return {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def test_a_fix_request_in_review_mode_is_refused_and_writes_nothing(env):
+    """Every editor's request, sent to a review-mode server, is refused by the router (404/405) and
+    leaves every byte of the catalogue, splits.json, the marks store and the backups as it was."""
+    c = env["client"]
+    root = Path(env["reuse"].SPLITS_JSON_PATH).parent
+    before = _snapshot(root)
+    eid, sid = "r1:adam_river_except_eve_river@1-10", "adam_river__hwy_19_bridge"
+    sent = [c.post("/api/check", json={"entry": {}}),
+            c.put(f"/api/entries/{eid}", json={"region": "1", "entry": {"entry_id": eid}}),
+            c.put(f"/api/splits/{sid}", json={"patch": {"label": "x"}}),
+            c.post("/api/splits", json={"split": {"id": "x"}, "waterbody": "x"}),
+            c.delete(f"/api/splits/{sid}"),
+            c.post(f"/api/splits/{sid}/rename", json={"new_id": "y"})]
+    assert [r.status_code in (404, 405) for r in sent] == [True] * len(FIX_ROUTES)
+    assert _snapshot(root) == before
+
+
+def test_a_mark_without_a_verdict_takes_the_answers_verdict():
+    """The verdict follows from the answers (`marks.verdict_from_answers`, PLAN §2) — the review screen sends
+    none; the model refuses any other."""
+    from pipeline.regs.review.marks import verdict_from_answers
+    got = {k: verdict_from_answers("entry", a) for k, a in {
+        "all y": {"T": "y", "R": "y", "P": "y", "A": "y"},
+        "an n": {"T": "y", "R": "n", "P": "y", "A": "y"},
+        "n beats ?": {"T": "?", "R": "n"},
+        "a ?": {"T": "y", "R": "?", "P": "y", "A": "y"},
+        "unfinished": {"T": "y", "R": "y"},
+        "none": {}}.items()}
+    assert got == {"all y": "verified", "an n": "wrong", "n beats ?": "wrong", "a ?": "unsure",
+                   "unfinished": None, "none": None}
+    assert verdict_from_answers("split", {"P": "y"}) == "verified"
+    assert verdict_from_answers("split", {"P": "?"}) == "unsure"
+
+
+def _verdict_agrees_with_the_model(verdict_from_answers) -> list:
+    """Every answer combination: the model accepts `verdict_from_answers`'s verdict and no other derived one.
+    Returns the disagreements (empty when the two are one rule)."""
+    import itertools
+    from pydantic import ValidationError
+    from pipeline.regs.review.marks import CHECKS, Mark
+    prints = {"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]}
+    bad = []
+    for combo in itertools.product([None, "y", "n", "?"], repeat=4):
+        answers = {k: v for k, v in zip(CHECKS["entry"], combo) if v}
+        want = verdict_from_answers("entry", answers)
+        for verdict in ("verified", "wrong", "unsure"):
+            try:
+                Mark.model_validate({"scope": "entry", "target": "e", "verdict": verdict,
+                                     "answers": answers, "problem": "p", "note": "n",
+                                     "reviewer": "r", "date": "2026-10-23",
+                                     "pdf_sha256": "0" * 64, "prints": prints})
+                ok = True
+            except ValidationError:
+                ok = False
+            if ok != (verdict == want):
+                bad.append((answers, verdict, want, ok))
+    return bad
+
+
+def test_verdict_from_answers_and_the_mark_model_are_one_rule():
+    from pipeline.regs.review.marks import verdict_from_answers
+    assert _verdict_agrees_with_the_model(verdict_from_answers) == []
+
+
+def test_the_verdict_rule_is_pinned_by_mutation():
+    """MUTATION: a `verdict_from_answers` that lets a ? through as verified (or an n as unsure) disagrees with
+    the model — `test_verdict_from_answers_and_the_mark_model_are_one_rule` fails on it."""
+    from pipeline.regs.review.marks import CHECKS
+
+    def lenient(scope, answers):
+        got = [answers.get(k) for k in CHECKS[scope]]
+        return "verified" if all(got) and "n" not in got else ("wrong" if "n" in got else None)
+
+    def soft(scope, answers):
+        got = [answers.get(k) for k in CHECKS[scope]]
+        return "unsure" if "n" in got or "?" in got else ("verified" if all(got) else None)
+
+    assert _verdict_agrees_with_the_model(lenient) != []
+    assert _verdict_agrees_with_the_model(soft) != []

@@ -2,28 +2,41 @@
 
 Run it via the helper (sets PYTHONPATH to the repo root so `import pipeline...` works, and runs from
 this dir so `import reuse` works — the folder name has a hyphen so it can't be a package):
-    bash curation-review/backend/run.sh          # -> http://127.0.0.1:8787
+    bash curation-review/backend/run.sh          # -> http://127.0.0.1:8787  (review mode)
+    bash curation-review/backend/run.sh --fix    # the owner's fix mode
 
 Makes NO LLM calls — pure local file review. Safe to run any time, including out of parsing credits.
 """
 
 from __future__ import annotations
 
+import os
 import re
 from collections import Counter
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 
 import reuse
 
+#: THE TWO MODES (T134, PLAN §4 phase 3). REVIEW (the default) serves reads and ONE write, a mark
+#: (`POST /api/marks`): a reviewer cannot change the catalogue or splits.json however they click.
+#: FIX (`bash curation-review/run.sh --fix`, which sets CURATION_FIX=1; the owner only) adds the
+#: editors' routes — entry save and the draft check, split add / move (save) / delete / rename.
+#: Decided once, at import: the fix routes are not REGISTERED in review mode, so a request to one
+#: is refused by the router (404/405), never by a handler that checks a flag.
+FIX = os.environ.get("CURATION_FIX") == "1"
+
 app = FastAPI(title="Curation Review")
+#: the routes only fix mode registers (`register_fix_routes` at the bottom of this file)
+fix = APIRouter()
 #: THE ONLY ORIGIN THE BROWSER MAY CALL FROM: the Vite dev server, which binds 127.0.0.1 only
 #: (`frontend/vite.config.ts`). It proxies `/api`, so the app itself never needs CORS; this is what
 #: stops another page the reviewer has open from reading or writing the catalogue (T96: it was `*`).
-VITE_ORIGIN = "http://127.0.0.1:5173"
+#: `CURATION_VITE_PORT` moves it with Vite's port (a second copy of the tool beside the owner's).
+VITE_ORIGIN = f"http://127.0.0.1:{os.environ.get('CURATION_VITE_PORT', '5173')}"
 app.add_middleware(
     CORSMiddleware, allow_origins=[VITE_ORIGIN], allow_methods=["GET", "PUT", "POST", "DELETE"],
     allow_headers=["Content-Type"],
@@ -40,6 +53,17 @@ async def _fresh_caches(request, call_next):
     return await call_next(request)
 
 
+@app.get("/api/mode")
+def get_mode():
+    """What this server is: review or fix mode, the app the answer is checked in, the checks each
+    scope answers and the problem categories a "wrong" mark names (`marks.PROBLEMS`)."""
+    import answer
+    from pipeline.regs.review.marks import CHECKS, PROBLEMS
+    return {"fix": FIX, "app_url": answer.APP_URL,
+            "checks": {k: list(v) for k, v in CHECKS.items()},
+            "problems": {k: list(v) for k, v in PROBLEMS.items()}}
+
+
 @app.get("/api/regions")
 def get_regions():
     out = []
@@ -53,13 +77,15 @@ def get_regions():
 @app.get("/api/entries")
 def get_entries(region: str | None = None, status: str | None = None,
                 kind: str | None = None, verify: str | None = None,
-                order: str = "attention"):
+                order: str = "attention", tier: str | None = None):
     """`kind` is zone | water — the region chapters or the water tables. They are two jobs.
-    `verify` is the reviewer's mark (unverified | verified | stale | flagged | todo); `order` is
-    attention (what needs a look first) or book (region, page, then the page's order)."""
+    `verify` is the reviewer's mark (unmarked | verified | wrong | unsure | deferred | stale |
+    todo); `tier` the review tier (PLAN §3); `order` is attention (what needs a look first) or
+    book (region, page, then the page's order)."""
     if order not in ("attention", "book"):
         raise HTTPException(422, [{"path": "order", "msg": "order is attention or book"}])
-    return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order)
+    return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
+                       tier=tier)
 
 
 class MarkPayload(BaseModel):
@@ -69,7 +95,8 @@ class MarkPayload(BaseModel):
     scope: str                       # entry | rule | split
     target: str                      # entry_id, or a split id
     rule_id: str | None = None       # scope rule
-    verdict: str                     # verified | wrong | unsure | deferred
+    #: verified | wrong | unsure | deferred; omitted -> `marks.verdict_from_answers` the answers (T134)
+    verdict: str | None = None
     answers: dict[str, str]          # T / R / P / A -> y | n | ?
     problem: str | None = None
     note: str = ""
@@ -80,11 +107,21 @@ class MarkPayload(BaseModel):
 @app.post("/api/marks")
 def post_mark(body: MarkPayload):
     """Record a reviewer's mark (T97) in the append-only store `marks.jsonl`, against the
-    target's fingerprints NOW. Refused (422) on an entry that fails the gate, or a mark the model
-    refuses (a verdict its answers do not support, no reviewer); 404 for an unknown target."""
+    target's fingerprints NOW. THE ONE WRITE OF REVIEW MODE. Refused (422) on an entry that fails
+    the gate, or a mark the model refuses (a verdict its answers do not support, no reviewer);
+    404 for an unknown target. With no `verdict` the answers decide it (`marks.verdict_from_answers`)."""
     from pydantic import ValidationError
+    from pipeline.regs.review.marks import CHECKS, verdict_from_answers
+    data = body.model_dump()
+    if data["verdict"] is None:
+        if body.scope not in CHECKS:
+            raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {sorted(CHECKS)}"}])
+        data["verdict"] = verdict_from_answers(body.scope, body.answers)
+        if data["verdict"] is None:
+            raise HTTPException(422, [{"path": "answers", "msg": "answer every check ("
+                                       + ", ".join(CHECKS[body.scope]) + ") or name a verdict"}])
     try:
-        return reuse.post_mark(body.model_dump())
+        return reuse.post_mark(data)
     except KeyError as ex:
         raise HTTPException(404, f"{body.scope} {body.target}"
                                  f"{'/' + body.rule_id if body.rule_id else ''} not found: {ex}")
@@ -116,6 +153,70 @@ def pending_build():
     disk on every request, so it empties when the rebuild lands, with no restart."""
     return reuse.pending_build()
 
+
+# --------------------------------------------------------------------------- the review screen
+
+@app.get("/api/review/progress")
+def review_progress():
+    """Done / to do per tier (PLAN §3) and overall — the progress bar; the ETA is the screen's,
+    from the reviewer's own pace."""
+    import review
+    return review.progress()
+
+
+@app.get("/api/review/splits")
+def review_splits(all: bool = False):
+    """The split cards (tier S0: split points still to verify; `all` for every split), each with
+    its note, grade, water, mark status and build state."""
+    import review
+    return review.split_queue(only_to_verify=not all)
+
+
+@app.get("/api/entries/{entry_id}/review")
+def entry_review(entry_id: str, date: str | None = None):
+    """What the T/R/P/A checklist is answered from: the raw name, where the entry is printed and a
+    legible crop of it, the coverage strip, its tier and risk factors, each zone rule's impact,
+    and the app's own page for the answer (a start link)."""
+    import review
+    try:
+        d = review.review_view(entry_id, date)
+    except ValueError as ex:
+        raise HTTPException(422, [{"path": "date", "msg": str(ex)}])
+    if d is None:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    return d
+
+
+def _located(entry_id: str) -> dict:
+    import evidence
+    import review
+    try:
+        where = review.located(entry_id)
+    except KeyError:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    except evidence.Missing as ex:
+        raise HTTPException(404, str(ex))
+    if where["kind"] not in ("row", "passage"):
+        raise HTTPException(404, where.get("why", "not located"))
+    return where
+
+
+@app.get("/api/entries/{entry_id}/evidence/crop.png")
+def evidence_crop(entry_id: str):
+    """The entry as printed, LEGIBLE: its row (the water column above the regulation column) or its
+    passage, rendered from the repo PDF at 2.6 px/pt."""
+    import evidence
+    return Response(evidence.crop_png(_located(entry_id)), media_type="image/png")
+
+
+@app.get("/api/entries/{entry_id}/evidence/page.png")
+def evidence_page(entry_id: str):
+    """The whole printed page with the entry's row or passage marked."""
+    import evidence
+    return Response(evidence.page_png(_located(entry_id)), media_type="image/png")
+
+
+# --------------------------------------------------------------------------- the bundle (reads)
 
 @app.get("/api/entries/{entry_id}/bundle")
 def entry_bundle(entry_id: str):
@@ -195,6 +296,14 @@ def item_tributaries(item_id: str):
     return reuse.item_tributaries(item_id)
 
 
+@app.get("/api/items/{item_id}/split-groups")
+def item_split_groups(item_id: str):
+    """The splits.json waterbody groups on this item — where a new split may go (fix mode)."""
+    return reuse.split_groups(item_id)
+
+
+# --------------------------------------------------------------------------- fix mode: editors
+
 class SavePayload(BaseModel):
     region: str
     entry: dict
@@ -205,16 +314,17 @@ class CheckPayload(BaseModel):
     entry: dict
 
 
-@app.post("/api/check")
+@fix.post("/api/check")
 def check(body: CheckPayload):
     """Validate a DRAFT without writing it: `{ok, errors, warnings, labels}`. `errors` are what a
     save would refuse, each `{path, msg}` addressed to the field (`rules.2.gear.0.max`);
     `labels` is the generated label of every rule and licensing record that validates on its own,
-    so the editor shows what the app will say while the curator types."""
+    so the editor shows what the app will say while the curator types. FIX MODE: it writes
+    nothing, but only the editor asks it."""
     return reuse.check_entry(body.entry, body.region)
 
 
-@app.put("/api/entries/{entry_id}")
+@fix.put("/api/entries/{entry_id}")
 def save(entry_id: str, body: SavePayload):
     if body.entry.get("entry_id") != entry_id:
         raise HTTPException(422, [{"path": "entry_id",
@@ -270,16 +380,34 @@ class SplitPatch(BaseModel):
     patch: dict
 
 
-@app.put("/api/splits/{split_id}")
+@fix.put("/api/splits/{split_id}")
 def save_split(split_id: str, body: SplitPatch):
-    """Edit a split in splits.json (label/note/kind/anchor). Needs a graph rebuild to take effect."""
+    """Edit a split in splits.json (label/note/kind/anchor — a new anchor MOVES it). Needs the
+    owner's atlas build to take effect: `GET /api/build` lists it and the commands."""
     res = reuse.save_split(split_id, body.patch)
     if not res["ok"]:
         raise HTTPException(422, res["errors"])
     return res
 
 
-@app.delete("/api/splits/{split_id}")
+class NewSplit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    split: dict
+    waterbody: str | None = None          # a waterbody group already in splits.json
+    new_waterbody: dict | None = None     # {name, applies_to} for a new group
+
+
+@fix.post("/api/splits")
+def add_split(body: NewSplit):
+    """ADD a split to splits.json (owner 2026-10-23: add splits mid-review, rebuild, continue). The
+    pending-build panel (`GET /api/build`) then lists it with the commands the owner runs."""
+    res = reuse.add_split(body.model_dump())
+    if not res["ok"]:
+        raise HTTPException(422, res["errors"])
+    return res
+
+
+@fix.delete("/api/splits/{split_id}")
 def delete_split(split_id: str):
     res = reuse.delete_split(split_id)
     if not res["ok"]:
@@ -297,7 +425,7 @@ class RenamePayload(BaseModel):
     new_id: str
 
 
-@app.post("/api/splits/{split_id}/rename")
+@fix.post("/api/splits/{split_id}/rename")
 def rename_split(split_id: str, body: RenamePayload):
     """Rename a split id + rewrite every rule that binds it. Rebuild to reconcile the graph."""
     res = reuse.rename_split(split_id, body.new_id)
@@ -338,13 +466,10 @@ def synopsis_page_image(printed: int):
     """The whole printed page, rendered — the region chapter a zone entry was transcribed from has
     no row crop, so this is how its text is checked against the book."""
     import synopsis_pages
-    from fastapi.responses import Response
     png = synopsis_pages.page_png(printed)
     if png is None:
         raise HTTPException(404, f"no printed page {printed} in the synopsis")
     return Response(png, media_type="image/png")
-
-
 
 
 @app.get("/basemap/bc.pmtiles")
@@ -354,3 +479,13 @@ def basemap():
     if not reuse.BASEMAP_PMTILES.exists():
         raise HTTPException(404, f"{reuse.BASEMAP_PMTILES} not found")
     return FileResponse(reuse.BASEMAP_PMTILES, media_type="application/octet-stream")
+
+
+def register_fix_routes(target: FastAPI) -> None:
+    """Add the editors' routes to `target` as plain routes (not an included router, which newer
+    FastAPI keeps as one opaque entry in `app.routes`). Called once, below, in fix mode only."""
+    target.router.routes.extend(fix.routes)
+
+
+if FIX:
+    register_fix_routes(app)

@@ -336,10 +336,9 @@ def entry_source_image(e: dict) -> str | None:
 
 def _flagged(e: dict) -> bool:
     """A rule or licensing record carries a `review_reason` (or a rule an unresolved locator) —
-    a reason present IS the flag; the model has no separate one."""
-    return (any(r.get("review_reason") or r.get("unresolved_locators")
-                for r in e.get("rules") or [])
-            or any(x.get("review_reason") for x in e.get("licensing") or []))
+    `tiers.flagged`, the one predicate (the review tiers read it too)."""
+    from pipeline.regs.review.tiers import flagged
+    return flagged(e)
 
 
 def _covered_ids(e: dict) -> list[str]:
@@ -830,7 +829,7 @@ _KIND_ORDER = {"zone": 0, "water": 1}
 
 def queue(region: str | None = None, status: str | None = None,
           kind: str | None = None, verify: str | None = None,
-          order: str = "attention") -> list[dict]:
+          order: str = "attention", tier: str | None = None) -> list[dict]:
     """Review queue rows.
 
     `order="attention"` (the default) floats what needs attention to the top, regional and
@@ -843,7 +842,9 @@ def queue(region: str | None = None, status: str | None = None,
 
     `verify` filters on the reviewer's mark (`MARK_STATUSES`): unmarked | verified | wrong |
     unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
-    everything not currently verified."""
+    everything not currently verified. `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
+    P1 Z P2 P3 P4 sweep — split points, S0, are `split_queue`'s)."""
+    from pipeline.regs.review import tiers as T
     states = _mark_states()
     on = built()                      # the vintage on disk, read once for every row (T133)
     rows = []
@@ -854,6 +855,9 @@ def queue(region: str | None = None, status: str | None = None,
         if status and st != status:
             continue
         if kind and entry_kind(e) != kind:
+            continue
+        tr = T.entry_tier(e, binds=item is not None)
+        if tier and tr != tier:
             continue
         mst = _entry_mark_state(e, states)
         vst = mst["status"]
@@ -880,6 +884,7 @@ def queue(region: str | None = None, status: str | None = None,
             "mark_reasons": mst["reasons"],
             "vintage": vin["state"],             # current | awaiting build (T133)
             "vintage_reasons": vin["reasons"],
+            "tier": tr,                           # PLAN §3 (T134: progress and ETA by tier)
             "_pos": pos,
         })
     if order == "book":
@@ -1804,18 +1809,119 @@ def split_errors(data: dict, touched: set[str]) -> list[str]:
     return errs
 
 
-_AUTO_PROPOSAL = re.compile(r"^\[auto-proposal ([A-Z])\]")
-
-
 def split_review(sp: dict) -> dict:
     """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed, and
     what is still to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`
     is a low-confidence machine placement nobody has confirmed. The tool used to send neither, so a
     reviewer saw a confident cut where the file said "Verify: …" (T96). `grade` is None for a cut
-    that is not an open auto-proposal; only a LEADING tag counts (a later one is history)."""
-    note = str(sp.get("_note") or "")
-    m = _AUTO_PROPOSAL.match(note)
-    return {"note": note, "grade": m.group(1) if m else None}
+    that is not an open auto-proposal; only a LEADING tag counts (a later one is history) —
+    `tiers.split_grade`, the one reading of it (tier S0 asks the same function)."""
+    from pipeline.regs.review.tiers import split_grade
+    return {"note": str(sp.get("_note") or ""), "grade": split_grade(sp)}
+
+
+def _waterbody_of(data: dict, split_id: str):
+    """(waterbody group, split) of `split_id` in splits.json `data`, or (None, None)."""
+    for wb in data.get("waterbodies", []):
+        for sp in wb.get("splits", []):
+            if sp.get("id") == split_id:
+                return wb, sp
+    return None, None
+
+
+#: what a NEW split may carry (fix mode): its id, the cut, and its words
+_SPLIT_NEW = {"id", "label", "kind", "anchor", "note", "_note", "applies_to"}
+
+
+def add_split(body: dict) -> dict:
+    """ADD A SPLIT to splits.json (fix mode; owner 2026-10-23 "add splits and rebuild then continue
+    review"). `body`: `split` (`id`, `label`, `kind`, `anchor`, optional `note` / `_note` /
+    `applies_to`) and where it goes — `waterbody` (the name of a group already in the file) or
+    `new_waterbody` `{name, applies_to}`. Validated by the pipeline's own split loader
+    (`split_errors`) before anything is written; a duplicate id is refused. Nothing is built: the
+    split reads "awaiting build" (`GET /api/build` lists it with the commands) until the owner's
+    atlas build, binding diff and promote land, and then it is queued for its own split mark."""
+    sp = body.get("split")
+    if not isinstance(sp, dict) or not str(sp.get("id") or "").strip():
+        return {"ok": False, "errors": ["split must be an object with an id"]}
+    bad = sorted(set(sp) - _SPLIT_NEW)
+    if bad:
+        return {"ok": False, "errors": [f"not a field of a new split: {bad}; allowed: "
+                                        f"{sorted(_SPLIT_NEW)}"]}
+    if not re.fullmatch(r"[a-z0-9_]+", sp["id"]):
+        return {"ok": False, "errors": [f"split id {sp['id']!r}: lower case, digits and _ only"]}
+    if not (isinstance(sp.get("anchor"), dict) and sp["anchor"].get("type")):
+        return {"ok": False, "errors": ["anchor must be an object with a 'type'"]}
+    with writes.LOCK:
+        data = _load_splits()
+        if _waterbody_of(data, sp["id"])[1] is not None:
+            return {"ok": False, "errors": [f"split {sp['id']!r} is already in splits.json"]}
+        # A NEW SPLIT IS TIER S0 (owner: "the new split appears in tier S0 to confirm"): its note
+        # opens with "Verify:", which `tiers.split_needs_verify` reads — until a split mark
+        # confirms it on the built map, it is a split point still to verify like any other.
+        import datetime as _dt
+        stamp = f"Verify: added in fix mode {_dt.date.today().isoformat()} — confirm on the built map."
+        new = {"id": sp["id"], "label": sp.get("label") or sp["id"], "kind": sp.get("kind"),
+               "anchor": copy.deepcopy(sp["anchor"]), "note": sp.get("note") or "",
+               "_note": f"{stamp} {sp.get('_note') or ''}".strip(),
+               **({"applies_to": sp["applies_to"]} if sp.get("applies_to") else {})}
+        name = body.get("waterbody")
+        if name:
+            wb = next((w for w in data.get("waterbodies", []) if w.get("name") == name), None)
+            if wb is None:
+                return {"ok": False, "errors": [f"no waterbody group {name!r} in splits.json"]}
+        else:
+            nw = body.get("new_waterbody") or {}
+            if not nw.get("name") or not isinstance(nw.get("applies_to"), dict):
+                return {"ok": False, "errors": ["say where the split goes: `waterbody` (a group "
+                                                "in splits.json) or `new_waterbody` {name, "
+                                                "applies_to}"]}
+            if any(w.get("name") == nw["name"] for w in data.get("waterbodies", [])):
+                return {"ok": False, "errors": [f"a waterbody group {nw['name']!r} exists — "
+                                                f"name it as `waterbody`"]}
+            wb = {"name": nw["name"], "applies_to": nw["applies_to"], "splits": []}
+            data.setdefault("waterbodies", []).append(wb)
+        wb.setdefault("splits", []).append(new)
+        errs = split_errors(data, {new["id"]})
+        if errs:
+            return {"ok": False, "errors": errs}
+        writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "add-split")
+        return {"ok": True, "errors": [], "split": new, "waterbody": wb["name"]}
+
+
+@lru_cache(maxsize=1)
+def _ref_items() -> dict[str, str]:
+    """registry ref_id (`gnis:…`, `wsc:…`, `blk:…`) -> the first item carrying it."""
+    out: dict[str, str] = {}
+    for iid in sorted(_registry()):
+        for ref in _registry()[iid].ref_ids:
+            out.setdefault(ref, iid)
+    return out
+
+
+def split_item(sp: dict, wb: dict) -> str | None:
+    """The registry item a split is cut on — the one its target (its own `applies_to`, else its
+    waterbody's, `applies_keys`) names; the split card's map opens on it."""
+    from pipeline.atlas.splits.splits import applies_keys
+    refs = applies_keys(sp.get("applies_to")) or applies_keys(wb.get("applies_to"))
+    idx = _ref_items()
+    got = sorted({idx[r] for r in refs if r in idx})
+    return got[0] if got else None
+
+
+def split_groups(item_id: str) -> list[dict]:
+    """The splits.json waterbody groups whose `applies_to` names this item (`applies_keys` over its
+    ref_ids) — where the add-split form offers to put a new cut, with the target a new group would
+    take."""
+    from pipeline.atlas.splits.splits import applies_keys
+    item = _registry().get(item_id)
+    if item is None:
+        return []
+    refs = set(item.ref_ids)
+    return [{"name": wb.get("name"), "applies_to": wb.get("applies_to"),
+             "n_splits": len(wb.get("splits") or [])}
+            for wb in _load_splits().get("waterbodies", [])
+            if applies_keys(wb.get("applies_to")) & refs]
 
 
 def get_split(split_id: str) -> dict | None:
@@ -2188,4 +2294,5 @@ def save_entry(region: str, entry_dict: dict) -> dict:
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
                  _blk_to_item, item_tributaries, _graph, _geoms, _wbk_polys,
-                 _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for)
+                 _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
+                 _ref_items)

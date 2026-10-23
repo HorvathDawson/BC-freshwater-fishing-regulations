@@ -8,6 +8,9 @@
     vintage       phase 2 (T133): is THIS entry built — its digest the same in the reach run, the
                   bundle and the release, on the served atlas (`entry_state`); "awaiting build"
                   allows only T and R (`refuse_unbuilt`); "bundle matches" per rule (`bundle_matches`)
+    coverage      phase 3 (T134): the coverage strip — which words of the row no rule quotes
+    tiers         phase 3 (T134): PLAN §3's tiers (S0 P1 Z P2 P3 P4 sweep) for progress and ETA;
+                  T135's queue builds on them
 
 `review.carry_marks` is the name a migration calls.
 """

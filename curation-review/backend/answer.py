@@ -137,6 +137,45 @@ def entry_waters(entry_id: str, q: str = "", limit: int = 60) -> list[dict]:
     return out
 
 
+#: THE APP the answer is checked in (PLAN §4 phase 3, owner Q34 default): its start link opens one
+#: water's Regulations page (`app/packages/ui/src/startLink.ts`: `?regs=<item>&part=<i>&date=`). A
+#: deep link in a new tab, until the owner approves an iframe on the reviewer's own serve-tiles port.
+#: Never 39217/39218 for anything the tool RUNS — this is only the address a link points at.
+APP_URL = os.environ.get("CURATION_APP_URL", "http://127.0.0.1:39218/")
+
+
+def app_part(entry_id: str, matched: list[str], rule_id: str | None = None) -> dict | None:
+    """The water and part of it to open the app on, for this entry (or one of its rules): the
+    bundle part where the entry's rule set holds — the entry's own `matched` waters first, a part
+    its rules REACH (not a tributary walk) before one they walk to, then the largest. None when
+    the bundle binds the entry (rule) nowhere."""
+    db = _db()
+    try:
+        rows = db.execute(
+            "SELECT i.item_id, p.part_ix, p.sections, MIN(rs.via) FROM ruleset rs "
+            "JOIN part p ON p.set_id = rs.set_id JOIN item i ON i.ord = p.ord "
+            "WHERE rs.entry_id = ?" + (" AND rs.rule_id = ?" if rule_id else "")
+            + " GROUP BY i.item_id, p.part_ix",
+            (entry_id, rule_id) if rule_id else (entry_id,)).fetchall()
+    finally:
+        db.close()
+    if not rows:
+        return None
+    own = set(matched or [])
+    item, part, n, via = min(rows, key=lambda r: (r[0] not in own, r[3] != "reach", -r[2],
+                                                  r[0], r[1]))
+    return {"item": item, "part": int(part), "sections": int(n), "via": via}
+
+
+def app_link(item: str, part: int | None, day: str) -> str:
+    """The start link: `APP_URL?regs=<item>&part=<i>&date=<YYYY-MM-DD>` (the app throws on a bad
+    value, so each one is the app's own spelling)."""
+    from urllib.parse import urlencode
+    q = {"regs": item, **({"part": str(part)} if part is not None else {}),
+         "date": _parse_day(day).isoformat()}
+    return f"{APP_URL}?{urlencode(q, safe=':')}"
+
+
 def _parse_day(day: str) -> dt.date:
     try:
         return dt.date.fromisoformat(day)

@@ -60,13 +60,16 @@ def app_env(request, tmp_path_factory):
         os.symlink(real / name, atlas / name)
     shutil.copy2(real / "splits.resolved.json", atlas / "splits.resolved.json")
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_ENTRIES_DIR": cat, "CURATION_SPLITS_JSON": tmp / "splits.json",
+    # fix mode: the split flow saves splits.json through the editor's route (T134)
+    for k, v in {"CURATION_FIX": "1", "CURATION_ENTRIES_DIR": cat,
+                 "CURATION_SPLITS_JSON": tmp / "splits.json",
                  "CURATION_MARKS": tmp / "marks.jsonl", "CURATION_BACKUP_DIR": tmp / "backups",
                  "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release"
                  }.items():
         mp.setenv(k, str(v))
     mp.syspath_prepend(str(BACKEND))
-    for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes"):
+    for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
+                "review", "evidence"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402
@@ -273,3 +276,63 @@ def test_the_app_gate_is_pinned_by_mutation(app_env, monkeypatch):
         assert _mark(env, BULL).status_code == 200, "the mutation must let the mark through"
     finally:
         env["client"].put(f"/api/entries/{BULL}", json={"region": region, "entry": before})
+
+
+# -- T134: fix mode adds a split; the pending-build panel lists it; review mode cannot -----------
+
+def _review_mode_app(monkeypatch):
+    """A SECOND app over the same files, in review mode (the module decides at import)."""
+    import importlib.util
+    monkeypatch.setenv("CURATION_FIX", "0")
+    spec = importlib.util.spec_from_file_location("app_review_mode", BACKEND / "app.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    from fastapi.testclient import TestClient
+    return TestClient(mod.app)
+
+
+def test_fix_mode_adds_a_split_the_panel_lists_it_and_review_mode_cannot(app_env, monkeypatch):
+    """T134 acceptance: "Fix mode: add a split, save → the pending-build panel lists it and the
+    exact commands; review mode never writes it." Then the owner's rebuild lands and the split is
+    a split point to confirm (tier S0), with no restart, and a review-mode mark confirms it."""
+    env = app_env
+    splits_path = env["tmp"] / "splits.json"
+    original = splits_path.read_text()
+    name = "ADAM RIVER (except Eve River)"
+    body = {"split": {"id": "adam_river__t134_point", "label": "T134 test point", "kind": "point",
+                      "anchor": {"type": "point", "coord": [-126.2, 50.4], "is_lonlat": True}},
+            "waterbody": name}
+    review = _review_mode_app(monkeypatch)
+    r = review.post("/api/splits", json=body)
+    assert r.status_code in (404, 405), r.text                 # review mode: no such route
+    assert splits_path.read_text() == original                 # … and nothing written
+    r = env["client"].post("/api/splits", json=body)           # fix mode
+    assert r.status_code == 200, r.text
+    try:
+        added = json.loads(splits_path.read_text())
+        got = next(s for w in added["waterbodies"] if w["name"] == name for s in w["splits"]
+                   if s["id"] == body["split"]["id"])
+        assert got["_note"].startswith("Verify: added in fix mode ")      # tier S0
+        pend = env["client"].get("/api/build").json()
+        assert pend["splits"] == [{"split_id": body["split"]["id"],
+                                   "reasons": [V.Waiting.split_unbuilt.value]}]
+        assert pend["commands"] == V.rebuild_commands([V.Waiting.split_unbuilt]) == [
+            "scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas",
+            "python -m pipeline.atlas.reach.binding_diff  # per-rule bindings, live vs the side "
+            "atlas's reach run, before promoting (AGENTS 63)",
+            "scripts/heavy.sh build 30 -- python -m pipeline build --promote --no-tiles"]
+        card = next(c for c in env["client"].get("/api/review/splits").json()
+                    if c["split_id"] == body["split"]["id"])
+        assert (card["s0"], card["status"], card["vintage"]["state"], card["item_id"]) == (
+            True, "unmarked", V.AWAITING, "gnis:28136")
+        assert review.post("/api/splits", json=body).status_code in (404, 405)
+        record_atlas(env)                                      # the owner's rebuild lands
+        card = next(c for c in env["client"].get("/api/review/splits").json()
+                    if c["split_id"] == body["split"]["id"])
+        assert card["vintage"]["state"] == V.CURRENT
+        r = review.post("/api/marks", json={"scope": "split", "target": body["split"]["id"],
+                                            "answers": {"P": "y"}, "reviewer": "tester"})
+        assert r.status_code == 200 and r.json()["status"] == "verified", r.text
+    finally:
+        splits_path.write_text(original)
+        record_atlas(env)

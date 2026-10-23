@@ -45,13 +45,16 @@ def env(request, tmp_path_factory):
         shutil.copy2(p, tmp / p.name)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
+    # these tests drive the EDITORS: fix mode (T134; review mode registers no write but a mark)
+    mp.setenv("CURATION_FIX", "1")
     # the reviewer's marks go to a temp store, never the real one
     (tmp / "marks.jsonl").write_text("")
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
     # every save backs its file up first (`writes.py`) — into a temp dir, never data/generated
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
-    for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes"):
+    for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
+                "review", "evidence"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402

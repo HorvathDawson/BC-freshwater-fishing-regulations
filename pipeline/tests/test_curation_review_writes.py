@@ -25,7 +25,8 @@ from pipeline.common.curated import CURATED
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes")
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
+                "review", "evidence")
 
 
 @pytest.fixture
@@ -42,6 +43,8 @@ def env(tmp_path):
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
+    # these tests drive the EDITORS: fix mode (T134; review mode registers no write but a mark)
+    mp.setenv("CURATION_FIX", "1")
     marks = tmp_path / "review" / "marks.jsonl"          # the store is checked in, empty
     marks.parent.mkdir()
     marks.write_text("")

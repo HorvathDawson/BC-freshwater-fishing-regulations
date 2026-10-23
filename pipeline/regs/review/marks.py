@@ -50,6 +50,31 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       "rule": ("T", "R", "P", "A"),
                                       "split": ("P",)}
 
+#: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
+#: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
+PROBLEMS: dict[str, tuple[str, ...]] = {
+    "T": ("text differs from the book", "wrong page"),
+    "R": ("clause missing", "rule invented", "species", "quota", "size", "dates", "gear",
+          "tributary scope"),
+    "P": ("wrong water", "split misplaced", "ambiguous cut pick", "tributary walk over-reaches",
+          "undrawn part / unresolved place"),
+    "A": ("app answer differs", "open/closed wrong"),
+}
+
+
+def verdict_from_answers(scope: str, answers: Mapping[str, str]) -> Optional[str]:
+    """THE VERDICT THE ANSWERS GIVE (PLAN §2): any n -> wrong; else any ? -> unsure; every check of
+    the scope y -> verified; otherwise none yet (a check unanswered). `deferred` is never derived:
+    it is the reviewer's own call, with a note. `Mark._consistent` refuses any other verdict."""
+    got = [answers.get(k) for k in CHECKS[scope]]
+    if "n" in got:
+        return "wrong"
+    if "?" in got:
+        return "unsure"
+    if got == ["y"] * len(got):
+        return "verified"
+    return None
+
 
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
