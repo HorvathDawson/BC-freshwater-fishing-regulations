@@ -1,6 +1,6 @@
 # T90 — The Chehalis "downstream of the bridge, May 1-31" closure still reaches 2 Harrison sections
 
-Status: DONE (code, commit COMMIT_PLACEHOLDER) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun.
+Status: DONE (code, commit 04d8fb85) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun.
 
 Source: memory `receiving-river-not-a-tributary`. The Strahler guard in `_mouths_at` (pipeline/atlas/graph/
 tributaries.py) is in, yet the 2026-10-22 bundle binds `chehalis_river.r2` via `trib` to Harrison sids 59983, 59984 —
