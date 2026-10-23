@@ -1,0 +1,267 @@
+{
+ "targets": [
+  {
+   "tier": "S0",
+   "kind": "split",
+   "id": "caribou_creek__hwy_6_bridge",
+   "name": "CARIBOU CREEK: Hwy 6 bridge",
+   "hash": "split:caribou_creek__hwy_6_bridge"
+  },
+  {
+   "tier": "S0",
+   "kind": "split",
+   "id": "lussier_river__premier_lake_road_bridge",
+   "name": "LUSSIER RIVER: Premier Lake road bridge",
+   "hash": "split:lussier_river__premier_lake_road_bridge"
+  },
+  {
+   "tier": "S0",
+   "kind": "split",
+   "id": "salmon_river__232_street",
+   "name": "SALMON RIVER: 232 Street",
+   "hash": "split:salmon_river__232_street"
+  },
+  {
+   "tier": "S0",
+   "kind": "split",
+   "id": "kootenay_river__brilliant_dam",
+   "name": "KOOTENAY RIVER (downstream of Idaho border): Brilliant Dam",
+   "hash": "split:kootenay_river__brilliant_dam"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r2:stave_river@2-8",
+   "name": "STAVE RIVER",
+   "region": "2",
+   "hash": "r2:stave_river@2-8"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r7:halfway_river@7-34",
+   "name": "HALFWAY RIVER",
+   "region": "7",
+   "hash": "r7:halfway_river@7-34"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+   "name": "THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River)",
+   "region": "3",
+   "hash": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r6:bulkley_river@6-9",
+   "name": "BULKLEY RIVER",
+   "region": "6",
+   "hash": "r6:bulkley_river@6-9"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r2:weaver_lake_and_weaver_creek@2-19",
+   "name": "WEAVER LAKE and WEAVER CREEK",
+   "region": "2",
+   "hash": "r2:weaver_lake_and_weaver_creek@2-19"
+  },
+  {
+   "tier": "P1",
+   "kind": "entry",
+   "id": "r8:mission_creek@8-10",
+   "name": "MISSION CREEK",
+   "region": "8",
+   "hash": "r8:mission_creek@8-10"
+  },
+  {
+   "tier": "Z",
+   "kind": "entry",
+   "id": "zp:no_fishing_buffers",
+   "name": "Fishway and facility buffers",
+   "region": "provincial",
+   "hash": "zp:no_fishing_buffers"
+  },
+  {
+   "tier": "Z",
+   "kind": "entry",
+   "id": "zp:allowable_methods",
+   "name": "Allowable methods",
+   "region": "provincial",
+   "hash": "zp:allowable_methods"
+  },
+  {
+   "tier": "Z",
+   "kind": "entry",
+   "id": "z4:spring_stream_closure",
+   "name": "Spring stream closure",
+   "region": "4",
+   "hash": "z4:spring_stream_closure"
+  },
+  {
+   "tier": "Z",
+   "kind": "entry",
+   "id": "z7a:tagging_program",
+   "name": "Omineca tagging studies",
+   "region": "7a",
+   "hash": "z7a:tagging_program"
+  },
+  {
+   "tier": "P2",
+   "kind": "entry",
+   "id": "r1:zeballos_lake@1-12",
+   "name": "ZEBALLOS LAKE",
+   "region": "1",
+   "hash": "r1:zeballos_lake@1-12"
+  },
+  {
+   "tier": "P2",
+   "kind": "entry",
+   "id": "r3:menzies_lake@3-13",
+   "name": "MENZIES LAKE",
+   "region": "3",
+   "hash": "r3:menzies_lake@3-13"
+  },
+  {
+   "tier": "P2",
+   "kind": "entry",
+   "id": "r5:teepee_lake_adjacent_to_west_road_river@5-13",
+   "name": "TEEPEE LAKE (adjacent to West Road River)",
+   "region": "5",
+   "hash": "r5:teepee_lake_adjacent_to_west_road_river@5-13"
+  },
+  {
+   "tier": "P2",
+   "kind": "entry",
+   "id": "r7:portage_lake@7-16",
+   "name": "PORTAGE LAKE",
+   "region": "7",
+   "hash": "r7:portage_lake@7-16"
+  },
+  {
+   "tier": "P3",
+   "kind": "entry",
+   "id": "r1:elk_lake@1-1",
+   "name": "ELK LAKE",
+   "region": "1",
+   "hash": "r1:elk_lake@1-1"
+  },
+  {
+   "tier": "P3",
+   "kind": "entry",
+   "id": "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13",
+   "name": "MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes)",
+   "region": "1",
+   "hash": "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13"
+  },
+  {
+   "tier": "P3",
+   "kind": "entry",
+   "id": "r4:salmo_river@4-8",
+   "name": "SALMO RIVER",
+   "region": "4",
+   "hash": "r4:salmo_river@4-8"
+  },
+  {
+   "tier": "P3",
+   "kind": "entry",
+   "id": "r7:la_salle_lakes@7-3",
+   "name": "LA SALLE LAKES",
+   "region": "7",
+   "hash": "r7:la_salle_lakes@7-3"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r1:matheson_lake@1-2",
+   "name": "MATHESON LAKE",
+   "region": "1",
+   "hash": "r1:matheson_lake@1-2"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r2:widgeon_creek@2-8",
+   "name": "WIDGEON CREEK",
+   "region": "2",
+   "hash": "r2:widgeon_creek@2-8"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r3:upper_kane_lake@3-13",
+   "name": "UPPER KANE LAKE",
+   "region": "3",
+   "hash": "r3:upper_kane_lake@3-13"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r5:bootjack_lake@5-2",
+   "name": "BOOTJACK LAKE",
+   "region": "5",
+   "hash": "r5:bootjack_lake@5-2"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r6:kiteen_river@6-15",
+   "name": "KITEEN RIVER",
+   "region": "6",
+   "hash": "r6:kiteen_river@6-15"
+  },
+  {
+   "tier": "P4",
+   "kind": "entry",
+   "id": "r8:clifford_cliff_lake@8-5",
+   "name": "CLIFFORD (Cliff ) LAKE",
+   "region": "8",
+   "hash": "r8:clifford_cliff_lake@8-5"
+  },
+  {
+   "tier": "sweep",
+   "kind": "entry",
+   "id": "r8:tee_pee_lakes@8-6",
+   "name": "TEE PEE LAKES",
+   "region": "8",
+   "hash": "r8:tee_pee_lakes@8-6"
+  },
+  {
+   "tier": "sweep",
+   "kind": "entry",
+   "id": "r4:waneta_reservoir@4-8",
+   "name": "WANETA RESERVOIR",
+   "region": "4",
+   "hash": "r4:waneta_reservoir@4-8"
+  }
+ ],
+ "short": {},
+ "vintage": {
+  "atlas": {
+   "handles": "d768d6e135e62b99",
+   "registry": "8c77ba1cd2dc3929"
+  },
+  "anchors_recorded": false,
+  "reach": {
+   "digest": "b9be92114323aa22",
+   "entries_digest": "4e3f729204098d06",
+   "handles": "d768d6e135e62b99",
+   "registry_digest": "8c77ba1cd2dc3929"
+  },
+  "bundle": {
+   "reach_digest": "b9be92114323aa22",
+   "entries_digest": "4e3f729204098d06",
+   "section_handles": "d768d6e135e62b99",
+   "registry_digest": "8c77ba1cd2dc3929"
+  },
+  "release": {
+   "id": "r-012fb43aa175",
+   "bundle": {
+    "entries_digest": "4e3f729204098d06",
+    "reach_digest": "b9be92114323aa22"
+   }
+  }
+ }
+}
