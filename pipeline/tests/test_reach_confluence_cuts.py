@@ -424,7 +424,7 @@ def test_signs_pull_the_joining_water_in_only_up_to_its_first_lake(lake_world):
 
 
 def test_mutation_without_the_lake_bound_the_whole_subtree_came_in(lake_world, monkeypatch):
-    monkeypatch.setattr(B, "_stem_to_first_lake", lambda g, mouths: T.subtree(g, mouths))
+    monkeypatch.setattr(B, "_stem_to_first_lake", lambda g, mouths, *_: T.subtree(g, mouths))
     got, _ = _bind(lake_world, SIGNS_BELOW, UP)
     assert {"X_high", "X_high_trib"} <= got, "the stem is what stops the walk at the lake"
 

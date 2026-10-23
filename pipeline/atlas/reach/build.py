@@ -29,7 +29,6 @@ from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
 )
-from pipeline.common.models import NodeKind
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
@@ -858,7 +857,7 @@ def _runs_up_from(graph, reach, row) -> bool:
     return False
 
 
-def _stem_to_first_lake(graph, mouths) -> frozenset[str]:
+def _stem_to_first_lake(graph, mouths, registry=None) -> frozenset[str]:
     """A JOINING WATER'S OWN STEM FROM ITS MOUTH UP TO ITS FIRST LAKE: the mouth pieces and
     every stream piece reached from them by the river's own `continuation` edges — never a
     `lake_out` edge (the lake is where the stem ends), never a confluence (a tributary is the
@@ -872,14 +871,15 @@ def _stem_to_first_lake(graph, mouths) -> frozenset[str]:
         nid = stack.pop()
         if nid in out:
             continue
-        n = graph.nodes.get(nid)
-        if n is None or n.kind != NodeKind.stream:
+        # THE WATER KIND, never the node's shape (T121): a river's own polygon or a slough on the
+        # stem is the river going on (`water_kind.kind_of`, the registry's answer); a lake stops it
+        if _resolve._kind_of(graph, nid, registry) != "stream":
             continue
         out.add(nid)
         for ei in sorted(graph.up_adj.get(nid, [])):
             e = graph.edges[ei]
-            src = graph.nodes.get(e.from_node)
-            if e.kind == "continuation" and src is not None and src.kind == NodeKind.stream \
+            if e.kind == "continuation" and e.from_node in graph.nodes \
+                    and _resolve._kind_of(graph, e.from_node, registry) == "stream" \
                     and e.from_node not in out \
                     and _tribs.may_enter(ctx, e.from_node, nid, e, via=_tribs.UP) is None:
                 stack.append(e.from_node)
@@ -949,7 +949,7 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
         stems: set[str] = set()
         for row in expand.confluence:
             if row.get("with_cut") and row.get("own_row"):
-                stem = _stem_to_first_lake(graph, row["mouths"]) - blocked - set(reach) \
+                stem = _stem_to_first_lake(graph, row["mouths"], registry) - blocked - set(reach) \
                     - own_water
                 row["bounded_at_lake"] = True
                 row["stem"] = sorted(stem)

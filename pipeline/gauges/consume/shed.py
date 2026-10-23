@@ -166,8 +166,18 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
             q.append((nxt, hops + 1))
 
 
-def is_lake_station(graph, node_id: str) -> bool:
+#: The water kinds that report a LEVEL, not a discharge: standing water, as the registry calls it.
+STANDING_WATER = ("lake", "wetland")
+
+
+def is_lake_station(graph, node_id: str, registry=None) -> bool:
     """Does this station sit on a lake rather than on flowing water?
+
+    THE WATER KIND, NOT THE NODE'S SHAPE (T121, owner 2026-10-22): asked of the one place it is
+    decided, `reach.water_kind.kind_of` — the kind of the registry item owning the section, else the
+    graph node's. A river's own polygon (the Stellako's wide reach) or a slough FWA draws as a lake
+    is flowing water on the page, so a station there reports the river's discharge and sheds like
+    one. `registry=None` (a fixture with no registry) reads the node's kind, as `kind_of` does.
 
     THE TWO ARE NOT THE SAME MEASUREMENT. A lake station reports LEVEL, in metres above a
     datum; a stream station reports DISCHARGE, in cubic metres a second. A trust ratio
@@ -184,12 +194,12 @@ def is_lake_station(graph, node_id: str) -> bool:
     Lake stations are not discarded; they are linked to the lake itself by
     ``lake_gauge_links``, which is the question they can actually answer.
     """
-    n = graph.nodes.get(node_id)
-    return n is not None and str(getattr(n, "kind", "")).endswith("lake")
+    from pipeline.atlas.reach.water_kind import kind_of
+    return node_id in graph.nodes and kind_of(graph, registry, node_id) in STANDING_WATER
 
 
 def lake_gauge_links(graph, stations: list[dict], node_for_station: dict[str, str],
-                     ) -> list[tuple[str, str]]:
+                     registry=None) -> list[tuple[str, str]]:
     """``(lake_node_id, station)`` for every station sitting on a lake, sorted.
 
     No trust band, deliberately. Trust is a statement about how much of a gauge's DISCHARGE
@@ -201,7 +211,7 @@ def lake_gauge_links(graph, stations: list[dict], node_for_station: dict[str, st
     return sorted(
         (node_for_station[st], st)
         for st in node_for_station
-        if st in known and is_lake_station(graph, node_for_station[st])
+        if st in known and is_lake_station(graph, node_for_station[st], registry)
     )
 
 
@@ -222,7 +232,7 @@ def drains_through(section_wsc: str, gauge_wsc: str) -> bool:
 
 def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, str],
                       prefer: set[str] | None = None,
-                      *, report: list[str] | None = None) -> list[GaugeLink]:
+                      *, report: list[str] | None = None, registry=None) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ALL gauges per section, best first.
 
     ``node_for_station`` comes from the spatial match (``pipeline.gauges.generate.match``) and is kept
@@ -283,7 +293,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
             continue
         if prefer is not None and station not in prefer:
             continue            # retired: its shed is rows nobody can ever read — expected
-        if is_lake_station(graph, node_id):
+        if is_lake_station(graph, node_id, registry):
             continue            # a level, not a discharge — linked to the lake instead
         gauge_mag = gauge_node.stream_magnitude
         if not gauge_mag:
@@ -311,7 +321,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
             for sec, hops in walk:
                 # A lake reached from a river gauge is skipped for the same reason as the
                 # reverse: the river's discharge is not the lake's level.
-                if is_lake_station(graph, sec):
+                if is_lake_station(graph, sec, registry):
                     continue
                 # THE GAUGE MUST BE IN THIS REACH'S DRAINAGE. The walk can arrive at water
                 # the gauge has never seen — downstream from a tributary is the mainstem —

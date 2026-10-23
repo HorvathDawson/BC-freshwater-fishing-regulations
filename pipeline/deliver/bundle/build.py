@@ -277,6 +277,14 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
     cov.filled("item_section", len(pairs))
 
 
+def _kind_registry(registry_items: list[dict]) -> dict:
+    """`{item id: (kind, section_ids)}` — the registry as `reach.water_kind.kind_of` and
+    `registry.regions` read it, from the bundle's parsed `registry_items`."""
+    from types import SimpleNamespace
+    return {i["id"]: SimpleNamespace(kind=i.get("kind"), section_ids=i.get("section_ids") or [])
+            for i in registry_items}
+
+
 def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
     """`{sid: (kind, regions, mus)}` for every section of the atlas (S1, S1b: `region_place`,
     `mu_set`, `unnamed_part.kind`):
@@ -293,15 +301,12 @@ def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
     Read once, here, from the atlas the bundle is built from; `derived.write` groups and proves
     them (a section in B.C. with no place, or a place in no region, stops the build). A NAMED
     section the graph lacks gets no place here and is refused there if it lies in B.C."""
-    from types import SimpleNamespace
-
     from pipeline.atlas.reach.water_kind import kind_of
     from pipeline.atlas.registry import regions as _regions
     from pipeline.common.section_handles import read as _read_handles
 
     ids, sid = _read_handles(build_dir)
-    registry = {i["id"]: SimpleNamespace(kind=i.get("kind"), section_ids=i.get("section_ids") or [])
-                for i in registry_items}
+    registry = _kind_registry(registry_items)
     named = {s for i in registry_items if is_water(i) for s in i.get("section_ids") or []}
     _regions.attach_from(build_dir, graph, registry)
     # THE ONE REGION MEMBERSHIP (T115): the regions whose zone tables a section takes are asked of
@@ -623,7 +628,11 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # their `gauge` row and climatology; what they lose is the claim to speak for reaches
     # they can no longer say anything about.
     active = {s["station"] for s in stations if may_speak(s)}
-    links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost)
+    # THE WATER KIND (T121): a station is a lake's by the registry's kind of its water, never by the
+    # node's shape (`shed.is_lake_station` -> `reach.water_kind.kind_of`)
+    kinds = _kind_registry(registry_items)
+    links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost,
+                              registry=kinds)
     # `links` arrives grouped by section, best ratio first; `seq` freezes that order so a
     # client takes row 0 and never has to re-derive the judgement.
     db.executemany("INSERT INTO section_gauge (sid, station, trust, mag) VALUES (?,?,?,?)",
@@ -632,7 +641,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     cov.filled("section_gauge", len(links))
 
     # Lake stations, linked to the lake's registry item rather than to a reach.
-    lakes = [(owner[node], st) for node, st in lake_gauge_links(graph, stations, matched)
+    lakes = [(owner[node], st) for node, st in lake_gauge_links(graph, stations, matched, kinds)
              if node in owner]
     db.executemany("INSERT OR IGNORE INTO lake_gauge VALUES (?,?)", sorted(set(lakes)))
     cov.filled("lake_gauge", len(set(lakes)))

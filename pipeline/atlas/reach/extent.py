@@ -134,7 +134,7 @@ def _line_length(g, blk: str, river: str) -> float:
 
 
 def _watershed_part(g, universe: set[str], river_in: set[str], river_amb: set[str],
-                    cuts: list[tuple[str, float]], op: str) -> dict | str:
+                    cuts: list[tuple[str, float]], op: str, reg=None) -> dict | str:
     """`Extent.watershed`: the river's basin on the op's side of the cut(s), by code position.
 
     `universe` is the scoped river's own sections; `river_in` / `river_amb` what the measure cut
@@ -149,8 +149,10 @@ def _watershed_part(g, universe: set[str], river_in: set[str], river_amb: set[st
     where the water it touches goes — when all of it agrees — and is otherwise UNPLACED: reported,
     never guessed onto a side."""
     from pipeline.atlas.registry.basins import node_basin_code
+    # THE WATER KIND (T121, `_kind_of` -> `water_kind.kind_of`): the river's own pieces, a river
+    # polygon or slough the registry calls the river included — never the node's shape
     codes = {node_basin_code(g.nodes[s]) for s in universe
-             if s in g.nodes and str(getattr(g.nodes[s].kind, "value", g.nodes[s].kind)) == "stream"}
+             if s in g.nodes and _kind_of(g, s, reg) == "stream"}
     codes.discard("")
     if len(codes) != 1:
         return "watershed_river_code_ambiguous"
@@ -227,7 +229,7 @@ def _watershed_part(g, universe: set[str], river_in: set[str], river_amb: set[st
         from pipeline.atlas.reach import position as _position
         alone = [n for n, v in verdict.items() if v == "?" and n in g.nodes
                  and not g.up_adj.get(n) and not g.down_adj.get(n)
-                 and str(getattr(g.nodes[n].kind, "value", g.nodes[n].kind)) != "stream"]
+                 and _kind_of(g, n, reg) != "stream"]
         placed = {s for s in universe if verdict.get(s) in ("in", "out")
                   and node_basin_code(g.nodes[s]) == river}
         for n, piece in _position.nearest_pieces(g, alone, placed).items():
@@ -1305,7 +1307,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # which this part reports like any other extent: T111 review)
         places = [(at[0], at[1])] if op in ("upstream_of", "downstream_of") else \
             [(a[0], a[1]), (b[0], b[1])]
-        part = _watershed_part(g, universe, set(sec), set(braided), places, op)
+        part = _watershed_part(g, universe, set(sec), set(braided), places, op, reg)
         if isinstance(part, str):
             _fail(part, ",".join(scope))
             return None
