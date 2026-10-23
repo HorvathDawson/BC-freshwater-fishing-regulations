@@ -30,6 +30,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
+import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -107,8 +108,11 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
                        if (open && key === "Escape") onClose();
                        else if (!open && (key === "Enter" || key === "ArrowDown")) onOpen();
                      }}
-                     // a wide screen's Enter keeps the focus in the field (a blur would drop it on the page body)
-                     blurOnSubmit={panel === null}
+                     // a wide screen's Enter keeps the focus in the field on the web (a blur would drop it on the page
+                     // body); the phone/tablet app's Enter drops it, and its keyboard, on every screen (searchFocus)
+                     blurOnSubmit={!(CLOSE_KEEPS_FOCUS && panel !== null)}
+                     // a click on the focused-but-closed field opens search again (web; the click is no fresh focus)
+                     {...closedFieldClick(() => { if (!open) onOpen(); })}
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}

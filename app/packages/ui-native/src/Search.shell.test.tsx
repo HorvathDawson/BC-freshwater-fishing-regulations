@@ -634,6 +634,20 @@ describe("(T69) search on a wide screen by keyboard alone", () => {
         [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label]]);
     }));
 
+  it("a mouse click on the focused-but-closed field opens search again (the click gives no fresh focus)", () =>
+    wide(async () => {
+      mount();
+      act(() => { field().focus(); });
+      escape();
+      await settle();
+      const resting = [where(), focused(), edge()];
+      fireEvent.click(field());
+      await settle();
+      expect([resting, [where(), focused(), edge()]]).toEqual([
+        [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label, "accent"],
+        [`search open · full · "" · tab Map`, SEARCH_BAR.label, "accent"]]);
+    }));
+
   it("a click on the map beside the panel closes search and leaves the focus where the click put it (no pull back " +
      "to the field); a closed field without the focus wears the ink edge", () =>
     wide(async () => {
