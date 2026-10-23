@@ -1,6 +1,6 @@
 # T124 — One per-section layer list: three hand-typed lists beside `SECTION_SOURCE_LAYERS`
 
-Status: DONE — aa9f02e7 (app only; ships with the next app build, no data rebuild).
+Status: DONE — aa9f02e7, review fix 0fd7efff (app only; ships with the next app build, no data rebuild).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings app 3 and 4
 (CONFIRMED, latent).
@@ -84,6 +84,34 @@ Rebuild: none (app). Depends: none. Size: S. Owner: no.
       grep tests walk the tree. It hit `one-formula.test` (not this lane's, left as is) and this lane's
       `one-donor-state.test`. Both new pins now skip a file that vanished; fixed in the ticket commit.
   - After that fix, both pins and `check-boundaries.test` pass together (38/38). `tsc -b` is clean.
+
+## Adversarial review (2026-10-23, 0fd7efff)
+- **Defect: the web map's second path into `setData` did not fan out.** `Map.web.tsx` applies pushed data in two
+  places. One is the `data` effect, which was spread. The other is the colouring engine's `restore`, which puts back
+  pushed data after a relabel clears the tiles. It ran `withoutEngineKeys(latestData.current)` with no
+  `spreadSections`. So a `sections` key carrying any non-engine value reached `adapter.setData(h, "sections", …)`. That
+  throws `unknown layer "sections"` inside `Colouring.set`'s swap. It is latent today. The three builders push only
+  `standing`/`status` under `sections`, `withoutEngineKeys` refuses those on the web, and the key empties out. The
+  first non-engine value pushed that way would have broken the relabel.
+  - **Fix.** The fan-out now lives in `withoutEngineKeys` itself (`return spreadSections(out)`). `one-colouring-engine`
+    already pins that function as the only web path into `setData`. The effect's own spread is dropped. A refusal is
+    reported once, under the key the caller used (`"sections"`), not once per layer.
+  - **Pin.** New test in `one-section-layers` ("the web map fans `sections` out on EVERY path"): the whole value of
+    `withoutEngineKeys({ sections, basin })`, the single report, and every resulting key is a style layer the adapter
+    knows. It also checks that the native renderer spreads before its area split. It failed before the fix. The
+    mutation `return out` fails it again.
+- **Pin strength.** The `object` pattern needed the two layer keys side by side. `{ stream: v, basin: b, lake: v }`
+  passed the grep. The pattern now allows other keys between them, and that spelling is added to its proofs.
+  Mutation: that spelling in `pushedRoute` fails tests 3 and 5, then reverted.
+- **Rechecked, fine.** On native, `wetland` is a style layer that addresses itself (pin 1), and the native sink keys
+  state by source-layer, so standings on `wetland` equal the old `wetland_flowing`. No consumer reads `.stream` or
+  `.lake` off the pushed data. Shell hands either the status data or the conditions data, never a merge, so the
+  `sections` keys cannot collide. `SECTION_SOURCE_LAYERS` changed order from the old sorted
+  `[lake, stream, wetland]`. Its users (`native.ts` `ours`, `waterBox`) only test membership or loop over it.
+- **Checks.** The pins, `packages/map`, `packages/ui/src`, `packages/core` and `NativeAgrees` all pass (144 files,
+  1718 tests). `tsc -b` is clean. Both ran under heavy.sh. The full `app check` was not rerun: its `tickets` and
+  regs-store failures are the ones listed above, and none of them touch this change.
+- **Ships with** the next app build. No data rebuild.
 
 ## Owner questions
 - On a phone, the route map now colours a donor chain's wetland-drawn sloughs, as the standings map already did.

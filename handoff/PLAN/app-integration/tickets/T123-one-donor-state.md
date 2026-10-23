@@ -1,6 +1,6 @@
 # T123 — One donor state: the Conditions lines and the map label read a donor differently
 
-Status: DONE — c8d7dc68 (app only; ships with the next app build, no data rebuild).
+Status: DONE — c8d7dc68, review 0fd7efff (app only; ships with the next app build, no data rebuild).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 6
 (CONFIRMED in code; mostly masked today).
@@ -60,6 +60,20 @@ Rebuild: none (app). Depends: none. Size: S. Owner: no.
   - Putting `if (r.percentile !== null) return donorShare(r);` back in `donorMapLabel` fails pin 3.
   - Putting `quiet: r.percentile === null` back in `ui/panel.ts` fails pin 3.
 - **Checks**: see T124. One `REGS_STORE_REQUIRED=1 pnpm -C app check` covered both lanes.
+
+## Adversarial review (2026-10-23, 0fd7efff)
+- **Call sites re-walked.** Every donor label (`donorReads`, `donorRowLabel`, `donorWeightLine`, `donorSilent`,
+  `silentLine`, `donorMapLabel`/`donorMapKey`, ui `panel.ts` rows, pins, key and gauge choices, data `sheetLead`) reads
+  `donorState`/`donorCounted`. The callers pass the same `{ ref, horizon }` to the row and to the map label (panel.ts
+  pins, key, rows), so the two cannot differ by ask. `donorLastReport`/`readingAgeLine` still parse `observedAt`, but
+  only to format a time. They decide no state. `gaugeGeoJSON`'s `percentile !== null` is a station dot, not a donor.
+- **Pin strength.** The `percentile` pattern only caught a comparison against `null`.
+  `typeof r.percentile !== "number"` is the same test and passed the grep. Added the `percentileType` pattern and its
+  spelling proof. Mutation: that spelling in ui `panel.ts` gauge choices fails test 3, then reverted.
+- **Mutations re-run.** The builder's list holds: map `no-forecast` → `quiet` fails pin 1 and the routeMap test.
+- No behaviour defect found in T123.
+- **Checks.** The pins, `packages/core`, `packages/ui/src`, `packages/map` and `NativeAgrees` all pass (144 files,
+  1718 tests). `tsc -b` is clean. Both ran under heavy.sh.
 
 ## Owner questions
 - The map word for a donor with no forecast at the horizon is `no forecast`, for both a day ahead and Change. The
