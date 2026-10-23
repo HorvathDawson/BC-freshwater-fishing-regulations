@@ -96,7 +96,7 @@ use that as the sole source of future work."
 | T49 | map's day: calendar icon + date sheet | DONE | 02570d07, 1fc9be2e, 9db57864 | — |
 | T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket) | all; after T61–T63, heavy, alone |
 | T51 | spot similarity forecast ("Like your visit?") | OPEN | a7b94f4e (ticket) | all |
-| T52 | Conditions "Expected change" | OPEN | 6ffda443 (ticket) | all (pipeline daily series + app chip) |
+| T52 | Conditions "Expected change" | IN PROGRESS | 6ffda443 (ticket) | all (pipeline daily series + app chip) |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | OPEN | a43a7122 (ticket) | all; Q1–Q3 build with defaults |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
