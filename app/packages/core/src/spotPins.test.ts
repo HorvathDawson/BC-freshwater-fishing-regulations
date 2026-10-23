@@ -131,7 +131,11 @@ describe("spotUnder: the mark a tap lands on (T145: a tap on a spot is never als
     const b: SpotPoint = { id: "b", lat: TAMIHI.lat, lon: TAMIHI.lon + (36 / world) * 360, title: "B" };
     const marks = spotMarkers([TAMIHI, b], z, null);
     const at = (dx: number) => spotUnder(marks, TAMIHI.lat, TAMIHI.lon + (dx / world) * 360, z)?.key ?? null;
-    expect([marks.length, at(10), at(26)]).toEqual([2, "spot:s1", "spot:b"]);
+    // (T145 review) both taps sit INSIDE BOTH targets (each 22 px a side; the marks 36 px apart overlap from 14 to 22),
+    // so only the distance decides: a first-match would answer s1 for both (it did, and this test still passed)
+    const inBoth = (dx: number) => Math.abs(dx) <= SPOT_PIN.hit / 2 && Math.abs(36 - dx) <= SPOT_PIN.hit / 2;
+    expect([marks.length, inBoth(16), inBoth(20), at(16), at(20), at(10), at(26)])
+      .toEqual([2, true, true, "spot:s1", "spot:b", "spot:s1", "spot:b"]);
   });
 });
 
