@@ -709,6 +709,21 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   change is +134 sections, 65 changed, 6 lost. OWNER QUESTION (not decided here): should a side-channel gauge speak
   for the river it branched from and that river's tributaries? Until answered, the slough behaves like every other
   side channel, as "a line in its place" would.
+- CLAUDE (review, REAL GRAPH re-measured independently, heavy.sh): reproduced old 246,657 / new 286,678 (walk +
+  fallback), 40,021 gained, 0 lost, 0 lake/wetland/unowned polygon gained; all 7,621 lake-item polygons stay lakes;
+  Harrison Lake 08MG012 still lake-crossed on all 1,306 records. THE 71,668 IS LEVEL ONLY: 08MH085/086 report level
+  and nothing else (5 years each), so Flow moves on 65 gains + 30 changes in all, none involving them; Level gains
+  40,011 (39,907 answered by those two alone) and changes 31,747. The owner question is "should two 5-year level-only
+  backwater slough gauges be the Level answer for 71,668 sections up the Fraser", not a flow question. The gauges stand
+  on a LINE (355991886:0), and 140,598 of the 148,062 lake-flag flips were already lake-free over lines alone: the old
+  walk's lake flag is ORDER-DEPENDENT (first visit wins in a DFS with a seen-set), and the slough polygons only hid
+  the climb by being visited first. Still in the new walk: 2,074 records at 75 stations are flagged lake although a
+  lake-free path exists (pre-existing, not fixed here).
+  FIXED (review): 9 polygons of side-channel sloughs (Maria 3, Nicomen 2, McArthur Island, Gravel, West Road …) walked
+  on their own 1.4 km² and took ten creek gauges up to 400 km away while the slough's lines either side carried the
+  Fraser via `mainstem_of` — the Herrling Island artefact. `build_panels.side_channel_polygons`: a stream polygon whose
+  nearest own-water line (downstream first) is an adopted side channel takes that line's answer, or none; 14/14 now
+  agree with their lines. Pinned in `test_polygon_walk.py`.
 
 ## OWNER 2026-10-22 (late) — back from a searched water lands on the map, at the water
 - Owner: after searching and opening a water (its regulations), back returns to the search list. It should land on
