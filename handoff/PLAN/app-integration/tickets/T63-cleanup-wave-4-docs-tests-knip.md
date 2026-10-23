@@ -13,3 +13,9 @@ Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big te
   must derive the value from a stated source (taps.json / golden from the Python reference decoder, the manifest, the
   store) or name the property they test. A guard: no live-release test asserts a bare integer id literal without a
   comment naming why it is fixed. (Triage of the 305 failures on r-36fbc5326506 is lane wf_64942248-585.)
+  Done (lane wf_64942248-585, a72f60fb 0cd23d51 1922d232): all 305 triaged — ~35 literal pins now read taps.json /
+  rule keys / the province store (blob.test's table → conformance/blob.release.test.ts, Python + zlib); the page v36
+  oracle's rix is mapped to the store by key (`oracleRixOver`: 273 settle/card/describe failures were T89's dropped
+  Endako 7A rule renumbering every later rix); Rainbow Alley on Babine parts 1-2 (T89) recorded as ORACLE_PREDATES;
+  klmb_1010 D19 (a) → D19_GROUPS. Still owed: re-cut page_v36.html's blocks + hydrate.json (human: `page_data --html`,
+  then `node app/design/regs-v11/port/hydrate.mjs`), which retires ORACLE_PREDATES.

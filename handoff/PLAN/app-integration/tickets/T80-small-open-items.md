@@ -112,3 +112,8 @@ Owner questions (each with the default built):
   `change` arriving more than 1 s after focus (large file / slow disk on desktop Chrome, iOS transcoding) would resolve
   null and lose the pick (the person picks again). **Q-T80c** arm the fallback only where cancel is unsupported?
   Default: as built (a lost pick is re-picked; a hung picker was a dead button); verify on Safari < 16.4 and iOS.
+
+## After the r-36fbc5326506 re-cut (lane wf_64942248-585, 1922d232)
+- Item 3's klmb_1010 exclusion: kept and reworded, not removed (removing fails by construction: the golden draws the
+  legacy article). The app's rainbow group is set aside by row (`exclusions.ts` D19_GROUPS, asserted present once) and
+  its possession-sheet line (D19_SHEET_LINES); keep.parity pins the group's drawn lines whole.
