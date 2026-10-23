@@ -149,25 +149,19 @@ use that as the sole source of future work."
 
 ## Order for open tickets
 
-Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★ = needs the owner (works with its default
-meanwhile unless marked BLOCKED).
+Owner 2026-10-22 (back): features and correctness BEFORE the cleanup waves, so the cleanup is done once over finished
+code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★ = needs the owner.
 
-1. **In flight — finish first:** T56 (merge wf_3976eddc-bba + wf_e4e2b70f-f21, then the one rebuild),
-   T66 (plan written → ★ owner reads PLAN.md), T67 (assessment → ★ owner), T55 (finder → ★ owner reviews candidates).
-2. **Right after T56:** T57 (T53 is merged), T82 (fixtures re-cut; ★ owner launches the reader run), T58, T69, T71,
-   T83, T81 (cheap, unblocks recorded calls), T84, T96 (ingest for R3/prov is broken until it lands).
-3. **Ride the next reach rerun / deliver together** (one heavy job): T59 → T76, T89, T90, T78, T80 item 3 (D19);
-   T91 ★ when the owner has confirmed the sign location. Then T73 (reach format, alone; not concurrent with T61's
-   normaliser).
-4. **Cleanup waves, in order:** T70 → T61 → T62 → T63 (knip starts clean after T70). T72 after T56 settles the live
-   release. T92, T94, T60, T99 fit anywhere in this band.
-5. **Tiles window (one tile build):** T64 + T85, then T75. T65 (determinism proof, heavy, background, alone) in a
-   quiet window between heavy jobs.
-6. **Native, after the cleanup:** T50 (alone, heavy) → T74 → T77 ★ (phone) → T86 ★ (R2, keys, name) → T88 ★.
-7. **Features / pipeline additions:** T54 (build with defaults), T52, T51, T68, T93 ★, T79 ★, T97 ★ (after the owner
-   approves the plan), T100 ★ (rides a reach rerun).
-8. **Last:** T87 ★ (owner sign-off walk, then delete app/design), T95 ★ (salmon plan after the app release),
-   T98 ★ (POSTPONED until the owner lifts the tidal hold).
+1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
+   deliver), T52 (Expected change).
+2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
+   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T92, T99, T100 ★ (rides a reach rerun), T94.
+3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T91, T93.
+4. **Cleanup, once features settle:** T60 (consistency auditors) → T70 leftover → T61 → T62 → T63; T72 and T73 in
+   this band (T73 alone, not concurrent with T61's normaliser).
+5. **Tiles window (one tile build):** T64 + T85, then T75.
+6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
+7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
 
 ## Owner questions
 
