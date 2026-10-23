@@ -1,6 +1,6 @@
 # T142 — Review screen leftovers: focus after a click, refusal wording, partial mark (Q96), draft-guard test
 
-Status: DONE — 2e8234bb (blur, browser test), 1218d094 (refusal wording, shared with T135), adversarial review fix 32c1997f (lane-T135). Q96's partial "text and rules verified" mark is NOT built (owner default: no);
+Status: DONE — 9c141d24 (blur, browser test), 8d0f5d76 (refusal wording, shared with T135), adversarial review fix 9b8de2e3 (lane-T135). Q96's partial "text and rules verified" mark is NOT built (owner default: no);
 documented below. Takes effect on merge: no rebuild.
 
 Source: T134 "Left / follow-ups" and its adversarial review (T134-curation-review-screen.md).
@@ -64,7 +64,7 @@ Depends: T134. Size: S. Owner: Q96 only.
 ## Left / follow-ups
 - The browser test needs `curation-review/frontend/node_modules` (`npm install`); it fails naming that when absent.
 
-## Adversarial review (2026-10-23, 32c1997f)
+## Adversarial review (2026-10-23, 9b8de2e3)
 Re-ran the browser tests (2 passed, 50 s, own ports) and the blur mutant by hand: without `ev.currentTarget.blur()`,
 `test_enter_after_clicking_an_answer_records_the_mark` FAILS (`document.activeElement === document.body` is false).
 Read every refusal a reviewer can cause through the screen. Found and fixed:

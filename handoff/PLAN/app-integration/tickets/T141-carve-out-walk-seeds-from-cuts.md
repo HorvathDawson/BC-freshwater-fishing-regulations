@@ -1,6 +1,6 @@
 # T141 — Carve-out walk seeds from the extent's cuts; a braid cut reports its side-channel crossings
 
-Status: DONE — e69750c0, 48869e83 (adversarial review: one carve-out walk). No binding moved.
+Status: DONE — 8c05e725, d5899459 (adversarial review: one carve-out walk). No binding moved.
 
 Source: T111's leftovers (owner Q100, 2026-10-23: "yes, as T141 with a measured diff").
 
@@ -78,7 +78,7 @@ Rebuild that ships it: reach (+ deliver, which follows any reach rerun). It chan
   ticket.
 - AGENTS rule 16 parity (review app vs builder) was not re-run. The review app calls the same functions.
 
-## Adversarial review (2026-10-23) — 48869e83
+## Adversarial review (2026-10-23) — d5899459
 **Defect: a second copy of the carve-out walk, unpinned.** `build_reaches`' licensing carve-out check called
 `tributaries_of_reach(graph, secs, cuts=…)` itself. It did not reuse what `resolve_carve_outs` walked. That copy is
 exactly the one T141 had to remember to re-seed. Reverting it to the old `tributaries_of_reach(graph, secs)` (node

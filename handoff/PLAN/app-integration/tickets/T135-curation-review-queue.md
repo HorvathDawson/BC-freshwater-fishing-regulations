@@ -1,6 +1,6 @@
 # T135 — Curation review phase 4: risk-ordered queue, pre-checks, ticket export, commit marks
 
-Status: DONE — 1218d094, adversarial review fixes 32c1997f (lane-T135). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
+Status: DONE — 8d0f5d76, adversarial review fixes 9b8de2e3 (lane-T135). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. The run-based factors read the served reach run as it is; a reach run (already
 part of every `python -m pipeline build --no-tiles`) refreshes them, and the screen re-reads it by file stamp.
 
@@ -109,7 +109,7 @@ Mutation pins (each named mutant fails the named test): `risks` ignored by the r
 - `parse_findings` is untested against a real `reviews/` dir (none exists; `io.read_review_findings` has its own tests).
 - Not run: Tier 2 (`scripts/test-full.sh`), `pnpm -C app check` (no app changes).
 
-## Adversarial review (2026-10-23, 32c1997f)
+## Adversarial review (2026-10-23, 9b8de2e3)
 Read the diff against PLAN §4 phase 4, re-ran every measurement on the live run (b9be92114323aa22, the same counts as
 81e726a3: P1 226 / Z 132 / P2 261 / P3 118 / P4 728 / sweep 60; P1 first factor 2 / 58 / 31 / 121 / 10 / 4; every
 pre-check count identical), spot-checked rows on real waters (Ash River: three ambiguous cuts on r1 / r2 with the

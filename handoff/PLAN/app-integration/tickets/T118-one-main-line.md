@@ -1,6 +1,6 @@
 # T118 — One main line: spans pick a water's stem by length, continuation by section count
 
-Status: DONE — f214beee, review 79221a05 (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
+Status: DONE — 0ac0fc2b, review 0f918ea0 (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
 deliver run is only needed to carry the code, not to change data.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 2

@@ -1,6 +1,6 @@
 # T123 — One donor state: the Conditions lines and the map label read a donor differently
 
-Status: DONE — c8d7dc68, review 0fd7efff (app only; ships with the next app build, no data rebuild).
+Status: DONE — 7355fc2e, review b78a9bb0 (app only; ships with the next app build, no data rebuild).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 6
 (CONFIRMED in code; mostly masked today).
@@ -25,7 +25,7 @@ shots unchanged except the horizon case).
 
 Rebuild: none (app). Depends: none. Size: S. Owner: no.
 
-## As built (c8d7dc68)
+## As built (7355fc2e)
 - **Core** `app/packages/core/src/conditions.ts`: `donorState(r, { ref, horizon })` returns one tagged state:
   `reads` (with its percentile), `not-realtime`, `no-forecast`, `unranked` or `quiet`. The order is the ruling. A
   reading wins. "Not real-time" holds at every horizon. A horizon with no forecast comes before anything about today's
@@ -61,7 +61,7 @@ Rebuild: none (app). Depends: none. Size: S. Owner: no.
   - Putting `quiet: r.percentile === null` back in `ui/panel.ts` fails pin 3.
 - **Checks**: see T124. One `REGS_STORE_REQUIRED=1 pnpm -C app check` covered both lanes.
 
-## Adversarial review (2026-10-23, 0fd7efff)
+## Adversarial review (2026-10-23, b78a9bb0)
 - **Call sites re-walked.** Every donor label (`donorReads`, `donorRowLabel`, `donorWeightLine`, `donorSilent`,
   `silentLine`, `donorMapLabel`/`donorMapKey`, ui `panel.ts` rows, pins, key and gauge choices, data `sheetLead`) reads
   `donorState`/`donorCounted`. The callers pass the same `{ ref, horizon }` to the row and to the map label (panel.ts

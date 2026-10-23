@@ -1,6 +1,6 @@
 # T124 — One per-section layer list: three hand-typed lists beside `SECTION_SOURCE_LAYERS`
 
-Status: DONE — aa9f02e7, review fix 0fd7efff (app only; ships with the next app build, no data rebuild).
+Status: DONE — 4976bf2b, review fix b78a9bb0 (app only; ships with the next app build, no data rebuild).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings app 3 and 4
 (CONFIRMED, latent).
@@ -27,7 +27,7 @@ A test that every list equals `perSectionLayers()` or its declared subset. App s
 
 Rebuild: none (app). Depends: none. Size: S. Owner: no.
 
-## As built (aa9f02e7)
+## As built (4976bf2b)
 - **`perSectionLayers()`** in `app/packages/map/src/sections.ts` returns `["stream", "lake", "wetland"]`, typed
   `PerSectionLayer`. The list is spelled only here.
   - `SECTION_SOURCE_LAYERS`, `WATER_SOURCE_LAYERS`, colouring's `LABEL_SOURCE_LAYERS` (type `LabelSourceLayer =
@@ -85,7 +85,7 @@ Rebuild: none (app). Depends: none. Size: S. Owner: no.
       `one-donor-state.test`. Both new pins now skip a file that vanished; fixed in the ticket commit.
   - After that fix, both pins and `check-boundaries.test` pass together (38/38). `tsc -b` is clean.
 
-## Adversarial review (2026-10-23, 0fd7efff)
+## Adversarial review (2026-10-23, b78a9bb0)
 - **Defect: the web map's second path into `setData` did not fan out.** `Map.web.tsx` applies pushed data in two
   places. One is the `data` effect, which was spread. The other is the colouring engine's `restore`, which puts back
   pushed data after a relabel clears the tiles. It ran `withoutEngineKeys(latestData.current)` with no

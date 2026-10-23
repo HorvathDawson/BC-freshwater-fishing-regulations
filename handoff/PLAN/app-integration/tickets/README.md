@@ -162,13 +162,13 @@ use that as the sole source of future work."
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | DONE | c7aa109f, 3b07fefc, 7552cab6, 5a07b674, 10cc45c6, 3aa88557 | 1 licensing section; gauge shed change ships at deliver (Q103); delivered r-941dcc149b17 |
-| T118 | one main line for spans and continuation | OPEN | — | all (deliver; with T108) |
+| T118 | one main line for spans and continuation | DONE | 0ac0fc2b, 348f9519, 0f918ea0, 749482e9 | no shipped row changes (13 waters' exit evidence moves, no water_exit row) |
 | T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
 | T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
-| T121 | water kind in reach and gauges via kind_of | OPEN | — | all (reach rerun) |
-| T122 | one station liveness (active/realtime/ECCC) | OPEN | — | all (deliver) |
-| T123 | one donor state for Conditions and map labels | OPEN | — | all (app) |
-| T124 | one per-section layer list in map | OPEN | — | all (app) |
+| T121 | water kind in reach and gauges via kind_of | DONE | 7c11c27b, 35dd2ff1, d5899459, 82c59195 | no binding moved; +18 gauged river polygons at deliver |
+| T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak |
+| T123 | one donor state for Conditions and map labels | DONE | 7355fc2e, 5887de97, b78a9bb0, 7a72d388 | app only |
+| T124 | one per-section layer list in map | DONE | 4976bf2b, 5887de97, b78a9bb0, 7a72d388 | app only; native route colours wetland sloughs |
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
@@ -179,14 +179,14 @@ use that as the sole source of future work."
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
 | T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
 | T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
-| T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
+| T135 | curation review phase 4: queue, pre-checks, ticket export | DONE | 8d0f5d76, 19dbc1ee, 9b8de2e3, 0a2be2da | no rebuild |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
 | T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
-| T140 | bundle regions of a water + area families ask the one region membership (G3) | OPEN | — | deliver, measured diff (Q99) |
-| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | OPEN | — | reach rerun + binding diff |
-| T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | OPEN | — | after T134 |
+| T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes |
+| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved |
+| T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
 
 ## Order for open tickets
 
@@ -290,6 +290,15 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q102 | T117 | Burnaby Lake's two equal-order main-flow outlets (Brunette River + an added stream) both count as the lake's own river? | yes: on an order tie every main-flow outlet counts | owner |
 | Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
 | Q104 | T117 | build_panels.candidates (reading propagation) keeps its own rules rather than stepping through may_enter? | keep (it propagates readings, it collects no tributary set) | owner |
+| Q105 | T135 | Pre-check codes: the audit's A1–A13 were never committed, so the 12 pre-checks are named for what they check (A = fact, B = heuristic)? | these codes; name any missing audit code | owner |
+| Q106 | T135 | "Undrawn part" is a risk factor (P1 starts with closures with undrawn parts; moves 1 entry P4 → P3)? | yes | owner |
+| Q107 | T135 | The review order (all regions, S0 split points first) is the queue's default; "book (page)" one click away? | yes | owner |
+| Q108 | T135 | A split added on a water stales every marked entry on that water, even when no rule names the split (T133's binding fingerprint)? | yes (as Q81) | owner |
+| Q109 | T135 | A cut picked by hand (cut_pick) is no longer the "ambiguous cut" risk (stays a B pre-check)? | yes | owner |
+| Q110 | T123 | A donor with no forecast at the horizon is labelled "no forecast" on the map (was "not reporting")? | yes | owner |
+| Q111 | T121 | A gauge on standing water means lake OR wetland (no live station affected)? | yes | owner |
+| Q112 | T121 | 08MH024 (Fraser at Mission) now speaks, weakly, for the Vedder Canal polygon of the Vedder — keep, or should the Vedder's own gauge win there? | keep (follows the walk and drainage test) | owner |
+| Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

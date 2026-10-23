@@ -1,6 +1,6 @@
 # T140 — Bundle regions of a water + area families ask the one region membership (G3)
 
-Status: DONE — b08d32f2 (adversarial review: no change). Measured: no bundle row changes today (latent defect closed).
+Status: DONE — 41f541a9 (adversarial review: no change). Measured: no bundle row changes today (latent defect closed).
 
 Source: T115's leftovers (owner Q99, 2026-10-23: "yes, as T140 with a measured diff").
 

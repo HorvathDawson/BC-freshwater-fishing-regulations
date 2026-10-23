@@ -1,6 +1,6 @@
 # T122 — One station liveness: "active", "realtime" and "ECCC-listed" used interchangeably
 
-Status: DONE — 8420713f, review 79221a05 (lane-T118). Ships with the next deliver (bundle code) and the next feed run
+Status: DONE — 9fe57691, review 0f918ea0 (lane-T118). Ships with the next deliver (bundle code) and the next feed run
 (`pipeline.gauges.feed.publish`); measured bundle output unchanged, no station's liveness changes.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 5

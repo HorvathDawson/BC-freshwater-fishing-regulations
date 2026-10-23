@@ -1,6 +1,6 @@
 # T121 — Water kind in reach and gauges: read `water_kind.kind_of`, not the graph `NodeKind`
 
-Status: DONE — c5ce4298, 48869e83 (adversarial review: wiring pinned). Reach: no binding moved; bundle: +18 gauged sections (river polygons and sloughs).
+Status: DONE — 7c11c27b, d5899459 (adversarial review: wiring pinned). Reach: no binding moved; bundle: +18 gauged sections (river polygons and sloughs).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings reach 8 and
 the Python half of cross 8 (PLAUSIBLE).
@@ -101,7 +101,7 @@ changes no binding today.
   the drainage test (the canal drains through Mission), and it is weak by the band. It is listed in case the owner
   wants the Vedder's own gauge to win there. That is T105/T76 territory (one gauge speaker), not this ticket's.
 
-## Adversarial review (2026-10-23) — 48869e83
+## Adversarial review (2026-10-23) — d5899459
 **Defect: the change that ships was not pinned by any test.** Each reader takes the registry as an optional argument,
 and `None` means the node's shape. So a production caller that forgot it would silently read the shape again, and
 the unit tests (which pass the registry themselves) would stay green. Each of these mutations was run, and each
