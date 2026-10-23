@@ -896,7 +896,10 @@ Q23, T3a, P8.
   no sub-cap that is its row's OWN pool, not limited to a kind of water (Kootenay Lake — Main Body's
   rainbow 10, Tranquille's rainbow, Region 7's brook trout lakes): the model refuses every other one-kind
   group (`GroupTotal._shares` for the fish, `RowsFrame._one_kind_groups` for the pool — some row of the
-  frame pools that kind under the group's pool). Vedder (mouth
+  frame pools that kind under the group's pool). Only on a row DRAWN on its own (T80 follow-up,
+  `rows.A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW`): a row another pool holds (`rows.parent_of`; Perry Creek's
+  brook trout 20 under the St. Mary's tributaries' 1) is said inside that pool and keeps no group — the
+  model refuses one there (`RowsFrame._one_kind_groups`). Vedder (mouth
   part), Oct 10: "Up to 4 trout and char a day, steelhead included; at most 2 from streams (hatchery
   rainbow trout 50 cm or less excepted); at most 1 Dolly Varden/bull trout or lake trout; at most 2
   over 50 cm; at most 1 over 50 cm, not counting steelhead." and "Kept 2 on another stream? Keep 0

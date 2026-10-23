@@ -1163,6 +1163,11 @@ class RowsFrame(Model):
             if not any(o.pool == g.pool and set(g.kinds) <= set(o.members) for o in self.rows):
                 raise ValueError(f"row {i}'s one-kind group (pool {g.pool}) is not its own row's pool: a group is a "
                                  f"total several kinds share, or one with a sub-cap, or a trout/char row's own total")
+            # T80 follow-up (rows.A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW): only on a row drawn on its own — a row held
+            # by another pool (Perry Creek's brook trout under the St. Mary's tributaries' 1) is said inside that pool
+            if r.parent is not None:
+                raise ValueError(f"row {i}'s one-kind group (pool {g.pool}) sits on a row held by another pool "
+                                 f"(row {r.parent}): a one-kind trout/char group is a drawn row's own total")
         return self
 
 

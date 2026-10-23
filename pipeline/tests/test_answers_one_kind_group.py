@@ -270,3 +270,75 @@ def test_mutation_a_one_kind_trout_group_on_another_rules_pool_is_refused(built)
     card["rows"][i]["group"]["pool"] = other
     with pytest.raises(ShapeError, match="its own row's pool"):
         _check(card)
+
+
+# --------------------------------------------------------------------------------------------
+# T80 follow-up (batch-3 deliver, 2026-10-22): a one-kind row HELD BY ANOTHER POOL is no group of its own.
+# Perry Creek (Region 4, a St. Mary River tributary): "brook trout daily quota = 20" (perry_creek.r3) is its row's own
+# pool, but the row is held by the St. Mary's "trout/char 1 on all tributaries" row (its `parent`: that row
+# cross-references the brook trout). The app draws no article for a held row (page v36 parentRow, core `drawnRows`),
+# so a group there is never drawn — and the card worded it through the parent's cross-reference ("1", against the
+# St. Mary's 1, which the reader DISPLACED for brook trout: 20 may be kept), so the card gate failed 30 times on the
+# deliver. The one-kind group fires only on a row no other pool holds (`rows.parent_of`, the one definition).
+# --------------------------------------------------------------------------------------------
+
+PERRY = "gnis:14741"
+PERRY_EB = "r4:perry_creek@4-20::perry_creek.r3"
+ST_MARY_TRIBS = "r4:st_mary_river@4-20::st_mary_river.r2"
+
+
+def _perry(data, model, md=(6, 15)):
+    card = _card(model, PERRY, md)
+    row = _row(data, card, PERRY_EB)
+    parent = card["rows"][row["parent"]] if row.get("parent") is not None else None
+    return row, parent
+
+
+def _gate(model, items):
+    from pipeline.deliver.answers import card_check as CC
+    data, _ = C.load_export(EXPORT_DIR)
+    return CC.check_model(model, BUNDLE, data, log=lambda *_: None)["problems"]
+
+
+@pytest.fixture(scope="module")
+def perry(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, _ = C.load_export(EXPORT_DIR)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
+    return data, model
+
+
+@pytest.mark.needs_bundle
+def test_perry_creek_brook_trout_held_by_the_st_mary_row_is_no_group(perry):
+    data, model = perry
+    for md in ((6, 15), (7, 15), (10, 10)):
+        row, parent = _perry(data, model, md)
+        assert (row["members"], parent is not None and data["rule_ids"][parent["pool"]], row.get("group")) \
+            == (["EB"], ST_MARY_TRIBS, None)
+    assert _gate(model, [PERRY]) == []
+
+
+@pytest.mark.needs_bundle
+def test_mutation_a_one_kind_group_on_a_held_row_fails_the_card_gate(perry, monkeypatch):
+    """MUTATION: without the drawn-row condition Perry Creek's brook trout row gets a group again, worded "1" through
+    the St. Mary's cross-reference, and the card gate refuses it (the batch-3 deliver's 30 problems, one key here)."""
+    data, _ = perry
+    monkeypatch.setattr(RW, "A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW", False)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
+    row, _parent = _perry(data, model)
+    assert row["group"]["kinds"] == ["EB"]
+    probs = _gate(model, [PERRY])
+    assert any(f"total {PERRY_EB}: headline says 1, with no lift 2 may be kept here" in p for p in probs), probs
+
+
+@pytest.mark.needs_bundle
+def test_mutation_a_one_kind_trout_group_on_a_held_row_is_refused_by_the_model(built):
+    """MUTATION: klmb's one-kind rainbow group with its row made held by another pooled row of the frame — the model
+    (`RowsFrame._one_kind_groups`) refuses it, as the build's own validation would."""
+    from pipeline.deliver.answers.model import ShapeError
+    data, model = built
+    card, i = _one_kind_frame(data, model)
+    card["rows"][i]["parent"] = next(j for j, r in enumerate(card["rows"]) if j != i and r["pool"] is not None)
+    with pytest.raises(ShapeError, match="held by another pool"):
+        _check(card)

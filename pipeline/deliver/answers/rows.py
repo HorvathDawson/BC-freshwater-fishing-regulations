@@ -1831,6 +1831,14 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
 #: until T80's follow-up (the gate's places for a water-limited total; a contained one-kind row).
 A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP = True
 
+#: T80 follow-up (batch-3 deliver, 2026-10-22): the one-kind trout/char group is for a row DRAWN ON ITS OWN — one no
+#: other pool holds (`parent_of`, rows 31; core `drawnRows` draws no article for a held row). Perry Creek's "brook trout
+#: 20" row is held by the St. Mary's "trout/char 1 on all tributaries" row (which cross-references the brook trout):
+#: a group there was never drawn, and the card worded it "1" through that cross-reference while the reader had
+#: DISPLACED the St. Mary's 1 for brook trout (20 may be kept) — the card gate's 30 problems. The held row's fish stay
+#: said inside the holding pool's article, as before T80. `model.RowsFrame._one_kind_groups` refuses the shape.
+A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW = True
+
 
 def _trout_char() -> frozenset:
     return common.trout_char()                          # the model (model.py) accepts by the same predicate
@@ -2069,18 +2077,25 @@ def produce(P: Part) -> dict:
         T = totals.get(id(row))
         if T is not None:
             home.setdefault(T.key, id(row))
-    own_row = {T.key for row in model["rows"] if (T := totals.get(id(row))) is not None and row["pool"] is T}
+    # rows 31: the pool row holding each pooled row (page v36 parentRow), decided once, before the groups — a row held
+    # by another pool is drawn inside that pool's article, never as its own (`A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW`)
+    stubs = [{"pool": row["pool"].key if row.get("pool") else None, "members": list(row["members"]),
+              "all_members": list(row["allMembers"]),
+              "groups": [{"members": g["members"], "facts": [fact_out(l) for l in g["facts"]]} for g in row["groups"]]}
+             for row in model["rows"]]
+    parents = {i: p for i in range(len(stubs)) if (p := parent_of(stubs, i)) is not None}
+    own_row = {T.key for i, row in enumerate(model["rows"]) if (T := totals.get(id(row))) is not None
+               and row["pool"] is T and not (A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW and i in parents)}
     groups = {k: group_of(P, model, P.by_key[k], own_row=k in own_row) for k in home}
     rows = []
-    for row in model["rows"]:
-        o = {"kind": row["kind"], "pool": row["pool"].key if row.get("pool") else None,
+    for row, stub in zip(model["rows"], stubs):
+        o = {"kind": row["kind"], "pool": stub["pool"],
              "win": row["win"].key if row.get("win") else None,
-             "members": list(row["members"]), "all_members": list(row["allMembers"]),
+             "members": stub["members"], "all_members": stub["all_members"],
              "daily": _num(row["daily"]),
              "narrow": row["narrow"].key if row.get("narrow") else None,
              "everyone": [fact_out(l) for l in row["everyone"]],
-             "groups": [{"members": g["members"], "facts": [fact_out(l) for l in g["facts"]]}
-                        for g in row["groups"]],
+             "groups": stub["groups"],
              "prot": row.get("prot"), "wins": [r.key for r in row["wins"]] if row.get("wins") else None,
              "lift_notes": [[n["by"], n["q"]] for n in row["liftNotes"]],
              "scope": scope_of(P, row)}
@@ -2136,10 +2151,8 @@ def produce(P: Part) -> dict:
         if o.get("elsewhere") is not None:
             o["elsewhere"].pop("lines", None)
     # rows 31 (owner rule 2026-10-21): the pool row that holds a pooled row's fish (page v36 parentRow), decided here
-    for i, o in enumerate(rows):
-        p = parent_of(rows, i)
-        if p is not None:
-            o["parent"] = p
+    for i, p in parents.items():
+        rows[i]["parent"] = p
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     line = steelhead_line(P.presence, has_row)
