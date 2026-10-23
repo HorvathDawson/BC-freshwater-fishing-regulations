@@ -783,11 +783,17 @@ CREATE VIEW alternative_section AS
 -- station's level — HYDAT's own tidal remarks joined with data/curated/gauges/tidal.json
 -- (pipeline/gauges/consume/tidal.py). The app says so in the Level view. Added LAST with a
 -- default, so the release stays conditions/1 and a reader of an older one sees 0.
+-- `backwater` (T160, Q49): 1 where a LAKE below the station backs water up onto it, standing
+-- (08HB074, Cruickshank River: "variable backwater from Comox Lake") — the authored
+-- data/curated/gauges/backwater.json, each row checked against the station's own HYDAT remark
+-- (pipeline/gauges/consume/tidal.py). Never 1 beside `tidal`. Its own Level sentence in the app.
+-- Added LAST with a default, as `tidal` was: still conditions/1.
 CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
                     item_id TEXT, sid INTEGER,
                     lon REAL, lat REAL, area_km2 REAL, mag INTEGER,
                     matched_by TEXT, match_m REAL,
-                    tidal INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
+                    tidal INTEGER NOT NULL DEFAULT 0,
+                    backwater INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
 
 -- ONE station per reach: the one that most nearly IS that water.
 --

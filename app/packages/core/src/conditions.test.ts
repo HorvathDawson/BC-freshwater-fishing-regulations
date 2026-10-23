@@ -13,7 +13,7 @@ import {
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
   noChartSentence, noGaugeSentence, readingHeading, readingStandingLine, regulatedNote,
-  shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, unplacedNote, type DonorFacts,
+  shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, unplacedNote, type DonorFacts,
 } from "./conditions";
 import type { Estimate, NoEstimate } from "./trust";
 
@@ -243,6 +243,25 @@ describe("the notes under the working", () => {
     expect(tidalNote([row({ ...tidal, percentile: null })], "level")).toBeNull();
     expect(tidalNote([row(), row({ route: { path: [], tidal: false } })], "level")).toBeNull();
     expect(tidalNote([], "level")).toBeNull();
+  });
+
+  /*
+   * T160 (Q49 decided 2026-10-23): 08HB074's record names a standing "variable backwater from Comox Lake" — its own
+   * Level sentence, never the tide's. Same rule: Level only, about a reporting member.
+   */
+  it("says a lake's backwater in the Level view, about a reporting backed-up gauge, and never as the tide", () => {
+    const backed = row({ route: { path: [], name: "CRUICKSHANK RIVER NEAR THE MOUTH", backwater: true } });
+    expect(backwaterNote([row(), backed], "level"))
+      .toBe("One of these gauges sits where a lake backs up into the river: its level rises and falls with the lake "
+            + "as well as with what this river carries.");
+    expect(BACKWATER_NOTE).toBe(backwaterNote([backed], "level"));
+    expect(tidalNote([row(), backed], "level")).toBeNull();
+    expect(backwaterNote([row({ route: { path: [], tidal: true } })], "level")).toBeNull();
+    expect(backwaterNote([row(), backed], "discharge")).toBeNull();
+    expect(backwaterNote([row({ ...backed, percentile: null })], "level")).toBeNull();
+    expect(backwaterNote([row(), row({ route: { path: [], backwater: false } })], "level")).toBeNull();
+    expect(backwaterNote([], "level")).toBeNull();
+    expect(BACKWATER_NOTE).not.toBe(TIDAL_NOTE);
   });
 
   it("warns in words when the gauges disagree, above 25 points", () => {

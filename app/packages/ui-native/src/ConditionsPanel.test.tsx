@@ -9,7 +9,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine,
-         stageLine, TIDAL_NOTE } from "@app/core";
+         stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -89,6 +89,33 @@ describe("the conditions panel", () => {
     fold();
     await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
     expect(screen.queryByText(TIDAL_NOTE)).toBeNull();
+  });
+
+  it("discloses a lake's backwater on a backed-up lead in Level only, in its own words (T160)", async () => {
+    const backedSource = (base: RegsSource) => ({
+      ...base,
+      panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near the Mouth", lat: 49, lon: -122, role: "up",
+                                  path: [SEC], backwater: true }],
+    }) as unknown as RegsSource;
+    const both = { index: async () => ({ stations: {
+      LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15, level: 0.4 } } }) };
+    const source = backedSource(sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
+                                             at: "2026-09-04T06:00:00Z" }, PANEL));
+    const fold = () => fireEvent.click(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }));
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} parameter="level"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
+    fold();
+    await waitFor(() => expect(screen.getByText(BACKWATER_NOTE)).toBeTruthy());
+    expect(screen.queryByText(TIDAL_NOTE)).toBeNull();
+    cleanup();
+    clearPanelCache();
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} parameter="discharge"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
+    fold();
+    await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
+    expect(screen.queryByText(BACKWATER_NOTE)).toBeNull();
   });
 });
 

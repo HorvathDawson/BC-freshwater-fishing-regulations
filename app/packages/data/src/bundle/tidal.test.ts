@@ -31,6 +31,27 @@ describe("a tidal gauge's flag on its route (T78)", () => {
     ]);
   });
 
+  it("carries a lake's backwater (T160) where the release says 1, beside the tide and never as it", async () => {
+    const places = placesOf([
+      { station: "08HB074", name: "CRUICKSHANK RIVER NEAR THE MOUTH", sid: 1, lon: -125.2, lat: 49.7, tidal: 0,
+        backwater: 1 },
+      { station: "08MH035", name: "PITT RIVER NEAR PORT COQUITLAM", sid: 2, lon: -122.6, lat: 49.3, tidal: 1,
+        backwater: 0 },
+      { station: "08MF005", name: "FRASER RIVER AT HOPE", sid: 3, lon: -121.4, lat: 49.4, tidal: 0 },
+    ]);
+    const routes = await routesOf(s(1),
+      [{ station: st("08HB074"), role: "up" }, { station: st("08MH035"), role: "up" },
+       { station: st("08MF005"), role: "up" }],
+      places, async () => null);
+    expect(routes).toEqual([
+      { station: "08HB074", name: "CRUICKSHANK RIVER NEAR THE MOUTH", lon: -125.2, lat: 49.7, role: "up",
+        path: [s(1)], backwater: true },
+      { station: "08MH035", name: "PITT RIVER NEAR PORT COQUITLAM", lon: -122.6, lat: 49.3, role: "up", path: [],
+        tidal: true },
+      { station: "08MF005", name: "FRASER RIVER AT HOPE", lon: -121.4, lat: 49.4, role: "up", path: [] },
+    ]);
+  });
+
   it("is asked of the gauge table without naming the column, so an older release still answers", () => {
     expect(gaugePlaces(2)).toBe("SELECT * FROM gauge WHERE station IN (?,?)");
   });

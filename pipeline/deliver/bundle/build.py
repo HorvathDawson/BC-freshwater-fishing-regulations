@@ -603,13 +603,15 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # influence where the record shows it"). HYDAT's tidal remarks + the authored list; a
     # missing HYDAT or list raises (P2) — a flag silently all-0 would say the Fraser at
     # Mission is an ordinary river gauge.
-    from pipeline.gauges.consume.tidal import tidal_stations
+    from pipeline.gauges.consume.tidal import backwater_stations, tidal_stations
     tidal = tidal_stations(Path(SOURCE) / "hydat.sqlite3")   # the authored list: TIDAL_FILE
+    # A LAKE'S STANDING BACKWATER (T160): the authored rows, each checked against the station's own HYDAT remark.
+    backwater = backwater_stations(Path(SOURCE) / "hydat.sqlite3")   # the authored list: BACKWATER_FILE
 
     # No liveness column of any kind -- see schema.sql. The bundle says a gauge exists and
     # where it is; the feed index says which are talking, by containing them.
     db.executemany("INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, "
-                   "matched_by, match_m, tidal) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [
+                   "matched_by, match_m, tidal, backwater) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
         (s["station"], s["name"],
          owner.get(matched.get(s["station"], "")),
          sid.get(matched[s["station"]]) if s["station"] in matched else None,
@@ -618,7 +620,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
           if s["station"] in matched else None),
          prov[s["station"]].resolved_by if s["station"] in prov else None,
          prov[s["station"]].distance_m if s["station"] in prov else None,
-         1 if s["station"] in tidal else 0)
+         1 if s["station"] in tidal else 0,
+         1 if s["station"] in backwater else 0)
         for s in stations])
     cov.filled("gauge", len(stations))
 

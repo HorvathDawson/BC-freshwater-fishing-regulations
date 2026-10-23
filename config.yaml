@@ -149,6 +149,7 @@ curated:
     waterbody_type: "data/curated/gauges/waterbody_type.json"
     candidates: "data/curated/gauges/candidates.json"   # the review queue `promote` writes beside matches
     tidal: "data/curated/gauges/tidal.json"             # authored: level gauges the tide moves (T78)
+    backwater: "data/curated/gauges/backwater.json"     # authored: level gauges a lake below backs up (T160)
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     review: null

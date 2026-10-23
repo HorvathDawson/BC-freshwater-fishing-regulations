@@ -1,0 +1,10 @@
+{
+ "_about": "AUTHORED (T160, Q49 decided 2026-10-23 under the owner's T78 rule: disclose tidal OR backwater influence where the record shows it). Level gauges a LAKE BELOW THEM backs water up into — a STANDING backwater, not the episodic ice, beaver or landslide backwater HYDAT also records (those stay unread). Each row names the lake (`from`) and quotes the HYDAT station remark that says so (`remark`, verbatim, case and spacing aside); pipeline/gauges/consume/tidal.py refuses a row whose quote is not in the station's own STN_REMARKS or does not name the lake, and a station also flagged tidal. The bundle writes gauge.backwater = 1; the app says one sentence in the Level view.",
+ "stations": {
+  "08HB074": {
+   "from": "Comox Lake",
+   "remark": "STATION SUBJECT TO VARIABLE BACKWATER FROM COMOX LAKE, NECESSITATING EXTENSIVE ESTIMATED PERIODS",
+   "why": "Cruickshank River near the mouth: the gauge sits where the river enters Comox Lake, and HYDAT's station remark (type 4, standing; repeated in the 2003-2010 annual remarks) says the lake's level backs up onto it."
+  }
+ }
+}

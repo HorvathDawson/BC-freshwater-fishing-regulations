@@ -49,9 +49,10 @@ FILES = {
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     "conditions": {"format": "conditions/1", "kind": "sqlite", "tables": {
-        # `tidal` (T78): ADDITIVE, last, defaulted — still conditions/1; an older release is read as 0 (no flag)
+        # `tidal` (T78), `backwater` (T160): ADDITIVE, last, defaulted — still conditions/1; an older release is read
+        # as 0 (no flag)
         "gauge": ["station", "name", "item_id", "sid", "lon", "lat", "area_km2", "mag", "matched_by", "match_m",
-                  "tidal"],
+                  "tidal", "backwater"],
         "gauge_clim": ["station", "parameter", "bands"],
         "lake_gauge": ["item_id", "station"],
         "meta": ["k", "v"],

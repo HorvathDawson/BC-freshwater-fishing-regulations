@@ -36,7 +36,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mag",
         "matched_by",
         "match_m",
-        "tidal"
+        "tidal",
+        "backwater"
       ],
       "gauge_clim": [
         "station",

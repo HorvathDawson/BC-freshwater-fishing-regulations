@@ -139,6 +139,22 @@ describe("donorView", () => {
       "One of these gauges is tidal: its level rises and falls with the tide and with water backed up from "
         + "downstream, not only with what this river carries.",
       null, null, null]);
+    expect([level.backwater, plain.backwater]).toEqual([null, null]);
+  });
+
+  it("says a lake's backwater in the Level view only, in its own words and never as the tide (T160)", () => {
+    // 08HB074, the Cruickshank near the mouth: HYDAT's standing remark names Comox Lake's backwater.
+    const cruickshank = row("08HB074", { route: { station: "08HB074" as never, name: "CRUICKSHANK RIVER NEAR THE MOUTH",
+                                                  lat: 49.7, lon: -125.2, role: "up", path: [], backwater: true } });
+    const v = value({ rows: [cruickshank, row("08HB006", { weight: 0.3 })] });
+    const level = donorView(v, { ...opts, quantity: "level" });
+    const flow = donorView(v, { ...opts, quantity: "discharge" });
+    const unsaid = donorView(v, opts);
+    if (!level.ok || !flow.ok || !unsaid.ok) throw new Error("expected an estimate");
+    expect([level.backwater, flow.backwater, unsaid.backwater, level.tidal]).toEqual([
+      "One of these gauges sits where a lake backs up into the river: its level rises and falls with the lake "
+        + "as well as with what this river carries.",
+      null, null, null]);
   });
 
   it("places the donors, and marks the spot with its own pin even at a gauge", () => {

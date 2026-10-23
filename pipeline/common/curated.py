@@ -162,6 +162,10 @@ class Domain(BaseModel):
     #: Gauges only: AUTHORED — level stations the tide or a tidal river's backwater moves, each with its reason, joined
     #: with HYDAT's own tidal remarks by `pipeline.gauges.consume.tidal` into the bundle's `gauge.tidal` (T78).
     tidal: FilePath | None = None
+    #: Gauges only: AUTHORED — level stations a LAKE below them backs up (a standing backwater), each naming the lake
+    #: and quoting the HYDAT remark that says so, checked against the record by `pipeline.gauges.consume.tidal` into
+    #: the bundle's `gauge.backwater` (T160).
+    backwater: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 

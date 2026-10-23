@@ -291,11 +291,12 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           </View>
         ))}
         {/* A SHORT RECORD, A DAM, A DISAGREEMENT — each said once, plainly, marked by a rule
-            on its left; a disagreement in the restricted tone, the others a hairline. The tide (T78) is said
-            the same way, in the Level view only. */}
+            on its left; a disagreement in the restricted tone, the others a hairline. The tide (T78) and a lake's
+            backwater (T160) are said the same way, in the Level view only. */}
         {vm.shortRecord && <Caveat palette={palette} tone={palette.line2}>{vm.shortRecord}</Caveat>}
         {vm.regulated && <Caveat palette={palette} tone={palette.line2}>{vm.regulated}</Caveat>}
         {vm.tidal && <Caveat palette={palette} tone={palette.line2}>{vm.tidal}</Caveat>}
+        {vm.backwater && <Caveat palette={palette} tone={palette.line2}>{vm.backwater}</Caveat>}
         {vm.disagree && <Caveat palette={palette} tone={palette.restricted}>{vm.disagree}</Caveat>}
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.explainer}</Text>
         {foot}

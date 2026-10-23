@@ -14,7 +14,7 @@ import { CHANGE_LOW_WATER, changeLowWaterNote, CHANGE_NEEDS_FLOW, CHANGE_POLICY,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine, refusalIsAboutTheDay,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
-         readingAgeLine, readingHeading, readingIn, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote,
+         readingAgeLine, readingHeading, readingIn, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote, backwaterNote,
          shortRecordNote, shownParameter, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
          type Standing } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
@@ -523,6 +523,9 @@ export type DonorVM =
       regulated: string | null;
       /** The tide (T78): one sentence, Level only, where a reporting member's station is tidal; else null. */
       tidal: string | null;
+      /** A lake's standing backwater (T160): one sentence, Level only, where a reporting member's station is backed
+       *  up by a lake below it; else null. */
+      backwater: string | null;
       disagree: string | null;
       /**
        * Under Change, where a counted gauge's change is ELF's alone (T157, core `changeLowWaterNote`): the low-water
@@ -655,6 +658,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     shortRecord: shortRecordNote(rows),
     regulated: regulatedNote(rows),
     tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
+    backwater: o.quantity ? backwaterNote(rows, o.quantity) : null,
     disagree: disagreeNote(e, o.horizon),
     lowWater: o.horizon === "change" ? lowWaterNote(shown) : null,
     explainer: o.horizon === "change" ? `${CONDITIONS_WORDS.changeExplainer} ${CONDITIONS_WORDS.explainer}`

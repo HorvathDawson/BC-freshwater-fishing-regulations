@@ -204,7 +204,8 @@ export interface DonorFacts {
   regulated: boolean;
   factors: { share: number; role: number; record: number };
   /** `tidal`: the tide or a tidal river's backwater moves this station's level (`PanelRoute.tidal`, T78). */
-  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean } | undefined;
+  /** `backwater`: a lake below backs water up onto this station (`PanelRoute.backwater`, T160). */
+  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean; backwater?: boolean } | undefined;
   /** When the station last reported, from the feed's index (ISO), where the feed says. */
   observedAt?: string | null;
   /**
@@ -561,6 +562,21 @@ export const TIDAL_NOTE = "One of these gauges is tidal: its level rises and fal
 export function tidalNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
   return quantity === "level" && rows.some((r) => r.route?.tidal === true && donorCounted(r))
     ? TIDAL_NOTE : null;
+}
+
+/** A lake's standing backwater, in one sentence — `backwaterNote`'s words. */
+export const BACKWATER_NOTE = "One of these gauges sits where a lake backs up into the river: its level rises and "
+  + "falls with the lake as well as with what this river carries.";
+
+/**
+ * A LAKE'S STANDING BACKWATER, said once (T160; Q49 decided 2026-10-23 under the owner's T78 rule: "disclose tidal or
+ * backwater influence where the record shows it"). Its own sentence, never the tide's: 08HB074's record says "variable
+ * backwater from Comox Lake", not the tide. LEVEL ONLY, and only about a number being shown — a reporting member whose
+ * station the release flags (`gauge.backwater`, data/curated/gauges/backwater.json, checked against HYDAT).
+ */
+export function backwaterNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
+  return quantity === "level" && rows.some((r) => r.route?.backwater === true && donorCounted(r))
+    ? BACKWATER_NOTE : null;
 }
 
 /** The donors disagree by more than 25 points. */

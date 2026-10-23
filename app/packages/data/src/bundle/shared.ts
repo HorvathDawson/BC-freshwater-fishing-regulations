@@ -305,7 +305,7 @@ export async function routesOf(section: SectionId,
                                members: readonly { station: StationId; role: "up" | "down" }[],
                                places: ReadonlyMap<string, { name: string; section: SectionId | null;
                                                              lon: number | null; lat: number | null;
-                                                             tidal?: boolean }>,
+                                                             tidal?: boolean; backwater?: boolean }>,
                                down: DownOf): Promise<PanelRoute[]> {
   const walk = async (from: SectionId, stop: SectionId): Promise<SectionId[] | null> => {
     const path: SectionId[] = [from];
@@ -341,6 +341,8 @@ export async function routesOf(section: SectionId,
       role: m.role, path,
       // `true` only (T78): a station the release flags tidal; absent otherwise, as an older release reads.
       ...(place?.tidal ? { tidal: true as const } : {}),
+      // `true` only (T160): a station a lake below it backs up; absent otherwise, as an older release reads.
+      ...(place?.backwater ? { backwater: true as const } : {}),
     });
   }
   return out;
@@ -349,9 +351,9 @@ export async function routesOf(section: SectionId,
 /** `gaugePlaces` rows to the map `routesOf` reads. */
 export function placesOf(rows: readonly Row[]): Map<string, { name: string; section: SectionId | null;
                                                               lon: number | null; lat: number | null;
-                                                              tidal: boolean }> {
+                                                              tidal: boolean; backwater: boolean }> {
   const places = new Map<string, { name: string; section: SectionId | null; lon: number | null; lat: number | null;
-                                   tidal: boolean }>();
+                                   tidal: boolean; backwater: boolean }>();
   for (const r of rows)
     places.set(str(r.station), {
       name: str(r.name),
@@ -359,6 +361,8 @@ export function placesOf(rows: readonly Row[]): Map<string, { name: string; sect
       lon: num(r.lon), lat: num(r.lat),
       // `gauge.tidal` (T78); a release built before it has no such column, and that reads as not flagged.
       tidal: Number(r.tidal ?? 0) === 1,
+      // `gauge.backwater` (T160); absent on a release built before it, read as not flagged.
+      backwater: Number(r.backwater ?? 0) === 1,
     });
   return places;
 }

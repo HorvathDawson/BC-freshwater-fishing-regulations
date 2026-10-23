@@ -18,9 +18,16 @@ TWO SOURCES, JOINED:
                   the Fraser below New Westminster. Each row carries its reason; the authored reason wins over the
                   record's where both name a station.
 
-ONE FLAG, NO KIND. Every station flagged is tidal or backed up by a tidal river, and what a reader must be told is the
-same for both: the level moves with something other than this river's own flow. `gauge.tidal` (0/1) is all the bundle
-and the release carry; the reason stays here, for the review.
+ONE FLAG FOR THE TIDE. Every station flagged tidal is tidal or backed up by a tidal river, and what a reader must be told
+is the same for both: the level moves with something other than this river's own flow. `gauge.tidal` (0/1) is all the
+bundle and the release carry; the reason stays here, for the review.
+
+A LAKE'S STANDING BACKWATER IS ITS OWN FLAG (T160; Q49 decided 2026-10-23 under the owner's T78 rule). 08HB074
+(Cruickshank River near the mouth) carries HYDAT's standing remark "STATION SUBJECT TO VARIABLE BACKWATER FROM COMOX
+LAKE" — not the tide, so not the tidal sentence. It is AUTHORED (`data/curated/gauges/backwater.json`), never read from
+the remarks by pattern (the episodic ice / beaver / slide backwater stays unread), and each row is CHECKED against the
+record: it quotes the station's own remark and names the lake (`backwater_stations`). `gauge.backwater` (0/1); the app
+says its own Level sentence.
 """
 
 from __future__ import annotations
@@ -76,3 +83,61 @@ def tidal_stations(hydat: Path, curated: Path | None = None) -> dict[str, str]:
     """Every station whose level the tide or a tidal river's backwater moves, `station -> why`: the record's tidal
     remarks joined with the authored list, the authored reason winning."""
     return dict(sorted({**remark_evidence(hydat), **load_curated(curated)}.items()))
+
+
+# ------------------------------------------------------------------ a lake's standing backwater (T160)
+
+#: The authored list of level gauges a LAKE below them backs up (T160; Q49 decided 2026-10-23 under the owner's T78
+#: rule). Owned here like `TIDAL_FILE`: the bundle asks `backwater_stations` and never names a curated file itself.
+BACKWATER_FILE = CURATED.gauges.backwater
+
+
+def _norm(text: str) -> str:
+    return " ".join(str(text or "").split()).upper()
+
+
+def load_backwater(path: Path | None = None) -> dict[str, dict]:
+    """The authored list, `station -> {from, remark, why}`. RAISES on a missing file (AGENTS 37) and on a row without a
+    station id, a lake (`from`), a quoted remark or a reason, or whose quote does not name its lake or a backwater."""
+    path = path or BACKWATER_FILE
+    blob = json.loads(Path(path).read_text(encoding="utf-8"))
+    stations = blob["stations"]
+    for st, row in stations.items():
+        if not _STATION.match(st):
+            raise ValueError(f"backwater: {st!r} is not a station id ({path})")
+        if not isinstance(row, dict) or set(row) != {"from", "remark", "why"}:
+            raise ValueError(f"backwater: {st} must carry exactly from / remark / why ({path})")
+        for k in ("from", "remark", "why"):
+            if not isinstance(row[k], str) or not row[k].strip():
+                raise ValueError(f"backwater: {st} carries no {k} ({path})")
+        lake = _norm(row["from"])
+        if not (lake.endswith(" LAKE") or lake.startswith("LAKE ")):
+            raise ValueError(f"backwater: {st}: {row['from']!r} is not a lake — the Level sentence says a lake "
+                             f"backs the river up ({path})")
+        quote = _norm(row["remark"])
+        if "BACKWATER" not in quote or lake not in quote:
+            raise ValueError(f"backwater: {st}: the quoted remark must say BACKWATER and name {row['from']} ({path})")
+    return {st: dict(stations[st]) for st in sorted(stations)}
+
+
+def backwater_stations(hydat: Path, curated: Path | None = None, tidal: Path | None = None) -> dict[str, str]:
+    """Every station a lake below it backs up, `station -> why` — the authored list, EACH ROW CHECKED AGAINST THE
+    RECORD: its quoted remark must be one of the station's own HYDAT `STN_REMARKS` (case and spacing aside), so a row
+    cannot claim a backwater the record does not state. A station also flagged tidal (`tidal_stations`, `tidal` the
+    authored tidal list) is refused: a gauge gets one Level sentence, never two."""
+    if not Path(hydat).exists():                 # P2: no missing-file fallbacks
+        raise FileNotFoundError(f"backwater: no {hydat} (python data/fetch_data.py --layers hydat)")
+    rows = load_backwater(curated)
+    said: dict[str, set[str]] = {}
+    with sqlite3.connect(f"file:{hydat}?mode=ro", uri=True) as con:
+        for st in rows:
+            said[st] = {_norm(t) for (t,) in con.execute(
+                "SELECT REMARK_EN FROM STN_REMARKS WHERE STATION_NUMBER = ?", (st,))}
+    for st, row in rows.items():
+        if _norm(row["remark"]) not in said[st]:
+            raise ValueError(f"backwater: {st}: HYDAT holds no station remark {row['remark']!r} — the row's reason "
+                             f"is not the record's")
+    both = sorted(set(rows) & set(tidal_stations(hydat, tidal)))
+    if both:
+        raise ValueError(f"backwater: {both} also flagged tidal — one Level sentence per gauge")
+    return {st: f"{row['from']} (HYDAT: {_norm(row['remark'])}): {row['why']}" for st, row in rows.items()}

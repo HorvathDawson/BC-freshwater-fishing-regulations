@@ -182,5 +182,87 @@ def test_the_bundle_gauge_table_carries_the_flag_last_with_a_default_and_the_rel
     con.executescript(schema)
     cols = [(r[1], r[2], r[3], r[4]) for r in con.execute("PRAGMA table_info(gauge)")]
     assert [c[0] for c in cols] == FILES["conditions"]["tables"]["gauge"]
-    assert cols[-1] == ("tidal", "INTEGER", 1, "0")
+    # T160 added `backwater` after `tidal`, last and defaulted the same way: still conditions/1
+    assert cols[-2:] == [("tidal", "INTEGER", 1, "0"), ("backwater", "INTEGER", 1, "0")]
     assert FILES["conditions"]["format"] == "conditions/1"
+
+
+# ------------------------------------------------------------------ a lake's standing backwater (T160)
+#
+# MUTATION PINS — each mutation of `backwater_stations` / `load_backwater` and the test it fails:
+#   * drop the check against the record (`not in said[st]`)   -> test_a_row_the_record_does_not_state_is_refused
+#   * drop the tidal refusal (`both`)                          -> test_a_station_flagged_tidal_cannot_also_be_backwater
+#   * drop the lake-name / BACKWATER check on the quote       -> test_an_authored_backwater_row_must_say_what_it_claims
+#   * drop the `from` must-be-a-lake check                   -> test_an_authored_backwater_row_must_say_what_it_claims[…Puntledge…]
+#   * read BACKWATER from the remarks by pattern instead      -> test_the_backwater_flag_is_exactly_the_authored_rows
+
+COMOX = ("08HB074", "STATION SUBJECT TO VARIABLE BACKWATER FROM COMOX LAKE, NECESSITATING EXTENSIVE ESTIMATED PERIODS")
+COMOX_ROW = {"from": "Comox Lake", "remark": COMOX[1].lower(), "why": "the gauge sits where the river enters the lake"}
+
+
+def _backwater(tmp_path: Path, stations: dict) -> Path:
+    p = tmp_path / "backwater.json"
+    p.write_text(json.dumps({"_about": "test", "stations": stations}), encoding="utf-8")
+    return p
+
+
+def test_the_backwater_list_is_declared_in_config():
+    assert CURATED.gauges.backwater is not None and CURATED.gauges.backwater.name == "backwater.json"
+    assert T.BACKWATER_FILE == CURATED.gauges.backwater
+
+
+def test_the_real_backwater_list_is_exactly_comox_lake_on_the_cruickshank():
+    got = T.load_backwater(CURATED.gauges.backwater)
+    assert sorted(got) == ["08HB074"]
+    assert got["08HB074"]["from"] == "Comox Lake" and got["08HB074"]["remark"] == COMOX[1]
+
+
+def test_the_backwater_flag_is_exactly_the_authored_rows(tmp_path):
+    """WHOLE VALUE: the ice, beaver and slide backwater in the record stays unread — only the authored row."""
+    hy = _hydat(tmp_path, [MISSION, PORT_MANN, *NOT_TIDAL])
+    got = T.backwater_stations(hy, _backwater(tmp_path, {"08HB074": COMOX_ROW}), _curated(tmp_path, {}))
+    assert got == {"08HB074": f"Comox Lake (HYDAT: {COMOX[1]}): the gauge sits where the river enters the lake"}
+
+
+def test_a_row_the_record_does_not_state_is_refused(tmp_path):
+    hy = _hydat(tmp_path, [MISSION, ("08HB074", "MAX. INST. WATER LEVEL AFFECTED BY BACKWATER FROM ICE")])
+    with pytest.raises(ValueError, match="HYDAT holds no station remark"):
+        T.backwater_stations(hy, _backwater(tmp_path, {"08HB074": COMOX_ROW}), _curated(tmp_path, {}))
+
+
+def test_a_station_flagged_tidal_cannot_also_be_backwater(tmp_path):
+    hy = _hydat(tmp_path, [COMOX])
+    with pytest.raises(ValueError, match="also flagged tidal"):
+        T.backwater_stations(hy, _backwater(tmp_path, {"08HB074": COMOX_ROW}),
+                             _curated(tmp_path, {"08HB074": "a mistaken tidal row"}))
+
+
+@pytest.mark.parametrize("bad", [
+    {"8HB074": COMOX_ROW},
+    {"08HB074": "Comox Lake"},
+    {"08HB074": {**COMOX_ROW, "why": ""}},
+    {"08HB074": {**COMOX_ROW, "extra": "x"}},
+    {"08HB074": {**COMOX_ROW, "from": "Puntledge River",                        # not a lake, though the
+                 "remark": "SUBJECT TO BACKWATER FROM PUNTLEDGE RIVER"}},       # quote says so
+    {"08HB074": {**COMOX_ROW, "from": "Buttle Lake"}},                         # the quote names another lake
+    {"08HB074": {**COMOX_ROW, "remark": "NECESSITATING EXTENSIVE ESTIMATED PERIODS COMOX LAKE"}},  # no backwater
+])
+def test_an_authored_backwater_row_must_say_what_it_claims(tmp_path, bad):
+    with pytest.raises(ValueError):
+        T.load_backwater(_backwater(tmp_path, bad))
+
+
+def test_a_missing_backwater_list_or_hydat_raises(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        T.load_backwater(tmp_path / "absent.json")
+    with pytest.raises(FileNotFoundError):
+        T.backwater_stations(tmp_path / "absent.sqlite3", _backwater(tmp_path, {}), _curated(tmp_path, {}))
+
+
+@pytest.mark.needs_source
+def test_the_live_record_states_comox_lakes_backwater(request):
+    """The real row against the live HYDAT — the bundle's own call."""
+    hydat = need(request, "source", Path(SOURCE) / "hydat.sqlite3", "python data/fetch_data.py --layers hydat")
+    got = T.backwater_stations(hydat)
+    assert sorted(got) == ["08HB074"] and got["08HB074"].startswith("Comox Lake (HYDAT: STATION SUBJECT TO VARIABLE")
+    assert not set(got) & set(tidal_stations(hydat))

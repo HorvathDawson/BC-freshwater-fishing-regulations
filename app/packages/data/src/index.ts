@@ -226,6 +226,12 @@ export interface PanelRoute {
    */
   tidal?: true;
   /**
+   * `true` only: a LAKE below this station backs water up onto it, standing — the release's `gauge.backwater` (T160:
+   * data/curated/gauges/backwater.json, each row checked against the station's HYDAT remark; 08HB074, Comox Lake).
+   * Absent otherwise, and on a release built before the flag. Core's `backwaterNote` says so in the Level view.
+   */
+  backwater?: true;
+  /**
    * The chain of reaches between the spot and this gauge, SPOT FIRST, gauge last.
    *
    * Empty when the chain cannot be walked — the pointers only exist inside a gauge's
