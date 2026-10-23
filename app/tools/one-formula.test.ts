@@ -18,9 +18,9 @@
  * merely looks similar.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { errorFor, leadShares, leaderOf, weightFactors } from "@app/core";
+import { bandAt, errorFor, leadShares, leaderOf, PENTADS, percentileInBand, weightFactors, type Band } from "@app/core";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PY = `${ROOT}.venv/bin/python`;
@@ -118,5 +118,111 @@ describe.skipIf(!has)("one formula, two languages", () => {
     expect(new Set(py.weights).size).toBeGreaterThan(5);
     expect(py.leaders).toEqual([0, 0, 0, 1, 2, 0, 0, null, null, null, 2, null]);
     expect(py.shares.length).toBe(LEADS.length);
+  });
+});
+
+/*
+ * ONE DAY'S ENVELOPE (T107). "What is today's normal envelope for this station, and where does today's value rank in
+ * it?" The feed answers it in `pipeline/gauges/feed/publish.py` (`band_for`, `percentile_of`) and publishes the rank;
+ * the app answers it in `@app/core` `flow.ts` (`bandAt`, `percentileInBand`) to draw the band and freeze a lead-up day.
+ * They disagreed by half a pentad every day and across New Year (08MF005 day 109: 1,818 vs 2,058), so the same reading
+ * sat in one place on the feed and another on the chart. Both are run here, over every day of a leap year.
+ *
+ * Mutation pins (each run by hand, 2026-10-23): dropping the `- 0.5` centre offset in `bandAt` fails "the same band";
+ * clamping instead of wrapping fails it on days 1-3 and 364-366; `<` for `<=` at p10 in `percentileInBand` fails
+ * "the same rank".
+ */
+
+/** Pentad envelopes for a few fixture stations, shaped like the real ones they stand for. */
+const knotsOf = (mid: number): Band => [mid * 0.5, mid * 0.7, mid, mid * 1.4, mid * 2.1];
+const STATIONS: Record<string, (Band | null)[]> = {
+  // a snowmelt river: one freshet peak in June, low all winter
+  snowmelt: Array.from({ length: PENTADS }, (_, i) => knotsOf(12.3 + 240.7 * Math.exp(-(((i - 32) / 7) ** 2)))),
+  // a ramp, so late December and early January are far apart and a missing wrap cannot hide
+  ramp: Array.from({ length: PENTADS }, (_, i) => knotsOf(5 + i * 3.17)),
+  // thin pentads, both sides of New Year among them: one side answers, then neither does
+  thin: Array.from({ length: PENTADS }, (_, i) =>
+    [0, 1, 36, 37, 72].includes(i) ? null : knotsOf(40 + 20 * Math.cos((i / PENTADS) * 2 * Math.PI))),
+  // a creek that goes dry: flat knots at zero, where the rank has to choose an edge
+  dry: Array.from({ length: PENTADS }, (_, i) => (i > 40 && i < 55 ? [0, 0, 0, 0.4, 1.7] as Band : knotsOf(3.3))),
+};
+const DAYS = Array.from({ length: 366 }, (_, i) => i + 1);
+/** Values ranked on every day: the edges, knots and the gaps between them for every station above. */
+const VALUES = [0, 0.2, 1, 1.7, 2.5, 3.3, 6, 12.3, 30, 40, 55, 80, 120, 250, 400, 600];
+
+function envelopeFromPython(): Record<string, { bands: (number[] | null)[]; ranks: (number | null)[][] }> {
+  const script = `
+import json, sys
+from datetime import datetime, timedelta, timezone
+sys.path.insert(0, ${JSON.stringify(ROOT)})
+from pipeline.gauges.feed.publish import band_for, percentile_of
+stations = json.loads(${JSON.stringify(JSON.stringify(STATIONS))})
+values = ${JSON.stringify(VALUES)}
+out = {}
+for name, pentads in stations.items():
+    env = {str(i): b for i, b in enumerate(pentads) if b is not None}
+    bands, ranks = [], []
+    for yday in ${JSON.stringify(DAYS)}:
+        when = datetime(2024, 1, 1, 12, tzinfo=timezone.utc) + timedelta(days=yday - 1)   # 2024: a leap year
+        b = band_for(env, when)
+        bands.append(b)
+        ranks.append([percentile_of(v, b) for v in values])
+    out[name] = {"bands": bands, "ranks": ranks}
+print(json.dumps(out))
+`;
+  return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
+}
+
+describe.skipIf(!has)("one day's envelope, two languages (T107)", () => {
+  const py = has ? envelopeFromPython() : {};
+
+  it("draws the same band, day for day, for every fixture station", () => {
+    for (const [name, pentads] of Object.entries(STATIONS)) {
+      const ours = DAYS.map((d) => bandAt(pentads, d));
+      // exact: the same arithmetic in the same order gives the same doubles
+      expect({ name, bands: ours }).toEqual({ name, bands: py[name]!.bands });
+    }
+  });
+
+  it("gives the same rank, value for value, on every day", () => {
+    for (const name of Object.keys(STATIONS)) {
+      const ours = DAYS.map((_, i) => VALUES.map((v) => percentileInBand(v, py[name]!.bands[i] as Band | null)));
+      expect({ name, ranks: ours }).toEqual({ name, ranks: py[name]!.ranks });
+    }
+  });
+
+  it("is actually comparing something, across New Year", () => {
+    // A guard on the guard: every station on every day, the wrap days present and non-trivial, the edges reached.
+    for (const name of Object.keys(STATIONS)) expect(py[name]!.bands.length).toBe(366);
+    const ramp = py.ramp!.bands;
+    expect(ramp[0]![2]).toBeCloseTo((5 + 72 * 3.17 + 5) / 2, 9);       // 1 Jan: halfway between pentads 72 and 0
+    expect(ramp[365]![2]).toBeCloseTo((5 + 72 * 3.17 + 5) / 2, 9);     // 31 Dec of a leap year: the same place
+    expect(py.thin!.bands[0]).toBeNull();                               // pentads 72 and 0 both empty: no answer
+    const ranks = Object.values(py).flatMap((s) => s.ranks.flat());
+    expect(ranks).toContain(0.05);
+    expect(ranks).toContain(0.95);
+    expect(new Set(ranks).size).toBeGreaterThan(500);
+  });
+});
+
+/**
+ * NO SECOND COPY (T107). The envelope's knots and the pentad-position arithmetic live in `@app/core` `flow.ts` and
+ * nowhere else in the app's source; a screen that wants a day's band or a rank calls `bandAt` / `percentileInBand`.
+ * A second copy is how the half-pentad shift happened. Tests are exempt: they state the knots to check them.
+ * Mutation pin: pasting `[0.10, 0.25, 0.50, 0.75, 0.90]` or `(dayOfYear - 1) / 5` into any other source file fails it.
+ */
+describe("one day's envelope has one home", () => {
+  const SECOND_COPY = /0\.10?, ?0\.25, ?0\.50?, ?0\.75|(?:dayOfYear|yday|day) - 1\) \/ 5\b/;
+  const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = `${dir}/${e.name}`;
+    if (e.isDirectory()) return e.name === "node_modules" || e.name === "dist" ? [] : walk(p);
+    return /\.(ts|tsx|mjs)$/.test(e.name) && !/\.test\.tsx?$/.test(e.name) ? [p] : [];
+  });
+  it("states the knots and the pentad position only in flow.ts", () => {
+    const APP = `${ROOT}app`;
+    const hits = ["packages", "apps", "tools"].flatMap((d) => (existsSync(`${APP}/${d}`) ? walk(`${APP}/${d}`) : []))
+      .filter((f) => SECOND_COPY.test(readFileSync(f, "utf8")))
+      .map((f) => f.slice(APP.length + 1));
+    expect(hits).toEqual(["packages/core/src/flow.ts"]);
   });
 });

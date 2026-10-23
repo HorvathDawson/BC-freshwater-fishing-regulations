@@ -171,24 +171,36 @@ export function confidenceWord(plusMinus: number): string {
   return "very roughly";
 }
 
+/** How many pentads an envelope holds: five-day buckets over a year, 0..72. */
+export const PENTADS = 73;
+
 /**
- * Percentile bands are stored every 5 days, not every day, and interpolated here.
- * Measured against the full daily envelope for five stations: mean error 0.44%, worst
- * 5.6%, for 325 KB instead of 4.5 MB province-wide.
+ * The envelope for ONE DAY: interpolated between the two nearest pentad CENTRES, wrapping at New Year.
  *
- * p0 and p100 are deliberately NOT stored this way — every worst case was the record
- * maximum, which is one storm and does not interpolate (82% error). The extremes are
- * cosmetic; the middle is the answer.
+ * Percentile bands are stored every 5 days, not every day, and interpolated here. Measured against the full daily
+ * envelope for five stations: mean error 0.44%, worst 5.6%, for 325 KB instead of 4.5 MB province-wide. p0 and p100
+ * are deliberately NOT stored this way — every worst case was the record maximum, which is one storm and does not
+ * interpolate (82% error).
+ *
+ * ONE FORMULA WITH THE FEED (T107). This is a port of `pipeline/gauges/feed/publish.py` `band_for`, line for line:
+ * the feed ranks today's reading against the band that function returns and the chart draws the band this one returns,
+ * so two formulas put one reading in two places on one day. They did — this used pentad STARTS with no wrap, half a
+ * pentad off every day (08MF005 day 109: 1,818 vs 2,058). `app/tools/one-formula.test.ts` runs both over 366 days.
+ *
+ * A pentad's centre is day 2.5 of its five, so a reading on a pentad's first day is mostly about the PREVIOUS one. Day 1
+ * sits halfway between pentad 72 and pentad 0: late December and early January are one season. One side missing: the
+ * other is the best there is.
  */
 export function bandAt(pentads: readonly (Band | null)[], dayOfYear: number): Band | null {
-  const step = 5;
-  const lo = Math.floor((dayOfYear - 1) / step) * step;
-  const a = pentads[lo / step] ?? null;
-  const b = pentads[Math.min(lo / step + 1, pentads.length - 1)] ?? null;
+  const pos = (dayOfYear - 1) / 5 - 0.5;          // position in pentad units, centres at integers
+  const lo = Math.floor(pos);
+  const frac = pos - lo;
+  const wrap = (i: number) => ((i % PENTADS) + PENTADS) % PENTADS;
+  const a = pentads[wrap(lo)] ?? null;
+  const b = pentads[wrap(lo + 1)] ?? null;
   if (a === null) return b;
   if (b === null) return a;
-  const f = (dayOfYear - 1 - lo) / step;
-  return [0, 1, 2, 3, 4].map((i) => a[i]! + (b[i]! - a[i]!) * f) as unknown as Band;
+  return [0, 1, 2, 3, 4].map((i) => a[i]! + (b[i]! - a[i]!) * frac) as unknown as Band;
 }
 
 /** Where a value sits in an envelope: a percentile (0–1), or which side of the envelope it fell off. */
@@ -197,24 +209,46 @@ export type BandPlace = number | "below" | "above";
 /** The percentiles of the five knots of a `Band`. */
 const KNOTS = [0.10, 0.25, 0.50, 0.75, 0.90] as const;
 
+/** What `percentileInBand` reports at or past an edge of the envelope: "the bottom tenth", "the top tenth". */
+export const BELOW_BAND = 0.05;
+export const ABOVE_BAND = 0.95;
+
 /**
- * Where one value sits in one day's envelope (S1: a spot's lead-up days).
+ * Where a value ranks in one day's envelope, 0..1 — THE ranking, the one the feed publishes as `percentile`.
  *
- * Linear between the knots, rounded to a thousandth. OUTSIDE p10..p90 IT SAYS ONLY WHICH SIDE: the envelope has no knot
- * below the 10th or above the 90th to measure by, and "the 3rd" made up from a straight line past the end is a number
- * the record never held. Null with no value or no envelope.
+ * A port of `pipeline/gauges/feed/publish.py` `percentile_of`, line for line (T107; parity in
+ * `app/tools/one-formula.test.ts`). Linear between the knots. AT OR PAST p10 it is 0.05 and at or past p90 it is 0.95 —
+ * "at or beyond the bottom tenth", which is all the record supports: the envelope has no knot past either end to
+ * measure by. Null with no value or no envelope.
  */
-export function placeInBand(v: number | null, band: Band | null): BandPlace | null {
+export function percentileInBand(v: number | null, band: Band | null): number | null {
   if (v === null || !Number.isFinite(v) || !band) return null;
-  if (v < band[0]) return "below";
-  if (v > band[4]) return "above";
+  if (v <= band[0]) return BELOW_BAND;
+  if (v >= band[4]) return ABOVE_BAND;
   for (let i = 0; i < 4; i++) {
     const lo = band[i]!, hi = band[i + 1]!;
-    if (v > hi) continue;
-    const p = hi === lo ? KNOTS[i]! : KNOTS[i]! + (KNOTS[i + 1]! - KNOTS[i]!) * (v - lo) / (hi - lo);
-    return Math.round(p * 1000) / 1000;
+    if (lo <= v && v <= hi) {
+      const span = hi - lo;
+      const f = span === 0 ? 0 : (v - lo) / span;
+      return KNOTS[i]! + f * (KNOTS[i + 1]! - KNOTS[i]!);
+    }
   }
-  return KNOTS[4];
+  return null;
+}
+
+/**
+ * Where one value sits in one day's envelope (S1: a spot's lead-up days), as a lead-up day freezes it.
+ *
+ * NOT A SECOND RANKING: it is `percentileInBand`, said in words at the edges and rounded to a thousandth inside. The
+ * clamp's 0.05 / 0.95 become "below" / "above" because "the 5th percentile" is a number the record never held. No value
+ * strictly inside the envelope ranks 0.05 or 0.95 (the knots stop at 0.10 and 0.90), so the words lose nothing.
+ */
+export function placeInBand(v: number | null, band: Band | null): BandPlace | null {
+  const p = percentileInBand(v, band);
+  if (p === null) return null;
+  if (p === BELOW_BAND) return "below";
+  if (p === ABOVE_BAND) return "above";
+  return Math.round(p * 1000) / 1000;
 }
 
 /**

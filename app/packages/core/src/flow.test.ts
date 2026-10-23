@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandAt, standing, standingWord, TRUST_FLOOR, trustWord,
+import { bandAt, PENTADS, standing, standingWord, TRUST_FLOOR, trustWord,
          type Band } from "./flow";
 
 describe("standing", () => {
@@ -15,18 +15,38 @@ describe("standing", () => {
   });
 });
 
-describe("pentad bands", () => {
+describe("pentad bands (T107: the feed's `band_for`, pentad CENTRES, wrapping)", () => {
   const a: Band = [10, 20, 30, 40, 50];
   const b: Band = [20, 30, 40, 50, 60];
-  const pentads = [a, b, null];
-  it("returns the stored band on a pentad boundary", () => {
-    expect(bandAt(pentads, 1)).toEqual(a);
-  });
-  it("interpolates between them", () => {
-    expect(bandAt(pentads, 4)?.[0]).toBeCloseTo(16, 6);
+  const pentads: (Band | null)[] = Array.from({ length: PENTADS }, () => null);
+  pentads[0] = a;
+  pentads[1] = b;
+  const close = (got: Band | null, want: number[]) => {
+    expect(got).not.toBeNull();
+    got!.forEach((x, i) => expect(x).toBeCloseTo(want[i]!, 9));
+  };
+  it("reads between pentad CENTRES: day 4 is a tenth of the way from pentad 0 to pentad 1", () => {
+    // Mutation pin: dropping the `- 0.5` centre offset reads day 4 as 3/5 of the way (16, 26, …) and fails here.
+    close(bandAt(pentads, 4), [11, 21, 31, 41, 51]);
+    close(bandAt(pentads, 8), [19, 29, 39, 49, 59]);
   });
   it("falls back to the neighbour when one end has no record", () => {
-    expect(bandAt(pentads, 9)).toEqual(b);
+    expect(bandAt(pentads, 1)).toEqual(a);   // pentad 72 is empty: pentad 0 answers
+    expect(bandAt(pentads, 9)).toEqual(b);   // pentad 2 is empty: pentad 1 answers
+  });
+  it("is null with no envelope at all", () => {
+    expect(bandAt(Array.from({ length: PENTADS }, () => null), 100)).toBeNull();
+  });
+  it("wraps at New Year: Dec 31 and Jan 1 lie between pentad 72 and pentad 0, a fifth of the gap apart", () => {
+    // Mutation pin: clamping instead of wrapping (the old reader) leaves day 1 on pentad 0 alone (0) and day 365 on
+    // pentad 72 alone (100), and fails here.
+    const ring: (Band | null)[] = Array.from({ length: PENTADS }, () => [7, 7, 7, 7, 7] as Band);
+    ring[72] = [100, 100, 100, 100, 100];
+    ring[0] = [0, 0, 0, 0, 0];
+    close(bandAt(ring, 365), [70, 70, 70, 70, 70]);   // 31 Dec, a common year
+    close(bandAt(ring, 366), [50, 50, 50, 50, 50]);   // 31 Dec, a leap year
+    close(bandAt(ring, 1), [50, 50, 50, 50, 50]);     // 1 Jan
+    close(bandAt(ring, 2), [30, 30, 30, 30, 30]);
   });
 });
 

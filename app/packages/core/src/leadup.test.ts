@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { leadUpDays } from "./day";
-import { placeInBand, type Band } from "./flow";
+import { percentileInBand, placeInBand, type Band } from "./flow";
 
 describe("leadUpDays", () => {
   it("is the seven local days BEFORE the visit, oldest first — never the visit day itself", () => {
@@ -22,8 +22,19 @@ describe("leadUpDays", () => {
 describe("placeInBand", () => {
   const band: Band = [10, 20, 40, 60, 100];
 
-  it("reads a value on a knot as that knot's percentile", () => {
-    expect([10, 20, 40, 60, 100].map((v) => placeInBand(v, band))).toEqual([0.1, 0.25, 0.5, 0.75, 0.9]);
+  it("reads a value on an inner knot as that knot's percentile, and ON p10 / p90 as the feed does: at the edge", () => {
+    // T107: one ranking with the feed's `percentile_of`, which reports AT OR PAST p10 as 0.05 and p90 as 0.95.
+    // Mutation pin: `<` for `<=` at either edge (the old placeInBand) gives 0.1 / 0.9 here and fails.
+    expect([10, 20, 40, 60, 100].map((v) => placeInBand(v, band))).toEqual(["below", 0.25, 0.5, 0.75, "above"]);
+    expect([10, 20, 40, 60, 100].map((v) => percentileInBand(v, band))).toEqual([0.05, 0.25, 0.5, 0.75, 0.95]);
+  });
+
+  it("says the words exactly where the ranking clamps, and rounds nothing else away", () => {
+    expect(placeInBand(10.000001, band)).toBe(0.1);
+    expect(percentileInBand(30, band)).toBe(0.375);
+    expect(percentileInBand(9.9, band)).toBe(0.05);
+    expect(percentileInBand(101, band)).toBe(0.95);
+    expect(percentileInBand(null, band)).toBeNull();
   });
 
   it("interpolates between knots", () => {
