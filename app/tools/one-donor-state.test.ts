@@ -24,6 +24,8 @@
  *     test 1 (the +3 not-real-time row's label turns "no forecast for this gauge").
  *   - re-adding `if (r.percentile !== null) return donorShare(r);` to `donorMapLabel` fails test 3 (`percentile`).
  *   - writing `quiet: r.percentile === null` back into ui `panel.ts` fails test 3 (`percentile`).
+ *   - (adversarial review) `quiet: typeof r.percentile !== "number"` in ui `panel.ts` gauge choices fails test 3
+ *     (`percentileType`), which the null-comparison pattern alone let through.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -71,6 +73,8 @@ function outsideDonorState(p: string): string {
 /** The ways a module can decide a donor's state itself. */
 const TESTS: Record<string, RegExp> = {
   percentile: /\.percentile\s*(?:!==?|===?)\s*null\b/g,
+  // `typeof r.percentile === "number"` is the same test spelled another way (review)
+  percentileType: /typeof\s+[\w.?]*\.percentile\b/g,
   realtime: /\.realtime\s*(?:!==?|===?)\s*(?:true|false)\b/g,
   withinADay: /\.observedAt\s*\?\s*Date\.parse/g,
 };
@@ -78,6 +82,7 @@ const TESTS: Record<string, RegExp> = {
 /** The spellings T123 replaced, one per pattern. */
 const SPELLINGS: Record<string, string> = {
   percentile: `  if (r.percentile !== null) return donorShare(r);`,
+  percentileType: `  if (typeof r.percentile === "number") return donorShare(r);`,
   realtime: `  if (r.realtime === false) return ROUTE_MAP_WORDS.notRealtime;`,
   withinADay: `  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;`,
 };
@@ -166,7 +171,7 @@ describe("one donor state: core's donorState decides, every label switches over 
 
   it("each pattern catches the spelling it replaced", () => {
     expect(Object.fromEntries(Object.entries(TESTS).map(([k, re]) => [k, new RegExp(re.source).test(SPELLINGS[k]!)])))
-      .toEqual({ percentile: true, realtime: true, withinADay: true });
+      .toEqual({ percentile: true, percentileType: true, realtime: true, withinADay: true });
   });
 
   it("no module but donorState tests a donor's reading fields", () => {
@@ -186,6 +191,6 @@ describe("one donor state: core's donorState decides, every label switches over 
     const body = text.slice(text.indexOf("export function donorState("));
     const own = body.slice(0, body.indexOf("\n}\n"));
     expect(Object.fromEntries(Object.entries(TESTS).map(([k, re]) => [k, own.match(re)?.length ?? 0])))
-      .toEqual({ percentile: 1, realtime: 1, withinADay: 1 });
+      .toEqual({ percentile: 1, percentileType: 0, realtime: 1, withinADay: 1 });
   });
 });

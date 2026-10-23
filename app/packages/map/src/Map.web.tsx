@@ -44,7 +44,6 @@ import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, stockedInpu
          type TileRenderer,
          type Channel, type ChannelInput, type TileSections } from "./colouring";
 import { sourceTiles, tileIds } from "./tile-ids.web";
-import { spreadSections } from "./sections";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -542,7 +541,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (!m || !r || !data) return;
     return afterLoad(m, () => {
       const handle = layerHandle(m, r);
-      for (const [layerId, values] of Object.entries(withoutEngineKeys(spreadSections(data), (e) => lookError.current?.(e))))
+      for (const [layerId, values] of Object.entries(withoutEngineKeys(data, (e) => lookError.current?.(e))))
         adapter.current.setData(handle, layerId, values);
     });
   }, [data]);

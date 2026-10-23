@@ -28,6 +28,11 @@
  *   - `return { stream: values, lake: values };` back in `pushedRoute` fails test 3 and test 4 (`object`);
  *   - `TRACE_LAYERS = new Set(["stream", "lake", "wetland"])` back in trace-geometry.ts fails test 4 (`array`);
  *   - `spreadSections` dropping its `...rest` (losing `basin`) fails test 3.
+ * Adversarial review (2026-10-23, each run, failed as named, reverted):
+ *   - `withoutEngineKeys` returning `out` unspread (the restore path's old behaviour) fails "the web map fans
+ *     `sections` out on EVERY path";
+ *   - `return { stream: values, basin: values, lake: values }` in `pushedRoute` (keys not adjacent) fails test 3 and
+ *     test 4 (`object`), which the adjacent-keys pattern missed.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -38,7 +43,7 @@ import type { SectionId } from "@app/core";
 import { MAP_STYLE, STYLE_META } from "../packages/map/src/style";
 import { SECTION_DATA, SECTION_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS,
          perSectionLayers, spreadSections, stateTarget } from "../packages/map/src/sections";
-import { LABEL_SOURCE_LAYERS } from "../packages/map/src/colouring";
+import { LABEL_SOURCE_LAYERS, withoutEngineKeys } from "../packages/map/src/colouring";
 import { TRACE_LAYERS } from "../packages/map/src/trace-geometry";
 import { SELECTION_RINGS } from "../packages/map/src/adapters/contract";
 
@@ -76,7 +81,8 @@ const SPELLS: Record<string, RegExp> = {
   // `["stream", "lake", "wetland"]`, `new Set(["stream", "lake"])`
   array: new RegExp(`\\[\\s*${NAME}\\s*,\\s*${NAME}`),
   // `{ stream: values, lake: values }` (keys one after another; a type's `stream: string;` is not a list of values)
-  object: new RegExp(`\\b${KEY}:\\s*[^,;{}]+?,\\s*${KEY}:`),
+  // — other keys may stand between them (`{ stream: v, basin: b, lake: v }`, review)
+  object: new RegExp(`\\b${KEY}:\\s*[^,;{}]+?,\\s*(?:\\w+:\\s*[^,;{}]+?,\\s*)*${KEY}:`),
 };
 
 /** The spellings T124 replaced, one or more per pattern. */
@@ -85,6 +91,7 @@ const SPELLINGS: [string, string][] = [
   ["array", `export const LABEL_SOURCE_LAYERS = ["stream", "lake", "wetland"] as const;`],
   ["object", `  return { stream: values, lake: values, wetland: values };`],
   ["object", `    stream: Object.fromEntries(each),\n    lake: Object.fromEntries(each),`],
+  ["object", `  return { stream: values, basin: areas, lake: values };`],
 ];
 
 /**
@@ -141,6 +148,25 @@ describe("one per-section layer list: perSectionLayers() decides, everything els
     expect(spreadSections({ stream: { 1: { x: 1 } } })).toEqual({ stream: { 1: { x: 1 } } });
     // the key can never collide with a real layer
     expect(MAP_STYLE.layers.map((l) => l.id)).not.toContain(SECTION_DATA);
+  });
+
+  it("the web map fans `sections` out on EVERY path into setData — the restore after a relabel too (review)", () => {
+    // Map.web.tsx applies pushed data in two places: the `data` effect and the engine's `restore` (what a relabel's
+    // clear must put back). The restore went straight to `withoutEngineKeys(latestData.current)`, so a `sections` key
+    // reached `adapter.setData(h, "sections", …)`, which throws `unknown layer "sections"` inside the engine's swap.
+    // Both paths go through `withoutEngineKeys` (one-colouring-engine pins that), so the fan-out lives there.
+    const why: string[] = [];
+    expect(withoutEngineKeys({ sections: { 1: { other: 2, standing: 3 } }, basin: { B: { other: 1 } } },
+                             (e) => why.push(e.message)))
+      .toEqual({ stream: { 1: { other: 2 } }, lake: { 1: { other: 2 } }, wetland: { 1: { other: 2 } },
+                 basin: { B: { other: 1 } } });
+    // refused once, under the key the caller used — not once per fanned-out layer
+    expect(why.map((m) => m.slice(0, m.indexOf(" refused")))).toEqual(['pushed p/standing/status/stocked/survey on "sections"']);
+    // every key the web map can hand setData is a style layer the adapter knows
+    expect(Object.keys(withoutEngineKeys({ sections: { 1: { other: 2 } } }, () => {}))
+      .filter((l) => !STYLE_META.colorModes[l])).toEqual([]);
+    // the native renderer spreads before its area/section split
+    expect(read("packages/map/src/Map.native.tsx")).toContain("Object.entries(spreadSections(data ?? {}))");
   });
 
   it("each pattern catches the spelling it replaced", () => {

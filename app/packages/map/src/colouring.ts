@@ -34,7 +34,7 @@
 import { dayOfYear, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
-import { perSectionLayers, type PerSectionLayer } from "./sections";
+import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
 
 /** The day's status as the map is told it — given ONLY on a proven pair, with an index that passed its digest checks. */
 export interface ProfileStatus {
@@ -322,7 +322,13 @@ export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stock
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 
-/** `data` without any value an engine channel owns; a layer that carried one is reported once. */
+/**
+ * `data` as the web map applies it: without any value an engine channel owns (a layer that carried one is reported
+ * once, under the key the caller used), and with `SECTION_DATA` fanned out to every per-section layer
+ * (`spreadSections`, T124). Every web path into `setData` goes through here (tools/one-colouring-engine) — the `data`
+ * effect AND the engine's `restore` — so neither can hand the adapter the `sections` key, which is no layer (T124
+ * review: the restore did, and `setData` throws on it).
+ */
 export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pushed {
   const out: Pushed = {};
   for (const [layerId, values] of Object.entries(data)) {
@@ -337,5 +343,5 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
                                   + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }
-  return out;
+  return spreadSections(out);
 }
