@@ -589,15 +589,32 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 });
 
 describe("the browser's back (systemBack.web: the History API) does the same", () => {
-  /** The browser's back button: a real `history.back()`, whose popstate jsdom delivers later, as browsers do. */
-  const browserBack = async () => { await act(async () => { window.history.back(); await new Promise((r) => setTimeout(r, 30)); }); };
+  /**
+   * THE POPSTATE AN ACTION CAUSES, awaited — not a fixed sleep (T80 7). jsdom delivers a history step's popstate on a
+   * later task, as browsers do; the old 30 ms sleep lost that race under load (the browser-back step flaked when the
+   * machine was busy). Armed before the action, so an event delivered at once is not missed; the 2 s ceiling only bounds
+   * a walk whose action steps no history (the assertion then says what happened).
+   */
+  const popstateAfter = async (action: () => unknown): Promise<void> => {
+    let off = () => {};
+    const landed = new Promise<void>((res) => {
+      const t = setTimeout(() => { off(); res(); }, 2000);
+      const h = () => { clearTimeout(t); off(); res(); };
+      off = () => window.removeEventListener("popstate", h);
+      window.addEventListener("popstate", h);
+    });
+    await action();
+    await act(async () => { await landed; await new Promise((r) => setTimeout(r, 0)); });
+  };
+  /** The browser's back button: a real `history.back()`, and its popstate let land. */
+  const browserBack = () => popstateAfter(() => { window.history.back(); });
 
   it("Layers sheet, then a water, then a tab: one entry each, closed innermost first", async () => {
     await mount({ ...HOME, tab: "spots" }, webBack);
     const seen = [where()];
     // leaving a tab's root steps the history back; jsdom delivers that popstate later, as a browser does — let it land
     // before the next press (a person is never faster than a few milliseconds)
-    await click("Map"); await act(async () => { await new Promise((r) => setTimeout(r, 30)); }); seen.push(where());
+    await popstateAfter(() => click("Map")); seen.push(where());
     await click("Layers"); seen.push(where());
     await browserBack(); seen.push(where());
     await click("tap the map");
@@ -620,7 +637,6 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
       const v = s && typeof s === "object" ? (s as Record<string, unknown>)["canifishthis.back"] : undefined;
       return ` [entry ${typeof v === "number" ? v : 0}]`;
     };
-    const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 30)); });
     await mount(HOME, webBack, openRegsFixture());
     const moves = [`${where()}${entry()}`, ...(await movesInsideChilliwack(entry))];
     await browserBack(); moves.push(`${where()}${entry()}`);
@@ -631,7 +647,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     await browserBack(); chain.push(`${where()}${entry()}`);
 
     await openTributary(); const close = [`${where()}${entry()}`];
-    await click("Close, back to Map"); await settle(); close.push(`${where()}${entry()}`);
+    await popstateAfter(() => click("Close, back to Map")); close.push(`${where()}${entry()}`);
     const e = (n: number) => ` [entry ${n}]`;
     expect({ moves, chain, close }).toEqual({
       moves: [...MOVES_SEEN.map((s, i) => `${s}${e(i === 0 ? 0 : 1)}`), `tab Map${e(0)}`],
@@ -661,17 +677,17 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
       return ` [entry ${typeof v === "number" ? v : 0}]`;
     };
     const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 30)); });
-    const walk = async (leave: () => Promise<void>) => {
+    const walk = async (leave: () => Promise<unknown>) => {
       await mount(HOME, webBack);
       const out = [`${where()}${entry()}`];
       act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
       await settle(); out.push(`${where()}${entry()}`);
       await openFromSearch(); await settle(); out.push(`${where()}${entry()}`);
-      await leave(); await settle(); out.push(`${where()}${entry()}`);
+      await popstateAfter(leave); out.push(`${where()}${entry()}`);
       cleanup();
       return out;
     };
-    const viaBack = await walk(browserBack);
+    const viaBack = await walk(async () => { window.history.back(); });
     const viaClose = await walk(() => click("Close, back to Map"));
     const seen = ["tab Map [entry 0]", "search · tab Map [entry 1]",
                   "water Chilliwack River on Regulations · no bar [entry 1]", "tab Map [entry 0]"];
