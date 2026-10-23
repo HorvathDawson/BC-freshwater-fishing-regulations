@@ -16,11 +16,11 @@ import * as Q from "../queries";
 const SCHEMA = readFileSync(new URL("../../../../../../pipeline/deliver/bundle/schema.sql",
                                     import.meta.url), "utf8");
 const SEED = `
-  INSERT INTO item (ord, item_id, name, kind, part_of) VALUES
-    (0, 'wbk:1', 'Kootenay Lake', 'lake', NULL),
-    (1, 'wbk:-20', 'Kootenay Lake — Main Body', 'lake', 'wbk:1'),
-    (2, 'wbk:-21', 'Kootenay Lake — Upper West Arm', 'lake', 'wbk:1');
-  INSERT INTO alias VALUES ('wbk:1', 'Kootenai Lake');
+  INSERT INTO item (ord, item_id, name, kind, part_of, name_key) VALUES
+    (0, 'wbk:1', 'Kootenay Lake', 'lake', NULL, 'kootenay lake'),
+    (1, 'wbk:-20', 'Kootenay Lake — Main Body', 'lake', 'wbk:1', 'kootenay lake — main body'),
+    (2, 'wbk:-21', 'Kootenay Lake — Upper West Arm', 'lake', 'wbk:1', 'kootenay lake — upper west arm');
+  INSERT INTO alias (item_id, alias, alias_key) VALUES ('wbk:1', 'Kootenai Lake', 'kootenai lake');
   INSERT INTO item_section (ord, sid) VALUES (1, 1), (2, 2);`;
 
 describe("a lake cut into parts", () => {
@@ -39,7 +39,7 @@ describe("a lake cut into parts", () => {
     const clause = "AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord)";
     expect(Q.SEARCH.split(clause).length).toBe(3);          // once per half of the union
     const loose = Q.SEARCH.replaceAll(clause, "");
-    const rows = await db.all(Q.withArea(loose, true), "Kootenay", 10);
+    const rows = await db.all(Q.withArea(loose, true), Q.nameNeedle("Kootenay"), 10);
     expect(rows.map((r) => r.item_id)).toContain("wbk:1");
     db.close?.();
   });
