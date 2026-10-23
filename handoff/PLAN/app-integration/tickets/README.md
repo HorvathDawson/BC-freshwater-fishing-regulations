@@ -96,7 +96,7 @@ use that as the sole source of future work."
 | T49 | map's day: calendar icon + date sheet | DONE | 02570d07, 1fc9be2e, 9db57864 | — |
 | T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket) | all; after T61–T63, heavy, alone |
 | T51 | spot similarity forecast ("Like your visit?") | DONE | fa7235c0, 2f5cdc70, a6fd848d, aba28187 | — |
-| T52 | Conditions "Expected change" | IN PROGRESS | 6ffda443 (ticket) | all (pipeline daily series + app chip) |
+| T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | PARTIAL | fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9 | needs deliver; Q54/Q55 |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
@@ -170,6 +170,7 @@ use that as the sole source of future work."
 | T123 | one donor state for Conditions and map labels | OPEN | — | all (app) |
 | T124 | one per-section layer list in map | OPEN | — | all (app) |
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
+| T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
 
 ## Order for open tickets
 
@@ -179,7 +180,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
    deliver), T52 (Expected change).
 2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
-   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
+   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
    Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
    diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
    rerun with T102, each with its own reviewed binding diff.
@@ -241,6 +242,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q56 | T51 | "Like your visit?": today + 4 days, or +1..+5? | today + 4 | owner |
 | Q57 | T51 | Similarity weights: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 % — right? | as built | owner |
 | Q58 | T68 | `update-hydat.sh --stations <file>` copies the refreshed default roster over that file — ok? | as built | owner |
+| Q59 | T52 | Expected change: which model colours a river when several forecast it? | CLEVER, then COFFEE, then ELF (alt: the largest move of any model) | owner |
+| Q60 | T52 | Use COFFEE for the +1/+3/+5/+10 chips too? (its day 0 runs ~1.45× the gauge) | no; Change only | owner |
+| Q61 | T52 | Colour Change by ratio to today (a river already high that triples shows as rising), not by rank for the date? | by ratio; the words give the rank | owner |
 
 ### Answered (recently, for the record)
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
