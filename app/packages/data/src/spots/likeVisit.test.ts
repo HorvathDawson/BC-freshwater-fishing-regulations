@@ -76,7 +76,8 @@ describe("comingConditions", () => {
 
 describe("fetchLike — both halves over the last fetched", () => {
   const spot = base({ reading: { station: "08MH016", discharge: 1, level: null, percentile: 0.4, at: "x" } });
-  const had: LikeFetched = { weather: { days: [], hours: [] }, weatherAt: 1, flow: { "2026-10-21": 0.3 }, flowAt: 2 };
+  const had: LikeFetched = { weather: { days: [], hours: [] }, weatherAt: 1, flow: { "2026-10-21": 0.3 }, flowAt: 2,
+                            flowNow: "2026-10-21" };
 
   it("online: both replaced, stamped now", async () => {
     const w: WeatherAhead = { days: [{ date: "2026-10-22", precipMm: 0 }], hours: [] };
@@ -84,8 +85,17 @@ describe("fetchLike — both halves over the last fetched", () => {
       weather: { ahead: async () => w },
       feed: { index: async () => ({ stations: { "08MH016": { percentile: 0.4, discharge: 0.4 } } }) },
     }, NOW);
-    expect(got).toEqual({ offline: false, fetched: { weather: w, weatherAt: NOW, flowAt: NOW,
+    expect(got).toEqual({ offline: false, fetched: { weather: w, weatherAt: NOW, flowAt: NOW, flowNow: "2026-10-22",
       flow: { "2026-10-22": 0.4, "2026-10-23": null, "2026-10-25": null, "2026-10-27": null, "2026-11-01": null } } });
+  });
+
+  it("the day the reading NOW is for is the index's own day: a feed published yesterday reads now as yesterday's",
+     async () => {
+    const got = await fetchLike(spot, NOTHING_FETCHED, { feed: { index: async () => ({
+      fetchedAt: new Date(2026, 9, 21, 18).toISOString(),
+      stations: { "08MH016": { percentile: 0.4, discharge: 0.4, ahead: { "1": { discharge: 0.45 } } } } }) } }, NOW);
+    expect([got.fetched.flowNow, got.fetched.flow]).toEqual(["2026-10-21",
+      { "2026-10-21": 0.4, "2026-10-22": 0.45, "2026-10-24": null, "2026-10-26": null, "2026-10-31": null }]);
   });
 
   it("offline: the last fetched kept with its own age, and said offline", async () => {

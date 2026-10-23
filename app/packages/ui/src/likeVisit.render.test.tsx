@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import type { LikeFetched, LikeSources, Spot } from "@app/data/spots";
 import { likeVisitView, useLikeVisit, type LikeVisitView } from "./likeVisit";
+import type { Connectivity } from "./imagery";
 
 afterEach(cleanup);
 const settle = () => act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
@@ -27,7 +28,7 @@ const FETCHED: LikeFetched = {
   weather: { days: days.map((date) => ({ date, precipMm: 1 })),
              hours: days.map((date) => ({ at: `${date}T09:00`, tempC: date === "2026-10-23" ? 8 : 14, windKph: 8,
                                           cloudPct: 40 })) },
-  flow: { "2026-10-22": 0.42, "2026-10-23": 0.67, "2026-10-25": 0.42 },
+  flow: { "2026-10-22": 0.42, "2026-10-23": 0.67, "2026-10-25": 0.42 }, flowNow: "2026-10-22",
 };
 
 describe("likeVisitView", () => {
@@ -74,6 +75,13 @@ describe("likeVisitView", () => {
     });
   });
 
+  it("today's flow is called NOW only when it is the gauge's reading for today, not yesterday's forecast for it", () => {
+    // fetched yesterday: yesterday's reading and its +1 forecast, which is today's value
+    const stale: LikeFetched = { ...FETCHED, flow: { "2026-10-21": 0.42, "2026-10-22": 0.42 }, flowNow: "2026-10-21" };
+    expect(likeVisitView(spot, stale, true, NOW).days![0]!.why[0])
+      .toBe("Flow: 42nd percentile then, 42nd percentile forecast. The same: 100% alike, 45% of the score.");
+  });
+
   it("a visit with nothing recorded says so, and draws no days", () => {
     const bare = { ...spot, reading: null, weather: null, leadUp: null };
     expect(likeVisitView(bare, FETCHED, true, NOW)).toEqual(expect.objectContaining({
@@ -82,13 +90,35 @@ describe("likeVisitView", () => {
   });
 });
 
-function Probe({ sources, store, out }: { sources: LikeSources; store: { read(): string | null; write(t: string): void };
-                                          out: { v?: LikeVisitView | null } }) {
-  out.v = useLikeVisit(spot, sources, store, () => NOW);
+function Probe({ sources, store, out, connectivity }: {
+  sources: LikeSources; store: { read(): string | null; write(t: string): void }; out: { v?: LikeVisitView | null };
+  connectivity?: Connectivity }) {
+  out.v = useLikeVisit(spot, sources, store, () => NOW, connectivity);
   return <p>{out.v?.age ?? "none"}|{out.v?.days?.[0]?.score ?? ""}</p>;
 }
 
 describe("useLikeVisit", () => {
+  it("opened offline, it fetches again when the device comes back online", async () => {
+    let up = false;
+    let tell: (online: boolean) => void = () => {};
+    const connectivity = { watches: true, probeWhileUp: false, online: () => up,
+                           subscribe(on: (online: boolean) => void) { tell = on; return () => { tell = () => {}; }; } };
+    let text: string | null = JSON.stringify({ s1: FETCHED });
+    const store = { read: () => text, write: (t: string) => { text = t; } };
+    const out: { v?: LikeVisitView | null } = {};
+    const sources: LikeSources = {
+      weather: { ahead: async () => (up ? FETCHED.weather : null) },
+      feed: { index: async () => (up ? { fetchedAt: new Date(NOW).toISOString(),
+                                         stations: { "08MH016": { percentile: 0.3, discharge: 0.3 } } } : null) } };
+    const { container } = render(<Probe out={out} store={store} sources={sources} connectivity={connectivity} />);
+    await settle();
+    expect(container.textContent).toBe("Offline: showing the forecast checked 2h ago.|100%");
+    up = true;
+    await act(async () => { tell(true); });
+    await settle();
+    expect(container.textContent).toBe("Forecast checked just now.|89%");
+  });
+
   it("offline: the last fetched, at once, and says offline with its age", async () => {
     let text: string | null = JSON.stringify({ s1: FETCHED });
     const store = { read: () => text, write: (t: string) => { text = t; } };

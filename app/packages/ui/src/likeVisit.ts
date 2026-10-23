@@ -11,6 +11,7 @@ import { LIKE_WORDS, likeAgeLine, likeDay, likeDayHead, likeDayLabel, likeDays, 
          likeVisitHead } from "@app/core";
 import { comingConditions, fetchLike, NOTHING_FETCHED, readLike, visitConditions, visitHour, writeLike,
          type LikeFetched, type LikeSources, type LikeStore, type Spot } from "@app/data/spots";
+import type { Connectivity } from "./imagery";
 
 export interface LikeDayVM {
   date: string;
@@ -54,9 +55,9 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
   if (likeNothingThen(then)) return { ...base, days: null, note: LIKE_WORDS.nothingThen };
   const hour = visitHour(spot);
   const days = likeDays(now);
-  const today = days[0];
+  // "now" only for the day the gauge's reading is for — never a forecast for today read off yesterday's feed
   const vms = comingConditions(f, days, hour).map((c): LikeDayVM => {
-    const d = likeDay(then, c, { today: c.date === today, hour });
+    const d = likeDay(then, c, { today: !!f.flowNow && c.date === f.flowNow, hour });
     const h = likeDayHead(d.date, now);
     return { date: d.date, top: h.top, sub: h.sub, score: likeScoreText(d),
              read: d.read ? LIKE_WORDS.reads[d.read] : null,
@@ -73,10 +74,18 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
  * stays as last fetched, and the view says it is offline.
  */
 export function useLikeVisit(spot: Spot | null, sources: LikeSources, store?: LikeStore,
-                             now: () => number = Date.now): LikeVisitView | null {
+                             now: () => number = Date.now, connectivity?: Connectivity): LikeVisitView | null {
   const id = spot?.id ?? null;
   const [state, setState] = useState<{ id: string | null; f: LikeFetched; offline: boolean }>(
     { id: null, f: NOTHING_FETCHED, offline: false });
+  // "refreshes when online" (T51 acceptance): a strip that could not reach the forecast asks again the moment the
+  // device says it is back, not only the next time the spot is opened
+  const [retry, setRetry] = useState(0);
+  const offline = state.offline;
+  useEffect(() => {
+    if (!spot || !offline || !connectivity?.watches) return;
+    return connectivity.subscribe((up) => { if (up) setRetry((n) => n + 1); });
+  }, [id, offline, connectivity]);
   const { weather, feed } = sources;
   useEffect(() => {
     if (!spot) return;
@@ -90,7 +99,7 @@ export function useLikeVisit(spot: Spot | null, sources: LikeSources, store?: Li
     });
     return () => { live = false; };
     // a spot's place, station and record do not change while it is open; its id is what a new fetch is for
-  }, [id, weather, feed, store]);
+  }, [id, weather, feed, store, retry]);
   return useMemo(() => (spot && state.id === spot.id ? likeVisitView(spot, state.f, state.offline, now()) : null),
                  [spot, state]);
 }

@@ -36,9 +36,16 @@ export interface LikeFetched {
   /** The station's discharge percentile by LOCAL day, for the days a horizon reaches. */
   flow: Record<string, number | null> | null;
   flowAt: number | null;
+  /**
+   * The local day `flow`'s reading NOW (horizon 0) is for — the index's own day, which is not always the device's
+   * today (a feed published yesterday, a cache fetched yesterday). Only that day's flow is "now"; every other day's
+   * is a forecast. Null when no flow was fetched; absent on a cache from before this was kept (read as a forecast).
+   */
+  flowNow?: string | null;
 }
 
-export const NOTHING_FETCHED: LikeFetched = { weather: null, weatherAt: null, flow: null, flowAt: null };
+export const NOTHING_FETCHED: LikeFetched =
+  { weather: null, weatherAt: null, flow: null, flowAt: null, flowNow: null };
 
 /** The station the visit's flow is from, and the coming days' too. */
 export const likeStation = (spot: Spot): string | null => spot.reading?.station ?? spot.leadUp?.station ?? null;
@@ -78,9 +85,14 @@ export function visitConditions(spot: Spot): LikeConditions {
 export function flowAhead(index: LikeIndex, station: string, now: number): Record<string, number | null> | null {
   const row = index.stations[station];
   if (!row) return null;
-  const t = index.fetchedAt ? Date.parse(index.fetchedAt) : NaN;
-  const base = new Date(Number.isFinite(t) ? t : now);
+  const base = indexDay(index, now);
   return Object.fromEntries(HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()), reading(row, "discharge", h)]));
+}
+
+/** The day the index's horizons count from: its own `fetchedAt`, else the device's now. */
+function indexDay(index: LikeIndex, now: number): Date {
+  const t = index.fetchedAt ? Date.parse(index.fetchedAt) : NaN;
+  return new Date(Number.isFinite(t) ? t : now);
 }
 
 /** The coming days' conditions, out of what was last fetched; a day it does not reach is a day of nulls. */
@@ -120,10 +132,12 @@ export async function fetchLike(spot: Spot, had: LikeFetched, src: LikeSources, 
     station && src.feed ? src.feed.index().catch(() => null) : Promise.resolve(null),
   ]);
   const flowAsked = !!(station && src.feed);
+  const flow = idx && station ? flowAhead(idx, station, now) : undefined;
   const fetched: LikeFetched = {
     weather: w ?? had.weather, weatherAt: w ? now : had.weatherAt,
-    flow: idx && station ? flowAhead(idx, station, now) : had.flow,
-    flowAt: idx && station ? now : had.flowAt,
+    flow: flow !== undefined ? flow : had.flow,
+    flowAt: flow !== undefined ? now : had.flowAt,
+    flowNow: flow === undefined ? had.flowNow ?? null : flow ? localDate(indexDay(idx!, now).getTime()) : null,
   };
   return { fetched, offline: (!!src.weather?.ahead && !w) || (flowAsked && !idx) };
 }

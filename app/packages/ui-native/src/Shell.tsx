@@ -535,8 +535,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   }, [tab, opener, picking]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
-  // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port
-  const like = useLikeVisit(viewing, { weather, feed }, likeStore);
+  // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
+  // again when the device comes back online
+  const like = useLikeVisit(viewing, { weather, feed }, likeStore, Date.now, connectivity);
   if (viewing) {
     const dirty = edit !== null
       && (edit.title !== viewing.title || edit.notes !== viewing.notes
