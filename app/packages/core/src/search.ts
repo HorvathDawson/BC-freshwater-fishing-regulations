@@ -23,17 +23,15 @@
  */
 
 import { sizeSignal } from "./near";
+import { searchKey } from "./searchKey";
 
 /** `[west, south, east, north]`, degrees. MapLibre's `fitBounds` order. */
 export type Bbox = readonly [number, number, number, number];
 
 export interface LatLon { lat: number; lon: number }
 
-/** Lower-case, accents off, whitespace collapsed. "Chilliwack  Riv" == "chilliwack riv". */
-export function normalise(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ").trim();
-}
+/** What search compares — the one key the SQL filter and this ranking share (T114, `./searchKey`). */
+export { searchKey } from "./searchKey";
 
 /**
  * HOW GOOD A MATCH IS, lower is better. The ladder is the ranking's first key.
@@ -54,10 +52,10 @@ export function normalise(s: string): string {
  */
 export function matchTier(query: string, name: string, alias: string | null = null):
     number | null {
-  const q = normalise(query);
+  const q = searchKey(query);
   if (!q) return null;
   const tierOf = (text: string, isAlias: boolean): number | null => {
-    const t = normalise(text);
+    const t = searchKey(text);
     const a = isAlias ? 1 : 0;
     if (t === q) return isAlias ? 2 : 0;
     if (t.startsWith(q)) return 2 + a;
@@ -120,7 +118,7 @@ export function rankWaters<T extends Candidate>(query: string, hits: readonly T[
  */
 export function duplicateNames(hits: readonly { name: string }[]): Set<string> {
   const seen = new Map<string, number>();
-  for (const h of hits) seen.set(normalise(h.name), (seen.get(normalise(h.name)) ?? 0) + 1);
+  for (const h of hits) seen.set(searchKey(h.name), (seen.get(searchKey(h.name)) ?? 0) + 1);
   return new Set([...seen].filter(([, n]) => n > 1).map(([k]) => k));
 }
 

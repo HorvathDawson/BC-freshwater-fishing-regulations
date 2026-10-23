@@ -34,6 +34,7 @@ from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
 from pipeline.deliver.bundle import rules as _rules
 from pipeline.common.registry_kinds import is_water
+from pipeline.common.search_key import search_key
 
 HERE = Path(__file__).parent
 _ROOT = REPO_ROOT
@@ -225,9 +226,11 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
     part_of = _lake_parts(items)
     # COLUMNS NAMED. `item` grew a column and the positional form would have silently
     # shifted name into item_id — the same fault that shipped an empty `entry` table.
-    db.executemany("INSERT OR REPLACE INTO item (ord, item_id, name, kind, part_of) "
-                   "VALUES (?,?,?,?,?)",
-                   ((ords[i["id"]], i["id"], i["name"], i.get("kind"), part_of.get(i["id"]))
+    # `name_key` (T114): what the app's search filters on — `search_key`, the app's `searchKey` rule.
+    db.executemany("INSERT OR REPLACE INTO item (ord, item_id, name, kind, part_of, name_key) "
+                   "VALUES (?,?,?,?,?,?)",
+                   ((ords[i["id"]], i["id"], i["name"], i.get("kind"), part_of.get(i["id"]),
+                     search_key(i["name"]))
                     for i in items))
     cov.filled("item", len(ords))
 
@@ -247,8 +250,8 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
             if not key or key in seen:
                 continue
             seen.add(key)
-            aliases.append((i["id"], v))
-    db.executemany("INSERT INTO alias VALUES (?,?)", aliases)
+            aliases.append((i["id"], v, search_key(v)))
+    db.executemany("INSERT INTO alias (item_id, alias, alias_key) VALUES (?,?,?)", aliases)
     cov.filled("alias", len(aliases))
     # The ids the registry absorbed (`registry.flowing`), each naming its water now.
     absorbed = sorted((a, i["id"]) for i in items for a in i.get("aliases", []))

@@ -32,8 +32,11 @@ FILES = {
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
-        "alias": ["item_id", "alias"],
-        "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "size", "gauged", "has_rows", "pieces"],
+        # `name_key` / `alias_key` (T114): what the app's SEARCH filters on (`@app/core` `searchKey` of the query). The
+        # app's search NEEDS them: a core without them fails every water search, so ship it with the app that reads it
+        "alias": ["item_id", "alias", "alias_key"],
+        "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "name_key", "size", "gauged", "has_rows",
+                 "pieces"],
         "item_alias": ["alias", "item_id"],
         "item_section": ["sid", "ord"],
         "meta": ["k", "v"],

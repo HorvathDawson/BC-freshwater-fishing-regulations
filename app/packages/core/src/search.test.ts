@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   bboxOfGeometry, boxAround, boxOfParts, describeBy, distanceKm, duplicateNames, extentOf, fixOf,
   matchTier, outlineOf, PLACEHOLDER_MAX, SEARCH_BAR, placeholderFor, waterCaption,
-  normalise, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
+  searchKey, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
   NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear, rankPointers, seeLine,
 } from "./search";
 
@@ -14,8 +14,8 @@ const lake = (name: string, areaHa: number | null, pieces = 1) =>
 
 describe("the match ladder", () => {
   it("normalises case, accents and spacing", () => {
-    expect(normalise("  Chilliwack   RIVER ")).toBe("chilliwack river");
-    expect(normalise("Th'ewá:lí")).toBe("thewa:li");
+    expect(searchKey("  Chilliwack   RIVER ")).toBe("chilliwack river");
+    expect(searchKey("Th'ewá:lí")).toBe("thewa:li");
   });
 
   it("orders exact, prefix, word, anywhere — name ahead of alias at each step", () => {

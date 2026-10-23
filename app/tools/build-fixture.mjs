@@ -36,6 +36,7 @@ import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { searchKey } from "../packages/core/src/searchKey.ts";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 const html = readFileSync(here("../design/riffle.html"), "utf8");
@@ -89,10 +90,11 @@ for (const [n, e] of [...byName].sort())
   if (!ordOf.has(idOf(n, e))) ordOf.set(idOf(n, e), ordOf.size);
 // COLUMNS NAMED, like the bundler: `item` grew a column, and the positional form would
 // have shifted the name into item_id with nothing raising.
-counts.item = insert("INSERT OR REPLACE INTO item (ord, item_id, name, kind) VALUES (?,?,?,?)",
-  [...byName].sort().map(([n, e]) => [ordOf.get(idOf(n, e)), idOf(n, e), n, e.kind]));
-counts.alias = insert("INSERT INTO alias VALUES (?,?)",
-  [...byName].flatMap(([n, e]) => (src.alias[n] ?? []).map((a) => [idOf(n, e), a])));
+// The search keys (T114) by the app's own `searchKey`, imported — the bundler writes them with the Python twin.
+counts.item = insert("INSERT OR REPLACE INTO item (ord, item_id, name, kind, name_key) VALUES (?,?,?,?,?)",
+  [...byName].sort().map(([n, e]) => [ordOf.get(idOf(n, e)), idOf(n, e), n, e.kind, searchKey(n)]));
+counts.alias = insert("INSERT INTO alias (item_id, alias, alias_key) VALUES (?,?,?)",
+  [...byName].flatMap(([n, e]) => (src.alias[n] ?? []).map((a) => [idOf(n, e), a, searchKey(a)])));
 // THE FIXTURE'S OWN HANDLE TABLE, built the way the atlas builds the real one: every
 // section this fixture names, in the water's own order (blue line, then measure AS A
 // NUMBER), handle = position, ONE-BASED because 0 means "no section". See

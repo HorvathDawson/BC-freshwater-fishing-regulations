@@ -109,11 +109,11 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
-      const query = q.trim();
-      if (query.length < 2 || limit < 1) return [];
+      const query = q.trim(), needle = Q.nameNeedle(query);
+      if (needle === null || limit < 1) return [];
       // Candidates from SQL, ORDER from core — see `rankWaters`. Over-fetched so the rank
       // has room to promote a big water past a small one of the same match quality.
-      const rows = await db.all(Q.withArea(Q.SEARCH, await area), Q.likeEscape(query),
+      const rows = await db.all(Q.withArea(Q.SEARCH, await area), needle,
                                 Math.max(limit * 3, 60));
       const hits = rankNameHits(query, rows, limit);
       if (!hits.length) return hits;

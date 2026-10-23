@@ -10,6 +10,7 @@
  * No regulation table is read — regulations are not integrated (see `regulations.ts` in
  * @app/core).
  */
+import { searchKey } from "@app/core";
 
 /** A water by its durable id. */
 export const ITEM = "SELECT item_id, name, kind FROM item WHERE item_id = ?";
@@ -43,8 +44,11 @@ export const ITEM_FOR_SECTION =
 /**
  * Name search — the CANDIDATES. The final order is decided in @app/core (`rankWaters`).
  *
- * `?1` is the query with LIKE's own wildcards escaped (see `likeEscape`), so a name with an
- * underscore in it is not a wildcard. The tier here is the coarse half of core's ladder —
+ * `?1` is `nameNeedle(query)`: the query's SEARCH KEY (`@app/core` `searchKey`, T114) with LIKE's own wildcards
+ * escaped, so a name with an underscore in it is not a wildcard. It is compared with the STORED keys
+ * (`item.name_key`, `alias.alias_key`, written by the pipeline with the same rule), never the raw strings: LIKE
+ * folds ASCII case only, so a LIKE of '%barriere%' on the raw name found none of the six Barrière waters and "childrens" never
+ * found Children's Fishing Pond — rows the ranking, which folds accents and apostrophes, never saw. The tier here is the coarse half of core's ladder —
  * exact, prefix, word-prefix, anywhere, with an alias one step behind the name — and it is
  * only here so that the LIMIT keeps the right rows: "creek" matches thousands of waters and
  * the ones worth offering are the exact and prefix matches on the biggest of them, which a
@@ -79,19 +83,19 @@ export const SEARCH =
   "         WHERE s.ord = m.ord) AS size, m.area_ha " +
   "FROM ( " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, NULL AS matched_as, " +
-  "         (CASE WHEN i.name LIKE ?1 ESCAPE '\\' THEN 0 " +
-  "               WHEN i.name LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
-  "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
+  "         (CASE WHEN i.name_key LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN i.name_key LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
+  "               WHEN ' ' || i.name_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
   "               ELSE 6 END) AS tier " +
-  "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM item i WHERE i.name_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   "  UNION ALL " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, a.alias AS matched_as, " +
-  "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
-  "               WHEN a.alias LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
-  "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
+  "         (CASE WHEN a.alias_key LIKE ?1 ESCAPE '\\' THEN 2 " +
+  "               WHEN a.alias_key LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
+  "               WHEN ' ' || a.alias_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
   "               ELSE 7 END) AS tier " +
-  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   ") m GROUP BY m.item_id, m.matched_as " +
   "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
@@ -111,6 +115,16 @@ export const HAS_ITEM_AREA =
 
 /** `%` and `_` are LIKE's wildcards; a query containing either means the character. */
 export const likeEscape = (q: string): string => q.replace(/[\\%_]/g, (c) => "\\" + c);
+
+/**
+ * (T114) THE NAME SEARCH'S `?1`, for both readers: the query's search key, LIKE-escaped — the one place a query becomes
+ * what `SEARCH` compares with the stored `name_key` / `alias_key`. `null` when the key is under two characters (the
+ * readers then answer nothing): "''" keys to "", and `LIKE '%%'` would be every water.
+ */
+export function nameNeedle(q: string): string | null {
+  const key = searchKey(q);
+  return key.length < 2 ? null : likeEscape(key);
+}
 
 /**
  * The towns each of these waters comes within 25 km of, nearest first.

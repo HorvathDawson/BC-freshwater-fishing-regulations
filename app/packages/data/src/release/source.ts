@@ -178,9 +178,9 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
-      const query = q.trim();
-      if (query.length < 2 || limit < 1) return [];
-      const rows = await all(R.SEARCH!, BQ.likeEscape(query), Math.max(limit * 3, 60));
+      const query = q.trim(), needle = BQ.nameNeedle(query);
+      if (needle === null || limit < 1) return [];
+      const rows = await all(R.SEARCH!, needle, Math.max(limit * 3, 60));
       const hits = rankNameHits(query, rows, limit);
       return hits.length ? withNear(hits, await ringsFor(hits.map((h) => h.item))) : hits;
     },

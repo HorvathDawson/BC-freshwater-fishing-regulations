@@ -69,7 +69,8 @@ export const PACK_FILES: Record<string, PackFile> = {
     "tables": {
       "alias": [
         "item_id",
-        "alias"
+        "alias",
+        "alias_key"
       ],
       "item": [
         "ord",
@@ -78,6 +79,7 @@ export const PACK_FILES: Record<string, PackFile> = {
         "kind",
         "part_of",
         "area_ha",
+        "name_key",
         "size",
         "gauged",
         "has_rows",

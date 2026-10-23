@@ -1,0 +1,22 @@
+{
+  "_doc": "T114: the one fixture table the search key is tested against in BOTH languages: pipeline/tests/test_search_key.py (pipeline.common.search_key.search_key) and app/tools/search-key-parity.test.ts (@app/core searchKey). Each case is [text, key]. Add a case here, never in one test.",
+  "cases": [
+    ["Barrière Lake", "barriere lake"],
+    ["BARRIÈRE RIVER", "barriere river"],
+    ["North Barrière Lake", "north barriere lake"],
+    ["Children's Fishing Pond", "childrens fishing pond"],
+    ["Children’s Fishing Pond", "childrens fishing pond"],
+    ["  Chilliwack   RIVER ", "chilliwack river"],
+    ["Th'ewá:lí", "thewa:li"],
+    ["Sts'a'í:les", "stsai:les"],
+    ["Pouce Coupé River", "pouce coupe river"],
+    ["Doré River", "dore river"],
+    ["Kootenay Lake — Main Body", "kootenay lake — main body"],
+    ["McArthur\tCreek", "mcarthur creek"],
+    ["Elk River", "elk river"],
+    ["﻿Mabel Lake\n", "mabel lake"],
+    ["Ünder Ñame", "under name"],
+    ["x_y 100%", "x_y 100%"],
+    ["", ""]
+  ]
+}

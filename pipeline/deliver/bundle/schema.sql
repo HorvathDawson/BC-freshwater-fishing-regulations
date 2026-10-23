@@ -56,9 +56,15 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 --
 -- A lake with parts (`part_of` names it) OWNS NO SECTION (user ruling 2026-10-03): its parts are
 -- the water; the build refuses a parent with an `item_section` row, and search finds the parts.
+--
+-- `name_key` / `alias_key` ARE WHAT SEARCH FILTERS ON (T114): `pipeline.common.search_key` of `name` / `alias`
+-- (lower case, accents and apostrophes off, whitespace collapsed), the rule the app keys a query with
+-- (`@app/core` `searchKey`, one case table for both). The app's SEARCH never compares the raw strings, so
+-- "barriere" finds Barrière Lake and "childrens" Children's Fishing Pond. The bundler writes every one;
+-- they are nullable only so a test seeding a few rows need not (a NULL key is a water search cannot find).
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
-                   name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER);
-CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
+                   name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER, name_key TEXT);
+CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL, alias_key TEXT);
 -- AN ITEM ID THE REGISTRY ABSORBED (`registry.flowing`: a river's polygon folded into its river,
 -- `wbk:329148363` -> `gnis:7836`): `alias` is the old id, `item_id` the water it names now. The
 -- permanent record, so a link or a favourite saved under the old id still opens its water. No

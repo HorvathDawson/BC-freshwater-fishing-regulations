@@ -32,18 +32,18 @@ export const SEARCH =
   "       m.pieces AS pieces, m.size AS size, m.area_ha " +
   "FROM ( " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, i.area_ha, i.size, i.pieces, NULL AS matched_as, " +
-  "         (CASE WHEN i.name LIKE ?1 ESCAPE '\\' THEN 0 " +
-  "               WHEN i.name LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
-  "               WHEN ' ' || i.name LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
+  "         (CASE WHEN i.name_key LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN i.name_key LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
+  "               WHEN ' ' || i.name_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
   "               ELSE 6 END) AS tier " +
-  "  FROM item i WHERE i.pieces > 0 AND i.name LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM item i WHERE i.pieces > 0 AND i.name_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "  UNION ALL " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, i.area_ha, i.size, i.pieces, a.alias AS matched_as, " +
-  "         (CASE WHEN a.alias LIKE ?1 ESCAPE '\\' THEN 2 " +
-  "               WHEN a.alias LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
-  "               WHEN ' ' || a.alias LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
+  "         (CASE WHEN a.alias_key LIKE ?1 ESCAPE '\\' THEN 2 " +
+  "               WHEN a.alias_key LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
+  "               WHEN ' ' || a.alias_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
   "               ELSE 7 END) AS tier " +
-  "  FROM alias a JOIN item i USING(item_id) WHERE i.pieces > 0 AND a.alias LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE i.pieces > 0 AND a.alias_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   ") m GROUP BY m.item_id, m.matched_as " +
   "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +
   "         length(m.name), m.name LIMIT ?2";

@@ -12,7 +12,7 @@
  */
 import { useMemo, useRef } from "react";
 import {
-  NEAR_KM, SEARCH_BAR, duplicateNames, extentOf, normalise, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
+  NEAR_KM, SEARCH_BAR, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
   watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
@@ -162,11 +162,11 @@ export function usePickFocus(source: RegsSource, item: ItemId | null): MapFocus 
  */
 export function townToPreview(query: string, waters: readonly { name: string }[],
                               places: readonly PlaceHit[]): PlaceHit | null {
-  const q = normalise(query);
+  const q = searchKey(query);
   if (q.length < 2) return null;
-  const town = places.find((p) => normalise(p.name) === q);
+  const town = places.find((p) => searchKey(p.name) === q);
   if (!town) return null;
-  return waters.some((w) => normalise(w.name) === q) ? null : town;
+  return waters.some((w) => searchKey(w.name) === q) ? null : town;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────────────────
@@ -301,7 +301,7 @@ export function resultGroups(r: { waters: readonly NameHit[]; places: readonly P
     const dups = duplicateNames(r.waters);
     out.push({ kind: "waters",
                title: `${r.waters.length} named ${r.waters.length === 1 ? "water" : "waters"}`,
-               waters: r.waters.map((hit) => ({ hit, dup: dups.has(normalise(hit.name)) })) });
+               waters: r.waters.map((hit) => ({ hit, dup: dups.has(searchKey(hit.name)) })) });
   }
   return out;
 }
