@@ -9,9 +9,11 @@
  *   · panel.ts `contributionsOf` passing the discharge record                  → "the map's Level standing weighs …"
  *   · standing.ts `basinStandings` passing the discharge record                → "a basin's Level field weighs …"
  *   · trust.ts `weightFactors` dropping the `MIN_RECORD_YEARS` floor           → "a record under the floor ranks nothing"
+ *   · trust.ts `basinStanding` computing its own `years / RECORD_FULL_YEARS`    → "a basin vote under the floor weighs
+ *     nothing" and tools/record-factor.test.ts (adversarial review: the basin field had its own copy, which the floor missed)
  */
 import { describe, expect, it } from "vitest";
-import { basinStanding, estimate, MIN_RECORD_YEARS, recordYears, weightFactors, weightFor } from "@app/core";
+import { basinStanding, estimate, MIN_RECORD_YEARS, recordFactor, recordYears, weightFactors, weightFor } from "@app/core";
 import type { BasinMember, Panel, StationId } from "./index";
 import { answerFrom, contributionsOf, panelStanding } from "./panel";
 import { basinStandings } from "./standing";
@@ -83,5 +85,16 @@ describe("the record floor", () => {
     expect(weightFactors(1, "up", MIN_RECORD_YEARS - 1).record).toBe(0);
     expect(weightFactors(1, "up", 0).record).toBe(0);
     expect(weightFactors(1, "up", MIN_RECORD_YEARS).record).toBeCloseTo(MIN_RECORD_YEARS / 20, 12);
+  });
+});
+
+describe("one record factor (adversarial review, T110)", () => {
+  it("a basin vote under the floor weighs nothing — the field holds the panels' floor", () => {
+    const alone = basinStanding([{ percentile: 0.9, areaKm2: 100, years: 20 }]);
+    expect(basinStanding([{ percentile: 0.1, areaKm2: 100, years: MIN_RECORD_YEARS - 1 },
+                          { percentile: 0.9, areaKm2: 100, years: 20 }])).toBe(alone);
+    expect(basinStanding([{ percentile: 0.1, areaKm2: 100, years: MIN_RECORD_YEARS - 1 }])).toBeNull();
+    // at the floor it counts floor/20, as a panel donor does
+    expect(recordFactor(MIN_RECORD_YEARS)).toBe(weightFactors(1, "up", MIN_RECORD_YEARS).record);
   });
 });

@@ -292,8 +292,18 @@ export function weightFactors(share: number, role: "up" | "down",
       ? (BEST_ERROR / (errorFor(1 / share) * (sameRiver ? 1 : TRIBUTARY_ERROR_FACTOR))) ** 2
       : 0,
     role: role === "up" ? 1 : DOWNSTREAM_PENALTY,
-    record: years < MIN_RECORD_YEARS ? 0 : Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
+    record: recordFactor(years),
   };
+}
+
+/**
+ * THE RECORD FACTOR — how much a percentile ranked against `years` of history counts, 0..1: `years / RECORD_FULL_YEARS`
+ * capped at 1, and 0 under `MIN_RECORD_YEARS` (a record that short ranks nothing). ONE function for the reach panels
+ * (`weightFactors`) and the basin field (`basinStanding`), mirroring `weight_of`'s `rec` in panel.py: the basin field
+ * had its own copy of the ratio, which the floor (T110) did not reach.
+ */
+export function recordFactor(years: number): number {
+  return years < MIN_RECORD_YEARS ? 0 : Math.min(1, Math.max(0, years / RECORD_FULL_YEARS));
 }
 
 export function weightFor(share: number, role: "up" | "down", years: number,
@@ -522,9 +532,10 @@ export interface BasinVote {
  *     observes. A gauge on the mainstem speaks for most of the group; a creek gauge speaks
  *     for a corner of it. Weighting is by AREA SHARE rather than raw area so the number is
  *     a proportion of what is observed here, not a quantity that a big group would inflate.
- *   · RECORD, saturating at RECORD_FULL_YEARS, because a percentile is a claim about
+ *   · RECORD (`recordFactor`), saturating at RECORD_FULL_YEARS, because a percentile is a claim about
  *     history and a three-year baseline is a weaker claim than a ninety-year one — the
- *     same ceiling as the reach panels, and now literally the same constant.
+ *     same ceiling as the reach panels, and now literally the same function — floor included:
+ *     a record under MIN_RECORD_YEARS weighs nothing here either (T110).
  *
  * What is NOT here is a direction penalty or an area-ratio error term. Those exist in the
  * panel because it TRANSFERS a reading from a donor to a specific reach it is not standing
@@ -542,7 +553,7 @@ export function basinStanding(votes: readonly BasinVote[]): number | null {
     // back to an equal split rather than to zero weight for everybody.
     const share = totalArea > 0 ? Math.max(0, v.areaKm2 ?? 0) / totalArea
                                 : 1 / Math.max(1, votes.length);
-    const record = Math.min(1, Math.max(0, v.years / RECORD_FULL_YEARS));
+    const record = recordFactor(v.years);   // the panels' factor, floor and all (T110)
     const w = share * record;
     if (w <= 0) continue;
     sumW += w;

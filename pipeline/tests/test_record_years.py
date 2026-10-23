@@ -11,6 +11,7 @@ Mutation pins (each fails the named test):
   · `Member.years` / `member_rows` carrying one number                    → test_the_member_rows_carry_the_record_per_quantity
   · `weight_of` without the floor                                         → test_weight_of_holds_the_floor
   · a second record-length reduction anywhere in the pipeline             → test_nothing_else_computes_record_years
+  · `max(m.years)` on a member's per-quantity tuple (adversarial review)   → test_nothing_else_computes_record_years
 """
 from __future__ import annotations
 
@@ -110,7 +111,10 @@ def test_the_member_rows_carry_the_record_per_quantity():
 #: `gauge_stats` once. Anything else is a second opinion about how long a record is.
 ALLOWED = {"pipeline/gauges/feed/record.py": 1, "pipeline/gauges/feed/climatology.py": 1,
            "pipeline/deliver/bundle/build.py": 1}
-READS = re.compile(r"""\.get\(\s*["']years["']|\[\s*["']years["']\s*\]|max\(\s*years\s*\)|"""
+#: `max(m.years)` / `max(discharge_years, level_years)`: a reduction of the per-quantity record back to one number
+#: (adversarial review: the first pattern missed a reduction of a `Member.years` tuple).
+READS = re.compile(r"""\.get\(\s*["']years["']|\[\s*["']years["']\s*\]|"""
+                   r"""\b(?:max|min|sum)\(\s*\*?(?:\w+\.)?(?:years|discharge_years|level_years)\b(?!\s*\[)|"""
                    r"""\byears\b[^\n"]*\bFROM\s+(?:gauge_stats|panel_member|basin_member)""")
 
 

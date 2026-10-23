@@ -93,13 +93,51 @@ The basin field (zoomed out): Flow changes in 41 of 190 reporting groups, all un
 Level is unchanged — the roster had been carrying the level record all along, so this is the Flow field's fix.
 
 The per-quantity CAP can also reseat Level members (a donor with a short level record yields its level seat to a
-longer-record level gauge). That needs the deliver to measure; it is bounded: 174 of 4,724 panels (829 sections) hold a
+longer-record level gauge), and Flow members in up to 77 panels (see Adversarial review). That needs the deliver to measure; it is bounded: 174 of 4,724 panels (829 sections) hold a
 full eight level-reporting members, the only place the cap binds.
 
 **Deliver needed: yes.** The bundle schema (`panel_member`, `basin_member`) and the paint format change, so the app
 built from this commit refuses the current release's `paint/3` until `deliver` rebuilds the bundle and the release.
 Check after: `sqlite3 bundle.sqlite "SELECT DISTINCT discharge_years, level_years FROM panel_member WHERE station='07ED001'"`
 → `59|4`; then the Level before/after above, re-run on the delivered panels to catch the cap reseating.
+
+## Adversarial review (2026-10-23)
+
+Read the diff and the ticket against the live bundle; mutated the code to check the pins. Three defects fixed, one claim
+corrected.
+
+- **The basin field had a second record factor, and the floor did not reach it.** `basinStanding` (core/trust.ts)
+  computed `Math.min(1, Math.max(0, v.years / RECORD_FULL_YEARS))` itself, so the "under 3 years weighs 0 on both sides"
+  rule held for the reach panels and not for the basin field. Fixed: one `recordFactor(years)` in trust.ts (ratio, cap
+  and floor), used by `weightFactors` and `basinStanding`. On real data this changes nothing: a station with under 3
+  years has no envelope, so it casts no basin vote. Pinned by "a basin vote under the floor weighs nothing"
+  (data/src/recordYears.test.ts) and by `app/tools/record-factor.test.ts`, which greps every non-test source under
+  app/packages for `/ RECORD_FULL_YEARS` and allows only trust.ts. Putting `basinStanding`'s own copy back fails both
+  tests.
+- **The Python grep pin missed a reduction of the new tuple.** `READS` caught `max(years)` and the SQL forms, but not
+  `max(m.years)` on a `Member` (or `max(discharge_years, level_years)`), which is the easiest way to undo T110 now.
+  Widened it to `max|min|sum(` over `years` / `discharge_years` / `level_years`, with or without an owner. It excludes
+  `years[st]`, the climatology's own from/to years. Appending `max(m.years)` to build_panels.py fails
+  `test_nothing_else_computes_record_years`.
+- **Corrected claim: the Flow cap can reseat too, not only the Level cap.** Each quantity's seats are now ranked by
+  that quantity's weight. A donor whose level record is longer than its discharge record ranks lower in Flow than
+  before. Measured on the live bundle: 429 panels hold eight discharge-reporting members, and 77 of them (376
+  sections) hold such a donor (9 stations have a longer level record than discharge). So "Flow unchanged" holds only
+  with membership fixed, and the deliver's re-run has to cover Flow as well as Level. Level's bound reproduces as 171
+  panels / 829 sections. The panel count here is distinct `section_panel` panels; the 174 above counts panels a
+  different way. The section count agrees.
+- Checked and sound: `measures` is `gauge_stats` parameters, which exist only at 3 years or more, so the new
+  `wq[q] > 0` seat test excludes no donor the old measure test admitted. The overall order (max over quantities)
+  equals the old longest-record weight because `weight_of` and `eligible` are monotone in years. 07ED001 is 59/4 and
+  08LD001's basin row read 7 in Flow (bundle checked). The builder's mutations were spot-run: `recordYears` → max, and
+  basin → discharge. The build.py comment "after gauge_stats because they read it" is still true: `measures` reads it.
+
+Checks: `REGS_STORE_REQUIRED=1 pnpm -C app check` through heavy.sh passed (335 files, 8,029 tests). Full pytest
+(unfiltered, heavy.sh): 3,456 passed. The 18 failures and 1,297 errors are data-dependent (no `data/generated` in the
+worktree) or unrelated to T110. Those are `test_entry_id` (fingerprint.py, changed on dev since), `test_fixture_release`
+(the manifest list lacks `access`, a stale list) and gate 4 (calendar spec in change.ts/dayPicker.ts). The T110 modules
+(test_record_years, test_panel, test_basin_station, test_build_panels, test_release, test_live_panels, test_own_gauge)
+are all green.
 
 ## Owner questions
 - 1,302 sections lose their Level answer because a short level record now prices a distant tributary donor under
