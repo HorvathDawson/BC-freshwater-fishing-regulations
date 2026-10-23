@@ -13,7 +13,7 @@ import {
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
   noChartSentence, noGaugeSentence, readingHeading, readingStandingLine, regulatedNote,
-  shortRecordNote, sizeApart, stageLine, unplacedNote, type DonorFacts,
+  shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, unplacedNote, type DonorFacts,
 } from "./conditions";
 import type { Estimate, NoEstimate } from "./trust";
 
@@ -221,6 +221,22 @@ describe("the notes under the working", () => {
             + "is shut rather than that the country is dry.");
     expect(regulatedNote([row({ regulated: true, percentile: null })])).toBeNull();
     expect(regulatedNote([row()])).toBeNull();
+  });
+
+  /*
+   * T78 (owner 2026-10-22): "In the Level view, check and disclose tidal or backwater influence where the record shows
+   * it." One sentence, Level only, and only about a number being shown — the same rule as the dam's.
+   */
+  it("says the tide in the Level view, about a reporting tidal gauge, and nowhere else", () => {
+    const tidal = row({ route: { path: [], name: "PITT RIVER NEAR PORT COQUITLAM", tidal: true } });
+    expect(tidalNote([row(), tidal], "level"))
+      .toBe("One of these gauges is tidal: its level rises and falls with the tide and with water backed up from "
+            + "downstream, not only with what this river carries.");
+    expect(TIDAL_NOTE).toBe(tidalNote([tidal], "level"));
+    expect(tidalNote([row(), tidal], "discharge")).toBeNull();
+    expect(tidalNote([row({ ...tidal, percentile: null })], "level")).toBeNull();
+    expect(tidalNote([row(), row({ route: { path: [], tidal: false } })], "level")).toBeNull();
+    expect(tidalNote([], "level")).toBeNull();
   });
 
   it("warns in words when the gauges disagree, above 25 points", () => {

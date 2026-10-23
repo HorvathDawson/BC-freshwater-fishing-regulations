@@ -352,10 +352,14 @@ export const ALL_LAKE_SECTIONS =
  * dictionary interns the DONOR SET and a coordinate would be the same for every panel that
  * contains it. This is the join back to the map: it is what lets a route be walked from a
  * spot to each of its donors, and each donor to be pinned where it actually stands.
+ *
+ * `SELECT *`, NOT A COLUMN LIST, for one column: `tidal` (T78) is new, and a release or bundle built before it has no
+ * such column — naming it would fail the whole query and take every route and pin with it. `placesOf` reads the
+ * columns it knows by name; an absent `tidal` reads as not flagged. A handful of rows, so the extra columns cost
+ * nothing.
  */
 export const gaugePlaces = (n: number) =>
-  `SELECT station, name, sid, lon, lat, area_km2
-     FROM gauge WHERE station IN (${placeholders(n)})`;
+  `SELECT * FROM gauge WHERE station IN (${placeholders(n)})`;
 
 // ---- lakes -----------------------------------------------------------------------
 export const CHARTS_FOR_ITEM =

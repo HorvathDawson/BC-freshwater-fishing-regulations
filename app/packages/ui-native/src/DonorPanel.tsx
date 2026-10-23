@@ -42,7 +42,7 @@ import { useState, type ReactNode } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
-import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer } from "@app/ui";
+import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer, type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
@@ -73,8 +73,13 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, data, standing,
-                             detail, chart, foot }: {
+                             detail, chart, foot, quantity }: {
   palette: Palette; value: PanelAnswer;
+  /**
+   * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
+   * tide's sentence reads it — Level only (T78). A saved spot passes none and says nothing of the tide.
+   */
+  quantity?: Quantity;
   /**
    * The day the answer is FOR — today on a live sheet, the visit on a saved spot. The
    * range's "for early September" is said of this day plus the horizon, never of whenever
@@ -132,7 +137,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const wide = width >= WIDE_PANEL;
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
-                                   selected: selected ?? null, pickable: !!onSelect });
+                                   selected: selected ?? null, pickable: !!onSelect,
+                                   ...(quantity ? { quantity } : {}) });
 
   if (!vm.ok) {
     // THE NO-ESTIMATE CASE IS THE SAME LAYOUT with fewer blocks: the kicker and the reason
@@ -281,9 +287,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           </View>
         ))}
         {/* A SHORT RECORD, A DAM, A DISAGREEMENT — each said once, plainly, marked by a rule
-            on its left; a disagreement in the restricted tone, the others a hairline. */}
+            on its left; a disagreement in the restricted tone, the others a hairline. The tide (T78) is said
+            the same way, in the Level view only. */}
         {vm.shortRecord && <Caveat palette={palette} tone={palette.line2}>{vm.shortRecord}</Caveat>}
         {vm.regulated && <Caveat palette={palette} tone={palette.line2}>{vm.regulated}</Caveat>}
+        {vm.tidal && <Caveat palette={palette} tone={palette.line2}>{vm.tidal}</Caveat>}
         {vm.disagree && <Caveat palette={palette} tone={palette.restricted}>{vm.disagree}</Caveat>}
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.explainer}</Text>
         {foot}

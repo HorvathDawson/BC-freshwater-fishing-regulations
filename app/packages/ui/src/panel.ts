@@ -14,7 +14,7 @@ import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
-         readingAgeLine, readingHeading, readingStandingLine, regulatedNote, SAME_PLACE_M,
+         readingAgeLine, readingHeading, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote,
          shortRecordNote, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
          type Standing } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
@@ -447,6 +447,8 @@ export type DonorVM =
       silent: string | null;
       shortRecord: string | null;
       regulated: string | null;
+      /** The tide (T78): one sentence, Level only, where a reporting member's station is tidal; else null. */
+      tidal: string | null;
       disagree: string | null;
       explainer: string;
     };
@@ -464,6 +466,11 @@ export interface DonorViewOptions {
   pickable: boolean;
   /** The time zone times are said in — for tests; left out, the device's. */
   zone?: string;
+  /**
+   * The quantity this answer is in — the one the map is painting. Only the tide's sentence reads it (Level only,
+   * T78); left out (a saved spot, which did not record it), the tide is not said.
+   */
+  quantity?: Quantity;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -564,6 +571,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     silent,
     shortRecord: shortRecordNote(rows),
     regulated: regulatedNote(rows),
+    tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
     disagree: disagreeNote(e),
     explainer: CONDITIONS_WORDS.explainer,
   };
@@ -597,7 +605,7 @@ export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null):
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable } = o;
+  const { day, horizon, from, size, selected, pickable, quantity } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -605,8 +613,9 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   return useMemo(
     () => donorView(value, { day: new Date(t), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
-                             size: { width, height }, selected, pickable }),
-    [value, t, horizon, lat, lon, width, height, selected, pickable]);
+                             size: { width, height }, selected, pickable,
+                             ...(quantity ? { quantity } : {}) }),
+    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity]);
 }
 
 /** The lead station's own reading, finished. */

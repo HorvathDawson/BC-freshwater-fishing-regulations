@@ -5,10 +5,10 @@
  * reading line that rendered broken cannot pass on a fragment.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
-import { noGaugeSentence, readingHeading, readingStandingLine, stageLine } from "@app/core";
+import { CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine, stageLine, TIDAL_NOTE } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -62,6 +62,32 @@ describe("the conditions panel", () => {
     render(<ConditionsPanel source={sourceWith(null, null)} section={SEC} palette={LIGHT}
                             feed={feed} scroll={false} />);
     await waitFor(() => expect(screen.getByText(noGaugeSentence())).toBeTruthy());
+  });
+
+  it("hands the map's quantity to the donor panel, so a tidal lead is disclosed in Level only (T78)", async () => {
+    const tidalSource = (base: RegsSource) => ({
+      ...base,
+      panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near Town", lat: 49, lon: -122, role: "up",
+                                  path: [SEC], tidal: true }],
+    }) as unknown as RegsSource;
+    const both = { index: async () => ({ stations: {
+      LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15, level: 0.4 } } }) };
+    const source = tidalSource(sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
+                                            at: "2026-09-04T06:00:00Z" }, PANEL));
+    const fold = () => fireEvent.click(screen.getByRole("button", { name: CONDITIONS_WORDS.fold }));
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} parameter="level"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
+    fold();
+    await waitFor(() => expect(screen.getByText(TIDAL_NOTE)).toBeTruthy());
+    cleanup();
+    clearPanelCache();
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} parameter="discharge"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
+    fold();
+    await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
+    expect(screen.queryByText(TIDAL_NOTE)).toBeNull();
   });
 });
 

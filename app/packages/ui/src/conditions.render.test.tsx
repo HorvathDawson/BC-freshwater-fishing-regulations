@@ -123,6 +123,22 @@ describe("donorView", () => {
     expect(vm.regulated).not.toBeNull();
   });
 
+  it("says the tide in the Level view only, once a tidal gauge's route is in (T78)", () => {
+    // 08MH035, the Pitt near Port Coquitlam: the release flags it tidal (owner 2026-10-22).
+    const pitt = row("08MH035", { route: { station: "08MH035" as never, name: "PITT RIVER NEAR PORT COQUITLAM",
+                                           lat: 49.3, lon: -122.6, role: "up", path: [], tidal: true } });
+    const v = value({ rows: [pitt, row("08MH006", { weight: 0.3 })] });
+    const level = donorView(v, { ...opts, quantity: "level" });
+    const flow = donorView(v, { ...opts, quantity: "discharge" });
+    const unsaid = donorView(v, opts);
+    const plain = donorView(value(), { ...opts, quantity: "level" });
+    if (!level.ok || !flow.ok || !unsaid.ok || !plain.ok) throw new Error("expected an estimate");
+    expect([level.tidal, flow.tidal, unsaid.tidal, plain.tidal]).toEqual([
+      "One of these gauges is tidal: its level rises and falls with the tide and with water backed up from "
+        + "downstream, not only with what this river carries.",
+      null, null, null]);
+  });
+
   it("places the donors, and marks the spot with its own pin even at a gauge", () => {
     // Owner 2026-10-21: the spot is a different SHAPE from a gauge, so a gauge at the spot no
     // longer absorbs it — the gauge keeps the "you are here" words on its own title.

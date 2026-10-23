@@ -278,6 +278,27 @@ describe("the donor panel", () => {
     expect(screen.queryByText(DAM)).toBeNull();
   });
 
+  const TIDE = "One of these gauges is tidal: its level rises and falls with the tide and with water backed up from "
+    + "downstream, not only with what this river carries.";
+  const pitt = () => row("08MH035", { route: { station: "08MH035" as never, name: "PITT RIVER NEAR PORT COQUITLAM",
+                                               lat: 49.3, lon: -122.6, role: "up", path: [], tidal: true } });
+
+  it("says the tide in the fold in the Level view, and not in Flow (T78)", () => {
+    draw({ value: { ...answer(), rows: [pitt()] }, quantity: "level" });
+    openFold();
+    expect(screen.getByText(TIDE)).toBeTruthy();
+    cleanup();
+    draw({ value: { ...answer(), rows: [pitt()] }, quantity: "discharge" });
+    openFold();
+    expect(screen.queryByText(TIDE)).toBeNull();
+  });
+
+  it("says nothing of the tide on a saved spot, which did not record its quantity", () => {
+    draw({ value: { ...answer(), rows: [pitt()] } });
+    openFold();
+    expect(screen.queryByText(TIDE)).toBeNull();
+  });
+
   it("does not warn about a dam on a gauge that is not reporting", () => {
     draw({ value: { ...answer(), rows: [row("08PA004", { regulated: true, percentile: null })] } });
     openFold();

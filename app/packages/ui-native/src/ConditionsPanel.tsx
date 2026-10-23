@@ -239,7 +239,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
                   chain={vm.chain} data={vm.route.data} standing={vm.route.standing}
-                  onHorizon={onHorizon}
+                  onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
                   foot={small} />
       {footer}

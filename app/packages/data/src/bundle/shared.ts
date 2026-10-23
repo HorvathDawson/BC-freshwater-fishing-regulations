@@ -304,7 +304,8 @@ export async function traceDown(down: DownOf, from: SectionId): Promise<SectionI
 export async function routesOf(section: SectionId,
                                members: readonly { station: StationId; role: "up" | "down" }[],
                                places: ReadonlyMap<string, { name: string; section: SectionId | null;
-                                                             lon: number | null; lat: number | null }>,
+                                                             lon: number | null; lat: number | null;
+                                                             tidal?: boolean }>,
                                down: DownOf): Promise<PanelRoute[]> {
   const walk = async (from: SectionId, stop: SectionId): Promise<SectionId[] | null> => {
     const path: SectionId[] = [from];
@@ -338,6 +339,8 @@ export async function routesOf(section: SectionId,
       station: m.station, name: place?.name ?? null,
       lon: place?.lon ?? null, lat: place?.lat ?? null,
       role: m.role, path,
+      // `true` only (T78): a station the release flags tidal; absent otherwise, as an older release reads.
+      ...(place?.tidal ? { tidal: true as const } : {}),
     });
   }
   return out;
@@ -345,13 +348,17 @@ export async function routesOf(section: SectionId,
 
 /** `gaugePlaces` rows to the map `routesOf` reads. */
 export function placesOf(rows: readonly Row[]): Map<string, { name: string; section: SectionId | null;
-                                                              lon: number | null; lat: number | null }> {
-  const places = new Map<string, { name: string; section: SectionId | null; lon: number | null; lat: number | null }>();
+                                                              lon: number | null; lat: number | null;
+                                                              tidal: boolean }> {
+  const places = new Map<string, { name: string; section: SectionId | null; lon: number | null; lat: number | null;
+                                   tidal: boolean }>();
   for (const r of rows)
     places.set(str(r.station), {
       name: str(r.name),
       section: r.sid == null ? null : sid(r.sid),
       lon: num(r.lon), lat: num(r.lat),
+      // `gauge.tidal` (T78); a release built before it has no such column, and that reads as not flagged.
+      tidal: Number(r.tidal ?? 0) === 1,
     });
   return places;
 }

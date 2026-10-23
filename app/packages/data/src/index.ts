@@ -211,6 +211,12 @@ export interface PanelRoute {
   lat: number | null;
   role: "up" | "down";
   /**
+   * `true` only: the tide or a tidal river's backwater moves this station's level — the release's `gauge.tidal`
+   * (T78: HYDAT's tidal remarks + data/curated/gauges/tidal.json). Absent otherwise, and on a release built before
+   * the flag. Core's `tidalNote` says so in the Level view.
+   */
+  tidal?: true;
+  /**
    * The chain of reaches between the spot and this gauge, SPOT FIRST, gauge last.
    *
    * Empty when the chain cannot be walked — the pointers only exist inside a gauge's

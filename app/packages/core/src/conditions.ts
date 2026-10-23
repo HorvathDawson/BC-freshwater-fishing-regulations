@@ -133,7 +133,8 @@ export interface DonorFacts {
   years: number;
   regulated: boolean;
   factors: { share: number; role: number; record: number };
-  route?: { path: readonly unknown[]; name?: string | null } | undefined;
+  /** `tidal`: the tide or a tidal river's backwater moves this station's level (`PanelRoute.tidal`, T78). */
+  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean } | undefined;
   /** When the station last reported, from the feed's index (ISO), where the feed says. */
   observedAt?: string | null;
   /**
@@ -394,6 +395,21 @@ export function regulatedNote(rows: readonly DonorFacts[]): string | null {
       + "schedule as much as the weather — a low river here can mean the gate is shut "
       + "rather than that the country is dry."
     : null;
+}
+
+/** The tide, in one sentence — `tidalNote`'s words. */
+export const TIDAL_NOTE = "One of these gauges is tidal: its level rises and falls with the tide and with water "
+  + "backed up from downstream, not only with what this river carries.";
+
+/**
+ * THE TIDE, said once (T78; owner 2026-10-22: "In the Level view, check and disclose tidal or backwater influence
+ * where the record shows it"). LEVEL ONLY — the Flow view never mixes in a stage — and, like the dam, only about a
+ * number being shown: a reporting member whose station the release flags tidal (`gauge.tidal`, HYDAT's tidal remarks
+ * + data/curated/gauges/tidal.json). The flag rides on the member's route, so the line appears once routes are in.
+ */
+export function tidalNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
+  return quantity === "level" && rows.some((r) => r.route?.tidal === true && r.percentile !== null)
+    ? TIDAL_NOTE : null;
 }
 
 /** The donors disagree by more than 25 points. */
