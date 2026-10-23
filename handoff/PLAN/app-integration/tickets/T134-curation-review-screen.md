@@ -1,6 +1,7 @@
 # T134 — Curation review phase 3: a review screen separate from fixing
 
-Status: DONE — 45b15369, 21e800b7 (lane-T134). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
+Status: DONE — 45b15369, 21e800b7, 76701828 (lane-T134; the last is the adversarial review's fixes). The
+≤ 1.5 min per simple entry is measured for the TOOL only (~2 s); a person's time is T136's pilot (owner question 5). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. The legible crops need the `row_boxes.json` sidecar, a one-off the owner runs
 (`python -m pipeline.regs.extraction.row_boxes`, no credits, ~2 min); until then the evidence pane says so with that
 command and offers the extractor's own crop.
@@ -112,8 +113,56 @@ Mutation pins (each named mutant fails the test named): fix router registered re
    approve the iframe on the reviewer's own serve-tiles port (Q34).
 3. **A new split added in fix mode is stamped "Verify: added in fix mode …"** so it is S0 until a split mark confirms it.
 4. **`POST /api/check` is fix-mode only** (it writes nothing, but only the editor asks it).
+5. **(adversarial review) The acceptance's "20 simple entries average ≤ 1.5 min" is measured for the tool only**
+   (~2 s per entry, no reading time). *Default:* T134 DONE, the human timing is T136's pilot; say if T134 should
+   stay open until then.
+6. **(adversarial review) A moved split is stamped "Verify: moved in fix mode …" and a split whose mark went stale
+   is S0.** *Default:* built; S0's count now grows by every moved / stale split point.
+
+## Adversarial review (2026-10-23, 76701828)
+Tried to break it: every review-mode route (only `POST /api/marks` writes; the GET routes write nowhere, all
+writes in the backend go through `writes.commit`, the reach cache is in memory), key handling, the split fix flow
+end to end, the coverage strip against the gate, and the evidence renderer under concurrency. Found and fixed:
+1. **pdfium is not thread-safe, and the screen asks for a crop and a page at once.** FastAPI runs these sync routes
+   in a thread pool; 8 threads x 6 renders of the repo PDF: every thread failed "Failed to load page."; the same
+   work under one lock: none. Now `synopsis_pages.PDFIUM_LOCK` is held by every pdfium call (`page_png`,
+   `evidence._render`). Tests `test_pages_render_from_many_threads_at_once`; mutation (the lock a no-op) →
+   `test_the_render_lock_is_pinned_by_mutation` shows renders fail.
+2. **A moved split dropped out of the review.** The owner's rule is "add OR move a split → confirm it in S0 after
+   the rebuild", but only an add was stamped; a confirmed split (note asks for no check) that was moved — in fix
+   mode or by hand — had its mark go stale and was listed nowhere by default (S0 read only the note). Now a move
+   in `save_split` stamps "Verify: moved in fix mode <date> …" (`reuse.fix_mode_stamp`, the one stamp, shared with
+   add; the same anchor saved again stamps nothing), and `tiers.split_needs_verify(split, mark_status)` also holds
+   a split whose mark went stale. Tests `test_a_moved_split_is_a_split_point_to_confirm_again`,
+   `test_a_split_mark_gone_stale_is_listed_in_s0`, `test_s0_holds_a_split_whose_mark_went_stale`; mutations (no
+   stamp on move / `split_queue` not passing the status) fail the first two.
+3. **The sidecar was not tied to the PDF it measured.** A new book dropped in `data/source` before re-extraction
+   keeps the raw data's sha, so the check passed and every crop would be cut from the new book at the old book's
+   places. The sidecar's `pdf_sha256` (the helper already wrote it) must now equal the served PDF's.
+   `test_a_sidecar_cut_from_another_pdf_is_refused_by_name`; mutation (check removed) fails it.
+4. **Zone rules did not wrap.** Enter after a rule looked only AFTER it: a reviewer who marked the last rule first
+   was moved to the next entry with the earlier rules open. Now `review.ts nextOpenRule` (next open rule, then
+   wrapping; −1 only when none is open). `test_a_zone_entry_moves_on_only_when_every_rule_is_marked` runs the TS
+   in node; the old after-only search fails it.
+5. **Fix mode: one key discarded an unsaved draft.** `j` / `k` / `u`, the prev / next buttons and the move after a
+   final mark now ask before leaving a dirty draft (`App.go`; `EntryDetail` reports `onDirty`). Frontend only, tsc
+   clean; no browser test (the frontend has no test runner).
+Also pinned: the strip and the save gate (`squash(quote) in squash(regs_verbatim)`, the RAW row) agree on every one
+of the corpus's quotes (`test_the_strip_and_the_gate_agree_on_every_quote_of_the_corpus`; the existing pin compared
+the fold with `squash` of the CLEANED row only — one row's squash differs between the two, no quote's verdict does).
+`fix_mode_stamp` added to the no-second-copy test.
+Checked and sound: review mode's route table (`_writes_of` = `POST /api/marks`); a fix request in review mode
+writes nothing; `verdict_from_answers` vs the `Mark` model; `isTyping` guards every key; one mark in flight.
+Checks: the nine T134 suites unfiltered via `scripts/heavy.sh` (`-m "slow or not slow"`): **273 passed**;
+`pytest -m smoke` 204 passed; frontend `tsc --noEmit` clean. Takes effect on merge (no rebuild).
 
 ## Left / follow-ups
+- (adversarial review) Awaiting build, only T and R can be answered, but `verdict_from_answers` gives a verdict
+  only to a full set (or an n / ?), so T y R y on an unbuilt entry is refused ("answer every check") — a reviewer
+  can record wrong / unsure / deferred there, never "T and R are fine". Unchanged; T135/T136 to decide whether a
+  partial "text and rules verified" mark is wanted.
+- (adversarial review) Clicking an answer button leaves the focus on it, so the next Enter re-clicks that button
+  instead of recording the mark (Enter on a focused control is that control's). Keys-only use is unaffected.
 - The owner runs `python -m pipeline.regs.extraction.row_boxes` once (no credits) to put `row_boxes.json` beside
   `synopsis_raw_data.json`; rerun after any re-extraction (the tool refuses a sidecar of another extraction).
 - T135 builds the risk-ordered queue on `tiers` (adds the ambiguous-cut / unresolved factors from `rule_diagnostic.jsonl`,
