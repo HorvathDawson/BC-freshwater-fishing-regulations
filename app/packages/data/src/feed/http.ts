@@ -50,6 +50,12 @@ interface IndexFile {
    */
   maintenance?: { kind: string; since: string; current: string; latest: string; action: string }[];
   /**
+   * (T68) The newest BC River Forecast Centre run's `issuedAt` across every station, as the station files carry it
+   * (publish.py `newest_forecast_issue`): the More tab's Forecasts line. null: the run held no forecast (out of
+   * season); absent: an index from before the field.
+   */
+  forecastIssuedAt?: string | null;
+  /**
    * The station ids ECCC listed as real-time on the publishing run (`publish.py`). A panel member absent from it is
    * "not a real-time gauge" rather than "not reporting". Absent on an older feed: every station reads as listed.
    */

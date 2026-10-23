@@ -35,12 +35,15 @@ const DATA: DataInput = {
              basemap: { date: "2026-03-05" } },
   validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", tilesPaired: true,
   feedFetchedAt: new Date(NOW - 27 * 3.6e6).toISOString(), now: NOW, newRelease: null,
+  forecastIssuedAt: new Date(NOW - 9 * 3.6e6).toISOString(),
 };
 
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host. */
-function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, hydatNotice }: {
+function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, hydatNotice,
+               forecastIssuedAt, feedFetchedAt = null }: {
   info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
   theme?: ThemeName; onTheme?: (t: ThemeName) => void; hydatNotice?: HydatNotice | null;
+  forecastIssuedAt?: string | null; feedFetchedAt?: string | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
@@ -53,7 +56,8 @@ function App({ info = INFO, loader = null, out, data = DATA, theme = "light", on
                     theme={theme} onTheme={onTheme}
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
         <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
-                  tilesPaired feedFetchedAt={null} route={route} day={null} hydatNotice={hydatNotice} />
+                  tilesPaired feedFetchedAt={feedFetchedAt} route={route} day={null} hydatNotice={hydatNotice}
+                  forecastIssuedAt={forecastIssuedAt} />
       </MenuContext.Provider>
     </BackLayerContext.Provider>
   );
@@ -103,6 +107,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
         "Regulations: 2025–2027 edition. Unknown",
         "In-season changes: Check the Province's notices. Not read",
         "River flows: Checked 27h ago. Likely out of date",
+        "Forecasts: Issued 9h ago. Up to date",
         "Weather: With each saved spot. Live",
         "Map: Matches the data. Up to date",
         "Basemap: Updated Mar 5, 2026. Up to date",
@@ -187,6 +192,22 @@ describe("a page", () => {
     expect(r).toBe(false);
   });
 
+  it("(T68) Data sources & dates: the host hands the feed's forecast word to the forecasts row", () => {
+    const iso = (h: number) => new Date(Date.now() - h * 3.6e6).toISOString();
+    const rows: string[] = [];
+    for (const f of [iso(5), null, undefined]) {
+      render(<App out={{}} feedFetchedAt={iso(1)} forecastIssuedAt={f} />);
+      pick("more-data");
+      rows.push(text("source-forecast"));
+      cleanup();
+    }
+    expect(rows).toEqual([
+      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonIssued 5h agoUp to date",
+      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonNo forecast running nowUp to date",
+      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonNot stated by the gauge feedUnknown",
+    ]);
+  });
+
   it("Data sources & dates: the release's own dates, 'not recorded' where it states none, each with its badge", () => {
     const loader = {
       release: "r-0efa5d05fc92",
@@ -208,9 +229,11 @@ describe("a page", () => {
         + "Unknown",
       "Map tilesThe atlas drawn for the map, with every regulation's section in it"
         + "Version d768d6e135e62b99.c9f9604f12bfUp to date",
-      "Live gauge readingsEnvironment and Climate Change Canada, and the BC River Forecast Centre's forecastsNot checked yet"
-        + "Unknown",
+      "Live gauge readingsEnvironment and Climate Change CanadaNot checked yetUnknown",
     ]);
+    // (T68) the forecasts' own row: no feed reached, no word
+    expect(row("forecast")).toBe("River forecastsThe BC River Forecast Centre's models, issued daily in season"
+      + "Not checked yetUnknown");
     // no notice word passed (an index from before notices): HYDAT by its age, inside 548 days — up to date
     expect(row("hydat")).toBe("Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada"
       + "Updated Jul 17, 2026Up to date");

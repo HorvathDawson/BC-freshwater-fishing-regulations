@@ -15,15 +15,18 @@ const LIVE: DataInput = {
              hydat: { date: "2026-07-17" } },
   validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", tilesPaired: true,
   feedFetchedAt: new Date(NOW - 27 * H).toISOString(), now: NOW, newRelease: null,
+  forecastIssuedAt: new Date(NOW - 9 * H).toISOString(),
 };
 const lines = (d: DataInput) => dataVM(d).lines.map((l) => `${l.name} · ${l.when} · ${l.badge.label}`);
 
 describe("the Data block: always at the top of More, one line per source", () => {
-  it("each line names the source, its date in few words and its freshness — the owner's seven, in order", () => {
+  it("each line names the source, its date in few words and its freshness — the owner's seven and the forecasts, in " +
+     "order", () => {
     expect(lines(LIVE)).toEqual([
       "Regulations · 2025–2027 edition · Unknown",
       "In-season changes · Check the Province's notices · Not read",
       "River flows · Checked 27h ago · Likely out of date",
+      "Forecasts · Issued 9h ago · Up to date",
       "Weather · With each saved spot · Live",
       "Map · Matches the data · Up to date",
       "Basemap · Updated Mar 5, 2026 · Up to date",
@@ -46,7 +49,8 @@ describe("the Data block: always at the top of More, one line per source", () =>
       // every other source dated the same week, so the regulations line is the only one that can go stale
       const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
       const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
-      const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(), now });
+      const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
+                         forecastIssuedAt: new Date(now - H).toISOString(), now });
       return `${v.lines[0]!.name} · ${v.lines[0]!.when} · ${v.lines[0]!.badge.kind} ${v.lines[0]!.badge.label} | ${v.summary.label}`;
     };
     expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
@@ -83,7 +87,8 @@ describe("the Data block: always at the top of More, one line per source", () =>
     const now = new Date(2027, 3, 1, 9).getTime();
     const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
     const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
-    const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(), now };
+    const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
+                              forecastIssuedAt: new Date(now - H).toISOString(), now };
     const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
     expect([
       sum(base),
@@ -104,6 +109,7 @@ describe("the Data block: always at the top of More, one line per source", () =>
       "Regulations · Valid to Mar 31, 2027 · Likely out of date",
       "In-season changes · Check the Province's notices · Not read",
       "River flows · Checked 1h ago · Up to date",
+      "Forecasts · Issued 9h ago · Up to date",
       "Weather · With each saved spot · Live",
       "Map · Matches the data · Likely out of date",
       "Basemap · Updated Mar 5, 2026 · Up to date",
@@ -116,6 +122,42 @@ describe("the Data block: always at the top of More, one line per source", () =>
       .lines.find((l) => l.k === "feed")!;
     expect([flows(2 * H - 60_000), flows(2 * H + 60_000)].map((l) => `${l.name} · ${l.when} · ${l.badge.label}`))
       .toEqual(["River flows · Checked 2h ago · Up to date", "River flows · Checked 2h ago · Likely out of date"]);
+  });
+
+  it("(T68) the Forecasts line, from the feed index's newest run: whole, at its 36 h edge, none running, no word", () => {
+    const fc = (d: Partial<DataInput>) => {
+      const l = dataVM({ ...LIVE, ...d }).lines.find((x) => x.k === "forecast")!;
+      return `${l.name} · ${l.when} · ${l.badge.label}`;
+    };
+    expect([
+      fc({ forecastIssuedAt: new Date(NOW - 36 * H + 60_000).toISOString() }),
+      fc({ forecastIssuedAt: new Date(NOW - 36 * H - 60_000).toISOString() }),
+      // the index says no run is held (out of season): the check is as fresh as the feed that made it
+      fc({ forecastIssuedAt: null, feedFetchedAt: new Date(NOW - H).toISOString() }),
+      fc({ forecastIssuedAt: null }),
+      // an index from before T68 says nothing about forecasts; a feed not reached says nothing at all
+      fc({ forecastIssuedAt: undefined }),
+      fc({ forecastIssuedAt: undefined, feedFetchedAt: null }),
+    ]).toEqual([
+      "Forecasts · Issued 36h ago · Up to date",
+      "Forecasts · Issued 36h ago · Likely out of date",
+      "Forecasts · None running now · Up to date",
+      "Forecasts · None running now · Likely out of date",
+      "Forecasts · Date not recorded · Unknown",
+      "Forecasts · Not checked yet · Unknown",
+    ]);
+  });
+
+  it("(T68 mutation pin) forecasts keep their own day and a half: a 3 h old run is up to date where 3 h old flows " +
+     "are not, and an old run counts in the block's summary", () => {
+    const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31" };
+    const v = dataVM({ ...fresh, feedFetchedAt: new Date(NOW - 3 * H).toISOString(),
+                       forecastIssuedAt: new Date(NOW - 3 * H).toISOString() });
+    expect(v.lines.filter((l) => l.k === "feed" || l.k === "forecast").map((l) => `${l.k} ${l.badge.label}`))
+      .toEqual(["feed Likely out of date", "forecast Up to date"]);
+    const sum = (d: DataInput) => { const x = dataVM(d); return `${x.summary.kind}: ${x.summary.label}`; };
+    expect(sum({ ...fresh, feedFetchedAt: new Date(NOW - H).toISOString(),
+                 forecastIssuedAt: new Date(NOW - 40 * H).toISOString() })).toBe("stale: 1 likely out of date");
   });
 
   it("the map line by the proven pair; the flows line before the feed answers", () => {

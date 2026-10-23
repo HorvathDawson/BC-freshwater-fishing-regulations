@@ -99,6 +99,7 @@ describe("data sources & dates", () => {
                  dfo: { date: "2026-08-28" }, fwa: { date: "2026-07-15" }, basemap: { date: "2026-03-05" },
                  hydat: { date: "2026-07-17" } },
       validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", feedFetchedAt: new Date(now - 7 * 3_600_000).toISOString(), now,
+      forecastIssuedAt: new Date(now - 7 * 3_600_000).toISOString(),
     });
     expect(vm.intro).toBe("Every answer in this app comes from one of these. Each says when it was last updated.");
     expect(vm.rows).toEqual([
@@ -121,9 +122,10 @@ describe("data sources & dates", () => {
       { k: "hydat", name: "Gauge records (HYDAT)",
         what: "Past years of flow and level, Environment and Climate Change Canada", when: "Updated Jul 17, 2026",
         badge: { kind: "fresh", label: "Up to date" } },
-      { k: "feed", name: "Live gauge readings",
-        what: "Environment and Climate Change Canada, and the BC River Forecast Centre's forecasts",
+      { k: "feed", name: "Live gauge readings", what: "Environment and Climate Change Canada",
         when: "Checked 7h ago", badge: { kind: "stale", label: "Likely out of date" } },
+      { k: "forecast", name: "River forecasts", what: "The BC River Forecast Centre's models, issued daily in season",
+        when: "Issued 7h ago", badge: { kind: "fresh", label: "Up to date" } },
       { k: "weather", name: "Weather", what: "Open-Meteo.com (CC BY 4.0)", when: "Fetched when a spot is saved",
         badge: { kind: "live", label: "Live" } },
       { k: "imagery", name: "Satellite imagery", what: "Shown only while online; never stored on this device",
@@ -160,7 +162,8 @@ describe("data sources & dates", () => {
       dfo: "Date not recorded in this release",
       fwa: "Date not recorded in this release", tiles: "Date not recorded in this release",
       basemap: "Date not recorded in this release", hydat: "Date not recorded in this release",
-      feed: "Not checked yet", weather: "Fetched when a spot is saved", imagery: "Live, when online",
+      feed: "Not checked yet", forecast: "Not checked yet", weather: "Fetched when a spot is saved",
+      imagery: "Live, when online",
     });
     expect(vm.rows[0]!.name).toBe("Freshwater Fishing Regulations Synopsis");
   });
@@ -174,8 +177,8 @@ describe("data sources & dates", () => {
     expect(vm.rows.find((r) => r.k === "feed")!.when).toBe("Not checked yet");
     // and a date it cannot read is UNKNOWN, never fresh
     expect(vm.rows.map((r) => `${r.k} ${r.badge.label}`)).toEqual(["synopsis Unknown", "inseason Not read",
-      "dfo Unknown", "fwa Unknown", "tiles Unknown", "basemap Unknown", "hydat Unknown", "feed Unknown", "weather Live",
-      "imagery Live"]);
+      "dfo Unknown", "fwa Unknown", "tiles Unknown", "basemap Unknown", "hydat Unknown", "feed Unknown",
+      "forecast Unknown", "weather Live", "imagery Live"]);
   });
 });
 
@@ -202,6 +205,22 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     const fed = (ago: number) => at("feed", { feedFetchedAt: new Date(now - ago).toISOString() }, now);
     expect([fed(0), fed(2 * H), fed(2 * H + 60_000), fed(27 * H), at("feed", {}, now)]).toEqual([
       "feed Up to date", "feed Up to date", "feed Likely out of date", "feed Likely out of date", "feed Unknown"]);
+  });
+
+  it("(T68) forecasts: by their newest run's issue time, 36 h; none running is as fresh as the feed's check; the " +
+     "Details page says each in its own words", () => {
+    const fc = (s: Partial<SourcesInput>) => at("forecast", s, now);
+    const iso = (ago: number) => new Date(now - ago).toISOString();
+    expect([fc({ forecastIssuedAt: iso(36 * H) }), fc({ forecastIssuedAt: iso(36 * H + 60_000) }),
+            fc({ forecastIssuedAt: null, feedFetchedAt: iso(H) }), fc({ forecastIssuedAt: null, feedFetchedAt: iso(3 * H) }),
+            fc({ forecastIssuedAt: undefined, feedFetchedAt: iso(H) }), fc({})]).toEqual([
+      "forecast Up to date", "forecast Likely out of date", "forecast Up to date", "forecast Likely out of date",
+      "forecast Unknown", "forecast Unknown"]);
+    const row = (s: Partial<SourcesInput>) => sourcesVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null,
+                                                         now, ...s }).rows.find((r) => r.k === "forecast")!.when;
+    expect([row({ forecastIssuedAt: iso(5 * H), feedFetchedAt: iso(H) }), row({ forecastIssuedAt: null, feedFetchedAt: iso(H) }),
+            row({ feedFetchedAt: iso(H) }), row({})]).toEqual([
+      "Issued 5h ago", "No forecast running now", "Not stated by the gauge feed", "Not checked yet"]);
   });
 
   it("each release-dated source at its edge: the day inside, the day past", () => {

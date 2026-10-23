@@ -143,3 +143,61 @@ def test_the_hydat_action_is_a_script_that_exists():
     assert at == sorted(at)
     assert '--clim "$FEED/clim.json"' in body
     assert "scripts/heavy.sh build 40 -- $PY -m pipeline build" in body
+
+
+# T68: a feed run on a roster given with `--stations` names THAT file and a command that refreshes it — the default
+# roster's command would have refreshed a file this feed never read, and the notice would never clear.
+CUSTOM = "dev/rosters/bc_hydrometric_stations.json"
+CUSTOM_ACTION = (
+    "rm data/source/bc_hydrometric_stations.json && "
+    "(cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations) && "
+    "cp data/source/bc_hydrometric_stations.json dev/rosters/bc_hydrometric_stations.json && "
+    "scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build")
+
+
+def test_the_roster_action_for_the_default_roster_is_unchanged():
+    assert pub.roster_action(pub.ROSTER_PATH) == pub.ROSTER_ACTION
+
+
+def test_the_roster_action_for_another_roster_refreshes_that_file():
+    assert pub.roster_action(CUSTOM) == CUSTOM_ACTION
+
+
+def test_a_custom_roster_notice_names_its_own_file(tmp_path, net):
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=DRIFT, roster=CUSTOM)
+    assert _index(tmp_path)["maintenance"] == [dict(ROSTER_DUE, current=CUSTOM, action=CUSTOM_ACTION)]
+
+
+def test_a_kept_custom_roster_notice_still_names_its_own_file(tmp_path, net):
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=DRIFT, roster=CUSTOM)
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=LATER, drift=None, roster=CUSTOM)
+    assert _index(tmp_path)["maintenance"] == [dict(ROSTER_DUE, current=CUSTOM, action=CUSTOM_ACTION)]
+
+
+def test_the_roster_shown_is_the_default_path_for_the_default_file():
+    from pipeline.common.curated import SOURCE
+    assert pub.roster_shown(Path(SOURCE / "bc_hydrometric_stations.json")) == pub.ROSTER_PATH
+    assert pub.roster_shown(Path(CUSTOM)) == CUSTOM
+
+
+def test_update_hydat_ends_with_the_upload_step():
+    # T68: the script used to stop at the bundle; the new release has to reach R2 before any app reads it. The step
+    # after the build prints the upload plan (spends nothing, sends nothing) and the exact command; it uploads only
+    # when the owner asked with --upload, and then through the release publisher, which reads R2_* from the env.
+    text = (Path(__file__).resolve().parents[2] / pub.HYDAT_ACTION).read_text()
+    body = text[text.index("set -euo pipefail"):]
+    build = body.index("scripts/heavy.sh build 40 -- $PY -m pipeline build")
+    plan = body.index('$PY -m pipeline.tools.publish --release "$REL"\n')
+    upload = body.index('$PY -m pipeline.tools.publish --release "$REL" --yes')
+    assert build < plan < upload
+    # the only --yes sits behind the owner's flag
+    assert body.count("pipeline.tools.publish --release \"$REL\" --yes") == 1
+    gate = body.rindex('if [ "$UPLOAD" = 1 ]', 0, upload)
+    assert build < gate < upload
+    assert "R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET" in body
+
+
+def test_update_hydat_parses():
+    import subprocess
+    script = Path(__file__).resolve().parents[2] / pub.HYDAT_ACTION
+    assert subprocess.run(["bash", "-n", str(script)], capture_output=True).returncode == 0

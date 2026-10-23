@@ -488,6 +488,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: Date.now(),
     // the feed's word on HYDAT (its maintenance notice), read with the sync state; never handed to the sync icon
     hydatNotice: syncState.hydatNotice,
+    // (T68) the feed index's newest forecast run, for the Forecasts line
+    forecastIssuedAt: syncState.forecastIssuedAt,
   };
   const barBottom = topBarBottom();
   /*
@@ -917,7 +919,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
                 feedFetchedAt={syncState.feedFetchedAt} tilesPaired={vintage.ok} newRelease={syncState.newRelease}
-                hydatNotice={syncState.hydatNotice} route={route} day={mapDay} />
+                hydatNotice={syncState.hydatNotice} forecastIssuedAt={syncState.forecastIssuedAt}
+                route={route} day={mapDay} />
     </View>
     </MenuContext.Provider>
   );

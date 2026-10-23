@@ -14,7 +14,7 @@
  * (staleness.ts), the same badges the detailed page draws: the block, the page and the sync dot never disagree.
  */
 import {
-  agoWords, contactVM, sourceFreshness, isoDayWords, MENU_WORDS, regsLapsed, SOURCE_ORDER, type ContactVM,
+  agoWords, contactVM, forecastWhen, sourceFreshness, isoDayWords, MENU_WORDS, regsLapsed, SOURCE_ORDER, type ContactVM,
   type FreshnessVM, type MenuPageKey, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { byCadence } from "./staleness";
@@ -42,7 +42,8 @@ export const MORE_WORDS = {
     newRelease: "A newer data release is available. Reopen the app to use it.",
     /** the block's short names; the detailed page names each in full */
     names: {
-      synopsis: "Regulations", inseason: "In-season changes", feed: "River flows", weather: "Weather",
+      synopsis: "Regulations", inseason: "In-season changes", feed: "River flows", forecast: "Forecasts",
+      weather: "Weather",
       tiles: "Map", basemap: "Basemap", imagery: "Satellite imagery",
     },
     when: {
@@ -53,6 +54,8 @@ export const MORE_WORDS = {
       inseason: "Check the Province's notices",
       checked: (ago: string) => `Checked ${ago}`,
       notChecked: "Not checked yet",
+      issued: (ago: string) => `Issued ${ago}`,
+      noneRunning: "None running now",
       weather: "With each saved spot",
       paired: "Matches the data",
       mixed: "Out of step with the data",
@@ -63,8 +66,11 @@ export const MORE_WORDS = {
   },
 } as const;
 
-/** The Data block's lines, in the order the owner listed them: the regulations, the water, the sky, the map. */
-export const DATA_LINES = ["synopsis", "inseason", "feed", "weather", "tiles", "basemap", "imagery"] as const;
+/**
+ * The Data block's lines, in the order the owner listed them: the regulations, the water, the sky, the map. (T68) The
+ * forecasts follow the flows: they turn over in a day, the flows in hours, and the block says each by its own line.
+ */
+export const DATA_LINES = ["synopsis", "inseason", "feed", "forecast", "weather", "tiles", "basemap", "imagery"] as const;
 export type DataLineKey = (typeof DATA_LINES)[number];
 
 export interface DataLineVM { readonly k: DataLineKey; readonly name: string; readonly when: string; readonly badge: FreshnessVM }
@@ -100,6 +106,8 @@ function lineWhen(k: DataLineKey, s: SourcesInput): string {
     case "inseason": return w.inseason;
     case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
       ? w.checked(agoWords(s.feedFetchedAt, s.now)) : w.notChecked;
+    case "forecast": return forecastWhen(s, { issued: w.issued, none: w.noneRunning, notSaid: w.notRecorded,
+                                              notChecked: w.notChecked });
     case "weather": return w.weather;
     case "tiles": return s.tilesPaired === true ? w.paired : s.tilesPaired === false ? w.mixed : w.unproven;
     case "basemap": {

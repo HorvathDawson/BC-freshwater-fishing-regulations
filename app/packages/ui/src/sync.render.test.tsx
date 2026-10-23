@@ -60,3 +60,22 @@ describe("useSync: HYDAT's notice rides the feed-index read", () => {
     expect([before, out.s!.hydatNotice, out.s!.newRelease]).toEqual(["due", { current: "2026-10-20" }, null]);
   });
 });
+
+describe("useSync: (T68) the newest forecast run's issue time rides the same read", () => {
+  it("a stamp, none held (null), an index from before the field (undefined), and no feed answer (undefined)", async () => {
+    const got: (string | null | undefined)[] = [];
+    for (const idx of [
+      { fetchedAt: "2026-10-22T21:00:00Z", stations: {}, forecastIssuedAt: "2026-10-22T12:53:00" },
+      { fetchedAt: "2026-10-22T21:00:00Z", stations: {}, forecastIssuedAt: null },
+      { fetchedAt: "2026-10-22T21:00:00Z", stations: {} },
+      null,
+    ]) {
+      const out: { s?: SyncState } = {};
+      render(<Probe feed={feedOf(() => idx)} out={out} />);
+      await settle();
+      got.push(out.s!.forecastIssuedAt);
+      cleanup();
+    }
+    expect(got).toEqual(["2026-10-22T12:53:00", null, undefined, undefined]);
+  });
+});

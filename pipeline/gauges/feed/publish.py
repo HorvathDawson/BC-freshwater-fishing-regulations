@@ -205,8 +205,41 @@ ROSTER_ACTION = (f"rm {ROSTER_PATH} && "
                  "scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build")
 
 
+def roster_shown(path: Path) -> str:
+    """The roster file as a notice names it: the repo-relative default when `path` IS the default roster."""
+    try:
+        if path.resolve() == Path(SOURCE / "bc_hydrometric_stations.json").resolve():
+            return ROSTER_PATH
+    except Exception:                                           # noqa: BLE001 — no data tree: name it as given
+        pass
+    return str(path)
+
+
+def roster_action(roster: str) -> str:
+    """The command that clears a `roster` notice for THIS roster file (T68: `--stations` named another file and the
+    notice still told the owner to refresh the default one, which this feed never read). `fetch_data.py` writes only
+    the default path, so another roster is refreshed by copying the fresh default over it."""
+    if roster == ROSTER_PATH:
+        return ROSTER_ACTION
+    fetch, build = ROSTER_ACTION.rsplit(" && ", 1)
+    return f"{fetch} && cp {ROSTER_PATH} {roster} && {build}"
+
+
+def newest_forecast_issue(forecast: dict | None) -> str | None:
+    """The newest run's `issuedAt` across every station and model, AS THE STATION FILES CARRY IT; None when no run has
+    a readable one. The index's `forecastIssuedAt` (T68: the More tab's Forecasts line reads only the index)."""
+    best: tuple[datetime, str] | None = None
+    for runs in (forecast or {}).values():
+        for run in (runs or {}).values():
+            s = (run or {}).get("issuedAt")
+            t = _parse(s) if isinstance(s, str) else None
+            if t is not None and (best is None or t > best[0]):
+                best = (t, s)
+    return best[1] if best else None
+
+
 def maintenance_notices(*, release: str | None, latest: str | None, drift: dict | None,
-                        previous: list | None, at: str) -> list[dict]:
+                        previous: list | None, at: str, roster: str = ROSTER_PATH) -> list[dict]:
     """The owner tasks due this run, sorted by kind: `[{kind, since, current, latest, action}]`; empty when none.
 
     `since` is the first run that saw the SAME notice (kind and latest), carried from the previous index; a different
@@ -232,9 +265,9 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
     if drift is not None:
         if drift.get("joined") or drift.get("left"):
             said = " ".join([f"+{s}" for s in drift.get("joined", [])] + [f"-{s}" for s in drift.get("left", [])])
-            out.append(notice("roster", ROSTER_PATH, said, ROSTER_ACTION))
+            out.append(notice("roster", roster, said, roster_action(roster)))
     elif (p := prev.get("roster")) and p.get("latest"):
-        out.append(notice("roster", ROSTER_PATH, p["latest"], ROSTER_ACTION))
+        out.append(notice("roster", roster, p["latest"], roster_action(roster)))
     return sorted(out, key=lambda n: n["kind"])
 
 
@@ -659,13 +692,14 @@ def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float
 def publish(out: Path, stations: list[str], clim: dict | None = None,
             forecast: dict | None = None, latest_release: str | None = None,
             now: datetime | None = None, listed: set[str] | None = None,
-            drift: dict | None = None) -> dict:
+            drift: dict | None = None, roster: str = ROSTER_PATH) -> dict:
     """Fetch every station and write the feed. Returns a small summary for the caller.
 
     `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
     `listed` is ECCC's real-time list this run (`listed_stations`); published in the index
     when known, so "not a real-time gauge" and "real-time but quiet today" can be told apart.
-    `drift` is `roster_drift` this run (None: no list), written as a `roster` maintenance notice.
+    `drift` is `roster_drift` this run (None: no list), written as a `roster` maintenance notice naming `roster`, the
+    roster file this run read (`roster_shown`).
     """
     out.mkdir(parents=True, exist_ok=True)
     # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there
@@ -863,9 +897,11 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     stale = bool(latest_release and release and latest_release != release)
     fetched_at = now.isoformat(timespec="seconds").replace("+00:00", "Z")
     maintenance = maintenance_notices(release=release, latest=latest_release, drift=drift,
-                                      previous=before, at=fetched_at)
+                                      previous=before, at=fetched_at, roster=roster)
     (out / "index.json").write_text(json.dumps({
         "fetchedAt": fetched_at,
+        # (T68) the newest forecast run's issue time, feed-wide, for the More tab's Forecasts line; null: no run held
+        "forecastIssuedAt": newest_forecast_issue(forecast),
         # `hydat` is this run's own check (kept for any reader of it); `maintenance` is what the owner must do — the
         # app's HYDAT line reads the notice, which survives a run whose listing check failed.
         "hydat": {"release": release, "latest": latest_release, "stale": stale},
@@ -910,6 +946,7 @@ def main() -> None:
     listed = listed_stations(_get(STATION_LIST))
     ids, source = stations_to_ask(roster, listed)
     drift = roster_drift(roster, listed)
+    shown = roster_shown(args.stations)
     if source == "roster":
         print("  ⚠️  ECCC real-time station list unavailable; asking the roster's "
               f"{len(ids)} realtime stations", file=sys.stderr)
@@ -918,7 +955,7 @@ def main() -> None:
               f"calls silent ({', '.join(drift['joined'])}) and no longer lists "
               f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}).\n"
               f"     The feed follows ECCC; the bundle follows the roster. Refresh with:\n"
-              f"       {ROSTER_ACTION}")
+              f"       {roster_action(shown)}")
     if args.limit:
         ids = ids[: args.limit]
 
@@ -968,7 +1005,7 @@ def main() -> None:
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
 
     summary = publish(args.out, ids, clim=clim, forecast=fcast, latest_release=latest,
-                      listed=listed, drift=drift)
+                      listed=listed, drift=drift, roster=shown)
     print(f"  ✅ {args.out}  {summary['answered']}/{summary['asked']} answered, "
           f"{summary['withPercentile']} with a percentile")
     if fcast:

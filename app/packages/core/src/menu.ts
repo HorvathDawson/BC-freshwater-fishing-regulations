@@ -88,6 +88,10 @@ export const MENU_WORDS = {
     version: (v: string) => `Version ${v}`,
     checked: (ago: string) => `Checked ${ago}`,
     notChecked: "Not checked yet",
+    /** (T68) the forecasts: the newest run's issue time, none held by the feed, or a feed that does not say */
+    issued: (ago: string) => `Issued ${ago}`,
+    noneRunning: "No forecast running now",
+    notStated: "Not stated by the gauge feed",
     live: "Live, when online",
     perSpot: "Fetched when a spot is saved",
     checkFirst: "The Province's in-season changes and Fisheries and Oceans Canada's notices can change a regulation at "
@@ -105,8 +109,8 @@ export const MENU_WORDS = {
       tiles: { name: "Map tiles", what: "The atlas drawn for the map, with every regulation's section in it" },
       basemap: { name: "Basemap", what: "Roads, towns and terrain: © OpenStreetMap contributors, Protomaps" },
       hydat: { name: "Gauge records (HYDAT)", what: "Past years of flow and level, Environment and Climate Change Canada" },
-      feed: { name: "Live gauge readings",
-              what: "Environment and Climate Change Canada, and the BC River Forecast Centre's forecasts" },
+      feed: { name: "Live gauge readings", what: "Environment and Climate Change Canada" },
+      forecast: { name: "River forecasts", what: "The BC River Forecast Centre's models, issued daily in season" },
       weather: { name: "Weather", what: "Open-Meteo.com (CC BY 4.0)" },
       imagery: { name: "Satellite imagery", what: "Shown only while online; never stored on this device" },
     },
@@ -256,6 +260,12 @@ export interface SourcesInput {
   /** When the live gauge feed was last fetched (its ISO instant, the data facts' `fetchedAt`), or null. */
   feedFetchedAt: string | null;
   /**
+   * (T68) The newest forecast run's issue time, feed-wide (the feed index's `forecastIssuedAt`): the instant; null when
+   * the index says it holds no run (out of season); undefined / absent when it does not say (an index from before
+   * the field, or a feed not reached).
+   */
+  forecastIssuedAt?: string | null;
+  /**
    * The map's tiles and the data proven ONE PAIR (P11 `usePairing`): true, a mixed pair (false), or not established
    * (null / absent) — the only freshness a tile set has, since the release dates no tile build.
    */
@@ -333,10 +343,14 @@ const dayAgeMs = (day: string | null | undefined, now: number): number | null =>
   isoDayWords(day) === null ? null : now - Date.parse(`${day}T00:00:00Z`);
 const badge = (kind: SourceFreshness, label: string = FRESHNESS_WORDS[kind]): FreshnessVM => ({ kind, label });
 
-/** An age-ruled source's age at `now`: the feed by its index's `fetchedAt`, the rest by the release's date for them. */
+/**
+ * An age-ruled source's age at `now`: the feed by its index's `fetchedAt`, the forecasts by the newest run's
+ * `forecastIssuedAt`, the rest by the release's date for them.
+ */
 function ageMs(k: AgeKey, s: SourcesInput): number | null {
-  if (k === "feed") {
-    const t = s.feedFetchedAt === null ? NaN : Date.parse(s.feedFetchedAt);
+  if (k === "feed" || k === "forecast") {
+    const at = k === "feed" ? s.feedFetchedAt : s.forecastIssuedAt;
+    const t = typeof at === "string" ? Date.parse(at) : NaN;
     return Number.isFinite(t) ? s.now - t : null;
   }
   if (k === "dfo" || k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
@@ -360,7 +374,8 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
 
 /**
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
- *   age       the feed (its index's own `fetchedAt`) and dfo / fwa / basemap / hydat (the release's date for each)
+ *   age       the feed (its index's own `fetchedAt`), the forecasts (the index's newest run, `forecastIssuedAt`; none
+ *             running: the feed's own freshness) and dfo / fwa / basemap / hydat (the release's date for each)
  *             against the table's line; never checked or not recorded, unknown
  *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
  *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is
@@ -372,7 +387,10 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
 export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM {
   const rule: StaleRule = STALE_AFTER[k];
   switch (rule.by) {
-    case "age": return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
+    case "age":
+      // (T68) the feed says it holds no forecast run (out of season): known, and as fresh as the check that said so
+      if (k === "forecast" && s.forecastIssuedAt === null) return sourceFreshness("feed", s);
+      return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
     case "notice": {
       const n = s.hydatNotice ?? null;
       if (n === "due") return badge("stale", FRESHNESS_WORDS.newerRelease);
@@ -391,9 +409,21 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
   }
 }
 
+/**
+ * (T68) THE FORECASTS' "WHEN", one rule for the Data block and the Details page (each in its own words): the newest
+ * run's age; none running; the feed reached but silent on forecasts (an index from before the field); not reached.
+ */
+export function forecastWhen(s: SourcesInput, w: { issued: (ago: string) => string; none: string; notSaid: string;
+                                                   notChecked: string }): string {
+  const at = s.forecastIssuedAt;
+  if (typeof at === "string" && Number.isFinite(Date.parse(at))) return w.issued(agoWords(at, s.now));
+  if (at === null) return w.none;
+  return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt)) ? w.notSaid : w.notChecked;
+}
+
 /** The order the screen lists them: the regulations, the map, the water, the sky. */
 export const SOURCE_ORDER: readonly SourceDateKey[] =
-  ["synopsis", "inseason", "dfo", "fwa", "tiles", "basemap", "hydat", "feed", "weather", "imagery"];
+  ["synopsis", "inseason", "dfo", "fwa", "tiles", "basemap", "hydat", "feed", "forecast", "weather", "imagery"];
 
 /** (T43) the app's one list of fish picture credits: every picture it can show (the manifest's lines, emitted). */
 export interface SourcesPicturesVM { readonly label: string; readonly lines: readonly string[] }
@@ -421,6 +451,8 @@ export function sourcesVM(s: SourcesInput): {
       case "tiles": return s.tiles ? w.version(s.tiles) : w.notRecorded;
       case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
         ? w.checked(agoWords(s.feedFetchedAt, s.now)) : w.notChecked;
+      case "forecast": return forecastWhen(s, { issued: w.issued, none: w.noneRunning, notSaid: w.notStated,
+                                                notChecked: w.notChecked });
       case "weather": return w.perSpot;
       case "imagery": return w.live;
     }
