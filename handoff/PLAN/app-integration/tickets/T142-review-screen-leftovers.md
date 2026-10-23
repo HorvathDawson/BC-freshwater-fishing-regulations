@@ -1,6 +1,6 @@
 # T142 — Review screen leftovers: focus after a click, refusal wording, partial mark (Q96), draft-guard test
 
-Status: DONE — 2e8234bb (blur, browser test), 1218d094 (refusal wording, shared with T135) (lane-T135). Q96's partial "text and rules verified" mark is NOT built (owner default: no);
+Status: DONE — 2e8234bb (blur, browser test), 1218d094 (refusal wording, shared with T135), adversarial review fix 32c1997f (lane-T135). Q96's partial "text and rules verified" mark is NOT built (owner default: no);
 documented below. Takes effect on merge: no rebuild.
 
 Source: T134 "Left / follow-ups" and its adversarial review (T134-curation-review-screen.md).
@@ -63,3 +63,19 @@ Depends: T134. Size: S. Owner: Q96 only.
 
 ## Left / follow-ups
 - The browser test needs `curation-review/frontend/node_modules` (`npm install`); it fails naming that when absent.
+
+## Adversarial review (2026-10-23, 32c1997f)
+Re-ran the browser tests (2 passed, 50 s, own ports) and the blur mutant by hand: without `ev.currentTarget.blur()`,
+`test_enter_after_clicking_an_answer_records_the_mark` FAILS (`document.activeElement === document.body` is false).
+Read every refusal a reviewer can cause through the screen. Found and fixed:
+1. **"Answer every check (T R P A)" on an entry awaiting its build.** There only T and R can be answered and T y R y is
+   no verdict (Q96, not built), so the refusal asked for what the screen holds back. `unanswered_words(scope,
+   awaiting=)` now says: "Until it is built only T and R can be answered and P and A wait, so "all fine" waits for the
+   build: record it wrong (answer n) or unsure (answer ?), or defer it with a note." `app.post_mark` asks
+   `reuse.awaiting_build(scope, target)`. Test `test_a_refused_mark_is_said_in_the_reviewer_s_words` (the fixture run
+   holds every entry awaiting build; both wordings pinned; mutant: the app drops `awaiting=` → fails).
+2. **A second wording of the no-name refusal.** The verdict bar refuses before the round trip with "your name first —
+   every mark names its reviewer", not the server's sentence; now the same words, pinned by
+   `test_the_screen_says_the_no_name_refusal_in_the_server_s_words`.
+Not a defect: the refusals left as they were (gate, awaiting build's own, `scope is one of …` with a field path) are
+either already sentences or not reachable from the screen (it always sends a valid scope).

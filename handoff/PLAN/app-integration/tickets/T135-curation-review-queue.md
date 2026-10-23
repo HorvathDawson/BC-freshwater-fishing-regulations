@@ -1,6 +1,6 @@
 # T135 — Curation review phase 4: risk-ordered queue, pre-checks, ticket export, commit marks
 
-Status: DONE — 1218d094 (lane-T135). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
+Status: DONE — 1218d094, adversarial review fixes 32c1997f (lane-T135). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. The run-based factors read the served reach run as it is; a reach run (already
 part of every `python -m pipeline build --no-tiles`) refreshes them, and the screen re-reads it by file stamp.
 
@@ -67,8 +67,10 @@ Depends: T97, T134. Size: M (about 3 days). Owner: no (plan approved).
   upper / one of the run's candidate measures (`RunCutsCtx`, from the review view) / a measure typed; a pick for a
   split no longer chosen is dropped.
 - **Splits mid-review** (acceptance): a split appended to splits.json is in `GET /api/review/splits` (S0, unmarked)
-  and the S0 progress on the next load, and every entry row (tier, mark) is as it was — nothing re-queues that is not
-  stale (`test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry`; staling on a move is T97 / T134's).
+  and the S0 progress on the next load; no row moves tier or place; a MARKED entry on the split's own water goes
+  stale, "binding moved" (`fingerprint.entry_binding_fp` holds every split on the entry's waters, T133), every other
+  mark stands (`test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry`, with marks since the adversarial
+  review — see below).
 - AGENTS 67; README "The one queue, pre-checks and the output"; API.md.
 
 ## Checks
@@ -106,3 +108,63 @@ Mutation pins (each named mutant fails the named test): `risks` ignored by the r
   open entry, so `gate` shows on the screen, not in the row counts.
 - `parse_findings` is untested against a real `reviews/` dir (none exists; `io.read_review_findings` has its own tests).
 - Not run: Tier 2 (`scripts/test-full.sh`), `pnpm -C app check` (no app changes).
+
+## Adversarial review (2026-10-23, 32c1997f)
+Read the diff against PLAN §4 phase 4, re-ran every measurement on the live run (b9be92114323aa22, the same counts as
+81e726a3: P1 226 / Z 132 / P2 261 / P3 118 / P4 728 / sweep 60; P1 first factor 2 / 58 / 31 / 121 / 10 / 4; every
+pre-check count identical), spot-checked rows on real waters (Ash River: three ambiguous cuts on r1 / r2 with the
+candidates and the side taken; Campbell River; Noons Creek's 2 unplaced pieces), checked every run entry / rule id is
+in the corpus (all are), that the queue's "binds" equals the app's (`covered_ids`), and the safety pin (review mode
+still writes only `POST /api/marks`; the new routes are GETs). Found and fixed:
+1. **Unplaced pieces lost.** The builder writes one `unclassified` diagnostic PER EXTENT; `RunFacts` kept one per rule
+   (the last), so a rule with two cut extents under-reported. And a payload with `included: true` (placed) counted as
+   unplaced. Now a tuple per rule, placed ones dropped; the pre-check counts the union of pieces.
+   Test `test_every_extent_s_unplaced_pieces_are_kept_and_placed_ones_are_not` (mutants: overwrite per rule; keep
+   included — both fail it).
+2. **A cut decided by hand was still a risk.** `precheck` called a `cut_pick` cut a hint (B, `cut_picked`) while
+   `tiers.risks` counted it as `ambiguous cut` (P1). One predicate now: `runfacts.is_curated_pick`; `risks` reads
+   `RunFacts.open_ambiguous_of`. Test `test_a_cut_decided_by_hand_is_not_an_ambiguous_cut_risk` (mutant: `risks`
+   reads `ambiguous_of` → fails). Moves nothing today (0 curated picks on rules).
+3. **The pre-check CLI decided S0 its own way, without the marks.** Its docstring said it read the marks store; it
+   did not, so a split whose mark went stale was S0 on the screen but not in the CLI, and the S0 set was computed in
+   two places. Now `tiers.s0_split_ids` is the one set (reuse and the CLI); the CLI reads the split marks' status
+   through `fingerprint.Context.on_disk` (which `reuse._review_context` now uses too) and `marks.split_states`.
+   Both CLIs (precheck, tickets) also read the corpus raw, bypassing `io.read_entryfile`'s absorbed-id folding —
+   a folded `matched` would read "binds nothing" there and not on the screen; now through it (0 differ today).
+   Tests `test_s0_is_one_function_of_splits_json_and_the_marks`, the no-second-copy test (now also `s0_split_ids`,
+   `is_curated_pick`, `statuses_now`, `on_disk`, and no `and split_needs_verify(` set outside tiers).
+4. **The CLI's tickets never said what changed since.** The API passed each mark's status, the CLI none, while the
+   docs said "the same text". `tickets.statuses_now` serves both. Test
+   `test_a_ticket_says_what_changed_since_and_the_cli_says_the_same` (edits Frog Lake after its mark; mutant: the API
+   passes no statuses → fails). Also: two marks whose targets slug to one file name are refused, never written over
+   each other (`test_two_marks_never_share_a_ticket_file`; no collision in the corpus today).
+5. **"Commit marks" said "nothing to commit" for a store that lost lines.** It decided by lines ADDED; a rewrite that
+   only removes (a migration's carry) was left uncommitted with a false message. Now `store_changed` (git status of
+   the store). Test `test_commit_marks_commits_a_store_that_lost_lines` (mutant: `if not n` → fails).
+6. **The mid-review split test was vacuous.** It ran with an EMPTY marks store, so "no entry re-queues" could not
+   fail. With marks on Adam River (on the split's water) and Ash River: Adam goes stale "binding moved", Ash stands,
+   no row moves tier or place. "As built" above corrected; see owner question 5.
+7. Docs: `curation-review/frontend/README.md` still listed `flagged` / `unreviewed` and "attention-first"; AGENTS 67
+   names the new single functions.
+Checks (unfiltered, `scripts/heavy.sh`, `-m "slow or not slow"`, live run): the T134/T135 suites +
+`test_curation_review_browser.py` + `test_no_silent_skips.py`: **325 passed**; `test_review_queue.py` 25 passed after
+the last fix; `tsc --noEmit` clean; the three CLIs against the real store (precheck counts as above, tickets 0 and 1
+on a scratch store holding a real mark, commit_marks `--dry-run`).
+
+### Owner questions (adversarial review; built with the default)
+5. **A split added on a water stales every marked entry on that water**, even when no rule names the new split
+   (`entry_binding_fp` holds "every authored split on its waters", T133). The acceptance read "entries whose binding
+   moved go stale" — this is that, by T133's definition of an entry's binding. *Default:* as built (conservative:
+   a new cut on the water may move a `rest` / tributary walk). Say if only entries whose rules NAME the split should go
+   stale.
+6. **A curated `cut_pick` is not a risk factor** (fix 2). *Default:* built; say if a hand pick should still put a
+   closure in P1.
+
+### Left / follow-ups (adversarial review)
+- A reach run REWRITTEN IN PLACE keeps its old `report.json` until it finishes (`io.write_run` writes the tables
+  first, `report.json` last, and removes nothing), so "no report.json = still being written" only catches a fresh
+  directory; a read mid-rewrite can mix tables (the stamp key re-reads once it settles). Fix belongs to the reach
+  writer (remove `report.json` first, or write to a temp dir and rename) — not this lane's code.
+- In a single-region view the S0 cards still lead the list (splits are not filtered by region).
+- `unplaced pieces` is a severity-A pre-check but not a risk factor (PLAN §3 does not list it): Noons Creek is P1 for
+  its cut, not for its 2 unplaced pieces.
