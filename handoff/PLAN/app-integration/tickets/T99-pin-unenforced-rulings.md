@@ -1,6 +1,58 @@
 # T99 — Pin the rulings nothing enforces (RULINGS §16) and fix the stale citation (C-4)
 
-Status: OPEN.
+Status: DONE — 95b50b2f (lane wf_c3f10dea-7b4-5). RULINGS §16 lists only K8 (T98) and K5 (T100); 17 tests in
+`pipeline/tests/test_rulings_pinned.py` (needs_bundle, ~30 s), each whole-value and mutation-pinned; C-4 cites C2.
+No rebuild needed (tests and a read-only tool only). Left: the "not seen" lines and Q-T99a below.
+
+## Result (2026-10-22, bundle reach_digest dc21329d925d042d)
+
+**Z1** — `pipeline/tools/base_deltas.py` (`python -m pipeline.tools.base_deltas [--per N]`). Per section, day and
+fish the reference reader is asked twice (`effective_rules_bound`, traced): over the BASE alone (rules whose
+`source_of` scope is region-wide / province-wide) and over everything bound. Every rule whose state, reason or
+winner differs is a difference and must be named by ONE entry: its own row; the override at the bottom of the
+`by` chain that removed it; the override that removed its base beater (SP-4); its partial lifter. Also: base rules
+bound on a section belong to its regions (or the province) and every region it lies in contributes. Sample: 2
+per stratum (water row's own reach, tributary walk, lake, base only) in all 9 regions + every region-line place,
+spread by a fixed sid hash; 22 fish x 4 days. Live: 0 unattributable (at 3 per stratum: 14,309 differences, all
+attributed to 63 rows; at 10 per stratum: 43,272 / 102 rows). Pins: a Region 4 lake with no row answers exactly
+Region 4's table (every day, every fish); Kootenay Lake main body's whole difference set (rainbow 10 lifting
+Region 4's "Trout/char: 5" and "1 over 50 cm", the row's lines, `z4:kootenay_lake_boundaries`, the Kootenay
+rainbow stamp). Mutations: a base rule dropped from the page -> exactly that rule unattributable; another
+region's base rule bound -> named out of place; a region's table missing -> named.
+
+**The ◐ rulings** (each reads the bundle/reader/status index/guide; each mutation applies the curated row's
+change to what the bundle holds — a seeded rule table or the binding its extents made):
+Z2 Mill Lake (bass 4 displaces Region 2's 20; mutation: the row's quota not bass -> 20 speaks) ·
+Z10 Peaceful in / Goose out of the Knapp closure (mutation: Goose bound -> closed) ·
+Q20 Adams Lake quota every day; Adams River dated quota on its dates, Region 3 otherwise (mutations: lake quota
+dated; river quota undated) · L14 all 9 Stellako sections closed Nov 15-Jun 30 (mutation: an exemption lifting both
+spring closures -> to May 14) · L16 Chimney spring closure lifted below Brunson Lake only (mutation: lift dropped) ·
+T8 Anzac 500 m spot binds the pieces joining inside its window, none outside, and a tributary walk smaller than the
+river's; Mitchell 100 m has none (mutations: a piece joining outside bound; the whole river's walk) · G8 Columbia
+r13/r14 exactly Fairmont-Donald, Salmon r1/r2 exactly mouth-Hwy 97 bridge, no note (mutation: towing on the whole
+river) · Li1 every rule key with designated and undesignated sections reads one status all year (mutation: an index
+closing designated sections) · Li10 West Road mainstem Class II Jul 1, none Dec 1, no glyph (mutation: designation
+dropped) · E13 Goat C&R on all 10 mainstem sections, no tributary; Fraser night closure on the Fraser and its three
+named side channels, no joining slough (mutations: one section left out; a slough bound) · E14 Hays Creek split
+130 m from the mouth, closure above it only (mutation: whole creek) · C3 the guide's `species.trout_note` and
+`gotchas.trout_includes_char.note` carry the whole sentence.
+
+**Not seen by Z1** (said, not hidden): a base rule that SHOULD bind a section and binds neither answer is caught
+only when a whole region's table is missing there, not rule by rule; the sample is 2 per stratum (the CLI runs any
+size). T8's "joining within the spot" is proved for the pieces placed on the river (off-stem sections, by their join
+measure); the unnamed tributaries above them are checked only as fewer than the river's walk — the bundle's
+`section_down` is sparse and the full flow graph is the atlas (T57's sweep reads it through heavy.sh).
+
+Pre-existing gate failures seen (not T99's files, not touched): `test_no_silent_skips` (test_answers_one_kind_group.py:201,
+test_synopsis_period.py:57/62/71, test_tidal_gauges.py:137), `test_dataflow_gates::test_gate_4_one_calendar_spec`
+(app dayPicker.ts:44, edge.test.ts:100), `test_one_data_flow::test_the_bundle_reads_no_curated_waters_file`
+(bundle/build.py `CURATED.gauges.tidal`).
+
+## Owner questions
+- Q-T99a (C3): the guide carries the note "Trout includes char … unless the line excludes them or char have their
+  own line about the same thing", and the page names the group "Trout and char"; the page does not print the note
+  itself. **Default (built with): no change** — "Trout and char" says it where the rule is shown; if the note should
+  appear on the page (e.g. beside a trout-only line, the guide's `note_trout_only`), that is a new ticket.
 
 Source: pipeline/docs/RULINGS.md §16 and memory `base-plus-deltas-invariant` ("section == region base + named
 overrides, every difference attributable; this is what stops tail-chasing").
