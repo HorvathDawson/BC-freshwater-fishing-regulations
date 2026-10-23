@@ -1,6 +1,6 @@
 # T150 — Drop the regulations header's "Parts" button; the part list lives in the Map view
 
-Status: DONE — 167c3744 (with T151: header, Map view list, golden exclusion, decisions, shots), 2e92a987 (fixtures, text-scale snapshot).
+Status: DONE — 167c3744 (with T151: header, Map view list, golden exclusion, decisions, shots), 2e92a987 (fixtures, text-scale snapshot); adversarial review ce72e071 (focus after a pick, back pinned, one copy of the words, source pins out of core).
 
 Source: owner 2026-10-23: "dont we want to remove 'parts' from reg page since map is now at the top tabs?" Follows owner
 call 3 (decisions.md 2026-10-22, T71: the view strip is the one Map entry; the header lost its Map button but kept
@@ -69,3 +69,43 @@ App build only. No pipeline, bundle or release change.
 - The list shows names only, not each part's open / closed word on the day (the sheet had one, per picker choice of one
   item; the Map view's group spans items and its parts are not picker choices). A per-part status word would need a
   per-part day read for every item of the group.
+
+## Adversarial review (2026-10-23)
+Held against the owner's words ("remove 'parts' from reg page since map is now at the top tabs"; keep the part's NAME;
+the list in the Map view, collapsible under the map, Q122). Verdict: as built is right; three defects fixed, one false
+pin replaced.
+- **Screen reader, live (Expo web, own port 39591, the release through :39217):** the regs header of the Chilliwack has
+  no `regs-action` and keeps the part's name ("From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge"); in the
+  Map view the toggle is a `<button>` "Show all 4 parts", `aria-expanded` false → true; the open list is
+  `role=radiogroup` "Parts of this water" with 4 `role=radio` rows, each named whole ("Tamihi Rapids Bridge → 100 m below
+  the Slesse Creek confluence, part 2 of 4 · Chilliwack River"), `aria-checked` true only on the part shown, every row
+  focusable and ≥ 44 px. Every part of the Fraser (15, including "Within Landstrom Bar sign zone" and "2
+  stretches") and Kootenay Lake's 3 areas is reachable by name.
+- **Fixed — focus dropped on a pick:** a pick closes the list, so the focused row unmounted and keyboard / screen-reader
+  focus fell to the page top. Focus now goes back to the toggle (`WaterMapView` `PartsList`); verified live
+  (`document.activeElement` = the toggle after picking part 2) and pinned in WaterMapView.test.
+- **Fixed — Android back unpinned:** the list's `useBackLayer` had no test. New WaterMapView.test drives the real
+  `useBack` + `useRoute`: back closes the open list (route stays `water`), the next back leaves the water.
+- **Fixed — a second copy of the words:** `WATER_MAP_WORDS.parts` spelled "Parts of this water" again beside core
+  `WORDS.PARTS_TITLE`; it now reads that one value.
+- **Fixed — the earlier review's source pins broke the layer gate:** they read files with `node:fs` from
+  `packages/core` and `packages/map` tests, which `check-boundaries` refuses. Moved to `app/tools/one-parts-list.test.ts`
+  (the words spelled once; no app surface opens the Parts sheet or names `onParts` / `PARTS_ARIA`; the mark-label face
+  read by both maps). Core / map tests keep the value assertions only.
+- Golden: `GOLDEN_PARTS_ACTION_IDS` carries the reason "owner call 3 (2026-10-23, T150, Q122)"; header.parity asserts
+  on every state that a golden action is excluded by its kind's entry and the app's header has no `action` key;
+  exclusions.test proves the two id lists exactly cover the golden states with an action. Read, not mutated again (the
+  builder's mutation of `action: null` stands).
+- Mutations run (each failed its named test, then reverted): the second literal back → one-parts-list "spelled once";
+  `openSheet("parts" as SheetKey)` back in RegsScreen → one-parts-list "no app surface opens the Parts sheet"; the
+  focus line removed → WaterMapView.test "T150: the parts list…"; `useBackLayer` removed → WaterMapView.test "Android's
+  back closes the open parts list".
+- Shots: `T150-shots/review--{fraser,kootenay,chilliwack}--{phone,desktop}--{light,dark}--{regs,map-parts}.jpg`
+  (`T151-shots/shots.mjs`, OPEN_PARTS=1): no Parts button on any regs page; the list open in every combination.
+- Seen, not fixed (follow-up / owner): opening the list shortens the map but does not refit it, so on a phone a long
+  part (the Fraser's mouth → Mission) is partly cut off until the reader pans or closes the list. A refit on open would
+  move a map the reader may have panned.
+- Checks: `REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on the review change): every gate before `test`
+  green (boundaries now clean again); vitest 8039 passed, 4 failed, 24 skipped — the same 4 known x4p_1010 failures from
+  T100 (caveats.parity ×2, keep.parity, sheets.parity), nothing else.
+- Commit: ce72e071.

@@ -1,6 +1,6 @@
 # T151 — The water's Map view: the bold emphasis makes the regulations legend hard to follow
 
-Status: DONE — 167c3744 (map cue, tokens, labels, shots), 2e92a987 (state-handle pin, fixtures). Built with Q123's default (dim the others).
+Status: DONE — 167c3744 (map cue, tokens, labels, shots), 2e92a987 (state-handle pin, fixtures); adversarial review ce72e071 (mark labels in the loaded Archivo_400Regular face, pinned). Built with Q123's default (dim the others).
 
 Source: owner 2026-10-23: "the bold in the section map view is also weird and makes the reg legend hard to follow".
 
@@ -78,3 +78,25 @@ tile change.
   other water too needs a map-wide paint flag (or `global-state`), not feature-state.
 - The browse map's tapped-water selection (casing + 3.2 px floor) is unchanged; the owner's words were about the
   section map view. If the same "bold" bothers there, the same cue applies.
+
+## Adversarial review (2026-10-23)
+Held against "the bold in the section map view is also weird and makes the reg legend hard to follow" (one line width
+for every part; the part marked by dimming the others, Q123 default; legend text normal weight). Verdict: as built is
+right; one defect fixed.
+- **Fixed — the mark labels were not Archivo at all on the web:** `markElement` set `font:400 12px/1.25 Archivo`, but the
+  app registers Archivo per weight (`Archivo_400Regular`, expo-google-fonts) and no family named "Archivo" — live,
+  `document.fonts` lists only `Archivo_400Regular/600/700/800` — so every label fell back to the browser's sans. One
+  value now, `@app/map` marks.ts `MARK_LABEL_FONT` (`Archivo_400Regular`, weight 400), read by both maps; verified live
+  (computed `font-family: Archivo_400Regular, sans-serif`, weight 400). This also closes the builder's "Not pinned by a
+  test": marks.test pins the value and `app/tools/one-parts-list.test.ts` that both maps read it and neither spells a
+  face or weight (mutation: a literal `font:700 12px … Archivo` in Map.web fails it).
+- One width: read `paintFor` — `part` and `water` share `width.stream.water` (`["any", PART, WATER]`); only `selected`
+  (the browse map) keeps the 3.2 px floor. The builder's four mutations (cue ignored, part on its own floor, dimming
+  off, "outline" passed) are each pinned by a named parity / WaterMapView test.
+- Shots: `T151-shots/review--{fraser,kootenay,chilliwack}--{phone,desktop}--{light,dark}--map.jpg` — every part at one
+  width, the others at 40 %, no casing, no ring, labels regular.
+- Owner question stays Q123 (dim vs the thin-halo alternative `alt-halo--*`).
+- Checks: `REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on the review change): every gate before `test`
+  green (boundaries now clean again); vitest 8039 passed, 4 failed, 24 skipped — the same 4 known x4p_1010 failures from
+  T100 (caveats.parity ×2, keep.parity, sheets.parity), nothing else.
+- Commit: ce72e071.
