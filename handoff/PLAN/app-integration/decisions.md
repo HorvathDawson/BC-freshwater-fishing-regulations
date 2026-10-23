@@ -22,7 +22,7 @@ to reopen and how big the change is. Each default is chosen so the other answer 
 | **D15** | Fish stand-ins and protected species | (a) ship stand-ins captioned as the manifest says (`stand_in_for`). (b) omit pictures of protected species | **(a)** with the permission gate (T43): no image ships without a cleared row in `fish_credits.tsv` | T20, T43 | (b): filter in `fish.generated` |
 | **D16** | Licence tab on a closed day | (a) as the prototype: the Licence section shows the selectors and an empty answer (162 golden objects are empty). (b) show the day's licence answer anyway (anglers plan ahead) | **(a)** for parity — UR2 6 moved licence words off closed days on purpose ("no licence is needed while fishing is closed" read as "no licence needed") | T33, T35 | (b): T33 reads the licence frame regardless of status; one branch |
 | **D17** | The classbox "Source" button (licence) | (a) open the `licsrc:` sheet of that profile. (b) drop it (it does nothing in the prototype) | **(a)** — every other "Source" opens its sheet; a dead control fails the a11y gate | T33, T35 | (b): remove one Pressable |
-| **D18** | Bait `also_allowed` (e.g. dead fish as bait in a circumstance) | (a) hidden, as the prototype. (b) a note under the allowed item | **(a)** for parity; owner question for the next design round | T31 | (b): one note line in `baitList` |
+| **D18** | Bait `also_allowed` (e.g. dead fish as bait in a circumstance) — **DECIDED (a) hidden, T81 2026-10-22 (owner delegated; see "CLAUDE 2026-10-22 (T81)")** | (a) hidden, as the prototype. (b) a note under the allowed item | **(a)** for parity; owner question for the next design round | T31 | (b): one note line in `baitList` |
 | **D19** | klmb_1010's pooled row drawn on page v36's old card path (no `group`) | (a) a data-side `group` for that row (rows 27, a pipeline change). (b) port the old card path (page v36 `groupBlock`/`speciesBlock`, ~250 lines) for one row | **(a)**; the state stays excluded from Keep parity until the data lands (T19b) | T19b, T21 | (b): a new ticket, ~1.5 days |
 | **D20** | Tidal water's Gear/Methods text | the golden (x31p_1010, tidal) says "No fishing here on any day of the year." — the prototype's `closedUntil` over a null strip; (a) parity, (b) page v36's `tidalHtml` words ("Tidal water" + the guide note) | **(b)** — the golden string is a prototype bug (tidal water is not closed); T42 excludes x31p_1010 from Gear/Methods parity with this reason | T30, T42 | (a): drop the exclusion |
 | **D21** | Licence/answer patches the page adds over the data (v33: steelhead stamp dropped where steelhead are closed, "(not kokanee)") | (a) port them, isolated in `patchNeeds()`. (b) move them to the pipeline (licence 7) | **(b)**, under the owner rule 2026-10-21 (the backend answers, the front end only reads). SHIPPED in licence 7: the stored documents leave the Steelhead Conservation Surcharge Stamp out where the card at the same key and segment says steelhead are closed (`stamps.drop_closed_steelhead_stamp`; the prototype's 7 states compared, no exclusion), and an under-16's `buy` document carries its alternatives (`or`). `patchNeeds()` keeps only WORDING, no decision: the "(not kokanee)" words read from a stored requirement's own label, and the "Also, only if…" split of the stored "Only if" documents | T33 | — |
@@ -88,10 +88,10 @@ had no water map of those waters); the 22 golden states stay keyed in exclusions
 
 ## Owner questions this spec could not settle from the code
 
-- **Image permissions** (GoFishBC, WDFW, What To Fish, Photo Ark) — a legal matter, not a default; T43 makes it a ship gate.
-- **The 8 `code: null` salmon images** in the manifest are unreachable from any VM (no code) — keep, recode, or drop?
-- **Prototype bug** (T14): a closed-all-year chain line is rewritten to "." (chw0_1010 and the other closed-all-year states); ported for parity, flagged.
-- **Prototype bug** `pinUpdate` throws on 25/134 states (a ledger row without `group`); the app's `pinChain` skips such a
+- **CLOSED (owner 2026-10-20: permission is held; T81 records it)** **Image permissions** (GoFishBC, WDFW, What To Fish, Photo Ark) — a legal matter, not a default; T43 makes it a ship gate.
+- **CLOSED (T81 2026-10-22: no longer true — the manifest's only `code: null` images are the two adipose drawings, which the hatch sheet reaches)** **The 8 `code: null` salmon images** in the manifest are unreachable from any VM (no code) — keep, recode, or drop?
+- **CLOSED (T81, Q25)** **Prototype bug** (T14): a closed-all-year chain line is rewritten to "." (chw0_1010 and the other closed-all-year states); ported for parity, flagged.
+- **CLOSED (T81, Q25)** **Prototype bug** `pinUpdate` throws on 25/134 states (a ledger row without `group`); the app's `pinChain` skips such a
   row. Owner/prototype agent: fix in the prototype so the goldens cover those states (re-run `sync.mjs` after).
 - **D2 / D24 against the view strip (T23 review, 2026-10-21)** — the owner's D2 says "no FaceBar" and D24 puts a
   "Conditions here" button beside Map in the regs header, opening Conditions at the read part's `part_geo.mid_sid`. The
@@ -160,7 +160,7 @@ layers menu — decide with the layers registry). In the Level view, check and
 disclose tidal or backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater). Build after option A,
 before the data rebuild; the estimate stays pipeline-generated with the app mirror held equal.
 
-## T49 default (2026-10-22) — which days the date sheet offers (OWNER QUESTION)
+## T49 default (2026-10-22) — which days the date sheet offers (OWNER QUESTION — DECIDED as built, T81 Q19)
 The data is one 366-day calendar with no year, so a date in another year would read as the same month and day of this
 one. Default implemented (`@app/core` `dayRange`): the picker offers TODAY'S CALENDAR YEAR (Jan 1 – Dec 31), cut earlier
 when the release states `regulations.valid_until` (inside the year and not yet passed); today is always offered. Other
@@ -249,7 +249,7 @@ sheet, and no `@app/map` in the sheet or the bar). Decisions not spelled out by 
 - PLACEHOLDERS: the approved six + three naming towns ("Search a lake, river or town", "Name a town to find water near
   it", "Fishing near a town? Type its name"); one per app opening; ≤ 36 characters (fits 390 px, measured in Chrome).
 - A REPORT FROM THE MORE TAB says "Screen: more" (where the reader is); a report from a regulations tab is unchanged.
-OWNER QUESTIONS (defaults built): (1) should the search sheet keep the old "open on the best match while typing"
+OWNER QUESTIONS (defaults built) — DECIDED, T81 Q17/Q18 (below, "CLAUDE 2026-10-22 (T81)"): (1) should the search sheet keep the old "open on the best match while typing"
 preview? (default no); (2) should Spots' "Add a spot here" from the Spots tab say "at the middle of the map as you left
 it"? (default: the existing words).
 ## CLAUDE 2026-10-22 (owner delegated) — regs polish: R1 rhythm, Q3 report link, O4 sheet type, Q4 Done, T39 Q2 paper tint
@@ -799,3 +799,45 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   tap keeps search and says "Search"), back.test (Android: back → map → Android leaves; browser: one entry, back and ×).
   Mutation pins run: keeping `search` in `from` fails 7 tests across the three files; dropping the `arrive` fit or the
   label's `overSearch` fails 5 in Search.shell.
+
+## CLAUDE 2026-10-22 (T81, owner delegated: audit call 11) — the smaller pending questions, settled
+Owner call 11: "Claude makes judgement calls on the ~30 smaller pending questions and records them". Every row the
+tickets README "Owner questions" table marks **delegated**, plus the stragglers left in progress notes, is decided here:
+the call, why, how to undo it. Calls that need code name the ticket that carries the work; nothing here changed code.
+Owner-only rows (Q1–Q7, Q9, Q10, Q13, Q26–Q44) are NOT decided here and stay in the README table.
+
+| # | question | decided | why | undo |
+|---|---|---|---|---|
+| Q8 (T76) | A gauge across a `water_continue` link counts as the water's own? | **Yes, `water_continue` only** | a continuation is the same water under another name (owner: a river that changes its name is ONE system); tributary, side-channel and receiving links are other water | one link-kind set in T76's rule |
+| Q11 (T80 item 3, D19) | klmb_1010's pooled row has no `group` | **(a) a pipeline-side `group`** | the backend answers, the front end only reads (owner rule 2026-10-21); (b) ports ~250 lines of old card path for one row | (b) as a new ticket |
+| Q12 (T82) | O3: timed caveat look; O5: sheet height | **O3: the same caveat box as the other top caveats. O5: size to content, capped at the prototype's height** | one caveat look; a sheet taller than its words is empty space on a phone | O3 one style; O5 one max |
+| Q14 (T83) | Region/MU boundaries above or under the status lines | **Under the status lines, above the fills** | the status line is the answer; a grey line across a closed stream reads as a different status. Fills under the boundary keep the region readable over lakes | layer order in the style |
+| Q15 (T83) | Warm temperature dot reuses restricted plum | **Its own hue, not a status colour** | a plum dot beside a plum line reads "restricted"; one meaning per colour | one token |
+| Q16 (T83) | Sub-20 contrast pairs (thin lines, permit/temperature, dark boundary 15, dark closed/base 19.1) | **Lift where cheap; else a recorded exception listed WHOLE in the gate test** | the dark-water-ink precedent (`UNDER_FLOOR`): a named exception list fails on any second slip | edit the list |
+| Q17 (T48) | Keep "open on the best match while typing"? | **No** (as built) | the full sheet covers the map, so moving it under the typing is unseen work and a jumpy cancel; the map follows picks only | pass `follow = true` to `useSearchView` (ui `search.ts`) |
+| Q18 (T48) | "Add a spot here" wording | **Closed** | the owner removed it (2026-10-22: "where you are or select on map"; core/ui `mapRail.ts`) | — |
+| Q19 (T49) | `dayRange` | **This calendar year, cut at `regulations.valid_until`** (as built) | the data is one year with no year in it; another year's date would silently read as this one's | one function (`dayRange`) + its tests |
+| Q20 (D18) | Bait `also_allowed` | **Hidden** (as built, D18 a) | parity; the circumstances are long and rare, and the bait list's source line already leads to the book | one note line in `baitList` (D18 b) |
+| Q21 (T44) | Name size on Conditions/Map; desktop column; Map full-bleed; wheel outside the column | **As built**: one 17 px name row on every view (`WaterTitle`); one 1,280 px frame, with the regs reading column 560 px inside it (T45); the Map canvas full-bleed under the header, its words on the column; the wheel as built | the owner's complaint was views that moved; T44 measured nothing moves at 390/768/1440 | `WaterFrame` tokens |
+| Q22 | The selected-tab cue | **As built** (already recorded: "CLAUDE 2026-10-22 (owner delegated) — the selected tab cue") | — | see that block |
+| Q23 | Dark water names near `status.base` / flow f5 | **As built** (#2498FC, "dark water ink back to blue"): 6.3 ΔE00 from f5, every status pair 12+ but one listed exception | labels draw on their halo and read as words, not lines; T83's gates revisit the pairs | one token |
+| Q24 | p15 continuations | **Answered by the owner** 2026-10-21 (late) — already in README "Answered" | — | — |
+| Q25 | Prototype bugs: closed-all-year "."; `pinUpdate` throws on 25/134 states | **Closed: the prototype is a reference.** The app already does the proposed fix for both: core `chainText` keeps the sentence when the rewrite leaves no letters; `pinChain` skips a row without `group` | the goldens are not edited; the app's own tests pin its behaviour | — |
+
+Stragglers (questions raised in implement_progress.md as merges landed, never in the table). Each **as built**, since
+the owner's later word "the prototype is a reference, not the end-all … Claude decides" (OWNER 2026-10-22) covers them:
+- T38 (hatch sheet): caption before the image, no tile behind the drawings, side by side on wide. D4 tile part already
+  answered by the owner.
+- T42 (edge states): tabs on a part outside B.C.; the tidal Licence box (D33 b). The caveat look is O3 (Q12 above).
+- T43: D15's permission gate is moot (owner: permission held); the 18-line Fish pictures foot stays.
+- T45/T46 (desktop): the 1,280 frame + 560 px reading column; the date pill in the side column; regs sheets as centred
+  dialogs (map sheets stay bottom sheets); fish looks side by side in landscape where they fit; small notes at ~103
+  characters a line.
+- T39/T40: the Keep colour bound 7; the ⓘ label wording ("What does <term> mean?"). The rest was answered by the owner
+  (OWNER 2026-10-22 — answers).
+- T49: the calendar button stays in the strip; weeks start on Sunday.
+- "Level may move into the layers menu": done (476b06d8) — closed.
+- decisions.md "Owner questions this spec could not settle": image permissions (owner: held), the 8 `code: null` salmon
+  images (no longer in the manifest), both prototype bugs (Q25) — closed and marked there.
+
+Undo for any straggler: say which; each is one component's change, and the ticket that built it names the files.
