@@ -99,7 +99,7 @@ use that as the sole source of future work."
 | T52 | Conditions "Expected change" | OPEN | 6ffda443 (ticket) | all (pipeline daily series + app chip) |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | OPEN | a43a7122 (ticket) | all; Q1–Q3 build with defaults |
-| T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder wf_937ae915-731 → owner review of candidates → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba; 7 grey polygons |
+| T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | IN PROGRESS | b9a832ca, ad77fda5, f4552285, 669fd065, 7b64c558, 020f4ca8 (binding diff) | merge lanes wf_3976eddc-bba + wf_e4e2b70f-f21; swap full_twin; `deliver all`; panels test; re-cut fixtures; strict + smoke |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | OPEN | — | all (T53 merged: unblocked) |
 | T58 | back follow-ups | OPEN | (search-back merged cc4fcee1, f74b50a4) | split lake stacked twice; parts-sheet rows; stale slow map tap; ‹ label names where back goes |
@@ -111,7 +111,7 @@ use that as the sole source of future work."
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | PARTIAL | a3f66b7c (plan) | owner reads curation-review/PLAN.md; build → T96, T97 |
-| T67 | braid splitting as a build step | OPEN (assessment running) | — | assessment → plan → owner |
+| T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | OPEN | — | Forecasts line; roster `--stations`; R2 upload step |
 | T69 | search on desktop: keyboard leftovers | OPEN | — | focused-but-closed; tab order; keyboard-walk test |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | OPEN | — | all |
