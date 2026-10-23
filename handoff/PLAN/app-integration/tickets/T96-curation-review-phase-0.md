@@ -1,6 +1,6 @@
 # T96 — Curation review, phase 0: make the tool safe; the 5 entries that fail the gate
 
-Status: DONE — 66ac3e67 (gate + Shuswap data), 41d085d6 (tool safety). The 4 zp failures were a GATE bug:
+Status: DONE — 3e841e31 (gate + Shuswap data), 3760fd5f (tool safety). The 4 zp failures were a GATE bug:
 `exemptions_stay_inside_what_they_lift` compared the string `area:region:6` with the `area_kind` `region` (= the whole
 province; every area is clipped to it, areas.json `_clip_policy`); it now proves containment (an area holds itself, a
 kind its family, the province every area, minus `outside_area*`); real outside-lifts still refused, mutation-pinned on
@@ -10,7 +10,7 @@ kind its family, the province every area, minus `outside_area*`); real outside-l
 Not run here (no atlas in the worktree): the `needs_atlas` tests of `test_curation_review_api.py`/`_writes.py`, and the
 smoke tier as a whole — the merger's full check. SplitEditor's note/grade block is typechecked (tsc clean), not
 screenshotted. The curated digest moved (region-3.json, splits.json `_note`): the next `pipeline build` re-runs its stages.
-REVIEW (e2c6a287, 38ee2589): the containment gate ignored `within_area` (a rule clipped to Region 2 'held' a
+REVIEW (f0228e09, 15723b83): the containment gate ignored `within_area` (a rule clipped to Region 2 'held' a
 Region 6 lift; basin 100- in R5 'met' basin 100- in R6) — fixed, test-first; the no-process detector missed
 `from os import system` and `asyncio.create_subprocess_*` — fixed, the detector pinned by its own cases. With the main
 repo's atlas/bundle/regs linked in read-only, `test_curation_review_api.py`, `_writes.py`, `_fingerprint.py`,

@@ -102,7 +102,7 @@ use that as the sole source of future work."
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | IN PROGRESS | b9a832ca, ad77fda5, f4552285, 669fd065, 7b64c558, 020f4ca8 (binding diff) | merge lanes wf_3976eddc-bba + wf_e4e2b70f-f21; swap full_twin; `deliver all`; panels test; re-cut fixtures; strict + smoke |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | OPEN | — | all (T53 merged: unblocked) |
-| T58 | back follow-ups | OPEN | (search-back merged cc4fcee1, f74b50a4) | split lake stacked twice; parts-sheet rows; stale slow map tap; ‹ label names where back goes |
+| T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | OPEN (app part done) | 87ba267c, 7e3cd448 | pipeline `continuation.py` rule; Fraser `water_exit`; deliver |
 | T60 | consistency auditors (N16, Fable) | OPEN | — | all |
 | T61 | cleanup wave 2: old pathways/duplicates | OPEN | — | all (check F07 a6aa4d86 before redoing) |
@@ -113,9 +113,9 @@ use that as the sole source of future work."
 | T66 | curation review tool | PARTIAL | a3f66b7c (plan) | owner reads curation-review/PLAN.md; build → T96, T97 |
 | T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | OPEN | — | Forecasts line; roster `--stations`; R2 upload step |
-| T69 | search on desktop: keyboard leftovers | OPEN | — | focused-but-closed; tab order; keyboard-walk test |
+| T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | OPEN | — | all |
-| T71 | one Map entry: drop the regs header's Map button | OPEN | — | all |
+| T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | OPEN | — | all |
 | T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
@@ -128,7 +128,7 @@ use that as the sole source of future work."
 | T81 | settle the pending small owner questions | OPEN | — | all |
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | OPEN | — | all |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | OPEN | — | all |
-| T84 | ticket-ledger guard | OPEN | — | all |
+| T84 | ticket-ledger guard | DONE | caf5ef52 | — |
 | T85 | native install size: z13 overzoom + landuse filter (D32) | OPEN | — | all (heavy) |
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
@@ -140,7 +140,7 @@ use that as the sole source of future work."
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
 | T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
-| T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | OPEN | — | all |
+| T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
 | T97 | curation review phases 1–5 (marks, one vintage, review screen, queue, gate) | BLOCKED (owner) | — | all; owner approves PLAN.md |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | OPEN | — | all |

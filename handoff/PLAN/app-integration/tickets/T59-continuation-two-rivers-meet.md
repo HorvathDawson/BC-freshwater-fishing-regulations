@@ -2,7 +2,7 @@
 
 Status: OPEN. Owner 2026-10-22: "think of things like this as one system; bella coola atnarko is another example."
 
-- The app already treats a `water_continue` row as one system (cross replaces the back step, 077677d9). Atnarko →
+- The app already treats a `water_continue` row as one system (cross replaces the back step, 87ba267c). Atnarko →
   Bella Coola has no such row: the Bella Coola starts where the Atnarko and Talchako meet, and `continuation.py`
   refuses a two-rivers-meet point (the Somass/Thompson rule).
 - Fix in the pipeline: where two rivers meet, pick the one a synopsis entry names together with the receiving river

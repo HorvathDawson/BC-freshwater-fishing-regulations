@@ -3,14 +3,14 @@
 Status: IN PROGRESS (2026-10-22) — reach swapped (020f4ca8); deliver running (scratchpad t56.sh). Process ticket: one data rebuild ships the pipeline fixes merged today.
 
 ## What ships
-- Twin Lakes 2-8 and 18 more multi-polygon lakes bind every polygon (matcher ae5554fc, catalogue ad77fda, Main Lake →
+- Twin Lakes 2-8 and 18 more multi-polygon lakes bind every polygon (matcher b9a832ca, catalogue ad77fda, Main Lake →
   Mine Lake f455228). Reach rerun into data/generated/reaches/full_twin + binding diff
   (handoff/PLAN/audit/binding-diff-twin.json).
-- Stream-item polygons get their water's flow panel (5f9af9a7..3462a565). The panel walk through polygons is HELD
+- Stream-item polygons get their water's flow panel (669fd065..ac8a0e1c). The panel walk through polygons is HELD
   (T101, owner Q44) and does not ship in this rebuild.
 - "See X" group entries as pointers (search "In the regulations" group, 45 pointers / 51 rows); member lakes under
   their own book names (77 water rows renamed — diff the "applies" lines); identical boat rule from two rows reads once
-  (merged 3b35067d 91a73cb4 503861a4).
+  (merged db08fe06 31619b6a edfd32f5).
 
 ## Steps (one heavy job at a time, scripts/heavy.sh)
 1. Review the binding diff: only lake sections of the 19 stamped entries change; nothing on the Fraser, Stave,
