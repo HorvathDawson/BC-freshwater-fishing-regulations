@@ -22,6 +22,7 @@ from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, Reason, RuleBinding, iter_entries,
 )
 from pipeline.atlas.reach import extent as _resolve
+from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.flowing import absorbed_refs
 from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
@@ -287,13 +288,6 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                        tidal=tidal_of, outside=outside)
 
 
-def _area_kind_sections(registry, kind: str) -> frozenset[str]:
-    """Every section of every `area:<kind>:*` item (`Extent.outside_area_kind`)."""
-    prefix = f"area:{kind}:"
-    return frozenset(s for k, it in registry.items() if str(k).startswith(prefix)
-                     for s in it.section_ids)
-
-
 def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry, graph=None):
     """THE BOOK-KNOWN STEELHEAD WATERS (`Extent` op `steelhead_waters`, `reach.steelhead`) — inside
     the extent's own area when it names one (`area_id`, less `outside_area`: a zone's twin binds its
@@ -323,17 +317,17 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
         pool = set(known)
         for key, keep in (("area_id", True), ("outside_area", False)):
             if ex.get(key):
-                area = registry.get(ex[key]) if hasattr(registry, "get") else registry[ex[key]]
-                if area is None:
+                if ex[key] not in registry:
                     raise SystemExit(f"{eid}::{rid}: steelhead_waters {key} {ex[key]} is not in "
                                      f"the registry")
-                secs = set(area.section_ids)
+                # the ONE region membership (T115): a region's home members
+                secs = _resolve.area_sections(registry, graph, ex[key])
                 pool = pool & secs if keep else pool - secs
         if ex.get("feature_types"):
             want = {str(t).lower() for t in ex["feature_types"]}
             pool = {s for s in pool if _resolve._kind_of(graph, s, registry) in want}
-        cut = (_area_kind_sections(registry, ex["outside_area_kind"])
-               if ex.get("outside_area_kind") else frozenset())
+        cut = ((_regions.area_family_sections(registry, ex["outside_area_kind"], graph)
+                or frozenset()) if ex.get("outside_area_kind") else frozenset())
         kept = tuple(sorted(pool - taken - cut)) if missing is None else ()
         diags.append(Diagnostic(eid, rid, "steelhead_waters", {
             "known": len(known), "in_area": len(pool), "siblings": counts,
@@ -420,7 +414,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     if rest is not None:
         return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,
                            outside=outside, shared=shared, regional=regional, owned=owned)
-    region = region_limit(entry, registry, shared) if regional else None
+    region = region_limit(entry, registry, shared, graph=graph) if regional else None
 
     per: list[dict | None] = []
     clipped = False

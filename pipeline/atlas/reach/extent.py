@@ -44,13 +44,12 @@ def area_sections(reg, g, key: str) -> set[str] | None:
     not mint (`area:basin:100-342455-`, the Chilcotin) — every graph node whose FWA code lies in
     that basin (`registry.basins`). None = no such area (the caller fails, naming it)."""
     if key in reg:
-        got = set(reg[key].section_ids)
         if key.startswith(_regions.REGION_PREFIX):
-            # A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN: a lake (or a straddling
-            # stream piece) touching two region polygons is its home region's only
-            # (`registry.regions`, user ruling 2026-09-25 — Mara Lake).
-            got = _regions.in_region(g, key[len(_regions.REGION_PREFIX):], got)
-        return got
+            # A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN: a straddling stream piece is
+            # its home region's only, a lake is in both (`registry.regions`, user ruling 2026-09-25
+            # — Mara Lake). The ONE region membership (T115): `regions.region_sections`.
+            return _regions.region_members(reg, g, key)
+        return set(reg[key].section_ids)
     code = basin_code(key)
     if code is None or g is None or not hasattr(g, "nodes"):
         return None
@@ -997,12 +996,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     # a park is gazetted. An empty family is a failure, never a no-op that leaves the parks in.
     drop_kind = str(ex.get("outside_area_kind") or "")
     if drop_kind:
-        prefix = f"area:{drop_kind}:"
-        members = [i for k, i in reg.items() if k.startswith(prefix)]
-        if not members:
+        family = _regions.area_family_sections(reg, drop_kind, g)
+        if family is None:
             _fail("outside_area_kind_matches_nothing", drop_kind)
             return None
-        drop_sections |= {s for i in members for s in i.section_ids}
+        drop_sections |= family
     # `outside_items` SUBTRACTS WATERS by registry id, at the same point. A `within(area)` holds
     # every lake the polygon merely reaches into (lakes are never cut), so an area row needs a way
     # to take such a lake back out — and a water it names but does not have is a failure, never a
@@ -1068,12 +1066,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             # The union, not each in turn: the rule is one rule and its sections are one
             # set. An empty family is a failure and not an empty closure — it means the
             # kind is misspelled or the atlas never built those polygons.
-            prefix = f"area:{kind_of_area}:"
-            members = [i for k, i in reg.items() if k.startswith(prefix)]
-            if not members:
+            family = _regions.area_family_sections(reg, kind_of_area, g)
+            if family is None:
                 _fail("area_kind_matches_nothing", kind_of_area)
                 return None
-            in_area = {s for i in members for s in i.section_ids}
+            in_area = set(family)
         else:
             key = aid if aid.startswith("area:") else f"area:{aid}"
             in_area = area_sections(reg, g, key)

@@ -15,6 +15,7 @@ from pipeline.atlas.reach import outside as O
 from pipeline.atlas.reach.build import build_reach, entry_scope
 from pipeline.atlas.reach.licensing import NO_DESIGNATION, LicensingPlacement, on_designations
 from pipeline.atlas.reach.models import Outcome, Reason
+from pipeline.atlas.registry import regions
 from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.registry import RegistryItem
 from pipeline.regs.parsing.catalogue import Designation
@@ -97,7 +98,7 @@ def test_region_7_is_7a_and_7b():
     reg = {"area:region:7a": _item("area:region:7a", ["a"]),
            "area:region:7b": _item("area:region:7b", ["b"]),
            "area:region:8": _item("area:region:8", ["c"])}
-    assert O.region_sections(("7",), reg) == {"a", "b"}
+    assert regions.region_sections(("7",), reg, None) == {"a", "b"}
 
 
 def test_a_regional_row_binds_only_its_own_region():
@@ -285,8 +286,8 @@ def test_a_region_7_rows_mus_name_its_zone(eid, want):
 
 def test_the_zone_a_row_binds_only_zone_a():
     reg = _zoned()
-    assert O.region_sections(O.entry_regions("r7:w@7-30", reg), reg) == {"a"}
-    assert O.region_limit({"entry_id": "r7:w@7-31"}, reg) == {"b"}
+    assert regions.region_sections(O.entry_regions("r7:w@7-30", reg), reg, None) == {"a"}
+    assert O.region_limit({"entry_id": "r7:w@7-31"}, reg, graph=None) == {"b"}
 
 
 def test_mutation_zones_from_units(monkeypatch):

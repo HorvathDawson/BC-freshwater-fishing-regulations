@@ -69,12 +69,16 @@ def test_only_region_areas_are_held_to_a_home():
     assert extent.area_sections(reg, g, "area:park:x") == {"lake:1"}
 
 
-def test_a_regional_row_is_still_limited_by_the_polygons_it_touches():
-    """Region 8's Mara Lake row ("No powered boats south of the CPR bridge") binds the lake: the
-    row limit reads the registry's touching membership, never the home map."""
-    from pipeline.atlas.reach.outside import region_sections
-    reg = _reg(**{"3": ["lake:1"], "8": ["lake:1"]})
-    assert "lake:1" in region_sections(("8",), reg)
+def test_a_regional_row_is_limited_by_the_one_region_membership():
+    """Region 8's Mara Lake row ("No powered boats south of the CPR bridge") still binds the lake —
+    a LAKE is in every region it touches — while a stream piece homed in Region 3 is not Region 8's
+    (T115: the row limit reads the same home members as the zone rules)."""
+    reg = _reg(**{"3": ["lake:1", "s:9"], "8": ["lake:1", "s:9", "b:0"]})
+    g = SimpleNamespace(nodes={})
+    assert regions.region_sections(("8",), reg, g) == {"lake:1", "s:9", "b:0"}   # no home map
+    regions.attach(g, {"lake:1": "3", "s:9": "3"}, both={"lake:1"})
+    assert regions.region_sections(("8",), reg, g) == {"lake:1", "b:0"}
+    assert regions.region_sections(("3",), reg, g) == {"lake:1", "s:9"}
 
 
 # --------------------------------------------------------------------------- the bundle
@@ -213,12 +217,13 @@ def test_a_whole_water_row_reaches_every_region_its_water_lies_in():
            "F": SimpleNamespace(section_ids=("f:1", "f:2"))}
     west = {"entry_id": "r5:west_road@5-13", "matched": ["W"]}
     fraser = {"entry_id": "r5:fraser@5-2", "matched": ["F"]}
-    assert region_limit(west, reg, frozenset({"F"})) is None
-    assert region_limit(fraser, reg, frozenset({"F"})) == {"w:1", "f:1"}
-    assert region_limit(west, reg) == {"w:1", "f:1"}           # not computed: never widened
+    assert region_limit(west, reg, frozenset({"F"}), graph=None) is None
+    assert region_limit(fraser, reg, frozenset({"F"}), graph=None) == {"w:1", "f:1"}
+    assert region_limit(west, reg, graph=None) == {"w:1", "f:1"}   # not computed: never widened
     O.WATER_ROW_WALKS_CROSS_REGIONS = False
     try:
-        assert region_limit(west, reg, frozenset({"F"})) == {"w:1", "w:2", "f:1", "f:2"}
+        assert region_limit(west, reg, frozenset({"F"}), graph=None) == \
+            {"w:1", "w:2", "f:1", "f:2"}
     finally:
         O.WATER_ROW_WALKS_CROSS_REGIONS = True
 

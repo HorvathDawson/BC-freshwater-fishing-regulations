@@ -19,10 +19,12 @@ ONLY A STREAM PIECE IS HELD TO ITS HOME (user ruling 2026-09-25, second half). A
 region line keeps BOTH regions' zone rules and the most strict wins, per fish (`in_region`;
 `deliver.bundle.read.effective_rules` step 6). The home of a lake is still measured and reported.
 
-WHAT IT DOES NOT TOUCH. A regional ROW is still limited to the regions its id names by the region
-polygons it touches (`reach.outside.region_sections`): the book prints Mara Lake in Region 8's table
-too ("No powered boats south of the CPR bridge"), and that row still binds the lake. Nor does it
-move the province's border: a section in any region polygon is inside B.C., whichever is home.
+ONE MEMBERSHIP FOR EVERY READER (T115, 2026-10-22). A per-region ROW is limited to the regions its id
+names by the same home members (`region_sections`, below; `reach.outside.region_limit`): a Fraser
+piece homed in Region 3 is not Region 5's row's, and a lake stays in both — the book prints Mara Lake
+in Region 8's table too ("No powered boats south of the CPR bridge"), and that row still binds the
+lake. Nor does it move the province's border: a section in any region polygon is inside B.C.,
+whichever is home.
 
 Computed ONCE, BY THE ATLAS BUILD — from region polygons (`area_catalog.gpkg`), waterbody
 outlines (`waterbody_polys.pkl`) and section lines (`geometries.pkl`), about ten seconds — and
@@ -182,3 +184,133 @@ def in_region(graph, region: str, sections: set[str]) -> set[str]:
         return sections
     both = getattr(graph, _ATTR_BOTH, frozenset())
     return {s for s in sections if s in both or home.get(s, region) == region}
+
+
+# ---------------------------------------------------------------------------------------------------
+# ONE REGION MEMBERSHIP (T115, owner 2026-10-22: one decision, one function). "Which sections are in
+# region R?" is answered HERE and nowhere else: a region item's members through `in_region` — a stream
+# piece straddling a region line is its HOME region's only, a lake is in every region it touches. The
+# zone rules (`extent.area_sections`), a per-region row's region (`reach.outside.region_limit`), the
+# steelhead twin's `area_id`, an `area_kind: region` family and the province's inside
+# (`reach.outside.outside_bc`) all ask these functions. Before, `outside.region_sections` read the raw
+# polygon membership, so `r5:fraser_river@5-2`'s rules bound a Fraser piece (356364114:418405) whose
+# home is Region 3 — 12 rule–section pairs of another region's rules. `test_one_region_membership.py`
+# pins that no other module reads a region item's sections.
+# ---------------------------------------------------------------------------------------------------
+
+#: Caches keyed by the registry's (and graph's) id — each value HOLDS the objects, so a recycled id
+#: never serves another registry's answer.
+_ITEMS: dict = {}
+_SECTIONS: dict = {}
+_MEMBER: dict = {}
+
+#: POLICY (T115): a region's sections are its HOME members (`in_region`) for every reader. False =
+#: the raw polygon membership for every reader (the mutation pin).
+ONE_REGION_MEMBERSHIP = True
+
+
+def region_items(registry) -> list[str]:
+    """Every `area:region:*` item id of the registry, sorted."""
+    hit = _ITEMS.get(id(registry))
+    if hit is not None and hit[0] is registry:
+        return hit[1]
+    got = sorted(str(k) for k in registry.keys() if str(k).startswith(REGION_PREFIX))
+    if len(_ITEMS) > 16:
+        _ITEMS.clear()
+    _ITEMS[id(registry)] = (registry, got)
+    return got
+
+
+def zones_of(registry, region: str) -> dict[str, frozenset[str]]:
+    """{"7a": MUs, "7b": MUs} for a region the registry holds as lettered zones; {} otherwise."""
+    out: dict[str, frozenset[str]] = {}
+    for k in region_items(registry):
+        z = k[len(REGION_PREFIX):]
+        if z.startswith(region) and z[len(region):].isalpha() and z != region:
+            units = frozenset(getattr(registry[k], "mus", ()) or ())
+            if units:
+                out[z] = units
+    return out
+
+
+def region_members(registry, graph, key: str) -> set[str]:
+    """ONE region item's sections (`area:region:5`, `area:region:7a`): its home members
+    (`in_region`) unless the policy pin is off. What `extent.area_sections` answers for the key."""
+    got = set(registry[key].section_ids)
+    if not ONE_REGION_MEMBERSHIP:
+        return got
+    return in_region(graph, key[len(REGION_PREFIX):], got)
+
+
+def _cache_key(registry, graph, *rest):
+    """A cache key covering everything the answer reads: the registry, the graph AND the home map
+    attached to it (`attach` may be called again on the same graph)."""
+    home = getattr(graph, _ATTR, None) if graph is not None else None
+    both = getattr(graph, _ATTR_BOTH, None) if graph is not None else None
+    return (id(registry), id(graph), id(home), id(both), ONE_REGION_MEMBERSHIP, *rest), \
+        (registry, graph, home, both)
+
+
+def _cached(cache: dict, key, held):
+    hit = cache.get(key)
+    if hit is not None and all(a is b for a, b in zip(hit[0], held)):
+        return hit[1]
+    return None
+
+
+def _store(cache: dict, key, held, value, cap: int):
+    if len(cache) > cap:
+        cache.clear()
+    cache[key] = (held, value)
+    return value
+
+
+def region_sections(regions, registry, graph) -> frozenset[str] | None:
+    """THE SECTIONS OF THE NAMED REGIONS — each region item's home members (`in_region`), unioned. A
+    region `7` is 7A and 7B together; a region the registry does not have contributes nothing.
+    `None` when the registry has no regions at all (a fixture: nothing can be said). `graph=None`
+    (or a graph with no home map attached) is plain membership — a unit-test fixture's."""
+    items = region_items(registry)
+    if not items:
+        return None
+    regions = tuple(regions)
+    key, held = _cache_key(registry, graph, regions)
+    hit = _cached(_SECTIONS, key, held)
+    if hit is not None:
+        return hit
+    want = [k for k in items for r in regions
+            if k == f"{REGION_PREFIX}{r}" or (k.startswith(f"{REGION_PREFIX}{r}")
+                                              and k[len(REGION_PREFIX) + len(r):].isalpha())]
+    s: set[str] = set()
+    for k in want:
+        s |= region_members(registry, graph, k)
+    return _store(_SECTIONS, key, held, frozenset(s), 64)
+
+
+def area_family_sections(registry, kind: str, graph=None) -> frozenset[str] | None:
+    """Every section of every `area:<kind>:*` item (`Extent.area_kind` / `outside_area_kind`, the
+    steelhead twin's `outside_area_kind`). The REGION family is its members by home
+    (`region_sections` of every region). `None` when the family has no item."""
+    if kind == "region":
+        items = region_items(registry)
+        return region_sections(tuple(k[len(REGION_PREFIX):] for k in items), registry, graph) \
+            if items else None
+    prefix = f"area:{kind}:"
+    members = [it for k, it in registry.items() if str(k).startswith(prefix)]
+    if not members:
+        return None
+    return frozenset(s for it in members for s in it.section_ids)
+
+
+def section_regions(registry, graph=None) -> dict[str, frozenset[str]]:
+    """`{section: regions}` — the regions (zones, where the registry holds them) each section is a
+    member of, by home (`region_sections`)."""
+    key, held = _cache_key(registry, graph)
+    hit = _cached(_MEMBER, key, held)
+    if hit is not None:
+        return hit
+    got: dict[str, set[str]] = {}
+    for k in region_items(registry):
+        for sec in region_members(registry, graph, k):
+            got.setdefault(sec, set()).add(k[len(REGION_PREFIX):])
+    return _store(_MEMBER, key, held, {sec: frozenset(r) for sec, r in got.items()}, 16)

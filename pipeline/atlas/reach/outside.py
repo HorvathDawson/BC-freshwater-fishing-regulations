@@ -34,9 +34,8 @@ from __future__ import annotations
 
 import re
 
+from pipeline.atlas.registry import regions as _regions
 from pipeline.common import entry_id as EID
-
-REGION_PREFIX = "area:region:"
 
 #: POLICY (user ruling 2026-09-25, 9144c975): a WATER row (its water printed by no other region)
 #: is not held to any region — neither its reach nor its tributary walk (`region_limit`).
@@ -45,24 +44,6 @@ WATER_ROW_WALKS_CROSS_REGIONS = True
 #: POLICY (user ruling 2026-09-24): a regional row's MUs name its ZONE where the book prints a
 #: region as zones (Region 7: 7A and 7B) — `entry_regions`.
 ZONES_FROM_UNITS = True
-
-
-#: Caches keyed by the registry object's id — each value HOLDS the registry, so the id cannot be
-#: reused by another object while its entry lives (a freed test fixture's id handed to the next
-#: fixture would otherwise answer with the first one's regions).
-_ITEMS_CACHE: dict = {}
-_REGION_CACHE: dict = {}
-
-
-def _region_items(registry) -> list[str]:
-    hit = _ITEMS_CACHE.get(id(registry))
-    if hit is not None and hit[0] is registry:
-        return hit[1]
-    got = sorted(k for k in registry.keys() if str(k).startswith(REGION_PREFIX))
-    if len(_ITEMS_CACHE) > 16:
-        _ITEMS_CACHE.clear()
-    _ITEMS_CACHE[id(registry)] = (registry, got)
-    return got
 
 
 def outside_bc(registry, graph) -> frozenset[str]:
@@ -76,11 +57,8 @@ def outside_bc(registry, graph) -> frozenset[str]:
     if cached is not None and cached[0] is registry:
         return cached[1]
     out = {nid for nid, n in graph.nodes.items() if getattr(n, "out_of_bc", False)}
-    regions = _region_items(registry)
-    if regions:
-        inside: set[str] = set()
-        for k in regions:
-            inside.update(registry[k].section_ids)
+    inside = _regions.area_family_sections(registry, "region", graph)
+    if inside is not None:
         out |= {nid for nid in graph.nodes if nid not in inside}
     got = frozenset(out)
     try:
@@ -101,41 +79,6 @@ def entry_regions(entry_id: str, registry=None) -> tuple[str, ...] | None:
     "7", the Zone A row's tributary walk bound 7,707 Zone B sections. A row whose MUs do not all
     resolve (or that names none) keeps the whole region, as before — never narrowed on a guess."""
     return EID.parse(entry_id or "", registry).regions
-
-
-def _zones_of(registry, region: str) -> dict[str, frozenset[str]]:
-    """{"7a": MUs, "7b": MUs} for a region the registry holds as lettered zones; {} otherwise."""
-    out: dict[str, frozenset[str]] = {}
-    for k in _region_items(registry):
-        z = k[len(REGION_PREFIX):]
-        if z.startswith(region) and z[len(region):].isalpha() and z != region:
-            units = frozenset(getattr(registry[k], "mus", ()) or ())
-            if units:
-                out[z] = units
-    return out
-
-
-def region_sections(regions: tuple[str, ...], registry) -> frozenset[str] | None:
-    """The union of the named regions' sections. A region `7` is 7A and 7B together; a region the
-    registry does not have contributes nothing. `None` when the registry has no regions at all."""
-    items = _region_items(registry)
-    if not items:
-        return None
-    key = (id(registry), regions)
-    hit = _REGION_CACHE.get(key)
-    got = hit[1] if hit is not None and hit[0] is registry else None
-    if got is None:
-        want = [k for k in items for r in regions
-                if k == f"{REGION_PREFIX}{r}" or (k.startswith(f"{REGION_PREFIX}{r}")
-                                                  and k[len(REGION_PREFIX) + len(r):].isalpha())]
-        s: set[str] = set()
-        for k in want:
-            s.update(registry[k].section_ids)
-        got = frozenset(s)
-        if len(_REGION_CACHE) > 64:
-            _REGION_CACHE.clear()
-        _REGION_CACHE[key] = (registry, got)
-    return got
 
 
 def shared_waters(entries) -> frozenset[str]:
@@ -189,28 +132,11 @@ def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
     return {i: tuple(sorted(es)) for i, es in sorted(out.items())}
 
 
-_WATER_CACHE: dict = {}
-
-
-def _membership(registry) -> dict[str, frozenset[str]]:
-    """`{section: regions}` for this registry, built once (cached like `_region_items`)."""
-    hit = _WATER_CACHE.get(("m", id(registry)))
-    if hit is not None and hit[0] is registry:
-        return hit[1]
-    got: dict[str, set[str]] = {}
-    for k in _region_items(registry):
-        for sec in registry[k].section_ids:
-            got.setdefault(sec, set()).add(k[len(REGION_PREFIX):])
-    frozen = {sec: frozenset(r) for sec, r in got.items()}
-    if len(_WATER_CACHE) > 16:
-        _WATER_CACHE.clear()
-    _WATER_CACHE[("m", id(registry))] = (registry, frozen)
-    return frozen
-
-
-def water_regions(entry: dict, registry) -> tuple[str, ...]:
-    """The regions (zones, where the registry holds them) the row's own waters touch."""
-    member = _membership(registry)
+def water_regions(entry: dict, registry, graph=None) -> tuple[str, ...]:
+    """The regions (zones, where the registry holds them) the row's own waters lie in — by the one
+    region membership (`registry.regions.section_regions`: a stream piece in its home region, a
+    lake in every region it touches, given a `graph` carrying the home map)."""
+    member = _regions.section_regions(registry, graph)
     out: set[str] = set()
     for i in entry.get("matched") or ():
         if i in registry:
@@ -223,7 +149,7 @@ def water_regions(entry: dict, registry) -> tuple[str, ...]:
 _ALSO_IN = re.compile(r"also in M\.?\s*U\.?\s*(\d+[A-Za-z]?-\d+)", re.I)
 
 
-def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
+def region_limit(entry: dict, registry, shared=None, *, graph) -> frozenset[str] | None:
     """The sections a regional row may bind, or `None` when it is not limited.
 
     A WATER'S OWN ROW APPLIES ALONG ITS WHOLE LENGTH, IN EVERY REGION (user ruling 2026-09-25) —
@@ -241,7 +167,11 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     Lake "in Zone B").
 
     `shared=None` (a caller that did not compute it) holds every row to its id's regions — the
-    narrower answer, never a widening."""
+    narrower answer, never a widening.
+
+    THE REGION'S SECTIONS ARE ITS HOME MEMBERS (T115, `registry.regions.region_sections`): a stream
+    piece straddling the line is held to its home region, as the zone rules hold it; `graph` carries
+    the home map (`None`: a fixture's plain membership)."""
     regions = entry_regions(str(entry.get("entry_id") or ""), registry)
     if not regions:
         return None
@@ -254,8 +184,8 @@ def region_limit(entry: dict, registry, shared=None) -> frozenset[str] | None:
     if shared is not None and not (set(entry.get("matched") or ()) & set(shared)):
         if WATER_ROW_WALKS_CROSS_REGIONS:
             return None
-        regions = tuple(sorted(set(regions) | set(water_regions(entry, registry))))
-    return region_sections(regions, registry)
+        regions = tuple(sorted(set(regions) | set(water_regions(entry, registry, graph))))
+    return _regions.region_sections(regions, registry, graph)
 
 
 def tidal_sections(entries, registry) -> frozenset[str]:

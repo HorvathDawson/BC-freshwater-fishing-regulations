@@ -390,6 +390,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                 "complement_withholds_straddlers": True}
     from pipeline.atlas.graph import tributaries
     from pipeline.atlas.reach import extent, licensing, outside
+    from pipeline.atlas.registry import regions
     policy.update({
         "confluence_cut_excludes_the_joining_water":
             tributaries.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER,
@@ -406,6 +407,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "mouth_seeds_only_at_the_cut": tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT,
         "the_walk_never_enters_a_parent": tributaries.THE_WALK_NEVER_ENTERS_A_PARENT,
         "every_cut_reaches_the_walk": tributaries.EVERY_CUT_REACHES_THE_WALK,
+        "one_region_membership": regions.ONE_REGION_MEMBERSHIP,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -418,8 +420,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "ambiguous_cut_nearest_the_other_end": True,
                      "mouth_seeds_only_at_the_cut": True,
                      "the_walk_never_enters_a_parent": True,
-                     "every_cut_reaches_the_walk": True})
-    assert cache.POLICY_VERSION == "25", "update this pin with the version it was taken at"
+                     "every_cut_reaches_the_walk": True,
+                     "one_region_membership": True})
+    assert cache.POLICY_VERSION == "26", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

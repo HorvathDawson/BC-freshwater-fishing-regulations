@@ -101,7 +101,11 @@ from typing import Callable
 #:     lower cut as `resolve_extent` used it, not the first extent's window
 #:     (`tributaries.EVERY_CUT_REACHES_THE_WALK`), and the confluence test reads the same cuts (the
 #:     candidate an ambiguous cut's reach used, never every candidate).
-POLICY_VERSION = "25"
+#: 26: (T115 owner 2026-10-22) ONE REGION MEMBERSHIP: a per-region row's region, the steelhead twin's
+#:     `area_id` and the `area_kind: region` family are a region's HOME members
+#:     (`registry.regions.region_sections`, `ONE_REGION_MEMBERSHIP`) as the zone rules' always were —
+#:     a stream piece straddling a region line is no longer the other region's row's.
+POLICY_VERSION = "26"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

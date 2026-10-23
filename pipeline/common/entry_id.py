@@ -141,9 +141,10 @@ def _water_regions(region: str, mus: tuple[str, ...], registry) -> tuple[str, ..
             named.append(mu)
     if registry is not None:
         from pipeline.atlas.reach import outside
+        from pipeline.atlas.registry import regions
         if outside.ZONES_FROM_UNITS:
             for r in sorted(got):
-                zones = outside._zones_of(registry, r)
+                zones = regions.zones_of(registry, r)
                 mine = [mu for mu in named if mu.split("-", 1)[0] == r]
                 if not zones or not mine:
                     continue
