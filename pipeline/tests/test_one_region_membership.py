@@ -155,3 +155,26 @@ def test_the_scan_covers_the_readers_it_unified():
     names = {p.name for p in SCANNED}
     assert {"outside.py", "extent.py", "build.py", "entry_id.py"} <= names
     assert ROOT / "deliver" / "bundle" / "build.py" in SCANNED
+
+
+# ------------------------------------------------------------- the steelhead twin (review)
+
+def _twin(extent):
+    entry = {"entry_id": "z5:zone@5", "matched": []}
+    rule = {"rule_id": "r6b", "extents": [{"op": "steelhead_waters", "siblings": [], **extent}]}
+    return entry, rule
+
+
+def test_the_steelhead_twin_s_region_is_its_home_members():
+    """Adversarial review (T115): a zone twin's `area_id: area:region:5` binds the book-known waters
+    homed in Region 5 (and the straddling lake, in both) — never the Fraser piece homed in Region 3;
+    `outside_area` subtracts the same membership. MUTATION (the twin reading the raw region item,
+    `set(registry[key].section_ids)`): f35:0 comes back."""
+    g, reg = _world()
+    known = {"f3:0", "f35:0", "f5:0", "lake:L"}
+    got, _, _ = B._bind_steelhead_waters(
+        [_twin({"area_id": "area:region:5"})], [], known, [], [], reg, g)
+    assert [(b.rule_id, set(b.sections)) for b in got] == [("r6b", {"f5:0", "lake:L"})]
+    got, _, _ = B._bind_steelhead_waters(
+        [_twin({"outside_area": "area:region:5"})], [], known, [], [], reg, g)
+    assert [(b.rule_id, set(b.sections)) for b in got] == [("r6b", {"f3:0", "f35:0"})]
