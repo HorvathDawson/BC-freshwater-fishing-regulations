@@ -471,3 +471,38 @@ def test_every_curated_entry_passes_the_ingest_gate():
         if errors:
             refused[e["entry_id"]] = errors
     assert (len(entries), refused) == (1525, {})
+
+
+@pytest.mark.parametrize("lift,target,mine,theirs", [
+    # a province-wide rule CLIPPED to Region 2 (`within_area`) does not hold a lift in Region 6
+    ([{"op": "within", "area_id": "area:region:6"}],
+     [{"op": "within", "area_kind": "region", "within_area": "area:region:2"}],
+     ["area:region:6"], ["region"]),
+    # the Fraser basin in Region 5 and the Fraser basin in Region 6 are different ground
+    ([{"op": "within", "area_id": "area:basin:100-", "within_area": "area:region:6"}],
+     [{"op": "within", "area_id": "area:basin:100-", "within_area": "area:region:5"}],
+     ["area:basin:100-"], ["area:basin:100-"]),
+])
+def test_a_rule_clipped_by_within_area_holds_only_what_lies_in_the_clip(lift, target, mine,
+                                                                        theirs):
+    """`within_area` narrows an extent to its intersection with another area (z6/z5/z7b corpus
+    shape). Containment that ignores it proves ground the two rules do not share (T96 review)."""
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    assert exemptions_stay_inside_what_they_lift(_lift_entry(lift, target)) == [
+        _OUTSIDE.format(mine=mine, theirs=theirs)]
+
+
+@pytest.mark.parametrize("lift,target", [
+    # a lift clipped to Region 6 sits inside the province, and inside the same clip
+    ([{"op": "within", "area_id": "area:basin:100-", "within_area": "area:region:6"}],
+     [{"op": "within", "area_kind": "region"}]),
+    ([{"op": "within", "area_id": "area:basin:100-", "within_area": "area:region:6"}],
+     [{"op": "within", "area_id": "area:basin:100-"}]),
+    ([{"op": "within", "area_id": "area:basin:400-", "within_area": "area:region:6"}],
+     [{"op": "within", "area_kind": "region", "within_area": "area:region:6"}]),
+    ([{"op": "within", "area_id": "area:region:6"}],
+     [{"op": "within", "area_kind": "region", "within_area": "area:region:6"}]),
+])
+def test_a_lift_inside_the_clip_still_passes(lift, target):
+    from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
+    assert exemptions_stay_inside_what_they_lift(_lift_entry(lift, target)) == []

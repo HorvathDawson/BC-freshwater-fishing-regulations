@@ -245,7 +245,9 @@ def _holds(outer: dict, inner: dict) -> bool:
     """Does `within` extent `outer` hold every place `inner` names? An area holds itself; an
     `area_kind` holds every member of its family; the province kind holds every area. What the
     outer extent subtracts (`outside_area`, `outside_areas`, `outside_area_kind`) is not held — a
-    lift in Region 6 is outside "the province minus Region 6"."""
+    lift in Region 6 is outside "the province minus Region 6" — and an outer CLIPPED by
+    `within_area` holds only what is shown to lie in that clip (the area itself, or an extent
+    clipped the same way)."""
     o = str(outer.get("area_id") or "")
     k = str(outer.get("area_kind") or "")
     i = str(inner.get("area_id") or inner.get("area_kind") or "")
@@ -256,6 +258,9 @@ def _holds(outer: dict, inner: dict) -> bool:
     if i in cut or (outer.get("outside_area_kind")
                     and _area_family(i) == str(outer.get("outside_area_kind"))):
         return False
+    clip = str(outer.get("within_area") or "")
+    if clip and clip not in (str(inner.get("area_id") or ""), str(inner.get("within_area") or "")):
+        return False                             # outer is clipped to an area inner is not shown in
     if o:
         return o == i
     if inner.get("area_kind") and not inner.get("area_id"):
@@ -268,6 +273,7 @@ def _meets(a: dict, b: dict) -> bool:
     Overlap between two DIFFERENT areas (a park straddling a region line) is not provable from
     ids, and is refused as before — the lift then names its ground in the target's terms."""
     if (a.get("area_id") or a.get("area_kind")) == (b.get("area_id") or b.get("area_kind")) \
+            and a.get("within_area") == b.get("within_area") \
             and not any(x.get(f) for x in (a, b)
                         for f in ("outside_area", "outside_areas", "outside_area_kind")):
         return True
