@@ -853,7 +853,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # one-day spike between the sampled horizons is seen (`pipeline.gauges.feed.change`). Beside `ahead`, not in
             # it: `ahead` is keyed by DAY and read by `String(day)`; this is no day. Flow only — `discharge` is the coded
             # ratio the donor panels combine; the rest is what the words need. Absent when no fresh run can say.
-            **({"change": changed[1]} if changed[1] else {}),
+            # T144: the models behind it are `change.change_source`'s (CLEVER + COFFEE, else ELF marked low-water).
+            **({"change": changed[2]} if changed[2] else {}),
         }
         # This year's daily record: whatever the file already held, plus every day the
         # 2-hour window can see, plus the archive where the record had a hole. The archive
@@ -896,6 +897,10 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # the trough, each dated, for the panel to word per model.
             "forecasts": {m: ({**run, "change": changed[0][m]} if m in changed[0] else run)
                           for m, run in sorted((forecast.get(r["station"]) or {}).items())},
+            # THE STATION'S CHANGE (T144, `change.change_source`): the days the map's colour and the panel's first line
+            # are made of — CLEVER and COFFEE combined where both reach a day, else the one that does, else ELF marked
+            # as a low-water model. Ratios to today (base 1). Absent when no fresh run can say.
+            **({"change": changed[1]} if changed[1] else {}),
         }, separators=(",", ":")), encoding="utf-8")
         stamps = [t for t in [newest] + [c.get("issuedAt") for c in changed[0].values()] if t]
         newest = max(stamps) if stamps else newest

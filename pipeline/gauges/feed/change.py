@@ -56,10 +56,32 @@ SPIKE_BACK = 0.5
 # CLEVER once or twice a day. The live feed still carried an ELF run issued 09-24 and a COFFEE run from 10-15.
 STALE_HOURS = 36.0
 
-# Which run answers for the station on the map when more than one speaks: CLEVER is the owner's named model and the
-# calibrated one (day 0 within 2% of the gauge); COFFEE next (daily, five days, biased high at day 0); ELF last (a
-# thirty-day low-flow model). The panel names EVERY run; this picks only the one colour (owner question Q1 in T52).
-CHANGE_ORDER = ("CLEVER", "COFFEE", "ELF")
+# WHICH MODELS MAKE A STATION'S CHANGE (T144; the research, with sources, is in the ticket). The decision is
+# `change_source`, and nothing else makes it.
+#
+#   FLOOD MODELS — CLEVER and COFFEE. Both are driven by the Meteorological Service's 10-day weather forecast, so both
+#   can see rain or melt coming. CLEVER: a semi-distributed hydrologic model with kinematic-wave channel routing, hourly,
+#   recalibrated over the last 20 days each run and shifted to start AT the observed flow (Luo 2015, CLEVER technical
+#   reference). COFFEE: a daily unit-hydrograph model for 94 coastal, storm-driven watersheds, run when a rain event is
+#   on or forecast; its numbers are INSTANTANEOUS PEAKS (each day's flow times the station's historical
+#   instantaneous-to-daily peak ratio — Luo 2018, COFFEE technical reference §3.3), which is why its day 0 sits a median
+#   1.45x the gauge. Every ratio here is a model against its OWN today, so that factor cancels.
+#   Where both reach a day, that day is their WEIGHTED GEOMETRIC MEAN of ratios (logs averaged — ratios multiply, and the
+#   donor pathway's code is log2). EQUAL WEIGHTS: no head-to-head verification of the two is published. CLEVER's own
+#   (2015, 71 interior freshet stations) put 75% of stations' 10-day relative error at or under 30% but 75% of stations'
+#   r² under 0.5 ("the trend of the streamflow could be very difficult to forecast"); COFFEE's reference reports
+#   "acceptable" on worked examples only. Where both run is mostly the coast in the rain season — COFFEE's own domain,
+#   not the one CLEVER was built for — and on the 2026-10-23 feed their peaks agree in the median (log2 ratio −0.007;
+#   same big-rise call at 82 of 122 stations). A one-line change here if the owner wants CLEVER ahead (owner question).
+#   LOW-WATER MODEL — ELF. An empirical recession extrapolation with NO weather input (Luo 2023, ELF technical reference:
+#   "forecasts of rise … are not recommended … because the model has no meteorological data input"; its skill is lowest
+#   in April–May). It speaks for a station ONLY when no flood model does, and then the change carries `lowWater`, which
+#   the app turns into a caveat. Never beside a flood model: it cannot see the rain the other two are forecasting.
+FLOOD_MODELS = ("CLEVER", "COFFEE")
+FLOOD_WEIGHTS = {"CLEVER": 1.0, "COFFEE": 1.0}
+LOW_WATER_MODEL = "ELF"
+# The order the panel names runs in (generated into core as `CHANGE_POLICY.order`).
+CHANGE_ORDER = FLOOD_MODELS + (LOW_WATER_MODEL,)
 
 # HOW A RATIO RIDES THE DONOR PATHWAY. `estimate` (core/trust.ts) combines percentiles in probit space and nothing else,
 # so a station's change is carried as Φ(log2(ratio) / CHANGE_SCALE): steady is 0.5, twice today 0.69, four times 0.84,
@@ -151,38 +173,18 @@ def _back(days: list[tuple[str, float, float]], after: int, rise: bool, base: fl
     return None
 
 
-def run_change(run: dict, now: datetime, observed: float | None, rank: Rank | None) -> dict | None:
-    """One run's expected change over the window, or None when it cannot say (no series, no base, not fresh).
-
-    `observed` is the gauge's flow now (m3/s); `rank(flow, day)` is that day's percentile for a flow (None: no
-    envelope). Without either the ratios still stand and the percentile moves are absent.
-    """
-    series = run.get("series") or {}
-    if not series or stale(run, now):
-        return None
-    now_local = now.astimezone(CENTRE_ZONE).replace(tzinfo=None)
-    base = base_of(series, now_local)
-    if base is None or base <= 0:
-        return None                 # a run whose today is 0.0 (six COFFEE runs) cannot carry a ratio
-    days = daily_extremes(series, now_local.replace(minute=0, second=0, microsecond=0),
-                          now_local.date() + timedelta(days=CHANGE_DAYS))
-    if not days:
-        return None
+def _measure(days: list[tuple[str, float, float]], base: float, scale: float | None, rank: Rank | None,
+             p0: float | None) -> dict:
+    """THE MEASURE, for a run or a source: the peak and the trough over `days` against `base`, each dated, its
+    percentile for the date where it can be ranked (`v * scale` is the flow on the gauge's scale), spike or step, and the
+    direction against the named thresholds. One copy, asked by `run_change` and `source_change`."""
     ip = max(range(len(days)), key=lambda i: (days[i][2], -i))
     it = min(range(len(days)), key=lambda i: (days[i][1], i))
-    scale = observed / base if observed and observed > 0 else None
-
-    def pct(v: float, day: str) -> float | None:
-        if rank is None or scale is None:
-            return None
-        return rank(v * scale, date.fromisoformat(day))
-
-    p0 = rank(observed, now_local.date()) if rank is not None and observed and observed > 0 else None
 
     def end(i: int, rise: bool) -> dict:
         d, lo, hi = days[i]
         v = hi if rise else lo
-        p = pct(v, d)
+        p = rank(v * scale, date.fromisoformat(d)) if rank is not None and scale is not None else None
         return {"day": d, "ratio": round(v / base, 4), "value": round(v, 4),
                 **({"percentile": round(p, 4)} if p is not None else {}),
                 **({"points": round(p - p0, 4) + 0.0} if p is not None and p0 is not None else {}),
@@ -192,13 +194,84 @@ def run_change(run: dict, now: datetime, observed: float | None, rank: Rank | No
     big_rise = peak["ratio"] >= RISE_RATIO or peak.get("points", 0.0) >= BIG_POINTS
     big_fall = trough["ratio"] <= FALL_RATIO or trough.get("points", 0.0) <= -BIG_POINTS
     direction = ("both" if big_rise and big_fall else "rise" if big_rise else "fall" if big_fall else "steady")
-    return {"model": run.get("model"), "issuedAt": run.get("issuedAt"), "base": round(base, 4),
-            "days": [[d, round(lo, 4), round(hi, 4)] for d, lo, hi in days],
+    return {"base": round(base, 4), "days": [[d, round(lo, 4), round(hi, 4)] for d, lo, hi in days],
             "peak": peak, "trough": trough, "dir": direction}
 
 
+def _today_rank(now: datetime, observed: float | None, rank: Rank | None) -> float | None:
+    """Today's percentile for the gauge's own reading, the zero every `points` is measured from."""
+    if rank is None or not observed or observed <= 0:
+        return None
+    return rank(observed, now.astimezone(CENTRE_ZONE).date())
+
+
+Days = list[tuple[str, float, float]]
+
+
+def run_days(run: dict, now: datetime) -> tuple[float, Days] | None:
+    """`(base, days)` of one run, unrounded — its own value now and each window day's lowest and highest step — or None
+    when it cannot say (no series, not fresh, no base, a today of 0.0, no day in the window)."""
+    series = run.get("series") or {}
+    if not series or stale(run, now):
+        return None
+    now_local = now.astimezone(CENTRE_ZONE).replace(tzinfo=None)
+    base = base_of(series, now_local)
+    if base is None or base <= 0:
+        return None                 # a run whose today is 0.0 (six COFFEE runs) cannot carry a ratio
+    days = daily_extremes(series, now_local.replace(minute=0, second=0, microsecond=0),
+                          now_local.date() + timedelta(days=CHANGE_DAYS))
+    return (base, days) if days else None
+
+
+def run_change(run: dict, now: datetime, observed: float | None, rank: Rank | None) -> dict | None:
+    """One run's expected change over the window, or None when it cannot say (no series, no base, not fresh).
+
+    `observed` is the gauge's flow now (m3/s); `rank(flow, day)` is that day's percentile for a flow (None: no
+    envelope). Without either the ratios still stand and the percentile moves are absent.
+    """
+    got = run_days(run, now)
+    return None if got is None else _of_run(run, got, observed, rank, _today_rank(now, observed, rank))
+
+
+def _of_run(run: dict, got: tuple[float, Days], observed: float | None, rank: Rank | None, p0: float | None) -> dict:
+    """A run's change from its `run_days`: the model's own days against its own today, ranked on the gauge's scale."""
+    base, days = got
+    scale = observed / base if observed and observed > 0 else None
+    return {"model": run.get("model"), "issuedAt": run.get("issuedAt"), **_measure(days, base, scale, rank, p0)}
+
+
+def change_source(runs: dict[str, tuple[float, Days]]) -> dict | None:
+    """THE ONE DECISION (T144): which runs make a station's Change, day by day over the window.
+
+    `runs` is every run that can say, by model, as `run_days` reads it. Returns `{"models": [...], "lowWater": bool,
+    "days": [(day, lowest ratio, highest ratio)], "reach": {model: its last day}}` — each day as a ratio to today — or
+    None when no run can say:
+      - the FLOOD MODELS that reach a day make it: both → the weighted geometric mean of their ratios (`FLOOD_WEIGHTS`),
+        one → its own; a day past one model's end (COFFEE stops at five) is the other's alone, and `reach` says where
+        each stops;
+      - no flood model → the LOW-WATER MODEL alone, with `lowWater` true (the app's caveat);
+      - never the low-water model beside a flood model, and never a model this file does not name.
+    """
+    flood = [m for m in FLOOD_MODELS if m in runs]
+    use = flood or ([LOW_WATER_MODEL] if LOW_WATER_MODEL in runs else [])
+    if not use:
+        return None
+    by_day: dict[str, list[tuple[float, float, float]]] = {}
+    for m in use:
+        base, days = runs[m]
+        for d, lo, hi in days:
+            by_day.setdefault(d, []).append((FLOOD_WEIGHTS.get(m, 1.0), lo / base, hi / base))
+
+    def mean(said: list[tuple[float, float, float]], k: int) -> float:
+        return math.exp(sum(s[0] * math.log(max(s[k], 1e-9)) for s in said) / sum(s[0] for s in said))
+
+    return {"models": use, "lowWater": not flood,
+            "days": [(d, mean(by_day[d], 1), mean(by_day[d], 2)) for d in sorted(by_day)],
+            "reach": {m: runs[m][1][-1][0] for m in use}}
+
+
 def _extreme(c: dict) -> tuple[str, dict]:
-    """Which end of a run answers for it: the big one, or (both, or neither) the larger move in log terms."""
+    """Which end of a change answers for it: the big one, or (both, or neither) the larger move in log terms."""
     if c["dir"] == "rise":
         return "peak", c["peak"]
     if c["dir"] == "fall":
@@ -210,26 +283,33 @@ def _extreme(c: dict) -> tuple[str, dict]:
 
 
 def station_change(runs: dict | None, now: datetime, observed: float | None,
-                   rank: Rank | None) -> tuple[dict[str, dict], dict | None]:
-    """`(per model, summary)`: every fresh run's change, and the one the map reads (the index row's `change`), or None.
+                   rank: Rank | None) -> tuple[dict[str, dict], dict | None, dict | None]:
+    """`(per model, source, summary)`: every fresh run's own change; the station's change from `change_source` (the
+    station file's `change`, the panel's first line); and the index row's `change` the map reads, or None.
 
     The summary is FLOW ONLY — `discharge` is the coded ratio (see CHANGE_SCALE) — and carries what the words need:
-    which model, the direction, the ratio, the day and whether it comes back (`shape`, `back`).
+    which models, the direction, the ratio, the day and whether it comes back (`shape`, `back`), and `lowWater` when
+    only the low-water model spoke.
     """
+    raw: dict[str, tuple[float, Days]] = {}
     per: dict[str, dict] = {}
+    p0 = _today_rank(now, observed, rank)
     for model, run in sorted((runs or {}).items()):
-        c = run_change({**run, "model": run.get("model") or model}, now, observed, rank)
-        if c is not None:
-            per[model] = c
-    lead = next((m for m in CHANGE_ORDER if m in per), None) or next(iter(sorted(per)), None)
-    if lead is None:
-        return per, None
-    c = per[lead]
-    _, e = _extreme(c)
+        if (got := run_days(run, now)) is not None:
+            raw[model] = got
+            per[model] = _of_run({**run, "model": run.get("model") or model}, got, observed, rank, p0)
+    chosen = change_source(raw)
+    if chosen is None:
+        return per, None, None
+    # the station's own days are ratios to today already: measured against a base of 1, and ranked on the gauge's scale
+    src = {"models": chosen["models"], "lowWater": chosen["lowWater"], "reach": chosen["reach"],
+           **_measure(chosen["days"], 1.0, observed if observed and observed > 0 else None, rank, p0)}
+    _, e = _extreme(src)
     # KEPT SMALL: the index is fetched to paint the map (~180 KB). One coded number colours; the ratio, the day and the
-    # shape say what it is in a line. Every run's own detail is in the station file, opened on a tap.
-    summary = {"discharge": round(coded(e["ratio"]), 4), "model": lead, "dir": c["dir"],
+    # shape say what it is in a line. Every run's own detail, and the source's days, are in the station file.
+    summary = {"discharge": round(coded(e["ratio"]), 4), "models": src["models"], "dir": src["dir"],
                "ratio": e["ratio"], "day": e["day"],
-               "shape": "spike" if e["back"] else "open" if e["day"] == c["days"][-1][0] else "step",
-               **({"back": e["back"]} if e["back"] else {})}
-    return per, summary
+               "shape": "spike" if e["back"] else "open" if e["day"] == src["days"][-1][0] else "step",
+               **({"back": e["back"]} if e["back"] else {}),
+               **({"lowWater": True} if src["lowWater"] else {})}
+    return per, src, summary
