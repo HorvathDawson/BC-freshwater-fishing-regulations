@@ -3,6 +3,14 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-22 night) — work list is tickets/README.md; owner list is handoff/PLAN/OWNER-TODO.md
+- Live local release r-2f33edfe8452 (T56 DONE): strict 7782 + smoke 18/18 green at HEAD. R2 upload = owner.
+- DONE today on redesign/stream-sections: T53 T56 T58 T69 T71 T84 T96 (+ search-back, one-river-system back, HYDAT
+  notices, See X, Twin Lakes). HELD: T101 (owner Q44). Review page for T55 candidates is live (artifact Es3Mokt7…).
+- RUNNING wf_63a2801d-ce3: T57 T59 T70 T81 T83 (worktrees + review). Merge each, rewrite worktree hashes to branch
+  hashes in tickets, set README rows DONE, `pnpm -C app tickets`, strict + smoke once per batch.
+- T59 and T96 (Shuswap verbatim) need the next deliver (+ reach for T59 if continuation changes) — batch them.
+
 ## WORK QUEUE — ticket ids only. handoff/PLAN/app-integration/tickets/README.md is the sole source of future work.
 Owner 2026-10-22: "make sure it uses proper ticket system … use that as the sole source of future work." Work that is
 not a ticket is not planned; anything found becomes a ticket first. Status, what's left and owner questions live in the
