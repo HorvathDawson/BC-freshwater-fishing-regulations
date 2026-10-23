@@ -1,6 +1,8 @@
 # T130 — Conditions: zoom out further before the basin heat map takes over (+ Change chip under Level)
 
-Status: OPEN — owner 2026-10-22.
+Status: DONE — 96fe8720, 4a7a6d36 (lane wf_58c33d34-a73-1). Handover z8 (was z10), one number: the basin layer's
+maxzoom; the Change chip stays greyed "Flow only" under Level/Temperature and a tap moves to Flow. No tile rebuild
+needed; T64's build picks up BASIN_HANDOVER_Z = 8 and simply stops writing z8 basin tiles.
 
 ## Owner
 "make it so conditions needs more zoom out to get heat map; should be able to zoom out quite a bit more first."
@@ -26,3 +28,10 @@ seam layer's width curve, tools/handover.test.ts).
 ## Acceptance
 Shots before/after at z6–z10; handover tests updated; tap handling agrees (a tap below the handover hits a basin, above
 it a river); if a tile rebuild is needed (basin maxzoom), it rides T64's tile window.
+
+## Owner questions (new, with the default built)
+- Q-T130a: the handover is z8 — rivers from z8, the heat map below. At z7 the coloured rivers break into hairline
+  fragments on blank land (shot), so z8 is the lowest that reads. Go lower with a per-order field under the big rivers?
+  Default: no — one answer per zoom (owner 2026-10-22, no double layer).
+- Q-T130b: the arrows on the rivers still start at z10 (their own floor), so z8–z10 shows coloured rivers without flow
+  arrows. Default: as built.
