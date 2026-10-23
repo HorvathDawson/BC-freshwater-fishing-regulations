@@ -146,6 +146,7 @@ use that as the sole source of future work."
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | OPEN | — | all |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 | T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
+| T102 | receiving river never walked into (parent-code check in the walk) | OPEN | — | all (rides a reach rerun) |
 
 ## Order for open tickets
 
@@ -155,7 +156,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
    deliver), T52 (Expected change).
 2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
-   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T92, T99, T100 ★ (rides a reach rerun), T94.
+   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
 3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T91, T93.
 4. **Cleanup, once features settle:** T60 (consistency auditors) → T70 leftover → T61 → T62 → T63; T72 and T73 in
    this band (T73 alone, not concurrent with T61's normaliser).
