@@ -48,7 +48,7 @@ from pipeline.gauges.feed.change import stale as _stale_run, station_change
 from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
 from pipeline.gauges.feed.forecast import instant as _instant
-from pipeline.gauges.feed.forecast import is_day as _is_day
+from pipeline.gauges.feed.forecast import step_day as _step_day
 
 BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC"
 UA = "BC-FishRegs-Hydro/1.0"
@@ -367,8 +367,8 @@ def forecast_at(series: dict | None, when: datetime,
     for at, v in zip(ats, vals):
         if v is None:
             continue
-        if _is_day(at):
-            if str(at).strip() == day:
+        if (named := _step_day(series, at)) is not None:
+            if named == day:
                 return float(v)                             # the day itself: nothing nearer exists
             continue
         t = _instant(at)

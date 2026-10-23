@@ -30,7 +30,7 @@ import math
 from datetime import date, datetime, timedelta
 from typing import Callable
 
-from pipeline.gauges.feed.forecast import CENTRE_ZONE, instant, is_day
+from pipeline.gauges.feed.forecast import CENTRE_ZONE, instant, step_day
 
 # THE WINDOW, in days after today: the same ten days the map's last horizon (+10) reaches. ELF publishes thirty; a
 # seasonal low-flow model's day 25 is not "about to change", and a window that differed per model would make one map
@@ -115,7 +115,7 @@ def daily_extremes(series: dict, start: datetime, last: date) -> list[tuple[str,
         if t is None or t.date() > last:
             continue
         # a daily step stamped midnight is the WHOLE day, so today's counts though midnight has passed
-        if t < start and not (t.date() == start.date() and (series.get("step") == "1d" or is_day(at))):
+        if t < start and not (t.date() == start.date() and step_day(series, at) is not None):
             continue
         days.setdefault(t.date().isoformat(), []).append(float(v))
     return [(d, min(vs), max(vs)) for d, vs in sorted(days.items())]
@@ -130,7 +130,7 @@ def base_of(series: dict, now_local: datetime) -> float | None:
         t = _local(at)
         if t is None:
             continue
-        if series.get("step") == "1d" or is_day(at):
+        if step_day(series, at) is not None:
             if t.date() == now_local.date():
                 return float(v)
             continue

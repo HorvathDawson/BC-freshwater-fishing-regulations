@@ -27,16 +27,20 @@ import { LIGHT } from "./theme";
 
 /** What the engine's standing channel and the gauge roster were last asked for. */
 const asked: { standing: string | null; gauges: string | null } = { standing: null, gauges: null };
+/** The horizon each was last asked at (T126: the dots follow the rivers' horizon). */
+const horizonAsked: { standing: unknown; gauges: unknown } = { standing: null, gauges: null };
 vi.mock("@app/ui", async (importOriginal) => {
   const real = await importOriginal<typeof import("@app/ui")>();
   return {
     ...real,
     useConditionsColour: (i: Parameters<typeof real.useConditionsColour>[0]) => {
       asked.standing = i.onConditions ? i.quantity : "off";
+      horizonAsked.standing = i.horizon;
       return real.useConditionsColour(i);
     },
     useGaugeGeoJSON: (...a: Parameters<typeof real.useGaugeGeoJSON>) => {
       asked.gauges = a[2] ? a[3] ?? "flow" : "off";
+      horizonAsked.gauges = a[4] ?? 0;
       return real.useGaugeGeoJSON(...a);
     },
   };
@@ -47,7 +51,8 @@ const modesSeen = new Map<object, number>();
 const TAP = { sid: 0 };
 type Stub = { onLayers?: () => void; layersChanged?: number; modes?: object; groups?: Record<string, boolean>;
               hide?: readonly string[]; show?: readonly string[]; basemap?: string;
-              onPressFeature?: (l: string, id: number, lat?: number, lon?: number) => void };
+              onPressFeature?: (l: string, id: number, lat?: number, lon?: number) => void;
+              horizons?: { onPick: (h: 3) => void } };
 vi.mock("./MapScreen", () => ({
   MapScreen: (p: Stub) => {
     if (p.modes && !modesSeen.has(p.modes)) modesSeen.set(p.modes, modesSeen.size + 1);
@@ -57,6 +62,8 @@ vi.mock("./MapScreen", () => ({
                                   onPress={p.onLayers}><Text>layers</Text></Pressable>}
         <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
                    onPress={() => { void p.onPressFeature?.("streams", TAP.sid, 49.1, -121.6); }}><Text>tap</Text></Pressable>
+        {p.horizons && <Pressable accessibilityRole="button" accessibilityLabel="map +3"
+                                  onPress={() => p.horizons!.onPick(3)}><Text>+3</Text></Pressable>}
         <Text testID="map-look">{`modes #${p.modes ? modesSeen.get(p.modes) : "none"}`
           + ` · groups ${JSON.stringify(p.groups ?? null)} · hide ${(p.hide ?? []).join(",") || "-"}`
           + ` · show ${(p.show ?? []).join(",") || "-"} · ground ${p.basemap} · changed ${p.layersChanged ?? 0}`}</Text>
@@ -78,7 +85,10 @@ vi.mock("./ConditionsPanel", async (importOriginal) => {
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 
-afterEach(() => { cleanup(); modesSeen.clear(); asked.standing = null; asked.gauges = null; });
+afterEach(() => {
+  cleanup(); modesSeen.clear(); asked.standing = null; asked.gauges = null;
+  horizonAsked.standing = null; horizonAsked.gauges = null;
+});
 beforeAll(() => {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
@@ -193,5 +203,22 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
       "chart level", "chart discharge", "discharge",
       "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
     ]);
+  });
+});
+
+/*
+ * T126: THE DOTS ARE ASKED AT THE RIVERS' HORIZON. `gaugeGeoJSON` follows a horizon only if the Shell hands it one; this
+ * pins the hand-over. Mutation: drop `mm.standingHorizon` from Shell's `useGaugeGeoJSON(...)` -> gauges stay at 0.
+ */
+describe("the gauge dots follow the map's horizon (T126)", () => {
+  it("+3 on the map asks the rivers and the dots at +3; Temperature asks both at now", async () => {
+    await mount("conditions");
+    const atNow = { ...horizonAsked };
+    press("map +3");
+    const atThree = { ...horizonAsked };
+    press("Choose layers");
+    pick("Temperature");
+    expect([atNow, atThree, { ...horizonAsked }]).toEqual([
+      { standing: 0, gauges: 0 }, { standing: 3, gauges: 3 }, { standing: 0, gauges: 0 }]);
   });
 });

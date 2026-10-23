@@ -108,6 +108,20 @@ def test_a_daily_step_answers_for_its_whole_centre_day():
     assert got == [20.0, 20.0, 20.0, 11.0, None]
 
 
+def test_a_daily_run_stamped_at_midnight_is_a_day_too():
+    """COFFEE writes its daily steps as midnights ("2026-10-22T00:00:00", `step: "1d"`). The change measure always read
+    them as whole days; the horizons read them as midnight instants, so 15:30 at the Centre took tomorrow's midnight.
+    One answer now (`forecast.step_day`). Mutation: `step_day` ignoring `step` (bare days only) -> 23:30Z reads 11.0."""
+    s = {"at": ["2026-10-21T00:00:00-08:00", "2026-10-22T00:00:00-08:00", "2026-10-23T00:00:00-08:00"],
+         "mid": [10.0, 20.0, 11.0], "level_mid": [None] * 3, "step": "1d"}
+    got = [pub.forecast_at(s, datetime(2026, 10, d, h, m, tzinfo=timezone.utc), "discharge")
+           for d, h, m in ((22, 8, 0), (22, 23, 30), (23, 7, 59), (23, 8, 0), (24, 8, 0))]
+    assert got == [20.0, 20.0, 20.0, 11.0, None]
+    assert [F.step_day(s, a) for a in s["at"]] == ["2026-10-21", "2026-10-22", "2026-10-23"]
+    assert [F.step_day({"step": "1h"}, "2026-10-22T05:00:00-08:00"), F.step_day({"step": "1h"}, "2026-10-22"),
+            F.step_day(None, "2026-10-22T13:00:00Z")] == [None, "2026-10-22", None]
+
+
 # ------------------------------------------------------------------------------------- the summary, from the series ----
 
 SUMMARY_08MH090 = {"model": "CLEVER", "issuedAt": "2026-10-22T10:35:00", "horizonDays": 10, "value": 0.263,
@@ -155,10 +169,11 @@ def test_the_publisher_writes_the_series_summary_and_zoned_stamps(monkeypatch):
 
 def test_the_clock_is_read_in_one_place():
     """ONE decision, one function: `forecast.instant`. The publisher and the change measure each kept their own zone
-    (UTC and PST) — that disagreement WAS the bug. Neither may parse a stamp or build a zone of its own again."""
+    (UTC and PST) — that disagreement WAS the bug. Neither may parse a stamp or build a zone of its own again, nor decide
+    on its own which steps are whole days (`forecast.step_day`; they decided it two ways until the T126 review)."""
     for name in ("publish.py", "change.py"):
         src = (FEED / name).read_text(encoding="utf-8")
-        assert re.findall(r"datetime\.fromisoformat|timezone\(timedelta|def _parse\(|hours=-8", src) == [], name
+        assert re.findall(r"datetime\.fromisoformat|timezone\(timedelta|def _parse\(|hours=-8|\"1d\"|is_day\(", src) == [], name
     assert C._local("2026-10-22T05:00:00") == C._local("2026-10-22T05:00:00-08:00") == datetime(2026, 10, 22, 5)
 
 

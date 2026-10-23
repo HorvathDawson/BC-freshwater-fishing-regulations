@@ -61,6 +61,20 @@ def is_day(at: object) -> bool:
     return isinstance(at, str) and bool(_BARE_DAY.match(at.strip()))
 
 
+def step_day(series: dict | None, at: object) -> str | None:
+    """The Centre day a DAILY step answers for ("2026-10-22"), or None for an instant (an hourly step).
+
+    THE ONE ANSWER TO "is this step a day?" (T126 adversarial review). A step is a day when its stamp is a bare day
+    (ELF) or when its series says it is daily (`step: "1d"`: COFFEE writes each day as a midnight, "…T00:00:00").
+    `publish.forecast_at` asked only the first and `change.py` both, so a COFFEE step was a whole day to the change
+    measure and a midnight instant to the horizons. Both ask this now.
+    """
+    if not (is_day(at) or (series or {}).get("step") == "1d"):
+        return None
+    t = instant(at)
+    return None if t is None else t.astimezone(CENTRE_ZONE).date().isoformat()
+
+
 def instant(at: object) -> datetime | None:
     """A forecast stamp as an aware instant — THE ONE READING OF THE CENTRE'S CLOCK (see CENTRE_ZONE).
 
