@@ -343,3 +343,23 @@ def test_no_reader_applies_a_global_limit_itself():
         assert "apply_limits(" in src, fn.__name__
         assert "& outside" not in src and "& set(tidal)" not in src and ") in want" not in src \
             and "in kinds}" not in src, fn.__name__
+
+
+# ------------------------------------------------------------- T125 item 8 (reach 9): one has_own_row
+
+def test_a_row_of_its_own_is_one_predicate():
+    """`outside.has_own_row`: a water row with a rule about the water itself. The reach's `rowed_waters` and the
+    bundle's `rules._own_rows` both ask it (1,394 rowed waters before and after on the live corpus). MUTATION: a
+    `has_own_row` that also counts a tributaries-only row moves both."""
+    import inspect
+    from pipeline.deliver.bundle import rules as BR
+    own, tribs = {"tributaries_only": False}, {"tributaries_only": True}
+    assert [O.has_own_row(e, rs) for e, rs in (("r6:x@6-1", [own, tribs]), ("r6:x@6-1", [tribs]),
+                                               ("r6:x@6-1", []), ("z6:x", [own]), ("zp:x", [own]))] == \
+        [True, False, False, False, False]
+    ents = [{"entry_id": "r6:a@6-1", "matched": ["gnis:1"], "rules": [tribs]},
+            {"entry_id": "r6:b@6-1", "matched": ["gnis:2"], "rules": [own]}]
+    assert O.rowed_waters(ents) == {"gnis:2": (("r6:b@6-1", ()),)}
+    for fn in (O.rowed_waters, BR._own_rows):
+        src = inspect.getsource(fn)
+        assert "has_own_row(" in src and "tributaries_only" not in src.split('"""')[-1], fn.__name__

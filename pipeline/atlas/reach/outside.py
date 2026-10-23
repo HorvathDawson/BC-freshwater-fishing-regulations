@@ -103,6 +103,17 @@ def shared_waters(entries) -> frozenset[str]:
     return frozenset(i for i, rs in by.items() if len(rs) > 1)
 
 
+def has_own_row(entry_id, rules) -> bool:
+    """IS THIS A TABLE ROW ABOUT ITS OWN WATER? A water row (`entry_id.is_water_row`: `r<region>:…`, never a zone or
+    province table) with at least one rule that is not `tributaries_only` — a pointer row ("See Bulkley River") has
+    none, and a row whose every rule is about the tributaries ("West Road River's tributaries") speaks for the creeks,
+    not the river. ONE predicate (T125 item 8, reach 9): the reach's `rowed_waters` and the bundle's
+    `rules._own_rows` each wrote it. `rules` are corpus dicts or typed rules."""
+    def tribs_only(r) -> bool:
+        return bool(r.get("tributaries_only") if isinstance(r, dict) else getattr(r, "tributaries_only", False))
+    return EID.is_water_row(str(entry_id or "")) and any(not tribs_only(r) for r in rules or ())
+
+
 def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
     """THE WATERS THE BOOK PRINTS A ROW OF THEIR OWN FOR: `{item_id: ((entry_id, sees), …)}`,
     `sees` the entries the row's `see` pointers name.
@@ -121,9 +132,7 @@ def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
     out: dict[str, set[tuple[str, tuple[str, ...]]]] = {}
     for e in entries:
         eid = str(e.get("entry_id") or "")
-        rules = [r for r in e.get("rules") or [] if isinstance(r, dict)]
-        if EID.parse(eid).regions is None or not rules \
-                or all(r.get("tributaries_only") for r in rules):
+        if not has_own_row(eid, [r for r in e.get("rules") or [] if isinstance(r, dict)]):
             continue
         sees = tuple(sorted({t for s in e.get("see") or [] if isinstance(s, dict)
                              for t in s.get("entry_ids") or ()}))

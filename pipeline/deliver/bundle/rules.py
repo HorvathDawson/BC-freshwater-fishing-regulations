@@ -1067,9 +1067,8 @@ def _own_rows(docs) -> dict[str, frozenset[str]]:
     """`{entry_id: matched items}` for every water row with at least one rule about the water
     itself — a row whose every rule is `tributaries_only` (Region 6's and Region 7's "West Road
     River's tributaries") speaks for the tributaries, not for the water."""
-    return {ce.entry_id: frozenset(ce.matched) for ce in docs
-            if EID.is_water_row(ce.entry_id) and ce.matched
-            and not all(r.tributaries_only for r in ce.rules)}
+    from pipeline.atlas.reach.outside import has_own_row
+    return {ce.entry_id: frozenset(ce.matched) for ce in docs if ce.matched and has_own_row(ce.entry_id, ce.rules)}
 
 
 def co_bound_regions(sets, own_rows: dict | None = None) -> dict[tuple[str, str], frozenset[str]]:
