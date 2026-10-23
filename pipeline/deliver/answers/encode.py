@@ -643,6 +643,11 @@ SPEC = {
                      "lifts; version 9, ROUND13 P: the book named by its title, \"This water’s own row in "
                      "the 2025–2027 BC Freshwater Fishing Regulations Synopsis: …\"), `applies_trib` the same line where the rule is INHERITED by the "
                      "tributary walk (a part whose rule set lists it under `trib`; null where it never is); "
+                     "T100 (the AREA CAVEAT, owner Q43 default): a rule bound to the whole water that holds "
+                     "only in an undrawn part ends its `applies` with the export's `not_yet_mapped.says` "
+                     "(\"Not yet mapped: this applies only in one part of this water — … — which is not drawn "
+                     "on the map yet; see map A on p.28 of the regulations. …\"), and where the book draws "
+                     "the part on a map its `book` adds that map's page after the entry's; "
                      "version 7 (answers 2.8, D2): `where` the heading a standing no-fishing place rule "
                      "shows under on the KEEP side beside the open/closed strip (\"Where you can’t "
                      "fish\": the fishway and fish-facility buffers), absent on every other rule",

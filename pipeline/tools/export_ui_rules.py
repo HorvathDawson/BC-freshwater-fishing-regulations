@@ -168,7 +168,7 @@ _RULE_COLUMNS = (("when_", "when"), ("while_", "while"), ("species", "species"),
 _JSON_COLUMNS = frozenset({"when_", "while_", "species", "species_except", "exempts"})
 
 
-def _rule_record(r: dict, entry_name: str) -> dict:
+def _rule_record(r: dict, entry_name: str, entry: dict | None = None) -> dict:
     """One rule as the bundle ships it: its columns and its `conditions`, both under the model's
     own field names, empty values left out."""
     fields = {}
@@ -201,7 +201,8 @@ def _rule_record(r: dict, entry_name: str) -> dict:
         "type": r["type"], "family": r["family"], "dimension": r["dimension"],
         "label": r["label"], "parts": _j(r["parts"], {}), "verbatim": r["verbatim"],
         "binds": _binds(r),
-        **({"not_yet_mapped": not_yet_mapped(r)} if _binds(r) == "sections_in_part" else {}),
+        **({"not_yet_mapped": not_yet_mapped(r, r["verbatim"] or "", entry)}
+           if _binds(r) == "sections_in_part" else {}),
         "fields": dict(sorted(fields.items())),
         "provenance": {
             "entry_name": entry_name,
@@ -308,20 +309,97 @@ def _binds(r: dict) -> str:
     return "sections_in_part" if r["undrawn_part"] else "sections"
 
 
-def not_yet_mapped(r: dict) -> dict:
+def not_yet_mapped(r: dict, verbatim: str = "", entry: dict | None = None) -> dict:
     """THE FLAG A RULE IN AN UNDRAWN PART CARRIES (user ruling 2026-09-26): it holds only in a part
     of its water that nothing draws, so it is placed on the whole water to be SEEN there — at the
     top, marked as a place not yet mapped — and it never decides the water (`read.not_yet_mapped`:
-    it never competes, displaces, lifts or suspends)."""
+    it never competes, displaces, lifts or suspends).
+
+    THE AREA CAVEAT (T100, RULINGS K5, owner Q43 default 2026-10-23): such a rule keeps binding the
+    WHOLE water, and `says` is the caveat line every page shows beside it (the answers' `applies`).
+    Where the book prints a map of the part (`book_map`: Shuswap's maps A/B/C and Mahood's area
+    closure on p.28, Canim's on p.42, François's map 1 on p.51), `map` names it and `says` cites
+    it, so the page never overstates the part as the whole lake and points to the book's drawing."""
     part = str(r["undrawn_part"]).strip()
     identified = C.part_identifies_place(part)
+    mp = book_map(part, verbatim, entry or {})
     return {"display": "prominent", "part": part, "identified": identified,
-            "says": _not_yet_mapped_says(part) if identified else _unidentified_says(part)}
+            **({"map": mp} if mp else {}),
+            "says": _not_yet_mapped_says(part, mp) if identified else _unidentified_says(part)}
 
 
-def _not_yet_mapped_says(part: str) -> str:
+#: A MAP THE BOOK NAMES FOR A PART (T100). The part or the rule's line names it ("(map A)",
+#: "described on map 1"); the rule's line or the row's heading says where it is printed ("(see
+#: map on page 28)", "SHUSWAP LAKE (see maps on page 28)", "MAHOOD LAKE (see map on page 28 for area
+#: closure)"), or that it is printed with the row ("map 1, (see below)", "(see map below)"). Book
+#: page numbers are PRINTED pages (the book's own address, as `entries[].pages`).
+_MAP_NAMED = re.compile(r"\bmap\s+([A-Z]|\d{1,2})\b")
+_MAP_TAG = re.compile(r"\s*\(\s*map\s+(?:[A-Z]|\d{1,2})\s*\)")
+_SEE_MAP_ON_PAGE = re.compile(r"\bsee\s+(maps?)\s+(?:[A-Z]\s+|\d{1,2}\s+)?on\s+page\s+(\d{1,3})\b", re.I)
+_SEE_MAP_BELOW = re.compile(r"\bsee\s+(maps?)\s+below\b|\bmap\s+(?:[A-Z]|\d{1,2}),?\s*\(see\s+below\)", re.I)
+
+
+def book_map(part: str, verbatim: str, entry: dict) -> dict | None:
+    """THE BOOK'S MAP OF AN UNDRAWN PART, or None (T100: the one place this is decided). Only a
+    part that names a place has one (an unidentified "on parts" is drawn nowhere, so no map is cited
+    for it even where its row prints one — the Cowichan River's "see map below"). The map's page is
+    the first of: "see map(s) … on page N" in the rule's own line, the same in the row's heading,
+    the row's own (single) printed page where it says the map is "below". A map NAMED but with no
+    page found is None here and refused by `undrawn_map_problems`.
+
+    `{"name": "map A" | None, "page": <printed page>, "cite": "map A on p.28" | "the map on p.42" |
+    "the maps on p.28"}` — `cite` is the words `says` uses."""
+    if not str(part or "").strip() or not C.part_identifies_place(part):
+        return None
+    named = _MAP_NAMED.search(part) or _MAP_NAMED.search(verbatim or "")
+    name = f"map {named.group(1)}" if named else None
+    page = plural = None
+    for text in (verbatim or "", entry.get("full_name") or ""):
+        m = _SEE_MAP_ON_PAGE.search(text)
+        if m:
+            page, plural = int(m.group(2)), m.group(1).lower() == "maps"
+            break
+    if page is None:
+        pages = entry.get("pages") or []
+        for text in (entry.get("full_name") or "", entry.get("printed") or ""):
+            m = _SEE_MAP_BELOW.search(text)
+            if m and len(pages) == 1:
+                page, plural = int(pages[0]), (m.group(1) or "").lower() == "maps"
+                break
+    if page is None:
+        return None
+    cite = f"{name} on p.{page}" if name else f"the {'maps' if plural else 'map'} on p.{page}"
+    return {"name": name, "page": page, "cite": cite}
+
+
+def undrawn_map_problems(doc: dict) -> list[str]:
+    """T100: a part that names a map must cite the page it is printed on, and every cited page
+    must open the PDF (`guide.pdf_pages`) — the page links to it."""
+    pdf = doc["guide"].get("pdf_pages") or {}
+    out = []
+    for kind in ("rules", "licensing"):
+        for k, x in doc[kind].items():
+            n = x.get("not_yet_mapped")
+            if not n:
+                continue
+            mp = n.get("map")
+            if mp is None and n.get("identified") and _MAP_NAMED.search(n["part"]):
+                out.append(f"{k}: its part names a map ({n['part']!r}) but no page is found for it "
+                           f"in its line or its row (`book_map`)")
+            if mp is not None and str(mp["page"]) not in pdf:
+                out.append(f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map")
+    return out
+
+
+def _not_yet_mapped_says(part: str, mp: dict | None = None) -> str:
     # "applies only {part}" read "applies only waters lying west of …" / "only the area at …" for
-    # about half the 131 parts; the part is quoted as a phrase instead.
+    # about half the 131 parts; the part is quoted as a phrase instead. A part the book draws on a
+    # map cites it (T100); its "(map A)" tag is then said by the cite, not twice.
+    if mp:
+        shown = _MAP_TAG.sub("", part).strip() if mp["name"] else part
+        return (f"Not yet mapped: this applies only in one part of this water — {shown} — which is "
+                f"not drawn on the map yet; see {mp['cite']} of the regulations. It does not "
+                f"apply to the rest of the water.")
     return (f"Not yet mapped: this applies only in one part of this water — {part} — which is "
             f"not drawn on the map yet. It does not apply to the rest of the water.")
 
@@ -602,7 +680,8 @@ def licence_classes(lic: dict) -> dict:
     }
 
 
-def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str) -> dict:
+def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: str,
+                      entry: dict | None = None) -> dict:
     rec = _j(r["record"])
     if rec.get("kind") != kind or rec.get("id") != r[idcol]:
         raise SystemExit(f"{r['entry_id']}#{r[idcol]}: the `record` JSON is a "
@@ -615,7 +694,7 @@ def _licensing_record(kind: str, idcol: str, placed: bool, r: dict, entry_name: 
         "label": r["label"], "parts": parts, "verbatim": r["verbatim"],
         **({"period": designation_period(f"{r['entry_id']}#{r[idcol]}", fields, r["verbatim"],
                                          parts)} if kind == "designation" else {}),
-        **({"not_yet_mapped": not_yet_mapped(fields)}
+        **({"not_yet_mapped": not_yet_mapped(fields, r["verbatim"] or "", entry)}
            if str(fields.get("undrawn_part") or "").strip() else {}),
         "fields": dict(sorted(fields.items())),
         "placement": r["placement"] if placed else NOT_PLACED,
@@ -679,14 +758,15 @@ def read(bundle: Path) -> dict:
 
     rules = {}
     for r in _rows(db, "SELECT * FROM rule ORDER BY entry_id, rule_id"):
-        x = _rule_record(r, names.get(r["entry_id"], ""))
+        x = _rule_record(r, names.get(r["entry_id"], ""), entries.get(r["entry_id"]))
         rules[x["id"]] = x
         entries[r["entry_id"]]["rules"].append(x["id"])
 
     licensing = {}
     for kind, idcol, placed in _LIC_TABLES:
         for r in _rows(db, f"SELECT * FROM {kind} ORDER BY entry_id, {idcol}"):
-            x = _licensing_record(kind, idcol, placed, r, names.get(r["entry_id"], ""))
+            x = _licensing_record(kind, idcol, placed, r, names.get(r["entry_id"], ""),
+                                  entries.get(r["entry_id"]))
             licensing[x["id"]] = x
             entries[r["entry_id"]]["licensing"].append(x["id"])
     licensing = dict(sorted(licensing.items()))
@@ -1604,8 +1684,12 @@ RECORD_TEXT = {
     "not_yet_mapped": "ONLY on a rule that holds in a part nothing draws (`binds: "
                       "sections_in_part`): {display: 'prominent', part: the book's words for the "
                       "part, identified: false when those words name no place ('on parts', "
-                      "'various locations' — the regulations never say which parts), says: the "
-                      "sentence to show}. Show it AT THE TOP of the water, marked "
+                      "'various locations' — the regulations never say which parts), map?: ONLY "
+                      "where the book prints a map of the part {name: 'map A' | null, page: the "
+                      "PRINTED page, cite: 'map A on p.28'} (T100: Shuswap's maps A/B/C, Mahood, "
+                      "Canim, François), says: the sentence to show — the AREA CAVEAT, citing the "
+                      "map when there is one (the answers' `rules[].applies` carries it, and "
+                      "`rules[].book` the map's page)}. Show it AT THE TOP of the water, marked "
                       "as a place not yet mapped — never as the water's rule. It never decides "
                       "open or closed, never displaces or lifts anything — see "
                       "`placement.not_yet_mapped`",
@@ -1659,7 +1743,8 @@ LICENSING_RECORD_TEXT = {
                "words",
     "not_yet_mapped": "ONLY on a requirement that holds in a part nothing draws "
                       "(`fields.undrawn_part`; the Creston Valley WMA permit on the south end of "
-                      "Kootenay Lake's Main Body): {display, part, identified, says}, as on a rule. "
+                      "Kootenay Lake's Main Body): {display, part, identified, map?, says}, as on a "
+                      "rule. "
                       "Show it on the water as a place not yet mapped; it is NEVER required of "
                       "the whole water (`read.requirements_in_force` lists it under "
                       "`not_yet_mapped`, never `holds`)",
@@ -6418,7 +6503,7 @@ def pdf_page_problems(doc: dict) -> list[str]:
 
 def problems(doc: dict) -> list[str]:
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
-            + pdf_page_problems(doc)
+            + pdf_page_problems(doc) + undrawn_map_problems(doc)
             + guide_example_problems(doc)
             + dictionary_gaps(doc)
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)

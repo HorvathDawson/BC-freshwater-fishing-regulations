@@ -1715,6 +1715,11 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
         lift = " It lifts " + join(words) + " here."
         say += lift
         trib = trib + lift if trib else None
+    # THE AREA CAVEAT (T100, owner Q43 default): a rule bound to the whole water that holds only in
+    # an undrawn part says so wherever the page says why it applies — the export's sentence, once
+    nym = x.get("not_yet_mapped")
+    if nym:
+        say += " " + nym["says"]
     return say, trib
 
 
@@ -1727,6 +1732,11 @@ def book_pages(x: dict, doc: dict) -> List[List[int]]:
     pdf = (doc.get("guide") or {}).get("pdf_pages") or {}
     if not pages:
         raise AnswersError(f"display: rule {x['id']} — its entry {x['entry_id']} prints no page")
+    # T100: a rule in an undrawn part the book draws on a map (the export's `not_yet_mapped.map`,
+    # `export_ui_rules.book_map`) cites that map's page too — Shuswap's rows on p.32, maps on p.28
+    mp = (x.get("not_yet_mapped") or {}).get("map")
+    if mp and mp["page"] not in pages:
+        pages = [*pages, mp["page"]]
     out = []
     for p in pages:
         q = pdf.get(str(p))
