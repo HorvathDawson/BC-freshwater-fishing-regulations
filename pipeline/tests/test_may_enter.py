@@ -176,3 +176,44 @@ def test_no_walk_body_keeps_a_rule_of_its_own():
     assert all("may_enter" in _names_in_body(getattr(T, w)) or w == "_mouths_at_lower_bound"
                for w in WALKERS)
     assert "may_enter" in _names_in_body(T._mouths_at)
+
+
+# --- T117: one owner for "which outlet is the lake's own river" ------------------------------------------------
+#   M6 `lake_main_outlet` returns nothing       -> test_both_readers_ask_lake_main_outlet
+#   M7 ties not broken by main flow              -> test_lake_main_outlet_whole
+
+def _two_outlets(main_types=("1000",), other_types=("1100",), main_order=2, other_order=2, joins="a:0"):
+    """A lake (order 4, code 100-7) draining by two outlets of equal code; `up:0` feeds the lake. The
+    river R:0 (order 5, code 100) is joined by the outlet `joins`."""
+    lake = dataclasses.replace(_n("lake:7", order=4, kind=NodeKind.lake), blk="", wsc="100-7")
+    a = dataclasses.replace(_w("a:0", order=main_order, wsc="100-7"), edge_types=main_types)
+    b = dataclasses.replace(_w("b:0", order=other_order, wsc="100-7"), edge_types=other_types)
+    return _g([lake, a, b, _w("up:0", order=1, wsc="100-7-3"), _w("R:0", order=5, wsc="100")],
+              [("lake:7", "a:0", "lake_out"), ("lake:7", "b:0", "lake_out"), ("up:0", "lake:7", "lake_in"),
+               (joins, "R:0", "confluence")])
+
+
+def test_lake_main_outlet_whole():
+    """M7: the largest order wins; among equals, main flow; no main flow among them, all of them."""
+    assert [T.lake_main_outlet(_two_outlets(), "lake:7"),
+            T.lake_main_outlet(_two_outlets(main_order=1, other_order=3), "lake:7"),
+            T.lake_main_outlet(_two_outlets(main_types=("1150",)), "lake:7"),
+            T.lake_main_outlet(_two_outlets(), "a:0")] == [
+        frozenset({"a:0"}), frozenset({"b:0"}), frozenset({"a:0", "b:0"}), frozenset()]
+
+
+def test_the_order_guard_s_exemption_is_the_lake_s_main_outlet():
+    """Equal-order outlets: the main-flow one is the lake's river, so a walk up it enters the lake (the
+    Dester Lake exemption) — before T117 `_is_main_outlet` demanded STRICTLY larger and refused both. The
+    secondary outlet still never climbs into its lake."""
+    assert (T.tributaries_of_reach(_two_outlets(), {"R:0"}),
+            T.tributaries_of_reach(_two_outlets(joins="b:0"), {"R:0"})) == (
+        {"a:0", "lake:7", "up:0"}, {"b:0"})
+
+
+def test_both_readers_ask_lake_main_outlet(monkeypatch):
+    """M6: with no main outlet, the exemption is gone (the walk up the main outlet is refused)."""
+    g = _two_outlets()
+    monkeypatch.setattr(T, "lake_main_outlet", lambda graph, lake: frozenset())
+    assert T.tributaries_of_reach(g, {"R:0"}) == {"a:0"}
+    assert T._is_main_outlet(g, "lake:7", "a:0") is False

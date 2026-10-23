@@ -29,7 +29,8 @@ from pipeline.atlas.gauges.panel import (
     MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, QUANTITIES, Donor, area_scale, may_lead, panel_for, years_in,
 )
 from pipeline.atlas.graph.drainage import AreaModel
-from pipeline.atlas.graph.tributaries import _wsc_below
+from pipeline.common.utils import wsc as _wsc
+from pipeline.common import fwa_edge_types
 
 
 @dataclass(frozen=True)
@@ -185,9 +186,9 @@ def across_branch(share: float) -> frozenset[str]:
 
 def _code_child(parent: str, child: str) -> bool:
     """`child` is a watershed code STRICTLY nested under `parent` (a tributary's code extends its river's) — the same
-    parent/child test the tributary walk asks (`tributaries._wsc_below`, T102), so the two never disagree on which
+    parent/child test the tributary walk asks (`wsc.relation`, T102/T117), so the two never disagree on which
     code is whose parent."""
-    return bool(parent) and child != parent and _wsc_below(child, parent)
+    return _wsc.is_strictly_below(child, parent)
 
 
 def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
@@ -412,11 +413,9 @@ def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
 
 # FWA EDGE_TYPEs that mean "this is a secondary channel of a bigger river", not a river of
 # its own: 1100 and 1350. 28,903 sections carry one, at a median stream magnitude of 1.
-SIDE_CHANNEL_EDGE_TYPES = frozenset({"1100", "1350"})
-
-
-def _is_side_channel(node) -> bool:
-    return bool(SIDE_CHANNEL_EDGE_TYPES.intersection(getattr(node, "edge_types", ()) or ()))
+# Named in `pipeline.common.fwa_edge_types` (T117), the one place edge-type numbers live.
+SIDE_CHANNEL_EDGE_TYPES = fwa_edge_types.SIDE_CHANNEL
+_is_side_channel = fwa_edge_types.is_side_channel
 
 
 def mainstem_of(graph, area_of) -> dict[str, str]:

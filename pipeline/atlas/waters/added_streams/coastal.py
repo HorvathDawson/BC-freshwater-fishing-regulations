@@ -15,18 +15,15 @@ from typing import Optional
 from shapely.geometry import Point
 
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 
-_COASTAL_PREFIXES = tuple(str(p) for p in range(900, 1000, 5))   # 900..995 coastal drainages
-
-
-def is_coastal_wsc(wsc: str) -> bool:
-    """True if a WSC is in the Coastal Rivers drainage (a 9xx Level-1 prefix)."""
-    return trim_wsc(wsc or "")[:3] in _COASTAL_PREFIXES
+#: True if a WSC is in the Coastal Rivers drainage (a 9xx Level-1 prefix) — `wsc.is_coastal`, the one owner.
+is_coastal_wsc = _wsc.is_coastal
 
 
 def level12(wsc: str) -> tuple[str, str]:
     """(Level-1, Level-2) groups of a WSC, e.g. '900-359486-...' -> ('900','359486'). Missing -> ''. """
-    parts = trim_wsc(wsc or "").split("-")
+    parts = _wsc.groups(trim_wsc(wsc or ""))
     l1 = parts[0] if parts else ""
     l2 = parts[1] if len(parts) > 1 else ""
     return l1, l2

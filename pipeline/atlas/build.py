@@ -9,6 +9,7 @@ summary.txt. The blue-line chains are built and used in memory only (P21: their 
 """
 
 from __future__ import annotations
+from pipeline.common.utils import wsc as _wsc
 
 import argparse
 import json
@@ -90,7 +91,7 @@ def get_lake_wsc(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
         gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY", "FWA_WATERSHED_CODE", "AREA_HA"],
                             bbox=bbox, geometry=False)
         for wbk, code, area in zip(gdf["WATERBODY_KEY"], gdf["FWA_WATERSHED_CODE"], gdf["AREA_HA"]):
-            if not wbk or not code or str(code).startswith("999"):
+            if not wbk or _wsc.is_unknown(str(code or "")):
                 continue
             w, a = str(wbk), float(area or 0.0)
             if w not in best or a > best[w][0]:
@@ -277,7 +278,7 @@ def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
     tributaries the municipal added-streams network supersedes. Returns (kept fids, dropped count)."""
     if not prefixes:
         return fids, 0
-    kept = [f for f in fids if not any(f.wsc.startswith(p) for p in prefixes)]
+    kept = [f for f in fids if not _wsc.has_prefix(f.wsc, prefixes)]
     return kept, len(fids) - len(kept)
 
 
@@ -576,7 +577,7 @@ def main() -> None:
         from pipeline.common.utils.wsc import trim_wsc as _trim
         _ws = fwa.get_layer("watersheds", columns=["FWA_WATERSHED_CODE", "AREA_HA"], bbox=bbox)
         _bc = derive_basin_wsc(graph, wb_polys, (
-            (_trim(str(c or "")) if c and not str(c).startswith("999") else "", a, g)
+            (_trim(str(c or "")) if not _wsc.is_unknown(str(c or "")) else "", a, g)
             for c, a, g in zip(_ws["FWA_WATERSHED_CODE"], _ws["AREA_HA"], _ws.geometry)))
         print(f"  basin_wsc: {_bc['given']:,} of {_bc['codeless_lakes']:,} lakes with no FWA code "
               f"lie in a named watershed")

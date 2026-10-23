@@ -49,6 +49,7 @@ import collections
 from dataclasses import dataclass, replace
 
 from pipeline.common.models import StreamGraph
+from pipeline.common.utils import wsc as _wsc
 
 
 @dataclass(frozen=True)
@@ -142,7 +143,7 @@ def prunable(graph: StreamGraph, rule: LeafPruneRule | None,
         wsc = getattr(n, "wsc", "") or ""
         # TIDAL FIRST: a long coastal channel is kept before any other test is asked.
         if (rule.tidal_wsc_prefixes
-                and wsc.startswith(rule.tidal_wsc_prefixes)
+                and _wsc.has_prefix(wsc, rule.tidal_wsc_prefixes)
                 and length > rule.tidal_min_length_m):
             return False
         # Unreached by the walk means nothing named lies below it — as deep as it gets.

@@ -29,6 +29,7 @@ from dataclasses import replace
 from typing import Optional
 
 from pipeline.atlas.graph import cutting
+from pipeline.common.utils import wsc as _wsc
 from pipeline.atlas.graph.blk_chains import FidRow
 from pipeline.common.models import (BlkChain, BoundaryKind, FlowEdge, NameSource, NameTuple, NodeKind,
                      SectionBoundary, StreamGraph, StreamNode)
@@ -46,9 +47,12 @@ def _wsc_descendant(trib_wsc: str, main_wsc: str) -> bool:
     """True if ``trib_wsc`` is at/below ``main_wsc`` in the FWA hierarchy (prefix match).
 
     FWA watershed codes nest: a real tributary's code extends its mainstem's code. Equal codes
-    (a side channel sharing the mainstem's WSC) also pass. Empty codes are permissive.
+    (a side channel sharing the mainstem's WSC) also pass. An empty MAINSTEM code is permissive (an
+    edge into a water the code cannot place is kept); an empty tributary code under a coded mainstem is
+    not. Dash-guarded since T117 (`wsc.is_at_or_below`) — on FWA's fixed-width groups the same answer as
+    the bare prefix it replaced.
     """
-    return not main_wsc or trib_wsc.startswith(main_wsc)
+    return not main_wsc or _wsc.is_at_or_below(trib_wsc, main_wsc)
 
 
 def _max_opt(a: Optional[int], b: Optional[int]) -> Optional[int]:

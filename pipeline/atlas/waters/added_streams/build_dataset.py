@@ -31,6 +31,7 @@ from pipeline.atlas.waters.added_streams.underlake import LakeIndex, assign_unde
 from pipeline.atlas.waters.added_streams.validate import validate_propagation
 from pipeline.atlas.waters.added_streams.wsc import mint_wsc
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 from pipeline.common.models import BlkChain
 from pipeline.common.curated import CURATED, GENERATED
 
@@ -174,7 +175,7 @@ def _resolve_topology(channels, geom, cls, index, fwa_by_blk, fwa_chains, lake_i
             # route (e.g. the 100- Fraser) the stream reaches beats tidal (Sanctuary Slough); and tidal wins
             # when nothing else was found at all.
             bc = fwa_by_blk.get(best[1]) if (best is not None and best[0] == "fwa") else None
-            coastal_best = best is None or (bc is not None and trim_wsc(bc.fwa_watershed_code or "").startswith("900"))
+            coastal_best = best is None or (bc is not None and _wsc.root(trim_wsc(bc.fwa_watershed_code or "")) == "900")
             if d <= r and coastal_best and (best is None or d < best[3]):
                 best = ("tidal", "", tidal_union, d)
         return best
@@ -449,11 +450,11 @@ def _blue_line_total(rc: BlkChain, fwa_chains: list[BlkChain]) -> Optional[float
     ests: list[float] = []
     for c in fwa_chains:
         cw = trim_wsc(c.fwa_watershed_code)
-        if c.geometry is None or not cw.startswith(base + "-"):
-            continue
-        tail = cw[len(base) + 1:]
-        if "-" in tail or not tail.isdigit():
+        if c.geometry is None or cw == base or _wsc.parent(cw) != base:
             continue                                       # a DIRECT child only (one segment beyond rc)
+        tail = _wsc.groups(cw)[-1]
+        if not tail.isdigit():
+            continue
         seg = int(tail)
         if seg <= 0:
             continue
@@ -804,7 +805,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     if exclude_wsc:
         keep_c, drop_c = [], []
         for c in fwa_chains:
-            (drop_c if any(trim_wsc(c.fwa_watershed_code).startswith(p) for p in exclude_wsc)
+            (drop_c if _wsc.has_prefix(trim_wsc(c.fwa_watershed_code), exclude_wsc)
              else keep_c).append(c)
         fwa_chains = keep_c
         excluded_fwa = [c for c in drop_c if (c.gnis_name or "").strip() and c.geometry is not None]
@@ -1092,9 +1093,9 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     for b in wsc_of:
         cn = _canon_name(ch_by_blk[b].name)
         tw = trim_wsc(wsc_of[b])
-        seniors = [w for w in anchors.get(cn, ()) if tw.startswith(trim_wsc(w))]   # my lineage ancestors
+        seniors = [w for w in anchors.get(cn, ()) if _wsc.is_at_or_below(tw, trim_wsc(w))]   # my lineage ancestors
         senior = min(seniors, key=lambda w: len(trim_wsc(w))) if seniors else wsc_of[b]
-        if trim_wsc(senior) != tw and tw.startswith(trim_wsc(senior)) and b not in same_name_tribs:
+        if _wsc.is_strictly_below(tw, trim_wsc(senior)) and b not in same_name_tribs:
             pin[b] = senior                                                        # collapses strictly UP
     # same-name SIBLINGS under the same parent (a fragmented tributary that joins the mainstem at a couple
     # of nearby points) share ONE code — the mouth-most (shortest, then lexicographically smallest). Keyed
@@ -1105,7 +1106,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         if not cn or b in same_name_tribs:              # distinct tributaries never share a sibling code
             continue
         tw = trim_wsc(pin.get(b, wsc_of[b]))
-        parent = tw.rsplit("-", 1)[0] if "-" in tw else tw
+        parent = _wsc.parent(tw)
         sib.setdefault((cn, parent), []).append(b)
     for bs in sib.values():
         if len(bs) > 1:

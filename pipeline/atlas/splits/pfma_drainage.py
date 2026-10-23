@@ -49,6 +49,7 @@ import logging
 from typing import Dict, Iterable, Optional
 
 from project_config import get_config
+from pipeline.common.utils import wsc as _wsc
 
 logger = logging.getLogger(__name__)
 
@@ -121,11 +122,11 @@ def basin_of(watershed_code: str) -> Optional[str]:
     """
     if not isinstance(watershed_code, str) or not watershed_code:
         return None
-    groups = watershed_code.split("-")
-    if not groups or groups[0] == "999":
+    groups = _wsc.groups(watershed_code)
+    if not groups or _wsc.is_unknown(watershed_code):
         return None
-    if groups[0].startswith("9"):
-        return "-".join(groups[:2]) + "-" if len(groups) > 1 else None
+    if _wsc.in_nine_hundreds(watershed_code):
+        return _wsc.head(watershed_code, 2) + "-" if len(groups) > 1 else None
     return groups[0] + "-"
 
 
@@ -157,7 +158,7 @@ def basin_areas(areas: Iterable[int] = SECTION_E_AREAS, gpkg: str = _GPKG) -> Di
         mouths["_basin"] = mouths["FWA_WATERSHED_CODE"].map(basin_of)
         mouths = mouths[mouths["_basin"].notna()]
         # Out of province by FWA's own definition — drop before any geometry is consulted.
-        mouths = mouths[~mouths["_basin"].str.split("-").str[0].isin(OUT_OF_PROVINCE_GROUPS)]
+        mouths = mouths[~mouths["_basin"].map(_wsc.root).isin(OUT_OF_PROVINCE_GROUPS)]
         if mouths.empty:
             raise ValueError("no basin mouths found — is the streams layer built?")
 

@@ -31,6 +31,7 @@ from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
+from pipeline.common.utils import wsc as _wsc
 
 #: Basins answered from the graph, per graph object — a sub-basin is a full scan of the graph. The
 #: graph is held beside its answer and checked by identity, so a recycled `id()` never serves
@@ -81,10 +82,8 @@ _LINE_LEN: dict[tuple[int, str], tuple[object, float]] = {}
 def _first_group(code: str, river: str) -> int | None:
     """The position (in millionths of `river`'s length, from its mouth) at which the water coded
     `code` joins `river` — the group after the river's code. None when `code` IS the river's."""
-    if code == river:
-        return None
-    head = code[len(river) + 1:].split("-", 1)[0]
-    return int(head) if head.isdigit() else None
+    head = _wsc.group_after(code, river)
+    return int(head) if head is not None and head.isdigit() else None
 
 
 def _basin_members(g, river: str) -> tuple:
@@ -95,10 +94,9 @@ def _basin_members(g, river: str) -> tuple:
     hit = _WS_MEMBERS.get(ck)
     if hit is None or hit[0] is not g:
         out = []
-        pre = river + "-"
         for nid in sorted(g.nodes):
             c = node_basin_code(g.nodes[nid])
-            if c == river or c.startswith(pre):
+            if _wsc.is_at_or_below(c, river):
                 out.append((nid, _first_group(c, river)))
         hit = _WS_MEMBERS[ck] = (g, tuple(out))
     return hit[1]
@@ -125,7 +123,7 @@ def _line_length(g, blk: str, river: str) -> float:
             s = g.nodes.get(e.from_node)
             grp = _first_group(node_basin_code(s), river) if s is not None else None
             if grp and grp >= 1000 and e.at_measure > 0 and \
-                    node_basin_code(s).startswith(river + "-"):
+                    _wsc.is_strictly_below(node_basin_code(s), river):
                 ratios.append(e.at_measure * 1e6 / (grp + 0.5))
     if len(ratios) >= 5:
         ratios.sort()
@@ -691,7 +689,7 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float)
                 hits.add(y)
                 continue
             n = g.nodes.get(y)
-            if y in seen or n is None or (own and node_basin_code(n).startswith(own + "-")):
+            if y in seen or n is None or _wsc.is_strictly_below(node_basin_code(n), own):
                 continue
             seen.add(y)
             stack.append(y)

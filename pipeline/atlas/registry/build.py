@@ -18,6 +18,7 @@ from dataclasses import replace
 
 from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 from pipeline.common.water_kind import flows
 
 logger = logging.getLogger(__name__)
@@ -417,8 +418,8 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
             # `wsc`, or for a lake FWA codes `999` the named watershed containing it (`basin_wsc`) —
             # the SAME reading `basins.basin_members` gives a sub-basin, so the two agree.
             code = node_basin_code(n)
-            head = code.split("-")[0] if code else ""
-            if head and not head.startswith("9") and head != "999":
+            head = _wsc.root(code)
+            if head and not _wsc.in_nine_hundreds(code):
                 basin_nodes[f"area:basin:{head}-"].append(n)
         for aid, nodes in basin_nodes.items():
             registry[aid] = RegistryItem(id=aid, name=aid, kind="area", variants=(),

@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from pipeline.common.fwa_edge_types import is_barrier as _fwa_is_barrier
 from pipeline.common.models.enums import NodeKind
 from pipeline.common.models.names import NameTuple
 from pipeline.common.models.sections import SectionBoundary
@@ -76,7 +77,7 @@ class StreamNode:
     @property
     def is_barrier(self) -> bool:
         """A 2300 (canal/artificial connector) node stops the tributary walk (spike S2)."""
-        return "2300" in self.edge_types
+        return _fwa_is_barrier(self.edge_types)
 
     @property
     def location_identifier(self) -> Optional[str]:

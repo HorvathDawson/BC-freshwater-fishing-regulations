@@ -16,6 +16,7 @@ from collections import Counter
 
 from pipeline.atlas.waters.added_streams.coastal import is_coastal_wsc
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 
 
 def _prefixes(wsc: str) -> str:
@@ -70,13 +71,13 @@ def validate_propagation(streams: list[dict]) -> list[str]:
                 bad(s, f"extension wsc {wsc!r} must equal the FWA stream's wsc {rwsc!r}")
         elif name_shared:
             # shares the mainstem's senior code; only the primary drainage code must be inherited
-            if wsc[:3] != rwsc[:3]:
-                bad(s, f"primary code {wsc[:3]} != receiver primary {rwsc[:3]} (not inherited)")
+            if _wsc.root(wsc) != _wsc.root(rwsc):
+                bad(s, f"primary code {_wsc.root(wsc)} != receiver primary {_wsc.root(rwsc)} (not inherited)")
         else:
-            if not wsc.startswith(rwsc):
+            if not _wsc.is_at_or_below(wsc, rwsc):
                 bad(s, f"wsc {wsc!r} does not prefix-descend receiver wsc {rwsc!r}")
-            if wsc[:3] != rwsc[:3]:
-                bad(s, f"primary code {wsc[:3]} != receiver primary {rwsc[:3]} (not inherited)")
+            if _wsc.root(wsc) != _wsc.root(rwsc):
+                bad(s, f"primary code {_wsc.root(wsc)} != receiver primary {_wsc.root(rwsc)} (not inherited)")
 
         # the receiver chain must terminate at an fwa/tidal root without cycles
         if kind == "added":

@@ -50,6 +50,7 @@ import time
 from collections import Counter, defaultdict, deque
 from pathlib import Path
 
+from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.runtiming.runs import read_runs
 
@@ -57,7 +58,7 @@ from pipeline.runtiming.runs import read_runs
 def descends(ancestor: str, code: str) -> bool:
     """True when `code`'s water drains through `ancestor` — the FWA hierarchy, on group
     boundaries so "400-04" cannot be read as an ancestor of "400-046808"."""
-    return bool(ancestor) and (code == ancestor or code.startswith(ancestor + "-"))
+    return _wsc.is_at_or_below(code, ancestor)
 
 
 def downstream_next(graph) -> dict[str, list[str]]:
@@ -137,19 +138,18 @@ def main(graph_pkl: Path, gen: Path, max_km: float | None) -> None:
         # CUs are coastal aggregates and say so in their names — `Nass-Skeena Estuary` holds
         # 598 sections (1.3%) in its smallest root, `East Vancouver Island-Georgia` 136
         # (1.0%). The spill is one to thirteen sections at two thousandths of a percent.
-        roots = Counter(wsc[s].split("-")[0] for s in secs if s in wsc and wsc[s])
+        roots = Counter(_wsc.root(wsc[s]) for s in secs if s in wsc and wsc[s])
         tot = sum(roots.values()) or 1
         keep_roots = {r for r, n in roots.items() if (n / tot >= 0.01 and n >= 5) or n >= 100}
         dropped_roots[cuid] = sum(n for r, n in roots.items() if r not in keep_roots)
-        secs = {s for s in secs if s in wsc and wsc[s].split("-")[0] in keep_roots}
+        secs = {s for s in secs if s in wsc and _wsc.root(wsc[s]) in keep_roots}
         if not secs:
             continue
         codes = {wsc[s] for s in secs if s in wsc and wsc[s]}
         ancestors: set[str] = set()
         for c in codes:
-            parts = c.split("-")
-            for i in range(1, len(parts) + 1):
-                ancestors.add("-".join(parts[:i]))
+            ancestors.update(_wsc.ancestors(c))
+            ancestors.add(c)
         seen, q = set(), deque(secs)
         while q:
             n = q.popleft()

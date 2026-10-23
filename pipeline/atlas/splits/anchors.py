@@ -52,6 +52,7 @@ def _line(coords, is_lonlat: bool) -> LineString:
 
 
 from pipeline.common.utils.wsc import trim_wsc as _trim_wsc   # shared util (pipeline/wsc.py); prefix-safe WSC trim
+from pipeline.common.utils import wsc as _wsc
 
 
 def _target_blks(sd: SplitDef, chains: list[BlkChain], descendants: bool = False) -> list[str]:
@@ -65,7 +66,7 @@ def _target_blks(sd: SplitDef, chains: list[BlkChain], descendants: bool = False
             # the whole WSC subtree: the trunk itself + everything draining into it (prefix match,
             # dash-guarded so '100-025956' never matches a sibling like '100-0259560').
             return [c.blk for c in chains
-                    if (tc := _trim_wsc(c.fwa_watershed_code)) == w or tc.startswith(w + "-")]
+                    if _wsc.is_at_or_below(_trim_wsc(c.fwa_watershed_code), w)]
         return [c.blk for c in chains if _trim_wsc(c.fwa_watershed_code) == w]
     return []
 
@@ -307,7 +308,7 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 pw, tw = _trim_wsc(c.fwa_watershed_code), _trim_wsc(trib.fwa_watershed_code)
                 # valid iff the tributary is a strict descendant of the parent, OR tw == pw (the river's
                 # OWN mouth into a larger river — "X to its confluence with Y", cut on X at measure 0).
-                concern = "" if (tw == pw or tw.startswith(pw + "-")) else (
+                concern = "" if (tw == pw or _wsc.is_at_or_below(tw, pw)) else (
                     f"confluence WSC check failed: tributary {tw} is not a descendant of parent {pw}")
                 d = c.geometry.project(mouth)
                 off = c.geometry.interpolate(d).distance(mouth)

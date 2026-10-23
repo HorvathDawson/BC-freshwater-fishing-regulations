@@ -35,6 +35,8 @@ from dataclasses import dataclass, field
 
 from pipeline.atlas.graph.graph import ancestors
 from pipeline.common.models import NodeKind, StreamGraph
+from pipeline.common import fwa_edge_types
+from pipeline.common.utils import wsc
 
 #: Edges by which a river continues into its own next piece. Crossing one of these OUT of
 #: the reach means leaving onto the mainstem above, which is not a tributary.
@@ -226,11 +228,6 @@ def _lake_mid_reach(graph: StreamGraph, lake_id: str, reach: frozenset[str], bel
     return False
 
 
-def _wsc_below(code: str, parent: str) -> bool:
-    """Is watershed code `code` at or below `parent` in the FWA hierarchy?"""
-    return code == parent or code.startswith(parent + "-")
-
-
 def code_runs(graph: StreamGraph) -> tuple[dict[str, tuple[str, ...]], frozenset[tuple[str, str]]]:
     """Bifurcations where the FLOW leaves the watershed the CODE puts the water in.
 
@@ -261,7 +258,7 @@ def code_runs(graph: StreamGraph) -> tuple[dict[str, tuple[str, ...]], frozenset
         outs = sorted({graph.edges[ei].to_node for ei in graph.down_adj.get(nid, [])} - {nid})
         if len(outs) < 2:
             continue
-        main = _main_outlets(graph, outs)
+        main = lake_main_outlet(graph, nid)
         mine: list[str] = []
         for head in outs:
             if head in main:
@@ -276,7 +273,7 @@ def code_runs(graph: StreamGraph) -> tuple[dict[str, tuple[str, ...]], frozenset
                 nxt = dn[0]
                 a = (graph.nodes[cur].wsc or "") if cur in graph.nodes else ""
                 b = (graph.nodes[nxt].wsc or "") if nxt in graph.nodes else ""
-                if a and b and not _wsc_below(a, b):
+                if wsc.relation(a, b) not in (wsc.SAME, wsc.BELOW, wsc.UNKNOWN):
                     mine.extend(run)
                     cuts.add((cur, nxt))
                     break
@@ -293,25 +290,31 @@ def code_runs(graph: StreamGraph) -> tuple[dict[str, tuple[str, ...]], frozenset
     return got
 
 
-#: FWA EDGE_TYPEs of MAIN flow (single line, in a wetland, construction lines of a double-line
-#: river). An outlet carrying one of these is the lake's river, not a distributary.
-_MAIN_FLOW_TYPES = frozenset({"1000", "1050", "1200", "1250"})
+def lake_main_outlet(graph: StreamGraph, lake_id: str) -> frozenset[str]:
+    """THE LAKE'S OWN RIVER LEAVING IT — the one owner of that answer (T117). The lake's outlet(s) of
+    the largest Strahler order, and among equals those FWA draws as main flow
+    (`fwa_edge_types.is_main_flow`); empty for a lake with no outlet.
 
+    Two readers, which used to answer it two ways:
+      * `code_runs`: only the OTHER outlets can be a code run. Without this the run followed a lake's
+        main river too: Nanika Lake's outlet (the Nanika River, order 6) met a lake whose code the river
+        does not descend from, and every walk from below lost the lake and all 491 sections above it;
+        the white sturgeon rules lost 4,400. A bifurcation is a lake's SECONDARY outlet (Dewar Lake's
+        side channel is FWA secondary flow, 1100/1150).
+      * `_is_main_outlet` (the order guard's one exemption) asked "strictly larger than every other
+        STREAM outlet", so where two outlets tied on order NEITHER was the lake's river — while
+        `code_runs` took the main-flow one. Now both read this, and the tie goes to main flow.
+    Empty for a node that is not a lake."""
+    lake = graph.nodes.get(lake_id)
+    outs = sorted({graph.edges[ei].to_node for ei in graph.down_adj.get(lake_id, [])} - {lake_id})
+    if lake is None or lake.kind != NodeKind.lake or not outs:
+        return frozenset()
 
-def _main_outlets(graph: StreamGraph, outs: list[str]) -> frozenset[str]:
-    """The outlet(s) that are a lake's own river: the largest by Strahler order, and among equals
-    those FWA draws as main flow. Only the OTHER outlets can be a code run.
-
-    Without this the run followed a lake's main river too: Nanika Lake's outlet (the Nanika River,
-    order 6) met a lake whose code the river does not descend from, and every walk from below lost
-    the lake and all 491 sections above it; the white sturgeon rules lost 4,400. A bifurcation is a
-    lake's SECONDARY outlet (Dewar Lake's side channel is FWA secondary flow, 1100/1150)."""
     def order(o):
         return (graph.nodes[o].stream_order or 0) if o in graph.nodes else 0
     top = max(order(o) for o in outs)
     best = [o for o in outs if order(o) == top]
-    flow = [o for o in best
-            if set(getattr(graph.nodes.get(o), "edge_types", ()) or ()) & _MAIN_FLOW_TYPES]
+    flow = [o for o in best if fwa_edge_types.is_main_flow(graph.nodes.get(o))]
     return frozenset(flow or best)
 
 
@@ -789,11 +792,7 @@ def _reach_codes(graph: StreamGraph, reach) -> frozenset[str]:
 @functools.lru_cache(maxsize=1024)
 def _strict_ancestors(codes: frozenset[str]) -> frozenset[str]:
     """Every strict ancestor of any of `codes` that is not itself one of them."""
-    out: set[str] = set()
-    for c in codes:
-        parts = c.split("-")
-        out.update("-".join(parts[:i]) for i in range(1, len(parts)))
-    return frozenset(out - codes)
+    return frozenset(a for c in codes for a in wsc.ancestors(c)) - codes
 
 
 def _receives(src, codes: frozenset[str]) -> bool:
@@ -838,10 +837,10 @@ def _is_main_outlet(graph: StreamGraph, lake_id: str, out_id: str) -> bool:
     Only the main outlet is exempt, never a lake as such. Of the 386 lake-source edges the guard
     refuses in the province, ~360 are a SECONDARY outlet — the lake drains by two or more
     streams and this is the smaller — and climbing a distributary into its lake would hand a
-    small creek the lake's whole catchment. The main outlet is the one that carries the lake's
-    own watershed code and is larger than every other stream the lake drains into (or the only
-    one). An outlet whose code differs (Burnaby Lake "draining" into Still Creek, 100-019698 vs
-    100-019698-999999) is not the lake's line, and the guard stands.
+    small creek the lake's whole catchment. The main outlet is `lake_main_outlet` — the one owner of
+    "which outlet is the lake's river" — and must carry the lake's own watershed code: an outlet whose
+    code differs (Burnaby Lake "draining" into Still Creek, 100-019698 vs 100-019698-999999) is not the
+    lake's line, and the guard stands.
     """
     lake = graph.nodes.get(lake_id)
     out = graph.nodes.get(out_id)
@@ -849,15 +848,7 @@ def _is_main_outlet(graph: StreamGraph, lake_id: str, out_id: str) -> bool:
         return False
     if not lake.wsc or lake.wsc != out.wsc:
         return False
-    others = {graph.edges[ei].to_node for ei in graph.down_adj.get(lake_id, [])} - {out_id}
-    mine = out.stream_order or 0
-    for o in others:
-        on = graph.nodes.get(o)
-        if on is None or on.kind == NodeKind.lake:
-            continue
-        if (on.stream_order or 0) >= mine:
-            return False                        # not larger than every other outlet
-    return True
+    return out_id in lake_main_outlet(graph, lake_id)
 
 
 def _breaks_strahler(upstream, downstream) -> bool:
@@ -885,8 +876,7 @@ def _code_says_tributary(upstream, downstream) -> bool:
     Then order is never judged: the code wins."""
     if upstream is None or downstream is None:
         return False
-    up_wsc, dn_wsc = upstream.wsc or "", downstream.wsc or ""
-    return bool(up_wsc and dn_wsc and up_wsc != dn_wsc and up_wsc.startswith(dn_wsc))
+    return wsc.is_strictly_below(upstream.wsc, downstream.wsc)
 
 
 def _order_breaks(upstream, downstream) -> bool:

@@ -90,9 +90,10 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     # the source's unreliable line direction. Best-effort: if tiles can't be fetched, the layer is empty.
     demraw, dembridges, demmarkers = [], [], []
     from pipeline.common.utils.wsc import trim_wsc
+    from pipeline.common.utils import wsc as _wsc
     _ex = FWA_EXCLUDE_BY_SOURCE.get(source, ())
     fwa_out = [c.geometry for c in chains if c.geometry is not None       # FWA outlets a stranded sink can
-               and not any(trim_wsc(c.fwa_watershed_code).startswith(p) for p in _ex)]  # reach (minus excluded)
+               and not _wsc.has_prefix(trim_wsc(c.fwa_watershed_code), _ex)]  # reach (minus excluded)
     tidal_out = unary_union([t for t in tidal]) if tidal else None
     try:
         flow, bridges, markers = dem_flow(features, ElevationSampler(),

@@ -58,7 +58,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
+from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc as _trim
+
 
 # Fraction of the gauge's own drainage that this section accounts for.
 #
@@ -201,9 +203,7 @@ def drains_through(section_wsc: str, gauge_wsc: str) -> bool:
     code on either side is a no: a shed built on a guess is the failure this file exists to
     prevent.
     """
-    if not section_wsc or not gauge_wsc:
-        return False
-    return section_wsc == gauge_wsc or section_wsc.startswith(gauge_wsc + "-")
+    return _wsc.is_at_or_below(section_wsc, gauge_wsc)
 
 
 def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, str],

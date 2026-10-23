@@ -14,6 +14,7 @@ from typing import Any, Optional
 
 from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 
 from pipeline.atlas.graph import cutting
 from pipeline.common.models import BlkChain, FidSpan, NameSource, NameTuple, WaterbodyRun
@@ -60,7 +61,7 @@ def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
     for gdf in fwa.iter_layer(streams_layer, columns=_STREAM_COLUMNS, bbox=bbox):
         for r in gdf.itertuples():
             wsc_raw = r.FWA_WATERSHED_CODE or ""
-            if wsc_raw.startswith(_SENTINEL_WSC):
+            if _wsc.is_no_code(wsc_raw):
                 continue
             down_node, up_node = cutting.blk_endpoints(r.geometry)
             if down_node is None or up_node is None:

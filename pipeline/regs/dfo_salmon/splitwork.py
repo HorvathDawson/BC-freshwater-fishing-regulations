@@ -29,6 +29,7 @@ from pathlib import Path
 
 from pipeline.regs.dfo_salmon.dossier import ENTRIES, item_pin, osm_link
 from pipeline.common.curated import GENERATED
+from pipeline.common.utils import wsc as _wsc
 
 HISTORY = Path("cache/dfo_salmon/history")
 RAW = Path("cache/dfo_salmon/raw")
@@ -196,7 +197,7 @@ def waters(reg) -> list[dict]:
                     tribs = []
                     for mm in TRIB_RE.finditer(text):
                         for cand in by_stream_name.get(mm.group(1).lower(), []):
-                            if any(t.startswith(m + "-") for t in wscs(cand) for m in mine):
+                            if any(_wsc.is_strictly_below(t, m) for t in wscs(cand) for m in mine):
                                 tribs.append((mm.group(1), cand.id, wscs(cand)[0]))
                     if tribs and not (a & COORD_ANCHORS):
                         kind = "confluence"

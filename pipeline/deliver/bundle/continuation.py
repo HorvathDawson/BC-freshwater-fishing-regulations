@@ -65,6 +65,7 @@ from collections import Counter, defaultdict
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.utils import wsc as _wsc
 from pipeline.common import entry_id as EID
 
 Line = Tuple[str, int]
@@ -142,8 +143,7 @@ def _main(sids: Iterable[int], line: Callable[[int], Optional[Line]]) -> Optiona
 def drains_into(code: str, into: str) -> bool:
     """Whether the FWA watershed code `code` names a tributary (at any depth) of the water coded `into`: `into`'s groups
     are a proper prefix of `code`'s, after the `-000000` padding is trimmed. An empty code says nothing."""
-    c, i = trim_wsc(code or ""), trim_wsc(into or "")
-    return bool(c and i) and c.startswith(i + "-")
+    return _wsc.is_strictly_below(trim_wsc(code or ""), trim_wsc(into or ""))
 
 
 #: `goes_on`'s answers: A goes on as B; A goes on as B only if the book pairs them (two rivers meet there); A does not.

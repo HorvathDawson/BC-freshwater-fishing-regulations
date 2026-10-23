@@ -20,6 +20,7 @@ member either IS the prefix's code or starts with the prefix.
 from __future__ import annotations
 
 import re
+from pipeline.common.utils import wsc as _wsc
 
 BASIN = "area:basin:"
 
@@ -61,9 +62,7 @@ def basin_code(area_id: str) -> str | None:
 
 def in_basin(wsc: str | None, code: str) -> bool:
     """Does a node whose (trimmed) watershed code is `wsc` drain to basin `code`?"""
-    if not wsc:
-        return False
-    return wsc == code[:-1] or wsc.startswith(code)
+    return _wsc.is_at_or_below(wsc, code.rstrip("-"))
 
 
 def node_basin_code(n) -> str:

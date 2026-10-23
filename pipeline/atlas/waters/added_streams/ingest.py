@@ -13,6 +13,7 @@ touches build.py — the standalone harness (and, later, build.py) wires them to
 """
 
 from __future__ import annotations
+from pipeline.common import fwa_edge_types
 
 import json
 from dataclasses import dataclass
@@ -32,7 +33,7 @@ from pipeline.common.models import BlkChain, FidSpan, FlowEdge, NodeKind, Stream
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _CONNECT_TOL_M = 250.0      # auto receiver must be within this of the channel
 _CONFLUENCE_GAP_M = 1.0     # mouth↔receiver closer than this => a shared vertex (kind "confluence")
-_DEFAULT_EDGE_TYPE = "1000" # normal stream; NEVER "2300" (that would make it a barrier)
+_DEFAULT_EDGE_TYPE = fwa_edge_types.SINGLE_LINE   # normal stream; NEVER the connector (a barrier)
 
 
 @dataclass(frozen=True)
@@ -146,7 +147,7 @@ def _synth_records(ch: Channel, geom3005: LineString, wsc: str,
 
 
 def added_fidrows(blk: str, wsc: str, segments: list[tuple[LineString, str]], order: int, mag: int,
-                  edge_type: str = "1000", base_measure: float = 0.0, gnis_id: str = "") -> list[FidRow]:
+                  edge_type: str = fwa_edge_types.SINGLE_LINE, base_measure: float = 0.0, gnis_id: str = "") -> list[FidRow]:
     """One synthetic `FidRow` per (geometry, wbk) segment of an added stream, ordered mouth→source with
     accumulating route measures from ``base_measure``. An under-lake segment carries the FWA lake
     `wbk`, so `build_blk_chains` turns it into a `WaterbodyRun` that ties into the existing lake node.
