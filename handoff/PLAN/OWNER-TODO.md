@@ -6,8 +6,6 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Q5 / T66, T97 — curation review plan.** Read `handoff/PLAN/curation-review/PLAN.md` (verdict: the tool is not
-  ready for a person yet) and approve it or change it. Its 9 questions are Q33–Q41.
 - **Q6 / T67 — braid splitting at build** (2026-10-23: "not yet", you read it first). Read `handoff/PLAN/braids/T67-assessment.md`, then answer R14 Q1 (keep
   ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
 
@@ -16,7 +14,7 @@ with the default Claude uses until you answer). Newest first inside each section
   (stream by the book / not a stream / unsure). Start with the 65 "stream by book" and 236 "likely". Includes the 40
   Okanagan River oxbows (p.70 says isolated oxbows are exempt from the spring closure).
 
-Answered 2026-10-23: Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
+Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
 ## Questions answered with a default (change any you disagree with)
 

@@ -110,7 +110,7 @@ use that as the sole source of future work."
 | T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
-| T66 | curation review tool | PARTIAL | a3f66b7c (plan) | owner reads curation-review/PLAN.md; build → T96, T97 |
+| T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
 | T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
@@ -141,7 +141,7 @@ use that as the sole source of future work."
 | T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
-| T97 | curation review phases 1–5 (marks, one vintage, review screen, queue, gate) | BLOCKED (owner) | — | all; owner approves PLAN.md |
+| T97 | curation review phase 1 (marks that last) + umbrella | OPEN | — | phases 2–5 → T133–T136 |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
@@ -176,6 +176,11 @@ use that as the sole source of future work."
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | OPEN | — | all |
 | T131 | spot pins look better and open the spot on tap | OPEN | — | all |
+| T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
+| T133 | curation review phase 2: one vintage on screen | OPEN | — | after T97 |
+| T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
+| T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
+| T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 
 ## Order for open tickets
 
@@ -209,7 +214,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
 | Q3 | T54 | Lakes inside Tier A areas (Coquitlam Lake): same fourth colour for the fill? | yes | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
-| Q5 | T66/T97 | Curation review: approve handoff/PLAN/curation-review/PLAN.md (phases 0–5, ~3–4 weeks before a human starts)? | phase 0 (T96) goes ahead; phases 1–5 wait | owner (BLOCKS T97) |
 | Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
 | Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
@@ -221,14 +225,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
 | Q32 | T95 | Salmon (DFO) timing and scope | after T50 and the cleanup | owner |
-| Q34 | T97 | May the app's start link back the review pane? | yes, read-only, on the reviewer's own port; deep link until approved | owner |
-| Q35 | T97 | Who may fix as well as mark? | reviewers mark only; fix mode owner-only; wrong/unsure marks become tickets | owner |
-| Q36 | T97 | Review overrides.json, steelhead_waters, cross_references, DFO entries, name variants in this pass? | not in this pass; the `answer` fingerprint surfaces their effects | owner |
-| Q37 | T97 | Per-rule or per-entry marks? | per entry for water rows, per rule for the 132 zone entries, per point for splits | owner |
-| Q38 | T97 | Offer sampling for P4? | off; full review | owner |
-| Q39 | T97 | Retire the ingest ledger or move it into curated data? | retire; new ids only + `--replace-entry` | owner |
-| Q40 | T97 | Which PDF is the book? | the repo copy, sha256 on every mark, one-time check of chapter pages vs gov.bc.ca | owner |
-| Q41 | T97 | Start review before phase 3? | no | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
 | Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
 | Q46 | T57 | A nameless lake at the top of a reach stops the tributary walk like a named one (Bull r1, St. Mary r3: 3 sections)? | no change | owner |
@@ -252,6 +248,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
 
 ### Answered (recently, for the record)
+- Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).
 - Q13 (reader gate, T82) — owner 2026-10-23: "you can run the reader gate" — Claude runs it (an Opus agent run, not the parser).
 - Q44 (side-channel gauges, T101) — owner 2026-10-23: a side channel's gauge never answers Level for the river it branched from; it answers Flow for that river only when the side channel carries a large share of it. T101 unblocked.
 - Q53 (order guard, T102) — owner 2026-10-23: as built — the code (WSC) decides parent/child; stream order only breaks ties on equal or unrelated codes.

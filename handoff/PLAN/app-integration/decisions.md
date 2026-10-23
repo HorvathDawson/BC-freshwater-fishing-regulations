@@ -922,3 +922,15 @@ Undo for any straggler: say which; each is one component's change, and the ticke
 - **Q45 / T89:** the eight waters printed in an MU holding no registry water of that name stay unbound and listed
   (AWAITING_WATER). A same-name water elsewhere is never bound.
 - **Q6 / T67 (braids):** not yet — braids stay paused; the owner reads the assessment first.
+
+## OWNER 2026-10-23 — curation review plan approved (Q5, Q34–Q41)
+"The review app changes seem good. We could also maybe make it do salmon review. But for now it seems good. Make sure we
+could add splits and rebuild then continue review with the new splits etc."
+- handoff/PLAN/curation-review/PLAN.md is approved with every §6 default (Q34–Q41): start link backs the pane (deep
+  link first), reviewers mark only (fix mode owner-only), overrides/steelhead/cross-refs/DFO/name variants not in this
+  pass, per-entry marks (per-rule for zone entries, per-point for splits), no sampling, ingest ledger retired, the repo
+  PDF is the book (sha256 on every mark), no review before phase 3.
+- Splits mid-review are a requirement: add/move a split in fix mode → printed rebuild → the tool picks up the new
+  vintage; only marks whose binding moved go stale ("binding moved"); the new split is queued in S0. Built across T97,
+  T133–T136.
+- Salmon (DFO) review is a later pass: T132.
