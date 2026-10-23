@@ -1,6 +1,15 @@
 # T96 — Curation review, phase 0: make the tool safe; the 5 entries that fail the gate
 
-Status: OPEN.
+Status: DONE — 66ac3e67 (gate + Shuswap data), 41d085d6 (tool safety). The 4 zp failures were a GATE bug:
+`exemptions_stay_inside_what_they_lift` compared the string `area:region:6` with the `area_kind` `region` (= the whole
+province; every area is clipped to it, areas.json `_clip_policy`); it now proves containment (an area holds itself, a
+kind its family, the province every area, minus `outside_area*`); real outside-lifts still refused, mutation-pinned on
+`zp:bait`. Shuswap (printed p.32 = PDF p.34; R3 box p.28): r8/r10 now quote the whole line "… daily quota = 1 (none under
+50/60 cm), annual quota = 5" — 4 lines of region-3.json. 1,525/1,525 pass `check_entry`
+(`test_every_curated_entry_passes_the_ingest_gate`). Q33 answered by the default (no gate loosening for outside ground).
+Not run here (no atlas in the worktree): the `needs_atlas` tests of `test_curation_review_api.py`/`_writes.py`, and the
+smoke tier as a whole — the merger's full check. SplitEditor's note/grade block is typechecked (tsc clean), not
+screenshotted. The curated digest moved (region-3.json, splits.json `_note`): the next `pipeline build` re-runs its stages.
 
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 0" and §6 Q1 (a3f66b7c, T66). Defect found there: 5 entries
 fail the gate and `validate_catalogue` — Shuswap Lake `min_cm` 50/60 "not in own verbatim"; `zp:set_lining`,
