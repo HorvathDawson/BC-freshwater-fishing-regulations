@@ -4009,7 +4009,7 @@ def cases(d: dict, bundle: Path) -> dict:
             break
 
     # home_region_differs: a stream piece whose zone rules are another region's than its row's
-    fam = lambda r: r[:1] if r and r[:1] == "7" else r            # noqa: E731
+    fam = lambda r: EID.book_region(r) if r else r              # noqa: E731
     for s in K.sets:
         item, part = K.first_part[s]
         m = K.members[s]
@@ -5817,10 +5817,11 @@ def _plain(text: str) -> str:
 
 
 def _zone_words(entry_id: str) -> str:
-    """`z3:…` -> "Region 3", `z7a:…` -> "Zone 7A" — whose closure it is, in the book's words."""
-    from pipeline.deliver.bundle import read as RD
-    r = RD.base_region(entry_id) or ""
-    return f"Zone {r[-1].upper()}" if r[-1:] in ("a", "b") else f"Region {r}"
+    """`z3:…` -> "Region 3", `z7a:…` -> "Zone A" — whose closure it is, in the book's words."""
+    r = EID.zone_region(entry_id) or ""
+    if r and EID.book_region(r) != r:
+        return f"Zone {r[-1].upper()}"
+    return EID.region_words([r]) if r else "Region "
 
 
 def closures_combine(bundle: Path) -> dict:

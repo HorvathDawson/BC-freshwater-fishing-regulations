@@ -14,6 +14,12 @@ Status: PARTIAL — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python). Lane wf_7
 - Step 3 DONE: pipeline/tests/test_entry_id.py scans every pipeline module (AST) for an inline
   startswith("z"|"r"|"zp"|"zp:"|…) or an entry-id regex outside entry_id.py (mutation: each removed spelling is caught),
   and pins level.ts as the app's one entry-id reader.
+- Review (adversarial): three re-inlined `book_region` copies in bundle/rules.py (`zr[:-1] == region and zr[-1:] in
+  ("a", "b")`, lifts/size lifts/exempt lifts) and two in export_ui_rules (`_zone_words`, the `fam` lambda) now go through
+  `entry_id.book_region`/`zone_region`/`region_words`; the scan also catches a sliced zone-letter test (mutation-pinned).
+  Old-vs-new equivalence checked on all 1534 bundle entry ids; export/guide/answers byte-identical again, card gate 0.
+- Owner question (default kept): `_zone_words` words a 7A closure "Zone A" while the level tag says "Region 7A rule" —
+  both are book words; unify on one? Default: keep both (sentence vs tag).
 - Left (follow-up, needs deliver + app): the bundle/export ships the parsed region so level.ts stops using its regex
   (store field + regs fixture regenerate). Minting NOT changed: `matcher.region_num` still reads "REGION 7A" as "7", so
   r7 rows carry no zone in their id (EntryId.regions recovers it from the MUs + registry). Changing it moves every

@@ -106,6 +106,12 @@ def inline_entry_id_tests(src: str) -> list[int]:
                 out.append(n.lineno)
         if isinstance(n, ast.Constant) and isinstance(n.value, str) and _RX.match(n.value):
             out.append(n.lineno)
+        # T109 review: a zone letter read off a sliced region (`zr[-1:] in ("a", "b")`) is `book_region` re-inlined
+        if isinstance(n, ast.Compare) and isinstance(n.left, ast.Subscript) and isinstance(n.left.slice, ast.Slice):
+            for c in n.comparators:
+                vals = [e.value for e in getattr(c, "elts", []) if isinstance(e, ast.Constant)]
+                if sorted(vals) == ["a", "b"]:
+                    out.append(n.lineno)
     return out
 
 
@@ -113,9 +119,11 @@ def test_the_scan_sees_a_reinlined_test():
     """Mutation: each spelling the refactor removed is caught."""
     for bad in ('x.startswith("z")', 'eid.startswith("zp:")', 'str(k[0]).startswith("r")',
                 'e.startswith(("z", "zp:"))', 're.match(r"^r(\\d+[ab]?)$", ch)', 're.match(r"z\\d", eid)',
-                're.compile(r"^r(\\d+[a-z]?):")'):
+                're.compile(r"^r(\\d+[a-z]?):")', 'zr[:-1] == region and zr[-1:] in ("a", "b")',
+                'r[-1:] in ("a", "b")'):
         assert inline_entry_id_tests(bad), bad
-    for fine in ('name.startswith("regs-")', 'i.startswith("r6:kitimat")', 'k.startswith("zp:classified_waters_licence#x")'):
+    for fine in ('name.startswith("regs-")', 'i.startswith("r6:kitimat")', 'k.startswith("zp:classified_waters_licence#x")',
+                 'kk in ("a", "b")'):
         assert not inline_entry_id_tests(fine), fine
 
 

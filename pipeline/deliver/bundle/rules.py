@@ -582,7 +582,7 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
     region = _zone_region(entry_id)
     out: list[dict] = []
     for zr in sorted(closures):
-        if not (zr == region or (zr[:-1] == region and zr[-1:] in ("a", "b"))):
+        if region not in (zr, EID.book_region(zr)):
             continue
         for eid, z in closures[zr]:
             both = mine & named_leaves(z)
@@ -635,7 +635,7 @@ def _any_size_lifts(entry_id: str, r, rules_of: dict[str, dict]) -> list[dict]:
     out: list[dict] = []
     for eid in sorted(rules_of):
         zr = _zone_region(eid)
-        if not (zr == region or (zr[:-1] == region and zr[-1:] in ("a", "b"))):
+        if region not in (zr, EID.book_region(zr)):
             continue
         for rid in sorted(rules_of[eid]):
             z = rules_of[eid][rid]
@@ -801,8 +801,7 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
             region = _zone_region(entry_id)
             for z in zones.get(x.default_id, ()):
                 zr = _zone_region(z)
-                if z != entry_id and (zr == region or (region and zr[:-1] == region
-                                                       and zr[-1:] in ("a", "b"))):
+                if z != entry_id and region in (zr, EID.book_region(zr)):
                     named += [(z, rid) for rid in sorted(rules_of.get(z, {}))]
         if x.target:
             in_entry = x.entry_id or entry_id
