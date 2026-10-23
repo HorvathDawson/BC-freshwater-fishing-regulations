@@ -1,6 +1,6 @@
 # T118 — One main line: spans pick a water's stem by length, continuation by section count
 
-Status: DONE — f214beee (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
+Status: DONE — f214beee, review 79221a05 (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
 deliver run is only needed to carry the code, not to change data.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 2
@@ -70,3 +70,33 @@ before it reaches a water where the two mouths lead to different receivers.
 - The 96 waters above pair FWA lines in two blk ranges (e.g. 3602xxxxx with 3608xxxxx, 3590xxxxx with 3595xxxxx,
   a `-2200000xxx` added stream with its neighbour): a water carrying two near-parallel lines of its own name may be a
   registry or added-streams duplicate. Not investigated here.
+
+## Adversarial review (2026-10-23)
+
+Re-measured on the live atlas (`atlas/full/graph.pkl`) and live `bundle.sqlite` (read-only) by recomputing the
+decisions directly, old count rule vs `lines.line_ends`, for all 11,963 stream waters (no scratch bundle needed: the
+review's own code changes are docstrings):
+
+- **One line holds on real data.** For every stream node the section id's line (`continuation.line_of`) equals the
+  node's `blk`, and for every water `spans`' stem (`main_line_of` by node) equals `line_ends`' line (by handle): 0
+  mismatches. So spans, continuation and the exit walk name the same line on the shipped data, not only in the fixture.
+- **96 confirmed** — line, mouth and top all differ on the same 96 waters (Herrling Island / Jeperson side channels,
+  Edmond, Clachnacudainn, Beaverfoot, Kearsley, Fowler, Malloch, Chamberlain, Cheewhat, Chuyazega, Geesdale ...).
+- **`water_continue`: identical** — `continuation.links` 36 candidates before and after, same 36.
+- **The "same exits" claim was imprecise.** `mouth_downs` itself changes on **13** waters, e.g. McKusky Creek (old mouth
+  reached Crooked Lake, now Horsefly River), Adsit Creek (Adsit Lake → Canyon Creek), Kakila Creek (Little Lillooet
+  Lake → Lillooet Lake), McGillivray Slough (Vedder River → Miller Slough), Washwash River (Owikeno Lake → Tzeo River),
+  Ksemamaith Creek (nothing → Nass River), Snehumption Creek (Similkameen River → nothing), Eagle Trib.5. That moves
+  the `exit_receivers` candidate set on **3** waters — McKusky Creek drops Crooked Lake, Adsit Creek drops Adsit Lake,
+  Eagle Trib.5 drops Eagle Trib.5-3 — but `topology.write` takes the nearest candidate and the live rows already name
+  the one left (Horsefly River, Canyon Creek, Eagle Creek). So **`water_exit` rows are unchanged**; zero shipped row
+  classes move, as the builder said. The new mouths read as the truer ones (McKusky runs to the Horsefly).
+- Mutations re-run: `main_line` by count fails the three `test_lines.py` tests named above plus
+  `test_part_geo::test_a_water_exits_where_its_mouth_flows_never_into_its_own_side_channel`; `line_ends` dropping the
+  `s in length` guard fails `test_line_ends_are_the_lowest_and_highest_measure_on_the_main_line`.
+- Fixed: two stale docstrings still described the old rule (`topology.exit_receivers` "a creek's main line (a count)",
+  `spans.compute` "the one place each water's stem is decided"). No behaviour change.
+- Not a defect, noted: the grep pin is name-based (`def _main` / `main_stem` / a per-line `Counter`); an inline
+  re-implementation under another name would pass it. The three-reader behaviour test is what catches that.
+
+Ships with: the next deliver (no data change).

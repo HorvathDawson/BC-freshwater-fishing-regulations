@@ -1,6 +1,6 @@
 # T122 — One station liveness: "active", "realtime" and "ECCC-listed" used interchangeably
 
-Status: DONE — 8420713f (lane-T118). Ships with the next deliver (bundle code) and the next feed run
+Status: DONE — 8420713f, review 79221a05 (lane-T118). Ships with the next deliver (bundle code) and the next feed run
 (`pipeline.gauges.feed.publish`); measured bundle output unchanged, no station's liveness changes.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 5
@@ -74,3 +74,27 @@ live bundle of 06:37: `gauge`, `section_gauge`, `lake_gauge`, `section_down`, `g
 
 ## Left / follow-ups
 - The app reads the feed index's `listed` (its own "speaks now"); not in `pipeline/`, not touched here.
+
+## Adversarial review (2026-10-23)
+
+- **Missed reader (fixed).** `pipeline/tools/check_curated.py` decided "may speak" on its own: the gauge-match artifact
+  declared `roster_where="active"` and `undecided` read `r.get(a.roster_where)` — the `active` field through a variable
+  key, which the grep pin cannot see. It is the CI gate deciding which unmatched stations make the gauge match STALE
+  (AGENTS 62). Now `roster_where` is a predicate and the gauge artifact passes `liveness.may_speak`
+  (`roster_where_word="active"` keeps the report's wording). Same verdict on the live roster: `ok gauge match 2,074 of
+  2,324 promoted; 250 in the review queue`.
+  Pin: `test_check_curated.py::test_the_gauge_queue_is_committed_curated_data` asserts the predicate IS `may_speak`.
+  Mutation: gauge `roster_where` back to a `realtime` read fails it (and `test_nothing_else_reads_liveness`).
+- **Pin widened.** It missed a subscript `r["active"]`, and any `getattr(row, "realtime")`. `_READS` now covers
+  subscripts of either field (the answers' unrelated `g["vessel"]["active"]` excepted, pinned by
+  `test_the_pin_leaves_the_answers_vessel_alone`) and `getattr`; `test_the_pin_would_see_a_second_reader` gained both
+  spellings. Variable-key reads stay out of reach of any grep; that is why the check_curated pin is by identity.
+- **No liveness change, confirmed.** Every replaced read is `bool(s.get("active"))` → `may_speak`, or
+  `bool(s.get("realtime"))` → `speaks_now(s)` (no feed), so the bundle's gauge tables and the cut set are identical
+  by construction. That is the code-level equivalent of the builder's bundle diff. `fetch_data`'s `listed_stations(text)
+  or set()` matches the old parser except that a blank id is no longer added, which no reader matched anyway.
+- Not touched, noted: `handoff/PLAN/app-data/own-gauge/scripts/{gates,rebuild}.py` still read `s.get("realtime")`;
+  they are archived handoff scripts outside `pipeline/` and run nowhere. `build.py`'s comment says 27 active-but-silent
+  stations; today's roster has 38.
+
+Ships with: the next deliver (bundle code) and next feed run, as before; `check_curated` is live on the next CI run.
