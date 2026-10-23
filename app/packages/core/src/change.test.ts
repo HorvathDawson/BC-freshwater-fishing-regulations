@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotLabel, changeSparkWords, changeHeadline,
          changeLine, changeRange, changeRatio, changeReachNote, changeReads, changeSentence, changeSourceLine,
-         changeSourceName, CHANGE_LOW_WATER, codedChange, ratioWords, type SourceChange,
+         changeSourceName, CHANGE_LOW_WATER, changeLowWaterNote, codedChange, ratioWords, type SourceChange,
          type RunChange } from "./change";
 import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
          HORIZON_LABELS, HORIZONS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
@@ -204,8 +204,27 @@ describe("the Change horizon on the conditions surfaces", () => {
 
 describe("a gauge dot under Change (T126)", () => {
   it("says the station's own ratio to today, short", () => {
-    expect([2, 0.5, 1, 22.7944, 544].map(changeDotLabel))
+    expect([2, 0.5, 1, 22.7944, 544].map((r) => changeDotLabel(r)))
       .toEqual(["2× today", "0.5× today", "1.0× today", "23× today", "100×+ today"]);
+  });
+
+  it("marks a gauge whose change is ELF's alone, and the legend says what the mark means (T157)", () => {
+    // mutation: `lowWater` ignored -> the first fails; the legend line not naming the mark -> the second fails
+    expect(changeDotLabel(0.88, true)).toBe("0.9× today · low-water model");
+    expect(CHANGE_LEGEND.lowWater).toBe('"low-water model": forecast by ELF alone, which has no rain in it and cannot '
+      + "see a rise coming.");
+  });
+});
+
+describe("the section's low-water caveat (T157)", () => {
+  it("names the gauges whose change is ELF's alone, whole, and says whether that is all of it", () => {
+    expect(changeLowWaterNote(["08MG013"], false)).toBe("Part of this change comes from ELF alone (08MG013). "
+      + "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it "
+      + "cannot see a rise coming.");
+    expect(changeLowWaterNote(["08MG013", "08MG005", "08MF040"], true)).toBe("This change comes from ELF alone "
+      + "(08MG013, 08MG005 and 08MF040). ELF is a low-water model: it carries the river's recent fall forward and has "
+      + "no rain or snowmelt in it, so it cannot see a rise coming.");
+    expect(changeLowWaterNote([], true)).toBeNull();
   });
 });
 

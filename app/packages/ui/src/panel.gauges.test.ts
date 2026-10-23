@@ -98,15 +98,48 @@ describe("a gauge ECCC does not list as real-time (index.json `listed`)", () => 
 });
 
 describe("the chart's gauge switcher", () => {
-  it("lists every donor in weight order, the charted one on, with the share the list says", () => {
+  it("lists every donor in weight order, the charted one on, with the share or the state its row and dot say", () => {
+    // T157: a member that does not count says its state as its dot does ("reporting, not ranked", "not reporting"),
+    // where it used to say "quiet" / "not counted today" for every one
     const rows = answerFrom(PANEL, INDEX).rows;
-    expect(gaugeChoices(rows, "STALE" as StationId).map((g) => [g.station, g.share, g.on, g.quiet, g.row, g.label]))
+    expect(gaugeChoices(rows, "STALE" as StationId, { ref: DAY.getTime(), horizon: 0 })
+      .map((g) => [g.station, g.share, g.on, g.quiet, g.row, g.label]))
       .toEqual([
         ["LEAD", "100%", false, false, 0, "Chart LEAD, 100% of this estimate"],
-        ["STALE", "quiet", true, true, 1, "Showing STALE, not counted today"],
-        ["RANKLESS", "quiet", false, true, 2, "Chart RANKLESS, not counted today"],
-        ["GONE", "quiet", false, true, 3, "Chart GONE, not counted today"],
+        ["STALE", "not reporting", true, true, 1, "Showing STALE, not reporting"],
+        ["RANKLESS", "reporting, not ranked", false, true, 2, "Chart RANKLESS, reporting, not ranked"],
+        ["GONE", "not reporting", false, true, 3, "Chart GONE, not reporting"],
       ]);
+  });
+
+  /*
+   * T157: under Level on a day the feed ranks in flow only, the sheet says "The gauges here have a flow forecast this far
+   * ahead, but no level forecast ranked …" and the switcher beside it called every member "quiet". Mutation (run):
+   * `gaugeChoices` back to `donorShare` -> this and the test above fail ("quiet"). Pinned on the owner's feed too:
+   * conformance liveFeedHorizons "each member says 'flow forecast only' under Level at +3".
+   */
+  it("says what the sheet says on a flow-only day under Level, and on a day with no record to compare with", () => {
+    const ahead = { stations: {
+      LEAD: { percentile: 0.2, parameter: "discharge" as const, forecast: true, ahead: { 3: { discharge: 0.3, model: "CLEVER" } } },
+      STALE: { percentile: null, parameter: "discharge" as const, forecast: true, ahead: { 3: { discharge: 0.4, model: "CLEVER" } } },
+      RANKLESS: { percentile: null, parameter: "discharge" as const, forecast: true,
+                  change: { discharge: 0.45, models: ["CLEVER"], dir: "steady" as const, ratio: 0.83, day: "2026-10-30",
+                            shape: "open" as const } },
+    } };
+    const a = answerFrom(PANEL, ahead, "level", 3);
+    expect(a.answer).toEqual({ ok: false, why: "flow-forecast-only" });
+    expect(gaugeChoices(a.rows, "LEAD" as StationId, { ref: DAY.getTime(), horizon: 3 }).map((g) => [g.station, g.share, g.label]))
+      .toEqual([
+        ["LEAD", "flow forecast only", "Showing LEAD, flow forecast only"],
+        ["STALE", "flow forecast only", "Chart STALE, flow forecast only"],
+        ["RANKLESS", "no record to compare with", "Chart RANKLESS, no record to compare with"],
+        ["GONE", "no forecast", "Chart GONE, no forecast"],
+      ]);
+    // under Flow the same day reads at LEAD and STALE; RANKLESS has a forecast and no record
+    const f = answerFrom(PANEL, ahead, "discharge", 3);
+    expect(f.answer.ok).toBe(true);
+    expect(gaugeChoices(f.rows, "LEAD" as StationId, { ref: DAY.getTime(), horizon: 3 }).map((g) => [g.station, g.share]))
+      .toEqual([["LEAD", "50%"], ["STALE", "50%"], ["RANKLESS", "no record to compare with"], ["GONE", "no forecast"]]);
   });
 
   it("offers nothing when there is nothing to switch between", () => {

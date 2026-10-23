@@ -71,6 +71,19 @@ describe("the donor panel", () => {
     }
   });
 
+  // T157: the spot's own Change says the low-water caveat, beside the answer and never folded away.
+  // Mutation: DonorPanel not drawing `vm.lowWater` -> fails.
+  it("says the low-water caveat under Change where a counted gauge's change is ELF's alone", () => {
+    const v: PanelAnswer = { ...answer(), rows: [row("08MH001", { lowWater: true }), row("08MH024", { weight: 0.4 })] };
+    draw({ value: v, horizon: "change" });
+    expect(screen.getByTestId("section-low-water").textContent).toBe("Part of this change comes from ELF alone "
+      + "(08MH001). ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt "
+      + "in it, so it cannot see a rise coming.");
+    cleanup();
+    draw({ value: v, horizon: 0 });
+    expect(screen.queryByTestId("section-low-water")).toBeNull();
+  });
+
   it("shows a RANGE and never a bare percentile", () => {
     // ±11.7 points at the median even for a near-identical donor; one number would lie.
     draw({ value: answer() });

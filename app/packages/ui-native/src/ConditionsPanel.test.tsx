@@ -129,6 +129,24 @@ describe("the Change block, mounted (T144)", () => {
     expect(screen.queryByTestId("change-caveat")).toBeNull();
   });
 
+  // T157: the day line at the COFFEE -> CLEVER handover is drawn as a handover (a gap and a tick), never a fall.
+  // Mutation: the ChangeBlock not drawing `spark.handovers` -> fails.
+  it("marks where COFFEE stops on the joined change's day line", async () => {
+    const joined = { ...low, models: ["CLEVER", "COFFEE"], lowWater: false, dir: "rise",
+                     reach: { CLEVER: "2026-09-08", COFFEE: "2026-09-05" },
+                     peak: { day: "2026-09-05", ratio: 3, value: 3, back: null, until: "2026-09-05" },
+                     trough: { day: "2026-09-04", ratio: 1, value: 1, back: null },
+                     days: [["2026-09-04", 1, 1], ["2026-09-05", 2, 3], ["2026-09-06", 1, 1.1], ["2026-09-08", 1, 1]] };
+    const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
+                                     at: "2026-09-04T06:00:00Z" }, PANEL),
+                     gaugeSeries: async () => series(joined) } as unknown as RegsSource;
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
+    expect(screen.getAllByTestId("change-handover").map((e) => e.getAttribute("d"))).toEqual(["M146,-4 L146,48"]);
+    expect(screen.getByRole("img", { name: /COFFEE's forecast ends tomorrow$/ })).toBeTruthy();
+  });
+
   // T144 review — owner "no elf": the chart under a CLEVER+COFFEE change drew the freshest run, ELF.
   it("charts the change's own lead model under Change, the freshest run elsewhere", async () => {
     const joined = { ...low, models: ["CLEVER", "COFFEE"], lowWater: false,

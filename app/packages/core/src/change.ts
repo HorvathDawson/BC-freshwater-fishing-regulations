@@ -97,9 +97,15 @@ export function ratioShort(r: number): string {
  * same short form the panel's ranges use. Pass the station's own `ratio` (the index row's `change.ratio`): the coded
  * number the colour rides is clamped (`codeFloor`), so decoded it tops out near 36×.
  */
-export function changeDotLabel(ratio: number): string {
-  return `${ratioShort(ratio)} today`;
+export function changeDotLabel(ratio: number, lowWater = false): string {
+  return `${ratioShort(ratio)} today${lowWater ? ` · ${CHANGE_LOW_WATER_MARK}` : ""}`;
 }
+
+/**
+ * THE LOW-WATER CAVEAT ON THE MAP (T157; T144 left it on the panel only): a gauge whose change is ELF's alone colours the
+ * Change map like any other, so its dot carries this mark and the legend under Change says what it means.
+ */
+export const CHANGE_LOW_WATER_MARK = "low-water model";
 
 
 const dayNumber = (iso: string): number => {
@@ -191,6 +197,18 @@ export function changeSourceLine(c: SourceChange, today: string): string {
  */
 export const CHANGE_LOW_WATER = "ELF is a low-water model: it carries the river's recent fall forward and has no "
   + "rain or snowmelt in it, so it cannot see a rise coming.";
+
+/**
+ * THE SECTION'S LOW-WATER CAVEAT (T157; T144 said it only on the charted gauge's Change block): the gauges whose change
+ * is ELF's alone among those COUNTED in this spot's answer, named, then `CHANGE_LOW_WATER`. "This change" when every
+ * counted gauge is one, "Part of this change" otherwise. Null when none is.
+ */
+export function changeLowWaterNote(stations: readonly string[], all: boolean): string | null {
+  if (!stations.length) return null;
+  const who = stations.length === 1 ? stations[0]!
+    : `${stations.slice(0, -1).join(", ")} and ${stations[stations.length - 1]}`;
+  return `${all ? "This change" : "Part of this change"} comes from ELF alone (${who}). ${CHANGE_LOW_WATER}`;
+}
 
 /**
  * Where a combined change becomes one model's alone: "COFFEE runs to Mon; after that, CLEVER alone." Null when every
@@ -302,6 +320,14 @@ export function changeSparkWords(fall: boolean, markDay: string, first: string, 
 
 const LEGEND_TITLE = `Expected change, next ${CHANGE_POLICY.days} days`;
 
+/**
+ * WHERE THE CHANGE COMES FROM ELF (T157): the low-water model's alone at some gauges (T144: no flood model reaches
+ * them), which carries the river's recent fall forward and cannot see a rise coming. Said under the Change legend,
+ * the meaning of the dots' `CHANGE_LOW_WATER_MARK`.
+ */
+const LEGEND_LOW_WATER = `"${CHANGE_LOW_WATER_MARK}": forecast by ELF alone, which has no rain in it and cannot `
+  + "see a rise coming.";
+
 /** The Change legend's words; its middle bracket is "little change" (`STEADY_RATIO` either way). */
 export const CHANGE_LEGEND = {
   title: LEGEND_TITLE,
@@ -311,6 +337,7 @@ export const CHANGE_LEGEND = {
   mid: "Steady",
   high: "Rising",
   steady: [codedChange(1 / STEADY_RATIO), codedChange(STEADY_RATIO)] as const,
+  lowWater: LEGEND_LOW_WATER,
 } as const;
 
 /** Where a gauge mark sits on the Change legend, for a screen reader: "near 3× today's flow". */

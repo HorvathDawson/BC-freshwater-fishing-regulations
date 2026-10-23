@@ -77,7 +77,7 @@ describe("the gauge switch sits by the plot", () => {
     for (let i = 1; i < order.length; i++)
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
     // every donor is offered, the quiet one too: it says what it last said (see "charting a quiet gauge")
-    expect(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not counted today" })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not reporting" })).toBeTruthy();
   });
 
   it("charts the gauge picked there, and marks it", async () => {
@@ -111,11 +111,11 @@ const silent = {
 describe("charting a quiet gauge (review 2026-10-21)", () => {
   it("says the gauge is quiet and when it last reported, under the switch — never the no-gauge refusal", async () => {
     await draw(silent);
-    fireEvent.click(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not counted today" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Chart QUIET, Quiet River, not reporting" }));
     await waitFor(() => expect(screen.getByText(readingHeading("Quiet River"))).toBeTruthy());
     // the headline answered from three gauges; picking one to chart does not take that back
     expect(screen.queryByText(noGaugeSentence())).toBeNull();
-    const radio = screen.getByRole("radio", { name: "Showing QUIET, Quiet River, not counted today" });
+    const radio = screen.getByRole("radio", { name: "Showing QUIET, Quiet River, not reporting" });
     const said = screen.getAllByText(donorLastReport("2026-08-30T10:00:00-08:00"));
     // nothing new above the switch: the quiet gauge's words come after it, before the chart's controls
     const inBlock = said.find((el) => precedes(radio, el)

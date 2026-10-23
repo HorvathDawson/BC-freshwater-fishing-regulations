@@ -65,7 +65,12 @@ interface IndexFile {
   stations: Record<string, {
     percentile: number | null;
     observedAt: string | null;
-    forecast: (number | null)[] | null;
+    /**
+     * WHETHER any forecast run is held for the station (publish.py: `any(run.get("series") …)`), the series itself
+     * being in the station's own file. A boolean — this was typed as an array the publisher has never written; nothing
+     * read it until T157 (`aheadWhy` in ../panel: a fresh run with no day ranked is a station with no record).
+     */
+    forecast?: boolean;
     /**
      * BOTH PERCENTILES, each against its own envelope — `percentile` above is only the
      * station's own default. A regulated river can sit at its normal STAGE while its

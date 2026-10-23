@@ -13,7 +13,7 @@
  * table and the number above it can never disagree.
  */
 import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, recordYears, shownParameter, trustFor, weightFactors, type Answer,
-         type Contribution, type TrustClass } from "@app/core";
+         type AheadWhy, type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
@@ -60,6 +60,13 @@ export interface DonorRow {
    * silent line says it "has never reported". Absent where nobody asked, or the file said when (`observedAt`).
    */
   noData?: true;
+  /** Why it has no percentile on the day ahead asked about (`aheadWhy`, T157); absent otherwise. */
+  aheadWhy?: AheadWhy;
+  /**
+   * `true` only, under Change: this member's expected change is the low-water model's alone (the feed's
+   * `change.lowWater`, T144: ELF, no flood model reaches it), so the answer it counts in carries the caveat (T157).
+   */
+  lowWater?: true;
 }
 
 export interface PanelAnswer {
@@ -135,6 +142,8 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
                                           ahead?: Ahead;
+                                          /** Whether any forecast run is held for it (the series is in its own file). */
+                                          forecast?: boolean;
                                           /** The expected change over the next ten days (T52). Flow only. */
                                           change?: StationChange }>;
                /** The Province's forecast attribution, verbatim, when any run answered a change (T52). */
@@ -222,6 +231,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   for (const m of panel.members) {
     const row = index.stations[m.station];
     const own = row ? reading(row, chosen, horizon) : null;
+    const why = aheadWhy(row, chosen, horizon);
     const back = own !== null && panel.areaKm2 ? stoodBack.has(at++) : false;
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
@@ -238,7 +248,9 @@ export function answerFrom(panel: Panel | undefined, index: Index,
                years, regulated: m.regulated, sameRiver: m.sameRiver,
                factors: f, _w: w,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
-               ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}) });
+               ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}),
+               ...(why ? { aheadWhy: why } : {}),
+               ...(own !== null && horizon === "change" && row?.change?.lowWater ? { lowWater: true as const } : {}) });
   }
   /*
    * A DAY AHEAD THAT NO RUN REACHES is said as that. With no donor reading at the horizon
@@ -285,11 +297,31 @@ export function answerFrom(panel: Panel | undefined, index: Index,
  *   no-forecast          any other horizon ahead: no run reaches it ranked in the asked quantity, nor (under Level) in
  *                        flow. Change is flow only (T52), so under Level it is no-forecast too.
  */
-export function silentWhy(panel: Panel, index: NonNullable<Index>, quantity: Quantity,
-                          horizon: Horizon): "no-record" | "no-forecast" | "flow-forecast-only" {
+export function silentWhy(panel: Panel, index: NonNullable<Index>, quantity: Quantity, horizon: Horizon):
+    "no-record" | "no-forecast" | "flow-forecast-only" | "forecast-unranked" {
   if (!isAhead(horizon)) return "no-record";
-  return quantity === "level" && typeof horizon === "number" && contributionsOf(panel, index, "discharge", horizon).length
-    ? "flow-forecast-only" : "no-forecast";
+  const why = new Set(panel.members.map((m) => aheadWhy(index.stations[m.station], quantity, horizon)));
+  return why.has("flow-only") ? "flow-forecast-only" : why.has("no-record") ? "forecast-unranked" : "no-forecast";
+}
+
+/**
+ * WHY A STATION HAS NO PERCENTILE ON A DAY AHEAD (T157) — the one reading of the feed for it; the panel's refusal
+ * (`silentWhy`) and each member's state (`DonorRow.aheadWhy`, core `donorState`) both take it from here, so the sheet
+ * and the gauge switcher beside it cannot say two things:
+ *
+ *   flow-only   asked Level, and the feed ranks the day in flow (T143: CLEVER forecasts discharge only).
+ *   no-record   the station has a fresh run (the feed's `forecast` and its expected `change`, which is a ratio to the
+ *               run's own today and needs no record) and NO day ahead ranked at all: the publisher ranks a forecast
+ *               against the station's HYDAT envelope (`publish.forecast_percentiles`), and a station with none has
+ *               none. On the 2026-10-23 feed: 07FC008 and 08FB012, new roster stations.
+ *   undefined   it reads that day, or no run reaches it (the shipped "no forecast"), or the question is not a day.
+ */
+export function aheadWhy(row: NonNullable<Index>["stations"][string] | null | undefined, quantity: Quantity,
+                         horizon: Horizon): AheadWhy | undefined {
+  if (!row || typeof horizon !== "number" || !isAhead(horizon) || reading(row, quantity, horizon) !== null)
+    return undefined;
+  if (quantity === "level" && reading(row, "discharge", horizon) !== null) return "flow-only";
+  return row.forecast && row.change && !row.ahead ? "no-record" : undefined;
 }
 
 /**

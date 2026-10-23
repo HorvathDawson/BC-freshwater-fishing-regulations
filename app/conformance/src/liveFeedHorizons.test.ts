@@ -26,6 +26,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { donorMapLabel, donorReads, gaugeChoiceLabel } from "@app/core";
 import { answerFrom, reading, silentWhy, type Panel } from "@app/data";
 
 const dir = join(__dirname, "fixtures/live");
@@ -47,6 +48,24 @@ describe("the Chilliwack panel on the owner's feed", () => {
   it("says the forecast is in flow under Level at +1/+3/+5, and reads ELF's level at +10", () => {
     expect({ 0: said("level", 0), 1: said("level", 1), 3: said("level", 3), 5: said("level", 5),
              10: said("level", 10) }).toEqual(EXPECT_LEVEL);
+  });
+
+  /*
+   * T157: under that refusal the chart's gauge switcher called every member "quiet". Each member now says what the sheet
+   * says — the switcher's word and label are the map dot's (`donorMapLabel`, `gaugeChoiceLabel`, @app/ui `gaugeChoices`).
+   * Mutation: `donorState` ignoring `aheadWhy` (every day-ahead silence "no-forecast") -> this fails ("no forecast").
+   */
+  it("each member says 'flow forecast only' under Level at +3, as the sheet does", () => {
+    const rows = answerFrom(PANEL, INDEX, "level", 3).rows;
+    const ask = { horizon: 3 as const };
+    // the four that report (T143's "4 gauges") have a flow forecast; the four ECCC does not list stay not real-time
+    const flow = (s: string) => [s, "flow-only", "flow forecast only", `Chart ${s}, flow forecast only`];
+    const off = (s: string) => [s, null, "not a real-time gauge", `Chart ${s}, not a real-time gauge`];
+    expect(rows.map((r) => [r.station, r.aheadWhy ?? null, donorMapLabel(r, ask), gaugeChoiceLabel(r, false, ask)]))
+      .toEqual([flow("08MH016"), flow("08MH103"), flow("08MH001"), off("08MH055"), flow("08MH056"), off("08MH047"),
+                off("08MH094"), off("08MH131")]);
+    expect(donorReads(rows[0]!, ask)).toBe(
+      "Has a flow forecast this far ahead, but no level forecast ranked against its record.");
   });
 });
 
@@ -82,6 +101,25 @@ describe("every station of the owner's feed, as a one-gauge panel", () => {
   it("a day nobody forecasts is still no forecast; one forecast in flow only says so", () => {
     expect({ 1: tally("level", 1), 3: tally("level", 3), 5: tally("level", 5), 10: tally("level", 10) })
       .toEqual(EXPECT_LEVEL_TALLY);
+  });
+
+  /*
+   * T157: a forecast with no record to rank it against says so — the two new roster stations whose runs give a Change
+   * but whose days ahead, ranked against no HYDAT envelope, are absent. Mutations: `aheadWhy` never "no-record" -> this
+   * and both tallies fail; `aheadWhy` dropping its `row.change` guard -> 08MH098 (a run held, stale, no change) joins
+   * them and this fails.
+   */
+  it("says 'no record to compare with' where a station's runs forecast the day and nothing ranks it", () => {
+    const unranked = (q: "discharge" | "level", h: 1 | 3 | 5 | 10) =>
+      stations.filter((s) => { const a = answerFrom(one(s), INDEX, q, h).answer; return !a.ok && a.why === "forecast-unranked"; });
+    for (const h of [1, 3, 5, 10] as const)
+      expect([h, unranked("discharge", h), unranked("level", h)]).toEqual([h, ["07FC008", "08FB012"], ["07FC008", "08FB012"]]);
+    // Change answers from the same runs (the ratio needs no record), as it did
+    expect(["07FC008", "08FB012"].map((s) => answerFrom(one(s), INDEX, "discharge", "change").answer.ok)).toEqual([true, true]);
+    // and each member's own words, at +3: its row, its dot and its switcher entry say the same as the sheet
+    const row = answerFrom(one("07FC008"), INDEX, "discharge", 3).rows[0]!;
+    expect([row.aheadWhy, donorReads(row, { horizon: 3 }), donorMapLabel(row, { horizon: 3 })]).toEqual(
+      ["no-record", "Has a forecast this far ahead, but no record to compare it with.", "no record to compare with"]);
   });
 });
 
@@ -139,11 +177,13 @@ const EXPECT_FLOW = { 0: ok(0.05, 4), 1: ok(0.05, 4), 3: ok(0.05, 4), 5: ok(0.05
                       change: ok(0.4856, 4) };
 const FLOW_ONLY = { ok: false, why: "flow-forecast-only" };
 const EXPECT_LEVEL = { 0: ok(0.05, 4), 1: FLOW_ONLY, 3: FLOW_ONLY, 5: FLOW_ONLY, 10: ok(0.05, 3) };
-const EXPECT_FLOW_TALLY = { 1: { ok: 367, "no-forecast": 65 }, 10: { ok: 359, "no-forecast": 73 } };
+/* T157: the two stations with a fresh run and no record (07FC008, 08FB012) left "no-forecast" for "forecast-unranked". */
+const EXPECT_FLOW_TALLY = { 1: { ok: 367, "forecast-unranked": 2, "no-forecast": 63 },
+                            10: { ok: 359, "forecast-unranked": 2, "no-forecast": 71 } };
 /* Before T143 the 310 (and +10's 5) were "no-forecast": the owner's "no forecast … for every gauge". */
 const EXPECT_LEVEL_TALLY = {
-  1: { ok: 62, "flow-forecast-only": 310, "no-forecast": 60 },
-  3: { ok: 62, "flow-forecast-only": 310, "no-forecast": 60 },
-  5: { ok: 62, "flow-forecast-only": 310, "no-forecast": 60 },
-  10: { ok: 359, "flow-forecast-only": 5, "no-forecast": 68 },
+  1: { ok: 62, "flow-forecast-only": 310, "forecast-unranked": 2, "no-forecast": 58 },
+  3: { ok: 62, "flow-forecast-only": 310, "forecast-unranked": 2, "no-forecast": 58 },
+  5: { ok: 62, "flow-forecast-only": 310, "forecast-unranked": 2, "no-forecast": 58 },
+  10: { ok: 359, "flow-forecast-only": 5, "forecast-unranked": 2, "no-forecast": 66 },
 };

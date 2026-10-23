@@ -9,7 +9,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, speaks, type BasinMember, type DonorRow,
          type Horizon, type Panel, type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type Speaker, type StationId } from "@app/data";
-import { CHANGE_LOW_WATER, CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeReachNote, changeSourceLine, changeSourceName, changeSparkWords, type SourceChange, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
+import { CHANGE_LOW_WATER, changeLowWaterNote, CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeReachNote, changeSourceLine, changeSourceName, changeSparkWords, type SourceChange, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorCounted, donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine, refusalIsAboutTheDay,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
@@ -524,6 +524,11 @@ export type DonorVM =
       /** The tide (T78): one sentence, Level only, where a reporting member's station is tidal; else null. */
       tidal: string | null;
       disagree: string | null;
+      /**
+       * Under Change, where a counted gauge's change is ELF's alone (T157, core `changeLowWaterNote`): the low-water
+       * caveat the charted gauge's Change block says, said for the spot's own answer; null otherwise.
+       */
+      lowWater: string | null;
       explainer: string;
     };
 
@@ -651,16 +656,27 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     regulated: regulatedNote(rows),
     tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
     disagree: disagreeNote(e, o.horizon),
+    lowWater: o.horizon === "change" ? lowWaterNote(shown) : null,
     explainer: o.horizon === "change" ? `${CONDITIONS_WORDS.changeExplainer} ${CONDITIONS_WORDS.explainer}`
       : CONDITIONS_WORDS.explainer,
   };
+}
+
+/** The counted members whose change is ELF's alone (`DonorRow.lowWater`), said by core (T157). */
+function lowWaterNote(rows: readonly DonorRow[]): string | null {
+  const counted = rows.filter((r) => donorCounted(r));
+  const low = counted.filter((r) => r.lowWater).map((r) => r.station);
+  return changeLowWaterNote(low, low.length === counted.length);
 }
 
 /** One choice in the chart's gauge switcher (owner 2026-10-21: the switch sits by the plot it controls). */
 export interface GaugeChoiceVM {
   station: string;
   name: string | null;
-  /** "35%", "<1%" or "quiet" — the same share the donor list and the map's key say. */
+  /**
+   * "35%", "<1%", or the member's state — "not reporting", "no forecast", "flow forecast only" — in the words its dot
+   * on the route map and its key say (core `donorMapLabel`), at the day and horizon the sheet is on (T157).
+   */
   share: string;
   quiet: boolean;
   on: boolean;
@@ -672,13 +688,18 @@ export interface GaugeChoiceVM {
 /**
  * THE GAUGE SWITCHER, beside the chart: every donor in the panel's weight order, the one the chart shows marked. Empty
  * when there is nothing to switch between (one gauge, or none) — a single option is not a choice.
+ *
+ * AT THE DAY AND HORIZON ASKED (T157): a member's word is its state there, as its row and its dot say it. It said
+ * "quiet" for every member that did not count, so on a flow-only day under Level the switcher called every gauge quiet
+ * under a sheet saying they have a flow forecast.
  */
-export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null): GaugeChoiceVM[] {
+export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null,
+                             ask: { ref?: number; horizon?: Horizon } = {}): GaugeChoiceVM[] {
   if (rows.length < 2) return [];
   return rows.map((r, i) => {
     const on = r.station === lead;
-    return { station: r.station, name: r.route?.name ?? null, share: donorShare(r),
-             quiet: !donorCounted(r), on, row: i, label: gaugeChoiceLabel(r, on) };
+    return { station: r.station, name: r.route?.name ?? null, share: donorMapLabel(r, ask),
+             quiet: !donorCounted(r), on, row: i, label: gaugeChoiceLabel(r, on, ask) };
   });
 }
 
@@ -858,7 +879,7 @@ export function useConditionsView(
     // the one of its donors it was matched to. Never a trace to a gauge the map does not colour by.
     trace: !panel.answer.ok && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
-    gauges: gaugeChoices(panel.rows, lead),
+    gauges: gaugeChoices(panel.rows, lead, { ref: today.getTime(), horizon }),
   };
 }
 
@@ -900,6 +921,11 @@ export interface ChangeSparkVM {
   mark: { x: number; y: number; label: string };
   /** The first and last day's names, at their x. */
   ends: readonly { x: number; label: string }[];
+  /**
+   * WHERE A JOINED MODEL STOPS (T157): the line is broken there (a gap in `path`, never a fall drawn across it) and a
+   * tick stands at `x`, between the model's last day and the next. Empty for one model's line.
+   */
+  handovers: readonly { x: number; model: string }[];
   /** For a screen reader: the line in words. */
   label: string;
 }
@@ -907,8 +933,14 @@ export interface ChangeSparkVM {
 /**
  * A run's days as a line, on a LOG scale of the ratio to its own today (a 23-fold spike and a 20% dip both read), each
  * day at its highest step for a rise and its lowest for a fall. Pure, so the shape is pinned in a test.
+ *
+ * A STATION'S JOINED CHANGE (T144) is CLEVER and COFFEE together up to COFFEE's fifth day and CLEVER alone after it, so
+ * the joined value can drop on the day after with neither model forecasting a fall (T144 review: a voice leaving, not
+ * the river). The line is broken at each such handover (`SourceChange.reach`, a model's last day before the window's
+ * end) and the place marked (`handovers`), so the drawing says what the words say ("still up when COFFEE's forecast
+ * ends") instead of a cliff.
  */
-export function changeSpark(c: RunChange, today: string, w: number, h: number): ChangeSparkVM | null {
+export function changeSpark(c: RunChange | SourceChange, today: string, w: number, h: number): ChangeSparkVM | null {
   const base = c.base;
   const fall = c.dir === "fall";
   const pts = c.days.map(([d, lo, hi]) => ({ d, r: Math.max(1e-3, (fall ? lo : hi) / base) }));
@@ -918,7 +950,15 @@ export function changeSpark(c: RunChange, today: string, w: number, h: number): 
   const span = top - bottom || 1;
   const x = (i: number) => Math.round((i / (pts.length - 1)) * w * 10) / 10;
   const y = (l: number) => Math.round((h - ((l - bottom) / span) * h) * 10) / 10;
-  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(Math.log(p.r))}`).join(" ");
+  // the days after which a joined model stops: the next day starts a new stretch of the line (a move, not a draw)
+  // (a run's own change may carry a `reach` and no `models`: one model, nothing joined)
+  const joined = "models" in c && Array.isArray(c.models) && c.models.length > 1;
+  const reach = joined && "reach" in c ? c.reach : {};
+  // (`at`: the model's last day drawn, the last day on or before its reach; a model reaching past the line has none)
+  const stops = Object.entries(reach).map(([model, day]) => ({ model, day, at: pts.findIndex((p) => p.d > day) - 1 }))
+    .filter((s) => s.at >= 0).sort((a, b) => a.at - b.at || a.model.localeCompare(b.model));
+  const breaks = new Set(stops.map((s) => s.at + 1));
+  const path = pts.map((p, i) => `${i && !breaks.has(i) ? "L" : "M"}${x(i)},${y(Math.log(p.r))}`).join(" ");
   const markDay = fall ? c.trough.day : c.peak.day;
   const at = Math.max(0, pts.findIndex((p) => p.d === markDay));
   const first = pts[0]!.d, last = pts[pts.length - 1]!.d;
@@ -927,7 +967,8 @@ export function changeSpark(c: RunChange, today: string, w: number, h: number): 
     path,
     mark: { x: x(at), y: y(logs[at]!), label: words.mark },
     ends: [{ x: 0, label: changeDay(first, today) }, { x: w, label: changeDay(last, today) }],
-    label: words.label,
+    handovers: stops.map((s) => ({ x: Math.round(((x(s.at) + x(s.at + 1)) / 2) * 10) / 10, model: s.model })),
+    label: words.label + stops.map((s) => `; ${s.model}'s forecast ends ${changeDay(s.day, today)}`).join(""),
   };
 }
 
@@ -956,7 +997,7 @@ export function changeView(runs: readonly { model: string; change?: RunChange | 
                            source: SourceChange | null = null): ChangeVM {
   const day = isoDay(today);
   // a steady change has no day worth marking: its line says "little change", nothing more
-  const spark = (c: RunChange) => (c.dir === "steady" ? null : changeSpark(c, day, size.width, size.height));
+  const spark = (c: RunChange | SourceChange) => (c.dir === "steady" ? null : changeSpark(c, day, size.width, size.height));
   const said = runs.filter((r): r is typeof r & { change: RunChange } => !!r.change)
     .filter((r) => !source || (source.models.length > 1 && source.models.includes(r.model)))
     .sort((a, b) => order(a.model) - order(b.model));

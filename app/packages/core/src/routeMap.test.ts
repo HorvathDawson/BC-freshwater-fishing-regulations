@@ -58,6 +58,8 @@ describe("the route map's words", () => {
       unranked: "reporting, not ranked",
       notRealtime: "not a real-time gauge",
       noForecast: "no forecast",
+      flowOnly: "flow forecast only",
+      noRecord: "no record to compare with",
       fit: "Fit",
       fitLabel: "Fit the map to you and the gauges",
       larger: "Larger map",

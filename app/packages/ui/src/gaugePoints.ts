@@ -95,7 +95,8 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
     if (quantity === "temperature" ? tC === null : pct === null) continue;
     // under Change the label is the station's own ratio (the coded number the colour rides is clamped)
     const label = quantity !== "temperature" && horizon === "change" && pct !== null
-      ? changeDotLabel(row.change?.ratio ?? changeRatio(pct)) : gaugeLabel(undefined, pct, tC);
+      ? changeDotLabel(row.change?.ratio ?? changeRatio(pct), row.change?.lowWater === true)
+      : gaugeLabel(undefined, pct, tC);
     if (!label) continue;                   // quiet station: a bare dot would read as a bug
     features.push({
       type: "Feature" as const,

@@ -912,11 +912,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             ) : horizon === "change" ? (
               // THE EXPECTED CHANGE (T52): the same map mode's change stops, its words from core — falling · steady ·
               // rising, the bracket over "little change" — and the gauges on screen as marks, like the flow legend
-              <LegendRamp palette={palette} title={CHANGE_LEGEND.title}
-                          low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
-                          band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
-                          describe={CHANGE_LEGEND.describe}
-                          stops={changeRampStops(theme)} marks={visibleMarks} />
+              <>
+                <LegendRamp palette={palette} title={CHANGE_LEGEND.title}
+                            low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
+                            band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
+                            describe={CHANGE_LEGEND.describe}
+                            stops={changeRampStops(theme)} marks={visibleMarks} />
+                {/* (T157) the low-water caveat on the map: what a dot's "low-water model" mark means */}
+                <Text testID="change-legend-low-water" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+                  {CHANGE_LEGEND.lowWater}
+                </Text>
+              </>
             ) : (
               <LegendRamp palette={palette}
                           title={flowParam === "level" ? "Water level vs. past years, this date"

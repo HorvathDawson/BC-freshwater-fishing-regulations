@@ -195,6 +195,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         </Text>
         <Text style={{ ...TYPE.body, color: palette.ink }}>{vm.sentence}</Text>
         <Text style={{ ...TYPE.meta, color: palette.sub }}>{vm.range}</Text>
+        {/* (T157) the low-water caveat for the spot's own Change, beside the answer it qualifies (never folded) */}
+        {vm.lowWater && (
+          <Text testID="section-low-water" style={{ ...TYPE.meta, color: palette.ink }}>{vm.lowWater}</Text>
+        )}
       </Block>
 
       {detail && <Block palette={palette}>{detail}</Block>}

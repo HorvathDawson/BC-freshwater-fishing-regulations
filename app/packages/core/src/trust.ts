@@ -141,7 +141,8 @@ export type NoEstimate =
   | "offline"           // the feed did not answer; say nothing rather than something stale
   | "own-gauge"         // a gauged lake: its own station reads it, so nothing is estimated (T105 review)
   | "no-forecast"       // a day ahead that no forecast run for these gauges reaches
-  | "flow-forecast-only"; // a day ahead under Level: the runs here forecast FLOW that day, no stage (T143)
+  | "flow-forecast-only" // a day ahead under Level: the runs here forecast FLOW that day, no stage (T143)
+  | "forecast-unranked"; // a day ahead: the runs here forecast it, but no gauge has a record to rank it against (T157)
 
 export type Answer = { ok: true; value: Estimate } | { ok: false; why: NoEstimate };
 

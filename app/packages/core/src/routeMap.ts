@@ -24,6 +24,10 @@ export const ROUTE_MAP_WORDS = {
    * It said "not reporting" here, which the row contradicted.
    */
   noForecast: "no forecast",
+  /** (T157) Beside a gauge whose forecast that day is ranked in flow only, asked Level — the sheet's refusal says it. */
+  flowOnly: "flow forecast only",
+  /** (T157) Beside a gauge whose runs forecast the day with no record to rank it against. */
+  noRecord: "no record to compare with",
   fit: "Fit",
   fitLabel: "Fit the map to you and the gauges",
   larger: "Larger map",
@@ -42,11 +46,27 @@ export function donorMapLabel(r: MapFacts, o: DonorAsk = {}): string {
   switch (s.kind) {
     case "reads": return donorShare(r);
     case "not-realtime": return ROUTE_MAP_WORDS.notRealtime;
+    case "flow-only": return ROUTE_MAP_WORDS.flowOnly;
+    case "forecast-unranked": return ROUTE_MAP_WORDS.noRecord;
     case "no-forecast": return ROUTE_MAP_WORDS.noForecast;
     case "unranked": return ROUTE_MAP_WORDS.unranked;
     case "quiet": return ROUTE_MAP_WORDS.quiet;
     default: { const never: never = s; return never; }
   }
+}
+
+/**
+ * A choice in the chart's gauge switcher, for a screen reader: "Chart 08MH016, Chilliwack River at outlet of
+ * Chilliwack Lake, 35% of this estimate" — "Showing …" for the one on the chart. A member that does not count says its
+ * state in the words its dot and its row say (T157: "flow forecast only" on a flow-only day under Level, never "not
+ * counted today").
+ */
+export function gaugeChoiceLabel(r: MapFacts & Pick<DonorFacts, "station" | "route">, on: boolean,
+                                 o: DonorAsk = {}): string {
+  const name = r.route?.name ? `, ${r.route.name}` : "";
+  const said = donorMapLabel(r, o);
+  const what = donorState(r, o).kind === "reads" ? `${said} of this estimate` : said;
+  return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${what}`;
 }
 
 /** A gauge's entry in the map's key: its station and the same words its dot carries. */

@@ -326,6 +326,11 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
           {r.spark && (
             <View aria-label={r.spark.label} role="img" style={{ paddingHorizontal: 4 }}>
               <Svg width="100%" height={58} viewBox={`-4 -6 ${r.spark.ends[1]!.x + 8} 58`}>
+                {/* (T157) where a joined model stops: a dashed tick in the gap the line leaves, never a fall */}
+                {r.spark.handovers.map((hv) => (
+                  <Path key={hv.model} testID="change-handover" d={`M${hv.x},-4 L${hv.x},48`} stroke={palette.faint}
+                        strokeWidth={1} strokeDasharray="2 3" />
+                ))}
                 <Path d={r.spark.path} fill="none" stroke={colour} strokeWidth={1.8} strokeLinejoin="round" />
                 <Circle cx={r.spark.mark.x} cy={r.spark.mark.y} r={3.4} fill={colour} />
               </Svg>

@@ -76,6 +76,8 @@ const TESTS: Record<string, RegExp> = {
   // `typeof r.percentile === "number"` is the same test spelled another way (review)
   percentileType: /typeof\s+[\w.?]*\.percentile\b/g,
   realtime: /\.realtime\s*(?:!==?|===?)\s*(?:true|false)\b/g,
+  // (T157) why a member is silent on a day ahead is a reading field too: only `donorState` turns it into a state
+  aheadWhy: /\.aheadWhy\s*(?:!==?|===?)/g,
   withinADay: /\.observedAt\s*\?\s*Date\.parse/g,
 };
 
@@ -84,6 +86,7 @@ const SPELLINGS: Record<string, string> = {
   percentile: `  if (r.percentile !== null) return donorShare(r);`,
   percentileType: `  if (typeof r.percentile === "number") return donorShare(r);`,
   realtime: `  if (r.realtime === false) return ROUTE_MAP_WORDS.notRealtime;`,
+  aheadWhy: `  if (r.aheadWhy === "flow-only") return ROUTE_MAP_WORDS.flowOnly;`,
   withinADay: `  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;`,
 };
 
@@ -109,6 +112,8 @@ const FIXTURES: { state: string; r: DonorFacts; horizon: Horizon; word: string }
   { state: "not-realtime", r: row({ realtime: false }), horizon: 3, word: "not a real-time gauge" },
   { state: "no-forecast", r: row(), horizon: 3, word: "no forecast" },
   { state: "no-forecast", r: row(), horizon: "change", word: "no forecast" },
+  { state: "flow-only", r: row({ aheadWhy: "flow-only" }), horizon: 3, word: "flow forecast" },
+  { state: "forecast-unranked", r: row({ aheadWhy: "no-record" }), horizon: 3, word: "no record to compare" },
   { state: "unranked", r: row({ observedAt: "2026-10-20T20:35:00-08:00" }), horizon: 0, word: "reporting" },
   { state: "quiet", r: row(), horizon: 0, word: "not reporting" },
 ];
@@ -139,6 +144,14 @@ describe("one donor state: core's donorState decides, every label switches over 
       { kind: "no-forecast", line: "No forecast running for this gauge now.", map: "no forecast",
         key: "08MH024 · no forecast", silent: true,
         label: "08MH024, upstream, 2.4× apart, no forecast for this gauge, so it counts for nothing", same: true },
+      { kind: "flow-only", line: "Has a flow forecast this far ahead, but no level forecast ranked against its record.",
+        map: "flow forecast only", key: "08MH024 · flow forecast only", silent: true,
+        label: "08MH024, upstream, 2.4× apart, a flow forecast only, no level ranked, so it counts for nothing",
+        same: true },
+      { kind: "forecast-unranked", line: "Has a forecast this far ahead, but no record to compare it with.",
+        map: "no record to compare with", key: "08MH024 · no record to compare with", silent: true,
+        label: "08MH024, upstream, 2.4× apart, no record to compare its forecast with, so it counts for nothing",
+        same: true },
       { kind: "unranked", line: "Reporting, but its reading cannot be ranked today.", map: "reporting, not ranked",
         key: "08MH024 · reporting, not ranked", silent: false,
         label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing", same: true },
@@ -148,7 +161,7 @@ describe("one donor state: core's donorState decides, every label switches over 
     ]);
     // every state has a fixture
     expect([...new Set(got.map((g) => g.kind))].sort())
-      .toEqual(["no-forecast", "not-realtime", "quiet", "reads", "unranked"]);
+      .toEqual(["flow-only", "forecast-unranked", "no-forecast", "not-realtime", "quiet", "reads", "unranked"]);
   });
 
   it("the decision itself, whole, and its order", () => {
@@ -164,14 +177,21 @@ describe("one donor state: core's donorState decides, every label switches over 
       donorState(row({ observedAt: old }), { ref: REF }),
       donorState(row({ observedAt: "garbage" }), { ref: REF }),
       donorState(row({ realtime: true }), { ref: REF }),
+      // (T157) why a day ahead is silent: only ahead, and never over a reading or the real-time list
+      donorState(row({ aheadWhy: "flow-only" }), { ref: REF, horizon: 3 }),
+      donorState(row({ aheadWhy: "no-record" }), { ref: REF, horizon: 3 }),
+      donorState(row({ aheadWhy: "flow-only", realtime: false }), { ref: REF, horizon: 3 }),
+      donorState(row({ aheadWhy: "no-record", percentile: 0.3 }), { ref: REF, horizon: 3 }),
+      donorState(row({ aheadWhy: "no-record", observedAt: seen }), { ref: REF }),
     ].map((s) => s.kind)).toEqual(["reads", "reads", "not-realtime", "no-forecast", "unranked", "quiet", "quiet",
-                                   "quiet", "quiet"]);
+                                   "quiet", "quiet", "flow-only", "forecast-unranked", "not-realtime", "reads",
+                                   "unranked"]);
     expect(donorState(row({ percentile: 0.4 }))).toEqual({ kind: "reads", percentile: 0.4 });
   });
 
   it("each pattern catches the spelling it replaced", () => {
     expect(Object.fromEntries(Object.entries(TESTS).map(([k, re]) => [k, new RegExp(re.source).test(SPELLINGS[k]!)])))
-      .toEqual({ percentile: true, percentileType: true, realtime: true, withinADay: true });
+      .toEqual({ percentile: true, percentileType: true, realtime: true, aheadWhy: true, withinADay: true });
   });
 
   it("no module but donorState tests a donor's reading fields", () => {
@@ -191,6 +211,6 @@ describe("one donor state: core's donorState decides, every label switches over 
     const body = text.slice(text.indexOf("export function donorState("));
     const own = body.slice(0, body.indexOf("\n}\n"));
     expect(Object.fromEntries(Object.entries(TESTS).map(([k, re]) => [k, own.match(re)?.length ?? 0])))
-      .toEqual({ percentile: 1, percentileType: 0, realtime: 1, withinADay: 1 });
+      .toEqual({ percentile: 1, percentileType: 0, realtime: 1, aheadWhy: 2, withinADay: 1 });
   });
 });

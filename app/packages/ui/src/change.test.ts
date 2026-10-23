@@ -145,6 +145,7 @@ describe("the Change block for the charted gauge", () => {
       path: "M0,40 L10,40 L20,40 L30,0 L40,0 L50,27.4 L60,39.9 L70,20.5 L80,20.5 L90,36.5",
       mark: { x: 40, y: 0, label: "Peak Mon" },
       ends: [{ x: 0, label: "today" }, { x: 90, label: "Sat 31 Oct" }],
+      handovers: [],
       label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct",
     });
   });
@@ -174,9 +175,12 @@ describe("the Change block for the charted gauge", () => {
         { model: "CLEVER and COFFEE together", part: false,
           line: "CLEVER and COFFEE together: rises to about 30× today's flow on Sun (high for the time of year), "
             + "back down by Tue.",
-          spark: { path: "M0,40 L10,26 L20,0 L30,28.6 L40,36.8", mark: { x: 20, y: 0, label: "Peak Sun" },
+          // (T157) the line breaks after COFFEE's last day drawn (Sun 25) and a tick stands in the gap
+          spark: { path: "M0,40 L10,26 L20,0 M30,28.6 L40,36.8", mark: { x: 20, y: 0, label: "Peak Sun" },
                    ends: [{ x: 0, label: "today" }, { x: 40, label: "Sat 31 Oct" }],
-                   label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct" } },
+                   handovers: [{ x: 25, model: "COFFEE" }],
+                   label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct; COFFEE's "
+                     + "forecast ends Mon" } },
         { model: "CLEVER", part: true, spark: null,
           line: "CLEVER: rises to about 25× today's flow on Mon (high for the time of year), back down by Tue." },
         { model: "COFFEE", part: true, spark: null,
@@ -189,13 +193,40 @@ describe("the Change block for the charted gauge", () => {
     });
   });
 
+  /*
+   * T157: the joined line is CLEVER and COFFEE together to COFFEE's fifth day and CLEVER alone after it, so it can drop
+   * the day after with neither model forecasting a fall. Every day of 08HD027's shape (T144 review: COFFEE 11x and
+   * still rising on its last day, CLEVER 1.06x): the drawing breaks there and marks it, never draws the cliff.
+   * Mutations: the break dropped (every day `L`) -> this and the joined block test fail; `handovers` empty -> both fail;
+   * a one-model line broken at its own reach -> "one model alone" below fails.
+   */
+  it("draws the COFFEE to CLEVER handover as a gap with a tick, not a fall", () => {
+    const handover: SourceChange = {
+      models: ["CLEVER", "COFFEE"], lowWater: false, reach: { CLEVER: "2026-10-31", COFFEE: "2026-10-26" },
+      dir: "rise", base: 1,
+      peak: { day: "2026-10-26", ratio: 3.32, value: 3.32, back: null, until: "2026-10-26" },
+      trough: { day: "2026-10-22", ratio: 1, value: 1, back: null },
+      days: [["2026-10-22", 1, 1], ["2026-10-23", 1, 1.4], ["2026-10-24", 1.2, 2.1], ["2026-10-25", 1.9, 2.9],
+             ["2026-10-26", 2.5, 3.32], ["2026-10-27", 1.02, 1.06], ["2026-10-28", 1.01, 1.04],
+             ["2026-10-29", 1, 1.03], ["2026-10-30", 1, 1.02], ["2026-10-31", 1, 1.01]],
+    };
+    expect(changeSpark(handover, "2026-10-22", 90, 40)).toEqual({
+      path: "M0,40 L10,28.8 L20,15.3 L30,4.5 L40,0 M50,38.1 L60,38.7 L70,39 L80,39.3 L90,39.7",
+      mark: { x: 40, y: 0, label: "Peak Mon" },
+      ends: [{ x: 0, label: "today" }, { x: 90, label: "Sat 31 Oct" }],
+      handovers: [{ x: 45, model: "COFFEE" }],
+      label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct; COFFEE's forecast ends Mon",
+    });
+  });
+
   it("one model alone is one line, with its days", () => {
     const alone: SourceChange = { ...JOINED, models: ["CLEVER"], reach: { CLEVER: "2026-10-31" } };
     const vm = changeView([{ model: "CLEVER", change: SPIKE }, { model: "ELF", change: ELF }], TODAY, ATTRIBUTION,
                           { width: 40, height: 40 }, alone);
-    expect([vm.runs.map((r) => [r.model, r.line, r.part, r.spark?.mark.label]), vm.caveat, vm.note]).toEqual([
+    expect([vm.runs.map((r) => [r.model, r.line, r.part, r.spark?.mark.label, r.spark?.handovers, r.spark?.path]),
+            vm.caveat, vm.note]).toEqual([
       [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (high for the time of year), back down by Tue.",
-        false, "Peak Sun"]], null, null]);
+        false, "Peak Sun", [], "M0,40 L10,26 L20,0 L30,28.6 L40,36.8"]], null, null]);
   });
 
   it("ELF alone carries the low-water caveat", () => {
@@ -237,6 +268,28 @@ describe("the donor panel under Change", () => {
     expect(vm.horizons.at(-1)).toEqual({ day: "change", chip: "Change",
                                          label: "Expected change over the next 10 days, showing", on: true,
                                          note: null, needs: null });
+  });
+
+  /*
+   * T157 (T144 left it on the charted gauge only): the spot's own Change says the low-water caveat where a counted gauge's
+   * change is ELF's alone. Mutations: `lowWater` not carried onto the row (`answerFrom`) -> the first two expectations
+   * fail; `all` always false -> the second fails; the note said under every horizon -> the last fails.
+   */
+  it("says where the change comes from ELF alone, for the spot's own answer (T157)", () => {
+    const low = (s: Record<string, true>) => ({ stations: {
+      A: { percentile: 0.2, discharge: 0.2, parameter: "discharge", change: { discharge: codedChange(3), ...(s.A ? { lowWater: true } : {}) } },
+      B: { percentile: 0.6, discharge: 0.6, parameter: "discharge", change: { discharge: codedChange(1.5), ...(s.B ? { lowWater: true } : {}) } },
+    } }) as never;
+    const said = (idx: never) => { const vm = view(idx); if (!vm.ok) throw new Error("expected an answer"); return vm.lowWater; };
+    const CAVEAT = "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in "
+      + "it, so it cannot see a rise coming.";
+    expect(said(low({ B: true }))).toBe(`Part of this change comes from ELF alone (B). ${CAVEAT}`);
+    expect(said(low({ A: true, B: true }))).toBe(`This change comes from ELF alone (A and B). ${CAVEAT}`);
+    expect(said(IDX)).toBeNull();
+    const now = donorView(answerFrom(PANEL, low({ A: true, B: true }), "discharge", 0),
+                          { day: TODAY, horizon: 0, from: null, size: { width: 300, height: 200 }, selected: null,
+                            pickable: false, quantity: "discharge" });
+    expect(now.ok && now.lowWater).toBeNull();
   });
 
   it("out of season: the honest refusal, the chips kept to step back, never steady", () => {

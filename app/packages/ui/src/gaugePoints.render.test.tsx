@@ -108,4 +108,15 @@ describe("gaugeGeoJSON at a horizon", () => {
     const g = gaugeGeoJSON([pts[0]!], { fetchedAt: "t", stations: { "08MH001": big } } as never, "flow", "change");
     expect(JSON.parse(g!).features[0].properties.label).toBe("100×+ today");
   });
+
+  // T157: the low-water caveat on the map. Mutation: gaugeGeoJSON not passing `lowWater` -> fails ("0.9× today").
+  it("marks a gauge whose change is ELF's alone as the low-water model, at Change only", () => {
+    const elf = { ...row, change: { ...row.change, discharge: 0.45, ratio: 0.88, models: ["ELF"], dir: "fall",
+                                    lowWater: true } };
+    const label = (h: Horizon) => {
+      const g = gaugeGeoJSON([pts[0]!], { fetchedAt: "t", stations: { "08MH001": elf } } as never, "flow", h);
+      return JSON.parse(g!).features[0].properties.label;
+    };
+    expect([label("change"), label(0)]).toEqual(["0.9× today · low-water model", "p40th"]);
+  });
 });

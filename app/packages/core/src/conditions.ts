@@ -164,6 +164,10 @@ const WHY: Record<NoEstimate, string> = {
   // republished, ELF's stage forecast for these days exists — the Level chart draws it — and is only not RANKED.
   "flow-forecast-only": "The gauges here have a flow forecast this far ahead, but no level forecast ranked against "
                       + "their record. Show Flow to see it.",
+  // A DAY AHEAD THE RUNS FORECAST AND NOTHING RANKS (T157; 07FC008, 08FB012 on the 2026-10-23 feed): new roster stations
+  // with a fresh run and an expected Change but no HYDAT record, so no day ahead has a percentile. "No forecast …
+  // reaches" was false: the forecast is there, and Change answers from it.
+  "forecast-unranked": "The gauges here have a forecast this far ahead, but no record to compare it with.",
 };
 
 /**
@@ -171,7 +175,7 @@ const WHY: Record<NoEstimate, string> = {
  * step back with. The one list; the donor view asks it.
  */
 export function refusalIsAboutTheDay(why: NoEstimate): boolean {
-  return why === "no-forecast" || why === "flow-forecast-only";
+  return why === "no-forecast" || why === "flow-forecast-only" || why === "forecast-unranked";
 }
 
 /**
@@ -213,7 +217,16 @@ export interface DonorFacts {
    * in the live feed. Absent where nobody asked, or the file said when — then the last report is `observedAt`.
    */
   noData?: boolean;
+  /**
+   * WHY A MEMBER HAS NO PERCENTILE ON A DAY AHEAD, as the panel read it from the feed (T157, @app/data `aheadWhy`):
+   * `flow-only`, asked Level and the feed ranks this day in flow only; `no-record`, the runs forecast the day but the
+   * station has no record to rank it against. Absent: no run reaches the day, or the question is not a day ahead.
+   */
+  aheadWhy?: AheadWhy;
 }
+
+/** See `DonorFacts.aheadWhy`. */
+export type AheadWhy = "flow-only" | "no-record";
 
 const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream" };
 
@@ -227,7 +240,7 @@ export function sizeApart(ratio: number): string {
 /* ------------------------------------------------------------ a donor's state ---- */
 
 /** What a donor row must carry for its state to be known. `DonorFacts` (and `DonorRow`) satisfy it. */
-export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt">;
+export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt" | "aheadWhy">;
 
 /** The instant (`ref`) and horizon the answer is for. */
 export interface DonorAsk { ref?: number; horizon?: Horizon }
@@ -240,6 +253,9 @@ export interface DonorAsk { ref?: number; horizon?: Horizon }
  *
  *   reads         it has a percentile at this horizon (a reading today, a forecast ahead): it counts.
  *   not-realtime  ECCC does not list it as real-time: it never speaks live, on any day asked about.
+ *   flow-only     a day ahead under Level whose forecast is ranked in flow only (T157): what the sheet's refusal says
+ *                 ("a flow forecast this far ahead, but no level forecast ranked").
+ *   forecast-unranked  a day ahead its runs forecast, with no record to rank it against (T157).
  *   no-forecast   a day ahead (or Change) and no forecast run reaches it — a missing FORECAST, not a quiet gauge.
  *   unranked      today, a report within a day of `ref` that cannot be ranked against its record: it speaks.
  *   quiet         today, and nothing within a day: not reporting.
@@ -250,6 +266,8 @@ export interface DonorAsk { ref?: number; horizon?: Horizon }
 export type DonorState =
   | { kind: "reads"; percentile: number }
   | { kind: "not-realtime" }
+  | { kind: "flow-only" }
+  | { kind: "forecast-unranked" }
   | { kind: "no-forecast" }
   | { kind: "unranked" }
   | { kind: "quiet" };
@@ -259,7 +277,8 @@ const DAY = 86_400_000;
 export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   if (r.percentile !== null) return { kind: "reads", percentile: r.percentile };
   if (r.realtime === false) return { kind: "not-realtime" };
-  if (o.horizon) return { kind: "no-forecast" };
+  if (o.horizon) return r.aheadWhy === "flow-only" ? { kind: "flow-only" }
+    : r.aheadWhy === "no-record" ? { kind: "forecast-unranked" } : { kind: "no-forecast" };
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
   if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY) return { kind: "unranked" };
   return { kind: "quiet" };
@@ -304,6 +323,8 @@ export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
     case "reads":
       return o.horizon === "change" ? changeReads(changeRatio(s.percentile)) : `Reads ${inTen(s.percentile)}.`;
     case "not-realtime": return "Not a real-time gauge.";
+    case "flow-only": return "Has a flow forecast this far ahead, but no level forecast ranked against its record.";
+    case "forecast-unranked": return "Has a forecast this far ahead, but no record to compare it with.";
     case "no-forecast":
       return o.horizon === "change" ? "No forecast running for this gauge now."
         : "No forecast for this gauge that far ahead.";
@@ -330,7 +351,7 @@ export function donorSilent(r: DonorReading, o: DonorAsk = {}): boolean {
   const s = donorState(r, o);
   switch (s.kind) {
     case "reads": case "unranked": return false;
-    case "not-realtime": case "no-forecast": case "quiet": return true;
+    case "not-realtime": case "flow-only": case "forecast-unranked": case "no-forecast": case "quiet": return true;
     default: return unreachable(s);
   }
 }
@@ -349,8 +370,13 @@ function silentMember(r: DonorFacts, o: DonorAsk & { ref: number; zone?: string 
   const name = r.route?.name || r.station;
   const at = lastDataStamp(r.observedAt, o.ref, o.zone);
   const last = at ? `last ${at}` : r.noData ? "has never reported" : "last report not known";
-  return donorState(r, o).kind === "not-realtime" ? `${name} (not a real-time gauge${at ? `; ${last}` : ""})`
-    : `${name} (${last})`;
+  switch (donorState(r, o).kind) {
+    case "not-realtime": return `${name} (not a real-time gauge${at ? `; ${last}` : ""})`;
+    // (T157) a forecast IS there: the member says why it is not counted, never when it last reported
+    case "flow-only": return `${name} (flow forecast only)`;
+    case "forecast-unranked": return `${name} (no record to compare with)`;
+    default: return `${name} (${last})`;
+  }
 }
 
 /**
@@ -363,8 +389,11 @@ export function silentLine(rows: readonly DonorFacts[],
                            o: { ref: number; horizon?: Horizon; zone?: string }): string | null {
   const silent = rows.filter((r) => donorSilent(r, o));
   if (!silent.length) return null;
+  // (T157) a day ahead where a silent member HAS a forecast (flow only, or nothing to rank it against) is not "no
+  // forecast": the members are named with why they are not counted
+  const has = silent.some((r) => { const k = donorState(r, o).kind; return k === "flow-only" || k === "forecast-unranked"; });
   const kicker = o.horizon === "change" ? "No forecast running"
-    : o.horizon ? "No forecast this far ahead" : "Not reporting";
+    : o.horizon ? (has ? "Not counted this far ahead" : "No forecast this far ahead") : "Not reporting";
   return `${kicker}: ${silent.map((r) => silentMember(r, o)).join(" · ")}`;
 }
 
@@ -420,6 +449,8 @@ export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
     switch (s.kind) {
       case "reads": return `${Math.round(r.weight * 100)} per cent of the answer`;
       case "not-realtime": return nothing("not a real-time gauge");
+      case "flow-only": return nothing("a flow forecast only, no level ranked");
+      case "forecast-unranked": return nothing("no record to compare its forecast with");
       case "no-forecast": return nothing("no forecast for this gauge");
       case "unranked": return nothing("reporting but not ranked today");
       case "quiet": return nothing("not reporting today");
@@ -428,15 +459,6 @@ export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
   })();
   const base = `${r.station}, ${ROLE[r.role]}, ${sizeApart(r.areaRatio)}, ${said}`;
   return pickable ? `${base}. ${on ? "Showing" : "Show"} this gauge's chart` : base;
-}
-
-/**
- * A choice in the chart's gauge switcher, for a screen reader: "Chart 08MH016, Chilliwack River at outlet of
- * Chilliwack Lake, 35% of this estimate" — "Showing …" for the one on the chart.
- */
-export function gaugeChoiceLabel(r: DonorFacts, on: boolean): string {
-  const name = r.route?.name ? `, ${r.route.name}` : "";
-  return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${donorWeightLine(r)}`;
 }
 
 const hereName = (r: DonorFacts, atSpot: boolean) =>
