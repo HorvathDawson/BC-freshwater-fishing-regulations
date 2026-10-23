@@ -7,7 +7,7 @@
 //        [--who u16,non_resident] [--ref <ref>] [--url http://localhost:8081] [--clock proto|real] [--out DIR]
 //        [--scale 0.4 --jpeg 0.72]
 //   node app/tools/compare-regs.mjs --all [--out DIR]         every WALK_STATES state × tab (light), Vedder dark, the sheet set
-//   node app/tools/compare-regs.mjs --reader OUT_DIR         the reader set (port/reader/states.json), app only, with the
+//   node app/tools/compare-regs.mjs --reader OUT_DIR [--theme dark]  the reader set (port/reader/states.json), app only, with the
 //                                                            prototype's PNG names: OUT/TALL, OUT/FRAMES, OUT/TALL/NEW
 // Writes OUT/<id>-<tab>[-<sheet>]-<theme>.png and OUT/compare.json (every shot's diff %).
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
@@ -15,6 +15,7 @@ import { RECT, SCROLL, openApp, resize, scrollTo, shoot, sleep, tap, tid, until 
 import { APP_URL, PHONE, PROTO_TODAY, REF, TABS, WALK_STATES, appKeyOf, stateOf, urlsOf } from './regs-web/states.mjs';
 import { PROTO_GEO, openProto, stageProto } from './regs-web/proto.mjs';
 import { closeCompose, compose, stack } from './regs-web/compose.mjs';
+import { END_BOTTOMS, tallEnd } from './regs-web/tall.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -109,7 +110,7 @@ async function reader(out) {
   for (const d of ['TALL', 'FRAMES', 'TALL/NEW']) fs.mkdirSync(path.join(out, d), { recursive: true });
   for (const r of set) {
     const who = r.who ?? null;
-    const b = await openApp(urlsOf(r.state, { who, theme: r.theme ?? 'light', app: url }).app, { day: dayOf(r.state) });
+    const b = await openApp(urlsOf(r.state, { who, theme: opt('--theme', null) ?? r.theme ?? 'light', app: url }).app, { day: dayOf(r.state) });
     try {
       if (r.folder === 'FRAMES') await frames(b, r, path.join(out, 'FRAMES'));
       else fs.writeFileSync(path.join(out, r.folder === 'NEW' ? 'TALL/NEW' : 'TALL', `${r.name}.png`), await tall(b, r));
@@ -148,9 +149,8 @@ async function tall(b, r) {
   // grow the viewport so the whole page is laid out unscrolled, then clip
   const content = await b.evaluate(`${tid('regs-content')}.getBoundingClientRect().height`);
   await resize(b, PHONE.width, head.bottom + content + 40);
-  // cards: down to the last group; keep: down to the Keep tab's foot
-  const end = await b.evaluate(`(() => { const gs = [...document.querySelectorAll('[data-testid=keep-group], [data-testid=keep-plain]')];
-    const k = ${tid('keep-tab')}.getBoundingClientRect().bottom; return ${JSON.stringify(r.mode)} === 'cards' && gs.length ? Math.max(...gs.map((g) => g.getBoundingClientRect().bottom)) : k; })()`);
+  // cards: down to the last card or the Other fish list under them (T137, the prototype's tall.mjs); keep: the tab's foot
+  const end = tallEnd(r.mode, await b.evaluate(END_BOTTOMS), await b.evaluate(`${tid('keep-tab')}.getBoundingClientRect().bottom`));
   return shoot(b, { x: 0, y: head.top, width: PHONE.width, height: end - head.top + 8 });
 }
 

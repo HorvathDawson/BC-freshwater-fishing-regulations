@@ -1,6 +1,6 @@
 # T137 — The reader shooter's TALL cards shot drops the Other fish list
 
-Status: OPEN — source: reader gate 2026-10-23 (handoff/PLAN/app-integration/reader/2026-10-23-app.md), the one miss (Q12).
+Status: DONE — commit (see git log -- app/tools/regs-web/tall.mjs) — source: reader gate 2026-10-23 (handoff/PLAN/app-integration/reader/2026-10-23-app.md), the one miss (Q12).
 
 ## Today
 `app/tools/compare-regs.mjs` `tall()` clips a `cards` shot at the bottom of the last `[data-testid=keep-group]` /
@@ -24,3 +24,15 @@ reader answered "not shown" from the named cards, conf 5 -> 3: the gate fails (3
 - Reader gate re-run: 39/39, Q12 answered from the cards (Sat 5, Mon release) at conf >= 4, no other drop >= 2.
 
 Depends: none (T41's tool). Size: S + a reader run. Owner: Claude (Q13).
+
+## As built (2026-10-23)
+- `app/tools/regs-web/tall.mjs`: the end rule, pure — `tallEnd(mode, bottoms, keepTab)`: `cards` = max bottom of
+  `keep-group` / `keep-plain` / `keep-otherfish` (the prototype tall.mjs: last card or `.olist`), else the Keep tab's foot;
+  `END_BOTTOMS` is the page-side measure. `compare-regs.mjs` `tall()` uses it. Test: `app/tools/regs-web/tall.test.ts` (3).
+- Other TALL modes checked against tall.mjs: `keep` (whole Keep tab), `tab` / `licence` (whole section) and `sheet`
+  (whole sheet body) already cover what the prototype's same-named PNGs cover; only `cards` was cropped.
+- `--reader OUT --theme dark` shoots the reader set in the dark palette (same PNG names); default stays each row's
+  theme, else light.
+- Re-shot: light + dark sets (39 PNGs each, every prompt-gate39.md name present). ur1-kootenay-lwa-oct10-cards ends with
+  Other fish, "Kokanee · Weekends: keep 5 · Weekdays: release", 5 a day; ur2 (Mon Oct 12) kokanee row says release.
+- Still open from Work: the fresh Opus reader run on the new set (39/39 acceptance) is not part of this commit.
