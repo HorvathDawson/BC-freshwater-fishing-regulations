@@ -39,6 +39,11 @@ import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRan
 export type Horizon = 0 | 1 | 3 | 5 | 10 | "change";
 export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5, 10, "change"];
 
+/** The horizons that are a DAY (Now and +1/+3/+5/+10): everything but Change. The one list for code that needs a date
+ *  per horizon (a spot's coming days, T51), so none re-derives it with its own `typeof h === "number"`. */
+export type DayHorizon = Exclude<Horizon, "change">;
+export const DAY_HORIZONS: readonly DayHorizon[] = HORIZONS.filter((h): h is DayHorizon => typeof h === "number");
+
 /** The expected-change horizon. */
 export const CHANGE: Horizon = "change";
 

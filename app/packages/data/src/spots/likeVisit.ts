@@ -14,7 +14,7 @@
  * A DAY NO HORIZON REACHES HAS NO FLOW. The feed ranks a forecast for +1, +3, +5 and +10 days; the strip's +2 and +4
  * are scored on the weather alone and say so — never filled from a neighbour.
  */
-import { HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
+import { DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
 import { reading } from "../panel";
 import type { Spot } from "./model";
 
@@ -86,7 +86,7 @@ export function flowAhead(index: LikeIndex, station: string, now: number): Recor
   const row = index.stations[station];
   if (!row) return null;
   const base = indexDay(index, now);
-  return Object.fromEntries(HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()), reading(row, "discharge", h)]));
+  return Object.fromEntries(DAY_HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()), reading(row, "discharge", h)]));
 }
 
 /** The day the index's horizons count from: its own `fetchedAt`, else the device's now. */
