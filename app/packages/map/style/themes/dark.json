@@ -19,7 +19,7 @@
     "color.lake.fill": "#205579",
     "color.lake.edge": "#6FA8C4",
     "color.wetland.fill": "#3F7759",
-    "color.contour.line": "#4FD0E8",
+    "color.contour.line": "#000040",
     "color.park.fill": "#22371f",
     "color.park.edge": "#4e7a44",
     "color.reserve.fill": "#4d3320",

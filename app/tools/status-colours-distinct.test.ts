@@ -31,6 +31,7 @@
  * distinct. Where a floor sits under the ticket's 20 it is because no palette inside the house rules reaches 20 there
  * (search-d.mjs proves it; T47-colours.md part 2 says which pair binds).
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { TEMP_BAND_TOKEN, type TempBand } from "@app/core";
 import { resolveTheme } from "@app/map";
@@ -469,5 +470,91 @@ describe("no public access is not base (T146)", () => {
       "dark: no_access ~0368EB vs base ~0368EB as a token, normal vision 0.0 < 35",
       "dark: no_access ~0368EB vs base ~0368EB as a thin line, normal vision 0.0 < 26",
       "dark: no_access ~0368EB vs base ~0368EB as a lake fill, normal vision 0.0 < 26"]));
+  });
+});
+
+/*
+ * DEPTH CONTOURS STAND OFF EVERY LAKE THEY ARE DRAWN ON (T158). The contours (`contour`, group `depth`: the "Depth" water
+ * colouring and the "Depth contours" switch) are a 0.8 px line laid OVER the lake fill. T146 moved the dark no public
+ * access to an ice cyan, 4.7 from the dark contour cyan as tokens and 1.0 as drawn: the contours vanished on a no-access
+ * lake (Coquitlam Lake with Depth on). Measuring every fill the same way found the Depth colouring's own fill had the
+ * same fault in every theme (normal vision dark 5.7, light 4.8, cvd 9.2: a contour on a digitised lake was a cyan on a
+ * teal). So the contour is held, as a thin line over each fill (the fill at `opacity.lake` over the basemap's water), off
+ * every fill of the lake colourings it is drawn over: Regulations (`status` / `profile`), Depth (`surveyed`) and the
+ * plain lake, read from the lake layer itself, so a category added there is held the day it is added.
+ *
+ * NOT HELD: Stocked. The colour-blind theme's stocking ramp runs from a deep navy to a pale yellow, and no one line colour
+ * stands off both ends (the searched best is 17.5 normal / 8.3 worst); light and dark clear it with the contour they have.
+ * Conditions (`standing`) never draws contours (the switch is offered on the map and water views only).
+ */
+const CONTOUR_NORMAL = 15;
+const CONTOUR_WORST = 12;
+const CONTOUR_OVER = ["plain", "surveyed", "status", "profile"] as const;
+
+/** Every token the lake layer paints in the colourings contours are drawn over (categories and `missing`). */
+function contourGrounds(): string[] {
+  const src = JSON.parse(readFileSync(new URL("../packages/map/style/layers.source.json", import.meta.url), "utf8")) as
+    { layers: { id: string; colorModes?: Record<string, unknown> }[] };
+  const lake = src.layers.find((l) => l.id === "lake")!;
+  const tokens = new Set<string>();
+  for (const mode of CONTOUR_OVER)
+    JSON.stringify(lake.colorModes![mode], (k, v) => { if (k === "token") tokens.add(v as string); return v; });
+  return [...tokens];
+}
+
+/** Every lake fill a theme's contours are lost on, one whole sentence each. Empty = they are seen on every one. */
+function contourFailures(th: Theme, t: Record<string, unknown>): string[] {
+  const c = t["color.contour.line"] as string;
+  const a = t["opacity.lake"] as number;
+  const out: string[] = [];
+  for (const token of contourGrounds()) {
+    const fill = over(t[token] as string, LAKE_GROUND[th], a);
+    const line = over(c, fill, LINE);
+    const normal = deltaE(line, fill);
+    const w = worst(line, fill);
+    if (normal < CONTOUR_NORMAL)
+      out.push(`${th}: depth contours ${c} on a ${token} ${t[token]} lake, normal vision ${normal.toFixed(1)} < ${CONTOUR_NORMAL}`);
+    if (w.dE < CONTOUR_WORST)
+      out.push(`${th}: depth contours ${c} on a ${token} ${t[token]} lake ${w.dE.toFixed(1)} < ${CONTOUR_WORST} (${w.under})`);
+  }
+  return out;
+}
+
+describe("depth contours are seen on every lake (T158)", () => {
+  it("holds them over the Regulations, Depth and plain lake fills, read from the lake layer", () => {
+    expect(contourGrounds()).toEqual(["color.lake.fill", "color.survey.digitised", "color.survey.sheet",
+      "color.status.closed", "color.status.own", "color.status.base", "color.status.no_access", "color.water.unmapped"]);
+  });
+
+  for (const th of THEMES)
+    it(`stand off every lake fill they are drawn on — ${th}`, () => {
+      expect(contourFailures(th, resolveTheme(th))).toEqual([]);
+    });
+
+  it("fails the dark contour cyan that T146's ice-cyan no public access swallowed (mutation pin)", () => {
+    expect(contourFailures("dark", resolveTheme("dark", de({ "color.contour.line": "~4FD0E8" })))).toEqual(de([
+      "dark: depth contours ~4FD0E8 on a color.survey.digitised ~30D0D4 lake, normal vision 5.7 < 15",
+      "dark: depth contours ~4FD0E8 on a color.survey.digitised ~30D0D4 lake 4.0 < 12 (tritan (vienot))",
+      "dark: depth contours ~4FD0E8 on a color.status.no_access ~50E4FF lake, normal vision 1.0 < 15",
+      "dark: depth contours ~4FD0E8 on a color.status.no_access ~50E4FF lake 1.0 < 12 (tritan (machado))",
+      "dark: depth contours ~4FD0E8 on a color.water.unmapped ~93A0AB lake 10.7 < 12 (deutan (machado))"]));
+  });
+
+  it("fails the light contour cyan on the Depth colouring's own digitised fill (mutation pin)", () => {
+    expect(contourFailures("light", resolveTheme("light", de({ "color.contour.line": "~2FA9C9" })))
+      .filter((x) => x.includes("digitised") && x.includes("normal"))).toEqual(de([
+      "light: depth contours ~2FA9C9 on a color.survey.digitised ~0E7C86 lake, normal vision 4.8 < 15"]));
+  });
+
+  it("fails a contour painted in the lake fill it lies on (mutation pin)", () => {
+    // a contour drawn in no public access's own colour is lost on exactly those lakes, in every theme, for every reader
+    // (not 0.0: the fill is drawn at `opacity.lake` over the basemap's water, the line at full strength)
+    for (const th of THEMES) {
+      const x = (resolveTheme(th) as Record<string, string>)["color.status.no_access"]!;
+      const lost = contourFailures(th, resolveTheme(th, { "color.contour.line": x }))
+        .filter((f) => f.startsWith(`${th}: depth contours ${x} on a color.status.no_access ${x} lake`));
+      expect([th, lost.map((f) => (f.includes(", normal vision ") ? "normal vision" : "every reader"))])
+        .toEqual([th, ["normal vision", "every reader"]]);
+    }
   });
 });
