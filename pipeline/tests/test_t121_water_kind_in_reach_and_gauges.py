@@ -147,3 +147,54 @@ def test_no_node_kind_is_read_for_the_water_kind(path):
 def test_the_gate_covers_the_reach_and_the_gauges():
     rel = {str(p.relative_to(ROOT)) for p in SCANNED}
     assert {"atlas/reach/build.py", "atlas/reach/extent.py", "gauges/consume/shed.py"} <= rel
+
+
+# --------------------------------------------------------------------------- adversarial review: the wiring
+#
+# Every reader above takes the registry as an OPTIONAL argument (`None` = the node's kind, for
+# fixtures), so a production caller that forgets to pass it silently reads the shape again — and the
+# unit tests, which pass it themselves, stay green. Measured in the T121 review: dropping
+# `registry=kinds` from the bundle's `build_gauge_sheds` call (which takes the 18 river-polygon
+# gauge rows back out), `kinds` from `lake_gauge_links`, `registry` from `_expander`'s stem call or
+# `reg` from `resolve_extent`'s `_watershed_part` call failed NO test. This pins every production call.
+
+#: function -> (positional index of the registry argument, its keyword name)
+REGISTRY_ARG = {"_stem_to_first_lake": (2, "registry"), "_watershed_part": (6, "reg"),
+                "is_lake_station": (2, "registry"), "build_gauge_sheds": (None, "registry"),
+                "lake_gauge_links": (3, "registry")}
+
+
+def _production_calls():
+    import ast
+    out = []
+    for path in sorted(ROOT.rglob("*.py")):
+        if "tests" in path.relative_to(ROOT).parts:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = getattr(node.func, "attr", None) or getattr(node.func, "id", None)
+            if name in REGISTRY_ARG:
+                out.append((str(path.relative_to(ROOT)), node.lineno, name, node))
+    return out
+
+
+def _passes_registry(name, call) -> bool:
+    import ast
+    pos, kw = REGISTRY_ARG[name]
+    arg = next((k.value for k in call.keywords if k.arg == kw), None)
+    if arg is None and pos is not None and len(call.args) > pos:
+        arg = call.args[pos]
+    return arg is not None and not (isinstance(arg, ast.Constant) and arg.value is None)
+
+
+def test_every_production_reader_of_the_water_kind_is_handed_the_registry():
+    calls = _production_calls()
+    bad = [f"{p}:{ln} {name}" for p, ln, name, c in calls if not _passes_registry(name, c)]
+    assert not bad, f"called without the registry (reads the node's shape): {bad}"
+    # the scan sees the callers it pins
+    assert {(p, name) for p, _, name, _ in calls} >= {
+        ("deliver/bundle/build.py", "build_gauge_sheds"), ("deliver/bundle/build.py", "lake_gauge_links"),
+        ("atlas/reach/build.py", "_stem_to_first_lake"), ("atlas/reach/extent.py", "_watershed_part"),
+        ("gauges/consume/shed.py", "is_lake_station")}

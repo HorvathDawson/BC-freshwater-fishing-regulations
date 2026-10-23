@@ -200,11 +200,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                 # designation.
                 detail, _ = resolve_carve_outs(e, rec, registry, graph, covered)
                 for i, (x, row) in enumerate(zip(rec["tributary_excludes"], detail)):
-                    secs = set(row.get("sections") or ())
-                    mine = secs if row.get("walk_past") else \
-                        secs | set(_tribs.tributaries_of_reach(graph, secs,
-                                                               cuts=[tuple(c) for c in
-                                                                     row.get("cuts") or ()]))
+                    # THE CARVE-OUT'S OWN WALK, as `resolve_carve_outs` blocked it (T141 review):
+                    # one function, so the two can never seed differently again
+                    mine = carve_out_walk(graph, row)
                     items = set(([x.get("item_id")] if x.get("item_id") else [])
                                 + list(x.get("item_ids") or []))
                     carved[(entry_id, rec["id"], i)] = (removed & mine, items)
@@ -599,12 +597,11 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
             row["sections"] = sorted(secs)
             # THE CARVE-OUT'S WALK SEEDS FROM THE CUTS ITS EXTENT USED (T141, owner Q100), as the
             # rule's own walk does (`seeding_cuts`) — never re-derived from node bounds.
-            seeds = carve_out_cuts(graph, got)
-            row["cuts"] = [list(c) for c in seeds]
+            row["cuts"] = [list(c) for c in carve_out_cuts(graph, got)]
             if not past:
-                above = _tribs.tributaries_of_reach(graph, secs, cuts=seeds)
-                blocked |= secs | above
-                row["above"] = len(above)      # "and everything upstream of it"
+                walked = carve_out_walk(graph, row)
+                blocked |= walked
+                row["above"] = len(walked - secs)      # "and everything upstream of it"
         detail.append(row)
     return detail, blocked
 
@@ -621,6 +618,19 @@ def carve_out_cuts(graph, got: dict) -> list[tuple[str, float]]:
     if not CARVE_OUT_WALK_SEEDS_FROM_ITS_CUTS:
         return _tribs.lower_bound_cuts(graph, got.get("sections") or ())
     return seeding_cuts(graph, [got])
+
+
+def carve_out_walk(graph, row: dict) -> frozenset[str]:
+    """WHAT ONE RESOLVED CARVE-OUT TAKES OUT: its sections, and — unless it is `walk_past` — everything
+    upstream of them, walked from the cuts its extent used (`row["cuts"]`, `carve_out_cuts`). The one
+    carve-out walk: `resolve_carve_outs` blocks it from the rule's walk, and `build_reaches`' licensing
+    carve-out check hands a designation's excluded water exactly it (T141 review: the check used to
+    call the walk itself, and was the copy T141 had to remember to re-seed)."""
+    secs = frozenset(row.get("sections") or ())
+    if row.get("walk_past"):
+        return secs
+    return secs | _tribs.tributaries_of_reach(
+        graph, secs, cuts=[tuple(c) for c in row.get("cuts") or ()])
 
 
 def carve_out_passed(detail: list[dict]) -> set[str]:

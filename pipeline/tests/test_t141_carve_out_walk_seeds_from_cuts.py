@@ -158,3 +158,43 @@ def test_a_side_channel_takes_no_unnamed_joiner():
 @pytest.mark.parametrize("flag", ["CUTS_REPORT_SIDE_CHANNEL_CROSSINGS"])
 def test_the_policy_flags_are_on(flag):
     assert getattr(X, flag) is True and B.CARVE_OUT_WALK_SEEDS_FROM_ITS_CUTS is True
+
+
+# --------------------------------------------------------------------------- adversarial review
+
+def test_the_carve_out_walk_is_what_the_carve_out_blocks():
+    """`carve_out_walk` is the one carve-out walk: what `resolve_carve_outs` blocks, row by row, and
+    what the licensing carve-out check hands a designation's excluded water. A `walk_past` row takes
+    its own sections only."""
+    g, reg = _world()
+    detail, blocked = _carve(g, reg, UP)
+    assert B.carve_out_walk(g, detail[0]) == blocked == {"M:1000", "S:500", "X:0"}
+    assert B.carve_out_walk(g, {**detail[0], "walk_past": True}) == {"M:1000", "S:500"}
+    assert B.carve_out_walk(g, {"extent": UP, "resolved": False, "sections": [], "above": 0}) \
+        == frozenset()
+
+
+def _calls_in(tree, name):
+    """`(enclosing function, call)` for every call of `name` (bare or attribute) in `tree`."""
+    import ast
+    out = []
+    for fn in ast.walk(tree):
+        if isinstance(fn, ast.FunctionDef):
+            for node in ast.walk(fn):
+                if isinstance(node, ast.Call) and (
+                        getattr(node.func, "attr", None) == name or getattr(node.func, "id", None) == name):
+                    out.append(fn.name)
+    return out
+
+
+def test_no_second_copy_of_the_carve_out_walk():
+    """MUTATION (the T141 review's): `build_reaches`' licensing check calling
+    `tributaries_of_reach(graph, secs)` itself again — the copy that seeded from node bounds while
+    the carve-out seeded from its cuts — fails here. The reach builder walks a carve-out in one
+    place, and the licensing check asks it."""
+    import ast
+    from pathlib import Path
+    tree = ast.parse(Path(B.__file__).read_text(encoding="utf-8"))
+    assert _calls_in(tree, "tributaries_of_reach") == ["carve_out_walk"]
+    assert "build_reaches" in _calls_in(tree, "carve_out_walk")
+    assert "resolve_carve_outs" in _calls_in(tree, "carve_out_walk")
