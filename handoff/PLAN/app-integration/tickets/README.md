@@ -174,8 +174,8 @@ use that as the sole source of future work."
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
-| T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | OPEN | — | all |
-| T131 | spot pins look better and open the spot on tap | OPEN | — | all |
+| T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
+| T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
 | T133 | curation review phase 2: one vintage on screen | OPEN | — | after T97 |
 | T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
@@ -247,6 +247,13 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q64 | T104 | Slocan "12:00 to 00:00" vs the book's "12 pm to midnight" — say noon/midnight (needs an export rebuild)? | unchanged | owner |
 | Q65 | T104 | Licensing labels still word "when" their own way (dates.When.words); routing through when_words adds "as printed:" on 2 labels — do it now? | leave until licensing labels are reworked | owner |
 | Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
+| Q67 | T130 | Go below z8 by drawing the heat map under the big rivers? | no — one answer per zoom (rivers from z8) | owner |
+| Q68 | T130 | Flow arrows start at z10, so z8–z10 shows coloured rivers without arrows — start them earlier? | as built | owner |
+| Q69 | T131 | Spot pin colour: neutral ink on card, or a hue of its own? | neutral ink | owner |
+| Q70 | T131 | Several spots on exactly one point: open the Spots list, or fan them out? | open the Spots list | owner |
+| Q71 | T131 | A spot opened from a water's map: its tab bar leaves the water for that tab? | yes | owner |
+| Q72 | T131 | Selected spot's name hidden when a neighbour pin sits there — drop it or place it below the pin? | drop it | owner |
+| Q73 | T131 | On Conditions a spot pin can cover a gauge reading label and takes the tap — ok? | as built | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

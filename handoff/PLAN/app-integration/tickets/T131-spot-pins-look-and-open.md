@@ -1,6 +1,6 @@
 # T131 — Spot pins on the map: look better, and tap to open the spot
 
-Status: DONE — 0cc5ea09, review fix (selected face size, spotFace) (lane wf_58c33d34-a73-2; shots in handoff/PLAN/app-integration/T131-shots/; native drawn by
+Status: DONE — 00398a3b, review fix 64b96b55 (selected face size, spotFace) (lane wf_58c33d34-a73-2; shots in handoff/PLAN/app-integration/T131-shots/; native drawn by
 the same code but not run on a device: rides T50). Owner 2026-10-22: "make spots on the map a) look better and b)
 clickable to open the spot."
 

@@ -18,9 +18,9 @@ Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mi
 
 ## Questions answered with a default (change any you disagree with)
 
-New: Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
+New: Q67–Q73 (heat map zoom and arrows, spot pin colour, stacked spots, spot names); Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
 and Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
-search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q66). The ones most likely
+search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q73). The ones most likely
 to matter:
 - Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
   banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.

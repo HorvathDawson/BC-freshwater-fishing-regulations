@@ -1,6 +1,6 @@
 # T130 — Conditions: zoom out further before the basin heat map takes over (+ Change chip under Level)
 
-Status: DONE — 96fe8720, 4a7a6d36 (lane wf_58c33d34-a73-1). Handover z8 (was z10), one number: the basin layer's
+Status: DONE — b4f3a40f, cd95bb63, review c9d48ea7 (lane wf_58c33d34-a73-1). Handover z8 (was z10), one number: the basin layer's
 maxzoom; the Change chip stays greyed "Flow only" under Level/Temperature and a tap moves to Flow. No tile rebuild
 needed; T64's build picks up BASIN_HANDOVER_Z = 8 and simply stops writing z8 basin tiles.
 
