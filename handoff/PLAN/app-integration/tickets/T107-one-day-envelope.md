@@ -1,6 +1,6 @@
 # T107 — One day's envelope: Python and TypeScript place the band and rank the value differently
 
-Status: DONE — 0bb3ea68
+Status: DONE — 0bb3ea68 (review 796efa34)
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 3 =
 cross 3 (CONFIRMED in code).
