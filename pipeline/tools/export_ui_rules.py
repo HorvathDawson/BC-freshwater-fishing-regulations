@@ -3543,8 +3543,8 @@ def _leaves(x: dict) -> list[str]:
 
 
 def _keeps(x: dict) -> bool:
-    from pipeline.deliver.bundle.rules import yields_to_release
-    return bool(yields_to_release(x)) and x.get("take") is not None
+    from pipeline.deliver.bundle.rules import keeps
+    return bool(keeps(x)) and x.get("take") is not None
 
 
 def _closure(x: dict) -> bool:
@@ -5696,7 +5696,7 @@ def _closure_scan(bundle: Path) -> dict:
     WATER'S OWN full closure silences (`read` reason `water_closure`, the DENETIAH ruling) is no
     finding: the row closes its own water, no zone closure hides an exemption there."""
     from pipeline.deliver.bundle import read as RD
-    from pipeline.deliver.bundle.rules import closure_grade, release_origins, yields_to_release
+    from pipeline.deliver.bundle.rules import closure_grade, release_origins, keeps
     from pipeline.regs.parsing.catalogue import expand_species
     key = str(Path(bundle).resolve())
     if key in _SCAN:
@@ -5742,7 +5742,7 @@ def _closure_scan(bundle: Path) -> dict:
                     continue
                 if release_origins(x) and starts(x):
                     cands.append(("release", k))
-                elif yields_to_release(x):
+                elif keeps(x):
                     cands.append(("quota", k))
             cache: dict = {}
             for what, k in cands:
@@ -6246,7 +6246,7 @@ def release_under_closure(bundle: Path) -> list[dict]:
 
 
 def quota_under_closure(bundle: Path) -> list[dict]:
-    """EVERY WATER-ROW KEEPING QUOTA (`rules.yields_to_release`) IN FORCE on a section and day —
+    """EVERY WATER-ROW KEEPING QUOTA (`rules.keeps`) IN FORCE on a section and day —
     bound there, its dates holding: the reader's step 4 INPUT — that the reader SILENCES while
     a full blanket closure of a zone table speaks (`_closure_scan`). The page shows the closure
     alone; were the row meant to keep its quota through the closure (a missed exemption shaped

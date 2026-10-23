@@ -538,7 +538,7 @@ def test_the_release_guard_is_what_silences_them(tmp_path, monkeypatch):
     monkeypatch.setattr(rules_mod, "release_origins", lambda x: None)
     assert {"q.r3", "q.r4", "s.r1"} <= _speak(path, "ST")
     monkeypatch.undo()
-    monkeypatch.setattr(rules_mod, "yields_to_release", lambda x: None)
+    monkeypatch.setattr(rules_mod, "keeps", lambda x: None)
     assert {"q.r3", "q.r4", "s.r1"} <= _speak(path, "ST")
 
 
@@ -1009,7 +1009,7 @@ def test_every_larger_water_number_for_a_fish_is_handled(db):
     only (the zone stays, partly lifted, for the other) and a zone SIZE clause the water does not
     restate ("1 over 50 cm" beside a lake's unsized "Rainbow trout daily quota = 2": different
     statements, ruling 3). A new row printing a larger number fails here until it is decided."""
-    from pipeline.deliver.bundle.rules import yields_to_release
+    from pipeline.deliver.bundle.rules import keeps
     from pipeline.regs.parsing.catalogue import expand_species
     rules = R._rules_of(BUNDLE)
 
@@ -1027,9 +1027,9 @@ def test_every_larger_water_number_for_a_fish_is_handled(db):
     sid = dict(db.execute("select set_id, min(sid) from section_ruleset group by set_id"))
     bad, checked = [], 0
     for s, mem in sets.items():
-        W = [k for k in mem if rules[k]["_rank"] == 0 and yields_to_release(rules[k])
+        W = [k for k in mem if rules[k]["_rank"] == 0 and keeps(rules[k])
              and num(rules[k]) and rules[k].get("species")]
-        Z = [k for k in mem if rules[k]["_rank"] >= 2 and yields_to_release(rules[k])
+        Z = [k for k in mem if rules[k]["_rank"] >= 2 and keeps(rules[k])
              and num(rules[k]) is not None]
         for w in W:
             for z in Z:

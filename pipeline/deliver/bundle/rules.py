@@ -268,13 +268,18 @@ def closure_grade(x: dict) -> str | None:
     return "full"
 
 
-def yields_to_release(x: dict) -> frozenset[str] | None:
+def keeps(x: dict) -> frozenset[str] | None:
     """THE ORIGINS A RULE LETS AN ANGLER KEEP, when an outright release must silence it: a
     `retention_limit` that allows something (`take` above 0, `unlimited`) or states only sizes
     (`take` absent) — whatever conditions it holds under (origin, water, while, size). `None` for
     a rule that keeps nothing (another release: equally strict, it stands beside), for a rule that
     is no count of fish (a record-keeping duty; the possession multiplier "twice the daily quota",
-    which has no number of its own to keep), and for a lift."""
+    which has no number of its own to keep), and for a lift.
+
+    THE ONE "DOES THIS RULE KEEP A FISH?" (T125 item 2; it was `yields_to_release`): the reader's
+    competition asks it, and so does the answers' paper-licence duty (`display.record_kept`: a
+    record duty stands only where a keeping quota for its fish speaks), which used to re-read the
+    rule's `dimension` string for its own take-above-0 test."""
     if x.get("type") != "retention_limit" or x.get("record_retention") \
             or x.get("dimension") == "lift":
         return None
@@ -326,7 +331,7 @@ def same_statement(a: dict, b: dict) -> bool:
     of the two. When they do not, both speak: the Dean's "Steelhead daily quota = 1" counts
     toward Region 5's "Trout/char: 5". A water row printing a larger number for a fish than the
     zone's aggregate LIFTS the aggregate for that fish (`exempts`) — it is not decided here.
-    Both must be keeping quotas (`yields_to_release`)."""
+    Both must be keeping quotas (`keeps`)."""
     return statement(a) == statement(b)
 
 

@@ -72,11 +72,11 @@ def test_denetiah_creek_its_own_closure_is_all_that_speaks_for_bull_trout(db, mo
     rule of any source speaks. MUTATION: `WATER_CLOSURE_DOMINANT` off, the possession 1 speaks
     again (the reader before the ruling)."""
     sid = _sid(db, "gnis:39298", DENETIAH)
-    from pipeline.deliver.bundle.rules import yields_to_release
+    from pipeline.deliver.bundle.rules import keeps
     now = _said(sid, (7, 5), "DV")
     assert now[DENETIAH]["state"] == "speaks"
     assert f"{LIARD}.r3" not in now and f"{LIARD}.r2" not in now
-    assert not [k for k, x in now.items() if x["state"] == "speaks" and yields_to_release(x)]
+    assert not [k for k, x in now.items() if x["state"] == "speaks" and keeps(x)]
     monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
     then = _said(sid, (7, 5), "DV")
     assert then[f"{LIARD}.r3"]["state"] == "speaks"
@@ -387,11 +387,11 @@ def test_a_closure_on_part_of_a_water_dominates_like_a_whole_water_closure(db, f
     MUTATION: the policy off, the step no longer names the closure as the winner."""
     parts = _chilliwack_above_signs(db)
     assert parts[True] and parts[False], "the reserve cut splits the part above the signs"
-    from pipeline.deliver.bundle.rules import yields_to_release
+    from pipeline.deliver.bundle.rules import keeps
     for sid in (min(parts[True]), min(parts[False])):
         got = _said(sid, (7, 15), fish, trace=True)
         assert got[CHILLIWACK_R1]["state"] == "speaks"
-        assert not [k for k, x in got.items() if x["state"] == "speaks" and yields_to_release(x)]
+        assert not [k for k, x in got.items() if x["state"] == "speaks" and keeps(x)]
         silenced = {k for k, x in got.items() if x.get("reason") == "water_closure"}
         assert "z2:trout_char_quota::trout_char_quota.r4" in silenced
         assert all(got[k]["by"] == CHILLIWACK_R1 for k in silenced)

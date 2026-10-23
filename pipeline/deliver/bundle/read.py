@@ -647,13 +647,13 @@ def stricter(a: dict, b: dict) -> bool:
       a closure (take 0, may not fish for it; at every size, whatever the means) beats a retention
         rule that is not a closure;
       an outright release (`rules.release_origins`) beats a quota keeping only origins it releases
-        (`rules.yields_to_release`);
+        (`rules.keeps`);
       of two quotas stating the same thing (`rules.same_statement`), the lower beats the higher.
 
     Anything else is not stricter: two statements sit beside each other, and a gear or method rule
     is never displaced by one of another region (both apply)."""
     from pipeline.deliver.bundle.rules import (closure_grade, release_origins, same_statement,
-                                               yields_to_release)
+                                               keeps)
     if b.get("type") != "retention_limit" or a.get("type") != "retention_limit":
         return False
     # a FULL closure (`rules.closure_grade`): unconditional, at every size, whatever the means
@@ -662,11 +662,11 @@ def stricter(a: dict, b: dict) -> bool:
         return not shut(b)
     if shut(b):
         return False
-    rel, keeps = release_origins(a), yields_to_release(b)
-    if rel and keeps and keeps <= rel:
+    rel, kept = release_origins(a), keeps(b)
+    if rel and kept and kept <= rel:
         return True
-    ka = yields_to_release(a)
-    if ka and keeps and a.get("take") is not None and (b.get("take") is not None
+    ka = keeps(a)
+    if ka and kept and a.get("take") is not None and (b.get("take") is not None
                                                         or b.get("unlimited")) \
             and same_statement(a, b):
         return _count(a) < _count(b)
@@ -809,7 +809,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          release in force here, written for this water or reached by the tributary walk,
          displaces every zone/area/provincial quota that would keep the fish, WHATEVER its
          conditions, when every origin that quota keeps is released here (see step 5 below,
-         `rules.release_origins`, `rules.yields_to_release`). Such a release counts even when
+         `rules.release_origins`, `rules.keeps`). Such a release counts even when
          step 4 put it behind a zone release naming the fish, and one step 4 put behind a
          looser zone rule naming the fish (one that lets it be kept) speaks again.
          AND THE ROW'S OWN UNDATED QUOTA (RU-3, 2026-10-04): a dated outright release OR
@@ -1035,8 +1035,8 @@ class _Ask:
     def water_and_zone(self, o, k) -> bool:
         """Two quotas that both let the fish be kept, one written for this water (or reaching it
         by the walk), the other a zone, area or provincial one — never a superior authority's."""
-        from pipeline.deliver.bundle.rules import yields_to_release
-        return bool(yields_to_release(self.every[o]) and yields_to_release(self.every[k])
+        from pipeline.deliver.bundle.rules import keeps
+        return bool(keeps(self.every[o]) and keeps(self.every[k])
                     and ((self.water_side(o) and self.zone_side(k))
                          or (self.water_side(k) and self.zone_side(o))))
 
@@ -1107,10 +1107,10 @@ class _Ask:
         the page showed the annual 5 twice. When a zone table's (`z<region>:`) keeping quota and
         the water row's (`r…`) are the SAME STATEMENT (`rules.same_statement`), the row's speaks,
         as a water's number replaces the zone's (`water_and_zone`)."""
-        from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+        from pipeline.deliver.bundle.rules import same_statement, keeps
         return (EID.is_water_row(str(o[0])) and base_region(k[0]) is not None
                 and self.water_side(o) and self.water_side(k)
-                and bool(yields_to_release(self.every[o])) and bool(yields_to_release(self.every[k]))
+                and bool(keeps(self.every[o])) and bool(keeps(self.every[k]))
                 and same_statement(self.every[o], self.every[k]))
 
     def beats(self, o, k) -> bool:
@@ -1142,7 +1142,7 @@ class _Ask:
 
         A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, N-5): "Rainbow trout
         over 50 cm catch and release" never displaces a rule that speaks about smaller fish."""
-        from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+        from pipeline.deliver.bundle.rules import same_statement, keeps
         every = self.every
         if not covers(every[o], every[k], self.top):
             return False
@@ -1150,7 +1150,7 @@ class _Ask:
             return True
         if self.water_and_zone(o, k):
             return self.water_side(o) and same_statement(every[o], every[k])
-        if self.water_side(o) and yields_to_release(every[o]) and self.dated_zone_release(k):
+        if self.water_side(o) and keeps(every[o]) and self.dated_zone_release(k):
             return self.exact_same(o, k)
         if self.zone_line_restated(o, k):
             return True
@@ -1413,7 +1413,7 @@ def _step4b_zone_release(s: _Ask) -> None:
     #     `water: stream`, which is part of its dimension, so it met none of them and "Dolly Varden
     #     — 1 per day" spoke beside "release all" on the same stream on the same day. A release
     #     `released_on_water`, surviving step 4, displaces its OWN REGION'S TABLE's rules that keep
-    #     the fish (`rules.yields_to_release`, every origin kept released here) in the same
+    #     the fish (`rules.keeps`, every origin kept released here) in the same
     #     dimension read without conditions ("daily": the quota, its "1 over 50 cm", "4 from
     #     streams"), never a size clause of another dimension ("none under 60 cm" stays beside),
     #     never a closure (it keeps nothing), never a water row, never another region's rule.
@@ -1430,7 +1430,7 @@ def _step4b_zone_release(s: _Ask) -> None:
     #     fish is released then). Only an UNCONDITIONED release reaches this far:
     #     `release_origins` is None for a `while` / `when_targeting` release (pinned by
     #     test_a_conditioned_zone_release_leaves_its_tables_quotas).
-    from pipeline.deliver.bundle.rules import closure_grade, release_origins, yields_to_release
+    from pipeline.deliver.bundle.rules import closure_grade, release_origins, keeps
     every, out_ = s.every, s.out_
     competes, place, base, family = s.competes, s.place, s.base, s.family
     for k in sorted(out_):
@@ -1444,9 +1444,9 @@ def _step4b_zone_release(s: _Ask) -> None:
             kind = "*"                                     # a release on every kind of water
         freed = release_origins(every[k])
         for o in sorted(out_):
-            keeps = yields_to_release(every[o])
+            kept = keeps(every[o])
             if o != k and competes(o) and place(o) >= 2 and base(o) == base(k) \
-                    and family(o) != family(k) and keeps and keeps <= freed \
+                    and family(o) != family(k) and kept and kept <= freed \
                     and (every[o].get("water") in (None, kind) if kind != "*" else
                          # the keeper's only condition beyond the base is its water kind
                          str(every[o].get("dimension")) in (
@@ -1497,7 +1497,7 @@ def _step4c_closures(s: _Ask) -> None:
     #     LIFTERS (a rule that exempts it in part — an origin, a target — speaks beside it; one
     #     that lifts it outright has already removed it in step 3). A zone closure keeps RU-7's
     #     reach (by the ladder, its own base dimension).
-    from pipeline.deliver.bundle.rules import closure_grade, yields_to_release
+    from pipeline.deliver.bundle.rules import closure_grade, keeps
     every, out_, top = s.every, s.out_, s.top
     competes, family, order, peers = s.competes, s.family, s.order, s.peers
     for k in sorted(out_):
@@ -1509,7 +1509,7 @@ def _step4c_closures(s: _Ask) -> None:
                    if any((t["entry_id"], t["rule_id"]) == k for t in every[o].get("exempts") or [])}
         for o in sorted(out_):
             if o == k or not competes(o) or family(o) == family(k) \
-                    or not yields_to_release(every[o]) or not covers(x, every[o], top):
+                    or not keeps(every[o]) or not covers(x, every[o], top):
                 continue
             if own and order(o)[0] == 1 and o not in lifters:
                 s.lose(o, "water_closure", k)
@@ -1536,7 +1536,7 @@ def _step4d_size_release(s: _Ask) -> None:
     #     RELEASING a size class (a band with take 0) displaces a zone-side keeping rule of the
     #     same base dimension whose spoken lengths lie wholly inside the released class. The
     #     zone's "5 per day" (every length) stays: the 5 still counts the rainbow under 50 cm.
-    from pipeline.deliver.bundle.rules import ORIGINS, yields_to_release
+    from pipeline.deliver.bundle.rules import ORIGINS, keeps
     every, out_, top = s.every, s.out_, s.top
     competes, family, clock = s.competes, s.family, s.clock
     for o in sorted(out_):
@@ -1546,9 +1546,9 @@ def _step4d_size_release(s: _Ask) -> None:
             continue
         freed_origins = frozenset({every[o]["origin"]}) if every[o].get("origin") else ORIGINS
         for k in sorted(out_):
-            keeps = yields_to_release(every[k])
+            kept = keeps(every[k])
             spoken = _spoken_lengths(every[k], top) if competes(k) and s.zone_side(k) \
-                and keeps and keeps <= freed_origins and not s.closure(k) \
+                and kept and kept <= freed_origins and not s.closure(k) \
                 and family(o) != family(k) and clock(k) == clock(o) else None
             if spoken and all(any(lo >= x and hi <= y for x, y in freed_lengths)
                               for lo, hi in spoken):
@@ -1590,7 +1590,7 @@ def _same_row_dated_release(s: _Ask, k) -> bool:
 def _same_row_releaser(s: _Ask, k):
     """The dated release or closure of `k`'s own row that silences it (`_same_row_dated_release`),
     or None."""
-    from pipeline.deliver.bundle.rules import yields_to_release
+    from pipeline.deliver.bundle.rules import keeps
     every, rel = s.every, s.rel
     x = every[k]
     if (x.get("when") or {}).get("dates") or not (x.get("take") or x.get("unlimited")):
@@ -1599,7 +1599,7 @@ def _same_row_releaser(s: _Ask, k):
                  if o != k and o[0] == k[0] and s.water_side(o) and s.family(o) != s.family(k)
                  and bool((every[o].get("when") or {}).get("dates"))
                  and _base_dimension(every[o]) == _base_dimension(x)
-                 and yields_to_release(x) <= rel[o]), None)
+                 and keeps(x) <= rel[o]), None)
 
 
 def _step5_water_release(s: _Ask) -> None:
@@ -1609,7 +1609,7 @@ def _step5_water_release(s: _Ask) -> None:
     #    "2 hatchery steelhead" (`daily@origin=hatchery`) and both spoke. An outright release in
     #    force here (`release_origins`) that is written for this water (or reaches it by the
     #    tributary walk) displaces every zone or provincial quota that would let the angler keep
-    #    that fish (`yields_to_release`), whatever conditions the quota holds under — provided
+    #    that fish (`keeps`), whatever conditions the quota holds under — provided
     #    every origin the quota could keep is released here (by the water row or by the zone's
     #    own releases: Chilliwack's "hatchery cutthroat catch and release" beside Region 2's
     #    "wild trout/char from streams" releases every cutthroat, so "Trout/char: 4" is silent;
@@ -1625,7 +1625,7 @@ def _step5_water_release(s: _Ask) -> None:
     #    release displaced by a superior authority that lets the fish be kept stays displaced and
     #    releases nothing here (one displaced by a superior CLOSURE — a national park — still
     #    releases: nothing the region keeps survives either).
-    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
+    from pipeline.deliver.bundle.rules import release_origins, keeps
     every, out_, why, rel = s.every, s.out_, s.why, s.rel
     competes, water_side, zone_side = s.competes, s.water_side, s.zone_side
     for k in s.cand:
@@ -1638,11 +1638,11 @@ def _step5_water_release(s: _Ask) -> None:
                                           and why.get(k, ("",))[0] in ("own_row", "nearer_row")):
             continue
         by = _beaten_by(s, k)
-        if any(every[b]["_rank"] < 0 and yields_to_release(every[b]) for b in by):
+        if any(every[b]["_rank"] < 0 and keeps(every[b]) for b in by):
             continue
         rel[k] = o
         if k not in out_ and water_side(k) and by \
-                and all(zone_side(b) and yields_to_release(every[b]) for b in by):
+                and all(zone_side(b) and keeps(every[b]) for b in by):
             out_.add(k)
             why.pop(k, None)
     water_rel = frozenset().union(*[o for k, o in rel.items() if water_side(k)])
@@ -1650,12 +1650,12 @@ def _step5_water_release(s: _Ask) -> None:
 
     if water_rel:
         for k in sorted(out_):
-            keeps = yields_to_release(every[k])
-            if not (keeps and competes(k) and keeps <= released and keeps & water_rel):
+            kept = keeps(every[k])
+            if not (kept and competes(k) and kept <= released and kept & water_rel):
                 continue
             if zone_side(k):
                 s.lose(k, "water_release",
-                       next(o for o in sorted(rel) if water_side(o) and rel[o] & keeps))
+                       next(o for o in sorted(rel) if water_side(o) and rel[o] & kept))
             elif water_side(k) and _same_row_dated_release(s, k):
                 s.lose(k, "same_row_release", _same_row_releaser(s, k))
 
@@ -1676,7 +1676,7 @@ def _step5b_moot_size_clause(s: _Ask) -> None:
     #     untouched: a closure is still a closure (no gear in the water), a release still a release.
     #     The clause has nothing left to say today: it is not in the answer, and a traced answer
     #     returns it as "moot" ("doesn't matter today"), `by` the release.
-    from pipeline.deliver.bundle.rules import release_origins, yields_to_release
+    from pipeline.deliver.bundle.rules import release_origins, keeps
     every, out_, top = s.every, s.out_, s.top
     competes, family, clock = s.competes, s.family, s.clock
     moot_by = [o for o in out_ if competes(o) and release_origins(every[o])] \
@@ -1686,10 +1686,10 @@ def _step5b_moot_size_clause(s: _Ask) -> None:
         if not (competes(k) and s.zone_side(k) and x.get("type") == "retention_limit"
                 and x.get("take") is None and not x.get("unlimited") and x.get("lengths")):
             continue
-        keeps = yields_to_release(x)
+        kept = keeps(x)
         won = [o for o in sorted(moot_by)
-               if o != k and family(o) != family(k) and keeps <= release_origins(every[o])
-               and covers(every[o], x, top) and clock(o) == clock(k)] if keeps else []
+               if o != k and family(o) != family(k) and kept <= release_origins(every[o])
+               and covers(every[o], x, top) and clock(o) == clock(k)] if kept else []
         if won:
             s.lose(k, "moot_size_clause", won[0])
 
@@ -1706,7 +1706,7 @@ def _step6_two_regions(s: _Ask) -> None:
     #      higher — "Kokanee: 5" over "Kokanee: 10".
     #    Quotas stating different things sit beside each other (the stricter binds by itself), and
     #    gear and method rules are never displaced here: both regions' restrictions apply.
-    from pipeline.deliver.bundle.rules import same_statement, yields_to_release
+    from pipeline.deliver.bundle.rules import same_statement, keeps
     every, out_, base, peers = s.every, s.out_, s.base, s.peers
     mine = [k for k in out_ if s.competes(k) and base(k) is not None]
     if len({base(k) for k in mine}) > 1:
@@ -1726,7 +1726,7 @@ def _step6_two_regions(s: _Ask) -> None:
                 if o in out_ and k in out_ and peers(o, k) \
                         and every[o].get("type") == "retention_limit" \
                         and every[k].get("type") == "retention_limit" \
-                        and yields_to_release(every[o]) and yields_to_release(every[k]) \
+                        and keeps(every[o]) and keeps(every[k]) \
                         and same_statement(every[o], every[k]) \
                         and every[o].get("take") == every[k].get("take") \
                         and bool(every[o].get("unlimited")) == bool(every[k].get("unlimited")):

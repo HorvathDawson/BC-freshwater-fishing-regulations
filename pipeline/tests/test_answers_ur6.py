@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace as N
 
 from pipeline.deliver import types as T
@@ -83,10 +84,13 @@ class _Store:
 
 
 def _bundle():
-    rules = {("e:st", "r1"): {"record_retention": True, "species": ["ST"], "dimension": "daily@origin=hatchery&record"},
-             ("e:ch", "r1"): {"record_retention": True, "species": ["CH"], "dimension": "daily@record"},
-             ("e:stq", "r1"): {"family": "retention", "species": ["ST"], "take": 2, "dimension": "daily@origin=hatchery"},
-             ("e:chq", "r1"): {"family": "retention", "species": ["CH"], "take": 1, "dimension": "daily"},
+    rl = {"type": "retention_limit", "family": "retention"}
+    rules = {("e:st", "r1"): {**rl, "record_retention": True, "species": ["ST"], "origin": "hatchery",
+                              "dimension": "daily@origin=hatchery&record"},
+             ("e:ch", "r1"): {**rl, "record_retention": True, "species": ["CH"], "dimension": "daily@record"},
+             ("e:stq", "r1"): {**rl, "species": ["ST"], "take": 2, "origin": "hatchery",
+                               "dimension": "daily@origin=hatchery"},
+             ("e:chq", "r1"): {**rl, "species": ["CH"], "take": 1, "dimension": "daily"},
              ("e:x", "r1"): {"species": ["RB"]}}
     key = RuleKey(7, True, True)
     return N(rules=rules, sets={7: [("e:ch", "r1", "own"), ("e:st", "r1", "own"), ("e:x", "r1", "own")]},
@@ -97,6 +101,27 @@ def test_4_the_paper_licence_names_only_fish_kept_here():
     B, key = _bundle()
     assert D.paper_licence(B, key, "stream", store=_Store(st_kept=True)) == ["e:ch::r1", "e:st::r1"]
     assert D.paper_licence(B, key, "stream", store=_Store(st_kept=False)) == ["e:ch::r1"]   # closed to steelhead here
+
+
+def test_4_a_keeper_is_what_rules_keeps_says(monkeypatch):
+    """T125 item 2: `record_kept` asks `rules.keeps` — the reader's one "does this rule keep a fish?" — never its own
+    take-above-0 test on the `dimension` string. An unlimited steelhead quota keeps steelhead (the old test read take
+    `None` as 0 and called it no keeper); a quota held only while set lining is no keeper; the record's origin is its
+    field."""
+    B, key = _bundle()
+    B.rules[("e:stq", "r1")] = dict(B.rules[("e:stq", "r1")], take=None, unlimited=True)
+    assert D.paper_licence(B, key, "stream", store=_Store(st_kept=False)) == ["e:ch::r1"]
+    assert D.paper_licence(B, key, "stream", store=_Store(st_kept=True)) == ["e:ch::r1", "e:st::r1"]
+    B.rules[("e:stq", "r1")] = dict(B.rules[("e:stq", "r1")], **{"while": ["set_lining"]})
+    # no keeper of steelhead takes part any more: the duty stays (the book cannot say it is shut)
+    assert D.paper_licence(B, key, "stream", store=_Store(st_kept=False)) == ["e:ch::r1", "e:st::r1"]
+    # MUTATION: a `keeps` that says no rule keeps a fish leaves every duty standing — the closed steelhead's too
+    from pipeline.deliver.bundle import rules as BR
+    B, key = _bundle()
+    monkeypatch.setattr(BR, "keeps", lambda x: None)
+    assert D.paper_licence(B, key, "stream", store=_Store(st_kept=False)) == ["e:ch::r1", "e:st::r1"]
+    src = (Path(D.__file__).read_text().split("def record_kept", 1)[1].split("\ndef ", 1)[0])
+    assert "dimension" not in src and "keeps(" in src
 
 
 def test_4_a_fish_the_book_sets_no_quota_for_keeps_its_duty():
