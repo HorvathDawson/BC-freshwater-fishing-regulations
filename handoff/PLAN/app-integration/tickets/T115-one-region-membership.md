@@ -1,6 +1,6 @@
 # T115 — One region membership: Region 5 rules bind on Fraser pieces whose home is Region 3
 
-Status: DONE — ac116dac (T115), dc447e9f + 6ef25042 (review). 12 Fraser pairs + 3 steelhead-twin pairs + 1 licensing pair removed.
+Status: DONE — e0461d31 (T115), 2699715d + 330c029e (review). 12 Fraser pairs + 3 steelhead-twin pairs + 1 licensing pair removed.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 1
 (CONFIRMED in `rule_section.jsonl`).
@@ -91,14 +91,14 @@ Rebuild that ships it: reach + deliver (no atlas).
 
 ## Adversarial review (2026-10-23)
 
-**Second copy found and removed (dc447e9f).** `deliver.bundle.build._water_places` (the bundle's
+**Second copy found and removed (2699715d).** `deliver.bundle.build._water_places` (the bundle's
 `region_place`) looped `in_region` over the `area:region:*` items itself. It gave the same answer, but it was a
 second copy of the one membership, outside the scan's reach. It now calls `regions.section_regions(registry, graph)`.
 The identical code path means identical output. The no-second-copy AST scan now covers
 `deliver/bundle/build.py`; re-adding the loop fails `test_no_second_copy_of_region_membership[build.py1]`.
 Shipped by deliver (no output change expected).
 
-**Unpinned behaviour found and pinned (6ef25042).** The steelhead twin's `area_id`/`outside_area` reading home
+**Unpinned behaviour found and pinned (330c029e).** The steelhead twin's `area_id`/`outside_area` reading home
 members had no test: reverting it to the raw `registry[key].section_ids` passed every suite. New
 `test_the_steelhead_twin_s_region_is_its_home_members`; that mutation fails it.
 

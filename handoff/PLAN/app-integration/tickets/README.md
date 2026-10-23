@@ -146,7 +146,7 @@ use that as the sole source of future work."
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 | T101 | gauges walk through slough/canal polygons + Q44 side-channel rule | DONE | 74e10c03, 2ffbae66, 92c188b4, a2fae3cf, f99f2cd8, bb632aa9, 22835b2f | Q83, Q84 (defaults built) |
-| T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117 (Q53 answered: as built) |
+| T102 | receiving river never walked into (parent-code check in the walk) | DONE | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0, 06b8d1cb, 149714b6, bb614474 | part B = one entry check `may_enter` (rides the batch-4 reach rerun) |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | DONE | df5da53a, d532f31e, 51f77e32, 46af7a18 | Q90–Q93 defaults |
@@ -155,13 +155,13 @@ use that as the sole source of future work."
 | T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | delivered r-b518a2b507fa |
 | T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
-| T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
+| T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141 |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
 | T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
-| T115 | one home-filtered region membership (12 Fraser pairs) | OPEN | — | all (rides a reach rerun) |
+| T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
-| T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | OPEN | — | all (after T102 part B; reach rerun) |
+| T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | DONE | c7aa109f, 3b07fefc, 7552cab6, 5a07b674, 10cc45c6, 3aa88557 | 1 licensing section; gauge shed change ships at deliver (Q103) |
 | T118 | one main line for spans and continuation | OPEN | — | all (deliver; with T108) |
 | T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
 | T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
@@ -178,12 +178,15 @@ use that as the sole source of future work."
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
 | T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
-| T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
+| T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
 | T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
+| T140 | bundle regions of a water + area families ask the one region membership (G3) | OPEN | — | deliver, measured diff (Q99) |
+| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | OPEN | — | reach rerun + binding diff |
+| T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | OPEN | — | after T134 |
 
 ## Order for open tickets
 
@@ -276,6 +279,17 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
 | Q92 | T105 | Lake reason: "This lake has its own gauge, read here directly; nothing is estimated for it from other water." | as built | owner |
 | Q93 | T105 | Give the design fixture's Chilliwack a real panel so design screens show a chart? | no | owner |
+| Q94 | T134 | Review tier S0 holds 150 split points, not PLAN's 165 (15 old "[osm-candidate … VERIFY]" stamps were later answered by "[human-review]")? | 150; the "every split" toggle shows all 409 | owner |
+| Q95 | T134 | The A check opens your app (:39218) as a deep link in a new tab, not an iframe? | deep link until you approve an iframe on the reviewer's own port | owner |
+| Q96 | T134 | While an entry awaits its build (only T and R answerable), allow a partial "text and rules verified" mark? | no (T142 builds it if yes) | owner |
+| Q97 | T134 | T134 counts as DONE with the ≤ 1.5 min per entry target measured only for the tool (~2 s); the human timing is the T136 pilot? | yes | owner |
+| Q98 | T115 | Fraser piece 356364114:699253 (home Zone 7A) also loses the steelhead twins r1b/r2b/r4b and steelhead_targeting_known (AGENTS 54's reading of the Fraser in 7A)? | yes | owner |
+| Q99 | T115 | The bundle's regions_of_waters (which neighbouring region a printed exemption carries to, G3) moves to home membership too? | yes, as T140 with a measured diff | owner |
+| Q100 | T111 | The carve-out walk seeds from the extent's cuts too (differs only on braid side channels)? | yes, as T141 with a measured diff | owner |
+| Q101 | T117 | Edge type 1150 (secondary flow in a wetland): count it as a side channel for the gauge panels? | unchanged (neither main flow nor side channel) | owner |
+| Q102 | T117 | Burnaby Lake's two equal-order main-flow outlets (Brunette River + an added stream) both count as the lake's own river? | yes: on an order tie every main-flow outlet counts | owner |
+| Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
+| Q104 | T117 | build_panels.candidates (reading propagation) keeps its own rules rather than stepping through may_enter? | keep (it propagates readings, it collects no tributary set) | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

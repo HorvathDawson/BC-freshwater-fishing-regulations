@@ -1,6 +1,6 @@
 # T111 — Every cut reaches the walk: only the first extent's window seeds tributaries
 
-Status: DONE — a9e37a82 (T111), a2d5d62a (review fix). No binding moved.
+Status: DONE — ea894c8a (T111), 271b2747 (review fix). No binding moved.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 5
 (CONFIRMED in code; the live list is from the reach agent).
@@ -79,7 +79,7 @@ Rebuild that ships it: reach + deliver (no atlas) — though as measured it chan
 
 ## Adversarial review (2026-10-23)
 
-**Defect found and fixed (a2d5d62a).** In the watershed branch of `resolve_extent`, the existing local
+**Defect found and fixed (271b2747).** In the watershed branch of `resolve_extent`, the existing local
 `cuts = [(blk, m), …]` (the positions `_watershed_part` takes) rebound T111's name, so a watershed extent
 reported bare tuples as its `cuts`: no split, no end, no kind. Both readers skip watershed parts today
 (`seeding_cuts` via `got["watershed"]`, `confluence_excludes` via `ex["watershed"]`), so no output changed. Any

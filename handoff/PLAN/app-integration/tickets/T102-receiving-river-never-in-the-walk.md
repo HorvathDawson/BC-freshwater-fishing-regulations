@@ -1,6 +1,6 @@
 # T102 — The receiving river is never walked into (parent-code check in the walk, not only in seeding)
 
-Status: DONE — part B 3a68fb9f + d24171b8 (one entry check `may_enter`; reach rerun digest identical, binding diff vs reaches/full EMPTY). Part A done (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes (see Owner questions). Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
+Status: DONE — part B 06b8d1cb + 149714b6 (one entry check `may_enter`; reach rerun digest identical, binding diff vs reaches/full EMPTY). Part A done (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes (see Owner questions). Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
 using the WSC").
 
 ## Why
@@ -61,7 +61,7 @@ Rebuild: reach + deliver, no atlas.
   rest — so a seed now also passes the carve-out / own-water / barrier questions inside the one function
   (it did, in the walk's seed loop, before). One nuance: a seed's order guard now follows `guarded` like
   every step (it was always on); `guarded=False` exists only in tests.
-- The T57 sweep (`tools/unnamed_trib_sweep.py`, d24171b8) no longer keeps its own `_breaks_strahler` /
+- The T57 sweep (`tools/unnamed_trib_sweep.py`, 149714b6) no longer keeps its own `_breaks_strahler` /
   `_through_blks`: `explain` asks `may_enter` for the miss's one step through a graph view of its handle
   `Topo` (`TopoGraph`, a looser context: no carve-outs, own water or code divides), and `REASONS =
   tributaries.REFUSALS + the post-walk stops`. Reason names follow the walk: `strahler` → `bigger_river`,
@@ -74,7 +74,7 @@ Rebuild: reach + deliver, no atlas.
   (refuse SEED → the cut's creek goes), M3 (refuse RUN → the run piece goes), M4 (AST pin: no walk body in
   tributaries.py names a rule — `is_barrier`, `MAINSTEM_EDGE_KINDS`, `_refusal`, the lake helpers, the
   switches, `stream_order`, `wsc`), M5 (reason/order swapped → the table fails).
-- Reach rerun (scratch, snapshot of 3a68fb9f): digest `81e726a3e6fbad3b` = reaches/full;
+- Reach rerun (scratch, snapshot of 06b8d1cb): digest `81e726a3e6fbad3b` = reaches/full;
   `binding_diff`: 0 rules, 0 unresolved, 0 licensing changed. Pure refactor, POLICY_VERSION unchanged.
 - Rebuild: none for part B on its own (no binding moves); ships with T117's reach + deliver.
 
@@ -84,7 +84,7 @@ Rebuild: reach + deliver, no atlas.
   Two deliberate differences, both harmless and stated: a seed now also meets `CODE_DIVIDE` (it never did),
   and a seed's order guard follows `guarded` (only tests pass False). Builder's T102B diff (empty) re-read.
 - The defect found was in T117's use of `may_enter` (`subtree` refused a code run's divide but never took
-  the run from its own lake) — fixed in a4b54933, reach rerun digest unchanged, see T117 "Adversarial
+  the run from its own lake) — fixed in 10cc45c6, reach rerun digest unchanged, see T117 "Adversarial
   review". Part B's own tests were mutated (no code divide, own water off the boundary, a run piece judged
   by order, the main-outlet tie-break) and each failed the named test.
 - `REASONS == T.REFUSALS + (…)` in the sweep test pins the vocabulary, not behaviour; the behaviour pin is

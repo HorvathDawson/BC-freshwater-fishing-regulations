@@ -1,6 +1,6 @@
 # T117 — `may_enter` everywhere: the other walks, and one owner for outlet, code relation and edge type
 
-Status: DONE — 8446c1ff (step 1), b98c3f3a (step 2), 48c6e9a0 (POLICY_VERSION 24), a4b54933 (adversarial review fix); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
+Status: DONE — c7aa109f (step 1), 3b07fefc (step 2), 7552cab6 (POLICY_VERSION 24), 10cc45c6 (adversarial review fix); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing; the motivating case is T90/T102); unification
 audit 2026-10-22, findings reach 2, 3, 4, cross 6, 7, 9, 10 and matching 5 (CONFIRMED in code; leaks PLAUSIBLE, not
@@ -52,7 +52,7 @@ Rebuild: reach + deliver (no atlas). Depends: T102 part B. Size: L. Owner: no.
 
 ## As built (2026-10-23, lane-T117)
 
-### Step 1 — the three sub-decisions, one owner each (8446c1ff; pure refactor)
+### Step 1 — the three sub-decisions, one owner each (c7aa109f; pure refactor)
 - **Code relation:** `pipeline/common/utils/wsc.py` — `relation(a, b)` → `same | below | above | apart |
   unknown` (dash-guarded), and the names built on it: `is_at_or_below`, `is_strictly_below`, `groups`,
   `root`, `parent`, `ancestors`, `head`, `join`, `group_after`, `is_unknown` (missing or `999`),
@@ -80,9 +80,9 @@ Rebuild: reach + deliver (no atlas). Depends: T102 part B. Size: L. Owner: no.
   an added stream (−2000000335:0, order 3, main flow): the old "strictly larger than every other outlet"
   refused both, the new rule calls both the lake's river, so a walk up the Brunette may now enter the lake.
   No rule or licensing binding moved.
-- Reach rerun (snapshot of 8446c1ff): digest `81e726a3e6fbad3b` = reaches/full; binding diff 0 / 0 / 0.
+- Reach rerun (snapshot of c7aa109f): digest `81e726a3e6fbad3b` = reaches/full; binding diff 0 / 0 / 0.
 
-### Step 2 — every walk steps through `may_enter` (b98c3f3a)
+### Step 2 — every walk steps through `may_enter` (3b07fefc)
 - `tributaries.subtree` climbs with the mouths as its reach (`via=UP`: its own mainstem is in, no "river
   continuing"); `tributary_node_ids` is `subtree` less the node. `reach.build._stem_to_first_lake` asks
   `may_enter` at each `continuation` step. `export_gpkg.export_tributaries` (the QGIS check layer) and the
@@ -92,7 +92,7 @@ Rebuild: reach + deliver (no atlas). Depends: T102 part B. Size: L. Owner: no.
   `reuse._tributary_items` / `_TRIB_EDGE_KINDS` are gone.
 - No production module imports `graph.ancestors` any more; it stays as the graph's raw closure for the
   graph's own tests.
-- **Reach binding diff vs reaches/full** (snapshot of b98c3f3a; digest still `81e726a3e6fbad3b`):
+- **Reach binding diff vs reaches/full** (snapshot of 3b07fefc; digest still `81e726a3e6fbad3b`):
   0 rules, 0 unresolved, **1 licensing record**: `r5:chilko_river@5-5::chilko_river` −1 section,
   `355996084:17`. Why: the Chilko row's confluence cut at Brittany Creek has no row of its own, so Brittany's
   `subtree` goes with the cut (122 sections joined into the designation). 355996084:17 is a piece of
@@ -116,15 +116,15 @@ Rebuild: reach + deliver (no atlas). Depends: T102 part B. Size: L. Owner: no.
   it), `test_t117_walks.py` (each walk on a braid/canal fixture; mutations: `may_enter` → None in
   `subtree`, the stem, the shed switch off, the picker; AST pin: each listed walk names
   `may_enter` / `joining` / `subtree`, none reads `is_barrier` / the order guard / `MAINSTEM_EDGE_KINDS`, no
-  production import of `graph.ancestors`). Sweep fixture regenerated (ff3c7a02): same 150 frontier pairs,
+  production import of `graph.ancestors`). Sweep fixture regenerated (bb614474): same 150 frontier pairs,
   0 unexplained, reasons renamed.
 - Rebuild that ships it: reach + deliver (no atlas). The atlas-side conversions (edge filter, lake codes,
   `fwa_exclude`, leaf prune, basins) are the same answer on the live codes and need no atlas rebuild.
 
 ## Adversarial review (2026-10-23, lane-T117)
-Read the goal, the diff (3a68fb9f..1330e354), re-ran the measurements, mutated the key behaviour.
+Read the goal, the diff (06b8d1cb..5a07b674), re-ran the measurements, mutated the key behaviour.
 
-**Defect found and fixed (a4b54933):** `subtree` kept only HALF of the code ruling. It refused a code run's
+**Defect found and fixed (10cc45c6):** `subtree` kept only HALF of the code ruling. It refused a code run's
 divide (`CODE_DIVIDE`, the step-2 change) but never took the run from its own lake (`tributaries_of_reach`
 does, `via=RUN`), so a run piece was in NO subtree: refused from the basin it flows into, never added from
 the lake that owns it. Live proof (graph check on the atlas, read-only): `355996084:17` (North Tsuniah Creek,
@@ -133,7 +133,7 @@ FWA 1100) is the whole run of `lake:329079861`, a headwater lake with no inflows
 holds it. Brittany Creek's subtree (mouth `356356416:0`) is 193 nodes vs `graph.ancestors`' 194 — it loses
 exactly the run piece and its lake, both coded to Tsuniah. `subtree` now follows runs from every non-mouth
 node it reaches, each piece through `may_enter(via=RUN)`.
-- **Reach rerun** (snapshot of a4b54933, scratch, deleted after the diff): digest `81e726a3e6fbad3b` =
+- **Reach rerun** (snapshot of 10cc45c6, scratch, deleted after the diff): digest `81e726a3e6fbad3b` =
   reaches/full; `binding_diff`: 0 rules, 0 unresolved, 1 licensing — the same single record as step 2
   (`r5:chilko_river@5-5::chilko_river` −`355996084:17`, explained above; no rule walks Tsuniah's run by a
   subtree). No outcome changed by the fix, so POLICY_VERSION stays 24. Diff JSON:

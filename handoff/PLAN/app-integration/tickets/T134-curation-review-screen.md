@@ -1,6 +1,6 @@
 # T134 — Curation review phase 3: a review screen separate from fixing
 
-Status: DONE — 45b15369, 21e800b7, 76701828 (lane-T134; the last is the adversarial review's fixes). The
+Status: DONE — 18ad4bf8, 35f6e2db, 32f5654f (lane-T134; the last is the adversarial review's fixes). The
 ≤ 1.5 min per simple entry is measured for the TOOL only (~2 s); a person's time is T136's pilot (owner question 5). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. The legible crops need the `row_boxes.json` sidecar, a one-off the owner runs
 (`python -m pipeline.regs.extraction.row_boxes`, no credits, ~2 min); until then the evidence pane says so with that
@@ -119,7 +119,7 @@ Mutation pins (each named mutant fails the test named): fix router registered re
 6. **(adversarial review) A moved split is stamped "Verify: moved in fix mode …" and a split whose mark went stale
    is S0.** *Default:* built; S0's count now grows by every moved / stale split point.
 
-## Adversarial review (2026-10-23, 76701828)
+## Adversarial review (2026-10-23, 32f5654f)
 Tried to break it: every review-mode route (only `POST /api/marks` writes; the GET routes write nowhere, all
 writes in the backend go through `writes.commit`, the reach cache is in memory), key handling, the split fix flow
 end to end, the coverage strip against the gate, and the evidence renderer under concurrency. Found and fixed:
