@@ -1,6 +1,6 @@
-import { colour, translucent, waterStatusColour, STYLE_META,
+import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META,
          mapChrome as chromeOf, type MapChrome } from "@app/map";
-import { WATER_STATUSES, type WaterStatus } from "@app/core";
+import { TEMP_BANDS, WATER_STATUSES, type TempBand, type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.
  *
@@ -35,6 +35,8 @@ export interface Palette {
    * (`waterStatusColour`), so a search row wears the colour the map line beside it does.
    */
   waterStatus: Readonly<Record<WaterStatus, string>>;
+  /** A TEMPERATURE BAND's colour, as the map paints its gauge dot (`tempBandColour`): the Conditions legend's swatches. */
+  temp: Readonly<Record<TempBand, string>>;
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
@@ -207,6 +209,7 @@ const statusColours = (theme: string) => ({
   open: colour(theme, "color.status.open"),
   waterStatus: Object.fromEntries(WATER_STATUSES.map((s) => [s, waterStatusColour(theme, s)])) as
     Record<WaterStatus, string>,
+  temp: Object.fromEntries(TEMP_BANDS.map(([b]) => [b, tempBandColour(theme, b)])) as Record<TempBand, string>,
 });
 
 /**

@@ -45,6 +45,7 @@
     "color.flow.f6": "#1D4ED8",
     "color.flow.f7": "#122A8F",
     "color.gauge.dot": "#0A1116",
+    "color.temp.warm": "#E86C48",
     "color.water.ungauged": "#D5D5D5",
     "color.mask": "#505950",
     "opacity.route": 0.35,

@@ -2105,6 +2105,7 @@
       "color.flow.f6": "#2A3F8F",
       "color.flow.f7": "#101E4D",
       "color.gauge.dot": "#0A1116",
+      "color.temp.warm": "#BC7864",
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
@@ -2210,6 +2211,7 @@
       "color.flow.f6": "#5A83F7",
       "color.flow.f7": "#A8B8FF",
       "color.gauge.dot": "#F4F8F5",
+      "color.temp.warm": "#FC9C28",
       "color.water.ungauged": "#39434B",
       "color.mask": "#595956",
       "opacity.route": 0.4,
@@ -2315,6 +2317,7 @@
       "color.flow.f6": "#1D4ED8",
       "color.flow.f7": "#122A8F",
       "color.gauge.dot": "#0A1116",
+      "color.temp.warm": "#E86C48",
       "color.water.ungauged": "#D5D5D5",
       "color.mask": "#505950",
       "opacity.route": 0.35,
@@ -2396,7 +2399,7 @@
     "color.status.restricted": {
       "type": "color",
       "themeable": true,
-      "$comment": "RESTRICTED — land you may enter only with permission, and the middle temperature band. Amber, v1's second tier, and never the same colour as a closure."
+      "$comment": "RESTRICTED — land you may enter only with permission (the permit-only hatch). Never the same colour as a closure. It was also the middle temperature band's dot until T83, which gave that band `color.temp.warm`: a warm river's dot read as a permit area."
     },
     "color.status.closed": {
       "type": "color",
@@ -2561,6 +2564,11 @@
     "color.gauge.dot": {
       "type": "color",
       "themeable": true
+    },
+    "color.temp.warm": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "WARM WATER — the middle temperature band's gauge dot and legend swatch (@app/core `TEMP_BAND_TOKEN`; 18–20 °C today). Cool and critical wear open and closed, the map's 'fishable' and 'don't'; warm was `status.restricted` and read as a permit area, so it has a hue of its own (T83): a coral / orange in every theme, searched to stand off open and closed as dots for every reader, off every status in normal vision and off body ink (tools/status-colours-distinct.test.ts)."
     },
     "color.water.ungauged": {
       "type": "color",

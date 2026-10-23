@@ -16,8 +16,9 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
-import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
+import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, TEMP_BANDS } from "@app/core";
+import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, tempBandColour, withFollowers,
+         type Tokens } from "./style";
 import { casingPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
@@ -118,12 +119,16 @@ function geojsonData(raw: string): unknown {
  * where a released fish starts dying. There is also no history to rank it against — HYDAT
  * carries level, flow and sediment and no temperature at all.
  *
- * IT REUSES THE STATUS COLOURS, and that is not laziness. `open`, `restricted` and
- * `closed` already mean "fishable", "caution" and "don't" on this map. Water too warm to
- * release a fish into means exactly those three things, so giving it a fourth palette
- * would ask a reader to learn a second word for an idea they have. A temperature ramp of
- * its own was written and deleted: the palette guard caught it colliding with the flow
- * ramp in four places, which was the right complaint about inventing a scale.
+ * COOL AND CRITICAL REUSE THE STATUS COLOURS, and that is not laziness. `open` and `closed`
+ * already mean "fishable" and "don't" on this map, and water too warm to release a fish into
+ * means exactly that. A temperature ramp of its own was written and deleted: the palette
+ * guard caught it colliding with the flow ramp in four places, which was the right complaint
+ * about inventing a scale.
+ *
+ * WARM DOES NOT (T83). It wore `restricted`, and restricted is not "caution" on this map — it
+ * is the permit-only hatch, so a warm river's dot said "you need a permit here". It has its
+ * own hue, `color.temp.warm`; the band -> token table is @app/core `TEMP_BAND_TOKEN`, read
+ * here and by the legend, so the dot and its swatch cannot disagree.
  *
  * The thresholds come from the publisher (`_TEMP_BANDS`) and are POLICY awaiting curation,
  * not physics — the band is carried on the feature rather than recomputed here, so there
@@ -132,9 +137,7 @@ function geojsonData(raw: string): unknown {
 function tempExpression(theme: string): unknown {
   const t = resolveTheme(theme) as Record<string, string>;
   return ["match", ["coalesce", ["get", "temperatureBand"], "unknown"],
-          "cool", t["color.status.open"],
-          "warm", t["color.status.restricted"],
-          "critical", t["color.status.closed"],
+          ...TEMP_BANDS.flatMap(([band]) => [band, tempBandColour(theme, band)]),
           t["color.water.ungauged"]];
 }
 
@@ -469,8 +472,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
         // FOUND, NOT NAMED: the lake's last layer moved from `lake_flowing` to `lake__edge` when the shoreline was drawn
         // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
-        if (l.id === lastDrawing("lake")) return [painted, ring(SELECTION_RINGS.lake, "lake")];
-        if (l.id === lastDrawing("wetland")) return [painted, ring(SELECTION_RINGS.wetland, "wetland")];
+        const ringed = l.id === lastDrawing("lake") ? ring(SELECTION_RINGS.lake, "lake")
+          : l.id === lastDrawing("wetland") ? ring(SELECTION_RINGS.wetland, "wetland") : undefined;
+        if (ringed) return [painted, ringed];
         if (l.id !== "stream") return [painted];
         const casing = {
           id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",

@@ -10,8 +10,8 @@
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
 import { chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
-         unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit, type SectionKey,
-         type TempBand } from "@app/core";
+         unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
+         type SectionKey } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Platform, Text, View, useWindowDimensions, type TextInput } from "react-native";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
@@ -76,10 +76,6 @@ const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
  * the rivers are back and they are what you tap.
  */
 const HANDOVER_Z = 10;
-
-/** A temperature band's colour: the "may I fish here" colours, as the map paints the dots (runtime-style). */
-const tempColour = (p: Palette): Record<TempBand, string> =>
-  ({ cool: p.open, warm: p.restricted, critical: p.closed });
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
@@ -872,11 +868,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               // vertically and took three lines of map to say what fits on one. A legend
               // is a caption; the moment it needs three rows it has become a panel.
               // The bands and their words are the publisher's (`TEMP_LEGEND`, from `_TEMP_BANDS`); the colours are
-              // the map's own for them (runtime-style `tempExpression`).
+              // the map's own for them (`palette.temp`, from @app/core `TEMP_BAND_TOKEN`, as the dots are painted).
               <View style={{ flexDirection: "row", alignItems: "center", gap: 18,
                              flexWrap: "wrap" }}>
                 {TEMP_LEGEND.map((b) => (
-                  <LegendCount key={b.band} palette={palette} colour={tempColour(palette)[b.band]}
+                  <LegendCount key={b.band} palette={palette} colour={palette.temp[b.band]}
                                label={b.label} />
                 ))}
               </View>

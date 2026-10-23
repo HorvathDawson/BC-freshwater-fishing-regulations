@@ -16,9 +16,11 @@
  *   water             closed / base and own / base, the same four ways;
  *   permit            restricted against closed / own / base: the hatch is thin strokes laid over the water, so tokens,
  *                     thin lines and satellite;
- *   temperature       open against restricted and closed: these meet ONLY as gauge dots, 5 px filled circles in a 2 px
+ *   temperature       the three bands' dots against each other (cool = open, warm = `color.temp.warm`, critical =
+ *                     closed; @app/core `TEMP_BAND_TOKEN`): these meet ONLY as gauge dots, 5 px filled circles in a 2 px
  *                     paper stroke (runtime-style.ts `gauge-dot`), so the dot's pixels are the token — measured as tokens,
- *                     never as a line antialiased into a ground that is not under them;
+ *                     never as a line antialiased into a ground that is not under them. Warm was `restricted` until
+ *                     T83; it is its own hue now, and held off every status (one meaning) and off body ink like one;
  *   boundary          the region and unit boundaries against every status as tokens, and against every status the map
  *                     draws as a line (all but open) as lines; and held neutral, so a boundary never reads as a closure;
  *   ink               every status against body ink — a sixth meaning on the card — at the one-meaning floor in normal
@@ -30,6 +32,7 @@
  * (search-d.mjs proves it; T47-colours.md part 2 says which pair binds).
  */
 import { describe, expect, it } from "vitest";
+import { TEMP_BAND_TOKEN, type TempBand } from "@app/core";
 import { resolveTheme } from "@app/map";
 import { deltaE, MODELS, parseHex, worstSeparation } from "./cvd";
 
@@ -49,8 +52,11 @@ const LINES: readonly Status[] = ["closed", "own", "base", "restricted"];
 /** The water pairs besides the owner's (closed / own has its own floors, above). */
 const WATER: readonly [Status, Status][] = [["closed", "base"], ["own", "base"]];
 const PERMIT: readonly [Status, Status][] = [["restricted", "closed"], ["restricted", "own"], ["restricted", "base"]];
-/** Own and base are never beside open (the temperature view draws no status water): held only to one meaning per colour. */
-const TEMPERATURE: readonly [Status, Status][] = [["open", "restricted"], ["open", "closed"]];
+/**
+ * The temperature dots, every pair of bands. Own, base and restricted are never beside them (the temperature view draws no
+ * status water and no permit hatch): warm is held off those only to one meaning per colour.
+ */
+const TEMPERATURE: readonly [TempBand, TempBand][] = [["cool", "warm"], ["warm", "critical"], ["cool", "critical"]];
 
 /**
  * The grounds a LINE is drawn on, sampled from the T47 baseline screenshots (scripts/colour-math.mjs GROUNDS): light land,
@@ -80,29 +86,56 @@ const LINE = 0.6, EDGE = 0.8;
  * the dark base had to go from sky blue to deep blue to stand off the yellow own and the rose closed, and holding closed /
  * base at 20 as a line while closed / own clears the before-T47 numbers finds no palette (search-d.mjs T47_TERM_MIN).
  *
- * Under the ticket's 20: thin lines and satellite for most pairs (no palette reaches 20 as a 0.6-coverage line for every
- * pair in any theme); the permit and temperature pairs, because restricted, closed and open must all be pill text
- * (4.5:1) on the card AND stand 20 / 15 off body ink, which leaves restricted no room to go darker than closed and open
- * (the first D bought 25 there with a near-black restricted the card could not tell from ink); and the dark boundary,
- * which no neutral grey lifts past 15 against the dark card's light statuses (search-d.mjs with T47_BND_TOKEN_CAP=20
- * finds no dark palette, ink rules on or off). Light and cvd boundaries hold the ticket's 20 as tokens.
+ * TEMPERATURE (T83): the warm dot has its own hue, so the dots are cool / warm / critical (open / `color.temp.warm` /
+ * closed). Light and cvd LIFTED past 20 (light 15.9 -> 27.9, cvd 20 -> 25.3: a coral warm stands far off the teal open
+ * and the dark red closed for every reader). Dark went the other way, 17.7 -> 15.4, and is a recorded exception below.
+ *
+ * Every floor under the ticket's 20 is listed, with its reason, in UNDER_20 — a new one fails until it is recorded.
  */
 const FLOOR: Record<Theme, Record<string, number>> = {
   light: { ownerToken: 29, ownerLine: 21, ownerLake: 25, ownerSat: 17.5,
            waterToken: 45.5, waterLine: 35, waterLake: 35, waterSat: 35,
            permitToken: 22, permitLine: 16, permitSat: 15,
-           temperature: 15.5,
+           temperature: 27.5,
            boundaryToken: 20, boundaryLine: 13 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
            permitToken: 15, permitLine: 13.5, permitSat: 10.5,
-           temperature: 17.5,
+           temperature: 15,
            boundaryToken: 15, boundaryLine: 15.5 },
   cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5, ownerSat: 17.5,
            waterToken: 49, waterLine: 34, waterLake: 47, waterSat: 33.5,
            permitToken: 23, permitLine: 17.5, permitSat: 16,
-           temperature: 20,
+           temperature: 25,
            boundaryToken: 20, boundaryLine: 12.5 },
+};
+
+/** The reasons, once each (T47 part 2, T83 Q16: lift where cheap, else a recorded exception). */
+const WHY = {
+  satellite: "a 0.6-coverage line over conifer / shadow imagery: the near-black ground pulls every pair together, and no " +
+             "palette inside the house rules reaches 20 there for every pair (search-d.mjs)",
+  darkBase: "dark closed / base as a line, 19.1 (before T47 22.6): the dark base went from sky blue to deep blue to stand " +
+            "off the yellow own and the rose closed; 20 here while closed / own clears before-T47 finds no palette " +
+            "(search-d.mjs T47_TERM_MIN)",
+  permit: "restricted, closed and open are all pill text (4.5:1 on the card) and must stand 20 / 15 off body ink, which " +
+          "leaves restricted no room to go darker; the first D bought 25 with a near-black restricted the card read as ink",
+  darkWarm: "the warm dot's own hue (T83, owner default Q15): no warm hue (LCh h 25-95) light enough to read on the dark " +
+            "map (L >= 55) stands more than 15.4 off the dark rose closed for a deuteranope (sRGB cube, step 4); the plum " +
+            "it replaced reached 17.7 but said 'permit area'",
+  darkBoundary: "no neutral grey lifts past 15 against the dark card's light statuses (search-d.mjs T47_BND_TOKEN_CAP=20, " +
+                "ink rules on or off); the boundary is told apart by dash and width, and is drawn under the water (T83)",
+  boundaryLine: "a 3 px grey edge and a 0.6-coverage status line both wash toward a pale ground; a boundary is told apart " +
+                "by dash and width, and since T83 it is drawn UNDER the water lines, so where they cross the status wins",
+} as const;
+/** Every floor under 20, by theme and key, and why. Whole: a floor newly under 20, or one lifted past it, fails. */
+const UNDER_20: Record<string, string> = {
+  "light ownerSat": WHY.satellite, "light permitLine": WHY.permit, "light permitSat": WHY.permit,
+  "light boundaryLine": WHY.boundaryLine,
+  "dark ownerSat": WHY.satellite, "dark waterLine": WHY.darkBase, "dark waterSat": WHY.satellite,
+  "dark permitToken": WHY.permit, "dark permitLine": WHY.permit, "dark permitSat": WHY.permit,
+  "dark temperature": WHY.darkWarm, "dark boundaryToken": WHY.darkBoundary, "dark boundaryLine": WHY.darkBoundary,
+  "cvd ownerSat": WHY.satellite, "cvd permitLine": WHY.permit, "cvd permitSat": WHY.permit,
+  "cvd boundaryLine": WHY.boundaryLine,
 };
 /** One meaning per colour: every two statuses, adjacent or not, and every status against body ink, in normal vision. */
 const MEANING_FLOOR = 20;
@@ -143,7 +176,15 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
   asDrawn("closed", "own", "owner", true);
   for (const [a, b] of WATER) asDrawn(a, b, "water", true);
   for (const [a, b] of PERMIT) asDrawn(a, b, "permit", false);
-  for (const [a, b] of TEMPERATURE) hold(`${name(a, b)} as gauge dots`, worst(colour(a), colour(b)), f.temperature!);
+  const dot = (b: TempBand) => t[TEMP_BAND_TOKEN[b]] as string;
+  for (const [a, b] of TEMPERATURE)
+    hold(`${a} ${dot(a)} vs ${b} ${dot(b)} as gauge dots`, worst(dot(a), dot(b)), f.temperature!);
+  // warm is not a status: one meaning per colour, in normal vision, against all five
+  for (const s of STATUSES) {
+    const d = deltaE(dot("warm"), colour(s));
+    if (d < MEANING_FLOOR)
+      out.push(`${th}: the warm dot ${dot("warm")} and ${s} ${colour(s)} are one colour to anybody: ${d.toFixed(1)} < ${MEANING_FLOOR}`);
+  }
   for (const edge of ["color.region.edge", "color.mu.edge"])
     for (const s of STATUSES) {
       const [e, c] = [t[edge] as string, colour(s)];
@@ -162,6 +203,9 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
     if (d < MEANING_FLOOR) out.push(`${th}: ${s} ${colour(s)} reads as body ink ${ink}: ${d.toFixed(1)} < ${MEANING_FLOOR}`);
     hold(`${s} ${colour(s)} vs body ink ${ink}`, worst(colour(s), ink), INK_FLOOR);
   }
+  const warmInk = deltaE(dot("warm"), ink);
+  if (warmInk < MEANING_FLOOR) out.push(`${th}: the warm dot ${dot("warm")} reads as body ink ${ink}: ${warmInk.toFixed(1)} < ${MEANING_FLOOR}`);
+  hold(`the warm dot ${dot("warm")} vs body ink ${ink}`, worst(dot("warm"), ink), INK_FLOOR);
   for (const edge of ["color.region.edge", "color.mu.edge"]) {
     const v = parseHex(t[edge] as string);
     const spread = Math.max(...v) - Math.min(...v);
@@ -169,6 +213,10 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
   }
   return out;
 }
+
+/** Before T83 the warm dot was painted with `restricted`: every older palette is measured that way. */
+const warmWasRestricted = <T extends Record<string, unknown>>(p: T): T =>
+  ({ ...p, "color.temp.warm": p["color.status.restricted"] }) as T;
 
 /** Today's palette before T47 (the owner's complaint) — the mutant every floor was raised against. */
 const TODAY: Record<Theme, Record<string, string | number | number[]>> = de({
@@ -215,35 +263,56 @@ describe("status colours, as drawn (T47)", () => {
   });
 
   it("fails today's palette on the owner's pair, as drawn (mutation pin)", () => {
-    const light = failures("light", resolveTheme("light", TODAY.light));
+    const light = failures("light", resolveTheme("light", warmWasRestricted(TODAY.light)));
     expect(light).toContain(de("light: closed ~940018 vs own ~B37B00 as thin lines 18.9 < 21 (deutan (vienot) on ~d9cecc)"));
     expect(light).toContain(de("light: closed ~940018 vs own ~B37B00 as lake fills 17.0 < 25 (tritan (vienot) on ~82cdd9)"));
     expect(light).toContain(de("light: color.region.edge ~8E2F52 is a hue, not a neutral (RGB spread 95)"));
-    expect(failures("cvd", resolveTheme("cvd", TODAY.cvd)))
+    expect(failures("cvd", resolveTheme("cvd", warmWasRestricted(TODAY.cvd))))
       .toContain(de("cvd: closed ~C80D00 vs own ~B37B00 as tokens 8.6 < 29 (deutan (vienot))"));
-    const dark = failures("dark", resolveTheme("dark", TODAY.dark));
+    const dark = failures("dark", resolveTheme("dark", warmWasRestricted(TODAY.dark)));
     expect(dark).toContain(de("dark: closed ~FC4164 vs own ~F0E442 as thin lines 19.6 < 21 (deutan (vienot) on ~221e1e)"));
-    expect(dark).toContain(de("dark: open ~48b07a vs closed ~FC4164 as gauge dots 7.8 < 17.5 (deutan (machado))"));
+    expect(dark).toContain(de("dark: cool ~48b07a vs critical ~FC4164 as gauge dots 7.8 < 15 (deutan (machado))"));
   });
 
   it("fails candidate B, which fixed the boundaries but left restricted and open beside closed (mutation pin)", () => {
-    const b = failures("light", resolveTheme("light", B_LIGHT));
+    const b = failures("light", resolveTheme("light", warmWasRestricted(B_LIGHT)));
     // B's owner's pair is what D has to beat, and does
     expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as thin lines 20.3 < 21 (tritan (vienot) on ~e9e7e1)"));
     expect(b).toContain(de("light: closed ~940018 vs own ~D68100 as lake fills 23.6 < 25 (tritan (vienot) on ~82cdd9)"));
     expect(b).toContain(de("light: restricted ~8f5c00 vs closed ~940018 as tokens 9.0 < 22 (deutan (vienot))"));
-    expect(b).toContain(de("light: open ~1D7741 vs restricted ~8f5c00 as gauge dots 8.9 < 15.5 (protan (machado))"));
+    expect(b).toContain(de("light: cool ~1D7741 vs warm ~8f5c00 as gauge dots 8.9 < 27.5 (protan (machado))"));
   });
 
   it("fails the first palette D: owner's pair under B, restricted reads as ink, cvd boundary under 20 (mutation pin)", () => {
-    const light = failures("light", resolveTheme("light", FIRST_D.light));
+    const light = failures("light", resolveTheme("light", warmWasRestricted(FIRST_D.light)));
     expect(light).toContain(de("light: closed ~8F0901 vs own ~C68900 as thin lines 19.5 < 21 (deutan (vienot) on ~e9e7e1)"));
     expect(light).toContain(de("light: restricted ~1D002B reads as body ink ~15181C: 18.3 < 20"));
     expect(light).toContain(de("light: restricted ~1D002B vs body ink ~15181C 10.9 < 15 (deutan (machado))"));
-    const dark = failures("dark", resolveTheme("dark", FIRST_D.dark));
+    const dark = failures("dark", resolveTheme("dark", warmWasRestricted(FIRST_D.dark)));
     expect(dark).toContain(de("dark: closed ~F4505E vs own ~FFD208 as thin lines 19.7 < 21 (deutan (vienot) on ~221e1e)"));
     expect(dark).toContain(de("dark: open ~94E1FF reads as body ink ~F0F2F0: 19.5 < 20"));
-    expect(failures("cvd", resolveTheme("cvd", FIRST_D.cvd)))
+    expect(failures("cvd", resolveTheme("cvd", warmWasRestricted(FIRST_D.cvd))))
       .toContain(de("cvd: color.region.edge ~8B857F vs own ~C68900 as tokens 18.9 < 20 (tritan (vienot))"));
+  });
+
+  it("fails palette D with the warm dot still painted restricted, the plum of the permit hatch (T83 mutation pin)", () => {
+    for (const th of THEMES) {
+      const t = resolveTheme(th) as Record<string, string>;
+      const r = t["color.status.restricted"]!;
+      const f = failures(th, resolveTheme(th, { "color.temp.warm": r }));
+      expect([th, f.filter((x) => x.includes("warm dot") && x.includes("restricted"))])
+        .toEqual([th, [`${th}: the warm dot ${r} and restricted ${r} are one colour to anybody: 0.0 < 20`]]);
+    }
+    expect(failures("light", resolveTheme("light", { "color.temp.warm": resolveTheme("light")["color.status.restricted"] as string })))
+      .toEqual(de([
+        "light: cool ~016890 vs warm ~421652 as gauge dots 15.9 < 27.5 (deutan (vienot))",
+        "light: warm ~421652 vs critical ~8F0006 as gauge dots 22.1 < 27.5 (tritan (vienot))",
+        "light: the warm dot ~421652 and restricted ~421652 are one colour to anybody: 0.0 < 20"]));
+  });
+
+  it("records every floor under the ticket's 20, each with its reason (T83)", () => {
+    const under = THEMES.flatMap((th) => Object.entries(FLOOR[th]).filter(([, v]) => v < 20).map(([k]) => `${th} ${k}`));
+    expect(under).toEqual(Object.keys(UNDER_20));
+    expect(Object.values(UNDER_20).filter((why) => why.length < 40)).toEqual([]);
   });
 });

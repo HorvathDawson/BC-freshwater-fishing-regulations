@@ -25,5 +25,17 @@ export function tempLegend<B extends string>(
   });
 }
 
+/**
+ * THE TOKEN EACH BAND IS PAINTED WITH — the gauge dot on the map and the legend swatch beside it, one table (the hex is
+ * the map's: `tempBandColour` in @app/map). Cool and critical are the map's "fishable" and "don't" (`status.open`,
+ * `status.closed`). Warm has a hue of its own, `color.temp.warm` (T83): it was `status.restricted`, the permit-only
+ * plum, and a warm river's dot read as a permit area.
+ */
+export const TEMP_BAND_TOKEN: Readonly<Record<TempBand, string>> = {
+  cool: "color.status.open",
+  warm: "color.temp.warm",
+  critical: "color.status.closed",
+};
+
 /** The shipped legend, in band order. */
 export const TEMP_LEGEND: readonly TempLegendRow[] = tempLegend(TEMP_BANDS);

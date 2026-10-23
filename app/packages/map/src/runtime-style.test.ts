@@ -22,3 +22,25 @@ describe("runtimeStyle: glyphs and sprites", () => {
     expect(s.sprite).toBe("https://protomaps.github.io/basemaps-assets/sprites/v4/dark");
   });
 });
+
+/*
+ * T83: the temperature dots and their legend are painted from ONE table (@app/core `TEMP_BAND_TOKEN`), and the warm band
+ * wears its own hue — it was `color.status.restricted`, so a warm river's dot read as a permit area.
+ */
+describe("the temperature dots", () => {
+  it("paint each band with its own token, the warm one no status's, in every theme", async () => {
+    const { gaugeDotColour } = await import("./runtime-style");
+    const { resolveTheme, tempBandColour } = await import("./style");
+    for (const theme of ["light", "dark", "cvd"]) {
+      const t = resolveTheme(theme) as Record<string, string>;
+      expect([theme, gaugeDotColour(theme, "temperature")]).toEqual([theme,
+        ["match", ["coalesce", ["get", "temperatureBand"], "unknown"],
+         "cool", t["color.status.open"], "warm", t["color.temp.warm"], "critical", t["color.status.closed"],
+         t["color.water.ungauged"]]]);
+      expect([theme, tempBandColour(theme, "warm")]).toEqual([theme, t["color.temp.warm"]]);
+      const statuses = ["open", "restricted", "closed", "own", "base"].map((s) => t[`color.status.${s}`]);
+      expect([theme, statuses.includes(t["color.temp.warm"]!), /^#[0-9A-F]{6}$/i.test(t["color.temp.warm"] ?? "")])
+        .toEqual([theme, false, true]);
+    }
+  });
+});

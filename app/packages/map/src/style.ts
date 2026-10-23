@@ -3,7 +3,7 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
-import { WATER_STATUS, type DayProfiles, type WaterStatus } from "@app/core";
+import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type TempBand, type WaterStatus } from "@app/core";
 import style from "../style/style.json" with { type: "json" };
 import meta from "../style/style.meta.json" with { type: "json" };
 
@@ -272,5 +272,15 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
 export function waterStatusColour(theme: string, status: WaterStatus): string {
   const hex = resolveTheme(theme)[WATER_STATUS[status].token];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);
+  return hex;
+}
+
+/**
+ * THE COLOUR OF A TEMPERATURE BAND in one theme — the gauge dot and its legend swatch (T83). The band's token is decided
+ * in @app/core (`TEMP_BAND_TOKEN`); the hex is the map's, as for `waterStatusColour`.
+ */
+export function tempBandColour(theme: string, band: TempBand): string {
+  const hex = resolveTheme(theme)[TEMP_BAND_TOKEN[band]];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint the ${band} temperature band`);
   return hex;
 }
