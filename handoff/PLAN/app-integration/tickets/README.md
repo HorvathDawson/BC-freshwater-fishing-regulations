@@ -100,7 +100,7 @@ use that as the sole source of future work."
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | OPEN | a43a7122 (ticket) | all; Q1–Q3 build with defaults |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
-| T56 | release rebuild: Twin Lakes + stream polygons + "See X" | IN PROGRESS | b9a832ca, ad77fda5, f4552285, 669fd065, 7b64c558, 020f4ca8 (binding diff) | merge lanes wf_3976eddc-bba + wf_e4e2b70f-f21; swap full_twin; `deliver all`; panels test; re-cut fixtures; strict + smoke |
+| T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | OPEN | — | all (T53 merged: unblocked) |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | OPEN (app part done) | 87ba267c, 7e3cd448 | pipeline `continuation.py` rule; Fraser `water_exit`; deliver |

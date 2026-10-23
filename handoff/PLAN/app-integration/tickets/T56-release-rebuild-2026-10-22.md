@@ -1,6 +1,6 @@
 # T56 — Release rebuild: Twin Lakes bindings + stream polygons + "See X" pointers
 
-Status: IN PROGRESS (2026-10-22) — reach swapped (020f4ca8); deliver running (scratchpad t56.sh). Process ticket: one data rebuild ships the pipeline fixes merged today.
+Status: DONE — 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad. Release r-2f33edfe8452 live locally; strict 7782 + smoke 18/18 green. R2 upload is the owner's (OWNER-TODO).
 
 ## What ships
 - Twin Lakes 2-8 and 18 more multi-polygon lakes bind every polygon (matcher b9a832ca, catalogue ad77fda, Main Lake →
