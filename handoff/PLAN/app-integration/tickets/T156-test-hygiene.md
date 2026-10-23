@@ -1,6 +1,6 @@
 # T156 — Test hygiene: the update-hydat sandbox and the _plat.ts race
 
-Status: DONE — 187290e2 (lane-T157)
+Status: DONE — 187290e2 (lane-T157); adversarial review a78dabfd
 
 Source: merges 2026-10-23 (T145 review; batch 6 lanes).
 

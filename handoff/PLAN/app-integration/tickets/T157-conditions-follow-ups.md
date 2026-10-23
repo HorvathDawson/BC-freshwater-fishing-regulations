@@ -1,6 +1,6 @@
 # T157 — Conditions follow-ups from T143 and T144
 
-Status: DONE — 071a0952 (lane-T157)
+Status: DONE — 071a0952 (lane-T157); adversarial review a78dabfd
 
 Source: T143 and T144 adversarial reviews, 2026-10-23.
 
@@ -147,6 +147,10 @@ feeds`, 20:41Z) and the builder's shots.
 - Seen in the real app and as the ticket asks: Chilliwack under Level +3, the switcher's 08MH016 "flow forecast only"
   and the unlisted members "not a real-time gauge", as the sheet's rows; Harrison under Change, "Part of this change comes
   from ELF alone (08MG013)" under the range with the stood-back fix in.
-- Checks: see below (re-run after the fixes).
+- Checks (after the fixes): `REGS_STORE_REQUIRED=1 pnpm -C app check` via heavy.sh — every gate green (tickets,
+  boundaries, platform, style, colours, … typecheck); vitest 8048 passed / 4 failed, exactly the 4 known x4p_1010 regs
+  parity tests (caveats ×2, keep, sheets: Shuswap "Rule book p.28"). `pytest pipeline/tests/test_update_hydat_script.py`
+  unfiltered: 8 passed. Targeted core conditions / ui change / ui-native ConditionsPanel / check-boundaries /
+  status-colours-distinct green.
 - Rebuild: app build only, as before.
 
