@@ -1,6 +1,6 @@
 # T137 — The reader shooter's TALL cards shot drops the Other fish list
 
-Status: DONE — commit (see git log -- app/tools/regs-web/tall.mjs) — source: reader gate 2026-10-23 (handoff/PLAN/app-integration/reader/2026-10-23-app.md), the one miss (Q12).
+Status: DONE — be8b4693 (re-run passed 39/39: 111dcea3) — source: reader gate 2026-10-23 (handoff/PLAN/app-integration/reader/2026-10-23-app.md), the one miss (Q12).
 
 ## Today
 `app/tools/compare-regs.mjs` `tall()` clips a `cards` shot at the bottom of the last `[data-testid=keep-group]` /

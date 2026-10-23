@@ -126,7 +126,7 @@ use that as the sole source of future work."
 | T79 | imagery corridor P0 + pools validation | OPEN | — | all (owner go/no-go) |
 | T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | PARTIAL | ca5ecb26, 309cd3e8, b08af5e9, ea63d8cb, 46f49485, 53abfd9c, 2c2d3d69, 3a6d20c3, 55b30ec7, 128cc4e0, 84d5919d, fb5d72e5 | two open shapes, item 4/6 (see ticket); Q50–Q52 |
 | T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
-| T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | OPEN | — | all |
+| T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | PARTIAL | c1d1a432, 111dcea3 (reader gate 39/39 light+dark) | O3, O5 |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
 | T85 | native install size: z13 overzoom + landuse filter (D32) | OPEN | — | all (heavy) |
@@ -181,7 +181,8 @@ use that as the sole source of future work."
 | T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
-| T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | OPEN | — | then T82 reader gate re-run |
+| T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
+| T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | OPEN | — | all (tool only) |
 
 ## Order for open tickets
 
