@@ -133,7 +133,10 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
   let says: Run[] | null = null;
   if (!k.folded) {
     says = [...kindWords(k.says, zero ? null : k.n)];
-    if (k.species.includes("ST") && /\bhatchery steelhead only\b/.test(k.says)) says.push(text(" "), { t: "link", s: WORDS.HOW_TELL, open: "hatch" });
+    // a steelhead kind keeping hatchery fish only links How to tell. Page v36 read "hatchery steelhead only", the "up to"
+    // form; since T128 the same kind reads "…, only 1 may be hatchery steelhead — wild steelhead go back" wherever it is
+    // held to fewer than its named total, so the link follows the clause both forms end with (tree.py `_kind_says`)
+    if (k.species.includes("ST") && /\bwild steelhead go back\b/.test(k.says)) says.push(text(" "), { t: "link", s: WORDS.HOW_TELL, open: "hatch" });
   }
   let duty: Run[] | null = null;
   const stLinked = !!k.duties.length && env.stampST && k.species.includes("ST");

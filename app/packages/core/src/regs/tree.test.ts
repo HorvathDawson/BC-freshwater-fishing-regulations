@@ -88,6 +88,10 @@ describe("kindRow", () => {
       says: "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout" }), env);
     expect(own.says).toEqual([{ t: "text", s: "Of the 3 a day under this lake’s rule, only " }, { t: "num", s: "1", size: "inline" },
       { t: "text", s: " may be Dolly Varden/bull trout" }]);
+    // a hatchery-only steelhead held to fewer than its total ("only 1 … — wild steelhead go back") still links How to tell
+    const st = kindRow(kind({ species: ["ST"], name: "Steelhead", n: 1,
+      says: "Of your 5 trout and char a day, only 1 may be hatchery steelhead — wild steelhead go back" }), env);
+    expect(st.says!.at(-1)).toEqual({ t: "link", s: "How to tell ›", open: "hatch" });
     // the old words (no total named) bold as before: the first number
     const old = kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 2, says: "Up to 2 hatchery rainbow trout (part of the 2 from streams)" }), env);
     expect(old.says![0]).toEqual({ t: "text", s: "Up to " });
