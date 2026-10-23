@@ -1,8 +1,7 @@
 # T101 — Gauges walk through slough/canal polygons: ship once the side-channel question is answered
 
-Status: BUILT, NOT MERGED — Q44 rule built and measured 2026-10-23; ready to merge + deliver. Branch
-worktree-wf_3976eddc-bba-1 (.claude/worktrees/wf_3976eddc-bba-1), rebased on redesign/stream-sections: polygon walk
-b808d9be 92af842e d148fdc4 8406b74e 5907ca73 709b6033 (were 8d57e759 … de39b70c), Q44 rule b73313d9, review fix 0bd9ee6e.
+Status: PARTIAL — merged on redesign/stream-sections 2026-10-23; deliver + needs_bundle checks running. Polygon walk
+74e10c03 ba6dde1d da1ab3e9 20faf224 2ffbae66 1fbc2488 (were 8d57e759 … de39b70c), Q44 rule 92c188b4, review fix a2fae3cf.
 
 Owner 2026-10-22: "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours
 if the propagation means it would have values if it was just a stream itself."
@@ -34,7 +33,7 @@ May a gauge standing on a side channel or slough speak for the river it branched
 The lake-crossing flag depends on walk order (pre-existing): 2,074 records at 75 stations are flagged as crossing a
 lake although a lake-free path exists. Fixing it changes panels elsewhere → needs its own before/after diff.
 
-## As built (Q44 rule) — 2026-10-23, b73313d9
+## As built (Q44 rule) — 2026-10-23, 92c188b4
 ONE decision, ONE function: `build_panels.across_branch(share)` → the quantities a reading keeps when the walk carries
 it across a BRANCH POINT: `{discharge}` when `share >= LARGE_SHARE`, else nothing. Level never.
 - `LARGE_SHARE = 0.5` (named constant, build_panels.py). Share = the smaller water's drainage (`area_of`, stream
@@ -100,7 +99,7 @@ Merge the branch, `python -m pipeline.deliver` via scripts/heavy.sh (NOT run her
 pipeline/tests/test_stream_polygon_panels.py pipeline/tests/test_live_panels.py`, diff section_panel against the numbers
 above (Flow 246,060 / Level 127,270 answered), fixtures re-cut, strict + smoke.
 
-## Adversarial review — 2026-10-23 (fix 0bd9ee6e)
+## Adversarial review — 2026-10-23 (fix a2fae3cf)
 Tried to break Q44 on the real graph (read-only, heavy.sh; scratchpad q44rev/audit.py, values4.pkl) and by mutating the code.
 
 DEFECT FOUND AND FIXED — `branch_points` called a NAME CHANGE a branch. "Same code, another stream water" also matches
@@ -114,7 +113,7 @@ of this fix read that as a name change and let the nine creek gauges back into B
 never a braid that rejoins above the edge. Now 99 edges, 32 pairs. Tests: `test_one_water_taking_another_name_is_not_a_
 branch_point`, `test_a_split_cut_into_a_stub_is_still_a_branch_point`, `test_a_braid_above_a_new_name_…`, two mutation
 pins. `_code_child` now asks the tributary walk's own parent/child test (`tributaries._wsc_below`).
-- Re-measured (builder's measure.py): IDENTICAL panels to b73313d9 — 246,705 of 246,705 sections equal; Flow 246,060
+- Re-measured (builder's measure.py): IDENTICAL panels to 92c188b4 — 246,705 of 246,705 sections equal; Flow 246,060
   (+67 / 8 / −11), Level 127,270 (+120 / 35 / −325); Nicomen 0 Fraser sections; Bell/Nelson Flow none, Level 08MF064. The
   fix changes no panel today (no gauge reaches those renamed pairs within the area ratio); it corrects the rule and the
   Q44a evidence above.

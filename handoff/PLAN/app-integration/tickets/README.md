@@ -145,7 +145,7 @@ use that as the sole source of future work."
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
-| T101 | gauges walk through slough/canal polygons | OPEN | 8d57e759..de39b70c (branch, unmerged) | Q44 answered: build the rule, measure, merge + deliver |
+| T101 | gauges walk through slough/canal polygons + Q44 side-channel rule | PARTIAL | 74e10c03, 2ffbae66, 92c188b4, a2fae3cf, f99f2cd8 | merged; deliver + checks running |
 | T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117 (Q53 answered: as built) |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
@@ -183,6 +183,7 @@ use that as the sole source of future work."
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | OPEN | — | all (tool only) |
+| T139 | third headless one-kind pool: Liard River watershed (7-53) | OPEN | — | all |
 
 ## Order for open tickets
 
@@ -264,6 +265,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q80 | T97 | A mark's binding counts km per named water (to 0.1 km), not total sections — so a new split alone does not stale zone rules and walks crossing it? | km per named water | owner |
 | Q81 | T97 | A split added or moved on a water stales EVERY entry matched to that water ("binding moved"), not only rules whose reach changed? | every entry on that water | owner |
 | Q82 | T97 | "unsure" is a mark verdict (the "?" outcome) beside verified / wrong / deferred? | yes | owner |
+| Q83 | T101 | "Large share" for a side channel's Flow to answer its river: drainage ≥ 0.5 of the river's (only Hanson/Lewis, Seton Canal, Bell/Nelson reach it today)? | 0.5 | owner |
+| Q84 | T101 | Should a side channel also NOT take its river's Level (the walk cuts it inward; `mainstem_of` still gives an adopted channel line the river's full answer)? One rule both ways, or only your outward rule? | walk cuts inward; adopted lines keep the river's answer (to be made one) | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

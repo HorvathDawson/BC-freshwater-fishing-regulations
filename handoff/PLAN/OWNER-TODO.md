@@ -18,9 +18,9 @@ Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mi
 
 ## Questions answered with a default (change any you disagree with)
 
-New: Q80–Q82 (curation marks: km not sections, a split stales its whole water, "unsure" verdict); Q74–Q79 (gauge dots follow the forecast day, Change dot label, undeclared quantity, p10/p90 wording, search keys need the new release, "river" vs "stream" on the page); Q67–Q73 (heat map zoom and arrows, spot pin colour, stacked spots, spot names); Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
+New: Q83–Q84 (side-channel share threshold; should a channel also not take the river's Level); Q80–Q82 (curation marks: km not sections, a split stales its whole water, "unsure" verdict); Q74–Q79 (gauge dots follow the forecast day, Change dot label, undeclared quantity, p10/p90 wording, search keys need the new release, "river" vs "stream" on the page); Q67–Q73 (heat map zoom and arrows, spot pin colour, stacked spots, spot names); Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
 and Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
-search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q82). The ones most likely
+search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q84). The ones most likely
 to matter:
 - Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
   banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.
