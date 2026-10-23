@@ -317,6 +317,52 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
     return parent
 
 
+def side_channel_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
+                          adopted: dict[str, str]) -> dict[str, str]:
+    """`polygon section of a STREAM water -> the side-channel line of that water whose answer it takes`.
+
+    A LINE IN ITS PLACE, ALL THE WAY. A polygon of a slough whose lines are side channels of a bigger river (FWA
+    1100/1350, adopted by `mainstem_of`) would be a side channel itself if it were a line: it would take the river's
+    answer, or none. Walked on its own magnitude instead it is the Herrling Island artefact again — on the real graph
+    (2026-10-22) nine polygons of Maria, Nicomen, McArthur Island, Gravel and West Road sloughs took ten creek gauges
+    up to 400 km away at 1.4 km² while the slough's lines either side carried the Fraser at Hope at 60,000 km².
+
+    The line is the nearest of the polygon's OWN water, DOWNSTREAM first, upstream only when nothing below is a line —
+    the same search as `stream_polygons`, but over every line, answered or not, so a silent river silences the polygon
+    too. Only a line `mainstem_of` adopted counts; a polygon beside an ordinary line keeps its own walk.
+    """
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    out: dict[str, str] = {}
+    for sec, node in graph.nodes.items():
+        water = water_of.get(sec)
+        if water is None or kind_of.get(water) != "stream" or _kind(node) == "stream":
+            continue
+        for adj in (down, up):
+            seen, frontier, hits = {sec}, [sec], []
+            while frontier and not hits:
+                nxt: list[str] = []
+                for cur in frontier:
+                    for other in adj[cur]:
+                        if other in seen or water_of.get(other) != water:
+                            continue
+                        seen.add(other)
+                        nxt.append(other)
+                        if _kind(graph.nodes.get(other)) == "stream":
+                            hits.append(other)
+                frontier = nxt
+            if hits:
+                side = sorted(h for h in hits if h in adopted)
+                if side:
+                    out[sec] = side[0]
+                break
+    return out
+
+
 def stream_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
                     panelled: dict[str, tuple]) -> dict[str, str]:
     """`polygon section of a STREAM water -> the line section of that water whose answer it takes` — THE FALLBACK.
@@ -560,7 +606,8 @@ def build(graph, model: AreaModel,
     # The area comes with it. The channel drains what the river drains; reporting its
     # polygon's 1.4 km² beside the Fraser's panel would be the one number on the screen
     # that contradicts all the others.
-    for sec, parent in mainstem_of(graph, area_of).items():
+    adopted = mainstem_of(graph, area_of)
+    for sec, parent in adopted.items():
         got = by_section.get(parent)
         if got is None:
             by_section.pop(sec, None)      # the river has no panel; neither can its channel
@@ -573,4 +620,11 @@ def build(graph, model: AreaModel,
     if water_of and kind_of:
         for sec, line in stream_polygons(graph, water_of, kind_of, by_section).items():
             by_section[sec] = by_section[line]
+        # A POLYGON OF A SIDE CHANNEL IS A SIDE CHANNEL — see `side_channel_polygons`. Last, so it overrides both its
+        # own walk and the fallback: the river's answer, or none, exactly as the channel's lines.
+        for sec, line in side_channel_polygons(graph, water_of, kind_of, adopted).items():
+            if line in by_section:
+                by_section[sec] = by_section[line]
+            else:
+                by_section.pop(sec, None)
     return Panels(by_section=by_section, members=members)
