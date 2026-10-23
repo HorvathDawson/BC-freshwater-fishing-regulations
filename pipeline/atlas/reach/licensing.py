@@ -137,10 +137,10 @@ NATIONAL_PARKS = "national_parks"
 
 
 def national_park_sections(registry) -> frozenset[str]:
-    """Every section of every `area:national_parks:*` item."""
-    prefix = f"area:{NATIONAL_PARKS}:"
-    return frozenset(s for k, it in registry.items() if str(k).startswith(prefix)
-                     for s in it.section_ids)
+    """Every section of every `area:national_parks:*` item — the family as the one area-family
+    reader answers it (`registry.regions.area_family_sections`, T140); empty when there is none."""
+    from pipeline.atlas.registry.regions import area_family_sections
+    return area_family_sections(registry, NATIONAL_PARKS) or frozenset()
 
 
 def without_national_parks(placed: LicensingPlacement, parks: frozenset[str]

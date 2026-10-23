@@ -925,6 +925,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
     places = _water_places(build_dir, graph, registry_items)
+    # THE HOME MAP `_water_places` attached, kept past the graph (T140): the rules ask the one region
+    # membership for the regions a row's own water lies in (`rules.regions_of_waters`)
+    from pipeline.atlas.registry import regions as _regions
+    _home = _regions.home_view(graph)
     # P09: the named sections' shapes, kept until the parts exist (part_geo / part_mark / water_exit)
     named_geo = _topology.keep_named(db, build_dir, geoms)
     del graph, geoms, registry_items
@@ -977,7 +981,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # `rules.write` refuses a run that binds rules the entries do not have.
         _rules.write(db, _reaches,
                      Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
-                     cov, build_dir=build_dir)
+                     cov, build_dir=build_dir, home=_home)
         # THE DERIVED TABLES (DATAFLOW P2): rule_ix, rule.closure_grade, part, part_section — from
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived

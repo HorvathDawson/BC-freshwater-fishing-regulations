@@ -307,9 +307,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         if registry is None:
             raise SystemExit(f"licensing: a province-wide record subtracts {kind!r} and no "
                              f"registry was handed in to say which sections that is")
-        prefix = f"area:{kind}:"
-        got = {sid[s] for k, it in registry.items() if k.startswith(prefix)
-               for s in it.section_ids if s in sid}
+        # THE FAMILY AS THE ONE AREA-FAMILY READER ANSWERS IT (`regions.area_family_sections`, T140)
+        from pipeline.atlas.registry.regions import area_family_sections
+        got = {sid[s] for s in area_family_sections(registry, kind) or () if s in sid}
         if not got:
             raise SystemExit(f"licensing: outside_area_kind {kind!r} has no sections in this atlas")
         except_rows |= {(kind, s) for s in got}

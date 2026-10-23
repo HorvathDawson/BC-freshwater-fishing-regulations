@@ -1036,13 +1036,25 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
 ONE_WAY_IN_ACROSS_ROWS = True
 
 
-def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
+#: POLICY (T140, owner Q99 2026-10-23): THE REGIONS A ROW'S OWN WATER LIES IN are asked of the ONE
+#: region membership (`registry.regions`, T115) with the atlas's home map (`home`): a stream piece
+#: straddling a region line lies in its HOME region only, a lake in every region it touches — the
+#: same members the zone rules and the per-region row limit read. Before, the bundle called
+#: `outside.water_regions` with no graph, i.e. plain polygon membership, so a printed lift carried
+#: (G3) into a region where the water has only a straddling piece homed elsewhere. False = plain
+#: polygon membership (the mutation pin).
+WATER_REGIONS_BY_HOME = True
+
+
+def regions_of_waters(registry, docs, home=None) -> dict[str, frozenset[str]]:
     """`{entry_id: regions}` — the regions each row's OWN waters (`matched`) lie in. What a row's
     printed lift of a blanket closure reaches in the other regions (`_equivalent_closures`). The
-    arithmetic is the reach builder's (`outside.water_regions`: a section touching a region polygon
-    is in it), called once per row — never a second copy of it."""
+    arithmetic is the reach builder's (`outside.water_regions` over `registry.regions`, the one
+    region membership), called once per row — never a second copy of it. `home` is the atlas's home
+    map (`regions.home_view`); `None` is plain membership (a fixture's)."""
     from pipeline.atlas.reach.outside import water_regions
-    return {ce.entry_id: frozenset(water_regions({"matched": list(ce.matched)}, registry))
+    view = home if WATER_REGIONS_BY_HOME else None
+    return {ce.entry_id: frozenset(water_regions({"matched": list(ce.matched)}, registry, view))
             for ce in docs if EID.is_water_row(ce.entry_id) and ce.matched}
 
 
@@ -1203,8 +1215,11 @@ def read_entries(entries_dir: Path, registry=None):
 
 
 def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
-          build_dir: Path | None = None) -> None:
-    """Write `entry`, `rule`, `section_ruleset`, `ruleset`, and every licensing table."""
+          build_dir: Path | None = None, *, home=None) -> None:
+    """Write `entry`, `rule`, `section_ruleset`, `ruleset`, and every licensing table.
+
+    `home` is the atlas's region home map (`registry.regions.home_view`), which the bundle build
+    takes off the graph it already holds; `None` reads it from `build_dir` (loading `graph.pkl`)."""
     sections_file = reaches / "rule_section.jsonl"
     if not sections_file.exists():          # P2: a skip here rendered every water open
         raise SystemExit(f"no rule_section.jsonl in the reach run at {reaches} — re-run "
@@ -1259,7 +1274,11 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     entries_by_id = {ce.entry_id: ce for _, ce in docs}
     closures = zone_closures([ce for _, ce in docs])
     blankets = blanket_closures([ce for _, ce in docs])
-    water_regions = regions_of_waters(registry, [ce for _, ce in docs])
+    # THE ONE REGION MEMBERSHIP (T140): the home map the zone rules and the reach run read
+    if home is None:
+        from pipeline.atlas.registry.regions import home_view_from
+        home = home_view_from(build_dir, registry)
+    water_regions = regions_of_waters(registry, [ce for _, ce in docs], home)
     # One pass over the bindings (149 M rows on the full corpus), noting every rule it names. FIRST,
     # before any rule row: a row's lift carries into the regions whose zone tables the run bound
     # beside it (`co_bound_regions`), which only the sets say.

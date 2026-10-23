@@ -165,6 +165,36 @@ def attach_from(build_dir, graph, registry) -> dict[str, str]:
     return home
 
 
+class HomeView:
+    """THE HOME MAP WITHOUT THE GRAPH (T140): what `in_region` reads off a graph (`attach`), held on
+    its own so a reader that has released the 5 GB graph (the bundle's rules, read after
+    `graph.pkl` is dropped) still asks the one membership. Pass it wherever a `graph` carrying the
+    home map is taken by the functions below (`region_sections`, `section_regions`, …)."""
+    __slots__ = (_ATTR, _ATTR_BOTH)
+
+
+def home_view(graph) -> HomeView:
+    """The home map attached to `graph` (`attach` / `attach_from`), as a `HomeView`. RAISES when none
+    is attached: a view of nothing would silently be plain polygon membership."""
+    home = getattr(graph, _ATTR, None) if graph is not None else None
+    if home is None:
+        raise ValueError("regions.home_view: no home map is attached to this graph "
+                         "(`regions.attach_from` first)")
+    v = HomeView()
+    setattr(v, _ATTR, home)
+    setattr(v, _ATTR_BOTH, getattr(graph, _ATTR_BOTH, frozenset()))
+    return v
+
+
+def home_view_from(build_dir, registry) -> HomeView:
+    """`home_view` of the atlas at `build_dir`, loading its `graph.pkl` to tell the straddling lakes
+    apart (`attach_from`). For a caller with no graph in hand; the bundle hands its own view in."""
+    from pipeline.common.io.serialize import read_artifact
+    graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
+    attach_from(build_dir, graph, registry)
+    return home_view(graph)
+
+
 #: A section id naming a waterbody polygon — the SHAPE drawn (a river's polygon has it too).
 LAKE_PREFIX = "lake:"
 
