@@ -1,6 +1,6 @@
 # T115 — One region membership: Region 5 rules bind on Fraser pieces whose home is Region 3
 
-Status: DONE — lane-T111 commit "T115: one region membership". 12 Fraser pairs + 3 steelhead-twin pairs + 1 licensing pair removed.
+Status: DONE — ac116dac (T115), dc447e9f + 6ef25042 (review). 12 Fraser pairs + 3 steelhead-twin pairs + 1 licensing pair removed.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 1
 (CONFIRMED in `rule_section.jsonl`).
@@ -89,6 +89,41 @@ by the pieces removed. No unresolved change, no rescoped section, no gain anywhe
 
 Rebuild that ships it: reach + deliver (no atlas).
 
+## Adversarial review (2026-10-23)
+
+**Second copy found and removed (dc447e9f).** `deliver.bundle.build._water_places` (the bundle's
+`region_place`) looped `in_region` over the `area:region:*` items itself. It gave the same answer, but it was a
+second copy of the one membership, outside the scan's reach. It now calls `regions.section_regions(registry, graph)`.
+The identical code path means identical output. The no-second-copy AST scan now covers
+`deliver/bundle/build.py`; re-adding the loop fails `test_no_second_copy_of_region_membership[build.py1]`.
+Shipped by deliver (no output change expected).
+
+**Unpinned behaviour found and pinned (6ef25042).** The steelhead twin's `area_id`/`outside_area` reading home
+members had no test: reverting it to the raw `registry[key].section_ids` passed every suite. New
+`test_the_steelhead_twin_s_region_is_its_home_members`; that mutation fails it.
+
+**Mutation re-run.** `region_limit` handing `graph=None` to `region_sections` (raw membership) fails
+`test_a_per_region_row_does_not_bind_a_piece_homed_in_another_region`.
+
+**Measurement re-done on the combined branch** (T111 + T115 + review fixes, one scratch reach run):
+- Digest `b9be92114323aa22` is the same as the builder's T115-only run.
+- `binding_diff` is identical, key for key, to `reach-T115.json` (`/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/scratchpad/reach-T111T115rev.json`).
+
+Each moved pair was checked on the real waters in the new `rule_section`. Each straddling piece now carries
+exactly its home region's Fraser rows and is never left without one:
+- 418405 (home 3): r3 r1/r4/r12.
+- 434930 (home 5): r5 r1/r2/r3/r4/r6.
+- 674465 (home 5): r5 r2/r3/r4/r5.
+- 699253 (home 7A): r7 r1/r2. Its `steelhead_presence` row reads `curated list`, `rules: false`, `anadromous: false`,
+  as stated above.
+
+The `outside_bc` count (212 diagnostics) is unchanged, so the home-member union equals the polygon union on this
+atlas. The reach dir is deleted.
+
+Pre-existing, not T115: with the live bundle symlinked, `test_answers_kitimat_steelhead_lift`, `test_answers_v22`,
+`test_steelhead_stamp_waiver`, `test_steelhead_waters::test_the_curated_list…` and
+`test_curation_review_api[region-9]` fail identically with and without the change (environment/bundle vintage).
+
 ## Left / follow-ups
 - `deliver.bundle.rules.regions_of_waters` calls `outside.water_regions(…, registry)` with NO graph, so it keeps
   plain polygon membership (unchanged output; G3's "the regions a water lies in"). Passing the attached graph would
@@ -96,6 +131,8 @@ Rebuild that ships it: reach + deliver (no atlas).
   exemption carries to) and was not measured here — a ticket of its own if wanted.
 - `reach.licensing` reads the `national_parks` family itself (`f"area:{NATIONAL_PARKS}:"`); not a region question,
   left alone — it could call `regions.area_family_sections`.
+- `deliver.bundle.licensing` (`province_except`) also reads an area family itself (`f"area:{kind}:"`, national
+  parks); like `reach.licensing`, it could call `regions.area_family_sections`.
 - `pipeline/tools/unnamed_trib_sweep.py` keeps its own `area_sections` (a tool, reads its own build); not unified.
 
 ## Owner questions

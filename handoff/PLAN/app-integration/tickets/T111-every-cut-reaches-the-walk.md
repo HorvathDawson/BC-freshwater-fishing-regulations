@@ -1,6 +1,6 @@
 # T111 — Every cut reaches the walk: only the first extent's window seeds tributaries
 
-Status: DONE — lane-T111 commit "T111: every cut reaches the walk". No binding moved.
+Status: DONE — a9e37a82 (T111), a2d5d62a (review fix). No binding moved.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 5
 (CONFIRMED in code; the live list is from the reach agent).
@@ -77,10 +77,49 @@ Why nothing moved, measured (audit over the live atlas, all 461 rules whose exte
 
 Rebuild that ships it: reach + deliver (no atlas) — though as measured it changes no output today.
 
+## Adversarial review (2026-10-23)
+
+**Defect found and fixed (a2d5d62a).** In the watershed branch of `resolve_extent`, the existing local
+`cuts = [(blk, m), …]` (the positions `_watershed_part` takes) rebound T111's name, so a watershed extent
+reported bare tuples as its `cuts`: no split, no end, no kind. Both readers skip watershed parts today
+(`seeding_cuts` via `got["watershed"]`, `confluence_excludes` via `ex["watershed"]`), so no output changed. Any
+new reader indexing `c["end"]` would have crashed on the 8 watershed rules. The positions are now `places`.
+Pinned by `test_a_watershed_part_reports_its_cuts_in_the_same_shape`, which fails on the old code.
+
+**Gap found and pinned.** Nothing tested the END a `between` across two lines gives each cut (from
+`chosen["b_below_a"]`). New `test_a_between_across_two_lines_knows_its_lower_end` (both split orders) uses a
+Chilliwack/Vedder-shaped fixture with a creek at the lower cut on the downstream line.
+MUTATION: swapping the two ends in `resolve_extent` fails both parametrisations; the creek is lost.
+
+**Mutations re-run.** Each pin failed as claimed:
+- `seeding_cuts` returning the first cut only fails `test_both_lower_cuts_of_a_two_reach_rule_seed`,
+  `test_the_order_of_the_extents_does_not_matter` and `test_an_extent_with_no_cut_offers_its_own_lower_bounds`.
+- `_used` reporting every candidate of an ambiguous cut (the old `_cut_places` behaviour) fails
+  `test_an_ambiguous_cut_is_tested_only_at_the_candidate_the_reach_used` and
+  `test_the_general_rule_s_candidate_is_the_one_tested_too`.
+
+**Measurement re-done on the combined branch.** One scratch reach run with the code at T111 + T115 + review
+fixes, against `data/generated/reaches/full`:
+- Digest `b9be92114323aa22` is identical to the builder's T115-only run.
+- `binding_diff` is identical to T115's: 12 rules + 1 licensing record, all on the 4 straddling Fraser pieces.
+- So T111 moves nothing in combination either. Diff JSON: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/scratchpad/reach-T111T115rev.json`. The reach dir is deleted.
+
+Checked and found sound:
+- `_clip` keeps `cuts`, so a region- or scope-clipped extent still hands over its cuts.
+- `per` is the clipped list both readers see.
+- The review app / direct callers of `confluence_excludes` resolve their own (unclipped) extents, as before.
+
+Left for later (added below): the carve-out walk (`resolve_carve_outs`: `tributaries_of_reach(graph, secs)`) still
+derives its seeds from node bounds rather than the carve-out extent's `cuts`.
+
 ## Left / follow-ups
 - The 98 dropped places include side channels of a cut across a braid: `cuts` holds the principal line only (the
   line `_cut_at` takes). If a future confluence cut has its joiner on a side channel, it will no longer be found.
   None does today; if one appears, `resolve_extent` should report the side-channel crossings in `cuts` too.
+- The carve-out walk (`build.resolve_carve_outs`, "and everything upstream of it") still seeds from the
+  carve-out's node bounds (`cuts=None`), not from `seeding_cuts(graph, [got])`. Today the two give the same
+  places, except on braid side channels, where node bounds see more. Unifying it is the same decision, but it is
+  unmeasured, so it was not changed in review.
 - AGENTS rule 16 parity (review app vs builder) not re-run here; the review app calls the same `build_reach`.
 
 ## Owner questions
