@@ -3,6 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-23 morning) — work list = tickets/README.md; owner list = handoff/PLAN/OWNER-TODO.md
+- Live local release **r-b518a2b507fa** (13.65 MB gz, paint/4), reach rerun with T133 entry digests (no binding changed);
+  fixtures 54050e22; smoke green (8,063 vitest / 202 pytest smoke / 18 checks). reaches/full_prev = the run before it.
+- Done today: T128 (+golden re-cut), T130, T131, T126, T106, T107, T114 (thin search keys, core 1.09 MB), T116, T101
+  (Q44 side-channel rule), T97 + T133 (curation phases 1–2), T137/T138/T82 (reader gate 39/39 light+dark), T139,
+  T108, T110, T105, T94; guards fixed (1ac96d72) and added to smoke.
+- Owner answered: Q44, Q53, Q45, Q13 (Claude runs the reader gate), Q5+Q34–Q41 (curation plan approved; splits
+  mid-review required; salmon pass later = T132). Q6 braids: "not yet". New defaults Q67–Q93 in the README table.
+- Running: workflow wf_06587af4-733 (T134 curation review screen; T111+T115; T102 part B + T117). Reach lanes measure
+  on scratch reach runs (~19 GB each) and delete them; disk ~60 GB free (98% before rotating full_prev).
+- After it: merge (recipe below), one reach rerun + binding diff + deliver for T111/T115/T117 (rotate full → full_prev
+  first: rm full_prev, mv full full_prev), fixtures, smoke. Then T135, T136, T113+T64+T85+T75+T129 (tiles window),
+  T100, T41/T47 leftovers, then cleanup band (T60, T61, T62, T63, T70, T72, T73, T103-series follow-ups).
+- Merge recipe: cherry-pick lane commits (stop only on ^CONFLICT/^error:), resolve, rewrite lane hashes in tickets
+  (map by subject over `<lane base>..lane`), ledger rows, `node app/tools/check-tickets.mjs`, strict check + smoke once.
+
 ## CURRENT STATE (2026-10-23 early) — work list = tickets/README.md; owner list = handoff/PLAN/OWNER-TODO.md
 - Branch redesign/stream-sections (never main). Live local release r-36fbc5326506 (strict 7903 + smoke green).
 - Release total gate raised 14 → 15 MB (owner Q55). Web fetch budget is T129.
