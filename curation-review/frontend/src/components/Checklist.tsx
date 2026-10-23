@@ -52,7 +52,14 @@ export function Checklist({ target, checks, state, onChange, held, problems, cur
                 (["y", "n", "?"] as CheckAnswer[]).map((x) => (
                   <button key={x} type="button" className={`ans ans-${x === "?" ? "q" : x}${a === x ? " on" : ""}`}
                     aria-pressed={a === x} aria-label={`${c} ${x}`}
-                    onClick={(ev) => { ev.stopPropagation(); set({ active: c, answers: { ...state.answers, [c]: x } }); }}>
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      // GIVE THE FOCUS BACK (T142): a focused button takes Enter as its own click,
+                      // so after a click the next Enter re-answered this check instead of
+                      // recording the mark. Keys-only use never focused it.
+                      ev.currentTarget.blur();
+                      set({ active: c, answers: { ...state.answers, [c]: x } });
+                    }}>
                     {x}
                   </button>
                 ))
