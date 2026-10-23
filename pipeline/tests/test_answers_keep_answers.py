@@ -112,6 +112,10 @@ def test_3_t139_a_row_whose_total_is_another_rules_is_held_by_the_row_carrying_t
     assert [RW.parent_of([trout, dv, ko], i) for i in range(3)] == [None, 0, None]
     # a row whose total is its own pool is never held this way (it carries its own group)
     assert RW.parent_of([_held("zone", ["CT"], "zone", draws=["zone"]), _held("dv", ["DV"], "dv")], 1) is None
+    # ... not even where another row carries that pool's group (review: the case above passes without the
+    # `T != pool` guard, since no other row draws "dv"; this one is the guard's own pin — MUTATION dropping
+    # `T != o["pool"]` gives 0 here. No shipped frame has two keep rows of one pool, so the guard is defensive.)
+    assert RW.parent_of([_held("zone", ["CT"], "zone", draws=["zone"]), _held("zone", ["DV"], "zone")], 1) is None
     # nor where no other row carries the total (Duncan River's DV on Crazy Creek when the rest is released: open)
     assert RW.parent_of([_held("duncan", ["DV"], "zone", draws=["zone"]), _held("ko", ["KO"], "ko")], 0) is None
     # the cross-reference hold comes first
