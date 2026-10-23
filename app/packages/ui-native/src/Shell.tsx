@@ -699,7 +699,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * (once the index is in), or the lakes' Stocked colouring. Plain water needs no key.
    */
   /*
-   * THE WATER'S HEADER (FaceBar): the views its frame offers (all three; an unnamed reach, Conditions alone), the one on
+   * THE WATER'S HEADER (FaceBar): the views its frame offers (all three; an unnamed reach, Regulations and Conditions — T53), the one on
    * screen, and where back goes, in the reader's words — the views are lateral, so back always leaves the water: to
    * the tab it was opened from (the Conditions map or the Map tab), or "Back" to the water flowed in from. The swipe
    * listens on the header and on the body: the header is the water frame's (T44 `WaterFrame`, above every view's body,

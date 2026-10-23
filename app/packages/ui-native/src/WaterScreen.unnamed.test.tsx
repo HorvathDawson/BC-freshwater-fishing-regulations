@@ -15,7 +15,7 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import { loadRegsInputs, type RegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { DEFAULT_WHO, loadRegsStore } from "@app/ui";
+import { DEFAULT_WHO, LayoutWidthContext, loadRegsStore } from "@app/ui";
 import { WaterScreen } from "./WaterScreen";
 import { LIGHT } from "./theme";
 
@@ -41,9 +41,11 @@ async function storePage(handle: number, downstream: string | null): Promise<{ p
            trib: inp.ruleset!.trib.map(key), reach: inp.ruleset!.reach.map(key) };
 }
 
-async function open(handle: number, source: RegsSource = makeFixtureSource()) {
-  render(<WaterScreen source={source} item={null} section={handle as SectionId} palette={LIGHT}
-                      loader={openRegsFixture()} day={DAY} />);
+async function open(handle: number, source: RegsSource = makeFixtureSource(), width: number | null = null) {
+  render(<LayoutWidthContext.Provider value={width}>
+           <WaterScreen source={source} item={null} section={handle as SectionId} palette={LIGHT}
+                        loader={openRegsFixture()} day={DAY} />
+         </LayoutWidthContext.Provider>);
   await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
   await waitFor(() => expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).not.toBe(""));
 }
@@ -83,5 +85,16 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     const w = page.keep.whereNot!;
     expect(screen.getByTestId("keep-wherenot").textContent)
       .toBe(w.heading + (w.scope ?? "") + w.items.map((x) => plain(x.text)).join(""));
+  }, 30_000);
+
+  it("634 on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
+    const { page } = await storePage(634, HARRIS);
+    await open(634, sourceFlowing(), 1400);
+    await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
+    const side = screen.getByTestId("regs-side");
+    expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,
+            screen.queryByTestId("regs-action"), !!within(screen.getByTestId("regs-columns")).getByTestId("regs-reading"),
+            page.header.tabs.map((t) => within(side).queryAllByText(t.label).length > 0)])
+      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, true, true, true]]);
   }, 30_000);
 });
