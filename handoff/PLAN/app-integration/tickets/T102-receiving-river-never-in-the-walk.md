@@ -1,6 +1,6 @@
 # T102 — The receiving river is never walked into (parent-code check in the walk, not only in seeding)
 
-Status: OPEN — raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
+Status: PART A DONE (c8215722: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); part B open. Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
 using the WSC").
 
 ## Why
