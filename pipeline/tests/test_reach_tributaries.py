@@ -827,7 +827,8 @@ def _chehalis(*, codes=True):
 
 
 CHEHALIS_REACH = frozenset({"C:0", "C:3592"})
-CHEHALIS_WINDOW = ("C", 0.0, 5362.5)
+#: the reach's lower cut ("downstream of the bridge" runs to the mouth, measure 0)
+CHEHALIS_CUTS = [("C", 0.0)]
 
 
 def test_t90_the_chehalis_reach_binds_no_harrison_side_channel():
@@ -835,8 +836,8 @@ def test_t90_the_chehalis_reach_binds_no_harrison_side_channel():
     walk above it. The window's lower measure (0, the mouth) was compared with the measure of an
     edge on ANOTHER blue line — a Harrison side channel's — where 0 means that channel's mouth."""
     g = _chehalis()
-    assert _mouths_at_lower_bound(g, CHEHALIS_REACH, CHEHALIS_WINDOW) == set()
-    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
+    assert _mouths_at_lower_bound(g, CHEHALIS_REACH, CHEHALIS_CUTS) == set()
+    assert tributaries_of_reach(g, CHEHALIS_REACH, cuts=CHEHALIS_CUTS) == frozenset()
 
 
 def test_t90_only_the_piece_AT_the_cut_seeds_and_in_its_own_line_s_measures(monkeypatch):
@@ -846,9 +847,9 @@ def test_t90_only_the_piece_AT_the_cut_seeds_and_in_its_own_line_s_measures(monk
     sections come back exactly."""
     from pipeline.atlas.graph import tributaries as T
     g = _chehalis(codes=False)
-    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
+    assert tributaries_of_reach(g, CHEHALIS_REACH, cuts=CHEHALIS_CUTS) == frozenset()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
-    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == {"HS1:0", "HS2:0"}
+    assert tributaries_of_reach(g, CHEHALIS_REACH, cuts=CHEHALIS_CUTS) == {"HS1:0", "HS2:0"}
 
 
 def test_t90_a_receiving_river_s_channel_at_the_cut_is_not_seeded(monkeypatch):
@@ -866,13 +867,13 @@ def test_t90_a_receiving_river_s_channel_at_the_cut_is_not_seeded(monkeypatch):
            [("C:3592", "C:0", "continuation", 3592.9),
             ("HS3:0", "C:0", "confluence", 3592.9),
             ("K:0", "C:0", "confluence", 3592.9)])
-    reach, window = frozenset({"C:3592"}), ("C", 3592.9, 5362.5)
-    assert _mouths_at_lower_bound(g, reach, window) == {"K:0"}
-    assert tributaries_of_reach(g, reach, window=window) == {"K:0"}
+    reach, cuts = frozenset({"C:3592"}), [("C", 3592.9)]
+    assert _mouths_at_lower_bound(g, reach, cuts) == {"K:0"}
+    assert tributaries_of_reach(g, reach, cuts=cuts) == {"K:0"}
     assert not hasattr(T, "THE_RECEIVING_RIVER_IS_NEVER_A_SEED"), "T102: superseded, removed"
     monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_A_PARENT", False)
-    assert _mouths_at_lower_bound(g, reach, window) == {"HS3:0", "K:0"}
-    assert tributaries_of_reach(g, reach, window=window) == {"HS3:0", "K:0"}
+    assert _mouths_at_lower_bound(g, reach, cuts) == {"HS3:0", "K:0"}
+    assert tributaries_of_reach(g, reach, cuts=cuts) == {"HS3:0", "K:0"}
 
 
 def test_t90_a_reach_running_to_its_mouth_seeds_nothing(monkeypatch):
@@ -887,11 +888,11 @@ def test_t90_a_reach_running_to_its_mouth_seeds_nothing(monkeypatch):
            [("C:0", "H:2297", "confluence", 8413.3),
             ("far:0", "H:2297", "confluence", 0.0),
             ("near:0", "H:2297", "confluence", 8413.3)])
-    reach, window = frozenset({"C:0"}), ("C", 0.0, 3592.9)
-    assert _mouths_at_lower_bound(g, reach, window) == set()
-    assert tributaries_of_reach(g, reach, window=window) == frozenset()
+    reach, cuts = frozenset({"C:0"}), [("C", 0.0)]
+    assert _mouths_at_lower_bound(g, reach, cuts) == set()
+    assert tributaries_of_reach(g, reach, cuts=cuts) == frozenset()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
-    assert _mouths_at_lower_bound(g, reach, window) == {"far:0"}
+    assert _mouths_at_lower_bound(g, reach, cuts) == {"far:0"}
 
 
 def test_t90_a_distributary_at_the_cut_is_not_a_way_in(monkeypatch):
@@ -904,10 +905,10 @@ def test_t90_a_distributary_at_the_cut_is_not_a_way_in(monkeypatch):
            [("C:3592", "C:0", "continuation", 3592.9),
             ("C:3592", "SC:0", "confluence", 10.0),
             ("x:0", "SC:0", "confluence", 3592.9)])
-    reach, window = frozenset({"C:3592"}), ("C", 3592.9, 5362.5)
-    assert _mouths_at_lower_bound(g, reach, window) == set()
+    reach, cuts = frozenset({"C:3592"}), [("C", 3592.9)]
+    assert _mouths_at_lower_bound(g, reach, cuts) == set()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
-    assert _mouths_at_lower_bound(g, reach, window) == {"x:0"}
+    assert _mouths_at_lower_bound(g, reach, cuts) == {"x:0"}
 
 
 # --------------------------------------------------------------------------- #
@@ -923,9 +924,9 @@ def test_t102_the_chehalis_is_still_blocked_by_code_alone(monkeypatch):
     from pipeline.atlas.graph import tributaries as T
     g = _chehalis()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
-    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
+    assert tributaries_of_reach(g, CHEHALIS_REACH, cuts=CHEHALIS_CUTS) == frozenset()
     monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_A_PARENT", False)
-    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == {"HS1:0", "HS2:0"}
+    assert tributaries_of_reach(g, CHEHALIS_REACH, cuts=CHEHALIS_CUTS) == {"HS1:0", "HS2:0"}
 
 
 def _braid_into_the_receiving_river():

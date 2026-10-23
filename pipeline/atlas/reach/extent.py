@@ -893,6 +893,8 @@ def _between_across_lines(g, universe: set[str], a, b, why: dict | None = None,
     down_a, s_a, down_b, s_b, b_below_a, a_below_b = _below(a, b, why=why, marks=marks)
     if b_below_a == a_below_b:
         return None                     # neither above the other (parallel branches): no reach between
+    if chosen is not None:
+        chosen["b_below_a"] = b_below_a     # which cut is the reach's LOWER end (`cuts`)
     (blk_a, m_a, _), (blk_b, m_b, _) = a, b
     up_a, _ = _half(g, universe, blk_a, m_a, upper=True)
     up_b, _ = _half(g, universe, blk_b, m_b, upper=True)
@@ -910,6 +912,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     at more than one measure on the chosen blue line, so the curator can see that the reach shown is
     one of two readings (see `_cut_at`). None = not determinable at all (an `within(area)` scope, or a
     cut that is not on the scoped water).
+
+    `cuts` (T111) are the cuts the reach was actually taken at — `{split, blk, m, end, kind, label}`,
+    `end` "lower" or "upper", after `cut_pick` and the ambiguous-cut rule; empty for `whole` and
+    `within`. The tributary seeding (`build.seeding_cuts`) and the confluence test
+    (`build.confluence_excludes`) read them; neither re-derives a cut.
 
     ``reasons`` (optional): a list the caller passes to collect ``(code, detail)`` for anything that
     could NOT be resolved. `None` alone says a rule binds nothing without saying why, and a rule that
@@ -1012,7 +1019,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
 
     def _out(sec: set[str], **extra) -> dict:
         d = {"sections": sorted(_limited(sec)), "unclassified": [], "ambiguous_cut": [],
-             "window": None, "waters": _waters(g, _limited(sec))}
+             "window": None, "cuts": [], "waters": _waters(g, _limited(sec))}
         if limit_sections is not None:
             d["within_area"] = sorted(limit_sections)
             if op != "within":
@@ -1138,6 +1145,32 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                     out.update(aliases)             # ids this same cut-point also answers to
         return out
 
+    def _meta(bid: str) -> tuple[str, str]:
+        """(boundary kind, label) of the registry boundary a bound id names — its own boundary
+        first, else the one it is an alias of (as `_refs` finds them)."""
+        want = {bid, f"split:{bid}"}
+        alias = None
+        for i in scope:
+            it = reg.get(i)
+            for b in (it.boundaries if it else ()):
+                kind = getattr(b.kind, "value", b.kind)
+                if b.id == bid:
+                    return str(kind or ""), b.label or ""
+                if alias is None and set(b.aliases or ()) & want:
+                    alias = (str(kind or ""), b.label or "")
+        return alias or ("", "")
+
+    #: THE CUTS THIS EXTENT ACTUALLY USED (T111): one per split id, at the candidate taken (after
+    #: `cut_pick` and `AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`), on the line it was taken on, with the
+    #: END of the reach it bounds. The tributary seeding (every `lower` cut, `build.seeding_cuts`)
+    #: and the confluence test (`build.confluence_excludes`) read these — neither re-derives a cut.
+    cuts: list[dict] = []
+
+    def _used(sid: str, at, end: str) -> None:
+        kind, label = _meta(sid)
+        cuts.append({"split": sid, "blk": at[0], "m": at[1], "end": end, "kind": kind,
+                     "label": label})
+
     def _why_of(pieces) -> dict[str, str]:
         """The typed reason for each reported piece (`unknown` only if no pass said one)."""
         return {p: why.get(p, "unknown") for p in sorted(pieces)}
@@ -1188,6 +1221,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             return None
         at = _toward_end(at, upper=(op == "upstream_of"))
         _note(ids[0], at, "source" if op == "upstream_of" else "mouth")
+        _used(ids[0], at, "lower" if op == "upstream_of" else "upper")
         blk, m = at[0], at[1]
         lo, hi = (m, INF) if op == "upstream_of" else (0.0, m)
         window = (blk, lo, hi)
@@ -1217,6 +1251,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                       + (f"; alternatives at {a[2]}" if a[2] else ""))
                 return None
             window = (a[0], min(a[1], b[1]), max(a[1], b[1]))
+            _used(ids[0], a, "lower" if a[1] < b[1] else "upper")
+            _used(ids[1], b, "lower" if b[1] < a[1] else "upper")
             sec, braided = _by_measure(g, universe, *window, why=why, marks=marks)
         else:
             chosen: dict = {}
@@ -1229,6 +1265,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             a, b = chosen["a"], chosen["b"]
             _note(ids[0], a, ids[1])
             _note(ids[1], b, ids[0])
+            _used(ids[0], a, "upper" if chosen["b_below_a"] else "lower")
+            _used(ids[1], b, "lower" if chosen["b_below_a"] else "upper")
             sec, braided = got
     else:
         _fail("unsupported_op", str(op))
@@ -1244,7 +1282,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         if isinstance(part, str):
             _fail(part, ",".join(scope))
             return None
-        d = _out(part["sections"], ambiguous_cut=ambiguous, window=None,
+        d = _out(part["sections"], ambiguous_cut=ambiguous, window=None, cuts=cuts,
                  unclassified=sorted(braided), unclassified_why=_why_of(braided),
                  straddle_placed=_placed(set(sec)))
         d.pop("seed", None)
@@ -1253,4 +1291,4 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                  at_cut=part["at_cut"], river_code=part["river_code"])
         return d
     return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window,
-                unclassified_why=_why_of(braided), straddle_placed=_placed(set(sec)))
+                cuts=cuts, unclassified_why=_why_of(braided), straddle_placed=_placed(set(sec)))

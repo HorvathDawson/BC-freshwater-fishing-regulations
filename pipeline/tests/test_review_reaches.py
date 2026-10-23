@@ -231,7 +231,11 @@ def test_a_reach_can_be_bound_by_an_aliased_split(monkeypatch):
     # and by the boundary's own id, to the same place
     same = reuse.resolve_extent(["gnis:1"], {"op": "downstream_of",
                                              "splits": ["duncan_river__duncan_lake"]})
-    assert same == res, "the two names must select the same water"
+    # (`cuts` names the split id each was bound by — the place is the same)
+    assert {k: v for k, v in same.items() if k != "cuts"} == \
+        {k: v for k, v in res.items() if k != "cuts"}, "the two names must select the same water"
+    assert [{k: v for k, v in c.items() if k != "split"} for c in same["cuts"]] == \
+        [{k: v for k, v in c.items() if k != "split"} for c in res["cuts"]]
 
 
 # --- the entry's own stretch ---------------------------------------------------------------------

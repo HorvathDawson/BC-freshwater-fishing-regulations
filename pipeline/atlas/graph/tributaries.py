@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
+from typing import Iterable
 
 from pipeline.common.models import NodeKind, StreamGraph
 from pipeline.common import fwa_edge_types
@@ -635,10 +636,15 @@ def tributaries_of_reach(
     blocked: set[str] | frozenset[str] = frozenset(),
     passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
-    window: tuple[str, float, float] | None = None,
+    cuts: Iterable[tuple[str, float]] | None = None,
     own: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
+
+    `cuts` are the reach's LOWER CUTS as `(blk, measure)` — every extent's, as `resolve_extent`
+    used them (`extent` `cuts`, `build.seeding_cuts`); a tributary whose mouth sits on one is the
+    reach's (`_mouths_at_lower_bound`). `None` (a caller that resolved no extent) derives them from
+    the reach's node bounds (`lower_bound_cuts`).
 
     `own` is the rest of the ENTRY'S OWN water (`THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`): never
     returned; never walked when the reach joins it directly (the water going on past the cut);
@@ -680,7 +686,7 @@ def tributaries_of_reach(
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
     # Each seed has passed `may_enter` inside `_mouths_at`: a seed is the walk's first step (T102).
-    for seed in sorted(_mouths_at_lower_bound(graph, ctx.reach, window, ctx)):
+    for seed in sorted(_mouths_at_lower_bound(graph, ctx.reach, cuts, ctx)):
         if seed not in seen:
             seen.add(seed)
             out.add(seed)
@@ -715,20 +721,43 @@ def tributaries_of_reach(
     return frozenset(out - frozenset(passed) - ctx.own)
 
 
+def lower_bound_cuts(graph: StreamGraph, sections) -> list[tuple[str, float]]:
+    """`(blk, measure)` of every node bound at the LOWER end of a piece of `sections`: the cuts of
+    an extent that resolved with no cut of its own (`whole`, `within`), and of a direct caller that
+    resolved no extent. Every such place is offered to the seeding; only a piece AT the cut seeds
+    (`MOUTH_SEEDS_ONLY_AT_THE_CUT`), so a bound inside the reach adds nothing."""
+    out: set[tuple[str, float]] = set()
+    for nid in sections:
+        n = graph.nodes.get(nid)
+        if n is None or n.lower_bound is None or not n.blk \
+                or n.lower_bound.route_measure is None:
+            continue
+        out.add((n.blk, n.lower_bound.route_measure))
+    return sorted(out)
+
+
+#: EVERY CUT REACHES THE WALK (T111, owner 2026-10-22: one decision, one function). The seeding is
+#: handed every LOWER cut of every extent of the rule, exactly as `extent.resolve_extent` used it
+#: (after `cut_pick` and the ambiguous-cut rule) — never the first extent's window alone. Before,
+#: `build_reach` kept `window or got["window"]`, so a rule of two reaches seeded only the first:
+#: the creeks at the second reach's lower cut (`alouette_river.r2` at the North Alouette's 216th
+#: Street cut, `bull_river.r1` at the Aberfeldie Dam) were never the rule's. False = the first
+#: cut only (the mutation pin).
+EVERY_CUT_REACHES_THE_WALK = True
+
+
 def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
-                           window: tuple[str, float, float] | None = None,
+                           cuts: Iterable[tuple[str, float]] | None = None,
                            ctx: Reach | None = None) -> set[str]:
-    """Tributary mouths sitting exactly on the reach's lower cut.
+    """Tributary mouths sitting exactly on one of the reach's lower cuts.
 
     Looked for on the piece BELOW the cut: the confluence is at the same route measure, so
     FWA may hang the mouth on either side of it. Only tributaries are taken — anything on
     the reach's own blue line is the mainstem, not a joining stream.
 
-    `window` is the `(blk, lo, hi)` the extent ACTUALLY resolved to, handed over by
-    `resolve_extent`. Prefer it: re-deriving the cut from node bounds means two places have
-    to agree about where the reach starts, and they can drift. Node bounds remain the
-    fallback for a reach that has no single window (a `whole` extent, or a `between`
-    spanning two blue lines).
+    `cuts` are the `(blk, measure)` lower cuts the extents ACTUALLY resolved to, handed over
+    from `resolve_extent` (`build.seeding_cuts`): two places never have to agree about where a
+    reach starts. `None` derives them from the reach's node bounds (`lower_bound_cuts`).
 
     `ctx` is the walk's `Reach` (built from `reach` alone when not given): each mouth must pass
     `may_enter` with it.
@@ -736,20 +765,17 @@ def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
     out: set[str] = set()
     if ctx is None:
         ctx = reach_context(graph, reach)
-    if window is not None:
-        w_blk, w_lo, _w_hi = window
-        for nid in reach:
-            n = graph.nodes.get(nid)
-            if n is None or n.blk != w_blk:
-                continue
-            out |= _mouths_at(graph, nid, n, w_lo, reach, ctx)
-        return out
-    for nid in reach:
+    places = lower_bound_cuts(graph, reach) if cuts is None else sorted(set(cuts))
+    if not EVERY_CUT_REACHES_THE_WALK and cuts is not None:
+        places = list(cuts)[:1]
+    on: dict[str, list] = {}
+    for nid in sorted(reach):
         n = graph.nodes.get(nid)
-        if n is None or n.lower_bound is None or not n.blk:
-            continue
-        m = n.lower_bound.route_measure
-        out |= _mouths_at(graph, nid, n, m, reach, ctx)
+        if n is not None and n.blk:
+            on.setdefault(n.blk, []).append((nid, n))
+    for blk, m in places:
+        for nid, n in on.get(blk, ()):
+            out |= _mouths_at(graph, nid, n, m, reach, ctx)
     return out
 
 
@@ -940,7 +966,7 @@ def expand(
     excluded: set[str] | frozenset[str] = frozenset(),
     passed: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
-    window: tuple[str, float, float] | None = None,
+    cuts: Iterable[tuple[str, float]] | None = None,
     registry=None,
     own: set[str] | frozenset[str] = frozenset(),
 ) -> frozenset[str]:
@@ -967,7 +993,7 @@ def expand(
     excluded = frozenset(excluded)
     tribs = frozenset(
         s for s in tributaries_of_reach(graph, reach, blocked=excluded, passed=passed,
-                                        guarded=guarded, window=window, own=own)
+                                        guarded=guarded, cuts=cuts, own=own)
         if not STREAMS_ONLY or kind_of(graph, registry, s) == "stream")
     base = frozenset() if only else (reach - excluded)
     return base | tribs

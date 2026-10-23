@@ -97,7 +97,11 @@ from typing import Callable
 #:     a confluence cut's joining water (`tributaries.subtree`) no longer climbs across a code run's
 #:     divide, into a canal, a bigger river or the river it drains into — the Chilko row's designation
 #:     loses North Tsuniah Creek's 355996084:17, which FWA codes to Tsuniah, not Brittany Creek.
-POLICY_VERSION = "24"
+#: 25: (T111 owner 2026-10-22) EVERY CUT REACHES THE WALK: the tributary seeding takes every extent's
+#:     lower cut as `resolve_extent` used it, not the first extent's window
+#:     (`tributaries.EVERY_CUT_REACHES_THE_WALK`), and the confluence test reads the same cuts (the
+#:     candidate an ambiguous cut's reach used, never every candidate).
+POLICY_VERSION = "25"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

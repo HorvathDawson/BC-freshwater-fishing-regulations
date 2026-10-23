@@ -1,6 +1,6 @@
 # T111 — Every cut reaches the walk: only the first extent's window seeds tributaries
 
-Status: OPEN.
+Status: DONE — lane-T111 commit "T111: every cut reaches the walk". No binding moved.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding reach 5
 (CONFIRMED in code; the live list is from the reach agent).
@@ -29,3 +29,59 @@ every rule with ambiguous or confluence cuts, each move named.
 
 Rebuild: reach + deliver (no atlas). Depends: run in the same reach rerun as T102 if convenient, but diff separately.
 Size: M. Owner: no.
+
+## As built (2026-10-23)
+
+One answer to "where does this rule's reach cut the water": `extent.resolve_extent` now returns the `cuts` it
+actually used — `{split, blk, m, end: lower|upper, kind, label}`, one per split id, after `cut_pick` and
+`AMBIGUOUS_CUT_NEAREST_THE_OTHER_END` (a `between` across two lines learns its lower end from
+`_between_across_lines`' own ordering, `chosen["b_below_a"]`). Every reader takes those cuts:
+
+- **Seeding** — `build.seeding_cuts(graph, per)` hands the walk EVERY extent's `lower` cuts (an extent with no cut —
+  `whole`, `within` — offers its pieces' lower node bounds, `tributaries.lower_bound_cuts`, as a no-cut rule always
+  did; a watershed part seeds nothing). `tributaries.expand / tributaries_of_reach / _mouths_at_lower_bound` take
+  `cuts=[(blk, m), …]` instead of one `window`; `None` (a direct caller) derives them from node bounds. The
+  `window = window or got["window"]` line is gone. Policy flag `tributaries.EVERY_CUT_REACHES_THE_WALK`.
+  (Also renamed the walk's local `cuts` from `code_runs` to `divides`, which the new parameter would have shadowed.)
+- **Confluence** — `build.confluence_excludes(..., resolved=per)` reads `resolved[i]["cuts"]` (resolving the
+  extents itself when a caller passes none, as the tests and review app do). `_cut_places` is deleted; the
+  function holds no geometry (no node bound, no `_cut_at`).
+- `cache.POLICY_VERSION` 23 → 24; the policy pin in `test_reach_builder.py` carries the new flag.
+
+Tests: `pipeline/tests/test_t111_every_cut_reaches_the_walk.py` (whole values) — `resolve_extent`'s `cuts` per op;
+a two-reach rule seeds both lower cuts (MUTATION `EVERY_CUT_REACHES_THE_WALK=False` → C Creek lost); extent order
+does not matter; a `whole` beside a cut extent seeds its own foot; `downstream_of` has no lower cut; an ambiguous
+cut with `cut_pick: lower` tests only 1000 — Y Creek (own row) joining at the unused 3000 candidate is walked as an
+ordinary tributary, where the old `_cut_places` kept it and its subtree out (fails if the re-derivation comes
+back); the general rule's candidate is the one tested; `confluence_excludes` answers from the cuts it is handed; no
+second copy (`_cut_places` absent, no node-bound words in `confluence_excludes`, no `window` in `build_reach`).
+Updated: `test_reach_tributaries.py` (`window=` → `cuts=`), `test_complement_rest.py` (fake `expand` signature),
+`test_review_reaches.py` (the alias and the id select the same water; `cuts` names the id each was bound by).
+
+**Binding diff (side-dir reach run, code = 530bfc95 on the base, against `data/generated/reaches/full`):
+NO BINDING MOVED.** `binding_diff` → rules_changed 0, unresolved_changed 0, licensing_changed 0
+(`reach-T111.json` in the lane's scratchpad); the run digest is identical (`81e726a3e6fbad3b`), and
+`rule_diagnostic.jsonl`, `rule_extent.jsonl`, `rule_unresolved.jsonl`, `licensing_diagnostic.jsonl` and
+`straddle.jsonl` are byte-identical — so no `confluence_cut` row changed either.
+Why nothing moved, measured (audit over the live atlas, all 461 rules whose extents carry a split):
+- Seeding: the old seeds (first window) and the new (every lower cut) are equal for EVERY walking rule. For the three
+  named rules the second reach's lower cut has no creek mouth hung on the piece below it in this atlas:
+  `alouette_river.r2` second cut = North Alouette (blk 356337903) @ 4687.3 (216th Street); `bull_river.r1` second
+  cut = Bull River @ 2071.2 (Tie Mill Dam); `atnarko_bella_coola_rivers.r2` second reach's lower cut is the South
+  Atnarko confluence @ 58205.7, which is the first reach's upper end — inside the rule's reach, so the walk already
+  meets it. The ticket's "their tributary rules are missing" was a code reading, not a measured loss; the defect was
+  latent (any re-cut that hangs a creek on the second cut would have lost it).
+- Confluence: in 89 rules the old `_cut_places` tested 98 places the reach did not use (an ambiguous cut's other
+  candidate, or the same split on a side channel); the new cut set is a subset of the old in every rule (0 new
+  places). None of the 98 is a confluence cut or a "near … confluence" label with a joiner, so no row changed.
+
+Rebuild that ships it: reach + deliver (no atlas) — though as measured it changes no output today.
+
+## Left / follow-ups
+- The 98 dropped places include side channels of a cut across a braid: `cuts` holds the principal line only (the
+  line `_cut_at` takes). If a future confluence cut has its joiner on a side channel, it will no longer be found.
+  None does today; if one appears, `resolve_extent` should report the side-channel crossings in `cuts` too.
+- AGENTS rule 16 parity (review app vs builder) not re-run here; the review app calls the same `build_reach`.
+
+## Owner questions
+- none.

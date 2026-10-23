@@ -107,24 +107,24 @@ def test_the_walk_takes_its_steps_only_from_may_enter(monkeypatch):
 
 
 def _cut_fixture():
-    reach, window = frozenset({"a:500"}), ("a", 500.0, 1000.0)
+    reach, cuts = frozenset({"a:500"}), [("a", 500.0)]
     g = _g([dataclasses.replace(_n("a:500", order=3, blk="a"), down_m=500.0, up_m=1000.0),
             dataclasses.replace(_n("a:0", order=3, blk="a"), up_m=500.0), _n("x:0", order=1)],
            [("a:500", "a:0", "continuation", 500.0), ("x:0", "a:0", "confluence", 500.0)])
-    return g, reach, window
+    return g, reach, cuts
 
 
 def test_a_seed_is_a_step_through_may_enter(monkeypatch):
     """M2: a seed passes `may_enter` (`via=SEED`) — refuse seeds there and the creek at the cut goes; a
     carve-out of it is refused by the same question."""
-    g, reach, window = _cut_fixture()
-    assert T._mouths_at_lower_bound(g, reach, window) == {"x:0"}
-    assert T.tributaries_of_reach(g, reach, window=window) == {"x:0"}
-    assert T.tributaries_of_reach(g, reach, window=window, blocked={"x:0"}) == frozenset()
+    g, reach, cuts = _cut_fixture()
+    assert T._mouths_at_lower_bound(g, reach, cuts) == {"x:0"}
+    assert T.tributaries_of_reach(g, reach, cuts=cuts) == {"x:0"}
+    assert T.tributaries_of_reach(g, reach, cuts=cuts, blocked={"x:0"}) == frozenset()
     real = T.may_enter
     monkeypatch.setattr(T, "may_enter", lambda ctx, s, d, e=None, *, via=T.FLOW:
                         "no" if via == T.SEED else real(ctx, s, d, e, via=via))
-    assert T._mouths_at_lower_bound(g, reach, window) == set()
+    assert T._mouths_at_lower_bound(g, reach, cuts) == set()
 
 
 def test_a_code_run_piece_is_a_step_through_may_enter(monkeypatch):
