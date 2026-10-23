@@ -1,7 +1,7 @@
 /**
  * T09 on the LIVE release, paired with the oracles (golden.ts `releasePairing`; skipped with the reason otherwise, a
  * failure under REGS_STORE_REQUIRED=1): `loadRegsInputs` gives the ticket's values (Vedder, Kalamalka, the Similkameen
- * hours window, tidal water, the Chilliwack's closed stretches, an unnamed stream), and on every one of the 134 golden
+ * hours window, tidal water, the Chilliwack's closed stretches, an unnamed stream on its region's base), and on every one of the 134 golden
  * taps the key, segment, cell and the display frame of each of the 366 days equal taps.json — the Python reference
  * decoder's (`encode.segment_index` over the store the goldens were cut from). The store-free cases are
  * packages/data/src/regs/inputs.test.ts.
@@ -9,7 +9,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { DisplayFrame, RegsInputs } from "@app/core";
 import { loadRegsInputs, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
-import { golden, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
+import { baseUnnamedStream, golden, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
 
 const T = taps();
 const ids = Object.keys(T.states);
@@ -106,9 +106,13 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
   });
 
   it("8. an unnamed section: no item, the key, and the place's name; a handle outside B.C. has neither", async () => {
-    const inp = await loadRegsInputs(st, { kind: "section", handle: 1178240 }, { month: 10, day: 10 }, "Saturday", 2026);
+    // golden.ts `baseUnnamedStream`: taps.json's first sampled unnamed stream on its region's base (by property — the
+    // sample's handles and akeys move with every build); its key and name are the Python reference decoder's
+    const u = await baseUnnamedStream(st);
+    const inp = await loadRegsInputs(st, { kind: "section", handle: u.handle }, { month: 10, day: 10 }, "Saturday", 2026);
     expect([inp.item, inp.partIx, inp.key!.akey, inp.key!.kind, inp.place, inp.mergedParts])
-      .toEqual([null, 0, 2191, "stream", { label: "Region 5", name: "Unnamed stream · Region 5" }, null]);
+      .toEqual([null, 0, u.akey, "stream", { label: u.name.split(" · ")[1], name: u.name }, null]);
+    expect(u.name).toMatch(/^Unnamed stream · Regions? \d/);
     expect(inp.frames).not.toBeNull();
     const out = await loadRegsInputs(st, { kind: "section", handle: 2_000_000_000 }, { month: 10, day: 10 }, "Saturday", 2026);
     expect([out.key, out.place, out.item, out.frames]).toEqual([null, null, null, null]);

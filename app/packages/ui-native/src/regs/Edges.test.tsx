@@ -1,7 +1,8 @@
 /**
  * T42 (C): the edge states on screen. Outside B.C. is core `buildRegsPage` over a place with no key (no store needed);
- * tidal water (x31p_1010), the hours window (x15p2_1010) and an unnamed section (handle 1178240) are the frozen pages
- * (fixtures/edge_*.json, buildRegsPage over the parity store — conformance/src/regs/fixtures.ts, never hand-edited).
+ * tidal water (x31p_1010), the hours window (x15p2_1010) and an unnamed section (taps.json's first sampled unnamed stream on
+ * its region's base, conformance golden.ts `baseUnnamedStream`) are the frozen pages (fixtures/edge_*.json, buildRegsPage
+ * over the parity store — conformance/src/regs/fixtures.ts, never hand-edited).
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -15,7 +16,7 @@ import { createPinStore } from "./pinStore";
 import type { KeepActions } from "./LineText";
 import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
-import unnamed from "./fixtures/edge_unnamed_1178240.json";
+import unnamed from "./fixtures/edge_unnamed.json";
 import vedder1010 from "./fixtures/vedder_1010.json";
 
 afterEach(cleanup);
@@ -73,11 +74,12 @@ describe("9. tidal water (x31p_1010)", () => {
   });
 });
 
-describe("10. an unnamed section (handle 1178240, D11 a)", () => {
+describe("10. an unnamed section (D11 a)", () => {
   const h = asPage(unnamed).header;
   it("the store's place name as the heading; no Map or Parts button even with a handler", () => {
     render(<RegsHeader header={h} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} onAction={() => {}} />);
-    expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe("Unnamed stream · Region 5");
+    expect(h.name).toMatch(/^Unnamed stream · Regions? \d/);
+    expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe(h.name);
     expect(screen.queryByRole("button", { name: /map|parts/i })).toBeNull();
     expect(screen.queryByTestId("regs-action")).toBeNull();
     expect(screen.getByTestId("regs-place").textContent).toBe("");

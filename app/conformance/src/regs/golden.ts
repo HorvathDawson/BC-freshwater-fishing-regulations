@@ -222,6 +222,20 @@ export function inputsOf(id: string): Promise<RegsInputs | null> {
   return p;
 }
 
+/** The unnamed section the edge and inputs suites tap: taps.json's FIRST sampled unnamed STREAM whose section `st`
+ *  answers with no tributary rule (the region's base, the page built as for a named water). Chosen by that property,
+ *  never by handle: taps.py samples evenly spaced handles past `answers.unnamed.first`, so one answer key inserted or
+ *  64 sections joining the unnamed range (T56, r-2f33edfe8452) shifts every handle and akey in the sample. */
+export async function baseUnnamedStream(st: RegsStore): Promise<TapsFile["unnamed"][number]> {
+  for (const u of tapsOnce().unnamed) {
+    if (!u.name.startsWith("Unnamed stream")) continue;
+    const inp = await loadRegsInputs(st, { kind: "section", handle: u.handle }, { month: 10, day: 10 }, "Saturday",
+      tapsOnce().meta.year);
+    if (inp.ruleset !== null && inp.ruleset.trib.length === 0) return u;
+  }
+  throw new Error("taps.json samples no unnamed stream answered by its region's base alone — regenerate taps.py's sample");
+}
+
 // ── T12: cases ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export const ADULT_RESIDENT: Who = { age: "adult", residency: "resident" };

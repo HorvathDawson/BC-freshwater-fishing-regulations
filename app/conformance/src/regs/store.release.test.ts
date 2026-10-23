@@ -32,7 +32,13 @@ describe.skipIf(!LIVE)(`T03 on the live release (${LIVE ?? "absent"})`, () => {
     expect(st.meta.glossaryVersion).toBe(5);
     expect(st.meta.blobCodec).toBe("zdict");
     expect(st.meta.layout).toEqual({ top: JSON.parse(golden.layout).top, sections: JSON.parse(golden.layout).sections });
-    expect(st.dict("display_frame")!.length).toBe(29499);          // rows 31 / display 18 (the dictionary is trained on the frames)
+    // A vintage pin. The dictionary is `train_zdict` over the display frames: every 9th of the 1,027 frames (id order),
+    // concatenated, its last 32,768 bytes — so its length is the sampled frames' bytes. 29499 → 29459 with T56
+    // (r-2f33edfe8452): the same 1,027 frames, 5 reworded by own-row names ("Upper Little Slocan Lake’s exemption" →
+    // "Little Slocan Lake's Tributaries’s", "Tŝilhqox Biny’s" → "Chilko Lake's tributary streams’s") and ids 1006–1009
+    // holding the same four frames in another order: sampled frame 990 grew 8 bytes, the frame now sampled at 1008 is
+    // 48 shorter (−40). No frame was added or dropped (the boat-rule dedupe moved none).
+    expect(st.dict("display_frame")!.length).toBe(29459);
     expect(st.dict("ladder_verdict")).not.toBeNull();             // the region tables' dictionaries are water's
   });
 

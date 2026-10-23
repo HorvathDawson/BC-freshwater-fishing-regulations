@@ -6,14 +6,15 @@
  * - the hours window (x15p2_1010): the card at inside=false and the "⚠ At certain times" caveat right after the strip;
  * - the weekday row (klwa_1010 / klwa_1012): the Kokanee row's stored week status, and the segment each day reads;
  * - every golden state whose tap has moments: the whole Keep tab equals the golden;
- * - an unnamed section (taps.json `unnamed`, handle 1178240): the store's place name, no part label, no action, the page
- *   otherwise built as for a named water.
+ * - an unnamed section (taps.json `unnamed`, golden.ts `baseUnnamedStream`: the first sampled unnamed stream the store
+ *   answers by its region's base): the store's place name, no part label, no action, the page otherwise built as for a
+ *   named water.
  * The store-free cases (outside B.C., the edge selector, the timed words) are core/src/regs/edge.test.ts.
  */
 import { describe, expect, it } from "vitest";
 import { buildRegsPage, edgeKind, segmentIndex, tapDay, type RegsPage } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
-import { ADULT_RESIDENT, golden, inputsOf, parityGate, parityStore, requestOf, taps } from "./golden";
+import { ADULT_RESIDENT, baseUnnamedStream, golden, inputsOf, parityGate, parityStore, requestOf, taps } from "./golden";
 import { gearLines, methodsLines } from "./gearPage";
 import { keepLines, selectorOf } from "./keepPage";
 import { norm } from "./eq";
@@ -94,14 +95,15 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(bad).toEqual([]);
   });
 
-  it("unnamed section 1178240: 'Unnamed stream · Region 5', no part label, no action, four tabs; the page built as a named water's", async () => {
+  it("an unnamed stream on its region's base: taps.json's name, no part label, no action, four tabs; the page built as a named water's", async () => {
     const st = (await parityStore())!;
-    const u = T.unnamed.find((x) => x.handle === 1178240)!;
-    expect(u).toEqual({ handle: 1178240, akey: 2191, place: 12, name: "Unnamed stream · Region 5" });
-    const inp = await loadRegsInputs(st, { kind: "section", handle: 1178240 }, { month: 10, day: 10 }, "Saturday", 2026);
+    const u = await baseUnnamedStream(st);
+    expect(u.name).toMatch(/^Unnamed stream · Regions? \d/);
+    const inp = await loadRegsInputs(st, { kind: "section", handle: u.handle }, { month: 10, day: 10 }, "Saturday", 2026);
     const p = buildRegsPage(inp, { today: { month: 10, day: 10 }, who: ADULT_RESIDENT });
-    expect(edgeKind(inp)).toBe("unnamed");
-    expect([p.header.name, p.header.place, p.header.action, p.header.tabs.length]).toEqual(["Unnamed stream · Region 5", null, null, 4]);
+    expect([edgeKind(inp), inp.key!.akey]).toEqual(["unnamed", u.akey]);
+    // the whole header name is the Python reference decoder's (taps.json), never composed here
+    expect([p.header.name, p.header.place, p.header.action, p.header.tabs.length]).toEqual([u.name, null, null, 4]);
     expect(p.keep.order[0]).toBe("strip");
     expect([p.gear !== null, p.methods !== null, p.licence !== null]).toEqual([true, true, true]);
   });
