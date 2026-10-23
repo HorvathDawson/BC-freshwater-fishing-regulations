@@ -71,10 +71,7 @@ def test_a_length_cut_at_a_tributary_names_the_tributary_and_otherwise_keeps_its
         "length:356364690:23466"
 
 
-def test_the_main_stem_is_the_longest_blue_line_and_ties_are_stable():
-    assert SP.main_stem([("2", 10.0), ("1", 4.0), ("1", 4.0), ("3", 1.0)]) == "2"
-    assert SP.main_stem([("9", 5.0), ("4", 5.0)]) == "4"
-    assert SP.main_stem([]) is None
+# The main stem (the longest blue line, ties stable) is `lines.main_line`, pinned in test_lines.py (T118).
 
 
 # ---------------------------------------------------------------------------------------------

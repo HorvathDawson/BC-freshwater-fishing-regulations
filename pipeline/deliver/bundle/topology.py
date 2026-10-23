@@ -131,15 +131,15 @@ MAX_STEPS = 200_000
 def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, set]:
     """WHERE A WATER'S MOUTH FLOWS (T59: the Fraser's exit named Annacis Channel). {ord: the named waters first met
     going down from the water's MOUTH} for every water with a main line. The mouth is the lowest piece of the water's
-    main line (`continuation._main`: the FWA blue line holding most of its sections). Its edges out that LEAVE the
-    water are followed (each down the mainstem edge first, `nearer._next`, through unnamed pieces) to the first piece
-    another water owns; only when every way out of the mouth comes back into the water's own pieces (a braid, a lower
+    main line (`lines.line_ends`: the FWA blue line carrying most of its length, the stem the spans measure along).
+    Its edges out that LEAVE the water are followed (each down the mainstem edge first, `nearer._next`, through unnamed
+    pieces) to the first piece another water owns; only when every way out of the mouth comes back into the water's own pieces (a braid, a lower
     line of its own, an unnamed lake on its course) are those pieces' edges tried next, nearest first. An empty set:
     the mouth reaches the sea, the atlas's edge, a loop or only itself. A water with no main line (a lake) is absent.
-    The main line is a count, so on some waters it is an upper line and this is not the true mouth: it is used only as
-    evidence that a water flows INTO another (`exit_receivers`), never to pick an exit. `secs` is {ord: section
-    handles} (`ids[h-1]` names handle `h`)."""
-    from pipeline.deliver.bundle.continuation import _main, line_of
+    It is used only as evidence that a water flows INTO another (`exit_receivers`), never to pick an exit. `secs` is
+    {ord: section handles} (`ids[h-1]` names handle `h`)."""
+    from pipeline.deliver.bundle.continuation import line_of
+    from pipeline.deliver.bundle.lines import handle_lengths, line_ends
     from pipeline.deliver.bundle.nearer import _next
 
     def line(h: int):
@@ -161,12 +161,13 @@ def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, se
             v = _next(graph, v)
         return set(), None
 
+    length = handle_lengths(graph.nodes, ids, {h for ss in secs.values() for h in ss})
     out: Dict[int, set] = {}
     for o, ss in sorted(secs.items()):
-        m = _main(ss, line)
-        if m is None:
+        got = line_ends(ss, line, length)
+        if got is None:
             continue
-        frontier = [ids[min((line(h)[1], h) for h in ss if line(h) is not None and line(h)[0] == m)[1] - 1]]
+        frontier = [ids[got[1] - 1]]
         done, got, left = set(frontier), set(), False
         while frontier and not left:
             nxt = []

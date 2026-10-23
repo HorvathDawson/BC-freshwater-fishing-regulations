@@ -8,7 +8,8 @@ the Chilliwack's lowest, ▼ back). Topology, not a regulation.
 THE RULE (stated, pinned in `test_water_continue.py` and on the real waters in `test_release.py`). A continues as B
 when both are streams, `item_down` already says A flows into B, and in the ATLAS GRAPH (`graph.pkl`: every inflow, with
 the measure on the receiving line where it joins):
-  - A's MAIN LINE (the FWA blue line holding most of A's sections; ties: the higher top measure, then the key) BEGINS
+  - A's MAIN LINE (the FWA blue line carrying most of A's length, `lines.main_line` — the one the spans measure along;
+    T118: it was the line holding most of A's SECTIONS, and the two differed) BEGINS
     there — the piece is A's lowest measure on that line — and flows into
   - B's main line's TOP piece (B's highest measure on its main line);
   - and A is the watercourse there. Either A's mouth piece lies on B's own blue line (the FWA main stem), or:
@@ -67,6 +68,7 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common import entry_id as EID
+from pipeline.deliver.bundle.lines import handle_lengths, line_ends
 
 Line = Tuple[str, int]
 
@@ -91,12 +93,17 @@ class Flow:
     piece's top measure (`top`), which waters own each section (`owners`) and each piece's FWA watershed code (`wsc`,
     where known). `from` may be 0: an inflow the handle table does not name still comes in.
 
+    `length` {section: metres} of every stream piece of the waters (`lines.handle_lengths`): what a water's MAIN LINE
+    is weighed by (`lines.line_ends`, T118). `goes_on` alone needs none; `candidates` refuses a Flow without it, which
+    would have no main lines at all and so no links, silently.
+
     And what only the lower-end words need (T108, all optional): `lakes` {top piece: [measure a LAKE drains in at]} (a
     lake outlet is not a stream edge), `into_lake` the pieces that flow into a lake (a creek ends at the lake) and
     `names` {ord: name} (no water continues into itself)."""
 
     def __init__(self, edges: Iterable[Tuple[int, int, float]], top: Mapping[int, float],
                  owners: Mapping[int, Set[int]], wsc: Optional[Mapping[int, str]] = None, *,
+                 length: Optional[Mapping[int, float]] = None,
                  lakes: Optional[Mapping[int, Sequence[float]]] = None, into_lake: Iterable[int] = (),
                  names: Optional[Mapping[int, str]] = None):
         self._out: Dict[int, List[Tuple[int, float]]] = defaultdict(list)
@@ -105,6 +112,7 @@ class Flow:
             self._out[f].append((t, at))
             self._in[t].append((f, at))
         self.top, self.owners = top, owners
+        self.length: Optional[Mapping[int, float]] = length
         self.wsc: Mapping[int, str] = wsc or {}
         self.lakes: Mapping[int, Sequence[float]] = lakes or {}
         self.into_lake: Set[int] = set(into_lake)
@@ -126,18 +134,6 @@ def line_of(section_id: str) -> Optional[Line]:
         return head, int(tail)
     except ValueError:
         return None
-
-
-def _main(sids: Iterable[int], line: Callable[[int], Optional[Line]]) -> Optional[str]:
-    n: Counter = Counter()
-    top: Dict[str, int] = {}
-    for s in sids:
-        ln = line(s)
-        if ln is None:
-            continue
-        n[ln[0]] += 1
-        top[ln[0]] = max(top.get(ln[0], ln[1]), ln[1])
-    return max(n, key=lambda k: (n[k], top[k], k)) if n else None
 
 
 def drains_into(code: str, into: str) -> bool:
@@ -202,12 +198,16 @@ def candidates(streams: Set[int], secs: Dict[int, Set[int]], item_down: Iterable
                line: Callable[[int], Optional[Line]], flow: Flow) -> List[Link]:
     """Every A whose mouth meets B's top as THE RULE says, by A's ord; the last field says it was made at a confluence
     (two rivers meet there), which only a book pairing keeps (`settle`)."""
+    if flow.length is None:
+        raise ContinuationError("continuation.candidates: the Flow carries no piece lengths, so no water has a main "
+                                "line — build it with `length` (`lines.handle_lengths`)")
+
     def end(o: int, lowest: bool) -> Optional[Tuple[str, int]]:
-        m = _main(secs.get(o, ()), line)
-        if m is None:
+        got = line_ends(secs.get(o, ()), line, flow.length)
+        if got is None:
             return None
-        on = [(line(s)[1], s) for s in secs[o] if line(s) is not None and line(s)[0] == m]  # type: ignore[index]
-        return m, (min(on) if lowest else max(on))[1]
+        m, low, high = got
+        return m, (low if lowest else high)
 
     out = []
     for a_ord, b_ord in sorted(set(item_down)):
@@ -370,11 +370,13 @@ def _kind(x) -> str:
 
 
 def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: Iterable[int],
-               names: Optional[Mapping[int, str]] = None) -> Flow:
+               names: Optional[Mapping[int, str]] = None,
+               length: Optional[Mapping[int, float]] = None) -> Flow:
     """The `Flow` of the atlas graph (`StreamGraph`) for the pieces that matter: the edges into the candidate top pieces
     `tops` (handles) and out of every piece flowing into them, in handles (`ids[h-1]` names handle `h`), with each of
     those pieces' FWA watershed code; a LAKE draining into a top piece is kept apart (`Flow.lakes`), and a piece flowing
-    into it that also flows into a lake is marked (`Flow.into_lake`)."""
+    into it that also flows into a lake is marked (`Flow.into_lake`). `length` is `lines.handle_lengths` of the
+    sections in `owners`, computed here when the caller has not already."""
     hid = {s: h for h, s in enumerate(ids, 1)}
     down = getattr(graph, "down_adj", {})
     edges, top, wsc, lakes, into_lake = [], {}, {}, defaultdict(list), set()
@@ -397,7 +399,9 @@ def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: 
                 if any(_kind(graph.edges[j]) == "lake_in" or _kind(graph.nodes.get(graph.edges[j].to_node)) == "lake"
                        for j in down.get(e.from_node, ())):
                     into_lake.add(f)
-    return Flow(edges, top, owners, wsc, lakes=lakes, into_lake=into_lake, names=names)
+    if length is None:
+        length = handle_lengths(graph.nodes, ids, owners)
+    return Flow(edges, top, owners, wsc, length=length, lakes=lakes, into_lake=into_lake, names=names)
 
 
 def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
@@ -415,13 +419,14 @@ def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
     for o, s in b.execute("SELECT ord, sid FROM item_section"):
         secs[o].add(s)
         owners[s].add(o)
+    length = handle_lengths(graph.nodes, ids, owners)
     tops = set()
     for o in streams:
-        m = _main(secs.get(o, ()), line)
-        if m is not None:
-            tops.add(max((line(s)[1], s) for s in secs[o] if line(s) is not None and line(s)[0] == m)[1])  # type: ignore[index]
+        got = line_ends(secs.get(o, ()), line, length)
+        if got is not None:
+            tops.add(got[2])
     flow = graph_flow(graph, ids, owners, tops,
-                      names=dict(b.execute("SELECT ord, name FROM item WHERE kind = 'stream'")))
+                      names=dict(b.execute("SELECT ord, name FROM item WHERE kind = 'stream'")), length=length)
     return candidates(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
 
 

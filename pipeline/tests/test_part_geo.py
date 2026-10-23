@@ -56,7 +56,11 @@ def test_a_boundary_is_named_by_the_downstream_runs_start_else_the_upstream_runs
 
 
 class _N:
-    pass
+    """A graph node as `lines.piece` reads it: `{blk}:{measure}` ids are stream pieces, `lake:` ones lakes."""
+    def __init__(self, nid, length_m=100.0):
+        self.blk = "" if nid.startswith("lake:") else nid.split(":")[0]
+        self.kind = "lake" if nid.startswith("lake:") else "stream"
+        self.length_m = length_m
 
 
 class _E:
@@ -69,11 +73,12 @@ class _Fraser:
     leaves F:200 and comes back into F:100 — item_down says each flows into the other. Water 3 (a creek, line C) flows
     into F:200 through an unnamed piece U:0. Water 4's main line (G) ends in its own side piece H:0 (water 4 too), which
     flows into the creek. Water 5 (line L) ends in a loop of unnamed pieces. Water 7 (the Atnarko's shape: line K) has
-    braid pieces of its own (B:0, D:0: one line each, so K is the main line) leaving and rejoining its mouth piece,
+    braid pieces of its own (B:0, D:0: one line each, shorter than K's, so K is the main line) leaving and rejoining its mouth piece,
     which flows into the Fraser; the braid's lower piece also has an edge out to Annacis Channel, never reached: the
     mouth leaves the water first. Water 8's main line (M, two pieces) ends in an unnamed lake on its course, whose
-    outlet is water 8's own lower line R, which flows into the Fraser (Park Creek's shape)."""
-    nodes = {n: _N() for n in ("F:0", "F:100", "F:200", "A:0", "A:50", "C:0", "U:0", "G:0", "H:0", "L:0", "V:0", "V:1",
+    outlet is water 8's own lower line R, which flows into the Fraser (Park Creek's shape). Every piece is 100 m but
+    G:0 and K:0 (300 m), so each water's main line is the one named (`lines.main_line`: the most length, T118)."""
+    nodes = {n: _N(n, 300.0 if n in ("G:0", "K:0") else 100.0) for n in ("F:0", "F:100", "F:200", "A:0", "A:50", "C:0", "U:0", "G:0", "H:0", "L:0", "V:0", "V:1",
                                "K:0", "B:0", "D:0", "M:0", "M:90", "lake:9", "R:0")}
     edges = [_E("F:200", "F:100"), _E("F:100", "F:0"), _E("F:200", "A:50", "braid"), _E("A:50", "A:0"),
              _E("A:0", "F:100"), _E("C:0", "U:0"), _E("U:0", "F:200"), _E("G:0", "H:0"), _E("H:0", "C:0", "trib"),

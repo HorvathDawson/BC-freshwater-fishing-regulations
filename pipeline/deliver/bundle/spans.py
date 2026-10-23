@@ -17,7 +17,8 @@ WHAT A SPAN IS. For each section of a stream water (a section belongs to one wat
 
   lo_m, hi_m   metres along the water's MAIN STEM, measured FROM THE MOUTH (the FWA route measure
                on the main blue line, whose 0 is the line's downstream end). The main stem is the
-               blue line carrying the most of the water's length (`main_stem`). A section on
+               blue line carrying the most of the water's length (`lines.main_line`, the bundle's one
+               main line: continuation and the exit walk read the same). A section on
                another blue line of the same water — a side channel, a braid — is OFF the stem:
                both values are the main-stem measure where it flows back in (`off_stem` = 1), or
                NULL when it never does. A POLYGON of the water (`shape` = 1: a river's wide reach,
@@ -58,6 +59,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from pipeline.atlas.graph.windows import polygon_window
+from pipeline.deliver.bundle.lines import main_line_of
 from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
 
 NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "polygon")
@@ -75,17 +77,6 @@ _AUTO = ("gauge__", "area:", "border:", "length:")
 
 def _is_auto(split_id: str) -> bool:
     return split_id.startswith(_AUTO)
-
-
-def main_stem(pieces: list[tuple[str, float]]) -> str | None:
-    """The blue line carrying the most of a water's length: `pieces` are (blk, length_m). Ties go
-    to the lowest blk, so the choice depends on the pieces and nothing else."""
-    total: dict[str, float] = defaultdict(float)
-    for blk, length in pieces:
-        total[blk] += length
-    if not total:
-        return None
-    return sorted(total.items(), key=lambda kv: (-round(kv[1], 3), kv[0]))[0][0]
 
 
 def _authored(aliases) -> list[str]:
@@ -167,8 +158,7 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
     for _, item_id, kind, sids in items:
         if kind != "stream":
             continue
-        stem = main_stem([(n.blk, n.length_m) for n in (nodes[node_of[s]] for s in sids)
-                          if getattr(n.kind, "value", n.kind) == "stream"])
+        stem = main_line_of(nodes, (node_of[s] for s in sids))
         if stem:
             stem_of[item_id] = stem
 

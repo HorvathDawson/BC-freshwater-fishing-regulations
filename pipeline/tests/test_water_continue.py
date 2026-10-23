@@ -32,6 +32,10 @@ LINE = _line(s1=("X", 0), s2=("X", 4000), s3=("X", 9000), s4=("Z", 0),
              s10=("Y", 0), s11=("Y", 4738), s12=("Y", 12723), s13=("W", 0),
              s20=("T", 0), s21=("T", 800))
 SECS = {1: {1, 2, 3, 4}, 2: {10, 11, 12, 13}, 3: {20, 21}}
+#: Each piece's length (m): a water's MAIN LINE is the blue line carrying most of its length (`lines.main_line`, T118) —
+#: X for water 1 (12 km against Z's 0.5), Y for water 2 (12.95 km against W's 0.3).
+LEN = {1: 4000.0, 2: 5000.0, 3: 3000.0, 4: 500.0, 10: 4738.0, 11: 7985.0, 12: 227.0, 13: 300.0, 20: 800.0, 21: 500.0,
+       30: 4000.0, 31: 3000.0, 50: 200.0}
 TOP = {12: 12950.0, 11: 12723.0, 10: 4738.0, 13: 300.0}
 #: (from, to, at — the measure on `to`'s line where `from` joins)
 EDGES = [(1, 12, 12925.0), (2, 1, 0.0), (3, 2, 0.0), (4, 3, 0.0), (12, 11, 12723.0), (11, 10, 4738.0),
@@ -40,7 +44,7 @@ EDGES = [(1, 12, 12925.0), (2, 1, 0.0), (3, 2, 0.0), (4, 3, 0.0), (12, 11, 12723
 
 def _cont(*, secs=SECS, edges=EDGES, line=LINE, top=TOP, streams=(1, 2, 3), item_down=((1, 2), (3, 2))):
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    return C.continuations(set(streams), secs, list(item_down), line.get, C.Flow(edges, top, owners))
+    return C.continuations(set(streams), secs, list(item_down), line.get, C.Flow(edges, top, owners, length=LEN))
 
 
 def test_a_stream_whose_mouth_is_the_top_of_anothers_line_continues_as_it():
@@ -112,14 +116,14 @@ def test_a_water_continued_twice_or_continuing_twice_is_refused():
     secs = {**SECS, 1: {1}, 4: {30}}
     line = {**LINE, 1: ("Y", 13000), 30: ("Y", 13000)}
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    flow = C.Flow(EDGES + [(30, 12, 12950.0)], TOP, owners)
+    flow = C.Flow(EDGES + [(30, 12, 12950.0)], TOP, owners, length=LEN)
     assert "continued by two waters" in refused(streams={1, 2, 3, 4}, secs=secs, item_down=[(1, 2), (4, 2)],
                                                 line=line.get, flow=flow)
     # one mouth that is the top of two waters (a distributary): which one is not ours to guess
     secs = {**SECS, 5: {50}}
     line = {**LINE, 50: ("V", 100)}
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    flow = C.Flow(EDGES + [(1, 50, 190.0)], {**TOP, 50: 200.0}, owners)
+    flow = C.Flow(EDGES + [(1, 50, 190.0)], {**TOP, 50: 200.0}, owners, length=LEN)
     assert "continues as two waters" in refused(streams={1, 2, 3, 5}, secs=secs, item_down=[(1, 2), (1, 5)],
                                                 line=line.get, flow=flow)
 
@@ -132,7 +136,7 @@ def _coded(code_a, code_b, *, line=LINE, secs=SECS):
     """`continuations` on the Chilliwack / Vedder shape with FWA watershed codes on A's mouth piece (s1) and B's top
     piece (s12)."""
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    flow = C.Flow(EDGES, TOP, owners, wsc={1: code_a, 12: code_b})
+    flow = C.Flow(EDGES, TOP, owners, wsc={1: code_a, 12: code_b}, length=LEN)
     return C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], line.get, flow)
 
 
@@ -212,9 +216,9 @@ def test_the_graph_flow_keeps_lakes_apart_and_marks_a_creek_that_ends_in_one():
 
 def test_no_water_goes_on_as_another_of_its_own_name():
     owners = {s: {o for o, ss in SECS.items() if s in ss} for ss in SECS.values() for s in ss}
-    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Side  Channel"})
+    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Side  Channel"}, length=LEN)
     assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow) == []
-    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Creek"})
+    flow = C.Flow(EDGES, TOP, owners, names={1: "Jeperson Side Channel", 2: "Jeperson Creek"}, length=LEN)
     assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow) == [(1, 1, 2, 12)]
 
 
@@ -224,7 +228,7 @@ def test_two_rivers_meeting_just_below_the_top_is_a_confluence_past_the_stub():
     tributary whatever the book says."""
     owners = {s: {o for o, ss in SECS.items() if s in ss} for ss in SECS.values() for s in ss}
     edges = [e for e in EDGES if e[0] != 1] + [(1, 12, 12950.0 - 154.0), (30, 12, 12950.0 - 65.0)]
-    flow = C.Flow(edges, TOP, owners)
+    flow = C.Flow(edges, TOP, owners, length=LEN)
     assert C.goes_on(1, 1, 2, 12, False, flow) == C.CONFLUENCE
     assert C.continuations({1, 2, 3}, SECS, [(1, 2), (3, 2)], LINE.get, flow, paired={(1, 2)}) == [(1, 1, 2, 12)]
     edges = [e for e in EDGES if e[0] != 1] + [(1, 12, 12950.0 - 250.0), (30, 12, 12950.0 - 65.0)]
@@ -300,8 +304,9 @@ def test_the_span_end_words_are_the_links():
 # ---- the bundle writes it (audit F07, owner 2026-10-22 call 6): the release no longer opens graph.pkl -------------
 
 class _N:
-    def __init__(self, up_m, wsc=""):
-        self.up_m, self.wsc = up_m, wsc
+    """A stream piece of blue line `blk` from `down_m` to `up_m` (its length is what `lines.main_line` weighs)."""
+    def __init__(self, up_m, wsc="", *, blk, down_m=0.0):
+        self.up_m, self.wsc, self.blk, self.kind, self.length_m = up_m, wsc, blk, "stream", up_m - down_m
 
 
 class _E:
@@ -311,7 +316,7 @@ class _E:
 
 class _G:
     """The atlas graph's shape `graph_flow` reads: water 1 (line X) flows into the top piece of water 2's line Y."""
-    nodes = {"X:0": _N(4000.0), "Y:0": _N(12723.0), "Y:12723": _N(12950.0)}
+    nodes = {"X:0": _N(4000.0, blk="X"), "Y:0": _N(12723.0, blk="Y"), "Y:12723": _N(12950.0, blk="Y", down_m=12723.0)}
     edges = [_E("X:0", "Y:12723", 12925.0), _E("Y:12723", "Y:0", 12723.0)]
     up_adj = {"Y:12723": [0], "Y:0": [1]}
 
@@ -363,7 +368,7 @@ def test_the_bundle_links_while_the_graph_is_loaded_and_writes_parts_once_they_e
 
 class _G2(_G):
     """`_G` with a second river (line Q, water 3) beginning 64 m from water 1's mouth: a confluence."""
-    nodes = {**_G.nodes, "Q:0": _N(3000.0)}
+    nodes = {**_G.nodes, "Q:0": _N(3000.0, blk="Q")}
     edges = _G.edges + [_E("Q:0", "Y:12723", 12861.0)]
     up_adj = {"Y:12723": [0, 2], "Y:0": [1]}
 
@@ -516,7 +521,7 @@ CONF_EDGES = EDGES + [(30, 12, 12861.0), (31, 30, 0.0)]
 
 def _conf(paired=(), *, edges=CONF_EDGES, secs=CONF_SECS, item_down=((1, 2), (3, 2), (4, 2)), wsc=None):
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    return C.continuations({1, 2, 3, 4}, secs, list(item_down), CONF_LINE.get, C.Flow(edges, TOP, owners, wsc),
+    return C.continuations({1, 2, 3, 4}, secs, list(item_down), CONF_LINE.get, C.Flow(edges, TOP, owners, wsc, length=LEN),
                            paired=set(paired))
 
 
@@ -549,11 +554,11 @@ def test_b_rejoined_by_its_own_side_channel_far_down_its_top_piece_needs_the_boo
     edges = EDGES + [(40, 12, 12925.0 - 7000.0)]
     assert _cont(secs=secs, edges=edges) == []
     owners = {s: {o for o, ss in secs.items() if s in ss} for ss in secs.values() for s in ss}
-    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners),
+    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners, length=LEN),
                            paired={(2, 1)}) == [(1, 1, 2, 12)]
     # 999 m below is still the Cottonwood, paired or not
     edges = EDGES + [(40, 12, 12925.0 - 999.0)]
-    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners),
+    assert C.continuations({1, 2, 3}, secs, [(1, 2), (3, 2)], LINE.get, C.Flow(edges, TOP, owners, length=LEN),
                            paired={(1, 2)}) == []
     # the FWA codes saying B drains into A
     assert _conf(paired={(1, 2)}, wsc={1: "100-1", 12: "100-1-2"}) == []

@@ -209,3 +209,4 @@ pipeline/tests/test_release.py::test_paint_and_flow_area_round_trip
 pipeline/tests/test_release.py::test_the_apps_pack_contract_is_current
 pipeline/tests/test_publish.py::test_the_manifest_goes_last_and_tiles_first
 pipeline/tests/test_release.py::test_the_apps_paint_fixture_is_current
+pipeline/tests/test_lines.py::test_no_other_bundle_module_picks_a_main_line

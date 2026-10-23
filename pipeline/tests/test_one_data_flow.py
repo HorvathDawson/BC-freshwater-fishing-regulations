@@ -66,7 +66,7 @@ def test_the_bundle_derives_neither_tidal_nor_outside_nor_homes_nor_stems_twice(
         assert "outside_bc(registry" not in text, p.name
         assert "regions.homes(" not in text and " homes(" not in text, p.name
     spans = (BUNDLE_DIR / "spans.py").read_text()
-    assert spans.count("main_stem(") == 2            # the def and its one call, in `compute`
+    assert spans.count("main_line_of(") == 1         # its one call, in `compute` (T118: decided in `lines`)
     export = (TOOLS / "export_ui_rules.py").read_text()
     assert "steelhead_known k WHERE" not in export    # the view, not its CASE re-spelled
     assert "STEELHEAD_RULE_MEMBERS" not in export     # no by-content second definition
