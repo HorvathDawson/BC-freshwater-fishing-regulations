@@ -4,7 +4,8 @@ writes paint, derives three per-water flags for search, converts the climatology
 
   file           holds                                                            source
   paint          the status index + the flow paint (paint.py)                     status_index.bin + bundle
-  core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place  bundle
+  core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place, bundle
+                 see_pointer (a group name that only points: search leads to the waters it names)
   near           place_water                                                      bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_geo, part_mark, water_exit,
@@ -47,7 +48,7 @@ FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "core": "core/
 SIZE_GATES = {"paint": 1_000_000, "core": 1_300_000, "lakes": 100_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 14_000_000
 
-CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place")
+CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
 NEAR_TABLES = ("place_water",)
 COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "section_down", "gauge_clim")
 WATER_BUNDLE_TABLES = ("part_section", "part_geo", "part_mark", "water_exit")
@@ -130,9 +131,15 @@ def _core_flags(con: sqlite3.Connection) -> None:
                 "WHERE s.ord = item.ord)")
     con.execute("UPDATE item SET gauged = (EXISTS (SELECT 1 FROM item_section s JOIN b.gauge g ON g.sid = s.sid "
                 "WHERE s.ord = item.ord) OR EXISTS (SELECT 1 FROM b.lake_gauge lg WHERE lg.item_id = item.item_id))")
-    con.execute("UPDATE item SET has_rows = EXISTS (SELECT 1 FROM b.entry e WHERE e.item_id = item.item_id)")
+    # EVERY water a row matched (`entry.matched`), not only its first (`entry.item_id`): North Cameron's second
+    # polygon and Norbury's are rowed waters too
+    con.execute("CREATE TEMP TABLE rowed (item_id TEXT PRIMARY KEY) WITHOUT ROWID")
+    con.execute("INSERT OR IGNORE INTO rowed SELECT j.value FROM b.entry e, json_each(e.matched) j")
+    con.execute("UPDATE item SET has_rows = item_id IN (SELECT item_id FROM rowed)")
+    con.execute("DROP TABLE rowed")
     con.execute("CREATE INDEX item_name_nc ON item(name COLLATE NOCASE)")
     con.execute("CREATE INDEX alias_nc ON alias(alias COLLATE NOCASE)")
+    con.execute("CREATE INDEX see_pointer_nc ON see_pointer(name COLLATE NOCASE)")
     # the case-sensitive name indexes are the bundle's; search is LIKE (case-insensitive): the NOCASE ones serve it
     con.execute("DROP INDEX IF EXISTS item_by_name")
     con.execute("DROP INDEX IF EXISTS alias_by_text")

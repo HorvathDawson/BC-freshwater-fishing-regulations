@@ -674,6 +674,37 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   under their own names; the group name leads the reader to those waters ("see X" with a way to open each). A "See X"
   pointer is never drawn as a regulation line on the lakes it points to. Group entries with real rules (McCulloch
   Reservoir) still apply to their member lakes; an identical rule from two entries reads once.
+## CLAUDE 2026-10-22 (late) — "See X" groups, member lakes' own names, one rule from two rows: built (deliver-side)
+- **Pointers draw nothing** (already true: a pointer-only row has 0 rules and binds nothing); now pinned on the member
+  lakes themselves — Friday 8-6, North and South Cameron 7-31, Norbury 4-22 carry only their own rows, no "See …" label
+  and no pointer entry in any of their rule sets (`test_see_groups.py`).
+- **The group name leads to its waters**: the bundle's new `see_pointer` table (`rules.see_pointer_rows`): one row per
+  named row of each POINTER-ONLY entry, in the book's order — the pointer's shown name, the named row, its shown name and
+  the water opening it opens (its first match; NULL when it matched none). A TWIN (the same row in another region's
+  table) is no group and is left out: 46 pointers, 53 rows. The release copies it into `core` (additive, still `core/1`;
+  NOCASE index). Search (`searchPointers`, both sources, one SQL) finds a pointer by its name or the START of it — never
+  a word inside it ("lake" lists none) — ordered by core's `rankPointers`; the sheet draws a group "In the regulations"
+  between Places and the waters: core's line ("Tee Pee Lakes: see Friday Lake, Saturday Lake, Sunday Lake", `seeLine`)
+  and one button per named water ("Open Friday Lake") straight to it through `openWater`; a named row with no water is
+  said in the line and gets no button. Not built: a pointer's "own page" (the 5 pointers whose waters have no other row
+  show nothing there today) — none of the three named groups has one, its matches are its members.
+- **Member lakes under their own names**: `entry.name` (so every "applies" line and `provenance.entry_name`) is
+  `place_names.row_name`: the registry's name when it names the SAME water as the book heading (equal words; fewer —
+  "Chilliwack River" for "CHILLIWACK / Vedder Rivers …"; a lake part's authored "X — Y"; or only words of the heading's
+  note — "Williston Lake — Zone A"), else the heading without its notes, re-cased: Haynes Lake, Hydraulic Lake, Minnow
+  Lake (not "McCulloch Reservoir"), South Cameron Lake (not "Cameron Lakes"), Peckhams Lake and Norbury Lake (not
+  "Norbury Lakes"), Chuchi/Indata/Tchentlo/Tsayta Lake (not "Nation Lakes"), Witch Lake, Tee Pee Lakes. 77 water rows
+  move (zone tables keep their authored scope); diff the answers' "applies" lines before promoting. Page TITLES are
+  still the registry item's name (Friday Lake's page is titled "Tepee Lakes") — registry naming, not this.
+- **An identical rule from two rows reads once**: `gear.once` — of vessel rules saying the same (`vessel_says`), the
+  nearest (rank), then the page's order, is shown; the others stay in force and cited, in `repeats` ("All gear
+  sources"). McCulloch's main polygon shows the engine limit once (Minnow's is the repeat), Norbury "No powered boats"
+  once (Peckhams'), and after the reach rerun Haynes (McCulloch + Haynes) and Mine (Main + Mine) once. Non-vessel
+  families already fold restatements (`rows.row_restates`). The app does not dedupe.
+- **To ship**: `python -m pipeline.deliver` (bundle → … → store) then `python -m pipeline.deliver release`; then the app
+  goldens/regs fixture follow the new store as for any deliver. Until then the 6 bundle tests in `test_see_groups.py`
+  FAIL as predating (`see_pointer` absent) and `test_release.py`'s built-release tests stop at "b has no table
+  see_pointer" — both by design.
 ## CLAUDE 2026-10-22 (late) — one system for back: built, and what the data says about the Atnarko
 - **A route action, not an openWater flag**: `{ type: "cross", item, part }`, built ONLY by `crossAction` (waterMap.ts),
   reduced in route.ts: the frame is built as an open is (`opened`, Map in front) and REPLACES the top frame — the top is

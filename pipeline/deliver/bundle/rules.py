@@ -973,6 +973,42 @@ def _see_column(entries: dict) -> dict[str, str]:
     return out
 
 
+def entry_name(ce) -> str:
+    """`entry.name`: the name a row is SHOWN under — and so every "applies" line and every rule's
+    `provenance.entry_name`. A water row (`r…`) by its book heading unless the registry's name for its
+    water names the same water (`place_names.row_name`: Haynes Lake, never "McCulloch Reservoir");
+    a zone table's entry by its authored scope (`display_name`: "Every stream in Region 1")."""
+    from pipeline.deliver.bundle.place_names import row_name
+    if ce.entry_id.startswith("r"):
+        return row_name(ce.name, ce.display_name)
+    return ce.display_name or ce.name
+
+
+def see_pointer_rows(entries: dict) -> list[tuple]:
+    """`see_pointer`: A GROUP NAME THAT ONLY POINTS (owner 2026-10-22). A row whose only content is
+    "See …" (`pointer_only`: "TEE PEE LAKES  See Friday, Saturday, and Sunday Lakes") binds nothing
+    and draws no line; what it gives a reader is the way to the waters it names. One row per named
+    entry, in the pointer's order: (entry_id, name, ix, target_entry, target_name, item_id) — both
+    names as shown (`entry_name`), `item_id` the target row's first matched water (what opening it
+    opens; NULL when it matched none). A TWIN ("the same row printed in another region's table") is
+    no group: it names its own water under its own name, so it is left out."""
+    from pipeline.regs.parsing.catalogue import see_relation
+    out: list[tuple] = []
+    for eid, ce in sorted(entries.items()):
+        if not ce.pointer_only:
+            continue
+        ix = 0
+        for s in ce.see:
+            targets = [entries[t] for t in s.entry_ids if t in entries]
+            if not targets or see_relation(ce, targets) == "twin":
+                continue
+            for te in targets:
+                out.append((eid, entry_name(ce), ix, te.entry_id, entry_name(te),
+                            te.matched[0] if te.matched else None))
+                ix += 1
+    return out
+
+
 def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
     """`{entry_id: regions}` — the regions each row's OWN waters (`matched`) lie in. What a row's
     printed lift of a blanket closure reaches in the other regions (`_equivalent_closures`). The
@@ -1213,7 +1249,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             # rules and its text and carries a null item — the app shows "we have a rule
             # for a water we cannot place" rather than dropping it (77 of these).
             matched[0] if matched else None,
-            ce.display_name or ce.name,
+            entry_name(ce),
             # What the page printed, kept whole — see the note in schema.sql.
             ce.name,
             ce.regs_verbatim,
@@ -1249,6 +1285,10 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                    entry_rows)
     cov.filled("entry", len(entry_rows))
+    pointers = see_pointer_rows(entries_by_id)
+    db.executemany("INSERT INTO see_pointer (entry_id, name, ix, target_entry, target_name, item_id)"
+                   " VALUES (?,?,?,?,?,?)", pointers)
+    cov.filled("see_pointer", len(pointers))
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional
     # placeholders, and adding `limits` to the schema made it eleven values for twelve
     # columns — the fault that once shipped a 42 MB bundle with no entries in it.

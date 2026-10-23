@@ -175,6 +175,16 @@ CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT
 CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT, pages TEXT, scope_note TEXT,
                     extents TEXT, matched TEXT NOT NULL DEFAULT '[]', see TEXT);
+-- A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): a row whose only content is "See …" ("TEE PEE
+-- LAKES  See Friday, Saturday, and Sunday Lakes"; "CAMERON LAKES  See North and South Cameron
+-- lakes") binds nothing and draws no line on the waters it names; the reader who looks the group
+-- up is led to them. One row per named row, in the pointer's order (`ix`): the pointer's shown
+-- name (`entry.name`), the named row and its shown name, and `item_id`, the water opening it opens
+-- (the named row's first match; NULL when it matched none). A twin (the same row printed in another
+-- region's table) is no group and is not here. Search reads it from `core` (release/build.py).
+CREATE TABLE see_pointer (entry_id TEXT NOT NULL, name TEXT NOT NULL, ix INTEGER NOT NULL,
+                          target_entry TEXT NOT NULL, target_name TEXT NOT NULL, item_id TEXT,
+                          PRIMARY KEY (entry_id, ix)) WITHOUT ROWID;
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.

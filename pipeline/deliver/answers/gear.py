@@ -32,6 +32,7 @@ Decisions where the page is silent or the book says otherwise are listed in `DEC
 """
 from __future__ import annotations
 
+import json
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps, \
@@ -685,8 +686,8 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
         moments["also"] = also
     ans["conduct"] = moments
 
-    vessel = [r.key for r in active if r.x.get("family") == "vessel"]
-    vessel_timed = [r.key for r in timed if r.x.get("family") == "vessel"]
+    vessel, vessel_again = once([r for r in active if r.x.get("family") == "vessel"])
+    vessel_timed, timed_again = once([r for r in timed if r.x.get("family") == "vessel"])
     ans["vessel"] = {"active": vessel, "timed": vessel_timed}
     ans["timed"] = [r.key for r in timed if r.x.get("gear")]
     ans["in_part"] = [r.key for r in in_part]
@@ -704,8 +705,40 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
         {c["clause"][0] for c in ans["circumstantial"]} | {r.key for r in conduct_rules}
     ans["decides"] = [r.key for r in active if r.key in won]
     ans["repeats"] = [r.key for r in active if r.key not in won
-                      and (r.x.get("gear") or r.x.get("conduct"))]
+                      and (r.x.get("gear") or r.x.get("conduct"))] + vessel_again + timed_again
     return ans
+
+
+#: What a vessel rule SAYS, beside who says it and where: two rules alike in every one of these state
+#: the same thing (the `rows.same_statement` test, for the vessel family's fields).
+_VESSEL_SAYS = ("type", "dimension", "aspect", "level", "max_power_kw", "max_kmh", "when", "while",
+                "species", "species_except", "take", "may_target", "parts", "label", "uncertain",
+                "undrawn_part", "side", "in_part")
+
+
+def vessel_says(x: dict) -> str:
+    """A vessel rule's statement, as one comparable string (`_VESSEL_SAYS`)."""
+    return json.dumps({k: x.get(k) for k in _VESSEL_SAYS}, sort_keys=True, default=str)
+
+
+def once(rules: Sequence[Rule]) -> Tuple[list, list]:
+    """AN IDENTICAL RULE FROM TWO ROWS READS ONCE (owner 2026-10-22: "an identical rule from two
+    entries reads once"). McCulloch Reservoir's and Minnow Lake's rows both print "Engine power
+    restriction - 7.5 kW (10 hp)" and both bind the reservoir; Norbury's and Peckhams' both print "No
+    powered boats". The boat list showed each twice. (keys shown, keys that repeat one shown): of rules
+    saying the same (`vessel_says`), the first by the page's order — the nearest (`rank`), then a
+    reach rule before a walked one, then by id — is shown; the others are still in force and still
+    cited, as `repeats` (the page's "All gear sources"), never dropped."""
+    shown: Dict[str, Rule] = {}
+    again: List = []
+    for r in sorted(rules, key=lambda r: r.rank):           # stable: the page's order within a rank
+        k = vessel_says(r.x)
+        if k in shown:
+            again.append(r.key)
+        else:
+            shown[k] = r
+    keep = {id(r) for r in shown.values()}
+    return [r.key for r in rules if id(r) in keep], again
 
 
 # --------------------------------------------------------------------------------------------

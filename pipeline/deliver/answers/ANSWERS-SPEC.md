@@ -1227,7 +1227,7 @@ drawings, arithmetic over shipped numbers); otherwise the section and field. **G
 | Line & hooks tile and rows | `gear` counts, specs, elements, hook, fly, circumstantial |
 | Bait tile and rows | `gear` bait[], bait_ban |
 | Ways to fish tile and rows | `gear` ways[] + static province_methods |
-| Boats tile | `gear` vessel {active, timed} + export rank |
+| Boats tile | `gear` vessel {active, timed} + export rank — each statement ONCE: an identical vessel rule from a second row is in `repeats` (`gear.once`, owner 2026-10-22) |
 | Always tile (conduct cards) | `gear` conduct {moment: [[act, [rule]]]} + static moments, conduct_means |
 | All gear sources | `gear` decides, repeats, overruled |
 | Licence: who is fishing | `licence` static profiles, profile_dims |

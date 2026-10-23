@@ -97,6 +97,14 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "see_pointer": [
+        "entry_id",
+        "name",
+        "ix",
+        "target_entry",
+        "target_name",
+        "item_id"
       ]
     }
   },

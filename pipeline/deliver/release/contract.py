@@ -35,7 +35,11 @@ FILES = {
         "item_alias": ["alias", "item_id"],
         "item_section": ["sid", "ord"],
         "meta": ["k", "v"],
-        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}},
+        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"],
+        # a group name that only points ("Tee Pee Lakes: see Friday Lake, …"), the bundle's table as it is. ADDITIVE,
+        # so still core/1: a core without it is one the app's pointer search answers nothing from (the committed regs
+        # fixture's core, like its missing `place`, is cut to what its suite asks)
+        "see_pointer": ["entry_id", "name", "ix", "target_entry", "target_name", "item_id"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     "conditions": {"format": "conditions/1", "kind": "sqlite", "tables": {

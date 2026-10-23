@@ -115,6 +115,71 @@ def display_case(name: str) -> str:
     return _WORD.sub(one, name)
 
 
+#: The words that say what KIND of water a name is, not which one: they never tell two names apart.
+#: The plurals are NOT here — "Cameron Lakes" is the group, "South Cameron Lake" one of it.
+_KIND_WORDS = frozenset({"lake", "river", "creek", "reservoir", "pond", "slough", "channel", "the",
+                         "of", "and", "s"})
+
+
+def _which_water(name: str, notes: bool = False) -> frozenset:
+    """The words of a name that say WHICH water it is: accents folded, case dropped, the kind words
+    (`_KIND_WORDS`) left out, and a parenthetical note left out too unless `notes`."""
+    import unicodedata
+    s = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode().lower()
+    while not notes:                               # nested notes: "(… Bighorn (Ram) Forest …)"
+        t = re.sub(r"\([^()]*\)", " ", s)
+        if t == s:
+            break
+        s = t
+    return frozenset(w for w in re.findall(r"[a-z0-9]+", s.replace("'", "")) if w not in _KIND_WORDS)
+
+
+def row_name(name: str, display_name: str = "") -> str:
+    """THE NAME A BOOK ROW IS SHOWN UNDER (owner 2026-10-22, "referring to the regs by their actual
+    name"): the registry's tidy name for the row's water (`display_name`) when it names THE SAME
+    water as the printed heading, else the heading's name — its parenthetical notes and an "[Includes
+    Tributaries] …" tail dropped, re-cased (`display_case`).
+
+    `display_name` is what the registry calls the water the row matched. Where that water is a GROUP
+    the row is one member of, the registry name is the group's: Haynes, Hydraulic and Minnow lakes
+    all read "McCulloch Reservoir", South Cameron "Cameron Lakes", Peckhams "Norbury Lakes", Chuchi
+    "Nation Lakes" — the reader was told a row is the group's when the book prints it as the
+    member's own. SAME WATER = the same `_which_water` words ("Big Lake" for "Big Lake (approx. 10 km
+    west of 100 Mile House)"), or fewer of them (a row printed for two waters named by its main one:
+    "Chilliwack River" for "CHILLIWACK / Vedder Rivers …"; "Buttle Lake" for "Buttle Lake's
+    Tributaries"), or a lake part's authored name ("Kootenay Lake — Main Body"), or the heading's
+    words plus only words of the heading's own note
+    ("Williston Lake — Zone A" for "Williston Lake (in Zone A) (includes …)"): that tidier spelling is
+    kept. Every other row is shown under the book's heading — "Haynes Lake", "South Cameron Lake",
+    "Lonzo Creek" (whose registry name, "Marshall Creek", is its pointer row's)."""
+    if not display_name:
+        return name
+    if " — " in display_name:
+        # a LAKE PART's authored name ("Kootenay Lake — Main Body", "Shannon Lake — proper"): the part the row is
+        # about, named by its curator, never a group's
+        return display_name
+    d, h = _which_water(display_name), _which_water(name)
+    if d <= h or (h <= d <= _which_water(name, notes=True)):
+        return display_name
+    # the heading's NAME, without its notes: "NORBURY (Garbutt) LAKE" is Norbury Lake (what Garbutt's row says: "See
+    # Norbury Lake"), "CHILLIWACK / Vedder Rivers (does not include Sumas River) (see map on page 24)" the Chilliwack /
+    # Vedder Rivers. The notes stay in `full_name`.
+    bare = name
+    while True:
+        t = re.sub(r"\s*\([^()]*\)", "", bare)
+        if t == bare:
+            break
+        bare = t
+    # ...nor the extraction's "[Includes Tributaries]" and what follows it ("ATNARKO/Bella Coola Rivers [Includes
+    # Tributaries] EXCEPT: Burnt Bridge Creek …" is the Atnarko/Bella Coola Rivers)
+    bare = re.sub(r"\s*\[.*$", "", bare)
+    bare = re.sub(r"\s+", " ", bare).strip() or name
+    # a lone shouted word between written ones ("CHILLIWACK / Vedder Rivers") keeps no capitals
+    return re.sub(r"\b[A-Z][A-Z'\-]+\b", lambda m: m.group(0) if m.group(0) in ACRONYMS else
+                  ("Mc" + m.group(0)[2:].capitalize() if m.group(0).startswith("MC") else m.group(0).capitalize()),
+                  display_case(bare))
+
+
 def is_shouting(name: str) -> bool:
     """True when a displayed name still shouts: two or more consecutive all-capitals words of two
     or more letters that are not acronyms ("MITE LAKE", "CLAYHURST ECOLOGICAL RESERVE boundary").
