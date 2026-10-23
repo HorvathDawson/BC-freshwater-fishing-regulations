@@ -125,3 +125,78 @@ def test_other_fish_totals_of_one_kind_stay_without_a_group(built):
     data, model = built
     row = _row(data, _card(model, KLMB, (10, 10)), "z4:species_quotas::species_quotas.r3")
     assert (row["members"], row.get("group")) == (["CRA"], None)
+
+
+# --------------------------------------------------------------------------------------------
+# T80 review: the claim over EVERY shipped water, not the five above
+# --------------------------------------------------------------------------------------------
+
+def _shipped_headless(data):
+    """`{item: {pool}}` — every water the SHIPPED answers file gives a headless trout/char pooled row (1,022 on the
+    2026-10-22 release; after the deliver that ships this change, only the two open shapes' waters)."""
+    import json
+    model = E.decode(json.loads((EXPORT_DIR / "ui-rules-answers.json").read_bytes()), data)
+    out: dict = {}
+    for item, ks in model.parts.items():
+        for k in ks:
+            if k is None:
+                continue
+            for card in model.sections["rows"][k]:
+                for r in card["rows"]:
+                    g = r.get("group")
+                    if r["pool"] is not None and r.get("parent") is None and set(r["members"]) <= TROUT_CHAR \
+                            and not (g and g.get("headline")):
+                        out.setdefault(item, set()).add(data["rule_ids"][r["pool"]])
+    return out
+
+
+def _rebuilt_headless(data, items):
+    """The same scan over `items` rebuilt by the code under test, and the card gate over what it built."""
+    from pipeline.deliver.answers import card_check as CC
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=sorted(items), sections=["rows", "ladder"],
+                    log=lambda *_: None)
+    out: dict = {}
+    for item in items:
+        for k in model.parts[item]:
+            if k is None:
+                continue
+            for card in model.sections["rows"][k]:
+                for r in card["rows"]:
+                    g = r.get("group")
+                    if r["pool"] is not None and r.get("parent") is None and set(r["members"]) <= TROUT_CHAR \
+                            and not (g and g.get("headline")):
+                        out.setdefault(item, set()).add(data["rule_ids"][r["pool"]])
+    return out, CC.check_model(model, BUNDLE, data, log=lambda *_: None)["problems"]
+
+
+@pytest.fixture(scope="module")
+def shipped(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-answers.json", EXPORT_HINT)
+    data, _ = C.load_export(EXPORT_DIR)
+    return data, _shipped_headless(data)
+
+
+@pytest.mark.needs_bundle
+def test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes(shipped):
+    """Every water the shipped file leaves with a headless trout/char row, rebuilt: what stays headless is ONLY the two
+    open shapes' pools (z8 r5 on Region 8's streams, Duncan River's DV on its tributaries), and the card gate proves
+    every group the rebuild drew (0 problems). On the 2026-10-22 release: 1,022 waters in, 996 left (982 z8 r5, 14
+    Duncan), 19 own pools turned into groups, 638 groups on 247 distinct cards proved."""
+    data, before = shipped
+    assert before, "the shipped file has no headless trout/char row: nothing left to prove here"
+    after, problems = _rebuilt_headless(data, before)
+    assert ({p for ps in after.values() for p in ps}, problems) == ({Z8_EB, DUNCAN_DV}, [])
+
+
+@pytest.mark.needs_bundle
+def test_mutation_without_the_ruling_shipped_waters_keep_other_headless_pools(shipped, monkeypatch):
+    """MUTATION of the whole-set test: without the ruling, pools beyond the two open shapes stay headless. It bites only
+    on a file shipped WITHOUT the ruling (the 2026-10-22 release); once the deliver ships the groups, the shipped scan
+    holds only the open shapes' waters and this skips (the five-water mutation above still bites)."""
+    data, before = shipped
+    monkeypatch.setattr(RW, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
+    after, _ = _rebuilt_headless(data, before)
+    if not ({p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}):
+        pytest.skip("the shipped file already carries the ruling's groups: no own-pool row is headless in it")
+    assert {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}

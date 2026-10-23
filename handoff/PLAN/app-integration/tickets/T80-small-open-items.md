@@ -72,8 +72,9 @@ Depends: none (3 needs a deliver). Size: M. Owner: delegated. Default for D19: (
 
 T56-review lines:
 - Quote marks: **stripped** (Claude call, owner call 11) 2cb3a9da — `place_names.row_name` drops the book's quotes
-  ('"DIANA" CREEK' → Diana Creek; ~11 shown names move: Diana Creek, Lower Beaverpond Lake, Link River, Jones Lake, Paq
-  Lake, Alces Lake, Blackwater River, Brown Lake, Sunshine Lake, Chinaman Lake …). Undo: `quotes=True` in row_name.
+  ('"DIANA" CREEK' → Diana Creek). Exactly 9 `entry.name` values move against the live bundle (review: corpus vs
+  bundle `entry`): Link River (r1), Jones Lake, Paq Lake (r2), Alces Lake (r4), Blackwater River, Brown Lake (r5),
+  Diana Creek (r6), Chinaman Lake, Lower Beaverpond Lake (r7). Undo: `quotes=True` in row_name.
 - Blackwater twice: **FIXED** e160fa1d — `rules.ONE_WAY_IN_ACROSS_ROWS` (mutation-pinned): see_pointer 51 → 50 rows.
 - The 5 pointer-only waters with no page: **not built** — owner question Q-T80b.
 
@@ -88,3 +89,24 @@ Owner questions (each with the default built):
   result would need a page for a water that owns no section.
 - **Q-T80b** A "See X" row whose water has no other row: a page of its own? Default: no — the pointer opens X's page; the
   pointer has no rules of its own to show.
+
+## Review 2026-10-22 (adversarial, same worktree)
+- Reproduced on live data: 1,022 waters with a headless trout/char row in the shipped answers; rebuilt with e306215d,
+  996 stay headless (982 z8 trout_char_quota.r5, 14 Duncan River DV) and 19 own pools gain a group; card gate over the
+  rebuild 638 groups / 247 distinct cards / 0 problems. The builder's test pinned this on 5 waters only — now pinned
+  over EVERY shipped water (`test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes` + its mutation, which
+  bites on a file shipped without the ruling and skips after the deliver).
+- Expected besides the added groups (not a defect): on 4 Region 6 waters (gnis:2404, 29716, 30327, 37312, an EB own
+  pool) the steelhead `presence` line moves off the row into the new group's `not_kept` steelhead line —
+  `place_presence`'s designed home inside a group.
+- see_pointer 51 → 50 and the 9 renamed rows reproduce against the live bundle / release core. Kootenay Lake
+  `pieces = 0` in release core reproduces (item 5).
+- **Merger, after the deliver + regs fixture re-cut:** conformance WILL fail on klmb_1010 until
+  `app/conformance/src/regs/exclusions.ts` (D19_POOLED_IDS / the `plainRows.0` keep exclusion) and
+  `keep.parity.test.ts`'s D19 handling are rewritten: the app then draws klmb's rainbow row as a group the golden does
+  not have (golden: plainRows.0). Also `core/regs/keep.ts:125`'s comment goes stale. Default: keep the exclusion,
+  reason "D19 (a) as built: drawn as a group, the golden's legacy path differs", and exclude the extra app group by key.
+- Risk, not changed (no device to verify): the web picker's focus fallback also runs where `cancel` IS supported; a
+  `change` arriving more than 1 s after focus (large file / slow disk on desktop Chrome, iOS transcoding) would resolve
+  null and lose the pick (the person picks again). **Q-T80c** arm the fallback only where cancel is unsupported?
+  Default: as built (a lost pick is re-picked; a hung picker was a dead button); verify on Safari < 16.4 and iOS.
