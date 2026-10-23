@@ -25,7 +25,7 @@
  * next (`next`), ▼ with nothing below steps into the next one's part. The step is the caller's to take: it opens the
  * other water (`crossUp` / `crossDown` say which, and where).
  */
-import { waterNoun } from "./regs/words";
+import { waterNoun, WORDS } from "./regs/words";
 import type { Bbox } from "./search";
 
 /** One part of the group as the release stores it, its section ids included (`part_section`). */
@@ -320,7 +320,7 @@ export const WATER_MAP_WORDS = {
   chooser: "Which way upstream?",
   chooserDown: "Which way downstream?",
   /** (T150) The list of the water's parts under the map — the header's Parts sheet, moved here. */
-  parts: "Parts of this water",
+  parts: WORDS.PARTS_TITLE,
   /** (T150) The list's toggle, closed / open, with the count: "Show all 15 parts" / "Hide the list of parts". */
   partsShow: (n: number) => `Show all ${n} parts`,
   partsHide: "Hide the list of parts",

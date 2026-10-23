@@ -13,7 +13,7 @@
  * one goes on from or as opens that water's map (`onCross`), and every step to another part is the frame's part
  * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
-import type { ComponentProps } from "react";
+import { useRef, type ComponentProps } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
@@ -137,9 +137,13 @@ function PartsList({ list, palette, act }: {
 }) {
   // back closes the open list before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
   useBackLayer(list.open, () => act({ type: "list" }));
+  // a pick closes the list, so the row that had focus is gone: focus goes back to the toggle (still drawn), not to the
+  // top of the page — a keyboard or screen-reader reader stays where they were (T150 review)
+  const toggle = useRef<View>(null);
+  const pick = (ix: number) => { act({ type: "part", ix }); (toggle.current as { focus?: () => void } | null)?.focus?.(); };
   return (
     <View style={{ marginTop: -4, marginBottom: 6 }} testID="water-map-parts">
-      <Pressable onPress={() => act({ type: "list" })} accessibilityRole="button" accessibilityLabel={list.toggle}
+      <Pressable ref={toggle} onPress={() => act({ type: "list" })} accessibilityRole="button" accessibilityLabel={list.toggle}
                  aria-expanded={list.open} testID="water-map-parts-toggle"
                  style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
         <Icon name="parts" colour={palette.accent} size={18} />
@@ -151,7 +155,7 @@ function PartsList({ list, palette, act }: {
                              borderBottomWidth: 1.5, borderBottomColor: palette.ink }}
                     accessibilityRole="radiogroup" accessibilityLabel={list.title} testID="water-map-parts-list">
           {list.rows.map((r) => (
-            <Pressable key={r.ix} onPress={() => act({ type: "part", ix: r.ix })} accessibilityRole="radio"
+            <Pressable key={r.ix} onPress={() => pick(r.ix)} accessibilityRole="radio"
                        aria-checked={r.here} accessibilityLabel={r.aria} testID={`water-map-part-${r.ix}`}
                        style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2,
                                 paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: palette.line }}>

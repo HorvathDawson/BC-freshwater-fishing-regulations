@@ -36,7 +36,7 @@ import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, bboxO
 import { pressSpot, spotsKey } from "./spots";
 import type { MapHandle, SelectionCue } from "./adapters/contract";
 import { hereImage } from "./here-mark";
-import { labelShift } from "./marks";
+import { labelShift, MARK_LABEL_FONT } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
 import { collectionBbox, traceOverlay } from "./trace-geometry";
 import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
@@ -1085,7 +1085,7 @@ function markElement(k: MapMark, c: { ink: string; card: string }, press: () => 
     t.style.cssText = "position:absolute;bottom:38px;left:50%;transform:translateX(-50%);max-width:180px;"
       + `width:max-content;padding:3px 7px;background:${c.card};color:${c.ink};border:1.5px solid ${c.ink};`
       // (T151) normal weight: a mark's words name a place, they are not an emphasis competing with the water's colours
-      + "font:400 12px/1.25 Archivo,sans-serif;white-space:normal;pointer-events:none";
+      + `font:${MARK_LABEL_FONT.web};white-space:normal;pointer-events:none`;
     b.appendChild(t);
   }
   b.addEventListener("click", (e) => { e.stopPropagation(); press(); });

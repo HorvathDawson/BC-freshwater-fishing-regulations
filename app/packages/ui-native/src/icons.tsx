@@ -1,6 +1,6 @@
 /**
  * THE APP'S ONE ICON SET (ticket N1; owner 2026-10-22, decisions.md "icons: Lucide, rounded 1.75"): every chrome glyph
- * — the bottom bar, the map rail, search, back, close, the calendar, the regs header's Map / Parts, a fold's open / closed mark — is drawn HERE and
+ * — the bottom bar, the map rail, search, back, close, the calendar, the Map view's parts list (once the regs header's Parts), a fold's open / closed mark — is drawn HERE and
  * nowhere else (`tools/one-icon-set.test.ts` refuses a hand-drawn one beside it).
  *
  * The drawings are Lucide's, copied verbatim from lucide-static@0.460.0 (`ICON_SET` in `@app/core`, ISC licence; the

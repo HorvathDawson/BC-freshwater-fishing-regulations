@@ -47,6 +47,7 @@ import { mapChrome } from "./chrome";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { spreadSections } from "./sections";
+import { MARK_LABEL_FONT } from "./marks";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
 
@@ -354,7 +355,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                 <Text numberOfLines={3}
                       style={{ position: "absolute", bottom: 38, maxWidth: 180, paddingHorizontal: 7, paddingVertical: 3,
                                backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
-                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: "Archivo_400Regular" }}>
+                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: MARK_LABEL_FONT.native }}>
                   {k.label}
                 </Text>
               ) : null}

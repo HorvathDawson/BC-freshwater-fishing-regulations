@@ -1,7 +1,7 @@
 /**
  * T23 + T29 — the Regulations view of one tap (prototype regs v38 page layout), drawn inside the water frame (T44
  * `WaterFrame`: the back and the view strip, the same row on every view of the water, are the frame's — this screen
- * draws no header row, gutter or width of its own): the regs header (name, date pill, Parts, place label, the four tabs)
+ * draws no header row, gutter or width of its own): the regs header (name, date pill, place label, the four tabs; no Parts since T150)
  * FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
  *

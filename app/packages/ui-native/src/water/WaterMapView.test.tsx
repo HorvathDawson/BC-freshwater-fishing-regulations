@@ -76,6 +76,8 @@ describe("<WaterMapView> (T150 / T151)", () => {
     fireEvent.click(radios[2]!);
     await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 4 · Chilliwack River"));
     expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([["part gnis:8634 0"], null]);
+    // (T150 review) the picked row is gone with the list: focus is on the toggle, not dropped to the page
+    expect(document.activeElement?.getAttribute("data-testid")).toBe("water-map-parts-toggle");
   });
 });
 
@@ -190,6 +192,34 @@ describe("<WaterMapView>", () => {
       "true -> nothing open · browse",
       "Which way upstream? · water",
       "true -> nothing open · water",
+    ]);
+  });
+
+  it("(T150 review) Android's back closes the open parts list before it leaves the water", async () => {
+    let press: (() => boolean) | null = null;
+    const system: SystemBack = (b) => { press = b; return { sync: () => {}, dispose: () => { press = null; } }; };
+    const routes: string[] = [];
+    function Harness() {
+      const [route, go] = useRoute({ mode: "water", from: HOME,
+                                     stack: [{ item: "gnis:8634" as ItemId, part: 1, tapSid: null, at: null, view: "map" }] });
+      routes.push(route.mode);
+      const { layers } = useBack(route, go, system);
+      return (
+        <BackLayerContext.Provider value={layers}>
+          <WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={1} tapSid={null} palette={LIGHT} map={MAP}
+                        onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />
+        </BackLayerContext.Provider>);
+    }
+    const back = () => { let h = false; act(() => { h = press!(); }); return h; };
+    const open = () => [screen.queryByTestId("water-map-parts-list") ? "list open" : "list closed",
+                        screen.getByTestId("water-map-parts-toggle").getAttribute("aria-expanded"), routes.at(-1)].join(" · ");
+    render(<Harness />);
+    await ready();
+    fireEvent.click(screen.getByTestId("water-map-parts-toggle"));
+    expect([open(), `${back()} -> ${open()}`, `${back()} -> ${routes.at(-1)}`]).toEqual([
+      "list open · true · water",
+      "true -> list closed · false · water",
+      "true -> browse",
     ]);
   });
 
