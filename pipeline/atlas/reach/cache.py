@@ -93,7 +93,11 @@ from typing import Callable
 #:     (`tributaries.THE_WALK_NEVER_ENTERS_A_PARENT`); a seed takes the same test (`_refusal`), so
 #:     does a lake's code run (a run's piece of the receiving river is left out), and
 #:     T90's seeding-only `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` is removed.
-POLICY_VERSION = "23"
+#: 24: (T117 owner 2026-10-22) every walk that climbs a water steps through `tributaries.may_enter`:
+#:     a confluence cut's joining water (`tributaries.subtree`) no longer climbs across a code run's
+#:     divide, into a canal, a bigger river or the river it drains into — the Chilko row's designation
+#:     loses North Tsuniah Creek's 355996084:17, which FWA codes to Tsuniah, not Brittany Creek.
+POLICY_VERSION = "24"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
