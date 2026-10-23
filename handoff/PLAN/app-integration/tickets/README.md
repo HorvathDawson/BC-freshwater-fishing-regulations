@@ -141,7 +141,7 @@ use that as the sole source of future work."
 | T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
-| T97 | curation review phase 1 (marks that last) + umbrella | OPEN | — | phases 2–5 → T133–T136 |
+| T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
@@ -261,6 +261,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q77 | T107 | A value exactly on p10/p90 reads "at or below/above the 10th/90th percentile" (a dry creek at 0 when p10 is 0 included)? | yes | owner |
 | Q78 | T114 | No fallback to raw-name matching when the app meets an older bundle without search keys (that fallback is the second rule T114 removes)? | no fallback; ship app and release together | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
+| Q80 | T97 | A mark's binding counts km per named water (to 0.1 km), not total sections — so a new split alone does not stale zone rules and walks crossing it? | km per named water | owner |
+| Q81 | T97 | A split added or moved on a water stales EVERY entry matched to that water ("binding moved"), not only rules whose reach changed? | every entry on that water | owner |
+| Q82 | T97 | "unsure" is a mark verdict (the "?" outcome) beside verified / wrong / deferred? | yes | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

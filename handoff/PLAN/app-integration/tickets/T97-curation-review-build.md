@@ -1,6 +1,6 @@
 # T97 — Curation review, phases 1–5: marks that last, one vintage, a review screen, queue, gate
 
-Status: DONE for phase 1 — 5a9e8336 (lane-T97). Umbrella open: phases 2–5 are T133–T136.
+Status: DONE for phase 1 — 303f6d9d (lane-T97). Umbrella open: phases 2–5 are T133–T136.
 Owner approved PLAN.md 2026-10-23 ("The review app changes seem good"), all §6 defaults (Q5, Q34–Q41).
 This ticket is now PHASE 1 (marks that last) plus the umbrella; phases 2–5 are T133–T136; a later salmon pass is T132.
 
@@ -28,7 +28,7 @@ Each phase's "Accept when" in PLAN.md (0 false-stale marks on a no-op normalisat
 
 Depends: T96 (done). Size: M (phase 1: 3–4 days; all phases 3–4 weeks). Owner: no (plan approved).
 
-## As built (phase 1, 5a9e8336)
+## As built (phase 1, 303f6d9d)
 - `pipeline/regs/review/` — `fingerprint.py` (THE one fingerprint module), `marks.py` (the `Mark` model, the store, the
   one staleness decision), `carry.py` (`carry_marks`; `review.carry_marks` is the name a migration calls).
 - Store: `data/curated/regulations/review/marks.jsonl` (`CURATED.regulations.review.marks`, config.yaml), checked in
