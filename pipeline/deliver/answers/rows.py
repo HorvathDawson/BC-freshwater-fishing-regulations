@@ -1742,15 +1742,17 @@ def _lift_words(P: "Part", by: str, fish: List[str], sized: bool = True) -> str:
                                 _range_words(a, b) if sized else "") if x)
 
 
-def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
+def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[dict]:
     """One total on today's card (decision F14): `pool` the total's rule, `total` its number
     ("unlimited" for none), `kinds` every fish of the card counting toward it — the total's own
     row and every fish with its own row contained by it (F4; steelhead included, user 2026-10-10),
     `subcaps` each count or size clause of the total holding some of those kinds here
     ({r, take, water, over_cm, under_cm, of, lifted [{members, by}]} — `of` the kinds it holds,
     `lifted` those a water's own rule lifts out of it). None for a total of one kind with no
-    sub-cap. THE DECISION ONLY: how the card SAYS it is `card.card_of` (answers 2.8 — the lead
-    sentence and the items of 2.6/2.7 are gone: they restated the kind rows)."""
+    sub-cap, unless that kind is a trout or char and the total is its row's own pool (`own_row`)
+    on every kind of water (`A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP`).
+    THE DECISION ONLY: how the card SAYS it is `card.card_of` (answers 2.8 — the lead sentence
+    and the items of 2.6/2.7 are gone: they restated the kind rows)."""
     kinds = [S for S in model["spp"]
              if (m := _kept(model, S)) is not None
              and (m["win"] is T or (m["roles"].get(T.key) or {}).get("role") == "contains")]
@@ -1810,9 +1812,28 @@ def group_of(P: "Part", model: dict, T: R) -> Optional[dict]:
                 if set(fish) - set(held):
                     subcaps.append({"r": x.lifter.key, "take": _num(x.f["take"]), "water": None,
                                     "over_cm": sc["over_cm"], "under_cm": None, "of": fish, "lifted": []})
-    if len(kinds) < 2 and not subcaps:
+    if len(kinds) < 2 and not subcaps \
+            and not (A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP and own_row and not T.f.get("water")
+                     and set(kinds) <= _trout_char()):
         return None
     return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps}
+
+
+#: D19 (a), T80 3 (owner call 11, Q11: the backend answers, the app only reads): a TROUT/CHAR total of ONE kind with
+#: no sub-cap is still a group WHERE THE TOTAL IS ITS ROW'S OWN POOL — its row's headline is what the app's Keep tab
+#: draws a pooled row by (core `keep.ts`: a group, else a plain row with no pool). Without it the row was drawn nowhere:
+#: Kootenay Lake — Main Body's rainbow 10 a day (klmb_1010), Tranquille Lake's rainbow, the Region 7 brook trout
+#: lakes, Ross Lake's and 14 other waters' own brook trout quotas. Other fish rows keep no group: the Other fish list
+#: draws them by its own compact path. A one-kind row whose total is ANOTHER rule's (Duncan River's Dolly Varden 2,
+#: inside Region 4's 5) is not covered: a group of that total would say "5" over one kind that can never reach it (the
+#: card gate refuses it); nor is a total limited to a kind of water (Region 8's "20 brook trout from streams", z8 trout_char_quota.r5): the card gate proves a zone
+#: total over fish kept on lakes too, and its worked "kept elsewhere" line is off by one there. Both stay drawn nowhere
+#: until T80's follow-up (the gate's places for a water-limited total; a contained one-kind row).
+A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP = True
+
+
+def _trout_char() -> frozenset:
+    return dict(common._closed_groups())["TROUT_CHAR"]
 
 
 def raise_of(grp: dict, s: dict) -> Optional[dict]:
@@ -2048,7 +2069,8 @@ def produce(P: Part) -> dict:
         T = totals.get(id(row))
         if T is not None:
             home.setdefault(T.key, id(row))
-    groups = {k: group_of(P, model, P.by_key[k]) for k in home}
+    own_row = {T.key for row in model["rows"] if (T := totals.get(id(row))) is not None and row["pool"] is T}
+    groups = {k: group_of(P, model, P.by_key[k], own_row=k in own_row) for k in home}
     rows = []
     for row in model["rows"]:
         o = {"kind": row["kind"], "pool": row["pool"].key if row.get("pool") else None,

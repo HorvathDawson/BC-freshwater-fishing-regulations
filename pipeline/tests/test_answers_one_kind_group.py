@@ -1,0 +1,127 @@
+"""D19 (a), T80 3: a trout/char total of ONE kind with no sub-cap is a group on its own row.
+
+`rows.group_of` gave no group to a total of one kind with no sub-cap, so its row shipped pooled and headline-less — and
+the app's Keep tab (core `keep.ts`) draws a row only as a group (stored headline) or a plain row (no pool). Such a row
+was drawn nowhere: Kootenay Lake — Main Body's "Rainbow trout, separate from your 5 trout and char, 10 a day"
+(klmb_1010, decisions D19), and on the 2026-10-22 release 1,022 waters in all — Region 8's brook trout quota
+(z8 trout_char_quota.r5) on most of its streams, Duncan River's Dolly Varden, Tranquille Lake's rainbow, the Region 7
+brook trout lakes, and more (T80 3). Every such row was trout or char: the Other fish list draws the rest by its own
+compact path, so the ruling is limited to TROUT_CHAR and Other fish rows are untouched. It covers a total that is the
+row's OWN pool on every kind of water. Two shapes stay open (pinned whole below, T80 follow-up): a row whose total is
+another rule's (Duncan River's Dolly Varden inside Region 4's 5), and a total limited to a kind of water (Region 8's
+"20 brook trout from streams"), where the card gate's zone-total proof counts lake fish and refuses the group.
+
+`UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pytest
+
+from pipeline.deliver import calendar as CAL
+from pipeline.deliver.answers import answers as A
+from pipeline.deliver.answers import common as C
+from pipeline.deliver.answers import encode as E
+from pipeline.deliver.answers import rows as RW
+from pipeline.deliver.bundle import read as R
+from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+
+BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+
+KLMB, ANGELO, TRANQUILLE, DUNCAN_TRIB = "wbk:-20", "gnis:10053", "wbk:329563842", "gnis:12861"
+BOW_LAKE = "wbk:329343476"                     # Region 7: its own brook trout quota
+WATERS = (KLMB, ANGELO, TRANQUILLE, DUNCAN_TRIB, BOW_LAKE)
+Z8_EB = "z8:trout_char_quota::trout_char_quota.r5"             # "20 brook trout from streams" (Angelo Creek)
+KLMB_RB = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19::kootenay_lake_main_body.r4"
+TROUT_CHAR = dict(C._closed_groups())["TROUT_CHAR"]
+
+
+def _build(items):
+    return A.build(BUNDLE, EXPORT_DIR, workers=1, items=list(items), sections=["rows"], log=lambda *_: None)
+
+
+@pytest.fixture(scope="module")
+def built(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, _ = C.load_export(EXPORT_DIR)
+    return data, _build(WATERS)
+
+
+def _card(model, item, md, part=0):
+    k = model.parts[item][part]
+    return model.sections["rows"][k][E.segment_index(model.segments[k], CAL.day_of(md))]
+
+
+def _row(data, card, pool):
+    return next(r for r in card["rows"] if r["pool"] is not None and data["rule_ids"][r["pool"]] == pool)
+
+
+def _headless(data, model):
+    """Every (item, segment, pool) where a trout/char pooled row with no parent ships without a group headline —
+    the rows the app's Keep tab cannot draw."""
+    out = []
+    for item in WATERS:
+        for k in model.parts[item]:
+            if k is None:
+                continue
+            for s, card in enumerate(model.sections["rows"][k]):
+                for r in card["rows"]:
+                    g = r.get("group")
+                    if r["pool"] is not None and r.get("parent") is None and set(r["members"]) <= TROUT_CHAR \
+                            and not (g and g.get("headline")):
+                        out.append((item, s, data["rule_ids"][r["pool"]]))
+    return out
+
+
+@pytest.mark.needs_bundle
+def test_kootenay_main_body_rainbow_is_a_group_of_its_own(built):
+    data, model = built
+    row = _row(data, _card(model, KLMB, (10, 10)), KLMB_RB)
+    g = row["group"]
+    assert (row["members"], row.get("parent"), data["rule_ids"][g["pool"]], g["total"], g["kinds"], g["subcaps"]) \
+        == (["RB"], None, KLMB_RB, 10, ["RB"], [])
+    assert g["headline"] == {"n": 10, "unit": "a day per angler", "says": "10 a day per angler"}
+
+
+DUNCAN_DV = "r4:duncan_river@4-19::duncan_river.r5"
+
+
+@pytest.mark.needs_bundle
+def test_no_trout_or_char_row_ships_headless_but_the_two_known_shapes(built):
+    """Every headless trout/char row is gone but two shapes, listed whole: Duncan River's Dolly Varden (a one-kind row
+    inside Region 4's 5, on Crazy Creek, its tributary) and Region 8's stream brook trout (Angelo Creek). When either
+    is fixed this list shrinks and must be edited."""
+    data, model = built
+    got = {(i, p) for i, _s, p in _headless(data, model)}
+    assert got == {(DUNCAN_TRIB, DUNCAN_DV), (ANGELO, Z8_EB)}
+
+
+@pytest.mark.needs_bundle
+def test_tranquille_and_a_region_7_brook_trout_lake_are_groups(built):
+    data, model = built
+    rb = _row(data, _card(model, TRANQUILLE, (6, 15)), "r3:tranquille_lake@3-29::tranquille_lake.r1")
+    eb = _row(data, _card(model, BOW_LAKE, (6, 15)), "r7:bow_lake@7-15::bow_lake.r1")
+    assert [(r["members"], r["group"]["kinds"], data["rule_ids"][r["group"]["pool"]]) for r in (rb, eb)] == [
+        (["RB"], ["RB"], "r3:tranquille_lake@3-29::tranquille_lake.r1"),
+        (["EB"], ["EB"], "r7:bow_lake@7-15::bow_lake.r1")]
+
+
+@pytest.mark.needs_bundle
+def test_mutation_the_old_one_kind_rule_leaves_the_rows_headless(built, monkeypatch):
+    """MUTATION: without the ruling the rows are back to no group — klmb's, Tranquille's and Bow Lake's."""
+    data, _ = built
+    monkeypatch.setattr(RW, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
+    pools = {p for _i, _s, p in _headless(data, _build(WATERS))}
+    assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= pools
+
+
+@pytest.mark.needs_bundle
+def test_other_fish_totals_of_one_kind_stay_without_a_group(built):
+    """The ruling is trout/char only: Kootenay's crayfish 25 a day (an Other fish row) keeps no group."""
+    data, model = built
+    row = _row(data, _card(model, KLMB, (10, 10)), "z4:species_quotas::species_quotas.r3")
+    assert (row["members"], row.get("group")) == (["CRA"], None)

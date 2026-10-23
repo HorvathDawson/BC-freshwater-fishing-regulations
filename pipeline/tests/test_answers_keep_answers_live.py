@@ -77,9 +77,16 @@ def _stamp_lines(rows, licence) -> list:
     return out
 
 
-def _golden_stamp_lines(sid) -> list:
-    return [l for g in (G[sid].get("keep") or {}).get("groups") or [] for l in g.get("lines") or []
-            if l.startswith("You need ")]
+#: D19 (a), T80 3: klmb_1010's rainbow row, drawn by page v36's legacy card path (golden `plainRows`), is a group now
+D19_LEGACY_ROW = {"klmb_1010"}
+
+
+def _golden_stamp_lines(sid, legacy: bool = False) -> list:
+    keep = G[sid].get("keep") or {}
+    lines = [l for g in keep.get("groups") or [] for l in g.get("lines") or []]
+    if legacy and sid in D19_LEGACY_ROW:
+        lines += [l for row in keep.get("plainRows") or [] for l in row]
+    return [l for l in lines if l.startswith("You need ")]
 
 
 @pytest.mark.needs_bundle
@@ -87,7 +94,7 @@ def _golden_stamp_lines(sid) -> list:
 # differ from page v36's by design (GOTCHAS.md); their trees are pinned in test_answers_kitimat_steelhead_lift.py.
 @pytest.mark.parametrize("sid", [s for s in IDS if s not in KITIMAT_RULED])
 def test_5_every_stamp_line_the_groups_carry_is_the_prototypes(built, sid):
-    assert _stamp_lines(_at(built, sid, "rows"), _at(built, sid, "licence")) == _golden_stamp_lines(sid)
+    assert _stamp_lines(_at(built, sid, "rows"), _at(built, sid, "licence")) == _golden_stamp_lines(sid, legacy=True)
 
 
 @pytest.mark.needs_bundle
