@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
 import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
-import { golden, taps } from "./oracles";
+import { golden, taps, ZONE7_REWRITES } from "./oracles";
 
 const G = golden(), T = taps();
 
@@ -158,5 +158,16 @@ describe("excluded", () => {
     expect(excluded("keep", "x14p0_1010", "groups.0.worked")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     for (const k of ["groups", "groups.0", "groups.0.head", "groups.0.notKept", "groups.0.treeRoot", "groups.0.quiet"]) expect(excluded("keep", "x14p0_1010", k), k).toBeNull();
     expect(excluded("keep", "vedder_1010", "groups.0.tree")).toBeNull();
+  });
+});
+
+describe("T109 zone-level ruling (oracles.ts zone7Ruled)", () => {
+  it("rewrites exactly the golden's 'Region 7' level words in the 8 zone-7 states, each to its one printed zone", () => {
+    expect(ZONE7_REWRITES).toEqual({ x15p0_1010: 3, x15p18_1010: 3, x22p0_1010: 9, x22p1_1010: 9, x22p3_1010: 9, x22p6_1010: 9,
+      x27p2_1010: 3, x41p_1010: 9 });
+    const all = JSON.stringify(G.states);
+    expect(all.match(/Region 7(?= ›| From the Region 7[AB] table)/g)).toBeNull();
+    // the place words the ruling does not touch (a header sub, the decided-by line of an r7 water row) are still the golden's
+    expect(all.match(/Region 7 · for this water \(Peace River\)|Where Region 5 and Region 7 meet|In Region 7 · /g)?.length).toBe(5);
   });
 });

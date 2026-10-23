@@ -29,6 +29,31 @@ describe("levelTag / ruleSub (page v36 levelTag, openRule's sub)", () => {
     expect([levelWord(rule("z2:s", 3, "Region 2")), levelWord(rule("z2:s", 3, "Streams")), levelWord(rule("zp:g", 4))])
       .toEqual(["Region 2", "Region 2", "B.C. rule"]);
   });
+  // T109 step 1: Region 7 is printed as two zones, and their rows carry z7a:/z7b: ids. `/^z(\d+)/` read them as
+  // "Region 7 rule" while Python says "Region 7A". The 23 zone entries of r-36fbc5326506 (ui-rules-export.json), whole subs.
+  it("z7a/z7b read as Region 7A/7B on all 23 zone entries (T109)", () => {
+    const ZONE7: [string, string][] = [["z7a:bait_ban_streams", "Every stream in Zone A"], ["z7a:ice_fishing_huts", "Lakes of Zone A"],
+      ["z7a:possession_exceptions", "Zone A"], ["z7a:sara_sturgeon", "Upper Fraser and Nechako"], ["z7a:set_lining", "Lakes of Zone A"],
+      ["z7a:single_barbless_hook", "Every stream in Zone A"], ["z7a:species_quotas", "Zone A"], ["z7a:spring_stream_closure", "Every stream in Zone A"],
+      ["z7a:stocked_lakes", "Lakes of Zone A"], ["z7a:tagging_program", "Zone A"], ["z7a:trout_char_quota", "Zone A"],
+      ["z7b:arctic_grayling", "Zone B"], ["z7b:bait", "Zone B"], ["z7b:bull_trout_dolly_varden", "Zone B"], ["z7b:ice_fishing_huts", "Lakes of Zone B"],
+      ["z7b:peace_river_navigation", "Peace River"], ["z7b:possession_exceptions", "Zone B"], ["z7b:set_lining", "Zone B"],
+      ["z7b:single_barbless_hook", "Every stream in Zone B"], ["z7b:site_c_tagging", "Zone B"], ["z7b:species_quotas", "Zone B"],
+      ["z7b:thin_ice", "Inga and Sundance lakes"], ["z7b:trout_char_quota", "Zone B"]];
+    expect(ZONE7.length).toBe(23);
+    expect(ZONE7.map(([id, name]) => ruleSub(rule(id, 3, name)))).toEqual([
+      "Region 7A rule · Every stream in Zone A", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Zone A",
+      "Region 7A rule · Upper Fraser and Nechako", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Every stream in Zone A",
+      "Region 7A rule · Zone A", "Region 7A rule · Every stream in Zone A", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Zone A",
+      "Region 7A rule · Zone A",
+      "Region 7B rule · Zone B", "Region 7B rule · Zone B", "Region 7B rule · Zone B", "Region 7B rule · Lakes of Zone B",
+      "Region 7B rule · Peace River", "Region 7B rule · Zone B", "Region 7B rule · Zone B", "Region 7B rule · Every stream in Zone B",
+      "Region 7B rule · Zone B", "Region 7B rule · Zone B", "Region 7B rule · Inga and Sundance lakes", "Region 7B rule · Zone B"]);
+    // the level word (gear tab) and the collapse read the zone too; a plain region and a two-digit-looking id are unchanged
+    expect([levelWord(rule("z7a:species_quotas", 3, "Zone A")), ruleSub(rule("z7b:x", 3, "Region 7B")), levelTag(rule("z7:x", 3)),
+      levelTag(rule("z6:x", 3)), levelTag(rule("zp:g", 3))])
+      .toEqual(["Region 7A", "Region 7B", "Region 7 rule", "Region 6 rule", "Region rule"]);
+  });
   it("there is one levelTag in the barrel and one set of level words", () => {
     expect(regs.levelTag).toBe(levelTag);
     expect("ruleSheetSub" in regs).toBe(false);

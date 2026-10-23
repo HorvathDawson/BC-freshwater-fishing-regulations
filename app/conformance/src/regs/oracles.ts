@@ -21,10 +21,36 @@ export interface Hydrate {
   readonly states: Readonly<Record<string, { readonly via: Readonly<Record<string, "trib">>; readonly ranks: Readonly<Record<string, number>> }>>;
 }
 
+/**
+ * (T109 step 1) Page v36's levelTag read a zone row's id with `/^z(\d+)/`, so a `z7a:`/`z7b:` rule's level word was
+ * "Region 7" while the pipeline's own words on the same line say "From the Region 7B table" (and Python's region words
+ * "Region 7B"). The app reads the lettered zone (level.ts). The golden is held to that ruling by ONE rewrite applied at
+ * load: in a state whose zone lines name exactly one zone (7A or 7B), the level word "Region 7" before " ›" or before
+ * "From the Region 7X table" becomes "Region 7X". Nothing else in the golden moves; `ZONE7_REWRITES` counts what it did
+ * (asserted in exclusions.test.ts), and a state with a "Region 7" level word and no single zone throws.
+ */
+const ZONE7_LEVEL = /\bRegion 7(?= ›| From the Region 7[AB] table)/g;
+export const ZONE7_REWRITES: Record<string, number> = {};
+function zone7Ruled(id: string, state: unknown): unknown {
+  const text = JSON.stringify(state);
+  if (!ZONE7_LEVEL.test(text)) return state;
+  ZONE7_LEVEL.lastIndex = 0;
+  const zones = new Set([...text.matchAll(/From the Region 7([AB]) table/g)].map((m) => m[1]!));
+  if (zones.size !== 1) throw new Error(`golden ${id}: a "Region 7" level word with zones {${[...zones].join(",")}} — T109 cannot rule it`);
+  const z = [...zones][0]!;
+  let n = 0;
+  const out = JSON.parse(text.replace(ZONE7_LEVEL, () => { n++; return `Region 7${z}`; }));
+  ZONE7_REWRITES[id] = n;
+  return out;
+}
+
 let G: GoldenFile | undefined;
-/** golden.json (8.6 MB), parsed once per test file. */
+/** golden.json (8.6 MB), parsed once per test file, with the T109 zone-level ruling applied (`zone7Ruled`). */
 export function golden(): GoldenFile {
-  return (G ??= JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")) as GoldenFile);
+  if (G) return G;
+  const raw = JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")) as GoldenFile & { states: Record<string, unknown> };
+  for (const id of Object.keys(raw.states)) raw.states[id] = zone7Ruled(id, raw.states[id]) as never;
+  return (G = raw);
 }
 
 /** taps.json, parsed fresh (callers that hold it keep their own copy; `tapsOnce` is the shared one). */
