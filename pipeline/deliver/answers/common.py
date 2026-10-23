@@ -226,6 +226,22 @@ TIDAL_STATE = {"tidal": True, "note": TIDAL_NOTE,
 #: (no rule set has a negative id).
 TIDAL_SCOPE = RuleKey(-1, False, False)
 
+#: The statuses that keep a fish (a quota, or no limit).
+KEEPS = ("keep", "no_limit")
+
+
+def lead_origin(h: Optional[dict], w: Optional[dict]) -> Optional[dict]:
+    """T120, THE ONE LEADING ORIGIN (page `mainRes`): of a fish's two origin answers — hatchery `h`, wild `w`, each
+    with a `status` — the one that leads: the keepable one (keep / no_limit), hatchery first; else hatchery, else
+    wild; None when neither answers. The main row (`rows.main_res`), the year strip (`year.leading_answer`) and the
+    weekday split (`rows._week_answer`) all read it; no other function in `answers/` picks a leader
+    (`test_answers_lead_origin`)."""
+    if h and h["status"] in KEEPS:
+        return h
+    if w and w["status"] in KEEPS:
+        return w
+    return h or w or None
+
 
 def is_tidal(key: tuple) -> bool:
     """Whether a part key is tidal water (`PART_KEY_FIELDS` `tidal`)."""

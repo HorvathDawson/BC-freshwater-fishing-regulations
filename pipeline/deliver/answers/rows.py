@@ -192,7 +192,7 @@ def _closed_gate(r: R) -> bool:
 
 
 def _keepish(s: Optional[str]) -> bool:
-    return s in ("keep", "no_limit")
+    return s in common.KEEPS
 
 
 def _covers(r: R, S: str) -> bool:
@@ -612,11 +612,8 @@ def _size_release(P: "Part", S: str, A: List[R]) -> Optional[R]:
 
 
 def main_res(H: Optional[dict], W: Optional[dict]) -> Optional[dict]:
-    if H and _keepish(H["status"]):
-        return H
-    if W and _keepish(W["status"]):
-        return W
-    return H or W
+    """The fish's leading origin answer (T120: `common.lead_origin`, the one function)."""
+    return common.lead_origin(H, W)
 
 
 # --------------------------------------------------------------------------------------------
@@ -2254,16 +2251,12 @@ def weekdays_when(days: Sequence[str]) -> str:
 
 
 def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float], str]]:
-    """(status, daily, winner) of one fish in a rows frame: the stricter origin's (`main_res`)."""
+    """(status, daily, winner) of one fish in a rows frame: its leading origin's, the main row's (T120:
+    `common.lead_origin`; it used to take the most permissive keeper, so a weekday row could say a bigger quota)."""
     v = (frame.get("fish") or {}).get(S) or {}
-    h, w = v.get("hatchery"), v.get("wild")
-    got = [x for x in (h, w) if x is not None]
-    if not got:
+    best = common.lead_origin(v.get("hatchery"), v.get("wild"))
+    if best is None:
         return None
-    rank = {"closed": 0, "release": 1, "keep": 2, "no_limit": 3}
-    keep = [x for x in got if x["status"] in ("keep", "no_limit")]
-    best = max(got, key=lambda x: (rank.get(x["status"], -1), x.get("daily") or 0)) if keep else \
-        min(got, key=lambda x: rank.get(x["status"], 9))
     return best["status"], best.get("daily"), best["win"]
 
 

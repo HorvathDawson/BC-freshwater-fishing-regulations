@@ -30,6 +30,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver import calendar as K
+from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
 
 #: The 365 book days, as leap-calendar days (Feb 29, day 60, is not one: it reads Feb 28's, P06).
@@ -39,20 +40,15 @@ BOOK_DAYS: Tuple[int, ...] = tuple(d for d in range(1, K.DAYS + 1) if d != K.LEA
 STATUSES = ("keep", "release", "closed", "none")
 _RANK = {"keep": 3, "no_limit": 3, "release": 2, "closed": 1}
 _SAYS = {"keep": "keep", "no_limit": "keep", "release": "release", "closed": "closed"}
-_KEEPS = ("keep", "no_limit")
 
 
 def leading_answer(answer: Optional[dict]) -> Optional[dict]:
     """page mainRes: of a fish's two stored origin answers ({hatchery, wild}), the one the strip reads — the
-    keepable one, hatchery first; else hatchery, else wild; None when neither is answered."""
+    keepable one, hatchery first; else hatchery, else wild; None when neither is answered (T120:
+    `common.lead_origin`, the one function)."""
     if not answer:
         return None
-    h, w = answer.get("hatchery"), answer.get("wild")
-    if h is not None and h["status"] in _KEEPS:
-        return h
-    if w is not None and w["status"] in _KEEPS:
-        return w
-    return h if h is not None else w
+    return common.lead_origin(answer.get("hatchery"), answer.get("wild"))
 
 
 def day_segments(starts: Sequence[int], moments: Optional[Sequence[dict]]) -> Dict[int, Tuple[int, ...]]:
