@@ -1,6 +1,6 @@
 # T147 — "No public access" is a bigger, more obvious part of the regulations at the top
 
-Status: DONE — 96c78718 (core words, page path, block, shots), bae708b4 (square corners); colour from 158391f5 (T146). Built with T54 Q1 default (permit-only = gentle note).
+Status: DONE — 96c78718 (core words, page path, block, shots), bae708b4 (square corners), b3920585 (review: the page path pinned); colour from 158391f5 + 03ef3c76 (T146; light block is now spruce). Built with T54 Q1 default (permit-only = gentle note).
 
 Source: owner 2026-10-23 (app walk): "make the no public access a bigger part of the regulations at the top and more
 obvious". Related: T54 (no-access streams; permit-only areas get the gentle note, Q1–Q3), T146 (its colour).
@@ -59,6 +59,29 @@ regs store's water file).
   Keep, or a smaller line there? Default: keep.
 - Q-T147b: a page opened with no tapped section shows the banner for its part (not the gentle note). Also show the
   gentle note at water level? Default: no.
+
+## Adversarial review (2026-10-23)
+Reproduced on this worktree's app (own port 39541, live release): Coquitlam Lake (`?regs=wbk:329291808`) and Seymour River
+part 0 (`?regs=gnis:6105&part=0`), phone, light and dark — the block leads, title, body and link as pinned
+(`T147-shots/review--*.png`, in T146's review colours: a spruce tint in light, ice cyan in dark).
+- **Test gap (fixed, b3920585): the page path was unpinned where it is wired.** Mutating `WaterScreen` back to T54's
+  call (`useAccessNotice(loader, section)` — no store, no page) left the whole ui-native suite green (1125 passed): only
+  `@app/ui` `pageAccessNotice` and core's words were pinned, never that the screen hands them the page. NEW in
+  `WaterScreen.regs-props.test.tsx`: the fixture release (Chilliwack, part 0, no tapped section) with a paint whose
+  no-access rows cover every section → the block's whole string ("This part of the water is inside Test Watershed. …")
+  first in the scroll. The mutation fails it.
+- Mutations confirmed caught: `waterAccessNotice` `every` → `some` (core + ui tests), `pageAccessNotice` reading every
+  part's sections (ui test).
+- Colour: the block's bar, swatch and tint read `waterStatus.no_access` / `noAccessBand`, so T146's review change (light
+  spruce) reaches it with no code change; `theme.test.ts` still holds ink 7:1 on the tint in every theme.
+- Seen, not changed (owner question Q-T147c): a page opened by TAPPING a section that is not itself in no-access land
+  shows no block, even when the page's part runs through it — tapping the Coquitlam River at Port Coquitlam opens part 3
+  ("Lougheed Highway Bridge → a lake outlet", through the Coquitlam Watershed) with "✓ Open" first and no mention of
+  access (`T146-shots/review--defect--regs-coquitlam-river-tapped-light.png`). T54's rule is "the tapped section first".
+
+## Owner questions (review)
+- **Q-T147c**: a tapped section outside no-access land, on a part that runs through it: show the part's banner too
+  ("Some of this part of the water is inside …")? Default built: no (T54: the tapped section speaks).
 
 ## Left / follow-ups
 - A real reader-gate round on the new wording (tests.md §4).
