@@ -1,6 +1,6 @@
 # T94 — Gauge promote: one reviewed station at a time; demotions shown before writing
 
-Status: DONE — 1406d435. No deliver needed (tooling only; no curated or shipped data changed).
+Status: DONE — 1406d435, a2b70ccd (review). No deliver needed (tooling only; no curated or shipped data changed).
 
 Source: memory `gauge-regenerate-drifts`: on 2026-10-10 a full match + promote demoted 25 stations and rewrote 1,042
 rows. `pipeline/gauges/generate/promote.py` takes only `--dry-run` / `--out`; `pipeline/tools/check_curated.py` still
