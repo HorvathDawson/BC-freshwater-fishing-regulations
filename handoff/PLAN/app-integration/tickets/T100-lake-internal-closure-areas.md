@@ -42,6 +42,13 @@ an AREA CAVEAT that is pipeline data; the app prints it as stored and words noth
   rows; a new one fails until looked at) and the map table (`MAPS`: 19 rules after review), whole caveat strings, applies/book, the
   refusal gate, and the export as built (`needs_bundle`). `test_export_ui_rules.py` reads the cited sentence on a
   mapped part. Mutations listed in the test's docstring.
+- Conformance (1596dd19): the frozen golden is held to this ruling by ONE counted rewrite at load, the way T128 did
+  (`app/conformance/src/regs/t100MapPage.ts`, applied in `parityGate`). It reads the map pages from the store (a page
+  after the row's that `applies` cites as "see map X / the map(s) on p.N of the regulations"). Where the golden prints
+  the store's book less that page, the Keep in-part rows gain the map link, and the rule sheets gain the page, the link
+  and the store's `applies`. Pinned in `t100MapPage.test.ts`: x4p_1010 only, with 5 Keep rows (maps A ×2, B, C and
+  Salmon Arm Bay "the map on p.28"), 5 sheets and 5 applies lines. Rules reached: Shuswap r1-r5, r5x and r11x. No golden
+  state reaches Canim p.42, François p.51 or Mahood. If the store drops the page, the pin fails.
 
 The ticket's "67 rules" (and the `_` text of `data/curated/waters/sub_lake_areas.json`) is stale: the corpus now holds
 135 widened rules on 87 rows (98 name their part — 81 distinct parts on 64 rows —, 19 of those cite a book map, 37 are
