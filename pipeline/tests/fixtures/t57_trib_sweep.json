@@ -1,0 +1,146 @@
+{
+ "bundle": {
+  "reach_digest": "dc21329d925d042d",
+  "rule_ids_sha256": "16be720be08b0fca",
+  "section_handles": "d768d6e135e62b99"
+ },
+ "by_reason": {
+  "barrier": 29,
+  "stem_ends_at_lake": 70,
+  "strahler": 1,
+  "through_lake": 7,
+  "within_area": 43
+ },
+ "by_region": {},
+ "by_rule": {},
+ "explained": {
+  "barrier": {
+   "r1:black_creek@1-6::black_creek.r1": 1,
+   "r1:oyster_river@1-6::oyster_river.r2": 1,
+   "r1:puntledge_river@1-6::puntledge_river.r5": 1,
+   "r2:lillooet_lake_lillooet_river@2-9::lillooet_lake_lillooet_river.r1": 1,
+   "r2:nicomekl_river@2-4::nicomekl_river.r2": 4,
+   "r2:nicomekl_river@2-4::nicomekl_river.r3": 4,
+   "r2:nicomekl_river@2-4::nicomekl_river.r4": 4,
+   "r2:nicomekl_river@2-4::nicomekl_river.r6": 4,
+   "r2:north_alouette_river@2-8::north_alouette_river.r2": 2,
+   "r2:serpentine_river@2-4::serpentine_river.r1": 1,
+   "r2:serpentine_river@2-4::serpentine_river.r4": 1,
+   "r4:kootenay_river_downstream_of_idaho_border@4-7+4-8::kootenay_river_lower.r4": 1,
+   "r6:skeena_river@6-10::skeena_river.r1": 2,
+   "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r2": 1,
+   "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r3": 1
+  },
+  "stem_ends_at_lake": {
+   "r6:nass_river@6-30::nass_river.r2": 70
+  },
+  "strahler": {
+   "r6:nass_river@6-30::nass_river.r1": 1
+  },
+  "through_lake": {
+   "r2:twin_lakes@2-8::twin_lakes.r1": 2,
+   "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r1": 1,
+   "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r2": 1,
+   "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r3": 1,
+   "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r4": 1,
+   "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r5": 1
+  },
+  "within_area": {
+   "r2:pitt_river@2-8::pitt_river.r1": 1,
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r1": 14,
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r2": 14,
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r3": 14
+  }
+ },
+ "frontier": 150,
+ "mu_groups": {
+  "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r1": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r2": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r3": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r4": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r5": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r6": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r7": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:hg_quota::hg_quota.r8": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 0,
+   "straddling": 0,
+   "straddling_bound": 0
+  },
+  "z1:summer_stream_closure::summer_stream_closure.r1": {
+   "bound_not_member": 0,
+   "member_not_bound": 0,
+   "member_not_stamped": 0,
+   "stamped_not_member": 3,
+   "straddling": 6,
+   "straddling_bound": 3
+  }
+ },
+ "unexplained": 0,
+ "unexplained_sections": 0,
+ "unnamed_lake_at_reach_top": {
+  "r4:bull_river@4-22::bull_river.r1": 2,
+  "r4:st_mary_river@4-20::st_mary_river.r3": 1
+ },
+ "unnamed_streams": 1179681,
+ "walking_rules": 476
+}

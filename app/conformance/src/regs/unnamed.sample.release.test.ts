@@ -6,7 +6,10 @@
  * rule the page cites is one of them. The expected rule set is read from the BUNDLE (`section_ruleset` → `ruleset`), the
  * page from the RELEASE: nothing here is a copy of either.
  *
- * Per region: the first sections (by handle) bound by an override, and the first bound by the base alone.
+ * Per region: the first sections (by handle) bound by an override, and the first bound by the base alone. T57 adds two
+ * strata, each up to `PER` per region and present somewhere in B.C.: sections NEAR AN MU LINE (stamped with more than one
+ * management unit) and sections IN A LAKE'S CATCHMENT (bound by the tributary walk of a lake's row). A section on a
+ * region line takes its place's name ("Unnamed stream · Regions 3 and 8").
  */
 import { readFileSync, existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
@@ -68,10 +71,30 @@ describe.skipIf(!bundle.path)("(T53) unnamed sections in every region: the page'
      WHERE s.up IS NOT NULL AND p.regions = ?
        AND ${withTrib ? "" : "NOT "}EXISTS (SELECT 1 FROM ruleset r WHERE r.set_id = s.set_id AND r.via = 'trib')
      ORDER BY s.sid LIMIT ${PER}`).all(region) as { sid: number }[]).map((r) => Number(r.sid));
+  /** T57: the first `PER` unnamed sections of a region (alone or with another) near an MU line, or in a lake's
+   *  catchment (a lake row's rule reaches them by the walk). */
+  const strata = (region: string, which: "mu_line" | "lake_catchment") => (db.prepare(
+    `SELECT s.sid FROM section_ruleset s JOIN region_place p ON p.place = s.place
+     ${which === "mu_line" ? "JOIN mu_set m ON m.mus = s.mus" : ""}
+     WHERE s.up IS NOT NULL AND (',' || p.regions || ',') LIKE ?
+       AND ${which === "mu_line" ? "m.codes LIKE '%,%'"
+         : `EXISTS (SELECT 1 FROM ruleset r JOIN entry e ON e.entry_id = r.entry_id JOIN item i ON i.item_id = e.item_id
+                    WHERE r.set_id = s.set_id AND r.via = 'trib' AND i.kind = 'lake')`}
+     ORDER BY s.sid LIMIT ${PER}`).all(`%,${region},%`) as { sid: number }[]).map((r) => Number(r.sid));
+  /** The place's regions as the page names them (one region, or "Regions A and B", "Regions A, B and C"). */
+  const placeName = (sid: number) => {
+    const rs = ((db.prepare(`SELECT p.regions FROM section_ruleset s JOIN region_place p ON p.place = s.place
+                              WHERE s.sid = ?`).get(sid) as { regions: string }).regions).split(",").map((r) => r.toUpperCase());
+    return rs.length === 1 ? `Region ${rs[0]}` : `Regions ${rs.slice(0, -1).join(", ")} and ${rs[rs.length - 1]}`;
+  };
+  const seen = { mu_line: 0, lake_catchment: 0 };
 
   it.each(REGIONS)("Region %s", async (region) => {
-    const sids = [...sample(region, true), ...sample(region, false)];
-    expect(sids.length).toBe(2 * PER);
+    const extra = [...strata(region, "mu_line"), ...strata(region, "lake_catchment")];
+    seen.mu_line += strata(region, "mu_line").length;
+    seen.lake_catchment += strata(region, "lake_catchment").length;
+    const sids = [...new Set([...sample(region, true), ...sample(region, false), ...extra])];
+    expect(sids.length).toBeGreaterThanOrEqual(2 * PER);
     const got = [], want = [];
     for (const sid of sids) {
       const inp = await loadRegsInputs(st, { kind: "section", handle: sid }, { month: 10, day: 22 }, "Thursday", 2026);
@@ -83,9 +106,13 @@ describe.skipIf(!bundle.path)("(T53) unnamed sections in every region: the page'
       const all = new Set([...b.reach, ...b.trib]);
       got.push({ sid, item: inp.item, name: page.header.name, reach: inp.ruleset!.reach.map(key).sort(),
                  trib: inp.ruleset!.trib.map(key).sort(), uncited: cited.filter((k) => !all.has(k)) });
-      const R = region.toUpperCase();
-      want.push({ sid, item: null, name: `Unnamed ${b.kind} · Region ${R}`, reach: b.reach, trib: b.trib, uncited: [] });
+      want.push({ sid, item: null, name: `Unnamed ${b.kind} · ${placeName(sid)}`, reach: b.reach, trib: b.trib,
+                  uncited: [] });
     }
     expect(got).toEqual(want);
   }, 120_000);
+
+  it("(T57) both new strata were sampled somewhere in B.C.", () => {
+    expect([seen.mu_line > 0, seen.lake_catchment > 0]).toEqual([true, true]);
+  });
 });
