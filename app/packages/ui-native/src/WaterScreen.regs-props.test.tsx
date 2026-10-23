@@ -50,7 +50,7 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.getByTestId("gear-tab").textContent).toBe("No fishing here on any day of the year.");
     expect(screen.getByTestId("methods-tab").textContent).toBe("No fishing here on any day of the year.");
     // (T35) on a closed day the Licence section is its heading (D16 a)
-    expect([screen.getByTestId("licence-tab").textContent, screen.queryByTestId("regs-tab-pending")]).toEqual(["Licence", null]);
+    expect(screen.getByTestId("licence-tab").textContent).toBe("Licence");
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence"]);
   }, 30_000);

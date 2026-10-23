@@ -40,8 +40,6 @@ const LISTED: Record<string, string> = {
   "water/WaterMapView.tsx: right: 10#2": "the mark pop / chooser card's place over the canvas (an overlay)",
   "water/WaterMapView.tsx: paddingLeft: 12": "the mark pop / chooser card's inside",
   "water/WaterMapView.tsx: paddingRight: 6": "the mark pop / chooser card's inside (its × button's slot)",
-  "regs/RegsScreen.tsx: margin: GUTTER": "TabPending: a pending tab section's dashed box inside the scroll, set in like every regs row",
-  "regs/RegsScreen.tsx: padding: 14": "TabPending: the dashed box's inside",
 };
 const SPACING = /\b(?:(?:padding|margin)(?:Horizontal|Left|Right|Start|End)?|left|right|start|end)\s*:\s*[^,}\s]+/g;
 

@@ -33,14 +33,13 @@ vi.mock("@app/ui", async (orig) => {
 afterEach(cleanup);
 
 describe("<WaterScreen> outside B.C. (T42)", () => {
-  it("only the Keep tab: no Gear, Methods or Licence section, and no 'not in the app yet' placeholder", async () => {
+  it("only the Keep tab: no Gear, Methods or Licence section", async () => {
     const loader = { release: "r-x", manifest: {} } as unknown as ReleaseLoader;
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} loader={loader}
                         day={new Date(2026, 9, 10, 12)} />);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy());
     expect(screen.getByTestId("keep-outside").textContent).toBe("This part of the water is outside B.C.: no B.C. rules apply.");
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab"]);
-    expect(screen.queryByTestId("regs-tab-pending")).toBeNull();
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
       .toEqual(["What you can keep"]);
   });

@@ -26,7 +26,7 @@ import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
-import { GUTTER, type Palette } from "../theme";
+import { type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import { TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
@@ -94,15 +94,6 @@ export interface RegsScreenProps {
    * in the scroll with the out-of-date dot (`FreshDot`, the Data block's). Null/absent: in force, or no stamp — nothing.
    */
   lapsed?: string | null;
-}
-
-/** A tab section whose presenter the app does not draw yet: says so, and where to look instead (never a blank). */
-export function TabPending({ label, palette }: { label: string; palette: Palette }) {
-  return (
-    <View testID="regs-tab-pending" style={{ margin: GUTTER, padding: 14, borderWidth: 1, borderStyle: "dashed", borderColor: palette.line2 }}>
-      <Text style={[TYPE.regsBody, { color: palette.sub }]}>{WORDS.TAB_PENDING(label)}</Text>
-    </View>
-  );
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onParts, onPart,

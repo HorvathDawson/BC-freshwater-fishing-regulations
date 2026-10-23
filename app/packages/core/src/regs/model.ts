@@ -29,9 +29,9 @@ export interface RegsPage {
   readonly status: "open" | "closed" | "tidal" | "outside" | "unknown";  // header dot + strip word; NEVER from the status index
   readonly header: HeaderVM;
   readonly keep: KeepVM;
-  readonly gear: GearVM | null;            // (T21) null until T30–T32 build it
-  readonly methods: MethodsVM | null;      // (T21) null until T32 builds it
-  readonly licence: LicenceVM | null;      // null: outside B.C. (no licence section; tab hidden) — and until T33 builds it
+  readonly gear: GearVM | null;            // null outside B.C. (no key: no Gear section; tab hidden)
+  readonly methods: MethodsVM | null;      // null outside B.C. (no key: no Methods section; tab hidden)
+  readonly licence: LicenceVM | null;      // null outside B.C. (no key: no Licence section; tab hidden)
   /** (T40) glossary id → its title (`statics.glossary.terms[].term`), what a one-word ⓘ says to a screen reader
    *  ("What does Bait ban mean?", contracts §1 `term`); a term run carries ids only */
   readonly terms: Readonly<Record<string, string>>;

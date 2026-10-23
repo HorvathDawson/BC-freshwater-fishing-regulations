@@ -34,7 +34,7 @@ import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
-import { RegsScreen, TabPending } from "./regs/RegsScreen";
+import { RegsScreen } from "./regs/RegsScreen";
 import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
@@ -134,8 +134,6 @@ export function WaterScreen({ source, item, palette, onBack,
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError) {
-    const label = (t: string) => regs.header.tabs.find((x) => x.tab === t)?.label ?? "";
-    const outside = regs.status === "outside";
     return (
       <>
       {frame(null, (
@@ -148,14 +146,12 @@ export function WaterScreen({ source, item, palette, onBack,
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
                     onBook: (pdf) => { void openBook(pdf); },   // D6 a: native opens the bare PDF (T43 openBook)
                   }}
-                  // Gear / Methods / Licence (T34/T35); a part with no such section says it is not in the app yet —
-                  // (T42) except outside B.C., where the page has none (no key: the Keep tab's foot line is the page)
-                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} />
-                    : outside ? undefined : <TabPending label={label("gear")} palette={palette} />}
-                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} />
-                    : outside ? undefined : <TabPending label={label("methods")} palette={palette} />}
+                  // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
+                  // none and the Keep tab's foot line is the page)
+                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} /> : undefined}
+                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} /> : undefined}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
-                    : outside ? undefined : <TabPending label={label("licence")} palette={palette} />} />
+                    : undefined} />
       ))}
       {daySheet}
       </>

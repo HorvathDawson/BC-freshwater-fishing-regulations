@@ -207,8 +207,6 @@ export const WORDS = Object.freeze({
   OUTSIDE_BC: "This part of the water is outside B.C.: no B.C. rules apply.",
   /** a fish picture's accessible name (prototype fishBtn aria-label) */
   LOOKS_LIKE: (name: string) => `${name} — what it looks like`,   // (T40) a fish picture's name: the fish first
-  /** the water screen while a tab's presenter is not built yet (T30–T35), and when the store cannot answer */
-  TAB_PENDING: (tab: string) => `${tab}: not in the app yet. Check the B.C. Freshwater Fishing Regulations Synopsis before you fish.`,
   REGS_LOADING: "Loading the regulations",
   REGS_UNAVAILABLE: (why: string) => `Regulations unavailable: ${why}`,
   // ── T23 the regs header (prototype hdr: the pill's caret, the tab row's name; sheetHtml 'date': the day sheet's title) ──
