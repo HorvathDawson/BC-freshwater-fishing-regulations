@@ -836,6 +836,16 @@ the owner's later word "the prototype is a reference, not the end-all … Claude
 - T39/T40: the Keep colour bound 7; the ⓘ label wording ("What does <term> mean?"). The rest was answered by the owner
   (OWNER 2026-10-22 — answers).
 - T49: the calendar button stays in the strip; weeks start on Sunday.
+- Map chrome (implement_progress.md "MERGED ~23:30: MAP CHROME … OWNER QUESTIONS"; T81 review), each as built:
+  rail square vs round — superseded: the rail holds Layers only (T48, "OWNER 2026-10-22 — answers"), a box in the
+  palette's `r.box` radius with Lucide icons; native "At my location" — the location module when present (owner
+  2026-10-22, SPOTS); a long press on the Conditions map drops a spot too — yes, the Shell wires `rail.pressLong` on the
+  one map whichever tab is in front; back at a tab root goes to the Map tab first, and from Map leaves the app (ui
+  `route.ts` ONE BACK RULE; More returns to `prev`); back on Search closes search, and inside a town's list first
+  closes the list (`SearchSheet` `useBackLayer` → `searchStep` "back") — a selected water row is not a layer of its
+  own; the synopsis date is the release manifest's `sources.synopsis.date` (core `menu.ts`/`more.ts`); in-season
+  changes are NOT ingested — Data sources says "Not read" and the menu says to check them first (ingesting them is a
+  new feature for the owner to raise, not a default). App name and contact are owner-only Q26.
 - "Level may move into the layers menu": done (476b06d8) — closed.
 - decisions.md "Owner questions this spec could not settle": image permissions (owner: held), the 8 `code: null` salmon
   images (no longer in the manifest), both prototype bugs (Q25) — closed and marked there.
