@@ -91,15 +91,30 @@ def unpack(b: bytes, zd: Optional[bytes]) -> bytes:
     return bytes(b)
 
 
+#: Sample offsets `train_zdict` tries (best-of-N). Measured on the live set 2026-10-22: N=8 packs the
+#: release to 13,844,550 B gz where offset 0 alone gave 14,027,828 (over the 14,000,000 gate); N=32
+#: was 3 KB better and 6x slower.
+ZDICT_TRIES = 8
+
+
 def train_zdict(blobs: Iterable[bytes]) -> bytes:
-    """A deterministic deflate dictionary for one table: an even sample of its blobs (in id order),
-    concatenated, its last `ZDICT_MAX` bytes (zlib reaches the end of a dictionary most cheaply)."""
+    """A deterministic deflate dictionary for one table: every `step`-th blob (in id order; `step` the
+    table's bytes over `ZDICT_MAX`), concatenated, its last `ZDICT_MAX` bytes (zlib reaches the end of
+    a dictionary most cheaply) — tried at the first `ZDICT_TRIES` offsets, keeping the one that packs
+    the table smallest (ties: the lowest offset). One offset alone made the dictionary a handful of
+    whole rows that a 0.6% content change could swap for others, swinging the release by ±100 KB."""
     blobs = list(blobs)
     if not blobs:
         return b""
     total = sum(len(b) for b in blobs)
     step = max(1, -(-total // ZDICT_MAX))          # ~ZDICT_MAX bytes, spread over the table
-    return b"".join(blobs[::step])[-ZDICT_MAX:]
+    best: Optional[tuple] = None
+    for off in range(min(ZDICT_TRIES, step)):
+        zd = b"".join(blobs[off::step])[-ZDICT_MAX:]
+        size = sum(len(pack(b, "zdict", zd)) for b in blobs)
+        if best is None or size < best[0]:
+            best = (size, zd)
+    return best[1]
 
 
 # --------------------------------------------------------------------------------------------

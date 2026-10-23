@@ -271,6 +271,73 @@ def test_blob_codecs_round_trip():
             assert len(packed) <= len(b)
 
 
+def _zdict_table(seed: int, n: int, junk: float) -> list:
+    """Rows of one shared vocabulary, a `junk` share of them ~40 KB lists of numbers — they pack
+    well alone but teach the text rows nothing, so a dictionary that is their tail is a bad one."""
+    import random
+    r = random.Random(seed)
+    words = ["".join(random.Random(7 + k).choice("abcdefghijklmnopqrstuvwxyz") for _ in range(4 + k % 7))
+             for k in range(300)]
+    out = []
+    for i in range(n):
+        if r.random() < junk:
+            row = {"kind": "x", "n": list(range(i * 7, i * 7 + 7000))}
+        else:
+            row = {"kind": "t", "text": " ".join(r.choice(words) for _ in range(r.randint(400, 800)))}
+        out.append(dumps(row))
+    return out
+
+
+def _packed(blobs, zd) -> int:
+    return sum(len(pack(b, "zdict", zd)) for b in blobs)
+
+
+def _one_offset(blobs) -> bytes:
+    """The trainer before best-of-N (2026-10-22): offset 0 of the byte step only. Kept to prove the
+    fixture below is sharp — it must fail the stability bound the trainer passes."""
+    step = max(1, -(-sum(map(len, blobs)) // 32768))
+    return b"".join(blobs[::step])[-32768:]
+
+
+def test_the_dictionary_is_the_same_bytes_from_the_same_table_and_a_store_built_twice_is_identical(tmp_path):
+    blobs = _zdict_table(1, 150, 0.1)
+    assert train_zdict(blobs) == train_zdict(list(blobs))
+    A, sub = _wire(), _subset()
+    raw = answers_file_bytes(A)
+    zds = []
+    for k in (1, 2):
+        p = tmp_path / f"regs.{k}.sqlite"
+        write_store(p, raw, A, sub, ITEM_ORD, PART_SECTION, "zdict", **STORE_KW)
+        con = sqlite3.connect(p)
+        zds.append(con.execute("SELECT tbl, d FROM zdict ORDER BY tbl").fetchall())
+        con.close()
+    assert zds[0] == zds[1] and zds[0]
+
+
+def test_a_small_content_change_does_not_swing_the_packed_table():
+    """rows_row (2026-10-22): +79 KB (0.6%) moved the byte step 414 -> 416, the dictionary became other
+    rows, and the release swung +100 KB past its gate. The trainer keeps the best of several sample
+    offsets, so a 0.6% append moves the packed table about as much as the content it adds."""
+    base = _zdict_table(1, 150, 0.1)
+    grown, extra = list(base), _zdict_table(51, 40, 0)
+    total, add = sum(map(len, base)), 0
+    for b in extra:
+        if add >= total * 0.006:
+            break
+        grown.append(b)
+        add += len(b)
+    assert -(-total // 32768) != -(-(total + add) // 32768)       # the append moves the step
+
+    def swing(trainer) -> float:
+        a, b = _packed(base, trainer(base)), _packed(grown, trainer(grown))
+        return (b - a) / a
+
+    assert swing(_one_offset) > 0.05                                 # the fixture is sharp (old rule: +9%)
+    assert abs(swing(train_zdict)) < 0.03
+    # and best-of-N never packs worse than the offset it replaced
+    assert _packed(base, train_zdict(base)) <= _packed(base, _one_offset(base))
+
+
 # --------------------------------------------------------------------------------------------
 # the live set
 # --------------------------------------------------------------------------------------------
