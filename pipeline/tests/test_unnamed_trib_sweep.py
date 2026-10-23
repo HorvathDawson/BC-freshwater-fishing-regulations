@@ -126,9 +126,20 @@ def test_the_river_through_a_reach_lake_and_a_stem_bounded_at_its_lake():
     # RU-14: the stem a confluence cut pulls in ends at its first lake
     t2 = S.topo_of({1: st(3, "100", "M"), 2: lk(3, "100"), 3: st(1, "100-4", "c")},
                    [(2, 1, "lake_out"), (3, 2, "lake_in")])
-    assert _one(t2, bound({1: {R: "trib"}, 2: {}, 3: {}}, {3}, facts={R: {"stem_ends_at_lake"}})) \
+    assert _one(t2, bound({1: {R: "trib"}, 2: {}, 3: {}}, {3}, stems={R: frozenset({1})})) \
         == "stem_ends_at_lake"
     assert _one(t2, bound({1: {R: "trib"}, 2: {}, 3: {}}, {3})) is None
+
+
+def test_stem_ends_at_lake_explains_only_the_lake_at_the_top_of_the_joining_waters_stem():
+    """Review pin: RU-14 bounds ONE joining water's stem at its first lake. A lake on any OTHER tributary the
+    same rule walks is climbed through, so an inflow there without the rule is a real miss — the rule having
+    a bounded stem somewhere must not launder it."""
+    t2 = S.topo_of({1: st(3, "100", "M"), 2: lk(3, "100"), 3: st(1, "100-4", "c")},
+                   [(2, 1, "lake_out"), (3, 2, "lake_in")])
+    other_stem = bound({1: {R: "trib"}, 2: {}, 3: {}}, {3}, facts={R: {"stem_ends_at_lake"}},
+                       stems={R: frozenset({99})})
+    assert _one(t2, other_stem) is None
 
 
 def test_reasons_are_exactly_the_stops_explain_returns():

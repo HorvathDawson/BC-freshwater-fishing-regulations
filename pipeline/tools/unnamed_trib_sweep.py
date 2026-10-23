@@ -142,6 +142,9 @@ class Bound:
     kinds: Mapping[Rule, frozenset] = field(default_factory=dict)
     #: the unnamed lake and wetland sections
     unnamed_lakes: Set[int] = field(default_factory=set)
+    #: RU-14: the sections of each joining water whose stem a rule's confluence cut bounds at its first
+    #: lake (`confluence_cut` `bounded_at_lake`: its `own_row` entries' items)
+    stems: Mapping[Rule, frozenset] = field(default_factory=dict)
 
 
 def _breaks_strahler(t: Topo, a: int, b: int) -> bool:
@@ -274,7 +277,7 @@ def explain(t: Topo, b: Bound, m: Miss) -> Optional[str]:
     reach_lake = m.lake if m.lake is not None else (m.below if t.kind.get(m.below) == "lake" else None)
     if reach_lake is not None and m.via == "reach" and t.blk.get(m.sid) in _through_blks(t, reach_lake):
         return "through_lake"
-    if m.lake is not None and m.via == "trib" and "stem_ends_at_lake" in facts \
+    if m.lake is not None and m.via == "trib" and m.below in b.stems.get(m.rule, ()) \
             and any(d == m.below and k in MAINSTEM for d, k in t.down.get(m.lake, ())):
         return "stem_ends_at_lake"
     if m.rule in b.limits and m.sid not in b.limits[m.rule]:
@@ -449,6 +452,7 @@ def bound_from(bundle: Path, reach_dir: Path, build: Optional[Path] = None) -> T
             (unnamed if kind[up] == "stream" else lakes).add(sid)
     walking: Dict[Rule, dict] = {}
     facts: Dict[Rule, Set[str]] = collections.defaultdict(set)
+    stem_rows: Dict[Rule, Set[str]] = {}
     for line in (reach_dir / "rule_diagnostic.jsonl").read_text(encoding="utf-8").splitlines():
         d = json.loads(line)
         key, p = (d["entry_id"], d["rule_id"]), json.loads(d["payload"])
@@ -456,18 +460,25 @@ def bound_from(bundle: Path, reach_dir: Path, build: Optional[Path] = None) -> T
             walking[key] = p
         elif d["kind"] == "confluence_cut" and p.get("bounded_at_lake"):
             facts[key].add("stem_ends_at_lake")
+            stem_rows.setdefault(key, set()).update(p.get("own_row") or ())
         elif d["kind"] == "region_clip":
             facts[key].add("region_clip")
     areas, kinds = rule_limits(db)
     limits: Dict[Rule, frozenset] = {}
+    stems: Dict[Rule, frozenset] = {}
     if build is not None:
+        items = {e: json.loads(m or "[]") or ([i] if i else []) for e, i, m in
+                 db.execute("SELECT entry_id, item_id, matched FROM entry")}
+        own = {r: {i for e in es for i in items.get(e, ())} for r, es in stem_rows.items()}
+        water = area_sections(build, {i for v in own.values() for i in v})
+        stems = {r: frozenset().union(*(water[i] for i in v)) for r, v in own.items()}
         wanted = {r: a for r, a in areas.items() if r in walking}
         home = dict(db.execute("SELECT sid, region FROM section_home"))
         members = area_sections(build, {a for v in wanted.values() for a in v}, home)
         limits = {r: frozenset().union(*(members[a] for a in a_s)) for r, a_s in wanted.items()}
     stamps = {k: meta.get(k) for k in ("reach_digest", "section_handles", "rule_ids_sha256")}
     return Bound(rules, unnamed, regions, walking, dict(facts), limits,
-                 {r: k for r, k in kinds.items() if r in walking}, lakes), stamps
+                 {r: k for r, k in kinds.items() if r in walking}, lakes, stems), stamps
 
 
 MU_GROUP = "area:mu_group:"
