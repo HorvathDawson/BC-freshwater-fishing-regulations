@@ -58,22 +58,54 @@ def env(tmp_path_factory):
 
 # --------------------------------------------------------------------------- no process
 
+_SPAWN_MODULES = ("subprocess", "multiprocessing", "pty")
+_SPAWN_CALLS = ("system", "popen", "spawnv", "spawnl", "spawnlp", "spawnvp", "execv", "execvp",
+                "execl", "execlp", "fork", "posix_spawn", "posix_spawnp",
+                "create_subprocess_exec", "create_subprocess_shell")
+
+
+def _spawners(src: str, name: str) -> list[str]:
+    """Every way `src` could start a process: a spawning module imported, an `os`/`asyncio`
+    spawn called by attribute, or one imported by name (`from os import system`)."""
+    out = []
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Import):
+            out += [f"{name}: import {a.name}" for a in node.names
+                    if a.name.split(".")[0] in _SPAWN_MODULES]
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            if mod.split(".")[0] in _SPAWN_MODULES:
+                out.append(f"{name}: import {mod}")
+            elif mod in ("os", "asyncio"):
+                out += [f"{name}: from {mod} import {a.name}" for a in node.names
+                        if a.name in _SPAWN_CALLS]
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) \
+                and node.value.id in ("os", "asyncio") and node.attr in _SPAWN_CALLS:
+            out.append(f"{name}: {node.value.id}.{node.attr}")
+    return out
+
+
+@pytest.mark.parametrize("src,found", [
+    ("import subprocess", ["m.py: import subprocess"]),
+    ("from multiprocessing import Process", ["m.py: import multiprocessing"]),
+    ("import os\nos.system('x')", ["m.py: os.system"]),
+    ("from os import system", ["m.py: from os import system"]),
+    ("import asyncio\nasyncio.create_subprocess_exec('x')", ["m.py: asyncio.create_subprocess_exec"]),
+    ("from asyncio import create_subprocess_shell", ["m.py: from asyncio import create_subprocess_shell"]),
+    ("import os\nos.path.join('a')\nfrom os import environ", []),
+])
+def test_the_process_detector_sees_every_spawn(src, found):
+    """The detector `test_no_endpoint_starts_a_process` relies on is not a tautology: it names each
+    spawning form, and nothing harmless."""
+    assert _spawners(src, "m.py") == found
+
+
 def test_no_endpoint_starts_a_process(env):
     """No route rebuilds or promotes, and no backend module can spawn a process."""
     paths = sorted(r.path for r in env["app"].app.routes if r.path.startswith("/api/"))
     assert [p for p in paths if "rebuild" in p or "promote" in p] == []
-    spawners = []
-    for py in sorted(BACKEND.glob("*.py")):
-        tree = ast.parse(py.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            names = ([a.name for a in node.names] if isinstance(node, ast.Import)
-                     else [node.module or ""] if isinstance(node, ast.ImportFrom) else [])
-            spawners += [f"{py.name}: import {n}" for n in names
-                         if n.split(".")[0] in ("subprocess", "multiprocessing", "pty")]
-            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) \
-                    and node.value.id == "os" and node.attr in (
-                        "system", "popen", "spawnv", "spawnl", "execv", "execvp", "fork"):
-                spawners.append(f"{py.name}: os.{node.attr}")
+    spawners = [x for py in sorted(BACKEND.glob("*.py"))
+                for x in _spawners(py.read_text(encoding="utf-8"), py.name)]
     assert spawners == []
     assert not (BACKEND / "rebuild.py").exists()
     assert not (TOOL / "frontend" / "src" / "components" / "RebuildButton.tsx").exists()
