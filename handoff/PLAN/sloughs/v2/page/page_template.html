@@ -1,0 +1,514 @@
+<title>Slough and Canal Candidates</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Bitter:wght@600;700&display=swap">
+<style>
+/* Layout: a working list. Tabs for candidates / complexes / spot check; sticky filter bar; one column of cards, outline thumbnail on the left. */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --ink:#1b2622; --muted:#5d6b66; --line:#d9e0dd;
+  --accent:#1f6f8b; --accent-ink:#ffffff;
+  --water:#3a8fb7; --water-fill:#cfe6f1;
+  --c-book:#1f7a4d; --c-likely:#5b8a2d; --c-unsure:#9a6b12; --c-lake:#6b6f8a; --c-nfw:#7a4a3a;
+  --v-yes:#1f7a4d; --v-no:#a33b2b; --v-unsure:#9a6b12;
+  --display:"Bitter", Georgia, serif; --body:"IBM Plex Sans", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --panel:#1a2320; --ink:#e3ebe8; --muted:#97a8a2; --line:#2c3935;
+  --accent:#5fb3d3; --accent-ink:#0d1513; --water:#6bb7dc; --water-fill:#1d3a47;
+  --c-book:#5cc58f; --c-likely:#9cc76a; --c-unsure:#e0b05a; --c-lake:#a3a7c4; --c-nfw:#d39a84;
+  --v-yes:#5cc58f; --v-no:#ef7a68; --v-unsure:#e0b05a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --panel:#1a2320; --ink:#e3ebe8; --muted:#97a8a2; --line:#2c3935;
+  --accent:#5fb3d3; --accent-ink:#0d1513; --water:#6bb7dc; --water-fill:#1d3a47;
+  --c-book:#5cc58f; --c-likely:#9cc76a; --c-unsure:#e0b05a; --c-lake:#a3a7c4; --c-nfw:#d39a84;
+  --v-yes:#5cc58f; --v-no:#ef7a68; --v-unsure:#e0b05a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1{font:700 1.7rem/1.2 var(--display);margin:0 0 6px;text-wrap:balance}
+h2{font:700 1.2rem/1.3 var(--display);margin:18px 0 6px}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 14px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);margin:0 0 14px}
+.tab{border:0;background:transparent;color:var(--muted);font:600 14.5px var(--body);padding:8px 12px;border-bottom:3px solid transparent;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.count{display:flex;gap:6px;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-variant-numeric:tabular-nums}
+.count b{font-weight:600}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 11px;font:500 13px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+select,input[type=search]{font:14px var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
+input[type=search]{flex:1 1 180px;min-width:0}
+.status{color:var(--muted);font-size:13px;margin:10px 0}
+.list{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+@media (max-width:560px){.card{grid-template-columns:minmax(0,1fr)}}
+.thumb{width:132px;height:132px;max-width:100%;background:var(--bg);border-radius:6px}
+.thumb polygon{fill:var(--water-fill);stroke:var(--water);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.thumb polyline{fill:none;stroke:var(--water);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.head{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.title{font:600 1.05rem var(--body);overflow-wrap:anywhere}
+.cls{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 6px;color:var(--panel);white-space:nowrap}
+.cls.STREAM_BY_BOOK{background:var(--c-book)} .cls.LIKELY_STREAM{background:var(--c-likely)} .cls.UNSURE{background:var(--c-unsure)} .cls.LAKE{background:var(--c-lake)} .cls.NOT_FISHING_WATER{background:var(--c-nfw)}
+.was{font-size:13px;color:var(--muted)}
+.meta{color:var(--muted);font:13px var(--mono);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 8px;overflow-wrap:anywhere}
+.why{margin:0 0 6px}
+.facts{margin:0 0 6px;padding:0;list-style:none;font-size:13.5px;display:grid;gap:2px}
+.facts b{font-weight:600}
+.flag{font-size:13.5px;margin:4px 0;padding:6px 10px;border-radius:6px;background:var(--bg);border-left:3px solid var(--c-unsure)}
+.flag.nfw{border-left-color:var(--c-nfw)}
+details{font-size:13.5px;color:var(--muted);margin:4px 0}
+details summary{cursor:pointer;color:var(--ink)}
+details ul{margin:6px 0 0;padding-left:18px}
+.entry{font-size:13.5px;margin:6px 0 0;padding:8px 10px;border-left:3px solid var(--line);background:var(--bg);border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+.entry code{font:12px var(--mono)}
+code{overflow-wrap:anywhere}
+.links{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;margin:8px 0}
+.links a{color:var(--accent)}
+.verdict{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.vb{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 12px;font:500 13.5px var(--body);cursor:pointer}
+.vb[aria-pressed="true"][data-v="stream"]{background:var(--v-yes);border-color:var(--v-yes);color:var(--panel)}
+.vb[aria-pressed="true"][data-v="not_stream"]{background:var(--v-no);border-color:var(--v-no);color:var(--panel)}
+.vb[aria-pressed="true"][data-v="unsure"]{background:var(--v-unsure);border-color:var(--v-unsure);color:var(--panel)}
+.vb[data-suggest="true"]{border-style:dashed;border-color:var(--accent)}
+.vb:disabled{opacity:.6;cursor:progress}
+.note{flex:1 1 200px;min-width:0;font:13.5px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.saved{font-size:12px;color:var(--muted)}
+.more{display:block;margin:16px auto 0;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:8px;padding:8px 16px;font:500 14px var(--body);cursor:pointer}
+.notice{background:var(--panel);border:1px solid var(--c-unsure);border-radius:8px;padding:8px 12px;font-size:13.5px;margin:0 0 12px}
+.state{font-size:13px;font-weight:500;margin:4px 0}
+.state.ok{color:var(--v-yes)} .state.bad{color:var(--v-no)}
+.pieces{display:grid;gap:10px;margin-top:10px}
+.pieces .card{background:var(--bg)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin:0 0 14px}
+.panel p{margin:0 0 8px;max-width:72ch}
+.tblwrap{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <h1>Slough and Canal Candidates</h1>
+  <p class="lede">Lake and wetland polygons that may be streams by the book: sloughs, canals, side channels and river pieces drawn as polygons. Second sweep: classes revised with FWA feature codes, the lines inside each polygon and your first marks. A confirmed stream gets its stream's regulations and gauges. Your marks are saved for the next step.</p>
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button class="tab" role="tab" id="tab-cand" aria-controls="view-cand" aria-selected="true" data-view="cand">Candidates</button>
+    <button class="tab" role="tab" id="tab-cx" aria-controls="view-cx" aria-selected="false" data-view="cx">Complexes</button>
+    <button class="tab" role="tab" id="tab-spot" aria-controls="view-spot" aria-selected="false" data-view="spot">Spot check</button>
+  </div>
+  <div class="notice" id="notice" hidden></div>
+
+  <section id="view-cand" role="tabpanel" aria-labelledby="tab-cand">
+    <div class="counts" id="counts"></div>
+    <div class="bar" role="toolbar" aria-label="Filters">
+      <button class="chip" data-c="STREAM_BY_BOOK" aria-pressed="true">Stream by book</button>
+      <button class="chip" data-c="LIKELY_STREAM" aria-pressed="true">Likely stream</button>
+      <button class="chip" data-c="UNSURE" aria-pressed="false">Unsure</button>
+      <button class="chip" data-c="LAKE" aria-pressed="false">Lake (control)</button>
+      <button class="chip" data-c="NOT_FISHING_WATER" aria-pressed="false">Not fishing water</button>
+      <select id="region" aria-label="Region"><option value="">All regions</option></select>
+      <select id="marked" aria-label="Marked"><option value="">Unmarked first</option><option value="un">Unmarked only</option><option value="done">Marked only</option></select>
+      <input type="search" id="q" placeholder="Search a name, stream or id" aria-label="Search">
+    </div>
+    <p class="status" id="status"></p>
+    <div class="list" id="list"></div>
+    <button class="more" id="more" hidden>Show more</button>
+  </section>
+
+  <section id="view-cx" role="tabpanel" aria-labelledby="tab-cx" hidden>
+    <div class="panel" id="cx-intro"></div>
+    <div class="bar" role="toolbar" aria-label="Complex filters">
+      <select id="cx-region" aria-label="Region"><option value="">All regions</option></select>
+      <select id="cx-marked" aria-label="Marked"><option value="">Unmarked first</option><option value="un">With unmarked pieces</option><option value="done">Fully marked</option><option value="mixed">Mixed marks</option></select>
+      <input type="search" id="cx-q" placeholder="Search a river or id" aria-label="Search complexes">
+    </div>
+    <p class="status" id="cx-status"></p>
+    <div class="list" id="cx-list"></div>
+    <button class="more" id="cx-more" hidden>Show more</button>
+  </section>
+
+  <section id="view-spot" role="tabpanel" aria-labelledby="tab-spot" hidden>
+    <div class="panel" id="spot-intro"></div>
+    <div class="bar" role="toolbar" aria-label="Spot check filters">
+      <button class="chip sp" data-g="a" aria-pressed="true">(a) on a course</button>
+      <button class="chip sp" data-g="b" aria-pressed="true">(b) isolated</button>
+      <select id="sp-marked" aria-label="Marked"><option value="">Unmarked first</option><option value="un">Unmarked only</option><option value="done">Marked only</option></select>
+    </div>
+    <p class="status" id="sp-status"></p>
+    <div class="list" id="sp-list"></div>
+  </section>
+</div>
+
+<script>
+const P = /*__DATA__*/null;
+const DATA = P.rows, ENTRIES = P.entries, CX = P.complexes, SPOT = P.spot;
+const CLS = {STREAM_BY_BOOK:"Stream by book",LIKELY_STREAM:"Likely stream",UNSURE:"Unsure",LAKE:"Lake (control)",NOT_FISHING_WATER:"Not fishing water"};
+const VLAB = {stream:"Stream by the book",not_stream:"Not a stream",unsure:"Unsure"};
+const SLAB = {stream:"Not a lake (river or slough)",not_stream:"A lake or pond",unsure:"Unsure"};
+const RULES = {R0:"sewage basin, tailing pond or dump",R1:"part of a named lake",R2:"behind a dam or a reservoir",R3:"lake arm only",R4:"soft lake code on a river",R5:"secondary-flow line inside",R6:"narrow named river",R7:"canal or named ditch"};
+const marks = {};           // candidate id -> {verdict, note}   (collection "verdicts")
+const smarks = {};          // polygon id -> {verdict, note}      (collection "spotcheck")
+const BYID = Object.fromEntries(DATA.map((r) => [r.i, r]));
+const CXOF = {}; CX.forEach((c) => c.p.forEach((id) => { CXOF[id] = c; }));
+let db = null, me = null, view = "cand";
+const shown = {cand: 40, cx: 30};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ruleWord = (id) => { const k = String(id).split("-")[0]; return RULES[k] ? `${k} ${RULES[k]}` : id; };
+const fmtHa = (a) => a != null ? (a / 10000).toFixed(a < 10000 ? 2 : 1) + " ha" : "";
+
+// outlines are delta-encoded 1e-5 degree integers: [lon0, lat0, dlon, dlat, ...]
+const decCache = new Map();
+function dec(o) {
+  if (!o || !o.length) return [];
+  if (decCache.has(o)) return decCache.get(o);
+  const pts = []; let x = 0, y = 0;
+  for (let i = 0; i + 1 < o.length; i += 2) { x += o[i]; y += o[i + 1]; pts.push([x / 1e5, y / 1e5]); }
+  decCache.set(o, pts); return pts;
+}
+
+// one or many outlines in a shared frame; lines (ditches) draw as polylines
+function thumb(shapes, lat, label) {
+  const all = shapes.map((s) => ({pts: dec(s.o), line: !!s.line})).filter((s) => s.pts.length >= 2);
+  if (!all.length) return '<svg class="thumb" viewBox="0 0 10 10" aria-hidden="true"></svg>';
+  const k = Math.cos(lat * Math.PI / 180);
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  all.forEach((s) => s.pts.forEach((p) => { const X = p[0] * k, Y = -p[1]; x0 = Math.min(x0, X); x1 = Math.max(x1, X); y0 = Math.min(y0, Y); y1 = Math.max(y1, Y); }));
+  const s = Math.max(x1 - x0, y1 - y0) || 1e-6, pad = s * 0.08;
+  const body = all.map((sh) => {
+    const pts = sh.pts.map((p) => `${(p[0] * k - x0 + pad).toFixed(7)},${(-p[1] - y0 + pad).toFixed(7)}`).join(" ");
+    return sh.line || sh.pts.length < 3 ? `<polyline points="${pts}"/>` : `<polygon points="${pts}"/>`;
+  }).join("");
+  return `<svg class="thumb" viewBox="0 0 ${(s + 2 * pad).toFixed(7)} ${(s + 2 * pad).toFixed(7)}" role="img" aria-label="${esc(label || "Polygon outline")}">${body}</svg>`;
+}
+
+const sortUnmarked = (rows, store, key) => rows.map((r, n) => [r, n]).sort((a, b) => ((store[key(a[0])]?.verdict ? 1 : 0) - (store[key(b[0])]?.verdict ? 1 : 0)) || a[1] - b[1]).map((x) => x[0]);
+
+/* ------------------------------------------------------------ candidates */
+function filtered() {
+  const on = new Set([...document.querySelectorAll("#view-cand .chip")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.c));
+  const reg = $("#region").value, mk = $("#marked").value, q = $("#q").value.trim().toLowerCase();
+  const rows = DATA.filter((r) => (on.has(r.c) || !!marks[r.i]?.verdict || !!marks[r.i]?.note) && (!reg || r.g === reg)
+    && (!mk || (mk === "un" ? !marks[r.i]?.verdict : !!marks[r.i]?.verdict))
+    && (!q || r.i.includes(q) || r.n.toLowerCase().includes(q) || r.s.toLowerCase().includes(q) || (r.sn || "").toLowerCase().includes(q)));
+  return mk ? rows : sortUnmarked(rows, marks, (r) => r.i);
+}
+
+function verdictRow(id, m, labels, coll) {
+  return `<div class="verdict">
+        ${Object.entries(labels).map(([v, l]) => `<button class="vb" data-v="${v}" aria-pressed="${m.verdict === v}">${l}</button>`).join("")}
+        <input class="note" id="note-${coll}-${esc(id)}" placeholder="Note (optional)" value="${esc(m.note || "")}" aria-label="Note for ${esc(id)}">
+        <span class="saved" data-saved>${m.verdict ? "Saved" : ""}</span>
+      </div>`;
+}
+
+function card(r) {
+  const m = marks[r.i] || {};
+  const ha = fmtHa(r.a);
+  const title = r.n || (r.k === "line" ? `${r.s} (ditch line)` : r.s ? `Polygon on ${r.s}` : "Unnamed polygon");
+  const ents = r.ce.map((id) => ({id, ...(ENTRIES[id] || {})}));
+  const entries = ents.map((e) => `<div class="entry"><code>${esc(e.id)}</code>${e.p && e.p.length ? ` · p.${esc(e.p.join(", "))}` : ""}<br>${esc(e.v)}</div>`).join("");
+  const facts = [
+    r.fc ? `<li><b>FWA code:</b> ${esc(r.fc)}</li>` : "",
+    r.lc && r.lc.length ? `<li><b>Lines inside:</b> ${esc(r.lc.join(" · "))}</li>` : "",
+    r.sn ? `<li><b>Suggested name:</b> ${esc(r.sn)}</li>` : "",
+    r.re ? `<li><b>River entry at this piece:</b> <code>${esc(r.re.join(", "))}</code></li>` : "",
+    r.ru && r.ru.length ? `<li><b>Rules:</b> ${esc(r.ru.map(ruleWord).join(" · "))}</li>` : "",
+  ].join("");
+  const cx = CXOF[r.i];
+  return `<article class="card" data-id="${esc(r.i)}" data-coll="verdicts">
+    ${thumb([{o: r.o, line: r.k === "line"}], r.la, "Outline of " + title)}
+    <div style="min-width:0">
+      <div class="head"><span class="title">${esc(title)}</span><span class="cls ${r.c}">${CLS[r.c]}</span>${r.c1 ? `<span class="was">was ${esc(CLS[r.c1] || r.c1)} → ${esc((r.ru || []).map(ruleWord).join(", ") || "your mark")}</span>` : ""}</div>
+      <div class="meta"><span>wbk ${esc(r.i)}</span><span>Region ${esc(r.g)} · MU ${esc(r.m)}</span>${ha ? `<span>${ha}</span>` : ""}${r.w != null ? `<span>~${Math.round(r.w)} m wide</span>` : ""}${r.e != null ? `<span>elongation ${r.e}</span>` : ""}</div>
+      ${r.s ? `<div class="meta"><span>on ${esc(r.s)}${r.si ? ` (${esc(r.si)})` : ""}</span><span>its regulations reach this polygon today: ${r.rt ? "yes" : "no"}</span>${cx ? `<span>in complex ${esc(cx.id)} (${cx.p.length} pieces)</span>` : ""}</div>` : ""}
+      ${r.why.map((w) => `<p class="why">${esc(w)}</p>`).join("")}
+      ${facts ? `<ul class="facts">${facts}</ul>` : ""}
+      ${r.dr ? `<p class="flag nfw">Not a fishing water. ${esc(r.dr)}</p>` : ""}
+      ${r.dam ? `<p class="flag">Dam or reservoir: ${esc(r.dam)}</p>` : ""}
+      ${r.pl ? `<p class="flag">Part of a named lake: ${esc(r.pl)}</p>` : ""}
+      ${r.ev.length ? `<details><summary>Evidence</summary><ul>${r.ev.map((e) => `<li>${esc(e)}</li>`).join("")}</ul></details>` : ""}
+      ${entries ? `<details><summary>The book (${ents.length})</summary>${entries}${r.miss.length ? `<p>Not reaching this polygon today: <code>${esc(r.miss.join(", "))}</code></p>` : ""}</details>` : ""}
+      <div class="links"><a href="https://www.google.com/maps/@${r.la},${r.lo},16z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite</a><a href="https://www.openstreetmap.org/?mlat=${r.la}&mlon=${r.lo}#map=15/${r.la}/${r.lo}" target="_blank" rel="noopener">OpenStreetMap</a><span class="saved">${r.la}, ${r.lo}</span></div>
+      ${verdictRow(r.i, m, VLAB, "verdicts")}
+    </div></article>`;
+}
+
+function renderCand() {
+  const rows = filtered();
+  $("#list").innerHTML = rows.slice(0, shown.cand).map(card).join("");
+  $("#more").hidden = rows.length <= shown.cand;
+  const done = DATA.filter((r) => marks[r.i]?.verdict).length;
+  $("#status").textContent = `Showing ${Math.min(shown.cand, rows.length)} of ${rows.length} matching · ${done} of ${DATA.length} marked`;
+}
+
+function counts() {
+  const by = {}; DATA.forEach((r) => { by[r.c] = (by[r.c] || 0) + 1; });
+  $("#counts").innerHTML = Object.keys(CLS).map((c) => `<span class="count"><span class="cls ${c}">${CLS[c]}</span><b>${by[c] || 0}</b></span>`).join("");
+  const regs = [...new Set(DATA.map((r) => r.g))].sort();
+  for (const sel of ["#region", "#cx-region"]) regs.forEach((g) => { const o = document.createElement("option"); o.value = g; o.textContent = "Region " + g; $(sel).appendChild(o); });
+}
+
+/* ------------------------------------------------------------ complexes */
+const ownTag = (cx) => `complex:${cx.id}`;
+// a piece the complex may write: no mark at all, or a mark this complex wrote (note starts with its tag)
+const tagged = (note, tag) => { const n = note || ""; return n === tag || n.startsWith(tag + " "); };
+const cxOwned = (cx, id) => { const m = marks[id]; return !m || (!m.verdict && !m.note) || tagged(m.note, ownTag(cx)); };
+// the note typed on the complex, read back from the pieces it wrote (so a re-render keeps it and a re-click does not drop it)
+const cxNote = (cx) => { for (const id of cx.p) { const n = marks[id]?.note || ""; if (tagged(n, ownTag(cx))) return n.slice(ownTag(cx).length).trim(); } return ""; };
+const groupMsg = {};   // card id -> last group-save message, kept across snapshot re-renders
+function cxState(cx) {
+  const own = cx.p.filter((id) => marks[id]?.verdict && !cxOwned(cx, id)).map((id) => marks[id].verdict);
+  const all = cx.p.map((id) => marks[id]?.verdict || null);
+  const unmarked = all.filter((v) => !v).length;
+  const set = new Set(own);
+  const agreed = set.size === 1 ? own[0] : null;
+  const full = all.every((v) => v) && new Set(all).size === 1 ? all[0] : null;
+  const writable = cx.p.filter((id) => !marks[id]?.verdict && cxOwned(cx, id)).length;
+  return {own: own.length, unmarked, writable, agreed, mixed: set.size > 1, full};
+}
+
+function cxFiltered() {
+  const reg = $("#cx-region").value, mk = $("#cx-marked").value, q = $("#cx-q").value.trim().toLowerCase();
+  const rows = CX.filter((c) => {
+    if (reg && c.g !== reg) return false;
+    if (q && !(c.id.includes(q) || c.n.toLowerCase().includes(q) || c.s.toLowerCase().includes(q) || c.p.some((id) => id.includes(q)))) return false;
+    if (!mk) return true;
+    const st = cxState(c);
+    return mk === "un" ? st.unmarked > 0 : mk === "done" ? st.unmarked === 0 : st.mixed;
+  });
+  if (mk) return rows;
+  return rows.map((c, n) => [c, n]).sort((a, b) => ((cxState(a[0]).unmarked ? 0 : 1) - (cxState(b[0]).unmarked ? 0 : 1)) || a[1] - b[1]).map((x) => x[0]);
+}
+
+function cxCard(c) {
+  const st = cxState(c);
+  const lat = c.la;
+  const big = c.p.map((id) => BYID[id]).filter(Boolean).reduce((m, r) => (!m || (r.a || 0) > (m.a || 0) ? r : m), null);
+  const shapes = c.p.map((id) => ({o: BYID[id]?.o}));
+  const cls = Object.entries(c.cl).map(([k, n]) => `<span class="cls ${k}">${CLS[k]} ${n}</span>`).join(" ");
+  const stateLine = st.mixed ? `<p class="state bad">Mixed marks — check the grouping (${st.own} pieces marked by you disagree).</p>`
+    : st.agreed ? `<p class="state ok">Pre-filled from your marks: ${esc(VLAB[st.agreed])} (${st.own} of ${c.p.length} pieces).${st.writable ? ` Pressing it marks the ${st.writable} unmarked.` : ""}</p>` : "";
+  const sub = st.unmarked ? `${st.unmarked} of ${c.p.length} pieces unmarked` : `all ${c.p.length} pieces marked`;
+  return `<article class="card" data-cx="${esc(c.id)}">
+    ${thumb(shapes, lat, `Outlines of the ${c.p.length} pieces of ${c.n}`)}
+    <div style="min-width:0">
+      <div class="head"><span class="title">${esc(c.n)}</span><span class="was">${c.p.length} pieces · ${fmtHa(c.a)}</span></div>
+      <div class="meta"><span>${esc(c.id)}</span><span>Region ${esc(c.g)} · MU ${esc(c.mu)}</span><span>on ${esc(c.s)} (${esc(c.si)})</span></div>
+      <p class="why">${cls}</p>
+      ${big && big.a / (c.a || 1) >= 0.5 ? `<p class="saved">Largest piece: wbk ${esc(big.i)}, ${fmtHa(big.a)} (${Math.round(100 * big.a / (c.a || 1))}% of the area), ${esc(big.fc || "no FWA code")}, ${esc(CLS[big.c] || big.c)}.</p>` : ""}
+      ${stateLine}
+      <p class="saved">${sub}. One mark here sets every unmarked piece; pieces you marked yourself are never changed.</p>
+      <div class="links"><a href="https://www.google.com/maps/@${c.la},${c.lo},15z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite</a><a href="https://www.openstreetmap.org/?mlat=${c.la}&mlon=${c.lo}#map=14/${c.la}/${c.lo}" target="_blank" rel="noopener">OpenStreetMap</a><span class="saved">${c.la}, ${c.lo}</span></div>
+      <div class="verdict">
+        ${Object.entries(VLAB).map(([v, l]) => `<button class="vb cvb" data-v="${v}" aria-pressed="${st.full === v}" data-suggest="${!st.full && st.agreed === v}">${l} (all)</button>`).join("")}
+        <input class="cnote" value="${esc(cxNote(c))}" placeholder="Note for the complex (optional)" aria-label="Note for complex ${esc(c.id)}" style="flex:1 1 200px;min-width:0;font:13.5px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px">
+        <span class="saved" data-cxsaved>${esc(groupMsg[c.id] || "")}</span>
+      </div>
+      <details class="cxd"><summary>Pieces (${c.p.length}) — flip single ones</summary><div class="pieces"></div></details>
+    </div></article>`;
+}
+
+function renderCx() {
+  const rows = cxFiltered();
+  $("#cx-list").innerHTML = rows.slice(0, shown.cx).map(cxCard).join("");
+  $("#cx-more").hidden = rows.length <= shown.cx;
+  const pieces = CX.reduce((n, c) => n + c.p.length, 0);
+  const done = CX.filter((c) => cxState(c).unmarked === 0).length;
+  $("#cx-status").textContent = `Showing ${Math.min(shown.cx, rows.length)} of ${rows.length} matching · ${CX.length} complexes, ${pieces} pieces · ${done} fully marked`;
+}
+
+function cxIntro() {
+  const r = P.cxrule, pieces = CX.reduce((n, c) => n + c.p.length, 0);
+  $("#cx-intro").innerHTML = `<p><b>${CX.length} complexes, ${pieces} pieces.</b> A complex is candidates on the same river (stream item) in the same region that are physically connected: their full FWA outlines touch (within ${r.touch_m} m), or lie within ${r.gap_m} m of each other with the river's own line passing within ${r.gap_m} m of the gap. Only ${r.classes.map((c) => CLS[c]).join(", ")} pieces are grouped; lake controls and not-fishing water are left out.</p>
+  <p>One mark on a complex writes the same per-piece mark as the Candidates tab for every piece with no mark yet, with the note <code>complex:&lt;id&gt;</code> plus yours. Pieces you marked yourself always win. Open "Pieces" to flip one; a flipped piece keeps your choice from then on.</p>`;
+}
+
+/* ------------------------------------------------------------ spot check */
+const SPMAP = {}; SPOT.items.forEach((it) => it.p.forEach((p) => { SPMAP[p.i] = {it, p}; }));
+const spTag = (it) => `sample:${it.id}`;
+const spOwned = (it, id) => { const m = smarks[id]; return !m || (!m.verdict && !m.note) || tagged(m.note, spTag(it)); };
+function spState(it) {
+  const all = it.p.map((p) => smarks[p.i]?.verdict || null);
+  return {unmarked: all.filter((v) => !v).length, full: all.every((v) => v) && new Set(all).size === 1 ? all[0] : null, mixed: new Set(all.filter(Boolean)).size > 1};
+}
+function spIntro() {
+  const s = SPOT.summary, g = s.groups, regs = Object.entries(s.by_region.a).sort((a, b) => b[1] - a[1]);
+  const R = ["1", "2", "3", "4", "5", "6", "7a", "7b", "8"];
+  const row = (k, lab) => `<tr><td>${lab}</td><td>${(g[k] || 0).toLocaleString()}</td>${R.map((r) => `<td>${(s.by_region[k][r] || 0).toLocaleString()}</td>`).join("")}</tr>`;
+  $("#spot-intro").innerHTML = `<p><b>Lake–Intermittent polygons (FWA GB15300140): ${s.total.toLocaleString()} province-wide</b>, all drawn as lakes today. Split three ways:</p>
+  <div class="tblwrap"><table><thead><tr><th>group</th><th>all</th>${R.map((r) => `<th>R${r}</th>`).join("")}</tr></thead><tbody>
+  ${row("a", "(a) on a river's course")}${row("b", "(b) isolated")}${row("c", "(c) named lakes")}</tbody></table></div>
+  <p>(a) unnamed, with a named river's main flow through it (${s.a_kind["named main flow through"]}; all of them are already in the Candidates tab) or two or more stream lines ending on its edge, a stream in and a stream out (${s.a_kind["stream in and out"].toLocaleString()}). (b) unnamed, with no stream line touching it (${s.b_kind.b0.toLocaleString()}) or one, a headwater or sink pond (${s.b_kind.b1.toLocaleString()}). (c) an FWA name or a lake item; these stay lakes.</p>
+  <p><b>What "fold group (a)" would mean:</b> ${g.a.toLocaleString()} polygons (${s.a_area_ha.toLocaleString()} ha, median ${(s.a_median_m2 / 10000).toFixed(2)} ha) would stop being lake water under their region's lake rules and become stream water of the river through them: the named river's own entry where there is one, the region's stream rules for the unnamed creeks (most of them). By region: ${regs.map(([r, n]) => `R${r} ${n.toLocaleString()}`).join(", ")}. ${s.a_cand} are already candidates; ${s.a_rule_entries} carry a water rule of their own. Nothing changes from this page: the go is yours by message, and a dry run with counts and examples comes first.</p>
+  <p><b>The sample:</b> ${SPOT.items.filter((i) => i.grp === "a").length} group (a) picks stratified by region (at least 2 each, the rest by share) and by size (small under ${(s.bands_m2[0] / 10000).toFixed(2)} ha, medium to ${(s.bands_m2[1] / 10000).toFixed(2)} ha, large above), drawn from those not already candidates, each shown with the (a) polygons joined to it (touching, or within 150 m with a stream line near the gap); plus ${SPOT.items.filter((i) => i.grp === "b").length} group (b) picks (6 with no stream touching, 4 with one). Marks go to a separate list (<code>spotcheck</code>) and never mix with the candidate marks.</p>`;
+}
+function spCard(it) {
+  const st = spState(it), p0 = it.p[0];
+  const lines = [...new Set(it.p.flatMap((p) => p.lc))];
+  const touch = it.grp === "a" ? `${p0.no} stream line${p0.no === 1 ? "" : "s"} end on its edge${p0.on ? ` (${esc(p0.on)})` : " (unnamed)"}` : p0.no ? `1 stream line ends on its edge${p0.on ? ` (${esc(p0.on)})` : ""}: a headwater or sink pond` : "no stream line touches it";
+  const fwa = `https://openmaps.gov.bc.ca/geo/pub/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=WHSE_BASEMAPPING.FWA_LAKES_POLY&outputFormat=application%2Fjson&CQL_FILTER=WATERBODY_KEY%3D${p0.i}`;
+  const multi = it.p.length > 1;
+  return `<article class="card" ${multi ? `data-sp="${esc(it.id)}"` : `data-id="${esc(p0.i)}" data-coll="spotcheck"`}>
+    ${thumb(it.p.map((p) => ({o: p.o})), p0.la, multi ? `Outlines of ${it.p.length} intermittent polygons` : "Polygon outline")}
+    <div style="min-width:0">
+      <div class="head"><span class="title">${it.grp === "a" ? "(a) on a course" : "(b) isolated"}${multi ? ` · ${it.p.length} polygons` : ""}</span><span class="was">Region ${esc(it.g)} · ${esc(it.band)} · ${fmtHa(it.a)}</span></div>
+      <div class="meta"><span>wbk ${esc(p0.i)}${multi ? ` + ${it.p.length - 1}` : ""}</span><span>MU ${esc(p0.m)}</span>${p0.e != null ? `<span>elongation ${p0.e}</span>` : ""}</div>
+      <ul class="facts"><li><b>FWA code:</b> Lake-Intermittent (GB15300140)</li><li><b>Lines inside:</b> ${esc(lines.join(" · ") || "none")}</li><li><b>Edge:</b> ${touch}</li></ul>
+      <div class="links"><a href="https://www.google.com/maps/@${p0.la},${p0.lo},17z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite</a><a href="https://www.openstreetmap.org/?mlat=${p0.la}&mlon=${p0.lo}#map=16/${p0.la}/${p0.lo}" target="_blank" rel="noopener">OpenStreetMap</a><a href="${fwa}" target="_blank" rel="noopener">FWA record</a><span class="saved">${p0.la}, ${p0.lo}</span></div>
+      ${multi ? `<div class="verdict">${Object.entries(SLAB).map(([v, l]) => `<button class="vb svb" data-v="${v}" aria-pressed="${st.full === v}">${l} (all)</button>`).join("")}<span class="saved" data-cxsaved>${groupMsg[it.id] ? esc(groupMsg[it.id]) + " · " : ""}${st.mixed ? "mixed marks" : st.unmarked ? `${st.unmarked} of ${it.p.length} unmarked` : "Saved"}</span></div>
+      <details class="spd"><summary>Polygons (${it.p.length}) — flip single ones</summary><div class="pieces"></div></details>`
+      : verdictRow(p0.i, smarks[p0.i] || {}, SLAB, "spotcheck")}
+    </div></article>`;
+}
+function spPiece(p) {
+  return `<article class="card" data-id="${esc(p.i)}" data-coll="spotcheck">${thumb([{o: p.o}], p.la, "Polygon outline")}<div style="min-width:0">
+    <div class="head"><span class="title">wbk ${esc(p.i)}</span><span class="was">${fmtHa(p.a)}</span></div>
+    <ul class="facts"><li><b>Lines inside:</b> ${esc(p.lc.join(" · ") || "none")}</li></ul>
+    <div class="links"><a href="https://www.google.com/maps/@${p.la},${p.lo},17z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite</a><span class="saved">${p.la}, ${p.lo}</span></div>
+    ${verdictRow(p.i, smarks[p.i] || {}, SLAB, "spotcheck")}</div></article>`;
+}
+function renderSpot() {
+  const on = new Set([...document.querySelectorAll(".chip.sp")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.g));
+  const mk = $("#sp-marked").value;
+  let rows = SPOT.items.filter((it) => on.has(it.grp) && (!mk || (mk === "un" ? spState(it).unmarked > 0 : spState(it).unmarked === 0)));
+  if (!mk) rows = rows.map((r, n) => [r, n]).sort((a, b) => ((spState(a[0]).unmarked ? 0 : 1) - (spState(b[0]).unmarked ? 0 : 1)) || a[1] - b[1]).map((x) => x[0]);
+  $("#sp-list").innerHTML = rows.map(spCard).join("");
+  const done = SPOT.items.filter((it) => spState(it).unmarked === 0).length;
+  $("#sp-status").textContent = `${rows.length} samples shown · ${done} of ${SPOT.items.length} fully marked`;
+}
+
+/* ------------------------------------------------------------ saving */
+const STORES = {verdicts: marks, spotcheck: smarks};
+const LSKEY = {verdicts: "slough-marks", spotcheck: "slough-spotcheck"};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function write(coll, id) {
+  const store = STORES[coll];
+  const body = { verdict: store[id].verdict || null, note: store[id].note || "", by: me, at: new Date().toISOString() };
+  try { await db.collection(coll).doc(id).set(body); }
+  catch (e) {
+    if (e?.code === "resource_exhausted" || e?.code === "unavailable") { await sleep(1200 + Math.random() * 800); await db.collection(coll).doc(id).set(body); }
+    else throw e;
+  }
+}
+async function save(coll, id, patch, el) {
+  const store = STORES[coll];
+  store[id] = { ...(store[id] || {}), ...patch };
+  const tag = el?.closest(".card")?.querySelector("[data-saved]");
+  if (!db) { try { localStorage.setItem(LSKEY[coll], JSON.stringify(store)); } catch {} if (tag) tag.textContent = "Saved in this browser only"; return; }
+  if (tag) tag.textContent = "Saving…";
+  try { await write(coll, id); if (tag) tag.textContent = "Saved"; }
+  catch (e) { if (tag) tag.textContent = "Not saved: " + (e?.message || "try again"); }
+}
+// group mark: one write per piece, one at a time, only where something changes
+let busy = false;
+async function saveGroup(coll, ids, owned, tagText, v, el) {
+  if (busy) return; busy = true;
+  const store = STORES[coll];
+  const card = el.closest(".card"), status = card.querySelector("[data-cxsaved]");
+  card.querySelectorAll(".cvb,.svb").forEach((b) => { b.disabled = true; });
+  const targets = ids.filter((id) => owned(id)).filter((id) => (store[id]?.verdict || null) !== v || (store[id]?.note || "") !== tagText);
+  let n = 0, failed = 0;
+  for (const id of targets) {
+    store[id] = { verdict: v, note: tagText };
+    if (status) status.textContent = `Saving ${++n} of ${targets.length}…`;
+    if (!db) continue;
+    try { await write(coll, id); } catch (e) { failed++; if (e?.code === "quota_exceeded" || e?.code === "revoked" || e?.code === "invalid_argument") break; }
+  }
+  if (!db) { try { localStorage.setItem(LSKEY[coll], JSON.stringify(store)); } catch {} }
+  busy = false;
+  rerender();
+  const st2 = document.querySelector(`[data-cx="${card.dataset.cx}"] [data-cxsaved], [data-sp="${card.dataset.sp}"] [data-cxsaved]`);
+  const msg = !targets.length ? "Nothing to change" : failed ? `${failed} not saved, try again` : db ? `Saved ${targets.length}` : "Saved in this browser only";
+  groupMsg[card.dataset.cx || card.dataset.sp] = msg;
+  if (st2) st2.textContent = msg;
+}
+
+function rerender() { if (view === "cand") renderCand(); else if (view === "cx") renderCx(); else renderSpot(); }
+function setView(v) {
+  view = v;
+  document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.view === v)));
+  ["cand", "cx", "spot"].forEach((k) => { $("#view-" + k).hidden = k !== v; });
+  try { localStorage.setItem("slough-view", v); } catch {}
+  rerender();
+}
+
+document.addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if (tab) { setView(tab.dataset.view); return; }
+  const chip = e.target.closest(".chip");
+  if (chip) { chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true"); shown.cand = 40; rerender(); return; }
+  const cvb = e.target.closest(".cvb");
+  if (cvb) {
+    const cx = CX.find((c) => c.id === cvb.closest("[data-cx]").dataset.cx), v = cvb.dataset.v;
+    const note = cvb.closest(".verdict").querySelector(".cnote")?.value.trim();
+    const st = cxState(cx), next = st.full === v && cx.p.every((id) => cxOwned(cx, id)) ? null : v;
+    saveGroup("verdicts", cx.p, (id) => cxOwned(cx, id), ownTag(cx) + (note ? " " + note : ""), next, cvb);
+    return;
+  }
+  const svb = e.target.closest(".svb");
+  if (svb) {
+    const it = SPOT.items.find((x) => x.id === svb.closest("[data-sp]").dataset.sp), v = svb.dataset.v;
+    const next = spState(it).full === v ? null : v;
+    saveGroup("spotcheck", it.p.map((p) => p.i), (id) => spOwned(it, id), spTag(it), next, svb);
+    return;
+  }
+  const vb = e.target.closest(".vb");
+  if (vb) {
+    const c = vb.closest(".card"), id = c.dataset.id, coll = c.dataset.coll || "verdicts", store = STORES[coll], v = vb.dataset.v;
+    const next = store[id]?.verdict === v ? null : v;
+    vb.parentElement.querySelectorAll(".vb").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === next)));
+    const patch = { verdict: next };
+    // a piece flipped by hand leaves the group: its note no longer starts with the group tag
+    const note = store[id]?.note || "";
+    if (/^(complex|sample):/.test(note)) { patch.note = "flipped from " + note; const ni = c.querySelector(".note"); if (ni) ni.value = patch.note; }
+    save(coll, id, patch, vb);
+  }
+});
+document.addEventListener("change", (e) => {
+  if (e.target.classList?.contains("note")) { const c = e.target.closest(".card"); save(c.dataset.coll || "verdicts", c.dataset.id, { note: e.target.value }, e.target); }
+});
+document.addEventListener("toggle", (e) => {
+  const d = e.target;
+  if (!d.classList?.contains("cxd") && !d.classList?.contains("spd")) return;
+  if (!d.open) return;
+  const box = d.querySelector(".pieces");
+  if (d.classList.contains("cxd")) { const cx = CX.find((c) => c.id === d.closest("[data-cx]").dataset.cx); box.innerHTML = cx.p.map((id) => card(BYID[id])).join(""); }
+  else { const it = SPOT.items.find((x) => x.id === d.closest("[data-sp]").dataset.sp); box.innerHTML = it.p.map(spPiece).join(""); }
+}, true);
+$("#region").addEventListener("change", () => { shown.cand = 40; renderCand(); });
+$("#marked").addEventListener("change", () => { shown.cand = 40; renderCand(); });
+$("#q").addEventListener("input", () => { shown.cand = 40; renderCand(); });
+$("#more").addEventListener("click", () => { shown.cand += 40; renderCand(); });
+$("#cx-region").addEventListener("change", () => { shown.cx = 30; renderCx(); });
+$("#cx-marked").addEventListener("change", () => { shown.cx = 30; renderCx(); });
+$("#cx-q").addEventListener("input", () => { shown.cx = 30; renderCx(); });
+$("#cx-more").addEventListener("click", () => { shown.cx += 30; renderCx(); });
+$("#sp-marked").addEventListener("change", renderSpot);
+
+counts(); cxIntro(); spIntro();
+let startView = "cand";
+try { const v = localStorage.getItem("slough-view"); if (["cand", "cx", "spot"].includes(v)) startView = v; } catch {}
+setView(startView);
+const typing = () => document.activeElement?.classList?.contains("note") || document.activeElement?.classList?.contains("cnote");
+const openDetails = () => document.querySelector("#view-" + view + " details.cxd[open], #view-" + view + " details.spd[open]");
+(async () => {
+  try { Object.assign(marks, JSON.parse(localStorage.getItem("slough-marks") || "{}")); Object.assign(smarks, JSON.parse(localStorage.getItem("slough-spotcheck") || "{}")); rerender(); } catch {}
+  let c = null;
+  try { c = window.claude; db = c?.use ? await c.use("db") : null; } catch { db = null; }
+  let user = null;
+  try { user = c?.use ? await c.use("user") : null; } catch { user = null; }
+  try { me = user ? await user.id() : null; } catch { me = null; }
+  if (!db) { const n = $("#notice"); n.hidden = false; n.textContent = "Marks are kept in this browser only here, so they will not reach the next step. Open the page signed in to save them."; return; }
+  const sub = (coll, store) => {
+    try {
+      db.collection(coll).onSnapshot((snap) => {
+        snap.docs.forEach((d) => { const v = d.data() || {}; store[d.id] = { verdict: v.verdict || null, note: v.note || "" }; });
+        if (!typing() && !busy && !openDetails()) rerender();
+      }, () => {});
+    } catch {}
+  };
+  sub("verdicts", marks);
+  sub("spotcheck", smarks);
+})();
+</script>
