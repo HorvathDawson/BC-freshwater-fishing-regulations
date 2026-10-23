@@ -111,6 +111,26 @@ describe("leadUpView", () => {
                                        place: "" });
   });
 
+  it("shows the reading's declared quantity, else the one frozen beside the days — never 'no daily means' over levels (T106 review)",
+     () => {
+    const levels: DailyGauge[] = WEEK.map((date, i) => (
+      { date, discharge: null, level: 1 + i / 10, dischargePlace: null, levelPlace: 0.5 }));
+    const lu: LeadUp = { weather, station: "08MH001", gauge: levels };
+    const say = (v: ReturnType<typeof leadUpView>) => [v!.gauge?.unit ?? null, v!.gauge?.trend ?? null, v!.gaugeNote];
+    // saved offline: the reading declares nothing; the refresh froze the feed's "level" beside the days
+    const offline = { station: "08MH001", discharge: null, level: null, percentile: null, at: null };
+    expect([say(leadUpView({ ...lu, parameter: "level" }, offline)),
+            say(leadUpView(lu, { ...offline, parameter: "level" })),
+            // the reading's declaration wins over the days' (both from the one publisher; the row shows the reading's)
+            say(leadUpView({ ...lu, parameter: "discharge" }, { ...offline, parameter: "level" })),
+            // nothing declared anywhere (saved before T106): discharge, core's default — and a level-only week has none
+            say(leadUpView(lu, offline))]).toEqual([
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      [null, null, "The station has no daily means for that week."]]);
+  });
+
   it("draws nothing for a spot with no lead-up — the refresh line says why", () => {
     expect(leadUpView(null)).toBeNull();
     expect(leadUpView(undefined)).toBeNull();

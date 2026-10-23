@@ -147,6 +147,13 @@ export interface LeadUp {
    * week filled before this existed, where `backfilled` speaks for both halves, as it always did.
    */
   filledIn?: { weather?: true; gauge?: true };
+  /**
+   * Which quantity the station's feed declared when the gauge days were read (T106 review), frozen beside them. The
+   * strip shows the spot reading's declared quantity, and this one where the reading declares none: a spot saved
+   * offline keeps a reading with nothing in it, and its days are filled in later by a refresh. Absent on a week read
+   * before this existed, or when the declaration could not be read.
+   */
+  parameter?: ShownQuantity | null;
 }
 
 export interface Spot {

@@ -176,6 +176,37 @@ describe("the lead-up, backfilled", () => {
   });
 });
 
+/**
+ * T106 REVIEW: the strip shows the reading's DECLARED quantity, and a spot saved offline keeps a reading that declares
+ * nothing. At one of the 237 level-only stations its days, filled in by a refresh, then held only levels, the strip
+ * looked for flows, and said "The station has no daily means for that week." So the declaration is frozen beside the
+ * days whenever they are read: at capture, and by the refresh that reads them.
+ */
+describe("the lead-up keeps the quantity the feed declared (T106 review)", () => {
+  const levelOnly = (now: (() => Promise<unknown>) | null, fetchedAt: number | null = VISIT) => source({
+    gaugeParameters: async () => ["level"],
+    gaugeSeries: async () => series("level", { "2026-08-23": 1.2, "2026-08-29": 1.0 }, fetchedAt),
+    gaugeNow: now ?? (async () => null),
+  } as never);
+  const declared = async () => ({ fetchedAt: VISIT, value: { discharge: null, level: 1.0, at: "x", percentile: 0.4,
+                                                            standing: "normal", parameter: "level" } });
+
+  it("captured: the declaration beside the days; none when the days were not read", async () => {
+    const s = await captureSpot({ ...base, source: levelOnly(declared), weather: weather() });
+    const off = await captureSpot({ ...base, source: levelOnly(declared, null), weather: weather() });
+    expect([s.leadUp!.parameter, s.reading!.parameter, off.leadUp!.parameter]).toEqual(["level", "level", undefined]);
+  });
+
+  it("captured offline, refreshed: the refresh that reads the days reads the declaration too", async () => {
+    const s = await captureSpot({ ...base, source: levelOnly(null, null),   // the feed unreachable: no reading, no days
+                                  weather: weather() });
+    expect([s.reading, s.leadUp!.gauge, s.leadUp!.parameter]).toEqual([
+      { station: "08MH001", discharge: null, level: null, percentile: null, at: null }, null, undefined]);
+    const got = await refreshSpot({ ...s, weather: { at: "x" } as never }, weather(), levelOnly(declared));
+    expect([got.leadUp!.gauge![0]!.level, got.leadUp!.parameter]).toEqual([1.2, "level"]);
+  });
+});
+
 describe("a spot saved before the lead-up existed", () => {
   const memFs = (text: string): SpotsFs => {
     const files = new Map([["s.json", text]]);

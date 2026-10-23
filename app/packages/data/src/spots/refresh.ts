@@ -21,7 +21,7 @@ import { leadUpDays } from "@app/core";
 import type { RegsSource } from "../index";
 import type { LeadUp, Spot } from "./model";
 import type { WeatherSource } from "./capture";
-import { fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
+import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
          type FeedIndex } from "./leadup";
 import { LEAD_UP_WORDS } from "./words";
 
@@ -82,5 +82,7 @@ async function fillLeadUp(spot: Spot, weather: WeatherSource, source?: RegsSourc
   // which half this refresh filled, added to any an earlier one did: each row says "filled in" only if it was
   const filledIn = { ...had?.filledIn, ...(w !== hw ? { weather: true as const } : {}),
                      ...(g !== hg ? { gauge: true as const } : {}) };
-  return { weather: w, station, gauge: g, backfilled: true, filledIn };
+  // the declared quantity beside days this refresh read (T106 review): a spot saved offline has none on its reading
+  const parameter = had?.parameter ?? (g && g !== hg && station && source ? await declaredQuantity(source, station) : null);
+  return { weather: w, station, gauge: g, backfilled: true, filledIn, ...(parameter ? { parameter } : {}) };
 }

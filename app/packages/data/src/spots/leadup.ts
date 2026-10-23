@@ -129,15 +129,24 @@ export async function weekGauge(source: RegsSource, station: string, days: reado
   });
 }
 
+/**
+ * The quantity the station's feed declares (T106 review), to freeze beside its days: the publisher's `parameter`, read
+ * as the feed client carries it, never inferred from the days. Null when the reading cannot be had.
+ */
+export async function declaredQuantity(source: RegsSource, station: string): Promise<Parameter | null> {
+  try { return (await source.gaugeNow(station as StationId))?.value.parameter ?? null; } catch { return null; }
+}
+
 /** Both halves for a visit, as `captureSpot` freezes them. */
 export async function leadUpFor(source: RegsSource, weather: WeatherSource | undefined,
                                 at: { lat: number; lon: number }, station: string | null,
                                 days: readonly string[], feed?: FeedIndex): Promise<LeadUp> {
-  const [w, g] = await Promise.all([
+  const [w, g, p] = await Promise.all([
     weekWeather(weather, at.lat, at.lon, days),
     station ? weekGauge(source, station, days, feed) : Promise.resolve(null),
+    station ? declaredQuantity(source, station) : Promise.resolve(null),
   ]);
-  return { weather: w, station, gauge: g };
+  return { weather: w, station, gauge: g, ...(g && p ? { parameter: p } : {}) };
 }
 
 /** How many days of each half are still to come: each is asked for again by a refresh. */
