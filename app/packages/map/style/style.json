@@ -299,23 +299,6 @@
       ]
     },
     {
-      "id": "lake__edge",
-      "type": "line",
-      "source": "atlas",
-      "source-layer": "lake",
-      "layout": {
-        "visibility": "visible"
-      },
-      "filter": [
-        "!=",
-        [
-          "get",
-          "water"
-        ],
-        "stream"
-      ]
-    },
-    {
       "id": "lake_flowing",
       "type": "fill",
       "source": "atlas",
@@ -346,15 +329,6 @@
       "type": "line",
       "source": "atlas",
       "source-layer": "under_lake",
-      "layout": {
-        "visibility": "visible"
-      }
-    },
-    {
-      "id": "stream",
-      "type": "line",
-      "source": "atlas",
-      "source-layer": "stream",
       "layout": {
         "visibility": "visible"
       }
@@ -393,6 +367,32 @@
       "source": "atlas",
       "source-layer": "mu",
       "minzoom": 7,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "lake__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "lake",
+      "layout": {
+        "visibility": "visible"
+      },
+      "filter": [
+        "!=",
+        [
+          "get",
+          "water"
+        ],
+        "stream"
+      ]
+    },
+    {
+      "id": "stream",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "stream",
       "layout": {
         "visibility": "visible"
       }

@@ -87,9 +87,9 @@
         "park__label": "plain",
         "park_closed__label": "plain",
         "lake__label": "plain",
-        "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
+        "stream__label": "plain",
         "stream__arrows": "standing"
       },
       "hide": [
@@ -144,9 +144,9 @@
         "park__label": "plain",
         "park_closed__label": "plain",
         "lake__label": "plain",
-        "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
+        "stream__label": "plain",
         "stream__arrows": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
@@ -190,9 +190,9 @@
         "park__label": "plain",
         "park_closed__label": "plain",
         "lake__label": "plain",
-        "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
+        "stream__label": "plain",
         "stream__arrows": "plain"
       }
     },
@@ -236,9 +236,9 @@
         "park__label": "plain",
         "park_closed__label": "plain",
         "lake__label": "plain",
-        "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain",
+        "stream__label": "plain",
         "stream__arrows": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
@@ -294,9 +294,9 @@
     "lake_flowing": "water",
     "contour": "depth",
     "under_lake": "water",
-    "stream": "water",
     "region": "admin",
     "mu": "admin",
+    "stream": "water",
     "parcel_private__edge": "ownership",
     "indigenous_land__edge": "access",
     "no_access__edge": "access",
@@ -314,9 +314,9 @@
     "park__label": "protected",
     "park_closed__label": "protected",
     "lake__label": "water",
-    "stream__label": "water",
     "region__label": "admin",
     "mu__label": "admin",
+    "stream__label": "water",
     "stream__arrows": "water"
   },
   "follows": {
@@ -924,6 +924,24 @@
         }
       }
     },
+    "region": {
+      "plain": {
+        "label": "Regions",
+        "scale": "static",
+        "color": {
+          "token": "color.region.edge"
+        }
+      }
+    },
+    "mu": {
+      "plain": {
+        "label": "Management units",
+        "scale": "static",
+        "color": {
+          "token": "color.mu.edge"
+        }
+      }
+    },
     "stream": {
       "plain": {
         "label": "Plain",
@@ -1044,24 +1062,6 @@
           "field": "profile"
         },
         "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
-      }
-    },
-    "region": {
-      "plain": {
-        "label": "Regions",
-        "scale": "static",
-        "color": {
-          "token": "color.region.edge"
-        }
-      }
-    },
-    "mu": {
-      "plain": {
-        "label": "Management units",
-        "scale": "static",
-        "color": {
-          "token": "color.mu.edge"
-        }
       }
     },
     "parcel_private__edge": {
@@ -1442,15 +1442,6 @@
         }
       }
     },
-    "stream__label": {
-      "plain": {
-        "label": "stream label",
-        "scale": "static",
-        "color": {
-          "token": "color.label.water"
-        }
-      }
-    },
     "region__label": {
       "plain": {
         "label": "region label",
@@ -1466,6 +1457,15 @@
         "scale": "static",
         "color": {
           "token": "color.mu.edge"
+        }
+      }
+    },
+    "stream__label": {
+      "plain": {
+        "label": "stream label",
+        "scale": "static",
+        "color": {
+          "token": "color.label.water"
         }
       }
     },
@@ -1605,9 +1605,9 @@
     "lake": "section_id",
     "lake_flowing": "section_id",
     "contour": "item",
-    "stream": "section_id",
     "region": "region_id",
-    "mu": "mu_id"
+    "mu": "mu_id",
+    "stream": "section_id"
   },
   "widths": {
     "contour": "width.lake.edge",
@@ -1995,10 +1995,6 @@
       "color": "color.outside",
       "width": 1.4
     },
-    "stream__label": {
-      "color": "color.outside",
-      "width": 1.5
-    },
     "region__label": {
       "color": "color.outside",
       "width": 2
@@ -2006,6 +2002,10 @@
     "mu__label": {
       "color": "color.outside",
       "width": 1.8
+    },
+    "stream__label": {
+      "color": "color.outside",
+      "width": 1.5
     },
     "stream__arrows": {
       "color": "color.outside",

@@ -268,6 +268,8 @@ const layersById = new Map();
 const outLayers = [];
 /** Generated companion line layers: edge layer id -> the polygon layer it outlines. */
 const edges = new Map();
+/** Edge layers held back by `outline.drawAfter`: the layer they wait for -> the edges, in source order. */
+const deferredEdges = new Map();
 /**
  * Edge layer id -> the fill whose colour mode it takes (`outline.follow`). Emitted so the
  * RUNTIME can set the edge's mode whenever the fill's is set: a view lists both, but the
@@ -530,10 +532,25 @@ for (const l of src.layers ?? []) {
      * feature is drawn, which is how the Conditions field closes the slivers between basins that were simplified one at
      * a time, without moving any basin's edge (`basin` in layers.source.json).
      */
-    if (l.outline.under === true) outLayers.splice(outLayers.length - 1, 0, edge);
+    /*
+     * `drawAfter: "<layer>"` HOLDS THE EDGE BACK until that later layer (and its own edge) is drawn — the one way an edge
+     * leaves its fill. A lake's shoreline carries the lake's status colour, so it is a WATER LINE, while its fill is a
+     * fill: the region and unit boundaries go between the two (T83), over the fill so they stay traceable across a
+     * lake, under the shoreline so the water's colour wins where they cross.
+     */
+    if (l.outline.drawAfter !== undefined) {
+      if (l.outline.under === true) err(`${where}: an outline cannot be both "under" its fill and "drawAfter" a later layer`);
+      const target = (src.layers ?? []).findIndex((x) => x.id === l.outline.drawAfter);
+      if (target < 0) err(`${where}: outline.drawAfter names "${l.outline.drawAfter}", which is not a layer`);
+      else if (target <= (src.layers ?? []).indexOf(l))
+        err(`${where}: outline.drawAfter "${l.outline.drawAfter}" must come later in the source than the fill it outlines`);
+      else (deferredEdges.get(l.outline.drawAfter) ?? deferredEdges.set(l.outline.drawAfter, []).get(l.outline.drawAfter)).push(edge);
+    } else if (l.outline.under === true) outLayers.splice(outLayers.length - 1, 0, edge);
     else outLayers.push(edge);
     edges.set(id, l);
   }
+  // The edges held back for this layer (`outline.drawAfter`) go directly over it and its own edge.
+  for (const e of deferredEdges.get(l.id) ?? []) outLayers.push(e);
 
   /**
    * A COMPANION SYMBOL LAYER over the same source-layer — the water's own name.

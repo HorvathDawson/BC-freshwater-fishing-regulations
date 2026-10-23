@@ -253,6 +253,11 @@ function fieldSources(atlasUrl: string): Record<string, Record<string, unknown>>
 /** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
 const isRaster = (l: { type?: string }) => l.type === "raster";
 
+/** The last geometry layer (not a name) drawing a source-layer: where a selection ring over its polygons goes. */
+const lastDrawing = (sourceLayer: string): string | undefined =>
+  (MAP_STYLE.layers as { id: string; type?: string; "source-layer"?: string }[])
+    .filter((l) => l["source-layer"] === sourceLayer && l.type !== "symbol").at(-1)?.id;
+
 export function runtimeStyle(at: TileEndpoints, theme: string,
                              modes: Record<string, string> = {}) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
@@ -462,8 +467,10 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         const ring = (id: string, sourceLayer: string) => ({
           id, type: "line" as const, source: "atlas", "source-layer": sourceLayer,
           layout: { "line-join": "round" as const }, paint: ringPaint(resolveTheme(theme)) });
-        if (l.id === "lake_flowing") return [painted, ring(SELECTION_RINGS.lake, "lake")];
-        if (l.id === "wetland_flowing") return [painted, ring(SELECTION_RINGS.wetland, "wetland")];
+        // FOUND, NOT NAMED: the lake's last layer moved from `lake_flowing` to `lake__edge` when the shoreline was drawn
+        // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
+        if (l.id === lastDrawing("lake")) return [painted, ring(SELECTION_RINGS.lake, "lake")];
+        if (l.id === lastDrawing("wetland")) return [painted, ring(SELECTION_RINGS.wetland, "wetland")];
         if (l.id !== "stream") return [painted];
         const casing = {
           id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",

@@ -307,9 +307,10 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const style = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, "light", { stream: "profile" });
     const ids = style.layers.map((l: { id: string }) => l.id);
     const at = (id: string) => ids.indexOf(id);
-    // under the stream line (its colour on top), over the lakes; each ring over its own polygons
-    expect([at(SELECTION_CASING) === at("stream") - 1, at(SELECTION_CASING) > at("lake_flowing"),
-            at(SELECTION_RINGS.lake) === at("lake_flowing") + 1, at(SELECTION_RINGS.wetland) === at("wetland_flowing") + 1])
+    // under the stream line (its colour on top), over the lakes; each ring over its own polygons' last layer (the lake's
+    // is its shoreline, drawn over the boundaries since T83)
+    expect([at(SELECTION_CASING) === at("stream") - 1, at(SELECTION_CASING) > at("lake__edge"),
+            at(SELECTION_RINGS.lake) === at("lake__edge") + 1, at(SELECTION_RINGS.wetland) === at("wetland_flowing") + 1])
       .toEqual([true, true, true, true]);
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
       { type: string; "source-layer": string; paint: Record<string, unknown> };
