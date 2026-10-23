@@ -27,6 +27,9 @@ from pipeline.deliver.answers import display as X
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 FIXTURE = Path(__file__).parent / "fixtures" / "answers_page_v35.json.gz"
+#: the fixture's rules whose page sentence T103 (a no-keep slot, Morley Lake) and T104 (weekdays/hours, Kootenay
+#: Lake's Lower West Arm) correct
+T103_SLOTS, T104_HELD = 3, 2
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +66,7 @@ def page_doc(fx: dict):
 # --------------------------------------------------------------------------------------------
 
 def test_rule_kind_bands_and_plain_match_the_page(page):
-    bad, possession = [], 0
+    bad, possession, t103, t104 = [], 0, 0, 0
     for k, r in page["rules"].items():
         x, want = _flat(r), page["expect"]["rules"][k]
         got = {"kind": X.kind_of(x), "closed": X.is_closure_gate(x), "bands": X.bands(x),
@@ -93,10 +96,25 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
         if want["plain"]:
             # UR1 G (user panel): "Write each … on your licence right away" — the page said "Record each"
             want = dict(want, plain=want["plain"].replace("Record each", "Write each").replace("record each", "write each"))
+        w = {f: v for f, v in (x.get("when") or {}).items() if f in ("weekdays", "hours") and v}
+        if want["plain"] and w:
+            # T104 (owner 2026-10-22, one `when_words`): the page's sentence dropped the rule's weekdays and hours
+            # (Kootenay Lake's Lower West Arm "Keep up to 5 kokanee a day" on the Saturday-and-Sunday rule)
+            from pipeline.deliver.answers.common import when_words
+            t104 += 1
+            want = dict(want, plain=f"{want['plain'][:-1]}, {when_words(w, 'plain')}.")
+        if want["plain"] and X.size_shape(x.get("lengths"))["slot"] and got["plain"] != want["plain"]:
+            # T103 (one `size_shape`): the page read a no-keep slot as a floor AND a ceiling — "90 cm (35 in) or
+            # longer, none over 60 cm (24 in)", a size nobody can meet; the slot is said as the title says it
+            m = re.search(r"(\d+) cm \(\d+ in\) or longer, none over (\d+) cm", want["plain"])
+            assert m and int(m[2]) < int(m[1]), want["plain"]
+            t103 += 1
+            want = dict(want, plain=got["plain"])
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]
     assert possession == 3
+    assert (t103, t104) == (T103_SLOTS, T104_HELD), (t103, t104)
     kinds = {v["kind"] for v in page["expect"]["rules"].values()}
     assert {"gear", "pool", "gate", "sizecap", "size", "annual", "duty", "while"} <= kinds
     assert sum(v["plain"] is not None for v in page["expect"]["rules"].values()) > 150

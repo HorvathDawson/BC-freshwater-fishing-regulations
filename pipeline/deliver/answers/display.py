@@ -41,7 +41,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common import entry_id as EID
 from pipeline.deliver.answers.common import (BOOK_TITLE, AnswersError, band_words, cap, clean, cm_in, join, lc,
-                                             m_ft, range_txt, sp_name, when_dates)
+                                             m_ft, range_txt, sp_name, when_dates, when_words)
 from pipeline.deliver.bundle.rules import closure_grade
 
 INF = float("inf")
@@ -127,6 +127,41 @@ def is_closure_gate(x: dict, kind: Optional[str] = None) -> bool:
     return (kind or kind_of(x)) == "gate" and closure_grade(x) is not None
 
 
+def cut_points(lengths: Optional[Sequence[dict]]) -> List[float]:
+    """The lengths `bands` cuts at: 0 and every range's ends, ascending (before any merge of equal takes)."""
+    pts = {0}
+    for r in lengths or []:
+        if r.get("min_cm") is not None:
+            pts.add(r["min_cm"])
+        if r.get("max_cm") is not None:
+            pts.add(r["max_cm"])
+    return sorted(pts)
+
+
+def size_shape(lengths: Optional[Sequence[dict]]) -> dict:
+    """T103 — THE ONE answer to "what size rule does this quota carry?", read off the same ranges `bands` cuts
+    (every bound is one of its `cut_points`), each range named by its OPEN ENDS:
+
+      min    a keeping range with a bottom and no top ("only 1 over 90 cm")              {min_cm}
+      floor  a range keeping none, below a size ("none under 30 cm" / "30 cm or longer")  {max_cm, take 0}
+      ceil   a range keeping none, above a size ("none over 50 cm")                      {min_cm, take 0}
+      slot   a range keeping none between two sizes ("none over 60 cm, under 90 cm")     {min_cm, max_cm, take 0}
+
+    {min, floor, ceil: the bound in cm or None, slot: (from, to) or None, floor_closed: the floor's band holds
+    its own bound (the book's "catch and release (X cm or less)")}. The first range of each shape counts.
+    `_title` and `_plain` both render from it and keep no size logic of their own (`test_one_size_shape.py`)."""
+    ln = list(lengths or [])
+    lo = lambda r: r.get("min_cm")                                             # noqa: E731
+    hi = lambda r: r.get("max_cm")                                             # noqa: E731
+    mn = next((r for r in ln if lo(r) is not None and hi(r) is None and r.get("take") is None), None)
+    floor = next((r for r in ln if hi(r) is not None and lo(r) is None and _is(r.get("take"), 0)), None)
+    ceil = next((r for r in ln if lo(r) is not None and hi(r) is None and _is(r.get("take"), 0)), None)
+    slot = next((r for r in ln if lo(r) is not None and hi(r) is not None and _is(r.get("take"), 0)), None)
+    return {"min": None if mn is None else lo(mn), "floor": None if floor is None else hi(floor),
+            "ceil": None if ceil is None else lo(ceil), "slot": None if slot is None else (lo(slot), hi(slot)),
+            "floor_closed": bool(floor is not None and floor.get("closed"))}
+
+
 def bands(x: dict) -> List[list]:
     """The page's `bands` (consumer 2.4): cut points at every min/max plus 0; each band's midpoint
     tested against the ranges in order, the first that holds gives the take (its own, else the
@@ -135,13 +170,7 @@ def bands(x: dict) -> List[list]:
     L = x.get("lengths") or []
     if not L:
         return []
-    pts = {0}
-    for r in L:
-        if r.get("min_cm") is not None:
-            pts.add(r["min_cm"])
-        if r.get("max_cm") is not None:
-            pts.add(r["max_cm"])
-    P = sorted(pts) + [INF]
+    P = cut_points(L) + [INF]
     if _js(x.get("within")) or (_js(x.get("period")) and x.get("period") != "daily"):
         uncovered = None
     else:
@@ -270,18 +299,16 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     water = x.get("water")
     where = ("In streams" if water == "stream" else "In lakes" if water == "lake" else "") or \
         ("In tributaries" if _js(x.get("tributaries_only")) else "")
-    dates = ", ".join(range_txt(a, b) for a, b in when_dates(x.get("when")))
+    when = when_words(x.get("when"), "plain")      # T104: dates, weekdays, hours, unparsed — said once
     org = f"{x['origin']} " if _js(x.get("origin")) else ""
     ln = x.get("lengths") or []
-    mn = next((r for r in ln if r.get("min_cm") is not None and r.get("take") is None), None)
-    floor = next((r for r in ln if r.get("max_cm") is not None and _is(r.get("take"), 0)), None)
-    ceil = next((r for r in ln if r.get("min_cm") is not None and _is(r.get("take"), 0)), None)
+    z = size_shape(ln)                              # T103: the one size shape, `_title`'s too
     take = x.get("take")
 
     def wrap(s: str) -> str:
         y = f"{where}, {s[:1].lower() + s[1:]}" if where else s
-        if dates:
-            y += f", {dates}"
+        if when:
+            y += f", {when}"
         return y + "."
     if _js(x.get("while")):
         return None
@@ -296,25 +323,27 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         times = "the daily quota" if n == 1 else f"{n} days’ quota"
         of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
         return f"{wrap(f'Possession: {times}{of}')} {_home()}"
-    over = f" over {cm_in(mn['min_cm'])}" if mn else ""
+    over = f" over {cm_in(z['min'])}" if z["min"] is not None else ""
+    slot = f"none {band_words(z['slot'][0], z['slot'][1], False, False)}" if z["slot"] else ""
     if _js(x.get("record_retention")):
         return wrap(f"Write each {org}{sp}{over} on your licence right away")      # UR1 G
     if _js(x.get("unlimited")):
         return wrap(f"No daily limit for {sp}")
     if _is(take, 0):
         return wrap(f"Release every {org}{sp}")
-    if take is None and floor and floor.get("closed") and len(ln) == 1:
+    if take is None and z["floor"] is not None and z["floor_closed"] and len(ln) == 1:
         # the book's "catch and release (X cm or less)" (Q13: X itself released) — never "keep
         # only X cm or longer" (answers 2.5: Vedder r6, now the decided winner, rows F13)
-        return wrap(f"Release every {org}{sp} {cm_in(floor['max_cm'])} or less")
+        return wrap(f"Release every {org}{sp} {cm_in(z['floor'])} or less")
     if x.get("period") == "annual":
         return wrap(f"Keep up to {_num(take)} {sp}{over} a licence year"
                     f"{', all kinds together' if len(species) > 1 else ''}")
     # a possession limit with a number holds what you have with you, not a day's catch (rows F6)
     per = " in possession" if kind_of(x) == "possession_cap" else " a day"
-    if take is not None and mn and not floor:
+    if take is not None and z["min"] is not None and z["floor"] is None:
         who = re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")
-        return wrap(f"Only {_num(take)} {org}{who} over {cm_in(mn['min_cm'])}{per}{ex_txt}")
+        return wrap(f"Only {_num(take)} {org}{who} over {cm_in(z['min'])}{per}{ex_txt}"
+                    + (f", {slot}" if slot else ""))
     sp += ex_txt
     bits = []
     if take is not None:
@@ -327,16 +356,18 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         bits.append(f"{'Have no more than' if per != ' a day' else 'Keep up to'} {_num(take)} {fish}{per}"
                     f"{', all kinds together' if many and _gt0(take) and take > 1 else ''}")
     else:
-        longer = f" {cm_in(floor['max_cm'])} or longer" if floor else ""
+        longer = f" {cm_in(z['floor'])} or longer" if z["floor"] is not None else ""
         bits.append(f"Keep only {sp}{longer}")
-    if floor and take is not None:
-        bits.append(f"over {cm_in(50)}" if species == ["ST"] and _is(floor["max_cm"], 50)
-                    else f"{cm_in(floor['max_cm'])} or longer")
-    if ceil:
-        bits.append(f"none over {cm_in(ceil['min_cm'])}")
+    if z["floor"] is not None and take is not None:
+        bits.append(f"over {cm_in(50)}" if species == ["ST"] and _is(z["floor"], 50)
+                    else f"{cm_in(z['floor'])} or longer")
+    if z["ceil"] is not None:
+        bits.append(f"none over {cm_in(z['ceil'])}")
+    if slot:
+        bits.append(slot)
     if _js(x.get("origin")):
         bits.append(f"{x['origin']} only")
-    if len(bits) == 1 and take is None and not floor:
+    if len(bits) == 1 and take is None and z["floor"] is None:
         return None
     return wrap(", ".join(bits))
 
@@ -379,20 +410,12 @@ def _title(x: dict) -> Optional[str]:
     whole = bool(re.search(r"game fish|^fish", written_name(x)))
     water = x.get("water")
     frm = f" from {water}s" if water else (" in tributaries" if _js(x.get("tributaries_only")) else "")
-    when = x.get("when") or {}
-    dates = ", ".join(range_txt(a, b) for a, b in when_dates(when))
-    days = when.get("weekdays") or []
-    tail = (f", {dates}" if dates else "")
-    if days:
-        from pipeline.deliver.answers.rows import weekdays_short
-        tail += f", {weekdays_short(days)}"
+    when = when_words(x.get("when"), "title")      # T104: dates, weekdays, hours, unparsed — said once
+    tail = f", {when}" if when else ""
     org = f"{x['origin']} " if _js(x.get("origin")) else ""
     ln = x.get("lengths") or []
     take = x.get("take")
-    mn = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is None and r.get("take") is None), None)
-    floor = next((r for r in ln if r.get("max_cm") is not None and r.get("min_cm") is None and _is(r.get("take"), 0)), None)
-    ceil = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is None and _is(r.get("take"), 0)), None)
-    slot = next((r for r in ln if r.get("min_cm") is not None and r.get("max_cm") is not None and _is(r.get("take"), 0)), None)
+    z = size_shape(ln)                              # T103: the one size shape, `_plain`'s too
     if closure_grade(x) is not None:
         where = f" in {water}s" if water else (" in tributaries" if _js(x.get("tributaries_only")) else "")
         return ("No fishing" if whole or not sp else f"No fishing for {fish(' and ')}") + where + tail
@@ -401,32 +424,32 @@ def _title(x: dict) -> Optional[str]:
         times = {1: "", 2: "twice ", 3: "three times "}.get(n, f"{n} times ")
         return f"Possession: {times}the daily quota" + ("" if whole else f" of {fish(' and ')}")
     if _js(x.get("record_retention")):
-        over = f" over {cm_in(mn['min_cm'])}" if mn else ""
+        over = f" over {cm_in(z['min'])}" if z["min"] is not None else ""
         return f"Write each {org}{fish(' or ')}{over} on your licence right away"     # UR1 G
     if _js(x.get("unlimited")):
         return f"No daily limit on {org}{fish(' and ')}{frm}{tail}"
     if _is(take, 0) and not ln:
-        every = "all " if not dates and not days and not org and not water else ""
+        every = "all " if not when and not org and not water else ""
         return f"Release {every}{org}{fish(' and ')}{frm}{tail}"
-    if take is None and floor and floor.get("closed") and len(ln) == 1:
-        return f"Release {org}{fish(' and ')} {cm_in(floor['max_cm'])} or less{frm}{tail}"
+    if take is None and z["floor"] is not None and z["floor_closed"] and len(ln) == 1:
+        return f"Release {org}{fish(' and ')} {cm_in(z['floor'])} or less{frm}{tail}"
     sizes = []
-    if floor:
-        sizes.append(f"none under {cm_in(floor['max_cm'])}")
-    if ceil:
-        sizes.append(f"none over {cm_in(ceil['min_cm'])}")
-    if slot:
+    if z["floor"] is not None:
+        sizes.append(f"none under {cm_in(z['floor'])}")
+    if z["ceil"] is not None:
+        sizes.append(f"none over {cm_in(z['ceil'])}")
+    if z["slot"]:
         # ROUND19 2/5: in cm (inches), and a slot keeps its bounds (the boundary standard, RULINGS P37)
-        sizes.append(f"none {band_words(slot['min_cm'], slot['max_cm'], False, False)}")
+        sizes.append(f"none {band_words(z['slot'][0], z['slot'][1], False, False)}")
     sz = (" (" + ", ".join(sizes) + ")") if sizes else ""
     k = kind_of(x)
     if k == "annual" and _gt0(take):
-        over = f" over {cm_in(mn['min_cm'])}" if mn else ""
+        over = f" over {cm_in(z['min'])}" if z["min"] is not None else ""
         return f"Up to {_num(take)} {org}{fish(' and ')}{over} a licence year{tail}"
     if k == "possession_cap" and _gt0(take):
         return f"Up to {_num(take)} {org}{fish(' and ')} in possession{tail}"
-    if _gt0(take) and mn and not floor:
-        return f"At most {_num(take)} {org}{fish(' or ')} over {cm_in(mn['min_cm'])} a day{frm}{tail}"
+    if _gt0(take) and z["min"] is not None and z["floor"] is None:
+        return f"At most {_num(take)} {org}{fish(' or ')} over {cm_in(z['min'])} a day{frm}{tail}"
     if _gt0(take):
         conj = " or " if _is(take, 1) else " and "
         verb = "At most" if k == "subcap" else "Keep up to"
@@ -987,7 +1010,52 @@ def steelhead_line(presence: Optional[str], has_row: bool) -> Optional[str]:
 def build_rules(B) -> List[dict]:
     """The per-rule facts, in the export's `rules` order (`common.rule_index`)."""
     order = sorted(B.index, key=B.index.__getitem__)
-    return [rule_facts(B.rules[k], B.rules) for k in order]
+    out = [rule_facts(B.rules[k], B.rules) for k in order]
+    bad = [p for k, f in zip(order, out)
+           for p in when_problems(f"{k[0]}::{k[1]}", B.rules[k], f) + size_problems(f"{k[0]}::{k[1]}", B.rules[k], f)]
+    if bad:
+        raise AnswersError(f"display: {len(bad)} rule title/plain words contradict the rule — " + "; ".join(bad[:10]))
+    return out
+
+
+def when_problems(rid: str, x: dict, facts: dict) -> List[str]:
+    """T104 GATE: a rule held some HOURS or on some WEEKDAYS names them in its title and in its plain sentence
+    (where it has one) — in any of `when_words`' styles (a title from the label says "on Saturdays and Sundays")."""
+    w = x.get("when") or {}
+    out = []
+    for part in ("hours", "weekdays"):
+        if not w.get(part):
+            continue
+        said = sorted({when_words({part: w[part]}, s) for s in ("title", "plain", "label")})
+        for f in ("title", "plain"):
+            text = facts.get(f)
+            if text is not None and not any(s in text for s in said):
+                out.append(f"{rid}: the {f} {text!r} does not name its {part} ({' / '.join(said)})")
+    return out
+
+
+_CM_SAID = re.compile(r"(\d+(?:\.\d+)?) cm \(\d+ in\)")
+_LONGER_NONE_OVER = re.compile(r"(\d+(?:\.\d+)?) cm \(\d+ in\) or longer, none over (\d+(?:\.\d+)?) cm")
+
+
+def size_problems(rid: str, x: dict, facts: dict) -> List[str]:
+    """T103 GATE: every size a rule's title and plain sentence name is one of the cut points its `bands` cut at,
+    and no "X or longer, none over Y" has Y at or below X (a size rule nobody can meet)."""
+    if not x.get("lengths"):
+        return []
+    cuts = {float(c) for c in cut_points(x["lengths"])}
+    out = []
+    for f in ("title", "plain"):
+        text = facts.get(f) or ""
+        for m in _CM_SAID.finditer(text):
+            if float(m.group(1)) not in cuts:
+                out.append(f"{rid}: the {f} {text!r} names {m.group(1)} cm, not one of the cut points "
+                           f"{[_num(c) for c in sorted(cuts)]}")
+        for m in _LONGER_NONE_OVER.finditer(text):
+            if float(m.group(2)) <= float(m.group(1)):
+                out.append(f"{rid}: the {f} {text!r} says none over {m.group(2)} cm, below its floor of "
+                           f"{m.group(1)} cm")
+    return out
 
 
 def unless_opened_here(closing: Dict[str, List[str]], words: Dict[str, Optional[str]],

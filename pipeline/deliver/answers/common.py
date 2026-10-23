@@ -40,6 +40,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from pipeline.deliver.bundle import read
 from pipeline.deliver.calendar import DAYS  # noqa: F401  (the answers' year)
 from pipeline.deliver.calendar import MONTHS
+from pipeline.deliver.calendar import WEEKDAYS
 
 class AnswersError(RuntimeError):
     """A question the answers layer cannot answer: the build stops, naming it."""
@@ -563,6 +564,87 @@ def range_txt(a: int, b: int) -> str:
     if a // 100 == b // 100:
         return f"{fmt_md(a)}–{b % 100}"
     return f"{fmt_md(a)}–{fmt_md(b)}"
+
+
+#: T104: the styles `when_words` says a `when` in — a rule's title ("Aug 1–Dec 31, Sat–Sun"), its plain sentence
+#: ("Aug 1–Dec 31, on Saturdays and Sundays"), the catalogue's label ("Aug 1-Dec 31, on Saturdays and Sundays"), and
+#: a weekday window's status ("Weekends") and day-part ("Saturday and Sunday") — the last two say weekdays only
+WHEN_STYLES = ("title", "plain", "label", "status", "days")
+
+
+def _clock_words(c: dict) -> str:
+    """One end of an hours window: "21:00", "sunset", "one hour after sunset", "30 minutes before sunrise"
+    (a negative offset is BEFORE the solar event)."""
+    if c.get("at"):
+        return c["at"]
+    off = c.get("offset_min") or 0
+    n = abs(off)
+    if not n:
+        return c["solar"]
+    unit = f"{n} minutes" if n % 60 else ("one hour" if n == 60 else f"{n // 60} hours")
+    return f"{unit} {'before' if off < 0 else 'after'} {c['solar']}"
+
+
+def _weekday_words(days: Sequence[str], style: str) -> str:
+    """A set of weekdays (calendar names) in one style. A RUN is consecutive days Monday first."""
+    if style == "label":                       # the catalogue's label: the stored order, each in the plural
+        return "on " + " and ".join(f"{d}s" for d in days)
+    ix = sorted(WEEKDAYS.index(d) for d in days)
+    names = [WEEKDAYS[i] for i in ix]
+    run = len(ix) >= 2 and ix == list(range(ix[0], ix[0] + len(ix)))
+    if style == "status":
+        if set(names) == {"Saturday", "Sunday"}:
+            return "Weekends"
+        if set(names) == {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}:
+            return "Weekdays"
+        style = "title"
+    if style == "title":                       # "Sat–Sun", "Mon–Fri" (a run), "Mon, Wed"
+        ab = [n[:3] for n in names]
+        return f"{ab[0]}–{ab[-1]}" if run else ", ".join(ab)
+    if run and len(ix) >= 3:                   # plain / days: "Monday to Friday"
+        return f"{names[0]} to {names[-1]}"
+    if style == "plain":                       # "on Saturdays and Sundays", "on Mondays and Wednesdays"
+        return "on " + join([n + "s" for n in names])
+    return join(names)                         # days: "Saturday and Sunday"
+
+
+def when_words(when: Optional[dict], style: str) -> str:
+    """T104 — THE ONE place a rule's `when` is said in words: its dates, weekdays, hours and any season nobody could
+    read ("as printed: …" — an unread season is never shown as all year by being left out), joined by commas, in
+    that order. `when` is the rule's `when` as dumped (`dates` [{from_month, from_day, to_month, to_day}],
+    `weekdays` calendar names, `hours` {start, end} each {at} or {solar, offset_min}, `unparsed`); "" for none.
+
+      title   "Aug 1–Dec 31, Sat–Sun, 21:00 to 05:00"                        (`display._title`)
+      plain   "Aug 1–Dec 31, on Saturdays and Sundays, 21:00 to 05:00"       (`display._plain`)
+      label   "Aug 1-Dec 31, on Saturdays and Sundays, 21:00 to 05:00"       (`labels._when_words`, the catalogue)
+      status  "Weekends" / "Weekdays" / "Mon, Wed"                            (`rows.weekdays_label`)
+      days    "Saturday and Sunday" / "Monday to Friday"                      (`rows.weekdays_when`)
+
+    `status` and `days` say a weekday set alone and refuse a `when` holding more. Nothing else in the answers
+    layer (nor the catalogue's label) spells a weekday or a time of day (`test_one_when_words.py`)."""
+    if style not in WHEN_STYLES:
+        raise AnswersError(f"when_words: no style {style!r} (one of {', '.join(WHEN_STYLES)})")
+    w = when or {}
+    dates, days, hours, unread = w.get("dates") or [], w.get("weekdays") or [], w.get("hours"), \
+        w.get("unparsed") or []
+    if style in ("status", "days"):
+        if dates or hours or unread or not days:
+            raise AnswersError(f"when_words: the {style!r} style says weekdays alone, not {w!r}")
+        return _weekday_words(days, style)
+    bits = []
+    if dates:
+        if style == "label":
+            bits.append(" and ".join(f"{MON[d['from_month'] - 1]} {d['from_day']}-{MON[d['to_month'] - 1]} "
+                                     f"{d['to_day']}" for d in dates))
+        else:
+            bits.append(", ".join(range_txt(a, b) for a, b in when_dates(w)))
+    if days:
+        bits.append(_weekday_words(days, style))
+    if hours:
+        bits.append(f"{_clock_words(hours['start'])} to {_clock_words(hours['end'])}")
+    if unread:
+        bits.append("as printed: " + "; ".join(unread))
+    return ", ".join(bits)
 
 
 def clean(s) -> str:

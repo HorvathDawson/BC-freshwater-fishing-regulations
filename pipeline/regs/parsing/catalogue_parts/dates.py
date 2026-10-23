@@ -178,15 +178,6 @@ class Clock(BaseModel):
             raise ValueError("an offset belongs to a solar time; put it in the clock time")
         return self
 
-    def words(self) -> str:
-        if self.at:
-            return self.at
-        n = abs(self.offset_min)
-        if not n:
-            return self.solar.value
-        unit = f"{n} minutes" if n % 60 else ("one hour" if n == 60 else f"{n // 60} hours")
-        return f"{unit} {'before' if self.offset_min < 0 else 'after'} {self.solar.value}"
-
 
 class DateRange(BaseModel):
     """A RANGE OF CALENDAR DAYS, no year. Both ends INCLUSIVE, per the synopsis: "When no date
@@ -225,7 +216,9 @@ class Hours(BaseModel):
     end: Clock
 
     def words(self) -> str:
-        return f"{self.start.words()} to {self.end.words()}"
+        """T104: said by THE ONE `when_words` (`pipeline.deliver.answers.common`)."""
+        from pipeline.deliver.answers.common import when_words    # lazy: the answers layer reads the catalogue
+        return when_words({"hours": self.model_dump(mode="json")}, "label")
 
 
 class When(_Terse):

@@ -302,20 +302,15 @@ def _gear_words(r: CatalogueRule) -> str:
 def _when_words(r: CatalogueRule) -> str:
     """WHEN, in words: the dates, the weekdays, the hours, and any season nobody could read (in
     the book's words — an unread season is never shown as all year by being left out). There is no
-    "except …" branch: `When` stores the days a rule DOES hold, so the reader never inverts it."""
+    "except …" branch: `When` stores the days a rule DOES hold, so the reader never inverts it.
+
+    T104: said by THE ONE `when_words` (`pipeline.deliver.answers.common`, label style) — the same function
+    the answers' titles and plain sentences use, so the label and the card never word a `when` apart."""
     w = r.when
     if w is None or w.is_empty():
         return ""
-    bits = []
-    if w.dates:
-        bits.append(" and ".join(d.words() for d in w.dates))
-    if w.weekdays:
-        bits.append("on " + " and ".join(f"{d}s" for d in w.weekdays))
-    if w.hours:
-        bits.append(w.hours.words())
-    if w.unparsed:
-        bits.append("as printed: " + "; ".join(w.unparsed))
-    return ", ".join(bits)
+    from pipeline.deliver.answers.common import when_words    # lazy: the answers layer reads the catalogue
+    return when_words(w.model_dump(mode="json"), "label")
 
 
 def _scope(r: CatalogueRule, taking: bool = True) -> list:

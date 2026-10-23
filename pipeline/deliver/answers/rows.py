@@ -2213,42 +2213,25 @@ def place_presence(rows: List[dict], line: Optional[str], anadromous: bool = Fal
 
 
 def weekdays_words(days: Sequence[str]) -> str:
-    """ROUND14 5: a set of weekdays in words — a run of three or more "Monday to Friday", else each day
-    in the plural, "on Saturdays and Sundays" ("on Mondays and Wednesdays")."""
-    from pipeline.deliver.calendar import WEEKDAYS
-    ix = sorted(WEEKDAYS.index(d) for d in days)
-    if len(ix) >= 3 and ix == list(range(ix[0], ix[0] + len(ix))):
-        return f"{WEEKDAYS[ix[0]]} to {WEEKDAYS[ix[-1]]}"
-    return "on " + common.join([WEEKDAYS[i] + "s" for i in ix])
+    """ROUND14 5: a set of weekdays in words — "Monday to Friday", "on Saturdays and Sundays" (T104: said by
+    `common.when_words`, plain style)."""
+    return common.when_words({"weekdays": list(days)}, "plain")
 
 
 def weekdays_short(days: Sequence[str]) -> str:
-    """ROUND15 3: a set of weekdays in a short label — "Sat–Sun", "Mon–Fri" (a run), "Mon, Wed"."""
-    from pipeline.deliver.calendar import WEEKDAYS
-    ix = sorted(WEEKDAYS.index(d) for d in days)
-    ab = [WEEKDAYS[i][:3] for i in ix]
-    if len(ix) >= 2 and ix == list(range(ix[0], ix[0] + len(ix))):
-        return f"{ab[0]}–{ab[-1]}"
-    return ", ".join(ab)
+    """ROUND15 3: a set of weekdays in a short label — "Sat–Sun", "Mon–Fri", "Mon, Wed" (`when_words`, title)."""
+    return common.when_words({"weekdays": list(days)}, "title")
 
 
 def weekdays_label(days: Sequence[str]) -> str:
-    """ROUND15 3: a set of weekdays as the status names it — "Weekends", "Weekdays", else the short label."""
-    s = set(days)
-    if s == {"Saturday", "Sunday"}:
-        return "Weekends"
-    if s == {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}:
-        return "Weekdays"
-    return weekdays_short(days)
+    """ROUND15 3: a set of weekdays as the status names it — "Weekends", "Weekdays", else the short label
+    (`when_words`, status)."""
+    return common.when_words({"weekdays": list(days)}, "status")
 
 
 def weekdays_when(days: Sequence[str]) -> str:
-    """ROUND15 3: the days a part holds in words — "Monday to Friday", "Saturday and Sunday"."""
-    from pipeline.deliver.calendar import WEEKDAYS
-    ix = sorted(WEEKDAYS.index(d) for d in days)
-    if len(ix) >= 3 and ix == list(range(ix[0], ix[0] + len(ix))):
-        return f"{WEEKDAYS[ix[0]]} to {WEEKDAYS[ix[-1]]}"
-    return common.join([WEEKDAYS[i] for i in ix])
+    """ROUND15 3: the days a part holds in words — "Monday to Friday", "Saturday and Sunday" (`when_words`, days)."""
+    return common.when_words({"weekdays": list(days)}, "days")
 
 
 def _week_answer(frame: dict, S: str) -> Optional[Tuple[str, Optional[float], str]]:
