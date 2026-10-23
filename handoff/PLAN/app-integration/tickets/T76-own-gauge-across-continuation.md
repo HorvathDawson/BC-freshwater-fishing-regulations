@@ -5,7 +5,7 @@ reviewed on the live graph: 41 sections change, all on continuation waters (Chil
 Coola 4), 0 elsewhere, lead ranks only. Vedder 313838: 08MH047 (retired) rank 1, 08MH001 rank 2 → 08MH001 leads at read
 time. Left: the merger's batched `pipeline.deliver` (no reach, no atlas, no tiles) — then diff `panel_member.lead` vs
 the live bundle (expect only those 41 sections) and see `test_water_continue.py::test_the_chilliwack_continues_as_the_vedder_in_the_bundle`
-go green (fails on the live bundle until T59's Atnarko row ships).
+go green (fails on the live bundle until T59's Atnarko row ships). Review a51b6d45: catalogue pairings now read before the pickles load (peak memory); acceptance pinned on shipped data — `test_own_gauge_continuation.py::test_the_vedder_313838_is_led_by_08mh001_in_the_bundle` (fails as 'predates' on the current live bundle; must pass after the deliver). Catalogue heads == live `entry` rows (1525, 0 differ), so the `built_with` guard will not trip.
 
 Source: own-gauge REPORT.md: "Vedder (sid 313838): nothing leads" — its own gauge 08MH047 is retired and the Chilliwack
 gauges belong to another item, though `water_continue` links them. Owner 2026-10-22: Vedder/Chilliwack is "one system"
