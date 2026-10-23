@@ -1,6 +1,6 @@
 # T102 — The receiving river is never walked into (parent-code check in the walk, not only in seeding)
 
-Status: PART A DONE (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes; part B open. Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
+Status: PARTIAL — part A done (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes; part B open. Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
 using the WSC").
 
 ## Why
