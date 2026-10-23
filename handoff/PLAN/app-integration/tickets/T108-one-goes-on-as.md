@@ -1,6 +1,6 @@
 # T108 — One "goes on as": continuation and spans disagree on whether water A continues as water B
 
-Status: DONE — 6d64ba50 (code + tests on lane-T108). Ships with the next deliver: bundle `section_span` and
+Status: DONE — 6d64ba50 (code + tests on lane-T108), adversarial review e9084a8b (window pins, spec wording). Ships with the next deliver: bundle `section_span` and
 `water_continue` change only when `python -m pipeline.deliver` rebuilds the bundle.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 1
@@ -98,3 +98,43 @@ Owner questions:
   receiver's top (the Jr 4-1-2 example); p15 (2026-10-21 late) kept the municipal continuations that rule refused. Built
   default: p15 wins — `goes_on` decides, Jr 4-1-2 and 9 others now read "where it becomes …" instead of "Mouth", and P10's
   wording says so. Confirm, or say which of the 10 should stay a "Mouth" (then they leave `water_continue` too).
+
+## Adversarial review (2026-10-23)
+
+Verdict: the unification holds. No defect in the shipped behaviour; four of `goes_on`'s windows were unpinned, now
+pinned. The ANSWERS-SPEC line was still describing the removed rule; it now names `goes_on`.
+
+- **Data effect re-measured independently.** New code (`links` -> `settle(book_pairs)` -> `lower_ends` ->
+  `spans.compute`) on the live bundle tables + atlas `full` graph, compared with the shipped `section_span`: 55,588 rows,
+  the same keys, **exactly the 11 lower-end changes the As built section names** (10 `mouth` -> `continues:`, Atnarko
+  `confluence:Talchako` -> `continues:Bella Coola`), no other column moves. `settle` gives 17 links (Jeperson gone), and
+  the `continues:` sections == the settled links' mouth sections, every one on stem. Before: the shipped bundle has 6
+  `continues:` ends against 18 `water_continue` rows, which is the disagreement the ticket set out to remove.
+- **Second copies.** grep over `pipeline/` and `app/packages`: no other `lower_end_into`, `_BEGINS_M`/`_MEET_M`, or
+  span-side Strahler helper. `atlas/gauges/build_panels.goes_on` is a different question (does a side channel's own
+  code go on beside it, T101), not a copy. `topology.mouth_downs` answers "what does the mouth flow into" and reads
+  `continuation._main`, so it shares the main-line decision. `section_span.sid` is a primary key, so keying `ends` by
+  section cannot leak one water's end onto another's row.
+- **Build order.** `_places` / `_place_water` moved after `item_down`, `links`, `settle`, `spans.write`. None of those
+  read `place`/`place_water`. `spans.write` reads only `item`/`item_section`, the graph and the atlas files.
+- **Mutation sweep** (18 mutations of `goes_on`, `graph_flow`, `ranks`, `lower_ends`, `spans.compute`; harness in the
+  review scratchpad). The builder's six claimed catches all hold. Four survived before this review and are now pinned:
+  - a lake outlet counted only ABOVE A's mouth (dropping the 200 m below it):
+    `test_water_continue.py::test_goes_on_reads_each_window_from_the_one_constant_set` (row 2);
+  - the two-rivers-past-the-stub branch taking ANY other inflow as the partner (`bool(others)`): same test (row 6).
+    Before this review only the no-partner case was pinned;
+  - `graph_flow.into_lake` reading only the `lake_in` edge kind (not a `lake` node):
+    `test_the_graph_flow_marks_a_creek_into_a_lake_by_the_lakes_kind_too`;
+  - `ranks` dropping the FWA magnitude, so a confluence names the first river by id rather than the largest:
+    `test_part_labels_continue.py::test_three_rivers_meeting_name_the_largest_by_the_graphs_magnitude`.
+- Checks: `test_water_continue.py` + `test_part_labels_continue.py` 37 passed (3 `needs_bundle` deselected; they wait on
+  the deliver, as above); the spans/runs/split-name suites have no failures (their bundle tests error only on the
+  missing worktree bundle); `pytest -m smoke` 190 passed.
+
+Ship: unchanged. **A deliver is needed** (bundle stage onward). No atlas or reach rerun.
+
+Left / follow-ups (review):
+- The bundle pin compares names with `.lower()` while `goes_on` also folds whitespace, so a pair differing only in
+  spacing would slip past the pin, though not past `goes_on`. Harmless today (`goes_on` refuses it first).
+- The grep pin catches only the known constant names (`BEGINS|MEET|STUB|CONFLUENCE|OWN`). A new tolerance under
+  another name in another bundle module would pass it. The pin's real guard is the bundle pin.
