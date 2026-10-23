@@ -19,7 +19,10 @@ changed". A mark never lands silently on another rule.
 from __future__ import annotations
 
 import datetime as dt
+import fcntl
 import json
+import os
+from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from typing import Iterable, Literal, Mapping, Optional, Sequence
@@ -173,13 +176,31 @@ def appended(path: Path, marks: Sequence[Mark]) -> str:
     return before + "".join(line(m) for m in marks)
 
 
+@contextmanager
+def store_lock(path: Path):
+    """THE STORE'S LOCK ACROSS PROCESSES: an exclusive `flock` on the store's DIRECTORY, held for a
+    whole read-append-write. A writer reads the file, appends and replaces it (`atomic_write`), so
+    two processes doing that at once (the review app and a migration's `append`) dropped one's
+    lines; a lock on the file itself would not do, since the replace gives the next writer a new
+    inode. The review app's thread lock (`writes.LOCK`) serialises its own threads only."""
+    d = Path(path).parent
+    fd = os.open(d, os.O_RDONLY)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+
 def append(path: Path, marks: Sequence[Mark]) -> None:
-    """Append `marks` to the store (atomic). A reviewer's NEW mark asks the gate first
-    (`refuse_on_gate`; the review app's `post_mark`)."""
+    """Append `marks` to the store (atomic, under `store_lock`). A reviewer's NEW mark asks the
+    gate first (`refuse_on_gate`; the review app's `post_mark`)."""
     from pipeline.regs.parsing.io import atomic_write
     if not Path(path).exists():
         load(path)                                             # raises: the store is checked in
-    atomic_write(Path(path), appended(path, marks))
+    with store_lock(path):
+        atomic_write(Path(path), appended(path, marks))
 
 
 def refuse_on_gate(target: str, gate_errors: Sequence) -> None:
@@ -209,27 +230,60 @@ def _kind(key: str) -> str:
 
 def match_records(marked: Sequence[RecordPrint], now: Sequence[RecordPrint]
                   ) -> tuple[list[tuple[RecordPrint, RecordPrint]], list[RecordPrint], list[RecordPrint]]:
-    """RULE IDENTITY: pair each marked record with the current record it IS — same key and same
-    meaning; else same kind and same meaning, unclaimed (a re-parse renumbered it). Never by id
-    alone: a record whose meaning changed has no pair — it is "rule changed", and its id may now
-    be another rule's. Returns (pairs, marked records with no current one, current records no
-    mark holds)."""
+    """RULE IDENTITY: pair each marked record with the current record it IS, in passes, each
+    taking only records no earlier pass claimed:
+
+      1. same key, meaning and binding        (nothing moved)
+      2. same kind, meaning and binding       (a re-parse renumbered it)
+      3. same key and meaning                 (its binding moved)
+      4. same kind and meaning — ONLY when the marked key is gone from `now` (renumbered AND moved)
+
+    Binding before key: 38 rules in 16 entries share their meaning with a sibling ("No fishing" on
+    two reaches), and pairing on meaning alone sent a mark to the sibling — a renumber read as
+    "binding moved", a changed rule as "binding moved" instead of "rule changed". Pass 4 never
+    runs while the key still names a record: that record IS the rule the mark was on, changed.
+    Never by id alone: a record whose meaning changed has no pair — "rule changed".
+    Returns (pairs, marked records with no current one, current records no mark holds)."""
     free = list(now)
+    keys_now = {c.key for c in now}
     pairs: list[tuple[RecordPrint, RecordPrint]] = []
-    left: list[RecordPrint] = []
-    for rule in (lambda m, c: c.key == m.key and c.meaning == m.meaning,
-                 lambda m, c: _kind(c.key) == _kind(m.key) and c.meaning == m.meaning):
-        left = []
-        for m in marked:
-            if any(p[0] is m for p in pairs):
-                continue
-            hit = next((c for c in free if rule(m, c)), None)
+    left: list[RecordPrint] = list(marked)
+    for same in (lambda m, c: c.key == m.key and c.meaning == m.meaning and c.binding == m.binding,
+                 lambda m, c: (_kind(c.key) == _kind(m.key) and c.meaning == m.meaning
+                               and c.binding == m.binding),
+                 lambda m, c: c.key == m.key and c.meaning == m.meaning,
+                 lambda m, c: (m.key not in keys_now and _kind(c.key) == _kind(m.key)
+                               and c.meaning == m.meaning)):
+        still: list[RecordPrint] = []
+        for m in left:
+            hit = next((c for c in free if same(m, c)), None)
             if hit is None:
-                left.append(m)
+                still.append(m)
             else:
                 pairs.append((m, hit))
                 free.remove(hit)
+        left = still
     return pairs, left, free
+
+
+def held_rule(mark: Mark, now: Prints | Mapping | None) -> str | None:
+    """The rule_id a RULE mark is on NOW (`match_records`: renumbered rules are followed), or None
+    when its rule has no pair (changed or gone) or `mark` is not a rule mark."""
+    if mark.scope != "rule" or now is None:
+        return None
+    if not isinstance(now, Prints):
+        now = Prints.model_validate(now)
+    pairs, _, _ = match_records(mark.prints.records, _held_against(mark, now))
+    return next((cur.key.split(":", 1)[1] for was, cur in pairs
+                 if was.key == f"rule:{mark.rule_id}"), None)
+
+
+def _held_against(mark: Mark, now: Prints) -> list[RecordPrint]:
+    """The current records a mark is compared with: a rule mark, its entry's record and the
+    entry's rules (its own may have been renumbered); any other mark, every record."""
+    if mark.scope == "rule":
+        return [r for r in now.records if r.key == "entry" or _kind(r.key) == "rule"]
+    return list(now.records)
 
 
 def stale_reasons(mark: Mark, now: Prints | Mapping | None) -> list[StaleReason]:
@@ -243,13 +297,9 @@ def stale_reasons(mark: Mark, now: Prints | Mapping | None) -> list[StaleReason]
     got: set[StaleReason] = set()
     if mark.prints.text != now.text:
         got.add(StaleReason.book_text_changed)
-    current = list(now.records)
-    if mark.scope == "rule":
-        # a rule mark is held against its entry's record and ITS rule — the entry's other rules
-        # are not what it answered for; its rule may have been renumbered (`match_records`)
-        current = [r for r in current
-                   if r.key == "entry" or _kind(r.key) == "rule"]
-    pairs, gone, new = match_records(mark.prints.records, current)
+    # a rule mark is held against its entry's record and ITS rule — the entry's other rules are
+    # not what it answered for; its rule may have been renumbered (`match_records`)
+    pairs, gone, new = match_records(mark.prints.records, _held_against(mark, now))
     if gone:
         got.add(StaleReason.rule_changed)
     if new and mark.scope != "rule":

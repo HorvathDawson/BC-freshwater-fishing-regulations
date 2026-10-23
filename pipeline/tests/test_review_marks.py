@@ -234,7 +234,8 @@ def test_moving_a_split_stales_its_water_and_its_own_mark_binding_moved(world):
 
 def test_a_split_label_or_note_edit_moves_nothing(world):
     sp = splits_doc()
-    sp["waterbodies"][0]["splits"][1].update(label="Highway 19 bridge", note="checked", _note="y")
+    sp["waterbodies"][0]["splits"][1].update(label="Highway 19 bridge", note="checked", _note="y",
+                                             _offset_m=40, _coord=[-126.1, 50.3])
     sp["waterbodies"][0]["splits"][0]["anchor"]["_name"] = "Eve R."
     assert states(world["marks"], world["entries"], ctx_of(splits=sp, bundle=world["bundle"])) \
         == FRESH
@@ -333,6 +334,175 @@ def test_a_folded_id_is_the_same_water():
         assert F.entry_fingerprints(folded, ctx) == F.entry_fingerprints(e, ctx)
     finally:
         flowing.alias_map = orig
+
+
+# --------------------------------------------------------------------------------------------
+# Adversarial review (T97): twin rules, rules naming rules, a carry across a rebuild, the lock
+# --------------------------------------------------------------------------------------------
+
+TWIN = "r1:twin_creek@1-10"
+
+
+def _twins() -> dict:
+    """Two rules that say the SAME thing on two stretches (38 rules in 16 entries do this)."""
+    rules = [_rule("twin_creek.r1", "No fishing", [{"op": "between",
+                                                    "splits": ["adam__eve", "adam__bridge"]}]),
+             _rule("twin_creek.r2", "No fishing")]
+    return {TWIN: _entry(TWIN, "TWIN CREEK", "gnis:28136", rules)}
+
+
+def test_twin_rules_a_mark_follows_its_own_twin_never_the_other(world):
+    entries, ctx = _twins(), ctx_of()
+    ms = [mark(entries[TWIN], ctx), mark(entries[TWIN], ctx, scope="rule", rule_id="twin_creek.r1"),
+          mark(entries[TWIN], ctx, scope="rule", rule_id="twin_creek.r2")]
+    holds = {TWIN: [], f"{TWIN}/twin_creek.r1": [], f"{TWIN}/twin_creek.r2": []}
+    swapped = copy.deepcopy(entries)                    # a re-parse numbers them the other way
+    a, b = swapped[TWIN]["rules"]
+    a["rule_id"], b["rule_id"] = "twin_creek.r2", "twin_creek.r1"
+    assert states(ms, swapped, ctx) == holds
+    now = F.entry_fingerprints(swapped[TWIN], ctx)
+    assert M.held_rule(ms[1], now) == "twin_creek.r2" and M.held_rule(ms[2], now) == "twin_creek.r1"
+    edited = copy.deepcopy(entries)                     # r1's rule changes; r2 still says "No fishing"
+    edited[TWIN]["rules"][0]["gear"] = [{"slot": "lure", "only": ["artificial_lure"]}]
+    assert states(ms, edited, ctx) == {**holds, TWIN: ["rule changed"],
+                                       f"{TWIN}/twin_creek.r1": ["rule changed"]}
+    assert M.held_rule(ms[1], F.entry_fingerprints(edited[TWIN], ctx)) is None
+
+
+ZONE = "z1:quota_zone"
+
+
+def _zone() -> dict:
+    """A zone entry whose rules NAME each other by id (`within`, `siblings`), as 130 zone rules do."""
+    def r(rid, verbatim, **kw):
+        return {"rule_id": rid, "type": "tackle_restriction", "verbatim": verbatim,
+                "gear": [{"slot": "lure", "only": ["artificial_fly"]}], "extents": [{"op": "whole"}],
+                **kw}
+    rules = [r("quota_zone.r1", "Artificial fly only"),
+             r("quota_zone.r2", "Artificial fly only, in streams", within="quota_zone.r1"),
+             r("quota_zone.r3", "Artificial fly only, elsewhere",
+               extents=[{"op": "rest", "siblings": ["quota_zone.r2"]}])]
+    return {ZONE: {"entry_id": ZONE, "name": "QUOTA ZONE", "region": "1", "regs_verbatim": "x",
+                   "source_pages": [14], "matched": ["gnis:28136"], "rules": rules}}
+
+
+def _renumber(entry: dict, mapping: dict) -> dict:
+    """`entry` with its rules renumbered by `mapping`, every reference to them rewritten too."""
+    out = copy.deepcopy(entry)
+    for rule in out.get("rules") or []:
+        rule["rule_id"] = mapping.get(rule["rule_id"], rule["rule_id"])
+        for k in F.RULE_REF_FIELDS:
+            if rule.get(k) in mapping:
+                rule[k] = mapping[rule[k]]
+        for k in ("extents", "tributary_excludes"):
+            for x in rule.get(k) or []:
+                if isinstance(x, dict) and x.get("siblings"):
+                    x["siblings"] = [mapping.get(s, s) for s in x["siblings"]]
+    return out
+
+
+def check_renumber(entries: dict, ctx: F.Context) -> dict:
+    """The stale marks after renumbering every entry's rules backwards (refs rewritten): every
+    entry mark and every rule mark, which should all hold."""
+    ms = [mark(e, ctx) for e in entries.values()]
+    ms += [mark(e, ctx, scope="rule", rule_id=r["rule_id"]) for e in entries.values()
+           for r in e.get("rules") or []]
+    after = {}
+    for eid, e in entries.items():
+        ids = [r["rule_id"] for r in e.get("rules") or []]
+        after[eid] = _renumber(e, dict(zip(ids, [f"{i}.renumbered" for i in reversed(ids)])))
+    return {k: v for k, v in states(ms, after, ctx).items() if v}
+
+
+def test_rules_naming_rules_survive_a_renumber_and_see_what_they_name_change(world):
+    entries, ctx = _zone(), ctx_of()
+    assert check_renumber(entries, ctx) == {}
+    ms = [mark(entries[ZONE], ctx, scope="rule", rule_id=f"quota_zone.r{i}") for i in (1, 2, 3)]
+    edited = copy.deepcopy(entries)                     # the rule r2 is `within` changes
+    edited[ZONE]["rules"][0]["gear"] = [{"slot": "lure", "only": ["artificial_lure"]}]
+    assert states(ms, edited, ctx) == {f"{ZONE}/quota_zone.r1": ["rule changed"],
+                                       f"{ZONE}/quota_zone.r2": ["rule changed"],
+                                       f"{ZONE}/quota_zone.r3": []}
+
+
+def test_the_renumber_check_is_pinned_by_mutation(monkeypatch):
+    monkeypatch.setattr(F, "_deref", lambda record, named: dict(record))   # ids hashed as written
+    assert check_renumber(_zone(), ctx_of()), "an id-bound reference went unseen"
+
+
+def test_renumbering_every_rule_of_the_real_corpus_stales_no_mark():
+    """Every entry of the catalogue, its rules numbered backwards and every reference rewritten:
+    no entry mark and no rule mark goes stale."""
+    entries = io.read_entries_dir(CURATED.regulations.entries.catalogue)
+    ctx = F.Context(splits=json.loads(CURATED.waters.splits.read_text(encoding="utf-8")),
+                    overrides=tuple(json.loads(CURATED.regulations.overrides.read_text(
+                        encoding="utf-8"))))
+    stale = check_renumber(entries, ctx)
+    assert stale == {}, f"{len(stale)} marks stale after a renumber: {list(stale.items())[:5]}"
+
+
+def check_carry_across_a_rebuild(carry_fn, world) -> list[str]:
+    """A split rename (declares ADAM unchanged) whose after-context reads a REBUILT bundle in which
+    ADAM r2's label changed: the copy must still read "answer changed"."""
+    b = make_bundle(world["tmp"] / "b-carry.sqlite", world["entries"],
+                    labels={(ADAM, "adam_river.r2"): "Fly fishing only"})
+    after = _rename(world["entries"], "adam__bridge", "adam__hwy19")
+    ctx_a = ctx_of(splits=_renamed_splits("adam__bridge", "adam__hwy19"), bundle=b)
+    new = carry_fn(world["entries"], after, marks=world["marks"], unchanged={ADAM}, by="rename",
+                   ctx_before=world["ctx"], ctx_after=ctx_a,
+                   renamed_splits={"adam__bridge": "adam__hwy19"})
+    got = states(world["marks"] + list(new), after, ctx_a)
+    problems = []
+    if got.get(ADAM) != ["answer changed"]:
+        problems.append(f"ADAM {got.get(ADAM)}: the rebuild's label change was laundered")
+    if got.get(f"{ADAM}/adam_river.r1") != []:
+        problems.append(f"ADAM r1 {got.get(f'{ADAM}/adam_river.r1')}: the rename was not carried")
+    return problems
+
+
+def test_carry_marks_never_launders_a_rebuild(world, monkeypatch):
+    assert check_carry_across_a_rebuild(carry_marks, world) == []
+    monkeypatch.setattr(carry, "_keep_bundle_half", lambda was, now: now)
+    assert check_carry_across_a_rebuild(carry_marks, world), "a laundered answer went unseen"
+
+
+_APPENDER = """
+import sys
+from pathlib import Path
+from pipeline.regs.review import marks as M
+store, n = Path(sys.argv[1]), int(sys.argv[2])
+one = M.load(store.parent / "one.jsonl")
+for _ in range(n):
+    M.append(store, one)
+"""
+
+
+def _appenders(store: Path, k: int, n: int):
+    import subprocess
+    import sys
+    return [subprocess.Popen([sys.executable, "-c", _APPENDER, str(store), str(n)], cwd=REPO)
+            for _ in range(k)]
+
+
+def test_concurrent_appends_from_several_processes_lose_no_line(world, tmp_path):
+    store = tmp_path / "marks.jsonl"
+    store.write_text("")
+    (tmp_path / "one.jsonl").write_text(M.line(world["marks"][0]))
+    procs = _appenders(store, 4, 25)
+    assert all(p.wait(timeout=240) == 0 for p in procs)
+    assert len(M.load(store)) == 100
+
+
+def test_the_store_lock_holds_off_another_process(world, tmp_path):
+    import time
+    store = tmp_path / "marks.jsonl"
+    store.write_text("")
+    (tmp_path / "one.jsonl").write_text(M.line(world["marks"][0]))
+    with M.store_lock(store):
+        (p,) = _appenders(store, 1, 1)
+        time.sleep(3)
+        assert p.poll() is None and store.read_text() == "", "it wrote while the lock was held"
+    assert p.wait(timeout=120) == 0 and len(M.load(store)) == 1
 
 
 # --------------------------------------------------------------------------------------------
@@ -532,7 +702,8 @@ def _py_sources():
 def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pick():
     assert not (REPO / "curation-review" / "backend" / "verification.py").exists()
     hits = {"entry_hash": [], "def applies_keys": [], "def _applies_keys": [],
-            "_pick_override(": [], "def stale_reasons": [], "def entry_fingerprints(": []}
+            "_pick_override(": [], "def stale_reasons": [], "def entry_fingerprints(": [],
+            "def match_records(": [], "flock(": []}
     for p, text in _py_sources():
         for k in hits:
             if k in text:
@@ -542,6 +713,8 @@ def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pic
     assert hits["_pick_override("] == ["pipeline/regs/matching/matcher.py"]
     assert hits["def stale_reasons"] == ["pipeline/regs/review/marks.py"]
     assert hits["def entry_fingerprints("] == ["pipeline/regs/review/fingerprint.py"]
+    assert hits["def match_records("] == ["pipeline/regs/review/marks.py"]   # rule identity
+    assert hits["flock("] == ["pipeline/regs/review/marks.py"]               # the store's lock
     matcher = (REPO / "pipeline/regs/matching/matcher.py").read_text(encoding="utf-8")
     assert len(re.findall(r"_pick_override\(", matcher)) == 2     # its def, and override_for
 

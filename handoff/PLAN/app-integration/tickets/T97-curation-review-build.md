@@ -87,3 +87,69 @@ Depends: T96 (done). Size: M (phase 1: 3–4 days; all phases 3–4 weeks). Owne
 - Licensing records carry meaning + binding + bundle label, no reach half.
 - Not run: Tier 2 (`scripts/test-full.sh`, needs the owner's go-ahead) and the app/check.mjs smoke steps (no
   node_modules in the lane worktree). The frontend typechecks (`tsc -p tsconfig.json --noEmit`).
+
+## Adversarial review (2026-10-23)
+Each break was tried against the code; the defects are fixed with a test, and every new test is mutation-checked (the
+fix reverted → that test fails).
+
+**Fixed**
+1. **Twin rules: a mark went to the other twin.** 38 rules in 16 entries say the same thing as a sibling ("No fishing"
+   on two reaches). Rule identity paired on meaning alone, so the two twins numbered the other way round read "binding
+   moved", and a twin whose text changed read "binding moved" instead of "rule changed". The fix is in
+   `marks.match_records`, which now pairs in four passes: (1) key, meaning and binding; (2) kind, meaning and binding;
+   (3) key and meaning; (4) kind and meaning, only once the marked key has gone. Pinned by
+   `test_twin_rules_a_mark_follows_its_own_twin_never_the_other`; the real-corpus renumber test also fails without it.
+2. **Rules that name rules broke on a renumber.** `within` (130 zone rules), `condition_of` (6), `derived_from` (3)
+   and an extent's `siblings` (13) hold another rule's id, and that id went into the fingerprint. Renumbering the rules
+   therefore staled every rule that referred to another, with "rule changed". The fix is `fingerprint._deref`: each
+   reference now stands for the named rule's meaning (with that rule's own references blanked, so no id survives and
+   no cycle recurses). A rule `within` a quota therefore still reads "rule changed" when the quota itself changes.
+   `test_renumbering_every_rule_of_the_real_corpus_stales_no_mark` renumbers every entry backwards and rewrites the
+   references: 0 stale out of 1,525 entry marks and every rule mark. Mutation-pinned by
+   `test_the_renumber_check_is_pinned_by_mutation`.
+3. **`carry_marks` laundered a rebuild.** It re-stamped every fingerprint from `ctx_after`, including the bundle half.
+   A migration run against a rebuilt bundle therefore wiped every answer change that build made, even on targets the
+   migration had declared unchanged. A migration speaks only for its curated edit. When the two contexts' bundle facts
+   differ, the copy now keeps the mark's own `reach`/`answer` (`carry._keep_bundle_half`). Split marks are excluded,
+   since they hold no bundle half. Carried copies are now validated (`Mark.model_validate`, not `model_copy`). Pinned
+   by `test_carry_marks_never_launders_a_rebuild` (mutation included). The app's split rename uses one bundle and is
+   unaffected.
+4. **Concurrent appends lost lines across processes.** A store write reads the file, appends and replaces it, and
+   `writes.LOCK` is a thread lock. The review app plus a migration's `marks.append` could drop one side's marks, and a
+   lock on the file itself would not have helped, because the replace gives the next writer a new inode. The fix is
+   `marks.store_lock`, an exclusive `flock` on the store's directory, held by `append`, the app's `post_mark` and
+   `rename_split`. Pinned by `test_concurrent_appends_from_several_processes_lose_no_line` (4 processes × 25 → 100) and
+   `test_the_store_lock_holds_off_another_process`; both fail with the lock removed.
+5. **A split's `_offset_m` annotation counted as a cut.** 82 splits carry it and no builder reads it. Every
+   `_`-prefixed key on a split is now a note, as it already was inside the anchor. Pinned in
+   `test_a_split_label_or_note_edit_moves_nothing`.
+6. **The queue lost renumbered rule marks.** `_entry_mark_state` compared raw rule ids, so a zone entry whose rule
+   marks all still held read "unmarked" after a renumber. It now uses `marks.held_rule`, the rule a mark is on now as
+   `match_records` decides it.
+- The no-second-copy pin now also covers `def match_records(` and `flock(` (one copy each, in `marks.py`).
+
+**Tried, held**
+- No-op migration (key order, spelled defaults, the pipeline writer): 0 stale. Folded item ids (registry alias map):
+  same prints.
+- Override pick: the fingerprint's `override_for` call agrees with `match_row` on the synopsis row for all 1,379
+  entries that have exactly one row (14 have no single row by name+MU).
+- The 102 confluence anchors (no coordinates): canonical by `tributary_wsc` (+ offsets); `_name` is ignored. 409
+  splits give 405 distinct anchors; the 4 pairs that coincide are listed under their own ids.
+- Section ids: none in any fingerprint (`reach_summary` is item id → km; the real-bundle test asserts it).
+- Override and steelhead edits come through the binding/answer fingerprints. A mark on a gate-failing entry gets 422.
+  A missing or blank reviewer is refused by the model.
+- `verification.json`: nothing reads it, no copy exists under `data/curated/`, and the frontend names no
+  `/api/verification` or `/verify`.
+
+**Open (not fixed; owner/T136)**
+- **Unnamed water is counted, not measured.** Bound sections in no named water (1.89 M in the current bundle) have no
+  `section_span`, so `reach_summary` counts them. If the non-deterministic atlas cuts an unnamed block differently,
+  every tributary walk over it reads "binding moved". Measure this in the T136 pilot.
+- **A registry REBUILD that renames an item stales the entries on it** ("binding moved"), because the canonical id
+  changed. A catalogue migration that only rewrites ids to the registry's own fold is a no-op (tested).
+- **Renaming a split leaves the old split's mark in force under the old id.** `/api/marks` lists it as stale with "rule
+  changed", because the target is gone. The split itself reads correctly under its new id.
+- **A rule mark carried over a migration keeps its own `rule_id`.** If its rule was renumbered and then the migration
+  ran, the mark is not carried: it goes stale, which is conservative.
+- The branch base already fails `test_one_data_flow::test_the_bundle_reads_no_curated_waters_file` (`CURATED.gauges.tidal`)
+  and `test_no_silent_skips`, with or without this lane. Neither is in T97's files.

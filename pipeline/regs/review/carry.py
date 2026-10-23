@@ -13,6 +13,11 @@ It re-stamps a mark only when ALL of these hold, and the mutation tests pin each
   * the target still exists after it (a rule mark: its rule id too).
 A mark whose fingerprints are already equal after the migration needs no copy. Everything else is
 left alone, and the fingerprints decide what goes stale and why.
+
+A migration speaks for the CURATED edit it made, never for a build: when `ctx_after` reads a
+bundle whose facts differ from `ctx_before`'s, the copy keeps the mark's own bundle half (`reach`, `answer`)
+record by record, so a label or reach the rebuild changed still reads stale. Re-stamping it from
+the new bundle laundered every answer change of that build (T97 adversarial review).
 """
 from __future__ import annotations
 
@@ -50,6 +55,7 @@ def carry_marks(before: Mapping[str, dict], after: Mapping[str, dict], *,
     ctx_after = ctx_after or ctx_before
     renamed = dict(renamed_splits or {})
     declared = set(unchanged) | set(renamed)
+    same_build = ctx_after.bundle == ctx_before.bundle    # equal facts, not merely one object
     out: list[Mark] = []
     for m in latest(marks).values():
         if m.target not in declared:
@@ -61,7 +67,24 @@ def carry_marks(before: Mapping[str, dict], after: Mapping[str, dict], *,
         now = prints_of(m, after, ctx_after, target=new_target)
         if now is None:
             continue
+        if not same_build and m.scope != "split":       # a split mark holds no bundle half
+            now = _keep_bundle_half(m.prints, now)
+            if now is None:
+                continue                                 # its records changed shape: not carried
         if now == m.prints and new_target == m.target:
             continue                                     # nothing to re-stamp
-        out.append(m.model_copy(update={"prints": now, "target": new_target, "carried_by": by}))
+        out.append(Mark.model_validate({**m.model_dump(), "prints": now.model_dump(),
+                                        "target": new_target, "carried_by": by}))
     return out
+
+
+def _keep_bundle_half(was: Prints, now: Prints) -> Prints | None:
+    """`now` with each record's `reach` and `answer` taken from `was` (same key) — the carried copy
+    of a mark across a migration whose context reads another bundle. None when a record of `now`
+    has no record of `was` with its key."""
+    old = {r.key: r for r in was.records}
+    if any(r.key not in old for r in now.records):
+        return None
+    return Prints(text=now.text, records=tuple(
+        r.model_copy(update={"reach": old[r.key].reach, "answer": old[r.key].answer})
+        for r in now.records))

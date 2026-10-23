@@ -1003,7 +1003,8 @@ def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
             return {"status": word, "note": hit[0][0].note,
                     "reasons": sorted({r for _, st in hit for r in st["reasons"]},
                                       key=[x.value for x in M.STALE_REASONS].index)}
-    marked = {m.rule_id for m, st in sts if st["status"] == "verified"}
+    # the rule each verified mark is on NOW — a renumbered rule keeps its mark (`marks.held_rule`)
+    marked = {M.held_rule(m, now) for m, st in sts if st["status"] == "verified"}
     every = {r.get("rule_id") for r in e.get("rules") or []}
     return {"status": "verified" if every and every <= marked else "unmarked", "note": "",
             "reasons": []}
@@ -1074,7 +1075,7 @@ def post_mark(body: dict) -> dict:
     from pipeline.regs.review import marks as M
     scope, target = body.get("scope"), str(body.get("target") or "")
     ctx = _review_context()
-    with writes.LOCK:
+    with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
         if scope == "split":
             prints = F.split_fingerprints(target, ctx)                 # KeyError: not in splits.json
             pages = body.get("pages") or []
@@ -1892,7 +1893,8 @@ def rename_split(old_id: str, new_id: str) -> dict:
     if in_code:
         return {"ok": False, "errors": [f"split '{old_id}' is named in pipeline code ({', '.join(in_code)}) "
                                         f"— rename it there by hand, with this, in one change"]}
-    with writes.LOCK:
+    from pipeline.regs.review import marks as M
+    with writes.LOCK, M.store_lock(MARKS_PATH):        # it may append carried marks
         data = _load_splits()
         all_ids = {sp.get("id") for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])}
         if new_id in all_ids:
@@ -1931,7 +1933,6 @@ def rename_split(old_id: str, new_id: str) -> dict:
             # the marks that held before; a mark already stale stays stale.
             new_marks = _carry_rename(before_corpus, after_corpus, old_id, new_id, data)
             if new_marks:
-                from pipeline.regs.review import marks as M
                 changes.append((MARKS_PATH, M.appended(MARKS_PATH, new_marks)))
                 carried = sorted({m.target for m in new_marks})
             dfo: list[str] = []

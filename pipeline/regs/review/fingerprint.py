@@ -58,9 +58,15 @@ NOT_MEANING = frozenset({"label", "review_reason", "rule_id", "id"})
 TEXT_FIELDS = ("name", "regs_verbatim", "source_pages", "symbols")
 #: The entry's own fields that place it (its pseudo-record "entry" binding).
 ENTRY_PLACEMENT = ("matched", "extents", "includes_tributaries", "tidal")
-#: A split's fields that do not move it: display and notes. Everything else (anchor, kind, the
-#: authored offsets, proximity, its own target) is the cut.
-SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note", "_note", "_coord"})
+#: A split's fields that do not move it: display and notes — and, as in its anchor, every
+#: `_`-prefixed key (`_note`, `_coord`, `_offset_m`: annotations no builder reads). Everything else
+#: (anchor, kind, the authored offsets, proximity, its own target) is the cut.
+SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note"})
+#: A rule's fields that NAME ANOTHER RULE OF ITS ENTRY by `rule_id` (130 `within`, 6 `condition_of`,
+#: 3 `derived_from`; and `siblings` inside an extent). A fingerprint holds the NAMED RULE'S MEANING in
+#: place of its id (`_deref`), so a re-parse that renumbers the rules moves no mark: an id is not
+#: what the reviewer answered for (T97 adversarial review).
+RULE_REF_FIELDS = ("within", "condition_of", "derived_from")
 
 
 def digest(obj) -> str:
@@ -192,7 +198,7 @@ def split_anchor(split: Mapping) -> dict:
     authored offset, proximity, its target — its own `applies_to` or its waterbody's), and none
     that only names or annotates it."""
     out = {k: v for k, v in split.items() if k not in SPLIT_NOT_ANCHOR
-           and k != "_waterbody_applies_to"}
+           and not str(k).startswith("_")}
     out["anchor"] = {k: v for k, v in (split.get("anchor") or {}).items()
                      if not str(k).startswith("_")}
     from pipeline.atlas.splits.splits import applies_keys
@@ -272,6 +278,29 @@ def canonical_entry(entry: Mapping, ctx: Context | None = None) -> dict:
     out = json.loads(json.dumps(out, default=str))
     out["rules"] = [_terse(CatalogueRule, r) for r in data.get("rules") or []]
     out["licensing"] = [_terse(lic_type, x) for x in data.get("licensing") or []]
+    return out
+
+
+def _deref(record: Mapping, named: Mapping[str, str]) -> dict:
+    """`record` with every rule id it names (`RULE_REF_FIELDS`, an extent's `siblings`) replaced by
+    `{"rule": named[id]}` — the named rule's meaning with ITS OWN references blanked (`entry_records`),
+    so no id survives at any depth and a cycle cannot recurse. An id naming no rule of the entry
+    stays as it is."""
+    def ref(v):
+        return {"rule": named[v]} if isinstance(v, str) and v in named else v
+
+    def ext(v):
+        if not isinstance(v, list):
+            return v
+        return [dict(x, siblings=[ref(s) for s in x["siblings"]])
+                if isinstance(x, dict) and isinstance(x.get("siblings"), list) else x for x in v]
+    out = dict(record)
+    for k in RULE_REF_FIELDS:
+        if k in out:
+            out[k] = ref(out[k])
+    for k in ("extents", "tributary_excludes"):
+        if k in out:
+            out[k] = ext(out[k])
     return out
 
 
@@ -389,10 +418,15 @@ def entry_records(entry: Mapping, ctx: Context) -> list[dict]:
            if k not in ("rules", "licensing", "entry_id", "region", *TEXT_FIELDS, *ENTRY_PLACEMENT)}
     out = [{"key": "entry", "meaning": digest(own), "binding": entry_binding_fp(canon, ctx),
             "reach": None, "answer": entry_answer_fp(canon, ctx)}]
-    for r in canon.get("rules") or []:
+    rules = [r for r in canon.get("rules") or [] if isinstance(r, dict)]
+    ids = {str(r.get("rule_id")) for r in rules}
+    named = {str(r.get("rule_id")): meaning_fp(_deref(r, dict.fromkeys(ids, "")))
+             for r in rules}
+    for r in rules:
         rid = str(r.get("rule_id"))
-        out.append({"key": f"rule:{rid}", "meaning": meaning_fp(r),
-                    "binding": record_binding_fp(r, ctx),
+        d = _deref(r, named)
+        out.append({"key": f"rule:{rid}", "meaning": meaning_fp(d),
+                    "binding": record_binding_fp(d, ctx),
                     "reach": rule_reach_fp(eid, rid, ctx), "answer": rule_answer_fp(eid, rid, ctx)})
     for x in canon.get("licensing") or []:
         xid = str(x.get("id"))
