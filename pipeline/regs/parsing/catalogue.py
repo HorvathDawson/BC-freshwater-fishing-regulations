@@ -39,7 +39,7 @@ from .catalogue_parts.text import (  # noqa: F401
 )
 from .catalogue_parts.dates import (  # noqa: F401
     _MONTHS, _LAST_DAY, parse_clock, parse_date_range, _point, _month, _day_index, range_days,
-    complement, _md, Solar, Clock, DateRange, Hours, When, _days
+    complement, _md, Solar, Clock, DateRange, Hours, When, _days, YEAR_DAYS, held_days
 )
 from .catalogue_parts.species import (  # noqa: F401
     BOOK_FAMILIES, BOOK_SPECIES, GAME_FISH, SCIENTIFIC_NAMES, SPECIES_GROUPS, NAMING_GROUPS,

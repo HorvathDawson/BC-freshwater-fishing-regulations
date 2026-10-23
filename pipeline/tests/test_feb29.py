@@ -158,3 +158,19 @@ def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(reque
     speaks = lambda lad: {r for f in lad for o in lad[f] for r, v in lad[f][o].items() if v[0] == "speaks"}  # noqa
     assert ZYMOETZ_R10 in speaks(fri) and ZYMOETZ_R10 not in speaks(thu)
     assert E.tap(wire, data, ZYMOETZ, 0, 2, 29, weekday="Thursday")["ladder"] == thu
+
+
+
+def test_held_days_is_the_one_no_dates_means_the_year():
+    """T125 item 8 (answers 11): a `when`'s dates as days, every day when it prints none — `catalogue.held_days`; the
+    bundle's dated lift (`rules._when_term`) and the licensing overlap check each spelled the year themselves. MUTATION: either re-inlined
+    (a Jan 1-Dec 31 `DateRange`, a `range(1, 367)`) fails the source pin."""
+    import inspect
+    from pipeline.deliver.bundle import licensing as BL, rules as BR
+    w = C.When.model_validate({"dates": [{"from_month": 2, "from_day": 28, "to_month": 3, "to_day": 1}]})
+    assert sorted(C.held_days(w)) == [59, 60, 61]                    # Feb 28, Feb 29, Mar 1
+    assert C.held_days(None) == C.held_days(C.When.model_validate({"weekdays": ["Saturday"]})) == C.YEAR_DAYS
+    assert len(C.YEAR_DAYS) == 366
+    for src in (inspect.getsource(BR._when_term),
+                inspect.getsource(BL)):
+        assert "range(1, 367)" not in src and "to_month=12, to_day=31" not in src

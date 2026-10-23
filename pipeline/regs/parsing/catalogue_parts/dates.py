@@ -272,3 +272,16 @@ def _days(ranges: List["DateRange"]) -> set:
     for r in ranges:
         got.update(range_days(r))
     return got
+
+
+#: Every day of the reading year, Feb 29 included (`range_days`' day numbers, 1..366).
+YEAR_DAYS = frozenset(range(1, 367))
+
+
+def held_days(when) -> frozenset:
+    """THE DAYS A `when`'S DATES HOLD, by `range_days` day number — EVERY day when it prints no dates (or there is no
+    `when`). Weekdays, hours and unparsed seasons are not days and do not narrow it. ONE spelling of "no dates means the
+    whole year" (T125 item 8, answers 11): the bundle's dated lift (`rules._when_term`) built a Jan 1-Dec 31 range for
+    it and the licensing check (`bundle.licensing._days`) a `range(1, 367)`."""
+    dates = getattr(when, "dates", None) if when is not None else None
+    return frozenset(_days(dates)) if dates else YEAR_DAYS

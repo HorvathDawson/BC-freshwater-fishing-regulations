@@ -39,6 +39,8 @@ import sqlite3
 from collections import Counter
 from pathlib import Path
 
+from pipeline.regs.parsing.catalogue import held_days
+
 #: The four kinds with section bindings. The other two are never placed.
 PLACED = ("designation", "requirement", "not_classified", "alternative")
 
@@ -99,14 +101,6 @@ def _dump(rec) -> str:
 def _j(v) -> str | None:
     return None if v is None else json.dumps(v, separators=(",", ":"), sort_keys=True,
                                              ensure_ascii=False)
-
-
-def _days(when) -> set[int]:
-    from pipeline.regs.parsing.catalogue import _days as days
-
-    if when is None or not when.dates:
-        return set(range(1, 367))
-    return days(when.dates)
 
 
 def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
@@ -215,7 +209,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         for a in range(len(ds)):
             for b in range(a + 1, len(ds)):
                 x, y = records[ds[a]][1], records[ds[b]][1]
-                if x.unit != y.unit and _days(x.when) & _days(y.when):
+                if x.unit != y.unit and held_days(x.when) & held_days(y.when):
                     ambiguous[(ds[a], ds[b])] += 1
 
     # ---- rows --------------------------------------------------------------------------

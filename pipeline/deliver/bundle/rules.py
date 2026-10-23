@@ -437,15 +437,13 @@ def _when_term(by, lifted) -> dict | None:
     its days miss the lifted rule's altogether, which the calendar can prove. `None` lifts
     nothing, exactly as a lifter about other fish does (`_lift_terms`): the two rules speak on
     different days and neither needs the other lifted."""
-    from pipeline.regs.parsing.catalogue import DateRange, _days
+    from pipeline.regs.parsing.catalogue import held_days
     mine, theirs = by.when, lifted.when
     if mine is None or mine.is_empty():
         return {}
     if theirs is not None and mine == theirs:
         return {}
-    year = _days([DateRange(from_month=1, from_day=1, to_month=12, to_day=31)])
-    my_days = _days(mine.dates) if mine.dates else year
-    their_days = _days(theirs.dates) if theirs is not None and theirs.dates else year
+    my_days, their_days = held_days(mine), held_days(theirs)
     if not my_days & their_days:
         return None
     whole_days = not (mine.hours or mine.weekdays or mine.unparsed)
