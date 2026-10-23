@@ -283,7 +283,7 @@ export function weightFor(share: number, role: "up" | "down", years: number,
 }
 
 /** Φ, the normal CDF, via the error function. */
-function normCdf(z: number): number {
+export function normCdf(z: number): number {
   // Abramowitz & Stegun 7.1.26 — good to 1.5e-7, which is far past what a percentile
   // rounded to a whole point can notice.
   const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);

@@ -423,7 +423,8 @@ describe("the flow ramp's units", () => {
     const mode = STYLE_META.colorModes.stream!.standing! as
       { scale: string; stops: [number, unknown][] };
     expect(mode.scale).toBe("continuous");
-    const ats = mode.stops.map(([at]) => at).filter((a) => a >= 0);
+    // 200 and up are the Change view's own scale (T52, `toRamp` in @app/ui), a domain no percentile reaches
+    const ats = mode.stops.map(([at]) => at).filter((a) => a >= 0 && a <= 100);
     expect(Math.max(...ats)).toBe(100);
     expect(Math.min(...ats)).toBe(0);
   });

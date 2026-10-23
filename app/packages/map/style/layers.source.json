@@ -776,6 +776,36 @@
               {
                 "token": "color.flow.f7"
               }
+            ],
+            [
+              215.87,
+              {
+                "token": "color.change.fall2"
+              }
+            ],
+            [
+              230.85,
+              {
+                "token": "color.change.fall1"
+              }
+            ],
+            [
+              250.0,
+              {
+                "token": "color.change.steady"
+              }
+            ],
+            [
+              269.15,
+              {
+                "token": "color.change.rise1"
+              }
+            ],
+            [
+              284.13,
+              {
+                "token": "color.change.rise2"
+              }
             ]
           ],
           "missing": {
@@ -992,6 +1022,36 @@
               {
                 "token": "color.flow.f7"
               }
+            ],
+            [
+              215.87,
+              {
+                "token": "color.change.fall2"
+              }
+            ],
+            [
+              230.85,
+              {
+                "token": "color.change.fall1"
+              }
+            ],
+            [
+              250.0,
+              {
+                "token": "color.change.steady"
+              }
+            ],
+            [
+              269.15,
+              {
+                "token": "color.change.rise1"
+              }
+            ],
+            [
+              284.13,
+              {
+                "token": "color.change.rise2"
+              }
             ]
           ],
           "missing": {
@@ -1135,6 +1195,36 @@
               100.0,
               {
                 "token": "color.flow.f7"
+              }
+            ],
+            [
+              215.87,
+              {
+                "token": "color.change.fall2"
+              }
+            ],
+            [
+              230.85,
+              {
+                "token": "color.change.fall1"
+              }
+            ],
+            [
+              250.0,
+              {
+                "token": "color.change.steady"
+              }
+            ],
+            [
+              269.15,
+              {
+                "token": "color.change.rise1"
+              }
+            ],
+            [
+              284.13,
+              {
+                "token": "color.change.rise2"
               }
             ]
           ],
@@ -1439,6 +1529,36 @@
               100.0,
               {
                 "token": "color.flow.f7"
+              }
+            ],
+            [
+              215.87,
+              {
+                "token": "color.change.fall2"
+              }
+            ],
+            [
+              230.85,
+              {
+                "token": "color.change.fall1"
+              }
+            ],
+            [
+              250.0,
+              {
+                "token": "color.change.steady"
+              }
+            ],
+            [
+              269.15,
+              {
+                "token": "color.change.rise1"
+              }
+            ],
+            [
+              284.13,
+              {
+                "token": "color.change.rise2"
               }
             ]
           ],
@@ -1808,6 +1928,36 @@
               100.0,
               {
                 "token": "color.flow.f7"
+              }
+            ],
+            [
+              215.87,
+              {
+                "token": "color.change.fall2"
+              }
+            ],
+            [
+              230.85,
+              {
+                "token": "color.change.fall1"
+              }
+            ],
+            [
+              250.0,
+              {
+                "token": "color.change.steady"
+              }
+            ],
+            [
+              269.15,
+              {
+                "token": "color.change.rise1"
+              }
+            ],
+            [
+              284.13,
+              {
+                "token": "color.change.rise2"
               }
             ]
           ],

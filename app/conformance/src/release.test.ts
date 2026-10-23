@@ -182,7 +182,7 @@ describe("the release reader answers like the bundle reader (P11)", () => {
    * disagree about a river.
    */
   it("the standing classes answer every section exactly as its own panel or lake station does", async () => {
-    const oracle = (p: Panel, i: typeof idx, q: "discharge" | "level", h: 0 | 1 | 3 | 5 | 10) => {
+    const oracle = (p: Panel, i: typeof idx, q: "discharge" | "level", h: 0 | 1 | 3 | 5 | 10 | "change") => {
       const { answer } = answerFrom(p, i, q, h);
       return answer.ok ? answer.value.percentile : -0.01;
     };
@@ -194,7 +194,8 @@ describe("the release reader answers like the bundle reader (P11)", () => {
       expect([name, lakes.size > 0, panels.size > 0]).toEqual([name, true, true]);
       let coloured = 0;
       for (const q of ["discharge", "level"] as const)
-        for (const h of [0, 1, 3, 5, 10] as const) {
+        // every horizon, the Change view (T52) included: one pathway, so one oracle
+        for (const h of [0, 1, 3, 5, 10, "change"] as const) {
           const v = classStandings(c, idx, q, h);
           for (const s of all) {
             const k = c.classOf(s);

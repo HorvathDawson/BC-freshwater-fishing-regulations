@@ -48,9 +48,8 @@ def at_station(station: str):
 
 def test_a_one_day_spike_between_plus_3_and_plus_5_is_detected_and_dated():
     (per, summary), r, now = at_station("08HA003")
-    assert summary == {"discharge": 0.9879, "model": "CLEVER", "dir": "rise", "end": "peak", "ratio": 22.7944,
-                       "day": "2026-10-26", "shape": "spike", "back": "2026-10-27", "points": 0.6717,
-                       "models": ["CLEVER", "COFFEE", "ELF"]}
+    assert summary == {"discharge": 0.9879, "model": "CLEVER", "dir": "rise", "ratio": 22.7944,
+                       "day": "2026-10-26", "shape": "spike", "back": "2026-10-27"}
     assert per["CLEVER"]["peak"] == {"day": "2026-10-26", "ratio": 22.7944, "value": 10.645, "percentile": 0.7717,
                                      "points": 0.6717, "back": "2026-10-27"}
     # THE POINT: +5 (10-27) samples the day after it and reads the bottom of the record; the day itself is no horizon
@@ -61,8 +60,8 @@ def test_a_one_day_spike_between_plus_3_and_plus_5_is_detected_and_dated():
 
 def test_a_rise_that_holds_is_a_step():
     (per, summary), _, _ = at_station("08MH029")
-    assert summary == {"discharge": 0.7688, "model": "CLEVER", "dir": "rise", "end": "peak", "ratio": 2.7695,
-                       "day": "2026-10-28", "shape": "step", "points": 0.3929, "models": ["CLEVER", "COFFEE", "ELF"]}
+    assert summary == {"discharge": 0.7688, "model": "CLEVER", "dir": "rise", "ratio": 2.7695,
+                       "day": "2026-10-28", "shape": "step"}
     assert per["CLEVER"]["peak"]["back"] is None
 
 
@@ -73,8 +72,8 @@ def test_a_fall_is_dated_and_named_by_its_own_model():
                                     "points": -0.2551, "back": None}
     # the map reads CLEVER first; it expects little either way, so the station is steady on the map and the panel
     # names ELF's fall beside it
-    assert summary == {"discharge": 0.493, "model": "CLEVER", "dir": "steady", "end": "trough", "ratio": 0.976,
-                       "day": "2026-10-30", "shape": "step", "points": 0.0783, "models": ["CLEVER", "COFFEE", "ELF"]}
+    assert summary == {"discharge": 0.493, "model": "CLEVER", "dir": "steady", "ratio": 0.976,
+                       "day": "2026-10-30", "shape": "step"}
 
 
 def test_two_models_are_both_kept_each_against_its_own_today():
@@ -85,7 +84,7 @@ def test_two_models_are_both_kept_each_against_its_own_today():
     # against the gauge, or its day-0 bias would be a rise nobody forecast
     assert (per["COFFEE"]["base"], per["COFFEE"]["peak"]["value"], per["COFFEE"]["peak"]["ratio"]) == (0.2, 108.8, 544.0)
     assert r["now"]["discharge"] == 0.122
-    assert summary["model"] == "CLEVER" and summary["models"] == ["CLEVER", "COFFEE", "ELF"]
+    assert summary["model"] == "CLEVER"
 
 
 def test_out_of_season_says_nothing():
@@ -178,7 +177,7 @@ def test_the_coded_value_is_the_ratio_in_probit_units():
 def test_the_lead_model_is_clever_then_coffee_then_elf():
     runs = {"ELF": daily_run([10.0, 40.0]), "COFFEE": daily_run([10.0, 30.0], model="COFFEE")}
     _, s = C.station_change(runs, NOW, 10.0, None)
-    assert (s["model"], s["ratio"], s["models"]) == ("COFFEE", 3.0, ["COFFEE", "ELF"])
+    assert (s["model"], s["ratio"]) == ("COFFEE", 3.0)
 
 
 # ------------------------------------------------------------------------------------------- politeness ----
@@ -224,9 +223,8 @@ def test_the_feed_carries_the_change_the_runs_and_the_attribution(tmp_path, monk
     assert index["forecastAttribution"] == F.ATTRIBUTION
     assert index["forecastIssuedAt"] == "2026-10-22T12:53:00"
     row = index["stations"]["08HB025"]
-    assert row["change"] == {"discharge": 0.995, "model": "CLEVER", "dir": "rise", "end": "peak", "ratio": 47.45,
-                             "day": "2026-10-25", "shape": "spike", "back": "2026-10-26", "points": 0.5574,
-                             "models": ["CLEVER", "COFFEE", "ELF"]}
+    assert row["change"] == {"discharge": 0.995, "model": "CLEVER", "dir": "rise", "ratio": 47.45,
+                             "day": "2026-10-25", "shape": "spike", "back": "2026-10-26"}
     assert "change" not in row.get("ahead", {})
     station = json.loads((tmp_path / "08HB025.json").read_text())
     assert {m: run["change"]["peak"]["ratio"] for m, run in station["forecasts"].items()} == {

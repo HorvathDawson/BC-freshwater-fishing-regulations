@@ -14,6 +14,8 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { localStamp, shortDay, shortStamp } from "./day";
 import { byCadence } from "./staleness";
+import { CHANGE_EXPLAINER, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
+         changeSentence } from "./change";
 
 /* ------------------------------------------------------------------- horizons ---- */
 
@@ -29,9 +31,22 @@ import { byCadence } from "./staleness";
  *
  * KEYED BY DAY, NEVER BY POSITION. The feed's `ahead` block is `{"1": …, "10": …}` and is
  * read by `String(day)`; nothing indexes a horizon by its place in this list.
+ *
+ * AND ONE THAT IS NO DAY: "change" (T52, owner 2026-10-22: "a last option next to +10 … about expected change"), the
+ * largest move each gauge's forecast expects over the next ten days, read day by day (`./change`). It is "ahead" like
+ * the days — a forecast, refused as `no-forecast` — but it has no date, so ask `isAhead` / `aheadDays`, never `> 0`.
  */
-export type Horizon = 0 | 1 | 3 | 5 | 10;
-export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5, 10];
+export type Horizon = 0 | 1 | 3 | 5 | 10 | "change";
+export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5, 10, "change"];
+
+/** The expected-change horizon. */
+export const CHANGE: Horizon = "change";
+
+/** A forecast rather than now: every horizon but 0, the Change view included. */
+export const isAhead = (h: Horizon): boolean => h !== 0;
+
+/** How many days ahead the answer is FOR — 0 for now and for Change, whose answer spans the window, not one day. */
+export const aheadDays = (h: Horizon): number => (typeof h === "number" ? h : 0);
 
 export interface HorizonLabel {
   /** The chip: "Now", "+3d". */
@@ -45,6 +60,9 @@ export interface HorizonLabel {
 const days = (d: number) => (d === 1 ? "day" : "days");
 
 function horizonLabel(d: Horizon): HorizonLabel {
+  if (d === "change")
+    return { chip: "Change", heading: `EXPECTED CHANGE · NEXT ${CHANGE_POLICY.days} DAYS`,
+             accessible: `Expected change over the next ${CHANGE_POLICY.days} days` };
   if (d === 0)
     return { chip: "Now", heading: "ESTIMATE FOR THIS SPOT", accessible: "Conditions now" };
   return { chip: `+${d}d`, heading: `FORECAST · ${d} ${days(d).toUpperCase()} AHEAD`,
@@ -89,6 +107,12 @@ export const CONDITIONS_WORDS = {
   span: { "72h": "Last 72 hours", year: "This year" },
   /** The ONE place the app decides what a quantity is measured in. */
   unit: { discharge: "m³/s", level: "m" },
+  /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */
+  changeKicker: "WHAT THE FORECASTS EXPECT HERE",
+  /** The marked day under a model's line: its peak, or its lowest day when the run falls. */
+  changeMark: { peak: "Peak", low: "Lowest" },
+  /** Under Change (T52): what the figure is, and that the gauges behind it may peak on different days. */
+  changeExplainer: CHANGE_EXPLAINER,
   explainer: "No gauge sits exactly here, so the reading is carried from the nearest ones. A "
     + "gauge counts for more when it drains a piece of country the same size as this one, "
     + "when it sits upstream, and when it has a long record. The percentage beside each is "
@@ -115,9 +139,16 @@ const WHY: Record<NoEstimate, string> = {
   "no-forecast": "No forecast for the gauges here reaches this far ahead.",
 };
 
-/** Why there is no answer, in words a reader can act on. */
-export function donorReason(why: NoEstimate): string {
-  return WHY[why];
+/**
+ * Under Change, no gauge here has a forecast RUNNING (T52): the models are seasonal, so this is the normal out-of-season
+ * answer — never "steady", which would be a forecast nobody made.
+ */
+const NO_CHANGE_FORECAST = "No forecast is running for the gauges here now. The River Forecast Centre's models are "
+  + "seasonal, so out of season there is no expected change to show.";
+
+/** Why there is no answer, in words a reader can act on — at the horizon asked about. */
+export function donorReason(why: NoEstimate, horizon: Horizon = 0): string {
+  return why === "no-forecast" && horizon === "change" ? NO_CHANGE_FORECAST : WHY[why];
 }
 
 /* -------------------------------------------------------------- a donor row ---- */
@@ -186,9 +217,11 @@ const DAY = 86_400_000;
  * with no forecast is a missing FORECAST, not a quiet gauge.
  */
 export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
-  if (r.percentile !== null) return `Reads ${inTen(r.percentile)}.`;
+  if (r.percentile !== null)
+    return o.horizon === "change" ? changeReads(changeRatio(r.percentile)) : `Reads ${inTen(r.percentile)}.`;
   // Not on ECCC's real-time list at all: it is not silent today, it never speaks live — on any day asked about.
   if (r.realtime === false) return "Not a real-time gauge.";
+  if (o.horizon === "change") return "No forecast running for this gauge now.";
   if (o.horizon) return "No forecast for this gauge that far ahead.";
   if (reportingUnranked(r, o.ref)) return "Reporting, but its reading cannot be ranked today.";
   return "Not reporting today.";
@@ -252,7 +285,8 @@ export function silentLine(rows: readonly DonorFacts[],
                            o: { ref: number; horizon?: Horizon; zone?: string }): string | null {
   const silent = rows.filter((r) => donorSilent(r, o));
   if (!silent.length) return null;
-  const kicker = o.horizon ? "No forecast this far ahead" : "Not reporting";
+  const kicker = o.horizon === "change" ? "No forecast running"
+    : o.horizon ? "No forecast this far ahead" : "Not reporting";
   return `${kicker}: ${silent.map((r) => silentMember(r, o.ref, o.zone)).join(" · ")}`;
 }
 
@@ -335,13 +369,14 @@ export function donorKeyLabel(r: DonorFacts, atSpot: boolean): string {
 
 /* ----------------------------------------------------------------- estimate ---- */
 
-/** The headline: what the water is doing, before any number. */
-export function estimateHeadline(e: Estimate): string {
-  return plainStanding(standing(e.percentile));
+/** The headline: what the water is doing, before any number. Under Change, what it is expected to do. */
+export function estimateHeadline(e: Estimate, horizon: Horizon = 0): string {
+  return horizon === "change" ? changeHeadline(changeRatio(e.percentile)) : plainStanding(standing(e.percentile));
 }
 
 /** "Lower than 8 days in 10 at this time of year — fairly confident, from 2 gauges nearby." */
 export function estimateSentence(e: Estimate, horizon: Horizon): string {
+  if (horizon === "change") return changeSentence(changeRatio(e.percentile), confidenceWord(e.plusMinus), e.donors);
   const w = inTen(e.percentile);
   const gauges = e.donors === 1 ? "one gauge" : `${e.donors} gauges`;
   return `${w.charAt(0).toUpperCase()}${w.slice(1)} — ${confidenceWord(e.plusMinus)}, `
@@ -365,8 +400,8 @@ const DAY_MS = 86_400_000;
 export function estimateRange(e: Estimate, day: Date, horizon: Horizon,
                               areaKm2: number | null): string {
   const [lo, hi] = interval(e);
-  const base = `${bound(lo)}–${bound(hi)} percentile for `
-    + seasonPhrase(new Date(day.getTime() + horizon * DAY_MS));
+  const base = horizon === "change" ? changeRange(lo / 100, hi / 100)
+    : `${bound(lo)}–${bound(hi)} percentile for ` + seasonPhrase(new Date(day.getTime() + aheadDays(horizon) * DAY_MS));
   return areaKm2 != null ? `${base} · this spot drains ${catchmentLabel(areaKm2)}` : base;
 }
 
@@ -413,8 +448,10 @@ export function tidalNote(rows: readonly DonorFacts[], quantity: "discharge" | "
 }
 
 /** The donors disagree by more than 25 points. */
-export function disagreeNote(e: Estimate): string | null {
+export function disagreeNote(e: Estimate, horizon: Horizon = 0): string | null {
   if (!(e.spread > 25)) return null;
+  if (horizon === "change")
+    return "These gauges expect different things. The range above is the honest answer rather than their average.";
   return `These gauges disagree by ${Math.round(e.spread)} points. That is a catchment doing `
     + "more than one thing, and the range above is the honest answer rather than their "
     + "average.";

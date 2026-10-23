@@ -464,6 +464,36 @@
             {
               "token": "color.flow.f7"
             }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
+            }
           ]
         ],
         "missing": {
@@ -544,6 +574,36 @@
             100,
             {
               "token": "color.flow.f7"
+            }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
             }
           ]
         ],
@@ -672,6 +732,36 @@
             100,
             {
               "token": "color.flow.f7"
+            }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
             }
           ]
         ],
@@ -856,6 +946,36 @@
             {
               "token": "color.flow.f7"
             }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
+            }
           ]
         ],
         "missing": {
@@ -1019,6 +1139,36 @@
             100,
             {
               "token": "color.flow.f7"
+            }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
             }
           ]
         ],
@@ -1196,6 +1346,36 @@
             {
               "token": "color.flow.f7"
             }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
+            }
           ]
         ],
         "missing": {
@@ -1267,6 +1447,36 @@
             100,
             {
               "token": "color.flow.f7"
+            }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
             }
           ]
         ],
@@ -1558,6 +1768,36 @@
             100,
             {
               "token": "color.flow.f7"
+            }
+          ],
+          [
+            215.87,
+            {
+              "token": "color.change.fall2"
+            }
+          ],
+          [
+            230.85,
+            {
+              "token": "color.change.fall1"
+            }
+          ],
+          [
+            250,
+            {
+              "token": "color.change.steady"
+            }
+          ],
+          [
+            269.15,
+            {
+              "token": "color.change.rise1"
+            }
+          ],
+          [
+            284.13,
+            {
+              "token": "color.change.rise2"
             }
           ]
         ],
@@ -2141,6 +2381,11 @@
       "color.flow.f5": "#5E8FC7",
       "color.flow.f6": "#2A3F8F",
       "color.flow.f7": "#101E4D",
+      "color.change.fall2": "#1B7223",
+      "color.change.fall1": "#65A561",
+      "color.change.steady": "#6D8171",
+      "color.change.rise1": "#D179B2",
+      "color.change.rise2": "#A43A83",
       "color.gauge.dot": "#0A1116",
       "color.temp.warm": "#BC7864",
       "color.water.ungauged": "#D5D5D5",
@@ -2248,6 +2493,11 @@
       "color.flow.f5": "#63ACF2",
       "color.flow.f6": "#5A83F7",
       "color.flow.f7": "#A8B8FF",
+      "color.change.fall2": "#BCBA6E",
+      "color.change.fall1": "#85844E",
+      "color.change.steady": "#7B6354",
+      "color.change.rise1": "#208F92",
+      "color.change.rise2": "#21C9CE",
       "color.gauge.dot": "#F4F8F5",
       "color.temp.warm": "#FC9C28",
       "color.water.ungauged": "#39434B",
@@ -2355,6 +2605,11 @@
       "color.flow.f5": "#1E86B8",
       "color.flow.f6": "#1D4ED8",
       "color.flow.f7": "#122A8F",
+      "color.change.fall2": "#1B7223",
+      "color.change.fall1": "#3C983F",
+      "color.change.steady": "#7C9081",
+      "color.change.rise1": "#D25AAB",
+      "color.change.rise2": "#A43A83",
       "color.gauge.dot": "#0A1116",
       "color.temp.warm": "#E86C48",
       "color.water.ungauged": "#D5D5D5",
@@ -2485,6 +2740,26 @@
       "themeable": true
     },
     "color.flow.f7": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.change.fall2": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.change.fall1": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.change.steady": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.change.rise1": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.change.rise2": {
       "type": "color",
       "themeable": true
     },

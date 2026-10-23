@@ -29,10 +29,10 @@ const est = (over: Partial<Estimate> = {}): Estimate => ({
 
 describe("the horizons", () => {
   it("are the publisher's days, and every one has its words", () => {
-    // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
-    expect(HORIZONS).toEqual([0, 1, 3, 5, 10]);
-    // Object key order puts integer keys ascending, which is HORIZONS' own order.
-    expect(Object.keys(HORIZON_LABELS).map(Number)).toEqual([...HORIZONS]);
+    // Mirrors HORIZONS in pipeline/gauges/feed/publish.py, and the Change view after +10 (T52).
+    expect(HORIZONS).toEqual([0, 1, 3, 5, 10, "change"]);
+    // Object key order puts integer keys ascending, then the one string key — which is HORIZONS' own order.
+    expect(Object.keys(HORIZON_LABELS)).toEqual(HORIZONS.map(String));
   });
 
   it("names ten days ahead in full (owner 2026-10-20)", () => {

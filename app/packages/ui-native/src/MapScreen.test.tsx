@@ -47,13 +47,13 @@ describe("<MapScreen> corner", () => {
     expect(screen.queryByLabelText("Change the date")).toBeNull();
   });
 
-  it("offers now and every forecast day, in core's words, ten days included", () => {
+  it("offers now and every forecast day, in core's words, ten days included — and Change last (T52)", () => {
     render(<MapScreen {...BASE} horizons={horizons(0)} />);
-    for (const t of ["Now", "+1d", "+3d", "+5d", "+10d"]) expect(screen.getByText(t)).toBeTruthy();
+    for (const t of ["Now", "+1d", "+3d", "+5d", "+10d", "Change"]) expect(screen.getByText(t)).toBeTruthy();
     // In order, left to right: the same order as the panel's header.
     expect([...document.querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label")))
       .toEqual(["Conditions now, showing", "Forecast 1 day ahead", "Forecast 3 days ahead",
-                "Forecast 5 days ahead", "Forecast 10 days ahead"]);
+                "Forecast 5 days ahead", "Forecast 10 days ahead", "Expected change over the next 10 days"]);
   });
 
   it("reports which horizon is showing to a screen reader, not only in colour", () => {
@@ -81,7 +81,8 @@ describe("<MapScreen> corner", () => {
                             (s.firstElementChild as HTMLElement).style.borderLeftWidth || "0px"]))
       .toEqual([["Conditions now", "46 33 6 0 5 0", "0px"], ["Forecast 1 day ahead", "46 33 6 0 5 0", "1px"],
                 ["Forecast 3 days ahead, showing", "46 33 6 0 5 0", "1px"],
-                ["Forecast 5 days ahead", "46 33 6 0 5 0", "1px"], ["Forecast 10 days ahead", "46 33 6 0 5 0", "1px"]]);
+                ["Forecast 5 days ahead", "46 33 6 0 5 0", "1px"], ["Forecast 10 days ahead", "46 33 6 0 5 0", "1px"],
+                ["Expected change over the next 10 days", "46 33 6 0 5 0", "1px"]]);
   });
 
   it("hands back the day that was tapped, ten included", () => {

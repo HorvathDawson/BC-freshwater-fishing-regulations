@@ -1,6 +1,7 @@
 # T52 — "Expected change": a Conditions view that flags rivers about to change, spikes included
 
-Status: IN PROGRESS — owner asked 2026-10-22 (back); lane wf_e8f2adba-933 (map → build → review). Ticket 6ffda443.
+Status: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (940b3242 pipeline + the app commit after it), awaiting review
+and merge; live only after a feed republish (publish.py writes `change`). Ticket 6ffda443.
 
 Phase 4 · Depends on the gauge feed + forecast (pipeline/gauges/feed/forecast.py), Conditions horizons (Now · +1 · +3 · +5
 · +10), the colouring engine's standing channel, T47 palette D · Size 2–3 days (pipeline + app)
@@ -37,3 +38,43 @@ but v1 dropped it as ~450 requests every half hour.
   models; out-of-season; request count per run bounded and logged.
 - App: whole-string panel words; the chip and legend; colouring through the engine (no paint calls on switch, as the
   other horizons); a web shot during a real freshet/rain window when one exists (or a replayed recorded run).
+
+## As built (lane wf_e8f2adba-933-2)
+- Pipeline `pipeline/gauges/feed/change.py`: per fresh run, daily max/min of the forecast trace over the next 10 days,
+  peak and trough against the model's OWN today (COFFEE's day 0 runs 1.45x the gauge), ratio + percentile move for the
+  date, spike (back within half by a later day) or step. Named thresholds RISE_RATIO 2, FALL_RATIO 0.5, BIG_POINTS 0.25,
+  SPIKE_BACK 0.5, CHANGE_DAYS 10, STALE_HOURS 36 (generated into core by `emit_gauge_policy`). Index row `change`
+  (beside `ahead`, which stays keyed by day), each run's `change` in the station file, `forecastAttribution` +
+  `forecastIssuedAt` in the index. Runs older than 36 h now answer neither Change nor +1..+10. Series requests: only
+  moved, fresh runs; capped at 1,200; logged as requests / fetched / carried / stale.
+- The station's change rides the donor pathway as a CODED ratio, Φ(log2(ratio)/2): `estimate` then averages log-ratios,
+  so a section's expected change is its donors' weighted geometric mean with the usual weights, lead and refusals.
+- App: chip "Change" after +10 (Flow only; under Level it answers as Now and is not offered), map coloured through the
+  same `standing` mode in its own 200–300 domain (no paint call on switching; a refusal there is nothing, never steady),
+  legend "Expected change, next 10 days · Falling · Steady · Rising", panel words in core, a "what the forecasts expect
+  here" block per model with its days as a line and the peak marked, and the Province's attribution from the feed.
+- Shots: `handoff/PLAN/app-integration/T52-shots/` on the 2026-10-22 feed replayed through the measure (no network).
+  The `-2-change-province` files are the app's home view (Chilliwack / Sumas), not the province.
+
+## Today's real feed (fetchedAt 2026-10-22T22:28:51Z, replayed)
+374 stations have an expected change (390 carry a run; 16 have only stale or unanchorable runs). On the map's lead run:
+269 steady, 94 rise (86 spikes, 10 steps — incl. both), 9 fall, 2 rise-and-fall. Any model: 141 rise (91 spike in some
+model), 25 fall, 5 both. Largest: 08HB011 / 08HB025 / 08HF006 / 08HB086 (CLEVER, 39–48x, 24–25 Oct, all spikes).
+CLEVER and COFFEE disagree on a big rise at 40 stations. Index grows 183 KB → 228 KB.
+
+## Owner questions (defaults built)
+- Q1 Which model colours the map when several speak? Default: CLEVER, then COFFEE, then ELF (your named model, and the
+  calibrated one); the panel names every model's own expectation. Alternative: the largest move of any model.
+- Q2 COFFEE answers Change but still not +1..+10 (`MODEL_ORDER`). Default: keep it out of the day horizons — its day 0
+  is a median 1.45x the gauge, and the horizons rank the raw value. Change anchors on its own today, so it is safe there.
+- Q3 The map colours the RATIO (how much the flow moves), not the percentile move: a river already high for the date
+  rising 3x would read "steady" by percentile (the envelope stops at p90). The percentile move is said in the words.
+- Q4 Ramp hues: light / colour-blind green (falling) to magenta (rising), dark olive to teal — the dark statuses hold
+  mint, rose and lavender. Dark sits 17 (not 20) from the own-gauge yellow (recorded in tools/change-colours.test.ts).
+
+## Found, not done (need tickets)
+- CLEVER's stamps are PST wall clock (measured: best fit +8 h against 305 gauges' observations), but `publish._parse`
+  reads naive stamps as UTC, so +1/+3/+5/+10 sample a step 8 h off. Change already reads them as PST.
+- CLEVER's summary `fmax` column is `Forecast_maximum_in_5_days` on a 10-day model (08MH090: 0.263 vs a 5.43 peak on day
+  6). Change does not use it; the chart headline still does.
+- Gauge dots ignore the horizon (as for +1..+10): under Change they still show today's percentile.

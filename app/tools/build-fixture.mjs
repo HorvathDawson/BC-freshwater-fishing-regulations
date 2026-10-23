@@ -161,6 +161,19 @@ const NOMINAL_GAUGE_MAG = 1000;
 // test files made against it.
 const BAND_FLOOR = JSON.parse(readFileSync(
   new URL("../packages/core/src/gauge-policy.generated.json", import.meta.url), "utf8")).floor;
+// The expected-change policy (T52) from the same generated file: the fixture codes its `change` the publisher's way,
+// Φ(log2(ratio) / scale), never with a fourth copy of the constants.
+const CHANGE = JSON.parse(readFileSync(
+  new URL("../packages/core/src/gauge-policy.generated.json", import.meta.url), "utf8")).change;
+function coded(ratio) {
+  const z = Math.log2(ratio) / CHANGE.scale / Math.SQRT2;
+  // erf, Abramowitz & Stegun 7.1.26 (core's normCdf)
+  const t = 1 / (1 + 0.3275911 * Math.abs(z));
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t
+    * Math.exp(-z * z);
+  const p = 0.5 * (1 + (z >= 0 ? y : -y));
+  return Math.min(1 - CHANGE.codeFloor, Math.max(CHANGE.codeFloor, p));
+}
 const shedBands = {};
 for (const [section, q] of Object.entries(src.shed_q)) (shedBands[q] ??= []).push(section);
 const shedMag = {};
@@ -425,7 +438,23 @@ for (const g of src.gauges) {
       String(d),
       { discharge: Math.min(0.95, Math.max(0.05, now + d * 0.06)), model: "CLEVER" },
     ])) }),
+    /*
+     * THE EXPECTED CHANGE (T52), the publisher's `change`: so the Change chip colours something in dev and the
+     * conformance oracle has real values to hold the two readers to. A SPREAD, not one shape — a fall, steady, a step and
+     * a spike across the stations by today's standing — coded as the publisher codes it (`coded` below, from the
+     * generated policy: one formula, one scale).
+     */
+    ...(now === null ? {} : { change: fixtureChange(now) }),
   };
+}
+
+function fixtureChange(now) {
+  const ratio = Math.round(2 ** (now * 6 - 2) * 1000) / 1000;          // 0.25x at the bottom of the record .. 16x at the top
+  const rise = ratio >= 1;      // a rise is its peak, a fall its trough
+  const big = ratio >= CHANGE.riseRatio || ratio <= CHANGE.fallRatio;
+  return { discharge: Math.round(coded(ratio) * 1e4) / 1e4, model: "CLEVER",
+           dir: big ? (rise ? "rise" : "fall") : "steady", ratio,
+           day: "2026-09-07", shape: ratio >= 4 ? "spike" : "step", ...(ratio >= 4 ? { back: "2026-09-08" } : {}) };
 }
 writeFileSync(`${OUT}/feeds/gauge/index.json`,
               JSON.stringify({ fetchedAt: src.fetched, stations: index }));

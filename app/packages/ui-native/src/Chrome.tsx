@@ -134,7 +134,7 @@ const BAR = 10, TICKS = 14;
  *   - Words in `sub`, not `faint` (T40: a legend's words are read, so they meet the text contrast floor), at 11.5–12 px.
  *   - At most `LEGEND_RAMP_MAX` wide, centred: on a desktop the 1250 px stripe read as decoration.
  */
-export function LegendRamp({ palette, stops, title, low, high, marks, mid }: {
+export function LegendRamp({ palette, stops, title, low, high, marks, mid, band = NORMAL, markWords, describe }: {
   palette: Palette;
   /** the map's ramp: each colour at its percentile, 0–1, in order (`flowRampStops`) */
   stops: readonly { at: number; colour: string }[];
@@ -151,6 +151,12 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid }: {
   marks?: readonly number[];
   /** the word under the bracket over the middle half, e.g. "Normal" */
   mid: string;
+  /** the bracket's span, 0–1 (default: the middle half of past years, NORMAL); the Change legend's is "steady" */
+  band?: readonly [number, number];
+  /** a mark's position for a screen reader (default: "near the 20th percentile") */
+  markWords?: (at: number) => string;
+  /** the bar's screen-reader name (default: the percentile scale's) */
+  describe?: string;
 }) {
   /*
    * A DISTRIBUTION, NOT A KEY. The marks are binned so that where many gauges land the tick is TALLER rather than merely
@@ -184,15 +190,16 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid }: {
       <View style={{ height: TICKS + BAR }}>
         {counts.map((c, i) => c === 0 ? null : (
           <View key={i}
-                accessibilityLabel={`${c} ${c === 1 ? "gauge" : "gauges"} near the `
-                                    + `${percentileOrdinal((i + 0.5) / BINS)} percentile`}
+                accessibilityLabel={`${c} ${c === 1 ? "gauge" : "gauges"} `
+                                    + (markWords ? markWords((i + 0.5) / BINS)
+                                       : `near the ${percentileOrdinal((i + 0.5) / BINS)} percentile`)}
                 style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                          paddingHorizontal: 0.5 }}>
             <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
           </View>
         ))}
-        <View testID="legend-bar" accessibilityLabel={`${title}: colours from ${low.toLowerCase()} to ${high.toLowerCase()}; `
-                                                      + `${mid.toLowerCase()} is the middle half of past years`}
+        <View testID="legend-bar" accessibilityLabel={describe ?? `${title}: colours from ${low.toLowerCase()} to `
+                                                      + `${high.toLowerCase()}; ${mid.toLowerCase()} is the middle half of past years`}
               style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
           <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
             <Defs>
@@ -207,10 +214,10 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid }: {
       {/* THE SCALE UNDER IT: Low · a bracket over the middle half, "Normal" · High */}
       <View style={{ height: 24 }}>
         <View testID="legend-normal"
-              style={{ position: "absolute", top: 2, height: 5, left: pct(NORMAL[0]), width: pct(NORMAL[1] - NORMAL[0]),
+              style={{ position: "absolute", top: 2, height: 5, left: pct(band[0]), width: pct(band[1] - band[0]),
                        borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: palette.sub }} />
         <Text style={{ ...word, position: "absolute", top: 8, left: 0 }}>{low}</Text>
-        <Text style={{ ...word, position: "absolute", top: 8, left: pct(NORMAL[0]), width: pct(NORMAL[1] - NORMAL[0]),
+        <Text style={{ ...word, position: "absolute", top: 8, left: pct(band[0]), width: pct(band[1] - band[0]),
                        textAlign: "center" }}>{mid}</Text>
         <Text style={{ ...word, position: "absolute", top: 8, right: 0 }}>{high}</Text>
       </View>

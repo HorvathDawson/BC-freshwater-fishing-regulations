@@ -7,8 +7,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { STYLE_META } from "@app/map";
+import { CHANGE_LEGEND, CHANGE_STOP_RATIOS, changeMarkWords, codedChange } from "@app/core";
 import { LEGEND_RAMP_MAX, LegendRamp } from "./Chrome";
-import { DARK, LIGHT, flowRampStops, type Palette } from "./theme";
+import { DARK, LIGHT, changeRampStops, flowRampStops, type Palette } from "./theme";
 
 afterEach(cleanup);
 
@@ -22,7 +23,8 @@ describe("the Conditions legend", () => {
     const stops = [...screen.getByTestId("legend-bar").querySelectorAll("stop")]
       .map((s) => `${s.getAttribute("offset")} ${s.getAttribute("stop-color")}`);
     const meta = (STYLE_META.colorModes.stream!.standing as { stops: [number, unknown][] }).stops.map(([at]) => at);
-    expect(meta).toEqual([-1, 0, 10, 25, 50, 75, 90, 100]);                     // -1 is "no record", not on the ramp
+    // -1 is "no record", not on the ramp; 200 and up are the Change view's own scale (T52), not this one
+    expect(meta.filter((at) => at <= 100)).toEqual([-1, 0, 10, 25, 50, 75, 90, 100]);
     expect(stops).toEqual(flowRampStops("light").map((s) => `${s.at} ${s.colour}`));
     expect(flowRampStops("light").map((s) => s.at)).toEqual([0, 0.1, 0.25, 0.5, 0.75, 0.9, 1]);
     expect(new Set(flowRampStops("dark").map((s) => s.colour)).size).toBe(7);
@@ -74,5 +76,25 @@ describe("the Conditions legend", () => {
     ramp(LIGHT, "light");
     const s = screen.getByTestId("legend-ramp").style;
     expect([s.maxWidth, s.alignSelf, s.width, LEGEND_RAMP_MAX]).toEqual(["560px", "center", "100%", 560]);
+  });
+
+  it("THE CHANGE LEGEND (T52): the same map mode's change stops, each at its coded ratio, in core's words", () => {
+    const meta = (STYLE_META.colorModes.stream!.standing as { stops: [number, unknown][] }).stops.map(([at]) => at);
+    expect(meta.filter((at) => at >= 200)).toEqual([215.87, 230.85, 250, 269.15, 284.13]);
+    // the style's stops ARE core's ratios, coded the publisher's way: a quarter, half, steady, twice, four times
+    expect(changeRampStops("light").map((s) => s.at)).toEqual(
+      CHANGE_STOP_RATIOS.map((r) => expect.closeTo(codedChange(r), 4)));
+    expect(new Set(changeRampStops("dark").map((s) => s.colour)).size).toBe(5);
+    render(<LegendRamp palette={LIGHT} stops={changeRampStops("light")} title={CHANGE_LEGEND.title}
+                       low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
+                       band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
+                       describe="Expected change, next 10 days: colours from falling to rising; steady is little change"
+                       marks={[0.5, 0.84]} />);
+    expect(screen.getByTestId("legend-ramp").textContent)
+      .toBe("Expected change, next 10 days2 gauges in viewFallingSteadyRising");
+    const b = screen.getByTestId("legend-normal").style;
+    expect([b.left, b.width]).toEqual(["43.6%", "12.8%"]);
+    expect([...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label$='flow']")]
+      .map((t) => t.getAttribute("aria-label"))).toEqual(["1 gauge near 1.0× today's flow", "1 gauge near 4× today's flow"]);
   });
 });

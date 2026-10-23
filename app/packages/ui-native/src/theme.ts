@@ -282,5 +282,16 @@ export function flowRamp(theme: string): readonly string[] {
  */
 export function flowRampStops(theme: string): readonly { at: number; colour: string }[] {
   const mode = STYLE_META.colorModes.stream?.standing as { stops?: [number, { token: string }][] } | undefined;
-  return (mode?.stops ?? []).filter(([at]) => at >= 0).map(([at, ref]) => ({ at: at / 100, colour: colour(theme, ref.token) }));
+  return (mode?.stops ?? []).filter(([at]) => at >= 0 && at <= 100)
+    .map(([at, ref]) => ({ at: at / 100, colour: colour(theme, ref.token) }));
+}
+
+/**
+ * THE EXPECTED-CHANGE RAMP (T52) as the map interpolates it: the same `standing` mode's stops in the change domain
+ * (200–300, `CHANGE_RAMP_BASE` in @app/ui), each at its coded ratio, as 0–1 — falling at the left, rising at the right.
+ */
+export function changeRampStops(theme: string): readonly { at: number; colour: string }[] {
+  const mode = STYLE_META.colorModes.stream?.standing as { stops?: [number, { token: string }][] } | undefined;
+  return (mode?.stops ?? []).filter(([at]) => at >= 200)
+    .map(([at, ref]) => ({ at: (at - 200) / 100, colour: colour(theme, ref.token) }));
 }

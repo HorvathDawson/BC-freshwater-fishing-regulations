@@ -78,7 +78,9 @@ describe("the feed / bundle contract", () => {
       // which is what paints the whole province for +1 / +3 / +5 days. Anything past that
       // is sheet data and belongs in the file a tap fetches.
       expect(Object.keys(station).sort())
-        .toEqual(["ahead", "forecast", "observedAt", "percentile"]);
+        // `change` (T52): the expected change over ten days — one coded number that colours the map under the Change
+        // chip, like `ahead`'s per day, and the few words of what it is; each run's detail stays in the station file
+        .toEqual(["ahead", "change", "forecast", "observedAt", "percentile"]);
   });
 
   it("keeps the forecast horizons to percentiles, and only the ones we draw", () => {

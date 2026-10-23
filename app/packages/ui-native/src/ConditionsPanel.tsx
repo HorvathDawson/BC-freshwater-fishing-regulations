@@ -17,8 +17,10 @@ import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecas
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import { coloursEachTile, type TileEndpoints } from "@app/map";
-import { chartParameter, useChartView, useConditionsView, useGaugeParameters, usePrefetchGauges, useSeries,
-         type GaugeChoiceVM, type Horizon, type PanelFeed } from "@app/ui";
+import { changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
+         usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type Horizon,
+         type PanelFeed } from "@app/ui";
+import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
@@ -112,6 +114,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const run = (series.state === "ready" ? series.value?.forecast : null) ?? null;
   // The Centre's disclaimer, verbatim, while its forecast is drawn (the same condition the chart draws it under).
   const disclaimer = forecast && run?.disclaimer ? run.disclaimer : null;
+  // THE EXPECTED CHANGE (T52), under Change only: each model's own words for the charted gauge, its days as a line with
+  // the peak marked, and the Province's attribution as the feed carries it — decided in @app/ui (`changeView`).
+  const attribution = useForecastAttribution(feed);
+  const change: ChangeVM | null = horizon === "change" && series.state === "ready"
+    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - 8), height: 40 }) : null;
 
   if (vm.loading)
     return (
@@ -178,6 +185,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         <GaugeSwitch palette={palette} gauges={vm.gauges} onPick={(s) => vm.select(s as never)} />
       )}
       {readingRows}
+      {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
         <ChartControls<Parameter> palette={palette} value={shown}
                                   label={W.controls.quantity} onPick={pick}
@@ -290,6 +298,39 @@ function GaugeSwitch({ palette, gauges, onPick }: {
           </Pressable>
         ))}
       </View>
+    </View>
+  );
+}
+
+/**
+ * THE CHANGE BLOCK (T52): what each forecast model expects at the charted gauge over the next ten days — its line in
+ * core's words ("CLEVER: rises to about 25× today's flow on Mon …"), its days as a small line with the peak marked, and
+ * the Province's attribution. Draws the VM and decides nothing (AGENTS 25).
+ */
+function ChangeBlock({ palette, change, colour }: { palette: Palette; change: ChangeVM; colour: string }) {
+  return (
+    <View testID="change-block" style={{ gap: SPACE.s2 }}>
+      <Kicker palette={palette}>{W.changeKicker}</Kicker>
+      {change.runs.map((r) => (
+        <View key={r.model} style={{ gap: SPACE.s1 }}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.line}</Text>
+          {r.spark && (
+            <View aria-label={r.spark.label} role="img" style={{ paddingHorizontal: 4 }}>
+              <Svg width="100%" height={58} viewBox={`-4 -6 ${r.spark.ends[1]!.x + 8} 58`}>
+                <Path d={r.spark.path} fill="none" stroke={colour} strokeWidth={1.8} strokeLinejoin="round" />
+                <Circle cx={r.spark.mark.x} cy={r.spark.mark.y} r={3.4} fill={colour} />
+              </Svg>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[0]!.label}</Text>
+                <Text style={{ ...TYPE.meta, color: palette.sub }}>{r.spark.mark.label}</Text>
+                <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[1]!.label}</Text>
+              </View>
+            </View>
+          )}
+        </View>
+      ))}
+      {change.none && <Text style={{ ...TYPE.body, color: palette.sub }}>{change.none}</Text>}
+      {change.attribution && <Text style={{ ...TYPE.meta, color: palette.faint }}>{change.attribution}</Text>}
     </View>
   );
 }

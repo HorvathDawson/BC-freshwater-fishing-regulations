@@ -93,13 +93,13 @@ describe("one colouring engine", () => {
     // the whole map's standings
     const cc = ui("conditionsColour.ts");
     expect(cc).toContain("const pushed = !perTile && paired;");
-    expect(cc).toContain("const data = useMemo(() => (pushed ? pushedStandings(standings, basins) : {}),");
+    expect(cc).toContain("const data = useMemo(() => (pushed ? pushedStandings(standings, basins, horizon) : {}),");
     expect(cc.match(/pushedStandings\(/g)?.length).toBe(2);         // its definition, and that one call
     // the route map's standings
     const panel = ui("panel.ts");
     expect(panel).toContain("const route = useMemo<RouteColourVM>(() => (perTile\n"
-      + "    ? { standing: { labels, values: routeValues(labels, standings) }, data: {} }\n"
-      + "    : { standing: null, data: pushedRoute(standings) }), [perTile, labels, standings]);");
+      + "    ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }\n"
+      + "    : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);");
     expect(panel.match(/pushedRoute\(/g)?.length).toBe(1);
     // and the sheet tells the route which renderer it is on, handing the map both halves of one choice
     const sheet = read("packages/ui-native/src/ConditionsPanel.tsx");

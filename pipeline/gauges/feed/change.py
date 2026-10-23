@@ -215,7 +215,7 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
     """`(per model, summary)`: every fresh run's change, and the one the map reads (the index row's `change`), or None.
 
     The summary is FLOW ONLY — `discharge` is the coded ratio (see CHANGE_SCALE) — and carries what the words need:
-    which model, the direction, the ratio, the day, whether it comes back (`shape`) and the percentile move.
+    which model, the direction, the ratio, the day and whether it comes back (`shape`, `back`).
     """
     per: dict[str, dict] = {}
     for model, run in sorted((runs or {}).items()):
@@ -226,11 +226,10 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
     if lead is None:
         return per, None
     c = per[lead]
-    which, e = _extreme(c)
+    _, e = _extreme(c)
+    # KEPT SMALL: the index is fetched to paint the map (~180 KB). One coded number colours; the ratio, the day and the
+    # shape say what it is in a line. Every run's own detail is in the station file, opened on a tap.
     summary = {"discharge": round(coded(e["ratio"]), 4), "model": lead, "dir": c["dir"],
-               "end": which, "ratio": e["ratio"], "day": e["day"],
-               "shape": "spike" if e["back"] else "step",
-               **({"back": e["back"]} if e["back"] else {}),
-               **({"points": e["points"]} if "points" in e else {}),
-               "models": sorted(per)}
+               "ratio": e["ratio"], "day": e["day"], "shape": "spike" if e["back"] else "step",
+               **({"back": e["back"]} if e["back"] else {})}
     return per, summary

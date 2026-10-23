@@ -15,7 +15,7 @@
  * they plug in and which bundle tables they will read.
  */
 import type {
-  Band, Bbox, GaugeTrust, NearPlace, Standing, WaterFix, WaterSignals,
+  Band, Bbox, GaugeTrust, NearPlace, RunChange, Standing, WaterFix, WaterSignals,
 } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
@@ -309,6 +309,12 @@ export interface Forecast {
   series: ForecastSeries | null;
   /** The Centre's own words out of the CSV header. Shown verbatim beside the chart. */
   disclaimer: string | null;
+  /**
+   * What this run expects over the next ten days, read day by day (T52, the feed's `forecasts[model].change`): its peak
+   * and trough, each dated, spike or step. Absent on a run that cannot say (stale, no series, a zero today) and on a
+   * feed from before T52. Flow only.
+   */
+  change?: RunChange | null;
 }
 
 export interface ForecastSeries {

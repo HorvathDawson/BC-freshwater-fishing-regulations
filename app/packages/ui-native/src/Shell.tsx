@@ -9,7 +9,8 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM, TEMP_LEGEND,
+import { CHANGE_LEGEND, changeMarkWords, chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM,
+         TEMP_LEGEND,
          unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
          type SectionKey } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,7 +25,7 @@ import { routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRa
          type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
-         useStatusIndex, statusFeed, useHorizon, useImageryReach, type Horizon, type PairingInput,
+         useStatusIndex, statusFeed, useHorizon, flowHorizon, horizonChips, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
 import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, shownLayers,
@@ -55,7 +56,7 @@ import { MenuHost, type MenuInfo } from "./menu/MenuHost";
 import { MoreScreen } from "./menu/MoreScreen";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { TYPE } from "./type";
-import { flowRampStops, type Palette, type ThemeName } from "./theme";
+import { changeRampStops, flowRampStops, type Palette, type ThemeName } from "./theme";
 
 /** No highlight — one frozen empty list, so the map's effect is not re-run every render. */
 const NONE: readonly SectionKey[] = [];
@@ -284,7 +285,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * it has one again, showing the same choice).
    */
   const hz = useHorizon();
-  const horizon = hz.horizon;
   // Which side of the handover zoom the camera is on — the one bit of the camera that is render state (see onMoved).
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   /*
@@ -350,6 +350,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     [layersView, layerChoice, carried.stocked, carried.surveyed, imagery.up]);
   /** What the Conditions view shows — ONE quantity, the registry's Show (`effective.show`): map, gauges and chart. */
   const flowParam: FlowParam = layers.effective.show;
+  // THE HORIZON THIS QUANTITY CAN ANSWER (T52): Change is flow only, so under Level it answers as Now while the choice is
+  // kept; and its chip is offered under Flow alone.
+  const horizon = flowHorizon(hz.horizon, flowParam);
+  const horizonChipsShown = useMemo(() => horizonChips(horizon, flowParam), [horizon, flowParam]);
   // the panel's chart quantity control sets the same choice (a Level chart is the Level map)
   const setFlowParam = useCallback((q: FlowParam) => setLayerChoice((c) => chooseShow(c, q)), []);
   const onChooseLayer = useCallback((id: string) =>
@@ -741,7 +745,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The forecast horizons, on the Conditions tab (owner 2026-10-20, after
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — see `hz` above.
-                     horizons={mm.horizonsShown ? { chips: hz.chips, onPick: hz.pick } : undefined}
+                     horizons={mm.horizonsShown ? { chips: horizonChipsShown, onPick: hz.pick } : undefined}
                      // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
                      // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
                      onLayers={() => setLayersOpen(true)}
@@ -887,6 +891,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                                label={b.label} />
                 ))}
               </View>
+            ) : horizon === "change" ? (
+              // THE EXPECTED CHANGE (T52): the same map mode's change stops, its words from core — falling · steady ·
+              // rising, the bracket over "little change" — and the gauges on screen as marks, like the flow legend
+              <LegendRamp palette={palette} title={CHANGE_LEGEND.title}
+                          low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
+                          band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
+                          describe={`${CHANGE_LEGEND.title}: colours from falling to rising; steady is little change`}
+                          stops={changeRampStops(theme)} marks={visibleMarks} />
             ) : (
               <LegendRamp palette={palette}
                           title={flowParam === "level" ? "Water level vs. past years, this date"

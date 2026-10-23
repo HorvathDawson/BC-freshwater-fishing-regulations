@@ -9,7 +9,7 @@ import { useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
-import { CONDITIONS_WORDS, disagreeNote, donorBecause, donorFacts, donorKeyLabel, donorLastReport,
+import { changeDay, changeLine, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
@@ -22,6 +22,8 @@ import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
 import { useAsync } from "./async";
 import { useConditions, useGaugeTrace, useStationReading } from "./hooks";
 import { pushedRoute, routeLabels, routeValues, type RouteColourVM } from "./routeColour";
+
+import type { FlowParam } from "./mapModes";
 
 /** Re-exported so a screen has one import for the whole subject. */
 export { answerFrom, HORIZONS } from "@app/data";
@@ -395,9 +397,19 @@ export interface HorizonChipVM { day: Horizon; chip: string; label: string; on: 
  * and the panel's header. One function over core's HORIZONS and words, so the two controls
  * cannot list different days or name one differently (P16's worry about a second copy).
  */
-export function horizonChips(on: Horizon): HorizonChipVM[] {
-  return HORIZONS.map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip,
-                                label: horizonChipLabel(d, d === on), on: d === on }));
+export function horizonChips(on: Horizon, quantity?: FlowParam): HorizonChipVM[] {
+  // THE CHANGE CHIP IS FLOW ONLY (T52, owner: "never mix flow and level"): the publisher writes no change in level, so
+  // under Level (or Temperature) it is not offered rather than offered and blank.
+  return HORIZONS.filter((d) => d !== "change" || quantity === undefined || quantity === "discharge")
+    .map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip, label: horizonChipLabel(d, d === on), on: d === on }));
+}
+
+/**
+ * THE HORIZON THE MAP AND PANEL ACT ON for this quantity: the chosen one, except Change outside Flow, which answers as
+ * Now. The choice itself is kept, so switching back to Flow returns to Change — no effect, no reset.
+ */
+export function flowHorizon(h: Horizon, quantity: FlowParam): Horizon {
+  return h === "change" && quantity !== "discharge" ? 0 : h;
 }
 
 /** The one horizon state the Shell holds and both controls set — see `useHorizon`. */
@@ -484,8 +496,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const ref = o.day.getTime();
   const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   if (!answer.ok)
-    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why),
-             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon) : null, silent };
+    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why, o.horizon),
+             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon, o.quantity) : null, silent };
   const e = answer.value;
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
@@ -547,11 +559,12 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   return {
     ok: true,
     heading: HORIZON_LABELS[o.horizon].heading,
-    headline: estimateHeadline(e),
-    headlineSuffix: o.horizon > 0 ? CONDITIONS_WORDS.byThen : null,
+    headline: estimateHeadline(e, o.horizon),
+    // "by then" is about a DAY; Change spans the window and its heading says so
+    headlineSuffix: isAhead(o.horizon) && o.horizon !== "change" ? CONDITIONS_WORDS.byThen : null,
     sentence: estimateSentence(e, o.horizon),
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
-    horizons: horizonChips(o.horizon),
+    horizons: horizonChips(o.horizon, o.quantity),
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,
@@ -572,8 +585,9 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     shortRecord: shortRecordNote(rows),
     regulated: regulatedNote(rows),
     tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
-    disagree: disagreeNote(e),
-    explainer: CONDITIONS_WORDS.explainer,
+    disagree: disagreeNote(e, o.horizon),
+    explainer: o.horizon === "change" ? `${CONDITIONS_WORDS.changeExplainer} ${CONDITIONS_WORDS.explainer}`
+      : CONDITIONS_WORDS.explainer,
   };
 }
 
@@ -715,8 +729,8 @@ export function useConditionsView(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const labels = useMemo(() => routeLabels(steady.current.chain as readonly SectionId[]), [steadyKey]);
   const route = useMemo<RouteColourVM>(() => (perTile
-    ? { standing: { labels, values: routeValues(labels, standings) }, data: {} }
-    : { standing: null, data: pushedRoute(standings) }), [perTile, labels, standings]);
+    ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }
+    : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);
 
   const matched = conditions.state === "ready" ? conditions.value : null;
   /*
@@ -762,4 +776,94 @@ export function useConditionsView(
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead),
   };
+}
+
+
+/* ------------------------------------------------------------------ expected change (T52) ---- */
+
+/** One run's change as the panel draws it: the model's line, and its days as a small line with the peak marked. */
+export interface ChangeRunVM {
+  model: string;
+  /** "CLEVER: rises to about 23× today's flow on Mon (very high for the time of year), back down by Tue." */
+  line: string;
+  /** The day-by-day line (`changeSpark`): null when the run has fewer than two days. */
+  spark: ChangeSparkVM | null;
+}
+
+/** The Change block under the reading, for the lead gauge. */
+export interface ChangeVM {
+  /** Every run that can say, in the publisher's order (CLEVER, COFFEE, ELF). Empty: `none` says why. */
+  runs: readonly ChangeRunVM[];
+  /** "No forecast is running for this gauge now." — when no run can say; null otherwise. */
+  none: string | null;
+  /** The Province's attribution, verbatim, from the feed (null when the feed carries none). */
+  attribution: string | null;
+}
+
+/** A run's days as a line: each day's HIGHEST step against today, the peak marked. In a w × h box, top-left origin. */
+export interface ChangeSparkVM {
+  path: string;
+  /** The marked day: the run's peak (or its trough, when the run falls). */
+  mark: { x: number; y: number; label: string };
+  /** The first and last day's names, at their x. */
+  ends: readonly { x: number; label: string }[];
+  /** For a screen reader: the line in words. */
+  label: string;
+}
+
+const CHANGE_ORDER = ["CLEVER", "COFFEE", "ELF"];
+
+/**
+ * A run's days as a line, on a LOG scale of the ratio to its own today (a 23-fold spike and a 20% dip both read), each
+ * day at its highest step for a rise and its lowest for a fall. Pure, so the shape is pinned in a test.
+ */
+export function changeSpark(c: RunChange, today: string, w: number, h: number): ChangeSparkVM | null {
+  const base = c.base;
+  const fall = c.dir === "fall";
+  const pts = c.days.map(([d, lo, hi]) => ({ d, r: Math.max(1e-3, (fall ? lo : hi) / base) }));
+  if (pts.length < 2 || !(base > 0)) return null;
+  const logs = pts.map((p) => Math.log(p.r));
+  const top = Math.max(0, ...logs), bottom = Math.min(0, ...logs);
+  const span = top - bottom || 1;
+  const x = (i: number) => Math.round((i / (pts.length - 1)) * w * 10) / 10;
+  const y = (l: number) => Math.round((h - ((l - bottom) / span) * h) * 10) / 10;
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(Math.log(p.r))}`).join(" ");
+  const markDay = fall ? c.trough.day : c.peak.day;
+  const at = Math.max(0, pts.findIndex((p) => p.d === markDay));
+  return {
+    path,
+    mark: { x: x(at), y: y(logs[at]!),
+            label: `${fall ? CONDITIONS_WORDS.changeMark.low : CONDITIONS_WORDS.changeMark.peak} ${changeDay(markDay, today)}` },
+    ends: [{ x: 0, label: changeDay(pts[0]!.d, today) }, { x: w, label: changeDay(pts[pts.length - 1]!.d, today) }],
+    label: `Each day's ${fall ? "lowest" : "highest"} forecast flow against today's, from ${changeDay(pts[0]!.d, today)} `
+      + `to ${changeDay(pts[pts.length - 1]!.d, today)}`,
+  };
+}
+
+/** The Change block for the lead gauge's runs (each `Forecast` with its `change`), on the reader's `today`. */
+export function changeView(runs: readonly { model: string; change?: RunChange | null; series?: unknown }[],
+                           today: Date, attribution: string | null, size = { width: 280, height: 44 }): ChangeVM {
+  const day = isoDay(today);
+  const said = runs.filter((r): r is typeof r & { change: RunChange } => !!r.change)
+    .sort((a, b) => order(a.model) - order(b.model));
+  return {
+    runs: said.map((r) => ({ model: r.model, line: changeLine(r.model, r.change, day),
+                             // a steady run has no day worth marking: its line says "little change", nothing more
+                             spark: r.change.dir === "steady" ? null
+                               : changeSpark(r.change, day, size.width, size.height) })),
+    none: said.length ? null : "No forecast is running for this gauge now.",
+    attribution: said.length ? attribution : null,
+  };
+}
+
+const order = (m: string) => { const i = CHANGE_ORDER.indexOf(m); return i < 0 ? CHANGE_ORDER.length : i; };
+
+const isoDay = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** The Province's forecast attribution, as the live feed carries it (T52); null until it is in, or when absent. */
+export function useForecastAttribution(feed: PanelFeed | undefined): string | null {
+  const got = useAsync(async () => (feed ? (await feed.index())?.forecastAttribution ?? null : null),
+                       "forecast-attribution", feed !== undefined);
+  return got.state === "ready" ? got.value ?? null : null;
 }

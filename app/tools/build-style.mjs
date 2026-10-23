@@ -727,7 +727,11 @@ for (const l of src.layers ?? []) {
 // in the same violet that meant "we could not parse this regulation" in the (since removed)
 // Regulations view — two unrelated unknowns, one colour. The ΔE rule cannot catch it: it is
 // the SAME token, not two similar ones.
-const FAMILY_FOR_PROVIDER = { gauges: "flow" };
+//
+// THE GAUGES FEED HAS TWO SCALES (T52): `flow.*`, a percentile for the date, and `change.*`, the expected change over
+// the next ten days — both hydrological readings of the same feed, in disjoint ranges of the one `standing` channel
+// (0–100, 200–300), so a horizon switch is a relabel and never a second colour mode. Still never a status colour.
+const FAMILY_FOR_PROVIDER = { gauges: ["flow", "change"] };
 for (const l of src.layers ?? []) {
   for (const [mode, m] of Object.entries(l.colorModes ?? {})) {
     const provider = m.data?.provider;
@@ -740,7 +744,7 @@ for (const l of src.layers ?? []) {
     for (const { token } of refs) {
       const fam = token.split(".")[1];
       if (fam === "water") continue;                    // neutral: always permitted
-      if (allowed && fam !== allowed)
+      if (allowed && !allowed.includes(fam))
         err(`layer "${l.id}" mode "${mode}" reads provider "${provider}" but uses ` +
             `"${token}" — a ${fam}.* token. That colour already means something else in ` +
             `another view; use a ${allowed}.* token or a neutral water.* one.`);

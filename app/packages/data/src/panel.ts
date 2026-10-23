@@ -12,8 +12,8 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { answering, CORE_MEMBERS, estimate, leaderOf, leadShares, trustFor, weightFactors, type Answer, type Contribution, type TrustClass }
-  from "@app/core";
+import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, trustFor, weightFactors, type Answer,
+         type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
@@ -107,6 +107,21 @@ export type Quantity = "discharge" | "level";
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
 
+/**
+ * A station's EXPECTED CHANGE over the next ten days (T52, the feed's `change`, `pipeline/gauges/feed/change.py`): the
+ * largest move its lead forecast run expects, read day by day. FLOW ONLY. `discharge` is the ratio to today's flow
+ * CODED for the donor pathway (core `changeRatio` decodes it); the rest is what the run said, for the words.
+ */
+export interface StationChange {
+  discharge: number;
+  model: string;
+  dir: "rise" | "fall" | "both" | "steady";
+  ratio: number;
+  day: string;
+  shape: "spike" | "step";
+  back?: string;
+}
+
 type Index = { stations: Record<string, { percentile: number | null;
                                           discharge?: number | null;
                                           level?: number | null;
@@ -114,7 +129,11 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           /** The station's last observation (ISO), from the feed. */
                                           observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
-                                          ahead?: Ahead }>;
+                                          ahead?: Ahead;
+                                          /** The expected change over the next ten days (T52). Flow only. */
+                                          change?: StationChange }>;
+               /** The Province's forecast attribution, verbatim, when any run answered a change (T52). */
+               forecastAttribution?: string;
                /** ECCC's real-time station ids on the publishing run; absent on an older feed (= all listed). */
                listed?: readonly string[] } | null;
 
@@ -133,6 +152,9 @@ export function reading(row: NonNullable<Index>["stations"][string] | null | und
                  quantity: Quantity, horizon: Horizon): number | null {
   if (!row) return null;
   const q: "discharge" | "level" = quantity;
+  // THE CHANGE VIEW (T52) reads the station's expected change — flow only, never a level: a ratio of stages is not a
+  // ratio of water, and the publisher writes none.
+  if (horizon === "change") return q === "discharge" ? row.change?.discharge ?? null : null;
   if (horizon === 0) {
     // `percentile` is the station's own default and `parameter` says which quantity it is
     // about, so it stands in for that one only — a level percentile read as a flow is
@@ -226,7 +248,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    * false — so it is "no-record": none has a reading to rank. Nothing outside the panel is borrowed.
    */
   if (!contributions.length && panel.areaKm2 && panel.members.length) {
-    return { answer: { ok: false, why: horizon > 0 ? "no-forecast" : "no-record" },
+    return { answer: { ok: false, why: isAhead(horizon) ? "no-forecast" : "no-record" },
              rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
              areaKm2: panel.areaKm2, routesReady: false };
   }

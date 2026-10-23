@@ -30,6 +30,7 @@ const DRAWINGS: Record<string, string> = {
   "packages/ui-native/src/Hydrograph.tsx": "the flow chart",
   "packages/ui-native/src/DonorMap.tsx": "the route illustration under an estimate (gauges, reaches, the water)",
   "packages/ui-native/src/Chrome.tsx": "the Conditions legend's ramp: the flow standing gradient (data, not a glyph)",
+  "packages/ui-native/src/ConditionsPanel.tsx": "a forecast run's days as a small line, its peak marked (T52: data)",
   "packages/ui-native/src/regs/YearStrip.tsx": "the regs year bar (open / closed spans, a hatch)",
   "packages/ui-native/src/regs/KeepBlocks.tsx": "a fish's silhouette where it has no picture",
 };

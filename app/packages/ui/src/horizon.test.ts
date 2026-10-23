@@ -22,8 +22,22 @@ const idx = (now: number | null, ahead: Ahead = {}) => ({
 
 describe("forecast horizons", () => {
   it("offers now and the days the publisher ranks", () => {
-    // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
-    expect(HORIZONS).toEqual([0, 1, 3, 5, 10]);
+    // Mirrors HORIZONS in pipeline/gauges/feed/publish.py, and the Change view after +10 (T52).
+    expect(HORIZONS).toEqual([0, 1, 3, 5, 10, "change"]);
+  });
+
+  it("reads the expected change from the station's own `change`, flow only (T52)", () => {
+    const row = { ...idx(0.2).stations["08A"], change: { discharge: 0.8 } };
+    const at = { stations: { "08A": row } } as never;
+    const { answer } = answerFrom(PANEL, at, "discharge", "change");
+    expect(answer.ok && answer.value.percentile).toBeCloseTo(0.8, 6);
+    // never a level: the publisher writes none, and a ratio of stages is not a ratio of water
+    expect(answerFrom(PANEL, at, "level", "change").answer).toEqual({ ok: false, why: "no-forecast" });
+  });
+
+  it("says no forecast is running, never steady, when no donor has a change (T52)", () => {
+    expect(answerFrom(PANEL, idx(0.2, { "1": { discharge: 0.4 } }), "discharge", "change").answer)
+      .toEqual({ ok: false, why: "no-forecast" });
   });
 
   it("reads ten days ahead by its own key, not by position", () => {

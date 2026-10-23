@@ -24,6 +24,15 @@ describe("useMapModes", () => {
     expect(next.activeGroups).toBe(first.activeGroups);
   });
 
+  it("Change (T52) is a horizon like the days: the same `modes` and `activeGroups` objects, so no paint call", () => {
+    const r = renderHook((i: MapModeInput) => useMapModes(i), { initialProps: { ...base, horizon: 10 } });
+    const first = r.result.current;
+    r.rerender({ ...base, horizon: "change" });
+    expect(r.result.current.standingHorizon).toBe("change");
+    expect(r.result.current.modes).toBe(first.modes);
+    expect(r.result.current.activeGroups).toBe(first.activeGroups);
+  });
+
   it("a change that moves a mode is a new `modes` object, with the new modes", () => {
     const r = renderHook((i: MapModeInput) => useMapModes(i), { initialProps: base });
     const first = r.result.current.modes;

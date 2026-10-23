@@ -19,7 +19,7 @@ import { basinStandings, classStanding, type Horizon, type Parameter, type RegsS
          type StandingClasses } from "@app/data";
 import { useAsync, usePoll } from "./async";
 import { useBasinStandings, usePanelStandings, type PanelFeed } from "./panel";
-import { toRamp } from "./routeColour";
+import { rampPosition, toRamp } from "./routeColour";
 
 export { toRamp };
 
@@ -63,13 +63,13 @@ export function standingValues(c: StandingClasses, idx: Parameters<typeof classS
     if (!(k >= 0 && k < memo.length)) return NaN;
     if (!done[k]) {
       const p = classStanding(c, k, idx, quantity, horizon);
-      memo[k] = Number.isFinite(p) ? toRamp(p) : NaN;
+      memo[k] = Number.isFinite(p) ? toRamp(p, horizon) : NaN;
       done[k] = 1;
     }
     return memo[k]!;
   };
   const basins: Record<string, number> = {};
-  for (const [b, p] of basinStandings(c.basins, idx, quantity, horizon)) basins[b] = toRamp(p);
+  for (const [b, p] of basinStandings(c.basins, idx, quantity, horizon)) basins[b] = toRamp(p, horizon);
   return { section, basins };
 }
 
@@ -79,15 +79,15 @@ export function classMarks(c: StandingClasses, v: StandingValuesVM, visible: rea
   for (const s of visible) {
     const k = c.classOf(s);
     const p = k === null ? NaN : v.section(k);
-    if (p >= 0) out.push(p / 100);
+    if (p >= 0) out.push(rampPosition(p));
   }
   return out.sort((a, b) => a - b);
 }
 
 /** The pushed path's per-feature data: every visible section's standing on streams AND lakes, and the field. */
 export function pushedStandings(standings: ReadonlyMap<SectionId, number>,
-                                basins: ReadonlyMap<string, number>): ConditionsColourVM["data"] {
-  const each = [...standings].map(([section, p]) => [section, { standing: toRamp(p) }]);
+                                basins: ReadonlyMap<string, number>, horizon: Horizon = 0): ConditionsColourVM["data"] {
+  const each = [...standings].map(([section, p]) => [section, { standing: toRamp(p, horizon) }]);
   return {
     // feature-state is per SOURCE-layer: the stream lines, the lake polygons (`lake`, `lake_flowing`) and the marsh a
     // stream flows through (`wetland_flowing`, the `wetland` source-layer) — which the Shell never told, so a slough
@@ -95,7 +95,7 @@ export function pushedStandings(standings: ReadonlyMap<SectionId, number>,
     stream: Object.fromEntries(each),
     lake: Object.fromEntries(each),
     wetland_flowing: Object.fromEntries(each),
-    basin: Object.fromEntries([...basins].map(([id, p]) => [id, { standing: toRamp(p) }])),
+    basin: Object.fromEntries([...basins].map(([id, p]) => [id, { standing: toRamp(p, horizon) }])),
   };
 }
 
@@ -146,7 +146,8 @@ export function useConditionsColour(i: {
   // values computed from THESE labels only: a value table from another release's classes would colour wrong water
   const v = values.state === "ready" && values.value?.labels === labels ? values.value.v : null;
   const standing = useMemo(() => (labels ? { labels, values: v } : null), [labels, v]);
-  const data = useMemo(() => (pushed ? pushedStandings(standings, basins) : {}), [pushed, standings, basins]);
+  const data = useMemo(() => (pushed ? pushedStandings(standings, basins, horizon) : {}),
+                       [pushed, standings, basins, horizon]);
   const marks = useMemo(
     () => (labels && v ? classMarks(labels, v, i.visible)
       : [...standings.values()].filter((p) => p >= 0).sort((a, b) => a - b)),

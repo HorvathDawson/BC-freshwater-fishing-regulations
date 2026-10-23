@@ -57,6 +57,7 @@ describe("donorView", () => {
         { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false },
         { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false },
         { day: 10, chip: "+10d", label: "Forecast 10 days ahead, showing", on: true },
+        { day: "change", chip: "Change", label: "Expected change over the next 10 days", on: false },
       ],
       silent: null,
     });
@@ -86,6 +87,7 @@ describe("donorView", () => {
       { day: 3, chip: "+3d", label: horizonChipLabel(3, false), on: false },
       { day: 5, chip: "+5d", label: horizonChipLabel(5, false), on: false },
       { day: 10, chip: "+10d", label: horizonChipLabel(10, false), on: false },
+      { day: "change", chip: "Change", label: horizonChipLabel("change", false), on: false },
     ]);
   });
 

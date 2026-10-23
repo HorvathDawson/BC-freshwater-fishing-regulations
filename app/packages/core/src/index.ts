@@ -27,6 +27,7 @@ export * from "./search";
 export * from "./near";
 export * from "./day";
 export * from "./conditions";
+export * from "./change";
 export * from "./chartZoom";
 export * from "./routeMap";
 export * from "./temperature";
