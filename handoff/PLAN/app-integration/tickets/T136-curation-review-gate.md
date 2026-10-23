@@ -1,6 +1,6 @@
 # T136 — Curation review phase 5: parity gate and pilot before the full review
 
-Status: DONE (tool side) — 6d13da6e, 80fc5577 (lane-T136). The 30-entry PILOT is prepared, not run: it is a
+Status: DONE (tool side) — 6d13da6e, 80fc5577, review fixes 96878b88 (lane-T136). The 30-entry PILOT is prepared, not run: it is a
 person's review time (owner question 1). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. (The new CLI flags change no default; `pipeline build` output is unchanged.)
 
@@ -97,6 +97,54 @@ finds live paths; `BUILT_PARTS` without `reach` → `test_stale_report_splits_an
 `test_pilot_pick_spreads_each_tier_over_what_can_be_finished_now` changes.
 Not run: Tier 2 (`scripts/test-full.sh`), `pnpm -C app check` (no app changes), the Playwright browser test file.
 
+## Adversarial review (2026-10-23)
+Read the diff against PLAN §4 phase 5, mutated every claimed pin for real (edited the source, ran the file), re-measured
+parity on real waters, and checked that no printed scratch chain or new flag writes the live tree.
+
+**Confirmed:**
+- Parity spot check on the live atlas + reaches/full (run b9be92114323aa22, corpus 4e3f729204098d06) for
+  `r1:adam_river_except_eve_river@1-10`, `r2:stave_river@2-8` and `zp:steelhead`, through heavy.sh: 9 rules. Adam and Stave
+  are identical, rule by rule. The 3 steelhead twins r1b/r2b/r4b show the app `needs_corpus` against the run's 15 sections
+  each (e.g. 356000423:0, 356362768:637), matching the ticket's "Measured". 0 unexplained.
+- The builder's real mutations hold: `kind()` -> "canonical" fails 5 tests; `BUILT_PARTS` without reach fails
+  `test_moved_is_the_one_comparison…` and `test_stale_report_splits…`; inverting edited/build_only fails the stale-report
+  tests; dropping the vintage filter fails `test_pilot_pick_spreads…`.
+- Safety: the scratch chain names no live path. The `atlas.build --out` carrier check and `tiles` `assets.fetch()`
+  only READ the live tree (or a download cache). `deliver all --out-dir` stages beside the out-dir. `promote --target`
+  touches only its own directory and `.prev`. `/api/ready` is a GET. A mark's `seconds` passes through `post_mark`.
+
+**Found and fixed (96878b88):**
+1. **The gate grew a third copy of "a mark's target prints now"** (alongside `tickets.statuses_now` and `reuse.marks_view`).
+   Fix: `marks.target_prints`, which both `gate.stale_report` and `tickets.statuses_now` now call. Pin:
+   `test_a_mark_s_target_prints_have_one_reader` (whole value plus a source check). Mutation: passing the
+   mark's `rule_id` (a renumbered rule would read as gone) fails it.
+2. **The pilot counted a zone entry "marked" after one rule mark.** One rule of ten marked made the target done, and
+   `passes` could be true with most of the entry unread. The time also under-counted. Fix: `pilot_report(…, rules_of)`
+   (the CLI passes each entry's rule ids), and an entry marked rule by rule is done only when every rule is. Pin:
+   `test_a_zone_entry_is_marked_in_the_pilot_only_when_every_rule_is`. Mutation: `_finished` -> True fails it.
+3. **The pilot could pick a rule-less zone entry** (the 7 with licensing records only). It can never be finished.
+   Fix: `pilot_pick` skips `kind == zone` with `n_rules == 0`. Pin: `test_a_rule_less_zone_entry_is_no_pilot_target`
+   (mutation: drop the filter). The committed pilot.json picked none of them, so it is unchanged.
+4. **Parity skipped a run-unresolved rule id that the corpus's entry lacks.** Only the run's BOUND rules were added to the
+   corpus's own. `check_vintage` makes this unreachable on a matching corpus, but the function claimed to cover it.
+   Fix: compare it. Pin: `test_compare_all_compares_a_run_unresolved_rule_the_corpus_lacks`.
+5. **A scratch `CURATION_BUNDLE` not named `bundle.sqlite`** got a chain whose `deliver all --out-dir` writes
+   `<dir>/bundle.sqlite`. The tool would then wait on its own file forever. Fix: no command, only why. Pin:
+   `test_a_scratch_bundle_not_named_bundle_sqlite_gets_no_command`.
+6. **Two parity guards had no pin.** Fix: added tests for the `run.outcome != "absent"` guard in `explain`
+   (`test_needs_corpus_is_explained_only_when_the_run_answered`) and the backslash guard in the fast row reader
+   (`test_the_fast_row_reader_never_returns_an_escaped_value`). Each fails under its mutation.
+
+**Noted, not changed:** the builder's `test_*_is_pinned_by_mutation` tests apply their mutation to themselves via
+monkeypatch. The real-source mutations above show that the whole-value tests carry the pins. `binding` holds the
+registry's absorbed-id fold, which is a build output, so a registry change from a rebuild alone would count as "edited",
+not "build_only". That would hide a false stale. In the E2E, edited was 1 (Adam, a real split), so nothing was hidden.
+See follow-ups.
+
+Checks: unfiltered via heavy.sh, with read-only symlinks to the live data/generated + data/release (removed after):
+**301 passed**. Files: test_review_{gate,marks,vintage,queue,loop}, test_curation_review_{queue,vintage,api,safety,writes}.
+test_review_gate now has 28 tests. Ships on merge, no rebuild.
+
 ## Owner questions (built with the default; say if not)
 1. **The pilot needs a person other than the builder.** *Default:* prepared — PILOT.md + pilot.json (30 targets);
    you or a reviewer run it (~1 h) and `gate pilot-report`. PLAN's "no tool blocker" stays open until then.
@@ -107,6 +155,9 @@ Not run: Tier 2 (`scripts/test-full.sh`), `pnpm -C app check` (no app changes), 
    bundle binds 2–15 sections or none. *Default:* explained by design (AGENTS 54); say if the app should read the run.
 
 ## Left / follow-ups
+- (review) `fingerprint`'s `binding` folds ids through the BUILT registry, so a rebuild that changes the registry alone reads
+  "edited" in `gate stale`. That would under-count false stales. Split the registry fold into its own part (a built part)
+  if the measure is to be exact across a registry change.
 - **The live atlas is older than its inputs**: a rebuild from today's curated files lost 7 cut points (Fraser 98 → 94,
   Raspberry, Exchamsiks, Two Forty) and 22 sections — gauge matches or splits changed since the served atlas was built
   (it predates `split_anchors.json`, so the tool checks split ids only). Diagnose before the next real promote.
