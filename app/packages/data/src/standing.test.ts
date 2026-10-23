@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { buildStandingClasses, sheetLead, speakerFor, speaks, type Panel, type StationId } from "./index";
 
 const st = (s: string) => s as StationId;
-const member = (station: string) => ({ station: st(station), role: "up" as const, areaKm2: 100, years: 30,
+const member = (station: string) => ({ station: st(station), role: "up" as const, areaKm2: 100, years: { discharge: 30, level: 30 },
                                        regulated: false, sameRiver: true });
 const PANEL: Panel = { areaKm2: 40, members: [member("A"), member("B")] };
 

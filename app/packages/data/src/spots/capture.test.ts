@@ -39,7 +39,7 @@ const base = {
 };
 
 const PANEL_OF = (...stations: string[]) => ({ areaKm2: 40, members: stations.map((station) => (
-  { station: station as never, role: "up" as const, areaKm2: 60, years: 40, regulated: false, sameRiver: true })) });
+  { station: station as never, role: "up" as const, areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true })) });
 const MATCHED = async () => ({ station: "08MH001", name: "Vedder", trust: "good", reachMagnitude: 40,
                                gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }) as never;
 const NOW_READS = async (station: string) => ({ fetchedAt: 1, value: { discharge: station === "LAKE" ? null : 30,

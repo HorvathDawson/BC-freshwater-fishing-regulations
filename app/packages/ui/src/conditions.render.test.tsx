@@ -268,7 +268,7 @@ describe("useConditionsView", () => {
 
   it("moves to a donor the reader picks, and never to a station the speaker does not hold (T105)", async () => {
     const two: Panel = { areaKm2: 50, members: [...PANEL.members,
-      { station: "OTHER" as never, role: "down", areaKm2: 70, years: 30, regulated: false, sameRiver: true }] };
+      { station: "OTHER" as never, role: "down", areaKm2: 70, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true }] };
     const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
                   panelRoutes: async () => [...await source.panelRoutes(SEC),
                     { station: "OTHER", name: "Other River at Bridge", lat: 49, lon: -122, role: "down", path: [SEC] }],
