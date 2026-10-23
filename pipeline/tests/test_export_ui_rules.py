@@ -954,7 +954,14 @@ def test_a_rule_in_an_undrawn_part_is_flagged_prominent(doc):
     for x in part:
         n = x["not_yet_mapped"]
         assert n["part"] == x["fields"]["undrawn_part"]
-        if n["identified"]:
+        if n["identified"] and n.get("map"):
+            # T100: a part the book draws on a map cites it (its "(map A)" tag said by the cite)
+            shown = n["part"].replace(f" ({n['map']['name']})", "") if n["map"]["name"] else n["part"]
+            assert n["says"] == ("Not yet mapped: this applies only in one part of this water — "
+                                 + shown + " — which is not drawn on the map yet; see "
+                                 + n["map"]["cite"] + " of the regulations. It does not apply to "
+                                 "the rest of the water.")
+        elif n["identified"]:
             assert n["says"] == ("Not yet mapped: this applies only in one part of this water — "
                                  + n["part"] + " — which is not drawn on the map yet. It does not "
                                  "apply to the rest of the water.")
