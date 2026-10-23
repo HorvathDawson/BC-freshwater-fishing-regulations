@@ -30,11 +30,16 @@ describe("visitConditions — the frozen record only", () => {
     expect(visitHour(spot)).toBe("09:00");
   });
 
-  it("never a level: a bare reading that holds a level is no flow; one with discharge only is", () => {
+  it("never a level: a bare reading's percentile is a flow only when the reading shows a discharge (T106)", () => {
     const r = { station: "08MH016", discharge: 41.2, percentile: 0.6, at: "x" };
-    expect([visitConditions(base({ reading: { ...r, level: 1.4 } })).flow,
-            visitConditions(base({ reading: { ...r, level: null } })).flow,
-            visitConditions(base({ reading: { ...r, discharge: null, level: 1.4 } })).flow]).toEqual([null, 0.6, null]);
+    const flow = (reading: object) => visitConditions(base({ reading: { ...r, ...reading } as never })).flow;
+    expect([
+      flow({ level: 1.4, parameter: "level" }),          // both, declared level (08ME030's shape): the level's rank
+      flow({ level: 1.4, parameter: "discharge" }),      // both, declared discharge
+      flow({ level: null }),                             // undeclared, discharge only (a spot saved before T106)
+      flow({ level: 1.4 }),                              // undeclared, both: the publisher's default, discharge
+      flow({ discharge: null, level: 1.4 }),             // undeclared, level only: it ranked the level
+    ]).toEqual([null, 0.6, 0.6, 0.6, null]);
   });
 
   it("a rain window with a day not known is no rain, and no weather is nulls — never a guess", () => {

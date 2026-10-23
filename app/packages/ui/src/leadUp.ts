@@ -8,6 +8,7 @@
 import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
          leadUpGaugeTrend, leadUpPendingDays, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells,
          leadUpWeatherPending, leadUpWeatherSentence, type LeadUp } from "@app/data/spots";
+import type { Parameter } from "@app/data";
 
 export interface LeadUpView {
   heading: string;
@@ -31,7 +32,9 @@ export interface LeadUpView {
   gaugeNote: string | null;
 }
 
-export function leadUpView(lu: LeadUp | null | undefined): LeadUpView | null {
+/** `declared` is the spot's own reading: the strip shows the quantity it shows (T106). */
+export function leadUpView(lu: LeadUp | null | undefined,
+                           declared?: { parameter?: Parameter | null } | null): LeadUpView | null {
   if (!lu) return null;
   const pending = leadUpPendingDays(lu);
   // "filled in afterwards" under the row a refresh filled; a week filled before `filledIn` existed: both, as it said
@@ -42,7 +45,7 @@ export function leadUpView(lu: LeadUp | null | undefined): LeadUpView | null {
     source: filled("weather") ? LEAD_UP_WORDS.weatherFilledIn : LEAD_UP_WORDS.weatherSource,
     pending: pending.weather ? leadUpWeatherPending(pending.weather) : null,
   } : null;
-  const q = lu.gauge ? leadUpQuantity(lu.gauge) : null;
+  const q = lu.gauge ? leadUpQuantity(lu.gauge, declared) : null;
   const gauge = lu.gauge && q && lu.station ? {
     unit: leadUpUnit(q),
     days: lu.gauge.map((d) => ({ label: leadUpGaugeSentence(d, q), day: leadUpDayLabel(d.date),

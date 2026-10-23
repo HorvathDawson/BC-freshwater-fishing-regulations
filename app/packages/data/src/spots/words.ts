@@ -4,8 +4,9 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, percentileLabel, percentileOrdinal } from "@app/core";
-import type { DailyGauge, DailyWeather, DayPlace, Spot, WeatherWindow } from "./model";
+import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, percentileLabel, percentileOrdinal, readingIn,
+         shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
+import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 
 /* ---- S1: the week before the visit ------------------------------------------------------------------------------ */
@@ -82,11 +83,14 @@ export function leadUpRainLine(days: readonly DailyWeather[]): string | null {
   return `${tenth(total)} mm of rain in the week before, on ${wet} ${wet === 1 ? "day" : "days"}${gap}.`;
 }
 
-/** Which quantity the strip shows: flow wherever the station has any, level only where it has no flow. */
-export function leadUpQuantity(days: readonly DailyGauge[]): "discharge" | "level" | null {
-  if (days.some((d) => d.discharge !== null)) return "discharge";
-  if (days.some((d) => d.level !== null)) return "level";
-  return null;
+/**
+ * Which quantity the strip shows: the one the spot's reading shows (core `shownParameter`, T106) — never inferred
+ * from which days hold which value. Null when no day holds a mean in it.
+ */
+export function leadUpQuantity(days: readonly DailyGauge[],
+                               declared: DeclaresQuantity | null | undefined): ShownQuantity | null {
+  const q = shownParameter(declared ?? {});
+  return days.some((d) => readingIn(d, q) !== null) ? q : null;
 }
 
 // One spelling of the units: the Conditions words' (T80 1).
@@ -255,15 +259,27 @@ export function spotHeadline(spot: Pick<Spot, "visitedAt" | "createdAt" | "lat" 
 }
 
 /**
+ * A saved reading's number in the quantity it shows (core `shownParameter`, T106), with that quantity's unit. Null
+ * when it holds no value in it. The list row and the spot screen both read it.
+ */
+export function spotReadingFigure(r: SpotReading | null | undefined):
+  { figure: number; unit: string; quantity: ShownQuantity } | null {
+  if (!r) return null;
+  const quantity = shownParameter(r);
+  const figure = readingIn(r, quantity);
+  return figure === null ? null : { figure, unit: UNIT[quantity], quantity };
+}
+
+/**
  * The two lines under a spot's name in the list: the LOCAL day of the visit with what was recorded, then where.
  *
  * The visit, not the record: spots are typed up on the drive home or the week after, and the list used to date
  * them by `createdAt` in UTC — a Sunday evening's fishing read as Monday's.
  */
 export function spotRowLines(spot: Spot): [string, string] {
-  const g = spot.reading, w = spot.weather;
-  const gauge = g?.discharge != null
-    ? `${g.discharge} m³/s${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
+  const g = spot.reading, w = spot.weather, f = spotReadingFigure(g);
+  const gauge = g && f
+    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
     : "no gauge";
   const weather = w?.tempC != null ? `${w.tempC}°C${w.backfilled ? " (filled in)" : ""}` : "no weather";
   return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,

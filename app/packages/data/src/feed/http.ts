@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { standing } from "@app/core";
+import { shownParameter, standing } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { StationChange } from "../panel";
 
@@ -307,6 +307,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
           discharge: f.now.discharge, level: f.now.level,
           at: f.now.at ?? "", percentile: f.now.percentile,
           standing: standing(f.now.percentile),
+          parameter: f.now.parameter ?? null,
         },
       };
     },
@@ -322,9 +323,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
         // The publisher already decided which quantity this station's percentile is about,
         // against the envelope it actually has. Re-deciding here would be a second opinion
         // on a question that has one right answer per station.
-        parameter: f?.now?.parameter
-          ?? (f?.now?.discharge !== null && f?.now?.discharge !== undefined
-                ? "discharge" : "level"),
+        parameter: shownParameter(f?.now ?? {}),
         at: rows.map((r) => r[0]),
         level: rows.map((r) => r[1]),
         discharge: rows.map((r) => r[2]),

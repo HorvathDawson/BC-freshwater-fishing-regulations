@@ -14,7 +14,7 @@ export { openSpotsWith, SpotsCorrupt, type SpotsFs, type SpotsStore } from "./co
 export { serialised } from "./queue";
 export { openMeteo, OPEN_METEO_ATTRIBUTION } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
-export { observedLine, spotHeadline, spotRowLines, weatherTrend,
+export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend,
          LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend,
          leadUpGaugePending, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
          leadUpWeatherSentence, skyWord, PHOTO_WORDS, photoFailed, removePhotoLabel, staleSpotsLine } from "./words";

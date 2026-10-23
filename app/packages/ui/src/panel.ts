@@ -14,8 +14,8 @@ import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWor
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
-         readingAgeLine, readingHeading, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote,
-         shortRecordNote, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
+         readingAgeLine, readingHeading, readingIn, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote,
+         shortRecordNote, shownParameter, stageLine, unplacedNote, type GaugeTrace, type SectionKey,
          type Standing } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
          routeLegend } from "@app/core";
@@ -792,14 +792,17 @@ export function useConditionsView(
   const c = lead === matched?.station && !live?.fetchedAt ? matched : live;
 
   let reading: ReadingVM | null = null;
-  if (c && (c.discharge != null || c.level != null)) {
-    const shown: Parameter = c.discharge != null ? "discharge" : "level";
+  // THE DECLARED QUANTITY (T106): the publisher's `parameter`, the one its percentile is about. 08ME030 reports both
+  // and declares level; reading whichever value was present printed its discharge beside the level percentile.
+  const shown: Parameter | null = c ? shownParameter(c) : null;
+  const figure = c && shown ? readingIn(c, shown) : null;
+  if (c && shown && figure !== null) {
     reading = {
       heading: readingHeading(name),
-      figure: (c.discharge ?? c.level)!,
+      figure,
       unit: CONDITIONS_WORDS.unit[shown],
       quantity: shown,
-      stage: c.discharge != null && c.level != null ? stageLine(c.level) : null,
+      stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       standing: readingStandingLine(c.percentile, c.standing as Standing | null),
       age: readingAgeLine(freshness(c.fetchedAt, Date.now()), c.observedAt),
     };

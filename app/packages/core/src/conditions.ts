@@ -475,6 +475,33 @@ export function disagreeNote(e: Estimate, horizon: Horizon = 0): string | null {
 
 /* ---------------------------------------------------------- a gauge's reading ---- */
 
+/** The two quantities a station reports — the data layer's `Parameter`. */
+export type ShownQuantity = "discharge" | "level";
+
+/** Anything that may carry the feed publisher's declared quantity: a reading, an index row, a saved spot's reading. */
+export interface DeclaresQuantity { readonly parameter?: ShownQuantity | null }
+
+/**
+ * WHICH QUANTITY A STATION'S READING SHOWS (T106) — the ONE place the app answers it.
+ *
+ * The feed publisher decides it (`pipeline/gauges/feed/publish.py`, `parameter`: discharge where the station has a
+ * discharge envelope and a discharge, else level) and its `percentile` is about that quantity. So this READS the
+ * declaration and never infers it from which values are present: 08ME030 reports both and declares level, and the
+ * sheet used to print its 5.46 m³/s beside the LEVEL percentile.
+ *
+ * A record with no declaration was written before the publisher wrote one (an old feed file, a spot saved before
+ * T106) and reads as discharge — the publisher's own default, and what every such record was shown as.
+ */
+export function shownParameter(row: DeclaresQuantity): ShownQuantity {
+  return row.parameter ?? "discharge";
+}
+
+/** The reading's value in one quantity; null when the station did not report it. */
+export function readingIn(row: { readonly discharge?: number | null; readonly level?: number | null },
+                          quantity: ShownQuantity): number | null {
+  return (quantity === "level" ? row.level : row.discharge) ?? null;
+}
+
 /** "AT VEDDER RIVER AT VEDDER CROSSING" — whose reading it is, before the number. */
 export function readingHeading(name: string): string {
   return `AT ${name.toUpperCase()}`;

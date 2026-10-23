@@ -8,7 +8,7 @@
  * It decides nothing, and it reads no regulation table: regulations are not integrated (see
  * `regulations.ts` in @app/core for where they plug in).
  */
-import type { WaterFix } from "@app/core";
+import { shownParameter, type WaterFix } from "@app/core";
 import type { Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
@@ -291,8 +291,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     async gaugeSeries(station, span, parameter, model): Promise<Aged<Series> | null> {
       const obs = (await opts.feed?.observations?.(station)) ?? null;
       // Which quantity. The caller's choice wins; failing that, the station's own — never
-      // a default, because "discharge" is wrong for the 237 stations that never measure it.
-      const param: Parameter = parameter ?? obs?.parameter ?? "discharge";
+      // a default, because "discharge" is wrong for the 237 stations that never measure it (core `shownParameter`).
+      const param: Parameter = parameter ?? shownParameter(obs ?? {});
       const clim = await db.all(Q.CLIMATOLOGY, station, param);
       return seriesOf(pentadsOf(clim[0]?.bands as Uint8Array | null | undefined, "clim/1"), obs, span, param, model);
     },

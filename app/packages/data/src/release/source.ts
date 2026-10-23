@@ -21,7 +21,7 @@
  * near-search or result line, conditions on the first gauge question, flow-area on the first panel, water and
  * regs-<region> on the first water opened in that region.
  */
-import type { WaterFix } from "@app/core";
+import { shownParameter, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
 import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
@@ -317,7 +317,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
     /** The feed's observations over the release's envelope (`seriesOf`; clim/2: float16 bands). */
     async gaugeSeries(station, span, parameter, model) {
       const obs = (await opts.feed?.observations?.(station)) ?? null;
-      const param = parameter ?? obs?.parameter ?? "discharge";
+      const param = parameter ?? shownParameter(obs ?? {});
       const clim = await all(R.CLIMATOLOGY!, station, param);
       return seriesOf(pentadsOf(clim[0]?.bands as Uint8Array | null | undefined, "clim/2"), obs, span, param, model);
     },

@@ -229,7 +229,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return {
         fetchedAt: Date.parse(GAUGE.at),
         value: { discharge: GAUGE.discharge, level: GAUGE.level, at: GAUGE.at,
-                 percentile: GAUGE.percentile, standing: "much-below" },
+                 percentile: GAUGE.percentile, standing: "much-below", parameter: "discharge" },
       };
     },
     async gaugeSeries(st, span, parameter, model): Promise<Aged<Series> | null> {

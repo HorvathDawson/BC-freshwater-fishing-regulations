@@ -23,7 +23,7 @@
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
-  spotLabel, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
+  spotLabel, spotReadingFigure, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
 import { leadUpView, useBackLayer, usePhotoUris, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
@@ -89,9 +89,10 @@ export function SpotScreen(p: SpotScreenProps) {
   const [confirm, setConfirm] = useState<"delete" | "discard" | null>(null);
 
   const r = spot.reading;
+  const fig = spotReadingFigure(r);   // the quantity the reading shows (T106), never whichever value is present
   const w = spot.weather;
   // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
-  const lead = leadUpView(spot.leadUp);
+  const lead = leadUpView(spot.leadUp, spot.reading);
   const pe = editable ? p.photoEdit : undefined;
   const photos = pe ? pe.refs : spot.photos;
   const uris = usePhotoUris(p.photoStore, photos);
@@ -221,16 +222,16 @@ export function SpotScreen(p: SpotScreenProps) {
               {r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
                           station={r.station} />}
             </>
-          ) : r?.discharge != null ? (
+          ) : r && fig ? (
             // A spot saved before the estimate was frozen. Its own reading is all there is,
             // and it is still a true record of that day.
             <>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
                              flexWrap: "wrap" }}>
                 <Text style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
-                  {r.discharge}
+                  {fig.figure}
                 </Text>
-                <Text style={{ ...TYPE.figure, color: palette.sub }}>m³/s</Text>
+                <Text style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
                 {r.percentile != null && (
                   <Text style={{ ...TYPE.figure, color: palette.sub }}>
                     · {percentileLabel(r.percentile)} against the record

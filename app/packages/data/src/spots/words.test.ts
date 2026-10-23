@@ -77,4 +77,21 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
       reading: { station: "08MH001", discharge: 15.7, level: null, percentile: null, at: null },
     }))[0]).toBe("2026-08-30 · 15.7 m³/s · no weather");
   });
+
+  it("shows the quantity the reading declares: 08ME030's level beside its level percentile (T106)", () => {
+    const both = { station: "08ME030", discharge: 5.46, level: 4.162, percentile: 0.432, at: null };
+    expect([spotRowLines(spot({ reading: { ...both, parameter: "level" } }))[0],
+            spotRowLines(spot({ reading: { ...both, parameter: "discharge" } }))[0],
+            // saved before T106, declaring nothing: discharge, as such a spot always showed
+            spotRowLines(spot({ reading: both }))[0],
+            // declared level, a level only: shown (it used to read "no gauge")
+            spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "level" } }))[0],
+            // declared discharge with no discharge: no number under the wrong unit
+            spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "discharge" } }))[0]])
+      .toEqual(["2026-08-30 · 4.162 m · p43rd · no weather",
+                "2026-08-30 · 5.46 m³/s · p43rd · no weather",
+                "2026-08-30 · 5.46 m³/s · p43rd · no weather",
+                "2026-08-30 · 4.162 m · p43rd · no weather",
+                "2026-08-30 · no gauge · no weather"]);
+  });
 });

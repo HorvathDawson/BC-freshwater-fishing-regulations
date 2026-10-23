@@ -10,9 +10,8 @@
  * Stations with no reading today are DROPPED rather than drawn bare. A dot with no number
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
-import { changeDotLabel, changeRatio, zoomForMagnitude } from "@app/core";
-import { percentileLabel } from "@app/core";
-import { reading, type GaugeFeed, type Horizon } from "@app/data";
+import { changeDotLabel, changeRatio, percentileLabel, readingIn, shownParameter, zoomForMagnitude } from "@app/core";
+import { reading, type GaugeFeed, type Horizon, type Parameter } from "@app/data";
 import { toRamp } from "./routeColour";
 
 export interface GaugePoint {
@@ -31,7 +30,7 @@ export type GaugeQuantity = "flow" | "level" | "temperature";
 
 /** "15.7 m³/s · p4th", or "16.3 °C" in the temperature view. Null when nothing to draw. */
 export function gaugeLabel(now: { discharge: number | null; level: number | null;
-                                  parameter?: string } | undefined,
+                                  parameter?: Parameter | null } | undefined,
                            percentile: number | null,
                            temperatureC?: number | null): string | null {
   /*
@@ -46,10 +45,10 @@ export function gaugeLabel(now: { discharge: number | null; level: number | null
     return `${temperatureC.toFixed(1)} °C`;
   const parts: string[] = [];
   if (now) {
-    const level = now.parameter === "level";
-    const v = level ? now.level : now.discharge;
-    if (v !== null && v !== undefined)
-      parts.push(level ? `${v.toFixed(2)} m` : `${v} m³/s`);
+    const shown = shownParameter(now);              // the declared quantity, never inferred (T106)
+    const v = readingIn(now, shown);
+    if (v !== null)
+      parts.push(shown === "level" ? `${v.toFixed(2)} m` : `${v} m³/s`);
   }
   // THE SAME LABEL THE SHEET USES. This rounded while the chip kept a decimal below 1%,
   // so a dot could read "p1st" beside a sheet saying "p0.4th" about that very station.
@@ -89,7 +88,7 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
      * stays on now (the horizon control is not offered under it).
      *
      * `reading` also holds the station-default rule this used to repeat: `percentile` stands in only for the quantity
-     * `parameter` names (discharge on a row from before `parameter`), never for the other.
+     * `parameter` names (core `shownParameter`, T106: discharge on a row from before `parameter`), never for the other.
      */
     const pct = quantity === "temperature" ? row.percentile ?? null
       : reading(row, quantity === "level" ? "level" : "discharge", horizon);

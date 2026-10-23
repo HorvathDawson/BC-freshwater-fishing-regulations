@@ -141,6 +141,7 @@ async function readingFor(source: RegsSource, section: SectionId | null):
     station: link.station,
     discharge: now.value.discharge,
     level: now.value.level,
+    parameter: now.value.parameter,
     percentile: now.value.percentile ?? null,
     at: now.value.at ?? null,
   };

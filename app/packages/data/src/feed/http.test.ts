@@ -40,6 +40,24 @@ describe("httpFeed", () => {
     expect(got!.value.percentile).toBe(0.038);
   });
 
+  it("carries the declared quantity on the reading, and the series follows it — never the value present (T106)",
+     async () => {
+    // 08ME030 as the feed published it 2026-10-22: both quantities, the percentile about the level.
+    const both = { ...STATION, station: "08ME030",
+                   now: { discharge: 5.46, level: 4.162, at: "2026-10-22T18:40:00-08:00", percentile: 0.432,
+                          parameter: "level" } };
+    const f = httpFeed("http://x/feeds/gauge", server({ "08MH001.json": both }));
+    expect((await f.now(S))!.value).toEqual({ discharge: 5.46, level: 4.162, at: "2026-10-22T18:40:00-08:00",
+                                              percentile: 0.432, standing: "normal", parameter: "level" });
+    expect((await f.observations(S))!.parameter).toBe("level");
+    // A file from before the publisher declared one: null on the reading; the series reads core's default
+    // (discharge) even where only a level was present — not a guess from which value is there.
+    const old = { ...STATION, now: { discharge: null, level: 1.487, at: "2026-09-01T11:30:00Z", percentile: null } };
+    const g = httpFeed("http://x/feeds/gauge", server({ "08MH001.json": old }));
+    expect((await g.now(S))!.value.parameter).toBeNull();
+    expect((await g.observations(S))!.parameter).toBe("discharge");
+  });
+
   it("asks for exactly {base}/{station}.json — no query string, so an edge can cache it",
      async () => {
     const seen: string[] = [];

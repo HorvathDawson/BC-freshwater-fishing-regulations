@@ -15,6 +15,7 @@
  * are scored on the weather alone and say so — never filled from a neighbour.
  */
 import { DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
+import { spotReadingFigure } from "./words";
 import { reading } from "../panel";
 import type { Spot } from "./model";
 
@@ -60,9 +61,10 @@ export function visitConditions(spot: Spot): LikeConditions {
   const station = likeStation(spot);
   const row = station ? spot.panel?.rows.find((r) => r.station === station) : undefined;
   const r = spot.reading;
-  // the panel was asked in discharge (capture.ts `panelFor`); a bare reading is a discharge only when it holds no level
-  const flow = row?.percentile ?? (r && r.percentile !== null && r.discharge !== null && r.level === null
-    ? r.percentile : null);
+  // the panel was asked in discharge (capture.ts `panelFor`); a bare reading's percentile is a flow only when the
+  // reading shows a discharge (core `shownParameter` through `spotReadingFigure`, T106) — a legacy spot that declares
+  // nothing and holds only a level ranked that level, never a flow
+  const flow = row?.percentile ?? (r && spotReadingFigure(r)?.quantity === "discharge" ? r.percentile : null);
   const w = spot.weather;
   const lead = spot.leadUp?.weather ?? null;
   const last = lead ? lead.slice(-LIKE_RAIN_DAYS) : [];

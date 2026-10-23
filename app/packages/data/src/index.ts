@@ -98,6 +98,11 @@ export interface Reading {
   /** Where this sits in the station's own record for this day of year. */
   percentile: number | null;
   standing: Standing;
+  /**
+   * Which quantity the station shows and `percentile` is about, as the feed publisher declared it; null on a feed
+   * file written before it did. Read through core's `shownParameter`, never inferred from which value is present.
+   */
+  parameter: Parameter | null;
 }
 
 export interface GaugeLink {

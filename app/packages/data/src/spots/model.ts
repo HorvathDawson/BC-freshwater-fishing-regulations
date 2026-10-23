@@ -9,7 +9,7 @@
  * It is also the only user-authored data in the app, and the only thing that cannot be
  * re-downloaded. `pins.ts` says why it lives in its own store.
  */
-import type { FrozenTrace } from "@app/core";
+import type { FrozenTrace, ShownQuantity } from "@app/core";
 import type { PanelAnswer } from "../panel";
 import type { ItemId } from "../index";
 
@@ -72,6 +72,11 @@ export interface SpotReading {
   station: string | null;
   discharge: number | null;
   level: number | null;
+  /**
+   * Which quantity the reading shows and `percentile` is about, as the feed declared it (T106). Absent on a spot
+   * saved before then: core's `shownParameter` reads that as discharge, which is what such a spot always showed.
+   */
+  parameter?: ShownQuantity | null;
   /** Where that sat against this station's own record. */
   percentile: number | null;
   at: string | null;

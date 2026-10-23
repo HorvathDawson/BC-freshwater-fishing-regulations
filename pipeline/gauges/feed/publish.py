@@ -276,6 +276,21 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
     return sorted(out, key=lambda n: n["kind"])
 
 
+def shown_parameter(envelope: dict, discharge: float | None, level: float | None) -> str:
+    """Which quantity a station's reading shows — the `parameter` its `percentile` is about (T106).
+
+    THE AUTHORITY. The app never re-decides it (core `shownParameter` reads this). Discharge where the station
+    has a discharge envelope and a discharge; else level where it has a level envelope and a level. Where no
+    envelope can rank either, the quantity it reported — a level-only station with no record used to declare
+    "discharge" with no discharge, and the sheet had nothing in the declared quantity to show.
+    """
+    if "discharge" in envelope and discharge is not None:
+        return "discharge"
+    if "level" in envelope and level is not None:
+        return "level"
+    return "level" if discharge is None and level is not None else "discharge"
+
+
 def percentile_of(value: float | None, band: list[float | None] | None) -> float | None:
     """Where `value` sits in a p10..p90 band, as 0..1. None when either side is unknown.
 
@@ -794,9 +809,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # is used where discharge cannot answer — 237 BC stations never measure it — and the
         # parameter travels with the number so nothing presents them as the same claim.
         have = envelope.get(r["station"]) or {}
-        param = ("discharge" if "discharge" in have and r["discharge"] is not None
-                 else "level" if "level" in have and r["level"] is not None
-                 else "discharge")
+        param = shown_parameter(have, r["discharge"], r["level"])
         band = band_for(have.get(param), now)
         observed = r["level"] if param == "level" else r["discharge"]
         # BOTH PERCENTILES WHERE THERE ARE BOTH, each against its own envelope.

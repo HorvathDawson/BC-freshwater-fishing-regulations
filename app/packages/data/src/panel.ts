@@ -12,7 +12,7 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, trustFor, weightFactors, type Answer,
+import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, shownParameter, trustFor, weightFactors, type Answer,
          type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
@@ -160,7 +160,7 @@ export function reading(row: NonNullable<Index>["stations"][string] | null | und
     // `percentile` is the station's own default and `parameter` says which quantity it is
     // about, so it stands in for that one only — a level percentile read as a flow is
     // arithmetic across two units.
-    return row[q] ?? ((row.parameter ?? "discharge") === q ? row.percentile ?? null : null);
+    return row[q] ?? (shownParameter(row) === q ? row.percentile ?? null : null);
   }
   return row.ahead?.[String(horizon)]?.[q] ?? null;
 }

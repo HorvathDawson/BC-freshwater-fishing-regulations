@@ -78,10 +78,17 @@ describe("the station's daily means", () => {
                 g("2026-08-25", 9.137, "below"),
                 g("2026-08-26", 120, "above"), g("2026-08-27", 20, 0.25)];
 
-  it("shows flow where the station has it, and level only where it has no flow", () => {
-    expect(leadUpQuantity(week)).toBe("discharge");
-    expect(leadUpQuantity([g("2026-08-23", null, null, 1.42, 0.5)])).toBe("level");
-    expect(leadUpQuantity([g("2026-08-23", null, null)])).toBeNull();
+  it("shows the quantity the spot's reading declares, never the one the days happen to hold (T106)", () => {
+    const both = [g("2026-08-23", 5.46, 0.5, 4.162, 0.4)];
+    expect(leadUpQuantity(both, { parameter: "level" })).toBe("level");
+    expect(leadUpQuantity(both, { parameter: "discharge" })).toBe("discharge");
+    // undeclared (a spot saved before T106): discharge, the publisher's own default
+    expect(leadUpQuantity(week, {})).toBe("discharge");
+    expect(leadUpQuantity(week, null)).toBe("discharge");
+    expect(leadUpQuantity([g("2026-08-23", null, null, 1.42, 0.5)], { parameter: "level" })).toBe("level");
+    // no mean in the declared quantity: nothing to draw, not the other quantity's numbers under its heading
+    expect(leadUpQuantity([g("2026-08-23", null, null, 1.42, 0.5)], { parameter: "discharge" })).toBeNull();
+    expect(leadUpQuantity([g("2026-08-23", null, null)], { parameter: "level" })).toBeNull();
   });
 
   it("names each quantity's unit in the Conditions words, one spelling (T80 1)", () => {

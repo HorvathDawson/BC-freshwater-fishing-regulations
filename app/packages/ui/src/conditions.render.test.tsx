@@ -221,8 +221,8 @@ const source = {
     fetchedAt: Date.now() - 5 * 60_000,
     value: station === "LEAD"
       ? { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
-          at: "2026-09-04T06:00:00Z" }
-      : { discharge: null, level: 3.4, percentile: null, standing: null, at: "" },
+          at: "2026-09-04T06:00:00Z", parameter: "discharge" }
+      : { discharge: null, level: 3.4, percentile: null, standing: null, at: "", parameter: "level" },
   }),
 } as unknown as RegsSource;
 
@@ -275,6 +275,31 @@ describe("useConditionsView", () => {
     expect(result.current.reading).toMatchObject({
       heading: readingHeading("Matched River"), unit: "m", quantity: "level", stage: null,
       standing: readingStandingLine(null, null) });
+  });
+
+  it("shows the quantity the station DECLARES: 08ME030's level beside its level percentile, never its discharge (T106)", async () => {
+    // `data/generated/gauges/feeds/08ME030.json` `now` as the ticket recorded it: both quantities, declared level.
+    const now08ME030 = { discharge: 5.46, level: 4.162, percentile: 0.432, standing: "normal",
+                         at: "2026-10-22T18:40:00-08:00", parameter: "level" };
+    const src = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000, value: now08ME030 }) } as
+      unknown as RegsSource;
+    const { result } = renderHook(() => useConditionsView(src, SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
+    const { age: _age, ...shown } = result.current.reading!;
+    expect(shown).toEqual({
+      heading: readingHeading("Lead Creek near Town"),
+      figure: 4.162, unit: "m", quantity: "level",
+      stage: null,                                        // the stage line is said beside a discharge only
+      standing: readingStandingLine(0.432, "normal"),
+    });
+    // and declared discharge, the same two values: the discharge, with its stage beside it
+    const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
+                                                       value: { ...now08ME030, parameter: "discharge" } }) } as
+      unknown as RegsSource;
+    const two = renderHook(() => useConditionsView(src2, SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(two.result.current.reading?.heading).toBeDefined());
+    expect(two.result.current.reading).toMatchObject({ figure: 5.46, unit: "m³/s", quantity: "discharge",
+                                                       stage: stageLine(4.162) });
   });
 
   it("a quiet donor picked to chart says when it last reported — never the no-gauge refusal (review 2026-10-21)", async () => {

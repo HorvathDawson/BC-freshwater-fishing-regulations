@@ -77,6 +77,8 @@ export interface Conditions {
   stationName: string | null;
   discharge: number | null;
   level: number | null;
+  /** Which quantity the station shows and `percentile` is about, as the feed declared it (T106; `shownParameter`). */
+  parameter: Parameter | null;
   percentile: number | null;
   standing: string | null;
   /** How much of the gauge's watershed this reach is. */
@@ -93,7 +95,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
   return useAsync(
     async (): Promise<Conditions> => {
       const empty: Conditions = {
-        station: null, stationName: null, discharge: null, level: null, percentile: null,
+        station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
         standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
       };
       if (!section) return empty;
@@ -113,6 +115,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
         station: link.station, stationName: link.name, trust: link.trust, trace,
         discharge: now?.value.discharge ?? null,
         level: now?.value.level ?? null,
+        parameter: now?.value.parameter ?? null,
         percentile: now?.value.percentile ?? null,
         standing: now?.value.standing ?? null,
         fetchedAt: now?.fetchedAt ?? null,
@@ -177,7 +180,7 @@ export const READING_REUSE_MS = READING_POLL_MS / 2;
 /** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
 export async function stationReading(source: RegsSource, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
-    station: null, stationName: null, discharge: null, level: null, percentile: null,
+    station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
     standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
   };
   if (!station) return empty;
@@ -193,7 +196,7 @@ export async function stationReading(source: RegsSource, station: StationId | nu
     // no name, and inventing one here would mean a second place that decides what a
     // station is called. The caller already holds the name — it came with the donor.
     station, stationName: null, trust: null, trace: [],
-    discharge: now.value.discharge, level: now.value.level,
+    discharge: now.value.discharge, level: now.value.level, parameter: now.value.parameter,
     percentile: now.value.percentile, standing: now.value.standing,
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
   };
