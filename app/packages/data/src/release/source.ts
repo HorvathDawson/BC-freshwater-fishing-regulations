@@ -24,11 +24,11 @@
 import type { WaterFix } from "@app/core";
 import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
-import { boxOfGeoRows, byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../bundle/shared";
 import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
-              PlaceHit, PlaceId, RegsSource, SectionId, StationId, Water } from "../index";
+              PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
@@ -185,6 +185,12 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
       const rows = await all(R.SEARCH!, BQ.likeEscape(query), Math.max(limit * 3, 60));
       const hits = rankNameHits(query, rows, limit);
       return hits.length ? withNear(hits, await ringsFor(hits.map((h) => h.item))) : hits;
+    },
+
+    async searchPointers(q, limit): Promise<readonly PointerHit[]> {
+      const query = q.trim();
+      if (query.length < 2 || limit < 1) return [];
+      return pointerHits(query, await all(R.SEARCH_POINTERS!, BQ.likeEscape(query), Math.max(limit * 12, 60)), limit);
     },
 
     async searchPlaces(q, limit): Promise<readonly PlaceHit[]> {

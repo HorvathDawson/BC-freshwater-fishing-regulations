@@ -10,7 +10,7 @@
 import type { Band } from "@app/core";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
-  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
+  PlaceHit, PlaceId, PointerHit, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
 } from "./index";
 import { buildStandingClasses } from "./standing";
 
@@ -151,6 +151,10 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         ? [{ place: id<PlaceId>("12"), name: "Chilliwack", kind: "city",
              lat: 49.171, lon: -121.953, pop: 93203 }].slice(0, limit)
         : [];
+    },
+    // the fixture's valley prints no group name that only points
+    async searchPointers(): Promise<readonly PointerHit[]> {
+      return [];
     },
     async watersNear(p): Promise<readonly NearHit[]> {
       return p === "12"

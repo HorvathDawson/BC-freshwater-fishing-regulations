@@ -123,6 +123,15 @@ export const NEAR_FOR_ITEMS =
   "FROM place_water pw JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
   "WHERE i.item_id IN (%IDS%) AND p.lat IS NOT NULL ORDER BY pw.ckm";
 
+/**
+ * THE GROUP NAMES THAT ONLY POINT (`see_pointer`, owner 2026-10-22), whose name is the query or starts with it: every
+ * named row of each, in the book's order. Candidates only — `rankPointers` (@app/core) orders and cuts them. The same
+ * SQL on the bundle and on the release's `core` (the table is copied whole); the NOCASE index serves the prefix.
+ */
+export const SEARCH_POINTERS =
+  "SELECT entry_id, name, ix, target_name, item_id FROM see_pointer " +
+  "WHERE name LIKE ?1 || '%' ESCAPE '\\' ORDER BY entry_id, ix LIMIT ?2";
+
 export const SEARCH_PLACES =
   // Biggest first among equally good matches: someone typing "vic" means Victoria, not a
   // hamlet of forty people that happens to sort earlier. An exact name beats both.

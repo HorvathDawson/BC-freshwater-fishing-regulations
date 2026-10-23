@@ -53,6 +53,8 @@ type Row =
   | { t: "place"; key: string; place: PlaceHit }
   | { t: "water"; key: string; hit: NameHit; dup: boolean }
   | { t: "near"; key: string; near: NearHit }
+  /** A group name that only points: its line (`seeLine`) and a way to open each water it names. */
+  | { t: "see"; key: string; line: string; see: readonly { name: string; item: ItemId | null }[] }
   | { t: "note"; key: string; text: string };
 
 /** How far down the sheet sits at HALF: this share of its full height goes below the screen's edge. */
@@ -79,6 +81,9 @@ export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
       if (g.kind === "places") {
         rows.push({ t: "head", key: "ph", label: g.title, right: g.note, place: true, band: true });
         for (const p of g.places) rows.push({ t: "place", key: `p:${p.place}`, place: p });
+      } else if (g.kind === "see") {
+        rows.push({ t: "head", key: "sh", label: g.title });
+        for (const p of g.pointers) rows.push({ t: "see", key: `s:${p.hit.entry}`, line: p.line, see: p.hit.see });
       } else {
         rows.push({ t: "head", key: "wh", label: g.title });
         for (const w of g.waters) rows.push({ t: "water", key: `w:${w.hit.item}`, hit: w.hit, dup: w.dup });
@@ -243,6 +248,33 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                   <Text style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 10 }}>
                     {r.text}
                   </Text>
+                );
+              if (r.t === "see")
+                return (
+                  /*
+                   * A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): its line, then each water it names as its own way
+                   * in — straight to that water (`onOpenWater`, the one opener); a named row that matched no water is
+                   * said in the line and has no button.
+                   */
+                  <View testID={`search-see-${r.key}`}
+                        style={{ borderTopWidth: 1, borderTopColor: palette.line, paddingHorizontal: 18,
+                                 paddingTop: 12, paddingBottom: 14, gap: 10 }}>
+                    <Text style={{ ...TYPE.body, color: palette.ink }}>{r.line}</Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      {r.see.filter((t) => t.item !== null).map((t) => (
+                        <Pressable key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
+                                   accessibilityRole="button" accessibilityLabel={SEARCH_BAR.open(t.name)}
+                                   style={({ pressed }) => ({
+                                     flexDirection: "row", alignItems: "center", gap: 2, minHeight: 44,
+                                     paddingLeft: 12, paddingRight: 6, borderWidth: 1.5,
+                                     borderColor: palette.accent, borderRadius: palette.r.box,
+                                     backgroundColor: pressed ? palette.tint : palette.card })}>
+                          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{t.name}</Text>
+                          <Icon name="next" colour={palette.accent} size={20} />
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
                 );
               if (r.t === "place") {
                 const t: SearchTarget = { kind: "place", place: r.place };

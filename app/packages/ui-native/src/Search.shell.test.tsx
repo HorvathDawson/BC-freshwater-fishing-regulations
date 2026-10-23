@@ -13,7 +13,7 @@ import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SEARCH_BAR } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId } from "@app/data";
+import type { ItemId, RegsSource } from "@app/data";
 import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
@@ -61,10 +61,10 @@ const feedAt = (iso: () => string, refreshed?: () => void) =>
   ({ index: async () => ({ fetchedAt: iso(), stations: {} }), refresh: refreshed }) as never;
 const FEED = feedAt(() => FETCHED);
 
-function mount(start: Route = HOME, feed: unknown = FEED) {
+function mount(start: Route = HOME, feed: unknown = FEED, source: RegsSource = makeFixtureSource()) {
   render(
     <GestureHandlerRootView>
-      <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+      <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
              tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} systemBack={android} feed={feed as never}
              spots={[]} onSaveSpot={async () => {}} />
     </GestureHandlerRootView>);
@@ -357,6 +357,32 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     await settle();
     expect([header, where()]).toEqual([["Search", "Close, back to Search"],
                                        `search open · half · "chilliwack river" · tab Map`]);
+  });
+
+  it("(owner 2026-10-22) a GROUP NAME THAT ONLY POINTS: its line in core's words over the waters, and a way to open each " +
+     "water it names — straight to that water", async () => {
+    // the fixture's valley prints no such row: one is handed in, naming the fixture's river as one of its waters
+    const fixture = makeFixtureSource();
+    const asked: string[] = [];
+    const source: RegsSource = { ...fixture, async searchPointers(q) {
+      asked.push(q);
+      return /^tee/i.test(q) ? [{ entry: "r8:tee_pee_lakes@8-6", name: "Tee Pee Lakes", see: [
+        { name: "Friday Lake", item: "gnis:8634" as ItemId }, { name: "Saturday Lake", item: null },
+        { name: "Sunday Lake", item: null }] }] : [];
+    } };
+    mount(HOME, FEED, source);
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("tee pee");
+    const block = screen.getByTestId("search-see-s:r8:tee_pee_lakes@8-6");
+    const shown = [screen.getByRole("heading", { name: SEARCH_BAR.seeHead }) !== null,
+                   within(block).getByText(/^Tee Pee Lakes: see/).textContent,
+                   within(block).queryAllByRole("button").map((b) => b.getAttribute("aria-label"))];
+    fireEvent.click(within(block).getByRole("button", { name: "Open Friday Lake" }));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    expect([asked, shown]).toEqual([["tee pee"], [
+      true, "Tee Pee Lakes: see Friday Lake, Saturday Lake, Sunday Lake",
+      // a named row that matched no water is said, never a dead button
+      ["Open Friday Lake"]]]);
   });
 
   it("typing again after a pick raises the sheet to FULL (the pick is forgotten)", async () => {

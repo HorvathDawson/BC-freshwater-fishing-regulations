@@ -77,6 +77,7 @@ function params(name: string): unknown[][] {
     case "ITEM_FOR_SECTION": return sample("SELECT sid FROM item_section ORDER BY sid", 400).map((v) => [v]);
     case "SEARCH": return ["vedder", "creek", "lake", "fraser", "ko", "a", "salmon", "x_y"].map((q) => [q, 20]);
     case "SEARCH_PLACES": return ["vic", "hope", "prince", "fort", "a"].map((q) => [q, 20]);
+    case "SEARCH_POINTERS": return ["tee pee", "cameron", "garbutt", "marshall", "a", "x_y"].map((q) => [q, 60]);
     case "GAUGE_FOR_SECTION": return sample("SELECT sid FROM section_gauge ORDER BY sid", 300).map((v) => [v]);
     case "GAUGE_POINTS": return [[]];
     case "LAKE_GAUGES": return sample("SELECT DISTINCT item_id FROM lake_gauge ORDER BY item_id", 100).map((v) => [v]);

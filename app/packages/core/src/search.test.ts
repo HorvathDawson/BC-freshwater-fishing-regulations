@@ -3,7 +3,7 @@ import {
   bboxOfGeometry, boxAround, boxOfParts, describeBy, distanceKm, duplicateNames, extentOf, fixOf,
   matchTier, outlineOf, PLACEHOLDER_MAX, SEARCH_BAR, placeholderFor, waterCaption,
   normalise, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
-  NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
+  NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear, rankPointers, seeLine,
 } from "./search";
 
 const w = (name: string, size: number | null, pieces = 1, matchedAs: string | null = null) =>
@@ -121,6 +121,7 @@ describe("(T48) the top bar's search field and its results sheet", () => {
         close: "Close search",
         clear: "Clear search text",
         open: "Open Chilliwack River",
+        seeHead: "In the regulations",
         start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
         none: "Nothing by that name in this bundle.",
         failed: "Search could not read the bundle.",
@@ -298,5 +299,24 @@ describe("distance words (P12): the search rows' sub-lines, composed whole in co
     expect(watersNear(1, "Smithers")).toBe("1 water within 25 km of Smithers");
     expect(watersNear(2, "Smithers")).toBe("2 waters within 25 km of Smithers");
     expect(watersNear(0, "Smithers")).toBe("No named water within 25 km of Smithers");
+  });
+});
+
+
+describe("(owner 2026-10-22) a group name that only points", () => {
+  const tee = { name: "Tee Pee Lakes", see: [{ name: "Friday Lake" }, { name: "Saturday Lake" }, { name: "Sunday Lake" }] };
+
+  it("is said whole: the group, then each water it names, in the book's order", () => {
+    expect([seeLine(tee), seeLine({ name: "Garbutt Lake", see: [{ name: "Norbury (Garbutt) Lake" }] })]).toEqual([
+      "Tee Pee Lakes: see Friday Lake, Saturday Lake, Sunday Lake", "Garbutt Lake: see Norbury (Garbutt) Lake"]);
+  });
+
+  it("is found by its name or the start of it, exact first, never by a word inside it", () => {
+    const hits = [{ name: "Cameron Lakes" }, { name: "Cameron Lakes Area" }, { name: "Garbutt Lake" }, tee];
+    expect([rankPointers("tee pee", hits), rankPointers("cameron lakes", hits).map((h) => h.name),
+            rankPointers("lake", hits), rankPointers("pee", hits)])
+      .toEqual([[tee], ["Cameron Lakes", "Cameron Lakes Area"], [], []]);
+    // MUTATION: the word-inside tier (4) would have answered "lake" with every group; the cut at tier 2 is the pin
+    expect(matchTier("lake", "Garbutt Lake")).toBe(4);
   });
 });

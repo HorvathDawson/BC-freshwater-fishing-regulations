@@ -4,9 +4,9 @@
  * an ANSWER is made from rows lives here, once: the name ranking, the gauge link, the series join, the downstream walks.
  * Only where the rows come from differs between them.
  */
-import { bandAt, boxOfParts, describeBy, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
+import { bandAt, boxOfParts, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
-import type { Aged, GaugeLink, ItemId, NameHit, NearHit, Parameter, PanelRoute, SectionId, Series,
+import type { Aged, GaugeLink, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId, Series,
               StationId } from "../index";
 import { num, str, type Cell, type Row } from "./db";
 
@@ -43,6 +43,24 @@ export function rankNameHits(query: string, rows: readonly Row[], limit: number)
     if (!had || rankWaters(query, [had, hit])[0] === hit) seen.set(item, hit);
   }
   return rankWaters(query, [...seen.values()]).slice(0, limit);
+}
+
+/**
+ * `SEARCH_POINTERS` rows (one per named row) to pointer hits — one per pointer row, its named waters in the book's
+ * order (`ix`) — in core's order (`rankPointers`), at most `limit`.
+ */
+export function pointerHits(query: string, rows: readonly Row[], limit: number): PointerHit[] {
+  const by = new Map<string, { entry: string; name: string; see: { ix: number; name: string; item: ItemId | null }[] }>();
+  for (const r of rows) {
+    const e = str(r.entry_id);
+    const h = by.get(e) ?? { entry: e, name: str(r.name), see: [] };
+    h.see.push({ ix: Number(r.ix), name: str(r.target_name), item: r.item_id == null ? null : (str(r.item_id) as ItemId) });
+    by.set(e, h);
+  }
+  const hits: PointerHit[] = [...by.values()].map((h) => ({
+    entry: h.entry, name: h.name,
+    see: [...h.see].sort((a, b) => a.ix - b.ix).map(({ name, item }) => ({ name, item })) }));
+  return rankPointers(query, hits).slice(0, limit);
 }
 
 /** Each hit's nearest-town line, from its rings (rows with item_id, name, kind, lat, lon, km; nearest first). */

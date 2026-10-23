@@ -12,14 +12,14 @@ import type { WaterFix } from "@app/core";
 import type { Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
-  Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, Reading, RegsSource, Release,
+  Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, PointerHit, Reading, RegsSource, Release,
   SectionId, Series,
   StationId, Water,
 } from "../index";
 import * as Q from "./queries";
 import { num, str, type Db, type Row } from "./db";
 import { buildStandingClasses, type StandingClasses } from "../standing";
-import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "./shared";
 
 export interface BundleSourceOptions {
@@ -121,6 +121,12 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       if (!hits.length) return hits;
       return withNear(hits, await db.all(Q.NEAR_FOR_ITEMS.replace("%IDS%", Q.placeholders(hits.length)),
                                          ...hits.map((h) => h.item)));
+    },
+
+    async searchPointers(q, limit): Promise<readonly PointerHit[]> {
+      const query = q.trim();
+      if (query.length < 2 || limit < 1) return [];
+      return pointerHits(query, await db.all(Q.SEARCH_POINTERS, Q.likeEscape(query), Math.max(limit * 12, 60)), limit);
     },
 
     async searchPlaces(q, limit): Promise<readonly PlaceHit[]> {

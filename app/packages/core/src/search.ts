@@ -199,6 +199,35 @@ export function nearCount(n: number): string {
   return `${n} within ${NEAR_KM} km`;
 }
 
+/**
+ * A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): a book row whose only words are "See …" — "TEE PEE LAKES  See
+ * Friday, Saturday, and Sunday Lakes". It states no regulation and is drawn on no water; what it gives a reader who
+ * looks the group up is the way to the waters it names, each under its own name. The rows are the pipeline's
+ * (`see_pointer`); this only says them.
+ */
+export interface Pointer {
+  name: string;
+  see: readonly { name: string }[];
+}
+
+/** A pointer in words: "Tee Pee Lakes: see Friday Lake, Saturday Lake, Sunday Lake". */
+export function seeLine(p: Pointer): string {
+  return `${p.name}: see ${p.see.map((s) => s.name).join(", ")}`;
+}
+
+/**
+ * Which pointers a query finds, in order: a group name that IS the query or STARTS with it (`matchTier` 0 and 2) — a
+ * word somewhere inside one is no reason to show it ("lake" would list every group). Exact first, then the shorter
+ * name, then alphabetically, so a re-render never reshuffles equals.
+ */
+export function rankPointers<T extends { name: string }>(query: string, hits: readonly T[]): T[] {
+  return hits
+    .map((h) => ({ h, tier: matchTier(query, h.name) }))
+    .filter((x): x is { h: T; tier: number } => x.tier !== null && x.tier <= 2)
+    .sort((a, b) => a.tier - b.tier || a.h.name.length - b.h.name.length || a.h.name.localeCompare(b.h.name))
+    .map((x) => x.h);
+}
+
 /** What is near a town, said whole: "2 waters within 25 km of Smithers", or that there is none. */
 export function watersNear(n: number, town: string): string {
   return n ? `${n} ${n === 1 ? "water" : "waters"} within ${NEAR_KM} km of ${town}`
@@ -352,6 +381,8 @@ export const SEARCH_BAR = {
   clear: "Clear search text",
   /** A selected water row's action: the water screen, through `openWater` (the one opener). */
   open: (name: string) => `Open ${name}`,
+  /** The heading over the group names that only point (`seeLine`): names the regulations print, not waters. */
+  seeHead: "In the regulations",
   /** The sheet before two letters are typed. */
   start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
   none: "Nothing by that name in this bundle.",

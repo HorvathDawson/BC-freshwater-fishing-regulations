@@ -12,10 +12,11 @@
  */
 import { useMemo, useRef } from "react";
 import {
-  NEAR_KM, duplicateNames, extentOf, normalise, rankNear, townBox, waterCaption, waterStatusOn, watersNear,
+  NEAR_KM, SEARCH_BAR, duplicateNames, extentOf, normalise, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
+  watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
-import type { ItemId, NameHit, NearHit, PlaceHit, RegsSource, SectionId } from "@app/data";
+import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, RegsSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { useSearch, type SearchResults } from "./hooks";
 
@@ -272,6 +273,8 @@ export function subjectOf(pick: SearchPick, auto: { best: ItemId | null;
 /** One group of results, in the order they are drawn. */
 export type ResultGroup =
   | { kind: "places"; title: string; note: string; places: readonly PlaceHit[] }
+  /** Group names that only point, each with its line (`seeLine`) and the waters it opens. */
+  | { kind: "see"; title: string; pointers: readonly { hit: PointerHit; line: string }[] }
   | { kind: "waters"; title: string;
       waters: readonly { hit: NameHit; dup: boolean }[] };
 
@@ -282,12 +285,18 @@ export type ResultGroup =
  * carries whether its name is shared with another in the list, which is what earns it a
  * "near Fernie".
  */
-export function resultGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[] }):
+export function resultGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[];
+                                  pointers?: readonly PointerHit[] }):
     ResultGroup[] {
   const out: ResultGroup[] = [];
   if (r.places.length)
     out.push({ kind: "places", title: r.places.length === 1 ? "Place" : "Places",
                note: `water within ${NEAR_KM} km`, places: r.places });
+  // A GROUP NAME THAT ONLY POINTS (owner 2026-10-22) comes before the waters: "Tee Pee Lakes" typed is a question the
+  // book answers with "see Friday, Saturday and Sunday Lakes", and the three Tepee polygons below it are those waters.
+  if (r.pointers?.length)
+    out.push({ kind: "see", title: SEARCH_BAR.seeHead,
+               pointers: r.pointers.map((hit) => ({ hit, line: seeLine(hit) })) });
   if (r.waters.length) {
     const dups = duplicateNames(r.waters);
     out.push({ kind: "waters",
@@ -371,21 +380,23 @@ export interface SearchSession {
 export function useSearchSession(source: RegsSource, memory: SearchMemory, open: boolean): SearchSession {
   const { q, pick } = memory;
   const hits = useSearch(source, open ? q : "");
-  const last = useRef<SearchResults>({ waters: [], places: [] });
+  const last = useRef<SearchResults>({ waters: [], places: [], pointers: [] });
   if (hits.state === "ready") last.current = hits.value;
   const typed = open && q.trim().length >= 2;
   const results = typed ? last.current : EMPTY_RESULTS;
   const { focus, town } = useSearchView(source, open ? q : "", results, open ? pick : NO_PICK, false);
   return {
     results, typed, town, focus,
-    busy: typed && hits.state === "loading" && !last.current.waters.length && !last.current.places.length,
+    busy: typed && hits.state === "loading" && !last.current.waters.length && !last.current.places.length
+      && !last.current.pointers.length,
     failed: typed && hits.state === "failed",
-    none: typed && hits.state === "ready" && !results.waters.length && !results.places.length,
+    none: typed && hits.state === "ready" && !results.waters.length && !results.places.length
+      && !results.pointers.length,
     size: searchSheet(pick),
   };
 }
 
-const EMPTY_RESULTS: SearchResults = { waters: [], places: [] };
+const EMPTY_RESULTS: SearchResults = { waters: [], places: [], pointers: [] };
 
 /**
  * THE STATUS A RESULT ROW WEARS — a water in the search results or in the list of water near a

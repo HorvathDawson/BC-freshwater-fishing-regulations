@@ -122,6 +122,8 @@ export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {
   ITEM_FOR_SECTION: { file: "core", sql: B.ITEM_FOR_SECTION, bundle: B.ITEM_FOR_SECTION },
   SEARCH: { file: "core", sql: SEARCH, bundle: B.withArea(B.SEARCH, true) },
   SEARCH_PLACES: { file: "core", sql: B.SEARCH_PLACES, bundle: B.SEARCH_PLACES },
+  /** The group names that only point: `see_pointer` is copied whole, so the SQL is the bundle's. */
+  SEARCH_POINTERS: { file: "core", sql: B.SEARCH_POINTERS, bundle: B.SEARCH_POINTERS },
   GAUGE_FOR_SECTION: { file: "conditions", sql: B.GAUGE_FOR_SECTION, bundle: B.GAUGE_FOR_SECTION },
   GAUGE_POINTS: { file: "conditions", sql: B.GAUGE_POINTS, bundle: B.GAUGE_POINTS },
   LAKE_GAUGES: { file: "conditions", sql: B.LAKE_GAUGES, bundle: B.LAKE_GAUGES },

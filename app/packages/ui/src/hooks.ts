@@ -7,7 +7,7 @@ import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
 import { decodeStatusIndex, monthAbbr, statusOn } from "@app/core";
 import type {
   BundleCounts, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
-  Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId, Water,
+  Parameter, PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
 import { askOnce, peekAnswer, seriesKey } from "./answers";
@@ -31,7 +31,12 @@ export function useWater(source: RegsSource, item: ItemId | null): Async<Water |
 export interface SearchResults {
   waters: readonly NameHit[];
   places: readonly PlaceHit[];
+  /** Group names that only point ("Tee Pee Lakes: see Friday Lake, …"), each leading to the waters it names. */
+  pointers: readonly PointerHit[];
 }
+
+/** How many group names that only point a search shows: a few, above the waters (`resultGroups`). */
+export const POINTER_LIMIT = 3;
 
 /**
  * HOW LONG THE SEARCH BOX WAITS after the last keystroke before it asks (owner decision 2026-10-20).
@@ -54,12 +59,13 @@ export function useSearch(
   const q = useDebounced(query.trim(), debounceMs);
   return useAsync(
     async () => {
-      if (q.length < 2) return { waters: [], places: [] };
-      const [waters, places] = await Promise.all([
+      if (q.length < 2) return { waters: [], places: [], pointers: [] };
+      const [waters, places, pointers] = await Promise.all([
         source.searchNames(q, limit),
         source.searchPlaces(q, 6),
+        source.searchPointers(q, POINTER_LIMIT),
       ]);
-      return { waters, places };
+      return { waters, places, pointers };
     },
     `search:${q}:${limit}`,
   );

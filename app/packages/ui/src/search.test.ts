@@ -239,6 +239,19 @@ describe("places are their own group, above the waters", () => {
     expect(one.map((x) => x.title)).toEqual(["Place"]);
   });
 
+  it("(owner 2026-10-22) a group name that only points sits between the places and the waters, with its line", () => {
+    const tee = { entry: "r8:tee_pee_lakes@8-6", name: "Tee Pee Lakes",
+                  see: [{ name: "Friday Lake", item: "wbk:329520049" as ItemId },
+                        { name: "Saturday Lake", item: "wbk:329520046" as ItemId }] };
+    const g = resultGroups({ waters: [hit("wbk:329520017", "Tepee Lakes")], places: [smithers.place], pointers: [tee] });
+    expect(g.map((x) => [x.kind, x.title])).toEqual([["places", "Place"], ["see", "In the regulations"],
+                                                     ["waters", "1 named water"]]);
+    expect(g[1]!.kind === "see" && g[1]!.pointers).toEqual([
+      { hit: tee, line: "Tee Pee Lakes: see Friday Lake, Saturday Lake" }]);
+    // none found: no group
+    expect(resultGroups({ waters: [], places: [], pointers: [] })).toEqual([]);
+  });
+
   it("flags the waters whose names repeat, so they carry a where", () => {
     const g = resultGroups({ waters: [hit("a", "Elk River"), hit("b", "Elk River"),
                                       hit("c", "Bull River")], places: [] });

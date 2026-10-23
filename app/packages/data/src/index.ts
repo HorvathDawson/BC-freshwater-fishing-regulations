@@ -351,6 +351,19 @@ export interface NameHit {
   near: NearPlace | null;
 }
 
+/**
+ * A GROUP NAME THAT ONLY POINTS (owner 2026-10-22; the bundle's `see_pointer`): a book row whose only words are
+ * "See …" ("TEE PEE LAKES  See Friday, Saturday, and Sunday Lakes"). No regulation, no water of its own to draw: the
+ * waters it names, in the book's order, each under its own name with the water opening it opens (null: the named row
+ * matched no water). Said by `seeLine` (@app/core).
+ */
+export interface PointerHit {
+  /** The pointer row (`entry_id`): one hit per row. */
+  entry: string;
+  name: string;
+  see: readonly { name: string; item: ItemId | null }[];
+}
+
 export interface PlaceHit {
   place: PlaceId;
   name: string;
@@ -433,6 +446,8 @@ export interface RegsSource {
   // ---- search ---------------------------------------------------------
   searchNames(q: string, limit: number): Promise<readonly NameHit[]>;
   searchPlaces(q: string, limit: number): Promise<readonly PlaceHit[]>;
+  /** The group names that only point (`PointerHit`) whose name is, or starts with, `q` — ordered by `rankPointers`. */
+  searchPointers(q: string, limit: number): Promise<readonly PointerHit[]>;
   /**
    * Precomputed: named water within 25 km, NEAREST FIRST, each with its size signals. The
    * list a reader sees is re-ordered by `rankNear` (@app/core); the source stays nearest-
