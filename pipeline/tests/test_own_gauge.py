@@ -360,7 +360,7 @@ def test_the_smaller_condition_is_what_holds_the_smaller_tests():
 
 
 def test_the_floor_is_what_holds_the_main_weight():
-    mutant = _mutant(lead_shares, "max(OWN_LEAD_SHARE, norm[lead])", "norm[lead]")
+    mutant = _mutant(lead_shares, "max(own_share, norm[lead])", "norm[lead]")
     assert lead_shares([1.0, 1.0, 1.0], 0) == pytest.approx([0.7, 0.15, 0.15])
     assert mutant([1.0, 1.0, 1.0], 0) == pytest.approx([1 / 3, 1 / 3, 1 / 3])
 

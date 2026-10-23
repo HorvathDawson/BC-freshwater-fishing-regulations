@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from pipeline.atlas.gauges.panel import (
@@ -200,3 +202,40 @@ def test_the_record_scale_is_linear_up_to_the_full_mark_and_flat_after():
     assert weight_of(1.0, "up", 10) == pytest.approx(0.5)
     assert weight_of(1.0, "up", 20) == pytest.approx(1.0)
     assert weight_of(1.0, "up", 90) == pytest.approx(1.0)
+
+
+
+# ------------------------------------------------------- T125 item 7: one combine, imported
+
+def test_answering_is_the_apps_answer_shape_and_refusals():
+    """`answering` mirrors trust.ts `answering` (parity run in app/tools/one-formula.test.ts); here its whole values."""
+    from pipeline.atlas.gauges.panel import Contribution, answering, estimate
+    C = Contribution
+    assert estimate(100, []) == {"ok": False, "why": "no-station"}
+    assert estimate(100, [C(0.0, "up", 100, 20)]) == {"ok": False, "why": "no-record"}
+    assert estimate(100, [C(0.03, "up", 100, 20, False), C(0.97, "up", 100, 20, False)]) == \
+        {"ok": False, "why": "too-uncertain"}
+    got = estimate(100, [C(0.03, "up", 100, 20), C(0.97, "up", 100, 20, False)])
+    assert got["ok"] and got["value"]["donors"] == 2 and got["value"]["trust"] == "close"
+    assert got["value"]["shares"] == pytest.approx({0: 0.8, 1: 0.2})
+    # the reserve stands back, lowest weight first, while a core member reports
+    ans, stood = answering(100, [C(0.02, "up", 100, 20, False), C(0.98, "up", 100, 20, False, reserve=True),
+                                 C(0.97, "up", 400, 20, False, reserve=True)])
+    assert ans["ok"] and stood == frozenset({1, 2})
+
+
+def test_no_evaluation_script_rolls_its_own_combine():
+    """The handoff scripts that measured owner decisions import `answering`; none ports probit, the refusal or the
+    combine again (mutation: paste a `def probit` into one and this fails)."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2] / "handoff" / "PLAN" / "app-data"
+    scripts = sorted(root.rglob("scripts/*.py"))
+    users = [p for p in scripts if "estimate" in p.read_text()]
+    assert len(users) >= 4
+    for p in users:
+        src = p.read_text()
+        for copy in ("def probit", "def phi", "def _combine", "MAX_USEFUL_SPREAD", "def shares(", "def err("):
+            assert copy not in src, f"{p.relative_to(root)}: {copy}"
+    for p in users:
+        src = p.read_text()
+        assert "answering" in src or re.search(r"^from (compare|evaluate) import", src, re.M), p.relative_to(root)

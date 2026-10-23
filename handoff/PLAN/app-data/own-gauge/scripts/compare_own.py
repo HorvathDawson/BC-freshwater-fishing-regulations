@@ -15,33 +15,11 @@ import sqlite3
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import (  # noqa: E402
-    ERROR_BY_RATIO, MAX_USEFUL_SPREAD, MIN_TOTAL_WEIGHT, lead_shares, leader_of, weight_of,
-)
+from pipeline.atlas.gauges.panel import Contribution, answering  # noqa: E402
 
 MAIN = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations"
 BUNDLE = MAIN + "/data/generated/bundle/bundle.sqlite"
 INDEX = MAIN + "/data/generated/gauges/feeds/index.json"
-
-
-def phi(z):
-    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
-
-
-def probit(p):
-    q = min(1 - 1e-9, max(1e-9, p))
-    lo, hi = -9.0, 9.0
-    for _ in range(80):
-        mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if phi(mid) < q else (lo, mid)
-    return (lo + hi) / 2
-
-
-def err(ratio):
-    for limit, _n, e in ERROR_BY_RATIO:
-        if ratio <= limit:
-            return e
-    return ERROR_BY_RATIO[-1][2]
 
 
 def reading(row, q):
@@ -52,39 +30,25 @@ def reading(row, q):
     return row.get("percentile") if (row.get("parameter") or "discharge") == q else None
 
 
+# THE APP'S ANSWER, imported — `answering` in pipeline/atlas/gauges/panel.py, which app/tools/one-formula.test.ts
+# runs beside `answering` in app/packages/core/src/trust.ts (T125 item 7). This script used to port it by hand.
 def estimate(entry, idx, q):
     """-> (percentile 0..100 | None, why, [(station, share)])."""
     if entry is None:
         return None, "no-panel", []
     members, target = entry
-    if not members or not target or target <= 0:
-        return None, "no-station", []
-    votes = []
-    for m in members:
+    cs, sts = [], []
+    for m in members or ():
         st, role, area, years, _reg, same = m[:6]
-        lead = m[6] if len(m) > 6 else 0
         p = reading(idx.get(st), q)
-        if p is None or not 0 < p < 1 or not area or area <= 0:
+        if p is None:
             continue
-        w = weight_of(min(target, area) / max(target, area), role, years, bool(same))
-        if w > 0:
-            votes.append((st, probit(p), w, max(target, area) / min(target, area), bool(same), lead))
-    if not votes:
-        return None, "no-record", []
-    if sum(v[2] for v in votes) < MIN_TOTAL_WEIGHT:
-        return None, "too-uncertain", []
-    leader = leader_of([v[5] for v in votes], [v[2] for v in votes])
-    sh = lead_shares([v[2] for v in votes], leader)
-    mean = sum(v[1] * s for v, s in zip(votes, sh))
-    sd = math.sqrt(sum(s * (v[1] - mean) ** 2 for v, s in zip(votes, sh)))
-    spread = (phi(mean + sd) - phi(mean - sd)) * 100
-    pm = sum(err(v[3]) * s for v, s in zip(votes, sh))
-    pc = phi(mean) * 100
-    half = max(pm, spread / 2)
-    lo, hi = max(0, pc - half), min(100, pc + half)
-    if not (any(v[4] for v in votes) or leader is not None) and hi - lo > MAX_USEFUL_SPREAD:
-        return None, "too-uncertain", []
-    return pc, "ok", [(v[0], s) for v, s in zip(votes, sh)]
+        cs.append(Contribution(p, role, area, years, bool(same), m[6] if len(m) > 6 else 0))
+        sts.append(st)
+    got, _stood = answering(target, cs)
+    if not got["ok"]:
+        return None, got["why"], []
+    return got["value"]["percentile"] * 100, "ok", [(sts[i], s) for i, s in sorted(got["value"]["shares"].items())]
 
 
 ORDER = ["unchanged", "moves under 5 points", "moves 5 to 10 points", "moves 10 to 25 points",

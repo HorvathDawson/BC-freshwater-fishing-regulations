@@ -20,9 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import (  # noqa: E402
-    CORE_MEMBERS, MAX_USEFUL_SPREAD, MIN_TOTAL_WEIGHT, error_for, lead_shares, leader_of, weight_of,
-)
+from pipeline.atlas.gauges.panel import CORE_MEMBERS, Contribution, answering, weight_of  # noqa: E402
 from pipeline.deliver.release import build as RB  # noqa: E402
 from pipeline.deliver.release import paint as PAINT  # noqa: E402
 from pipeline.gauges.feed.publish import listed_stations, roster_drift  # noqa: E402
@@ -35,19 +33,6 @@ ROSTER = MAIN / "data/source/bc_hydrometric_stations.json"
 LIVE_PAINT_GZ = 933_549          # r-81d40ad73176 manifest, files.paint.gz
 
 
-def phi(z):
-    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
-
-
-def probit(p):
-    q = min(1 - 1e-9, max(1e-9, p))
-    lo, hi = -9.0, 9.0
-    for _ in range(80):
-        mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if phi(mid) < q else (lo, mid)
-    return (lo + hi) / 2
-
-
 def reading(row, q):
     if not row:
         return None
@@ -56,53 +41,25 @@ def reading(row, q):
     return row.get("percentile") if (row.get("parameter") or "discharge") == q else None
 
 
+# THE APP'S ANSWER, imported — `answering` in pipeline/atlas/gauges/panel.py, which app/tools/one-formula.test.ts
+# runs beside `answering` in app/packages/core/src/trust.ts (T125 item 7). This script used to port it by hand.
 def estimate(members, target, idx, q, drop=None):
-    """`(percentile 0-100 | None, why, [(station, weight)])` — the app's answer at horizon 0: `answering` in
-    trust.ts, members past `CORE_MEMBERS` (panel order) being reserve that stands back, lowest weight first, rather
-    than leave the answer too uncertain while a core member reports."""
-    if not target or target <= 0:
-        return None, "no-station", []
-    votes = []
+    """`(percentile 0-100 | None, why, [(station, weight)])` — the app's answer at horizon 0 (`answering`): members
+    past `CORE_MEMBERS` (panel order) are reserve that stands back, lowest weight first, rather than leave the answer
+    too uncertain while a core member reports."""
+    cs, sts = [], []
     for rank, (st, role, area, years, _reg, same, lead) in enumerate(members):
-        if st == drop:
-            continue
         p = reading(idx.get(st), q)
-        if p is None or not 0 < p < 1 or not area or area <= 0:
+        if st == drop or p is None:
             continue
-        w = weight_of(min(target, area) / max(target, area), role, years, bool(same))
-        if w > 0:
-            votes.append((st, probit(p), w, max(target, area) / min(target, area), bool(same), lead,
-                          rank >= CORE_MEMBERS))
-    got = _combine(votes)
-    if not any(not v[6] for v in votes):
-        return got
-    while got[1] == "too-uncertain":
-        reserve = [i for i, v in enumerate(votes) if v[6]]
-        if not reserve:
-            break
-        votes.pop(min(reversed(reserve), key=lambda i: votes[i][2]))
-        got = _combine(votes)
-    return got
-
-
-def _combine(votes):
-    if not votes:
-        return None, "no-record", []
-    if sum(v[2] for v in votes) < MIN_TOTAL_WEIGHT:
-        return None, "too-uncertain", []
-    ws = [v[2] for v in votes]
-    leader = leader_of([v[5] for v in votes], ws)
-    sh = lead_shares(ws, leader)
-    mean = sum(v[1] * s for v, s in zip(votes, sh))
-    sd = math.sqrt(sum(s * (v[1] - mean) ** 2 for v, s in zip(votes, sh)))
-    spread = (phi(mean + sd) - phi(mean - sd)) * 100
-    pm = sum(error_for(v[3]) * s for v, s in zip(votes, sh))
-    pc = phi(mean) * 100
-    half = max(pm, spread / 2)
-    lo, hi = max(0.0, pc - half), min(100.0, pc + half)
-    if not (any(v[4] for v in votes) or leader is not None) and hi - lo > MAX_USEFUL_SPREAD:
-        return None, "too-uncertain", []
-    return pc, "ok", [(v[0], w) for v, w in zip(votes, ws)]
+        cs.append(Contribution(p, role, area, years, bool(same), lead, rank >= CORE_MEMBERS))
+        sts.append(st)
+    got, _stood = answering(target, cs)
+    if not got["ok"]:
+        return None, got["why"], []
+    return got["value"]["percentile"] * 100, "ok", [
+        (sts[i], weight_of(min(target, cs[i].area_km2) / max(target, cs[i].area_km2), cs[i].role, cs[i].years,
+                           cs[i].same_river)) for i in sorted(got["value"]["shares"])]
 
 
 ORDER = ["unchanged", "moves under 5 points", "moves 5 to 10 points", "moves 10 to 25 points",

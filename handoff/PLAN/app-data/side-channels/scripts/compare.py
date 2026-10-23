@@ -14,31 +14,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import ERROR_BY_RATIO, MAX_USEFUL_SPREAD, MIN_TOTAL_WEIGHT, weight_of  # noqa: E402
+from pipeline.atlas.gauges.panel import Contribution, answering  # noqa: E402
 
 MAIN = Path("/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations")
 BUNDLE = MAIN / "data/generated/bundle/bundle.sqlite"
 INDEX = MAIN / "data/generated/gauges/feeds/index.json"
-
-
-def phi(z):
-    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
-
-
-def probit(p):
-    q = min(1 - 1e-9, max(1e-9, p))
-    lo, hi = -9.0, 9.0
-    for _ in range(80):
-        mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if phi(mid) < q else (lo, mid)
-    return (lo + hi) / 2
-
-
-def plus_minus(ratio):
-    for limit, _n, err in ERROR_BY_RATIO:
-        if ratio <= limit:
-            return err
-    return ERROR_BY_RATIO[-1][2]
 
 
 def reading(row):
@@ -49,36 +29,21 @@ def reading(row):
     return row.get("percentile") if (row.get("parameter") or "discharge") == "discharge" else None
 
 
+# THE APP'S ANSWER, imported — `answering` in pipeline/atlas/gauges/panel.py, which app/tools/one-formula.test.ts
+# runs beside `answering` in app/packages/core/src/trust.ts (T125 item 7). This script used to port it by hand.
 def estimate(members, target, idx):
     """-> (percentile 0..100 | None, why, [(station, share of answer)])."""
-    if not members:
-        return None, "no-station", []
-    if not target or target <= 0:
-        return None, "no-station", []
-    votes = []
-    for st, role, area, years, _reg, same in members:
+    cs, sts = [], []
+    for st, role, area, years, _reg, same in members or ():
         p = reading(idx.get(st))
-        if p is None or not 0 < p < 1 or not area or area <= 0:
+        if p is None:
             continue
-        ratio = max(target, area) / min(target, area)
-        w = weight_of(min(target, area) / max(target, area), role, years, bool(same))
-        if w > 0:
-            votes.append((st, probit(p), w, ratio, bool(same)))
-    if not votes:
-        return None, "no-record", []
-    tot = sum(v[2] for v in votes)
-    if tot < MIN_TOTAL_WEIGHT:
-        return None, "too-uncertain", []
-    mean = sum(v[1] * v[2] for v in votes) / tot
-    sd = math.sqrt(sum(v[2] * (v[1] - mean) ** 2 for v in votes) / tot)
-    spread = (phi(mean + sd) - phi(mean - sd)) * 100
-    pm = sum(plus_minus(v[3]) * v[2] for v in votes) / tot
-    pc = phi(mean) * 100
-    half = max(pm, spread / 2)
-    lo, hi = max(0, pc - half), min(100, pc + half)
-    if not any(v[4] for v in votes) and hi - lo > MAX_USEFUL_SPREAD:
-        return None, "too-uncertain", []
-    return pc, "ok", [(v[0], v[2] / tot) for v in votes]
+        cs.append(Contribution(p, role, area, years, bool(same)))
+        sts.append(st)
+    got, _stood = answering(target, cs)
+    if not got["ok"]:
+        return None, got["why"], []
+    return got["value"]["percentile"] * 100, "ok", [(sts[i], s) for i, s in sorted(got["value"]["shares"].items())]
 
 
 def load_bundle():

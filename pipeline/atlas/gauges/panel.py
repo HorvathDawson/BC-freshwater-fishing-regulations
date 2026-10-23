@@ -411,16 +411,17 @@ def leader_of(ranks: list[int], weights: list[float]) -> int | None:
     return best
 
 
-def lead_shares(weights: list[float], lead: int | None) -> list[float]:
+def lead_shares(weights: list[float], lead: int | None, own_share: float = OWN_LEAD_SHARE) -> list[float]:
     """Each vote's share of the answer, 0..1, summing to 1: the usual weights normalised, then — when an own gauge
-    leads — that gauge raised to at least `OWN_LEAD_SHARE` and the others scaled into what is left."""
+    leads — that gauge raised to at least `OWN_LEAD_SHARE` and the others scaled into what is left. `own_share` is
+    for an evaluation script trying another floor; the app's is `OWN_LEAD_SHARE`."""
     total = sum(weights)
     if total <= 0:
         return [0.0 for _ in weights]
     norm = [w / total for w in weights]
     if lead is None or weights[lead] <= 0 or sum(1 for w in weights if w > 0) < 2:
         return norm
-    own = max(OWN_LEAD_SHARE, norm[lead])
+    own = max(own_share, norm[lead])
     rest = total - weights[lead]
     return [own if i == lead else (1.0 - own) * w / rest for i, w in enumerate(weights)]
 
@@ -471,11 +472,104 @@ def combine(values: list[tuple[float, float]], lead: int | None = None) -> tuple
         return None
     at = next((k for k, (i, _p, _w) in enumerate(kept) if i == lead), None)
     shares = lead_shares([w for _, _, w in kept], at)
-    zs = [(_probit(p), s) for (_i, p, _w), s in zip(kept, shares)]
-    mean = sum(z * s for z, s in zs)
-    var = sum(s * (z - mean) ** 2 for z, s in zs)
-    lo, hi = _norm_cdf(mean - math.sqrt(var)), _norm_cdf(mean + math.sqrt(var))
-    return _norm_cdf(mean), hi - lo
+    mean, spread = _mean_spread([_probit(p) for _i, p, _w in kept], shares)
+    return _norm_cdf(mean), spread
+
+
+@dataclass(frozen=True)
+class Contribution:
+    """What a donor contributes — the app's `Contribution` (core/src/trust.ts), field for field: its percentile today
+    (0-1, against its OWN record), role, catchment (km2), record years, whether it is on the reach's own blue line,
+    its own-gauge `lead` rank (0: may not lead) and whether it sits in the panel's reserve (past `CORE_MEMBERS`)."""
+    percentile: float
+    role: str
+    area_km2: float
+    years: int
+    same_river: bool = True
+    lead: int = 0
+    reserve: bool = False
+
+
+def interval(value: dict) -> tuple[float, float]:
+    """The interval to draw, in percentile POINTS, clamped to the scale — the app's `interval`."""
+    mid = value["percentile"] * 100
+    half = max(value["plus_minus"], value["spread"] / 2)
+    return max(0.0, mid - half), min(100.0, mid + half)
+
+
+def answering(target_area: float | None, contributions: list[Contribution],
+              own_share: float = OWN_LEAD_SHARE) -> tuple[dict, frozenset[int]]:
+    """THE APP'S ANSWER, IN PYTHON (T125 item 7): `answering` in app/packages/core/src/trust.ts, line for line — a
+    panel plus today's readings -> `{"ok": True, "value": {percentile 0-1, plus_minus, trust, spread, donors,
+    shares}}` or `{"ok": False, "why": "no-station" | "no-record" | "too-uncertain"}`, and the contributions that
+    STOOD BACK (reserve members dropped, lowest weight first, while the answer is too uncertain and a core member
+    reports). `shares` (extra to the app's `Estimate`) is each kept contribution's share of the answer, by index.
+
+    The one combine every evaluation script imports (handoff/PLAN/app-data/*/scripts); app/tools/one-formula.test.ts
+    runs it beside the TypeScript over the same panels. `own_share` lets a script measure another lead floor."""
+    stood: set[int] = set()
+    if not contributions or not target_area or target_area <= 0:
+        return {"ok": False, "why": "no-station"}, frozenset()
+    votes = []
+    for at, c in enumerate(contributions):
+        if not (0.0 < c.percentile < 1.0) or not c.area_km2 or c.area_km2 <= 0:
+            continue
+        ratio = max(target_area, c.area_km2) / min(target_area, c.area_km2)
+        w = weight_of(min(target_area, c.area_km2) / max(target_area, c.area_km2), c.role, c.years,
+                      c.same_river is not False)
+        if w > 0:
+            votes.append({"z": _probit(c.percentile), "w": w, "ratio": ratio, "same": c.same_river is not False,
+                          "lead": c.lead or 0, "reserve": bool(c.reserve), "at": at})
+    answer = _combine_votes(votes, own_share)
+    if not any(not v["reserve"] for v in votes):
+        return answer, frozenset(stood)
+    while not answer["ok"] and answer["why"] == "too-uncertain":
+        drop = -1
+        for i, v in enumerate(votes):
+            if v["reserve"] and (drop < 0 or v["w"] <= votes[drop]["w"]):
+                drop = i
+        if drop < 0:
+            break
+        stood.add(votes[drop]["at"])
+        votes.pop(drop)
+        answer = _combine_votes(votes, own_share)
+    return answer, frozenset(stood)
+
+
+def estimate(target_area: float | None, contributions: list[Contribution],
+             own_share: float = OWN_LEAD_SHARE) -> dict:
+    """`answering`'s answer alone — the app's `estimate`."""
+    return answering(target_area, contributions, own_share)[0]
+
+
+def _combine_votes(votes: list[dict], own_share: float = OWN_LEAD_SHARE) -> dict:
+    """`combineVotes` in trust.ts: probit mean under the lead shares, spread, the weighted error, the measured-water
+    exemption from the spread refusal."""
+    if not votes:
+        return {"ok": False, "why": "no-record"}
+    if sum(v["w"] for v in votes) < MIN_TOTAL_WEIGHT:
+        return {"ok": False, "why": "too-uncertain"}
+    ws = [v["w"] for v in votes]
+    leader = leader_of([v["lead"] for v in votes], ws)
+    shares = lead_shares(ws, leader, own_share)
+    mean, spread = _mean_spread([v["z"] for v in votes], shares)
+    plus_minus = sum(error_for(v["ratio"]) * s for v, s in zip(votes, shares))
+    klass = next((name for _limit, name, err in ERROR_BY_RATIO if plus_minus <= err), ERROR_BY_RATIO[-1][1])
+    value = {"percentile": _norm_cdf(mean), "plus_minus": plus_minus, "trust": klass, "spread": spread * 100,
+             "donors": len(votes), "shares": {v["at"]: s for v, s in zip(votes, shares)}}
+    measured = any(v["same"] for v in votes) or leader is not None
+    lo, hi = interval(value)
+    if not measured and hi - lo > MAX_USEFUL_SPREAD:
+        return {"ok": False, "why": "too-uncertain"}
+    return {"ok": True, "value": value}
+
+
+def _mean_spread(zs: list[float], shares: list[float]) -> tuple[float, float]:
+    """The probit-space mean under `shares`, and the spread (0-1) one standard deviation either side of it spans —
+    the one arithmetic `combine` and `_combine_votes` share."""
+    mean = sum(z * s for z, s in zip(zs, shares))
+    sd = math.sqrt(sum(s * (z - mean) ** 2 for z, s in zip(zs, shares)))
+    return mean, _norm_cdf(mean + sd) - _norm_cdf(mean - sd)
 
 
 def _probit(p: float) -> float:

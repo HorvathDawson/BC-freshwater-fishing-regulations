@@ -20,7 +20,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { bandAt, errorFor, leadShares, leaderOf, PENTADS, percentileInBand, weightFactors, type Band } from "@app/core";
+import { answering, bandAt, errorFor, leadShares, leaderOf, PENTADS, percentileInBand, weightFactors, type Band }
+  from "@app/core";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PY = `${ROOT}.venv/bin/python`;
@@ -118,6 +119,83 @@ describe.skipIf(!has)("one formula, two languages", () => {
     expect(new Set(py.weights).size).toBeGreaterThan(5);
     expect(py.leaders).toEqual([0, 0, 0, 1, 2, 0, 0, null, null, null, 2, null]);
     expect(py.shares.length).toBe(LEADS.length);
+  });
+});
+
+/*
+ * ONE COMBINE (T125 item 7). The handoff evaluation scripts (handoff/PLAN/app-data/<topic>/scripts) each ported `estimate`
+ * by hand — one with the row error where the app interpolates, one with no lead share, none with the reserve — so a
+ * measurement taken for an owner decision was not the app's answer. They now import `answering` from panel.py, and this
+ * runs it beside the app's `answering` over the same panels: every refusal, the lead, the reserve standing back.
+ * Mutation pins (run by hand, 2026-10-23): the row error (`trust_of`) for `error_for` in `_combine_votes` fails "the
+ * same answer"; dropping `or leader is not None` from `measured` fails it on the lone-tributary-own-gauge panel.
+ */
+type C = Parameters<typeof answering>[1][number];
+const c = (percentile: number, areaKm2: number, over: Partial<C> = {}): C =>
+  ({ percentile, role: "up", areaKm2, years: 20, ...over });
+const PANELS: [number | null, C[]][] = [
+  [100, []],                                                              // no-station
+  [null, [c(0.3, 100)]],                                                  // no-station: no target
+  [100, [c(0, 100), c(0.5, 0)]],                                          // no-record: nothing ranks
+  [100, [c(0.4, 50_000, { years: 3, role: "down", sameRiver: false })]],  // too little weight
+  [100, [c(0.03, 100, { sameRiver: false }), c(0.97, 100, { sameRiver: false })]],   // spread refusal
+  [100, [c(0.03, 100), c(0.97, 100, { sameRiver: false })]],              // measured: answers
+  [100, [c(0.03, 100, { sameRiver: false, lead: 1 }), c(0.97, 100, { sameRiver: false })]],  // a leader measures
+  [1.34, [c(0.3, 3.4), c(0.3, 32, { role: "down" }), c(0.3, 207, { years: 6 })]],
+  [4584, [c(0.12, 4313, { lead: 1 }), c(0.55, 795), c(0.8, 90_000, { sameRiver: false })]],
+  [100, [c(0.2, 100), c(0.25, 110), c(0.3, 120), c(0.35, 130),
+         c(0.99, 100, { reserve: true, sameRiver: false }), c(0.01, 100, { reserve: true, sameRiver: false })]],
+  [100, [c(0.02, 100, { sameRiver: false }), c(0.98, 100, { reserve: true, sameRiver: false }),
+         c(0.97, 400, { reserve: true, sameRiver: false })]],              // the reserve stands back, lowest first
+  [100, [c(0.5, 100, { reserve: true, sameRiver: false }), c(0.02, 100, { reserve: true, sameRiver: false })]],
+  ...[0.05, 0.3, 0.5, 0.7, 0.95].flatMap((p): [number, C[]][] => [10, 1000, 25_000].map((a) =>
+    [a, [c(p, a * 2.5), c(1 - p / 2, a / 7, { role: "down", years: 12 }), c(p / 3, a * 40, { sameRiver: false, lead: 2 })]])),
+];
+
+function answersFromPython(): { answer: { ok: boolean; why?: string; value?: Record<string, number | string> };
+                                  stoodBack: number[] }[] {
+  const script = `
+import json, sys
+sys.path.insert(0, ${JSON.stringify(ROOT)})
+from pipeline.atlas.gauges.panel import Contribution, answering
+out = []
+for target, cs in json.loads(${JSON.stringify(JSON.stringify(PANELS))}):
+    got, stood = answering(target, [Contribution(x["percentile"], x["role"], x["areaKm2"], x["years"],
+                                                 x.get("sameRiver", True), x.get("lead", 0), x.get("reserve", False))
+                                    for x in cs])
+    if got["ok"]:
+        v = got["value"]
+        got = {"ok": True, "value": {"percentile": v["percentile"], "plusMinus": v["plus_minus"],
+                                     "trust": v["trust"], "spread": v["spread"], "donors": v["donors"]}}
+    out.append({"answer": got, "stoodBack": sorted(stood)})
+print(json.dumps(out))
+`;
+  return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8" }));
+}
+
+describe.skipIf(!has)("one combine, two languages (T125 item 7)", () => {
+  const py = has ? answersFromPython() : [];
+
+  it("gives the same answer, refusal or value, over every panel", () => {
+    expect(py.length).toBe(PANELS.length);
+    PANELS.forEach(([target, cs], i) => {
+      const ours = answering(target, cs);
+      const theirs = py[i]!;
+      expect([...ours.stoodBack].sort(), `panel ${i}`).toEqual(theirs.stoodBack);
+      if (!ours.answer.ok) { expect(theirs.answer, `panel ${i}`).toEqual(ours.answer); return; }
+      const v = ours.answer.value;
+      // probit / Φ are closed forms in the app and erf/bisection in Python: equal to 1e-4 of a percentile
+      expect(theirs.answer, `panel ${i}`).toEqual({ ok: true, value: {
+        percentile: expect.closeTo(v.percentile, 4), plusMinus: expect.closeTo(v.plusMinus, 4),
+        trust: v.trust, spread: expect.closeTo(v.spread, 2), donors: v.donors } });
+    });
+  });
+
+  it("is actually comparing something", () => {
+    const whys = py.map((x) => (x.answer.ok ? "ok" : x.answer.why));
+    for (const w of ["ok", "no-station", "no-record", "too-uncertain"]) expect(whys).toContain(w);
+    expect(py.some((x) => x.stoodBack.length > 0)).toBe(true);
+    expect(new Set(py.filter((x) => x.answer.ok).map((x) => x.answer.value!.trust)).size).toBeGreaterThan(1);
   });
 });
 
