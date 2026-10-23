@@ -217,7 +217,8 @@ def _stations(path: Path) -> dict | None:
     LIST — what the matcher used to write over the curated file; that baseline has no trust left."""
     if not path.exists():
         return None
-    blob = json.loads(path.read_text("utf-8")).get("stations")
+    top = json.loads(path.read_text("utf-8"))
+    blob = top.get("stations") if isinstance(top, dict) else None   # a top-level list: no trust either
     return blob if isinstance(blob, dict) else None
 
 

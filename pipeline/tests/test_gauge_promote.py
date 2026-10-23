@@ -17,6 +17,13 @@ Mutations that fail these tests (each tried by hand, T94):
             -> test_a_bare_list_baseline_is_refused
     M5  `fix_command` prints the template unfilled
             -> test_check_curated_prints_the_surgical_command
+Adversarial review (T94):
+    M8  `write_match` loses its `refuse_curated` call
+            -> test_write_match_refuses_both_curated_files
+    M9  `CURATED_FILES` holds only matches.json (drops candidates.json)
+            -> test_write_match_refuses_both_curated_files
+    M10 `_stations` reads a top-level JSON list with `.get` (AttributeError)
+            -> test_a_top_level_list_baseline_is_refused
 """
 
 from __future__ import annotations
@@ -185,3 +192,62 @@ def test_the_matcher_refuses_to_write_over_the_curated_file(tmp_path):
     from pipeline.gauges.matches import MATCH_FILE
     with pytest.raises(SystemExit, match="refusing to write the raw match over the curated"):
         M.main(["--build", str(tmp_path), "--out", str(MATCH_FILE)])
+
+
+def test_write_match_refuses_both_curated_files(tmp_path, monkeypatch):
+    """The raw WRITER, not only the matcher's CLI, refuses the curated pair: `write_match`'s old
+    default path WAS the curated file, so any caller that left it out wiped the review (T94).
+    Run against TEMP stand-ins (a mutation that drops the refusal must not write the real files),
+    spelled through `..` so a string compare would miss them."""
+    import inspect
+
+    from pipeline.common.curated import CURATED
+    from pipeline.gauges import matches as M
+    assert M.CURATED_FILES == (M.MATCH_FILE, CURATED.gauges.candidates)
+    assert inspect.signature(M.write_match).parameters["path"].default is inspect.Parameter.empty
+    (tmp_path / "curated").mkdir()
+    fakes = tuple(tmp_path / "curated" / p.name for p in M.CURATED_FILES)
+    for f in fakes:
+        f.write_text("{}", "utf-8")
+    monkeypatch.setattr(M, "CURATED_FILES", fakes)
+    rows = [M.StationMatch("A", "unresolved", None, None)]
+    for curated in fakes:
+        with pytest.raises(SystemExit, match="refusing to write the raw match over the curated"):
+            M.write_match(rows, tmp_path / "curated" / ".." / "curated" / curated.name)
+        assert curated.read_text("utf-8") == "{}"
+    M.write_match(rows, tmp_path / "raw.json")            # anywhere else is fine
+
+
+def test_the_curated_refusal_has_one_home():
+    """No second copy: the matcher CLI and `write_match` both ask `refuse_curated`."""
+    import pathlib
+    root = pathlib.Path(P.__file__).resolve().parents[2]
+    hits = [p for p in root.rglob("*.py") if "tests" not in p.parts
+            and "refusing to write the raw match" in p.read_text("utf-8")]
+    assert [p.name for p in hits] == ["matches.py"]
+
+
+def test_a_top_level_list_baseline_is_refused(files):
+    out, _, run = files
+    out.write_text(json.dumps([{"station": "A", "trust": "auto"}]), "utf-8")
+    before = out.read_bytes()
+    assert run() == 2
+    assert out.read_bytes() == before
+
+
+def test_a_missing_match_names_the_two_step_regeneration(tmp_path, monkeypatch):
+    """A missing COMMITTED file says restore it, or match AND promote (the matcher alone no longer
+    writes it); a missing raw file says run the matcher. Whole messages (T94 review)."""
+    from pipeline.gauges import matches as M
+    committed, raw = tmp_path / "matches.json", tmp_path / "match.json"
+    monkeypatch.setattr(M, "CURATED_FILES", (committed, tmp_path / "candidates.json"))
+    with pytest.raises(FileNotFoundError) as e:
+        M.read_match(committed)
+    assert str(e.value) == (
+        f"no gauge matches at {committed} — restore the committed file (git checkout -- {committed}) "
+        "or regenerate it: python -m pipeline.gauges.generate.match --build <a completed build> && "
+        "python -m pipeline.gauges.generate.promote --only <station ...>")
+    with pytest.raises(FileNotFoundError) as e:
+        M.read_match(raw)
+    assert str(e.value) == (f"no gauge matches at {raw} — make it: "
+                            "python -m pipeline.gauges.generate.match --build <a completed build>")

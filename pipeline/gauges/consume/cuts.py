@@ -12,7 +12,8 @@ code — is in the frozen match, which is the single place a station is ever loc
 
     data/bc_hydrometric_stations.json        fetched, the roster
       │
-      │  python -m pipeline.gauges.generate.match --build <a completed build>
+      │  python -m pipeline.gauges.generate.match --build <a completed build>  (raw, generated)
+      │  python -m pipeline.gauges.generate.promote --only <station ...>       (T94)
       ▼
     pipeline/gauge_match.json                frozen: station -> coord + wsc (or wbk)
       │                        │

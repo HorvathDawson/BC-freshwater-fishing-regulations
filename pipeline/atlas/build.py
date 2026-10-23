@@ -688,7 +688,7 @@ def main() -> None:
         #
         # They are `gauge` point anchors scoped by WSC, derived here from
         # `pipeline/gauge_match.json` — the one frozen record of where BC's gauges are,
-        # written by `python -m pipeline.gauges.generate.match --build <a completed build>` and read
+        # written by `match` (raw) then `promote` (the curated file, T94) and read
         # by this and by `pipeline.deliver.bundle`. `pipeline/gauges/consume/cuts.py` draws the flow.
         #
         # AFTER the curated ones, and that order is load-bearing rather than tidy: proximity
@@ -705,6 +705,7 @@ def main() -> None:
             # here — a build that could re-derive a match is a build that can silently
             # change one, and 206 of these were confirmed by a person against a map.
             from pipeline.gauges.matches import MATCH_FILE, matches_digest, read_match
+            from pipeline.gauges.matches import REGENERATE as _REGENERATE
             from pipeline.gauges.consume.cuts import split_defs as _gauge_defs
             from pipeline.gauges.consume.shed import load_stations
             from pipeline.gauges.review import load as _load_review
@@ -721,8 +722,7 @@ def main() -> None:
                 # an omission that produces a plausible result — so it stops the build.
                 raise SystemExit(
                     f"no gauge matches at {MATCH_FILE}\n"
-                    "  generate them:  python -m pipeline.gauges.generate.match "
-                    "--build <a completed build>\n"
+                    f"  restore it (git checkout -- {MATCH_FILE}) or regenerate it:  {_REGENERATE}\n"
                     "  or build without cutting rivers at their gauges: --no-gauge-splits\n"
                     "  (a build without them is valid and wrong: a river of 20 sections "
                     "with 18 stations on it\n"

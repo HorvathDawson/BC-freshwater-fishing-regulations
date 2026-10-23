@@ -562,8 +562,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     check_record(build_dir)
     matches = read_match()                  # a missing file raises (P2: no missing-file fallbacks)
     if not matches:
-        raise SystemExit("section_gauge: the gauge match file holds no stations — run "
-                         "`python -m pipeline.gauges.generate.match --build <build>`")
+        from pipeline.gauges.matches import REGENERATE
+        raise SystemExit("section_gauge: the gauge match file holds no stations — restore it "
+                         f"(git checkout) or regenerate it: `{REGENERATE}`")
 
     if geoms is None:
         raise SystemExit("section_gauge: no geometries.pkl in this build — stations cannot be "

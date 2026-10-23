@@ -58,7 +58,7 @@ from dataclasses import asdict, dataclass, fields, replace
 from pipeline.gauges import review as _review
 from pipeline.deliver.tiles.names import normalise
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
-from pipeline.gauges.matches import MATCH_FILE, StationMatch, read_match, write_match
+from pipeline.gauges.matches import StationMatch, read_match, refuse_curated, write_match
 # placing a frozen match on a graph is a CONSUMER's job; the matcher's own run reports with it
 from pipeline.gauges.consume.place import summarise
 
@@ -398,9 +398,7 @@ def main(argv: list[str] | None = None) -> None:
                     help="the raw match (default: the generated one promote reads; never the curated file)")
     a = ap.parse_args(argv)
 
-    if a.out.resolve() == MATCH_FILE.resolve():
-        raise SystemExit(f"refusing to write the raw match over the curated {MATCH_FILE} — it would drop every "
-                         "trust a person gave. Write it elsewhere and promote from there (T94).")
+    refuse_curated(a.out)               # before loading a build: fail in a second, not a minute
     if not (a.build / "graph.pkl").exists():
         raise SystemExit(f"no completed build at {a.build} (needs graph.pkl + geometries.pkl)")
     with (a.build / "graph.pkl").open("rb") as fh:
