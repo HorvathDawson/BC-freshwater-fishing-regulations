@@ -1,0 +1,78 @@
+{
+ "before": "data/generated/reaches/full",
+ "after": "data/generated/reaches/full_b3",
+ "rules_changed": 4,
+ "unresolved_changed": 4,
+ "licensing_changed": 0,
+ "rules": {
+  "r1:nanaimo_river@1-5::nanaimo_river.r5": {
+   "gained": 570,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "354087746:0",
+    "354088282:0",
+    "354088682:0",
+    "354088845:0",
+    "354089275:0"
+   ],
+   "sample_lost": []
+  },
+  "r6:fulton_river@6-8::fulton_river.r3": {
+   "gained": 10,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "360214739:0",
+    "360217773:125",
+    "360228865:0",
+    "360242532:0",
+    "360887178:2248"
+   ],
+   "sample_lost": []
+  },
+  "r2:chehalis_river@2-19::chehalis_river.r2": {
+   "gained": 0,
+   "lost": 5,
+   "rescoped": 0,
+   "sample_gained": [],
+   "sample_lost": [
+    "355992873:0",
+    "355992877:0",
+    "356183555:0",
+    "356184678:0",
+    "356238811:0"
+   ]
+  },
+  "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4": {
+   "gained": 3,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "360886970:108816",
+    "360886970:110644",
+    "360886970:110732"
+   ],
+   "sample_lost": []
+  }
+ },
+ "unresolved": {
+  "r1:nanaimo_river@1-5::nanaimo_river.r5": {
+   "before": "no_extents",
+   "after": null
+  },
+  "r6:fulton_river@6-8::fulton_river.r3": {
+   "before": "no_extents",
+   "after": null
+  },
+  "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4": {
+   "before": "no_extents",
+   "after": null
+  },
+  "r7:endako_river@7-12::endako_river.r1": {
+   "before": "no_sections_for_items",
+   "after": null
+  }
+ },
+ "licensing": {}
+}
