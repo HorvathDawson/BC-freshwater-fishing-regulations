@@ -2552,7 +2552,7 @@
       "color.status.closed": "#8F0006",
       "color.status.own": "#D08404",
       "color.status.base": "#608AE5",
-      "color.status.no_access": "#F01C84",
+      "color.status.no_access": "#00604C",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
@@ -2698,7 +2698,7 @@
     "color.status.no_access": {
       "type": "color",
       "themeable": true,
-      "$comment": "NO PUBLIC ACCESS (T54) — the FOURTH map colour, and not a regulation: a section MOSTLY inside land the public may not enter (the `no_access` layer's closed land: the Coquitlam, Seymour and Capilano watersheds, military ranges), drawn over whatever its regulations say, on the regulations map only (@app/core `access.ts`, `noPublicAccess`). Searched against every status as drawn (tokens, thin lines, lake fills, over satellite), the grounds, body ink, the missing grey, the highlight and the boundaries, for every reader (tools/status-colours-distinct.test.ts, tools/water-status-cvd.test.ts): a MAGENTA in light (T146: T54's indigo, the one hue that cleared closed / own / base by 20 for a dichromat, read as base to the owner; every hue 40 degrees or more off the light base sits ~12 from one water status for a dichromat, so light holds the normal-vision hue floor and the colour-blind reader has the cvd theme); an ICE CYAN in dark (T146: 22.6 from every water status as a thin line for every reader, where T54's ochre stood 12.7 from closed); a greyed MAUVE in the colour-blind theme, where every blue sat under 20 from its plum restricted for any reader and a slate under 12 from the town labels."
+      "$comment": "NO PUBLIC ACCESS (T54) — the FOURTH map colour, and not a regulation: a section MOSTLY inside land the public may not enter (the `no_access` layer's closed land: the Coquitlam, Seymour and Capilano watersheds, military ranges), drawn over whatever its regulations say, on the regulations map only (@app/core `access.ts`, `noPublicAccess`). Searched against every status as drawn (tokens, thin lines, lake fills, over satellite), the grounds, body ink, the missing grey, the highlight and the boundaries, for every reader (tools/status-colours-distinct.test.ts, tools/water-status-cvd.test.ts): a SPRUCE in light (T146: T54's indigo, the one hue that cleared closed / own / base by 20 for a dichromat, read as base to the owner; every hue 40 degrees or more off the light base sits ~12 from one water status for a dichromat, so light holds the normal-vision hue floors and the colour-blind reader has the cvd theme. Not a magenta: the first T146 build's #F01C84 was the hue of `color.highlight`, the selection outline, so a tapped part was magenta inside magenta and every no-access tributary beside it read as selected — held off the selection by tools/status-colours-distinct.test.ts); an ICE CYAN in dark (T146: 22.6 from every water status as a thin line for every reader, where T54's ochre stood 12.7 from closed); a greyed MAUVE in the colour-blind theme, where every blue sat under 20 from its plum restricted for any reader and a slate under 12 from the town labels."
     },
     "color.flow.f1": {
       "type": "color",

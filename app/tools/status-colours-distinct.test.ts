@@ -105,8 +105,8 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            permitToken: 22, permitLine: 16, permitSat: 15,
            temperature: 27.5,
            boundaryToken: 20, boundaryLine: 13,
-           accessToken: 11.5, accessLine: 12, accessLake: 12, accessSat: 11.5,
-           accessPermitToken: 21, accessPermitLine: 9, accessPermitSat: 9.5, accessBoundaryToken: 6.5, accessBoundaryLine: 3.5 },
+           accessToken: 16.5, accessLine: 11.5, accessLake: 11.5, accessSat: 10,
+           accessPermitToken: 21, accessPermitLine: 11.5, accessPermitSat: 11, accessBoundaryToken: 14.5, accessBoundaryLine: 1.5 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
            permitToken: 15, permitLine: 13.5, permitSat: 10.5,
@@ -143,16 +143,18 @@ const WHY = {
   accessPermit: "no public access against the permit hatch (T54): the fourth colour was searched against the three water " +
                 "statuses first (the pairs it is drawn beside); the hatch is thin strokes laid over AREAS, never over the " +
                 "no-access land a no-access stream runs through (that land is hatched in closed crimson)",
-  lightAccess: "light no public access is a MAGENTA (T146, owner 2026-10-23: T54's indigo 'is very similar to base regs'): " +
-               "a hue family of its own, 75 degrees of LCh hue off base and 38 off every status. Measured over the sRGB " +
-               "cube (step 4, handoff/PLAN/app-integration/T146-shots/frontier.mjs): every colour 40 degrees or more off the " +
-               "light base stands at most 12.2 from closed, own or base for a dichromat as a thin line, because red, orange " +
-               "and blue already take the colour-blind space and only an indigo beside base clears 20. So the light theme " +
-               "holds the normal-vision floor (T146 test below) and gives up the dichromat one: a colour-blind reader's " +
+  lightAccess: "light no public access is a SPRUCE (T146, owner 2026-10-23: T54's indigo 'is very similar to base regs'; " +
+               "T146 review: the first build's magenta was the selection outline's hue): a hue family of its own, 113 " +
+               "degrees of LCh hue off base, 180 off the magenta selection and 80 off every status. Measured over the sRGB " +
+               "cube (step 4, handoff/PLAN/app-integration/T146-shots/frontier.mjs, selection.mjs): every colour 40 degrees " +
+               "or more off the light base stands at most 12.2 from closed, own or base for a dichromat as a thin line, " +
+               "because red, orange and blue already take the colour-blind space and only an indigo beside base clears 20; " +
+               "held off the selection too, the best is this spruce at 11.5 (the magenta stood 12.0). So the light theme " +
+               "holds the normal-vision floors (T146 tests below) and gives up the dichromat one: a colour-blind reader's " +
                "theme (cvd) keeps its mauve, 14.5 and up from every water status (owner question Q-T146a)",
-  accessBoundary: "no public access against the grey boundary (T146): the magenta (light) and the ice cyan (dark) sit near " +
-                  "the neutral's lightness for some reader; the boundary is dashed, wider and drawn UNDER the water lines " +
-                  "(T83), so where they cross the status wins",
+  accessBoundary: "no public access against the grey boundary (T146): the spruce (light, 1.8 as lines for a protanope) and " +
+                  "the ice cyan (dark) sit near the neutral's lightness for some reader; the boundary is dashed, wider and " +
+                  "drawn UNDER the water lines (T83), so where they cross the status wins",
   darkAccessPermit: "dark no public access, an ICE CYAN (T146), against the lilac permit hatch: the cyan was searched against " +
                     "the three water statuses it is drawn beside (22.6 as a line, from 12.7 for T54's ochre); the hatch is " +
                     "laid over permit AREAS, never over the no-access land a no-access stream runs through",
@@ -391,9 +393,12 @@ describe("status colours, as drawn (T47)", () => {
  * floor cannot see a shared hue family, so this holds the hue itself, in normal vision, in the two themes a reader with
  * normal vision uses (cvd is the dichromat's theme and is held above): no public access at least ACCESS_HUE degrees of
  * LCh hue off base, and at least ACCESS_NORMAL apart from base as a token, a thin line over every ground and a lake fill.
+ * The line and lake floors are 26 (the first build held 30, its magenta's 32.3 / 37.3): the spruce that replaced it (T146
+ * review, the magenta was the selection's hue) stands 26.5 / 26.5, the indigo the owner read as base 24.4 as a line, and
+ * the hue floor is what tells a family apart.
  */
 const ACCESS_HUE = 45;
-const ACCESS_NORMAL = { token: 35, line: 30, lake: 30 };
+const ACCESS_NORMAL = { token: 35, line: 26, lake: 26 };
 function apartFromBase(th: "light" | "dark", t: Record<string, unknown>): string[] {
   const [x, b] = [t["color.status.no_access"] as string, t["color.status.base"] as string];
   const out: string[] = [];
@@ -409,6 +414,32 @@ function apartFromBase(th: "light" | "dark", t: Record<string, unknown>): string
   return out;
 }
 
+/*
+ * NO PUBLIC ACCESS IS NOT THE SELECTION (T146 adversarial review). The first T146 build, a magenta #F01C84, cleared every
+ * floor above and the hue gate against base, and sat 10.4 (normal vision) from `color.highlight` — the light theme's
+ * selection outline, a magenta too (LCh hue 351 against 359). On the water's Map view the part you are on is cased in
+ * the highlight, so a selected no-access stretch was magenta inside magenta (no outline to see) and every unselected
+ * no-access tributary beside it read as selected: the owner's complaint about base, moved onto the selection. A tapped
+ * water's casing and a no-access line meet on every water map, so they are held apart the way no access is held off
+ * base: at least ACCESS_HUE degrees of LCh hue, at least MEANING_FLOOR as tokens, and a thin no-access line at least
+ * SELECTION_LINE from the casing beside it over every ground — normal vision, light and dark (cvd's orange highlight
+ * stands far off its mauve, and the colour-blind reader's pairs are held by tools/cvd.test.ts).
+ */
+const SELECTION_LINE = 20;
+function apartFromSelection(th: "light" | "dark", t: Record<string, unknown>): string[] {
+  const [x, s] = [t["color.status.no_access"] as string, t["color.highlight"] as string];
+  const out: string[] = [];
+  const d = Math.abs(lch(x).h - lch(s).h) % 360;
+  const hue = d > 180 ? 360 - d : d;
+  if (hue < ACCESS_HUE) out.push(`${th}: no_access ${x} is the selection's hue ${s}: ${hue.toFixed(1)} degrees < ${ACCESS_HUE}`);
+  const token = deltaE(x, s);
+  if (token < MEANING_FLOOR) out.push(`${th}: no_access ${x} vs the selection ${s} as tokens, normal vision ${token.toFixed(1)} < ${MEANING_FLOOR}`);
+  const line = Math.min(...GROUND[th].map((g) => deltaE(over(x, g, LINE), over(s, g, EDGE))));
+  if (line < SELECTION_LINE)
+    out.push(`${th}: no_access ${x} as a thin line vs the selection's casing ${s}, normal vision ${line.toFixed(1)} < ${SELECTION_LINE}`);
+  return out;
+}
+
 describe("no public access is not base (T146)", () => {
   it("stands a hue family apart from base, and far from it as drawn, in normal vision — light and dark", () => {
     expect((["light", "dark"] as const).flatMap((th) => apartFromBase(th, resolveTheme(th)))).toEqual([]);
@@ -418,15 +449,25 @@ describe("no public access is not base (T146)", () => {
     expect(apartFromBase("light", resolveTheme("light", de({ "color.status.no_access": "~2A00E0" })))).toEqual(de([
       "light: no_access ~2A00E0 is base's hue ~608AE5: 23.2 degrees < 45",
       "light: no_access ~2A00E0 vs base ~608AE5 as a token, normal vision 32.8 < 35",
-      "light: no_access ~2A00E0 vs base ~608AE5 as a thin line, normal vision 24.4 < 30",
-      "light: no_access ~2A00E0 vs base ~608AE5 as a lake fill, normal vision 26.7 < 30"]));
+      "light: no_access ~2A00E0 vs base ~608AE5 as a thin line, normal vision 24.4 < 26"]));
+  });
+
+  it("stands a hue family apart from the selection outline, in normal vision — light and dark (T146 review)", () => {
+    expect((["light", "dark"] as const).flatMap((th) => apartFromSelection(th, resolveTheme(th)))).toEqual([]);
+  });
+
+  it("fails the first T146 magenta, which read as the selection on the water's map (mutation pin)", () => {
+    expect(apartFromSelection("light", resolveTheme("light", de({ "color.status.no_access": "~F01C84" })))).toEqual(de([
+      "light: no_access ~F01C84 is the selection's hue ~c2187a: 7.6 degrees < 45",
+      "light: no_access ~F01C84 vs the selection ~c2187a as tokens, normal vision 10.4 < 20",
+      "light: no_access ~F01C84 as a thin line vs the selection's casing ~c2187a, normal vision 10.3 < 20"]));
   });
 
   it("fails the dark theme's no access painted in base's own deep blue (mutation pin)", () => {
     expect(apartFromBase("dark", resolveTheme("dark", de({ "color.status.no_access": "~0368EB" })))).toEqual(de([
       "dark: no_access ~0368EB is base's hue ~0368EB: 0.0 degrees < 45",
       "dark: no_access ~0368EB vs base ~0368EB as a token, normal vision 0.0 < 35",
-      "dark: no_access ~0368EB vs base ~0368EB as a thin line, normal vision 0.0 < 30",
-      "dark: no_access ~0368EB vs base ~0368EB as a lake fill, normal vision 0.0 < 30"]));
+      "dark: no_access ~0368EB vs base ~0368EB as a thin line, normal vision 0.0 < 26",
+      "dark: no_access ~0368EB vs base ~0368EB as a lake fill, normal vision 0.0 < 26"]));
   });
 });

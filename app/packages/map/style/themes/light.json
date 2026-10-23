@@ -9,7 +9,7 @@
     "color.status.closed": "#8F0006",
     "color.status.own": "#D08404",
     "color.status.base": "#608AE5",
-    "color.status.no_access": "#F01C84",
+    "color.status.no_access": "#00604C",
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
     "width.stream.water": 2.4,
