@@ -16,6 +16,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Reviews
 
+- **Q45 / T89 — eight waters the book prints where the registry has no water of that name** (incl. Squirrel Lake 6-1).
+  Their rules bind nothing until each is located; the list is in T89 ("Q-A").
+
 - **Q4 / T55 — slough and canal candidates.** Mark them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8
   (stream by the book / not a stream / unsure). Start with the 65 "stream by book" and 236 "likely". Includes the 40
   Okanagan River oxbows (p.70 says isolated oxbows are exempt from the spring closure).
@@ -23,7 +26,8 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Questions answered with a default (change any you disagree with)
 
-See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q44). The ones most likely
+New this round: Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
+search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q44). The ones most likely
 to matter:
 - Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
   banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.

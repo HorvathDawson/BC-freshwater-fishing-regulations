@@ -204,6 +204,14 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
 | Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
 | Q44 | T101 | May a gauge on a side channel/slough speak for the river it branched from? (Nicomen level gauges would answer ~71,668 Fraser sections) | no for Level; Flow only when the side channel carries a large share of the river | owner |
+| Q45 | T89 | Where are the eight waters the book prints in an MU holding no registry water of that name (Q-A in T89)? | rows stay unbound and listed in T89 | owner |
+| Q46 | T57 | A nameless lake at the top of a reach stops the tributary walk like a named one (Bull r1, St. Mary r3: 3 sections)? | no change | owner |
+| Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
+| Q48 | T78 | Flag other possibly tidal gauges (e.g. 08MH026 Brunette) without a recorded reason? | no; add to data/curated/gauges/tidal.json with a reason | owner |
+| Q49 | T78 | Standing non-tidal backwater (08HB074, Comox Lake) — its own sentence? | not flagged | owner |
+| Q50 | T80 | Whole "Kootenay Lake" as a search result? | no — search lists its three parts | owner |
+| Q51 | T80 | A "See X" row whose water has no other row: a page of its own? | no — the pointer opens X's page | owner |
+| Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
 
 ### Answered (recently, for the record)
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
