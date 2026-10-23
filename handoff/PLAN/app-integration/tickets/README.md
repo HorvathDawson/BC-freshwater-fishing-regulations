@@ -162,11 +162,11 @@ use that as the sole source of future work."
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | DONE | c7aa109f, 3b07fefc, 7552cab6, 5a07b674, 10cc45c6, 3aa88557 | 1 licensing section; gauge shed change ships at deliver (Q103); delivered r-941dcc149b17 |
-| T118 | one main line for spans and continuation | DONE | 0ac0fc2b, 348f9519, 0f918ea0, 749482e9 | no shipped row changes (13 waters' exit evidence moves, no water_exit row) |
+| T118 | one main line for spans and continuation | DONE | 0ac0fc2b, 348f9519, 0f918ea0, 749482e9 | no shipped row changes (13 waters' exit evidence moves, no water_exit row); delivered r-012fb43aa175 |
 | T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
 | T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
-| T121 | water kind in reach and gauges via kind_of | DONE | 7c11c27b, 35dd2ff1, d5899459, 82c59195 | no binding moved; +18 gauged river polygons at deliver |
-| T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak |
+| T121 | water kind in reach and gauges via kind_of | DONE | 7c11c27b, 35dd2ff1, d5899459, 82c59195 | no binding moved; +18 gauged river polygons at deliver; delivered r-012fb43aa175 |
+| T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak; delivered r-012fb43aa175 |
 | T123 | one donor state for Conditions and map labels | DONE | 7355fc2e, 5887de97, b78a9bb0, 7a72d388 | app only |
 | T124 | one per-section layer list in map | DONE | 4976bf2b, 5887de97, b78a9bb0, 7a72d388 | app only; native route colours wetland sloughs |
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
@@ -184,8 +184,8 @@ use that as the sole source of future work."
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
 | T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
-| T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes |
-| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved |
+| T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes; delivered r-012fb43aa175 |
+| T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved; delivered r-012fb43aa175 |
 | T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
 
 ## Order for open tickets

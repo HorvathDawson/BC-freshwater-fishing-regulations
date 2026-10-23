@@ -3,7 +3,14 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-23 midday)
+## CURRENT STATE (2026-10-23 afternoon)
+- Batch 5 merged + delivered: release **r-012fb43aa175** (13,631,465 B gz); no binding changed; T121 +18 gauged
+  river polygons. Fixtures 20ab7f21; smoke green. Owner questions to Q113.
+- Running: workflow wf_144b677f-89c "band2-batch-6" — T136 (curation gate; pilot prepared for the owner), T112→T119,
+  T125 + T109 rest (bundle ships entry region; needs fixture re-cut), T100 (Q43 default: whole lake + area caveat;
+  deliver). Merge with the same recipe; then deliver + post-release + smoke.
+
+## (earlier) CURRENT STATE (2026-10-23 midday)
 - Batch 4 merged + delivered: release **r-941dcc149b17** (13,631,132 B gz). Binding diff vs previous run: exactly T115's
   12 Fraser pairs + 3 steelhead twins, 2 licensing (Chilko 355996084:17 via T117; 7A steelhead_targeting_known).
   Reach digest b9be92114323aa22; POLICY_VERSION 26 (T117 24, T111 25, T115 26 — renumbered at merge).
