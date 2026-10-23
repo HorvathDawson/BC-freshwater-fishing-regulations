@@ -203,6 +203,9 @@ use that as the sole source of future work."
 | T156 | test hygiene: update_hydat_script sandbox has no release; _plat.ts race between check-colours and check-boundaries | OPEN | — | tests only |
 | T157 | Conditions follow-ups from T143/T144: switcher "quiet" on a flow-only day, 2 unranked stations, map low-water caveat, handover drop | OPEN | — | app + feed |
 | T158 | dark no-access ice cyan vs depth contours (ΔE 4.7): contours vanish on a no-access lake | OPEN | — | app colours |
+| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
+| T160 | disclose 08HB074's standing backwater (Comox Lake) with its own Level sentence | OPEN | — | deliver + app |
+| T161 | the pipeline ships each fish's leading origin; the app's mainRes only reads it | OPEN | — | deliver + app |
 
 ## Order for open tickets
 
@@ -232,9 +235,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 
 | # | ticket | question | default (built with) | kind |
 |---|---|---|---|---|
-| Q1 | T54 | Permit-only areas: Tier B with "permit needed" wording, or Tier A? | Tier B, "permit needed" | owner |
 | Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
-| Q3 | T54 | Lakes inside Tier A areas (Coquitlam Lake): same fourth colour for the fill? | yes | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
 | Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
 | Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
@@ -243,110 +244,37 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
-| Q29 | T89 | Rows with several same-name candidates | the candidate in the row's MU; if several, ask | owner (only ties) |
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
 | Q32 | T95 | Salmon (DFO) timing and scope | after T50 and the cleanup | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
-| Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
-| Q46 | T57 | A nameless lake at the top of a reach stops the tributary walk like a named one (Bull r1, St. Mary r3: 3 sections)? | no change | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
-| Q48 | T78 | Flag other possibly tidal gauges (e.g. 08MH026 Brunette) without a recorded reason? | no; add to data/curated/gauges/tidal.json with a reason | owner |
-| Q49 | T78 | Standing non-tidal backwater (08HB074, Comox Lake) — its own sentence? | not flagged | owner |
-| Q50 | T80 | Whole "Kootenay Lake" as a search result? | no — search lists its three parts | owner |
-| Q51 | T80 | A "See X" row whose water has no other row: a page of its own? | no — the pointer opens X's page | owner |
-| Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
-| Q54 | T54 | Fourth colour per theme is a recorded compromise (dark ochre 12.7 from closed as a thin line; colour-blind mauve 3.1 from the grey boundary line) — keep? | keep | owner |
-| Q56 | T51 | "Like your visit?": today + 4 days, or +1..+5? | today + 4 | owner |
-| Q57 | T51 | Similarity weights: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 % — right? | as built | owner |
-| Q58 | T68 | `update-hydat.sh --stations <file>` copies the refreshed default roster over that file — ok? | as built | owner |
-| Q59 | T52 | Expected change: which model colours a river when several forecast it? | CLEVER, then COFFEE, then ELF (alt: the largest move of any model) | owner |
-| Q60 | T52 | Use COFFEE for the +1/+3/+5/+10 chips too? (its day 0 runs ~1.45× the gauge) | no; Change only | owner |
-| Q61 | T52 | Colour Change by ratio to today (a river already high that triples shows as rising), not by rank for the date? | by ratio; the words give the rank | owner |
 | Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
 | Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |
-| Q64 | T104 | Slocan "12:00 to 00:00" vs the book's "12 pm to midnight" — say noon/midnight (needs an export rebuild)? | unchanged | owner |
-| Q65 | T104 | Licensing labels still word "when" their own way (dates.When.words); routing through when_words adds "as printed:" on 2 labels — do it now? | leave until licensing labels are reworked | owner |
-| Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
-| Q67 | T130 | Go below z8 by drawing the heat map under the big rivers? | no — one answer per zoom (rivers from z8) | owner |
-| Q68 | T130 | Flow arrows start at z10, so z8–z10 shows coloured rivers without arrows — start them earlier? | as built | owner |
 | Q69 | T131 | Spot pin colour: neutral ink on card, or a hue of its own? | neutral ink | owner |
-| Q70 | T131 | Several spots on exactly one point: open the Spots list, or fan them out? | open the Spots list | owner |
-| Q71 | T131 | A spot opened from a water's map: its tab bar leaves the water for that tab? | yes | owner |
-| Q72 | T131 | Selected spot's name hidden when a neighbour pin sits there — drop it or place it below the pin? | drop it | owner |
-| Q73 | T131 | On Conditions a spot pin can cover a gauge reading label and takes the tap — ok? | as built | owner |
-| Q74 | T126 | Gauge dots under a forecast horizon or Change follow the horizon (no dot on a day no forecast reaches) — or stay at Now with a legend note? | follow the horizon | owner |
-| Q75 | T126 | Dot label under Change: "3× today" (the station's own ratio)? | as built | owner |
-| Q76 | T106 | A record with no declared quantity (old feed file, spot saved before T106) reads as discharge (the publisher's default)? | yes | owner |
-| Q77 | T107 | A value exactly on p10/p90 reads "at or below/above the 10th/90th percentile" (a dry creek at 0 when p10 is 0 included)? | yes | owner |
-| Q78 | T114 | No fallback to raw-name matching when the app meets an older bundle without search keys (that fallback is the second rule T114 removes)? | no fallback; ship app and release together | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
-| Q80 | T97 | A mark's binding counts km per named water (to 0.1 km), not total sections — so a new split alone does not stale zone rules and walks crossing it? | km per named water | owner |
-| Q81 | T97 | A split added or moved on a water stales EVERY entry matched to that water ("binding moved"), not only rules whose reach changed? | every entry on that water | owner |
-| Q82 | T97 | "unsure" is a mark verdict (the "?" outcome) beside verified / wrong / deferred? | yes | owner |
-| Q83 | T101 | "Large share" for a side channel's Flow to answer its river: drainage ≥ 0.5 of the river's (only Hanson/Lewis, Seton Canal, Bell/Nelson reach it today)? | 0.5 | owner |
 | Q84 | T101 | Should a side channel also NOT take its river's Level (the walk cuts it inward; `mainstem_of` still gives an adopted channel line the river's full answer)? One rule both ways, or only your outward rule? | walk cuts inward; adopted lines keep the river's answer — so Nicomen's main channel alternates between the Fraser's answer and its own (historical-only, grey today). Make it one: (a) adopt the connector pieces too, or (b) the channel's own gauges lead on all its water | owner |
-| Q85 | T133 | While an entry awaits its build, the review tool still shows the live binding labelled "preview" (P cannot be answered; bundle copy and answer pane withheld)? | as built | owner |
-| Q86 | T133 | A moved split is only detected after the next atlas build records split anchors (until then only added splits, by id)? | leave it to the next --atlas build | owner |
 | Q87 | T139 | Beattie Lake 7-57: does the Liard watershed's "bull trout 1 (30–50 cm)" sit BESIDE the lake's own "trout 1" (2 a day) or INSIDE it (1 in all)? | beside (the reader's ruling; headline "2 a day per angler") | owner |
-| Q88 | T108 | RULINGS P10 called a creek alone at the receiver's top a "Mouth" unless the magnitudes match; p15 kept the 10 municipal continuations — which wins for goes-on-as? | as built (see T108) | owner |
-| Q89 | T110 | 1,302 sections lose their Level answer because a distant donor's short level record falls under the minimum weight — go silent ("no baseline")? | yes, same rule as every panel | owner |
-| Q90 | T105 | A new spot saves the sheet's lead station (the speaker) rather than section_gauge's? | unchanged for now (follow-up) | owner |
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
-| Q92 | T105 | Lake reason: "This lake has its own gauge, read here directly; nothing is estimated for it from other water." | as built | owner |
-| Q93 | T105 | Give the design fixture's Chilliwack a real panel so design screens show a chart? | no | owner |
-| Q94 | T134 | Review tier S0 holds 150 split points, not PLAN's 165 (15 old "[osm-candidate … VERIFY]" stamps were later answered by "[human-review]")? | 150; the "every split" toggle shows all 409 | owner |
-| Q95 | T134 | The A check opens your app (:39218) as a deep link in a new tab, not an iframe? | deep link until you approve an iframe on the reviewer's own port | owner |
-| Q96 | T134 | While an entry awaits its build (only T and R answerable), allow a partial "text and rules verified" mark? | no (T142 builds it if yes) | owner |
-| Q97 | T134 | T134 counts as DONE with the ≤ 1.5 min per entry target measured only for the tool (~2 s); the human timing is the T136 pilot? | yes | owner |
-| Q98 | T115 | Fraser piece 356364114:699253 (home Zone 7A) also loses the steelhead twins r1b/r2b/r4b and steelhead_targeting_known (AGENTS 54's reading of the Fraser in 7A)? | yes | owner |
-| Q99 | T115 | The bundle's regions_of_waters (which neighbouring region a printed exemption carries to, G3) moves to home membership too? | yes, as T140 with a measured diff | owner |
-| Q100 | T111 | The carve-out walk seeds from the extent's cuts too (differs only on braid side channels)? | yes, as T141 with a measured diff | owner |
-| Q101 | T117 | Edge type 1150 (secondary flow in a wetland): count it as a side channel for the gauge panels? | unchanged (neither main flow nor side channel) | owner |
-| Q102 | T117 | Burnaby Lake's two equal-order main-flow outlets (Brunette River + an added stream) both count as the lake's own river? | yes: on an order tie every main-flow outlet counts | owner |
 | Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
-| Q104 | T117 | build_panels.candidates (reading propagation) keeps its own rules rather than stepping through may_enter? | keep (it propagates readings, it collects no tributary set) | owner |
-| Q105 | T135 | Pre-check codes: the audit's A1–A13 were never committed, so the 12 pre-checks are named for what they check (A = fact, B = heuristic)? | these codes; name any missing audit code | owner |
-| Q106 | T135 | "Undrawn part" is a risk factor (P1 starts with closures with undrawn parts; moves 1 entry P4 → P3)? | yes | owner |
-| Q107 | T135 | The review order (all regions, S0 split points first) is the queue's default; "book (page)" one click away? | yes | owner |
-| Q108 | T135 | A split added on a water stales every marked entry on that water, even when no rule names the split (T133's binding fingerprint)? | yes (as Q81) | owner |
-| Q109 | T135 | A cut picked by hand (cut_pick) is no longer the "ambiguous cut" risk (stays a B pre-check)? | yes | owner |
-| Q110 | T123 | A donor with no forecast at the horizon is labelled "no forecast" on the map (was "not reporting")? | yes | owner |
-| Q111 | T121 | A gauge on standing water means lake OR wetland (no live station affected)? | yes | owner |
-| Q112 | T121 | 08MH024 (Fraser at Mission) now speaks, weakly, for the Vedder Canal polygon of the Vedder — keep, or should the Vedder's own gauge win there? | keep (follows the walk and drainage test) | owner |
 | Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
 | Q114 | T136 | Run the 30-entry curation pilot (handoff/PLAN/curation-review/PILOT.md, ~1 h; then `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`)? | ★ yours to run; PLAN's "no tool blocker" check stays open until then | owner |
-| Q115 | T136 | After a split the review tool prints `pipeline build --promote` WITH tiles (~40 min more), since --no-tiles cannot pass deliver's vintage check? | yes | owner |
-| Q116 | T136 | A tool blocker in the pilot is a deferred mark whose note starts "TOOL:" (no new verdict)? | yes | owner |
-| Q117 | T136 | The 9 book-known steelhead-twin rules read "needs corpus" in the review app (the bundle binds 0–15 sections): should the app read the run for them? | no (explained by design) | owner |
-| Q118 | T125 | promote.evidence checks a station's name only against the match's display name (Arrow Reservoir vs Lower Arrow Lake never auto-promote): fix as its own ticket (new StationMatch field, match.json regenerate, owner-run promote)? | not built; say if wanted | owner |
 | Q119 | T125 | Audit references for item 8 "answers 12" (fish-list wording) and "reach 11" (double computation) — the copies could not be found from the ticket? | left open | owner |
-| Q120 | T109 | Bump the regs store section version so the app refuses a release built before prov.region (it would tag rank-3 rules "Region rule", never a wrong region)? | no bump | owner |
-| Q121 | T125 | Item 4 renames two unbound reasons (between_cuts_not_ordered → parallel_branches; outside_*) without a POLICY_VERSION bump (no live rule moved)? | no bump | owner |
-| Q122 | T150 | Where the "Parts of this water" list sits in the Map view? | a collapsible list under the map | owner |
 | Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
 | Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
 | Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | owner |
 | Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
-| Q127 | T143 | Under Level, +1/+3/+5 rank ELF's stage while Flow ranks CLEVER's discharge — one day from two model runs, each named? | yes | owner |
-| Q128 | T144 | CLEVER and COFFEE weighted equally (geometric mean of their ratios; no head-to-head verification exists) — or CLEVER 2:1? | equal | owner |
-| Q129 | T144 | After COFFEE's 5 days the combined Change is CLEVER alone, said in a note — or stop the window at 5 days? | CLEVER alone, noted | owner |
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
-| Q131 | T144 | ELF caveat: "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it cannot see a rise coming." | as built | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
-| Q133 | T144 | A joined rise not yet back while both models run reads "still up when COFFEE's forecast ends" | as built | owner |
 | Q134 | T145 | Spot pin: a 12 px square (never confused with a round gauge dot) — or round/teardrop? | square | owner |
-| Q135 | T145 | Selected spot: a ring in the spot colour (no new colour) — or its own colour? | ring | owner |
-| Q136 | T145 | Spot names from z12 on one line, cut at 120 px; tap target stays 44 px (accessibility) — or 32 px? | as built | owner |
 | Q137 | T146 | Light no-access is spruce green #00604C (the magenta clashed with the selection outline) — keep, or keep magenta and move the selection colour? | spruce | owner |
 | Q138 | T146 | Colour-blind readers: light no-access line is ~11.5 ΔE from closed/own/base for a dichromat (cvd theme keeps its mauve at 14.5+) — add a dash on no-access lines? | no dash (colour alone carries status) | owner |
 | Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
 | Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
-| Q141 | T119 | 13 alias split spellings in 6 entries (Fraser 3-14 ×6, Guichon, Columbia ×2, Elk ×3, Okanagan): canonicalise on each entry's next save, or now in one reviewed change? | on next save | owner |
 | Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
-| Q143 | T100 | Salmon Arm community-pier exemptions cite "the maps on p.28" (the pier is not on the map, the bay is)? | keep the cite | owner |
 
 ### Answered (recently, for the record)
+- Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).
 - Q13 (reader gate, T82) — owner 2026-10-23: "you can run the reader gate" — Claude runs it (an Opus agent run, not the parser).
 - Q44 (side-channel gauges, T101) — owner 2026-10-23: a side channel's gauge never answers Level for the river it branched from; it answers Flow for that river only when the side channel carries a large share of it. T101 unblocked.

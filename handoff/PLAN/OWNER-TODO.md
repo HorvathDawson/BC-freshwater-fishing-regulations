@@ -18,17 +18,25 @@ with the default Claude uses until you answer). Newest first inside each section
 
 Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
-## Questions answered with a default (change any you disagree with)
+## Your open questions (37 — each built with a default; the table in tickets/README.md has the wording)
 
-New: Q126–Q143 (app walk: Level forecast from two runs, Change weights and window, ELF caveat words, spot pin shape/ring/names, spruce no-access, colour-blind dash, no-access banner placement, alias canonicalising, Shuswap rings, Salmon Arm pier cite); Q124–Q125 (a river's rules on unnamed lake polygons on its course; sewage/tailings/dumps drawn as lakes); Q122–Q123 (Parts list in the Map view; no bold lines); Q114–Q121 (curation pilot; rebuild with tiles after a split; TOOL: notes; steelhead twins in the review app; station-name promote fix; two audit references; store version; reason renames); Q105–Q113 (review queue defaults: pre-check names, undrawn part as a risk, review order, a new split stales its water, hand-picked cuts; "no forecast" map label; wetland gauges; Fraser at Mission speaks weakly for the Vedder Canal polygon; 38 active-but-silent stations have no cut); Q94–Q104 (review tool: 150 split points in S0, the A check as a deep link, a partial mark while awaiting build; Fraser 7A piece loses its steelhead twins; bundle regions and carve-out walk follow-ups; edge type 1150, Burnaby Lake's two outlets, diversion gauges no longer speak above their canal, 24 sections lose every gauge); Q87–Q93 (Beattie Lake bull trout beside or inside, P10 vs p15 mouths, 1,302 Level answers go silent, spot station, no-gauge and lake wording); Q85–Q86 (review tool: preview binding while awaiting build, moved splits seen after next atlas build); Q83–Q84 (side-channel share threshold; should a channel also not take the river's Level); Q80–Q82 (curation marks: km not sections, a split stales its whole water, "unsure" verdict); Q74–Q79 (gauge dots follow the forecast day, Change dot label, undeclared quantity, p10/p90 wording, search keys need the new release, "river" vs "stream" on the page); Q67–Q73 (heat map zoom and arrows, spot pin colour, stacked spots, spot names); Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
-and Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
-search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q143). The ones most likely
-to matter:
-- Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
-  banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.
-- Decided by Claude under your call 11 (record in decisions.md "CLAUDE 2026-10-22 (T81)"; read and overrule any):
-  Q8, Q11, Q12, Q14–Q23, Q25 — incl. boundaries under the water status lines, the warm temperature dot's own hue,
-  and dark-mode water names near the "base regulations" blue.
+Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already answered or obsolete — all recorded in
+decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
+
+- **Readings of the book (a wrong call misleads anglers):** Q124 a river's rules on unnamed widenings (456 polygons) ·
+  Q87 Beattie Lake bull trout beside or inside the trout quota · Q140 no-access banner on a part's open stretch ·
+  Q42 tidal Fraser below Mission (postponed) · Q62, Q63 size-slot and "keep only" wording.
+- **Which gauge speaks (your policy):** Q31 the gauge rule · Q84 side channel and its river's Level · Q103 diversion
+  gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
+- **How it looks (taste):** Q134 square spot pins · Q137 spruce no-access colour · Q138 dash on no-access lines ·
+  Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
+  Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part ·
+  Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
+- **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
+  as lakes · Q142 Shuswap lake rings · Q7 which old releases to delete.
+- **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
+  on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·
+  Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
 

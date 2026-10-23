@@ -1009,3 +1009,88 @@ could add splits and rebuild then continue review with the new splits etc."
   measured app sheet moved 4–12 px shorter. The rest of a rule sheet's extra (a 19 px title wraps where the prototype's
   17 px does not; the sub line under the rule) is the one Sheet's style (T41 Q4: one Sheet for map and regs) and stays.
   Pinned: `SheetSize.test.tsx`. Undo: one constant.
+
+## CLAUDE 2026-10-23 — owner-question triage (owner asked: "double check all the owner questions to see if some are not necessary")
+
+Every open question was classified (owner-only / Claude can decide / answered), then each non-owner call was challenged by a second agent
+(default to owner when unsure). The owner reads this record and can reverse any line. Format: Qn (ticket) — decision; undo.
+
+- **Q1** (T54) — decided: permit-only areas stay Tier B with the 'where a permit is needed' note, as built; undo: move the permit kind into Tier A in access.py / core accessNotice.
+- **Q3** (T54) — decided: lake fills inside Tier A areas take the fourth colour, as built; undo: exclude lake/wetland from the no_access paint rows.
+- **Q46** (T57) — decided: no change; an unnamed lake at the top of a reach stops the walk like a named one; undo: let the tributary walk climb through unnamed lakes at the reach top (reach walk), then reach rerun + binding diff.
+- **Q48** (T78) — decided: flag a gauge only through HYDAT remarks or a tidal.json row carrying a checkable reason, and add 08MH026 and others once a reason is found; undo: add rows to data/curated/gauges/tidal.json.
+- **Q49** (T78) — decided: disclose 08HB074's standing backwater with its own Level sentence (not the tidal one); episodic ice, beaver and slide remarks stay unread; follow-up ticket; undo: drop the backwater row and the sentence.
+- **Q50** (T80) — decided: search lists Kootenay Lake's three parts and has no parent result, as built; undo: allow pieces = 0 parents in SEARCH with a parts-list page.
+- **Q51** (T80) — decided: a 'See X' row opens X's page and gets no page of its own, as built; undo: give pointer-only waters a stub page.
+- **Q52** (T80) — decided: keep the focus fallback armed everywhere, as built, and recheck in T77 D1a; undo: arm it only where the input lacks a 'cancel' event.
+- **Q54** (T54) — decided: keep the recorded per-theme exceptions for the no-access colour; undo: edit the UNDER_20 list and the token.
+- **Q56** (T51) — decided: today + 4 days, as built; undo: shift the day list in core likeVisit.ts to +1..+5.
+- **Q57** (T51) — decided: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 %, as built; undo: change the weight constants in core likeVisit.ts.
+- **Q58** (T68) — decided: --stations copies the refreshed default roster over the given file, as built; undo: skip the copy for a non-default path in roster_action.
+- **Q61** (T52) — decided: Change colours by the ratio to the model's own today, and the panel words give the percentile move; undo: switch the Change domain to the percentile move (app-only, no paint call)
+- **Q64** (T104) — decided: when_words says 'noon'/'midnight' for 12:00/00:00 to match the book, shipping with the next export rebuild + deliver; undo: revert the when_words special case
+- **Q65** (T104) — decided: leave dates.When.words until the licensing labels are reworked, then route it through when_words and pin it; undo: route it now and accept the 2 changed labels
+- **Q66** (T120) — decided: the pipeline ships the leading origin per fish (common.lead_origin) in the store/release and the app's mainRes only reads it, tracked as a ticket, not left as a pinned TS mirror; undo: keep a TS mirror pinned by parity under T125
+- **Q67** (T130) — decided: one answer per zoom, rivers from z8 and the heat map below, with no per-order field under the big rivers; undo: add a per-order basin field below z8 (tile window)
+- **Q68** (T130) — decided: flow arrows keep their own z10 floor (as built); undo: lower the arrow layer's minzoom to the z8 handover constant
+- **Q70** (T131) — decided: a tap on stacked spots opens the Spots list; undo: fan the group out on tap
+- **Q71** (T131) — decided: a spot opened from a water's map sits over the water, and its tab bar leaves the water for that tab; undo: keep the water's tab context while the spot is open
+- **Q72** (T131) — decided: drop a blocked selected name like any other label; undo: place a blocked selected name below its face
+- **Q73** (T131) — decided: spot pins draw over gauge pills and win the tap (as built); undo: draw spots under gauge pills or offset the pill
+- **Q74** (T126) — decided: gauge dots follow the map's horizon, and a day no run reaches draws no dot; undo: keep dots at Now with a legend note
+- **Q75** (T126) — decided: the Change dot label is '<ratio>× today'; undo: reword changeDotLabel
+- **Q76** (T106) — decided: a record with no declared quantity reads as discharge; undo: refuse undeclared records
+- **Q77** (T107) — decided: a value exactly on p10/p90 reads 'at or below/above the 10th/90th percentile', including a dry creek at 0 when p10 is 0; undo: switch both percentile_of and percentileInBand to strict < / > and republish the feed
+- **Q78** (T114) — decided: no raw-name fallback, and the app and release ship together; undo: add a withArea-style fallback for older bundles
+- **Q80** (T97) — decided: the binding counts km to 0.1 per named water, plus sections in no named water; undo: add the section count back to the fingerprint
+- **Q81** (T97) — decided: a split added or moved on a water stales every entry matched to that water ('binding moved'); undo: stale only rules whose reach changed
+- **Q83** (T101) — decided: LARGE_SHARE = 0.5; undo: change the named constant in build_panels.py and redeliver
+- **Q85** (T133) — decided: show the awaiting-build binding labelled 'preview', with P blocked; undo: hide the binding until the build
+- **Q86** (T133) — decided: moved splits are detected from the next --atlas build, which records split anchors; until then only added split ids are checked; undo: a migration that records the current anchors
+- **Q89** (T110) — decided: the 1,302 sections go silent ('no baseline') under the same MIN_TOTAL_WEIGHT as every panel; undo: a Level-specific floor
+- **Q92** (T105) — decided: keep 'This lake has its own gauge, read here directly; nothing is estimated for it from other water.'; undo: change the one core NoEstimate 'own-gauge' sentence
+- **Q93** (T105) — decided: no global fixture panel; tests that need a chart add one locally; undo: add a Vedder Crossing panel to fixture.ts (about 60 test call sites)
+- **Q94** (T134) — decided: S0 = 150 (a leading auto-proposal tag or a 'Verify:' note, plus moved/stale splits); undo: count any note containing VERIFY in tiers.split_needs_verify
+- **Q96** (T134) — decided: no partial 'text and rules verified' mark; while an entry awaits its build, the reviewer can record wrong, unsure or deferred; undo: build it as T142's leftover
+- **Q97** (T134) — decided: T134 DONE; the ≤1.5 min human target is checked by the T136 pilot (Q114); undo: reopen T134 until pilot-report
+- **Q98** (T115) — decided: 356364114:699253 drops zp:steelhead r1b/r2b/r4b and steelhead_targeting_known, as built; undo: revert ONE_REGION_MEMBERSHIP for the steelhead twin's area_id
+- **Q101** (T117) — decided: 1150 stays neither main flow nor side channel for the gauge panels; undo: add 1150 to SIDE_CHANNEL in pipeline/common/fwa_edge_types.py and measure the panel diff
+- **Q102** (T117) — decided: on an order tie every main-flow outlet counts as the lake's river (tributaries.lake_main_outlet); undo: pick one outlet by length or code in lake_main_outlet
+- **Q104** (T117) — decided: candidates keeps its own propagation rules (classified in the up_adj reader test); undo: route it through may_enter as its own ticket with a panel diff
+- **Q105** (T135) — decided: keep the 12 named codes (A = fact, B = heuristic); undo: if the owner finds the audit's A-list, map or add the missing codes in precheck.CHECKS
+- **Q106** (T135) — decided: undrawn part is a tiers.RISKS factor; undo: drop it from tiers.RISKS (the pre-check stays)
+- **Q108** (T135) — decided: a split added on a water stales every marked entry on that water ('binding moved'); undo: entry_binding_fp holds only the splits its rules name (also settles Q81)
+- **Q109** (T135) — decided: a curated cut_pick is not an 'ambiguous cut' risk and stays a B pre-check; undo: tiers.risks reads RunFacts.ambiguous_of
+- **Q110** (T123) — decided: the map word is 'no forecast' for both day-ahead and Change; undo: one label in the donor-state table
+- **Q111** (T121) — decided: standing water for a gauge station means lake OR wetland; undo: one kind check in the water-kind helper
+- **Q115** (T136) — decided: after a split, the printed chain ends with 'pipeline build --promote' including tiles (~40 min); undo: none useful, since --no-tiles fails the vintage check
+- **Q116** (T136) — decided: a tool blocker is a deferred mark whose note starts 'TOOL:' (counted by gate.pilot_report); undo: add a 'blocker' field to Mark and pilot_report
+- **Q117** (T136) — decided: keep the 9 twin rules shown as 'needs corpus (explained)' in the review app and do not make the app read the run; undo: a small review-app change to read the reach run's bindings for the twin extents (op steelhead_waters), best done in the later salmon/steelhead pass (T132).
+- **Q118** (T125) — decided: yes, file it as its own ticket (a StationMatch field for the matched name, a match.json regenerate, then the owner runs promote with --only per station and reviews any demotions); undo: close the ticket unbuilt.
+- **Q120** (T109) — decided: no KNOWN_VERSIONS bump; undo: bump the regs store section version in KNOWN_VERSIONS if a pre-T109 release ever reaches a device.
+- **Q121** (T125) — decided: bump cache.POLICY_VERSION (26→27) with the next reach-code commit, per AGENTS 20; undo: none needed, a bump only invalidates the per-process cache.
+- **Q122** (T150) — decided: a collapsible 'Parts of this water' list under the map in the Map view, shown only when the water has more than one part; undo: move the list's mount point (one component).
+- **Q127** (T143) — decided: Level ranks ELF's stage while Flow ranks CLEVER's discharge for the same day, each model named; undo: restore the per-day break in publish.forecast_percentiles (pinned by test_each_quantity_takes_the_first_model_that_answers_IT).
+- **Q128** (T144) — decided: equal weights (geometric mean of ratios); undo: FLOOD_WEIGHTS CLEVER 2.0 in pipeline/gauges/feed/change.py (one line, pinned by the policy test). Revisit once run archives allow a skill check.
+- **Q129** (T144) — decided: past COFFEE's day 5 the Change is CLEVER alone, with the 'COFFEE runs to <day>; after that, CLEVER alone.' note; undo: cap the change window at COFFEE's reach in change_source.
+- **Q131** (T144) — decided: keep CHANGE_LOW_WATER as built ('ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it cannot see a rise coming.'); undo: edit the one constant in @app/core.
+- **Q133** (T144) — decided: keep 'still up/down when COFFEE's forecast ends' (shape open) as built; undo: in _measure, judge the return after the handover on CLEVER's own line.
+- **Q135** (T145) — decided: selected spot = a ring in the spot colour, no new colour; undo: add a selection token for spots (it must pass the status/highlight ΔE gates).
+- **Q136** (T145) — decided: keep as built (names from z12 on one line cut at 120 px; invisible tap target 44 px); undo: SPOT_PIN labelZoom/labelMaxWidth/hit constants in core spotPins.ts.
+- **Q141** (T119) — decided: canonicalise on each entry's next review-app save, with no bulk write now; undo: a one-off backed-up, diffed canonicalising pass over the 8 entries (15 extents) as its own reviewed change.
+- **Q143** (T100) — decided: keep 'the maps on p.28' cite for r5x/r11x; undo: add the pier exemptions to ROW_MAP_DOES_NOT_DRAW so they cite no map.
+
+Answered / obsolete (removed from the table):
+
+- **Q29** (T89) — This is obsolete. T89's done section matched every row whose MU held a single candidate (the r8/r7 rows were already matched). The only rows left are the 8 with no in-MU candidate, and Q45 (owner 2026-10-23) settles those: leave them unbound and never bind a same-name water elsewhere. No 'several candidates' tie is left to ask about.
+- **Q43** (T100) — This is obsolete. T100 is DONE with the whole lake bound plus an area caveat that cites the book's map. The remaining choice, drawing real lake parts as added_lakes rings at the cost of an atlas rebuild, is asked again word for word as Q142. Q142 stays open for the owner.
+- **Q59** (T52) — The owner answered this on 2026-10-23 (app walk, T144): 'the change could use coffee and clever … combine both … use elf if nothing else is there'. T144 (DONE) built CLEVER + COFFEE combined with ELF as a last resort. The follow-ups are Q128–Q133.
+- **Q60** (T52) — This is obsolete: Q132 (T144 Q5) asks the same thing in the current model. The question is whether the +1/+3/+5/+10 chips follow the Change source, which brings COFFEE in, or keep CLEVER → ELF. Q132 stays open with the default 'keep'.
+- **Q82** (T97) — Answered by the owner's approval of curation-review/PLAN.md on 2026-10-23 (README Answered: Q5, Q34–Q41). PLAN §2 says 'any ? sends the entry to the unsure side queue', so unsure is an approved outcome.
+- **Q88** (T108) — Already answered by the owner's p15 call (was Q24, owner 2026-10-21 late, README Answered): 'keep the 10 municipal ones'. RULINGS P10 now records that the T108 goes_on rule replaced the 2026-10-13 magnitude test 'after the owner kept the municipal continuations'.
+- **Q90** (T105) — Obsolete: the T105 adversarial review (51f77e32) already makes new spot captures freeze the speaker's station (sheetLead(speakerFor(...))), and the T105 follow-up 'Spot capture still freezes the section_gauge station' is struck out as fixed. The README default 'unchanged for now (follow-up)' is stale.
+- **Q95** (T134) — This is the same question as PLAN §6 Q2 (Q35). The owner approved it 2026-10-23 with the default: deep link in a new tab first, iframe only once he approves (decisions.md 'OWNER 2026-10-23 — curation review plan approved'; README Answered Q5, Q34–Q41). Nothing is left to ask until the owner wants the iframe.
+- **Q99** (T115) — Obsolete. Built as T140 (DONE 41f541a9, its source cites 'owner Q99, 2026-10-23: yes, as T140 with a measured diff'). Measured: no bundle row changes today, so nothing is left to decide.
+- **Q100** (T111) — Obsolete. Built as T141 (DONE 8c05e725, d5899459, its source cites 'owner Q100, 2026-10-23: yes, as T141'). Measured: no binding moved.
+- **Q107** (T135) — PLAN §3 'Order: one queue across all regions, worked tier by tier' with S0 first. The owner approved it with every §6 default on 2026-10-23 (decisions.md 'curation review plan approved').
+- **Q112** (T121) — Obsolete since T105, where section_gauge stopped being a reading source. Checked in the live bundle.sqlite: the Vedder Canal polygon (sid 1957095, shape 1) speaks through panel 3577, led by the Vedder's own 08MH047 and then 08MH001 (OWNER 2026-10-22 'a water's own gauge comes first'). 08MH024 is not a member, so it is neither read nor traced.
