@@ -13,6 +13,8 @@ Each item closes with a fix + test, or a recorded "no" with the reason:
 4. "Map → Conditions flash on tab switch" (HANDOFF-ui; one frame of the wrong colouring). Reproduce; fix or close.
 5. Whole "Kootenay Lake" not a search result (log 2026-10-21). Probably fixed (search.test.ts); verify and close.
 6. A real CI run on a scratch branch has never been done. Do one.
+7. Flakes recorded in implement_progress and never fixed: the apps/mobile `back.test` browser-back step under load;
+   `tools/no-localhost` racing check-boundaries' temp `_bnd.ts`. Reproduce under load; fix or pin with a reason.
 
 Acceptance: each item is a line here marked fixed (commit + test) or declined (reason).
 Depends: none (3 needs a deliver). Size: M. Owner: delegated. Default for D19: (a) a pipeline-side group.

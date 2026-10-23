@@ -110,7 +110,7 @@ use that as the sole source of future work."
 | T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
-| T66 | curation review tool | IN PROGRESS (planning) | — | audit wf_168b1ba9-6b5 → PLAN.md → owner → build tickets |
+| T66 | curation review tool | PARTIAL | a3f66b7c (plan) | owner reads curation-review/PLAN.md; build → T96, T97 |
 | T67 | braid splitting as a build step | OPEN (assessment running) | — | assessment → plan → owner |
 | T68 | HYDAT / feed follow-ups | OPEN | — | Forecasts line; roster `--stations`; R2 upload step |
 | T69 | search on desktop: keyboard leftovers | OPEN | — | focused-but-closed; tab order; keyboard-walk test |
@@ -140,6 +140,11 @@ use that as the sole source of future work."
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
 | T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
+| T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | OPEN | — | all |
+| T97 | curation review phases 1–5 (marks, one vintage, review screen, queue, gate) | BLOCKED (owner) | — | all; owner approves PLAN.md |
+| T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
+| T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | OPEN | — | all |
+| T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 
 ## Order for open tickets
 
@@ -147,18 +152,20 @@ Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★ = nee
 meanwhile unless marked BLOCKED).
 
 1. **In flight — finish first:** T56 (merge wf_3976eddc-bba + wf_e4e2b70f-f21, then the one rebuild),
-   T66 (planning → ★ owner reads PLAN.md), T67 (assessment → ★ owner), T55 (finder → ★ owner reviews candidates).
+   T66 (plan written → ★ owner reads PLAN.md), T67 (assessment → ★ owner), T55 (finder → ★ owner reviews candidates).
 2. **Right after T56:** T57 (T53 is merged), T82 (fixtures re-cut; ★ owner launches the reader run), T58, T69, T71,
-   T83, T81 (cheap, unblocks recorded calls), T84.
+   T83, T81 (cheap, unblocks recorded calls), T84, T96 (ingest for R3/prov is broken until it lands).
 3. **Ride the next reach rerun / deliver together** (one heavy job): T59 → T76, T89, T90, T78, T80 item 3 (D19);
    T91 ★ when the owner has confirmed the sign location. Then T73 (reach format, alone; not concurrent with T61's
    normaliser).
 4. **Cleanup waves, in order:** T70 → T61 → T62 → T63 (knip starts clean after T70). T72 after T56 settles the live
-   release. T92, T94, T60 fit anywhere in this band.
+   release. T92, T94, T60, T99 fit anywhere in this band.
 5. **Tiles window (one tile build):** T64 + T85, then T75.
 6. **Native, after the cleanup:** T50 (alone, heavy) → T74 → T77 ★ (phone) → T86 ★ (R2, keys, name) → T88 ★.
-7. **Features / pipeline additions:** T54 (build with defaults), T52, T51, T68, T93 ★, T79 ★.
-8. **Last:** T87 ★ (owner sign-off walk, then delete app/design), T95 ★ (salmon plan after the app release).
+7. **Features / pipeline additions:** T54 (build with defaults), T52, T51, T68, T93 ★, T79 ★, T97 ★ (after the owner
+   approves the plan), T100 ★ (rides a reach rerun).
+8. **Last:** T87 ★ (owner sign-off walk, then delete app/design), T95 ★ (salmon plan after the app release),
+   T98 ★ (POSTPONED until the owner lifts the tidal hold).
 
 ## Owner questions
 
@@ -171,7 +178,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
 | Q3 | T54 | Lakes inside Tier A areas (Coquitlam Lake): same fourth colour for the fill? | yes | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
-| Q5 | T66 | Curation review tool: which design from PLAN.md? | wait for PLAN.md | owner (BLOCKED until plan) |
+| Q5 | T66/T97 | Curation review: approve handoff/PLAN/curation-review/PLAN.md (phases 0–5, ~3–4 weeks before a human starts)? | phase 0 (T96) goes ahead; phases 1–5 wait | owner (BLOCKS T97) |
 | Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
 | Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
 | Q8 | T76 | Gauge across `water_continue` counts as own? | yes, `water_continue` only | delegated |
@@ -190,15 +197,25 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q21 | T81 | T44: name size on Conditions/Map, desktop column, Map full-bleed, wheel outside the column | as built | delegated |
 | Q22 | T81 | Selected-tab cue | as built | delegated |
 | Q23 | T81 | Dark water names near status.base / flow f5 | as built; revisit in T83 gates | delegated |
-| Q24 | T81 | p15: 10 municipal "Trib" continuations; Eagle Trib.5 flow looks reversed; ▲ label shows no name | check each; fix flow via DEM orientation; ▲ shows the name | delegated |
 | Q25 | T81 | Prototype bugs: closed-all-year "."; `pinUpdate` throws on 25/134 states | close: the prototype is a reference | delegated |
-| Q26 | T86 | R2 bucket, ArcGIS key, contact address, app name "Can I Fish This?" | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
+| Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
 | Q29 | T89 | Rows with several same-name candidates | the candidate in the row's MU; if several, ask | owner (only ties) |
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
 | Q32 | T95 | Salmon (DFO) timing and scope | after T50 and the cleanup | owner |
+| Q33 | T96 | The 5 gate-failing entries: Shuswap `min_cm` 50/60; zp set_lining, spear_fishing, bait, white_sturgeon_licence exemptions | fix Shuswap against the book; loosen the gate only where the book exempts across unshared ground | owner |
+| Q34 | T97 | May the app's start link back the review pane? | yes, read-only, on the reviewer's own port; deep link until approved | owner |
+| Q35 | T97 | Who may fix as well as mark? | reviewers mark only; fix mode owner-only; wrong/unsure marks become tickets | owner |
+| Q36 | T97 | Review overrides.json, steelhead_waters, cross_references, DFO entries, name variants in this pass? | not in this pass; the `answer` fingerprint surfaces their effects | owner |
+| Q37 | T97 | Per-rule or per-entry marks? | per entry for water rows, per rule for the 132 zone entries, per point for splits | owner |
+| Q38 | T97 | Offer sampling for P4? | off; full review | owner |
+| Q39 | T97 | Retire the ingest ledger or move it into curated data? | retire; new ids only + `--replace-entry` | owner |
+| Q40 | T97 | Which PDF is the book? | the repo copy, sha256 on every mark, one-time check of chapter pages vs gov.bc.ca | owner |
+| Q41 | T97 | Start review before phase 3? | no | owner |
+| Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
+| Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
 
 ### Answered (recently, for the record)
 - Palette D stands (T47 part 3) — decisions.md 2026-10-22.
@@ -209,3 +226,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 - Ambiguous cuts: the cut nearest the rule's other end — b17a1a7e, ee6b5d5f, 00057356, f2bc9fd3.
 - Level moved into the Conditions layers — 476b06d8.
 - One Map entry (call 3) — decided; built in T71.
+- p15 continuations (was Q24) — owner 2026-10-21 (late): keep the 10 municipal ones; the button says where it goes
+  (88478f44); reversed continuations refused by rule (9defa9a5).
+- No ArcGIS key: Esri World Imagery without a key, the key stays optional — owner 2026-10-21 (late).

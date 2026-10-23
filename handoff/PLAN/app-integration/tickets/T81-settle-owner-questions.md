@@ -13,7 +13,8 @@ recorded in decisions.md under one dated block. A row that needs code becomes a 
 outside the column), T45/T46, T38/T42/T43 and map-chrome questions, T48 best-match preview (default no) and "Add a spot
 here" words (likely closed: removed by the owner), T49 `dayRange` (default: calendar year), D18 bait `also_allowed`
 (hidden), the selected-tab cue, "Level may move into the layers menu" (done 476b06d8: close), dark water names near
-status.base / flow f5, p15 (10 municipal "Trib" continuations; Eagle Trib.5 flow looks reversed; ▲ label shows no name),
+status.base / flow f5, (p15 is ANSWERED by the owner, decisions.md "OWNER 2026-10-21 (late)": keep the 10 municipal
+continuations; the button says where it goes, 88478f44; reversed continuations refused by rule, 9defa9a5 — close it),
 prototype bugs (closed-all-year "."; `pinUpdate` throwing on 25/134 states — default: close, the prototype is a
 reference).
 

@@ -3,16 +3,16 @@
 Status: OPEN. Owner needed (credentials, billing, name).
 
 Source: needed to ship, tracked nowhere: "The feed only stays current with a SCHEDULED publisher (owner)"
-(implement_progress; P04 removed the old workflows); the R2 bucket (D1b; publish.py is human-run); "MUST NOT SHIP
-without an ArcGIS Location Platform key" (config.ts; key optional today); `EXPO_PUBLIC_CONTACT` is null; the app name
-"Can I Fish This?" is unconfirmed.
+(implement_progress; P04 removed the old workflows); the R2 bucket (D1b; publish.py is human-run); `EXPO_PUBLIC_CONTACT`
+is null; the app name "Can I Fish This?" is unconfirmed. NOT needed: an ArcGIS key — owner 2026-10-21 (late): Esri World
+Imagery WITHOUT a key ("this is a non profit app"); `EXPO_PUBLIC_ARCGIS_API_KEY` stays optional (config.ts says so).
 
 ## Work
-Owner creates the R2 bucket and the ArcGIS key and confirms name + contact. A scheduled publish.py runner (30 min).
-Build config refuses a release build with no key or contact.
+Owner creates the R2 bucket and confirms name + contact. A scheduled publish.py runner (30 min).
+Build config refuses a release build with no contact.
 
 ## Acceptance
-A preview build passes against staging; the feed stays < 2 h old for 24 h; the release build fails without the key.
+A preview build passes against staging; the feed stays < 2 h old for 24 h; the release build fails without the contact.
 
 Depends: T72 (LATEST). Size: M.
 Owner: yes. Default: keep "Can I Fish This?"; R2 staging bucket first; publisher every 30 min.
