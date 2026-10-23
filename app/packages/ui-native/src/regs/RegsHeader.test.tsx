@@ -1,10 +1,10 @@
 /**
  * T23 — the regs header drawn over the golden headers (fixtures/golden-headers.json, copied from golden.json by
- * conformance/src/regs/goldenSlices.ts): the name, the date pill, the Parts button, the place label and the four tabs, on
- * every golden state; then the presses, the label fit and the one-shape rule.
+ * conformance/src/regs/goldenSlices.ts): the name, the date pill, the place label and the four tabs, on every golden
+ * state; then the presses, the label fit and the one-shape rule.
  *
- * (T71, owner call 3) The golden's header Map button is NOT drawn: the water's one Map entry is the view strip. Where the
- * golden header offers Map, the app's header (core headerOf) offers nothing — the 44 px slot stays empty.
+ * (Owner call 3) The golden's header action is NOT drawn: its Map button (T71 — the water's one Map entry is the view
+ * strip) nor its Parts button (T150 — the water's Map view lists the parts). No golden header's action reaches the app.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -21,14 +21,11 @@ type GHeader = { name: string; day: string; date: string; dateAria: string; dot:
   tabs: { sec: Tab; text: string }[] };
 const G = headers as unknown as Record<string, GHeader>;
 
-/** the golden's action as the app has it (T71): Parts stays, the golden's Map is dropped (the view strip's) */
-const appAction = (g: GHeader): HeaderVM["action"] =>
-  g.action?.kind === "parts" ? { kind: "parts", label: "Parts", aria: g.action.aria } : null;
-/** the golden header as the app's HeaderVM (T16 field names) */
+/** the golden header as the app's HeaderVM (T16 field names; its action dropped — owner call 3, T71 / T150) */
 const headerOf = (id: string): HeaderVM => {
   const g = G[id]!;
   return { name: g.name, dayWord: g.day, date: g.date, dateAria: g.dateAria, dot: g.dot,
-    place: g.place && { full: g.place.full, short: g.place.short }, action: appAction(g),
+    place: g.place && { full: g.place.full, short: g.place.short },
     tabs: g.tabs.map((t) => ({ tab: t.sec, label: t.text })) };
 };
 const rgb = (hex: string) => {
@@ -36,33 +33,32 @@ const rgb = (hex: string) => {
   return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
 };
 
-function mount(h: HeaderVM, o: { tabs?: TabSource; action?: boolean } = {}) {
+function mount(h: HeaderVM, o: { tabs?: TabSource } = {}) {
   const calls: string[] = [];
   const r = render(<RegsHeader header={h} palette={LIGHT} tabs={o.tabs ?? createPinStore()}
-                               onDate={() => calls.push("date")} onTab={(t) => calls.push(`tab:${t}`)}
-                               onAction={o.action === false ? undefined : (k) => calls.push(`action:${k}`)} />);
+                               onDate={() => calls.push("date")} onTab={(t) => calls.push(`tab:${t}`)} />);
   return { r, calls };
 }
-/** what the header draws, in reading order */
+/** what the header draws, in reading order — `buttons`: every button in it but the date pill (none: no action) */
 const drawn = () => {
-  const root = screen.getByTestId("regs-header"), action = screen.queryByTestId("regs-action");
+  const root = screen.getByTestId("regs-header");
   return {
     name: within(root).getByRole("heading").textContent,
     pill: [screen.getByTestId("regs-date").getAttribute("aria-label"), screen.getByTestId("regs-date").textContent],
-    action: action && [action.getAttribute("aria-label"), action.textContent],
+    buttons: within(root).queryAllByRole("button").filter((b) => b.getAttribute("data-testid") !== "regs-date").length,
     place: screen.getByTestId("regs-place").textContent,
     tabs: screen.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]),
   };
 };
 
 describe("<RegsHeader> over every golden header", () => {
-  it.each(Object.keys(G))("%s: name, pill, action, place (full while unmeasured), tabs", (id) => {
+  it.each(Object.keys(G))("%s: name, pill, no action button, place (full while unmeasured), tabs", (id) => {
     const g = G[id]!;
     mount(headerOf(id));
     expect(drawn()).toEqual({
       name: g.name,
       pill: [g.dateAria, `${g.day} ▾${g.date}`],
-      action: g.action?.kind === "parts" ? [g.action.aria, g.action.label] : null,
+      buttons: 0,
       place: g.place?.full ?? "",
       tabs: g.tabs.map((t, i) => [t.text, i === 0 ? "true" : "false"]),
     });
@@ -75,7 +71,7 @@ describe("<RegsHeader>", () => {
     expect(drawn()).toEqual({
       name: "Vedder River",
       pill: ["Change date, now Oct 10", "Today ▾Oct 10"],
-      action: null,
+      buttons: 0,
       place: "Mouth → Vedder Crossing Bridge",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
     });
@@ -89,12 +85,10 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.closed));
   });
 
-  it("bc1_501: the Parts button and the full label", () => {
-    const { calls } = mount(headerOf("bc1_501"));
-    expect(drawn().action).toEqual(["Other parts — now 4 side channels, joining 55–59.1 km from the mouth", "Parts"]);
+  it("(T150) bc1_501, a water of many parts: no Parts button — only the part's full label; the name row holds the pill alone", () => {
+    mount(headerOf("bc1_501"));
     expect(drawn().place).toBe("4 side channels, joining 55–59.1 km from the mouth");
-    fireEvent.click(screen.getByTestId("regs-action"));
-    expect(calls).toEqual(["action:parts"]);
+    expect([screen.queryByRole("button", { name: /parts/i }), drawn().buttons]).toEqual([null, 0]);
   });
 
   it("header-one-shape: klwa_1010 (no label) has the same rows and test ids as vedder_1010, the label slot empty", () => {
@@ -107,22 +101,14 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-place").textContent).toBe("");
   });
 
-  it("no action handler: the slot stays, nothing in it", () => {
-    mount(headerOf("bc1_501"), { action: false });
-    expect(screen.queryByTestId("regs-action")).toBeNull();
-    expect(screen.queryByRole("button", { name: /^Other parts/ })).toBeNull();
-  });
-
-  it("(T71) the action slot is 44 px with Parts, with nothing and with no handler, so the name never reflows", () => {
-    const slot = () => { const s = screen.getByTestId("regs-action-slot").style; return [s.minWidth, s.minHeight]; };
+  it("(T71 / T150) no action slot on any water: the name row is the frame's title and the pill, so it never reflows", () => {
     const seen: string[][] = [];
-    for (const [id, action] of [["bc1_501", true], ["vedder_1010", true], ["bc1_501", false]] as const) {
-      mount(headerOf(id), { action });
-      seen.push([id, String(!!screen.queryByTestId("regs-action")), ...slot()]);
+    for (const id of ["bc1_501", "vedder_1010", "klwa_1010"]) {
+      mount(headerOf(id));
+      seen.push([id, String(!!screen.queryByTestId("regs-action-slot")), String(!!screen.queryByTestId("regs-action"))]);
       cleanup();
     }
-    expect(seen).toEqual([["bc1_501", "true", "44px", "44px"], ["vedder_1010", "false", "44px", "44px"],
-                          ["bc1_501", "false", "44px", "44px"]]);
+    expect(seen).toEqual([["bc1_501", "false", "false"], ["vedder_1010", "false", "false"], ["klwa_1010", "false", "false"]]);
   });
 
   it("header-label-two-lines (prototype fitLabel): the full label when it lays out in two lines, else the short", () => {

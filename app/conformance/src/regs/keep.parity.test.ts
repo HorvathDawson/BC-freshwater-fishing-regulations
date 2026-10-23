@@ -199,11 +199,11 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     ]);
   });
 
-  it("the page's header is headerOf's; (T71) no Map action — the view strip is the water's one Map entry", async () => {
+  it("the page's header is headerOf's; no action (owner call 3: T71 Map, T150 Parts)", async () => {
     for await (const c of cases("keep")) {
       if (c.id !== "vedder_1010") continue;
       const inp = await c.inputs(), p = await c.page();
-      expect([p.header, p.header.action]).toEqual([headerOf(inp, { today: requestOf(c.id).today, status: p.status }), null]);
+      expect([p.header, "action" in p.header]).toEqual([headerOf(inp, { today: requestOf(c.id).today, status: p.status }), false]);
     }
   });
 });

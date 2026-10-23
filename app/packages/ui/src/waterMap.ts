@@ -24,7 +24,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
   crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
-  partName, partOfSection, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
@@ -45,6 +45,8 @@ export interface WaterMapState {
   readonly mark: number | null;
   /** ▲ or ▼ at a fork: the chooser is open, for that way; null when it is not. */
   readonly choosing: "up" | "down" | null;
+  /** (T150) The list of the water's parts under the map is open. Closed at the start and after a pick. */
+  readonly list: boolean;
 }
 
 export type WaterMapAction =
@@ -56,9 +58,11 @@ export type WaterMapAction =
   /** A tap on the map: the section id; a section of another water changes nothing here. */
   | { type: "section"; sid: number }
   | { type: "mark"; ix: number | null }
-  | { type: "whole" };
+  | { type: "whole" }
+  /** (T150) Open or close the list of parts. */
+  | { type: "list" };
 
-export const waterMapStart = (at: number): WaterMapState => ({ at, whole: false, mark: null, choosing: null });
+export const waterMapStart = (at: number): WaterMapState => ({ at, whole: false, mark: null, choosing: null, list: false });
 
 const go = (at: number): WaterMapState => waterMapStart(at);
 const ways = (g: WaterGroup, at: number, dir: "up" | "down") => (dir === "up" ? stepsUp(g, at) : stepsDown(g, at));
@@ -86,6 +90,8 @@ export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction)
       if (!g.marks[a.ix]) return s;
       return { ...s, mark: s.mark === a.ix ? null : a.ix, choosing: null };        // a second tap closes it
     case "whole": return { ...s, whole: !s.whole, mark: null, choosing: null };
+    // a water of one part has no list to open
+    case "list": return g.parts.length > 1 ? { ...s, list: !s.list, mark: null, choosing: null } : s;
   }
 }
 
@@ -152,6 +158,18 @@ export interface WaterMapVM {
   readonly water: readonly number[];
   /** "Show regulations for this part". */
   readonly regs: { readonly label: string; readonly item: string; readonly partIx: number };
+  /**
+   * (T150) THE PARTS OF THIS WATER, by name, under the map — the header's Parts sheet moved here (owner 2026-10-23):
+   * tiny parts are hard to tap and a screen reader cannot tap a map. Every part in mouth-first order (a split lake's
+   * areas too); `here` on the part shown. A pick is `{type: "part", ix}`. Null for a water of one part.
+   */
+  readonly list: {
+    readonly title: string;
+    /** The toggle's words: "Show all 15 parts" while closed, "Hide the list of parts" while open. */
+    readonly toggle: string;
+    readonly open: boolean;
+    readonly rows: readonly (WaterMapPartVM & { readonly aria: string; readonly here: boolean })[];
+  } | null;
 }
 
 const partVM = (g: WaterGroup, i: number): WaterMapPartVM => {
@@ -175,6 +193,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
   const current = partVM(g, at);
   const { selected, water } = navSections(g, at);
   const open = s.mark !== null ? g.marks[s.mark] ?? null : null;
+  const oneWater = new Set(g.parts.map((p) => p.item)).size === 1;
   const marks: WaterMapMarkVM[] = [];
   g.marks.forEach((m, ix) => {
     if (m.lon === null || m.lat === null) return;            // a boundary with no place: in the graph, not drawn
@@ -202,6 +221,13 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     fitKey: s.whole ? `${g.parts[0]!.item}:whole` : `${current.item}:${current.partIx}`,
     selected, water,
     regs: { label: W.regs, item: current.item, partIx: current.partIx },
+    list: g.parts.length > 1
+      ? { title: W.parts, toggle: s.list ? W.partsHide : W.partsShow(g.parts.length), open: s.list,
+          // a row names its water only where the list holds more than one (a split lake's areas): one river's name
+          // under every row says nothing the title does not
+          rows: g.parts.map((_, i) => ({ ...partVM(g, i), ...(oneWater ? { note: "" } : {}), aria: partRowAria(g, i),
+                                         here: i === at })) }
+      : null,
   };
 }
 

@@ -319,6 +319,13 @@ export const WATER_MAP_WORDS = {
   close: "Close",
   chooser: "Which way upstream?",
   chooserDown: "Which way downstream?",
+  /** (T150) The list of the water's parts under the map — the header's Parts sheet, moved here. */
+  parts: "Parts of this water",
+  /** (T150) The list's toggle, closed / open, with the count: "Show all 15 parts" / "Hide the list of parts". */
+  partsShow: (n: number) => `Show all ${n} parts`,
+  partsHide: "Hide the list of parts",
+  /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
+  partsHere: "✓",
   loading: "Loading the parts of this water",
   /** No release to read the parts from (the dev bundle), or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",
@@ -328,6 +335,13 @@ export const WATER_MAP_WORDS = {
 export function partWhere(g: WaterGroup, i: number): string {
   const note = itemNote(g, i);
   return `Part ${i + 1} of ${g.parts.length}${note ? ` · ${note}` : ""}`;
+}
+
+/** (T150) A row of the parts list as a screen reader says it: "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 2
+ *  of 4 · Chilliwack River" — its name, then where it sits (`partWhere`, lower-cased "part"). Whether it is the part
+ *  shown is the row's checked state, not words. */
+export function partRowAria(g: WaterGroup, i: number): string {
+  return `${partName(g, i)}, ${partWhere(g, i).replace(/^Part/, "part")}`;
 }
 
 /** The ⤢ button: frame the whole river (or lake), or — while it is framed — back to this part. */

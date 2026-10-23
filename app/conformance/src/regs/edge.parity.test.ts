@@ -57,7 +57,7 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(keepLines({ ...p.keep, banner: { ...p.keep.banner!, paras: [] } }, p.day)).not.toEqual((G.x31p_1010!.keep as GKeep).lines.map(norm));
   });
 
-  it("6. hours x15p2_1010: the timed caveat right after the strip, its words and book page; the Parts action", async () => {
+  it("6. hours x15p2_1010: the timed caveat right after the strip, its words and book page; no header action (T150)", async () => {
     const p = await pageOf("x15p2_1010"), k = p.keep;
     expect(k.order[0]).toBe("strip");
     expect(k.order[1]).toEqual({ caveat: 0 });
@@ -66,7 +66,8 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     expect(lines.slice(4, 7)).toEqual(["⚠ At certain times", "No fishing for any game fish 60 min after sunset–60 min before sunrise Rule book p.23 ↗",
       "Trout and char"]);
     expect(lines).toEqual(g);
-    expect(p.header.action).toEqual({ kind: "parts", label: "Parts", aria: "Other parts — now 2 stretches" });
+    // (T150) the golden offers Parts here; the app's parts are its Map view's list — the header keeps the part's name
+    expect([(G.x15p2_1010!.header as { action: { kind: string } | null }).action?.kind, "action" in p.header]).toEqual(["parts", false]);
   });
 
   it("4. weekday row: the Kokanee row's stored week status; Saturday and Monday read their own moment", async () => {
@@ -103,7 +104,7 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     const p = buildRegsPage(inp, { today: { month: 10, day: 10 }, who: ADULT_RESIDENT });
     expect([edgeKind(inp), inp.key!.akey]).toEqual(["unnamed", u.akey]);
     // the whole header name is the Python reference decoder's (taps.json), never composed here
-    expect([p.header.name, p.header.place, p.header.action, p.header.tabs.length]).toEqual([u.name, null, null, 4]);
+    expect([p.header.name, p.header.place, "action" in p.header, p.header.tabs.length]).toEqual([u.name, null, false, 4]);
     expect(p.keep.order[0]).toBe("strip");
     expect([p.gear !== null, p.methods !== null, p.licence !== null]).toEqual([true, true, true]);
   });
@@ -114,6 +115,6 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
     const p = buildRegsPage(inp, { today: { month: 10, day: 10 }, who: ADULT_RESIDENT });
     expect([edgeKind(inp), p.status, p.keep.order, p.keep.outside, p.gear, p.methods, p.licence]).toEqual(
       ["outside", "outside", ["outside"], "This part of the water is outside B.C.: no B.C. rules apply.", null, null, null]);
-    expect(p.header).toMatchObject({ name: "", place: null, action: null, dot: "faint" });
+    expect([p.header, "action" in p.header]).toMatchObject([{ name: "", place: null, dot: "faint" }, false]);
   });
 });

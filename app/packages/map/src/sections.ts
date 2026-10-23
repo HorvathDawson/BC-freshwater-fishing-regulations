@@ -98,14 +98,15 @@ export interface StateSink {
   remove(t: { source: string; sourceLayer: string }, id: string | number, key: string): void;
 }
 
-/** The feature-state keys a highlight sets (`MapAdapter.highlight`): the part you are on, and the rest of its water. */
-export const HIGHLIGHT_KEYS = ["selected", "water"] as const;
+/** The feature-state keys a highlight sets (`MapAdapter.highlight`): what is selected (outlined), the part you are on in
+ *  a water's Map view (`part`, T151: marked by dimming the rest), and the rest of its water. */
+export const HIGHLIGHT_KEYS = ["selected", "part", "water"] as const;
 
 /**
  * The adapter's feature-state half over a renderer (`MapHandle`'s other calls do nothing here), shared so both maps
  * address the same feature the same way: the layer's own source-layer (`stateTarget`), the id as a number.
  *
- * CLEARING IS PER FEATURE AND ONLY THE HIGHLIGHT'S KEYS (`selected`, `water`), from the ids lit last time (`lit`).
+ * CLEARING IS PER FEATURE AND ONLY THE HIGHLIGHT'S KEYS (`HIGHLIGHT_KEYS`), from the ids lit last time (`lit`).
  * Dropping every state of a source-layer would take the status colours with it, so selecting a river would un-colour
  * the map — and GL JS refuses to remove one KEY from a whole source-layer anyway ("A feature id is required to remove
  * its specific state property"), so the old whole-layer call threw and the old highlight stayed lit.

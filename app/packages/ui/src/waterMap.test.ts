@@ -115,6 +115,49 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
   });
 });
 
+describe("(T150) the parts of this water, listed under the map — the header's Parts sheet moved here", () => {
+  it("the Chilliwack: closed, the toggle says how many; open, every part by name and place, the part shown marked", async () => {
+    const g = await loadWaterGroup(st, "gnis:8634");
+    expect(view(g, waterMapStart(1)).list).toEqual({ title: "Parts of this water", toggle: "Show all 4 parts", open: false,
+      rows: [
+        { ix: 0, item: "gnis:8634", partIx: 1, note: "", here: false,
+          name: "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+          aria: "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River" },
+        { ix: 1, item: "gnis:8634", partIx: 2, note: "", here: true,
+          name: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
+          aria: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence, part 2 of 4 · Chilliwack River" },
+        { ix: 2, item: "gnis:8634", partIx: 0, note: "", here: false,
+          name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+          aria: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary, part 3 of 4 · Chilliwack River" },
+        { ix: 3, item: "gnis:8634", partIx: 3, note: "", here: false,
+          name: "Chilliwack River Ecological Reserve boundary → Source",
+          aria: "Chilliwack River Ecological Reserve boundary → Source, part 4 of 4 · Chilliwack River" }] });
+    const open = run(g, waterMapStart(1), { type: "list" });
+    expect([open, view(g, open).list!.toggle, view(g, open).list!.open]).toEqual([
+      { ...waterMapStart(1), list: true }, "Hide the list of parts", true]);
+    // a pick is the part step: the map moves there and the list closes; toggling again closes it
+    expect(run(g, open, { type: "part", ix: 3 })).toEqual(waterMapStart(3));
+    expect(run(g, open, { type: "list" })).toEqual(waterMapStart(1));
+    // opening the list closes an open mark or chooser (one card over the map at a time)
+    expect(run(g, waterMapStart(1), { type: "mark", ix: 1 }, { type: "list" })).toEqual({ ...waterMapStart(1), list: true });
+  });
+
+  it("a split lake: its closure areas are the list (each its own water, named beside), the area shown marked", async () => {
+    const g = await loadWaterGroup(st, "wbk:-20");
+    const at = waterMapStartIx(g, "wbk:-20", 0);
+    const l = view(g, waterMapStart(at)).list!;
+    expect([l.rows.length > 1, l.rows.filter((r) => r.here).map((r) => r.item), l.toggle])
+      .toEqual([true, ["wbk:-20"], `Show all ${g.parts.length} parts`]);
+    expect(l.rows.every((r) => r.aria === `${r.name}, part ${r.ix + 1} of ${g.parts.length}${r.note ? ` · ${r.note}` : ""}`)).toBe(true);
+  });
+
+  it("a water of one part has no list, and the toggle action is a no-op there", async () => {
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const one = { ...g, parts: g.parts.slice(0, 1) } as WaterGroup;
+    expect([view(one, waterMapStart(0)).list, run(one, waterMapStart(0), { type: "list" })]).toEqual([null, waterMapStart(0)]);
+  });
+});
+
 describe("a side channel: the Zymoetz's canyon", () => {
   it("▲ below the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");

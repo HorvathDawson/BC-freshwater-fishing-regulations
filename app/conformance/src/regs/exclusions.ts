@@ -25,6 +25,12 @@ export const NO_MAP_LABEL_IDS: readonly string[] = Object.entries(golden().state
 export const GOLDEN_MAP_ACTION_IDS: readonly string[] = Object.entries(golden().states)
   .filter(([, s]) => (s.header as { action: { kind: string } | null } | null)?.action?.kind === "map")
   .map(([id]) => id);
+/** (T150) The states whose golden header offers the prototype's Parts button. Owner call 3, 2026-10-23 ("dont we want to
+ *  remove 'parts' from reg page since map is now at the top tabs?", Q122): the regs header has no action at all; the
+ *  water's Map view lists its parts by name. header.parity asserts the app's header has no action on these states. */
+export const GOLDEN_PARTS_ACTION_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => (s.header as { action: { kind: string } | null } | null)?.action?.kind === "parts")
+  .map(([id]) => id);
 /** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
 export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
 
@@ -191,8 +197,8 @@ export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().state
 /** (T115) Every tapped state of a water whose parts the release re-cut (taps.json `recut`). */
 export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.item in (tapsOnce().recut ?? {})).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
-  ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^(place\.(full|short)|action\.aria)$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, the Parts button's aria that quotes the full label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale) and the aria is the golden's with the app's full label in place of the golden's",
+  ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^place\.(full|short)$/,
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
     reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour, taps.json `recut`), so the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
@@ -218,7 +224,10 @@ export const EXCLUDE: readonly Exclusion[] = [
     reason: "the prototype shows no part label where it had no water map of the water; the app frames every named part (D1) and labels it unless the label is the water's name (T16) — the parity asserts that instead",
     until: "never — prototype map coverage, not a regulation" },
   { block: "header", ids: GOLDEN_MAP_ACTION_IDS, key: /^action$/,
-    reason: "owner call 3 (2026-10-22, T71): one Map entry — the view strip's; the header's Map button is dropped, so where the prototype offers Map the app offers Parts (a choice of parts) or nothing — the parity asserts that instead",
+    reason: "owner call 3 (2026-10-22, T71): one Map entry — the view strip's; the header's Map button is dropped, so where the prototype offers Map the app offers nothing (T150 dropped Parts too) — the parity asserts that instead",
+    until: "never — an owner decision, not a regulation" },
+  { block: "header", ids: GOLDEN_PARTS_ACTION_IDS, key: /^action$/,
+    reason: "owner call 3 (2026-10-23, T150, Q122): the regs header's Parts button is dropped — the water's Map view (the view strip's) lists the parts by name as a collapsible list under the map, and the header keeps the part's name — so where the prototype offers Parts the app offers nothing; the parity asserts that instead",
     until: "never — an owner decision, not a regulation" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },

@@ -3,10 +3,10 @@
  * (app/design/regs-v11/port/golden/golden.json, page v38 @ 7fb6809f) `header` on every golden state, inputs from T09
  * `inputsOf` over the harness's paired store (REGS_STORE_REQUIRED=1 turns a skip into a failure).
  *
- * `status` is the day's as T13's strip reads it (null strip → tidal / outside). THE ACTION (T71, owner call 3, 2026-10-22:
- * one Map entry, the view strip's): where the golden header offers Map (exclusions GOLDEN_MAP_ACTION_IDS) the app offers
- * Parts when the picker has a choice to make, else nothing — asserted whole against that rule; every other state's action
- * is the golden's. On the 22 one-part states the prototype could not map (golden place null, no action — exclusions
+ * `status` is the day's as T13's strip reads it (null strip → tidal / outside). THE ACTION (owner call 3): the app's
+ * header has none. Where the golden header offers Map (T71, 2026-10-22: one Map entry, the view strip's — exclusions
+ * GOLDEN_MAP_ACTION_IDS) or Parts (T150, 2026-10-23: the water's Map view lists the parts — GOLDEN_PARTS_ACTION_IDS) the
+ * golden's action is excluded by that entry, and every state asserts the app's header carries no `action` key. On the 22 one-part states the prototype could not map (golden place null, no action — exclusions
  * NO_MAP_LABEL_IDS) the app's label is checked against T16's rule, not the golden. `place.shown` is fitLabel's
  * measurement (excluded; T41). Every expected value is the golden's except the ticket's literals.
  */
@@ -47,21 +47,19 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
       expect([g.place, g.action, ((await inputsOf(id))!.item?.parts.filter(Boolean).length ?? 0) <= 1]).toEqual([null, null, true]);
       if (v.place) expect([v.place.full, v.place.short !== v.name]).toEqual([v.place.short, true]);
     }
-    // (T71) the golden's Map button is the view strip's in the app: Parts when the picker has a choice, else nothing
-    const noMapButton = excluded("header", id, "action") !== null;
-    expect(noMapButton).toBe(g.action?.kind === "map");
-    const many = ((await inputsOf(id))!.item?.picker?.choices.length ?? 0) > 1;
-    // (T115) a grown part's Parts aria quotes its full label: the golden's words with the app's label in place of the golden's
-    const grown = excluded("header", id, "place.full") !== null;
-    const grownAria = (a: GHeader["action"]) => a && grown && g.place && v.place ? { ...a, aria: a.aria.replace(g.place.full, v.place.full) } : a;
-    const action = !noMapButton ? grownAria(g.action)
-      : many ? { kind: "parts", label: "Parts", aria: WORDS.PARTS_ARIA(g.action!.aria.replace(/^View on map: where these rules apply(, )?/, "")) }
-      : null;
+    // (owner call 3) THE APP'S HEADER HAS NO ACTION: every golden action is excluded by its kind's entry — Map (T71, the
+    // view strip's) and Parts (T150, the Map view's list) — and the app's header carries no `action` key on any state
+    const excludedAction = excluded("header", id, "action");
+    expect([excludedAction === null, excludedAction?.reason.match(/T71|T150/)?.[0] ?? null])
+      .toEqual(g.action === null ? [true, null] : [false, g.action.kind === "map" ? "T71" : "T150"]);
+    expect("action" in v).toBe(false);
     // (T115) a part that took in a merged piece (exclusions PART_GROWN_IDS): its label is not the prototype's — asserted to differ
+    const grown = excluded("header", id, "place.full") !== null;
     if (grown) expect(v.place && { full: v.place.full, short: v.place.short }).not.toEqual(g.place && { full: g.place.full, short: g.place.short });
+    const { action: _golden, ...rest } = g;
     expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap || grown ? null : v.place,
-             action: v.action, tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
-      .toEqual({ ...g, action, place: grown ? null : g.place && { full: g.place.full, short: g.place.short } });
+             tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
+      .toEqual({ ...rest, place: grown ? null : g.place && { full: g.place.full, short: g.place.short } });
     passed++;
   });
 
@@ -75,7 +73,6 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect(await headerFor("vedder_1010")).toEqual({ name: "Vedder River", dayWord: "Today", date: "Oct 10",
       dateAria: "Change date, now Oct 10", dot: "open",
       place: { full: "Mouth → Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge" },
-      action: null,
       tabs: [{ tab: "keep", label: "What you can keep" }, { tab: "gear", label: "Gear" }, { tab: "methods", label: "Methods" },
              { tab: "licence", label: "Licence" }] });
   });
@@ -85,11 +82,10 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect([v.dayWord, v.date, v.dot]).toEqual(["Mon", "Jun 15", "closed"]);
   });
 
-  it("5. bc1_501: Fri; the long label is in the subtitle; Parts names it", async () => {
+  it("5. bc1_501: Fri; the long label is in the subtitle; the golden's Parts button is not the app's (T150)", async () => {
     const v = await headerFor("bc1_501");
-    expect([v.dayWord, v.place, v.action]).toEqual(["Fri",
-      { full: "4 side channels, joining 55–59.1 km from the mouth", short: "4 side channels" },
-      { kind: "parts", label: "Parts", aria: "Other parts — now 4 side channels, joining 55–59.1 km from the mouth" }]);
+    expect([v.dayWord, v.place, "action" in v, (G.states.bc1_501!.header as GHeader).action?.kind]).toEqual(["Fri",
+      { full: "4 side channels, joining 55–59.1 km from the mouth", short: "4 side channels" }, false, "parts"]);
   });
 
   it("6. cow1_1010: the long label, and the uncut short one", async () => {
@@ -101,9 +97,9 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect((await headerFor("x5p0_1010")).place).toEqual({ full: "Josephine Falls → Source", short: "Josephine Falls → Source" });
   });
 
-  it("8. klwa_1010: the label is the water's name — no label slot; one part, so no action either (T71)", async () => {
+  it("8. klwa_1010: the label is the water's name — no label slot; no action (T71)", async () => {
     const v = await headerFor("klwa_1010");
-    expect([v.place, v.action]).toEqual([null, null]);
+    expect([v.place, "action" in v]).toEqual([null, false]);
   });
 
   it("9. x31p_1010 (tidal): a faint dot; its part is labelled — the prototype's null was its missing water map (review fix)", async () => {
@@ -111,10 +107,9 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     expect([v.dot, v.place && v.place.short !== v.name]).toEqual(["faint", true]);
   });
 
-  it("2. (T71) where the golden offers Map: a picker of several choices gives Parts, a one-part water nothing", async () => {
-    expect([G.states.cow1_1010!.header, G.states.klwa_1010!.header].map((h) => (h as GHeader).action?.kind)).toEqual(["map", "map"]);
-    expect((await headerFor("cow1_1010")).action).toEqual({ kind: "parts", label: "Parts",
-      aria: "Other parts — now From the CNR Mile 66 Trestle up to the CNR Bridge (mile 70.2)" });
-    expect((await headerFor("klwa_1010")).action).toBeNull();
+  it("2. (T71 / T150) where the golden offers Map or Parts, many parts or one: the app's header offers nothing", async () => {
+    expect([G.states.cow1_1010!.header, G.states.klwa_1010!.header, G.states.bc1_501!.header].map((h) => (h as GHeader).action?.kind))
+      .toEqual(["map", "map", "parts"]);
+    for (const id of ["cow1_1010", "klwa_1010", "bc1_501"]) expect(["action" in (await headerFor(id)), id]).toEqual([false, id]);
   });
 });

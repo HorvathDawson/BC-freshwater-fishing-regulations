@@ -35,6 +35,18 @@ export const NOBASELINE_LAYER = "stream-nobaseline";
  * theme or mode change repaints them in the same call.
  */
 export const SELECTION_CASING = "selection-casing";
+/**
+ * HOW A HIGHLIGHT MARKS WHAT IT LIGHTS — one decision, this type (T151, owner 2026-10-23: "the bold in the section map
+ * view is also weird and makes the reg legend hard to follow"):
+ *   "outline"  a tapped or searched water on the browse map: feature-state `selected` — the casing / ring above, and a
+ *              width floor (`width.stream.highlight`).
+ *   "dim"      the part you are on in a WATER'S MAP VIEW: feature-state `part` — no casing, no ring, no thicker line; the
+ *              water's other parts (`water`) are drawn at `opacity.water.others`, and the part and the others share one
+ *              width floor (`width.stream.water`), so every part reads against the legend exactly as the legend draws it.
+ */
+export type SelectionCue = "outline" | "dim";
+const PART = ["boolean", ["feature-state", "part"], false];
+const WATER = ["boolean", ["feature-state", "water"], false];
 export const SELECTION_RINGS = { lake: "selection-ring-lake", wetland: "selection-ring-wetland" } as const;
 /** The outline each side of a selected stream line, and a selected polygon's ring, in px. */
 export const CASING_PX = 2.5;
@@ -131,9 +143,10 @@ export interface MapAdapter {
   /**
    * Highlight by id via feature-state — never by mutating paint: `selected` on `featureIds`, and `water` on `water`
    * (P15: the other parts of the water whose part is selected — drawn at a width floor in their own colour, so the
-   * river reads as one water around the part you are on). Every key of both is cleared first.
+   * river reads as one water around the part you are on). Every key of both is cleared first. `cue` (T151,
+   * `SelectionCue`): "outline" (default) lights `featureIds` `selected`; "dim" — a water's Map view — lights them `part`.
    */
-  highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[]): void;
+  highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[], cue?: SelectionCue): void;
   /**
    * The ground: the drawn basemap, or satellite imagery over it.
    *
@@ -204,7 +217,7 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
    */
   const selected = SELECTED;
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
-  const out: Record<string, unknown> = { [colourPropFor(type)]: colorExpression(layerId, mode, tokens, values) };
+  let out: Record<string, unknown> = { [colourPropFor(type)]: colorExpression(layerId, mode, tokens, values) };
 
   const spec = STYLE_META.widths[layerId];
   const widthKey = type === "line" ? "line-width" : type === "circle" ? "circle-radius" : null;
@@ -258,10 +271,11 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
      * `tools/style-valid.test.ts` now runs the spec's own validator over this.
      */
     if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined) {
-      // P15: the water's other parts (`water`) take their own, lower floor — after `selected`, which wins
+      // P15: the water's other parts (`water`) take their own, lower floor — after `selected`, which wins. T151: the part
+      // you are on in a water's Map view (`part`) takes the SAME floor as the others — one width for every part
       const floor: unknown = tokens["width.stream.water"] !== undefined
         ? ["case", selected, Number(tokens["width.stream.highlight"]),
-           ["boolean", ["feature-state", "water"], false], Number(tokens["width.stream.water"]), 0]
+           ["any", PART, WATER], Number(tokens["width.stream.water"]), 0]
         : ["case", selected, Number(tokens["width.stream.highlight"]), 0];
       out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
     }
@@ -303,6 +317,8 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
         ? ["interpolate", ["linear"], ["zoom"], ...ramp.flatMap(([z, k]) => [z, Math.round(o * k * 1000) / 1000])]
         : o;
   }
+
+  out = dimTheOthers(layerId, type, out, tokens);
 
   /**
    * A LABEL'S HALO — the paper showing through behind the word.
@@ -356,6 +372,22 @@ function solidField(layerId: string, type: string | undefined, out: Record<strin
   if (typeof over !== "string" || !Number.isFinite(k)) return out;
   const prop = type === "line" ? "line-color" : "fill-color";
   return { ...out, [prop]: mixColours(out[prop], over, k), [`${type}-opacity`]: 1 };
+}
+
+/**
+ * (T151) THE WATER'S OTHER PARTS, DIMMED: on a per-section layer (a highlightable one, or the edge that follows it —
+ * feature-state is the source-layer's, so a lake's outline knows its lake is `water`), a line or fill lit `water` is drawn
+ * at its own opacity times `opacity.water.others`. Only a water's Map view sets `water` (the "dim" cue), so the browse map
+ * is untouched. The colour is never changed: the part you are on is the full-strength one.
+ */
+export function dimTheOthers(layerId: string, type: string | undefined, out: Record<string, unknown>,
+                             tokens: Tokens): Record<string, unknown> {
+  const k = Number(tokens["opacity.water.others"]);
+  const owner = STYLE_META.follows?.[layerId] ?? layerId;
+  if (!Number.isFinite(k) || (type !== "line" && type !== "fill")
+      || !STYLE_META.highlightable.some((h) => h.id === owner)) return out;
+  const prop = `${type}-opacity`;
+  return { ...out, [prop]: withinZoomCurve(out[prop] ?? 1, (v) => ["case", WATER, ["*", v, k], v]) };
 }
 
 /** Every `#rrggbb` in `expr` laid over `ground` at `alpha`, per sRGB channel — what the renderer's blend gives. */
@@ -553,12 +585,13 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         if (channelOf(layerId, mode) === channel) paint(h, layerId, mode, tokens);
     },
 
-    highlight(h, featureIds, water = []) {
+    highlight(h, featureIds, water = [], cue = "outline") {
       // EVERY layer cleared before ANY is set: several layers draw one source-layer (`lake`, `lake_flowing`), so a
       // clear for the second would otherwise take back what the first just set
       for (const { id } of STYLE_META.highlightable) h.clearFeatureStates(id);
+      const lit = cue === "dim" ? { part: true } : { selected: true };
       for (const { id } of STYLE_META.highlightable) {
-        for (const f of featureIds) h.setFeatureState(id, f, { selected: true });
+        for (const f of featureIds) h.setFeatureState(id, f, lit);
         for (const f of water) h.setFeatureState(id, f, { water: true });
       }
     },

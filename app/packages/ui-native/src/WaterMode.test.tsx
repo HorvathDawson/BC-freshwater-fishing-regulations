@@ -292,14 +292,55 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     .map((e) => [e.getAttribute("role"), e.getAttribute("aria-label") ?? e.textContent ?? ""])
     .filter(([, name]) => /\bmap\b/i.test(name!) && !LEAVING.has(name!));
 
-  it("on the Regulations view the water's Map is offered once — the view strip's tab — and the header's one action is " +
-     "Parts; the strip's Map opens the water's Map view on the part being read", async () => {
+  it("on the Regulations view the water's Map is offered once — the view strip's tab — and the header has no action " +
+     "(T150: no Parts either); the strip's Map opens the water's Map view on the part being read", async () => {
     await onRegs(CHILLIWACK, 1);
     const leaving = [screen.getByLabelText("Back").textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
-    const seen: unknown[] = [leaving, mapEntries(), screen.getByTestId("regs-action").textContent];
+    const seen: unknown[] = [leaving, mapEntries(), screen.queryByTestId("regs-action"),
+                             within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /parts/i }).length];
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     seen.push(screen.getByTestId("water-map-where").textContent);
-    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], "Parts", "Part 1 of 4 · Chilliwack River"]);
+    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, "Part 1 of 4 · Chilliwack River"]);
   }, 40_000);
+});
+
+describe("THE PARTS LIST IN THE MAP VIEW (T150, owner 2026-10-23: \"dont we want to remove 'parts' from reg page since map " +
+         "is now at the top tabs?\")", () => {
+  it("the Map view lists every part by name under the map — closed, then open as a radio group with the part shown " +
+     "checked — and a pick moves the frame's part: the map, and the Regulations view's part name", async () => {
+    const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
+                           stack: [{ item: CHILLIWACK as ItemId, part: 1, tapSid: null, at: null, view: "map" }] };
+    render(
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={openRegsFixture()} />
+      </GestureHandlerRootView>);
+    await waitFor(() => expect(screen.getByTestId("water-map-parts-toggle")).toBeTruthy(), { timeout: 20_000 });
+    const toggle = () => screen.getByTestId("water-map-parts-toggle");
+    const rows = () => within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")
+      .map((r) => [r.getAttribute("aria-label"), r.getAttribute("aria-checked")]);
+    const closed = [toggle().getAttribute("aria-label"), toggle().getAttribute("aria-expanded"),
+                    screen.queryByTestId("water-map-parts-list")];
+    fireEvent.click(toggle());
+    const open = [toggle().getAttribute("aria-label"), toggle().getAttribute("aria-expanded"),
+                  screen.getByTestId("water-map-parts-list").getAttribute("aria-label"), rows()];
+    expect([closed, open]).toEqual([
+      ["Show all 4 parts", "false", null],
+      ["Hide the list of parts", "true", "Parts of this water", [
+        ["Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River", "true"],
+        [expect.stringMatching(/, part 2 of 4 · Chilliwack River$/), "false"],
+        [expect.stringMatching(/, part 3 of 4 · Chilliwack River$/), "false"],
+        [expect.stringMatching(/, part 4 of 4 · Chilliwack River$/), "false"]]]]);
+    // the pick: part 2 of the list — the map's bar says so, the list closes, and the Regulations view reads that part
+    const name2 = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[1]!.getAttribute("aria-label")!.split(", part ")[0];
+    fireEvent.click(screen.getByTestId("water-map-part-1"));
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 2 of 4 · Chilliwack River"));
+    const after = [screen.getByTestId("water-map-name").textContent, screen.queryByTestId("water-map-parts-list"),
+                   toggle().getAttribute("aria-label")];
+    fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+    expect([...after, screen.getByTestId("regs-place").getAttribute("aria-label")])
+      .toEqual([name2, null, "Show all 4 parts", expect.stringContaining(name2!.split(" → ")[0]!)]);
+  }, 60_000);
 });

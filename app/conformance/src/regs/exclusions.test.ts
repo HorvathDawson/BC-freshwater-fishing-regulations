@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, GOLDEN_PARTS_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
 import { golden, taps, ZONE7_REWRITES } from "./oracles";
 
@@ -54,8 +54,9 @@ describe("EXCLUDE", () => {
     const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 4 ^(place\\.(full|short)|action\\.aria)$", "sheets 14 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
-        "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
+      .toEqual([...gone, "header 4 ^place\\.(full|short)$", "sheets 14 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+        "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
+        `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
         "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
@@ -71,6 +72,17 @@ describe("TROUT_LINE_IDS", () => {
     expect(TROUT_LINE_IDS).toEqual(["x5p1_1010", "x11p1_1010", "x15p8_1010", "x15p5_1010", "x15p13_1010", "x15p4_1010",
                                     "x15p14_1010", "x15p15_1010", "x15p6_1010", "x21p0_1010", "x32p0_1010"]);
     expect(Object.values(G.states).filter((s) => (s.keep as { strip?: unknown } | null)?.strip).length).toBe(133);
+  });
+});
+
+describe("(T71 / T150) the golden header's actions", () => {
+  it("every golden state with an action is excluded, by its kind's entry: the app's header has no action (owner call 3)", () => {
+    const withAction = Object.entries(G.states).filter(([, s]) => (s.header as { action: unknown } | null)?.action).map(([id]) => id);
+    expect([...GOLDEN_MAP_ACTION_IDS, ...GOLDEN_PARTS_ACTION_IDS].sort()).toEqual([...withAction].sort());
+    expect(GOLDEN_PARTS_ACTION_IDS.filter((id) => GOLDEN_MAP_ACTION_IDS.includes(id))).toEqual([]);
+    expect(GOLDEN_PARTS_ACTION_IDS.length).toBeGreaterThan(0);
+    expect(excluded("header", GOLDEN_PARTS_ACTION_IDS[0]!, "action")?.reason).toMatch(/^owner call 3 \(2026-10-23, T150, Q122\)/);
+    expect(excluded("header", GOLDEN_MAP_ACTION_IDS[0]!, "action")?.reason).toMatch(/^owner call 3 \(2026-10-22, T71\)/);
   });
 });
 

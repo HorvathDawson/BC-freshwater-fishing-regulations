@@ -57,7 +57,7 @@ describe("1. outside B.C. (key null): the one foot line; no Gear, Methods or Lic
     expect(page.keep).toEqual({ order: ["outside"], outside: OUTSIDE_LINE, strip: null, inherited: null, banner: null, groups: [],
       plainRows: [], otherFish: null, otherFishKey: [], caveats: [], possession: null, whereNot: null });
     expect([page.gear, page.methods, page.licence]).toEqual([null, null, null]);
-    expect([page.header.dot, page.header.place, page.header.action, page.header.tabs]).toEqual(["faint", null, null,
+    expect([page.header.dot, page.header.place, page.header.tabs]).toEqual(["faint", null,
       [{ tab: "keep", label: "What you can keep" }]]);   // no section to scroll to: Gear / Methods / Licence are not listed
   });
   it("outsideKeep is the Keep tab page.ts draws", () => {
@@ -86,10 +86,10 @@ describe("tidalKeep: the stored tidal frame's banner alone", () => {
 describe("2. unnamed header (D11 a): the store's place name, no part label, no Map / Parts action", () => {
   const inp = { target: { kind: "section", handle: 1178240 }, day: OCT10, weekday: "Saturday", item: null, partIx: 0,
     place: { label: "Region 5", name: "Unnamed stream · Region 5" }, key: key(), frames: { display: OPEN } } as unknown as RegsInputs;
-  it("edge unnamed; header name, place null, action null, four tabs", () => {
+  it("edge unnamed; header name, place null, four tabs (no header has an action: T71 / T150)", () => {
     expect(edgeKind(inp)).toBe("unnamed");
     const h = headerOf(inp, { today: OCT10, status: "open" });
-    expect([h.name, h.place, h.action, h.tabs.map((t) => t.label)]).toEqual(["Unnamed stream · Region 5", null, null,
+    expect([h.name, h.place, h.tabs.map((t) => t.label)]).toEqual(["Unnamed stream · Region 5", null,
       ["What you can keep", "Gear", "Methods", "Licence"]]);
   });
 });

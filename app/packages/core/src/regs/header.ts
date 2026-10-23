@@ -1,7 +1,8 @@
 /**
  * The Regulations page's header (T16): the water's name, "Today"/weekday + the date, the date pill's words and status
  * dot, the part's two label candidates (the component shows the full one when it fits two lines — prototype fitLabel is
- * layout, T23), the Map / Parts action and the four tab labels.
+ * layout, T23) and the four tab labels. No action: the header offers neither Map (T71) nor Parts (T150) — the water's
+ * Map view is the one place to see and pick its parts.
  *
  * Words only: the names and labels are the store's (item, part facts, picker choices); the dot is the day's status as the
  * strip already read it (T13). Nothing here decides a regulation.
@@ -75,20 +76,18 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
  *  outside); `downstream` (T53, an unnamed section only) the named water it flows into.
  *
- *  THE ACTION IS PARTS OR NOTHING (T71, owner call 3, 2026-10-22: "Keep only one Map entry (the view strip; drop the
- *  header's Map button)"): the water's Map view is offered once, by the view strip; the header offers the Parts sheet when
- *  the picker has a choice to make. No option brings a Map button back. */
+ *  THE HEADER HAS NO ACTION (owner call 3: T71 dropped its Map button, 2026-10-22 — "Keep only one Map entry (the view
+ *  strip; drop the header's Map button)"; T150 its Parts button, 2026-10-23 — "dont we want to remove 'parts' from reg
+ *  page since map is now at the top tabs?"). The water's Map view, offered once by the view strip, lists the parts by
+ *  name and picks one; the header keeps the part's NAME (`place`), so the reader always knows whose rules are shown. */
 export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown";
                                                downstream?: string | null }): HeaderVM {
   const name = inp.item?.name ?? inp.place?.name ?? "";
   const date = fmtDay(inp.day);
   const down = downstreamLabel(inp, o.downstream);
   const lab = down ? { full: down, short: down } : partLabels(inp);
-  // prototype placeRow: no label slot when the short label is the water's own name; the action's words keep the full one
+  // prototype placeRow: no label slot when the short label is the water's own name
   const lbl = lab && lab.short !== name ? lab.short : "";
-  const full = lab?.full || lbl;
-  const many = (inp.item?.picker?.choices.length ?? 0) > 1;
-  const action: HeaderVM["action"] = inp.item && many ? { kind: "parts", label: WORDS.PARTS, aria: WORDS.PARTS_ARIA(full) } : null;
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];
   return {
     name,
@@ -96,7 +95,6 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     date, dateAria: WORDS.DATE_ARIA(date),
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
     place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
-    action,
     // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed
     tabs: (o.status === "outside" ? tabs.slice(0, 1) : tabs).map(([tab, label]) => ({ tab, label })),
   };

@@ -48,7 +48,7 @@ export interface HeaderVM {
   readonly dateAria: string;                // golden header.dateAria
   readonly dot: "open" | "closed" | "faint";// status colour of the pill dot                         golden header.dot
   readonly place: { full: string; short: string } | null;  // two candidates; the component shows full if ≤2 lines else short (fitLabel)
-  readonly action: { kind: "parts"; label: "Parts"; aria: string } | null;   // golden header.action less Map (T71)
+  // no action: golden header.action (Map, Parts) is dropped — owner call 3 (T71 Map, T150 Parts); the Map view lists parts
   readonly tabs: readonly { tab: Tab; label: string }[];   // golden header.tabs; (T42) outside B.C. the Keep tab alone
 }
 

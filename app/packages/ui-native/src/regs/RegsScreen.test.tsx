@@ -119,18 +119,11 @@ describe("<RegsScreen>", () => {
     expect(back).toHaveBeenCalledTimes(1);
   });
 
-  it("(T71, owner call 3) no Map button in the regs header: the view strip is the water's one Map entry", () => {
+  it("(owner call 3: T71 Map, T150 Parts) no Map or Parts button in the regs header, and no slot for one", () => {
     mount();
-    expect([screen.queryByTestId("regs-action"), !!screen.getByTestId("regs-action-slot"),
-            screen.queryAllByRole("button", { name: /map/i }).map((b) => b.getAttribute("aria-label"))]).toEqual([null, true, []]);
-  });
-
-  it("a water with a choice of parts: the header's one action is Parts, and it opens the page's own Parts sheet", () => {
-    const onParts = vi.fn();
-    const parts = { kind: "parts", label: "Parts", aria: "Other parts — now Mouth → Vedder Crossing Bridge" } as const;
-    mount({ page: { ...page, header: { ...page.header, action: parts } } as RegsPage, onParts });
-    fireEvent.click(screen.getByRole("button", { name: parts.aria }));
-    expect([onParts.mock.calls.length, screen.getByTestId("regs-action").textContent]).toEqual([1, "Parts"]);
+    expect([screen.queryByTestId("regs-action"), screen.queryByTestId("regs-action-slot"),
+            within(screen.getByTestId("regs-header")).queryAllByRole("button", { name: /map|parts/i }).length])
+      .toEqual([null, null, 0]);
   });
 
   it("the pill asks for 'Which day?' (T49: the water screen's sheet, so a reload does not close it); no sheet of its own", () => {

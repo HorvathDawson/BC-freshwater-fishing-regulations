@@ -9,6 +9,7 @@
     "width.stream.base": 1.0,
     "width.stream.highlight": 3.2,
     "width.stream.water": 2.4,
+    "opacity.water.others": 0.4,
     "opacity.overlay": 0.45,
     "color.status.closed": "#FF3B6D",
     "color.status.own": "#FFD307",

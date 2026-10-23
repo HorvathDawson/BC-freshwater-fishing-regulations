@@ -77,8 +77,8 @@ describe("9. tidal water (x31p_1010)", () => {
 
 describe("10. an unnamed section (D11 a)", () => {
   const h = asPage(unnamed).header;
-  it("the store's place name as the heading; no Map or Parts button even with a handler", () => {
-    render(<RegsHeader header={h} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} onAction={() => {}} />);
+  it("the store's place name as the heading; no Map or Parts button", () => {
+    render(<RegsHeader header={h} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
     expect(h.name).toMatch(/^Unnamed stream · Regions? \d/);
     expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe(h.name);
     expect(screen.queryByRole("button", { name: /map|parts/i })).toBeNull();

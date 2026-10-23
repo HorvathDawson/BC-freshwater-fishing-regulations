@@ -22,7 +22,7 @@ const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
-                            fit, basemap, onImageryError, water, marks, onPressMark, spots, insetTop = 0 }: {
+                            fit, basemap, onImageryError, water, selection, marks, onPressMark, spots, insetTop = 0 }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -39,6 +39,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   highlight?: readonly SectionKey[];
   /** The rest of the selected part's water (P15) — see MapProps.water. */
   water?: MapProps["water"];
+  /** (T151) How `highlight` is marked — see MapProps.selection. */
+  selection?: MapProps["selection"];
   /** A water's boundary marks (P15) — see MapProps.marks. */
   marks?: MapProps["marks"];
   onPressMark?: MapProps["onPressMark"];
@@ -88,7 +90,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
 

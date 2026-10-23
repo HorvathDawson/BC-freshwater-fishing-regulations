@@ -108,6 +108,14 @@ had no water map of those waters); the 22 golden states stay keyed in exclusions
   Map button)"): (a). The strip stays on every view and is the water's one Map entry; the regs header's action is Parts
   or nothing (core `headerOf`, no `canMap`), its 44 px slot kept. Built in T71; D2 and D24 are SUPERSEDED. Still as
   built, not ruled: the strip's Conditions opens on the tapped reach (or the first), not `mid_sid`.**
+  **EXTENDED by the owner 2026-10-23 (T150, Q122: "dont we want to remove 'parts' from reg page since map is now at the
+  top tabs?"): the regs header has NO action — no Map, no Parts, no 44 px slot (core `HeaderVM` has no `action` field).
+  It keeps the part's NAME (the place label), so the reader always knows whose rules are shown. The parts are the
+  water's Map view's: a collapsible "Show all N parts" list under the map (a radio group by name, the part shown
+  checked; a pick is the map's part step, so the frame and the Regulations view follow). Tapping a part on the map
+  still works. Golden: the header's Parts action is an exclusion with this reason (`GOLDEN_PARTS_ACTION_IDS`, beside
+  `GOLDEN_MAP_ACTION_IDS`); header.parity asserts no action on every state. The Parts SHEET itself (core
+  `partsSheet`, sheet key `parts`) is no longer opened by the app — only the web start link `sheet=parts` reaches it.**
 
 ## OWNER 2026-10-21 — lake Stocked / Depth modes: prepared, not fed yet
 "we dont have the stocking and bathy map data in a feed yet. but we just want it prepared for it when we do have the feed.

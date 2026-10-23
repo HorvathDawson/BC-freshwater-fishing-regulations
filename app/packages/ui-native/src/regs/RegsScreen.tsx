@@ -63,8 +63,6 @@ export interface RegsScreenProps {
    * (this screen remounts on the next day's answer), and a sheet kept here closed under the reader at every step.
    */
   onDate: () => void;
-  /** the Parts button; absent → it opens the page's own Parts sheet (T37). */
-  onParts?: () => void;
   /**
    * (T58) A row of the Parts sheet pressed: read that part (the water screen makes it the frame's part — a move within
    * the water, no back layer). The sheet closes. Absent → the rows read nothing.
@@ -105,7 +103,7 @@ export interface RegsScreenProps {
   onAccessMap?: () => void;
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate, onParts, onPart,
+export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = null, onAccessMap }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
@@ -156,13 +154,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     return () => { if (g.__regsDebug === hook) delete g.__regsDebug; };
   }, [store]);
   const keepActions: KeepActions = { ...actions, onSheet: openSheet, onTab: toTab };
-  const action = page.header.action;
-  const onAction = action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
   // (T43) the pictures this page can show, credited at its foot (the app's whole list is the menu's Data sources page)
   const credits = useMemo(() => creditsFor(page), [page]);
 
-  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onAction={onAction} onTab={toTab}
+  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
                            side={layout === "desktop"} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;

@@ -74,29 +74,33 @@ describe("headerOf", () => {
     expect(["tidal", "outside", "unknown"].map((s) => headerOf(inputs(), { today, status: s as "tidal" }).dot))
       .toEqual(["faint", "faint", "faint"]);
   });
-  it("(T71, owner call 3: one Map entry, the view strip's) the action is Parts for several choices, else none — never Map", () => {
-    expect(headerOf(inputs(), { today, status: "open" }).action)
-      .toEqual({ kind: "parts", label: "Parts", aria: "Other parts — now From the mouth up to the falls" });
-    expect(headerOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [] }), { today, status: "open" }).action).toBeNull();
-    expect(headerOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [choice([0], "Whole water", 1)] }),
-                    { today, status: "open" }).action).toBeNull();
-    // no option can bring the Map button back: the header has no `canMap` (an old caller's extra key changes nothing)
-    expect(headerOf(inputs(), { today, status: "open", canMap: true } as Parameters<typeof headerOf>[1]).action?.kind).toBe("parts");
+  it("(owner call 3: T71 Map, T150 Parts) the header has no action — a water of many parts keeps only its part's name", () => {
+    // the whole VM: no `action` key at all (a Parts or Map button coming back is a new key here and fails this)
+    expect(headerOf(inputs(), { today, status: "open" })).toEqual({
+      name: "Test River", dayWord: "Today", date: "Oct 10", dateAria: "Change date, now Oct 10", dot: "open",
+      place: { full: "From the mouth up to the falls", short: "Mouth → falls" },
+      tabs: [{ tab: "keep", label: "What you can keep" }, { tab: "gear", label: "Gear" }, { tab: "methods", label: "Methods" },
+             { tab: "licence", label: "Licence" }] });
+    // one part, a picker of one choice, an old caller's `canMap`: still no action key
+    for (const inp of [inputs({ parts: [part("Whole water", "Whole water")], choices: [] }),
+                       inputs({ parts: [part("Whole water", "Whole water")], choices: [choice([0], "Whole water", 1)] })])
+      expect(Object.keys(headerOf(inp, { today, status: "open" }))).not.toContain("action");
+    expect(Object.keys(headerOf(inputs(), { today, status: "open", canMap: true } as Parameters<typeof headerOf>[1])))
+      .toEqual(["name", "dayWord", "date", "dateAria", "dot", "place", "tabs"]);
   });
-  it("a label that is the water's own name leaves the slot empty; the Parts words keep it", () => {
+  it("a label that is the water's own name leaves the slot empty", () => {
     const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", "Kootenay Lake — Lower West Arm"), part("y", "y")] }),
                        { today, status: "open" });
-    expect([h.place, h.action]).toEqual([null,
-      { kind: "parts", label: "Parts", aria: "Other parts — now Kootenay Lake — Lower West Arm" }]);
+    expect(h.place).toBeNull();
   });
-  it("a one-part water: the label slot is empty only when the label is the water's name, and there is no action", () => {
+  it("a one-part water: the label slot is empty only when the label is the water's name", () => {
     const h = headerOf(inputs({ name: "Wilkes Creek", parts: [part("Wilkes Creek", "Wilkes Creek")], choices: [] }),
                        { today, status: "open" });
-    expect([h.place, h.action]).toEqual([null, null]);
+    expect(h.place).toBeNull();
   });
-  it("an unnamed section: the place's name, no label, no action (D11); always the four tabs", () => {
+  it("an unnamed section: the place's name, no label (D11); always the four tabs", () => {
     const h = headerOf(inputs({ unnamed: true }), { today, status: "open" });
-    expect([h.name, h.place, h.action, h.tabs.map((t) => `${t.tab}:${t.label}`)]).toEqual(["Unnamed stream", null, null,
+    expect([h.name, h.place, h.tabs.map((t) => `${t.tab}:${t.label}`)]).toEqual(["Unnamed stream", null,
       ["keep:What you can keep", "gear:Gear", "methods:Methods", "licence:Licence"]]);
   });
   it("(T53) an unnamed section that flows into a named water: the label slot says which — a stream is its tributary", () => {

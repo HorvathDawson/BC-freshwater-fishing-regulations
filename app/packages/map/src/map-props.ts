@@ -10,6 +10,7 @@ import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
 import type { LakeFeed, ProfileStatus, StandingFeed } from "./colouring";
+import type { SelectionCue } from "./adapters/contract";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
 export interface MapMark {
@@ -232,6 +233,11 @@ export interface MapProps {
    * `highlight`, by the adapter's one `highlight` call.
    */
   water?: readonly SectionKey[];
+  /**
+   * (T151) How `highlight` is marked (`SelectionCue`): "outline" (default — the browse map's tapped or searched water,
+   * cased and floored wider) or "dim" (a water's Map view: the part at the same width as the rest, the rest dimmed).
+   */
+  selection?: SelectionCue;
   /**
    * BOUNDARY MARKS (P15): the release's `part_mark` places between a water's parts — a finger-sized ring, labelled
    * where `label` is given (the current part's two ends, or the mark that is open). `on`: the mark that is open.

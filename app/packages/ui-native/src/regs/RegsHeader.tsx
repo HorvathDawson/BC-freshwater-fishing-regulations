@@ -1,7 +1,7 @@
 /**
  * T23 — the Regulations page's header (prototype regs v38 `hdr`, `placeRow`, `placeGo`, `fitLabel`; tokens.md §5
- * "RegsHeader"): the water's name, the date pill (status dot, "Today ▾" / weekday over the date), the Parts button (or
- * its empty 44 px slot), the part's place label on two lines, and the four tabs. Fixed above the page's one scroll — never inside it
+ * "RegsHeader"): the water's name, the date pill (status dot, "Today ▾" / weekday over the date), the part's place
+ * label on two lines, and the four tabs (no Map or Parts button: owner call 3, T71 / T150). Fixed above the page's one scroll — never inside it
  * (header-one-shape).
  *
  * Draws `HeaderVM` (core header.ts) and nothing else: no logic beyond the label fit (`pickPlace`, layout only). The tab
@@ -20,7 +20,6 @@ import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
-import { Icon } from "../icons";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
@@ -37,39 +36,27 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
   return measuredHeight <= lineHeight * 2 + 1 ? place.full : place.short;
 }
 
-/** (N1) the action's glyph, from the app's one set (`icons.tsx`): Parts is a list. There is no Map button here (T71,
- *  owner call 3): the water's one Map entry is the view strip. */
-const GLYPH = { parts: "parts" } as const;
-
-export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, side = false }: {
+/**
+ * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
+ * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
+ */
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false }: {
   header: HeaderVM; palette: Palette;
   /** where the selected tab is read from (the pin store) */
   tabs: TabSource;
   onDate: () => void;
-  /** Parts pressed. Absent (or no action) → the slot stays (44 px, so the name does not reflow between waters), empty. */
-  onAction?: (kind: "parts") => void;
   onTab: (t: Tab) => void;
   /**
    * (T45) the desktop arrangement: the date pill and the tabs are drawn in the side column (`RegsSide`), so the header
-   * keeps the name row (with Parts) and the place label. false (a phone, a tablet): the header as it always was.
+   * keeps the name row and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
 }) {
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
-      {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill and Parts in it */}
+      {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette}>
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
-        <View testID="regs-action-slot" style={{ minWidth: 44, minHeight: 44 }}>
-          {h.action && onAction && (
-            <RegsPress testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
-                       accessibilityLabel={h.action.aria} box={{ w: 44, h: 44 }}
-                       style={{ minWidth: 44, minHeight: 44, paddingHorizontal: 4, gap: 1, alignItems: "center", justifyContent: "center" }}>
-              <Icon name={GLYPH[h.action.kind]} colour={palette.accent} size={20} />
-              <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaBold, { lineHeight: 13.73, color: palette.accent }]}>{h.action.label}</Text>
-            </RegsPress>
-          )}
-        </View>
       </WaterTitle>
       <Place place={h.place} palette={palette} />
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}

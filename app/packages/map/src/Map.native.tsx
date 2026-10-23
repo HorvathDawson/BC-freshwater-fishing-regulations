@@ -66,7 +66,7 @@ type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number } |
 type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
-                      onMoved, onMapPoint, onLongPress, highlight, water, marker, style, gauges, onVisible, pins, bare, fit,
+                      onMoved, onMapPoint, onLongPress, highlight, water, selection = "outline", marker, style, gauges, onVisible, pins, bare, fit,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors }: MapProps) {
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -160,9 +160,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
     if (!styled || !drawn || !atlasRef.current || !highlight) return;
-    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])]);
+    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection);
     wasLit.current = [...highlight, ...(water ?? [])];
-  }, [highlight, water, gen, styled, drawn, report, renderer]);
+  }, [highlight, water, selection, gen, styled, drawn, report, renderer]);
 
   /*
    * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which
@@ -354,7 +354,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                 <Text numberOfLines={3}
                       style={{ position: "absolute", bottom: 38, maxWidth: 180, paddingHorizontal: 7, paddingVertical: 3,
                                backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
-                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: "Archivo_700Bold" }}>
+                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: "Archivo_400Regular" }}>
                   {k.label}
                 </Text>
               ) : null}

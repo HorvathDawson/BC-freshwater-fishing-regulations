@@ -49,6 +49,36 @@ const stepText = (dir: "up" | "down") => {
 const ready = () => waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
 const lit = () => ({ highlight: [...(seen.props?.highlight ?? [])], water: [...(seen.props?.water ?? [])] });
 
+describe("<WaterMapView> (T150 / T151)", () => {
+  it("T151: the map is told to mark the part by DIMMING the rest (cue \"dim\"), never the browse map's outline", async () => {
+    mount("gnis:8634", 1);
+    await ready();
+    expect([seen.props?.selection, lit().highlight.length > 0, lit().water.length > 0]).toEqual(["dim", true, true]);
+  });
+
+  it("T150: the parts list — the toggle, the radio rows (normal weight), a pick handed to the frame, the list closed after it", async () => {
+    const calls = mount("gnis:8634", 1);
+    await ready();
+    const toggle = screen.getByTestId("water-map-parts-toggle");
+    expect([toggle.getAttribute("aria-label"), toggle.getAttribute("aria-expanded"), screen.queryByTestId("water-map-parts-list")])
+      .toEqual(["Show all 4 parts", "false", null]);
+    fireEvent.click(toggle);
+    const radios = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio");
+    expect(radios.map((r) => [r.getAttribute("aria-checked"), r.textContent])).toEqual([
+      ["true", "✓Vedder Crossing Bridge → Tamihi Rapids Bridge"],
+      ["false", "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence"],
+      ["false", "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"],
+      ["false", "Chilliwack River Ecological Reserve boundary → Source"]]);
+    // T151: no bold in the list — every text in it is the regular face
+    const faces = [...screen.getByTestId("water-map-parts").querySelectorAll("div[dir], span")]
+      .map((e) => getComputedStyle(e).fontFamily).filter(Boolean);
+    expect([...new Set(faces)]).toEqual(["Archivo_400Regular"]);
+    fireEvent.click(radios[2]!);
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 4 · Chilliwack River"));
+    expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([["part gnis:8634 0"], null]);
+  });
+});
+
 describe("<WaterMapView>", () => {
   it("the Chilliwack from its mouth part: lit, framed, ▲ to the top; the ends disabled", async () => {
     mount("gnis:8634", 1);

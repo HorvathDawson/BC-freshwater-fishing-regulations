@@ -32,7 +32,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
 - **How it looks (taste):** Q134 square spot pins · Q137 spruce no-access colour · Q138 dash on no-access lines ·
   Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
-  Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part ·
+  Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
+  `app-integration/T151-shots/alt-halo--*`) ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn

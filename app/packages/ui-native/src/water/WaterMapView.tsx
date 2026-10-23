@@ -14,7 +14,7 @@
  * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
 import type { ComponentProps } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -27,7 +27,7 @@ import { SPACE, type Palette } from "../theme";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
-  "palette" | "highlight" | "water" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
+  "palette" | "highlight" | "water" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart }: {
@@ -63,6 +63,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         <MapScreen palette={palette} {...map}
                    highlight={vm?.selected ?? []}
                    water={vm?.water ?? []}
+                   selection="dim"
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
                    fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false } : null}
@@ -90,6 +91,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         <WaterInset column>
         {vm ? (
           <>
+            {vm.list && <PartsList list={vm.list} palette={palette} act={act} />}
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{vm.where}</Text>
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, color: palette.ink, marginTop: 2 }}
                   testID="water-map-name" numberOfLines={3}>{vm.current.name}</Text>
@@ -120,6 +122,48 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         )}
         </WaterInset>
       </View>
+    </View>
+  );
+}
+
+/**
+ * (T150) THE PARTS OF THIS WATER, under the map: one 44 px toggle (the list glyph the header's Parts button had, its
+ * words "Show all 15 parts"), and open, every part by name — a radio group, the part shown checked (✓). The header's
+ * Parts sheet moved here (owner 2026-10-23); tapping a part on the map still works. Normal weight throughout (T151: no
+ * bold competing with the map's colours); the list scrolls inside a bounded box so the bar stays on screen.
+ */
+function PartsList({ list, palette, act }: {
+  list: NonNullable<WaterMapVM["list"]>; palette: Palette; act: (a: WaterMapAction) => void;
+}) {
+  // back closes the open list before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
+  useBackLayer(list.open, () => act({ type: "list" }));
+  return (
+    <View style={{ marginTop: -4, marginBottom: 6 }} testID="water-map-parts">
+      <Pressable onPress={() => act({ type: "list" })} accessibilityRole="button" accessibilityLabel={list.toggle}
+                 aria-expanded={list.open} testID="water-map-parts-toggle"
+                 style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+        <Icon name="parts" colour={palette.accent} size={18} />
+        <Text style={{ ...TYPE.body, flex: 1, color: palette.accent }}>{list.toggle}</Text>
+        <Icon name={list.open ? "collapse" : "expand"} colour={palette.accent} size={18} />
+      </Pressable>
+      {list.open && (
+        <ScrollView style={{ maxHeight: 232, marginBottom: 10, borderTopWidth: 1, borderTopColor: palette.line,
+                             borderBottomWidth: 1.5, borderBottomColor: palette.ink }}
+                    accessibilityRole="radiogroup" accessibilityLabel={list.title} testID="water-map-parts-list">
+          {list.rows.map((r) => (
+            <Pressable key={r.ix} onPress={() => act({ type: "part", ix: r.ix })} accessibilityRole="radio"
+                       aria-checked={r.here} accessibilityLabel={r.aria} testID={`water-map-part-${r.ix}`}
+                       style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2,
+                                paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: palette.line }}>
+              <Text style={{ ...TYPE.body, width: 16, color: palette.accent }}>{r.here ? WATER_MAP_WORDS.partsHere : ""}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ ...TYPE.body, color: palette.ink }}>{r.name}</Text>
+                {r.note ? <Text style={{ ...TYPE.small, color: palette.sub }}>{r.note}</Text> : null}
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

@@ -34,7 +34,7 @@ import { longPressWatch, type LongPressWatch } from "./longPress";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, bboxOfGeometry, padBbox, refineFit,
          spotMarkers, unionBbox, type Bbox, type SpotMarker } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
-import type { MapHandle } from "./adapters/contract";
+import type { MapHandle, SelectionCue } from "./adapters/contract";
 import { hereImage } from "./here-mark";
 import { labelShift } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";
@@ -222,7 +222,7 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
-                      onError, onMoved, onMapPoint, onLongPress, highlight, water, marker, style,
+                      onError, onMoved, onMapPoint, onLongPress, highlight, water, selection = "outline", marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, marks, onPressMark, spots, insetTop = 0 }: MapProps) {
   // read by the map's one `error` handler, which is bound once at construction
@@ -657,6 +657,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const wasLit = useRef<SectionKey[]>([]);
   const wasWater = useRef<SectionKey[]>([]);
+  const wasCue = useRef<SelectionCue>("outline");
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
@@ -665,12 +666,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const apply = () => {
       // Clears ONLY the highlight's keys, per feature, from the ids this map lit last time — see `stateHandle`.
       const handle = r.states(() => [...wasLit.current, ...wasWater.current]);
-      adapter.current.highlight(handle, [...highlight], [...(water ?? [])]);
+      adapter.current.highlight(handle, [...highlight], [...(water ?? [])], selection);
       wasLit.current = [...highlight];
       wasWater.current = [...(water ?? [])];
+      wasCue.current = selection;
     };
     return whenStyled(m, apply);
-  }, [highlight, water]);
+  }, [highlight, water, selection]);
 
   /**
    * THE BOUNDARY MARKS (P15): DOM markers, so a ring stays finger-sized at any zoom and a label sits over it — the
@@ -763,7 +765,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
     },
     restore: () => {
-      adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current]);
+      adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current], wasCue.current);
       for (const [layerId, values] of Object.entries(withoutEngineKeys(latestData.current ?? {}, () => {})))
         adapter.current.setData(layerHandle(m, r), layerId, values);
     },
@@ -1082,7 +1084,8 @@ function markElement(k: MapMark, c: { ink: string; card: string }, press: () => 
     t.textContent = k.label;
     t.style.cssText = "position:absolute;bottom:38px;left:50%;transform:translateX(-50%);max-width:180px;"
       + `width:max-content;padding:3px 7px;background:${c.card};color:${c.ink};border:1.5px solid ${c.ink};`
-      + "font:700 12px/1.25 Archivo,sans-serif;white-space:normal;pointer-events:none";
+      // (T151) normal weight: a mark's words name a place, they are not an emphasis competing with the water's colours
+      + "font:400 12px/1.25 Archivo,sans-serif;white-space:normal;pointer-events:none";
     b.appendChild(t);
   }
   b.addEventListener("click", (e) => { e.stopPropagation(); press(); });

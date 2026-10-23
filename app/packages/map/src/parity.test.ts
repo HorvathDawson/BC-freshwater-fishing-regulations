@@ -277,15 +277,58 @@ describe("the style adapter (platform-free: one implementation, tested for what 
         `state ${id} 60210 {"selected":true}`, `state ${id} 1235781 {"water":true}`, `state ${id} 1235785 {"water":true}`])]);
   });
 
-  it("P15: the stream's width floor — the part at the highlight width, the rest of its water at the water width", () => {
+  it("T151: a WATER'S MAP VIEW (cue \"dim\") lights its part `part`, never `selected` — no casing, no ring, no thicker line", () => {
+    const r = recorder();
+    a.highlight(r.h, [60210], [1235781], "dim");
+    expect(r.calls).toEqual([
+      ...STYLE_META.highlightable.map(({ id }) => `clear ${id}`),
+      ...STYLE_META.highlightable.flatMap(({ id }) => [`state ${id} 60210 {"part":true}`, `state ${id} 1235781 {"water":true}`])]);
+    // and the default cue is the browse map's outline
+    const o = recorder();
+    a.highlight(o.h, [60210]);
+    expect(o.calls.filter((c) => c.startsWith("state")).every((c) => c.endsWith('{"selected":true}'))).toBe(true);
+  });
+
+  it("P15 / T151: the stream's width floor — `selected` at the highlight width; a water's part and the rest of its water " +
+     "at ONE width (the water width), so the legend maps 1:1", () => {
     const t = resolveTheme("light");
     const w = paintFor("stream", "plain", t)["line-width"] as unknown[];
     const floor = ["case", ["boolean", ["feature-state", "selected"], false], 3.2,
-                   ["boolean", ["feature-state", "water"], false], 2.4, 0];
+                   ["any", ["boolean", ["feature-state", "part"], false], ["boolean", ["feature-state", "water"], false]], 2.4, 0];
     // inside the zoom curve, on every output
     expect((w.slice(3) as unknown[]).filter((_, i) => i % 2 === 1).every((v) => JSON.stringify((v as unknown[])[2]) === JSON.stringify(floor)))
       .toBe(true);
     expect([t["width.stream.highlight"], t["width.stream.water"]]).toEqual([3.2, 2.4]);
+  });
+
+  it("T151: the water's OTHER parts are dimmed by opacity (`water` × opacity.water.others) — on every per-section line " +
+     "and fill and the edges that follow them, nowhere else; no colour reads `part` or `water`", () => {
+    const water = ["boolean", ["feature-state", "water"], false];
+    const dimmed = (base: unknown, k: number) => ["case", water, ["*", base, k], base];
+    const seen: Record<string, unknown> = {};
+    const reads: string[] = [];
+    for (const theme of ["light", "dark", "cvd"]) {
+      const t = resolveTheme(theme), k = Number(t["opacity.water.others"]);
+      expect([theme, k]).toEqual([theme, 0.4]);
+      for (const l of MAP_STYLE.layers as { id: string; type: string }[]) {
+        const modes = Object.keys(STYLE_META.colorModes[l.id] ?? {});
+        if (!modes.length) continue;
+        const p = paintFor(l.id, modes[0]!, t);
+        const op = JSON.stringify(p[`${l.type}-opacity`] ?? null);
+        if (op.includes('"water"')) seen[`${theme} ${l.id}`] = p[`${l.type}-opacity`];
+        const colour = Object.entries(p).filter(([key]) => key.endsWith("-color"));
+        if (/"(part|water)"/.test(JSON.stringify(colour))) reads.push(`${theme} ${l.id}`);
+      }
+    }
+    expect(reads).toEqual([]);
+    const lt = resolveTheme("light"), lake = Number(lt["opacity.lake"]), wet = Number(lt["opacity.wetland"]);
+    const edge = (seen["light lake__edge"] as unknown[] | undefined)?.[3];      // the shoreline's own opacity, undimmed
+    expect(Object.fromEntries(Object.entries(seen).filter(([k]) => k.startsWith("light ")))).toEqual({
+      "light wetland": dimmed(wet, 0.4), "light wetland_flowing": dimmed(wet, 0.4),
+      "light lake": dimmed(lake, 0.4), "light lake__edge": dimmed(edge, 0.4),
+      "light lake_flowing": dimmed(lake, 0.4), "light stream": dimmed(1, 0.4),
+    });
+    expect(Object.keys(seen).length).toBe(18);                                  // the same six layers in each theme
   });
 
   it("OWNER 2026-10-21: the selected part KEEPS its regulation colour — no layer's colour reads `selected`", () => {
