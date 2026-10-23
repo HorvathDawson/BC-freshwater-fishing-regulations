@@ -13,7 +13,7 @@ import { appKeyOf, goldenKeyOf, sheetLines, type SheetKey } from "@app/core";
 import { eqPlain, type GoldenSheet } from "@app/core/regs/testing";
 import { caseIds, golden, inputsOf, parityGate, requestOf, ADULT_RESIDENT, summary } from "./golden";
 import { buildRegsPage } from "@app/core";
-import { droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
+import { D19_SHEET_LINES, droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
 import { groupLines } from "./keepPage";
 
 const G = golden();
@@ -117,6 +117,11 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
       }
       const got = sheetLines(vm!, { groupLines });
       let gotLines = got.lines, wantLines = keepLines(want.lines, droppedLines("sheets", id, gk));
+      for (const d of D19_SHEET_LINES.filter((x) => x.id === id && x.key.test(gk))) {
+        // D19 (a) as built (exclusions.ts D19_GROUPS): the app's line for the group the golden draws as a legacy article
+        expect(gotLines.filter((l) => l === d.line).length, `${id} ${gk}: D19 (a) line ${d.line}`).toBe(1);
+        gotLines = gotLines.filter((l) => l !== d.line); substituted++;
+      }
       for (const s of SHEET_SUBST.filter((x) => substIn(x, id) && x.key.test(gk))) {
         expect(wantLines.filter((l) => l.startsWith(s.from)).length, `${id} ${gk}: substitution ${s.from}`).toBe(1);
         wantLines = wantLines.map((l) => (l.startsWith(s.from) ? s.to + l.slice(s.from.length) : l)); substituted++;

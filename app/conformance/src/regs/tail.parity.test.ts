@@ -5,7 +5,7 @@
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
-import { excluded } from "./exclusions";
+import { excluded, comparableGroups } from "./exclusions";
 import { keepOf, tailProj } from "./keepGroups";
 
 const gate = await parityGate();
@@ -22,9 +22,9 @@ describe.skipIf(gate.skip)("T19 group tail", () => {
   afterAll(() => console.info(`${summary("keep", equal, ids.length)} · ${groups} groups (tail)`));
 
   it.each(ids)("%s: every group's not-kept lines, How it adds up, quiet line and more equal the golden", async (id) => {
-    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id);
-    expect(k.groups.length).toBe(gold.length);
-    k.groups.forEach((g, i) => {
+    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id), kg = comparableGroups(id, k.groups);   // D19 (a): exclusions.ts
+    expect(kg.length).toBe(gold.length);
+    kg.forEach((g, i) => {
       const got = tailProj(g), { notKept, worked, quiet, more } = gold[i]!;
       if (excluded("keep", id, `groups.${i}.worked`)) {
         // the Kitimat ruling: How it adds up held to the STORE's words (rows_row.elsewhere, group.worked), the rest to the golden
@@ -35,7 +35,7 @@ describe.skipIf(gate.skip)("T19 group tail", () => {
       }
       expect(got).toEqual({ notKept, worked, quiet, more });
     });
-    groups += k.groups.length; equal++;
+    groups += kg.length; equal++;
   });
 
   const tail = async (id: string, i = 0) => tailProj(keepOf((await inputsOf(id))!).groups[i]!);

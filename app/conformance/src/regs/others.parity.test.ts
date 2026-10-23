@@ -6,6 +6,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { otherFishOf, FISH, splitRows } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
+import { comparableGroups } from "./exclusions";
 import { appOpen, keepOf, othersProj } from "./keepGroups";
 
 const gate = await parityGate();
@@ -23,7 +24,7 @@ describe.skipIf(gate.skip)("T19 Other fish", () => {
 
   it.each(ids)("%s: the groups drawn and the Other fish list equal the golden", async (id) => {
     const inp = (await inputsOf(id))!, g = gk(id);
-    expect(keepOf(inp).groups.map((x) => `r${x.ctx.rowIx}`)).toEqual(g.groups.map((x) => x.row));
+    expect(comparableGroups(id, keepOf(inp).groups).map((x) => `r${x.ctx.rowIx}`)).toEqual(g.groups.map((x) => x.row));   // D19 (a): exclusions.ts
     expect(othersProj(inp)).toEqual(g.otherFish?.map((o) => ({ ...o, open: appOpen(o.open) })) ?? null);
     if (g.otherFish) lists++;
     equal++;

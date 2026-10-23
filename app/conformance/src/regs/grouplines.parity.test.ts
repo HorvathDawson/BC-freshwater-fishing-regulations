@@ -10,7 +10,7 @@
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
-import { droppedLines, excluded, keepLines, STAMP_LINE, YEAR_WINDOW_LINE } from "./exclusions";
+import { droppedLines, excluded, keepLines, STAMP_LINE, YEAR_WINDOW_LINE, comparableGroups } from "./exclusions";
 import { groupLinesProj, keepOf } from "./keepGroups";
 
 const gate = await parityGate();
@@ -26,9 +26,9 @@ describe.skipIf(gate.skip)("T17–T19 group lines", () => {
   afterAll(() => console.info(`${summary("keep", equal, ids.length)} · ${groups} groups (group lines, ${dropped} golden lines dropped)`));
 
   it.each(ids)("%s: every group's drawn lines equal the golden, in order", async (id) => {
-    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id);
-    expect(k.groups.length).toBe(gold.length);
-    k.groups.forEach((g, i) => {
+    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id), kg = comparableGroups(id, k.groups);   // D19 (a): exclusions.ts
+    expect(kg.length).toBe(gold.length);
+    kg.forEach((g, i) => {
       if (excluded("keep", id, `groups.${i}.lines`)) return;
       const want = keepLines(gold[i]!.lines, droppedLines("keep", id, `groups.${i}.lines`));
       dropped += gold[i]!.lines.length - want.length;

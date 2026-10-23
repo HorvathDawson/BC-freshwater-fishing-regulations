@@ -17,7 +17,7 @@ import {
 } from "@app/core";
 import { eqPlain, norm } from "./eq";
 import { cases, requestOf, summary } from "./golden";
-import { droppedLines, excluded, keepLines as dropLines } from "./exclusions";
+import { D19_GROUPS, droppedLines, excluded, keepLines as dropLines } from "./exclusions";
 import { groupLinesProj, keepOf as groupsOf } from "./keepGroups";
 import { keepLines, plainRowLines, selectorOf } from "./keepPage";
 
@@ -45,6 +45,18 @@ function goldenLines(id: string, g: GKeep): string[] {
   }
   return dropLines(lines, droppedLines("keep", id, "lines"));
 }
+/** the app's Keep VM with its D19 (a) group(s) set aside (exclusions.ts D19_GROUPS: a group the golden draws as the legacy
+ *  article `d19` drops) — each asserted present once — so order and lines compare what both sides draw */
+function comparableKeep(id: string, k: KeepVM): KeepVM {
+  const off = new Set(k.groups.flatMap((x, i) => (D19_GROUPS.some((d) => d.id === id && d.row === x.row) ? [i] : [])));
+  for (const d of D19_GROUPS.filter((x) => x.id === id))
+    if (k.groups.filter((x) => x.row === d.row).length !== 1) throw new Error(`D19_GROUPS: ${id} has no single group on row r${d.row}`);
+  if (!off.size) return k;
+  const renum = (i: number) => i - [...off].filter((j) => j < i).length;
+  return { ...k, groups: k.groups.filter((_, i) => !off.has(i)),
+           order: k.order.flatMap((b): KeepVM["order"][number][] =>
+             (typeof b !== "string" && "group" in b ? (off.has(b.group) ? [] : [{ group: renum(b.group) }]) : [b])) };
+}
 /** the golden's own group lines where a keyed exclusion holds the group to the store (Kitimat) */
 const groupOverride = (id: string, g: GKeep) => (i: number): string[] | null =>
   excluded("keep", id, `groups.${i}.lines`) ? dropLines(g.groups[i]!.lines.map(norm), droppedLines("keep", id, "lines")) : null;
@@ -58,10 +70,10 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     let groups = 0, plains = 0, caveats = 0;
     for await (const c of cases("keep")) {
       total++;
-      const g = c.g.keep as GKeep, inp = await c.inputs(), page = await c.page(), k = page.keep;
+      const g = c.g.keep as GKeep, inp = await c.inputs(), page = await c.page(), k = page.keep, kc = comparableKeep(c.id, k);
       const errs: string[] = [];
       // order
-      const order = eqPlain(k.order.map((b) => selectorOf(b, k)), goldenOrder(c.id, g));
+      const order = eqPlain(kc.order.map((b) => selectorOf(b, kc)), goldenOrder(c.id, g));
       if (!order.ok) errs.push(`order\n${order.diff}`);
       // each block = its presenter over the same hydrated day
       const place = makePlace(inp), s = settle(inp, place), card = buildModel(inp, place, s), today = requestOf(c.id).today;
@@ -85,9 +97,9 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
         if (JSON.stringify(r) !== JSON.stringify(plainRowOf(r.row, { inp, card, settled: s, seams }))) errs.push(`plain row r${r.row} ≠ plainRowOf`);
       });
       // every drawn line
-      const lines = eqPlain(keepLines(k, inp.day, groupOverride(c.id, g)), goldenLines(c.id, g));
+      const lines = eqPlain(keepLines(kc, inp.day, groupOverride(c.id, g)), goldenLines(c.id, g));
       if (!lines.ok) errs.push(`lines\n${lines.diff}`);
-      groups += k.groups.length; plains += k.plainRows.length; caveats += k.caveats.length;
+      groups += kc.groups.length; plains += k.plainRows.length; caveats += k.caveats.length;
       if (errs.length) bad.push(`${c.id}: ${errs.join("\n")}`); else passed++;
     }
     expect(bad).toEqual([]);
@@ -162,12 +174,28 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     expect([p.status, p.header.dot, p.keep.strip, p.keep.whereNot, p.keep.banner!.kind, p.keep.banner!.big]).toEqual(["tidal", "faint", null, null, "tidal", ["Tidal water"]]);
   });
 
-  it("klmb_1010 (D19): the pooled no-headline row draws no block; its plain rows draw as plainRowLines", async () => {
+  it("klmb_1010 (D19 (a), T80 as built): the rainbow row is a group — its words, in place of the golden's legacy article", async () => {
     const p = await at("klmb_1010");
     if (!p) return;
     expect(p.keep.order.filter((b) => typeof b !== "string" && "plain" in b).length).toBe(p.keep.plainRows.length);
-    expect(p.keep.plainRows.map((r) => plainRowLines(r)[0]!).some((l) => /^Rainbow troutSeparate from/.test(l))).toBe(false);
+    expect(p.keep.plainRows.map((r) => plainRowLines(r)[0]!).some((l) => /^Rainbow trout/.test(l))).toBe(false);
     expect(excluded("keep", "klmb_1010", "plainRows.0")?.reason).toMatch(/^decisions D19/);
+    // the group the golden cannot hold (exclusions.ts D19_GROUPS), drawn right after the Region 4 trout and char group
+    const d = D19_GROUPS.find((x) => x.id === "klmb_1010")!;
+    const i = p.keep.groups.findIndex((x) => x.row === d.row);
+    expect([p.keep.groups.map((x) => [x.row, x.title]), p.keep.order.slice(1, 3)])
+      .toEqual([[[0, "Trout and char"], [d.row, d.title]], [{ group: 0 }, { group: i }]]);
+    expect(keepLines({ ...p.keep, order: [{ group: i }] }, p.day)).toEqual([
+      "Rainbow troutSeparate from your 5 trout and char",
+      "This lake’s rule: up to 10 a day per angler",
+      "Rule book p.37 ↗",
+      "Up to 10 may be rainbow trout",
+      "any size Rainbow trout ›",
+      "20 a year · Record each on your licence right away",
+      "You need Conservation Surcharge Stamp for Kootenay Lake rainbow trout › only if you keep rainbow trout over 50 cm",
+      "How it adds up",
+      "This lake’s rule: 10 a day here. Rainbow trout you kept anywhere else today count toward those 10. These fish are counted apart from the region’s total: they don’t use it up. See every regulation line ›",
+    ]);
   });
 
   it("the page's header is headerOf's; (T71) no Map action — the view strip is the water's one Map entry", async () => {

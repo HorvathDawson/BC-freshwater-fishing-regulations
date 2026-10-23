@@ -7,6 +7,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { groupHeadOf, plain, type TreeTier } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
+import { comparableGroups } from "./exclusions";
 import { groupHeadProj, keepOf } from "./keepGroups";
 
 const gate = await parityGate();
@@ -25,7 +26,7 @@ describe.skipIf(gate.skip)("T17 group head", () => {
   it.each(ids)("%s: every group's title, scope, head (form a) and origin equal the golden", async (id) => {
     const k = keepOf((await inputsOf(id))!);
     const want = goldenGroups(id).map(({ title, scope, head, headLines, origin }) => ({ title, scope, head, headLines, origin }));
-    expect(k.groups.map((g) => groupHeadProj(g))).toEqual(want);
+    expect(comparableGroups(id, k.groups).map((g) => groupHeadProj(g))).toEqual(want);   // D19 (a): exclusions.ts
     groups += want.length; equal++;
   });
 

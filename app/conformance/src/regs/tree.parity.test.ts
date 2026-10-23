@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { plain, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
 import { norm } from "./eq";
-import { droppedLines, excluded } from "./exclusions";
+import { droppedLines, excluded, comparableGroups } from "./exclusions";
 import { goldenTree, keepOf, nodeProj, treeProj } from "./keepGroups";
 
 const gate = await parityGate();
@@ -48,9 +48,9 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   afterAll(() => console.info(`${summary("keep", equal, ids.length)} · ${tiers} tiers, ${kinds} kinds (tree)`));
 
   it.each(ids)("%s: every group's tree equals the golden (kind lines whole, the stamp lines included)", async (id) => {
-    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id);
-    expect(k.groups.length).toBe(gold.length);
-    k.groups.forEach((g, i) => {
+    const k = keepOf((await inputsOf(id))!), gold = goldenGroups(id), kg = comparableGroups(id, k.groups);   // D19 (a): exclusions.ts
+    expect(kg.length).toBe(gold.length);
+    kg.forEach((g, i) => {
       const got = treeProj(g);
       if (excluded("keep", id, `groups.${i}.tree`)) {
         // the Kitimat ruling: held to the STORE's tree instead (verify_map.py's check — tier line = TreeTier.says, kind

@@ -66,6 +66,34 @@ export const KEEP_STAMP_LINE_IDS: readonly string[] = Object.entries(golden().st
 /** decisions D19: the one pooled row with no stored group headline, drawn by page v36's legacy card path. */
 export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 
+/**
+ * (T80 item 3 = decisions D19 (a), AS BUILT — 210d0996 + 3a6d20c3, shipped in r-36fbc5326506) the pipeline now ships a
+ * one-kind trout/char group for that row (`rows.A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP`: Kootenay Main Body's own
+ * 10 rainbow trout a day), so the app draws it as a GROUP. The golden (the regs v38 prototype over page v36) still draws it
+ * on page v36's legacy card path as a plain article (KEEP_TAB_EXCLUDE), so the two cannot be compared line for line: the
+ * golden's article is dropped (KEEP_TAB_EXCLUDE) and the app's group is set aside here — by row, asserted present, so the
+ * entry fails the day the group is gone (`comparableGroups`). The group's own words are pinned in keep.parity
+ * ("klmb_1010 (D19 (a))"). Not "removed after the re-cut": T80's review predicted exactly this — the golden's legacy path
+ * differs from the group path, so parity is not the right test; removing the exclusion would fail by construction.
+ */
+export const D19_GROUPS: readonly { readonly id: string; readonly row: number; readonly title: string }[] = [
+  { id: "klmb_1010", row: 2, title: "Rainbow trout" },
+];
+export const D19_GROUP_REASON = "decisions D19 (a) as built (T80 item 3): the pipeline ships a one-kind group for the row page v36 draws on its legacy card path; the golden has no group to compare it with";
+/** `groups` without the D19 (a) group(s) of state `id` — each asserted present exactly once. */
+export function comparableGroups<G extends { readonly ctx: { readonly rowIx: number } }>(id: string, groups: readonly G[]): G[] {
+  for (const d of D19_GROUPS.filter((x) => x.id === id)) {
+    const n = groups.filter((g) => g.ctx.rowIx === d.row).length;
+    if (n !== 1) throw new Error(`D19_GROUPS: ${id} draws ${n} groups on row r${d.row}, the entry expects 1 — update exclusions.ts`);
+  }
+  return groups.filter((g) => !D19_GROUPS.some((d) => d.id === id && d.row === g.ctx.rowIx));
+}
+/** Lines the app's sheets draw for the D19 (a) group that the golden's sheets lack (its legacy path drew no group). Each is
+ *  removed from the APP's lines and asserted present exactly once. */
+export const D19_SHEET_LINES: readonly { readonly id: string; readonly key: RegExp; readonly line: string }[] = [
+  { id: "klmb_1010", key: /^pos:/, line: "With 10 rainbow trout a day you may have 20: 2 days’ fish." },
+];
+
 /** (T33) the states whose golden licence list lacks the Steelhead Conservation Surcharge Stamp because the PROTOTYPE removed
  *  it at render time (round 20i O3: a card whose not_kept says steelhead are closed here) — COMPARED since licence 7: the
  *  pipeline's stored documents leave it out there (`stamps.drop_closed_steelhead_stamp`). licence.parity holds this list to
@@ -86,8 +114,8 @@ export const LICENCE_EXCLUDE: readonly Exclusion[] = [
 /** (T21) the whole Keep tab: the D19 row (the Other fish rows' stamp lines are compared since rows 32). */
 export const KEEP_TAB_EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: D19_POOLED_IDS, key: /^plainRows\.0$/,
-    reason: "decisions D19: klmb_1010's pooled row has no stored group headline; page v36 draws it on its legacy card path (groupBlock / speciesBlock), which is not ported. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
-    until: "D19 (a): the pipeline ships a group for that row" },
+    reason: "decisions D19: klmb_1010's pooled row is drawn by page v36 on its legacy card path (groupBlock / speciesBlock), which is not ported; since T80 (D19 (a), r-36fbc5326506) the pipeline ships a group for it, which the app draws as a group (D19_GROUPS) and the golden cannot. Its article is dropped from the golden order and its lines from keep.lines; every other block of the state is compared",
+    until: "never on this golden — D19 (a) shipped: a prototype re-synced to draw the row as a group" },
 ];
 
 /**

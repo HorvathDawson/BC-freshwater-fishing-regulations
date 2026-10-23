@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
-import { D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
+import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
 import { golden, taps } from "./oracles";
 
@@ -110,6 +110,15 @@ describe("(T21) the whole Keep tab", () => {
     expect(excluded("keep", "klmb_1010", "plainRows.0")?.reason).toMatch(/^decisions D19/);
     expect(excluded("keep", "klmb_1010", "order")).toBeNull();
     expect(excluded("keep", "klmb_1010", "lines")).toBeNull();
+  });
+
+  it("D19 (a) as built (T80): the app's klmb_1010 group is set aside only while it is there — once, on its row", () => {
+    expect(D19_GROUPS).toEqual([{ id: "klmb_1010", row: 2, title: "Rainbow trout" }]);
+    const g = (rowIx: number) => ({ ctx: { rowIx } });
+    expect(comparableGroups("klmb_1010", [g(0), g(2)])).toEqual([g(0)]);
+    expect(comparableGroups("vedder_1010", [g(0), g(2)])).toEqual([g(0), g(2)]);      // other states untouched
+    expect(() => comparableGroups("klmb_1010", [g(0)])).toThrow(/D19_GROUPS: klmb_1010 draws 0 groups on row r2/);
+    expect(() => comparableGroups("klmb_1010", [g(2), g(2)])).toThrow(/draws 2 groups/);
   });
 });
 
