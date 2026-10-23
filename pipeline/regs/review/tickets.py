@@ -208,21 +208,12 @@ def statuses_now(marks: Iterable, *, entries: Mapping[str, Mapping], ctx,
     `ctx`, a `fingerprint.Context` of the vintage on disk), for the marks in force that export
     would turn into tickets — what a ticket says changed since. The API (`review.tickets`) and the
     CLI both ask here, so the file and the screen say the same thing."""
-    from pipeline.regs.review import fingerprint as F
-    from pipeline.regs.review.marks import Prints, latest, status
+    from pipeline.regs.review.marks import latest, status, target_prints
     out: dict[tuple, dict] = {}
     for key, m in latest(marks).items():
         if m.verdict not in verdicts:
             continue
-        if m.scope == "split":
-            try:
-                now = Prints.model_validate(F.split_fingerprints(m.target, ctx))
-            except KeyError:                      # the split is gone from splits.json
-                now = None
-        else:
-            e = entries.get(m.target)
-            now = Prints.model_validate(F.entry_fingerprints(e, ctx)) if e is not None else None
-        st = status(m, now)
+        st = status(m, target_prints(m, entries, ctx))
         out[key] = {"status": st["status"], "reasons": st["reasons"]}
     return out
 

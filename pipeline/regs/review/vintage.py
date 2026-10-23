@@ -288,6 +288,12 @@ def rebuild_commands(reasons: Iterable, target: Optional[Target] = None) -> list
                 f"python -m pipeline.atlas.reach.binding_diff {s['reach']} {nr}{_DIFF_WHY}",
                 "scripts/heavy.sh build 30 -- python -m pipeline build --promote"]
     out_dir = Path(t.bundle).parent
+    if Path(t.bundle).name != "bundle.sqlite":
+        # `deliver all --out-dir` writes <out-dir>/bundle.sqlite: a bundle of another name would
+        # never be rebuilt, and the tool would wait on it forever (T136 adversarial review)
+        return [f"# no command: `pipeline.deliver all --out-dir {_shown(out_dir)}` writes "
+                f"{_shown(out_dir / 'bundle.sqlite')}, but the tool reads {s['bundle']} — point "
+                f"CURATION_BUNDLE at a file named bundle.sqlite"]
     if Path(t.release).resolve() != (out_dir / "release").resolve():
         return [f"# no command: `pipeline.deliver all --out-dir {_shown(out_dir)}` writes the "
                 f"release into {_shown(out_dir / 'release')}, but the tool reads releases from "

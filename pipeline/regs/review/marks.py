@@ -418,6 +418,23 @@ def stale_reasons(mark: Mark, now: Prints | Mapping | None) -> list[StaleReason]
     return [r for r in STALE_REASONS if r in got]
 
 
+def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["Prints"]:
+    """THE PRINTS OF A MARK'S TARGET NOW, as staleness reads them (`moved` / `stale_reasons`): a
+    split mark, its split's (None when splits.json no longer has it); any other, its WHOLE entry's
+    (a rule mark is matched against every rule of its entry, so a renumbered rule is followed —
+    `_held_against`); None when the entry is gone. `ctx` is a `fingerprint.Context` of the vintage
+    on disk. Ticket export (`tickets.statuses_now`) and the false-stale gate (`gate.stale_report`)
+    both ask here (T136 adversarial review: the gate had grown its own copy)."""
+    from pipeline.regs.review import fingerprint as F
+    if mark.scope == "split":
+        try:
+            return Prints.model_validate(F.split_fingerprints(mark.target, ctx))
+        except KeyError:                          # the split is gone from splits.json
+            return None
+    e = entries.get(mark.target)
+    return Prints.model_validate(F.entry_fingerprints(e, ctx)) if e is not None else None
+
+
 def split_states(marks: Iterable[Mark], ctx) -> dict[str, dict]:
     """Every split in splits.json (`ctx`, a `fingerprint.Context`) -> its `status` now. A split
     nobody has confirmed is `unmarked`, so a split ADDED mid-review queues itself for its own

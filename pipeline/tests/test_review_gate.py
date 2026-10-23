@@ -489,3 +489,98 @@ def test_warm_reports_each_step_then_ready(reuse_mod, monkeypatch):
     monkeypatch.setattr(reuse_mod, "_two", boom, raising=False)
     got = reuse_mod.warm(reuse_mod.WARM_STEPS)
     assert (got["ready"], got["todo"], got["error"]) == (False, ["two"], "RuntimeError: no graph")
+
+
+# --------------------------------------------------------------------------------------------
+# T136 adversarial review
+# --------------------------------------------------------------------------------------------
+
+def test_a_mark_s_target_prints_have_one_reader(monkeypatch):
+    """`marks.target_prints` is THE prints of a mark's target now: a gone split or entry is None; a
+    rule mark reads its WHOLE entry (a renumbered rule is followed), never `rule_id`'s slice. The
+    gate and ticket export ask it; neither keeps its own copy."""
+    from pipeline.regs.review import fingerprint as F
+    asked = []
+    monkeypatch.setattr(F, "entry_fingerprints",
+                        lambda e, ctx, rule_id=None: (asked.append((e["entry_id"], rule_id)), _prints())[1])
+
+    class Ctx:
+        split_index = {"s1": {"id": "s1", "kind": "point"}}
+    rule_mark = M.Mark(scope="rule", target="a", rule_id="r1", verdict="verified",
+                       answers={k: "y" for k in "TRPA"}, reviewer="t", date="2026-10-23", pdf_sha256=SHA,
+                       prints=_prints())
+    split_mark = M.Mark(scope="split", target="s1", verdict="verified", answers={"P": "y"}, reviewer="t",
+                        date="2026-10-23", pdf_sha256=SHA, prints=M.Prints(text=None, records=(
+                            M.RecordPrint(key="split:s1", meaning="m", binding="b"),)))
+    entries = {"a": {"entry_id": "a"}}
+    assert M.target_prints(rule_mark, entries, Ctx) == _prints() and asked == [("a", None)]
+    assert M.target_prints(rule_mark, {}, Ctx) is None
+    assert M.target_prints(split_mark, entries, Ctx) == M.Prints.model_validate(F.split_fingerprints("s1", Ctx))
+    assert M.target_prints(split_mark.model_copy(update={"target": "gone"}), entries, Ctx) is None
+    src = {p.name: p.read_text(encoding="utf-8") for p in (REPO / "pipeline" / "regs" / "review").glob("*.py")}
+    assert [n for n, s in src.items() if "def target_prints(" in s] == ["marks.py"]
+    assert [n for n in ("gate.py", "tickets.py") if "split_fingerprints" in src[n]] == []
+
+
+def test_a_scratch_bundle_not_named_bundle_sqlite_gets_no_command(tmp_path):
+    """`deliver all --out-dir` writes <dir>/bundle.sqlite: a tool reading another name would wait on
+    a bundle no printed command rebuilds."""
+    t = scratch(tmp_path, bundle=tmp_path / "deliver" / "mine.sqlite")
+    got = V.rebuild_commands([V.Waiting.reach_entry], t)
+    assert len(got) == 1 and got[0].startswith("# no command: `pipeline.deliver all --out-dir") \
+        and "CURATION_BUNDLE" in got[0]
+
+
+def test_compare_all_compares_a_run_unresolved_rule_the_corpus_lacks(tmp_path):
+    """A rule the run left unresolved, of an entry the corpus has, under an id the corpus' entry does
+    not have, is a difference (the app has nothing) — not skipped."""
+    d = _write_run(tmp_path, [{"entry_id": "a", "rule_id": "r1", "section_id": "1", "scope": "reach"}],
+                   [{"entry_id": "a", "rule_id": "r9", "reason": "no_extents", "detail": ""}])
+    diffs, n = P.compare_all({"a": ["r1"]}, lambda e: {"r1": B("bound", None, frozenset({"1"}))},
+                             P.run_sections(d / "rule_section.jsonl"), _unresolved(d))
+    assert (n, diffs) == (2, {("a", "r9"): {
+        "outcome": ["absent", "unresolved"], "reason": [None, "no_extents"], "gained": 0, "lost": 0,
+        "sample_gained": [], "sample_lost": [], "explained": None}})
+
+
+def test_a_rule_less_zone_entry_is_no_pilot_target():
+    rows = [{"entry_id": "z:lic", "tier": "Z", "kind": "zone", "n_rules": 0, "verify": "unmarked",
+             "vintage": "current"},
+            {"entry_id": "z:ok", "tier": "Z", "kind": "zone", "n_rules": 3, "verify": "unmarked",
+             "vintage": "current"}]
+    got = G.pilot_pick(rows, [], quotas={"Z": 2})
+    assert ([t["id"] for t in got["targets"]], got["short"]) == (["z:ok"], {"Z": 1})
+
+
+def test_a_zone_entry_is_marked_in_the_pilot_only_when_every_rule_is():
+    def rule(rid):
+        return M.Mark(scope="rule", target="z", rule_id=rid, verdict="verified",
+                      answers={k: "y" for k in "TRPA"}, reviewer="ann", date="2026-10-24", pdf_sha256=SHA,
+                      seconds=10.0, prints=_prints(rules=(rid,)))
+    targets = [{"tier": "Z", "kind": "entry", "id": "z"}, {"tier": "P4", "kind": "entry", "id": "a"}]
+    marks = [rule("r1"), _mark("a", _prints(), seconds=5.0)]
+    part = G.pilot_report(targets, marks, {"z": ["r1", "r2"], "a": ["r1"]})
+    assert ([r["marked"] for r in part["targets"]], part["passes"]) == ([False, True], False)
+    done = G.pilot_report(targets, marks + [rule("r2")], {"z": ["r1", "r2"], "a": ["r1"]})
+    assert ([r["marked"] for r in done["targets"]], done["targets"][0]["seconds"], done["passes"]) == (
+        [True, True], 20.0, True)
+
+
+def test_needs_corpus_is_explained_only_when_the_run_answered():
+    """The app's `needs_corpus` explains a difference only against a rule the RUN answered (bound, or
+    unresolved for its own reason): a rule the run never wrote is a defect, not a corpus fact."""
+    assert P.compare(B("unresolved", "needs_corpus"), None) == {
+        "outcome": ["unresolved", "absent"], "reason": ["needs_corpus", None], "gained": 0, "lost": 0,
+        "sample_gained": [], "sample_lost": [], "explained": None}
+    assert P.compare(B("unresolved", "needs_corpus"), B("unresolved", "no_sections"))["explained"] == "needs_corpus"
+
+
+def test_the_fast_row_reader_never_returns_an_escaped_value(tmp_path):
+    """The quote-split reader is the writer's form only when no value holds an escape: a backslash in
+    an id is read through `json.loads`, so the id is the id, not its escaped spelling."""
+    from pipeline.atlas.reach.io import _write_jsonl
+    _write_jsonl(tmp_path / "r.jsonl", [{"entry_id": "a\\b", "rule_id": "r\\1", "section_id": "1:0",
+                                         "scope": "reach"}])
+    line = (tmp_path / "r.jsonl").read_text(encoding="utf-8")
+    assert len(line.split('"')) == 17                    # the fast path's shape: only the guard stops it
+    assert P._row(line) == ("a\\b", "r\\1", "1:0")

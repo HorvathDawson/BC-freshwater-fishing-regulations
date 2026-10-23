@@ -27,7 +27,7 @@ import json
 import statistics
 import sys
 from pathlib import Path
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Mapping, Optional, Sequence
 
 #: How many pilot targets each tier gives (PLAN §4 phase 5: 30 across the tiers). S0 targets are
 #: split points; the rest entries.
@@ -46,19 +46,11 @@ def stale_report(marks: Iterable, *, entries: Mapping[str, Mapping], ctx) -> dic
     (`marks.moved`) — split into `edited` (a curated part moved: an edit did it, the reviewer must
     look again) and `build_only` (only `marks.BUILT_PARTS` moved: the rebuild alone did it — across
     a rebuild of unchanged inputs, a FALSE STALE)."""
-    from pipeline.regs.review import fingerprint as F
-    from pipeline.regs.review.marks import BUILT_PARTS, MOVED_REASONS, STALE_REASONS, Prints, latest, moved
+    from pipeline.regs.review.marks import (BUILT_PARTS, MOVED_REASONS, STALE_REASONS, latest, moved,
+                                            target_prints)
     held, edited, build_only = 0, [], []
     for key, m in latest(marks).items():
-        if m.scope == "split":
-            try:
-                now = Prints.model_validate(F.split_fingerprints(m.target, ctx))
-            except KeyError:
-                now = None
-        else:
-            e = entries.get(m.target)
-            now = Prints.model_validate(F.entry_fingerprints(e, ctx)) if e is not None else None
-        parts = moved(m, now)
+        parts = moved(m, target_prints(m, entries, ctx))
         if not parts:
             held += 1
             continue
@@ -99,8 +91,11 @@ def pilot_pick(rows: Sequence[Mapping], cards: Sequence[Mapping],
                     "name": f"{c.get('waterbody')}: {c.get('label')}", "hash": f"split:{c['split_id']}"}
                    for c in _spread(pool, q)]
         else:
+            # a zone entry is marked rule by rule: one with no rules (licensing records only) can
+            # never be finished, so it is no pilot target (T136 adversarial review)
             pool = [r for r in rows if r.get("tier") == tier and r.get("verify") == "unmarked"
-                    and r.get("vintage") == "current"]
+                    and r.get("vintage") == "current"
+                    and not (r.get("kind") == "zone" and not r.get("n_rules"))]
             got = [{"tier": tier, "kind": "entry", "id": r["entry_id"], "name": r.get("name"),
                     "region": r.get("region"), "hash": r["entry_id"]} for r in _spread(pool, q)]
         out += got
@@ -109,10 +104,23 @@ def pilot_pick(rows: Sequence[Mapping], cards: Sequence[Mapping],
     return {"targets": out, "short": short}
 
 
-def pilot_report(targets: Sequence[Mapping], marks: Iterable) -> dict:
+def _finished(ms: Sequence, rules: Optional[Sequence[str]]) -> bool:
+    """Is a target DONE by its marks `ms`: a split or water entry, any mark; an entry marked rule by
+    rule (no entry mark — a zone entry), a mark on EVERY one of its `rules` (a zone entry with one
+    rule of ten marked is not done). `rules` None: not known, any mark counts."""
+    if not ms:
+        return False
+    if rules is None or any(m.scope != "rule" for m in ms):
+        return True
+    return set(rules) <= {m.rule_id for m in ms}
+
+
+def pilot_report(targets: Sequence[Mapping], marks: Iterable,
+                 rules_of: Optional[Mapping[str, Sequence[str]]] = None) -> dict:
     """THE PILOT'S MEASURE, read off the marks store: per target, the reviewer's time (the sum of
     its marks' `seconds` — a zone entry is marked rule by rule), its verdicts and problems, and any
-    tool blocker; per tier and overall, how many were marked and the median / mean time per target.
+    tool blocker; per tier and overall, how many were marked (`_finished`: for an entry marked rule
+    by rule, every rule of `rules_of[entry]`) and the median / mean time per target.
     A copy a migration carried (`carried_by`) is not the reviewer's work and is not counted."""
     mine: dict[str, list] = {}
     for m in marks:
@@ -122,7 +130,8 @@ def pilot_report(targets: Sequence[Mapping], marks: Iterable) -> dict:
     for t in targets:
         ms = mine.get(t["id"], [])
         secs = [m.seconds for m in ms if m.seconds is not None]
-        rows.append({"tier": t["tier"], "kind": t["kind"], "id": t["id"], "marked": bool(ms),
+        rules = rules_of.get(t["id"]) if rules_of is not None and t["kind"] == "entry" else None
+        rows.append({"tier": t["tier"], "kind": t["kind"], "id": t["id"], "marked": _finished(ms, rules),
                      "seconds": round(sum(secs), 1) if secs else None,
                      "verdicts": [m.verdict for m in ms],
                      "defects": [{"verdict": m.verdict, "problem": m.problem, "note": m.note}
@@ -219,7 +228,9 @@ def main(argv: list[str] | None = None) -> int:
             a.md.write_text(pilot_markdown(got, url=a.url), encoding="utf-8")
     else:
         targets = json.loads(a.pilot.read_text(encoding="utf-8"))["targets"]
-        got = pilot_report(targets, M.load(reuse.MARKS_PATH))
+        rules_of = {e["entry_id"]: [r["rule_id"] for r in e.get("rules") or []]
+                    for _, e in reuse._all_entries()}
+        got = pilot_report(targets, M.load(reuse.MARKS_PATH), rules_of)
         print(json.dumps({k: v for k, v in got.items() if k != "targets"}, indent=1))
     if a.json:
         a.json.write_text(json.dumps(got, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")

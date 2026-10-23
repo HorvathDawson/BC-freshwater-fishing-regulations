@@ -143,6 +143,11 @@ def compare_all(rules: Mapping[str, list[str]],
     Returns ({(entry, rule): difference}, rules compared)."""
     diffs: dict[tuple[str, str], dict] = {}
     seen: set[str] = set()
+    # the run's unresolved rules by entry: one the corpus' entry does not have is still compared
+    # (T136 adversarial review: only the run's BOUND rules were added to the corpus' own)
+    unresolved_of: dict[str, set[str]] = {}
+    for (e, r) in unresolved:
+        unresolved_of.setdefault(e, set()).add(r)
     n = 0
     stream = iter(bound)
     pending = next(stream, None)
@@ -157,7 +162,7 @@ def compare_all(rules: Mapping[str, list[str]],
             run_b = {rid: Binding(BOUND, None, secs) for rid, secs in pending[1]}
             pending = next(stream, None)
         app = app_of(eid)
-        for rid in sorted(set(rules[eid]) | set(run_b)):
+        for rid in sorted(set(rules[eid]) | set(run_b) | unresolved_of.get(eid, set())):
             n += 1
             got = compare(app.get(rid), run_b.get(rid) or unresolved.get((eid, rid)))
             if got is not None:
