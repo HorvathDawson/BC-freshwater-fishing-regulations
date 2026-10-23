@@ -88,7 +88,8 @@ const LINE = 0.6, EDGE = 0.8;
  *
  * TEMPERATURE (T83): the warm dot has its own hue, so the dots are cool / warm / critical (open / `color.temp.warm` /
  * closed). Light and cvd LIFTED past 20 (light 15.9 -> 27.9, cvd 20 -> 25.3: a coral warm stands far off the teal open
- * and the dark red closed for every reader). Dark went the other way, 17.7 -> 15.4, and is a recorded exception below.
+ * and the dark red closed for every reader). Dark went the other way, 17.7 -> 15.4, and is a recorded exception below:
+ * all three dark pairs sit under 20, and cool / critical (17.7, open vs closed) already did before T83.
  *
  * Every floor under the ticket's 20 is listed, with its reason, in UNDER_20 — a new one fails until it is recorded.
  */
@@ -119,9 +120,10 @@ const WHY = {
             "(search-d.mjs T47_TERM_MIN)",
   permit: "restricted, closed and open are all pill text (4.5:1 on the card) and must stand 20 / 15 off body ink, which " +
           "leaves restricted no room to go darker; the first D bought 25 with a near-black restricted the card read as ink",
-  darkWarm: "the warm dot's own hue (T83, owner default Q15): no warm hue (LCh h 25-95) light enough to read on the dark " +
-            "map (L >= 55) stands more than 15.4 off the dark rose closed for a deuteranope (sRGB cube, step 4); the plum " +
-            "it replaced reached 17.7 but said 'permit area'",
+  darkWarm: "every dark dot pair: warm / critical 15.4 and cool / warm 17.8 (T83's own warm hue, owner default Q15: no " +
+            "warm hue, LCh h 25-95, light enough to read on the dark map, L >= 55, stands more than 15.4 off the dark rose " +
+            "closed for a deuteranope, sRGB cube step 4), and cool / critical 17.7 (open vs closed, untouched by T83 and " +
+            "the pair that bound this floor before it; the plum warm stood 36.0 / 22.7 off them but said 'permit area')",
   darkBoundary: "no neutral grey lifts past 15 against the dark card's light statuses (search-d.mjs T47_BND_TOKEN_CAP=20, " +
                 "ink rules on or off); the boundary is told apart by dash and width, and is drawn under the water (T83)",
   boundaryLine: "a 3 px grey edge and a 0.6-coverage status line both wash toward a pale ground; a boundary is told apart " +
@@ -314,5 +316,25 @@ describe("status colours, as drawn (T47)", () => {
     const under = THEMES.flatMap((th) => Object.entries(FLOOR[th]).filter(([, v]) => v < 20).map(([k]) => `${th} ${k}`));
     expect(under).toEqual(Object.keys(UNDER_20));
     expect(Object.values(UNDER_20).filter((why) => why.length < 40)).toEqual([]);
+  });
+
+  /*
+   * THE DARK TEMPERATURE EXCEPTION, MEASURED (T83 review). Held to the ticket's 20, EVERY dark dot pair fails: warm /
+   * critical 15.4 and cool / warm 17.8 (T83's orange), and cool / critical 17.7 — open against closed, which T83 did not
+   * touch and which alone bound the dark floor at 17.7 before it (the plum it replaced stood 36.0 / 22.7 off them). The
+   * recorded reason must name all three, or the exception hides pairs nobody chose.
+   */
+  it("every dark temperature dot pair is under 20, and the recorded reason names all three", () => {
+    const was = FLOOR.dark.temperature!;
+    FLOOR.dark.temperature = 20;
+    try {
+      expect(failures("dark", resolveTheme("dark")).filter((x) => x.includes("gauge dots"))).toEqual(de([
+        "dark: cool ~A7FBB2 vs warm ~FC9C28 as gauge dots 17.8 < 20 (deutan (machado))",
+        "dark: warm ~FC9C28 vs critical ~FF3B6D as gauge dots 15.4 < 20 (deutan (vienot))",
+        "dark: cool ~A7FBB2 vs critical ~FF3B6D as gauge dots 17.7 < 20 (deutan (vienot))"]));
+    } finally { FLOOR.dark.temperature = was; }
+    const why = UNDER_20["dark temperature"]!;
+    expect(["warm / critical 15.4", "cool / warm 17.8", "cool / critical 17.7"].map((p) => [p, why.includes(p)]))
+      .toEqual([["warm / critical 15.4", true], ["cool / warm 17.8", true], ["cool / critical 17.7", true]]);
   });
 });
