@@ -1159,22 +1159,19 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         The bound id may also be an ALIAS rather than a boundary's own id: a split that landed inside
         a lake run (Duncan Dam) exists only as another name for that lake's boundary, so matching on
         `b.id` alone still found nothing and the reach stayed unresolvable."""
-        want = {bid, f"split:{bid}"}
         out = {f"split:{bid}"}
         for i in scope:
             it = reg.get(i)
             for b in (it.boundaries if it else ()):
-                aliases = set(b.aliases or ())
-                if b.id == bid or (aliases & want):
+                if bid in b.answers_to():           # `RegistryBoundary.answers_to`, T125 item 3
                     if b.ref:
                         out.add(b.ref)
-                    out.update(aliases)             # ids this same cut-point also answers to
+                    out.update(b.aliases or ())     # the graph refs this cut-point also carries
         return out
 
     def _meta(bid: str) -> tuple[str, str]:
         """(boundary kind, label) of the registry boundary a bound id names — its own boundary
         first, else the one it is an alias of (as `_refs` finds them)."""
-        want = {bid, f"split:{bid}"}
         alias = None
         for i in scope:
             it = reg.get(i)
@@ -1182,7 +1179,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                 kind = getattr(b.kind, "value", b.kind)
                 if b.id == bid:
                     return str(kind or ""), b.label or ""
-                if alias is None and set(b.aliases or ()) & want:
+                if alias is None and bid in b.answers_to()[1:]:
                     alias = (str(kind or ""), b.label or "")
         return alias or ("", "")
 

@@ -313,8 +313,8 @@ class PlaceNamer:
         for iid, it in registry.items():
             for b in getattr(it, "boundaries", None) or ():
                 self.by_id.setdefault(b.id, []).append((iid, b))
-                for a in getattr(b, "aliases", None) or ():
-                    self.by_alias.setdefault(str(a).removeprefix("split:"), []).append((iid, b))
+                for a in b.answers_to()[1:]:      # `RegistryBoundary.answers_to`, T125 item 3
+                    self.by_alias.setdefault(a, []).append((iid, b))
         #: (split id, why) for every cut-point that could not be named — for the build's report.
         self.unnamed: set[tuple[str, str]] = set()
 
@@ -328,8 +328,7 @@ class PlaceNamer:
             self.unnamed.add((sid, "not a cut-point in this atlas"))
             return None, None
         iid, b = cands[0]
-        labels = [b.label] + [self.split_labels.get(str(a).removeprefix("split:"), "")
-                              for a in (getattr(b, "aliases", None) or ())]
+        labels = [b.label] + [self.split_labels.get(a, "") for a in b.answers_to()[1:]]
         if sid != b.id:
             labels.append(self.split_labels.get(b.id, ""))
         labels = [cut_name(x) for x in labels]

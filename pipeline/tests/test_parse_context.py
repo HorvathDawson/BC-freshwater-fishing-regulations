@@ -183,6 +183,46 @@ def test_item_scoping_accepts_an_alias():
     assert "okanagan_river__mcintyre_dam" in owned
 
 
+# --- T125 item 3: the ids a cut-point answers to are ONE reading -----------------------------------
+
+def test_answers_to_is_the_id_then_its_bare_aliases():
+    b = RegistryBoundary(id="gauge__08NM247", label="x", kind="split", ref="split:gauge__08NM247",
+                         aliases=("split:okanagan_river__mcintyre_dam", "lake:9"))
+    assert b.answers_to() == ("gauge__08NM247", "okanagan_river__mcintyre_dam", "lake:9")
+    assert RegistryBoundary(id="a", label="", kind="lake").answers_to() == ("a",)
+
+
+def test_a_cut_point_shared_by_two_items_answers_to_both_alias_sets():
+    """A boundary id two items of one row share kept only the FIRST item's aliases in the menu
+    (`setdefault`), so `bindable_ids` refused an id the resolver binds through the second item.
+    Both sets now, the first item's label and kind."""
+    def it(iid, aliases, label):
+        return RegistryItem(id=iid, name=iid, kind="stream", section_ids=("s",), boundaries=(
+            RegistryBoundary(id="shared_lake", label=label, kind="lake", ref="lake:1",
+                             aliases=aliases),))
+    a = it("gnis:1", ("split:a_signs",), "Shared Lake (a)")
+    b = it("gnis:2", ("split:b_signs", "split:a_signs"), "Shared Lake (b)")
+    ctx = build_parse_context(a, raw_regs="x", also_items=(b,))
+    assert ctx.boundaries == (("shared_lake", "Shared Lake (a)", "lake", ("a_signs", "b_signs")),)
+    assert ctx.bindable_ids == {"shared_lake", "a_signs", "b_signs"}
+    assert ctx.boundaries_by_item == (("gnis:1", ("shared_lake", "a_signs")),
+                                      ("gnis:2", ("shared_lake", "b_signs", "a_signs")))
+
+
+def test_no_reader_strips_the_split_prefix_of_a_registry_alias_itself():
+    """Every reader of a REGISTRY boundary's aliases asks `answers_to` (mutation: re-inline the
+    strip or the `{bid, f"split:{bid}"}` want-set in any of them and this fails)."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    for rel in ("regs/parsing/parse_context.py", "atlas/reach/classify.py",
+                "deliver/bundle/place_names.py"):
+        src = (root / rel).read_text()
+        assert 'len("split:")' not in src and 'removeprefix("split:")' not in src, rel
+        assert "answers_to()" in src, rel
+    ext = (root / "atlas/reach/extent.py").read_text()
+    assert 'want = {bid, f"split:{bid}"}' not in ext and ext.count("answers_to()") >= 2
+
+
 def test_render_boundary_menu_tolerates_a_three_element_row():
     """Batch files written before aliases carry (id,label,kind) and must still render."""
     from pipeline.regs.parsing.parse_context import render_boundary_menu

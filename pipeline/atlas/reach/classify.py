@@ -412,10 +412,9 @@ def _why(extents: list[dict], registry, covered_ids: list[str]) -> tuple[Reason,
 
 def _cut_exists(split_id: str, items: list[str], registry, universe: set[str]) -> bool:
     """Is this split id a boundary on any of the scoped items (directly or by alias)?"""
-    want = {split_id, f"split:{split_id}"}
     for i in items:
         it = registry.get(i)
         for b in (it.boundaries if it else ()):
-            if b.id == split_id or (set(b.aliases or ()) & want):
+            if split_id in b.answers_to():
                 return True
     return False

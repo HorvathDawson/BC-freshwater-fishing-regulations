@@ -104,16 +104,16 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
     pinned item contributes its boundaries to the menu, its MUs, and its names."""
     items = (item, *also_items)
     bmap: dict[str, tuple[str, str, str, tuple[str, ...]]] = {}
-    for it in items:                                   # union, primary first (its ids win a collision)
+    for it in items:                                   # union, primary first (its label/kind win)
         for b in it.boundaries:
-            # `split:` is the graph's ref prefix; the parser binds bare ids, so strip it here rather
-            # than asking the model to know about the prefix.
-            aliases = tuple(a[len("split:"):] if a.startswith("split:") else a
-                            for a in (b.aliases or ()))
-            bmap.setdefault(b.id, (b.id, b.label, b.kind, aliases))
-    by_item = tuple((it.id, tuple(x for b in it.boundaries
-                                  for x in (b.id, *(a[len("split:"):] if a.startswith("split:") else a
-                                                    for a in (b.aliases or ())))))
+            # `split:` is the graph's ref prefix; the parser binds bare ids (`answers_to` strips it).
+            # A cut-point SHARED by two items keeps the aliases of BOTH (T125 item 3): the first
+            # item's alone dropped what the second answers to, so the menu refused an id the
+            # resolver binds.
+            prev = bmap.get(b.id)
+            aliases = tuple(dict.fromkeys((*(prev[3] if prev else ()), *b.answers_to()[1:])))
+            bmap[b.id] = (prev or (b.id, b.label, b.kind, ()))[:3] + (aliases,)
+    by_item = tuple((it.id, tuple(x for b in it.boundaries for x in b.answers_to()))
                     for it in items)
     return ParseContext(
         entry_id=entry_id or item.id,
